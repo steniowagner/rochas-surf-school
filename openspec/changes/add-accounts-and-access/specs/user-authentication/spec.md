@@ -32,6 +32,22 @@ The system SHALL send a 6-digit code to the email address a person enters and SH
 - **WHEN** a person enters a code that does not match the one sent
 - **THEN** they are not signed in
 
+### Requirement: Code expiry and resending
+A sign-in code SHALL expire 10 minutes after it is sent. A person SHALL be able to request a new code once 30 seconds have passed since the previous one was sent, and not sooner.
+
+#### Scenario: Expired code
+- **WHEN** a person enters a code more than 10 minutes after it was sent
+- **THEN** they are not signed in
+- **AND** they can request a new code
+
+#### Scenario: Requesting a new code
+- **WHEN** 30 seconds have passed since the last code was sent
+- **THEN** the person can request a new code
+
+#### Scenario: Requesting a new code too soon
+- **WHEN** a person tries to request a new code less than 30 seconds after the previous one was sent
+- **THEN** no new code is sent
+
 ### Requirement: One account per email address
 The system SHALL keep one account per email address. Signing in with any method that provides the same address SHALL open the same account.
 

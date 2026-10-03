@@ -13,13 +13,13 @@ Applies to students, instructors and admins.
 
 ### Account and access
 
-- As a user, I'd like to sign in or create an account with Google, Facebook, or my email and a 6-digit code sent to that email, with no password. On iOS, I'd also like to use Sign in with Apple. The same screen is used to sign in and to create an account.
+- As a user, I'd like to sign in or create an account with Google, Facebook, or my email and a 6-digit code sent to that email, with no password. On iOS, I'd also like to use Sign in with Apple. The same screen is used to sign in and to create an account. The code expires after 10 minutes, and a new one can be requested after 30 seconds.
 - As a user, I'd like one account per email address, whichever sign-in method I use. If Facebook doesn't share my email, I type one and confirm it with a code. My email address can't be changed later.
 - As a user signing up with the email code, I'd like to give my name before my account waits for approval.
 - As a user, after signing up I'd like to see that my account is waiting for approval, and to be told by a push notification when it's approved or denied.
-- As a user, once I'm approved I'd like to add my WhatsApp number and accept the school rules before I start.
+- As a user, once I'm approved I'd like to add my WhatsApp number and accept the school rules before I start. The WhatsApp number is always required.
 - As a user, if my registration is denied I'd like to see the reason and a button that opens WhatsApp with the school's number. My data is erased 30 days after the denial, and after that I can sign up again with the same email.
-- As a user, I'd like to update my profile: profile picture, name and WhatsApp number. WhatsApp numbers include the country code, with Brazil (+55) preselected.
+- As a user, I'd like to update my profile: profile picture, name and WhatsApp number. The WhatsApp number can be changed but never left empty. WhatsApp numbers include the country code, with Brazil (+55) preselected.
 - As a user, I'd like to choose whether other users can see my WhatsApp number. It's hidden by default, and admins always see it.
 - As a user, I'd like to be notified when my role changes.
 - As a user, I'd like to accept the school rules again when an admin changes them and asks everyone to accept the new version. I'm asked the next time I open the app.
@@ -204,7 +204,7 @@ Instructors cannot approve or deny registrations or requests, cancel classes, ch
 - See the status of each request: pending (or on the waiting list), approved, denied, withdrawn, cancelled, taken out, expired, or class cancelled.
 - Withdraw a pending request until the class starts.
 - Cancel an approved seat until the class's cancellation deadline. After that, contact the school.
-- Rate a class after it ends: one rating, with stars and an optional comment, which can be edited or deleted. Ratings are about the class, visible to everyone, and show the author's name.
+- Rate a class after it ends: one rating, from 1 to 5 stars with an optional comment, which can be edited or deleted. Ratings are about the class, visible to everyone, and show the author's name.
 - Upload photos to finished classes they took. Everyone can see and download them, and uploaders can delete their own.
 
 Students cannot:
@@ -251,11 +251,14 @@ Students cannot:
 
 ## Open Questions
 
-- Is the WhatsApp number required at onboarding, as the specs say, or optional, as the designs show?
-- The designs include things the specs don't. Should they stay, and be added to the specs?
-  - weather and sea conditions on class details;
-  - class names, such as "Ondas da Manhã";
-  - a message from an admin to one class;
-  - notes on registrations and class requests;
-  - an "also an instructor" option when promoting someone to admin.
-- Can the specs take these details from the designs: the sign-in code expires after 10 minutes, a new code can be requested after 30 seconds, and ratings use 1 to 5 stars?
+None right now.
+
+## Deferred to development
+
+The designs include these items, which the specs don't cover yet. They'll be decided when development starts:
+
+- weather and sea conditions on class details;
+- class names, such as "Ondas da Manhã";
+- a message from an admin to one class;
+- notes on registrations and class requests;
+- an "also an instructor" option when promoting someone to admin.

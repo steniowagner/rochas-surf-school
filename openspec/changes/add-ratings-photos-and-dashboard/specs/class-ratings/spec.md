@@ -7,10 +7,10 @@ Lets students rate the classes they took and instructors comment on the classes 
 ## ADDED Requirements
 
 ### Requirement: Rating a class
-A student who held a seat in a class SHALL be able to leave one rating for it once it has finished: a star rating and an optional comment. Ratings SHALL be about the class, not its instructors.
+A student who held a seat in a class SHALL be able to leave one rating for it once it has finished: from 1 to 5 stars, and an optional comment. Ratings SHALL be about the class, not its instructors.
 
 #### Scenario: Student rates a class
-- **WHEN** a student who was in a finished class gives it stars and a comment
+- **WHEN** a student who was in a finished class gives it 4 stars and a comment
 - **THEN** the rating is saved
 
 #### Scenario: Rating without a comment

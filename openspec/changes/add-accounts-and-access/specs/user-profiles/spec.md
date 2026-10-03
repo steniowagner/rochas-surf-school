@@ -7,11 +7,15 @@ Lets users manage their own profile and see the other members of the school.
 ## ADDED Requirements
 
 ### Requirement: Editing one's profile
-Users SHALL be able to change their profile photo, name and WhatsApp number.
+Users SHALL be able to change their profile photo, name and WhatsApp number. The WhatsApp number SHALL NOT be left empty.
 
 #### Scenario: User changes their name
 - **WHEN** a user changes their name
 - **THEN** the new name is shown wherever their name appears in the app
+
+#### Scenario: Clearing the WhatsApp number
+- **WHEN** a user removes their WhatsApp number and tries to save their profile
+- **THEN** the change is not saved
 
 ### Requirement: WhatsApp number format
 WhatsApp numbers SHALL include a country code, with Brazil (+55) preselected.

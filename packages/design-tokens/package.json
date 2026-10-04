@@ -1,0 +1,17 @@
+{
+  "name": "@repo/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css"
+  },
+  "scripts": {
+    "build": "node scripts/build-css.mjs",
+    "check-types": "tsc --noEmit && node scripts/build-css.mjs --check"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}

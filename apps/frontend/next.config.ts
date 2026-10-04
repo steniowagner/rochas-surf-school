@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Workspace package shipped as TypeScript source.
+  transpilePackages: ["@repo/design-tokens"],
 };
 
 export default nextConfig;

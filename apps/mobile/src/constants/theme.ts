@@ -1,54 +1,89 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Theme for the mobile app, built from the shared design tokens in @repo/design-tokens
+ * (source: .docs/design-system.html). Use these values instead of hard-coded colors so
+ * both light and dark themes keep working.
  */
 
 import '@/global.css';
 
-import { Platform } from 'react-native';
+import {
+  colors,
+  elevation,
+  typography,
+  type ColorToken,
+  type TypographyVariant,
+} from '@repo/design-tokens';
+import {
+  BarlowCondensed_400Regular,
+  BarlowCondensed_500Medium,
+  BarlowCondensed_600SemiBold,
+  BarlowCondensed_700Bold,
+} from '@expo-google-fonts/barlow-condensed';
+import {
+  Nunito_400Regular,
+  Nunito_600SemiBold,
+  Nunito_700Bold,
+  Nunito_800ExtraBold,
+} from '@expo-google-fonts/nunito';
+import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
-} as const;
+export { radii, spacing, touchTarget, iconSizes } from '@repo/design-tokens';
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export const Colors = colors;
+
+export type ThemeColor = ColorToken;
+
+// Passed to `useFonts` in the root layout. React Native picks a weight by family name
+// (fontWeight does not select custom font files on Android), so each weight is its own family.
+export const FontAssets = {
+  BarlowCondensed_400Regular,
+  BarlowCondensed_500Medium,
+  BarlowCondensed_600SemiBold,
+  BarlowCondensed_700Bold,
+  Nunito_400Regular,
+  Nunito_600SemiBold,
+  Nunito_700Bold,
+  Nunito_800ExtraBold,
+};
+
+const fontFamilyByWeight = {
+  display: {
+    400: 'BarlowCondensed_400Regular',
+    500: 'BarlowCondensed_500Medium',
+    600: 'BarlowCondensed_600SemiBold',
+    700: 'BarlowCondensed_700Bold',
+  },
+  body: {
+    400: 'Nunito_400Regular',
+    600: 'Nunito_600SemiBold',
+    700: 'Nunito_700Bold',
+    800: 'Nunito_800ExtraBold',
+  },
+} as const satisfies Record<string, Record<number, keyof typeof FontAssets>>;
+
+/** Converts a design-system text variant into a React Native text style. */
+export function textStyle(variant: TypographyVariant): TextStyle {
+  const t = typography[variant];
+  const families: Record<number, string> = fontFamilyByWeight[t.font];
+  return {
+    fontFamily: families[t.weight],
+    fontSize: t.size,
+    lineHeight: Math.round(t.size * t.lineHeight),
+    letterSpacing: t.letterSpacing * t.size,
+    textTransform: t.uppercase ? 'uppercase' : 'none',
+  };
+}
+
+/** Design-system elevation as a React Native `boxShadow`. */
+export function shadowStyle(level: keyof typeof elevation, palette: Record<ColorToken, string>): ViewStyle {
+  const { offsetY, blur, color } = elevation[level];
+  return { boxShadow: `0 ${offsetY}px ${blur}px ${palette[color]}` };
+}
 
 export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
+  ios: { mono: 'ui-monospace' },
+  default: { mono: 'monospace' },
+  web: { mono: 'var(--font-mono)' },
 });
 
 export const Spacing = {

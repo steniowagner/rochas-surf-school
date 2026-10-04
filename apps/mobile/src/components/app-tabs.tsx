@@ -9,9 +9,13 @@ export default function AppTabs() {
 
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
+      backgroundColor={colors.page}
+      indicatorColor={colors.dim}
+      iconColor={{ default: colors.ink3, selected: colors.sun }}
+      labelStyle={{
+        default: { color: colors.ink3, fontFamily: 'Nunito_800ExtraBold' },
+        selected: { color: colors.sun, fontFamily: 'Nunito_800ExtraBold' },
+      }}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon

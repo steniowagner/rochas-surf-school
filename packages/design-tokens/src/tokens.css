@@ -1,0 +1,200 @@
+/* Generated from tokens.ts by scripts/build-css.mjs — do not edit by hand. */
+
+:root,
+[data-theme='light'] {
+  --ds-page: #FDF8F3;
+  --ds-surface: #FEFCF9;
+  --ds-dim: rgba(245,230,211,.45);
+  --ds-sand: #F5E6D3;
+  --ds-ink: #3D2E1F;
+  --ds-ink-2: #6B5744;
+  --ds-ink-3: #B8A99A;
+  --ds-grape: #4B2A63;
+  --ds-sun: #F0742B;
+  --ds-sun-2: #D95F1B;
+  --ds-lagoon: #21837F;
+  --ds-sky: #7BA7BC;
+  --ds-tan: #D4A574;
+  --ds-line: rgba(212,165,116,.28);
+  --ds-input: #FFFFFF;
+  --ds-input-line: #E3D3BC;
+  --ds-ok: #4CAF7D;
+  --ds-ok-tint: rgba(76,175,125,.15);
+  --ds-bad: #D4574A;
+  --ds-bad-tint: rgba(212,87,74,.14);
+  --ds-warn: #E8B44A;
+  --ds-warn-tint: rgba(232,180,74,.16);
+  --ds-info-tint: rgba(33,131,127,.13);
+  --ds-on-color: #FFFFFF;
+  --ds-shadow: rgba(61,46,31,.10);
+  --ds-shadow-sun: rgba(240,116,43,.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ds-page: #161B27;
+    --ds-surface: #212736;
+    --ds-dim: rgba(46,52,68,.55);
+    --ds-sand: #2E3444;
+    --ds-ink: #F0E6D8;
+    --ds-ink-2: #9B8E7E;
+    --ds-ink-3: #5A5248;
+    --ds-grape: #7A4E9B;
+    --ds-sun: #F58A45;
+    --ds-sun-2: #E07330;
+    --ds-lagoon: #3FA6A0;
+    --ds-sky: #8BB8CC;
+    --ds-tan: #C49A6C;
+    --ds-line: rgba(196,154,108,.14);
+    --ds-input: #1B2130;
+    --ds-input-line: #3E4555;
+    --ds-ok: #5BC48A;
+    --ds-ok-tint: rgba(91,196,138,.16);
+    --ds-bad: #E8706A;
+    --ds-bad-tint: rgba(232,112,106,.16);
+    --ds-warn: #F0C45A;
+    --ds-warn-tint: rgba(240,196,90,.16);
+    --ds-info-tint: rgba(63,166,160,.16);
+    --ds-on-color: #FFFFFF;
+    --ds-shadow: rgba(0,0,0,.4);
+    --ds-shadow-sun: rgba(245,138,69,.3);
+  }
+}
+
+[data-theme='dark'] {
+  --ds-page: #161B27;
+  --ds-surface: #212736;
+  --ds-dim: rgba(46,52,68,.55);
+  --ds-sand: #2E3444;
+  --ds-ink: #F0E6D8;
+  --ds-ink-2: #9B8E7E;
+  --ds-ink-3: #5A5248;
+  --ds-grape: #7A4E9B;
+  --ds-sun: #F58A45;
+  --ds-sun-2: #E07330;
+  --ds-lagoon: #3FA6A0;
+  --ds-sky: #8BB8CC;
+  --ds-tan: #C49A6C;
+  --ds-line: rgba(196,154,108,.14);
+  --ds-input: #1B2130;
+  --ds-input-line: #3E4555;
+  --ds-ok: #5BC48A;
+  --ds-ok-tint: rgba(91,196,138,.16);
+  --ds-bad: #E8706A;
+  --ds-bad-tint: rgba(232,112,106,.16);
+  --ds-warn: #F0C45A;
+  --ds-warn-tint: rgba(240,196,90,.16);
+  --ds-info-tint: rgba(63,166,160,.16);
+  --ds-on-color: #FFFFFF;
+  --ds-shadow: rgba(0,0,0,.4);
+  --ds-shadow-sun: rgba(245,138,69,.3);
+}
+
+:root {
+  --ds-radius-control: 16px;
+  --ds-radius-card: 20px;
+  --ds-radius-sheet: 28px;
+  --ds-radius-pill: 9999px;
+  --ds-elevation-icon-button: 0 2px 8px var(--ds-shadow);
+  --ds-elevation-card: 0 3px 12px var(--ds-shadow);
+  --ds-elevation-primary: 0 8px 20px var(--ds-shadow-sun);
+}
+
+.ds-text-kpi {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 0.9;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-lesson-time {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-screen-title {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 0em;
+  text-transform: uppercase;
+}
+
+.ds-text-screen-title-with-back {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0em;
+  text-transform: uppercase;
+}
+
+.ds-text-sheet-title {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0em;
+  text-transform: uppercase;
+}
+
+.ds-text-body {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14.5px;
+  line-height: 1.6;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-list-title {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-list-subtitle {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 11.5px;
+  line-height: 1.4;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-section-label {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ds-text-button {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 14.5px;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.ds-text-chip {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 10.5px;
+  line-height: 1.3;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}

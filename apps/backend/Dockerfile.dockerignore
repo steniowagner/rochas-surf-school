@@ -1,0 +1,18 @@
+# Used by BuildKit for apps/backend/Dockerfile (context = repo root).
+**/node_modules
+**/dist
+**/.turbo
+**/.next
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+**/*.tsbuildinfo
+**/.DS_Store
+.git
+.claude
+.agents
+.docs
+openspec
+apps/frontend
+apps/mobile

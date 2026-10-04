@@ -10,7 +10,7 @@ Turbo monorepo (npm workspaces) scaffolded by the `config-project-fullstack` ski
 
 - `apps/frontend`: Next.js (App Router, `src/` dir), port 3000. Reads `NEXT_PUBLIC_API_URL`.
 - `apps/backend`: NestJS 12 (ESM, so relative imports need the `.js` suffix), port 4000 via `PORT`. `@nestjs/config` is global, and CORS is enabled.
-- `apps/mobile`: Expo 57 / React Native with Expo Router (`src/app`). Reads `EXPO_PUBLIC_API_URL`. `localhost` only works on the iOS simulator. Use the machine's LAN IP for a physical device, or `10.0.2.2` for the Android emulator.
+- `apps/mobile`: Expo 57 / React Native with Expo Router (`src/app`). The root `_layout.tsx` is a Stack that loads the fonts. Tab screens live in the `(tabs)` group; full-screen routes (auth, details, modals) go beside it. Reads `EXPO_PUBLIC_API_URL`. `localhost` only works on the iOS simulator. Use the machine's LAN IP for a physical device, or `10.0.2.2` for the Android emulator.
 - `packages/design-tokens` (`@repo/design-tokens`): the design system's tokens (colors for light/dark, typography, radii, spacing, elevation), taken from `.docs/design-system.html`. `src/tokens.ts` is the source of truth; `src/tokens.css` is generated from it (`npm run build -w @repo/design-tokens`) and committed. `check-types` fails if the CSS is stale.
 - `packages/eslint-config`, `packages/typescript-config`: Turbo's shared configs. No app uses them yet; each app has its own ESLint and tsconfig.
 - Each app has `.env.example` (committed) and `.env` (ignored).

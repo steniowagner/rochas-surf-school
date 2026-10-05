@@ -1,0 +1,15 @@
+// Prisma schema root (multi-file mode).
+// Add one file per module under prisma/models/<module-name>.model.prisma.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  // The backend is an ES module package compiled with "module": "nodenext",
+  // so the generated client must be ESM and import its files with a .js suffix.
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

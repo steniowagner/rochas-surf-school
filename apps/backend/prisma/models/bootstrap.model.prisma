@@ -1,0 +1,7 @@
+// Temporary model so `prisma generate` has something to generate before the first real model exists.
+// Delete this file once a module defines its own models, then create a new migration.
+model PrismaBootstrap {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

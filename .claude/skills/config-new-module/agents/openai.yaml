@@ -1,0 +1,4 @@
+interface:
+  display_name: "Configure New Module"
+  short_description: "Create a business module scaffolded in modules, backend, frontend and mobile"
+  default_prompt: "Use $config-new-module to create a new business module in modules under the @rochas-surf-school namespace, register it in the backend and create the module's base structure in the frontend and mobile apps."

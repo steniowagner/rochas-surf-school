@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@repo/design-tokens/tokens.css";
+@import "@rochas-surf-school/design-tokens/tokens.css";
 
 /* Expose the design tokens as Tailwind utilities: bg-page, text-ink-2, rounded-card, shadow-card… */
 @theme inline {

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Config Prisma"
+  short_description: "Set up Prisma and the database layer in the backend"
+  default_prompt: "Set up and standardize Prisma in the NestJS backend: the ESM prisma-client generator writing to src/generated/prisma, a multi-file schema with one file per module, a neutral seed entrypoint in prisma/seed/main.ts, the existing Docker Compose Postgres and DATABASE_* env vars, and a global DbModule + PrismaService."

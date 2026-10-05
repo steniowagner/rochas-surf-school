@@ -1,0 +1,4 @@
+interface:
+  display_name: "Configure Shared Package"
+  short_description: "Rebuild the shared package or create variants such as shared-v2 under @rochas-surf-school"
+  default_prompt: "Use $config-package-shared to deterministically recreate packages/shared, or create a variant such as packages/shared-v2, from the canonical copy embedded in the skill, published as @rochas-surf-school/<name> and wired into the backend, web and mobile apps."

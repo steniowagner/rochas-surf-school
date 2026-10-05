@@ -8,7 +8,7 @@ Turbo monorepo (npm workspaces) scaffolded by the `config-project-fullstack` ski
 
 ## Layout
 
-- `apps/frontend`: Next.js (App Router, `src/` dir), port 3000. Reads `NEXT_PUBLIC_API_URL`.
+- `apps/web`: Next.js (App Router, `src/` dir), port 3000. Reads `NEXT_PUBLIC_API_URL`.
 - `apps/backend`: NestJS 12 (ESM, so relative imports need the `.js` suffix), port 4000 via `PORT`. `@nestjs/config` is global, and CORS is enabled.
 - `apps/mobile`: Expo 57 / React Native with Expo Router (`src/app`). The root `_layout.tsx` is a Stack that loads the fonts. Tab screens live in the `(tabs)` group; full-screen routes (auth, details, modals) go beside it. Reads `EXPO_PUBLIC_API_URL`. `localhost` only works on the iOS simulator. Use the machine's LAN IP for a physical device, or `10.0.2.2` for the Android emulator.
 - `packages/design-tokens` (`@rochas-surf-school/design-tokens`): the design system's tokens (colors for light/dark, typography, radii, spacing, elevation), taken from `.docs/design-system.html`. `src/tokens.ts` is the source of truth; `src/tokens.css` is generated from it (`npm run build -w @rochas-surf-school/design-tokens`) and committed. `check-types` fails if the CSS is stale.
@@ -21,7 +21,7 @@ Run from the repo root:
 
 - `npm run dev`: all three apps (`turbo run dev`)
 - `npm run build` / `npm run lint` / `npm run check-types`
-- `npx turbo run <task> --filter=@rochas-surf-school/<frontend|backend|mobile>`: one app only
+- `npx turbo run <task> --filter=@rochas-surf-school/<web|backend|mobile>`: one app only
 
 Backend tests (Vitest), from `apps/backend`:
 

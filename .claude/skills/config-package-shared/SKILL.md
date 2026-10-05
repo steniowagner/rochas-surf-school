@@ -1,6 +1,6 @@
 ---
 name: config-package-shared
-description: Rebuild the monorepo's base shared package, `@rochas-surf-school/shared` in `packages/shared`, which holds the reusable contracts, base classes, domain errors, use cases and validations consumed by the backend (`apps/backend`), web (`apps/frontend`) and mobile (`apps/mobile`) apps and by the business modules in `modules/`. Use it to recreate `packages/shared` from this skill's canonical copy, wire it into the apps, or create a variant such as `packages/shared-v2`.
+description: Rebuild the monorepo's base shared package, `@rochas-surf-school/shared` in `packages/shared`, which holds the reusable contracts, base classes, domain errors, use cases and validations consumed by the backend (`apps/backend`), web (`apps/web`) and mobile (`apps/mobile`) apps and by the business modules in `modules/`. Use it to recreate `packages/shared` from this skill's canonical copy, wire it into the apps, or create a variant such as `packages/shared-v2`.
 ---
 
 # Config Package Shared
@@ -21,7 +21,7 @@ node "$SKILL_SCRIPT" --package-name shared-v2
    - recreates `packages/<package-name>` from `assets/shared-template/`;
    - renames the template's `@temp/shared` to `@rochas-surf-school/<package-name>`;
    - when `package-name` is `shared`:
-     - adds or normalizes `"@rochas-surf-school/shared": "*"` in `apps/backend`, `apps/frontend` and `apps/mobile`, unless skipped;
+     - adds or normalizes `"@rochas-surf-school/shared": "*"` in `apps/backend`, `apps/web` and `apps/mobile`, unless skipped;
      - does the same for the `modules/*` workspaces that already depend on or import a `@<scope>/shared` package;
    - when `package-name` is not `shared`, does not touch any other workspace's dependencies;
    - runs `npm install`;
@@ -34,7 +34,7 @@ node "$SKILL_SCRIPT" --package-name shared-v2
 - `--package-name <name>`: create `packages/<name>` instead of `packages/shared`.
 - `--force`: recreate `packages/<name>` when a variant with that name already exists.
 - `--skip-backend`: do not add the dependency to `apps/backend`.
-- `--skip-web`: do not add the dependency to `apps/frontend`.
+- `--skip-web`: do not add the dependency to `apps/web`.
 - `--skip-mobile`: do not add the dependency to `apps/mobile`.
 
 ## Canonical base
@@ -54,7 +54,7 @@ Do not depend on external templates, scripts or folders to rebuild the package.
 The package compiles to CommonJS in `dist/` (it extends `packages/typescript-config/base.json`). Each app resolves it through the npm workspace link:
 
 - `apps/backend` (NestJS, ESM): `import { Validator } from '@rochas-surf-school/shared';`. Node loads the CommonJS build and exposes its named exports.
-- `apps/frontend` (Next.js) and `apps/mobile` (Expo/Metro): import it the same way; they bundle the built `dist/`.
+- `apps/web` (Next.js) and `apps/mobile` (Expo/Metro): import it the same way; they bundle the built `dist/`.
 
 Because the apps read `dist/`, build the package (`npx turbo run build --filter=@rochas-surf-school/shared`) before type-checking or running an app on a fresh checkout. `turbo run build` already does this through `dependsOn: ["^build"]`.
 

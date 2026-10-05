@@ -19,7 +19,7 @@ const NESTJS_TEMPLATE_FILES = [
   { template: "module.ts", output: "__MODULE_NAME__.module.ts" },
   { template: "controller.ts", output: "__MODULE_NAME__.controller.ts" },
 ];
-const FRONTEND_TEMPLATE_FILES = [
+const WEB_TEMPLATE_FILES = [
   {
     template: "route-page.tsx",
     output: path.join("app", "(private)", "__MODULE_NAME__", "page.tsx"),
@@ -63,7 +63,7 @@ function main() {
   const moduleName = args.module;
   const namespace = NAMESPACE;
   const workspaceRoot = args["workspace-root"] ?? "modules";
-  const skipFrontend = Boolean(args["skip-web"]);
+  const skipWeb = Boolean(args["skip-web"]);
   const skipMobile = Boolean(args["skip-mobile"]);
   const skipBackend = Boolean(args["skip-backend"]);
   // --skip-backend skips the whole backend; --skip-nestjs keeps the dependency but skips the NestJS module.
@@ -84,17 +84,17 @@ function main() {
 
   const projectRoot = process.cwd();
   const rootPackagePath = path.join(projectRoot, "package.json");
-  const frontendPackagePath = path.join(projectRoot, "apps", "frontend", "package.json");
+  const webPackagePath = path.join(projectRoot, "apps", "web", "package.json");
   const mobilePackagePath = path.join(projectRoot, "apps", "mobile", "package.json");
   const backendPackagePath = path.join(projectRoot, "apps", "backend", "package.json");
   const appModulePath = path.join(projectRoot, "apps", "backend", "src", "app.module.ts");
-  const frontendSrcDir = path.join(projectRoot, "apps", "frontend", "src");
+  const webSrcDir = path.join(projectRoot, "apps", "web", "src");
   const mobileSrcDir = path.join(projectRoot, "apps", "mobile", "src");
   const workspaceDir = path.join(projectRoot, workspaceRoot);
   const moduleDir = path.join(workspaceDir, moduleName);
   const templateDir = path.resolve(__dirname, "..", "assets", "module-template");
   const nestjsTemplateDir = path.resolve(__dirname, "..", "assets", "nestjs-module-template");
-  const frontendTemplateDir = path.resolve(__dirname, "..", "assets", "frontend-module-template");
+  const webTemplateDir = path.resolve(__dirname, "..", "assets", "web-module-template");
   const mobileTemplateDir = path.resolve(__dirname, "..", "assets", "mobile-module-template");
   const packageName = `${namespace}/${moduleName}`;
   const moduleClassName = toPascalCase(moduleName);
@@ -106,9 +106,9 @@ function main() {
   };
 
   assertFileExists(rootPackagePath, "Root package.json not found.");
-  if (!skipFrontend) {
-    assertFileExists(frontendPackagePath, "apps/frontend/package.json not found.");
-    assertDirectoryExists(frontendSrcDir, "apps/frontend/src not found.");
+  if (!skipWeb) {
+    assertFileExists(webPackagePath, "apps/web/package.json not found.");
+    assertDirectoryExists(webSrcDir, "apps/web/src not found.");
   }
   if (!skipMobile) {
     assertFileExists(mobilePackagePath, "apps/mobile/package.json not found.");
@@ -129,8 +129,8 @@ function main() {
     fail(`NestJS template not found at ${nestjsTemplateDir}.`);
   }
 
-  if (!skipFrontend && !fs.existsSync(frontendTemplateDir)) {
-    fail(`Frontend template not found at ${frontendTemplateDir}.`);
+  if (!skipWeb && !fs.existsSync(webTemplateDir)) {
+    fail(`Web template not found at ${webTemplateDir}.`);
   }
 
   if (!skipMobile && !fs.existsSync(mobileTemplateDir)) {
@@ -146,16 +146,16 @@ function main() {
     fail(`NestJS module ${moduleName} already exists at apps/backend/src/modules/${moduleName}.`);
   }
 
-  const frontendModuleDir = path.join(frontendSrcDir, "modules", moduleName);
-  const frontendPrivateRouteDir = path.join(frontendSrcDir, "app", "(private)", moduleName);
+  const webModuleDir = path.join(webSrcDir, "modules", moduleName);
+  const webPrivateRouteDir = path.join(webSrcDir, "app", "(private)", moduleName);
 
-  if (!skipFrontend && fs.existsSync(frontendModuleDir)) {
-    fail(`Frontend module ${moduleName} already exists at apps/frontend/src/modules/${moduleName}.`);
+  if (!skipWeb && fs.existsSync(webModuleDir)) {
+    fail(`Web module ${moduleName} already exists at apps/web/src/modules/${moduleName}.`);
   }
 
-  if (!skipFrontend && fs.existsSync(frontendPrivateRouteDir)) {
+  if (!skipWeb && fs.existsSync(webPrivateRouteDir)) {
     fail(
-      `Private route for module ${moduleName} already exists at apps/frontend/src/app/(private)/${moduleName}.`,
+      `Private route for module ${moduleName} already exists at apps/web/src/app/(private)/${moduleName}.`,
     );
   }
 
@@ -191,9 +191,9 @@ function main() {
   rootPackage.workspaces = ensureWorkspaces(rootPackage.workspaces);
   writeJson(rootPackagePath, rootPackage);
 
-  if (!skipFrontend) {
-    log("Adding the module dependency to the frontend");
-    updateWorkspaceDependency(frontendPackagePath, packageName);
+  if (!skipWeb) {
+    log("Adding the module dependency to the web app");
+    updateWorkspaceDependency(webPackagePath, packageName);
   }
 
   if (!skipMobile) {
@@ -206,14 +206,14 @@ function main() {
     updateWorkspaceDependency(backendPackagePath, packageName);
   }
 
-  if (!skipFrontend) {
-    log(`Creating the frontend module structure for ${moduleName}`);
+  if (!skipWeb) {
+    log(`Creating the web module structure for ${moduleName}`);
     materializeUiTemplate(
-      frontendTemplateDir,
-      frontendSrcDir,
-      FRONTEND_TEMPLATE_FILES,
+      webTemplateDir,
+      webSrcDir,
+      WEB_TEMPLATE_FILES,
       uiReplacements,
-      "frontend",
+      "web",
     );
   }
 

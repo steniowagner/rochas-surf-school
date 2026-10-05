@@ -14,5 +14,5 @@
 .agents
 .docs
 openspec
-apps/frontend
+apps/web
 apps/mobile

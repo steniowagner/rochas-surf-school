@@ -14,7 +14,7 @@ const DEPENDENCY_SECTIONS = ['dependencies', 'devDependencies', 'peerDependencie
 // The apps that consume the shared package, keyed by the flag that skips them.
 const APPS = [
   { name: 'backend', skipFlag: 'skipBackend' },
-  { name: 'frontend', skipFlag: 'skipWeb' },
+  { name: 'web', skipFlag: 'skipWeb' },
   { name: 'mobile', skipFlag: 'skipMobile' },
 ];
 

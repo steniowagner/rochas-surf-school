@@ -60,7 +60,7 @@ ${Object.entries(typography)
 
 if (process.argv.includes('--check')) {
   if (readFileSync(cssPath, 'utf8') !== css) {
-    console.error('tokens.css is out of date. Run `npm run build -w @repo/design-tokens`.');
+    console.error('tokens.css is out of date. Run `npm run build -w @rochas-surf-school/design-tokens`.');
     process.exit(1);
   }
 } else {

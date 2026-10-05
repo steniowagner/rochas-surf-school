@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, Nunito } from "next/font/google";
 import "./globals.css";
 
-// Font roles from @repo/design-tokens: display for titles and numbers, body for everything else.
+// Font roles from @rochas-surf-school/design-tokens: display for titles and numbers, body for everything else.
 const display = Barlow_Condensed({
   variable: "--ds-font-display",
   weight: ["400", "500", "600", "700"],

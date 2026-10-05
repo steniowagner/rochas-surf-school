@@ -1,5 +1,5 @@
 /**
- * Theme for the mobile app, built from the shared design tokens in @repo/design-tokens
+ * Theme for the mobile app, built from the shared design tokens in @rochas-surf-school/design-tokens
  * (source: .docs/design-system.html). Use these values instead of hard-coded colors so
  * both light and dark themes keep working.
  */
@@ -12,7 +12,7 @@ import {
   typography,
   type ColorToken,
   type TypographyVariant,
-} from '@repo/design-tokens';
+} from '@rochas-surf-school/design-tokens';
 import {
   BarlowCondensed_400Regular,
   BarlowCondensed_500Medium,
@@ -27,7 +27,7 @@ import {
 } from '@expo-google-fonts/nunito';
 import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
-export { radii, spacing, touchTarget, iconSizes } from '@repo/design-tokens';
+export { radii, spacing, touchTarget, iconSizes } from '@rochas-surf-school/design-tokens';
 
 export const Colors = colors;
 

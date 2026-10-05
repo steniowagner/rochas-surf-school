@@ -28,6 +28,8 @@ Backend tests (Vitest), from `apps/backend`:
 - `npm test`: unit tests. `npm run test:e2e`: e2e tests
 - `npx vitest run src/app.controller.spec.ts`: a single file. Add `-t "<name>"` to run a single test
 
+Backend + PostgreSQL in Docker, from `apps/backend`: `docker compose up --build`. The compose file reads its credentials from `apps/backend/.env` (`DATABASE_HOST/PORT/USER/PASSWORD/NAME`) and points the backend at the `postgres` service. Postgres is also published on `DATABASE_PORT`, so `npm run dev` on the host can use it with `DATABASE_HOST=localhost`.
+
 ## Design system
 
 Never hard-code colors, fonts or radii; use the tokens so light and dark themes both work. The usage rules (one primary action per screen, grape only for highlights, numbers in Barlow Condensed, 44px touch targets) are in section 08 of `.docs/design-system.html`.

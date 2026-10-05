@@ -13,7 +13,7 @@ WORKDIR /repo
 ENV TURBO_TELEMETRY_DISABLED=1
 RUN npm install -g turbo@${TURBO_VERSION}
 COPY . .
-RUN turbo prune backend --docker
+RUN turbo prune @rochas-surf-school/backend --docker
 
 # --- deps: full install (dev deps needed for `nest build`) ---
 FROM node:${NODE_VERSION} AS deps
@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 # --- build: compile TypeScript to dist/ ---
 FROM deps AS builder
 COPY --from=pruner /repo/out/full/ ./
-RUN npm run build -w backend
+RUN npm run build -w @rochas-surf-school/backend
 
 # --- prod-deps: runtime dependencies only ---
 FROM node:${NODE_VERSION} AS prod-deps

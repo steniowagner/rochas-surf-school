@@ -29,9 +29,9 @@ Standardize the Prisma bootstrap in the NestJS backend with:
 SKILL_SCRIPT="$(find . -maxdepth 6 -path "*/config-prisma/scripts/init-prisma-backend.js" ! -path "*/node_modules/*" | head -1)"
 node "$SKILL_SCRIPT" --dry-run
 node "$SKILL_SCRIPT" --apply --install
-npm --workspace backend run db:start
-npm --workspace backend run prisma:generate
-npm --workspace backend run prisma:migrate:dev -- --name init
+npm --workspace @rochas-surf-school/backend run db:start
+npm --workspace @rochas-surf-school/backend run prisma:generate
+npm --workspace @rochas-surf-school/backend run prisma:migrate:dev -- --name init
 ```
 
 ## Module Prisma files

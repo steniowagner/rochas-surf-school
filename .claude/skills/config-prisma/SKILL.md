@@ -22,10 +22,10 @@ Deterministic, idempotent Prisma setup for `apps/backend`, fitted to this repo:
 3. Add a Prisma file per module (repeatable):
    - `node <script> --apply --module auth --module lessons`
 4. Start the database with the backend's Docker Compose:
-   - `npm --workspace backend run db:start`
+   - `npm --workspace @rochas-surf-school/backend run db:start`
 5. Generate the client and create the first migration:
-   - `npm --workspace backend run prisma:generate`
-   - `npm --workspace backend run prisma:migrate:dev -- --name init`
+   - `npm --workspace @rochas-surf-school/backend run prisma:generate`
+   - `npm --workspace @rochas-surf-school/backend run prisma:migrate:dev -- --name init`
 
 ## What the script guarantees
 

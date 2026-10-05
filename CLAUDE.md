@@ -21,7 +21,7 @@ Run from the repo root:
 
 - `npm run dev`: all three apps (`turbo run dev`)
 - `npm run build` / `npm run lint` / `npm run check-types`
-- `npx turbo run <task> --filter=<frontend|backend|mobile>`: one app only
+- `npx turbo run <task> --filter=@rochas-surf-school/<frontend|backend|mobile>`: one app only
 
 Backend tests (Vitest), from `apps/backend`:
 
@@ -50,4 +50,4 @@ Never hard-code colors, fonts or radii; use the tokens so light and dark themes 
 - `react`, `react-dom`, `@types/react` and `typescript` are pinned to Expo's versions in every workspace and enforced by root `overrides`. When upgrading Expo, update these together. A second React copy breaks the mobile app at runtime.
 - The root `@babel/core` devDependency keeps Babel 7 at the root for Metro. Don't remove it.
 - `apps/mobile/plugins/with-ios-scene-lifecycle.js` adopts the UIScene life cycle during prebuild. Without it the iOS app crashes at launch on iOS 27, because Expo SDK 57's template doesn't adopt scenes. Remove it after upgrading to Expo SDK 58, which adopts them natively; the plugin no-ops once the template does.
-- `mobile#lint` currently fails on Expo's example code (`src/hooks/use-color-scheme.web.ts`). The error goes away when you run `npm run reset-project` in `apps/mobile`.
+- `@rochas-surf-school/mobile#lint` currently fails on Expo's example code (`src/hooks/use-color-scheme.web.ts`). The error goes away when you run `npm run reset-project` in `apps/mobile`.

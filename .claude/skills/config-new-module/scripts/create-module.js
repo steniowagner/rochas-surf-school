@@ -482,7 +482,7 @@ function registerNestjsModule(appModulePath, moduleName, moduleClassName) {
   }
 
   // 1. Add the import after the last existing import
-  const importStatement = `import { ${moduleClassName}Module } from './modules/${moduleName}/${moduleName}.module';`;
+  const importStatement = `import { ${moduleClassName}Module } from './modules/${moduleName}/${moduleName}.module.js';`;
   const lines = content.split("\n");
   let lastImportIndex = -1;
 
@@ -523,7 +523,7 @@ function registerNestjsModule(appModulePath, moduleName, moduleClassName) {
 
   const lineStart = content.lastIndexOf("\n", closingBracketPos) + 1;
   const indent = content.slice(lineStart, closingBracketPos);
-  content = content.slice(0, lineStart) + indent + `${moduleClassName}Module,\n` + content.slice(lineStart);
+  content = content.slice(0, lineStart) + indent + "  " + `${moduleClassName}Module,\n` + content.slice(lineStart);
 
   fs.writeFileSync(appModulePath, content, "utf8");
 }

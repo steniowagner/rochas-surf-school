@@ -6,6 +6,7 @@
     "@expo-google-fonts/barlow-condensed": "^0.4.1",
     "@expo-google-fonts/nunito": "^0.4.2",
     "@expo/ui": "~57.0.21",
+    "@rochas-surf-school/auth": "*",
     "@rochas-surf-school/design-tokens": "*",
     "@rochas-surf-school/shared": "*",
     "expo": "~57.0.26",

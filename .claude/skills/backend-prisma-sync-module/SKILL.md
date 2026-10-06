@@ -60,9 +60,9 @@ The skill instructions must remain in Brazilian Portuguese. Generated files and 
    - Create or edit only `apps/backend/prisma/models/<module>.model.prisma`.
    - Keep one Prisma model per persistable domain entity.
    - Preserve the modular organization of Prisma: each module lives in its own file.
-   - Keep the Prisma model name consistent with the domain entity, but map the physical database table to `snake_case`, in lowercase and preferably plural.
-   - Whenever necessary, use `@@map("<table_name>")` to guarantee this pattern in the database. Example: entity `User` -> model `User` with `@@map("users")`.
-   - Remove `apps/backend/prisma/models/bootstrap.model.prisma` when the first real domain model enters the project and it is no longer needed.
+   - Keep the Prisma model and field names consistent with the domain entity (PascalCase models, camelCase fields), but name everything in the database in `snake_case`: tables (lowercase, preferably plural) and columns.
+   - Always use `@@map("<table_name>")` on every model and `@map("<column_name>")` on every field whose name is not already snake_case. Example: entity `User` -> model `User` with `@@map("users")`, field `createdAt` -> `createdAt DateTime @map("created_at")`.
+   - Remove `apps/backend/prisma/models/bootstrap.model.prisma` when the first real domain model enters the project and it is no longer needed. Write the module's `.model.prisma` file first: deleting the last file in `prisma/models/` with `git rm` also removes the folder.
 4. Generate an incremental migration.
    - If it is the module's first synchronization, use a migration named the same as the module in kebab-case.
    - If the module already exists in Prisma and there are differences, create a new migration with `<module>-<short-suffix>`.
@@ -80,17 +80,22 @@ The skill instructions must remain in Brazilian Portuguese. Generated files and 
 
 - Assume that each persistable entity needs to reflect the `State` fields.
 - Always consider the base fields inherited from `EntityState`.
-- For database table names, adopt as default `snake_case`, in lowercase and preferably plural.
-- When the entity/model name is singular or in PascalCase, preserve the idiomatic Prisma model name and map the table with `@@map`. Examples:
+- Database table names are always `snake_case`, in lowercase and preferably plural. Keep the idiomatic Prisma model name and map the table with `@@map`. Examples:
   - `User` -> `@@map("users")`
   - `UserProfile` -> `@@map("user_profiles")`
+- Database column names are always `snake_case`. Keep the camelCase field name from the domain `State` and map the column with `@map`. This includes the inherited fields and relation scalars. Examples:
+  - `createdAt` -> `createdAt DateTime @default(now()) @map("created_at")`
+  - `deletedAt` -> `deletedAt DateTime? @map("deleted_at")`
+  - `userId` -> `userId String @map("user_id")`
+  - single-word fields such as `id`, `name` or `email` are already snake_case and need no `@map`.
+- Enum types also live in the database, so map them to `snake_case` with `@@map`. Example: `enum UserRole { ... @@map("user_role") }`.
+- Constraint and index names derive from the table and column names, so they come out in `snake_case` too. Do not rename them by hand.
 - Map primitive types conservatively:
   - `string` -> `String`
   - `boolean` -> `Boolean`
   - `Date` -> `DateTime`
   - `number` -> choose `Int`, `BigInt` or `Decimal` only when the context makes it clear
 - In case of ambiguity of numeric type, cardinality, nullability, enum or relation, make the doubt explicit before consolidating a destructive schema.
-- Use `@map` and `@@map` only when there is a real need for compatibility with existing naming or with an already created database.
 - Avoid inferring structures that do not appear in the module. If the relation is not clear in the domain, do not invent it.
 
 ## Guardrails

@@ -89,6 +89,7 @@ This skill works on a single contract per run and must create the `*.prisma.ts` 
 - TypeScript interfaces remain useful as a domain contract, but injection in Nest must use the concrete class by default, without requiring a symbolic token.
 - Do not put business rules in the Prisma implementation; it must be restricted to persistence and mapping.
 - If the entity requires conversion between the domain model and the Prisma payload, create private mapping methods in the file itself.
+- Database tables and columns are `snake_case`, mapped in the schema with `@@map`/`@map`, while the Prisma client keeps the camelCase model and field names. Use the client's field names (`createdAt`, `userId`) in the mapping methods and queries, and use the `snake_case` names (`created_at`, `user_id`) only in raw SQL.
 - If the entity has a constructor or factory that must be used to rehydrate the domain, follow the business module itself instead of returning literal objects.
 
 ## Database integration

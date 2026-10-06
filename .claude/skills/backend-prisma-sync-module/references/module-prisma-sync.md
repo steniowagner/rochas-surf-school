@@ -36,6 +36,7 @@ Synchronize a single domain module with the backend Prisma layer, keeping the mo
 - [ ] Ensure one Prisma model per persistable entity.
 - [ ] Include `id`, `createdAt`, `updatedAt` and `deletedAt` when they are part of the shared base.
 - [ ] Keep names and types consistent with the domain.
+- [ ] Map every table to `snake_case` with `@@map`, every non-snake_case field to a `snake_case` column with `@map`, and every enum with `@@map`.
 - [ ] Review relations, nullability and indexes only when this is clear in the code.
 
 ### 3. Generate migration
@@ -61,7 +62,7 @@ Synchronize a single domain module with the backend Prisma layer, keeping the mo
 - Name migrations in kebab-case.
 - Use short and descriptive suffixes for incremental migrations.
 - Preserve the language and code style already adopted by the project.
-- Avoid unnecessary `@map`/`@@map`.
+- Name everything in the database in `snake_case`: tables and enums with `@@map`, columns with `@map`. Prisma model and field names stay as in the domain.
 
 ## Common pitfalls
 
@@ -72,3 +73,5 @@ Synchronize a single domain module with the backend Prisma layer, keeping the mo
 - Generating a migration with a name that is too generic, such as `update` or `fix`.
 - Changing files of other modules without necessity.
 - Keeping `bootstrap.model.prisma` when the project already has enough real models to replace it.
+- Deleting `bootstrap.model.prisma` before writing the module's file: `git rm` of the last file removes `prisma/models/`, and the migration then runs with no models.
+- Leaving a camelCase column (missing `@map`) or a PascalCase table (missing `@@map`) in the generated SQL.

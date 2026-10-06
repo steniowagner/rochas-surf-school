@@ -322,16 +322,20 @@ export class DbModule {}`;
 function renderModulePrismaFile(moduleName) {
   return `// Prisma models for the ${moduleName} module.
 // Keep one file per module in prisma/models, named <module-name>.model.prisma.
+// Name tables and columns in snake_case: @@map on each model and enum, @map on each camelCase field.
 `;
 }
 
 function renderBootstrapModelPrismaFile() {
   return `// Temporary model so \`prisma generate\` has something to generate before the first real model exists.
 // Delete this file once a module defines its own models, then create a new migration.
+// Tables and columns are snake_case in the database: map them with @@map and @map.
 model PrismaBootstrap {
   id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("prisma_bootstrap")
 }`;
 }
 

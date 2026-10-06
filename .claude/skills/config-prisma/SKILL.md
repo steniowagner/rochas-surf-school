@@ -52,4 +52,5 @@ Deterministic, idempotent Prisma setup for `apps/backend`, fitted to this repo:
 - `getDatabaseUrl()` lives in `src/db/database-url.ts` and is duplicated in `prisma.config.ts`, because the Prisma CLI loads that file on its own. Keep both copies in sync.
 - `PrismaService` connects in `onModuleInit`, so the backend and its e2e tests need the database running (`db:start`).
 - After adding real models, delete `prisma/models/bootstrap.model.prisma` and create a new migration.
+- Name tables and columns in `snake_case` in the database: `@@map` on every model and enum, `@map` on every camelCase field. Prisma model and field names stay PascalCase and camelCase.
 - See `references/prisma-init-checklist.md` for the operational checklist.

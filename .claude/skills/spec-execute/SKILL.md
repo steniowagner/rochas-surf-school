@@ -1,0 +1,144 @@
+---
+name: spec-execute
+description: Execute a planned spec from .specs/changes/ task by task — implementing each task (with the project skill it names), verifying its "Done when", recording evidence in the spec, and running the Verification Plan before handing the spec to review. Also resumes an interrupted execution and fixes the findings of a review that requested changes. Use whenever the user runs /spec-execute, or asks to implement, build, execute, start, continue or resume a spec or its tasks ("implement spec 003", "continue the booking spec", "fix the review findings on 002") — even if they don't say "execute". Not for writing or changing a plan (spec-plan) or for reviewing an implementation (spec-review).
+argument-hint: "[spec id, slug or path]"
+---
+
+# spec-execute
+
+A spec is a contract: `spec-plan` wrote it with the user, and `spec-review` — a different agent that never
+sees this session — will check the implementation against it. This skill turns the spec's tasks into code and
+leaves behind evidence the reviewer can trust. Two things matter most:
+
+- **Do exactly what the spec says** — all of it, and nothing it didn't ask for. Extra refactors and
+  "improvements" widen the review and can break Decisions you didn't know the reason for.
+- **Record only what was verified.** A checked box that wasn't verified is worse than an unchecked one: it
+  sends the reviewer looking in the wrong place and hides the real state from whoever resumes the work.
+
+The flow is: **find the spec → gate → prepare → execute the tasks one by one → verify everything → hand off
+to review → report.**
+
+## 1. Find the spec
+
+The argument may be an id (`3`, `003`), a slug, a folder or a path to `spec.md`. Run from the repo root:
+
+```bash
+node .claude/skills/spec-plan/scripts/check-spec.mjs <argument>
+```
+
+With no argument, it lists the specs in `.specs/changes/` with their status. If exactly one is executable
+(`planned`, `in-progress` or `changes-requested`), use it and say which; if several are, ask which one; if
+none is, say so and point to `/spec-plan`.
+
+## 2. Gate
+
+Stop before touching code if any of these fails, and tell the user what is wrong and what fixes it.
+
+1. **Memory** — `node .claude/skills/spec-plan/scripts/preflight.mjs` prints `PREFLIGHT OK`. Otherwise:
+   `/spec-init`.
+2. **Structure** — `check-spec.mjs <spec>` prints `CHECK OK`. Errors mean the plan isn't executable as
+   written (tasks without `Covers` or `Done when`, Expected Results no task covers, template leftovers): send
+   it back to `/spec-plan` instead of guessing what the planner meant. Read the warnings too.
+3. **Status** decides what happens next:
+   - `planned` → start at the first task;
+   - `in-progress` → resume at the first unchecked task (the check prints it as `next task`);
+   - `changes-requested` → fix the open review findings (section 6);
+   - `in-review` → it is waiting for review: point to `/spec-review` and stop, unless the user explicitly
+     wants to reopen it;
+   - `accepted` or `finished` → nothing to execute (`/spec-finish` for an accepted spec).
+4. **Dependencies** — every spec in `depends_on` should be finished (the check shows their status). If one
+   isn't, say which and ask whether to go ahead anyway.
+
+## 3. Prepare
+
+- Read `.specs/shared/how-to-execute.md` (execution rules, evidence format), `.specs/shared/task-breakdown.md`
+  and `.specs/shared/naming-rules.md`, then the memory: `technical-context.md` first — its architecture,
+  conventions and validation standard are what your code must follow — then `product.md` and the rest.
+- Read the whole spec: Goal, Context, Scope, Decisions, Expected Results, Tasks, Verification Plan,
+  Amendments, Review. Read `CLAUDE.md` / `AGENTS.md` and the `SKILL.md` of every skill the tasks name.
+- Run `git status`. If there are uncommitted changes that don't belong to this spec, tell the user: mixing
+  them in makes the review harder. Never stash, reset or discard their work.
+- On the first run (`planned`): set `status: in-progress` and add `started: <today>` and
+  `base_commit: <git rev-parse --short HEAD>` to the front matter. `base_commit` lets the reviewer diff
+  exactly what this spec changed.
+- Tell the user in one short message what is about to happen: the spec, the tasks per front, where you start.
+
+## 4. Execute the tasks
+
+One task at a time, in document order. For each unchecked task:
+
+1. **Understand it** — what, where, the skill it names, the Expected Results it covers (reread them) and the
+   Decisions that constrain it. Look at the current code before changing it.
+2. **Implement it.**
+   - When it names a skill, invoke that skill with the task's specifics — files, fields, and the rules from
+     the Expected Results and Decisions — as the main implementation. Check what it produced against the
+     task, and finish by hand only what it didn't cover, recording the deviation.
+   - Follow the technical context, `CLAUDE.md` and the naming rules. Stay inside the task: no refactors,
+     renames or improvements the spec didn't ask for. Note them for the report instead.
+   - When an Expected Result's `Verify by` names a test, write it in the task that implements the behavior —
+     first, when practical, and watch it fail. A test that can't fail proves nothing, and the reviewer will
+     look for that.
+   - Every file the task creates or changes ends at 100% coverage — statements, branches, functions and
+     lines. If a file can't reasonably get there, don't exclude it or add a coverage-ignore comment on your
+     own: exclusions are project policy in `technical-context.md`. Ask the user.
+3. **Verify it** — run the check in `Done when` (the narrowest command that proves it: the task's tests, the
+   workspace's type check…) and read the output. If it fails, fix and rerun. The task isn't done until the
+   check passes.
+4. **Record it** — check the box and write the evidence below it right away, in the format from
+   `how-to-execute.md`: what was done, every file touched (paths from the repo root — `spec-finish` builds one
+   commit per task from that list), the command and its result, deviations. The spec
+   file is the progress record: if the session is interrupted, the next run resumes from it.
+
+When reality doesn't match the plan:
+
+- **A small technical step is missing** inside a task (a dependency, a bit of wiring) → do it as part of that
+  task and mention it in the evidence.
+- **An Expected Result needs work no task covers** → append a task to the right group with the next free id,
+  marked `(added during execution)`, execute it like the others, and mention it in the report.
+- **The plan is wrong** — a Decision or Expected Result contradicts the code or a constraint, or a task is
+  impossible as written → stop and explain, with a concrete proposal. Change Scope, Decisions or Expected
+  Results only after the user explicitly approves, and log the change under `## Amendments` (date, before →
+  after, reason).
+- **Blocked** — a missing credential, an external service, a decision only the user can make → leave the box
+  unchecked with ⛔ evidence, continue with the tasks that don't depend on it, and ask the user once you run
+  out of them.
+- **Destructive or outward-facing actions** — deleting data, migrations that drop columns or tables,
+  anything against a non-local environment, pushing, publishing → ask first, even when the task implies it.
+
+Don't commit unless the user asks, or the technical context sets a commit convention. When committing,
+mention the spec and the task in the message (`… (spec 003, T-04)`) so the history stays traceable.
+
+## 5. Verify everything and hand off
+
+When every task is checked:
+
+1. Run the Verification Plan: every test suite, the tests with coverage and
+   `node .claude/skills/spec-plan/scripts/check-coverage.mjs NNN` (it must print `COVERAGE OK`), lint, type
+   check, build, the e2e suites, and the user journeys you can drive yourself (browser, simulator) — for the
+   ones you can't, write exactly what the user must do and see. Everything passes; otherwise fix and rerun.
+2. Go through each Expected Result: its `Verify by` passes and its edge and error cases are handled. This
+   isn't the review — it keeps the review from bouncing on something obvious.
+3. Rerun `check-spec.mjs <spec>`: no task unchecked or without evidence, `CHECK OK`.
+4. Set `status: in-review`. If a task is still blocked, keep `in-progress` and say what unblocks it.
+
+## 6. Fixing review findings (`changes-requested`)
+
+The reviewer's findings are in `## Review`, under the latest round: `- [ ] **F-NN** (ER-xx) — …`.
+
+1. Set `status: in-progress`.
+2. For each open finding: reproduce it the way the reviewer observed it, fix it, verify, then check it and
+   add evidence below it, in the same format as tasks.
+3. If a finding looks wrong — it asks for something out of scope, or misreads an Expected Result — don't skip
+   it silently: record why below it with ⛔ and ask the user.
+4. Rerun the Verification Plan and `check-spec.mjs`, then set `status: in-review`.
+
+## 7. Report
+
+Keep it short:
+
+- what was built, per front, and the files changed (`git diff --stat <base_commit>`);
+- deviations, tasks added during execution, and amendments;
+- anything still blocked, and what unblocks it;
+- issues noticed outside the scope, as follow-ups (not fixed);
+- the next step: `/spec-review NNN`, ideally in a fresh session, so the reviewer judges the code against the
+  spec without this session's context — that independence is what makes the review worth running.

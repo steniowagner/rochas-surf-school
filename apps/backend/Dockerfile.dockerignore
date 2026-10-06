@@ -13,6 +13,6 @@
 .claude
 .agents
 .docs
-openspec
+.specs
 apps/web
 apps/mobile

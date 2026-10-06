@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Turbo monorepo (npm workspaces) scaffolded by the `config-project-fullstack` skill. The apps are still the stock framework templates; product specs live in `.specs/`.
+Turbo monorepo (npm workspaces) scaffolded by the `config-project-fullstack` skill. The apps are still the stock framework templates. The product brief and its detailed requirements are in `.docs/` (`user-journeys.md`, `requirements.md`); specs live in `.specs/`.
 
 ## Layout
 

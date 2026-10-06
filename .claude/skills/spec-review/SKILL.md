@@ -52,6 +52,9 @@ Plan, Amendments, earlier Review rounds — plus `.specs/shared/acceptance-crite
 memory (`technical-context.md` first: architecture, conventions, and the Automated validation section with
 its test, coverage and e2e commands; then `product.md`) and `CLAUDE.md` / `AGENTS.md`.
 
+Also read the source-document sections linked in Context → Requirements. Behavior that contradicts them
+without a Decision or an Amendment explaining why is a finding; what the spec's Scope leaves out is not.
+
 Treat the evidence as claims to verify, not as proof. If an earlier round exists, check each of its findings
 specifically — and still review everything else: a fix can break something that used to pass.
 
@@ -150,8 +153,8 @@ Append a new round at the end of `## Review`; never edit earlier rounds:
 - …
 ```
 
-Each finding is one problem, tagged with what it breaks — `(ER-xx)`, `(D-xx)`, `(coverage)`, `(tests)`,
-`(scope)` or `(convention)` — with how to reproduce it and what is expected. Then set `status` to `accepted`
+Each finding is one problem, tagged with what it breaks — `(ER-xx)`, `(D-xx)`, `(requirement)`,
+`(coverage)`, `(tests)`, `(scope)` or `(convention)` — with how to reproduce it and what is expected. Then set `status` to `accepted`
 or `changes-requested` and rerun `check-spec.mjs`.
 
 When the verdict is `accepted`, record what you accepted:

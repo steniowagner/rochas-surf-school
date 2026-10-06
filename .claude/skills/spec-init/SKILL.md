@@ -112,6 +112,8 @@ The product interview is done when all of these hold:
   after `Domain concepts`; `Glossary` when the UI language differs from the docs or the business uses
   aliases.
 - No technology: no frameworks, tables or endpoints. Concept ids (`booking`) are the only bridge to code.
+- List the product documents you read — the brief, detailed requirements, designs — in `Source documents`,
+  with their path and what each holds. Every spec links the sections of these documents it implements.
 - Write in English, like the rest of `.specs/`; quote UI terms literally in the product's language.
 
 Before saving, reread the file as someone who has never heard of the product: every concept it uses is

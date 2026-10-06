@@ -23,6 +23,9 @@ simply don't show up.
 
 - Product: [product.md](../../memory/product.md) — relevant concepts: Booking (requested → confirmed →
   completed), Walker availability; decision "cancellations close 2h before the walk".
+- Requirements: [requirements.md → Cancelling a booking](../../../.docs/requirements.md#cancelling-a-booking)
+  — owners cancel up to 2h before the walk; [requirements.md → Walker availability](../../../.docs/requirements.md#walker-availability)
+  — a cancelled walk frees the slot.
 - Technical: [technical-context.md](../../memory/technical-context.md) — relevant sections: Architecture (use
   cases live in `modules/*`), Error handling (i18n error keys), Automated validation.
 - Existing code this builds on: `modules/booking/src/booking/model/booking.entity.ts` — Booking with the

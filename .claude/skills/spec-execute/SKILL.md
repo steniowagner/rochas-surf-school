@@ -56,6 +56,8 @@ Stop before touching code if any of these fails, and tell the user what is wrong
   conventions and validation standard are what your code must follow — then `product.md` and the rest.
 - Read the whole spec: Goal, Context, Scope, Decisions, Expected Results, Tasks, Verification Plan,
   Amendments, Review. Read `CLAUDE.md` / `AGENTS.md` and the `SKILL.md` of every skill the tasks name.
+- Read the source-document sections linked in Context → Requirements: they hold detail the spec summarizes.
+  When they and the spec disagree, the spec wins if a Decision explains why; if none does, ask the user.
 - Run `git status`. If there are uncommitted changes that don't belong to this spec, tell the user: mixing
   them in makes the review harder. Never stash, reset or discard their work.
 - On the first run (`planned`): set `status: in-progress` and add `started: <today>` and

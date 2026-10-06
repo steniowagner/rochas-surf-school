@@ -53,11 +53,14 @@ Read, in this order, and keep it in mind for the whole interview:
    `.specs/templates/base-spec-model.md`.
 3. All of `.specs/memory/` (`product.md`, `technical-context.md`, and `structure.md`, `modules.md`,
    `modules/*.md` when present).
-4. `CLAUDE.md` / `AGENTS.md` at the root, and the project skills in `.claude/skills/` (names and descriptions
+4. The product's source documents listed in `product.md` → Source documents (a brief, detailed requirements):
+   find every section this request touches and read it in full. Those sections hold detail the user already
+   agreed on — don't ask again what they answer; do raise it when the request contradicts them.
+5. `CLAUDE.md` / `AGENTS.md` at the root, and the project skills in `.claude/skills/` (names and descriptions
    are enough) — tasks should point at the skill that implements them.
-5. Active specs in `.specs/changes/` (at least Goal, Scope and Expected Results) to spot overlap,
+6. Active specs in `.specs/changes/` (at least Goal, Scope and Expected Results) to spot overlap,
    dependencies or conflicts. Skim the titles in `.specs/finished/` for prior decisions on the same area.
-6. The code the request touches. Explore it yourself: anything the code can answer is not a question for the
+7. The code the request touches. Explore it yourself: anything the code can answer is not a question for the
    user. Asking "do we already have a User entity?" when you could have looked wastes the user's attention,
    which is the scarcest resource in this process.
 
@@ -69,8 +72,8 @@ rules for this message are in `.specs/shared/interviewing.md`; for a spec, send 
 - **What I understood** — the request restated in 2–4 sentences, in product terms, plus the fronts you think
   it touches.
 - **Issues found** — each one concrete and sourced, grouped as:
-  - *Contradictions* — with `product.md`, `technical-context.md`, existing code, an active/finished spec, or
-    within the request itself. Quote both sides.
+  - *Contradictions* — with `product.md`, `technical-context.md`, the source documents, existing code, an
+    active/finished spec, or within the request itself. Quote both sides.
   - *Ambiguities* — words or statements with more than one reasonable reading. Name the readings.
   - *Missing information* — what a spec needs that the request doesn't say.
   - *Risks and scope* — the request is really several specs, something is expensive to reverse, a
@@ -110,7 +113,7 @@ Before writing, send a summary and ask for an explicit go-ahead:
 
 - spec id and slug (`NNN-slug`, using the next id from the preflight), title, fronts;
 - goal (2–4 sentences);
-- in scope / out of scope;
+- in scope / out of scope, and the source-document sections the spec implements;
 - the Expected Results, one line each (`ER-01 — …`);
 - the decisions;
 - the task breakdown, one line per task, grouped by front: `T-01 — what, where — Covers: ER-01`. The user
@@ -152,6 +155,9 @@ Writing rules:
   the technical context's Automated validation section.
 - **Decisions** include the reason, so that the executor doesn't "fix" them and the reviewer can check them.
 - **Context** links to memory instead of copying it; only change-specific technical detail goes in the spec.
+  Its **Requirements** line links every source-document section the spec implements — the section's own
+  anchor, never just the document — or says "none". When the spec deliberately departs from a linked section,
+  a Decision records it; the executor and the reviewer read those links.
 - **Memory Impact** lists, one bullet per memory file, what `spec-finish` must update: `product.md`
   (concepts, product decisions), `technical-context.md` (stack, conventions), `structure.md` (workspaces,
   modules, aggregates, routes), `modules.md` (a new module or a moved responsibility) and

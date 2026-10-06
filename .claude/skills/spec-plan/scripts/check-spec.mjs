@@ -31,6 +31,7 @@ const LEFTOVERS = [
   [/^### ER-\d+ — Short name\s*$/, "placeholder Expected Result title"],
   [/^\s*- `command` — what it proves/, "placeholder Verification Plan command"],
   [/check-coverage\.mjs NNN/, "placeholder spec id in the coverage command"],
+  [/<document>|<section>|<path-to-document>|<section-anchor>/, "placeholder requirement link"],
 ];
 const TASK_LINE = /^- \[( |x|X)\] \*\*T-(\d+)\*\*\s*[—–-]?\s*(.*)$/;
 const FINDING_LINE = /^- \[( |x|X)\] \*\*F-(\d+)\*\*\s*(.*)$/;
@@ -225,6 +226,12 @@ for (const s of sections) {
       if (re.test(it.text)) errors.push(`${what} in ## ${s.name} (line ${it.n})`);
     }
   }
+}
+
+// Context: the spec names the sections of the product's source documents it implements, or says "none".
+const context = section("Context");
+if (context && !prose(context.items).some((it) => /^\s*-\s*Requirements:/.test(it.text))) {
+  errors.push('## Context needs a "- Requirements:" line linking the source-document sections this spec implements (or "none")');
 }
 
 // Scope

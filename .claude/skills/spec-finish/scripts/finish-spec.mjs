@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-// Archives an accepted spec: sets `status: finished` and `finished: <date>` in its front matter, then moves its
-// folder from .specs/changes/ to .specs/finished/<YYYYMMDDHHMMSS>-<NNN-slug>/ — with `git mv` when the folder
-// is tracked, so its history follows it. The agent updates the memory before running this.
+// Archives an accepted spec: checks that the code is still exactly what the review accepted (nothing outside
+// .specs/ changed since the front matter's reviewed_commit), sets `status: finished` and `finished: <date>`, then
+// moves the folder from .specs/changes/ to .specs/finished/<YYYYMMDDHHMMSS>-<NNN-slug>/ — with `git mv` when the
+// folder is tracked, so its history follows it. The agent updates the memory before running this.
 //
 // Usage: node finish-spec.mjs [--check] <spec id | slug | path>
-//   --check   report what would happen, change nothing
-// Exit codes: 0 = archived (or already finished), 1 = refused (status isn't accepted), 2 = not found.
+//   --check   run the checks and report what would happen, change nothing
+// Exit codes: 0 = archived (or already finished), 1 = refused (not accepted, or the code changed since the
+// review), 2 = not found.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
@@ -88,6 +90,26 @@ if (status !== "accepted") {
   stop(1, `FINISH REFUSED\n- status is "${status ?? "missing"}": only an accepted spec can be finished (run /spec-review first)`);
 }
 
+// The code must be exactly what the review accepted: nothing outside .specs/ changed since reviewed_commit,
+// committed or not. Claude Code's local settings file is ignored: it changes on its own.
+const reviewed = fmMatch[1].match(/^reviewed_commit:\s*["']?([0-9a-f]{4,40})/m)?.[1];
+if (!reviewed) stop(1, "FINISH REFUSED\n- no reviewed_commit in the front matter: spec-review records it when it accepts a spec");
+if (git(root, ["cat-file", "-e", `${reviewed}^{commit}`]) === null) stop(1, `FINISH REFUSED\n- reviewed_commit ${reviewed} is not a commit of this repository`);
+const outside = ["--", ".", ":(exclude).specs", ":(exclude).claude/settings.local.json"];
+const drift = [
+  ...(git(root, ["diff", "--name-only", reviewed, ...outside]) ?? "").split("\n"),
+  ...(git(root, ["ls-files", "--others", "--exclude-standard", ...outside]) ?? "").split("\n"),
+].filter(Boolean);
+if (drift.length) {
+  stop(
+    1,
+    `FINISH REFUSED\n- the code changed since the review (${reviewed}):\n` +
+      drift.slice(0, 20).map((f) => `  - ${f}`).join("\n") +
+      (drift.length > 20 ? `\n  - … +${drift.length - 20} more` : "") +
+      "\n- run /spec-review again before finishing",
+  );
+}
+
 const now = new Date();
 const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
@@ -138,7 +160,7 @@ for (const f of scan) {
 
 console.log(
   [
-    `spec: .specs/changes/${folder} (${status})`,
+    `spec: .specs/changes/${folder} (${status}) · code unchanged since the review (${reviewed})`,
     `${check ? "would archive" : "archived"} → .specs/finished/${target}`,
     `front matter: status: finished · finished: ${date}${check ? " (not written)" : ""}`,
     `moved with: ${movedWith}`,

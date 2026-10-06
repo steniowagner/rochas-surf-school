@@ -1,29 +1,29 @@
 ---
 name: spec-execute
-description: Execute a planned spec from .specs/changes/ task by task — implementing each task (with the project skill it names), verifying its "Done when", recording evidence in the spec, and running the Verification Plan before handing the spec to review. Also resumes an interrupted execution and fixes the findings of a review that requested changes. Use whenever the user runs /spec-execute, or asks to implement, build, execute, start, continue or resume a spec or its tasks ("implement spec 003", "continue the booking spec", "fix the review findings on 002") — even if they don't say "execute". Not for writing or changing a plan (spec-plan) or for reviewing an implementation (spec-review).
+description: Execute a planned spec from .specs/changes/ task by task on its own branch (spec/NNN-slug) — implementing each task (with the project skill it names), verifying its "Done when", recording evidence in the spec and committing the task, then running the related tests and the changed-lines coverage gate before handing the spec to review. Also resumes an interrupted execution and fixes the findings of a review that requested changes. Use whenever the user runs /spec-execute, or asks to implement, build, execute, start, continue or resume a spec or its tasks ("implement spec 003", "continue the booking spec", "fix the review findings on 002") — even if they don't say "execute". Not for writing or changing a plan (spec-plan) or for reviewing an implementation (spec-review).
 argument-hint: "[spec id, slug or path]"
 ---
 
 # spec-execute
 
 A spec is a contract: `spec-plan` wrote it with the user, and `spec-review` — a different agent that never
-sees this session — will check the implementation against it. This skill turns the spec's tasks into code and
-leaves behind evidence the reviewer can trust. Two things matter most:
+sees this session — will check the implementation against it. This skill turns the spec's tasks into code,
+one commit per task, and leaves behind evidence the reviewer can trust. Two things matter most:
 
 - **Do exactly what the spec says** — all of it, and nothing it didn't ask for. Extra refactors and
   "improvements" widen the review and can break Decisions you didn't know the reason for.
 - **Record only what was verified.** A checked box that wasn't verified is worse than an unchecked one: it
   sends the reviewer looking in the wrong place and hides the real state from whoever resumes the work.
 
-The flow is: **find the spec → gate → prepare → execute the tasks one by one → verify everything → hand off
-to review → report.**
+The flow is: **find the spec → gate → prepare the branch → execute and commit the tasks one by one → verify the
+change → hand off to review → report.**
 
 ## 1. Find the spec
 
 The argument may be an id (`3`, `003`), a slug, a folder or a path to `spec.md`. Run from the repo root:
 
 ```bash
-node .claude/skills/spec-plan/scripts/check-spec.mjs <argument>
+node .specs/scripts/check-spec.mjs <argument>
 ```
 
 With no argument, it lists the specs in `.specs/changes/` with their status. If exactly one is executable
@@ -34,8 +34,7 @@ none is, say so and point to `/spec-plan`.
 
 Stop before touching code if any of these fails, and tell the user what is wrong and what fixes it.
 
-1. **Memory** — `node .claude/skills/spec-plan/scripts/preflight.mjs` prints `PREFLIGHT OK`. Otherwise:
-   `/spec-init`.
+1. **Memory** — `node .specs/scripts/preflight.mjs` prints `PREFLIGHT OK`. Otherwise: `/spec-init`.
 2. **Structure** — `check-spec.mjs <spec>` prints `CHECK OK`. Errors mean the plan isn't executable as
    written (tasks without `Covers` or `Done when`, Expected Results no task covers, template leftovers): send
    it back to `/spec-plan` instead of guessing what the planner meant. Read the warnings too.
@@ -51,18 +50,21 @@ Stop before touching code if any of these fails, and tell the user what is wrong
 
 ## 3. Prepare
 
-- Read `.specs/shared/how-to-execute.md` (execution rules, evidence format), `.specs/shared/task-breakdown.md`
-  and `.specs/shared/naming-rules.md`, then the memory: `technical-context.md` first — its architecture,
-  conventions and validation standard are what your code must follow — then `product.md` and the rest.
+- Read `.specs/shared/how-to-execute.md` (execution rules, commits, evidence format),
+  `.specs/shared/task-breakdown.md` and `.specs/shared/naming-rules.md`, then the memory:
+  `technical-context.md` first — its architecture, conventions and validation standard are what your code must
+  follow — then `product.md` and the rest.
 - Read the whole spec: Goal, Context, Scope, Decisions, Expected Results, Tasks, Verification Plan,
   Amendments, Review. Read `CLAUDE.md` / `AGENTS.md` and the `SKILL.md` of every skill the tasks name.
 - Read the source-document sections linked in Context → Requirements: they hold detail the spec summarizes.
   When they and the spec disagree, the spec wins if a Decision explains why; if none does, ask the user.
-- Run `git status`. If there are uncommitted changes that don't belong to this spec, tell the user: mixing
-  them in makes the review harder. Never stash, reset or discard their work.
-- On the first run (`planned`): set `status: in-progress` and add `started: <today>` and
-  `base_commit: <git rev-parse --short HEAD>` to the front matter. `base_commit` lets the reviewer diff
-  exactly what this spec changed.
+- **The branch.** Every spec is built on `spec/NNN-slug`.
+  - First run (`planned`): run `git status` — if there are uncommitted changes besides the spec itself, tell
+    the user and ask: they would come along to the branch. Never stash, reset or discard their work. Then
+    `git switch -c spec/NNN-slug`, set `status: in-progress`, add `started: <today>` and
+    `base_commit: <git rev-parse HEAD>` to the front matter, and commit the spec:
+    `docs(spec-NNN): start <slug>`.
+  - Resuming: `git switch spec/NNN-slug` if you aren't on it.
 - Tell the user in one short message what is about to happen: the spec, the tasks per front, where you start.
 
 ## 4. Execute the tasks
@@ -80,16 +82,18 @@ One task at a time, in document order. For each unchecked task:
    - When an Expected Result's `Verify by` names a test, write it in the task that implements the behavior —
      first, when practical, and watch it fail. A test that can't fail proves nothing, and the reviewer will
      look for that.
-   - Every file the task creates or changes ends at 100% coverage — statements, branches, functions and
-     lines. If a file can't reasonably get there, don't exclude it or add a coverage-ignore comment on your
-     own: exclusions are project policy in `technical-context.md`. Ask the user.
+   - Every line the task adds or changes must be covered — the statements, branches and functions on it. If a
+     line can't reasonably be covered, don't exclude its file or add a coverage-ignore comment on your own:
+     exclusions are project policy in `technical-context.md`. Ask the user.
 3. **Verify it** — run the check in `Done when` (the narrowest command that proves it: the task's tests, the
    workspace's type check…) and read the output. If it fails, fix and rerun. The task isn't done until the
    check passes.
-4. **Record it** — check the box and write the evidence below it right away, in the format from
-   `how-to-execute.md`: what was done, every file touched (paths from the repo root — `spec-finish` builds one
-   commit per task from that list), the command and its result, deviations. The spec
-   file is the progress record: if the session is interrupted, the next run resumes from it.
+4. **Record it** — check the box and write the evidence below it, in the format from `how-to-execute.md`: what
+   was done, every file touched (paths from the repo root), the command and its result, deviations.
+5. **Commit it** — the task's files and the spec, nothing else: `git add -- <files> <the spec>`, then
+   `<type>(spec-NNN): <what the task did> (T-03)`. Never commit secrets or local settings. Committing every
+   task right away keeps the history exact, and the branch is the progress record: an interrupted session
+   resumes from it.
 
 When reality doesn't match the plan:
 
@@ -105,40 +109,47 @@ When reality doesn't match the plan:
   unchecked with ⛔ evidence, continue with the tasks that don't depend on it, and ask the user once you run
   out of them.
 - **Destructive or outward-facing actions** — deleting data, migrations that drop columns or tables,
-  anything against a non-local environment, pushing, publishing → ask first, even when the task implies it.
+  anything against a non-local environment, publishing → ask first, even when the task implies it. Never
+  push: pushing belongs to `spec-finish`.
 
-Don't commit unless the user asks, or the technical context sets a commit convention. When committing,
-mention the spec and the task in the message (`… (spec 003, T-04)`) so the history stays traceable.
-
-## 5. Verify everything and hand off
+## 5. Verify the change and hand off
 
 When every task is checked:
 
-1. Run the Verification Plan: every test suite, the tests with coverage and
-   `node .claude/skills/spec-plan/scripts/check-coverage.mjs NNN` (it must print `COVERAGE OK`), lint, type
-   check, build, the e2e suites, and the user journeys you can drive yourself (browser, simulator) — for the
-   ones you can't, write exactly what the user must do and see. Everything passes; otherwise fix and rerun.
+1. Run the Verification Plan. Tests run on the change, not on the whole repository:
+
+   ```bash
+   node .specs/scripts/run-related-tests.mjs <spec id>   # tests this spec added or changed, and the existing
+                                                         # tests related to its changes, with coverage
+   node .specs/scripts/check-coverage.mjs <spec id>      # every line the spec adds or changes is covered
+   ```
+
+   Then lint, type check and build for the workspaces the spec touches, the e2e suites, and the user journeys
+   you can drive yourself (browser, simulator) — for the ones you can't, write exactly what the user must do
+   and see. Everything passes; otherwise fix, commit the fix with the task it belongs to (or a new one), and
+   rerun.
 2. Go through each Expected Result: its `Verify by` passes and its edge and error cases are handled. This
    isn't the review — it keeps the review from bouncing on something obvious.
 3. Rerun `check-spec.mjs <spec>`: no task unchecked or without evidence, `CHECK OK`.
-4. Set `status: in-review`. If a task is still blocked, keep `in-progress` and say what unblocks it.
+4. Set `status: in-review` and commit the spec: `docs(spec-NNN): ready for review`. If a task is still
+   blocked, keep `in-progress` and say what unblocks it.
 
 ## 6. Fixing review findings (`changes-requested`)
 
 The reviewer's findings are in `## Review`, under the latest round: `- [ ] **F-NN** (ER-xx) — …`.
 
-1. Set `status: in-progress`.
-2. For each open finding: reproduce it the way the reviewer observed it, fix it, verify, then check it and
-   add evidence below it, in the same format as tasks.
+1. Switch to `spec/NNN-slug` and set `status: in-progress`.
+2. For each open finding: reproduce it the way the reviewer observed it, fix it, verify, check it and add
+   evidence below it, in the same format as tasks, and commit it: `fix(spec-NNN): <what> (F-01)`.
 3. If a finding looks wrong — it asks for something out of scope, or misreads an Expected Result — don't skip
    it silently: record why below it with ⛔ and ask the user.
-4. Rerun the Verification Plan and `check-spec.mjs`, then set `status: in-review`.
+4. Rerun the Verification Plan and `check-spec.mjs`, set `status: in-review`, and commit the spec.
 
 ## 7. Report
 
 Keep it short:
 
-- what was built, per front, and the files changed (`git diff --stat <base_commit>`);
+- what was built, per front, and the commits (`git log --oneline <base_commit>..HEAD`);
 - deviations, tasks added during execution, and amendments;
 - anything still blocked, and what unblocks it;
 - issues noticed outside the scope, as follow-ups (not fixed);

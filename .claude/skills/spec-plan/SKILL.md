@@ -20,7 +20,7 @@ Do not write the spec file before the user has confirmed the summary.
 Run from the repo root:
 
 ```bash
-node .claude/skills/spec-plan/scripts/preflight.mjs
+node .specs/scripts/preflight.mjs
 ```
 
 It checks that `.specs/` exists and that `.specs/memory/product.md` (business/product context) and
@@ -146,13 +146,18 @@ Writing rules:
   listed in `technical-context.md`), in dependency order, with the Verification group last. Each task sits in
   one front, is one coherent change small enough for one sitting, and names its real paths, the project skill
   when one fits, `Covers` (ER ids or `enabling`), an observable `Done when`, and the tests that prove its
-  behavior and leave every file it touches at 100% coverage.
-- **Verification Plan** — everything the reviewer will run: every test suite (not only the new tests), lint,
-  type check and build; the tests with coverage followed by
-  `node .claude/skills/spec-plan/scripts/check-coverage.mjs NNN`, which is mandatory — every source file the
-  spec creates or changes must reach 100%, and only `technical-context.md` can exclude a file; the e2e suites
-  of the apps the spec touches; and the user journeys for user-facing Expected Results. Take the commands from
-  the technical context's Automated validation section.
+  behavior and cover every line it adds or changes. Each task becomes one commit, so it must also make sense
+  as one.
+- **A front without a test runner** can't pass the coverage gate. When the spec touches one, raise it in the
+  first analysis: either the spec's first task for that front sets the runner up (`Covers: enabling`), or
+  the user decides to exclude that front's files in `technical-context.md` → Coverage before the spec is
+  written.
+- **Verification Plan** — everything the reviewer will run, on the change rather than the whole repository:
+  `node .specs/scripts/run-related-tests.mjs NNN` (the tests the spec adds or changes, and the existing tests
+  related to its changes, with coverage); `node .specs/scripts/check-coverage.mjs NNN`, which is mandatory —
+  every line the spec adds or changes must be covered, and only `technical-context.md` can exclude a file;
+  lint, type check and build of the workspaces it touches; the e2e suites of the apps it touches; and the user
+  journeys for user-facing Expected Results.
 - **Decisions** include the reason, so that the executor doesn't "fix" them and the reviewer can check them.
 - **Context** links to memory instead of copying it; only change-specific technical detail goes in the spec.
   Its **Requirements** line links every source-document section the spec implements — the section's own
@@ -170,7 +175,7 @@ Writing rules:
 Then validate it:
 
 ```bash
-node .claude/skills/spec-plan/scripts/check-spec.mjs NNN
+node .specs/scripts/check-spec.mjs NNN
 ```
 
 It must print `CHECK OK`. It checks the structure: front matter, required sections, template leftovers, the

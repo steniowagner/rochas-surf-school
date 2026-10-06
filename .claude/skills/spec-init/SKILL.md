@@ -1,6 +1,6 @@
 ---
 name: spec-init
-description: Set up the spec-driven workflow (spec-plan, spec-execute, spec-review, spec-finish) in a repo. Creates the .specs/ folder (changes, finished, memory, shared rules, templates) when it is missing, then interviews the user about the product and the technical stack — inferring the stack from existing code and asking the user to confirm it — and writes .specs/memory/product.md and .specs/memory/technical-context.md. Use whenever the user runs /spec-init, when the repo has no .specs folder, when spec-plan stops because .specs or the memory files are missing or incomplete, or when the user wants to set up spec-driven development, or define, document or update what the product is, who it is for, its domain concepts, or the project's stack and conventions — even if they don't mention specs. Not for planning a specific feature (that is spec-plan).
+description: Set up the spec-driven workflow (spec-plan, spec-execute, spec-review, spec-finish) in a repo. Creates the .specs/ folder (changes, finished, memory, scripts, shared rules, templates) when it is missing — or upgrades the framework files of an existing one — then interviews the user about the product and the technical stack — inferring the stack from existing code and asking the user to confirm it — and writes .specs/memory/product.md and .specs/memory/technical-context.md. Use whenever the user runs /spec-init, when the repo has no .specs folder, when spec-plan stops because .specs or the memory files are missing or incomplete, or when the user wants to set up spec-driven development, or define, document or update what the product is, who it is for, its domain concepts, or the project's stack and conventions — even if they don't mention specs. Not for planning a specific feature (that is spec-plan).
 argument-hint: "[product | tech] [product description, or a path to a doc]"
 ---
 
@@ -28,14 +28,16 @@ scheduled jobs.
    ```
 
    It creates `.specs/` at the repo root when it doesn't exist — `changes/`, `finished/`, `memory/`,
-   `shared/` (the rules every spec skill follows) and `templates/` — from the copy bundled in
-   `assets/specs/`, and adds any file missing from an existing install. It never overwrites: a file that
-   differs from the bundled version is reported as customized and left alone, because a project may adapt
-   its rules. Tell the user what was created, if anything. If the script fails, stop and report why.
+   `scripts/` (the workflow's checks), `shared/` (the rules every spec skill follows) and `templates/` — from
+   the copy bundled in `assets/specs/`, and adds any file missing from an existing install. It never
+   overwrites on its own: `.specs/.framework.json` records what was installed, so the script can tell a file
+   the project customized (always left alone) from one that is merely out of date. Tell the user what was
+   created, if anything. When it reports out-of-date files, ask whether to upgrade them
+   (`scaffold-specs.mjs --upgrade`). If the script fails, stop and report why.
 2. Run the same gate `spec-plan` uses, from the repo root:
 
    ```bash
-   node .claude/skills/spec-plan/scripts/preflight.mjs
+   node .specs/scripts/preflight.mjs
    ```
 
    It reports, per file, whether it is missing, has template leftovers or has thin required sections. If the
@@ -151,8 +153,9 @@ for, and what code can't answer).
   ownership and the error format — each with its reason.
 - Authentication, error handling and external integrations are decided or explicitly deferred.
 - Automated validation says, per layer, what is tested automatically, with which tool and command, and what
-  is checked manually; how coverage is produced in each workspace and which files are excluded, with
-  reasons (the gate is 100% on every file a spec changes); and which apps have e2e suites. `spec-review`
+  is checked manually; the test runner of each workspace (specs run only the tests related to their
+  change); which files are excluded from coverage, with reasons (the gate: every line a spec adds or changes
+  is covered); and which apps have e2e suites. `spec-review`
   builds its verification on this section, so it can't be vague.
 
 **Confirm and write**, as in the product phase, from `.specs/templates/technical-context-model.md`:

@@ -85,11 +85,14 @@ the domain depends on — or an explicit deferral ("provider chosen by the first
 - Ask: the standard going forward **per layer** (domain unit tests? API integration tests? UI automated or
   manual? mobile?), the exact commands, whether CI enforces them, and — when two runners coexist — which one
   is the standard.
-- **Coverage is fixed at 100%** of every source file a spec changes; what you decide with the user is how it
-  is produced and what is excluded: the coverage command per workspace (and where its report lands), and the
-  files that can't be meaningfully unit-tested — each with its reason — for the `coverage-exclude` block. A
-  workspace with source code but no test runner can't pass the gate: either a runner is added (often the
-  first spec) or its files are excluded on purpose. Make that an explicit decision.
+- **Tests run on the change**: specs run only the tests related to what they change, through
+  `.specs/scripts/run-related-tests.mjs`, which supports Jest and Vitest. Record each workspace's runner; for
+  another runner, ask for its "related tests" command.
+- **Coverage is fixed**: every line a spec adds or changes must be covered. What you decide with the user is
+  what is excluded — the files that can't be meaningfully unit-tested, each with its reason, for the
+  `coverage-exclude` block. A workspace with source code but no test runner can't pass the gate: either a
+  runner is added (often the first spec) or its files are excluded on purpose. Make that an explicit
+  decision.
 - **End-to-end**: which apps have an e2e suite and its command, and which user journeys a reviewer must drive
   by hand or with a browser or simulator.
 - Why it matters: `spec-review` verifies every Expected Result with exactly these tools. "We test some

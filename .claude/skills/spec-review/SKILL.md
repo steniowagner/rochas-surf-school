@@ -1,6 +1,6 @@
 ---
 name: spec-review
-description: Independently review an implemented spec from .specs/changes/ against its contract — runs every test suite, enforces 100% coverage on the code the spec changed, verifies each Expected Result (including end-to-end checks on the running apps, from the user's perspective), checks Decisions, scope and test quality, and records the verdict in the spec's Review section — on acceptance, with a fingerprint of the reviewed code so spec-finish ships exactly what was reviewed. Use whenever the user runs /spec-review, or asks to review, verify, validate, QA or accept a spec or its implementation ("review 001-start-monorepo", "is spec 003 done?", "check the booking spec") — even if they don't say "review". Not for planning (spec-plan), implementing or fixing findings (spec-execute), or archiving (spec-finish).
+description: Independently review an implemented spec from .specs/changes/ against its contract — runs the tests related to the change, enforces that every changed line is covered, verifies each Expected Result (including end-to-end checks on the running apps, from the user's perspective), checks Decisions, scope and test quality, and records the verdict in the spec's Review section as a commit on the spec's branch — on acceptance, with the reviewed commit, so spec-finish ships exactly what was reviewed. Use whenever the user runs /spec-review, or asks to review, verify, validate, QA or accept a spec or its implementation ("review 001-start-monorepo", "is spec 003 done?", "check the booking spec") — even if they don't say "review". Not for planning (spec-plan), implementing or fixing findings (spec-execute), or archiving (spec-finish).
 argument-hint: "<spec id, slug or path>"
 ---
 
@@ -12,16 +12,16 @@ distance is the point. Judge the implementation only against what the spec says,
 the recorded evidence, and make every finding concrete enough that the executor can reproduce and fix it
 without asking you anything.
 
-The flow is: **find and gate → understand the contract → what changed → run everything → verify each
-Expected Result → review the code → verdict → report.** This skill changes no code and makes no commits:
-committing and pushing belong to `spec-finish`.
+The flow is: **find and gate → understand the contract → what changed → run the checks → verify each Expected
+Result → review the code → verdict and commit → report.** This skill changes no code: it commits only its
+review round, on the spec's branch. Pushing belongs to `spec-finish`.
 
 ## 1. Find the spec and gate
 
 Locate it from the repo root (the argument is an id, a slug like `001-start-monorepo`, or a path):
 
 ```bash
-node .claude/skills/spec-plan/scripts/check-spec.mjs <argument>
+node .specs/scripts/check-spec.mjs <argument>
 ```
 
 The status decides what happens:
@@ -35,8 +35,10 @@ The status decides what happens:
 
 Then stop and say why if any of these fails:
 
-- `node .claude/skills/spec-plan/scripts/preflight.mjs` prints `PREFLIGHT OK`.
+- `node .specs/scripts/preflight.mjs` prints `PREFLIGHT OK`.
 - `check-spec.mjs` prints `CHECK OK`: every task checked with evidence, nothing blocked.
+- You are on the spec's branch, `spec/NNN-slug` (`git switch` to it), and `git status` is clean: the executor
+  commits every task, so uncommitted code means the execution isn't finished — point to `/spec-execute`.
 - The front matter has a `base_commit` that exists (`git cat-file -e <sha>`): it defines what the spec
   changed, and the coverage gate depends on it.
 
@@ -50,7 +52,7 @@ Read the whole spec — Goal, Scope, Decisions, Expected Results, Tasks and thei
 Plan, Amendments, earlier Review rounds — plus `.specs/shared/acceptance-criteria.md`,
 `.specs/shared/task-breakdown.md`, `.specs/shared/how-to-execute.md`, `.specs/shared/naming-rules.md`, the
 memory (`technical-context.md` first: architecture, conventions, and the Automated validation section with
-its test, coverage and e2e commands; then `product.md`) and `CLAUDE.md` / `AGENTS.md`.
+its test runners, coverage notes and e2e suites; then `product.md`) and `CLAUDE.md` / `AGENTS.md`.
 
 Also read the source-document sections linked in Context → Requirements. Behavior that contradicts them
 without a Decision or an Amendment explaining why is a finding; what the spec's Scope leaves out is not.
@@ -60,36 +62,43 @@ specifically — and still review everything else: a fix can break something tha
 
 ## 3. What changed
 
-- `git diff --stat <base_commit>` plus untracked files (`git status --porcelain`) is the change set. Read
-  the diff.
+- `git log --oneline <base_commit>..HEAD` shows the work commit by commit — one per task, plus the fixes of
+  earlier rounds — and `git diff --stat <base_commit>..HEAD` the whole change. Read the diff.
 - Every changed file should be explained by a task. Changes no task explains, or that build something in
   Out of scope, are findings — unless trivial and necessary (the lockfile for a dependency a task added).
 - Hand edits to generated or ignored folders, committed secrets, debug leftovers, commented-out code and
   stray TODOs are findings.
 
-## 4. Run everything
+## 4. Run the checks
 
 Start from a reproducible state: install dependencies if the lockfile changed, run the project's generators
 (e.g. the Prisma client), apply migrations to the local database. Never reset or delete data without asking.
 
-1. **Every test suite** — all workspaces, not only the tests this spec added (the commands are in the
-   technical context). All pass. A red test anywhere is a finding, even if it looks unrelated: a spec isn't
-   accepted on a red suite. If a test looks flaky, rerun it once; red twice is a finding.
-2. **Coverage** — run the tests with coverage (the technical context lists the commands), then:
+1. **The related tests** — the tests the spec added or changed, the existing tests that load a file it
+   changed, and the suites of workspaces that import a changed workspace. Not the whole repository:
 
    ```bash
-   node .claude/skills/spec-plan/scripts/check-coverage.mjs <spec id>
+   node .specs/scripts/run-related-tests.mjs <spec id>
    ```
 
-   It must print `COVERAGE OK`: 100% statements, branches, functions and lines on every source file the spec
-   created or changed. The only exclusions are the ones declared in `technical-context.md`; you don't add
-   any. Also search the diff for coverage-ignore comments (`istanbul ignore`, `v8 ignore`, `c8 ignore`): each
-   needs a written reason, and you judge whether it holds.
+   It must print `RELATED TESTS PASSED`. A red test is a finding, even if it looks unrelated. If one looks
+   flaky, rerun it once; red twice is a finding.
+2. **Coverage of the changed lines** — right after the related tests, which wrote the coverage reports:
+
+   ```bash
+   node .specs/scripts/check-coverage.mjs <spec id>
+   ```
+
+   It must print `COVERAGE OK`: every line the spec added or changed is covered — the statements, branches and
+   functions on it. The only exclusions are the ones declared in `technical-context.md`; you don't add any.
+   Also search the diff for coverage-ignore comments (`istanbul ignore`, `v8 ignore`, `c8 ignore`): each needs
+   a written reason, and you judge whether it holds.
 3. **Test quality** — coverage proves the lines ran, not that the behavior is checked. For every Expected
    Result with an automated `Verify by`, the named test exists, runs, and asserts the observable behavior and
    each edge and error case. Tests without meaningful assertions, tests that only check that mocks were
    called, and tests that would still pass with the implementation removed are findings.
-4. **The rest of the Verification Plan** — lint, type check, build, e2e suites, and anything else it lists.
+4. **The rest of the Verification Plan** — lint, type check and build of the workspaces the spec touches, e2e
+   suites, and anything else it lists.
 
 ## 5. Verify each Expected Result
 
@@ -119,10 +128,10 @@ Against the contract, not your taste:
 
 A different but valid design is not a finding. Put useful suggestions under Notes.
 
-## 7. Verdict and record
+## 7. Verdict and commit
 
-- **accepted** — every Expected Result passes, every suite is green, `COVERAGE OK`, the Verification Plan
-  passes, and there are no findings.
+- **accepted** — every Expected Result passes, the related tests are green, `COVERAGE OK`, the Verification
+  Plan passes, and there are no findings.
 - **changes-requested** — anything else.
 
 Append a new round at the end of `## Review`; never edit earlier rounds:
@@ -132,9 +141,9 @@ Append a new round at the end of `## Review`; never edit earlier rounds:
 
 **Checks**
 
-- `npm run lint` ✅ · `npm run check-types` ✅ · `npm run build` ✅
-- tests, all workspaces ✅ 214 passed
-- coverage ❌ 1 of 9 changed files below 100% (2 excluded by technical-context)
+- lint ✅ · type check ✅ · build ✅ (apps/api, modules/booking)
+- related tests ✅ 48 passed (modules/booking, apps/api)
+- coverage of the changed lines ❌ 1 of 9 files has uncovered changed lines
 - e2e: backend suite ✅ 12 passed · web: ER-04 exercised in the browser ✅
 
 **Expected Results**
@@ -154,24 +163,18 @@ Append a new round at the end of `## Review`; never edit earlier rounds:
 ```
 
 Each finding is one problem, tagged with what it breaks — `(ER-xx)`, `(D-xx)`, `(requirement)`,
-`(coverage)`, `(tests)`, `(scope)` or `(convention)` — with how to reproduce it and what is expected. Then set `status` to `accepted`
-or `changes-requested` and rerun `check-spec.mjs`.
+`(coverage)`, `(tests)`, `(scope)` or `(convention)` — with how to reproduce it and what is expected.
 
-When the verdict is `accepted`, record what you accepted:
-
-```bash
-node .claude/skills/spec-plan/scripts/fingerprint.mjs <spec id> --record
-```
-
-It stores `reviewed_tree` — a hash of the code as you reviewed it (`.specs/` and agent settings left out) —
-in the front matter. `spec-finish` recomputes it and refuses to ship if the code changed in between.
+Then set `status` to `accepted` or `changes-requested`. When accepted, also add `reviewed_commit:
+<git rev-parse HEAD>` to the front matter — the commit you reviewed; `spec-finish` refuses to ship if anything
+outside `.specs/` changed after it. Rerun `check-spec.mjs`, then commit the spec alone:
+`docs(spec-NNN): review round N — <verdict>`.
 
 ## 8. Report
 
 Keep it short: the verdict; each Expected Result with ✅/❌; the checks and coverage; the findings by id.
 
-- Accepted → the next step: `/spec-finish NNN`, which updates the memory, archives the spec, commits the work
-  in small commits on `spec/NNN-slug`, pushes it and opens the pull request. Run it before touching the code
-  again.
+- Accepted → the next step: `/spec-finish NNN`, which updates the memory and the source documents, archives
+  the spec, pushes `spec/NNN-slug` and opens the pull request. Run it before touching the code again.
 - Changes requested → the next step: `/spec-execute NNN` to fix the findings, then `/spec-review NNN` again,
   in a fresh session.

@@ -141,10 +141,10 @@ simply don't show up.
 ## Verification Plan
 
 - Automated:
-  - `npm run lint`, `npm run check-types`, `npm run build` — no errors.
-  - `npm test --workspaces -- --coverage` — every suite passes, coverage reports written.
-  - `node .claude/skills/spec-plan/scripts/check-coverage.mjs 003` — 100% on every source file this spec
-    changes.
+  - `node .specs/scripts/run-related-tests.mjs 003` — the tests this spec adds or changes, and the existing
+    tests related to its changes, pass (with coverage).
+  - `node .specs/scripts/check-coverage.mjs 003` — every line this spec adds or changes is covered.
+  - `npx turbo run lint check-types build --filter=@walkies/booking --filter=@walkies/api` — no errors.
   - `npm run test:e2e --workspace apps/api` — the e2e suite passes, including the cancellation scenarios.
   - `booking.integration.http` against `npm run dev` — the five cancellation scenarios answer as ER-01–ER-03
     describe.

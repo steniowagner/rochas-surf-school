@@ -1,0 +1,86 @@
+// Models of the auth module (modules/auth).
+// Tables, columns and enums are snake_case in the database (@@map / @map).
+
+enum UserRole {
+  student
+  instructor
+  admin
+
+  @@map("user_role")
+}
+
+enum UserStatus {
+  pending
+  approved
+  denied
+  deleted
+  removed
+
+  @@map("user_status")
+}
+
+enum UserReactivationStatus {
+  requested
+  denied
+
+  @@map("user_reactivation_status")
+}
+
+enum IdentityProvider {
+  google
+  apple
+  email
+
+  @@map("identity_provider")
+}
+
+model User {
+  id                 String                  @id @db.Uuid
+  name               String
+  email              String                  @unique
+  photoUrl           String?                 @map("photo_url")
+  whatsappNumber     String?                 @map("whatsapp_number")
+  whatsappVisible    Boolean                 @default(false) @map("whatsapp_visible")
+  role               UserRole                @default(student)
+  status             UserStatus              @default(pending)
+  denialReason       String?                 @map("denial_reason")
+  deniedAt           DateTime?               @map("denied_at")
+  removedAt          DateTime?               @map("removed_at")
+  reactivationStatus UserReactivationStatus? @map("reactivation_status")
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+  deletedAt          DateTime?               @map("deleted_at")
+
+  rulesAcceptances UserRulesAcceptance[]
+  identities       Identity[]
+
+  @@map("users")
+}
+
+model UserRulesAcceptance {
+  userId     String   @map("user_id") @db.Uuid
+  version    Int
+  acceptedAt DateTime @map("accepted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, version])
+  @@map("user_rules_acceptances")
+}
+
+model Identity {
+  id             String           @id @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  provider       IdentityProvider
+  providerUserId String           @map("provider_user_id")
+  email          String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  deletedAt      DateTime?        @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("identities")
+}

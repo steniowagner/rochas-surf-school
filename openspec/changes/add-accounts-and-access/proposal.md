@@ -6,7 +6,7 @@ Rocha's Surf School needs a mobile app (Android and iOS) where students, instruc
 
 ## What Changes
 
-- Sign-in with Google, Facebook, Apple (iOS only) or a 6-digit code sent by email, on one screen that both signs in and signs up, with one account per email address.
+- Sign-in with Google, Apple (iOS only) or a 6-digit code sent by email, on one screen that both signs in and signs up, with one account per email address.
 - Admin approval of every registration, with a reason when denied, and onboarding (WhatsApp number and school rules) after approval.
 - Account deletion with a 30-day reactivation window, one reactivation request per account, removal and restoration by admins, and erasure of personal data when the window ends.
 - Profiles (photo, name, WhatsApp number with a visibility setting) and a directory of approved users.
@@ -31,7 +31,7 @@ None. The project has no specs yet.
 ## Impact
 
 - New mobile app (Android and iOS) and backend. No code exists yet, and the tech stack is still to be chosen.
-- External services: Google, Facebook and Apple sign-in, an email service for sign-in codes, and push notifications for approval results.
+- External services: Google and Apple sign-in, an email service for sign-in codes, and push notifications for approval results.
 - Builds together with `add-notifications-and-preferences`, which delivers the notifications these flows send.
 - Personal data (name, email, photo, WhatsApp number) falls under LGPD. Deletion and erasure follow the App Store and Google Play account-deletion rules.
 - Out of scope: accounts for children (all students are assumed to be adults for now), WhatsApp messages sent by the app, and undoing admin decisions (mistakes go to the system administrators).

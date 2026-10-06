@@ -13,8 +13,8 @@ Applies to students, instructors and admins.
 
 ### Account and access
 
-- As a user, I'd like to sign in or create an account with Google, Facebook, or my email and a 6-digit code sent to that email, with no password. On iOS, I'd also like to use Sign in with Apple. The same screen is used to sign in and to create an account. The code expires after 10 minutes, and a new one can be requested after 30 seconds.
-- As a user, I'd like one account per email address, whichever sign-in method I use. If Facebook doesn't share my email, I type one and confirm it with a code. My email address can't be changed later.
+- As a user, I'd like to sign in or create an account with Google or my email and a 6-digit code sent to that email, with no password. On iOS, I'd also like to use Sign in with Apple. The same screen is used to sign in and to create an account. The code expires after 10 minutes, and a new one can be requested after 30 seconds.
+- As a user, I'd like one account per email address, whichever sign-in method I use. My email address can't be changed later.
 - As a user signing up with the email code, I'd like to give my name before my account waits for approval.
 - As a user, after signing up I'd like to see that my account is waiting for approval, and to be told by a push notification when it's approved or denied.
 - As a user, once I'm approved I'd like to add my WhatsApp number and accept the school rules before I start. The WhatsApp number is always required.
@@ -231,7 +231,7 @@ Students cannot:
 
 ## Platform
 
-- Sign in with Apple is offered on iOS, because the app offers Google and Facebook sign-in.
+- Sign in with Apple is offered on iOS, because the app offers Google sign-in.
 - App Store and Google Play reviewers get one pre-approved account per role, each with a fixed sign-in code that only works for that account.
 - Two public web pages, in Brazilian Portuguese, Spanish and English:
   - a privacy policy, which says what the app collects, why, how long it's kept, and which services handle it;

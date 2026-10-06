@@ -15,7 +15,7 @@ A new account SHALL wait for an admin's approval before its user can use the app
 - **AND** they cannot see classes or any other part of the app
 
 ### Requirement: Name before approval
-Every new account SHALL have a name before it waits for approval. The system SHALL use the name shared by Google, Facebook or Apple when available, and SHALL ask the person to type one otherwise.
+Every new account SHALL have a name before it waits for approval. The system SHALL use the name shared by Google or Apple when available, and SHALL ask the person to type one otherwise.
 
 #### Scenario: Email code sign-up
 - **WHEN** a person signs up with an email code

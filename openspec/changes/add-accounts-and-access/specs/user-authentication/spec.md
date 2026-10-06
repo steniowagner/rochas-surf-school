@@ -7,7 +7,7 @@ Lets people sign in to the app with the method they prefer while keeping exactly
 ## ADDED Requirements
 
 ### Requirement: Sign-in methods
-The app SHALL let people sign in with Google, Facebook, or a 6-digit code sent to their email address. On iOS, the app SHALL also offer Sign in with Apple. The same screen SHALL serve both signing in and signing up.
+The app SHALL let people sign in with Google or a 6-digit code sent to their email address. On iOS, the app SHALL also offer Sign in with Apple. The same screen SHALL serve both signing in and signing up.
 
 #### Scenario: First sign-in creates an account
 - **WHEN** a person without an account signs in with any available method
@@ -54,14 +54,6 @@ The system SHALL keep one account per email address. Signing in with any method 
 #### Scenario: Same address, different method
 - **WHEN** a person who signed up with Google later signs in with an email code sent to the same address
 - **THEN** they reach the account they created with Google
-
-### Requirement: Facebook sign-in without an email address
-When Facebook does not share an email address, the system SHALL ask the person to type one and SHALL confirm it with a 6-digit code before continuing.
-
-#### Scenario: Facebook shares no email address
-- **WHEN** a person signs in with Facebook and Facebook shares no email address
-- **THEN** they are asked for an email address
-- **AND** they continue only after entering the code sent to it
 
 ### Requirement: Fixed email address
 An account's email address SHALL NOT change after the account is created.

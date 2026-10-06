@@ -429,8 +429,8 @@ if (["in-review", "accepted", "finished"].includes(status) && pending.length) {
   errors.push(`status is ${status} but ${pending.length} task(s) are not done: ${pending.map((t) => `T-${pad(t.id)}`).join(", ")}`);
 }
 if (status && status !== "planned" && !fm?.base_commit) warnings.push(`status is ${status} but the front matter has no base_commit`);
-if (["accepted", "finished"].includes(status) && !fm?.reviewed_tree) {
-  warnings.push(`status is ${status} but the front matter has no reviewed_tree (spec-review records it on acceptance)`);
+if (["accepted", "finished"].includes(status) && !fm?.reviewed_commit) {
+  warnings.push(`status is ${status} but the front matter has no reviewed_commit (spec-review records it on acceptance)`);
 }
 if (status === "changes-requested" && !openFindings.length) warnings.push("status is changes-requested but the latest review round has no open finding");
 const inFinished = relative(specsDir, specFile).startsWith("finished");

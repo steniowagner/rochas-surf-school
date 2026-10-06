@@ -14,8 +14,9 @@
 // Exit codes: 0 = the related tests passed (or there was nothing to run), 1 = a run failed, 2 = setup problem.
 
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join, relative } from "node:path";
+import { parseFrontMatter, readText, resolveSpec } from "./lib/spec.mjs";
 
 const CODE = /\.[cm]?[jt]sx?$/;
 const SKIP = [/^\.(specs|claude|agents)\//, /\.d\.[cm]?ts$/, /^(?!(.*\/)?src\/).*\.config\.[cm]?[jt]s$/, /(^|\/)node_modules\//];
@@ -48,19 +49,6 @@ const subdirs = (p) => {
     return [];
   }
 };
-
-function resolveSpec(arg) {
-  const asPath = resolve(arg);
-  if (existsSync(asPath)) return statSync(asPath).isDirectory() ? join(asPath, "spec.md") : asPath;
-  const num = /^\d+$/.test(arg) ? arg.padStart(3, "0") : null;
-  for (const area of ["changes", "finished"]) {
-    for (const n of subdirs(join(root, ".specs", area))) {
-      const m = n.match(/^(?:\d{14}-)?(\d{3,})-(.+)$/);
-      if (m && ((num && m[1] === num) || m[2] === arg || n === arg)) return join(root, ".specs", area, n, "spec.md");
-    }
-  }
-  return null;
-}
 
 function workspaces() {
   const rootPkg = readJson(join(root, "package.json")) ?? {};
@@ -111,9 +99,9 @@ if (baseFlag !== -1) {
 } else {
   const arg = args.find((a) => !a.startsWith("--"));
   if (!arg) stop("usage: run-related-tests.mjs <spec id | slug | path> [--list] [--no-coverage]");
-  const specFile = resolveSpec(arg);
+  const specFile = existsSync(join(root, ".specs")) ? resolveSpec(join(root, ".specs"), arg) : null;
   if (!specFile || !existsSync(specFile)) stop(`no spec matches "${arg}"`);
-  base = readFileSync(specFile, "utf8").match(/^base_commit:\s*["']?([0-9a-f]{4,40})/m)?.[1];
+  base = parseFrontMatter(readText(specFile)).fm?.base_commit?.match(/^[0-9a-f]{4,40}$/)?.[0];
   if (!base) stop(`${relative(root, specFile)} has no base_commit (spec-execute adds it when execution starts)`);
   label = `spec ${relative(join(root, ".specs"), specFile).split("/")[1]}, changes since ${base}`;
 }

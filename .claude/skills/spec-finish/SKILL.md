@@ -21,6 +21,9 @@ one commit per task, on `spec/NNN-slug`; this skill adds the last commit and is 
 node .specs/scripts/check-spec.mjs <argument>
 ```
 
+The spec lives on its branch, `spec/NNN-slug`: if the check can't find it, `node .specs/scripts/status.mjs`
+shows where it is — switch to its branch and rerun the check.
+
 - `accepted` → finish it.
 - `finished` → already archived. If the branch wasn't pushed or the pull request wasn't opened (an
   interrupted run), continue at step 7.

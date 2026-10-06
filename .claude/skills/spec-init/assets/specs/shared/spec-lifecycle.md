@@ -1,15 +1,16 @@
 # Spec Lifecycle
 
 Shared rules for the spec skills: `spec-init` (installs `.specs/` and writes the project memory), then, for
-each change, `spec-plan`, `spec-execute`, `spec-review` and `spec-finish`. Every skill reads this file before
-it touches a spec.
+each change, `spec-plan`, `spec-execute`, `spec-review` and `spec-finish`; `spec-status` shows the board of all
+the specs at any time, read-only. Every skill reads this file before it touches a spec.
 
 ## Folders
 
 ```
 .specs/
   memory/              # living memory of the project: product, technical context, structure, modules
-  scripts/             # the workflow's checks: preflight, check-spec, run-related-tests, check-coverage
+  scripts/             # the workflow's checks: preflight, check-spec, status, run-related-tests,
+                       # check-coverage; lib/ holds the spec parsing they share
   shared/              # rules every spec skill follows (this file, interviewing, acceptance-criteria,
                        # task-breakdown, how-to-execute, naming)
   templates/           # models used to create specs and memory files
@@ -41,7 +42,8 @@ run, `spec-execute` adds `started` (date) and `base_commit` (the commit the spec
 everyone can see exactly what the spec changed. On acceptance, `spec-review` adds `reviewed_commit`: the commit
 it accepted, which `spec-finish` checks before shipping. `spec-finish` adds `finished` (date).
 `.specs/scripts/check-spec.mjs` validates the whole structure; every spec skill runs it before working on a
-spec.
+spec. `.specs/scripts/status.mjs` reads every spec — from its branch when it is under execution, since the
+default branch doesn't have it then — and prints the board `spec-status` shows.
 
 ## Status
 

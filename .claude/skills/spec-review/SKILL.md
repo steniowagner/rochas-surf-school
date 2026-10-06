@@ -24,6 +24,9 @@ Locate it from the repo root (the argument is an id, a slug like `001-start-mono
 node .specs/scripts/check-spec.mjs <argument>
 ```
 
+A spec under review lives on its branch, `spec/NNN-slug`: if the check can't find it, `node
+.specs/scripts/status.mjs` shows where it is — switch to its branch and rerun the check.
+
 The status decides what happens:
 
 - `in-review` → review it.

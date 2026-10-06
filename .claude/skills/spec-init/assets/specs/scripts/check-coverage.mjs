@@ -14,6 +14,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { parseFrontMatter, readText, resolveSpec } from "./lib/spec.mjs";
 
 const SOURCE = /\.[cm]?[jt]sx?$/;
 const ALWAYS_EXCLUDED = [
@@ -42,27 +43,6 @@ function git(cwd, args) {
 
 const toPosix = (p) => p.split("\\").join("/");
 const nonEmpty = (s) => (s ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
-
-function subdirs(p) {
-  try {
-    return readdirSync(p, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name);
-  } catch {
-    return [];
-  }
-}
-
-function resolveSpec(root, arg) {
-  const asPath = resolve(arg);
-  if (existsSync(asPath)) return statSync(asPath).isDirectory() ? join(asPath, "spec.md") : asPath;
-  const num = /^\d+$/.test(arg) ? arg.padStart(3, "0") : null;
-  for (const area of ["changes", "finished"]) {
-    for (const n of subdirs(join(root, ".specs", area))) {
-      const m = n.match(/^(?:\d{14}-)?(\d{3,})-(.+)$/);
-      if (m && ((num && m[1] === num) || m[2] === arg || n === arg)) return join(root, ".specs", area, n, "spec.md");
-    }
-  }
-  return null;
-}
 
 function globToRegExp(glob) {
   const g = glob.replace(/^\.\//, "");
@@ -298,10 +278,9 @@ if (baseFlag !== -1) {
   if (!base) fail("--base needs a git ref");
   scope = `changes since ${base}`;
 } else if (args[0]) {
-  const specFile = resolveSpec(root, args[0]);
+  const specFile = existsSync(join(root, ".specs")) ? resolveSpec(join(root, ".specs"), args[0]) : null;
   if (!specFile || !existsSync(specFile)) fail(`no spec matches "${args[0]}" in .specs/changes/ or .specs/finished/`);
-  const fm = readFileSync(specFile, "utf8").match(/^---\n([\s\S]*?)\n---/);
-  base = fm?.[1].match(/^base_commit:\s*["']?([0-9a-f]{4,40})/m)?.[1];
+  base = parseFrontMatter(readText(specFile)).fm?.base_commit?.match(/^[0-9a-f]{4,40}$/)?.[0];
   if (!base) fail(`${relative(root, specFile)} has no base_commit (spec-execute adds it when execution starts)`);
   scope = `spec ${basename(dirname(specFile))}, changes since base_commit ${base}`;
 } else {

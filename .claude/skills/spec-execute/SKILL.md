@@ -26,9 +26,11 @@ The argument may be an id (`3`, `003`), a slug, a folder or a path to `spec.md`.
 node .specs/scripts/check-spec.mjs <argument>
 ```
 
-With no argument, it lists the specs in `.specs/changes/` with their status. If exactly one is executable
-(`planned`, `in-progress` or `changes-requested`), use it and say which; if several are, ask which one; if
-none is, say so and point to `/spec-plan`.
+A spec under execution lives on its branch, not on the default branch, so when the check can't find it or no
+argument was given, list every spec with `node .specs/scripts/status.mjs` — it reads them from their
+branches. If exactly one is executable (`planned`, `in-progress` or `changes-requested`), use it and say
+which; if several are, ask which one; if none is, say so and point to `/spec-plan`. When the spec lives on
+`spec/NNN-slug`, switch to that branch (after checking `git status`, as in section 3) and rerun the check.
 
 ## 2. Gate
 

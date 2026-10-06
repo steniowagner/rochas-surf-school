@@ -46,6 +46,10 @@ whose code changed after the review fails step 2.
 
 ## 2. `/spec-status`
 
+**Status.** Done in framework 1.1.0: `.specs/scripts/status.mjs` and the `spec-status` skill. The parsing moved
+to `.specs/scripts/lib/spec.mjs`, which `check-spec`, `status`, `preflight` and the test scripts share. The
+board reads each spec from its branch, since a spec under execution isn't on the default branch.
+
 **Why.** With more than one spec in flight, nothing shows the whole picture: which specs are where, what is
 blocked, which reviews have open findings.
 

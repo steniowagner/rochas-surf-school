@@ -59,6 +59,7 @@ The skill instructions must remain in Brazilian Portuguese. Generated files and 
 3. Update the module's Prisma schema.
    - Create or edit only `apps/backend/prisma/models/<module>.model.prisma`.
    - Keep one Prisma model per persistable domain entity.
+   - A `State` field that holds a list of objects without their own identity (value objects, such as `rulesAcceptances: RulesAcceptance[]`) may be stored in its own child table instead of a `Json` column. Use a model with a foreign key to the owning entity's table and `onDelete: Cascade`, and a composite `@@id` made of the foreign key plus the field that is unique within the list (for example `@@id([userId, version])`). Don't add `id` or the `EntityState` timestamps, and don't create a domain entity for it. When the storage choice isn't clear, ask the user before writing the schema.
    - Preserve the modular organization of Prisma: each module lives in its own file.
    - Keep the Prisma model and field names consistent with the domain entity (PascalCase models, camelCase fields), but name everything in the database in `snake_case`: tables (lowercase, preferably plural) and columns.
    - Always use `@@map("<table_name>")` on every model and `@map("<column_name>")` on every field whose name is not already snake_case. Example: entity `User` -> model `User` with `@@map("users")`, field `createdAt` -> `createdAt DateTime @map("created_at")`.

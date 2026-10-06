@@ -34,6 +34,7 @@ Synchronize a single domain module with the backend Prisma layer, keeping the mo
 
 - [ ] Create or edit only `apps/backend/prisma/models/<module>.model.prisma`.
 - [ ] Ensure one Prisma model per persistable entity.
+- [ ] For a list of value objects inside an entity (no identity of its own), decide with the user between a child table and a `Json` column. A child table has a foreign key to the owner with `onDelete: Cascade`, a composite `@@id` and no `id` or timestamps.
 - [ ] Include `id`, `createdAt`, `updatedAt` and `deletedAt` when they are part of the shared base.
 - [ ] Keep names and types consistent with the domain.
 - [ ] Map every table to `snake_case` with `@@map`, every non-snake_case field to a `snake_case` column with `@map`, and every enum with `@@map`.
@@ -68,7 +69,7 @@ Synchronize a single domain module with the backend Prisma layer, keeping the mo
 
 - Proceeding by inferring a module when the user has not yet stated which module they want to synchronize.
 - Ignoring fields inherited from `EntityState`.
-- Creating Prisma schema for classes that are not persistable entities.
+- Creating Prisma schema for classes that are not persistable entities. The exception is a child table for a list of value objects that belongs to an entity.
 - Inferring relations that do not clearly appear in the domain.
 - Generating a migration with a name that is too generic, such as `update` or `fix`.
 - Changing files of other modules without necessity.

@@ -56,8 +56,8 @@ is something to confirm, not to ask.
 - **The arguments** — text, or a path to a file (pitch, PRD, notes): read it.
 - **Docs** — `README*`, `CLAUDE.md`, `AGENTS.md`, doc folders (`docs/`, `.docs/`): user journeys, design
   files, decisions.
-- **Specs** — `.specs/changes/`, `.specs/finished/`, and artifacts from other spec tools (e.g. `openspec/`
-  proposals). They often hold most of the product knowledge already.
+- **Specs** — `.specs/changes/`, `.specs/finished/`, and artifacts from other spec tools (proposals, PRDs).
+  They often hold most of the product knowledge already.
 - **Stack inventory**:
 
   ```bash

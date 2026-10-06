@@ -432,15 +432,6 @@ for (const d of [".claude/skills", ".agents/skills"]) {
   const names = subdirs(join(root, d)).filter((n) => existsSync(join(root, d, n, "SKILL.md")));
   if (names.length) p(`- project skills (${d}): ${list(names)}`);
 }
-const openspec = join(root, "openspec");
-if (isDir(openspec)) {
-  const changes = subdirs(join(openspec, "changes")).filter((n) => n !== "archive");
-  const archived = subdirs(join(openspec, "changes", "archive"));
-  p(
-    `- openspec/: ${changes.length} active changes (${list(changes)}), ${archived.length} archived, ` +
-      `${subdirs(join(openspec, "specs")).length} specs`,
-  );
-}
 const specsDir = join(root, ".specs");
 if (isDir(specsDir)) {
   let memory = [];

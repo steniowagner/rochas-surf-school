@@ -1,0 +1,4 @@
+interface:
+  display_name: "Module Use Case"
+  short_description: "Create standardized use cases with complete tests in modules"
+  default_prompt: "Use $module-use-case to create or update a use case in modules/<module>, resolving the aggregate, generating the <name>.usecase.ts file and the corresponding test, reusing existing fakes and ensuring 100% coverage for the use case."

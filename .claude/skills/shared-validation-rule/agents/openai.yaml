@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Shared Rule"
+  short_description: "Create a reusable validation rule in packages/shared with complete exports and tests"
+  default_prompt: "Use $shared-validation-rule to create a new reusable rule in packages/shared/src/validation/rules, reusing the existing utilities, integrating the exports and creating complete unit tests with full coverage of the new rule."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Module Repository"
+  short_description: "Create a repository contract and an in-memory fake"
+  default_prompt: "Use $module-repository to create an aggregate repository in modules/<module>, reusing contracts from @<scope>/shared and also generating an in-memory fake for tests."

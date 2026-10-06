@@ -1,0 +1,4 @@
+interface:
+  display_name: "Module Entity"
+  short_description: "Create or complete a domain entity with lazy validation and complete tests"
+  default_prompt: "Use $module-entity to create or complete a domain entity inside an existing module in modules, following the project's real pattern, reusing shared validation rules and generating unit tests with an explicit goal of 100% coverage for the entity."

@@ -19,9 +19,11 @@ the change: a one-line fix still gets its task and the Verification task.
    directly (a migration, a dependency, wiring).
 7. **Says when it is done** with an observable check — `Done when: <command> passes`, `… answers 201`,
    `… shows the empty state`. "Done when it works" is not a check.
-8. **Carries its own tests** — enough to leave every file it creates or changes at 100% coverage. A behavior
-   and the test that proves it belong to the same task, not to a "write the tests" task at the end. When an
-   Expected Result's `Verify by` names a test, some task creates it.
+8. **Carries its own tests** — enough to cover every line it adds or changes. A behavior and the test that
+   proves it belong to the same task, not to a "write the tests" task at the end. When an Expected Result's
+   `Verify by` names a test, some task creates it.
+9. **Is committed on its own.** `spec-execute` commits each task as soon as it is verified, so a task is also
+   a unit of history: it should make sense as one commit.
 
 ## The list
 

@@ -100,9 +100,11 @@ depends_on: []
 > what to open, what to do and what must be seen.
 
 - Automated:
-  - `command` — what it proves (every test suite, lint, type check, build, the e2e suites of the apps touched)
-  - tests with coverage, then `node .claude/skills/spec-plan/scripts/check-coverage.mjs NNN` — 100% on every
-    source file this spec creates or changes
+  - `node .specs/scripts/run-related-tests.mjs NNN` — the tests this spec added or changed, and the existing
+    tests related to its changes, pass (with coverage)
+  - `node .specs/scripts/check-coverage.mjs NNN` — every line this spec adds or changes is covered
+  - `command` — what it proves (lint, type check and build of the workspaces touched, the e2e suites of the
+    apps touched)
 - User journeys (e2e, followed in a browser or simulator):
   - ...
 

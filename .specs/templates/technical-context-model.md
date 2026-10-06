@@ -103,16 +103,18 @@ reference this file instead of repeating the content.
 (e.g.: unit tests of the modules + `*.integration.http` scenarios), and which are validated
 **manually** (e.g.: "There is no automated UI verification — the interface is validated manually.").
 
-- Tests, per workspace: {{test-commands}} (e.g.: `npm test --workspace modules/auth`).
+- Tests, per workspace: {{test-runner}} (e.g.: Jest in `modules/*`, Vitest in `apps/backend`). Specs run only
+  the tests related to their change, with `.specs/scripts/run-related-tests.mjs`, which supports Jest and
+  Vitest; for another runner, give its "related tests" command here.
 - End-to-end, per app: {{e2e-commands}} (e.g.: `npm run test:e2e --workspace apps/backend`), and which user
   journeys still need someone driving the app (a browser, a simulator).
 
 ### Coverage
 
-Every source file a spec creates or changes must reach **100%** statements, branches, functions and lines;
-`check-coverage.mjs` (in the `spec-plan` skill) enforces it on the spec's change set. Reports come from
-{{coverage-commands}} (e.g.: `npm test --workspace modules/auth -- --coverage`), written as
-`coverage/coverage-final.json` or `coverage/lcov.info`.
+Every line a spec adds or changes must be **covered**: the statements, branches and functions on it, and the
+line itself — a new file counts in full. `.specs/scripts/check-coverage.mjs` enforces it on the spec's change
+set, from the reports `run-related-tests.mjs` writes (`coverage/coverage-final.json` or `coverage/lcov.info`).
+{{coverage-notes}} (e.g.: anything special about how a workspace produces coverage).
 
 Files that can't be meaningfully unit-tested are listed below, each with its reason — nothing else is
 excluded. Tests, type declarations, type-only files and tool configuration are always excluded.

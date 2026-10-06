@@ -12,8 +12,7 @@
 > - It shows **representative paths**, not every file: go down only to the level that helps
 >   locate an aggregate, a layer or an extension point. Use `{a,b}` to group sibling files.
 > - `spec-finish` creates it when the first spec is finished, and updates it whenever a spec creates, moves
->   or removes a workspace, module, aggregate, route or top-level folder — and, every time, its `.specs/`
->   section.
+>   or removes a workspace, module, aggregate, route or top-level folder.
 > - Adapt the sections to the repository: keep only the ones that apply (a single-package repository has no
 >   `packages/` or `modules/` section).
 >
@@ -22,7 +21,6 @@
 > - `{{workspace-groups}}` — workspace groups and their role (e.g.: `apps/*` (executables), `modules/*` (pure business modules), `packages/*` (shared/config)).
 > - `{{npm-namespace}}` — npm namespace of the workspaces (e.g.: `@ideias`).
 > - `{{package-id}}` / `{{module-id}}` / `{{aggregate-id}}` — folder names, kebab-case.
-> - `{{finished-specs-order}}` — slugs of the finished specs in execution order, joined by `→`.
 > - `{{tree}}` — a fenced block with the folder tree and a short `# comment` per relevant line.
 
 {{repo-type}} with {{workspace-count}} groups of workspaces: {{workspace-groups}}.
@@ -43,14 +41,16 @@ apps/  modules/  packages/
 
 ```
 .specs/
-  memory/      # living memory of the project ({{memory-files}})
-  shared/      # {{shared-files}} (e.g.: how-to-execute.md, naming-rules.md)
-  templates/   # {{template-files}} (e.g.: base-model.md, crud-model.md)
-  changes/     # active specs ({{active-specs-state}}, e.g.: "currently empty")
-  finished/    # {{finished-count}} completed specs (prefix = finishing timestamp)
+  memory/      # living memory of the project: product, technical context, structure, modules
+  scripts/     # the spec workflow's checks
+  shared/      # rules every spec skill follows
+  templates/   # models for specs and memory files
+  changes/     # specs in progress
+  finished/    # finished specs (prefix = finishing timestamp)
 ```
 
-Finished specs (execution order): {{finished-specs-order}}.
+> Keep this section as it is: what is in `changes/` and `finished/` is visible there, and listing it here would
+> only drift.
 
 ## `packages/`
 

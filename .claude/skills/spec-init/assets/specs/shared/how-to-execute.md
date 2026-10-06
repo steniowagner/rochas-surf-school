@@ -59,8 +59,8 @@ When `spec-review` sets `status: changes-requested`, its findings are in `## Rev
 - [ ] **F-01** (ER-03) — what failed and how it was observed
 ```
 
-A finding is tagged with what it breaks: `(ER-xx)`, `(D-xx)`, `(coverage)`, `(tests)`, `(scope)` or
-`(convention)`.
+A finding is tagged with what it breaks: `(ER-xx)`, `(D-xx)`, `(requirement)` (a linked source-document
+section), `(coverage)`, `(tests)`, `(scope)` or `(convention)`.
 
 Set `status: in-progress`, fix each open finding, verify it the way the reviewer observed it, then check it
 and add evidence below it, in the same format as tasks. If a finding looks wrong (it asks for something out

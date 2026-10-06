@@ -27,8 +27,14 @@ depends_on: []
 
 > Why the change exists and what it builds on. Link to memory instead of repeating it; add only technical
 > context that is local to this change.
+>
+> **Requirements** links every section of the product's source documents (listed in `product.md` → Source
+> documents) that this spec implements — the section itself, not the whole document — or says "none". The
+> executor reads them for detail, and the reviewer checks the implementation doesn't contradict them. When the
+> spec deliberately departs from a linked section, a Decision says so: the spec wins.
 
 - Product: [product.md](../../memory/product.md) — relevant concepts: ...
+- Requirements: [<document> → <section>](../../../<path-to-document>#<section-anchor>) — what it requires.
 - Technical: [technical-context.md](../../memory/technical-context.md) — relevant sections: ...
 - Existing code this builds on: `path/to/file` — what it does today.
 - Depends on: spec `NNN` (remove if none).

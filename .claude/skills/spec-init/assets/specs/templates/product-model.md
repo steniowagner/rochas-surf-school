@@ -24,6 +24,8 @@
 > - `{{decision}}` — a product decision that shapes behavior and is not obvious from reading the code.
 > - `{{spec-count}}` / `{{delivered-scope}}` — how many specs were delivered and a summary of what they cover.
 > - `{{out-of-scope-items}}` — features consciously postponed, as recorded in the specs.
+> - `{{document}}` / `{{document-role}}` — a product document and what it holds (e.g.: `.docs/requirements.md` —
+>   the detailed requirements, by area).
 
 ## In one sentence
 
@@ -62,3 +64,11 @@ Central narrative of the product: **"{{central-narrative}}"**.
 ## Out of scope (future evolution, recorded in the specs)
 
 {{out-of-scope-items}}.
+
+## Source documents
+
+> The documents this summary is based on, with what each one holds: a product brief, detailed requirements,
+> designs. Paths from the repo root. Every spec links the sections of these documents it implements, so keep
+> this list current. Write "None." when the product has no documents beyond this file.
+
+- `{{document}}` — {{document-role}}.

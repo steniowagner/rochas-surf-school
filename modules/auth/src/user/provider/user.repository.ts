@@ -11,4 +11,6 @@ export interface UserRepository extends CrudRepository<
   User,
   User,
   UserPageParams
-> {}
+> {
+  searchByName(name: string): Promise<User[]>;
+}

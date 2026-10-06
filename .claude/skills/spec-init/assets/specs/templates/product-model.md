@@ -68,7 +68,8 @@ Central narrative of the product: **"{{central-narrative}}"**.
 ## Source documents
 
 > The documents this summary is based on, with what each one holds: a product brief, detailed requirements,
-> designs. Paths from the repo root. Every spec links the sections of these documents it implements, so keep
-> this list current. Write "None." when the product has no documents beyond this file.
+> designs. Paths from the repo root. Every spec links the sections of these documents it implements, and
+> `spec-finish` keeps those sections in line with what was built — so they stay living documents. Write "None."
+> when the product has no documents beyond this file.
 
 - `{{document}}` — {{document-role}}.

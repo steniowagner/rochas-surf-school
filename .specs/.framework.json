@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "files": {
+    "changes/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "finished/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "memory/modules/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scripts/check-coverage.mjs": "90c1ad45bad84bf4896b17bde5f776c2603315ce937b9d1f27012667d678fa74",
+    "scripts/check-spec.mjs": "6bbed0d7bbe8b18a2a633409c13aa41427c5ad5d013c7687fab20bec574a991a",
+    "scripts/preflight.mjs": "04d4937a53fb8edf25d4ef48c58ebf03b47619ddc1fa637f951c89aea55462e3",
+    "scripts/run-related-tests.mjs": "3474fc60cd19e1c6c7631b275d07bb836e84d710a7c9869c125fa68dcb4db3af",
+    "shared/acceptance-criteria.md": "68c3035a4104312dd38f5c25b1d7f0f67037e14abea730ad37cf328d45f59032",
+    "shared/how-to-execute.md": "f000065284fc2ba55b324398640f541bf2fee7c2f1644988087752cb249589eb",
+    "shared/interviewing.md": "9492fcb10a49e8b899b1cdcc4daa25058b5b56958441d5c9c0968d2327ea58c2",
+    "shared/naming-rules.md": "7e601c1461c86c7e527d2a4accf286cd9e3447de4751e364c2f75c78195987d2",
+    "shared/spec-lifecycle.md": "dac37a55d1f7fa2dc24a46839b396cd6cae1ecdcb639cf64e9e60f36397099c4",
+    "shared/task-breakdown.md": "9e26b0172b5729ecb181ea513717b93fed4a9a75873793b5625019ad4d7320ec",
+    "templates/base-spec-model.md": "57046002e6b3b8adc09cc42de970c80c02ae4a2cf810dbebd1bb50974c1a09f1",
+    "templates/module-model.md": "e6f446b172a1780dcd6da4eb84b8d0802ab03933f90d8f4a2fc3d4d6e8a69757",
+    "templates/modules-model.md": "9626863cd2442fe3b5713035e6a272b959dcf79b584d00fea2b262aa25fcf169",
+    "templates/product-model.md": "d8551792409f4b9f50336dbf8232e9b5013b9e90f81498fcc0c97452ed8ec453",
+    "templates/structure-model.md": "bb5de62f986630c3ad0a13dfbbbb9121d4800fe7f49ac908facf5f9e223d2d18",
+    "templates/technical-context-model.md": "171c6001dd2a42ca06f4360e6c96c6b9e61024674ed8a7eeceea1a3838acc56b"
+  }
+}

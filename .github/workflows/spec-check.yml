@@ -4,8 +4,9 @@
 # the spec changed lint, type check and build. Pull requests from other branches skip it, which counts as
 # passing.
 #
-# Make the `spec` job a required status check on the default branch (Settings → Branches, or a ruleset), so a
-# spec pull request can't be merged until it passes.
+# A second job, `e2e`, runs the e2e suites of the apps the spec touches (declared in the technical context),
+# against a disposable Postgres. Make `spec` — and `e2e`, once suites exist — required status checks on the
+# default branch (Settings → Branches, or a ruleset), so a spec pull request can't be merged until they pass.
 
 name: spec
 
@@ -52,3 +53,45 @@ jobs:
 
       - name: Lint, type check and build the changed workspaces
         run: npx turbo run lint check-types build --filter="...[${{ steps.spec.outputs.base_commit }}]"
+
+  e2e:
+    name: e2e
+    if: startsWith(github.head_ref, 'spec/')
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.6-alpine # as in apps/backend/docker-compose.yml
+        env:
+          POSTGRES_USER: rochas
+          POSTGRES_PASSWORD: rochas
+          POSTGRES_DB: rochas_surf_school
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_USER: rochas
+      DATABASE_PASSWORD: rochas
+      DATABASE_NAME: rochas_surf_school
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm install -g npm@11.19.0
+
+      - run: npm ci
+
+      - run: npm run prisma:generate --workspace @rochas-surf-school/backend
+
+      - run: npm run prisma:migrate:deploy --workspace @rochas-surf-school/backend
+
+      - name: E2E suites of the apps the spec touches
+        # The suites are declared in .specs/memory/technical-context.md (```e2e block); none declared passes.
+        run: node .specs/scripts/run-e2e.mjs "${GITHUB_HEAD_REF#spec/}"

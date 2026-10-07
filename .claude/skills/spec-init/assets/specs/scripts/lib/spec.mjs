@@ -162,6 +162,67 @@ export function reviewDrift(root, reviewed, { worktree = true } = {}) {
   return [...new Set([...(git(root, diff) ?? "").split("\n"), ...untracked.split("\n")])].filter(Boolean);
 }
 
+// ---------- workspaces ----------
+
+const readJson = (p) => {
+  try {
+    return JSON.parse(readFileSync(p, "utf8"));
+  } catch {
+    return null;
+  }
+};
+
+// The package workspaces of the repository (npm/yarn `workspaces` globs), or the root alone.
+export function workspaces(root) {
+  const rootPkg = readJson(join(root, "package.json")) ?? {};
+  const globs = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces : rootPkg.workspaces?.packages ?? [];
+  const dirs = new Set();
+  const children = (p) => subdirs(p).filter((n) => n !== "node_modules");
+  for (const g of globs) {
+    const m = g.replace(/\/+$/, "").match(/^(.*?)\/\*\*?$/);
+    if (m) children(join(root, m[1])).forEach((n) => dirs.add(`${m[1]}/${n}`));
+    else dirs.add(g.replace(/\/+$/, ""));
+  }
+  const out = [...dirs]
+    .filter((d) => existsSync(join(root, d, "package.json")))
+    .map((dir) => ({ dir, pkg: readJson(join(root, dir, "package.json")) ?? {} }));
+  if (!out.length) out.push({ dir: ".", pkg: rootPkg });
+  return out;
+}
+
+// Which workspaces a set of changed files touches (`changed`: dir -> files relative to it), and which workspaces
+// depend on those, directly or not (`dependents`: dir -> the changed package names it imports).
+export function affectedWorkspaces(root, files) {
+  const all = workspaces(root);
+  const byDir = new Map(all.map((w) => [w.dir, w]));
+  const ownerOf = (f) =>
+    all.map((w) => w.dir).filter((d) => d === "." || f.startsWith(`${d}/`)).sort((a, b) => b.length - a.length)[0] ?? ".";
+  const changed = new Map();
+  for (const f of files) {
+    const ws = ownerOf(f);
+    if (!changed.has(ws)) changed.set(ws, []);
+    changed.get(ws).push(ws === "." ? f : f.slice(ws.length + 1));
+  }
+  const dependents = new Map();
+  const queue = [...changed.keys()];
+  const seen = new Set(queue);
+  while (queue.length) {
+    const dir = queue.shift();
+    const name = byDir.get(dir)?.pkg.name;
+    if (!name) continue;
+    for (const w of all) {
+      const deps = { ...w.pkg.dependencies, ...w.pkg.devDependencies, ...w.pkg.peerDependencies };
+      if (!(name in deps) || changed.has(w.dir)) continue;
+      dependents.set(w.dir, [...new Set([...(dependents.get(w.dir) ?? []), name])]);
+      if (!seen.has(w.dir)) {
+        seen.add(w.dir);
+        queue.push(w.dir);
+      }
+    }
+  }
+  return { all, byDir, changed, dependents };
+}
+
 // ---------- parsing ----------
 
 export function parseFrontMatter(text) {

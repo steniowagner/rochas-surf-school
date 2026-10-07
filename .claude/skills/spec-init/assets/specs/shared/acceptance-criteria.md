@@ -22,9 +22,10 @@ agent can decide pass/fail from the spec and the code alone.
    - an automated test (file and test name, and the command that runs it);
    - a command with an expected output (the type check exits 0, a migration applies cleanly);
    - an HTTP request (method, path, body, auth) with the expected status and response shape;
-   - for user-facing behavior, an end-to-end check: the app's e2e test when it has an e2e suite, otherwise
-     the user journey — where to go, what to do, what must be seen — precise enough for the reviewer to
-     follow it in a browser or a simulator (see `Automated validation` in the technical context).
+   - for user-facing behavior, an end-to-end check: the e2e test (file and test name) when the app has a suite
+     in the technical context's `e2e` block — `run-e2e.mjs` runs it, locally and in CI — otherwise the user
+     journey — where to go, what to do, what must be seen — precise enough for the reviewer to follow it in a
+     browser or a simulator (see `Automated validation` in the technical context).
 
 ## The set of Expected Results
 

@@ -12,7 +12,7 @@ depends_on: []
 # 007 — Show the walk duration in hours and minutes
 
 <!-- Example of a quick spec that passes check-spec.mjs. The product (a dog-walking app) and paths are
-illustrative. -->
+illustrative: in a real spec the links must resolve, since check-spec.mjs checks them. -->
 
 ## Goal
 

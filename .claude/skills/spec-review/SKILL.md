@@ -102,8 +102,16 @@ Start from a reproducible state: install dependencies if the lockfile changed, r
    Result with an automated `Verify by`, the named test exists, runs, and asserts the observable behavior and
    each edge and error case. Tests without meaningful assertions, tests that only check that mocks were
    called, and tests that would still pass with the implementation removed are findings.
-4. **The rest of the Verification Plan** — lint, type check and build of the workspaces the spec touches, e2e
-   suites, and anything else it lists.
+4. **The e2e suites** of the apps the spec touches, declared in the technical context's `e2e` block, with
+   their services up (a database):
+
+   ```bash
+   node .specs/scripts/run-e2e.mjs <spec id>
+   ```
+
+   It must print `E2E PASSED`. A red suite is a finding.
+5. **The rest of the Verification Plan** — lint, type check and build of the workspaces the spec touches, and
+   anything else it lists.
 
 ## 5. Verify each Expected Result
 
@@ -114,8 +122,9 @@ struck through and marked `(removed: …)` are not verified — but check that t
 - **Tests and commands** — run them (step 4 already covers most).
 - **HTTP** — start the backend and its database locally and send the requests; compare status and body with
   the Expected Result.
-- **User-facing behavior (e2e)** — run the app's e2e suites when the project has them. Then exercise the
-  Expected Result the way a user would: drive the web app with the browser automation available in this
+- **User-facing behavior (e2e)** — when an e2e test covers the Expected Result (its `Verify by` names it),
+  the passing suite is the evidence: check that the test asserts the Given/When/Then and each edge case. For
+  what no suite covers, exercise the Expected Result the way a user would: drive the web app with the browser automation available in this
   session and the mobile app in the simulator — tap, type, read the screen — following its Given/When/Then
   and its edge cases. When no automation is available, give the user the exact steps and ask them to report
   what they see; until someone has seen it, it is not a pass.

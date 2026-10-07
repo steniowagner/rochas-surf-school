@@ -129,9 +129,10 @@ When every task is checked:
    node .specs/scripts/check-coverage.mjs <spec id>      # every line the spec adds or changes is covered
    ```
 
-   Then lint, type check and build for the workspaces the spec touches, the e2e suites, and the user journeys
-   you can drive yourself (browser, simulator) — for the ones you can't, write exactly what the user must do
-   and see. Everything passes; otherwise fix, commit the fix with the task it belongs to (or a new one), and
+   Then lint, type check and build for the workspaces the spec touches, the e2e suites
+   (`node .specs/scripts/run-e2e.mjs <spec id>`, with their services up), and the user journeys no suite
+   covers that you can drive yourself (browser, simulator) — for the ones you can't, write exactly what the
+   user must do and see. Everything passes; otherwise fix, commit the fix with the task it belongs to (or a new one), and
    rerun.
 2. Go through each Expected Result: its `Verify by` passes and its edge and error cases are handled. This
    isn't the review — it keeps the review from bouncing on something obvious.

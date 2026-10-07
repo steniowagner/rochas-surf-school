@@ -106,8 +106,15 @@ reference this file instead of repeating the content.
 - Tests, per workspace: {{test-runner}} (e.g.: Jest in `modules/*`, Vitest in `apps/backend`). Specs run only
   the tests related to their change, with `.specs/scripts/run-related-tests.mjs`, which supports Jest and
   Vitest; for another runner, give its "related tests" command here.
-- End-to-end, per app: {{e2e-commands}} (e.g.: `npm run test:e2e --workspace apps/backend`), and which user
-  journeys still need someone driving the app (a browser, a simulator).
+- End-to-end, per app: the suites in the `e2e` block below, and which user journeys still need someone
+  driving the app (a browser, a simulator). `.specs/scripts/run-e2e.mjs` runs the suites of the apps a spec
+  touches, `spec-plan` puts it in every Verification Plan, `spec-review` runs it instead of driving the app for
+  what the suites cover, and the CI check runs it on every spec pull request.
+
+```e2e
+# one suite per line — <workspace>: <command run from the repo root, headless>   # what it covers, what it needs
+# apps/backend: npm run test:e2e --workspace apps/backend   # the API against a disposable Postgres (DATABASE_*)
+```
 
 ### Coverage
 

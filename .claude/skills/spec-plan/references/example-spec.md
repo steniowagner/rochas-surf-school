@@ -11,7 +11,8 @@ depends_on: []
 # 003 — Owners cancel a booked walk
 
 <!-- Example of a complete spec that passes check-spec.mjs. The product (a dog-walking app), paths and skill
-names are illustrative: a real spec uses the project's own memory, paths and skills. -->
+names are illustrative: a real spec uses the project's own memory, paths and skills — and its links must
+resolve, since check-spec.mjs checks them. -->
 
 ## Goal
 
@@ -145,7 +146,7 @@ simply don't show up.
     tests related to its changes, pass (with coverage).
   - `node .specs/scripts/check-coverage.mjs 003` — every line this spec adds or changes is covered.
   - `npx turbo run lint check-types build --filter=@walkies/booking --filter=@walkies/api` — no errors.
-  - `npm run test:e2e --workspace apps/api` — the e2e suite passes, including the cancellation scenarios.
+  - `node .specs/scripts/run-e2e.mjs 003` — the API's e2e suite passes, including the cancellation scenarios.
   - `booking.integration.http` against `npm run dev` — the five cancellation scenarios answer as ER-01–ER-03
     describe.
 - User journeys (e2e, followed in a browser or simulator):

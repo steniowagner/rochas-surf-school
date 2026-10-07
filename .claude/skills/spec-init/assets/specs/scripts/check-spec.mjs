@@ -37,7 +37,7 @@ const LEFTOVERS = [
   [/^\s*- \.\.\.\s*$/, "placeholder bullet `- ...`"],
   [/^### ER-\d+ — Short name\s*$/, "placeholder Expected Result title"],
   [/^\s*- `command` — what it proves/, "placeholder Verification Plan command"],
-  [/check-coverage\.mjs NNN/, "placeholder spec id in the coverage command"],
+  [/(check-coverage|run-related-tests|run-e2e)\.mjs NNN/, "placeholder spec id in a Verification Plan command"],
   [/<document>|<section>|<path-to-document>|<section-anchor>/, "placeholder requirement link"],
 ];
 

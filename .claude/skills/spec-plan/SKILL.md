@@ -167,8 +167,10 @@ Writing rules:
   `node .specs/scripts/run-related-tests.mjs NNN` (the tests the spec adds or changes, and the existing tests
   related to its changes, with coverage); `node .specs/scripts/check-coverage.mjs NNN`, which is mandatory —
   every line the spec adds or changes must be covered, and only `technical-context.md` can exclude a file;
-  lint, type check and build of the workspaces it touches; the e2e suites of the apps it touches; and the user
-  journeys for user-facing Expected Results.
+  lint, type check and build of the workspaces it touches; `node .specs/scripts/run-e2e.mjs NNN` when the
+  technical context declares e2e suites (it runs those of the apps the spec touches); and the user journeys for
+  the user-facing Expected Results no suite covers. When an app has a suite, a user-facing Expected Result's
+  `Verify by` names an e2e test, and the task that implements the behavior writes it.
 - **Decisions** include the reason, so that the executor doesn't "fix" them and the reviewer can check them.
 - **Context** links to memory instead of copying it; only change-specific technical detail goes in the spec.
   Its **Requirements** line links every source-document section the spec implements — the section's own

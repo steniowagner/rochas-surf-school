@@ -93,8 +93,10 @@ the domain depends on — or an explicit deferral ("provider chosen by the first
   `coverage-exclude` block. A workspace with source code but no test runner can't pass the gate: either a
   runner is added (often the first spec) or its files are excluded on purpose. Make that an explicit
   decision.
-- **End-to-end**: which apps have an e2e suite and its command, and which user journeys a reviewer must drive
-  by hand or with a browser or simulator.
+- **End-to-end**: which apps have an e2e suite, its headless command (run from the repo root, starting its own
+  servers) and what it needs (a database) — one line each in the `e2e` block, which `run-e2e.mjs` and the CI
+  check run — and which user journeys a reviewer must still drive by hand or with a browser or simulator. When
+  an app has none, say so: planning one is a spec of its own.
 - Why it matters: `spec-review` verifies every Expected Result with exactly these tools. "We test some
   things" turns every review into a judgment call.
 

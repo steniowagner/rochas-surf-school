@@ -131,6 +131,13 @@ minutes, not an afternoon.
 
 ## 5. Real end-to-end suites
 
+**Status.** Workflow side done in framework 1.6.0. The suites are declared in a fenced `e2e` block in
+`technical-context.md` → Automated validation. `.specs/scripts/run-e2e.mjs` runs the suites of the workspaces a
+spec changed and of those that depend on them. `spec-plan`, `spec-execute` and `spec-review` use it, and the CI
+check has an `e2e` job with a disposable Postgres. Still to do, as this item says: plan and build the suites
+themselves (Playwright for `apps/web`, Maestro or Detox for `apps/mobile`, the backend's `test:e2e`) as a spec
+with `/spec-plan`, once `/spec-init` has written the memory. Then declare them in the `e2e` block.
+
 **Why.** Today the reviewer verifies user-facing behavior by driving the app with whatever tools the session
 has, or by asking the user. That is slow, hard to repeat, and impossible in CI.
 

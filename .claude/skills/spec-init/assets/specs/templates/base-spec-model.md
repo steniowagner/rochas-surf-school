@@ -103,8 +103,9 @@ depends_on: []
   - `node .specs/scripts/run-related-tests.mjs NNN` — the tests this spec added or changed, and the existing
     tests related to its changes, pass (with coverage)
   - `node .specs/scripts/check-coverage.mjs NNN` — every line this spec adds or changes is covered
-  - `command` — what it proves (lint, type check and build of the workspaces touched, the e2e suites of the
-    apps touched)
+  - `node .specs/scripts/run-e2e.mjs NNN` — the e2e suites of the apps this spec touches pass (when
+    technical-context declares suites)
+  - `command` — what it proves (lint, type check and build of the workspaces touched)
 - User journeys (e2e, followed in a browser or simulator):
   - ...
 

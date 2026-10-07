@@ -51,11 +51,18 @@ node .specs/scripts/check-coverage.mjs <spec id>      # every changed line cover
 `run-related-tests.mjs` also runs the suites of the workspaces that import a changed workspace, for
 regression: their imports go through the package, which a test runner can't trace back to files.
 
+```bash
+node .specs/scripts/run-e2e.mjs <spec id>             # e2e suites of the apps the change touches
+```
+
+`run-e2e.mjs` runs the suites declared in the technical context's `e2e` block for the workspaces the spec
+changed and those that depend on them. Their services (a database) must be up first.
+
 ## Finishing
 
 12. When every task is checked, run the Verification Plan — the related tests with coverage, the coverage
-    gate (`COVERAGE OK`), lint, type check and build for the workspaces the spec touches, and the e2e suites;
-    everything passes.
+    gate (`COVERAGE OK`), lint, type check and build for the workspaces the spec touches, and the e2e suites
+    (`E2E PASSED`); everything passes.
 13. Set `status: in-review` and commit the spec: `docs(spec-NNN): ready for review`.
 
 ## Evidence format

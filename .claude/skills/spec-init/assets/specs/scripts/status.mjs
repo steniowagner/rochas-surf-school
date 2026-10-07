@@ -37,8 +37,15 @@ if (!root) {
   process.exit(2);
 }
 const specsDir = join(root, ".specs");
-const today = new Date(new Date().toISOString().slice(0, 10));
-const daysSince = (date) => (date ? Math.floor((today - new Date(date)) / 86_400_000) : null);
+// Dates are compared as local calendar days: git's %cs and the front matter's dates are local dates.
+const localDay = (d) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+const today = localDay(new Date());
+const daysSince = (date) => {
+  if (!date) return null;
+  const [y, m, d] = date.split("-").map(Number);
+  return Math.round((today - Date.UTC(y, m - 1, d)) / 86_400_000);
+};
+const days = (n) => `${n} day${n === 1 ? "" : "s"}`;
 
 const head = git(root, ["symbolic-ref", "--quiet", "--short", "HEAD"])?.trim() ?? null;
 function defaultBranch() {
@@ -152,10 +159,10 @@ for (const e of [...specs.values()].sort((a, b) => a.id.localeCompare(b.id))) {
 for (const r of rows) {
   const last = r.branch?.last_commit ?? r.started;
   if (r.status === "in-progress" && r.age !== null && r.age >= staleDays) {
-    flags.push(`${r.id} is in-progress with no commit for ${r.age} days (last: ${last})`);
+    flags.push(`${r.id} is in-progress with no commit for ${days(r.age)} (last: ${last})`);
   }
   if (r.status === "accepted") {
-    flags.push(`${r.id} is accepted but not finished${r.age !== null ? ` (${r.age} days since its last commit)` : ""} — /spec-finish ${r.id} before the code drifts`);
+    flags.push(`${r.id} is accepted but not finished${r.age !== null ? ` (${days(r.age)} since its last commit)` : ""} — /spec-finish ${r.id} before the code drifts`);
   }
   if (r.status !== "planned" && !ARCHIVED.has(r.status) && !r.branch) {
     flags.push(`${r.id} is ${r.status} but has no branch spec/${r.id}-${r.slug}`);

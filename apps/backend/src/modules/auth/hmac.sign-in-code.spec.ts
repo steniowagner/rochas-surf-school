@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import { ConfigService } from '@nestjs/config';
+import { AuthConfig } from './auth.config.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
 
 const randomInt = vi.hoisted(() => vi.fn<(min: number, max: number) => number>());
@@ -10,16 +10,11 @@ vi.mock('node:crypto', async (importOriginal) => {
   return { ...actual, randomInt };
 });
 
-const provider = () =>
-  new HmacSignInCodeProvider(new ConfigService({ AUTH_CODE_PEPPER: 'pepper' }));
+const withPepper = (codePepper: string) =>
+  new HmacSignInCodeProvider({ codePepper } as AuthConfig);
+const provider = () => withPepper('pepper');
 
 describe('HmacSignInCodeProvider', () => {
-  it('refuses to start without AUTH_CODE_PEPPER', () => {
-    expect(() => new HmacSignInCodeProvider(new ConfigService({}))).toThrow(
-      'AUTH_CODE_PEPPER is not configured',
-    );
-  });
-
   it('draws the code from 0 to 999999 and pads it to 6 digits', () => {
     randomInt.mockReturnValueOnce(42).mockReturnValueOnce(999_999);
 
@@ -45,7 +40,7 @@ describe('HmacSignInCodeProvider', () => {
   });
 
   it('gives the same hash for the same input and a different one for another pepper', () => {
-    const other = new HmacSignInCodeProvider(new ConfigService({ AUTH_CODE_PEPPER: 'other' }));
+    const other = withPepper('other');
 
     expect(provider().hash('ana@example.com', '123456')).toBe(
       provider().hash('ana@example.com', '123456'),

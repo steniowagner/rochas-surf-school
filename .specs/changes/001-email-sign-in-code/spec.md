@@ -640,13 +640,27 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > backend `tsc --noEmit` and oxlint clean; deviations: the `EMAIL_FROM` guard is an addition (a configured key
   > without a sender would fail every send)
 
-- [ ] **T-15** — Create `apps/backend/src/modules/auth/auth.config.ts`: reads and validates
+- [x] **T-15** — Create `apps/backend/src/modules/auth/auth.config.ts`: reads and validates
   `AUTH_CODE_PEPPER` (required), `REFRESH_TOKEN_EXPIRES_IN_DAYS` (default 30) and `REVIEW_ACCOUNTS` (D-15;
   unset → no review accounts), and exposes the review codes map; registered in `auth.module.ts`, with
   `auth.config.spec.ts`. Add `AUTH_CODE_PEPPER`, `REVIEW_ACCOUNTS` and `REFRESH_TOKEN_EXPIRES_IN_DAYS` to
   `.env.example`.
   Covers: ER-10, ER-16 · Done when: `npx vitest run src/modules/auth/auth.config.spec.ts` passes with the
   file fully covered.
+  > ✅ 2026-10-07 11:58 — created `AuthConfig` (injectable, registered in `auth.module.ts`): requires
+  > `AUTH_CODE_PEPPER` (throws on construction), reads `REFRESH_TOKEN_EXPIRES_IN_DAYS` (default 30, positive
+  > integer or throws), parses `REVIEW_ACCOUNTS` with the exported `parseReviewAccounts` (unset/blank → none;
+  > throws on invalid JSON, non-array, non-object entry, invalid email, code not 6 digits, unknown role, missing
+  > name or a repeated email; emails normalized, names trimmed) and exposes `reviewCodes` (email → code);
+  > `HmacSignInCodeProvider` now takes its pepper from `AuthConfig` (its spec updated). `AUTH_CODE_PEPPER`,
+  > `REFRESH_TOKEN_EXPIRES_IN_DAYS=30` and `REVIEW_ACCOUNTS` added to `.env.example`. files:
+  > `apps/backend/src/modules/auth/auth.config.ts`, `apps/backend/src/modules/auth/auth.config.spec.ts`,
+  > `apps/backend/src/modules/auth/hmac.sign-in-code.ts`,
+  > `apps/backend/src/modules/auth/hmac.sign-in-code.spec.ts`, `apps/backend/src/modules/auth/auth.module.ts`,
+  > `apps/backend/.env.example`; verified: `npx vitest run src/modules/auth/auth.config.spec.ts` (with the HMAC
+  > spec: 2 files, 23 passed; `auth.config.ts` 100% statements/functions/lines, every branch except the
+  > decorator-metadata conditional on the class line), backend `tsc --noEmit` and oxlint clean; deviations:
+  > duplicate review emails are also rejected
 
 - [ ] **T-16** — Replace the placeholder `GET /auth` in `apps/backend/src/modules/auth/auth.controller.ts`
   with `POST /auth/email/code` (`@Public()`, 202, wires `RequestSignInCode`), add its requests to

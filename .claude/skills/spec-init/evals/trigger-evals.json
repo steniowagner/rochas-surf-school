@@ -1,0 +1,92 @@
+[
+  {
+    "query": "set up spec-driven development in this repo",
+    "should_trigger": true
+  },
+  {
+    "query": "spec-plan says the project memory is incomplete — product.md is missing. sort it out",
+    "should_trigger": true
+  },
+  {
+    "query": "document the technical context for the specs: stack, conventions, test runners — interview me, but infer what you can from the code",
+    "should_trigger": true
+  },
+  {
+    "query": "write the product memory: what Rochas Surf School is, the roles (student, instructor, admin) and the domain concepts",
+    "should_trigger": true
+  },
+  {
+    "query": "we added Playwright for the web app, update the technical context's automated validation section",
+    "should_trigger": true
+  },
+  {
+    "query": "upgrade the spec framework files in .specs to the latest version",
+    "should_trigger": true
+  },
+  {
+    "query": "our .specs folder got deleted, recreate it",
+    "should_trigger": true
+  },
+  {
+    "query": "update technical-context.md: the mobile app moved from jest to vitest",
+    "should_trigger": true
+  },
+  {
+    "query": "here's the product brief in .docs/brief.md — turn it into the project memory for the spec workflow",
+    "should_trigger": true
+  },
+  {
+    "query": "set up the CI check that blocks spec PRs that weren't reviewed",
+    "should_trigger": true
+  },
+  {
+    "query": "plan the waiting list feature",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "update CLAUDE.md with the new turbo commands",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "what's the status of the specs?",
+    "should_trigger": false,
+    "routes_to": "spec-status"
+  },
+  {
+    "query": "finish spec 003 and update the memory with what it built",
+    "should_trigger": false,
+    "routes_to": "spec-finish"
+  },
+  {
+    "query": "write a README for apps/backend explaining how to run it with docker",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "create a new business module called booking",
+    "should_trigger": false,
+    "routes_to": "config-new-module"
+  },
+  {
+    "query": "set up prisma in the backend",
+    "should_trigger": false,
+    "routes_to": "config-prisma"
+  },
+  {
+    "query": "initialize a new turbo monorepo with web, backend and mobile apps",
+    "should_trigger": false,
+    "routes_to": "config-project-fullstack"
+  },
+  {
+    "query": "execute spec 002",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  },
+  {
+    "query": "review the booking spec",
+    "should_trigger": false,
+    "routes_to": "spec-review"
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "query": "implement the waiting list spec, the plan is approved",
+    "should_trigger": true
+  },
+  {
+    "query": "continue 004, I think we stopped around T-05 yesterday before my laptop died",
+    "should_trigger": true
+  },
+  {
+    "query": "review came back with changes requested on spec 002 — go fix F-01 and F-02",
+    "should_trigger": true
+  },
+  {
+    "query": "start building spec 007 (class card shows the instructor's first name), it's planned",
+    "should_trigger": true
+  },
+  {
+    "query": "the session crashed in the middle of the booking cancellation spec, pick it up where it stopped",
+    "should_trigger": true
+  },
+  {
+    "query": "ok the plan for 008 looks good to me, go ahead and build it task by task",
+    "should_trigger": true
+  },
+  {
+    "query": "T-03 of spec 005 was blocked on the stripe key. I added STRIPE_SECRET_KEY to apps/backend/.env now, keep going",
+    "should_trigger": true
+  },
+  {
+    "query": "execute the next planned spec",
+    "should_trigger": true
+  },
+  {
+    "query": "the reviewer flagged that coverage is missing on booking.controller.ts lines 41-44 in spec 006, fix that finding",
+    "should_trigger": true
+  },
+  {
+    "query": "build spec 003 — backend tasks first, then the mobile screen",
+    "should_trigger": true
+  },
+  {
+    "query": "plan a spec for blocking students after 3 no-shows",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "review 003 with fresh eyes, the executor says it's done",
+    "should_trigger": false,
+    "routes_to": "spec-review"
+  },
+  {
+    "query": "003 got accepted, ship it — memory, PR, the works",
+    "should_trigger": false,
+    "routes_to": "spec-finish"
+  },
+  {
+    "query": "spec 004 needs to change: cancellations close 12h before the class now. amend it",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "which specs are blocked and on what?",
+    "should_trigger": false,
+    "routes_to": "spec-status"
+  },
+  {
+    "query": "add a lint rule to apps/web that forbids default exports except in page.tsx and layout.tsx",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "write unit tests for packages/shared/src/validation/email.rule.ts, it has none",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "the build of apps/mobile fails after the expo upgrade with 'Cannot find module expo-router/entry', help",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "we're cancelling the referral feature, abandon spec 006",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "finish spec 004 now that review passed — update memory and open the pull request",
+    "should_trigger": false,
+    "routes_to": "spec-finish"
+  }
+]

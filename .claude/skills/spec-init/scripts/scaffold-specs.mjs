@@ -16,7 +16,8 @@
 // Exit codes: 0 = done, 1 = the bundled files are missing.
 //
 // Maintenance: ../assets/specs is the canonical copy and ../assets/VERSION its version. Change the framework there,
-// bump the version, then run `--upgrade` in each repository (this one included).
+// bump the version, run the spec skills' evals (node .claude/evals/spec-workflow/run.mjs, where this repository
+// has them), then run `--upgrade` in each repository (this one included).
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";

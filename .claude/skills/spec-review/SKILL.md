@@ -1,6 +1,7 @@
 ---
 name: spec-review
-description: Independently review an implemented spec from .specs/changes/ against its contract — runs the tests related to the change, enforces that every changed line is covered, verifies each Expected Result (including end-to-end checks on the running apps, from the user's perspective), checks Decisions, scope and test quality, and records the verdict in the spec's Review section as a commit on the spec's branch — on acceptance, with the reviewed commit, so spec-finish ships exactly what was reviewed. Use whenever the user runs /spec-review, or asks to review, verify, validate, QA or accept a spec or its implementation ("review 001-start-monorepo", "is spec 003 done?", "check the booking spec") — even if they don't say "review". Not for planning (spec-plan), implementing or fixing findings (spec-execute), or archiving (spec-finish).
+description: >-
+  Independently review an implemented spec from .specs/changes/ against its contract — runs the tests related to the change, enforces that every changed line is covered, verifies each Expected Result (including end-to-end checks on the running apps, from the user's perspective), checks Decisions, scope and test quality, and records the verdict in the spec's Review section as a commit on the spec's branch — on acceptance, with the reviewed commit, so spec-finish ships exactly what was reviewed. Use whenever the user runs /spec-review, or asks to review, verify, validate, QA or accept a spec or its implementation ("review 001-start-monorepo", "is spec 003 done?", "check the booking spec") — even if they don't say "review". Not for planning (spec-plan), implementing or fixing findings (spec-execute), or archiving (spec-finish).
 argument-hint: "<spec id, slug or path>"
 ---
 

@@ -183,6 +183,19 @@ expected.
 
 ## 7. Evals and description tuning for the skills
 
+**Status.** Done: `node .claude/evals/spec-workflow/run.mjs` (see its README).
+- **Trigger evals:** 20 queries per skill in `.claude/skills/<skill>/evals/trigger-evals.json`, run with every
+  skill installed, so near-misses can land on a sibling.
+- **Output evals:** for plan, execute, review, finish and status, on fixtures built by `fixture.mjs`, with
+  programmatic checks in `evals/checks.mjs`. All five passed on the first run. Run on untouched fixtures, the
+  checks pass at most 1 of their assertions, so they do discriminate.
+- **Tuning:** `tune.mjs` wraps the skill-creator's loop. It hit the rate limit twice here, so the descriptions
+  of `spec-init`, `spec-execute` and `spec-plan` were tuned by hand from the failures. That took the trigger
+  evals from 116/120 to 119/120. The miss left is "the session crashed in the middle of the booking
+  cancellation spec, pick it up where it stopped", in a fixture that has no such spec.
+- **Front matter:** every spec skill's description is now a folded YAML block under 1024 characters. Four of
+  them weren't valid YAML before.
+
 **Why.** The skills were written and tested piece by piece, never measured as a whole. Without evals, an edit
 to a skill can quietly change what it produces or when it triggers.
 

@@ -1,6 +1,7 @@
 ---
 name: spec-execute
-description: Execute a planned spec from .specs/changes/ task by task on its own branch (spec/NNN-slug) — implementing each task (with the project skill it names), verifying its "Done when", recording evidence in the spec and committing the task, then running the related tests and the changed-lines coverage gate before handing the spec to review. Also resumes an interrupted execution and fixes the findings of a review that requested changes. Use whenever the user runs /spec-execute, or asks to implement, build, execute, start, continue or resume a spec or its tasks ("implement spec 003", "continue the booking spec", "fix the review findings on 002") — even if they don't say "execute". Not for writing or changing a plan (spec-plan) or for reviewing an implementation (spec-review).
+description: >-
+  Execute a planned spec from .specs/changes/ task by task on its own branch (spec/NNN-slug): implements each task (with the project skill it names), verifies its "Done when", records evidence and commits it, then runs the related tests, the coverage gate and the e2e suites before handing the spec to review. Also resumes an execution that stopped — a crash, a closed session, a blocker the user just cleared — and fixes the findings of a review that requested changes. Use whenever the user runs /spec-execute, or asks to implement, build, execute, start, continue, resume, pick up or keep going on a spec or its tasks ("implement spec 003", "pick up the booking spec where it stopped", "fix the review findings on 002") — even if they don't say "execute". Not for writing or changing a plan (spec-plan) or reviewing an implementation (spec-review).
 argument-hint: "[spec id, slug or path]"
 ---
 

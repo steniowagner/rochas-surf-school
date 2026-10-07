@@ -1,0 +1,23 @@
+{
+  "skill_name": "spec-execute",
+  "evals": [
+    {
+      "id": 1,
+      "name": "execute-three-task-spec",
+      "stage": "planned",
+      "prompt": "/spec-execute 001 — I'm not available to answer questions during this run: for anything open, take your recommended answer, record it as a decision, and treat your summary as confirmed — don't wait for me. Run the whole spec.",
+      "expected_output": "On spec/001-arithmetic: a start commit, one commit per task with its evidence, related tests and coverage green, status in-review.",
+      "assertions": [
+        "the work is on spec/001-arithmetic",
+        "a start commit records base_commit",
+        "T-01 and T-02 each have their own commit, touching their own files",
+        "every task is checked with ✅ evidence and check-spec.mjs passes",
+        "status is in-review",
+        "the related tests pass",
+        "every changed line is covered",
+        "subtract and multiply behave as the Expected Results say",
+        "the working tree is clean"
+      ]
+    }
+  ]
+}

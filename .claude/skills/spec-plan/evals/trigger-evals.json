@@ -1,0 +1,92 @@
+[
+  {
+    "query": "students should be able to join a waiting list when a surf class is full, and get the spot automatically if someone cancels. let's spec this out before anyone codes it",
+    "should_trigger": true
+  },
+  {
+    "query": "before we write any code for the instructor approval flow I want a proper spec — interview me about it, I know there are open questions about who approves",
+    "should_trigger": true
+  },
+  {
+    "query": "we need the public account deletion page Apple requires for the App Store. can you write it up as a spec with tasks for web and backend so we can implement it next week?",
+    "should_trigger": true
+  },
+  {
+    "query": "turn the waiting list section of .docs/requirements.md into a spec. web + backend only, mobile comes later",
+    "should_trigger": true
+  },
+  {
+    "query": "spec 004 is in progress but the client changed their mind: cancellations now close 12h before the class, not 24h. update the spec properly so the executor knows",
+    "should_trigger": true
+  },
+  {
+    "query": "we're not doing the referral program anymore, the marketing budget got cut. drop spec 006 and keep a record of why",
+    "should_trigger": true
+  },
+  {
+    "query": "small one: the class card should show only the instructor's first name instead of the full name. do a quick spec for it",
+    "should_trigger": true
+  },
+  {
+    "query": "I want push notifications 1h before a class starts. what would the plan look like? break it into tasks per front (backend, mobile) with acceptance criteria",
+    "should_trigger": true
+  },
+  {
+    "query": "write a PRD for the Stripe payments integration (students pay per class pack) before anyone touches the code",
+    "should_trigger": true
+  },
+  {
+    "query": "plan this change: admins can mark a student as no-show, and 3 no-shows in 60 days block new bookings for 30 days",
+    "should_trigger": true
+  },
+  {
+    "query": "implement spec 003, it's planned and the plan was approved yesterday",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  },
+  {
+    "query": "the review on 002 came back with changes requested, go fix the findings",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  },
+  {
+    "query": "is spec 005 actually done? check the implementation against its expected results",
+    "should_trigger": false,
+    "routes_to": "spec-review"
+  },
+  {
+    "query": "005 was accepted in review, close it out and open the PR",
+    "should_trigger": false,
+    "routes_to": "spec-finish"
+  },
+  {
+    "query": "which specs are in flight right now and which one should I pick up next?",
+    "should_trigger": false,
+    "routes_to": "spec-status"
+  },
+  {
+    "query": "set up the spec-driven workflow in this repo, we don't have a .specs folder yet",
+    "should_trigger": false,
+    "routes_to": "spec-init"
+  },
+  {
+    "query": "the waiting list endpoint returns 500 when the class id doesn't exist (apps/backend/src/modules/waiting-list/waiting-list.controller.ts). can you fix it?",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "bump next from 16.1 to 16.2 in apps/web and make sure the build still passes",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "update .specs/memory/technical-context.md: we switched the mobile tests from jest to vitest last week",
+    "should_trigger": false,
+    "routes_to": "spec-init"
+  },
+  {
+    "query": "add Barlow Condensed to the numbers on the class card in apps/mobile, the design system says numbers use it",
+    "should_trigger": false,
+    "routes_to": null
+  }
+]

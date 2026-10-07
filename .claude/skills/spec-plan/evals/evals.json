@@ -1,0 +1,21 @@
+{
+  "skill_name": "spec-plan",
+  "evals": [
+    {
+      "id": 1,
+      "name": "plan-multiply-from-requirements",
+      "stage": "base",
+      "prompt": "/spec-plan Add a multiply operation to the calc library, as .docs/requirements.md → Multiplying numbers describes. I'm not available to answer questions during this run: for anything open, take your recommended answer, record it as a decision, and treat your summary as confirmed — don't wait for me.",
+      "expected_output": "A planned spec .specs/changes/001-<slug>/spec.md that passes check-spec.mjs, links the Multiplying numbers section, covers the zero and TypeError cases, and changes no code.",
+      "assertions": [
+        "exactly one spec, with id 001, in .specs/changes/",
+        "check-spec.mjs passes",
+        "status is planned",
+        "the Requirements line links requirements.md#multiplying-numbers",
+        "the Expected Results cover multiplying by zero and the TypeError",
+        "the Verification Plan runs the related tests and the coverage gate for 001",
+        "nothing outside .specs/ changed and nothing was committed"
+      ]
+    }
+  ]
+}

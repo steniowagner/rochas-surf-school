@@ -1,0 +1,18 @@
+{
+  "skill_name": "spec-status",
+  "evals": [
+    {
+      "id": 1,
+      "name": "board",
+      "stage": "board",
+      "prompt": "/spec-status",
+      "expected_output": "The board: 001 accepted → /spec-finish 001, 002 planned → /spec-execute 002, the orphan branch spec/009-orphan flagged; nothing changed.",
+      "assertions": [
+        "it reports 001 as accepted and suggests /spec-finish 001",
+        "it reports 002 as planned and suggests /spec-execute 002",
+        "it flags the orphan branch spec/009-orphan",
+        "nothing changed in the repository"
+      ]
+    }
+  ]
+}

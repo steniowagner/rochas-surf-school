@@ -1,0 +1,22 @@
+{
+  "skill_name": "spec-finish",
+  "evals": [
+    {
+      "id": 1,
+      "name": "finish-accepted-spec",
+      "stage": "accepted",
+      "prompt": "/spec-finish 001 — I'm not available to answer questions during this run: for anything open, take your recommended answer, record it as a decision, and treat your summary as confirmed — don't wait for me. The remote is a local bare repository, so there is no GitHub: when the pull request can't be opened, give me its title and body.",
+      "expected_output": "Memory updated from the templates, the Subtracting numbers section marked as implemented, the spec archived as finished/<14 digits>-001-subtract, one finish commit, the branch pushed, and the PR title and body.",
+      "assertions": [
+        "the spec is archived in .specs/finished/<YYYYMMDDHHMMSS>-001-subtract with status finished",
+        "product.md's Current state mentions subtract",
+        "structure.md exists and the preflight passes (no template leftovers)",
+        "requirements.md marks Subtracting numbers as implemented in spec 001-subtract",
+        "one finish commit and a clean tree",
+        "the branch is pushed to origin",
+        "the CI gate (check-pr.mjs) passes on the branch",
+        "the final message gives a pull request title naming spec 001"
+      ]
+    }
+  ]
+}

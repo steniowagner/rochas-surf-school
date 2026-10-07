@@ -1,0 +1,92 @@
+[
+  {
+    "query": "is spec 004 done? verify it against its expected results, don't just trust the checkboxes",
+    "should_trigger": true
+  },
+  {
+    "query": "QA the waiting list implementation (spec 005) before we merge it",
+    "should_trigger": true
+  },
+  {
+    "query": "review 002-instructor-approval, the executor says it's ready for review",
+    "should_trigger": true
+  },
+  {
+    "query": "spec-finish refused because the code changed after the review on 003. review it again",
+    "should_trigger": true
+  },
+  {
+    "query": "check the booking spec, I want an independent pass on the coverage and the user journeys in the simulator",
+    "should_trigger": true
+  },
+  {
+    "query": "can you validate that 006 really does what the spec says? run the tests and the app yourself",
+    "should_trigger": true
+  },
+  {
+    "query": "decide whether spec 007 is accepted or needs changes",
+    "should_trigger": true
+  },
+  {
+    "query": "007 is a quick spec — do the self-review now, in this session",
+    "should_trigger": true
+  },
+  {
+    "query": "second review round for 004, the executor says F-01 to F-03 are fixed",
+    "should_trigger": true
+  },
+  {
+    "query": "spec 008 is in-review. verify each ER and record the verdict",
+    "should_trigger": true
+  },
+  {
+    "query": "fix the review findings on 004",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  },
+  {
+    "query": "review my current diff for bugs before I push, nothing to do with specs",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "finish 004, it was accepted this morning",
+    "should_trigger": false,
+    "routes_to": "spec-finish"
+  },
+  {
+    "query": "the plan for spec 008 has 14 tasks, some look too big. can we revise the breakdown before starting?",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "what's the status of the review on 004 and is anything else waiting for review?",
+    "should_trigger": false,
+    "routes_to": "spec-status"
+  },
+  {
+    "query": "do a security review of the auth module in apps/backend/src/modules/auth",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "implement the missing tests the reviewer asked for in 005 (F-02)",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  },
+  {
+    "query": "write the spec for the no-show rule",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "look at PR #42 on github and answer the reviewer's comments",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "set up the spec framework so we can start reviewing specs",
+    "should_trigger": false,
+    "routes_to": "spec-init"
+  }
+]

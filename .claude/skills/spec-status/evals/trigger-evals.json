@@ -1,0 +1,92 @@
+[
+  {
+    "query": "what's going on with the specs?",
+    "should_trigger": true
+  },
+  {
+    "query": "which specs are in progress and which are waiting for review?",
+    "should_trigger": true
+  },
+  {
+    "query": "is anything blocked in the spec pipeline?",
+    "should_trigger": true
+  },
+  {
+    "query": "what should I work on next, spec-wise?",
+    "should_trigger": true
+  },
+  {
+    "query": "give me the board of all the specs with their branches",
+    "should_trigger": true
+  },
+  {
+    "query": "are there accepted specs nobody finished?",
+    "should_trigger": true
+  },
+  {
+    "query": "where are we with 004 and 005?",
+    "should_trigger": true
+  },
+  {
+    "query": "list the active specs and their open review findings",
+    "should_trigger": true
+  },
+  {
+    "query": "is there a spec/ branch lying around without a spec?",
+    "should_trigger": true
+  },
+  {
+    "query": "quick overview of every spec: status, tasks done, last commit",
+    "should_trigger": true
+  },
+  {
+    "query": "implement the next planned spec",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  },
+  {
+    "query": "plan the waiting list spec",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "what's the status of the Vercel deploy for apps/web?",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "show me the open PRs on github for this repo",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "review spec 003",
+    "should_trigger": false,
+    "routes_to": "spec-review"
+  },
+  {
+    "query": "finish 004",
+    "should_trigger": false,
+    "routes_to": "spec-finish"
+  },
+  {
+    "query": "which git branches are already merged into main and can be deleted?",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "check that spec 004's structure is valid before I hand it to the executor — is anything missing in the plan?",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "summarize what changed in the last 10 commits on main",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "drop spec 006, it's stale",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  }
+]

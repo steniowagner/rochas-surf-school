@@ -1,6 +1,7 @@
 ---
 name: spec-status
-description: Show the board of the repo's specs (spec-driven workflow) in one read-only view — every active spec with its status, branch (local or remote, ahead or behind the default branch, last commit), tasks done/blocked/pending and open review findings, plus what needs attention (stale executions, accepted specs not finished, spec branches without a spec, dependencies on unfinished specs), the next spec id and the next command for each spec. Use whenever the user runs /spec-status, or asks what is going on with the specs, which specs are in progress, blocked, waiting for review or ready to finish, or what to work on next ("status of the specs", "where are we with the specs?", "what's in flight?") — even if they don't say "status". Read-only: not for planning, executing, reviewing or finishing a spec.
+description: >-
+  Show the board of the repo's specs (spec-driven workflow) in one read-only view — every active spec with its status, branch (local or remote, ahead or behind the default branch, last commit), tasks done/blocked/pending and open review findings, plus what needs attention (stale executions, accepted specs not finished, spec branches without a spec, dependencies on unfinished specs), the next spec id and the next command for each spec. Use whenever the user runs /spec-status, or asks what is going on with the specs, which specs are in progress, blocked, waiting for review or ready to finish, or what to work on next ("status of the specs", "where are we with the specs?", "what's in flight?") — even if they don't say "status". Read-only: not for planning, executing, reviewing or finishing a spec.
 argument-hint: "[spec id, to zoom in on one spec]"
 ---
 

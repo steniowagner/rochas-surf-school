@@ -1,0 +1,20 @@
+{
+  "skill_name": "spec-review",
+  "evals": [
+    {
+      "id": 1,
+      "name": "review-planted-bug",
+      "stage": "in-review-buggy",
+      "prompt": "/spec-review 001 — this session did not execute the spec. I'm not available to answer questions during this run: for anything open, take your recommended answer, record it as a decision, and treat your summary as confirmed — don't wait for me.",
+      "expected_output": "Round 1 requests changes, with a finding for the planted bug (subtract(3, 5) returns 2, ER-01 says -2) and one for the untested type check (coverage), committed on the spec branch, with no code change.",
+      "assertions": [
+        "status is changes-requested and there is no reviewed_commit",
+        "round 1 is recorded with at least two open findings",
+        "a finding catches the planted bug (subtract(3, 5) must be -2)",
+        "a finding catches the untested type check (coverage or tests)",
+        "the review is committed as review round 1",
+        "no code changed"
+      ]
+    }
+  ]
+}

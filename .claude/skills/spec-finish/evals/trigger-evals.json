@@ -1,0 +1,92 @@
+[
+  {
+    "query": "003 was accepted, close it",
+    "should_trigger": true
+  },
+  {
+    "query": "archive spec 004 and open the PR",
+    "should_trigger": true
+  },
+  {
+    "query": "wrap up the waiting list spec — update the memory and push",
+    "should_trigger": true
+  },
+  {
+    "query": "review passed on 006, ship it: memory, source docs, pull request",
+    "should_trigger": true
+  },
+  {
+    "query": "finish 001-start-monorepo",
+    "should_trigger": true
+  },
+  {
+    "query": "the spec-finish run died after archiving 005, the branch was never pushed and there's no PR. finish it",
+    "should_trigger": true
+  },
+  {
+    "query": "update the project memory with what spec 005 built and open the pull request",
+    "should_trigger": true
+  },
+  {
+    "query": "007 accepted (self-review). close it out",
+    "should_trigger": true
+  },
+  {
+    "query": "close out 002-instructor-approval, it's accepted",
+    "should_trigger": true
+  },
+  {
+    "query": "spec 009 is accepted. mark the requirements it implemented, move it to finished and open the PR against main",
+    "should_trigger": true
+  },
+  {
+    "query": "abandon spec 006, nobody wants the referral program anymore",
+    "should_trigger": false,
+    "routes_to": "spec-plan"
+  },
+  {
+    "query": "merge the PR for spec 003 on github",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "update product.md to say we support Apple sign-in now",
+    "should_trigger": false,
+    "routes_to": "spec-init"
+  },
+  {
+    "query": "review 003, the executor finished all tasks",
+    "should_trigger": false,
+    "routes_to": "spec-review"
+  },
+  {
+    "query": "push my branch and open a PR for the eslint config fix",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "finish implementing spec 004, there are two tasks left",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  },
+  {
+    "query": "what's left to finish across all the specs?",
+    "should_trigger": false,
+    "routes_to": "spec-status"
+  },
+  {
+    "query": "write release notes for the last three finished specs",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "move the design files from .docs into .docs/designs and fix the links in CLAUDE.md",
+    "should_trigger": false,
+    "routes_to": null
+  },
+  {
+    "query": "fix F-01 on spec 003 so it can be accepted",
+    "should_trigger": false,
+    "routes_to": "spec-execute"
+  }
+]

@@ -594,13 +594,29 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > `updateMany`/`deleteMany` (still one atomic statement) so a row deleted concurrently by a successful verify
   > does not make them throw
 
-- [ ] **T-13** — Implement `HmacSignInCodeProvider` (`hmac.sign-in-code.ts`, D-07, pepper from
+- [x] **T-13** — Implement `HmacSignInCodeProvider` (`hmac.sign-in-code.ts`, D-07, pepper from
   `AUTH_CODE_PEPPER`), `SystemClockProvider` (`system.clock.ts`) and `JwtTokenProvider` (`jwt.token.ts`,
   `@nestjs/jwt`, D-01 and D-07) in `apps/backend/src/modules/auth/`, registered in `auth.module.ts`, with spec
   files (6-digit padded codes, HMAC stability and mismatch, JWT `sub`/`exp`, refresh-token hash). Skill:
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation) (its mandatory
   readings `bcrypt.crypto.ts` and `crypto.provider.ts` don't exist; record the deviation).
   Covers: ER-01, ER-14 · Done when: the three spec files pass with the providers fully covered.
+  > ✅ 2026-10-07 11:56 — implemented, following `backend-provider-implementation`: `HmacSignInCodeProvider`
+  > (`randomInt(0, 1_000_000)` padded to 6 digits; hex HMAC-SHA256 keyed by `AUTH_CODE_PEPPER` over
+  > `email:code`; `matches` with `timingSafeEqual`, false on a length mismatch; throws `AUTH_CODE_PEPPER is not
+  > configured` on construction), `SystemClockProvider` and `JwtTokenProvider` (`JwtService.sign({ sub, email },
+  > { algorithm: "HS256" })` with the module secret/expiry, `expiresAt` from the token `exp`; refresh token = 32
+  > random bytes base64url, hash = SHA-256 hex), registered in `auth.module.ts` (which now imports
+  > `JwtAuthModule` for `JwtService`). files: `apps/backend/src/modules/auth/hmac.sign-in-code.ts`,
+  > `apps/backend/src/modules/auth/hmac.sign-in-code.spec.ts`, `apps/backend/src/modules/auth/system.clock.ts`,
+  > `apps/backend/src/modules/auth/system.clock.spec.ts`, `apps/backend/src/modules/auth/jwt.token.ts`,
+  > `apps/backend/src/modules/auth/jwt.token.spec.ts`, `apps/backend/src/modules/auth/auth.module.ts`; verified:
+  > `npx vitest run src/modules/auth/hmac.sign-in-code.spec.ts src/modules/auth/system.clock.spec.ts
+  > src/modules/auth/jwt.token.spec.ts` (3 files, 12 passed; 100% statements/functions/lines, every branch
+  > except the decorator-metadata conditional on the class line of the two injected classes), backend `tsc
+  > --noEmit` and oxlint clean; deviations: the skill’s mandatory readings `bcrypt.crypto.ts` and
+  > `crypto.provider.ts` do not exist in the repo, so the provider pattern came from the skill text and the
+  > technical context; the pepper is read from `ConfigService` here and moves to `AuthConfig` in T-15
 
 - [ ] **T-14** — Install `resend` in `apps/backend` and implement `ResendEmailProvider`
   (`apps/backend/src/modules/auth/resend.email.ts`) with the copy of ER-15, the `idempotencyKey` request

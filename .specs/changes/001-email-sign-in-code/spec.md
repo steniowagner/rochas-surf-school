@@ -2,10 +2,11 @@
 id: "001"
 slug: email-sign-in-code
 title: Email code sign-in
-status: in-review
+status: accepted
 created: 2026-10-07
 started: 2026-10-07
 base_commit: 0a79c2176a6f6b1abe2c101fe1868dcf627b556b
+reviewed_commit: 5c5b42f9d8e936ef7ab591a8b1163a6f5d0ad463
 fronts: [shared, auth, backend]
 depends_on: []
 ---
@@ -941,3 +942,49 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   the seed then upserts it to approved. Harmless, but the seed must run before store review.
 - Memory Impact could also record that the throttler guard is bound per route (only these two endpoints are
   throttled) and that the JWT guard does not yet reload the user (Out of scope).
+
+### Round 2 — 2026-10-07 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (packages/shared, modules/auth, apps/backend; `turbo --force`, 8 tasks)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend, modules/auth, packages/shared 97 passed)
+- coverage of the changed lines ✅ `COVERAGE OK` (28 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 30 passed (`E2E PASSED`)
+- every `Verify by` of ER-01 to ER-16 ✅ (29 commands, each exit 0 with the expected tests selected)
+- HTTP on a locally started backend (email in log mode): mixed-case request 202, resend 429 with
+  `details.resendAvailableAt`, 422 email + locale, `"12ab"` 401, no name 422 `user.name.required`, `"Al"` 422
+  `["user.name.min.length", "user.name.person.name"]`, name 200 pending student, reuse 401, `246810` for another
+  email 401; the test rows were deleted afterwards
+
+**Expected Results**
+
+- ER-01 ✅ — 202 `{ resendAvailableAt, expiresAt }`, one email in `es`, 64-hex hash; 422 cases send nothing
+- ER-02 ✅ — 429 with `resendAvailableAt = T + 30 s`; first code still signs in; at T + 30 s a new code, attempts 0
+- ER-03 ✅ — 502 `signInCode.email.sendFailed`, no row, immediate retry 202
+- ER-04 ✅ — session + user; Google account gets one `email` identity; denied/deleted/removed get 200
+- ER-05 ✅ — 422 `user.name.required` without consuming; amended "Al" list asserted in full (use case and e2e)
+- ER-06 ✅ — 401, attempts + 1; no code requested and `"12ab"` → same 401
+- ER-07 ✅ — expired at 10 min, signs in at 9:59, a new code after expiry signs in (fake clock)
+- ER-08 ✅ — 5 wrong → `signInCode.attempts.exceeded`; 4 wrong → 200; new code resets
+- ER-09 ✅ — reuse 401; two concurrent verifies → one 200, one 401, one refresh token
+- ER-10 ✅ — 202 without email, 200 approved admin; fixed code rejected elsewhere and before a request
+- ER-11 ✅ — seed spec: three approved accounts with identities, idempotent, unset → nothing
+- ER-12 ✅ — 6th code request and 11th verify → 429 `request.rate.limited`
+- ER-13 ✅ — expired rows deleted, others kept, every-minute cron
+- ER-14 ✅ — HS256, `sub`, 900 s; SHA-256 hash stored, 30 days, a family id per sign-in
+- ER-15 ✅ — copy in the three languages, `from`, `to`, `html`, `idempotencyKey`, `error` rejects; manual
+  Resend journey reported passing by the user (T-21)
+- ER-16 ✅ — log fallback without a key; throws without pepper, in production without a key, on bad
+  `REVIEW_ACCOUNTS`
+
+**Findings**
+
+- none — F-01 (round 1) verified fixed: ER-05 amended and logged under `## Amendments`, both tests assert the
+  full error list.
+
+**Notes**
+
+- Round 1's notes still stand: T-22's coverage rule exists only in `.specs/scripts/` (port it to
+  `.claude/skills/spec-init/assets/`); the seed must run before store review; Memory Impact could mention the
+  per-route throttler and that the JWT guard doesn't reload the user yet.

@@ -618,7 +618,7 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > `crypto.provider.ts` do not exist in the repo, so the provider pattern came from the skill text and the
   > technical context; the pepper is read from `ConfigService` here and moves to `AuthConfig` in T-15
 
-- [ ] **T-14** — Install `resend` in `apps/backend` and implement `ResendEmailProvider`
+- [x] **T-14** — Install `resend` in `apps/backend` and implement `ResendEmailProvider`
   (`apps/backend/src/modules/auth/resend.email.ts`) with the copy of ER-15, the `idempotencyKey` request
   option, the `error` check, the development log fallback and the production guard (D-06), registered in
   `auth.module.ts`, with `resend.email.spec.ts` mocking the Resend client. Add `RESEND_API_KEY` and
@@ -626,6 +626,19 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-15, ER-16 · Done when: `npx vitest run src/modules/auth/resend.email.spec.ts` passes with the
   provider fully covered.
+  > ✅ 2026-10-07 11:57 — installed `resend` (^6.32.1; API checked against the Resend Node SDK docs via Context7:
+  > `emails.send(payload, { idempotencyKey })` returns `{ data, error }`) and implemented `ResendEmailProvider`,
+  > following `backend-provider-implementation`: the pt-BR/es/en subject and text of ER-15, `html` = the same
+  > text in a `<p>` (HTML-escaped), `from: EMAIL_FROM`, the `idempotencyKey` request option, rejects when the
+  > response has `error`; with `RESEND_API_KEY` unset it logs the email and code outside production and throws
+  > on construction in production; with a key but no `EMAIL_FROM` it throws on construction. Registered in
+  > `auth.module.ts`; `RESEND_API_KEY` and `EMAIL_FROM` added to `.env.example`. files:
+  > `apps/backend/src/modules/auth/resend.email.ts`, `apps/backend/src/modules/auth/resend.email.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.module.ts`, `apps/backend/.env.example`, `apps/backend/package.json`,
+  > `package-lock.json`; verified: `npx vitest run src/modules/auth/resend.email.spec.ts` (8 passed; 100%
+  > statements/functions/lines, every branch except the decorator-metadata conditional on the class line),
+  > backend `tsc --noEmit` and oxlint clean; deviations: the `EMAIL_FROM` guard is an addition (a configured key
+  > without a sender would fail every send)
 
 - [ ] **T-15** — Create `apps/backend/src/modules/auth/auth.config.ts`: reads and validates
   `AUTH_CODE_PEPPER` (required), `REFRESH_TOKEN_EXPIRES_IN_DAYS` (default 30) and `REVIEW_ACCOUNTS` (D-15;

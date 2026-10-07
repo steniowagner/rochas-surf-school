@@ -6,7 +6,8 @@ agent can decide pass/fail from the spec and the code alone.
 
 ## Every Expected Result
 
-1. **Has an id** (`ER-01`, `ER-02`…), never renumbered after the spec is written.
+1. **Has an id** (`ER-01`, `ER-02`…), never renumbered after the spec is written. One an amendment removes
+   stays, struck through and marked `(removed: <reason>)`; it needs no task and no verification.
 2. **Describes observable behavior**, not implementation: what a user, a client of the API or a test sees.
    Implementation constraints belong in `## Decisions`.
 3. **Is binary.** Two reviewers reading it reach the same verdict. Words like *fast*, *simple*, *intuitive*,
@@ -21,9 +22,10 @@ agent can decide pass/fail from the spec and the code alone.
    - an automated test (file and test name, and the command that runs it);
    - a command with an expected output (the type check exits 0, a migration applies cleanly);
    - an HTTP request (method, path, body, auth) with the expected status and response shape;
-   - for user-facing behavior, an end-to-end check: the app's e2e test when it has an e2e suite, otherwise
-     the user journey — where to go, what to do, what must be seen — precise enough for the reviewer to
-     follow it in a browser or a simulator (see `Automated validation` in the technical context).
+   - for user-facing behavior, an end-to-end check: the e2e test (file and test name) when the app has a suite
+     in the technical context's `e2e` block — `run-e2e.mjs` runs it, locally and in CI — otherwise the user
+     journey — where to go, what to do, what must be seen — precise enough for the reviewer to follow it in a
+     browser or a simulator (see `Automated validation` in the technical context).
 
 ## The set of Expected Results
 

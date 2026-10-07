@@ -103,8 +103,9 @@ depends_on: []
   - `node .specs/scripts/run-related-tests.mjs NNN` — the tests this spec added or changed, and the existing
     tests related to its changes, pass (with coverage)
   - `node .specs/scripts/check-coverage.mjs NNN` — every line this spec adds or changes is covered
-  - `command` — what it proves (lint, type check and build of the workspaces touched, the e2e suites of the
-    apps touched)
+  - `node .specs/scripts/run-e2e.mjs NNN` — the e2e suites of the apps this spec touches pass (when
+    technical-context declares suites)
+  - `command` — what it proves (lint, type check and build of the workspaces touched)
 - User journeys (e2e, followed in a browser or simulator):
   - ...
 
@@ -134,8 +135,8 @@ depends_on: []
 
 ## Amendments
 
-> Reserved for `spec-execute`: changes to Scope, Decisions or Expected Results the user approved during
-> execution (date, before → after, reason). Leave empty when planning.
+> Reserved for `spec-plan --amend` and `spec-execute`: changes to Scope, Decisions, Expected Results or tasks
+> the user approved after the spec was written (date, before → after, reason). Leave empty when planning.
 
 ## Review
 

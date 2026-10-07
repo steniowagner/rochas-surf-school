@@ -14,8 +14,9 @@
 // Exit codes: 0 = the related tests passed (or there was nothing to run), 1 = a run failed, 2 = setup problem.
 
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { join, relative } from "node:path";
+import { affectedWorkspaces, parseFrontMatter, readText, resolveSpec } from "./lib/spec.mjs";
 
 const CODE = /\.[cm]?[jt]sx?$/;
 const SKIP = [/^\.(specs|claude|agents)\//, /\.d\.[cm]?ts$/, /^(?!(.*\/)?src\/).*\.config\.[cm]?[jt]s$/, /(^|\/)node_modules\//];
@@ -32,52 +33,6 @@ function stop(message) {
 let root;
 const git = (gitArgs) =>
   execFileSync("git", gitArgs, { cwd: root, stdio: ["ignore", "pipe", "ignore"], maxBuffer: 256 * 1024 * 1024 }).toString();
-const readJson = (p) => {
-  try {
-    return JSON.parse(readFileSync(p, "utf8"));
-  } catch {
-    return null;
-  }
-};
-const subdirs = (p) => {
-  try {
-    return readdirSync(p, { withFileTypes: true })
-      .filter((e) => e.isDirectory() && !e.name.startsWith(".") && e.name !== "node_modules")
-      .map((e) => e.name);
-  } catch {
-    return [];
-  }
-};
-
-function resolveSpec(arg) {
-  const asPath = resolve(arg);
-  if (existsSync(asPath)) return statSync(asPath).isDirectory() ? join(asPath, "spec.md") : asPath;
-  const num = /^\d+$/.test(arg) ? arg.padStart(3, "0") : null;
-  for (const area of ["changes", "finished"]) {
-    for (const n of subdirs(join(root, ".specs", area))) {
-      const m = n.match(/^(?:\d{14}-)?(\d{3,})-(.+)$/);
-      if (m && ((num && m[1] === num) || m[2] === arg || n === arg)) return join(root, ".specs", area, n, "spec.md");
-    }
-  }
-  return null;
-}
-
-function workspaces() {
-  const rootPkg = readJson(join(root, "package.json")) ?? {};
-  const globs = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces : rootPkg.workspaces?.packages ?? [];
-  const dirs = new Set();
-  for (const g of globs) {
-    const m = g.replace(/\/+$/, "").match(/^(.*?)\/\*\*?$/);
-    if (m) subdirs(join(root, m[1])).forEach((n) => dirs.add(`${m[1]}/${n}`));
-    else dirs.add(g.replace(/\/+$/, ""));
-  }
-  const out = [...dirs]
-    .filter((d) => existsSync(join(root, d, "package.json")))
-    .map((dir) => ({ dir, pkg: readJson(join(root, dir, "package.json")) ?? {} }));
-  if (!out.length) out.push({ dir: ".", pkg: rootPkg });
-  return out;
-}
-
 function runnerOf(pkg) {
   const script = pkg.scripts?.test ?? "";
   const deps = { ...pkg.dependencies, ...pkg.devDependencies };
@@ -111,9 +66,9 @@ if (baseFlag !== -1) {
 } else {
   const arg = args.find((a) => !a.startsWith("--"));
   if (!arg) stop("usage: run-related-tests.mjs <spec id | slug | path> [--list] [--no-coverage]");
-  const specFile = resolveSpec(arg);
+  const specFile = existsSync(join(root, ".specs")) ? resolveSpec(join(root, ".specs"), arg) : null;
   if (!specFile || !existsSync(specFile)) stop(`no spec matches "${arg}"`);
-  base = readFileSync(specFile, "utf8").match(/^base_commit:\s*["']?([0-9a-f]{4,40})/m)?.[1];
+  base = parseFrontMatter(readText(specFile)).fm?.base_commit?.match(/^[0-9a-f]{4,40}$/)?.[0];
   if (!base) stop(`${relative(root, specFile)} has no base_commit (spec-execute adds it when execution starts)`);
   label = `spec ${relative(join(root, ".specs"), specFile).split("/")[1]}, changes since ${base}`;
 }
@@ -130,37 +85,7 @@ const changed = [
   ]),
 ].filter((f) => f && CODE.test(f) && !SKIP.some((re) => re.test(f)) && existsSync(join(root, f)));
 
-const all = workspaces();
-const byDir = new Map(all.map((w) => [w.dir, w]));
-const ownerOf = (f) =>
-  all.map((w) => w.dir).filter((d) => d === "." || f.startsWith(`${d}/`)).sort((a, b) => b.length - a.length)[0] ?? ".";
-
-const filesByWs = new Map();
-for (const f of changed) {
-  const ws = ownerOf(f);
-  if (!filesByWs.has(ws)) filesByWs.set(ws, []);
-  filesByWs.get(ws).push(ws === "." ? f : f.slice(ws.length + 1));
-}
-
-// Workspaces that depend, directly or not, on a changed workspace.
-const nameToDir = new Map(all.filter((w) => w.pkg.name).map((w) => [w.pkg.name, w.dir]));
-const dependents = new Map(); // dir -> package names it imports from changed workspaces
-const queue = [...filesByWs.keys()];
-const seen = new Set(queue);
-while (queue.length) {
-  const dir = queue.shift();
-  const name = byDir.get(dir)?.pkg.name;
-  if (!name) continue;
-  for (const w of all) {
-    const deps = { ...w.pkg.dependencies, ...w.pkg.devDependencies, ...w.pkg.peerDependencies };
-    if (!(name in deps) || filesByWs.has(w.dir)) continue;
-    dependents.set(w.dir, [...new Set([...(dependents.get(w.dir) ?? []), name])]);
-    if (!seen.has(w.dir)) {
-      seen.add(w.dir);
-      queue.push(w.dir);
-    }
-  }
-}
+const { byDir, changed: filesByWs, dependents } = affectedWorkspaces(root, changed);
 
 const runs = [];
 for (const [dir, files] of filesByWs) {

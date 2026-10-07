@@ -2,13 +2,14 @@
 // Preflight for spec-plan: checks that the project memory is filled in and reports the next spec id.
 // Usage: node preflight.mjs [repo-root]   (defaults to the nearest ancestor of cwd that has a .specs folder)
 // Also checks the optional memory files (structure.md, modules.md, modules/*.md) for template leftovers, and that
-// modules.md and modules/*.md link to each other. The next spec id accounts for spec branches (NNN-slug) too,
+// modules.md and modules/*.md link to each other, that every document in product.md → Source documents exists,
+// and (as warnings) that the relative links of the memory files point to files and headings that exist. The next spec id accounts for spec branches (NNN-slug) too,
 // so a spec that only exists on its branch doesn't get its number reused.
 // Exit codes: 0 = ready, 1 = memory missing, not filled in or inconsistent, 2 = no .specs folder.
 
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { checkLinks, findRoot, nextSpecId, sourceDocuments, specFolders, statusOf } from "./lib/spec.mjs";
 
 // Sections that must exist with real content. Keep in sync with the "Required by spec-plan" notes in
 // .specs/templates/product-model.md and .specs/templates/technical-context-model.md.
@@ -24,16 +25,6 @@ const TEMPLATE_MARKERS = [
 
 // A body line that carries no information.
 const FILLER = /^(?:[-*]\s*)?(?:todo|tbd|tbc|to be defined|lorem ipsum.*|\.\.\.|…|n\/a|-)?\s*\.?$/i;
-
-function findRoot(start) {
-  let dir = resolve(start);
-  while (true) {
-    if (existsSync(join(dir, ".specs")) && statSync(join(dir, ".specs")).isDirectory()) return dir;
-    const parent = dirname(dir);
-    if (parent === dir) return null;
-    dir = parent;
-  }
-}
 
 function sections(markdown) {
   const out = new Map();
@@ -126,34 +117,6 @@ function checkOptionalMemory(memoryDir) {
   return problems;
 }
 
-function branchIds(root) {
-  try {
-    const refs = execFileSync("git", ["for-each-ref", "--format=%(refname:short)", "refs/heads", "refs/remotes"], {
-      cwd: root,
-      stdio: ["ignore", "pipe", "ignore"],
-    }).toString();
-    return refs
-      .split("\n")
-      .map((r) => r.match(/(?:^|\/)(\d{3,})-[a-z0-9-]+$/))
-      .filter(Boolean)
-      .map((m) => Number(m[1]));
-  } catch {
-    return [];
-  }
-}
-
-function specFolders(dir) {
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir).filter((n) => !n.startsWith(".") && statSync(join(dir, n)).isDirectory());
-}
-
-function statusOf(specPath) {
-  if (!existsSync(specPath)) return "no spec.md";
-  const fm = readFileSync(specPath, "utf8").match(/^---\n([\s\S]*?)\n---/);
-  const status = fm && fm[1].match(/^status:\s*["']?([\w-]+)/m);
-  return status ? status[1] : "unknown";
-}
-
 const root = findRoot(process.argv[2] ?? process.cwd());
 if (!root) {
   console.log(
@@ -169,21 +132,39 @@ const problems = [
   ...checkOptionalMemory(join(specs, "memory")),
 ];
 
-const changes = specFolders(join(specs, "changes"));
-const finished = specFolders(join(specs, "finished"));
-const ids = [
-  ...changes.map((n) => n.match(/^(\d{3,})-/)),
-  ...finished.map((n) => n.match(/^\d{14}-(\d{3,})-/)),
-]
-  .filter(Boolean)
-  .map((m) => Number(m[1]))
-  .concat(branchIds(root));
-const nextId = String((ids.length ? Math.max(...ids) : 0) + 1).padStart(3, "0");
+// Source documents: every spec links their sections, so a missing one breaks every spec that comes after it.
+for (const doc of sourceDocuments(root)) {
+  if (!existsSync(join(root, doc))) problems.push(`product.md → Source documents lists ${doc}, which doesn't exist`);
+}
+
+// Links in the memory files: a broken one is a warning — the memory still plans fine, but a reader loses detail.
+const warnings = [];
+const memoryDir = join(specs, "memory");
+const moduleNotes = existsSync(join(memoryDir, "modules"))
+  ? readdirSync(join(memoryDir, "modules")).filter((n) => n.endsWith(".md")).map((n) => `modules/${n}`)
+  : [];
+const memoryFiles = ["product.md", "technical-context.md", "structure.md", "modules.md", ...moduleNotes].filter((f) =>
+  existsSync(join(memoryDir, f)),
+);
+for (const f of memoryFiles) {
+  for (const link of checkLinks(join(memoryDir, f), readFileSync(join(memoryDir, f), "utf8").replace(/\r\n/g, "\n"))) {
+    warnings.push(`broken link in .specs/memory/${f}:${link.line} "${link.target}": ${link.problem}`);
+  }
+}
+const printWarnings = () => {
+  if (warnings.length) console.log(["warnings:", ...warnings.map((w) => `- ${w}`)].join("\n"));
+};
+
+const folders = specFolders(specs);
+const changes = folders.filter((f) => f.area === "changes");
+const finished = folders.filter((f) => f.area === "finished");
+const nextId = nextSpecId(root);
 
 console.log(`repo root: ${root}`);
 if (problems.length) {
   console.log("PREFLIGHT FAILED");
   for (const p of problems) console.log(`- ${p}`);
+  printWarnings();
   console.log(
     "Fix: run /spec-init for product.md and technical-context.md (or fill them by hand from .specs/templates/); " +
       "fix the other memory files by hand or with /spec-finish.",
@@ -192,7 +173,9 @@ if (problems.length) {
 }
 
 console.log("PREFLIGHT OK");
+printWarnings();
 console.log(`next spec id: ${nextId}`);
 console.log(`active specs (${changes.length}):`);
-for (const n of changes) console.log(`- ${n} [${statusOf(join(specs, "changes", n, "spec.md"))}]`);
+for (const s of changes) console.log(`- ${s.name} [${statusOf(s.file)}]`);
 console.log(`finished specs: ${finished.length}`);
+console.log("specs under execution live on their branches: node .specs/scripts/status.mjs shows the whole board");

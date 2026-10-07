@@ -7,7 +7,8 @@ the change: a one-line fix still gets its task and the Verification task.
 
 ## Every task
 
-1. **Has an id** `T-NN` — sequential, never renumbered.
+1. **Has an id** `T-NN` — sequential, never renumbered. A task an amendment removes stays, struck through and
+   marked `(removed: <reason>)`.
 2. **Belongs to one front** and sits in that front's group (`### Backend (`apps/api`)`). Work that spans
    fronts is split: the endpoint and the screen that calls it are two tasks.
 3. **Is one coherent change** — one layer of one front: an entity with its tests, an endpoint, a screen. If

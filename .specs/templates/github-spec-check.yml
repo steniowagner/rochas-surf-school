@@ -1,0 +1,90 @@
+# Spec pull request check, from .specs/templates/github-spec-check.yml (installed by spec-init as
+# .github/workflows/spec-check.yml). It runs on pull requests whose head branch is spec/NNN-slug and fails unless
+# the spec is really done: finished, the reviewed code is what ships, the related tests and the coverage gate
+# pass, and the workspaces the spec changed lint, type check and build. Pull requests from other branches skip
+# it, which counts as passing.
+#
+# A second job, `e2e`, runs the e2e suites of the apps the spec touches (declared in the technical context), with
+# the services they need. Make `spec` — and `e2e`, once suites exist — required status checks on the default
+# branch (Settings → Branches, or a ruleset), so a spec pull request can't be merged until they pass.
+#
+# Lines marked PROJECT are the ones to adapt: the Node version, the install command, generators, and the lint,
+# type check and build command (the example uses Turborepo's "changed since" filter).
+
+name: spec
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spec-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  spec:
+    name: spec
+    if: startsWith(github.head_ref, 'spec/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The branch head, not GitHub's merge commit: the review accepted a commit of the branch, and the
+          # "nothing changed since the review" step compares against it.
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json # PROJECT: or node-version: <major>
+          cache: npm # PROJECT: npm, yarn or pnpm
+
+      - run: npm ci # PROJECT: the install command
+
+      # PROJECT: generators the tests need before they run (e.g. `npx prisma generate`), or remove this step.
+      # - run: npx prisma generate --schema apps/backend/prisma
+
+      - name: Spec is finished, reviewed code ships, related tests and coverage pass
+        id: spec
+        run: node .specs/scripts/check-pr.mjs "${{ github.head_ref }}"
+
+      - name: Lint, type check and build the changed workspaces
+        # PROJECT: the command for the workspaces changed since the spec's base_commit.
+        run: npx turbo run lint check-types build --filter="...[${{ steps.spec.outputs.base_commit }}]"
+
+  e2e:
+    name: e2e
+    if: startsWith(github.head_ref, 'spec/')
+    runs-on: ubuntu-latest
+    # PROJECT: the services the e2e suites need, or remove this block.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json # PROJECT
+          cache: npm # PROJECT
+
+      - run: npm ci # PROJECT
+
+      # PROJECT: prepare the services (generate the ORM client, apply the migrations), or remove this step.
+      # - run: npx prisma migrate deploy --schema apps/backend/prisma
+
+      - name: E2E suites of the apps the spec touches
+        # The suites are declared in .specs/memory/technical-context.md (```e2e block); none declared passes.
+        run: node .specs/scripts/run-e2e.mjs "${GITHUB_HEAD_REF#spec/}"

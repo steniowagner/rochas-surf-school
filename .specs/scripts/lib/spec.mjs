@@ -1,0 +1,540 @@
+// Shared parsing for the spec workflow's scripts: locating .specs/ and specs, front matter, the structure of a
+// spec (sections, Expected Results, tasks, review rounds), spec branches and the next spec id. Every script that
+// reads a spec imports it, so they never disagree about what a spec says.
+
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+
+export const STATUSES = ["planned", "in-progress", "in-review", "changes-requested", "accepted", "finished", "abandoned"];
+export const EXECUTABLE = new Set(["planned", "in-progress", "changes-requested"]);
+// Statuses spec-plan --amend and --abandon accept.
+export const AMENDABLE = new Set(["planned", "in-progress", "changes-requested"]);
+// A spec in one of these is archived in finished/ and never changes again.
+export const ARCHIVED = new Set(["finished", "abandoned"]);
+// changes/NNN-slug or finished/YYYYMMDDHHMMSS-NNN-slug
+export const FOLDER = /^(?:(\d{14})-)?(\d{3,})-([a-z0-9]+(?:-[a-z0-9]+)*)$/;
+// A spec branch: spec/NNN-slug, local or remote (origin/spec/NNN-slug).
+const BRANCH = /^(?:([^/]+)\/)?spec\/(\d{3,})-([a-z0-9-]+)$/;
+
+// An amendment never deletes an Expected Result, a task or a decision: it strikes it through and marks it
+// `(removed: <reason>)`, so the ids stay stable and the history readable.
+const TASK_LINE = /^- \[( |x|X)\] (?:~~)?\*\*T-(\d+)\*\*\s*[—–-]?\s*(.*)$/;
+const FINDING_LINE = /^- \[( |x|X)\] \*\*F-(\d+)\*\*\s*(.*)$/;
+const ER_HEADING = /^###\s+(?:~~)?ER-(\d+)\b\s*[—–-]?\s*(.*)$/;
+const ER_FIELD = /^- \*\*([^*]+?):\*\*\s*(.*)$/;
+const DECISION_ROW = /^\|\s*(?:~~)?D-(\d+)(?:~~)?\s*\|(.*)\|\s*$/;
+const REMOVED = /\(removed:\s*([^)]*)\)/;
+const EVIDENCE = /^\s+>\s*(✅|⛔)/;
+
+export const pad = (n) => String(n).padStart(2, "0");
+// The reason of a `(removed: <reason>)` marker: null when the text has none, "" when the reason is empty.
+export const removedReason = (text) => text.match(REMOVED)?.[1].trim() ?? null;
+export const readText = (p) => readFileSync(p, "utf8").replace(/\r\n/g, "\n");
+
+// ---------- files and git ----------
+
+export function findRoot(start) {
+  let dir = resolve(start);
+  while (true) {
+    if (existsSync(join(dir, ".specs")) && statSync(join(dir, ".specs")).isDirectory()) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
+}
+
+export function subdirs(p) {
+  try {
+    return readdirSync(p, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+      .map((e) => e.name)
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
+// Runs git and returns its output, or null when it fails.
+export function git(cwd, args) {
+  try {
+    return execFileSync("git", args, { cwd, stdio: ["ignore", "pipe", "ignore"], maxBuffer: 256 * 1024 * 1024 }).toString();
+  } catch {
+    return null;
+  }
+}
+
+// ---------- locating specs ----------
+
+// Every spec folder in changes/ and finished/, with its id, slug and spec.md path.
+export function specFolders(specsDir) {
+  const out = [];
+  for (const area of ["changes", "finished"]) {
+    for (const name of subdirs(join(specsDir, area))) {
+      const m = name.match(FOLDER);
+      if (!m) continue;
+      out.push({ area, name, stamp: m[1] ?? null, id: m[2], slug: m[3], file: join(specsDir, area, name, "spec.md") });
+    }
+  }
+  return out;
+}
+
+// The spec.md an argument names: an id (3, 003), a slug, a folder name, or a path to a folder or a spec.md.
+export function resolveSpec(specsDir, arg) {
+  const asPath = resolve(arg);
+  if (existsSync(asPath)) {
+    if (statSync(asPath).isDirectory()) return existsSync(join(asPath, "spec.md")) ? join(asPath, "spec.md") : null;
+    return asPath;
+  }
+  const num = /^\d+$/.test(arg) ? arg.padStart(3, "0") : null;
+  const found = specFolders(specsDir).find(
+    (s) => (num && s.id === num) || s.slug === arg || s.name === arg || `${s.id}-${s.slug}` === arg,
+  );
+  return found && existsSync(found.file) ? found.file : null;
+}
+
+export function findById(specsDir, id) {
+  const num = String(id).padStart(3, "0");
+  const found = specFolders(specsDir).find((s) => s.id === num);
+  if (!found) return null;
+  return { ...found, status: found.area === "finished" ? statusOf(found.file, "finished") : statusOf(found.file) };
+}
+
+export function statusOf(specFile, fallback = "unknown") {
+  if (!existsSync(specFile)) return "no spec.md";
+  return parseFrontMatter(readText(specFile)).fm?.status ?? fallback;
+}
+
+// Local and remote branches named spec/NNN-slug.
+export function specBranches(root) {
+  const refs = git(root, ["for-each-ref", "--format=%(refname)", "refs/heads", "refs/remotes"]) ?? "";
+  const out = [];
+  for (const ref of refs.split("\n").filter(Boolean)) {
+    const short = ref.replace(/^refs\/(heads|remotes)\//, "");
+    const remote = ref.startsWith("refs/remotes/");
+    const m = short.match(BRANCH);
+    if (!m || (remote && !m[1]) || (!remote && m[1])) continue;
+    out.push({ ref, short, branch: `spec/${m[2]}-${m[3]}`, remote: remote ? m[1] : null, id: m[2], slug: m[3] });
+  }
+  return out;
+}
+
+// One more than the highest id in changes/, finished/ and the spec branches: ids are never reused.
+export function nextSpecId(root) {
+  const ids = [
+    ...specFolders(join(root, ".specs")).map((s) => Number(s.id)),
+    ...specBranches(root).map((b) => Number(b.id)),
+  ];
+  return String((ids.length ? Math.max(...ids) : 0) + 1).padStart(3, "0");
+}
+
+// The paths listed in product.md → Source documents (backticked, from the repo root).
+export function sourceDocuments(root) {
+  const file = join(root, ".specs", "memory", "product.md");
+  if (!existsSync(file)) return [];
+  const sections = splitSections(readText(file));
+  const docs = sections.find((s) => /^source documents\b/i.test(s.name));
+  if (!docs) return [];
+  const paths = new Set();
+  for (const { text, fenced } of docs.items) {
+    if (fenced) continue;
+    // - `.docs/requirements.md` — … (from the repo root)   or   - [requirements](../../.docs/requirements.md) — …
+    const code = text.match(/^\s*[-*]\s*`([^`]+)`/);
+    const link = text.match(/^\s*[-*]\s*\[[^\]]*\]\(([^)#\s]+)/);
+    const path = code ? code[1] : link ? relative(root, resolve(dirname(file), link[1])) : null;
+    if (path && !/^none\.?$/i.test(path)) paths.add(path.replace(/^\.\//, "").split("\\").join("/"));
+  }
+  return [...paths];
+}
+
+// Files outside the spec workflow that changed since the review accepted `reviewed` — the code that would ship
+// unreviewed. .specs/ and the source documents are left out: spec-finish updates them after the review. With
+// `worktree`, uncommitted and untracked changes count too (spec-finish, locally); without, only commits up to
+// HEAD (the CI check, on a clean checkout). Returns null when `reviewed` isn't a commit of this repository.
+export function reviewDrift(root, reviewed, { worktree = true } = {}) {
+  if (git(root, ["cat-file", "-e", `${reviewed}^{commit}`]) === null) return null;
+  const outside = [
+    "--", ".", ":(exclude).specs", ":(exclude).claude/settings.local.json",
+    ...sourceDocuments(root).map((doc) => `:(exclude)${doc}`),
+  ];
+  const diff = worktree ? ["diff", "--name-only", reviewed, ...outside] : ["diff", "--name-only", reviewed, "HEAD", ...outside];
+  const untracked = worktree ? (git(root, ["ls-files", "--others", "--exclude-standard", ...outside]) ?? "") : "";
+  return [...new Set([...(git(root, diff) ?? "").split("\n"), ...untracked.split("\n")])].filter(Boolean);
+}
+
+// ---------- workspaces ----------
+
+const readJson = (p) => {
+  try {
+    return JSON.parse(readFileSync(p, "utf8"));
+  } catch {
+    return null;
+  }
+};
+
+// The package workspaces of the repository (npm/yarn `workspaces` globs), or the root alone.
+export function workspaces(root) {
+  const rootPkg = readJson(join(root, "package.json")) ?? {};
+  const globs = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces : rootPkg.workspaces?.packages ?? [];
+  const dirs = new Set();
+  const children = (p) => subdirs(p).filter((n) => n !== "node_modules");
+  for (const g of globs) {
+    const m = g.replace(/\/+$/, "").match(/^(.*?)\/\*\*?$/);
+    if (m) children(join(root, m[1])).forEach((n) => dirs.add(`${m[1]}/${n}`));
+    else dirs.add(g.replace(/\/+$/, ""));
+  }
+  const out = [...dirs]
+    .filter((d) => existsSync(join(root, d, "package.json")))
+    .map((dir) => ({ dir, pkg: readJson(join(root, dir, "package.json")) ?? {} }));
+  if (!out.length) out.push({ dir: ".", pkg: rootPkg });
+  return out;
+}
+
+// Which workspaces a set of changed files touches (`changed`: dir -> files relative to it), and which workspaces
+// depend on those, directly or not (`dependents`: dir -> the changed package names it imports).
+export function affectedWorkspaces(root, files) {
+  const all = workspaces(root);
+  const byDir = new Map(all.map((w) => [w.dir, w]));
+  const ownerOf = (f) =>
+    all.map((w) => w.dir).filter((d) => d === "." || f.startsWith(`${d}/`)).sort((a, b) => b.length - a.length)[0] ?? ".";
+  const changed = new Map();
+  for (const f of files) {
+    const ws = ownerOf(f);
+    if (!changed.has(ws)) changed.set(ws, []);
+    changed.get(ws).push(ws === "." ? f : f.slice(ws.length + 1));
+  }
+  const dependents = new Map();
+  const queue = [...changed.keys()];
+  const seen = new Set(queue);
+  while (queue.length) {
+    const dir = queue.shift();
+    const name = byDir.get(dir)?.pkg.name;
+    if (!name) continue;
+    for (const w of all) {
+      const deps = { ...w.pkg.dependencies, ...w.pkg.devDependencies, ...w.pkg.peerDependencies };
+      if (!(name in deps) || changed.has(w.dir)) continue;
+      dependents.set(w.dir, [...new Set([...(dependents.get(w.dir) ?? []), name])]);
+      if (!seen.has(w.dir)) {
+        seen.add(w.dir);
+        queue.push(w.dir);
+      }
+    }
+  }
+  return { all, byDir, changed, dependents };
+}
+
+// ---------- parsing ----------
+
+export function parseFrontMatter(text) {
+  const m = text.match(/^---\n([\s\S]*?)\n---\n?/);
+  if (!m) return { fm: null, body: text, offset: 0 };
+  const fm = {};
+  for (const line of m[1].split("\n")) {
+    const kv = line.match(/^([\w-]+):\s*(.*?)\s*$/);
+    if (!kv) continue;
+    let v = kv[2].replace(/\s+#.*$/, "");
+    if (/^\[.*\]$/.test(v)) {
+      v = v
+        .slice(1, -1)
+        .split(",")
+        .map((s) => s.trim().replace(/^["']|["']$/g, ""))
+        .filter(Boolean);
+    } else {
+      v = v.replace(/^["']|["']$/g, "");
+    }
+    fm[kv[1]] = v;
+  }
+  return { fm, body: text.slice(m[0].length), offset: m[0].split("\n").length - 1 };
+}
+
+// `## ` sections of a Markdown body, ignoring fenced code. Each item keeps its line number and whether it is
+// inside a fence.
+function splitSections(body, offset = 0) {
+  const sections = [];
+  let current = null;
+  let inFence = false;
+  let h1 = null;
+  body.split("\n").forEach((line, i) => {
+    const n = offset + i + 1;
+    const fenceLine = /^\s*```/.test(line);
+    if (fenceLine) inFence = !inFence;
+    if (!inFence && !fenceLine && /^# /.test(line) && !h1) h1 = { n, text: line };
+    if (!inFence && !fenceLine && /^## /.test(line)) {
+      current = { name: line.slice(3).trim(), line: n, items: [] };
+      sections.push(current);
+      return;
+    }
+    if (current) current.items.push({ n, text: line, fenced: inFence || fenceLine });
+  });
+  sections.h1 = h1;
+  return sections;
+}
+
+export const prose = (items) => items.filter((it) => !it.fenced);
+
+// Everything the scripts need to know about a spec, without judging it: check-spec.mjs does the judging.
+export function parseSpec(text) {
+  const { fm, body, offset } = parseFrontMatter(text);
+  const sections = splitSections(body, offset);
+  const section = (name) => sections.find((s) => s.name.toLowerCase() === name.toLowerCase());
+
+  // Scope
+  const scope = { "in scope": [], "out of scope": [] };
+  if (section("Scope")) {
+    let key = null;
+    for (const it of prose(section("Scope").items)) {
+      const h = it.text.match(/^###\s+(.+?)\s*$/);
+      if (h) {
+        key = h[1].toLowerCase();
+        continue;
+      }
+      if (key in scope && it.text.trim() && !/^>/.test(it.text)) scope[key].push(it.text.trim());
+    }
+  }
+
+  // Decisions
+  const decisions = [];
+  for (const it of prose(section("Decisions")?.items ?? [])) {
+    const m = it.text.match(DECISION_ROW);
+    if (!m) continue;
+    decisions.push({ id: Number(m[1]), line: it.n, cells: m[2].split("|").map((c) => c.trim()), removed: removedReason(m[2]) });
+  }
+
+  // Expected Results
+  const ers = [];
+  let er = null;
+  let field = null;
+  for (const it of prose(section("Expected Results")?.items ?? [])) {
+    const h = it.text.match(ER_HEADING);
+    if (h) {
+      const removed = removedReason(h[2]);
+      const title = h[2].replace(REMOVED, "").replace(/~~/g, "").trim();
+      er = { id: Number(h[1]), title, line: it.n, fields: {}, removed };
+      ers.push(er);
+      field = null;
+      continue;
+    }
+    if (/^###\s/.test(it.text)) {
+      er = null;
+      continue;
+    }
+    if (!er) continue;
+    const f = it.text.match(ER_FIELD);
+    if (f) {
+      field = f[1].trim();
+      er.fields[field] = f[2].trim();
+    } else if (field && /^\s+\S/.test(it.text)) {
+      er.fields[field] += ` ${it.text.trim()}`;
+    } else if (!it.text.trim()) {
+      field = null;
+    }
+  }
+
+  // Tasks
+  const groups = [];
+  const tasks = [];
+  let group = null;
+  let task = null;
+  for (const it of prose(section("Tasks")?.items ?? [])) {
+    if (/^###\s/.test(it.text)) {
+      group = { name: it.text.replace(/^###\s+/, "").trim(), line: it.n, tasks: [] };
+      group.verification = /^verification\b/i.test(group.name);
+      groups.push(group);
+      task = null;
+      continue;
+    }
+    const t = it.text.match(TASK_LINE);
+    if (t) {
+      task = { id: Number(t[2]), checked: t[1].toLowerCase() === "x", line: it.n, group, body: [t[3]], evidence: [] };
+      tasks.push(task);
+      if (group) group.tasks.push(task);
+      continue;
+    }
+    if (task && (/^\s/.test(it.text) || !it.text.trim())) {
+      if (EVIDENCE.test(it.text)) task.evidence.push(it.text.trim());
+      else if (it.text.trim()) task.body.push(it.text.trim());
+      continue;
+    }
+    if (it.text.trim()) task = null;
+  }
+  for (const t of tasks) {
+    const bodyText = t.body.join(" ");
+    const covers = bodyText.match(/Covers:\s*(.*?)(?=\s*(?:·|Done when:|$))/);
+    const done = bodyText.match(/Done when:\s*(.*?)(?=\s*(?:·|Covers:|$))/);
+    t.coversText = covers ? covers[1].trim() : null;
+    t.doneWhen = done ? done[1].trim() : null;
+    const tokens = covers ? [...covers[1].matchAll(/\bER-(\d+)\b|\b(enabling|all)\b/gi)] : [];
+    t.coverTokens = tokens.length;
+    t.covers = tokens.filter((m) => m[1]).map((m) => Number(m[1]));
+    t.removed = removedReason(bodyText);
+    t.state = t.removed !== null
+      ? "removed"
+      : t.checked ? "done" : t.evidence.some((e) => e.includes("⛔")) ? "blocked" : "pending";
+  }
+
+  // Review rounds
+  const rounds = [];
+  let round = null;
+  for (const it of prose(section("Review")?.items ?? [])) {
+    const h = it.text.match(/^###\s+(.+?)\s*$/);
+    if (h) {
+      round = { name: h[1], findings: [] };
+      rounds.push(round);
+      continue;
+    }
+    const f = it.text.match(FINDING_LINE);
+    if (f) {
+      if (!round) {
+        round = { name: "(no round heading)", findings: [] };
+        rounds.push(round);
+      }
+      round.findings.push({ id: Number(f[2]), done: f[1].toLowerCase() === "x", text: f[3] });
+    }
+  }
+  const latestRound = rounds.at(-1) ?? null;
+  const openFindings = latestRound ? latestRound.findings.filter((f) => !f.done) : [];
+
+  const count = (state) => tasks.filter((t) => t.state === state).length;
+  return {
+    fm,
+    body,
+    offset,
+    h1: sections.h1,
+    sections,
+    section,
+    scope,
+    decisions,
+    ers,
+    groups,
+    tasks,
+    progress: {
+      total: tasks.length - count("removed"),
+      done: count("done"),
+      blocked: count("blocked"),
+      pending: count("pending"),
+      removed: count("removed"),
+    },
+    rounds,
+    latestRound,
+    openFindings,
+  };
+}
+
+// ---------- links ----------
+
+// The anchor GitHub gives a heading: the rendered text, lowercased, without punctuation (letters, digits, `_`,
+// `-` and spaces survive), spaces turned into `-`. Duplicates get `-1`, `-2`… (see headingAnchors).
+export function slugify(heading) {
+  const text = heading
+    .replace(/<[^>]+>/g, "")
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/(\*\*|__|~~|\*)/g, "")
+    .trim();
+  return text.toLowerCase().replace(/[^\p{L}\p{M}\p{N}\p{Pc}\- ]/gu, "").replace(/ /g, "-");
+}
+
+// Every anchor a Markdown file offers: its headings (outside code fences), numbered like GitHub numbers
+// duplicates, and explicit `<a id|name="…">` anchors.
+export function headingAnchors(markdown) {
+  const anchors = new Set();
+  const seen = new Map();
+  let inFence = false;
+  for (const line of markdown.split("\n")) {
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    if (inFence) continue;
+    const h = line.match(/^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/);
+    if (h) {
+      const base = slugify(h[1]);
+      const n = seen.get(base) ?? 0;
+      seen.set(base, n + 1);
+      anchors.add(n ? `${base}-${n}` : base);
+    }
+    for (const m of line.matchAll(/<a\s[^>]*(?:id|name)=["']([^"']+)["']/gi)) anchors.add(m[1]);
+  }
+  return anchors;
+}
+
+// Relative links of a Markdown text — inline `[text](target)`, images, and reference definitions — outside
+// code fences and inline code. Absolute URLs (scheme:, //host) are left out.
+export function extractLinks(markdown) {
+  const links = [];
+  let inFence = false;
+  markdown.split("\n").forEach((raw, i) => {
+    if (/^\s*```/.test(raw)) inFence = !inFence;
+    if (inFence || /^\s*```/.test(raw)) return;
+    const line = raw.replace(/`[^`]*`/g, (m) => " ".repeat(m.length));
+    const targets = [
+      ...[...line.matchAll(/!?\[[^\]]*\]\(\s*<?([^)\s>]*)>?(?:\s+["'][^)]*["'])?\s*\)/g)].map((m) => m[1]),
+      ...[...line.matchAll(/^\s{0,3}\[[^\]]+\]:\s*<?(\S+?)>?(?:\s|$)/g)].map((m) => m[1]),
+    ];
+    for (const target of targets) {
+      if (!target || /^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith("//")) continue;
+      links.push({ line: i + 1, target });
+    }
+  });
+  return links;
+}
+
+const distance = (a, b) => {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+  }
+  return d[a.length][b.length];
+};
+
+// Checks every relative link of a Markdown file: the target exists and, for an anchor, the target has a heading
+// with that slug. Returns the broken ones: { line, target, problem }.
+export function checkLinks(file, markdown) {
+  const broken = [];
+  const cache = new Map();
+  for (const { line, target } of extractLinks(markdown)) {
+    const hash = target.indexOf("#");
+    let path = hash === -1 ? target : target.slice(0, hash);
+    const anchor = hash === -1 ? null : target.slice(hash + 1);
+    try {
+      path = decodeURIComponent(path);
+    } catch {}
+    const abs = path ? resolve(dirname(file), path) : file;
+    if (!existsSync(abs)) {
+      broken.push({ line, target, problem: `${path} doesn't exist` });
+      continue;
+    }
+    if (!anchor || statSync(abs).isDirectory()) continue;
+    if (!cache.has(abs)) {
+      const text = readText(abs);
+      cache.set(
+        abs,
+        /\.(md|markdown)$/i.test(abs)
+          ? headingAnchors(text)
+          : new Set([...text.matchAll(/\s(?:id|name)=["']([^"']+)["']/g)].map((m) => m[1])),
+      );
+    }
+    const anchors = cache.get(abs);
+    let wanted = anchor;
+    try {
+      wanted = decodeURIComponent(anchor).toLowerCase();
+    } catch {}
+    if (anchors.has(wanted) || anchors.has(anchor)) continue;
+    // Closest anchor: the longest shared prefix first (a renamed heading usually keeps its first word), then
+    // the edit distance.
+    const prefix = (a) => {
+      let n = 0;
+      while (n < a.length && a[n] === wanted[n]) n++;
+      return n;
+    };
+    const closest = [...anchors].sort((a, b) => prefix(b) - prefix(a) || distance(a, wanted) - distance(b, wanted))[0];
+    broken.push({
+      line,
+      target,
+      problem:
+        `no heading in ${path || "this file"} has the anchor "#${anchor}"` +
+        (closest ? ` — closest: "#${closest}"` : " — it has no headings"),
+    });
+  }
+  return broken;
+}

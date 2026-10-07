@@ -9,6 +9,7 @@ import { PrismaIdentityRepository } from './identity.prisma.js';
 import { JwtTokenProvider } from './jwt.token.js';
 import { PrismaRefreshTokenRepository } from './refresh-token.prisma.js';
 import { ResendEmailProvider } from './resend.email.js';
+import { SignInCodeCleanupJob } from './sign-in-code-cleanup.job.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaUserRepository } from './user.prisma.js';
@@ -34,6 +35,7 @@ import { PrismaUserRepository } from './user.prisma.js';
     SystemClockProvider,
     JwtTokenProvider,
     ResendEmailProvider,
+    SignInCodeCleanupJob,
   ],
 })
 export class AuthModule {}

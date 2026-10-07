@@ -736,11 +736,24 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > every earlier scenario), controller spec 8 passed, backend `tsc --noEmit` and oxlint clean; deviations: the
   > guard is bound per route rather than globally, so only these two endpoints are throttled
 
-- [ ] **T-19** — Install `@nestjs/schedule`, register `ScheduleModule`, and create
+- [x] **T-19** — Install `@nestjs/schedule`, register `ScheduleModule`, and create
   `apps/backend/src/modules/auth/sign-in-code-cleanup.job.ts` (`@Cron` every minute calling
   `DeleteExpiredSignInCodes`), registered in `auth.module.ts`, with `sign-in-code-cleanup.job.spec.ts`.
   Covers: ER-13 · Done when: `npx vitest run src/modules/auth/sign-in-code-cleanup.job.spec.ts` passes with
   the job fully covered.
+  > ✅ 2026-10-07 13:23 — installed `@nestjs/schedule` (^12.0.2; API checked via Context7), registered
+  > `ScheduleModule.forRoot()` once in `app.module.ts`, and created `SignInCodeCleanupJob`
+  > (`@Cron(CronExpression.EVERY_MINUTE, { name: "sign-in-code-cleanup", waitForCompletion: true })` running
+  > `DeleteExpiredSignInCodes` with the Prisma repository and the system clock), registered in `auth.module.ts`;
+  > spec written first and watched fail (suite could not load). files:
+  > `apps/backend/src/modules/auth/sign-in-code-cleanup.job.ts`,
+  > `apps/backend/src/modules/auth/sign-in-code-cleanup.job.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.module.ts`, `apps/backend/src/app.module.ts`,
+  > `apps/backend/package.json`, `package-lock.json`; verified: `npx vitest run
+  > src/modules/auth/sign-in-code-cleanup.job.spec.ts` (3 passed: every-minute cron metadata, deletes with
+  > `now`, zero deleted without failing; 100% statements/functions/lines, every branch except the
+  > decorator-metadata conditional on the class line), e2e suite still 30 passed with the scheduler loaded,
+  > backend `tsc --noEmit` and oxlint clean; deviations: none
 
 - [ ] **T-20** — Create the review-accounts seed task in `apps/backend/prisma/seed/review-accounts.seed.ts`
   (reads `REVIEW_ACCOUNTS` through the same parser as `auth.config.ts`, upserts users and `email` identities

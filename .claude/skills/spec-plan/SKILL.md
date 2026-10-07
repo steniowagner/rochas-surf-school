@@ -1,7 +1,7 @@
 ---
 name: spec-plan
-description: Plan a new change in this repo as a spec (spec-driven development). Interviews the user critically until every requirement is unambiguous, then writes .specs/changes/NNN-slug/spec.md with a goal, scope, decisions, verifiable Expected Results and a breakdown into small, verifiable tasks per front (e.g. backend, web, mobile, infra) that spec-execute runs one by one. Also revises an existing spec when its requirements change (--amend NNN, keeping ids stable and logging every change) and abandons a spec that is no longer wanted (--abandon NNN, archiving it with its reason). Use whenever the user runs /spec-plan, or asks to plan, spec out, scope or write a spec/PRD/proposal for a feature, change or fix before implementing it, or to change, revise or amend the requirements of a spec, or to drop, cancel or abandon a spec — even if they don't say "spec". Do not use for executing, reviewing or finishing a spec, or for fixing review findings (spec-execute).
-argument-hint: "<what to build, as text or a path to a file> | --amend <spec id> [what changes] | --abandon <spec id> [reason]"
+description: Plan a new change in this repo as a spec (spec-driven development). Interviews the user critically until every requirement is unambiguous, then writes .specs/changes/NNN-slug/spec.md with a goal, scope, decisions, verifiable Expected Results and a breakdown into small, verifiable tasks per front (e.g. backend, web, mobile, infra) that spec-execute runs one by one. Has a quick mode (--quick) for small changes: a short spec with at most 3 Expected Results and no interview rounds when the request is clear. Also revises an existing spec when its requirements change (--amend NNN, keeping ids stable and logging every change) and abandons a spec that is no longer wanted (--abandon NNN, archiving it with its reason). Use whenever the user runs /spec-plan, or asks to plan, spec out, scope or write a spec/PRD/proposal for a feature, change or fix before implementing it, or asks for a quick or small spec for a minor fix, or to change, revise or amend the requirements of a spec, or to drop, cancel or abandon a spec — even if they don't say "spec". Do not use for executing, reviewing or finishing a spec, or for fixing review findings (spec-execute).
+argument-hint: "[--quick] <what to build, as text or a path to a file> | --amend <spec id> [what changes] | --abandon <spec id> [reason]"
 ---
 
 # spec-plan
@@ -15,9 +15,16 @@ room who refuses to let ambiguity through, while staying constructive and fast.
 The flow is: **preflight → load context → first analysis → interview → confirm → write → report.**
 Do not write the spec file before the user has confirmed the summary.
 
-**Modes.** Without a flag, this skill plans a new spec (sections 1–7). `--amend NNN` revises an existing spec
-when its requirements change (section 8), and `--abandon NNN` archives a spec that is no longer wanted
-(section 9). Both start with the preflight and read `.specs/shared/spec-lifecycle.md`.
+**Modes.** Without a flag, this skill plans a new spec (sections 1–7). `--quick` plans a small change as a
+quick spec (section 10). `--amend NNN` revises an existing spec when its requirements change (section 8), and
+`--abandon NNN` archives a spec that is no longer wanted (section 9). All of them start with the preflight and
+read `.specs/shared/spec-lifecycle.md`.
+
+Whatever the mode, check first that the change needs a spec at all: `spec-lifecycle.md` → When a spec is
+needed lists what doesn't (typos, formatting, dependency bumps without behavior changes, tooling, docs). If
+the request is one of those, say so and offer to just make the change and commit it — don't plan it. And if a
+request without `--quick` is that small (one or two fronts, at most 3 Expected Results, no new concept, no
+migration, no auth change), offer the quick spec.
 
 ## 1. Preflight (hard gate)
 
@@ -268,6 +275,28 @@ the id is never reused, and whoever reads the history knows why it stopped.
    alone on the current branch: `docs(spec-NNN): abandon <slug>`, with the reason in the body. Never push.
 6. **Report**: where it was archived, the reason, and the branch that is kept — deleting it
    (`git branch -D spec/NNN-slug`, and the remote one) is the user's call; never delete it yourself.
+
+## 10. Quick mode (`--quick`)
+
+For a small change that still changes behavior, data or a contract: the same contract and the same workflow,
+with less planning. The rules are in `spec-lifecycle.md` → When a spec is needed.
+
+1. **Preflight and context** as in sections 1–2, reading only what the change touches: the memory, the source
+   sections it implements, the code around it.
+2. **Check it fits**: one or two fronts, at most 3 Expected Results, no new domain concept, no data migration,
+   no change to authentication or permissions, no overlap with an active spec. If it doesn't fit, say why and
+   switch to the full flow (sections 3–7) — don't squeeze a big change into a short template.
+3. **No interview rounds when the request is unambiguous.** When something is open, ask it in one round of at
+   most 3 questions, with your recommendation — never more.
+4. **Confirm in one message**: id and slug, title, the Expected Results (`ER-01 — …`), the tasks
+   (`T-01 — what, where — Covers: ER-01`), and any decision you made. Wait for the go-ahead.
+5. **Write** `.specs/changes/NNN-slug/spec.md` from `.specs/templates/quick-spec-model.md`
+   (`references/example-quick-spec.md` shows one): `template: quick`, Goal, Context with its Requirements line,
+   1–3 Expected Results by the usual rules, tasks with their tests, the Verification task, a Verification Plan
+   with the related tests and the coverage gate, and Memory Impact (or "None."). Add `Scope` or `Decisions`
+   only when something is deliberately excluded or decided.
+6. **Validate** with `check-spec.mjs NNN` — it applies the quick template's rules — and report as in section
+   7. The next step is `/spec-execute NNN`; after it, the review may run in the same session (a self-review).
 
 ## Example of a good first analysis (abridged)
 

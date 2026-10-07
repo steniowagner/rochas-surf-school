@@ -47,7 +47,9 @@ Then stop and say why if any of these fails:
 
 **Independence.** If this conversation is the one that executed the spec — you wrote the code under review
 — say so and recommend running `/spec-review` in a fresh session. Continue only if the user insists, and
-mention it in the review round.
+mention it in the review round. A quick spec (`template: quick`) is the exception: its review may run in the
+same session. Do every step all the same — the related tests, the coverage gate, each Expected Result — and
+mark the round as a self-review in its heading: `### Round 1 — YYYY-MM-DD — accepted (self-review)`.
 
 ## 2. Understand the contract
 

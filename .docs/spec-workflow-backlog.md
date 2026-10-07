@@ -98,6 +98,10 @@ archived with its reason and leaves memory untouched.
 
 ## 4. A lightweight path for trivial changes
 
+**Status.** Done in framework 1.3.0: `spec-lifecycle.md` → When a spec is needed (the "No spec needed" list and
+the quick spec's limits), `spec-plan --quick`, `templates/quick-spec-model.md` (`template: quick`, checked by
+`check-spec.mjs`: at most 3 Expected Results) and the self-review in `spec-review`.
+
 **Why.** A typo or a dependency bump doesn't deserve an interview, Expected Results, a review session and a
 pull request with memory updates. Without a lighter path, small changes skip the workflow entirely — and the
 ones that do change behavior slip past the memory.

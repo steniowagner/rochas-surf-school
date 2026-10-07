@@ -13,7 +13,7 @@ the specs at any time, read-only. Every skill reads this file before it touches 
                        # check-coverage; lib/ holds the spec parsing they share
   shared/              # rules every spec skill follows (this file, interviewing, acceptance-criteria,
                        # task-breakdown, how-to-execute, naming)
-  templates/           # models used to create specs and memory files
+  templates/           # models used to create specs (full and quick) and memory files
   changes/             # active specs: one folder per spec, NNN-slug/spec.md (+ supporting files)
   finished/            # archived specs — finished by spec-finish, or abandoned by spec-plan --abandon:
                        # YYYYMMDDHHMMSS-NNN-slug/
@@ -25,6 +25,29 @@ with the skill. A project may adapt them; `.framework.json` is how an upgrade te
 customized (left alone) from one that is just out of date (replaced). Facts about the project — its domain,
 stack, conventions, file suffixes — belong in `memory/`, never in the framework files; that is what keeps
 them valid in any repository.
+
+## When a spec is needed
+
+Anything that changes behavior, data or a contract — what a user sees or can do, what is stored, an API, an
+event, a public type — needs a spec, so that the memory keeps describing what is built.
+
+**No spec needed** — commit these directly, with a conventional commit message:
+
+- typos and copy-only fixes that don't change meaning (a wrong word in a label, not a new message);
+- formatting, and refactors that change no behavior and are covered by the existing tests;
+- dependency bumps without behavior changes (lockfile and version ranges only, no code adapted to a new API);
+- CI and tooling tweaks (lint rules, scripts, editor config) that change no product behavior;
+- documentation — except the product's source documents, which only `spec-finish` brings in line with code.
+
+When in doubt, it needs a spec.
+
+**Quick spec** — `spec-plan --quick`, from `templates/quick-spec-model.md` (`template: quick` in the front
+matter) — for a small change that still deserves a record: one or two fronts, at most 3 Expected Results, no new
+domain concept, no data migration, no change to authentication or permissions. It skips the interview rounds
+when the request is unambiguous and drops the optional sections, but keeps everything that makes a spec
+trustworthy: the branch, one commit per task, the related tests, the coverage gate, Memory Impact and the
+review — which may run in the same session as a self-review, marked as such in its round. Anything bigger is a
+full spec.
 
 ## Identity
 
@@ -38,7 +61,8 @@ them valid in any repository.
 
 ## Front matter
 
-`id`, `slug`, `title`, `status`, `created`, `fronts` and `depends_on` are written by `spec-plan`. On its first
+`id`, `slug`, `title`, `status`, `created`, `fronts` and `depends_on` are written by `spec-plan`, plus
+`template: quick` for a quick spec. On its first
 run, `spec-execute` adds `started` (date) and `base_commit` (the commit the spec branch starts from), so
 everyone can see exactly what the spec changed. On acceptance, `spec-review` adds `reviewed_commit`: the commit
 it accepted, which `spec-finish` checks before shipping. `spec-finish` adds `finished` (date);
@@ -110,7 +134,9 @@ reason stay in `finished/`, and its branch is kept until the user deletes it.
   explicit approval, logged in `## Amendments`; it never removes, reorders or rewords a task — that takes
   `spec-plan --amend`.
 - `spec-review` writes only `## Review` — one `### Round N — date — verdict` per review, with findings as
-  `- [ ] **F-NN** (ER-xx) — …` — the status and, on acceptance, `reviewed_commit`.
+  `- [ ] **F-NN** (ER-xx) — …` — the status and, on acceptance, `reviewed_commit`. It runs in a fresh session,
+  except on a quick spec, where a self-review is allowed and marked in the round heading
+  (`… — accepted (self-review)`).
 - `spec-finish` refuses to run if anything outside `.specs/` changed since `reviewed_commit`; updates
   `.specs/memory/` from `## Memory Impact` and the actual change set; updates the linked sections of the source
   documents; sets the status; and moves the folder to `finished/<YYYYMMDDHHMMSS>-<NNN-slug>/`.

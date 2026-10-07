@@ -159,4 +159,5 @@ Keep it short:
 - anything still blocked, and what unblocks it;
 - issues noticed outside the scope, as follow-ups (not fixed);
 - the next step: `/spec-review NNN`, ideally in a fresh session, so the reviewer judges the code against the
-  spec without this session's context — that independence is what makes the review worth running.
+  spec without this session's context — that independence is what makes the review worth running. A quick
+  spec (`template: quick`) may be reviewed in this same session, as a self-review.

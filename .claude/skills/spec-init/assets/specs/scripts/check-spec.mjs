@@ -18,6 +18,10 @@ const REQUIRED_SECTIONS = [
   "Goal", "Context", "Scope", "Decisions", "Expected Results", "Tasks", "Verification Plan", "Memory Impact",
   "References",
 ];
+// The quick spec (template: quick) for small changes: Scope, Decisions and References are optional.
+const QUICK_SECTIONS = ["Goal", "Context", "Expected Results", "Tasks", "Verification Plan", "Memory Impact"];
+const QUICK_MAX_ERS = 3;
+const QUICK_MAX_TASKS = 6;
 // Sections filled after planning (or optional): they may be empty and may keep their one-line instruction.
 const LATER_SECTIONS = new Set(["amendments", "review", "assumptions", "outcome"]);
 const ER_FIELDS = ["Front", "Behavior", "Edge and error cases", "Verify by"];
@@ -102,11 +106,13 @@ if (!fm) {
 }
 const fronts = (Array.isArray(fm?.fronts) ? fm.fronts : []).map((f) => f.toLowerCase());
 const status = fm?.status;
+const quick = fm?.template === "quick";
+if (fm?.template !== undefined && !quick) errors.push(`front matter: template "${fm.template}" is unknown — "quick", or leave it out for a full spec`);
 
 // Sections
 if (!spec.h1 || /\bNNN\b|— Title\s*$/.test(spec.h1.text)) errors.push("title heading (# NNN — Title) is missing or still the placeholder");
 
-for (const name of REQUIRED_SECTIONS) {
+for (const name of quick ? QUICK_SECTIONS : REQUIRED_SECTIONS) {
   const s = section(name);
   if (!s) errors.push(`missing section: ## ${name}`);
   else if (!meaningful(s.items).length) errors.push(`section ## ${name} is empty`);
@@ -132,11 +138,14 @@ if (context && !prose(context.items).some((it) => /^\s*-\s*Requirements:/.test(i
   errors.push('## Context needs a "- Requirements:" line linking the source-document sections this spec implements (or "none")');
 }
 
-// Scope
+// Scope (optional in a quick spec, but complete when present)
 if (section("Scope")) {
-  if (!spec.scope["in scope"].length) errors.push("## Scope needs a ### In scope list");
-  if (!spec.scope["out of scope"].length) errors.push("## Scope needs a ### Out of scope list (write what is deliberately excluded)");
-  else if (spec.scope["out of scope"].every((l) => /^(-\s*)?none\.?$/i.test(l))) warnings.push("Out of scope is \"None\" — is nothing excluded?");
+  if (!spec.scope["in scope"].length && !quick) errors.push("## Scope needs a ### In scope list");
+  if (!spec.scope["out of scope"].length) {
+    if (!quick) errors.push("## Scope needs a ### Out of scope list (write what is deliberately excluded)");
+  } else if (spec.scope["out of scope"].every((l) => /^(-\s*)?none\.?$/i.test(l))) {
+    warnings.push("Out of scope is \"None\" — is nothing excluded?");
+  }
 }
 
 // Decisions
@@ -178,6 +187,12 @@ if (section("Expected Results")) {
 const erIds = new Set(ers.map((e) => e.id));
 const liveErs = ers.filter((e) => e.removed === null);
 const removedErIds = new Set(ers.filter((e) => e.removed !== null).map((e) => e.id));
+if (quick && liveErs.length > QUICK_MAX_ERS) {
+  errors.push(`a quick spec has at most ${QUICK_MAX_ERS} Expected Results (this one has ${liveErs.length}) — plan a full spec instead`);
+}
+if (quick && spec.tasks.filter((t) => t.removed === null).length > QUICK_MAX_TASKS) {
+  warnings.push(`a quick spec with more than ${QUICK_MAX_TASKS} tasks is probably not a small change — consider a full spec`);
+}
 
 // Tasks
 if (section("Tasks")) {
@@ -289,7 +304,7 @@ function checkIds(kind, ids) {
 const out = [];
 out.push(`spec: ${relative(root, specFile)}`);
 out.push(errors.length ? `CHECK FAILED (${errors.length} error${errors.length > 1 ? "s" : ""})` : "CHECK OK");
-out.push(`title: ${fm?.title ?? "?"} · status: ${status ?? "?"} · fronts: ${fronts.join(", ") || "none"}`);
+out.push(`title: ${fm?.title ?? "?"} · status: ${status ?? "?"} · fronts: ${fronts.join(", ") || "none"}${quick ? " · template: quick" : ""}`);
 if (fm?.base_commit || fm?.started) out.push(`started: ${fm.started ?? "?"} · base_commit: ${fm.base_commit ?? "?"}`);
 out.push(`depends_on: ${deps.length ? deps.join(", ") : "none"}`);
 out.push(

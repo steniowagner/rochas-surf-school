@@ -107,6 +107,7 @@ for (const e of [...specs.values()].sort((a, b) => a.id.localeCompare(b.id))) {
     id: e.id,
     folder: source.folder,
     title: fm.title ?? "?",
+    template: fm.template ?? "full",
     status,
     read_from: where,
     tasks: spec.progress,
@@ -195,7 +196,7 @@ for (const r of active) {
     : "no branch yet";
   out.push(
     "",
-    `${r.folder} [${r.status}] — ${r.title}`,
+    `${r.folder} [${r.status}${r.template === "quick" ? " · quick" : ""}] — ${r.title}`,
     `  tasks: ${t.done}/${t.total} done${t.blocked ? ` · ${t.blocked} blocked` : ""}${t.pending ? ` · ${t.pending} pending` : ""}` +
       (r.review_rounds ? ` · review: ${r.review_rounds} round(s), ${r.open_findings.length ? `open ${r.open_findings.join(", ")}` : "no open finding"}` : ""),
     `  branch: ${branchText}`,

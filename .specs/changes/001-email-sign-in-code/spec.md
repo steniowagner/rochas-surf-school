@@ -662,7 +662,7 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > decorator-metadata conditional on the class line), backend `tsc --noEmit` and oxlint clean; deviations:
   > duplicate review emails are also rejected
 
-- [ ] **T-16** — Replace the placeholder `GET /auth` in `apps/backend/src/modules/auth/auth.controller.ts`
+- [x] **T-16** — Replace the placeholder `GET /auth` in `apps/backend/src/modules/auth/auth.controller.ts`
   with `POST /auth/email/code` (`@Public()`, 202, wires `RequestSignInCode`), add its requests to
   `auth.integration.http`, a controller spec, and create `apps/backend/test/auth-email.e2e-spec.ts` with the
   `ResendEmailProvider` overridden by a capturing fake (D-18) and the scenarios "request code", "too soon" and
@@ -670,6 +670,24 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   mandatory reading `auth.integration.http` doesn't exist yet; this task creates it).
   Covers: ER-01, ER-02, ER-03, ER-10 · Done when:
   `npm run test:e2e --workspace apps/backend -- test/auth-email.e2e-spec.ts` passes against the local database.
+  > ✅ 2026-10-07 12:00 — following `backend-nest-controller`: replaced the placeholder `GET /auth` with `POST
+  > /auth/email/code` (`@Public()`, 202, body = the use case `In`, instantiates `RequestSignInCode` per request
+  > with the injected `PrismaSignInCodeRepository`, `HmacSignInCodeProvider`, `ResendEmailProvider`,
+  > `SystemClockProvider` and `AuthConfig.reviewCodes`); created `auth.integration.http` (valid, too-soon,
+  > invalid email, invalid locale), a controller spec (route metadata, wiring, review codes, missing body) and
+  > `test/auth-email.e2e-spec.ts` — a fresh app per test with `ResendEmailProvider` overridden by a capturing
+  > fake (D-18), default `AUTH_CODE_PEPPER`/`JWT_SECRET` for runs without `.env`, test emails on
+  > `@e2e.example.com` deleted after each test — with the scenarios "request code" (202 shape, one email with a
+  > 6-digit code in `es`, 64-hex hash that is not the code, same answer with or without an account, default
+  > `pt-BR`, 422 `signInCode.email.invalid` / `signInCode.locale.invalid` sending nothing), "too soon" (429 with
+  > `details.resendAvailableAt`) and "send fails" (502, no row, immediate retry 202). files:
+  > `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-email.e2e-spec.ts`; verified:
+  > `npm run test:e2e --workspace apps/backend -- test/auth-email.e2e-spec.ts` against the local database (1
+  > file, 7 passed), `npx vitest run src/modules/auth/auth.controller.spec.ts` (4 passed; controller 100%),
+  > backend `tsc --noEmit` and oxlint clean; deviations: the skill’s mandatory reading `auth.integration.http`
+  > did not exist (created here, as the task says); the ER-02 check that the first code still signs in after a
+  > 429 needs verify and is added to "too soon" in T-17
 
 - [ ] **T-17** — Add `POST /auth/email/verify` (`@Public()`, 200, wires `VerifySignInCode` with
   `StartSession`) to `auth.controller.ts`, its requests to `auth.integration.http`, controller spec cases,

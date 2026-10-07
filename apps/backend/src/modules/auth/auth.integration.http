@@ -1,0 +1,43 @@
+# Manual REST Client requests for the auth module (VS Code REST Client).
+# With RESEND_API_KEY unset outside production, the backend logs the code instead of emailing it.
+
+@baseUrl = http://localhost:4000
+@scenarioVersion = {{$timestamp}}
+@email = ana.{{scenarioVersion}}@example.com
+
+### Request a sign-in code (expects 202 with resendAvailableAt and expiresAt)
+# @name requestCode
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Request again within 30 seconds (expects 429 signInCode.resend.tooSoon with details.resendAvailableAt)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Invalid email (expects 422 signInCode.email.invalid)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "ana@",
+  "locale": "en"
+}
+
+### Unknown locale (expects 422 signInCode.locale.invalid)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "bia.{{scenarioVersion}}@example.com",
+  "locale": "fr"
+}

@@ -755,13 +755,25 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > decorator-metadata conditional on the class line), e2e suite still 30 passed with the scheduler loaded,
   > backend `tsc --noEmit` and oxlint clean; deviations: none
 
-- [ ] **T-20** — Create the review-accounts seed task in `apps/backend/prisma/seed/review-accounts.seed.ts`
+- [x] **T-20** — Create the review-accounts seed task in `apps/backend/prisma/seed/review-accounts.seed.ts`
   (reads `REVIEW_ACCOUNTS` through the same parser as `auth.config.ts`, upserts users and `email` identities
   per D-15) and register it in `prisma/seed/main.ts`, with `review-accounts.seed.spec.ts` mocking the
   Prisma client.
   Covers: ER-11 · Done when: `npx vitest run prisma/seed/review-accounts.seed.spec.ts` passes and
   `npm run prisma:seed --workspace apps/backend` run twice against the local database leaves three review
   accounts.
+  > ✅ 2026-10-07 13:23 — created `reviewAccountsSeed(prisma, env = process.env)` in
+  > `prisma/seed/review-accounts.seed.ts`: parses `REVIEW_ACCOUNTS` with `parseReviewAccounts` from
+  > `auth.config.ts` (unset → nothing; malformed → throws), upserts each account by email as an `approved` user
+  > with its name and role (an existing one is brought back to them) and upserts its `email` identity by
+  > `provider_providerUserId`; registered in `prisma/seed/main.ts`. Spec written first and watched fail (suite
+  > could not load). files: `apps/backend/prisma/seed/review-accounts.seed.ts`,
+  > `apps/backend/prisma/seed/review-accounts.seed.spec.ts`, `apps/backend/prisma/seed/main.ts`; verified: `npx
+  > vitest run prisma/seed/review-accounts.seed.spec.ts` (6 passed; seed file 100%), and `npm run prisma:seed
+  > --workspace apps/backend` run twice against the local database with a three-account `REVIEW_ACCOUNTS` (one
+  > mixed-case email) set only in the shell: exactly three `approved` users (student, instructor, admin) with
+  > normalized emails and one `email` identity each; those rows were deleted afterwards; backend `tsc --noEmit`
+  > and oxlint clean; deviations: none
 
 - [ ] **T-22** — (added during execution) Make the coverage gate skip the decorator-metadata conditional:
   the `typeof X === "undefined" ? Object : X` branch the Vitest transform emits for `design:paramtypes` on

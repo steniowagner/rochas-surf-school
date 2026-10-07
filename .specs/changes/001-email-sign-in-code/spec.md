@@ -550,12 +550,25 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > deviations: Prisma writes the folder name with underscores (`auth_add_sign_in_codes_and_refresh_tokens`), as
   > it did for the earlier migrations
 
-- [ ] **T-11** — Create `PrismaUserRepository` (`apps/backend/src/modules/auth/user.prisma.ts`, including
+- [x] **T-11** — Create `PrismaUserRepository` (`apps/backend/src/modules/auth/user.prisma.ts`, including
   `findByEmail` and the rules-acceptance child rows) and `PrismaIdentityRepository`
   (`apps/backend/src/modules/auth/identity.prisma.ts`), registered in `auth.module.ts`, with unit tests that
   mock `PrismaService`. Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-04, ER-05 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts
   src/modules/auth/identity.prisma.spec.ts` (from `apps/backend`) passes with both files fully covered.
+  > ✅ 2026-10-07 11:54 — following `backend-prisma-repository`: `PrismaUserRepository` (CRUD, `findByEmail`,
+  > `searchByName` trimmed + case-insensitive, `findPage`; rules acceptances written through the nested
+  > `user_rules_acceptances` relation — created on `create`, replaced with `deleteMany` + `create` on `update`;
+  > private mappers between the entity and the record, `null` ↔ `undefined`) and `PrismaIdentityRepository`
+  > (`create`, `findByProvider` via the `provider_providerUserId` unique, `findByUserId`), both injecting
+  > `PrismaService` and registered in `auth.module.ts` (which now imports `DbModule`); unit specs mock
+  > `PrismaService`. files: `apps/backend/src/modules/auth/user.prisma.ts`,
+  > `apps/backend/src/modules/auth/user.prisma.spec.ts`, `apps/backend/src/modules/auth/identity.prisma.ts`,
+  > `apps/backend/src/modules/auth/identity.prisma.spec.ts`, `apps/backend/src/modules/auth/auth.module.ts`;
+  > verified: `npx vitest run src/modules/auth/user.prisma.spec.ts src/modules/auth/identity.prisma.spec.ts` (2
+  > files, 12 passed; 100% statements/functions/lines, every branch covered except the decorator-metadata
+  > conditional on each class line, which T-22 settles), backend `tsc --noEmit`, oxlint and build clean;
+  > deviations: none
 
 - [ ] **T-12** — Create `PrismaSignInCodeRepository` (`apps/backend/src/modules/auth/sign-in-code.prisma.ts`:
   `save` as an `upsert` by email, `consume` as `deleteMany({ email, codeHash })`, `incrementAttempts` as an

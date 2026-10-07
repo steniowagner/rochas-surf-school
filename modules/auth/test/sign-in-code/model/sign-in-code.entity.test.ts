@@ -2,6 +2,8 @@ import { ValidationException } from "@rochas-surf-school/shared";
 import {
   SignInCode,
   SignInCodeState,
+  isValidEmail,
+  normalizeEmail,
 } from "../../../src/sign-in-code/model/sign-in-code.entity";
 
 const HASH = "a".repeat(64);
@@ -160,6 +162,23 @@ describe("SignInCode", () => {
       expect(validationMessagesFor({ attempts: 1.5 })).toEqual([
         "signInCode.attempts.integer",
       ]);
+    });
+  });
+
+  describe("email helpers", () => {
+    it("normalizes by trimming and lowercasing", () => {
+      expect(normalizeEmail(" Ana@Example.COM ")).toBe("ana@example.com");
+    });
+
+    it("normalizes anything that is not a string to an empty string", () => {
+      expect(normalizeEmail(undefined)).toBe("");
+      expect(normalizeEmail(42)).toBe("");
+    });
+
+    it("accepts a valid email and rejects an empty or malformed one", () => {
+      expect(isValidEmail("ana@example.com")).toBe(true);
+      expect(isValidEmail("")).toBe(false);
+      expect(isValidEmail("ana@")).toBe(false);
     });
   });
 });

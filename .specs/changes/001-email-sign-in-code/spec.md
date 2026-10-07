@@ -419,7 +419,7 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > `create-identity`/`search-users-by-name` use cases served as the pattern; `StartSession` also takes a
   > `ClockProvider` (reused from the sign-in-code aggregate) to compute the refresh-token expiry
 
-- [ ] **T-06** — Implement `RequestSignInCode` in
+- [x] **T-06** — Implement `RequestSignInCode` in
   `modules/auth/src/sign-in-code/usecase/request-sign-in-code.usecase.ts` (input `{ email, locale? }`, output
   `{ resendAvailableAt, expiresAt }`; dependencies: repository, code provider, email provider, clock, review
   codes map) following D-04, D-05, D-09 and D-11, with tests in
@@ -427,6 +427,23 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   ("cooldown", "send fails", "review account"). Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-10 · Done when: that test file passes with the use case fully covered.
+  > ✅ 2026-10-07 11:46 — implemented `RequestSignInCode` (`module-use-case`, custom, with output): normalizes
+  > the email (trim + lowercase), validates email and locale together (missing locale → `pt-BR`; errors
+  > `signInCode.email.invalid` / `signInCode.locale.invalid`, 422), rejects within 30 s of `lastSentAt` with
+  > `TooManyRequestsError("signInCode.resend.tooSoon", { resendAvailableAt })`, upserts the validated row (new
+  > hash, expiry now + 10 min, `lastSentAt` now, attempts 0), uses the fixed review code and sends nothing for
+  > review emails (D-04), otherwise sends with `idempotencyKey: signin-code:<email>:<ms>` and on failure deletes
+  > the row and throws `BadGatewayError("signInCode.email.sendFailed")` (D-09). Added `normalizeEmail`,
+  > `isValidEmail` and the TTL/cooldown/max-attempts constants to the entity file, with entity tests. Tests
+  > written first and watched fail (15 failed). files:
+  > `modules/auth/src/sign-in-code/usecase/request-sign-in-code.usecase.ts`,
+  > `modules/auth/src/sign-in-code/usecase/index.ts`,
+  > `modules/auth/src/sign-in-code/model/sign-in-code.entity.ts`,
+  > `modules/auth/test/sign-in-code/usecase/request-sign-in-code.usecase.test.ts`,
+  > `modules/auth/test/sign-in-code/model/sign-in-code.entity.test.ts`; verified: `npm test --workspace
+  > @rochas-surf-school/auth -- test/sign-in-code/usecase/request-sign-in-code.usecase.test.ts` (15 passed,
+  > incl. -t "cooldown", "send fails", "review account"; use case 100% statements/branches/functions/lines),
+  > full auth suite 11 suites / 111 passed, lint and check-types clean; deviations: none
 
 - [ ] **T-07** — Implement `VerifySignInCode` in
   `modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts` (input `{ email, code, name? }`,

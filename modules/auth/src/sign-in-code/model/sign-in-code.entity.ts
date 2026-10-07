@@ -11,6 +11,21 @@ import {
 } from "@rochas-surf-school/shared";
 
 export const SIGN_IN_CODE_HASH_PATTERN = /^[0-9a-f]{64}$/;
+/** A code is valid for 10 minutes after it is sent. */
+export const SIGN_IN_CODE_TTL_MS = 10 * 60 * 1000;
+/** A new code can be requested 30 seconds after the last one was sent. */
+export const SIGN_IN_CODE_RESEND_COOLDOWN_MS = 30 * 1000;
+/** Wrong guesses after which the code is locked. */
+export const SIGN_IN_CODE_MAX_ATTEMPTS = 5;
+
+/** Trimmed and lowercased, as every email is stored; non-strings become "". */
+export function normalizeEmail(email: unknown): string {
+  return typeof email === "string" ? email.trim().toLowerCase() : "";
+}
+
+export function isValidEmail(email: string): boolean {
+  return email !== "" && new EmailRule().validate(email) === null;
+}
 
 export interface SignInCodeState extends EntityState {
   email: string;

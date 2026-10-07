@@ -146,6 +146,11 @@ can point to an e2e test instead of a manual journey.
 
 ## 6. Link checking in the spec validator
 
+**Status.** Done in framework 1.4.0: `checkLinks` in `.specs/scripts/lib/spec.mjs` (GitHub slugs, numbered
+duplicates, `<a id>` anchors), used by `check-spec.mjs` (errors on the Requirements line, which must also link
+a section rather than a whole document; warnings elsewhere) and `preflight.mjs` (missing source documents fail
+it; broken links in memory are warnings).
+
 **Why.** Specs link source-document sections by anchor (`requirements.md#waiting-list`). Rename a heading and
 the link silently points nowhere: the executor and the reviewer lose the detail they were meant to read.
 

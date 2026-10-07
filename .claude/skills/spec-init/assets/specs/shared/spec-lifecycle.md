@@ -163,3 +163,8 @@ specs come from: each spec links the sections it implements. They are living doc
 finished, `spec-finish` brings every section it linked in line with what was built — updating the text a
 Decision or an Amendment changed — and notes the spec under the section. So they never describe behavior the
 product no longer has.
+
+Specs link those sections by anchor (`requirements.md#waiting-list`), so headings are stable: renaming one
+breaks the links to it. `check-spec.mjs` checks every relative link of a spec — a broken requirement link
+fails it, naming the anchor it expected and the closest heading — and `preflight.mjs` checks that every
+source document exists and warns about broken links in the memory files.

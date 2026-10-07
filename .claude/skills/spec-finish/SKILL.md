@@ -92,7 +92,10 @@ Requirements:
 
 - if a Decision or an Amendment changed what the section requires, rewrite the affected sentences to match
   what was built — keep the section's structure, and change nothing the spec didn't touch;
-- add one line under the section's heading: `_Implemented in spec NNN-slug._` (once per spec).
+- add one line under the section's heading: `_Implemented in spec NNN-slug._` (once per spec);
+- keep the heading as it is: specs link sections by their anchor, so renaming a heading breaks every spec that
+  links it. When a heading truly must change, update the links (`grep -rn '<old-anchor>' .specs`) and say so
+  in the report.
 
 Only Markdown documents are edited; for others (designs, exports), say in the report what no longer matches.
 
@@ -109,7 +112,8 @@ point to the old location: update them.
 
 ## 6. Validate
 
-- `check-spec.mjs <spec id>` prints `CHECK OK`, with status `finished`.
+- `check-spec.mjs <spec id>` prints `CHECK OK`, with status `finished` — including its links, which still
+  resolve from `finished/` (same depth as `changes/`).
 - `preflight.mjs` prints `PREFLIGHT OK`. Besides the required memory, it checks `structure.md`, `modules.md`
   and `modules/*.md` for template leftovers and that the module index and the module files link to each
   other.

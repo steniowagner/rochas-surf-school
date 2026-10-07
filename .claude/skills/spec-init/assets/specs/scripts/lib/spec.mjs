@@ -4,7 +4,7 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 
 export const STATUSES = ["planned", "in-progress", "in-review", "changes-requested", "accepted", "finished", "abandoned"];
 export const EXECUTABLE = new Set(["planned", "in-progress", "changes-requested"]);
@@ -126,6 +126,25 @@ export function nextSpecId(root) {
     ...specBranches(root).map((b) => Number(b.id)),
   ];
   return String((ids.length ? Math.max(...ids) : 0) + 1).padStart(3, "0");
+}
+
+// The paths listed in product.md → Source documents (backticked, from the repo root).
+export function sourceDocuments(root) {
+  const file = join(root, ".specs", "memory", "product.md");
+  if (!existsSync(file)) return [];
+  const sections = splitSections(readText(file));
+  const docs = sections.find((s) => /^source documents\b/i.test(s.name));
+  if (!docs) return [];
+  const paths = new Set();
+  for (const { text, fenced } of docs.items) {
+    if (fenced) continue;
+    // - `.docs/requirements.md` — … (from the repo root)   or   - [requirements](../../.docs/requirements.md) — …
+    const code = text.match(/^\s*[-*]\s*`([^`]+)`/);
+    const link = text.match(/^\s*[-*]\s*\[[^\]]*\]\(([^)#\s]+)/);
+    const path = code ? code[1] : link ? relative(root, resolve(dirname(file), link[1])) : null;
+    if (path && !/^none\.?$/i.test(path)) paths.add(path.replace(/^\.\//, "").split("\\").join("/"));
+  }
+  return [...paths];
 }
 
 // ---------- parsing ----------
@@ -323,4 +342,123 @@ export function parseSpec(text) {
     latestRound,
     openFindings,
   };
+}
+
+// ---------- links ----------
+
+// The anchor GitHub gives a heading: the rendered text, lowercased, without punctuation (letters, digits, `_`,
+// `-` and spaces survive), spaces turned into `-`. Duplicates get `-1`, `-2`… (see headingAnchors).
+export function slugify(heading) {
+  const text = heading
+    .replace(/<[^>]+>/g, "")
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/(\*\*|__|~~|\*)/g, "")
+    .trim();
+  return text.toLowerCase().replace(/[^\p{L}\p{M}\p{N}\p{Pc}\- ]/gu, "").replace(/ /g, "-");
+}
+
+// Every anchor a Markdown file offers: its headings (outside code fences), numbered like GitHub numbers
+// duplicates, and explicit `<a id|name="…">` anchors.
+export function headingAnchors(markdown) {
+  const anchors = new Set();
+  const seen = new Map();
+  let inFence = false;
+  for (const line of markdown.split("\n")) {
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    if (inFence) continue;
+    const h = line.match(/^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/);
+    if (h) {
+      const base = slugify(h[1]);
+      const n = seen.get(base) ?? 0;
+      seen.set(base, n + 1);
+      anchors.add(n ? `${base}-${n}` : base);
+    }
+    for (const m of line.matchAll(/<a\s[^>]*(?:id|name)=["']([^"']+)["']/gi)) anchors.add(m[1]);
+  }
+  return anchors;
+}
+
+// Relative links of a Markdown text — inline `[text](target)`, images, and reference definitions — outside
+// code fences and inline code. Absolute URLs (scheme:, //host) are left out.
+export function extractLinks(markdown) {
+  const links = [];
+  let inFence = false;
+  markdown.split("\n").forEach((raw, i) => {
+    if (/^\s*```/.test(raw)) inFence = !inFence;
+    if (inFence || /^\s*```/.test(raw)) return;
+    const line = raw.replace(/`[^`]*`/g, (m) => " ".repeat(m.length));
+    const targets = [
+      ...[...line.matchAll(/!?\[[^\]]*\]\(\s*<?([^)\s>]*)>?(?:\s+["'][^)]*["'])?\s*\)/g)].map((m) => m[1]),
+      ...[...line.matchAll(/^\s{0,3}\[[^\]]+\]:\s*<?(\S+?)>?(?:\s|$)/g)].map((m) => m[1]),
+    ];
+    for (const target of targets) {
+      if (!target || /^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith("//")) continue;
+      links.push({ line: i + 1, target });
+    }
+  });
+  return links;
+}
+
+const distance = (a, b) => {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+  }
+  return d[a.length][b.length];
+};
+
+// Checks every relative link of a Markdown file: the target exists and, for an anchor, the target has a heading
+// with that slug. Returns the broken ones: { line, target, problem }.
+export function checkLinks(file, markdown) {
+  const broken = [];
+  const cache = new Map();
+  for (const { line, target } of extractLinks(markdown)) {
+    const hash = target.indexOf("#");
+    let path = hash === -1 ? target : target.slice(0, hash);
+    const anchor = hash === -1 ? null : target.slice(hash + 1);
+    try {
+      path = decodeURIComponent(path);
+    } catch {}
+    const abs = path ? resolve(dirname(file), path) : file;
+    if (!existsSync(abs)) {
+      broken.push({ line, target, problem: `${path} doesn't exist` });
+      continue;
+    }
+    if (!anchor || statSync(abs).isDirectory()) continue;
+    if (!cache.has(abs)) {
+      const text = readText(abs);
+      cache.set(
+        abs,
+        /\.(md|markdown)$/i.test(abs)
+          ? headingAnchors(text)
+          : new Set([...text.matchAll(/\s(?:id|name)=["']([^"']+)["']/g)].map((m) => m[1])),
+      );
+    }
+    const anchors = cache.get(abs);
+    let wanted = anchor;
+    try {
+      wanted = decodeURIComponent(anchor).toLowerCase();
+    } catch {}
+    if (anchors.has(wanted) || anchors.has(anchor)) continue;
+    // Closest anchor: the longest shared prefix first (a renamed heading usually keeps its first word), then
+    // the edit distance.
+    const prefix = (a) => {
+      let n = 0;
+      while (n < a.length && a[n] === wanted[n]) n++;
+      return n;
+    };
+    const closest = [...anchors].sort((a, b) => prefix(b) - prefix(a) || distance(a, wanted) - distance(b, wanted))[0];
+    broken.push({
+      line,
+      target,
+      problem:
+        `no heading in ${path || "this file"} has the anchor "#${anchor}"` +
+        (closest ? ` — closest: "#${closest}"` : " — it has no headings"),
+    });
+  }
+  return broken;
 }

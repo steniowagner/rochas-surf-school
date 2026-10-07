@@ -10,8 +10,8 @@
 import { existsSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import {
-  ARCHIVED, EXECUTABLE, FOLDER, STATUSES, findById, findRoot, pad, parseFrontMatter, parseSpec, prose, readText,
-  resolveSpec, subdirs,
+  ARCHIVED, EXECUTABLE, FOLDER, STATUSES, checkLinks, extractLinks, findById, findRoot, pad, parseFrontMatter, parseSpec,
+  prose, readText, resolveSpec, subdirs,
 } from "./lib/spec.mjs";
 
 const REQUIRED_SECTIONS = [
@@ -80,7 +80,8 @@ if (!specFile) {
 
 const errors = [];
 const warnings = [];
-const spec = parseSpec(readText(specFile));
+const specText = readText(specFile);
+const spec = parseSpec(specText);
 const { fm, sections, section, ers, groups, tasks, rounds, latestRound, openFindings } = spec;
 const meaningful = (items) =>
   prose(items).filter((it) => it.text.trim() && !/^>/.test(it.text) && !/^#{2,}\s/.test(it.text));
@@ -136,6 +137,29 @@ for (const s of sections) {
 const context = section("Context");
 if (context && !prose(context.items).some((it) => /^\s*-\s*Requirements:/.test(it.text))) {
   errors.push('## Context needs a "- Requirements:" line linking the source-document sections this spec implements (or "none")');
+}
+
+// Links: every relative link points to a file that exists and, with an anchor, to a heading that exists. A broken
+// link on the Requirements line is an error — the executor and the reviewer would lose the detail it points to;
+// elsewhere it is a warning. A requirement links a section, never a whole document.
+const requirementLines = new Set();
+if (context) {
+  let inRequirements = false;
+  for (const it of prose(context.items)) {
+    if (/^\s*-\s*Requirements:/.test(it.text)) inRequirements = true;
+    else if (!/^\s+\S/.test(it.text)) inRequirements = false;
+    if (inRequirements) requirementLines.add(it.n);
+  }
+}
+for (const link of checkLinks(specFile, specText)) {
+  const message = `broken link "${link.target}" (line ${link.line}): ${link.problem}`;
+  if (requirementLines.has(link.line)) errors.push(`Requirements: ${message}`);
+  else warnings.push(message);
+}
+for (const { line, target } of extractLinks(specText)) {
+  if (requirementLines.has(line) && /\.(md|markdown)$/i.test(target.split("#")[0]) && !target.includes("#")) {
+    errors.push(`Requirements: "${target}" (line ${line}) links a whole document — link the section it implements (#anchor)`);
+  }
 }
 
 // Scope (optional in a quick spec, but complete when present)

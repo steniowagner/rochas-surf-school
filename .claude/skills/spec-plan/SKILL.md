@@ -190,8 +190,10 @@ node .specs/scripts/check-spec.mjs NNN
 ```
 
 It must print `CHECK OK`. It checks the structure: front matter, required sections, template leftovers, the
-fields of every Expected Result and task, sequential ids, and that every Expected Result is covered by a
-task. `spec-execute` runs the same check and refuses a spec that fails it, so fix every error and rerun; read
+fields of every Expected Result and task, sequential ids, that every Expected Result is covered by a task, and
+every relative link — the file exists and its anchor matches a heading (GitHub's slugs). A broken link on the
+Requirements line, or one that links a whole document instead of a section, is an error; elsewhere it is a
+warning. `spec-execute` runs the same check and refuses a spec that fails it, so fix every error and rerun; read
 the warnings and fix the real ones. Then check what the script can't:
 
 - every task sits in one front, fits in one sitting, and comes after everything it depends on;

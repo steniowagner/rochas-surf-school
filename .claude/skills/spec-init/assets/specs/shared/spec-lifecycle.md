@@ -15,7 +15,8 @@ the specs at any time, read-only. Every skill reads this file before it touches 
                        # task-breakdown, how-to-execute, naming)
   templates/           # models used to create specs and memory files
   changes/             # active specs: one folder per spec, NNN-slug/spec.md (+ supporting files)
-  finished/            # finished specs, moved here by spec-finish: YYYYMMDDHHMMSS-NNN-slug/
+  finished/            # archived specs — finished by spec-finish, or abandoned by spec-plan --abandon:
+                       # YYYYMMDDHHMMSS-NNN-slug/
   .framework.json      # installed framework version and the hash of each framework file
 ```
 
@@ -28,8 +29,8 @@ them valid in any repository.
 ## Identity
 
 - A spec lives in `changes/NNN-slug/spec.md`. `NNN` is a zero-padded, sequential number that is never
-  reused: the next id is one more than the highest `NNN` found in `changes/`, `finished/` and the spec
-  branches.
+  reused — not even an abandoned spec's: the next id is one more than the highest `NNN` found in `changes/`,
+  `finished/` and the spec branches.
 - `slug` is short kebab-case English describing the change (`booking-cancellation`, not `feature-2`).
 - Its branch is `spec/NNN-slug`.
 - Supporting files (fixtures, constants, diagrams) live in the same folder and are linked from the spec.
@@ -40,7 +41,8 @@ them valid in any repository.
 `id`, `slug`, `title`, `status`, `created`, `fronts` and `depends_on` are written by `spec-plan`. On its first
 run, `spec-execute` adds `started` (date) and `base_commit` (the commit the spec branch starts from), so
 everyone can see exactly what the spec changed. On acceptance, `spec-review` adds `reviewed_commit`: the commit
-it accepted, which `spec-finish` checks before shipping. `spec-finish` adds `finished` (date).
+it accepted, which `spec-finish` checks before shipping. `spec-finish` adds `finished` (date);
+`spec-plan --abandon` adds `abandoned` (date).
 `.specs/scripts/check-spec.mjs` validates the whole structure; every spec skill runs it before working on a
 spec. `.specs/scripts/status.mjs` reads every spec — from its branch when it is under execution, since the
 default branch doesn't have it then — and prints the board `spec-status` shows.
@@ -59,10 +61,32 @@ The `status` field in the spec front matter is the single source of truth for wh
 |                     |                | covered; the accepted commit recorded (`reviewed_commit`).                |
 | `finished`          | `spec-finish`  | Memory and source documents updated, folder moved to `finished/`, branch  |
 |                     |                | pushed, pull request opened.                                              |
+| `abandoned`         | `spec-plan`    | No longer wanted (`--abandon`): the reason is under `## Outcome`, the     |
+|                     |                | folder moved to `finished/`; memory and source documents untouched.       |
 
 Allowed transitions: `planned → in-progress → in-review → (accepted | changes-requested)`,
-`changes-requested → in-progress`, `accepted → finished`. A skill that finds a spec in an unexpected status
-stops and says so instead of forcing it.
+`changes-requested → in-progress`, `accepted → finished`, and `planned | in-progress | changes-requested →
+abandoned`. `finished` and `abandoned` are final. A skill that finds a spec in an unexpected status stops and
+says so instead of forcing it.
+
+## Changing a spec
+
+Requirements change. While a spec is `planned`, `in-progress` or `changes-requested`, `spec-plan --amend NNN`
+revises it with the user; `spec-execute` may also apply a small change the user approves mid-execution. Either
+way the same rules hold, so that the executor and the reviewer can keep trusting the spec:
+
+- **Ids are stable.** New Expected Results, decisions and tasks get the next free id; an id is never reused.
+- **Nothing is deleted.** A removed item stays, struck through and marked with its reason:
+  `### ~~ER-03 — Title~~ (removed: <reason>)`, `- [ ] ~~**T-04** — …~~ (removed: <reason>)`,
+  `| D-02 | ~~…~~ (removed: <reason>) | … |`. `check-spec.mjs` accepts them: a removed Expected Result needs no
+  task, and a removed task isn't pending.
+- **Done work isn't rewritten.** A task already committed is never reworded or unchecked; a new task changes or
+  undoes its work.
+- **Every change is logged** under `## Amendments`: date, what changed (before → after), the reason, and that
+  the user approved it.
+
+A spec that is no longer wanted is abandoned with `spec-plan --abandon NNN`, never deleted: the record and its
+reason stay in `finished/`, and its branch is kept until the user deletes it.
 
 ## Branch and commits
 
@@ -77,11 +101,14 @@ stops and says so instead of forcing it.
 
 ## Ownership of sections
 
-- `spec-plan` writes everything except `## Amendments`, `## Review`, task checkboxes and evidence.
+- `spec-plan` writes everything except `## Review`, task checkboxes and evidence. Once the spec is written, it
+  changes it only through `--amend` (logged in `## Amendments`) and `--abandon` (status, `abandoned` and
+  `## Outcome`).
 - `spec-execute` checks tasks and adds evidence, appends tasks marked `(added during execution)`, adds
   `started` and `base_commit`, and closes review findings with evidence
   ([How to execute](how-to-execute.md)). It changes Scope, Decisions or Expected Results only with the user's
-  explicit approval, logged in `## Amendments`; it never removes, reorders or rewords a task.
+  explicit approval, logged in `## Amendments`; it never removes, reorders or rewords a task — that takes
+  `spec-plan --amend`.
 - `spec-review` writes only `## Review` — one `### Round N — date — verdict` per review, with findings as
   `- [ ] **F-NN** (ER-xx) — …` — the status and, on acceptance, `reviewed_commit`.
 - `spec-finish` refuses to run if anything outside `.specs/` changed since `reviewed_commit`; updates

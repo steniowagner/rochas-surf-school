@@ -34,7 +34,7 @@ The status decides what happens:
 - `changes-requested` → the last round's findings are still open: point to `/spec-execute` and stop.
 - `accepted` → already accepted; review again only when the user asks — typically because `spec-finish`
   found that the code changed after the review.
-- `finished` → nothing to review.
+- `finished` or `abandoned` → nothing to review.
 
 Then stop and say why if any of these fails:
 
@@ -105,7 +105,9 @@ Start from a reproducible state: install dependencies if the lockfile changed, r
 
 ## 5. Verify each Expected Result
 
-Follow each Expected Result's `Verify by` yourself and record how it went:
+Follow each Expected Result's `Verify by` yourself and record how it went. Expected Results an amendment
+struck through and marked `(removed: …)` are not verified — but check that the amendment is logged under
+`## Amendments`, and that nothing in the code still builds them (that is a `(scope)` finding).
 
 - **Tests and commands** — run them (step 4 already covers most).
 - **HTTP** — start the backend and its database locally and send the requests; compare status and body with

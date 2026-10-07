@@ -20,7 +20,8 @@ wins too.
 
 - Spec folder: `NNN-slug` in `changes/`, `YYYYMMDDHHMMSS-NNN-slug` in `finished/`.
 - Ids inside a spec: `ER-NN` (Expected Results), `T-NN` (tasks), `D-NN` (decisions). Two digits, sequential,
-  never renumbered once the spec is written.
+  never renumbered or reused once the spec is written: an amendment adds the next free id and strikes removed
+  items through instead of deleting them.
 
 ## Decision rule
 

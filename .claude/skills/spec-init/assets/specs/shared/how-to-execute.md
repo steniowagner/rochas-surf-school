@@ -28,9 +28,13 @@ Standard rules for executing a spec. Used by `spec-execute`; read by `spec-revie
    tests are written in the same task. Coverage exclusions are project policy (`technical-context.md` →
    Coverage): don't add one — ask the user.
 9. Never remove, reorder or reword a task. Work an Expected Result needs that no task covers is appended to
-   the relevant group with the next free id and marked `(added during execution)`.
-10. A change to Scope, Decisions or Expected Results needs the user's explicit approval. Apply it in place and
-    log it under `## Amendments`: date, before → after, reason.
+   the relevant group with the next free id and marked `(added during execution)`. A task struck through and
+   marked `(removed: …)` by an amendment is skipped.
+10. A change to Scope, Decisions or Expected Results needs the user's explicit approval. Apply a small one in
+    place, by the rules in [Spec lifecycle → Changing a spec](spec-lifecycle.md#changing-a-spec) (new ids,
+    removed items struck through, never deleted), and log it under `## Amendments`: date, before → after,
+    reason. Anything bigger — several Expected Results, removing tasks, a new front — goes through
+    `/spec-plan --amend NNN`.
 11. A blocked task keeps its box unchecked, with ⛔ evidence. Stop and ask the user when the blocker needs a
     decision, a credential or access, or changes a Decision or an Expected Result.
 
@@ -86,8 +90,9 @@ section), `(coverage)`, `(tests)`, `(scope)` or `(convention)`.
 Set `status: in-progress`, then for each open finding: fix it, verify it the way the reviewer observed it, check
 it and add evidence below it, in the same format as tasks, and commit it: `fix(spec-NNN): <what> (F-01)`. If a
 finding looks wrong (it asks for something out of scope, or misreads an Expected Result), don't skip it
-silently: record why below it with ⛔ and ask the user. Rerun the Verification Plan, set `status: in-review`
-and commit the spec.
+silently: record why below it with ⛔ and ask the user. A finding an amendment made obsolete (it is about an
+Expected Result or a decision that was removed) is checked with evidence that names the amendment. Rerun the
+Verification Plan, set `status: in-review` and commit the spec.
 
 ## Intent
 

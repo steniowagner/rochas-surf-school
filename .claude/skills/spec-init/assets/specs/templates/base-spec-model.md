@@ -134,8 +134,8 @@ depends_on: []
 
 ## Amendments
 
-> Reserved for `spec-execute`: changes to Scope, Decisions or Expected Results the user approved during
-> execution (date, before → after, reason). Leave empty when planning.
+> Reserved for `spec-plan --amend` and `spec-execute`: changes to Scope, Decisions, Expected Results or tasks
+> the user approved after the spec was written (date, before → after, reason). Leave empty when planning.
 
 ## Review
 

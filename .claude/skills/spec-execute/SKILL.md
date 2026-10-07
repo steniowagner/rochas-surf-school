@@ -46,7 +46,7 @@ Stop before touching code if any of these fails, and tell the user what is wrong
    - `changes-requested` → fix the open review findings (section 6);
    - `in-review` → it is waiting for review: point to `/spec-review` and stop, unless the user explicitly
      wants to reopen it;
-   - `accepted` or `finished` → nothing to execute (`/spec-finish` for an accepted spec).
+   - `accepted`, `finished` or `abandoned` → nothing to execute (`/spec-finish` for an accepted spec).
 4. **Dependencies** — every spec in `depends_on` should be finished (the check shows their status). If one
    isn't, say which and ask whether to go ahead anyway.
 
@@ -71,7 +71,8 @@ Stop before touching code if any of these fails, and tell the user what is wrong
 
 ## 4. Execute the tasks
 
-One task at a time, in document order. For each unchecked task:
+One task at a time, in document order. For each unchecked task — skipping the ones an amendment struck through
+and marked `(removed: …)`:
 
 1. **Understand it** — what, where, the skill it names, the Expected Results it covers (reread them) and the
    Decisions that constrain it. Look at the current code before changing it.
@@ -105,8 +106,10 @@ When reality doesn't match the plan:
   marked `(added during execution)`, execute it like the others, and mention it in the report.
 - **The plan is wrong** — a Decision or Expected Result contradicts the code or a constraint, or a task is
   impossible as written → stop and explain, with a concrete proposal. Change Scope, Decisions or Expected
-  Results only after the user explicitly approves, and log the change under `## Amendments` (date, before →
-  after, reason).
+  Results only after the user explicitly approves, by the rules in `spec-lifecycle.md` → Changing a spec, and
+  log the change under `## Amendments` (date, before → after, reason). When the change is bigger than a
+  sentence or two — several Expected Results, tasks to remove, a new front — stop and point to
+  `/spec-plan --amend NNN` instead. When the user no longer wants the spec at all: `/spec-plan --abandon NNN`.
 - **Blocked** — a missing credential, an external service, a decision only the user can make → leave the box
   unchecked with ⛔ evidence, continue with the tasks that don't depend on it, and ask the user once you run
   out of them.

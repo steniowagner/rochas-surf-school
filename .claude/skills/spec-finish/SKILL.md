@@ -27,6 +27,7 @@ shows where it is — switch to its branch and rerun the check.
 - `accepted` → finish it.
 - `finished` → already archived. If the branch wasn't pushed or the pull request wasn't opened (an
   interrupted run), continue at step 7.
+- `abandoned` → nothing to finish: it was archived by `spec-plan --abandon`, and memory stays as it is.
 - `in-review` → point to `/spec-review` and stop; `planned`, `in-progress` or `changes-requested` → point to
   `/spec-execute` and stop.
 
@@ -48,6 +49,7 @@ Then:
 
 - **The spec**: Goal, Context (its Requirements line), Scope, Decisions, Expected Results, `## Memory Impact`,
   `## Amendments`, and the notes in the last Review round — the reviewer flags gaps in Memory Impact there.
+  Expected Results and decisions struck through as `(removed: …)` were not built: they don't go into memory.
 - **The change set**: `git log --oneline <base_commit>..HEAD` and `git diff --stat <base_commit>..HEAD`, then
   read what matters: workspaces, modules, aggregates, routes and top-level folders created, moved or removed;
   new dependencies, integrations, environment variable names, conventions.

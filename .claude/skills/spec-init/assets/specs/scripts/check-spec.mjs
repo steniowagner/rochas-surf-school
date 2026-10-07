@@ -10,8 +10,8 @@
 import { existsSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import {
-  EXECUTABLE, FOLDER, STATUSES, findById, findRoot, pad, parseFrontMatter, parseSpec, prose, readText, resolveSpec,
-  subdirs,
+  ARCHIVED, EXECUTABLE, FOLDER, STATUSES, findById, findRoot, pad, parseFrontMatter, parseSpec, prose, readText,
+  resolveSpec, subdirs,
 } from "./lib/spec.mjs";
 
 const REQUIRED_SECTIONS = [
@@ -19,7 +19,7 @@ const REQUIRED_SECTIONS = [
   "References",
 ];
 // Sections filled after planning (or optional): they may be empty and may keep their one-line instruction.
-const LATER_SECTIONS = new Set(["amendments", "review", "assumptions"]);
+const LATER_SECTIONS = new Set(["amendments", "review", "assumptions", "outcome"]);
 const ER_FIELDS = ["Front", "Behavior", "Edge and error cases", "Verify by"];
 const VAGUE =
   /\b(fast|quickly|simple|easy|easily|intuitive|properly|correctly|user-friendly|robust|seamless(?:ly)?|etc|and so on|as needed|appropriate(?:ly)?)\b/i;
@@ -146,6 +146,8 @@ if (decisionSection) {
     errors.push("## Decisions has no D-NN rows (write \"None.\" if no decision was needed)");
   }
   for (const d of spec.decisions) {
+    if (d.removed === "") errors.push(`D-${pad(d.id)} is removed without a reason — write (removed: <reason>) (line ${d.line})`);
+    if (d.removed !== null) continue;
     if (d.cells.length < 2 || d.cells.some((c) => !c || c === "...")) errors.push(`D-${pad(d.id)} needs a decision and a reason (line ${d.line})`);
   }
   checkIds("D", spec.decisions.map((d) => d.id));
@@ -153,9 +155,11 @@ if (decisionSection) {
 
 // Expected Results
 if (section("Expected Results")) {
-  if (!ers.length) errors.push("## Expected Results has no ### ER-NN entries");
+  if (!ers.some((e) => e.removed === null)) errors.push("## Expected Results has no ### ER-NN entries (other than removed ones)");
   for (const er of ers) {
     const id = `ER-${pad(er.id)}`;
+    if (er.removed === "") errors.push(`${id} is removed without a reason — write (removed: <reason>) (line ${er.line})`);
+    if (er.removed !== null) continue;
     if (!er.title) errors.push(`${id} has no title (line ${er.line})`);
     for (const name of ER_FIELDS) {
       const value = er.fields[name];
@@ -172,6 +176,8 @@ if (section("Expected Results")) {
   checkIds("ER", ers.map((e) => e.id));
 }
 const erIds = new Set(ers.map((e) => e.id));
+const liveErs = ers.filter((e) => e.removed === null);
+const removedErIds = new Set(ers.filter((e) => e.removed !== null).map((e) => e.id));
 
 // Tasks
 if (section("Tasks")) {
@@ -184,12 +190,26 @@ if (section("Tasks")) {
   for (const t of tasks) {
     const id = `T-${pad(t.id)}`;
     if (!t.group) errors.push(`${id} is outside any ### group (line ${t.line})`);
+    if (t.removed !== null) {
+      if (!t.removed) errors.push(`${id} is removed without a reason — write (removed: <reason>) (line ${t.line})`);
+      if (t.checked) {
+        warnings.push(`${id} was done before it was removed: a task must undo its changes, or the reason must say why they stay (line ${t.line})`);
+      }
+      continue;
+    }
     if (!t.body[0]?.trim()) errors.push(`${id} has no description (line ${t.line})`);
     if (!t.coversText) {
       errors.push(`${id} has no "Covers:" (ER ids, or "enabling") (line ${t.line})`);
     } else {
       if (!t.coverTokens) errors.push(`${id}: "Covers: ${t.coversText}" names no ER id, "enabling" or "all" (line ${t.line})`);
       for (const er of t.covers) if (!erIds.has(er)) errors.push(`${id} covers ER-${pad(er)}, which doesn't exist (line ${t.line})`);
+      const stale = t.covers.filter((er) => removedErIds.has(er));
+      const enabling = /\b(enabling|all)\b/i.test(t.coversText);
+      if (stale.length && stale.length === t.covers.length && !enabling) {
+        errors.push(`${id} only covers removed Expected Results (${stale.map((e) => `ER-${pad(e)}`).join(", ")}): remove the task too, or point it at a live one (line ${t.line})`);
+      } else if (stale.length) {
+        warnings.push(`${id} still covers removed ${stale.map((e) => `ER-${pad(e)}`).join(", ")} (line ${t.line})`);
+      }
     }
     if (!t.doneWhen || /^\.\.\.$|^(it )?works\.?$/i.test(t.doneWhen)) {
       errors.push(`${id} has no observable "Done when:" check (line ${t.line})`);
@@ -199,8 +219,8 @@ if (section("Tasks")) {
   }
   checkIds("T", tasks.map((t) => t.id));
 
-  for (const er of ers) {
-    if (!tasks.some((t) => t.covers.includes(er.id))) {
+  for (const er of liveErs) {
+    if (!tasks.some((t) => t.removed === null && t.covers.includes(er.id))) {
       errors.push(`ER-${pad(er.id)} is not covered by any task ("Covers: all" on the verification task doesn't count)`);
     }
   }
@@ -221,7 +241,7 @@ if (plan && !prose(plan.items).some((it) => /check-coverage\.mjs/.test(it.text))
 }
 
 // Status consistency
-const pending = tasks.filter((t) => t.state !== "done");
+const pending = tasks.filter((t) => t.state !== "done" && t.state !== "removed");
 if (status === "planned" && tasks.some((t) => t.checked)) warnings.push("status is planned but some tasks are already checked");
 if (["in-review", "accepted", "finished"].includes(status) && pending.length) {
   errors.push(`status is ${status} but ${pending.length} task(s) are not done: ${pending.map((t) => `T-${pad(t.id)}`).join(", ")}`);
@@ -232,7 +252,13 @@ if (["accepted", "finished"].includes(status) && !fm?.reviewed_commit) {
 }
 if (status === "changes-requested" && !openFindings.length) warnings.push("status is changes-requested but the latest review round has no open finding");
 const inFinished = relative(specsDir, specFile).startsWith("finished");
-if (inFinished && status !== "finished") warnings.push(`the spec is in .specs/finished/ but its status is ${status}`);
+if (inFinished && !ARCHIVED.has(status)) warnings.push(`the spec is in .specs/finished/ but its status is ${status}`);
+if (!inFinished && ARCHIVED.has(status)) warnings.push(`status is ${status} but the spec is still in .specs/changes/`);
+if (status === "abandoned") {
+  const outcome = section("Outcome");
+  if (!outcome || !meaningful(outcome.items).length) errors.push("status is abandoned but ## Outcome doesn't say why");
+  if (!fm?.abandoned) warnings.push("status is abandoned but the front matter has no abandoned date");
+}
 if (!inFinished && folderMatch?.[1]) warnings.push("the folder has a finished-style timestamp prefix but lives in .specs/changes/");
 
 // Dependencies
@@ -266,17 +292,21 @@ out.push(errors.length ? `CHECK FAILED (${errors.length} error${errors.length > 
 out.push(`title: ${fm?.title ?? "?"} · status: ${status ?? "?"} · fronts: ${fronts.join(", ") || "none"}`);
 if (fm?.base_commit || fm?.started) out.push(`started: ${fm.started ?? "?"} · base_commit: ${fm.base_commit ?? "?"}`);
 out.push(`depends_on: ${deps.length ? deps.join(", ") : "none"}`);
-out.push(`expected results: ${ers.length}${ers.length ? ` (${ers.map((e) => `ER-${pad(e.id)}`).join(", ")})` : ""}`);
+out.push(
+  `expected results: ${liveErs.length}${liveErs.length ? ` (${liveErs.map((e) => `ER-${pad(e.id)}`).join(", ")})` : ""}` +
+    (removedErIds.size ? ` · removed: ${[...removedErIds].map((e) => `ER-${pad(e)}`).join(", ")}` : ""),
+);
 const { done, blocked: blockedCount, pending: pendingCount } = spec.progress;
 out.push(
   `tasks: ${tasks.length} in ${groups.length} groups (${groups.map((g) => `${g.name.replace(/\s*\(.*\)\s*$/, "")} ${g.tasks.length}`).join(", ")})` +
-    ` — done ${done} · blocked ${blockedCount} · pending ${pendingCount}`,
+    ` — done ${done} · blocked ${blockedCount} · pending ${pendingCount}` +
+    (spec.progress.removed ? ` · removed ${spec.progress.removed}` : ""),
 );
-if (ers.length) {
+if (liveErs.length) {
   out.push(
-    `coverage: ${ers
+    `coverage: ${liveErs
       .map((e) => {
-        const by = tasks.filter((t) => t.covers.includes(e.id)).map((t) => `T-${pad(t.id)}`);
+        const by = tasks.filter((t) => t.removed === null && t.covers.includes(e.id)).map((t) => `T-${pad(t.id)}`);
         return `ER-${pad(e.id)} ← ${by.length ? by.join(", ") : "nothing"}`;
       })
       .join(" · ")}`,

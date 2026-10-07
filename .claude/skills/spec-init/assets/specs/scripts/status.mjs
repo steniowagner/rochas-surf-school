@@ -15,7 +15,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import {
-  FOLDER, findRoot, git, nextSpecId, pad, parseSpec, readText, specBranches, specFolders,
+  ARCHIVED, FOLDER, findRoot, git, nextSpecId, pad, parseSpec, readText, specBranches, specFolders,
 } from "./lib/spec.mjs";
 
 const args = process.argv.slice(2);
@@ -140,6 +140,8 @@ for (const e of [...specs.values()].sort((a, b) => a.id.localeCompare(b.id))) {
   row.slug = source.slug;
   if (status === "finished") {
     row.next = row.branch && !row.branch.merged ? `review and merge the pull request of ${row.branch.name}` : null;
+  } else if (status === "abandoned") {
+    row.next = null;
   } else {
     row.next = NEXT[status]?.(e.id) ?? `fix the status "${status}" by hand`;
   }
@@ -154,10 +156,10 @@ for (const r of rows) {
   if (r.status === "accepted") {
     flags.push(`${r.id} is accepted but not finished${r.age !== null ? ` (${r.age} days since its last commit)` : ""} — /spec-finish ${r.id} before the code drifts`);
   }
-  if (!["planned", "finished"].includes(r.status) && !r.branch) {
+  if (r.status !== "planned" && !ARCHIVED.has(r.status) && !r.branch) {
     flags.push(`${r.id} is ${r.status} but has no branch spec/${r.id}-${r.slug}`);
   }
-  if (r.status === "finished") continue;
+  if (ARCHIVED.has(r.status)) continue;
   for (const dep of r.depends_on) {
     const num = String(dep).match(/^(\d+)/)?.[1]?.padStart(3, "0");
     const depStatus = rows.find((o) => o.id === num)?.status ?? "not found";
@@ -165,9 +167,12 @@ for (const r of rows) {
   }
 }
 
-const active = rows.filter((r) => r.status !== "finished" || r.next);
+const active = rows.filter((r) => !ARCHIVED.has(r.status) || r.next);
 const finishedCount = rows.filter((r) => r.status === "finished").length;
-const board = { default_branch: base, next_id: nextSpecId(root), active, finished: finishedCount, flags };
+const abandonedCount = rows.filter((r) => r.status === "abandoned").length;
+const board = {
+  default_branch: base, next_id: nextSpecId(root), active, finished: finishedCount, abandoned: abandonedCount, flags,
+};
 
 // ---------- report ----------
 
@@ -200,5 +205,8 @@ for (const r of active) {
   );
 }
 out.push("", flags.length ? `flags (${flags.length}):` : "flags: none", ...flags.map((f) => `- ${f}`));
-out.push("", `next spec id: ${board.next_id} · finished specs: ${finishedCount}`);
+out.push(
+  "",
+  `next spec id: ${board.next_id} · finished specs: ${finishedCount}${abandonedCount ? ` · abandoned: ${abandonedCount}` : ""}`,
+);
 console.log(out.join("\n"));

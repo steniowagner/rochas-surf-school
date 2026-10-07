@@ -76,7 +76,11 @@ const specsDir = join(root, ".specs");
 const folder = findSpecFolder(specsDir, "changes", arg);
 if (!folder) {
   const done = findSpecFolder(specsDir, "finished", arg);
-  if (done) stop(0, `already finished: .specs/finished/${done}`);
+  if (done) {
+    const doneText = readFileSync(join(specsDir, "finished", done, "spec.md"), "utf8");
+    if (/^status:\s*["']?abandoned/m.test(doneText)) stop(1, `FINISH REFUSED\n- .specs/finished/${done} was abandoned: there is nothing to finish`);
+    stop(0, `already finished: .specs/finished/${done}`);
+  }
   stop(2, `FINISH FAILED\n- no spec matches "${arg}" in .specs/changes/`);
 }
 

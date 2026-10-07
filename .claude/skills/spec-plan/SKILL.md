@@ -1,7 +1,7 @@
 ---
 name: spec-plan
-description: Plan a new change in this repo as a spec (spec-driven development). Interviews the user critically until every requirement is unambiguous, then writes .specs/changes/NNN-slug/spec.md with a goal, scope, decisions, verifiable Expected Results and a breakdown into small, verifiable tasks per front (e.g. backend, web, mobile, infra) that spec-execute runs one by one. Use whenever the user runs /spec-plan, or asks to plan, spec out, scope or write a spec/PRD/proposal for a feature, change or fix before implementing it — even if they don't say "spec". Do not use for executing, reviewing or finishing an existing spec.
-argument-hint: "<what to build, as text or a path to a file>"
+description: Plan a new change in this repo as a spec (spec-driven development). Interviews the user critically until every requirement is unambiguous, then writes .specs/changes/NNN-slug/spec.md with a goal, scope, decisions, verifiable Expected Results and a breakdown into small, verifiable tasks per front (e.g. backend, web, mobile, infra) that spec-execute runs one by one. Also revises an existing spec when its requirements change (--amend NNN, keeping ids stable and logging every change) and abandons a spec that is no longer wanted (--abandon NNN, archiving it with its reason). Use whenever the user runs /spec-plan, or asks to plan, spec out, scope or write a spec/PRD/proposal for a feature, change or fix before implementing it, or to change, revise or amend the requirements of a spec, or to drop, cancel or abandon a spec — even if they don't say "spec". Do not use for executing, reviewing or finishing a spec, or for fixing review findings (spec-execute).
+argument-hint: "<what to build, as text or a path to a file> | --amend <spec id> [what changes] | --abandon <spec id> [reason]"
 ---
 
 # spec-plan
@@ -14,6 +14,10 @@ room who refuses to let ambiguity through, while staying constructive and fast.
 
 The flow is: **preflight → load context → first analysis → interview → confirm → write → report.**
 Do not write the spec file before the user has confirmed the summary.
+
+**Modes.** Without a flag, this skill plans a new spec (sections 1–7). `--amend NNN` revises an existing spec
+when its requirements change (section 8), and `--abandon NNN` archives a spec that is no longer wanted
+(section 9). Both start with the preflight and read `.specs/shared/spec-lifecycle.md`.
 
 ## 1. Preflight (hard gate)
 
@@ -194,6 +198,76 @@ Do not implement anything and do not touch `.specs/memory/` — that belongs to 
 
 End with a short message: the spec path, that the check passed, the counts (ERs, tasks per front,
 decisions), any accepted assumptions worth a second look, and the next step: `/spec-execute NNN`.
+
+## 8. Amend mode (`--amend NNN`)
+
+Requirements change after planning: a decision turns out wrong, the user wants less (or something else), an
+Expected Result can't hold. The spec must change through the workflow, not by hand, so that the executor and
+the reviewer can still trust it: ids stay stable, nothing is deleted, every change is logged.
+
+1. **Gate.** The preflight passes, and `check-spec.mjs NNN` finds the spec — if it lives on `spec/NNN-slug`,
+   check `git status` is clean and switch to that branch (`node .specs/scripts/status.mjs` shows where it is).
+   The status must be `planned`, `in-progress` or `changes-requested`. `in-review` → the review comes first
+   (or the user reopens it with `/spec-execute`); `accepted` → finish it and plan the change as a new spec;
+   `finished` or `abandoned` → plan a new spec.
+2. **Load context** as in section 2, plus the whole spec: tasks with their evidence, Amendments, Review rounds.
+   On `in-progress` and `changes-requested`, `git log --oneline <base_commit>..HEAD` shows what is already
+   built.
+3. **Short interview.** Restate the change and what it touches: which Expected Results, Decisions and tasks
+   change, appear or go away; which of those tasks are already done (their code exists); which open review
+   findings it makes obsolete; whether Scope or Memory Impact move. Then ask only what the change leaves
+   open, with the rules of `.specs/shared/interviewing.md`. If the change is really a different spec, say so:
+   abandoning this one and planning a new one may be cleaner.
+4. **Confirm** the change as a diff, one line per id: `ER-03 — removed: <reason>`, `ER-05 — added: …`,
+   `D-02 — changed: before → after`, `T-07 — added (Covers: ER-05)`. Wait for the go-ahead.
+5. **Edit the spec in place**:
+   - **Added** Expected Results, decisions and tasks get the next free id — never a reused one — and go where
+     they belong (a task in its front's group, before the Verification group). Out-of-order ids are fine.
+   - **Removed** ones stay, struck through and marked with the reason, never deleted:
+     `### ~~ER-03 — Title~~ (removed: <reason>)`, `- [ ] ~~**T-04** — …~~ (removed: <reason>)`,
+     `| D-02 | ~~…~~ (removed: <reason>) | … |`. A task that only covers removed Expected Results is removed too.
+   - **A task that is already done** is never reworded or unchecked: its commit exists. When its work must
+     change or go, add a new task that changes or undoes it; when its code stays, the removal reason says why.
+   - **Changed** Expected Results, decisions and pending tasks are edited in place; the log keeps the before.
+   - Update Goal, Scope, the Requirements line, the Verification Plan and Memory Impact when the change moves
+     them.
+   - Log every change under `## Amendments`, one bullet each:
+     `- YYYY-MM-DD — /spec-plan --amend — ER-03 removed: <before → after>. Reason: <why>. Approved by the user.`
+   - Don't touch `## Review`: findings that the change makes obsolete stay open, and `spec-execute` closes them
+     pointing to the amendment.
+   - The status doesn't change.
+6. **Validate** with `check-spec.mjs NNN` (`CHECK OK`, struck items accepted) and the checks of section 6.
+7. **Commit** when the spec is on its branch (any status but `planned`): the spec alone,
+   `docs(spec-NNN): amend <what changed>`. A `planned` spec isn't committed yet: leave it as it is.
+8. **Report**: what changed, by id; the tasks to (re)do; and the next step — `/spec-execute NNN`.
+
+## 9. Abandon mode (`--abandon NNN`)
+
+A spec that is no longer wanted is archived with its reason instead of lingering in `changes/` or vanishing:
+the id is never reused, and whoever reads the history knows why it stopped.
+
+1. **Gate.** The preflight passes, and the status is `planned`, `in-progress` or `changes-requested` (the
+   same rule as amend: an accepted spec is finished, not abandoned). Ask for the reason if the user didn't
+   give one: one or two sentences someone will read a year from now.
+2. **Confirm** with the user: the spec, its progress (`status.mjs` shows it), the reason, and that the
+   branch is kept with whatever was built — nothing reaches the default branch except the archived spec.
+3. **Bring the spec to the default branch** when it lives on `spec/NNN-slug` (any status but `planned`):
+   check `git status` is clean, `git switch <default branch>`, then
+   `git checkout spec/NNN-slug -- .specs/changes/NNN-slug` — the spec folder only, never the code. A
+   `planned` spec is abandoned where it is.
+4. **Archive** it:
+
+   ```bash
+   node .specs/scripts/abandon-spec.mjs NNN --reason "<why>"
+   ```
+
+   It sets `status: abandoned` and `abandoned: <date>`, writes the reason and the progress under
+   `## Outcome`, and moves the folder to `.specs/finished/<YYYYMMDDHHMMSS>-NNN-slug/`. The memory and the
+   source documents are not touched: they describe what is built, and the spec built nothing that ships.
+5. **Validate** with `check-spec.mjs NNN` (`CHECK OK`, status `abandoned`), then **commit** the archived spec
+   alone on the current branch: `docs(spec-NNN): abandon <slug>`, with the reason in the body. Never push.
+6. **Report**: where it was archived, the reason, and the branch that is kept — deleting it
+   (`git branch -D spec/NNN-slug`, and the remote one) is the user's call; never delete it yourself.
 
 ## Example of a good first analysis (abridged)
 

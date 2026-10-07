@@ -37,13 +37,14 @@ Keep the script's facts as they are; don't reread the specs to second-guess them
 - **Active specs**, one line or two each, in id order: `NNN-slug` — title — status — tasks done/total
   (blocked) — open findings — branch state — **next:** the command the script suggests.
 - **Needs attention** — the flags, each with the action that clears it:
-  - in-progress with no recent commit → resume it (`/spec-execute NNN`) or ask whether it is still wanted;
+  - in-progress with no recent commit → resume it (`/spec-execute NNN`) or ask whether it is still wanted
+    (`/spec-plan --abandon NNN`);
   - accepted but not finished → `/spec-finish NNN` soon: every commit on the branch after the review blocks
     it;
   - a `spec/*` branch with no spec → the user decides whether to delete the branch; never delete it yourself;
   - a dependency on an unfinished spec → finish that one first, or confirm the order with the user;
   - a status with no branch → the spec was edited by hand or its branch was deleted: point it out.
-- **Footer** — the next spec id (what `/spec-plan` will use) and how many specs are finished.
+- **Footer** — the next spec id (what `/spec-plan` will use) and how many specs are finished and abandoned.
 
 When nothing is active, say so in one line and suggest `/spec-plan <what to build next>`.
 

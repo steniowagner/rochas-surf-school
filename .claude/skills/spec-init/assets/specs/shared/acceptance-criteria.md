@@ -6,7 +6,8 @@ agent can decide pass/fail from the spec and the code alone.
 
 ## Every Expected Result
 
-1. **Has an id** (`ER-01`, `ER-02`…), never renumbered after the spec is written.
+1. **Has an id** (`ER-01`, `ER-02`…), never renumbered after the spec is written. One an amendment removes
+   stays, struck through and marked `(removed: <reason>)`; it needs no task and no verification.
 2. **Describes observable behavior**, not implementation: what a user, a client of the API or a test sees.
    Implementation constraints belong in `## Decisions`.
 3. **Is binary.** Two reviewers reading it reach the same verdict. Words like *fast*, *simple*, *intuitive*,

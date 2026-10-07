@@ -6,21 +6,30 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
-export const STATUSES = ["planned", "in-progress", "in-review", "changes-requested", "accepted", "finished"];
+export const STATUSES = ["planned", "in-progress", "in-review", "changes-requested", "accepted", "finished", "abandoned"];
 export const EXECUTABLE = new Set(["planned", "in-progress", "changes-requested"]);
+// Statuses spec-plan --amend and --abandon accept.
+export const AMENDABLE = new Set(["planned", "in-progress", "changes-requested"]);
+// A spec in one of these is archived in finished/ and never changes again.
+export const ARCHIVED = new Set(["finished", "abandoned"]);
 // changes/NNN-slug or finished/YYYYMMDDHHMMSS-NNN-slug
 export const FOLDER = /^(?:(\d{14})-)?(\d{3,})-([a-z0-9]+(?:-[a-z0-9]+)*)$/;
 // A spec branch: spec/NNN-slug, local or remote (origin/spec/NNN-slug).
 const BRANCH = /^(?:([^/]+)\/)?spec\/(\d{3,})-([a-z0-9-]+)$/;
 
-const TASK_LINE = /^- \[( |x|X)\] \*\*T-(\d+)\*\*\s*[—–-]?\s*(.*)$/;
+// An amendment never deletes an Expected Result, a task or a decision: it strikes it through and marks it
+// `(removed: <reason>)`, so the ids stay stable and the history readable.
+const TASK_LINE = /^- \[( |x|X)\] (?:~~)?\*\*T-(\d+)\*\*\s*[—–-]?\s*(.*)$/;
 const FINDING_LINE = /^- \[( |x|X)\] \*\*F-(\d+)\*\*\s*(.*)$/;
-const ER_HEADING = /^###\s+ER-(\d+)\b\s*[—–-]?\s*(.*)$/;
+const ER_HEADING = /^###\s+(?:~~)?ER-(\d+)\b\s*[—–-]?\s*(.*)$/;
 const ER_FIELD = /^- \*\*([^*]+?):\*\*\s*(.*)$/;
-const DECISION_ROW = /^\|\s*D-(\d+)\s*\|(.*)\|\s*$/;
+const DECISION_ROW = /^\|\s*(?:~~)?D-(\d+)(?:~~)?\s*\|(.*)\|\s*$/;
+const REMOVED = /\(removed:\s*([^)]*)\)/;
 const EVIDENCE = /^\s+>\s*(✅|⛔)/;
 
 export const pad = (n) => String(n).padStart(2, "0");
+// The reason of a `(removed: <reason>)` marker: null when the text has none, "" when the reason is empty.
+export const removedReason = (text) => text.match(REMOVED)?.[1].trim() ?? null;
 export const readText = (p) => readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 
 // ---------- files and git ----------
@@ -193,7 +202,7 @@ export function parseSpec(text) {
   for (const it of prose(section("Decisions")?.items ?? [])) {
     const m = it.text.match(DECISION_ROW);
     if (!m) continue;
-    decisions.push({ id: Number(m[1]), line: it.n, cells: m[2].split("|").map((c) => c.trim()) });
+    decisions.push({ id: Number(m[1]), line: it.n, cells: m[2].split("|").map((c) => c.trim()), removed: removedReason(m[2]) });
   }
 
   // Expected Results
@@ -203,7 +212,9 @@ export function parseSpec(text) {
   for (const it of prose(section("Expected Results")?.items ?? [])) {
     const h = it.text.match(ER_HEADING);
     if (h) {
-      er = { id: Number(h[1]), title: h[2].trim(), line: it.n, fields: {} };
+      const removed = removedReason(h[2]);
+      const title = h[2].replace(REMOVED, "").replace(/~~/g, "").trim();
+      er = { id: Number(h[1]), title, line: it.n, fields: {}, removed };
       ers.push(er);
       field = null;
       continue;
@@ -260,7 +271,10 @@ export function parseSpec(text) {
     const tokens = covers ? [...covers[1].matchAll(/\bER-(\d+)\b|\b(enabling|all)\b/gi)] : [];
     t.coverTokens = tokens.length;
     t.covers = tokens.filter((m) => m[1]).map((m) => Number(m[1]));
-    t.state = t.checked ? "done" : t.evidence.some((e) => e.includes("⛔")) ? "blocked" : "pending";
+    t.removed = removedReason(bodyText);
+    t.state = t.removed !== null
+      ? "removed"
+      : t.checked ? "done" : t.evidence.some((e) => e.includes("⛔")) ? "blocked" : "pending";
   }
 
   // Review rounds
@@ -298,7 +312,13 @@ export function parseSpec(text) {
     ers,
     groups,
     tasks,
-    progress: { total: tasks.length, done: count("done"), blocked: count("blocked"), pending: count("pending") },
+    progress: {
+      total: tasks.length - count("removed"),
+      done: count("done"),
+      blocked: count("blocked"),
+      pending: count("pending"),
+      removed: count("removed"),
+    },
     rounds,
     latestRound,
     openFindings,

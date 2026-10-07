@@ -70,6 +70,11 @@ blocked, which reviews have open findings.
 
 ## 3. Revising and abandoning a spec
 
+**Status.** Done in framework 1.2.0: `spec-plan --amend` and `--abandon`, `.specs/scripts/abandon-spec.mjs`,
+the `abandoned` status and the rules in `spec-lifecycle.md` → Changing a spec. An abandoned spec under
+execution is brought to the default branch (the spec folder only) and archived there, so its record survives
+the branch.
+
 **Why.** `spec-plan` only creates specs. When requirements change before or during execution, the only
 options today are editing the spec by hand or logging Amendments during execution. And there is no way to
 stop a spec that is no longer wanted.

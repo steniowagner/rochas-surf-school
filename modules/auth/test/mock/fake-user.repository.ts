@@ -46,4 +46,8 @@ export class FakeUserRepository implements UserRepository {
 
     return this.users.filter((item) => item.name.toLowerCase().includes(term));
   }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.users.find((item) => item.email === email) ?? null;
+  }
 }

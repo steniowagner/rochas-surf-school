@@ -13,4 +13,5 @@ export interface UserRepository extends CrudRepository<
   UserPageParams
 > {
   searchByName(name: string): Promise<User[]>;
+  findByEmail(email: string): Promise<User | null>;
 }

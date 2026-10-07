@@ -76,11 +76,17 @@ Listed in the order people meet them.
 - **Identity** (`identity`): one way a user signs in — Google, Apple (iOS only) or a code sent by email. Key
   fields: method, the email it provides. Relationship: belongs to one user; a user has one or more. Any method
   that provides the same email opens the same account. The name shared by Google or Apple becomes the
-  account's name; email-code sign-ups type their name before waiting for approval.
+  account's name; email-code sign-ups type their name after entering a correct code, and the account is
+  created (as a pending student) only then.
 - **Sign-in code** (`sign-in-code`): a 6-digit code emailed to sign in or sign up — no passwords exist.
-  Expires 10 minutes after it is sent; a new one can be requested 30 seconds after the previous one. It is the
-  only email the app ever sends. **Review accounts**: one pre-approved account per role for App Store and
-  Google Play reviewers, each with a fixed code that works only for its own email.
+  Expires 10 minutes after it is sent; a new one can be requested 30 seconds after the previous one, and it
+  replaces the previous code. Works once. Five wrong guesses lock it until a new code is requested. The email
+  is written in the language picked on the sign-in screen (Brazilian Portuguese, Spanish or English; it starts
+  as the phone's language). Each phone's network address can ask for at most 5 codes and try at most 10 codes
+  per minute. It is the only email the app ever sends; if sending fails, no waiting time applies before asking
+  again. The answer to a code request is the same whether or not an account exists. **Review accounts**: one
+  pre-approved account per role for App Store and Google Play reviewers, each with a fixed code that works only
+  for its own email; no email is sent to them, and the waiting time and the lock apply to them too.
 - **Reactivation request** (`reactivation-request`): a deleted user's request, sent from the "Account deleted"
   screen during the 30 days, to get the account back. One per account: `requested` → `approved` | `denied` by
   an admin. Admins are notified of each one and see the name, email, deletion date and number of classes
@@ -220,6 +226,10 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   their name and WhatsApp number are erased 30 days after their class.
 - **One account per email address, and the email never changes**: every sign-in method with the same email
   opens the same account; there are no passwords.
+- **Five wrong guesses lock a sign-in code, review accounts included**: a 6-digit code is guessable, and the
+  admin review account has a fixed code; a new code (after the 30-second wait) unlocks it.
+- **The sign-in email is the one text the backend writes in the user's language**: email can't be translated
+  by the app, so its three versions live in the backend, chosen by the language on the sign-in screen.
 - **Pushes are the only notification channel**: no email (except the sign-in code) and no WhatsApp messages.
   Turning pushes off never hides notifications from the notifications screen.
 - **Text written by admins is shown as written**: school rules, cancellation rules, notes, reasons and
@@ -251,11 +261,18 @@ The source documents use some words loosely; in specs and code use the concept n
 
 ## Current state
 
-No spec has been delivered yet: `.specs/changes/` and `.specs/finished/` are empty. Before the spec workflow,
-groundwork was laid without a spec: the monorepo with the backend, mobile and web apps (still on their
-framework templates), the design tokens shared by web and mobile, and the domain of user accounts and sign-in
-identities with its storage. No endpoint or screen of the product works yet: the sign-in screen and the
-auth endpoint are placeholders.
+Delivered: **email code sign-in on the backend** (spec `001-email-sign-in-code`) — a person can ask for a
+6-digit code by email (in pt-BR, es or en), sign in with it to the one account of that address, or sign up as
+a pending student by giving a name; the backend returns a session (a 15-minute access token and a 30-day
+refresh token) and the account's status. The review accounts are seeded and sign in with their fixed codes.
+
+Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
+apps, the design tokens shared by web and mobile, and the domain of user accounts and sign-in identities with
+its storage. The mobile and web apps are still on their framework templates: no screen of the product works
+yet, so the email sign-in can't be used from the app. Renewing a session, signing out, and Google and Apple
+sign-in don't exist yet.
+
+No spec is active.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -270,6 +287,8 @@ auth endpoint are placeholders.
 - An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list); each class
   already shows its seats taken and ratings.
 - A terms-of-use page; the school rules play that role inside the app.
+- A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
+  only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea
   conditions on class details; class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to

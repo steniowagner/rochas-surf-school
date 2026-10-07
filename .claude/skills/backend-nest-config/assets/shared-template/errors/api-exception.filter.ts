@@ -12,7 +12,7 @@ import {
   ValidationError,
   ValidationException,
 } from '__SCOPE__/shared';
-import { ApiErrorResponse } from './error-response.type';
+import { ApiErrorResponse } from './error-response.type.js';
 
 type ErrorShape = Pick<ApiErrorResponse, 'statusCode' | 'errors'> &
   Partial<Pick<ApiErrorResponse, 'message' | 'details'>>;
@@ -62,6 +62,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return {
         statusCode: exception.statusCode,
         errors: [exception.message],
+        details: exception.details,
       };
     }
 

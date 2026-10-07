@@ -3,11 +3,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 import { getDatabaseUrl } from '../../src/db/database-url.js';
 import { PrismaClient } from '../../src/generated/prisma/client.js';
+import { reviewAccountsSeed } from './review-accounts.seed.js';
 
 type SeedTask = (prisma: PrismaClient) => Promise<void>;
 
 // Register module seed tasks here.
-const seedTasks: SeedTask[] = [];
+const seedTasks: SeedTask[] = [reviewAccountsSeed];
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: getDatabaseUrl() }),

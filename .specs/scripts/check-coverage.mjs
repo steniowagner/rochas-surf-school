@@ -14,6 +14,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { isDecoratorMetadataBranch } from "./lib/decorator-metadata.mjs";
 import { parseFrontMatter, readText, resolveSpec } from "./lib/spec.mjs";
 
 const SOURCE = /\.[cm]?[jt]sx?$/;
@@ -143,7 +144,11 @@ function parseIstanbul(file) {
       bumpItem(rec.statements, id, hits, loc.start.line, loc.end?.line);
       bumpLine(rec.lines, loc.start.line, hits);
     }
+    let source = null;
+    const sourceOf = () => (source ??= existsSync(fc.path ?? key) ? readFileSync(fc.path ?? key, "utf8") : "");
     for (const [id, br] of Object.entries(fc.branchMap ?? {})) {
+      // Project rule (technical-context.md → Coverage): decorator metadata emitted on a decorated class line.
+      if (br.type === "cond-expr" && isDecoratorMetadataBranch(br, sourceOf())) continue;
       (fc.b?.[id] ?? []).forEach((hits, i) => {
         const loc = br.locations?.[i]?.start?.line ? br.locations[i] : br.loc;
         bumpItem(rec.branches, `${id}:${i}`, hits, loc?.start?.line ?? br.line, loc?.end?.line);

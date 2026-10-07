@@ -38,15 +38,15 @@ apps/backend/src/shared/
   auth/
     auth-user.mapper.ts
     index.ts
-    jwt-auth.guard.ts
+    jwt-auth.guard.ts (+ .spec.ts)
     jwt-auth.module.ts
-    jwt.strategy.ts
+    jwt.strategy.ts (+ .spec.ts)
   decorators/
-    current-user.decorator.ts
+    current-user.decorator.ts (+ .spec.ts, which also covers public.decorator.ts)
     index.ts
     public.decorator.ts
   errors/
-    api-exception.filter.ts
+    api-exception.filter.ts (+ .spec.ts)
     error-response.type.ts
     index.ts
   types/
@@ -54,8 +54,11 @@ apps/backend/src/shared/
     current-user.type.ts
     index.ts
     jwt-payload.type.ts
-  index.ts
+  index.ts (+ .spec.ts)
 ```
+
+   The templates are ESM: every relative import ends in `.js`. The specs (Vitest) keep the shared layer fully
+   covered, and `ApiExceptionFilter` passes a `DomainError`'s `details` to the response's `details`.
 
 5. Rewrites `apps/backend/src/app.module.ts` from `assets/app-module.template.ts` (when there is `src/db/db.module.ts`) or `assets/app-module-no-db.template.ts` (when there is not). Registers:
    - `ConfigModule.forRoot({ isGlobal: true })`

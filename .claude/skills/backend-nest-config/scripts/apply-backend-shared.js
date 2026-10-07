@@ -24,7 +24,7 @@ const DEV_DEPS = ['@types/passport-jwt'];
 
 const ENV_VARS = [
   { key: 'JWT_SECRET', envValue: 'dev-secret-change-me', exampleValue: '' },
-  { key: 'JWT_EXPIRES_IN', envValue: '1d', exampleValue: '1d' },
+  { key: 'JWT_EXPIRES_IN', envValue: '15m', exampleValue: '15m' },
 ];
 
 function log(marker, msg) {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Archives an accepted spec: checks that the code is still exactly what the review accepted (nothing outside
-// .specs/ changed since the front matter's reviewed_commit), sets `status: finished` and `finished: <date>`, then
+// .specs/ and the source documents changed since the front matter's reviewed_commit — the same rule as the CI
+// check, from the repository's .specs/scripts/lib/spec.mjs), sets `status: finished` and `finished: <date>`, then
 // moves the folder from .specs/changes/ to .specs/finished/<YYYYMMDDHHMMSS>-<NNN-slug>/ — with `git mv` when the
 // folder is tracked, so its history follows it. The agent updates the memory before running this.
 //
@@ -12,6 +13,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const args = process.argv.slice(2);
 const check = args.includes("--check");
@@ -94,16 +96,16 @@ if (status !== "accepted") {
   stop(1, `FINISH REFUSED\n- status is "${status ?? "missing"}": only an accepted spec can be finished (run /spec-review first)`);
 }
 
-// The code must be exactly what the review accepted: nothing outside .specs/ changed since reviewed_commit,
-// committed or not. Claude Code's local settings file is ignored: it changes on its own.
+// The code must be exactly what the review accepted: nothing outside .specs/ and the source documents (which this
+// skill updates after the review) changed since reviewed_commit, committed or not. The rule lives in the
+// framework, shared with the CI check, so the two can't disagree.
+const lib = join(specsDir, "scripts", "lib", "spec.mjs");
+if (!existsSync(lib)) stop(2, "FINISH FAILED\n- .specs/scripts/lib/spec.mjs is missing: upgrade the framework with /spec-init");
+const { reviewDrift } = await import(pathToFileURL(lib).href);
 const reviewed = fmMatch[1].match(/^reviewed_commit:\s*["']?([0-9a-f]{4,40})/m)?.[1];
 if (!reviewed) stop(1, "FINISH REFUSED\n- no reviewed_commit in the front matter: spec-review records it when it accepts a spec");
-if (git(root, ["cat-file", "-e", `${reviewed}^{commit}`]) === null) stop(1, `FINISH REFUSED\n- reviewed_commit ${reviewed} is not a commit of this repository`);
-const outside = ["--", ".", ":(exclude).specs", ":(exclude).claude/settings.local.json"];
-const drift = [
-  ...(git(root, ["diff", "--name-only", reviewed, ...outside]) ?? "").split("\n"),
-  ...(git(root, ["ls-files", "--others", "--exclude-standard", ...outside]) ?? "").split("\n"),
-].filter(Boolean);
+const drift = reviewDrift(root, reviewed, { worktree: true });
+if (drift === null) stop(1, `FINISH REFUSED\n- reviewed_commit ${reviewed} is not a commit of this repository`);
 if (drift.length) {
   stop(
     1,
@@ -131,6 +133,7 @@ if (!check) {
   mkdirSync(join(specsDir, "finished"), { recursive: true });
   const tracked = git(root, ["ls-files", "--error-unmatch", relative(root, specFile)]) !== null;
   if (tracked && git(root, ["mv", relative(root, from), relative(root, to)]) !== null) {
+    git(root, ["add", "--", relative(root, to)]); // the new front matter, staged with the move
     movedWith = "git mv";
   } else {
     renameSync(from, to);
@@ -164,7 +167,7 @@ for (const f of scan) {
 
 console.log(
   [
-    `spec: .specs/changes/${folder} (${status}) · code unchanged since the review (${reviewed})`,
+    `spec: .specs/changes/${folder} (${status}) · code unchanged since the review (${reviewed}); .specs/ and the source documents may change`,
     `${check ? "would archive" : "archived"} → .specs/finished/${target}`,
     `front matter: status: finished · finished: ${date}${check ? " (not written)" : ""}`,
     `moved with: ${movedWith}`,

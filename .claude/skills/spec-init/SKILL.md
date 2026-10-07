@@ -1,6 +1,6 @@
 ---
 name: spec-init
-description: Set up the spec-driven workflow (spec-plan, spec-execute, spec-review, spec-finish, spec-status) in a repo. Creates the .specs/ folder (changes, finished, memory, scripts, shared rules, templates) when it is missing — or upgrades the framework files of an existing one — then interviews the user about the product and the technical stack — inferring the stack from existing code and asking the user to confirm it — and writes .specs/memory/product.md and .specs/memory/technical-context.md. Use whenever the user runs /spec-init, when the repo has no .specs folder, when spec-plan stops because .specs or the memory files are missing or incomplete, or when the user wants to set up spec-driven development, or define, document or update what the product is, who it is for, its domain concepts, or the project's stack and conventions — even if they don't mention specs. Not for planning a specific feature (that is spec-plan).
+description: Set up the spec-driven workflow (spec-plan, spec-execute, spec-review, spec-finish, spec-status) in a repo. Creates the .specs/ folder (changes, finished, memory, scripts, shared rules, templates) when it is missing — or upgrades the framework files of an existing one — then interviews the user about the product and the technical stack — inferring the stack from existing code and asking the user to confirm it — and writes .specs/memory/product.md and .specs/memory/technical-context.md; offers a GitHub Actions check that blocks spec pull requests that aren't finished, reviewed and tested. Use whenever the user runs /spec-init, when the repo has no .specs folder, when spec-plan stops because .specs or the memory files are missing or incomplete, or when the user wants to set up spec-driven development, or define, document or update what the product is, who it is for, its domain concepts, or the project's stack and conventions — even if they don't mention specs. Not for planning a specific feature (that is spec-plan).
 argument-hint: "[product | tech] [product description, or a path to a doc]"
 ---
 
@@ -13,7 +13,7 @@ them. An ambiguity here is copied into every spec that follows, so the job of th
 user until both files can be read by a newcomer — person or agent — without a single follow-up question.
 
 The flow is: **set up `.specs/` → check state → gather what exists → product (interview, confirm, write) →
-technical (infer, interview, confirm, write) → validate → report.**
+technical (infer, interview, confirm, write) → validate → CI check → report.**
 
 Product comes first because the stack exists to serve it: knowing that one kind of user books from a phone
 and gets reminders turns "which stack?" into concrete questions about mobile, push notifications and
@@ -175,12 +175,39 @@ for, and what code can't answer).
 Run the preflight again. It must print `PREFLIGHT OK`: it is exactly the gate `spec-plan` applies, so
 passing it is what "done" means. If it fails, fix the file and rerun.
 
-Apart from installing missing framework files in step 1, this skill writes only these two memory files. It
-doesn't change code, docs, other memory files, or framework files the project has customized. Project facts
-go in memory, never in `shared/` or `templates/`: those stay valid for any repository.
+Apart from installing missing framework files in step 1 and, when the user agrees, the CI workflow of step 6,
+this skill writes only these two memory files. It doesn't change code, docs, other memory files, or framework
+files the project has customized. Project facts go in memory, never in `shared/` or `templates/`: those stay
+valid for any repository.
 
-## 6. Report
+## 6. CI check on spec pull requests
 
-Keep it short: whether `.specs/` was created, the paths written, 2–3 lines on what each one says, the deferrals and accepted assumptions
+Every check of the workflow runs inside an agent session; the CI check makes the rules hold whoever pushes. A
+spec pull request fails unless the spec is finished, nothing outside `.specs/` and the source documents changed
+since the review accepted it, the related tests and the coverage gate pass, and the changed workspaces lint,
+type check and build. The logic lives in `.specs/scripts/check-pr.mjs`; the workflow only sets up the
+repository and calls it.
+
+When the repository is on GitHub (`gh repo view` works or the remote points there) and
+`.github/workflows/spec-check.yml` doesn't exist, offer to install it:
+
+1. Copy `.specs/templates/github-spec-check.yml` and adapt the lines marked `PROJECT` from what the
+   technical context says: the Node version, the install command, the generators the tests need (an ORM
+   client, codegen), and the lint, type check and build command for the workspaces changed since the spec's
+   `base_commit` — `npx turbo run … --filter="...[<base_commit>]"` with Turborepo, the workspace commands
+   otherwise. Remove the `PROJECT` comments.
+2. Show the user the result and write it only after a go-ahead. It goes in with the next commit the user
+   makes; this skill doesn't commit.
+3. Tell the user to make the `spec` job a **required status check** on the default branch (Settings → Branches
+   or Rulesets) — it is their repository setting, never change it yourself. Pull requests from other branches
+   skip the job, which counts as passing.
+
+For another CI provider, offer the same steps — `node .specs/scripts/check-pr.mjs <branch>` on a checkout of the
+branch head with full history, then lint, type check and build — in that provider's format.
+
+## 7. Report
+
+Keep it short: whether `.specs/` was created, the paths written, 2–3 lines on what each one says, whether the
+CI check was installed (and the reminder to make it required), the deferrals and accepted assumptions
 worth a second look, any inconsistency the user should fix elsewhere (e.g. a stale `CLAUDE.md`), and the
 next step: `/spec-plan <first feature>`.

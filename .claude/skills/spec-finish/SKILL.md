@@ -41,9 +41,9 @@ Then:
   node .claude/skills/spec-finish/scripts/finish-spec.mjs --check <spec id>
   ```
 
-  It refuses when anything outside `.specs/` changed since the front matter's `reviewed_commit`, listing the
-  files: stop and point to `/spec-review` — shipping code nobody reviewed is exactly what the review exists to
-  prevent.
+  It refuses when anything outside `.specs/` and the source documents changed since the front matter's
+  `reviewed_commit`, listing the files: stop and point to `/spec-review` — shipping code nobody reviewed is
+  exactly what the review exists to prevent. The CI check applies the same rule to the pull request.
 
 ## 2. Gather what changed
 
@@ -143,6 +143,9 @@ Fix what fails and rerun.
 
    If `gh` is missing or not authenticated, give the user the title and the body to paste, and the compare
    URL. Opening the pull request doesn't merge it: merging is the user's call.
+4. **The CI check** — when the repository has `.github/workflows/spec-check.yml`, it runs on the pull request.
+   You can run the same gate locally first: `node .specs/scripts/check-pr.mjs spec/NNN-slug` (after the commit;
+   it needs a clean tree). Don't wait for CI in this skill; mention in the report that it will run.
 
 ```md
 Implements spec **003 — Owners cancel a booked walk** ([spec.md](<link to the archived spec on the branch>)),

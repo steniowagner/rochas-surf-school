@@ -19,6 +19,13 @@ right once the workflow has been used for real.
 
 ## 1. CI check on spec pull requests
 
+**Status.** Done in framework 1.5.0: `.specs/scripts/check-pr.mjs` (steps 1–3), the workflow template
+`.specs/templates/github-spec-check.yml` (step 4 with Turborepo's `--filter=...[<base_commit>]`), offered by
+`spec-init`, and this repository's `.github/workflows/spec-check.yml`. `spec-finish` and the CI check share the
+"nothing changed since the review" rule (`reviewDrift` in `lib/spec.mjs`), which leaves out the source
+documents: `spec-finish` used to refuse its own source-document updates. Still to do by hand: make the `spec`
+job a required check on `main`.
+
 **Why.** Every check in the workflow runs inside an agent session. Nothing stops a pull request that skipped
 the review, or whose branch changed after it. A CI check makes the rules hold whoever pushes.
 

@@ -147,6 +147,21 @@ export function sourceDocuments(root) {
   return [...paths];
 }
 
+// Files outside the spec workflow that changed since the review accepted `reviewed` — the code that would ship
+// unreviewed. .specs/ and the source documents are left out: spec-finish updates them after the review. With
+// `worktree`, uncommitted and untracked changes count too (spec-finish, locally); without, only commits up to
+// HEAD (the CI check, on a clean checkout). Returns null when `reviewed` isn't a commit of this repository.
+export function reviewDrift(root, reviewed, { worktree = true } = {}) {
+  if (git(root, ["cat-file", "-e", `${reviewed}^{commit}`]) === null) return null;
+  const outside = [
+    "--", ".", ":(exclude).specs", ":(exclude).claude/settings.local.json",
+    ...sourceDocuments(root).map((doc) => `:(exclude)${doc}`),
+  ];
+  const diff = worktree ? ["diff", "--name-only", reviewed, ...outside] : ["diff", "--name-only", reviewed, "HEAD", ...outside];
+  const untracked = worktree ? (git(root, ["ls-files", "--others", "--exclude-standard", ...outside]) ?? "") : "";
+  return [...new Set([...(git(root, diff) ?? "").split("\n"), ...untracked.split("\n")])].filter(Boolean);
+}
+
 // ---------- parsing ----------
 
 export function parseFrontMatter(text) {

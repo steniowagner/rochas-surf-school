@@ -10,7 +10,7 @@ the specs at any time, read-only. Every skill reads this file before it touches 
 .specs/
   memory/              # living memory of the project: product, technical context, structure, modules
   scripts/             # the workflow's checks: preflight, check-spec, status, run-related-tests,
-                       # check-coverage; lib/ holds the spec parsing they share
+                       # check-coverage, abandon-spec, check-pr (CI); lib/ holds what they share
   shared/              # rules every spec skill follows (this file, interviewing, acceptance-criteria,
                        # task-breakdown, how-to-execute, naming)
   templates/           # models used to create specs (full and quick) and memory files
@@ -122,6 +122,11 @@ reason stay in `finished/`, and its branch is kept until the user deletes it.
   and opens the pull request. Nothing is pushed before that.
 - The default branch never receives unfinished work; merging the pull request is the user's call. Specs can
   run in parallel, each on its own branch in its own git worktree.
+- A CI check enforces it on every spec pull request (`.github/workflows/spec-check.yml`, from
+  `templates/github-spec-check.yml`, running `scripts/check-pr.mjs`): the spec is finished, nothing outside
+  `.specs/` and the source documents changed since `reviewed_commit`, the related tests and the coverage gate
+  pass, and the changed workspaces lint, type check and build. Made a required check, it holds whoever
+  pushes.
 
 ## Ownership of sections
 
@@ -137,7 +142,8 @@ reason stay in `finished/`, and its branch is kept until the user deletes it.
   `- [ ] **F-NN** (ER-xx) — …` — the status and, on acceptance, `reviewed_commit`. It runs in a fresh session,
   except on a quick spec, where a self-review is allowed and marked in the round heading
   (`… — accepted (self-review)`).
-- `spec-finish` refuses to run if anything outside `.specs/` changed since `reviewed_commit`; updates
+- `spec-finish` refuses to run if anything outside `.specs/` and the source documents changed since
+  `reviewed_commit` (the CI check applies the same rule); updates
   `.specs/memory/` from `## Memory Impact` and the actual change set; updates the linked sections of the source
   documents; sets the status; and moves the folder to `finished/<YYYYMMDDHHMMSS>-<NNN-slug>/`.
 

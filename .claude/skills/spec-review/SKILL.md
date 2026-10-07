@@ -173,8 +173,8 @@ Each finding is one problem, tagged with what it breaks — `(ER-xx)`, `(D-xx)`,
 `(coverage)`, `(tests)`, `(scope)` or `(convention)` — with how to reproduce it and what is expected.
 
 Then set `status` to `accepted` or `changes-requested`. When accepted, also add `reviewed_commit:
-<git rev-parse HEAD>` to the front matter — the commit you reviewed; `spec-finish` refuses to ship if anything
-outside `.specs/` changed after it. Rerun `check-spec.mjs`, then commit the spec alone:
+<git rev-parse HEAD>` to the front matter — the commit you reviewed; `spec-finish` refuses to ship, and the CI
+check fails the pull request, if anything outside `.specs/` and the source documents changed after it. Rerun `check-spec.mjs`, then commit the spec alone:
 `docs(spec-NNN): review round N — <verdict>`.
 
 ## 8. Report

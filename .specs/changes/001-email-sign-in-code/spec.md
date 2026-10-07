@@ -385,7 +385,7 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > statements/branches/functions/lines), lint and check-types clean; deviations: the generator writes a CRUD
   > repository and an example use case, both replaced as the task asks
 
-- [ ] **T-05** — Create the `session` aggregate in `modules/auth/src/session/`: the `RefreshToken` entity
+- [x] **T-05** — Create the `session` aggregate in `modules/auth/src/session/`: the `RefreshToken` entity
   (`userId`, `tokenHash`, `familyId`, `expiresAt`, `revokedAt?`), the `RefreshTokenRepository` port
   (`create`), the `TokenProvider` port (`signAccessToken(user): { token, expiresAt }`,
   `generateRefreshToken(): { token, hash }`), and the `StartSession` use case (input: user and
@@ -396,6 +396,28 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   [`module-repository`](../../../.claude/skills/module-repository),
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-14 · Done when: `npm test --workspace @rochas-surf-school/auth -- test/session` passes.
+  > ✅ 2026-10-07 11:42 — ran `module-aggregate` (`--module auth --aggregate session --mode example`), renamed
+  > the generated `session.entity.ts`/`session.repository.ts` to `refresh-token.*` and dropped the example use
+  > case; then, following `module-entity`, `module-repository` and `module-use-case`: the `RefreshToken` entity
+  > (userId/familyId Required+Uuid, tokenHash Required+64 hex, expiresAt Required+Date, revokedAt Date), the
+  > `RefreshTokenRepository` port (`create`, from the shared `CreateRepository`), the `TokenProvider` port
+  > (`signAccessToken(subject: { id, email }): { token, expiresAt }`, `generateRefreshToken(): { token, hash }`)
+  > and `StartSession` (deps: refresh-token repository, token provider, `ClockProvider`; stores a validated
+  > `RefreshToken` with a new `crypto.randomUUID()` family and expiry now + TTL days, returns the four session
+  > fields), with fakes and tests. files: `modules/auth/src/index.ts`, `modules/auth/src/session/index.ts`,
+  > `modules/auth/src/session/model/index.ts`, `modules/auth/src/session/model/refresh-token.entity.ts`,
+  > `modules/auth/src/session/provider/index.ts`,
+  > `modules/auth/src/session/provider/refresh-token.repository.ts`,
+  > `modules/auth/src/session/provider/token.provider.ts`, `modules/auth/src/session/usecase/index.ts`,
+  > `modules/auth/src/session/usecase/start-session.usecase.ts`, `modules/auth/test/mock/index.ts`,
+  > `modules/auth/test/mock/fake-refresh-token.repository.ts`, `modules/auth/test/mock/fake-token.provider.ts`,
+  > `modules/auth/test/session/model/refresh-token.entity.test.ts`,
+  > `modules/auth/test/session/usecase/start-session.usecase.test.ts`; verified: `npm test --workspace
+  > @rochas-surf-school/auth -- test/session` (2 suites, 13 passed; every `src/session` file 100%), full auth
+  > suite 93 passed, lint and check-types clean; deviations: `module-use-case` mandatory readings
+  > (`register-user.usecase.ts`, `fake-crypto.provider.ts`) do not exist in the repo, so the existing
+  > `create-identity`/`search-users-by-name` use cases served as the pattern; `StartSession` also takes a
+  > `ClockProvider` (reused from the sign-in-code aggregate) to compute the refresh-token expiry
 
 - [ ] **T-06** — Implement `RequestSignInCode` in
   `modules/auth/src/sign-in-code/usecase/request-sign-in-code.usecase.ts` (input `{ email, locale? }`, output

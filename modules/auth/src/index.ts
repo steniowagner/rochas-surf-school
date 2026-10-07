@@ -7,3 +7,5 @@ export * from "./user";
 export * from "./identity";
 
 export * from "./sign-in-code";
+
+export * from "./session";

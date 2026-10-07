@@ -74,20 +74,30 @@ The app SHALL let people sign in with Google or a 6-digit code sent to their ema
 
 #### Email code sign-in
 
+_Implemented in spec 001-email-sign-in-code._
+
 The system SHALL send a 6-digit code to the email address a person enters and SHALL sign them in only when they enter that code. Signing in SHALL NOT require a password.
 
 - _Correct code:_ When a person enters the 6-digit code sent to their email address, then they are signed in.
 - _Wrong code:_ When a person enters a code that does not match the one sent, then they are not signed in.
+- _Five wrong codes:_ When a person has entered 5 wrong codes, then even the right code no longer signs them in until they request a new one.
+- _Used code:_ When a person enters a code that already signed them in, then they are not signed in.
+- _Email language:_ When a person requests a code, then the email is written in the language picked on the sign-in screen (Brazilian Portuguese, Spanish or English).
 
 #### Code expiry and resending
+
+_Implemented in spec 001-email-sign-in-code._
 
 A sign-in code SHALL expire 10 minutes after it is sent. A person SHALL be able to request a new code once 30 seconds have passed since the previous one was sent, and not sooner.
 
 - _Expired code:_ When a person enters a code more than 10 minutes after it was sent, then they are not signed in, and they can request a new code.
 - _Requesting a new code:_ When 30 seconds have passed since the last code was sent, then the person can request a new code.
 - _Requesting a new code too soon:_ When a person tries to request a new code less than 30 seconds after the previous one was sent, then no new code is sent.
+- _Email not sent:_ When the email with the code could not be sent, then the person can request a new code at once.
 
 #### One account per email address
+
+_Implemented in spec 001-email-sign-in-code._
 
 The system SHALL keep one account per email address. Signing in with any method that provides the same address SHALL open the same account.
 
@@ -107,6 +117,8 @@ Users SHALL be able to sign out.
 
 #### Review accounts
 
+_Implemented in spec 001-email-sign-in-code._
+
 The system SHALL provide one pre-approved review account for each role (student, instructor and admin), so App Store and Google Play reviewers can use the app. Each review account SHALL sign in with a fixed code that works only for that account's email address.
 
 - _Reviewer signs in:_ When a reviewer enters a review account's email address and its fixed code, then they are signed in to an approved account with that role.
@@ -124,9 +136,11 @@ A new account SHALL wait for an admin's approval before its user can use the app
 
 #### Name before approval
 
+_Implemented in spec 001-email-sign-in-code._
+
 Every new account SHALL have a name before it waits for approval. The system SHALL use the name shared by Google or Apple when available, and SHALL ask the person to type one otherwise.
 
-- _Email code sign-up:_ When a person signs up with an email code, then they are asked for their name before their account waits for approval.
+- _Email code sign-up:_ When a person signs up with an email code, then they are asked for their name after entering the correct code, and their account is created, waiting for approval, once they give it.
 - _Name shared by the sign-in method:_ When a person signs up with a method that shares their name, then that name is used for the account.
 
 #### Admins decide registrations

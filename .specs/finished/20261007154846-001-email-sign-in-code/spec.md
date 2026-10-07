@@ -2,13 +2,14 @@
 id: "001"
 slug: email-sign-in-code
 title: Email code sign-in
-status: accepted
+status: finished
 created: 2026-10-07
 started: 2026-10-07
 base_commit: 0a79c2176a6f6b1abe2c101fe1868dcf627b556b
 reviewed_commit: 5c5b42f9d8e936ef7ab591a8b1163a6f5d0ad463
 fronts: [shared, auth, backend]
 depends_on: []
+finished: 2026-10-07
 ---
 
 # 001 — Email code sign-in

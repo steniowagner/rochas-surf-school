@@ -494,7 +494,7 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-09** — Fix the `backend-nest-config` templates in `.claude/skills/backend-nest-config/assets/`
+- [x] **T-09** — Fix the `backend-nest-config` templates in `.claude/skills/backend-nest-config/assets/`
   (ESM `.js` suffix on every relative import, `DomainError.details` passed to the response `details` in
   `errors/api-exception.filter.ts`, English error messages), apply the skill, then remove
   `apps/backend/src/app.controller.ts`, `app.service.ts`, `app.controller.spec.ts` and
@@ -504,6 +504,32 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   [`backend-nest-config`](../../../.claude/skills/backend-nest-config).
   Covers: ER-02 · Done when: `npx turbo run build check-types lint --filter=@rochas-surf-school/backend` exits
   0 and the filter spec passes.
+  > ✅ 2026-10-07 11:51 — fixed the `backend-nest-config` templates — `.js` suffix on every relative import
+  > (directory barrels as `./x/index.js`), `ApiExceptionFilter` passes `DomainError.details` to the response,
+  > English message in `JwtStrategy` (`JWT_SECRET is not configured`), `JWT_EXPIRES_IN` default `15m` (script
+  > and module fallback) — and added Vitest spec templates for the filter (incl. `details` passthrough), guard,
+  > strategy/mapper, decorators and barrel; documented them in its SKILL.md; applied the skill (installed
+  > `@nestjs/jwt`, `@nestjs/passport`, `passport`, `passport-jwt`, `@types/passport-jwt`; wrote
+  > `apps/backend/src/shared/`; added `JWT_SECRET`/`JWT_EXPIRES_IN=15m` to `.env.example`), then removed the
+  > stock `AppController`/`AppService`/their spec/`test/app.e2e-spec.ts` and rewrote `app.module.ts` without
+  > them, keeping `AuthModule`. files: `.claude/skills/backend-nest-config/SKILL.md`,
+  > `.claude/skills/backend-nest-config/scripts/apply-backend-shared.js`,
+  > `.claude/skills/backend-nest-config/assets/app-controller.template.ts`,
+  > `.claude/skills/backend-nest-config/assets/app-module.template.ts`,
+  > `.claude/skills/backend-nest-config/assets/app-module-no-db.template.ts`,
+  > `.claude/skills/backend-nest-config/assets/shared-template/**` (every `.ts` file plus the new
+  > `index.spec.ts`, `auth/jwt-auth.guard.spec.ts`, `auth/jwt.strategy.spec.ts`,
+  > `decorators/current-user.decorator.spec.ts`, `errors/api-exception.filter.spec.ts`),
+  > `apps/backend/src/shared/**` (generated copy of the same files), `apps/backend/src/app.module.ts`,
+  > `apps/backend/src/app.controller.ts` (deleted), `apps/backend/src/app.service.ts` (deleted),
+  > `apps/backend/src/app.controller.spec.ts` (deleted), `apps/backend/test/app.e2e-spec.ts` (deleted),
+  > `apps/backend/.env.example`, `apps/backend/package.json`, `package-lock.json`; verified: `npx turbo run
+  > build check-types lint --filter=@rochas-surf-school/backend` (8 successful; oxlint 0 warnings), `npx vitest
+  > run src/shared` (5 files, 21 passed, incl. "passes the details of a DomainError to the response");
+  > deviations: specs for the whole shared layer (not only the filter) were added, because the coverage gate
+  > counts every new file in full; the guard and strategy each keep one uncovered branch on their class line —
+  > the `design:paramtypes` conditional TypeScript emits for decorator metadata, which no test can reach (to be
+  > settled with the user before the coverage gate); the e2e suite has no file until T-16
 
 - [ ] **T-10** — Add the `SignInCode` (`sign_in_codes`) and `RefreshToken` (`refresh_tokens`) models to
   `apps/backend/prisma/models/auth.model.prisma` as D-08 describes, and generate the migration

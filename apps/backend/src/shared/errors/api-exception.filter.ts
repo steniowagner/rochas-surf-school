@@ -11,7 +11,7 @@ import {
   DomainError,
   ValidationError,
   ValidationException,
-} from '__SCOPE__/shared';
+} from '@rochas-surf-school/shared';
 import { ApiErrorResponse } from './error-response.type.js';
 
 type ErrorShape = Pick<ApiErrorResponse, 'statusCode' | 'errors'> &

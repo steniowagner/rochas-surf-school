@@ -323,9 +323,15 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-02** — Add oxlint (`lint` script, as in `apps/backend`) and a `check-types` script (`tsc --noEmit`)
+- [x] **T-02** — Add oxlint (`lint` script, as in `apps/backend`) and a `check-types` script (`tsc --noEmit`)
   to `modules/auth/package.json`, and fix whatever they report in existing code.
   Covers: enabling · Done when: `npx turbo run lint check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-07 11:38 — added `lint` (`oxlint --type-aware src/ test/`, as in `apps/backend`) and `check-types`
+  > (`tsc --noEmit`) scripts, `oxlint` and `oxlint-tsgolint` devDependencies (backend versions) and an
+  > `.oxlintrc.json` mirroring the backend rules; existing code reported nothing to fix. files:
+  > `modules/auth/package.json`, `modules/auth/.oxlintrc.json`, `package-lock.json`; verified: `npx turbo run
+  > lint check-types --filter=@rochas-surf-school/auth` (2 successful; oxlint 0 warnings, 0 errors on 28 files;
+  > tsc clean); deviations: none
 
 - [ ] **T-03** — Add `findByEmail(email: string): Promise<User | null>` to
   `modules/auth/src/user/provider/user.repository.ts` and implement it in

@@ -333,10 +333,16 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > lint check-types --filter=@rochas-surf-school/auth` (2 successful; oxlint 0 warnings, 0 errors on 28 files;
   > tsc clean); deviations: none
 
-- [ ] **T-03** — Add `findByEmail(email: string): Promise<User | null>` to
+- [x] **T-03** — Add `findByEmail(email: string): Promise<User | null>` to
   `modules/auth/src/user/provider/user.repository.ts` and implement it in
   `modules/auth/test/mock/fake-user.repository.ts`, with a test.
   Covers: ER-04 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
+  > ✅ 2026-10-07 11:39 — added `findByEmail(email): Promise<User | null>` to the `UserRepository` port and an
+  > exact-match implementation to the fake (callers pass the normalized email); test written first and watched
+  > fail (2 failed). files: `modules/auth/src/user/provider/user.repository.ts`,
+  > `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/user/provider/user.repository.test.ts`;
+  > verified: `npm test --workspace @rochas-surf-school/auth` (6 suites, 62 passed), `check-types` clean;
+  > deviations: none
 
 - [ ] **T-04** — Create the `sign-in-code` aggregate in `modules/auth/src/sign-in-code/`: the `SignInCode`
   entity (`email`, `codeHash`, `expiresAt`, `lastSentAt`, `attempts`; validated email, 64-char hex hash,

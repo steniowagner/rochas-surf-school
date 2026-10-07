@@ -344,7 +344,7 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > verified: `npm test --workspace @rochas-surf-school/auth` (6 suites, 62 passed), `check-types` clean;
   > deviations: none
 
-- [ ] **T-04** — Create the `sign-in-code` aggregate in `modules/auth/src/sign-in-code/`: the `SignInCode`
+- [x] **T-04** — Create the `sign-in-code` aggregate in `modules/auth/src/sign-in-code/`: the `SignInCode`
   entity (`email`, `codeHash`, `expiresAt`, `lastSentAt`, `attempts`; validated email, 64-char hex hash,
   dates, integer attempts ≥ 0); the `SignInCodeRepository` port (`findByEmail`, `save` as an upsert by email,
   `deleteByEmail`, `incrementAttempts(email)`, `consume(email, codeHash): Promise<boolean>`,
@@ -359,6 +359,31 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: ER-01 · Done when: `npm test --workspace @rochas-surf-school/auth` passes with the entity fully
   covered.
+  > ✅ 2026-10-07 11:41 — ran `module-aggregate` (`--module auth --aggregate sign-in-code --mode example`),
+  > deleted the generated example use case `create-sign-in-code.usecase.ts` (the use case barrel stays empty
+  > until T-06), then wrote by hand, following `module-entity` and `module-repository`: the `SignInCode` entity
+  > (email Required+Email, codeHash Required+Regex 64 lowercase hex, expiresAt/lastSentAt Required+Date,
+  > attempts Required+Integer+MinValue 0); the custom `SignInCodeRepository` port replacing the generated CRUD
+  > one (`findByEmail`, `save` upsert by email, `deleteByEmail`, `incrementAttempts`, `consume`,
+  > `deleteExpired`); the ports `SignInCodeProvider`, `EmailProvider` (with `SIGN_IN_LOCALES`/`SignInLocale` and
+  > `SendSignInCodeIn`) and `ClockProvider`; fakes (in-memory repository keyed by email, settable clock,
+  > capturing email provider with a `failing` switch, queued-code provider hashing with SHA-256) plus a test of
+  > the fake repository. files: `modules/auth/src/index.ts`, `modules/auth/src/sign-in-code/index.ts`,
+  > `modules/auth/src/sign-in-code/model/index.ts`,
+  > `modules/auth/src/sign-in-code/model/sign-in-code.entity.ts`,
+  > `modules/auth/src/sign-in-code/provider/index.ts`,
+  > `modules/auth/src/sign-in-code/provider/sign-in-code.repository.ts`,
+  > `modules/auth/src/sign-in-code/provider/sign-in-code.provider.ts`,
+  > `modules/auth/src/sign-in-code/provider/email.provider.ts`,
+  > `modules/auth/src/sign-in-code/provider/clock.provider.ts`,
+  > `modules/auth/src/sign-in-code/usecase/index.ts`, `modules/auth/test/mock/index.ts`,
+  > `modules/auth/test/mock/fake-sign-in-code.repository.ts`, `modules/auth/test/mock/fake-clock.provider.ts`,
+  > `modules/auth/test/mock/fake-email.provider.ts`, `modules/auth/test/mock/fake-sign-in-code.provider.ts`,
+  > `modules/auth/test/sign-in-code/model/sign-in-code.entity.test.ts`,
+  > `modules/auth/test/sign-in-code/provider/sign-in-code.repository.test.ts`; verified: `npm test --workspace
+  > @rochas-surf-school/auth` (8 suites, 80 passed; `sign-in-code.entity.ts` 100%
+  > statements/branches/functions/lines), lint and check-types clean; deviations: the generator writes a CRUD
+  > repository and an example use case, both replaced as the task asks
 
 - [ ] **T-05** — Create the `session` aggregate in `modules/auth/src/session/`: the `RefreshToken` entity
   (`userId`, `tokenHash`, `familyId`, `expiresAt`, `revokedAt?`), the `RefreshTokenRepository` port

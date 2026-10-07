@@ -602,4 +602,29 @@ describe('Email sign-in (e2e)', () => {
       expect(rows[0]!.familyId).not.toBe(rows[1]!.familyId);
     });
   });
+
+  describe('rate limit', () => {
+    it('answers the 6th code request from one IP within 60 seconds with 429 and sends nothing', async () => {
+      for (let i = 0; i < 5; i++) {
+        await requestCode({ email: uniqueEmail(`ana${i}`) }).expect(202);
+      }
+
+      const response = await requestCode({ email: uniqueEmail('ana5') });
+
+      expect(response.status).toBe(429);
+      expect(response.body.errors).toEqual(['request.rate.limited']);
+      expect(ctx.email.sent).toHaveLength(5);
+    });
+
+    it('answers the 11th verify from one IP within 60 seconds with 429', async () => {
+      for (let i = 0; i < 10; i++) {
+        await verify({ email: uniqueEmail('ana'), code: '123456' }).expect(401);
+      }
+
+      const response = await verify({ email: uniqueEmail('ana'), code: '123456' });
+
+      expect(response.status).toBe(429);
+      expect(response.body.errors).toEqual(['request.rate.limited']);
+    });
+  });
 });

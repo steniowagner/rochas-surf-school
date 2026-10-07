@@ -718,11 +718,23 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > file, 28 passed), `npx vitest run src/modules/auth/auth.controller.spec.ts` (8 passed; controller 100%),
   > backend `tsc --noEmit` and oxlint clean; deviations: none
 
-- [ ] **T-18** — Install `@nestjs/throttler`, register `ThrottlerModule` and its guard with the limits and the
+- [x] **T-18** — Install `@nestjs/throttler`, register `ThrottlerModule` and its guard with the limits and the
   `request.rate.limited` message of D-13 (per-route limits on the two endpoints), and add the "rate limit"
   e2e scenarios (a fresh app per test so the in-memory counters reset).
   Covers: ER-12 · Done when: `npm run test:e2e --workspace apps/backend -- test/auth-email.e2e-spec.ts -t "rate limit"`
   passes and the other e2e scenarios still pass.
+  > ✅ 2026-10-07 13:22 — installed `@nestjs/throttler` (^6.7.1; API checked via Context7) and registered
+  > `ThrottlerModule.forRoot({ errorMessage: "request.rate.limited", throttlers: [{ ttl: 60 s, limit: 10 }] })`
+  > (in-memory, tracked by IP) in `auth.module.ts`; both routes use `@UseGuards(ThrottlerGuard)` with
+  > `@Throttle` limits of 5/60 s (`email/code`) and 10/60 s (`email/verify`); the controller spec asserts the
+  > guard and limits. Added the "rate limit" e2e scenarios (6th code request → 429 `request.rate.limited` with 5
+  > emails sent; 11th verify → 429), written first and watched fail (2 failed); the suite already builds a fresh
+  > app per test, so the counters reset. files: `apps/backend/src/modules/auth/auth.controller.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.module.ts`,
+  > `apps/backend/test/auth-email.e2e-spec.ts`, `apps/backend/package.json`, `package-lock.json`; verified: `npm
+  > run test:e2e --workspace apps/backend -- test/auth-email.e2e-spec.ts` (30 passed, incl. -t "rate limit" and
+  > every earlier scenario), controller spec 8 passed, backend `tsc --noEmit` and oxlint clean; deviations: the
+  > guard is bound per route rather than globally, so only these two endpoints are throttled
 
 - [ ] **T-19** — Install `@nestjs/schedule`, register `ScheduleModule`, and create
   `apps/backend/src/modules/auth/sign-in-code-cleanup.job.ts` (`@Cron` every minute calling

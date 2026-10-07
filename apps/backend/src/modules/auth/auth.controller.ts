@@ -1,4 +1,5 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import {
   RequestSignInCode,
   RequestSignInCodeIn,
@@ -34,6 +35,8 @@ export class AuthController {
   ) {}
 
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: seconds(60) } })
   @Post('email/code')
   @HttpCode(HttpStatus.ACCEPTED)
   requestSignInCode(@Body() body: RequestSignInCodeIn | undefined): Promise<RequestSignInCodeOut> {
@@ -48,6 +51,8 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   @Post('email/verify')
   @HttpCode(HttpStatus.OK)
   verifySignInCode(@Body() body: VerifySignInCodeIn | undefined): Promise<VerifySignInCodeOut> {

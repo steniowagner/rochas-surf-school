@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ThrottlerModule, seconds } from '@nestjs/throttler';
 import { DbModule } from '../../db/db.module.js';
 import { JwtAuthModule } from '../../shared/auth/jwt-auth.module.js';
 import { AuthConfig } from './auth.config.js';
@@ -13,7 +14,15 @@ import { SystemClockProvider } from './system.clock.js';
 import { PrismaUserRepository } from './user.prisma.js';
 
 @Module({
-  imports: [DbModule, JwtAuthModule],
+  imports: [
+    DbModule,
+    JwtAuthModule,
+    // In-memory, by IP: the backend runs as one instance (D-13). Routes opt in with @UseGuards(ThrottlerGuard).
+    ThrottlerModule.forRoot({
+      errorMessage: 'request.rate.limited',
+      throttlers: [{ ttl: seconds(60), limit: 10 }],
+    }),
+  ],
   controllers: [AuthController],
   providers: [
     AuthConfig,

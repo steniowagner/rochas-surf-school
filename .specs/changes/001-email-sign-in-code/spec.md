@@ -2,7 +2,7 @@
 id: "001"
 slug: email-sign-in-code
 title: Email code sign-in
-status: in-progress
+status: in-review
 created: 2026-10-07
 started: 2026-10-07
 base_commit: 0a79c2176a6f6b1abe2c101fe1868dcf627b556b

@@ -475,13 +475,22 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > list is `["user.name.min.length", "user.name.person.name"]` — the test asserts the first key, which is the
   > one the app shows
 
-- [ ] **T-08** — Implement `DeleteExpiredSignInCodes` in
+- [x] **T-08** — Implement `DeleteExpiredSignInCodes` in
   `modules/auth/src/sign-in-code/usecase/delete-expired-sign-in-codes.usecase.ts` (uses the clock and
   `deleteExpired`, returns the count), with tests. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-13 · Done when:
   `npm test --workspace @rochas-surf-school/auth -- test/sign-in-code/usecase/delete-expired-sign-in-codes.usecase.test.ts`
   passes.
+  > ✅ 2026-10-07 11:48 — implemented `DeleteExpiredSignInCodes` (`module-use-case`, custom, output `{ deleted
+  > }`): calls `deleteExpired(clock.now())` and returns the count. Tests written first and watched fail (4
+  > failed). files: `modules/auth/src/sign-in-code/usecase/delete-expired-sign-in-codes.usecase.ts`,
+  > `modules/auth/src/sign-in-code/usecase/index.ts`,
+  > `modules/auth/test/sign-in-code/usecase/delete-expired-sign-in-codes.usecase.test.ts`; verified: `npm test
+  > --workspace @rochas-surf-school/auth --
+  > test/sign-in-code/usecase/delete-expired-sign-in-codes.usecase.test.ts` (4 passed; use case 100%), lint,
+  > check-types and build clean; deviations: returns `{ deleted: number }` (the use-case `Out` convention)
+  > rather than a bare number
 
 ### Backend (`apps/backend`)
 

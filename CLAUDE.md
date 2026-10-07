@@ -11,7 +11,7 @@ Turbo monorepo (npm workspaces) scaffolded by the `config-project-fullstack` ski
 - `apps/web`: Next.js (App Router, `src/` dir), port 3000. Reads `NEXT_PUBLIC_API_URL`.
 - `apps/backend`: NestJS 12 (ESM, so relative imports need the `.js` suffix), port 4000 via `PORT`. `@nestjs/config` is global, and CORS is enabled.
 - `apps/mobile`: Expo 57 / React Native with Expo Router (`src/app`). The root `_layout.tsx` is a Stack that loads the fonts. Tab screens live in the `(tabs)` group; full-screen routes (auth, details, modals) go beside it. Reads `EXPO_PUBLIC_API_URL`. `localhost` only works on the iOS simulator. Use the machine's LAN IP for a physical device, or `10.0.2.2` for the Android emulator.
-- `packages/design-tokens` (`@rochas-surf-school/design-tokens`): the design system's tokens (colors for light/dark, typography, radii, spacing, elevation), taken from `.docs/design-system.html`. `src/tokens.ts` is the source of truth; `src/tokens.css` is generated from it (`npm run build -w @rochas-surf-school/design-tokens`) and committed. `check-types` fails if the CSS is stale.
+- `packages/design-tokens` (`@rochas-surf-school/design-tokens`): the design system's tokens (colors for light/dark, typography, radii, spacing, elevation), taken from `.docs/designs/design-system.html`. `src/tokens.ts` is the source of truth; `src/tokens.css` is generated from it (`npm run build -w @rochas-surf-school/design-tokens`) and committed. `check-types` fails if the CSS is stale.
 - `packages/eslint-config`, `packages/typescript-config`: Turbo's shared configs. No app uses them yet; each app has its own ESLint and tsconfig.
 - Each app has `.env.example` (committed) and `.env` (ignored).
 
@@ -34,7 +34,7 @@ Backend + PostgreSQL in Docker, from `apps/backend`: `docker compose up --build`
 
 ## Design system
 
-Never hard-code colors, fonts or radii; use the tokens so light and dark themes both work. The usage rules (one primary action per screen, grape only for highlights, numbers in Barlow Condensed, 44px touch targets) are in section 08 of `.docs/design-system.html`.
+Never hard-code colors, fonts or radii; use the tokens so light and dark themes both work. The usage rules (one primary action per screen, grape only for highlights, numbers in Barlow Condensed, 44px touch targets) are in section 08 of `.docs/designs/design-system.html`.
 
 - Web: `globals.css` imports `@rochas-surf-school/design-tokens/tokens.css` and maps it to Tailwind utilities (`bg-page`, `text-ink-2`, `rounded-card`, `shadow-primary`…). Type styles are classes such as `ds-text-screen-title`. Fonts come from `next/font` in `layout.tsx`.
 - Mobile: `src/constants/theme.ts` re-exports the tokens. Use `useTheme()` for colors, `textStyle('<variant>')` for type, and `shadowStyle()` for elevation. Fonts load in `src/app/_layout.tsx`. Custom fonts select weight by family name, so don't rely on `fontWeight`.

@@ -1,4 +1,4 @@
-// Rocha's Surf School design system tokens. Source: .docs/design-system.html.
+// Rocha's Surf School design system tokens. Source: .docs/designs/design-system.html.
 // This file is the single source of truth for web and mobile; tokens.css is generated from it.
 
 export const colors = {

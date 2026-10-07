@@ -5,7 +5,7 @@
 Rocha's Surf School is a cross-platform mobile app (Android and iOS) for managing surf and skate classes between instructors, students and admins. It's three apps in one: what each person sees depends on their role.
 
 - Detailed requirements: [requirements.md](requirements.md), by area. Specs planned from them live in `.specs/`.
-- Designs: the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80). Exports go in `docs/designs/`.
+- Designs: the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80). Exports go in [`.docs/designs/`](designs/): `design-system.html` (the design system) and `login-pages.html` (the sign-in screens).
 
 ## General User Journeys
 
@@ -27,7 +27,7 @@ Applies to students, instructors and admins.
 - As a user, I'd like to delete my account, after a confirmation step. My upcoming seats, pending requests and class assignments are cancelled. The account can be reactivated for 30 days. After that it's erased:
   - name, email, photo and WhatsApp number are removed;
   - comments are deleted, and star ratings stay without a name;
-  - photos and class lists show "Former student" in my place;
+  - photos and class lists show "Former student" in my place ("Former instructor" if I was an instructor or an admin);
   - the email is free to sign up again.
 - As a user whose account was deleted, I'd like to ask the admins to reactivate it. Signing in with a deleted account during the 30 days shows an "Account deleted" screen. From there I send a reactivation request inside the app, or sign in with another email.
   - Each account can send one request. If it's denied, the screen says so and only offers signing in with another email.
@@ -121,7 +121,7 @@ All three tools share the same pattern: a card for each pending request with Den
 - For each class, the app uses an AI language model to work out the cancellation deadline from the rule and the class's details. It does this when the class is created, and again when the class is edited or its rule changes. Every student in the class gets the same deadline, and it's never after the class starts.
 - Only the rule text and the class's details are sent to the language model. Nothing written by students, and no personal data such as names, is sent.
 - Rules are assumed to be clear, so the app doesn't check them when admins save them.
-- If a class's deadline can't be worked out, the app keeps trying. Meanwhile, students who try to cancel are told to contact the school.
+- If a class's deadline can't be worked out, the app keeps trying. Meanwhile, students who try to cancel are told to contact the school, and admins see the class flagged as having no cancellation deadline.
 - What a late cancellation costs, for example "counts as a used class", belongs to the admins' own records outside the app. Admins can explain it in the rule's text.
 
 ### User journeys
@@ -143,6 +143,7 @@ All three tools share the same pattern: a card for each pending request with Den
   - I enter their name and WhatsApp number and pick a class that hasn't started and has a free seat.
   - The guest takes a seat and gets nothing from the app. I'm warned when I edit or cancel a class that has guests.
   - A guest's trial class isn't linked to an account they create later.
+  - The guest's name and WhatsApp number are erased 30 days after the class finishes or is cancelled; after that the seat shows "Trial" to everyone.
 - As an admin, I'd like to edit a class and notify its students, the people with pending requests for it, and its instructors.
 - As an admin, I'd like to cancel a class until it finishes, for example because of bad weather, with an optional message. Its students, the people with pending requests for it and its instructors are notified with the message.
 - As an admin, I'd like to delete a class created by mistake, after a confirmation step. Its instructors are notified.
@@ -151,12 +152,6 @@ All three tools share the same pattern: a card for each pending request with Den
 - As an admin, I'd like to write the surf and skate cancellation rules.
 - As an admin, I'd like to turn the waiting list on or off.
 - As an admin, I'd like to add, edit and remove the school rules that students accept when they join. When I change them, I choose whether everyone must accept the new version.
-- As an admin, I'd like a dashboard with key metrics. Cancelled classes are left out, and averages include ratings that no longer show a name. The metrics are:
-  - Classes today, split by discipline.
-  - Weekly occupancy, compared with the previous week.
-  - Average rating by day, week or month, with a filter by discipline.
-  - Ratings list, which can be sorted.
-  - Seats taken and seats free in each of the week's classes.
 - As an admin, I'd like to upload photos to any finished class, and delete any photo.
 - As an admin, I'd like to delete any comment. The author isn't told.
 - As an admin, I'd like to approve or deny account reactivation requests. I'm notified of each one.
@@ -169,7 +164,7 @@ Instructors teach and follow classes, but can't change schedules or rules.
 ### Permissions
 
 - View all classes, read-only, with the classes they teach under My classes.
-- See the ratings and the occupancy of any class.
+- See the ratings and the seats taken of any class.
 - Upload photos to any finished class.
 - Comment on finished classes they taught.
 
@@ -190,7 +185,7 @@ Instructors cannot approve or deny registrations or requests, cancel classes, ch
   - a student rates one of my classes.
 - As an instructor, I'd like to upload photos to any finished class.
 - As an instructor, I'd like to leave one comment, without stars, on a finished class I taught, and edit or delete it. Comments have no replies.
-- As an instructor, I'd like to see class ratings, average ratings and occupancy.
+- As an instructor, I'd like to see the ratings and the seats taken of any class.
 
 ## Student
 
@@ -248,6 +243,7 @@ Students cannot:
 - Reporting comments or photos.
 - Translating text written by admins.
 - Checking a cancellation rule's wording when it's saved.
+- An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list). Each class already shows its seats taken and its ratings to everyone.
 
 ## Open Questions
 

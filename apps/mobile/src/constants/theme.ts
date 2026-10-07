@@ -1,6 +1,6 @@
 /**
  * Theme for the mobile app, built from the shared design tokens in @rochas-surf-school/design-tokens
- * (source: .docs/design-system.html). Use these values instead of hard-coded colors so
+ * (source: .docs/designs/design-system.html). Use these values instead of hard-coded colors so
  * both light and dark themes keep working.
  */
 

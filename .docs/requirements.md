@@ -25,10 +25,9 @@ the America/Fortaleza time zone.
 4. [Class enrolment](#4-class-enrolment)
    - [4.1 Class enrolment](#41-class-enrolment)
    - [4.2 Cancellation rules](#42-cancellation-rules)
-5. [Ratings, photos and dashboard](#5-ratings-photos-and-dashboard)
+5. [Ratings and photos](#5-ratings-and-photos)
    - [5.1 Class ratings](#51-class-ratings)
    - [5.2 Class photos](#52-class-photos)
-   - [5.3 Admin dashboard](#53-admin-dashboard)
 6. [Public web pages](#6-public-web-pages)
    - [6.1 Public web pages](#61-public-web-pages)
 
@@ -188,9 +187,10 @@ A deleted account SHALL be reactivatable for 30 days after its deletion. When th
 
 #### Erasure
 
-When the system erases an account, it SHALL remove the account's name, email address, photo and WhatsApp number, and delete its comments. Its star ratings SHALL remain without a name, and photos and class lists SHALL show "Former student" in its place. The email address SHALL then be free to sign up again.
+When the system erases an account, it SHALL remove the account's name, email address, photo and WhatsApp number, and delete its comments. Its star ratings SHALL remain without a name, and photos and class lists SHALL show "Former student" in its place, or "Former instructor" when the account was an instructor or an admin. The email address SHALL then be free to sign up again.
 
 - _After erasure:_ When an account has been erased, then class lists and photos show "Former student" in its place, and its comments no longer appear and its star ratings remain without a name.
+- _Erased instructor:_ When the account of an instructor or an admin has been erased, then the classes they taught and the photos they uploaded show "Former instructor" in its place.
 - _Same email address signs up again:_ When someone signs in with the email address of an erased account, then a new registration is created and waits for approval.
 
 #### Account deleted screen
@@ -792,6 +792,12 @@ A guest's trial class SHALL NOT be linked to an account the guest creates later.
 
 - _Former guest signs up:_ When a former guest creates an account, then their trial class does not appear in their history.
 
+#### Guest data is erased
+
+The system SHALL erase a guest's name and WhatsApp number 30 days after their class finishes or is cancelled. The guest's seat SHALL then show "Trial" to everyone, admins and the class's instructors included.
+
+- _Window ends:_ When 30 days have passed since a class with a guest finished, then the guest's name and WhatsApp number are erased, and the seat shows "Trial" to everyone.
+
 #### Request statuses
 
 Students SHALL be able to see the status of each of their requests: pending (shown as "on the waiting list" while the class is full), approved, denied, withdrawn, cancelled, taken out, expired, or class cancelled.
@@ -849,13 +855,14 @@ A student SHALL be able to cancel their seat until the class's deadline, and SHA
 
 #### No deadline available
 
-While a class has no deadline because it couldn't be worked out, students who try to cancel a seat in it SHALL be told to contact the school, and the system SHALL keep trying to work the deadline out.
+While a class has no deadline because it couldn't be worked out, students who try to cancel a seat in it SHALL be told to contact the school, and the system SHALL keep trying to work the deadline out. Admins SHALL see the class flagged as having no cancellation deadline; nobody SHALL be notified.
 
 - _Deadline missing:_ When a student tries to cancel a seat in a class whose deadline couldn't be worked out, then they are told to contact the school.
+- _Admin sees the flag:_ When an admin opens a class whose deadline couldn't be worked out, then the class is flagged as having no cancellation deadline, and no notification was sent.
 
-## 5. Ratings, photos and dashboard
+## 5. Ratings and photos
 
-After a class, the school wants feedback and memories: students rate the classes they took, instructors comment, and everyone shares photos. Admins need a dashboard to see how full and how well rated the classes are.
+After a class, the school wants feedback and memories: students rate the classes they took, instructors comment, and everyone shares photos.
 
 **What it covers**
 
@@ -863,19 +870,18 @@ After a class, the school wants feedback and memories: students rate the classes
 - Comments from the instructors who taught a class, and admins able to delete any comment.
 - Photos on finished classes, uploaded by the class's students, instructors and admins, and visible and downloadable by everyone.
 - A prompt to rate a class 30 minutes after it ends, and a notification to instructors when a student rates their class.
-- A dashboard for admins with classes today, weekly occupancy, average ratings and a ratings list, plus the seats taken and free in each of the week's classes.
 
 **Capabilities**
 
 - [Class ratings](#51-class-ratings): ratings and comments on finished classes.
 - [Class photos](#52-class-photos): photos on finished classes.
-- [Admin dashboard](#53-admin-dashboard): the dashboard metrics, including the occupancy of each of the week's classes. Any user can already see a class's seats on the class itself ([Class enrolment](#41-class-enrolment)).
 
 **Dependencies and constraints**
 
 - Depends on [Class scheduling](#3-class-scheduling) and [Class enrolment](#4-class-enrolment).
 - Photo storage and downloads.
 - Users can see each other's content with no report option. This is an accepted App Review risk under Apple's guideline 1.2; if Apple rejects the app for it, the fix would be a report button that notifies admins.
+- Out of scope: an admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list). Each class already shows its capacity and seats taken to everyone ([Class enrolment](#41-class-enrolment)) and its ratings ([Class ratings](#51-class-ratings)).
 
 ### 5.1 Class ratings
 
@@ -959,47 +965,6 @@ Uploaders SHALL be able to delete their own photos, and admins SHALL be able to 
 
 - _Uploader deletes their photo:_ When a user deletes a photo they uploaded, then the photo no longer appears.
 - _Admin deletes a photo:_ When an admin deletes a photo a student uploaded, then the photo no longer appears, and the student is not notified.
-
-### 5.3 Admin dashboard
-
-Gives admins an overview of how many classes run, how full they are and how well they are rated.
-
-#### Dashboard access
-
-The dashboard SHALL be available to admins.
-
-- _Admin opens the dashboard:_ When an admin opens the dashboard, then they see the school's classes, occupancy and ratings metrics.
-
-#### Classes today
-
-The dashboard SHALL show how many classes take place today, split by discipline. Cancelled classes SHALL NOT count.
-
-- _Cancelled class today:_ When one of today's three surf classes is cancelled, then the dashboard shows two surf classes today.
-
-#### Weekly occupancy
-
-The dashboard SHALL show the current week's occupancy, meaning the seats taken out of the total capacity, compared with the previous week's. Seats taken SHALL count approved students and guests, cancelled classes SHALL NOT count, and weeks SHALL run from Monday to Sunday, Fortaleza time.
-
-- _Comparing weeks:_ When an admin opens the dashboard, then they see this week's occupancy next to last week's.
-- _Cancelled class this week:_ When a class this week is cancelled, then its seats and capacity are left out of this week's occupancy.
-
-#### Occupancy of each class
-
-The dashboard SHALL list the week's classes with the number of seats taken and free in each.
-
-- _Week's classes:_ When an admin looks at the week's occupancy, then they see each class with its seats taken and free.
-
-#### Average rating
-
-The dashboard SHALL show the average rating by day, week or month, with a filter by discipline. Ratings SHALL be grouped by their class's date, and ratings whose authors' accounts were erased SHALL still count.
-
-- _Monthly surf average:_ When an admin picks the month view and the surf filter, then they see the average rating of surf classes for each month.
-
-#### Ratings list
-
-The dashboard SHALL list ratings, and admins SHALL be able to sort the list.
-
-- _Sorting ratings:_ When an admin changes how the ratings list is sorted, then the list is shown in the new order.
 
 ## 6. Public web pages
 

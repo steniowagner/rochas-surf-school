@@ -359,7 +359,10 @@ describe('Email sign-in (e2e)', () => {
       const response = await verify({ email, code, name: 'Al' });
 
       expect(response.status).toBe(422);
-      expect(response.body.errors[0]).toBe('user.name.min.length');
+      expect(response.body.errors).toEqual([
+        'user.name.min.length',
+        'user.name.person.name',
+      ]);
       await expect(ctx.prisma.user.count({ where: { email } })).resolves.toBe(
         0,
       );

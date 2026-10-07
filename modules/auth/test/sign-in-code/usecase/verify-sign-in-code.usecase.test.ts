@@ -258,7 +258,7 @@ describe("VerifySignInCode", () => {
         ctx.verify.execute({ email: "bia@example.com", code: "123456", name: "Al" }),
       );
 
-      expect(errors[0]).toBe("user.name.min.length");
+      expect(errors).toEqual(["user.name.min.length", "user.name.person.name"]);
       expect(ctx.userRepository.users).toHaveLength(0);
       const code = await ctx.signInCodeRepository.findByEmail("bia@example.com");
       expect(code?.attempts).toBe(0);

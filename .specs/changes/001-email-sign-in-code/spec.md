@@ -2,7 +2,7 @@
 id: "001"
 slug: email-sign-in-code
 title: Email code sign-in
-status: changes-requested
+status: in-progress
 created: 2026-10-07
 started: 2026-10-07
 base_commit: 0a79c2176a6f6b1abe2c101fe1868dcf627b556b
@@ -172,8 +172,9 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   `errors: ["user.name.required"]`, no account is created and the code still works with `attempts`
   unchanged; when it calls again with `"name": "Bia Souza"`, the API answers 200 with a session for a new
   `pending` `student` named "Bia Souza" that has an `email` identity, and the code row is gone.
-- **Edge and error cases:** `"name": "Al"` answers 422 with `errors: ["user.name.min.length"]` and does not
-  consume the code; a wrong code with a name answers 401 `signInCode.code.invalid` and creates nothing.
+- **Edge and error cases:** `"name": "Al"` answers 422 with
+  `errors: ["user.name.min.length", "user.name.person.name"]` (the first key is the one the app shows) and does
+  not consume the code; a wrong code with a name answers 401 `signInCode.code.invalid` and creates nothing.
 - **Verify by:** `npm test --workspace @rochas-surf-school/auth -- test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts -t "new account"`
   and `npm run test:e2e --workspace apps/backend -- test/auth-email.e2e-spec.ts -t "new account"`.
 
@@ -874,6 +875,12 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   technical-context → Coverage skips exactly that one-line `cond-expr` branch. Reason: the branch is emitted by
   the test transform and no test can reach it. Scope, Decisions and Expected Results unchanged.
 
+- 2026-10-07 — ER-05, approved by the user in chat (review finding F-01). Before: `"name": "Al"` answers 422
+  with `errors: ["user.name.min.length"]`. After: it answers 422 with
+  `errors: ["user.name.min.length", "user.name.person.name"]`, the first key being the one the app shows.
+  Reason: the existing `User` validator also requires a full name (two words), and every validation error is
+  returned; the contract now states the real list. No code change.
+
 ## Review
 
 ### Round 1 — 2026-10-07 — changes-requested
@@ -911,12 +918,20 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
 
 **Findings**
 
-- [ ] **F-01** (ER-05) — `"name": "Al"` answers 422 with `errors: ["user.name.min.length", "user.name.person.name"]`;
+- [x] **F-01** (ER-05) — `"name": "Al"` answers 422 with `errors: ["user.name.min.length", "user.name.person.name"]`;
   ER-05 says `errors: ["user.name.min.length"]`. The difference is recorded only as a deviation in T-07's
   evidence; no Amendment changes the Expected Result, and the tests assert only `errors[0]`. Reproduce:
   request a code for a new email, then `POST /auth/email/verify` with the code and `"name": "Al"`. Expected:
   either the behavior matches ER-05, or ER-05 is amended (`/spec-plan --amend 001`) to state the actual
   contract — e.g. "the first error is `user.name.min.length`" — and logged under `## Amendments`.
+  > ✅ 2026-10-07 — reproduced: the "Al" verify answers 422 with both keys. Amended ER-05 to the actual
+  > contract with the user's approval (logged under `## Amendments`; no code change), and made both tests
+  > assert the full list instead of `errors[0]`. files: `.specs/changes/001-email-sign-in-code/spec.md`,
+  > `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`,
+  > `apps/backend/test/auth-email.e2e-spec.ts`; verified: `npm test --workspace @rochas-surf-school/auth --
+  > test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts -t "new account"` (5 passed), `npm run
+  > test:e2e --workspace apps/backend -- test/auth-email.e2e-spec.ts -t "new account"` (3 passed); deviations:
+  > none
 
 **Notes**
 

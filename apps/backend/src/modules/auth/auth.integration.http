@@ -41,3 +41,43 @@ Content-Type: application/json
   "email": "bia.{{scenarioVersion}}@example.com",
   "locale": "fr"
 }
+
+### Verify with a wrong code (expects 401 signInCode.code.invalid; counts an attempt)
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "000000"
+}
+
+### Verify without a name — for a new email, expects 422 user.name.required and the code stays usable
+# Replace the code with the one logged by the backend (or received by email).
+@code = 123456
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+### Verify with the name (expects 200 with accessToken, refreshToken and user; the code is consumed)
+# @name verify
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}",
+  "name": "Ana Rocha"
+}
+
+### Verify the same code again (expects 401 signInCode.code.invalid: a code is used once)
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}

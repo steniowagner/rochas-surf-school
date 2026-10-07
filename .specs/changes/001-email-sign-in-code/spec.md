@@ -689,13 +689,34 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > did not exist (created here, as the task says); the ER-02 check that the first code still signs in after a
   > 429 needs verify and is added to "too soon" in T-17
 
-- [ ] **T-17** — Add `POST /auth/email/verify` (`@Public()`, 200, wires `VerifySignInCode` with
+- [x] **T-17** — Add `POST /auth/email/verify` (`@Public()`, 200, wires `VerifySignInCode` with
   `StartSession`) to `auth.controller.ts`, its requests to `auth.integration.http`, controller spec cases,
   and the e2e scenarios "existing account", "new account", "wrong code", "lockout", "single use", "review
   account" and "session" in `test/auth-email.e2e-spec.ts`. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-04, ER-05, ER-06, ER-08, ER-09, ER-10, ER-14 · Done when: the e2e file passes against the local
   database.
+  > ✅ 2026-10-07 12:01 — added `POST /auth/email/verify` (`@Public()`, 200, body = `VerifySignInCodeIn`, builds
+  > `StartSession` with `PrismaRefreshTokenRepository`/`JwtTokenProvider`/clock and runs `VerifySignInCode` with
+  > the Prisma user and identity repositories and `AuthConfig.refreshTokenTtlDays`); its requests in
+  > `auth.integration.http`; controller spec cases (route metadata, session wiring and TTL, name passthrough,
+  > missing body); and the e2e scenarios "existing account" (200 shape, case/space-insensitive, row deleted,
+  > Google account gets an `email` identity without a second account, no duplicate identity,
+  > denied/deleted/removed get 200 + status), "new account" (422 `user.name.required` without consuming or
+  > counting, then 200 pending student with an `email` identity and the row gone; "Al" → 422 first key
+  > `user.name.min.length` and the code still works; wrong code with a name → 401, nothing created), "wrong
+  > code" (401, attempts + 1, no code requested → 401, "12ab" → 401), "lockout" (5 wrong →
+  > `signInCode.attempts.exceeded`; 4 wrong → 200), "single use" (second verify 401; two concurrent → one 200
+  > and one 401, one refresh token), "review account" (REVIEW_ACCOUNTS set by the suite: 202 without email then
+  > 200 approved admin; 246810 rejected for another email and before a request; cooldown 429 and lockout apply)
+  > and "session" (HS256 JWT verified with `JWT_SECRET`, `sub` = user id, `exp - iat` = 900 s; one
+  > `refresh_tokens` row with SHA-256 hex of the returned token, expiry 30 days, a family id; two sign-ins → two
+  > rows, two families); "too soon" now also checks the first code still signs in. files:
+  > `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-email.e2e-spec.ts`; verified:
+  > `npm run test:e2e --workspace apps/backend -- test/auth-email.e2e-spec.ts` against the local database (1
+  > file, 28 passed), `npx vitest run src/modules/auth/auth.controller.spec.ts` (8 passed; controller 100%),
+  > backend `tsc --noEmit` and oxlint clean; deviations: none
 
 - [ ] **T-18** — Install `@nestjs/throttler`, register `ThrottlerModule` and its guard with the limits and the
   `request.rate.limited` message of D-13 (per-route limits on the two endpoints), and add the "rate limit"

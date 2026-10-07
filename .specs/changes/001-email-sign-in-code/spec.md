@@ -2,7 +2,7 @@
 id: "001"
 slug: email-sign-in-code
 title: Email code sign-in
-status: in-progress
+status: in-review
 created: 2026-10-07
 started: 2026-10-07
 base_commit: 0a79c2176a6f6b1abe2c101fe1868dcf627b556b
@@ -799,18 +799,19 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
 
 ### Verification
 
-- [ ] **T-21** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-21** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence, and ask the user to run the manual journey and record its result.
   Covers: all · Done when: every automated command exits 0 and the manual journey is recorded.
-  > ⛔ 2026-10-07 13:27 — automated part done, all passing: `node .specs/scripts/run-related-tests.mjs 001`
+  > ✅ 2026-10-07 — automated part (13:27), all passing: `node .specs/scripts/run-related-tests.mjs 001`
   > (RELATED TESTS PASSED: apps/backend, modules/auth, packages/shared), `node .specs/scripts/check-coverage.mjs
   > 001` (COVERAGE OK, 28 files), `npx turbo run lint check-types build --filter=@rochas-surf-school/shared
   > --filter=@rochas-surf-school/auth --filter=@rochas-surf-school/backend` (8 successful; one earlier run
   > failed once on `backend#build` and passed on the next four runs — see the report), `node
   > .specs/scripts/run-e2e.mjs 001` (E2E PASSED, 30 tests), and all 29 `Verify by` commands of ER-01 to ER-16
-  > exit 0. Blocked on the manual journey of the Verification Plan (real Resend delivery to an inbox), which
-  > needs the user's `RESEND_API_KEY`, a sender on the verified domain and their inbox: the user runs it and
-  > reports the result to unblock this task.
+  > exit 0. Manual journey (real Resend delivery to an inbox): run by the user, who reported that everything
+  > worked as expected; no code changed since the automated run (only this spec's evidence); files:
+  > `.specs/changes/001-email-sign-in-code/spec.md`; deviations: the manual journey's result is the user's
+  > report, not observed by the agent
 
 ## Verification Plan
 

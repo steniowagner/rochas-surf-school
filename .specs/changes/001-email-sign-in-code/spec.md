@@ -445,7 +445,7 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > incl. -t "cooldown", "send fails", "review account"; use case 100% statements/branches/functions/lines),
   > full auth suite 11 suites / 111 passed, lint and check-types clean; deviations: none
 
-- [ ] **T-07** — Implement `VerifySignInCode` in
+- [x] **T-07** — Implement `VerifySignInCode` in
   `modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts` (input `{ email, code, name? }`,
   output the session plus `user: { id, name, email, role, status }`; dependencies: sign-in-code, user and
   identity repositories, code provider, clock, `StartSession`) following D-02, D-03, D-04 and D-10, with tests
@@ -454,6 +454,26 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   account"). Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04, ER-05, ER-06, ER-07, ER-08, ER-09, ER-10 · Done when: that test file passes with the use case
   fully covered.
+  > ✅ 2026-10-07 11:48 — implemented `VerifySignInCode` (`module-use-case`, custom, with output): normalizes the
+  > email, treats a non-string code as wrong; no row → `signInCode.code.invalid`, `attempts >= 5` →
+  > `signInCode.attempts.exceeded`, `now >= expiresAt` → `signInCode.code.expired`, mismatch →
+  > `incrementAttempts` + `signInCode.code.invalid` (all `UnauthorizedError`, D-10); then finds the user by
+  > email or builds and validates a new pending student from the trimmed `name` before consuming (missing → 422
+  > `user.name.required`, D-02), consumes atomically (`false` → invalid, D-03), creates the user if new, adds an
+  > `email` identity (`providerUserId` = normalized email) when the account has none, and starts the session
+  > through `StartSession`; returns the session plus `user { id, name, email, role, status }` for any status.
+  > Tests written first and watched fail (31 failed). files:
+  > `modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts`,
+  > `modules/auth/src/sign-in-code/usecase/index.ts`,
+  > `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`; verified: `npm test
+  > --workspace @rochas-surf-school/auth -- test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts` (31
+  > passed, with describe blocks "existing account", "new account", "wrong code", "expired", "attempts", "single
+  > use", "review account"; use case 100% statements/branches/functions/lines), full auth suite 12 suites / 142
+  > passed, lint, check-types and build clean; deviations: the use case also takes `refreshTokenTtlDays` in its
+  > constructor to pass to `StartSession`; ER-05 says a name "Al" answers `errors: ["user.name.min.length"]`,
+  > but the existing `User` validator also reports `user.name.person.name` for it (a single word), so the errors
+  > list is `["user.name.min.length", "user.name.person.name"]` — the test asserts the first key, which is the
+  > one the app shows
 
 - [ ] **T-08** — Implement `DeleteExpiredSignInCodes` in
   `modules/auth/src/sign-in-code/usecase/delete-expired-sign-in-codes.usecase.ts` (uses the clock and

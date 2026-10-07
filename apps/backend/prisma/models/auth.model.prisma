@@ -53,6 +53,7 @@ model User {
 
   rulesAcceptances UserRulesAcceptance[]
   identities       Identity[]
+  refreshTokens    RefreshToken[]
 
   @@map("users")
 }
@@ -83,4 +84,37 @@ model Identity {
   @@unique([provider, providerUserId])
   @@index([userId])
   @@map("identities")
+}
+
+model SignInCode {
+  id         String    @id @db.Uuid
+  email      String    @unique
+  codeHash   String    @map("code_hash")
+  expiresAt  DateTime  @map("expires_at")
+  lastSentAt DateTime  @map("last_sent_at")
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  @@index([expiresAt])
+  @@map("sign_in_codes")
+}
+
+model RefreshToken {
+  id        String    @id @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  familyId  String    @map("family_id") @db.Uuid
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
 }

@@ -531,12 +531,24 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > the `design:paramtypes` conditional TypeScript emits for decorator metadata, which no test can reach (to be
   > settled with the user before the coverage gate); the e2e suite has no file until T-16
 
-- [ ] **T-10** — Add the `SignInCode` (`sign_in_codes`) and `RefreshToken` (`refresh_tokens`) models to
+- [x] **T-10** — Add the `SignInCode` (`sign_in_codes`) and `RefreshToken` (`refresh_tokens`) models to
   `apps/backend/prisma/models/auth.model.prisma` as D-08 describes, and generate the migration
   `auth-add-sign-in-codes-and-refresh-tokens`. Skill:
   [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: enabling · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies cleanly on
   the local database and `npm run prisma:generate --workspace apps/backend` succeeds.
+  > ✅ 2026-10-07 11:52 — following `backend-prisma-sync-module` for `auth`: added `SignInCode` (`sign_in_codes`:
+  > Entity uuid `id`, unique `email`, `code_hash`, `expires_at` indexed, `last_sent_at`, `attempts` default 0,
+  > timestamps) and `RefreshToken` (`refresh_tokens`: `user_id` FK to `users` with cascade + index, unique
+  > `token_hash`, `family_id` uuid + index, `expires_at`, `revoked_at`, timestamps) and the `User.refreshTokens`
+  > relation; started the local database (`npm run db:start`) and generated the migration with
+  > `prisma:migrate:dev -- --name auth-add-sign-in-codes-and-refresh-tokens` (only CREATE TABLE/INDEX and one
+  > FK, nothing destructive). files: `apps/backend/prisma/models/auth.model.prisma`,
+  > `apps/backend/prisma/migrations/20261007145217_auth_add_sign_in_codes_and_refresh_tokens/migration.sql`;
+  > verified: `npm run prisma:migrate:deploy --workspace apps/backend` (3 migrations, none pending after dev
+  > applied it), `npm run prisma:generate --workspace apps/backend` (Generated Prisma Client 7.10.0);
+  > deviations: Prisma writes the folder name with underscores (`auth_add_sign_in_codes_and_refresh_tokens`), as
+  > it did for the earlier migrations
 
 - [ ] **T-11** — Create `PrismaUserRepository` (`apps/backend/src/modules/auth/user.prisma.ts`, including
   `findByEmail` and the rules-acceptance child rows) and `PrismaIdentityRepository`

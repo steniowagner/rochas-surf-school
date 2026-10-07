@@ -307,12 +307,19 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
 
 ### Shared (`packages/shared`)
 
-- [ ] **T-01** — Add `TooManyRequestsError` (429) and `BadGatewayError` (502) in
+- [x] **T-01** — Add `TooManyRequestsError` (429) and `BadGatewayError` (502) in
   `packages/shared/src/error/` (exported from `index.ts`), and an optional `details?: Record<string, unknown>`
   constructor argument and property on `DomainError`, with tests in `packages/shared/test/error/` for the
   status codes, messages and details.
   Covers: ER-02, ER-03 · Done when: `npm test --workspace @rochas-surf-school/shared` passes with the new
   files fully covered.
+  > ✅ 2026-10-07 11:38 — added `TooManyRequestsError` (429) and `BadGatewayError` (502), both taking an optional
+  > `details`, and an optional `details` argument/property on `DomainError`; exported from the error barrel.
+  > Tests written first and watched fail (5 failed). files: `packages/shared/src/error/domain.error.ts`,
+  > `packages/shared/src/error/too-many-requests.error.ts`, `packages/shared/src/error/bad-gateway.error.ts`,
+  > `packages/shared/src/error/index.ts`, `packages/shared/test/error/http-status.error.test.ts`; verified: `npm
+  > test --workspace @rochas-surf-school/shared` (22 suites, 102 passed; the three error files 100%
+  > statements/branches/functions/lines), `check-types` and `build` pass; deviations: none
 
 ### Auth module (`modules/auth`)
 

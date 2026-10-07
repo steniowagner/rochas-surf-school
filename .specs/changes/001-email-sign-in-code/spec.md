@@ -2,7 +2,7 @@
 id: "001"
 slug: email-sign-in-code
 title: Email code sign-in
-status: in-review
+status: changes-requested
 created: 2026-10-07
 started: 2026-10-07
 base_commit: 0a79c2176a6f6b1abe2c101fe1868dcf627b556b
@@ -875,3 +875,54 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   the test transform and no test can reach it. Scope, Decisions and Expected Results unchanged.
 
 ## Review
+
+### Round 1 — 2026-10-07 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (packages/shared, modules/auth, apps/backend; `turbo --force`, 8 tasks)
+- related tests ✅ apps/backend (vitest) · modules/auth 92 passed · packages/shared 97 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (28 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 30 passed (`E2E PASSED`)
+- every `Verify by` of ER-01 to ER-16 ✅ (29 commands, each exit 0 with the expected tests selected)
+- HTTP on a locally started backend (email in log mode): request 202 with a mixed-case email, 429 with
+  `details.resendAvailableAt`, 422 email/locale, wrong code 401, no name 422 `user.name.required`, name 200
+  pending student, reuse 401, fixed review code for another email 401 — as specified, except F-01
+
+**Expected Results**
+
+- ER-01 ✅ — 202 `{ resendAvailableAt, expiresAt }`, one email in `es`, 64-hex hash; 422 cases send nothing
+- ER-02 ✅ — 429 with `resendAvailableAt = T + 30 s`; at T + 30 s a new code, the first invalid, attempts 0
+- ER-03 ✅ — 502 `signInCode.email.sendFailed`, no row, immediate retry 202
+- ER-04 ✅ — session + user; Google account gets one `email` identity; denied/deleted/removed get 200
+- ER-05 ❌ — see F-01
+- ER-06 ✅ — 401, attempts + 1; no code requested and `"12ab"` → same 401
+- ER-07 ✅ — expired at 10 min, signs in at 9:59, a new code after expiry signs in (fake clock)
+- ER-08 ✅ — 5 wrong → `signInCode.attempts.exceeded`; 4 wrong → 200; new code resets
+- ER-09 ✅ — reuse 401; two concurrent verifies → one 200, one 401, one refresh token
+- ER-10 ✅ — 202 without email, 200 approved admin; fixed code rejected elsewhere and before a request
+- ER-11 ✅ — seed spec: three approved accounts with identities, idempotent, unset → nothing
+- ER-12 ✅ — 6th code request and 11th verify → 429 `request.rate.limited`
+- ER-13 ✅ — expired rows deleted, others kept, every-minute cron
+- ER-14 ✅ — HS256, `sub`, 900 s; SHA-256 hash stored, 30 days, a family id per sign-in
+- ER-15 ✅ — copy in the three languages, `from`, `to`, `html`, `idempotencyKey`, `error` rejects
+- ER-16 ✅ — log fallback without a key; throws without pepper, in production without a key, on bad
+  `REVIEW_ACCOUNTS`
+
+**Findings**
+
+- [ ] **F-01** (ER-05) — `"name": "Al"` answers 422 with `errors: ["user.name.min.length", "user.name.person.name"]`;
+  ER-05 says `errors: ["user.name.min.length"]`. The difference is recorded only as a deviation in T-07's
+  evidence; no Amendment changes the Expected Result, and the tests assert only `errors[0]`. Reproduce:
+  request a code for a new email, then `POST /auth/email/verify` with the code and `"name": "Al"`. Expected:
+  either the behavior matches ER-05, or ER-05 is amended (`/spec-plan --amend 001`) to state the actual
+  contract — e.g. "the first error is `user.name.min.length`" — and logged under `## Amendments`.
+
+**Notes**
+
+- T-22's coverage rule lives in `.specs/scripts/` only, not in `.claude/skills/spec-init/assets/`: a framework
+  upgrade would drop it and the gate would fail again on every Nest class. Worth porting to the framework.
+- A review email verified before the seed ran creates a pending student with that email (the name path);
+  the seed then upserts it to approved. Harmless, but the seed must run before store review.
+- Memory Impact could also record that the throttler guard is bound per route (only these two endpoints are
+  throttled) and that the JWT guard does not yet reload the user (Out of scope).

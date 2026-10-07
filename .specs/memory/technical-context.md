@@ -268,6 +268,14 @@ set, from the reports `run-related-tests.mjs` writes (`coverage/coverage-final.j
 Jest workspaces write `coverage/` with `--coverage`; the backend uses `@vitest/coverage-v8`. A mobile change
 can't pass the gate until `jest-expo` is added, so the first mobile spec adds it.
 
+One branch never counts: the `typeof X === "undefined" ? Object : X` conditional that the Vitest transform
+emits for `design:paramtypes` decorator metadata of a decorated class with constructor injection (every Nest
+provider, guard and job); v8 reports it on the class decorator line. No test can reach it, so
+`.specs/scripts/check-coverage.mjs` skips a one-line `cond-expr` branch on a class decorator or class declaration
+line
+(`.specs/scripts/lib/decorator-metadata.mjs`, tested with `node --test .specs/scripts/lib/decorator-metadata.test.mjs`);
+every other branch on that line still counts. Decided with the user in spec 001.
+
 Files that can't be meaningfully unit-tested are listed below, each with its reason — nothing else is
 excluded. Tests, type declarations, type-only files and tool configuration are always excluded.
 

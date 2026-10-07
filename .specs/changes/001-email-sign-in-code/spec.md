@@ -775,13 +775,27 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > normalized emails and one `email` identity each; those rows were deleted afterwards; backend `tsc --noEmit`
   > and oxlint clean; deviations: none
 
-- [ ] **T-22** — (added during execution) Make the coverage gate skip the decorator-metadata conditional:
+- [x] **T-22** — (added during execution) Make the coverage gate skip the decorator-metadata conditional:
   the `typeof X === "undefined" ? Object : X` branch the Vitest transform emits for `design:paramtypes` on
   the declaration line of a decorated class with constructor injection, which no test can reach. Record the
   rule in `.specs/memory/technical-context.md` → Coverage and teach `.specs/scripts/check-coverage.mjs` to skip
   exactly that branch, with a test of the rule. Approved by the user on 2026-10-07.
   Covers: enabling · Done when: `node .specs/scripts/check-coverage.mjs 001` no longer reports the class-line
   branch of `jwt-auth.guard.ts` or the Prisma repositories, and still reports any other uncovered branch.
+  > ✅ 2026-10-07 13:25 — added `.specs/scripts/lib/decorator-metadata.mjs` (`isDecoratorMetadataBranch`: a
+  > one-line `cond-expr` on a class decorator line, or on a class declaration line with a decorator above it)
+  > and made `parseIstanbul` in `check-coverage.mjs` skip such branches; v8 turned out to report the branch on
+  > the decorator line (`@Injectable()`), one line above the class, which the first version of the rule missed —
+  > caught by rerunning the gate. Recorded the rule in technical-context → Coverage and logged the amendment.
+  > files: `.specs/scripts/lib/decorator-metadata.mjs`, `.specs/scripts/lib/decorator-metadata.test.mjs`,
+  > `.specs/scripts/check-coverage.mjs`, `.specs/memory/technical-context.md`,
+  > `.specs/changes/001-email-sign-in-code/spec.md`; verified: `node --test
+  > .specs/scripts/lib/decorator-metadata.test.mjs` (5 passed: decorator and class lines of single- and
+  > multi-line decorators match; method decorators, dangling decorators, undecorated classes, real ternaries,
+  > non-`cond-expr` and multi-line branches do not), `node .specs/scripts/check-coverage.mjs 001` went from
+  > COVERAGE FAILED (11 files, each only on its class-line branch) to `COVERAGE OK — every changed line covered
+  > in 28 file(s)`; deviations: the rule lives in the installed `.specs/scripts`, not in the framework bundled
+  > in `.claude/skills/spec-init/assets/`, so a framework upgrade would overwrite it (see the report)
 
 ### Verification
 
@@ -843,5 +857,11 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-07 — Tasks: added T-22 (added during execution), approved by the user in chat. Before: the coverage
+  gate counted the decorator-metadata conditional on every decorated Nest class with constructor injection, so
+  no backend provider, repository, guard or job of this spec could reach 100% branches. After: project policy in
+  technical-context → Coverage skips exactly that one-line `cond-expr` branch. Reason: the branch is emitted by
+  the test transform and no test can reach it. Scope, Decisions and Expected Results unchanged.
 
 ## Review

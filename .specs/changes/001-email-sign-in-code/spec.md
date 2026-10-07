@@ -570,13 +570,29 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   > conditional on each class line, which T-22 settles), backend `tsc --noEmit`, oxlint and build clean;
   > deviations: none
 
-- [ ] **T-12** — Create `PrismaSignInCodeRepository` (`apps/backend/src/modules/auth/sign-in-code.prisma.ts`:
+- [x] **T-12** — Create `PrismaSignInCodeRepository` (`apps/backend/src/modules/auth/sign-in-code.prisma.ts`:
   `save` as an `upsert` by email, `consume` as `deleteMany({ email, codeHash })`, `incrementAttempts` as an
   atomic `update` with `increment`, `deleteExpired` as `deleteMany({ expiresAt: { lt: now } })`) and
   `PrismaRefreshTokenRepository` (`apps/backend/src/modules/auth/refresh-token.prisma.ts`), registered in
   `auth.module.ts`, with unit tests that mock `PrismaService`. Skill:
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-06, ER-09, ER-13, ER-14 · Done when: their spec files pass with both files fully covered.
+  > ✅ 2026-10-07 11:55 — following `backend-prisma-repository`: `PrismaSignInCodeRepository` (`findByEmail`;
+  > `save` as an `upsert` by email whose update resets hash, expiry, `lastSentAt` and attempts; `deleteByEmail`
+  > and `consume` as `deleteMany` — `consume` matches `{ email, codeHash }` and returns `count === 1`;
+  > `incrementAttempts` as an atomic `{ attempts: { increment: 1 } }`; `deleteExpired` as `deleteMany({
+  > expiresAt: { lt: now } })` returning the count) and `PrismaRefreshTokenRepository` (`create`), registered in
+  > `auth.module.ts`, with specs mocking `PrismaService`. Also appended T-22 (added during execution) for the
+  > coverage policy the user approved. files: `apps/backend/src/modules/auth/sign-in-code.prisma.ts`,
+  > `apps/backend/src/modules/auth/sign-in-code.prisma.spec.ts`,
+  > `apps/backend/src/modules/auth/refresh-token.prisma.ts`,
+  > `apps/backend/src/modules/auth/refresh-token.prisma.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.module.ts`; verified: `npx vitest run
+  > src/modules/auth/sign-in-code.prisma.spec.ts src/modules/auth/refresh-token.prisma.spec.ts` (2 files, 8
+  > passed; 100% statements/functions/lines, every branch except the decorator-metadata conditional on the class
+  > line), backend `tsc --noEmit` and oxlint clean; deviations: `incrementAttempts` and `deleteByEmail` use
+  > `updateMany`/`deleteMany` (still one atomic statement) so a row deleted concurrently by a successful verify
+  > does not make them throw
 
 - [ ] **T-13** — Implement `HmacSignInCodeProvider` (`hmac.sign-in-code.ts`, D-07, pepper from
   `AUTH_CODE_PEPPER`), `SystemClockProvider` (`system.clock.ts`) and `JwtTokenProvider` (`jwt.token.ts`,
@@ -639,6 +655,14 @@ accounts sign in with fixed codes. This is the backend contract the mobile sign-
   Covers: ER-11 · Done when: `npx vitest run prisma/seed/review-accounts.seed.spec.ts` passes and
   `npm run prisma:seed --workspace apps/backend` run twice against the local database leaves three review
   accounts.
+
+- [ ] **T-22** — (added during execution) Make the coverage gate skip the decorator-metadata conditional:
+  the `typeof X === "undefined" ? Object : X` branch the Vitest transform emits for `design:paramtypes` on
+  the declaration line of a decorated class with constructor injection, which no test can reach. Record the
+  rule in `.specs/memory/technical-context.md` → Coverage and teach `.specs/scripts/check-coverage.mjs` to skip
+  exactly that branch, with a test of the rule. Approved by the user on 2026-10-07.
+  Covers: enabling · Done when: `node .specs/scripts/check-coverage.mjs 001` no longer reports the class-line
+  branch of `jwt-auth.guard.ts` or the Prisma repositories, and still reports any other uncovered branch.
 
 ### Verification
 

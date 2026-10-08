@@ -11,6 +11,7 @@
     "@rochas-surf-school/auth": "*",
     "@rochas-surf-school/design-tokens": "*",
     "@rochas-surf-school/shared": "*",
+    "@tanstack/react-query": "^5.104.1",
     "@types/jest": "29.5.14",
     "expo": "~57.0.26",
     "expo-constants": "~57.0.20",

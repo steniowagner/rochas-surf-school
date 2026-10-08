@@ -18,13 +18,14 @@ const authButtonClasses: Record<
 
 const palette = Colors.light;
 
-export function AuthButton({ variant, label, icon }: AuthButtonProps) {
+export function AuthButton({ variant, label, icon, onPress }: AuthButtonProps) {
   const classes = authButtonClasses[variant];
 
   return (
     <TouchableOpacity
       accessibilityRole="button"
       activeOpacity={BUTTON_ACTIVE_OPACITY}
+      onPress={onPress}
       className={`min-h-[54px] flex-row items-center justify-center gap-2.5 rounded-control ${classes.container}`}
       style={variant === "primary" ? shadowStyle("primary", palette) : null}
     >

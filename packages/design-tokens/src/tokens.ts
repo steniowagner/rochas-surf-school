@@ -91,7 +91,7 @@ export const typography = {
   listTitle: { font: 'body', weight: 700, size: 14, lineHeight: 1.4, letterSpacing: 0, uppercase: false },
   listSubtitle: { font: 'body', weight: 400, size: 11.5, lineHeight: 1.4, letterSpacing: 0, uppercase: false },
   sectionLabel: { font: 'body', weight: 800, size: 11, lineHeight: 1.4, letterSpacing: 0.1, uppercase: true },
-  button: { font: 'body', weight: 800, size: 14.5, lineHeight: 1.3, letterSpacing: 0.03, uppercase: false },
+  button: { font: 'display', weight: 700, size: 18, lineHeight: 1.2, letterSpacing: 0.03, uppercase: true },
   chip: { font: 'body', weight: 800, size: 10.5, lineHeight: 1.3, letterSpacing: 0.07, uppercase: true },
 } as const;
 

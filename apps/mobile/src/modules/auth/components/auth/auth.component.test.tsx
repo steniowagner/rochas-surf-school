@@ -1,10 +1,23 @@
 import { act, render, screen, userEvent } from "@testing-library/react-native";
+import { router } from "expo-router";
 
 import i18n from "@/i18n";
 
 import { AuthComponent } from "./auth.component";
 
+jest.mock("expo-router", () => ({ router: { push: jest.fn() } }));
 jest.useFakeTimers();
+
+describe("AuthComponent email sign-in", () => {
+  it("opens Create account when Continue with email is pressed", async () => {
+    const user = userEvent.setup();
+    await render(<AuthComponent />);
+
+    await user.press(screen.getByText("Continue with email"));
+
+    expect(router.push).toHaveBeenCalledWith("/auth/create-account");
+  });
+});
 
 describe("AuthComponent terms and privacy links", () => {
   describe("Terms of Use", () => {

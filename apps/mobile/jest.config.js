@@ -7,6 +7,8 @@ const [transformer, babelOptions] = jestExpoPreset.transform["\\.[jt]sx?$"];
 /** @type {import('jest').Config} */
 module.exports = {
   preset: "jest-expo",
+  // Resolves react-native-worklets to its JS (non-native) files, which Reanimated's mock needs in tests.
+  resolver: require.resolve("react-native-worklets/jest/resolver"),
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transform: {
     "\\.[jt]sx?$": [
@@ -19,6 +21,10 @@ module.exports = {
   },
   // Same aliases as tsconfig.json ("@/assets/*" must come before "@/*").
   moduleNameMapper: {
+    // jest-expo resolves uuid (used by @rochas-surf-school/shared) to its browser ESM build, which Jest can't parse.
+    "^uuid$": require.resolve("uuid", {
+      paths: [require.resolve("@rochas-surf-school/shared")],
+    }),
     "^@/assets/(.*)$": "<rootDir>/assets/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
   },

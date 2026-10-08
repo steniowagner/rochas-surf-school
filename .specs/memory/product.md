@@ -266,11 +266,18 @@ Delivered: **email code sign-in on the backend** (spec `001-email-sign-in-code`)
 a pending student by giving a name; the backend returns a session (a 15-minute access token and a 30-day
 refresh token) and the account's status. The review accounts are seeded and sign in with their fixed codes.
 
+**Create account in the app** (spec `002-email-create-account-screen`) — "Continue with email" on the sign-in
+screen opens the Create account screen, where a person types their name and email address and asks for a
+sign-in code, sent in the language picked on the sign-in screen. The button works only once both values follow
+the same rules the backend applies, and every error the backend can answer is shown as a short translated
+message. The name is collected here, before the code, and kept in the app until the code is checked. Entering
+the code is not built yet: nothing happens after the code is sent.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
-apps, the design tokens shared by web and mobile, and the domain of user accounts and sign-in identities with
-its storage. The mobile and web apps are still on their framework templates: no screen of the product works
-yet, so the email sign-in can't be used from the app. Renewing a session, signing out, and Google and Apple
-sign-in don't exist yet.
+apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
+storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
+The web app is still on its framework template. Entering the code in the app, renewing a session, signing
+out, and Google and Apple sign-in don't exist yet.
 
 No spec is active.
 

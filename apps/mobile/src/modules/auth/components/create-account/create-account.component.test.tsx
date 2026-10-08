@@ -8,7 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { ReactElement } from "react";
-import { Platform, TextInput as NativeTextInput } from "react-native";
+import { Keyboard, Platform, TextInput as NativeTextInput } from "react-native";
 
 import {
   TOAST_EXIT_DURATION,
@@ -255,6 +255,19 @@ describe("CreateAccount", () => {
   });
 
   describe("requesting the code", () => {
+    it("closes the keyboard when Get code is pressed", async () => {
+      const dismiss = jest.spyOn(Keyboard, "dismiss");
+      const user = userEvent.setup();
+      await renderScreen(<CreateAccount />);
+      await fillValidForm(user);
+      dismiss.mockClear();
+
+      await user.press(getButton());
+
+      expect(dismiss).toHaveBeenCalledTimes(1);
+      dismiss.mockRestore();
+    });
+
     it("sends email and locale, and calls onCodeRequested on success", async () => {
       const user = userEvent.setup();
       const onCodeRequested = jest.fn();

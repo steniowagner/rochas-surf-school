@@ -9,6 +9,7 @@ import {
 } from "@rochas-surf-school/shared";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Keyboard } from "react-native";
 
 import { TextInputStatus } from "@/components/ui/text-input/text-input.types";
 import { useAlertMessage } from "@/providers/alert-message";
@@ -86,6 +87,8 @@ export const useCreateAccount = ({
     if (!canSubmit || requestCode.isPending) {
       return;
     }
+
+    Keyboard.dismiss();
 
     requestCode.mutate(
       { email: trimmedEmail },

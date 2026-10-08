@@ -5,7 +5,7 @@
 Rocha's Surf School is a cross-platform mobile app (Android and iOS) for managing surf and skate classes between instructors, students and admins. It's three apps in one: what each person sees depends on their role.
 
 - Detailed requirements: [requirements.md](requirements.md), by area. Specs planned from them live in `.specs/`.
-- Designs: the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80). Exports go in [`.docs/designs/`](designs/): `design-system.html` (the design system) and `login-pages.html` (the sign-in screens).
+- Designs: the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80). Exports go in [`.docs/designs/`](designs/): `design-system.html` (the design system) and `auth-flow.html` (the sign-in screens).
 
 ## General User Journeys
 

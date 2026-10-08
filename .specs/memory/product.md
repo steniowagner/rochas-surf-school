@@ -300,4 +300,4 @@ No spec is active.
 - `.docs/requirements.md` — the detailed requirements by area (accounts, notifications, scheduling,
   enrolment, ratings and photos, public web pages), each with testable scenarios.
 - `.docs/designs/design-system.html` — the design system: colors, typography, components and usage rules.
-- `.docs/designs/login-pages.html` — the designs of the sign-in screens.
+- `.docs/designs/auth-flow.html` — the designs of the sign-in screens.

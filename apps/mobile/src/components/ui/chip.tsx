@@ -1,21 +1,31 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from "react-native";
 
-import { radii, textStyle, type ThemeColor } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+export type ChipTone =
+  | "surf"
+  | "skate"
+  | "info"
+  | "sun"
+  | "grape"
+  | "warn"
+  | "ok"
+  | "bad"
+  | "muted"
+  | "onHighlight";
 
-export type ChipTone = 'surf' | 'skate' | 'info' | 'sun' | 'grape' | 'warn' | 'ok' | 'bad' | 'muted' | 'onHighlight';
-
+// Same classes as the web Chip (apps/web/src/components/ui/chip.tsx).
 // Solid colour for the discipline (surf/skate), light tint for level and status.
-const toneColors: Record<Exclude<ChipTone, 'onHighlight'>, { background: ThemeColor; text: ThemeColor }> = {
-  surf: { background: 'lagoon', text: 'onColor' },
-  skate: { background: 'tan', text: 'onColor' },
-  info: { background: 'infoTint', text: 'lagoon' },
-  sun: { background: 'sun', text: 'onColor' },
-  grape: { background: 'grape', text: 'onColor' },
-  warn: { background: 'warnTint', text: 'ink' },
-  ok: { background: 'okTint', text: 'ok' },
-  bad: { background: 'badTint', text: 'bad' },
-  muted: { background: 'dim', text: 'ink2' },
+const toneClasses: Record<ChipTone, { container: string; label: string }> = {
+  surf: { container: "bg-lagoon", label: "text-on-color" },
+  skate: { container: "bg-tan", label: "text-on-color" },
+  info: { container: "bg-info-tint", label: "text-lagoon" },
+  sun: { container: "bg-sun", label: "text-on-color" },
+  grape: { container: "bg-grape", label: "text-on-color" },
+  warn: { container: "bg-warn-tint", label: "text-ink" },
+  ok: { container: "bg-ok-tint", label: "text-ok" },
+  bad: { container: "bg-bad-tint", label: "text-bad" },
+  muted: { container: "bg-dim", label: "text-ink-2" },
+  // On the grape "next lesson" card.
+  onHighlight: { container: "bg-white/[.18]", label: "text-on-color" },
 };
 
 export type ChipProps = {
@@ -23,29 +33,14 @@ export type ChipProps = {
   children: string;
 };
 
-export function Chip({ tone = 'info', children }: ChipProps) {
-  const theme = useTheme();
-  // On the grape "next lesson" card.
-  const colors =
-    tone === 'onHighlight'
-      ? { backgroundColor: 'rgba(255,255,255,.18)', color: theme.onColor }
-      : { backgroundColor: theme[toneColors[tone].background], color: theme[toneColors[tone].text] };
+export function Chip({ tone = "info", children }: ChipProps) {
+  const { container, label } = toneClasses[tone];
 
   return (
-    <View style={[styles.chip, { backgroundColor: colors.backgroundColor }]}>
-      <Text style={[textStyle('chip'), { color: colors.color }]}>{children}</Text>
+    <View
+      className={`flex-row items-center gap-1 self-start rounded-full px-2.5 py-1 ${container}`}
+    >
+      <Text className={`ds-text-chip ${label}`}>{children}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  chip: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: radii.pill,
-  },
-});

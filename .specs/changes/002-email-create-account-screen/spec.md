@@ -3,7 +3,7 @@ id: "002"
 slug: email-create-account-screen
 title: Create account screen (request an email sign-in code)
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-08
 started: 2026-10-08
 base_commit: 1ec9dad

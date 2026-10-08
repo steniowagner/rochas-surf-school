@@ -3,10 +3,11 @@ id: "002"
 slug: email-create-account-screen
 title: Create account screen (request an email sign-in code)
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-08
 started: 2026-10-08
 base_commit: 1ec9dad
+reviewed_commit: 8ed77f8966248b0fe2c4ecbedab7dbc526fe14bc
 fronts: [mobile]
 depends_on: []
 ---
@@ -344,4 +345,36 @@ introduces the shared back button, intro block and text input that the next scre
 - `AlertMessageProvider` uses `useCallback`/`useMemo` although the React Compiler is on (react.md §4); harmless, could be dropped.
 - Side margins use `px-[22px]`/`left-[22px]` like the existing Auth screen, while the tokens have `spacing.screen` = 20. Worth aligning in a later spec.
 - The toast overlaps the back button while visible (`pointerEvents="none"`, so the button still works).
+- The review ran in a fresh session (not the executor's).
+
+### Round 2 — 2026-10-08 — accepted
+
+**Checks**
+
+- lint ✅ (0 errors; 1 existing warning in `bottom-modal.tsx`) · type check ✅ · design-tokens check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 6 tasks successful)
+- related tests ✅ 97 passed, 12 suites (apps/mobile); design-tokens and web have no test runner
+- coverage of the changed lines ✅ `COVERAGE OK` (20 files), no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED`, no suite applies (mobile only)
+- Mutation check for F-02: with the spinner branch replaced by `false`, "shows a spinner instead of the label while sending" fails; reverted.
+- iOS simulator (iPhone 18 Pro, light, Español): Create account with the email field focused, the gap between the field and "Recibir código" is ~25pt.
+
+**Expected Results**
+
+- ER-01 ✅: tests pass; the simulator journey from round 1 still applies (changes since then don't touch navigation or copy).
+- ER-02 ✅: every disabled/enabled case is tested; the 24px spacer minimum from the amendment is restored (F-01).
+- ER-03 ✅: the request, locale mapping, resend-too-soon, every error case (now shown in the toast, per the amendment) and the spinner while sending are all asserted.
+
+**Findings**
+
+- F-01 ✅ verified: `min-h-6` at `create-account.component.tsx:90`; ~24pt seen on the simulator.
+- F-02 ✅ verified: the new test asserts the spinner and the hidden label while pending, and the label after the answer; it fails without the spinner branch.
+- F-03 ✅ verified: `UseToastProps` lives in `toast.types.ts`.
+- F-04 ✅ verified: `KeyboardReturnKey` and its import are gone.
+
+No new findings.
+
+**Notes**
+
+- `## Memory Impact` doesn't list what the amendments added: the `Toast` component and the `AlertMessageProvider`/`useAlertMessage` provider (API errors in a toast), and the `button` type style now using Barlow Condensed 700 / 18px uppercase in the design tokens, which affects web too. `spec-finish` should record them in `technical-context.md` and `structure.md`.
+- The ER-03 text still describes the inline error from before the second amendment (see the round 1 note).
 - The review ran in a fresh session (not the executor's).

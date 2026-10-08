@@ -1,9 +1,12 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   fireEvent,
   render,
   screen,
   userEvent,
+  waitFor,
 } from "@testing-library/react-native";
+import { ReactElement } from "react";
 import { TextInput as NativeTextInput } from "react-native";
 
 import i18n from "@/i18n";
@@ -21,6 +24,42 @@ const VALID_EMAIL = "ana.silva@gmail.com";
 const NAME_PLACEHOLDER = "First and last name";
 const EMAIL_PLACEHOLDER = "you@email.com";
 
+const fetchMock = jest.fn();
+
+const jsonResponse = (status: number, body: unknown) =>
+  ({ ok: status < 300, status, json: async () => body }) as Response;
+
+const renderScreen = (ui: ReactElement) =>
+  render(
+    <QueryClientProvider
+      client={
+        new QueryClient({
+          defaultOptions: { mutations: { retry: false, gcTime: Infinity } },
+        })
+      }
+    >
+      {ui}
+    </QueryClientProvider>,
+  );
+
+const fillValidForm = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.type(
+    screen.getByPlaceholderText(NAME_PLACEHOLDER),
+    ` ${VALID_NAME} `,
+  );
+  await user.type(
+    screen.getByPlaceholderText(EMAIL_PLACEHOLDER),
+    ` ${VALID_EMAIL} `,
+  );
+};
+
+beforeEach(() => {
+  fetchMock.mockReset();
+  fetchMock.mockResolvedValue(jsonResponse(202, {}));
+  globalThis.fetch = fetchMock;
+  process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+});
+
 const getButton = () => screen.getByRole("button", { name: "Get code" });
 
 describe("CreateAccount", () => {
@@ -32,7 +71,7 @@ describe("CreateAccount", () => {
     it("renders the intro and form in each locale", async () => {
       await i18n.changeLanguage(locale);
 
-      await render(<CreateAccount />);
+      await renderScreen(<CreateAccount />);
 
       expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
       expect(screen.getByRole("button", { name: cta })).toBeOnTheScreen();
@@ -40,7 +79,7 @@ describe("CreateAccount", () => {
   });
 
   it("renders the back button, the fields and the terms line", async () => {
-    await render(<CreateAccount />);
+    await renderScreen(<CreateAccount />);
 
     expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toBeOnTheScreen();
@@ -63,7 +102,7 @@ describe("CreateAccount", () => {
       "keeps Get code disabled for invalid values (%s)",
       async (_, name, email) => {
         const user = userEvent.setup();
-        await render(<CreateAccount onCodeRequested={jest.fn()} />);
+        await renderScreen(<CreateAccount onCodeRequested={jest.fn()} />);
 
         if (name) {
           await user.type(screen.getByPlaceholderText(NAME_PLACEHOLDER), name);
@@ -88,7 +127,7 @@ describe("CreateAccount", () => {
       ],
     ])("enables Get code for valid values (%s)", async (_, name, email) => {
       const user = userEvent.setup();
-      await render(<CreateAccount />);
+      await renderScreen(<CreateAccount />);
 
       await user.type(screen.getByPlaceholderText(NAME_PLACEHOLDER), name);
       await user.type(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), email);
@@ -108,7 +147,7 @@ describe("CreateAccount", () => {
     ["email", EMAIL_PLACEHOLDER, "ana@", VALID_EMAIL, "Enter a valid email."],
   ])("%s field", (_, placeholder, invalid, valid, message) => {
     it("shows the field error on blur", async () => {
-      await render(<CreateAccount />);
+      await renderScreen(<CreateAccount />);
       const input = screen.getByPlaceholderText(placeholder);
 
       await fireEvent.changeText(input, invalid);
@@ -121,7 +160,7 @@ describe("CreateAccount", () => {
 
     it("hides the error when the value becomes valid", async () => {
       const user = userEvent.setup();
-      await render(<CreateAccount />);
+      await renderScreen(<CreateAccount />);
       const input = screen.getByPlaceholderText(placeholder);
       await user.type(input, invalid);
       await fireEvent(input, "blur");
@@ -133,7 +172,7 @@ describe("CreateAccount", () => {
     });
 
     it("does not show an error for an empty field on blur", async () => {
-      await render(<CreateAccount />);
+      await renderScreen(<CreateAccount />);
 
       await fireEvent(screen.getByPlaceholderText(placeholder), "blur");
 
@@ -143,7 +182,7 @@ describe("CreateAccount", () => {
 
   it("focuses the email field on next", async () => {
     const focus = jest.spyOn(NativeTextInput.prototype, "focus");
-    await render(<CreateAccount />);
+    await renderScreen(<CreateAccount />);
     focus.mockClear();
 
     await fireEvent(
@@ -158,7 +197,7 @@ describe("CreateAccount", () => {
   it("submits on done only when valid", async () => {
     const user = userEvent.setup();
     const onCodeRequested = jest.fn();
-    await render(<CreateAccount onCodeRequested={onCodeRequested} />);
+    await renderScreen(<CreateAccount onCodeRequested={onCodeRequested} />);
     const email = screen.getByPlaceholderText(EMAIL_PLACEHOLDER);
 
     await user.type(email, "ana@", { submitEditing: true });
@@ -177,7 +216,7 @@ describe("CreateAccount", () => {
   it("does nothing when pressing Get code with invalid values", async () => {
     const user = userEvent.setup();
     const onCodeRequested = jest.fn();
-    await render(<CreateAccount onCodeRequested={onCodeRequested} />);
+    await renderScreen(<CreateAccount onCodeRequested={onCodeRequested} />);
 
     await user.press(getButton());
 
@@ -187,7 +226,7 @@ describe("CreateAccount", () => {
   it("calls onCodeRequested when pressing Get code with valid values", async () => {
     const user = userEvent.setup();
     const onCodeRequested = jest.fn();
-    await render(<CreateAccount onCodeRequested={onCodeRequested} />);
+    await renderScreen(<CreateAccount onCodeRequested={onCodeRequested} />);
     await user.type(screen.getByPlaceholderText(NAME_PLACEHOLDER), VALID_NAME);
     await user.type(
       screen.getByPlaceholderText(EMAIL_PLACEHOLDER),
@@ -197,5 +236,146 @@ describe("CreateAccount", () => {
     await user.press(getButton());
 
     expect(onCodeRequested).toHaveBeenCalledTimes(1);
+  });
+
+  describe("requesting the code", () => {
+    it("sends email and locale, and calls onCodeRequested on success", async () => {
+      const user = userEvent.setup();
+      const onCodeRequested = jest.fn();
+      await renderScreen(<CreateAccount onCodeRequested={onCodeRequested} />);
+      await fillValidForm(user);
+
+      await user.press(getButton());
+
+      await waitFor(() => expect(onCodeRequested).toHaveBeenCalledTimes(1));
+      expect(onCodeRequested).toHaveBeenCalledWith({
+        name: VALID_NAME,
+        email: VALID_EMAIL,
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        "http://api.test/auth/email/code",
+      );
+      expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+        email: VALID_EMAIL,
+        locale: "en",
+      });
+      await waitFor(() => expect(getButton()).toBeEnabled());
+    });
+
+    it("treats resend too soon as success", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(429, { errors: ["signInCode.resend.tooSoon"] }),
+      );
+      const user = userEvent.setup();
+      const onCodeRequested = jest.fn();
+      await renderScreen(<CreateAccount onCodeRequested={onCodeRequested} />);
+      await fillValidForm(user);
+
+      await user.press(getButton());
+
+      await waitFor(() => expect(onCodeRequested).toHaveBeenCalledTimes(1));
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+
+    it.each([
+      [
+        "invalid email",
+        () => jsonResponse(422, { errors: ["signInCode.email.invalid"] }),
+        "That email doesn't look right. Check it and try again.",
+      ],
+      [
+        "rate limited",
+        () => jsonResponse(429, { errors: ["request.rate.limited"] }),
+        "Too many attempts. Wait a minute and try again.",
+      ],
+      [
+        "send failed",
+        () => jsonResponse(502, { errors: ["signInCode.email.sendFailed"] }),
+        "We couldn't send the email. Please try again.",
+      ],
+      [
+        "no connection",
+        () => Promise.reject(new TypeError("Network request failed")),
+        "No connection. Check your internet and try again.",
+      ],
+      [
+        "server error",
+        () => jsonResponse(500, { errors: ["INTERNAL_SERVER_ERROR"] }),
+        "Something went wrong. Please try again.",
+      ],
+      [
+        "invalid locale",
+        () => jsonResponse(422, { errors: ["signInCode.locale.invalid"] }),
+        "Something went wrong. Please try again.",
+      ],
+    ])("shows the message for each error (%s)", async (_, answer, message) => {
+      fetchMock.mockImplementation(async () => answer());
+      const user = userEvent.setup();
+      const onCodeRequested = jest.fn();
+      await renderScreen(<CreateAccount onCodeRequested={onCodeRequested} />);
+      await fillValidForm(user);
+
+      await user.press(getButton());
+
+      expect(await screen.findByText(message)).toBeOnTheScreen();
+      expect(onCodeRequested).not.toHaveBeenCalled();
+      await waitFor(() => expect(getButton()).toBeEnabled());
+    });
+
+    it("shows the error message in pt-BR", async () => {
+      await i18n.changeLanguage("pt-BR");
+      fetchMock.mockResolvedValue(
+        jsonResponse(502, { errors: ["signInCode.email.sendFailed"] }),
+      );
+      const user = userEvent.setup();
+      await renderScreen(<CreateAccount />);
+      await user.type(
+        screen.getByPlaceholderText("Nome e sobrenome"),
+        VALID_NAME,
+      );
+      await user.type(
+        screen.getByPlaceholderText("seu@email.com"),
+        VALID_EMAIL,
+      );
+
+      await user.press(screen.getByRole("button", { name: "Receber código" }));
+
+      expect(
+        await screen.findByText(
+          "Não conseguimos enviar o e-mail. Tente de novo.",
+        ),
+      ).toBeOnTheScreen();
+      expect(JSON.parse(fetchMock.mock.calls[0][1].body).locale).toBe("pt-BR");
+    });
+
+    it("ignores presses while sending", async () => {
+      fetchMock.mockReturnValue(new Promise(() => {}));
+      const user = userEvent.setup();
+      await renderScreen(<CreateAccount />);
+      await fillValidForm(user);
+
+      await user.press(getButton());
+      await user.press(getButton());
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("hides the error when a field changes", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(500, { errors: ["INTERNAL_SERVER_ERROR"] }),
+      );
+      const user = userEvent.setup();
+      await renderScreen(<CreateAccount />);
+      await fillValidForm(user);
+      await user.press(getButton());
+      await screen.findByText("Something went wrong. Please try again.");
+
+      await user.type(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), "x");
+
+      expect(
+        screen.queryByText("Something went wrong. Please try again."),
+      ).toBeNull();
+    });
   });
 });

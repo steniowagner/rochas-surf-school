@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Text,
@@ -27,9 +28,10 @@ export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const emailInputRef = useRef<NativeTextInput>(null);
-  const { nameField, emailField, canSubmit, submit } = useCreateAccount({
-    onCodeRequested,
-  });
+  const { nameField, emailField, canSubmit, isSending, errorMessage, submit } =
+    useCreateAccount({
+      onCodeRequested,
+    });
 
   return (
     <KeyboardAvoidingView
@@ -88,20 +90,33 @@ export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
         <View className="flex-1" />
 
         <View className="gap-3.5">
+          {errorMessage ? (
+            <Text
+              accessibilityRole="alert"
+              className="ds-text-list-subtitle text-center text-bad"
+            >
+              {errorMessage}
+            </Text>
+          ) : null}
           <TouchableOpacity
             accessibilityRole="button"
+            accessibilityLabel={t("createAccount.submit")}
             accessibilityState={{ disabled: !canSubmit }}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
-            disabled={!canSubmit}
+            disabled={!canSubmit || isSending}
             onPress={submit}
             className={`min-h-[54px] items-center justify-center rounded-full ${canSubmit ? "bg-sun" : "bg-sand"}`}
             style={canSubmit ? shadowStyle("primary", theme) : null}
           >
-            <Text
-              className={`ds-text-button ${canSubmit ? "text-on-color" : "text-ink-2"}`}
-            >
-              {t("createAccount.submit")}
-            </Text>
+            {isSending ? (
+              <ActivityIndicator color={theme.onColor} />
+            ) : (
+              <Text
+                className={`ds-text-button ${canSubmit ? "text-on-color" : "text-ink-2"}`}
+              >
+                {t("createAccount.submit")}
+              </Text>
+            )}
           </TouchableOpacity>
 
           <Text className="ds-text-list-subtitle mx-2 text-center text-ink-2">

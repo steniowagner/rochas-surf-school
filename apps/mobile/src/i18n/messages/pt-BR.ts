@@ -25,6 +25,13 @@ const messages: Messages = {
     submit: "Receber código",
     nameInvalid: "Informe seu nome e sobrenome.",
     emailInvalid: "Informe um e-mail válido.",
+    errors: {
+      invalidEmail: "Esse e-mail não parece válido. Confira e tente de novo.",
+      tooManyAttempts: "Muitas tentativas. Aguarde um minuto e tente de novo.",
+      sendFailed: "Não conseguimos enviar o e-mail. Tente de novo.",
+      noConnection: "Sem conexão. Verifique sua internet e tente de novo.",
+      generic: "Algo deu errado. Tente de novo.",
+    },
   },
 };
 

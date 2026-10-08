@@ -26,6 +26,15 @@ const messages: Messages = {
     submit: "Recibir código",
     nameInvalid: "Escribe tu nombre y apellido.",
     emailInvalid: "Escribe un correo válido.",
+    errors: {
+      invalidEmail:
+        "Ese correo no parece válido. Revísalo e inténtalo de nuevo.",
+      tooManyAttempts:
+        "Demasiados intentos. Espera un minuto e inténtalo de nuevo.",
+      sendFailed: "No pudimos enviar el correo. Inténtalo de nuevo.",
+      noConnection: "Sin conexión. Revisa tu internet e inténtalo de nuevo.",
+      generic: "Algo salió mal. Inténtalo de nuevo.",
+    },
   },
 };
 

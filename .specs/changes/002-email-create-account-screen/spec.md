@@ -214,7 +214,7 @@ introduces the shared back button, intro block and text input that the next scre
   > files: `apps/mobile/src/app/(private)/auth/create-account.tsx`, `apps/mobile/src/modules/auth/screens/create-account.screen.tsx`, `apps/mobile/src/modules/auth/components/create-account/{create-account.component.tsx,create-account.hook.ts,create-account.types.ts,index.ts,create-account.component.test.tsx}`, `apps/mobile/src/modules/auth/components/auth/{auth.component.tsx,auth.component.test.tsx}`, `apps/mobile/src/modules/auth/components/auth-button/{auth-button.component.tsx,auth-button.types.ts}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`, `apps/mobile/jest.config.js`;
   > verified: `npx jest src/modules/auth` (38 passed); `tsc --noEmit` and `expo lint` (0 errors) in apps/mobile;
   > deviations: small technical step — importing @rochas-surf-school/shared in Jest failed because jest-expo resolves `uuid` to its browser ESM build, so `jest.config.js` maps `uuid` to the CommonJS build.
-- [ ] **T-05** — Add `src/modules/auth/hooks/use-request-sign-in-code.hook.ts`: a `useMutation` that maps the
+- [x] **T-05** — Add `src/modules/auth/hooks/use-request-sign-in-code.hook.ts`: a `useMutation` that maps the
   app language to the backend locale (D-04), posts `{ email, locale }` with `apiPost` and resolves on 202 or on
   `ApiError` 429 `signInCode.resend.tooSoon` (D-06); plus `src/modules/auth/utils/sign-in-code-error.ts`
   mapping an error to a translation key (D-08), with the `createAccount.errors.*` keys in the three locales.
@@ -231,7 +231,10 @@ introduces the shared back button, intro block and text input that the next scre
   error message in pt-BR", "ignores presses while sending" (one `fetch` call for two presses), "re-enables the
   button after an error", "hides the error when a field changes", "submits on done when valid".
   Covers: ER-03 · Done when: `npx jest src/modules/auth src/services/api` passes.
-
+  > ✅ 2026-10-08 14:49 — added useRequestSignInCode (locale mapping, resend-too-soon as success) and getSignInCodeErrorKey, the createAccount.errors.* strings in the three locales, and wired them into the Create account hook/component (spinner and ignored presses while pending, error above the button, hidden on edit, onCodeRequested on success). The button now has an accessibilityLabel so it keeps its name while the spinner shows.
+  > files: `apps/mobile/src/modules/auth/hooks/{use-request-sign-in-code.hook.ts,use-request-sign-in-code.hook.test.tsx}`, `apps/mobile/src/modules/auth/utils/{sign-in-code-error.ts,sign-in-code-error.test.ts}`, `apps/mobile/src/modules/auth/components/create-account/{create-account.hook.ts,create-account.component.tsx,create-account.component.test.tsx}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`;
+  > verified: `npx jest src/modules/auth src/services/api` (71 passed); `tsc --noEmit` and `expo lint` (0 errors) in apps/mobile;
+  > deviations: the hook test file is `.hook.test.tsx` (it renders a provider wrapper); tests use `gcTime: Infinity` so react-query timers don't keep Jest open.
 ### Verification
 
 - [ ] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output

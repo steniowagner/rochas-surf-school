@@ -7,7 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { ReactElement } from "react";
-import { TextInput as NativeTextInput } from "react-native";
+import { Platform, TextInput as NativeTextInput } from "react-native";
 
 import i18n from "@/i18n";
 
@@ -76,6 +76,16 @@ describe("CreateAccount", () => {
       expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
       expect(screen.getByRole("button", { name: cta })).toBeOnTheScreen();
     });
+  });
+
+  it("renders the form on Android, where the keyboard does not add padding", async () => {
+    const original = Platform.OS;
+    Platform.OS = "android";
+
+    await renderScreen(<CreateAccount />);
+
+    expect(getButton()).toBeOnTheScreen();
+    Platform.OS = original;
   });
 
   it("renders the back button, the fields and the terms line", async () => {

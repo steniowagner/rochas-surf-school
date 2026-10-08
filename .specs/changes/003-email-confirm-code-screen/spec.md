@@ -133,13 +133,14 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add the `loading` prop and the disabled look to `Button` in `src/components/ui/button.tsx`
+- [x] **T-01** — Add the `loading` prop and the disabled look to `Button` in `src/components/ui/button.tsx`
   (D-01) and replace Create account's inline CTA in
   `src/modules/auth/components/create-account/create-account.component.tsx` with it. Tests in
   `src/components/ui/button.test.tsx` (variants, disabled look and state, loading shows the spinner and ignores
   presses); the existing Create account tests keep passing.
   Covers: enabling · Done when: `npx jest src/components/ui/button src/modules/auth/components/create-account`
   passes.
+  > ✅ 2026-10-08 — added `loading` and the disabled look to Button and replaced Create account CTA with it (Button now sets accessibilityLabel from its label so it stays findable while loading); files: `apps/mobile/src/components/ui/button.tsx`, `apps/mobile/src/components/ui/button.test.tsx`, `apps/mobile/src/modules/auth/components/create-account/create-account.component.tsx`; verified: `npx jest src/components/ui/button src/modules/auth/components/create-account` (44 passed), tsc and eslint clean; deviations: none
 - [ ] **T-02** — Create `OtpInput` in `src/components/ui/otp-input/` (`otp-input.component.tsx`,
   `otp-input.types.ts`, `index.ts`, and `otp-input.hook.ts` if it holds logic) per D-02, with
   `otp-input.component.test.tsx`: renders six boxes, keeps only digits, fills from a pasted text, cuts to six,

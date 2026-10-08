@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Text,
   TouchableOpacity,
   type TouchableOpacityProps,
@@ -25,10 +26,14 @@ const variantClasses: Record<
   danger: { container: "bg-bad", label: "text-on-color" },
 };
 
+const disabledClasses = { container: "bg-sand", label: "text-ink-2" };
+
 export type ButtonProps = Omit<TouchableOpacityProps, "children"> & {
   variant?: ButtonVariant;
   className?: string;
   children: string;
+  /** Shows a spinner instead of the label and ignores presses. */
+  loading?: boolean;
 };
 
 export function Button({
@@ -36,24 +41,35 @@ export function Button({
   className = "",
   style,
   children,
+  loading = false,
+  disabled = false,
   ...props
 }: ButtonProps) {
   const theme = useTheme();
-  const { container, label } = variantClasses[variant];
+  const { container, label } = disabled
+    ? disabledClasses
+    : variantClasses[variant];
 
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel={children}
+      accessibilityState={{ disabled }}
       activeOpacity={BUTTON_ACTIVE_OPACITY}
       className={`min-h-11 items-center justify-center rounded-control px-[18px] py-[15px] ${container} ${className}`}
       // The elevation token needs the palette's shadow color, so it can't be a static class.
       style={[
-        variant === "primary" ? shadowStyle("primary", theme) : null,
+        variant === "primary" && !disabled ? shadowStyle("primary", theme) : null,
         style,
       ]}
+      disabled={disabled || loading}
       {...props}
     >
-      <Text className={`ds-text-button ${label}`}>{children}</Text>
+      {loading ? (
+        <ActivityIndicator color={theme.onColor} />
+      ) : (
+        <Text className={`ds-text-button ${label}`}>{children}</Text>
+      )}
     </TouchableOpacity>
   );
 }

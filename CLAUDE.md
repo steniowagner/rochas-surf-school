@@ -55,6 +55,7 @@ Never hard-code colors, fonts or radii; use the tokens so light and dark themes 
 - Every design MUST be built from `@rochas-surf-school/design-tokens` (colors, type, radii, spacing, elevation). If a value is missing, add a token to `packages/design-tokens/src/tokens.ts`; never inline a raw value.
 - Style with NativeWind `className`. Use `StyleSheet` or a `style` prop only when a class can't express it: values computed at runtime (safe-area insets, measured sizes), Reanimated styles, elevation (`shadowStyle()`), and props of third-party components that take style objects or colors.
 - Build buttons with `TouchableOpacity` (press feedback through `activeOpacity`, not `active:` classes). This overrides the skill's `ui-pressable` rule for buttons; other pressable elements, such as list rows, keep using `Pressable`. One exception: a link inside a sentence uses `TextButton` (`src/components/ui/text-button`), a nested `Text` with `onPress`, because a touchable can't wrap part of a line of text.
+- Every screen that can go back uses `BackButton` (`src/components/ui/back-button`); never build another back button.
 
 ## Native builds (apps/mobile)
 

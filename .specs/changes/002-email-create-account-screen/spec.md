@@ -161,7 +161,7 @@ introduces the shared back button, intro block and text input that the next scre
   > files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/src/app/_layout.tsx`, `apps/mobile/src/services/api/{api.client.ts,api.errors.ts,index.ts,api.client.test.ts}`;
   > verified: `npx jest src/services/api` (7 passed); `tsc --noEmit` in apps/mobile exits 0;
   > deviations: `npx turbo run check-types --filter=…/mobile` also runs the design-tokens check, which fails on main already (tokens.css out of date, unrelated to this spec), so the mobile type check was run directly with tsc.
-- [ ] **T-02** — Create `src/components/ui/back-button/` (`TouchableOpacity`, 44×44 round, `bg-surface`,
+- [x] **T-02** — Create `src/components/ui/back-button/` (`TouchableOpacity`, 44×44 round, `bg-surface`,
   `border-line`, `Ionicons` `chevron-back` with `useTheme()` color, `accessibilityRole="button"`, label from
   `common.back`; `onPress` defaults to `router.back()`, overridable) and `src/components/ui/screen-intro/`
   (props `icon: ReactNode`, `title: string`, `description: ReactNode`; 64×64 `rounded-card` `bg-sand` tile,
@@ -173,6 +173,10 @@ introduces the shared back button, intro block and text input that the next scre
   `screen-intro.component.test.tsx` — renders the icon, the title as a header and a string description;
   renders a description given as elements (e.g. nested bold `Text`).
   Covers: ER-01 · Done when: `npx jest src/components/ui/back-button src/components/ui/screen-intro` passes.
+  > ✅ 2026-10-08 14:40 — created BackButton and ScreenIntro with tests, added common.back in the three locales and the BackButton rule to CLAUDE.md.
+  > files: `apps/mobile/src/components/ui/back-button/{back-button.component.tsx,back-button.types.ts,index.ts,back-button.component.test.tsx}`, `apps/mobile/src/components/ui/screen-intro/{screen-intro.component.tsx,screen-intro.types.ts,index.ts,screen-intro.component.test.tsx}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`, `CLAUDE.md`;
+  > verified: `npx jest src/components/ui/back-button src/components/ui/screen-intro` (7 passed); `tsc --noEmit` exits 0;
+  > deviations: none
 - [ ] **T-03** — Create `src/components/ui/text-input/` (`text-input.component.tsx`, `.types.ts`, `index.ts`):
   a 52px-high row with `rounded-control`, 1.5px border, `bg-input`, a leading icon (`useTheme()` color
   `ink-2`), a React Native `TextInput` in `text-ink` body font, and an optional error message below it in

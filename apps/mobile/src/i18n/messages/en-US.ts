@@ -7,6 +7,7 @@ const messages = {
   },
   common: {
     close: "Close",
+    back: "Back",
   },
   auth: {
     continueWithApple: "Continue with Apple",

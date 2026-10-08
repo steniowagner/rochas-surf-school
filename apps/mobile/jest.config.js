@@ -19,6 +19,10 @@ module.exports = {
   },
   // Same aliases as tsconfig.json ("@/assets/*" must come before "@/*").
   moduleNameMapper: {
+    // jest-expo resolves uuid (used by @rochas-surf-school/shared) to its browser ESM build, which Jest can't parse.
+    "^uuid$": require.resolve("uuid", {
+      paths: [require.resolve("@rochas-surf-school/shared")],
+    }),
     "^@/assets/(.*)$": "<rootDir>/assets/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
   },

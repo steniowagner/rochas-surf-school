@@ -17,6 +17,15 @@ const messages: Messages = {
     terms:
       "Ao continuar, você aceita nossos <terms>Termos de Uso</terms> e a <privacy>Política de Privacidade</privacy>.",
   },
+  createAccount: {
+    title: "Criar conta",
+    subtitle: "Informe seu nome e e-mail. Enviaremos um código para confirmar.",
+    namePlaceholder: "Nome e sobrenome",
+    emailPlaceholder: "seu@email.com",
+    submit: "Receber código",
+    nameInvalid: "Informe seu nome e sobrenome.",
+    emailInvalid: "Informe um e-mail válido.",
+  },
 };
 
 export default messages;

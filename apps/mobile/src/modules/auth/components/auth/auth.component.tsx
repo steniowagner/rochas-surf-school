@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
@@ -141,6 +142,7 @@ export function AuthComponent({
         <AuthButton
           variant="primary"
           label={t("auth.continueWithEmail")}
+          onPress={() => router.push("/auth/create-account")}
           icon={
             <Ionicons name="mail-outline" size={20} color={palette.onColor} />
           }

@@ -190,7 +190,7 @@ introduces the shared back button, intro block and text input that the next scre
   > files: `apps/mobile/src/components/ui/text-input/{text-input.component.tsx,text-input.types.ts,index.ts,text-input.component.test.tsx}`;
   > verified: `npx jest src/components/ui/text-input` (9 passed); `tsc --noEmit` exits 0;
   > deviations: none
-- [ ] **T-04** — Build the screen: route `src/app/(private)/auth/create-account.tsx` →
+- [x] **T-04** — Build the screen: route `src/app/(private)/auth/create-account.tsx` →
   `src/modules/auth/screens/create-account.screen.tsx` → `src/modules/auth/components/create-account/`
   (`create-account.component.tsx`, `create-account.hook.ts`, `create-account.types.ts`, `index.ts`). The
   component: `BackButton`, `ScreenIntro` (`Ionicons` `person-add-outline` in `grape`), name `TextInput`
@@ -210,6 +210,10 @@ introduces the shared back button, intro block and text input that the next scre
   it when the value becomes valid", for name and email; "does not show an error for an empty field on blur";
   "focuses the email field on next"; "does not submit on done when invalid".
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/auth` passes.
+  > ✅ 2026-10-08 14:44 — built the Create account route, screen, component and hook (shared-rule validation via Validator, field status/error on blur, next/done keyboard handling), createAccount.* strings in the three locales, AuthButton onPress and the Continue with email navigation. Until T-05 the button and keyboard "done" call onCodeRequested directly.
+  > files: `apps/mobile/src/app/(private)/auth/create-account.tsx`, `apps/mobile/src/modules/auth/screens/create-account.screen.tsx`, `apps/mobile/src/modules/auth/components/create-account/{create-account.component.tsx,create-account.hook.ts,create-account.types.ts,index.ts,create-account.component.test.tsx}`, `apps/mobile/src/modules/auth/components/auth/{auth.component.tsx,auth.component.test.tsx}`, `apps/mobile/src/modules/auth/components/auth-button/{auth-button.component.tsx,auth-button.types.ts}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`, `apps/mobile/jest.config.js`;
+  > verified: `npx jest src/modules/auth` (38 passed); `tsc --noEmit` and `expo lint` (0 errors) in apps/mobile;
+  > deviations: small technical step — importing @rochas-surf-school/shared in Jest failed because jest-expo resolves `uuid` to its browser ESM build, so `jest.config.js` maps `uuid` to the CommonJS build.
 - [ ] **T-05** — Add `src/modules/auth/hooks/use-request-sign-in-code.hook.ts`: a `useMutation` that maps the
   app language to the backend locale (D-04), posts `{ email, locale }` with `apiPost` and resolves on 202 or on
   `ApiError` 429 `signInCode.resend.tooSoon` (D-06); plus `src/modules/auth/utils/sign-in-code-error.ts`

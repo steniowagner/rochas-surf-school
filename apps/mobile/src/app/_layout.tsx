@@ -1,4 +1,5 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -14,6 +15,10 @@ import { themeVariables } from "@/constants/theme-variables";
 import "@/i18n";
 
 SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient({
+  defaultOptions: { mutations: { retry: false } },
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -38,10 +43,12 @@ export default function RootLayout() {
       {/* Sets the --ds-* variables behind the NativeWind color utilities for the OS color scheme. */}
       <View className="flex-1" style={themeVariables[scheme]}>
         <BottomSheetModalProvider>
-          <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
-            <StatusBar style="auto" />
-            <Stack screenOptions={{ headerShown: false }} />
-          </ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
+              <StatusBar style="auto" />
+              <Stack screenOptions={{ headerShown: false }} />
+            </ThemeProvider>
+          </QueryClientProvider>
         </BottomSheetModalProvider>
       </View>
     </GestureHandlerRootView>

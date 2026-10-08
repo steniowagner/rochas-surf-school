@@ -146,7 +146,7 @@ introduces the shared back button, intro block and text input that the next scre
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add `@tanstack/react-query` (`npx expo install`) and wrap the root Stack in
+- [x] **T-01** — Add `@tanstack/react-query` (`npx expo install`) and wrap the root Stack in
   `QueryClientProvider` in `src/app/_layout.tsx` (one `QueryClient`, mutations without retry). Create
   `src/services/api/` (`api.client.ts`, `api.errors.ts`, `index.ts`): `apiPost<T>(path, body)` builds the URL
   from `process.env.EXPO_PUBLIC_API_URL`, sends JSON, returns the parsed body on 2xx, throws
@@ -157,6 +157,10 @@ introduces the shared back button, intro block and text input that the next scre
   a 500 whose body isn't JSON; throws `NetworkError` when `fetch` rejects.
   Covers: enabling · Done when: `npx jest src/services/api` passes and `npx turbo run check-types
   --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-08 14:40 — added @tanstack/react-query (expo install), QueryClientProvider (mutations retry false) in the root layout, and the API client with ApiError/NetworkError.
+  > files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/src/app/_layout.tsx`, `apps/mobile/src/services/api/{api.client.ts,api.errors.ts,index.ts,api.client.test.ts}`;
+  > verified: `npx jest src/services/api` (7 passed); `tsc --noEmit` in apps/mobile exits 0;
+  > deviations: `npx turbo run check-types --filter=…/mobile` also runs the design-tokens check, which fails on main already (tokens.css out of date, unrelated to this spec), so the mobile type check was run directly with tsc.
 - [ ] **T-02** — Create `src/components/ui/back-button/` (`TouchableOpacity`, 44×44 round, `bg-surface`,
   `border-line`, `Ionicons` `chevron-back` with `useTheme()` color, `accessibilityRole="button"`, label from
   `common.back`; `onPress` defaults to `router.back()`, overridable) and `src/components/ui/screen-intro/`

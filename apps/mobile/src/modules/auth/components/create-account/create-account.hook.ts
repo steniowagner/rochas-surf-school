@@ -44,15 +44,7 @@ const getStatus = (
   isValidValue: boolean,
   isTouched: boolean,
 ): TextInputStatus => {
-  if (value === "") {
-    return "neutral";
-  }
-
-  if (isValidValue) {
-    return "valid";
-  }
-
-  return isTouched ? "error" : "neutral";
+  return value !== "" && !isValidValue && isTouched ? "error" : "neutral";
 };
 
 export const useCreateAccount = ({

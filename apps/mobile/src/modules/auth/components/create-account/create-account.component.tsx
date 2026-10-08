@@ -87,7 +87,7 @@ export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
           </View>
         </View>
 
-        <View className="flex-1" />
+        <View className="min-h-6 flex-1" />
 
         <View className="gap-3.5">
           {errorMessage ? (

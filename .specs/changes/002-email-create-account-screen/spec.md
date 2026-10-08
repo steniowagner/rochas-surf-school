@@ -276,4 +276,10 @@ introduces the shared back button, intro block and text input that the next scre
 
 ## Amendments
 
+- 2026-10-08 — ER-02 edge cases and T-03: before, "while typing, a valid field shows a `lagoon` border and an
+  untouched or empty one the `input-line` border" and `TextInput` had `status: "neutral" | "valid" | "error"`;
+  after, a valid field keeps the `input-line` border and `status` is `"neutral" | "error"`. Reason: the user asked
+  to remove the border color once a field is filled in correctly. Also: the spacer above "Get code" has a 24px
+  minimum, so the button no longer touches the fields when the keyboard is open (user feedback on the simulator).
+
 ## Review

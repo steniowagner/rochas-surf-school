@@ -40,11 +40,6 @@ describe("TextInput", () => {
     expect(screen.queryByText("Bad value")).toBeNull();
 
     await rerender(
-      <TextInput icon={icon} status="valid" errorMessage="Bad value" />,
-    );
-    expect(screen.queryByText("Bad value")).toBeNull();
-
-    await rerender(
       <TextInput icon={icon} status="error" errorMessage="Bad value" />,
     );
     expect(screen.getByText("Bad value")).toBeOnTheScreen();
@@ -53,7 +48,6 @@ describe("TextInput", () => {
   it.each([
     [undefined, "border-input-line"],
     ["neutral", "border-input-line"],
-    ["valid", "border-lagoon"],
     ["error", "border-bad"],
   ] as const)(
     "applies the border of status %s",

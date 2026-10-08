@@ -6,7 +6,6 @@ import { TextInputComponentProps, TextInputStatus } from "./text-input.types";
 
 const borderClasses: Record<TextInputStatus, string> = {
   neutral: "border-input-line",
-  valid: "border-lagoon",
   error: "border-bad",
 };
 

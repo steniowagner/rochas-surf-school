@@ -32,6 +32,9 @@ const WORDMARK = [
 
 const TEAM_PHOTO = require("@/assets/images/team-hero.jpg");
 
+// Google's multicolor "G": its colors are the brand's, so they don't come from the design tokens.
+const GOOGLE_LOGO = require("@/assets/images/google-logo.svg");
+
 // The photo is shown in grayscale, tinted grape, and fades to grape at the bottom so the buttons stay legible.
 const PHOTO_FILTER = [{ grayscale: 1 }, { contrast: 1.1 }];
 const GRAPE_FADE = `linear-gradient(to bottom, ${palette.grape}00 45%, ${palette.grape}E6 100%)`;
@@ -127,7 +130,13 @@ export function AuthComponent({
         <AuthButton
           variant="light"
           label={t("auth.continueWithGoogle")}
-          icon={<Ionicons name="logo-google" size={18} color={palette.ink} />}
+          icon={
+            <Image
+              source={GOOGLE_LOGO}
+              contentFit="contain"
+              style={{ width: 18, height: 18 }}
+            />
+          }
         />
         <AuthButton
           variant="primary"

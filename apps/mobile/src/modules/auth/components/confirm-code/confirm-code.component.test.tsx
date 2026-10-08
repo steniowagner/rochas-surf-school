@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react-native";
 import { router } from "expo-router";
 import { ReactElement } from "react";
-import { TextInput as NativeTextInput } from "react-native";
+import { Platform, TextInput as NativeTextInput } from "react-native";
 
 import i18n from "@/i18n";
 import { AlertMessageProvider } from "@/providers/alert-message";
@@ -159,7 +159,31 @@ describe("ConfirmCode", () => {
     expect(router.back).toHaveBeenCalledTimes(2);
   });
 
+  it("renders on Android, where the keyboard does not add padding", async () => {
+    const original = Platform.OS;
+    Platform.OS = "android";
+
+    await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+    expect(getConfirm()).toBeOnTheScreen();
+    Platform.OS = original;
+  });
+
   describe("confirming", () => {
+    it("sends the code again when Confirm is pressed after a failure", async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse(500, { errors: ["INTERNAL_SERVER_ERROR"] }),
+      );
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      await fireEvent.changeText(getInput(), CODE);
+      await waitFor(() => expect(getInput().props.editable).toBe(true));
+
+      await user.press(getConfirm());
+
+      await waitFor(() => expect(verifyCalls()).toHaveLength(2));
+    });
+
     it("sends the code to verify when the sixth digit is entered", async () => {
       const onVerified = jest.fn();
       await renderScreen(

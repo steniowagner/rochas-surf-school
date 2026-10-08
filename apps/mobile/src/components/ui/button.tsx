@@ -1,52 +1,59 @@
-import { Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
+import {
+  Text,
+  TouchableOpacity,
+  type TouchableOpacityProps,
+} from "react-native";
 
-import { radii, shadowStyle, textStyle, touchTarget, type ThemeColor } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { shadowStyle } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
-export type ButtonVariant = 'primary' | 'dark' | 'outline' | 'subtle' | 'danger';
+/** Press feedback for every button in the app (they are built with TouchableOpacity). */
+export const BUTTON_ACTIVE_OPACITY = 0.7;
 
-const variantColors: Record<ButtonVariant, { background?: ThemeColor; border?: ThemeColor; text: ThemeColor }> = {
-  primary: { background: 'sun', text: 'onColor' },
-  dark: { background: 'grape', text: 'onColor' },
-  outline: { border: 'inputLine', text: 'ink' },
-  subtle: { background: 'dim', text: 'ink2' },
-  danger: { background: 'bad', text: 'onColor' },
+export type ButtonVariant =
+  "primary" | "dark" | "outline" | "subtle" | "danger";
+
+// Same classes as the web Button (apps/web/src/components/ui/button.tsx), minus hover states.
+const variantClasses: Record<
+  ButtonVariant,
+  { container: string; label: string }
+> = {
+  primary: { container: "bg-sun", label: "text-on-color" },
+  dark: { container: "bg-grape", label: "text-on-color" },
+  outline: { container: "border border-input-line", label: "text-ink" },
+  subtle: { container: "bg-dim", label: "text-ink-2" },
+  danger: { container: "bg-bad", label: "text-on-color" },
 };
 
-export type ButtonProps = Omit<PressableProps, 'children'> & {
+export type ButtonProps = Omit<TouchableOpacityProps, "children"> & {
   variant?: ButtonVariant;
+  className?: string;
   children: string;
 };
 
-export function Button({ variant = 'primary', children, style, ...props }: ButtonProps) {
+export function Button({
+  variant = "primary",
+  className = "",
+  style,
+  children,
+  ...props
+}: ButtonProps) {
   const theme = useTheme();
-  const { background, border, text } = variantColors[variant];
+  const { container, label } = variantClasses[variant];
 
   return (
-    <Pressable
+    <TouchableOpacity
       accessibilityRole="button"
-      style={(state) => [
-        styles.button,
-        background && {
-          backgroundColor: variant === 'primary' && state.pressed ? theme.sun2 : theme[background],
-        },
-        border && { borderWidth: 1, borderColor: theme[border] },
-        variant === 'primary' && shadowStyle('primary', theme),
-        typeof style === 'function' ? style(state) : style,
+      activeOpacity={BUTTON_ACTIVE_OPACITY}
+      className={`min-h-11 items-center justify-center rounded-control px-[18px] py-[15px] ${container} ${className}`}
+      // The elevation token needs the palette's shadow color, so it can't be a static class.
+      style={[
+        variant === "primary" ? shadowStyle("primary", theme) : null,
+        style,
       ]}
-      {...props}>
-      <Text style={[textStyle('button'), { color: theme[text] }]}>{children}</Text>
-    </Pressable>
+      {...props}
+    >
+      <Text className={`ds-text-button ${label}`}>{children}</Text>
+    </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    minHeight: touchTarget,
-    paddingVertical: 15,
-    paddingHorizontal: 18,
-    borderRadius: radii.control,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

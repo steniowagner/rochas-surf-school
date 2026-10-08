@@ -19,6 +19,9 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
   const insets = useSafeAreaInsets();
   const {
     code,
+    isCountingDown,
+    countdown,
+    resend,
     errorMessage,
     isVerifying,
     inputRef,
@@ -91,6 +94,16 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
           >
             {t("confirmCode.submit")}
           </Button>
+
+          <Text className="ds-text-list-subtitle text-center text-ink-2">
+            {isCountingDown ? (
+              t("confirmCode.resendIn", { time: countdown })
+            ) : (
+              <TextButton onPress={resend}>
+                {t("confirmCode.resend")}
+              </TextButton>
+            )}
+          </Text>
 
           <View className="flex-row items-start gap-2.5 rounded-card border border-line bg-dim p-3.5">
             <Ionicons

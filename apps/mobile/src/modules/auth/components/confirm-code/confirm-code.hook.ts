@@ -5,11 +5,17 @@ import { TextInput } from "react-native";
 
 import { useAlertMessage } from "@/providers/alert-message";
 
+import { useRequestSignInCode } from "../../hooks/use-request-sign-in-code.hook";
 import { useVerifySignInCode } from "../../hooks/use-verify-sign-in-code.hook";
+import { getSignInCodeErrorKey } from "../../utils/sign-in-code-error";
 import { getVerifyCodeError } from "../../utils/verify-code-error";
 import { UseConfirmCodeProps } from "./confirm-code.types";
 
 export const CODE_LENGTH = 6;
+export const RESEND_COOLDOWN_MS = 30_000;
+
+const formatCountdown = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
 export const useConfirmCode = ({
   email,
@@ -23,6 +29,12 @@ export const useConfirmCode = ({
   const [code, setCode] = useState("");
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
+  const requestCode = useRequestSignInCode();
+  const [resendAvailableAt, setResendAvailableAt] = useState(
+    () => Date.now() + RESEND_COOLDOWN_MS,
+  );
+  const [now, setNow] = useState(() => Date.now());
+
   const isVerifying = verifyCode.isPending;
 
   // The input is not editable while the request runs, so it gets the focus back afterwards.
@@ -31,6 +43,23 @@ export const useConfirmCode = ({
       inputRef.current?.focus();
     }
   }, [errorKey, isVerifying]);
+
+  // The countdown comes from timestamps, so it stays right after the app was in the background.
+  const secondsToResend = Math.max(
+    0,
+    Math.ceil((resendAvailableAt - now) / 1000),
+  );
+  const isCountingDown = secondsToResend > 0;
+
+  useEffect(() => {
+    if (!isCountingDown) {
+      return;
+    }
+
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+
+    return () => clearInterval(interval);
+  }, [isCountingDown, resendAvailableAt]);
 
   const verify = (codeToVerify: string) => {
     if (codeToVerify.length !== CODE_LENGTH || verifyCode.isPending) {
@@ -63,8 +92,30 @@ export const useConfirmCode = ({
     verify(value);
   };
 
+  const resend = () => {
+    if (isCountingDown || requestCode.isPending) {
+      return;
+    }
+
+    requestCode.mutate(
+      { email },
+      {
+        onSuccess: () => {
+          setCode("");
+          setErrorKey(null);
+          setNow(Date.now());
+          setResendAvailableAt(Date.now() + RESEND_COOLDOWN_MS);
+        },
+        onError: (error) => alertMessage.show(t(getSignInCodeErrorKey(error))),
+      },
+    );
+  };
+
   return {
     code,
+    isCountingDown,
+    countdown: formatCountdown(secondsToResend),
+    resend,
     errorMessage: errorKey ? t(errorKey) : null,
     isVerifying,
     inputRef,

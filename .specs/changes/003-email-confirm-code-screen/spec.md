@@ -162,9 +162,10 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   change the email) and ER-02 (every case).
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/auth/components/confirm-code` passes.
   > ✅ 2026-10-08 — built ConfirmCode (component, hook, types, index, test) with auto-submit, inline/toast errors and the confirmCode.* strings in the three locales; OtpInput gained an optional `inputRef` so the screen can refocus it after a wrong code; files: `apps/mobile/src/modules/auth/components/confirm-code/{index.ts,confirm-code.component.tsx,confirm-code.hook.ts,confirm-code.types.ts,confirm-code.component.test.tsx}`, `apps/mobile/src/components/ui/otp-input/{otp-input.component.tsx,otp-input.hook.ts,otp-input.types.ts}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/auth/components/confirm-code` (21 passed), tsc and eslint clean; deviations: `onVerified` is optional (D-03: the route passes none); OtpInput `inputRef` prop added
-- [ ] **T-05** — Add the resend countdown and link to `ConfirmCode` (D-06, D-07), with the ER-03 tests (named
+- [x] **T-05** — Add the resend countdown and link to `ConfirmCode` (D-06, D-07), with the ER-03 tests (named
   with "resend") in `confirm-code.component.test.tsx` using fake timers.
   Covers: ER-03 · Done when: `npx jest src/modules/auth/components/confirm-code -t "resend"` passes.
+  > ✅ 2026-10-08 — added the timestamp-based resend countdown and the Resend code link to ConfirmCode; files: `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.hook.ts`, `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.component.tsx`, `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.component.test.tsx`; verified: `npx jest src/modules/auth/components/confirm-code -t "resend"` (resend tests passed; whole file 30 passed), tsc and eslint clean; deviations: none
 - [ ] **T-06** — Add the route `src/app/(private)/auth/confirm-code.tsx` and
   `src/modules/auth/screens/confirm-code.screen.tsx` (reads `email` and `name` with `useLocalSearchParams`,
   renders `ConfirmCode`), and make `create-account.screen.tsx` pass `onCodeRequested` that pushes the route with

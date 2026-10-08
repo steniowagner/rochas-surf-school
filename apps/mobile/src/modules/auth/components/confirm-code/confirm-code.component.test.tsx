@@ -334,4 +334,143 @@ describe("ConfirmCode", () => {
       ).toBeOnTheScreen();
     });
   });
+
+  describe("resend", () => {
+    const COUNTDOWN = "Resend code in 0:30";
+
+    const advance = (ms: number) =>
+      act(async () => {
+        jest.advanceTimersByTime(ms);
+      });
+
+    const codeCalls = () =>
+      fetchMock.mock.calls.filter(
+        ([url]) => url === "http://api.test/auth/email/code",
+      );
+
+    beforeEach(() => {
+      jest.setSystemTime(new Date("2026-10-08T12:00:00Z"));
+      fetchMock.mockImplementation(async (url: string) =>
+        jsonResponse(url.endsWith("/code") ? 202 : 200, {}),
+      );
+    });
+
+    it("counts down to resend", async () => {
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      expect(screen.getByText(COUNTDOWN)).toBeOnTheScreen();
+
+      await advance(1000);
+      expect(screen.getByText("Resend code in 0:29")).toBeOnTheScreen();
+
+      await advance(28000);
+      expect(screen.getByText("Resend code in 0:01")).toBeOnTheScreen();
+      expect(screen.queryByRole("link", { name: "Resend code" })).toBeNull();
+
+      await advance(1000);
+      expect(
+        screen.getByRole("link", { name: "Resend code" }),
+      ).toBeOnTheScreen();
+    });
+
+    it("shows the link after a long jump of the clock", async () => {
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+      await advance(45000);
+
+      expect(
+        screen.getByRole("link", { name: "Resend code" }),
+      ).toBeOnTheScreen();
+    });
+
+    it("resends the code and restarts the countdown", async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      fetchMock.mockImplementation(async (url: string) =>
+        url.endsWith("/code")
+          ? jsonResponse(202, {})
+          : jsonResponse(401, { errors: ["signInCode.code.invalid"] }),
+      );
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      await fireEvent.changeText(getInput(), CODE);
+      await screen.findByText("Wrong code. Try again.");
+      await advance(30000);
+
+      await user.press(screen.getByRole("link", { name: "Resend code" }));
+
+      await waitFor(() =>
+        expect(screen.getByText(COUNTDOWN)).toBeOnTheScreen(),
+      );
+      expect(codeCalls()).toHaveLength(1);
+      expect(JSON.parse(codeCalls()[0][1].body)).toEqual({
+        email: EMAIL,
+        locale: "en",
+      });
+      expect(getInput().props.value).toBe("");
+      expect(screen.queryByText("Wrong code. Try again.")).toBeNull();
+    });
+
+    it("treats resend too soon as success", async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      fetchMock.mockResolvedValue(
+        jsonResponse(429, { errors: ["signInCode.resend.tooSoon"] }),
+      );
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      await advance(30000);
+
+      await user.press(screen.getByRole("link", { name: "Resend code" }));
+
+      await waitFor(() =>
+        expect(screen.getByText(COUNTDOWN)).toBeOnTheScreen(),
+      );
+    });
+
+    it("sends nothing while the countdown runs or a resend is in flight", async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      fetchMock.mockReturnValue(new Promise(() => {}));
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      await advance(30000);
+      const link = screen.getByRole("link", { name: "Resend code" });
+
+      await user.press(link);
+      await user.press(link);
+
+      expect(codeCalls()).toHaveLength(1);
+    });
+
+    it.each([
+      [
+        "rate limited",
+        () => jsonResponse(429, { errors: ["request.rate.limited"] }),
+        "Too many attempts. Wait a minute and try again.",
+      ],
+      [
+        "send failed",
+        () => jsonResponse(502, { errors: ["signInCode.email.sendFailed"] }),
+        "We couldn't send the email. Please try again.",
+      ],
+      [
+        "no connection",
+        () => Promise.reject(new TypeError("Network request failed")),
+        "No connection. Check your internet and try again.",
+      ],
+      [
+        "server error",
+        () => jsonResponse(500, { errors: ["INTERNAL_SERVER_ERROR"] }),
+        "Something went wrong. Please try again.",
+      ],
+    ])("shows the toast when resend fails (%s)", async (_, answer, message) => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      fetchMock.mockImplementation(async () => answer());
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      await advance(30000);
+
+      await user.press(screen.getByRole("link", { name: "Resend code" }));
+
+      expect(
+        await screen.findByText(message, { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByRole("link", { name: "Resend code" }),
+      ).toBeOnTheScreen();
+    });
+  });
 });

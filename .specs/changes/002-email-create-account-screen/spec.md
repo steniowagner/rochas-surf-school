@@ -3,7 +3,7 @@ id: "002"
 slug: email-create-account-screen
 title: Create account screen (request an email sign-in code)
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-08
 started: 2026-10-08
 base_commit: 1ec9dad
@@ -297,3 +297,35 @@ introduces the shared back button, intro block and text input that the next scre
   was regenerated, which also fixes its stale state on `main`. This affects the web buttons too.
 
 ## Review
+
+### Round 1 — 2026-10-08 — changes-requested
+
+**Checks**
+
+- lint ✅ (0 errors; 1 existing warning in `bottom-modal.tsx`) · type check ✅ · design-tokens check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`)
+- related tests ✅ 96 passed, 12 suites (apps/mobile); design-tokens and web have no test runner
+- coverage of the changed lines ✅ `COVERAGE OK`, no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` — no suite applies (mobile only)
+- iOS simulator (iPhone 18 Pro, dark theme, Español, local backend): Continue with email opens Crear cuenta, all text in Spanish, dark palette; "Ana" + blur → "Escribe tu nombre y apellido." and `bad` border, cleared once the name is valid; valid pair → sun button; tap → spinner, keyboard closes, a code row is created for the address, no toast; second tap within 30 s → no new code, no toast; with the throttler exhausted → toast "Demasiados intentos…" at the top that fades out by itself; back button → sign-in screen.
+
+**Expected Results**
+
+- ER-01 ✅ — tests pass; seen on the simulator in es-ES and dark theme; back button returns to sign-in.
+- ER-02 ✅ — every disabled/enabled case is tested; blur error, next and done tested and seen on the simulator. (See F-01 for the amended spacer.)
+- ER-03 ❌ — behavior holds on the simulator and in the tests, but the spinner is not asserted by any test (F-02).
+
+**Findings**
+
+- [ ] **F-01** (ER-02) — the spacer above "Get code" has an 8px minimum (`min-h-2` in `create-account.component.tsx:90`), but the first amendment fixes it at 24px so the button doesn't touch the fields with the keyboard open. Commit 0e66f7a changed `min-h-6` to `min-h-2` without an amendment. Reproduce: open Create account, focus a field — the gap between the email field and the button is ~8pt. Expected: `min-h-6` (24px), or an amendment recording the new value.
+- [ ] **F-02** (tests) — ER-03 says "while it runs, the button shows a spinner", and no test checks it: "ignores presses while sending" only counts `fetch` calls. Expected: in `create-account.component.test.tsx`, with a pending `fetch`, assert the `ActivityIndicator` is shown and the "Get code" label is gone (and that the label returns after the answer).
+- [ ] **F-03** (convention) — `toast.hook.ts:17` declares `type UseToastProps`; `.claude/rules/react.md` §1 puts every type of a component and its hook in `<name>.types.ts`. Expected: move it to `toast.types.ts`.
+- [ ] **F-04** (convention) — `create-account.types.ts:24` exports `KeyboardReturnKey`, which nothing uses (dead code). Expected: remove it (and the then-unused `TextInputProps` import).
+
+**Notes**
+
+- ER-03's text still says the error is "shown above the button" and that "editing either field hides the message"; the second amendment replaces both with the auto-hiding toast. Consider updating the ER text so it reads as built.
+- The `es` locale in the request body was not observed in the backend log (the backend was started outside this session); the component and hook tests cover the mapping for all three languages.
+- `AlertMessageProvider` uses `useCallback`/`useMemo` although the React Compiler is on (react.md §4); harmless, could be dropped.
+- Side margins use `px-[22px]`/`left-[22px]` like the existing Auth screen, while the tokens have `spacing.screen` = 20. Worth aligning in a later spec.
+- The toast overlaps the back button while visible (`pointerEvents="none"`, so the button still works).
+- The review ran in a fresh session (not the executor's).

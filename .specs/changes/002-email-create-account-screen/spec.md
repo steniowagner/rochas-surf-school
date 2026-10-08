@@ -3,7 +3,7 @@ id: "002"
 slug: email-create-account-screen
 title: Create account screen (request an email sign-in code)
 template: quick
-status: changes-requested
+status: in-progress
 created: 2026-10-08
 started: 2026-10-08
 base_commit: 1ec9dad
@@ -316,7 +316,11 @@ introduces the shared back button, intro block and text input that the next scre
 
 **Findings**
 
-- [ ] **F-01** (ER-02) — the spacer above "Get code" has an 8px minimum (`min-h-2` in `create-account.component.tsx:90`), but the first amendment fixes it at 24px so the button doesn't touch the fields with the keyboard open. Commit 0e66f7a changed `min-h-6` to `min-h-2` without an amendment. Reproduce: open Create account, focus a field — the gap between the email field and the button is ~8pt. Expected: `min-h-6` (24px), or an amendment recording the new value.
+- [x] **F-01** (ER-02) — the spacer above "Get code" has an 8px minimum (`min-h-2` in `create-account.component.tsx:90`), but the first amendment fixes it at 24px so the button doesn't touch the fields with the keyboard open. Commit 0e66f7a changed `min-h-6` to `min-h-2` without an amendment. Reproduce: open Create account, focus a field — the gap between the email field and the button is ~8pt. Expected: `min-h-6` (24px), or an amendment recording the new value.
+  > ✅ 2026-10-08 16:19 — restored the spacer's 24px minimum (`min-h-6`), as the first amendment says.
+  > files: `apps/mobile/src/modules/auth/components/create-account/create-account.component.tsx`;
+  > verified: iOS simulator (light, Español), email field focused: the gap between the email field and "Recibir código" is ~24pt (was ~8pt); `npx jest src/modules/auth/components/create-account` passes;
+  > deviations: none
 - [ ] **F-02** (tests) — ER-03 says "while it runs, the button shows a spinner", and no test checks it: "ignores presses while sending" only counts `fetch` calls. Expected: in `create-account.component.test.tsx`, with a pending `fetch`, assert the `ActivityIndicator` is shown and the "Get code" label is gone (and that the label returns after the answer).
 - [ ] **F-03** (convention) — `toast.hook.ts:17` declares `type UseToastProps`; `.claude/rules/react.md` §1 puts every type of a component and its hook in `<name>.types.ts`. Expected: move it to `toast.types.ts`.
 - [ ] **F-04** (convention) — `create-account.types.ts:24` exports `KeyboardReturnKey`, which nothing uses (dead code). Expected: remove it (and the then-unused `TextInputProps` import).

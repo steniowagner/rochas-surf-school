@@ -331,7 +331,11 @@ introduces the shared back button, intro block and text input that the next scre
   > files: `apps/mobile/src/components/ui/toast/{toast.hook.ts,toast.types.ts}`;
   > verified: `npx jest src/components/ui/toast src/providers` (7 passed); `tsc --noEmit` exits 0;
   > deviations: none
-- [ ] **F-04** (convention) — `create-account.types.ts:24` exports `KeyboardReturnKey`, which nothing uses (dead code). Expected: remove it (and the then-unused `TextInputProps` import).
+- [x] **F-04** (convention) — `create-account.types.ts:24` exports `KeyboardReturnKey`, which nothing uses (dead code). Expected: remove it (and the then-unused `TextInputProps` import).
+  > ✅ 2026-10-08 16:31 — removed the unused `KeyboardReturnKey` type and its `TextInputProps` import.
+  > files: `apps/mobile/src/modules/auth/components/create-account/create-account.types.ts`;
+  > verified: `npx jest src/modules/auth` (68 passed); `tsc --noEmit` exits 0;
+  > deviations: none
 
 **Notes**
 

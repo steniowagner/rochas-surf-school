@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TextInputStatus } from "@/components/ui/text-input/text-input.types";
+import { useAlertMessage } from "@/providers/alert-message";
 
 import { useRequestSignInCode } from "../../hooks/use-request-sign-in-code.hook";
 import { getSignInCodeErrorKey } from "../../utils/sign-in-code-error";
@@ -56,6 +57,7 @@ export const useCreateAccount = ({
   const [isNameTouched, setIsNameTouched] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
 
+  const alertMessage = useAlertMessage();
   const requestCode = useRequestSignInCode();
 
   const trimmedName = name.trim();
@@ -68,10 +70,7 @@ export const useCreateAccount = ({
     value: name,
     status: getStatus(trimmedName, isNameValid, isNameTouched),
     errorMessage: t("createAccount.nameInvalid"),
-    onChangeText: (value) => {
-      requestCode.reset();
-      setName(value);
-    },
+    onChangeText: setName,
     onBlur: () => setIsNameTouched(true),
   };
 
@@ -79,10 +78,7 @@ export const useCreateAccount = ({
     value: email,
     status: getStatus(trimmedEmail, isEmailValid, isEmailTouched),
     errorMessage: t("createAccount.emailInvalid"),
-    onChangeText: (value) => {
-      requestCode.reset();
-      setEmail(value);
-    },
+    onChangeText: setEmail,
     onBlur: () => setIsEmailTouched(true),
   };
 
@@ -96,20 +92,16 @@ export const useCreateAccount = ({
       {
         onSuccess: () =>
           onCodeRequested?.({ name: trimmedName, email: trimmedEmail }),
+        onError: (error) => alertMessage.show(t(getSignInCodeErrorKey(error))),
       },
     );
   };
-
-  const errorMessage = requestCode.isError
-    ? t(getSignInCodeErrorKey(requestCode.error))
-    : undefined;
 
   return {
     nameField,
     emailField,
     canSubmit,
     isSending: requestCode.isPending,
-    errorMessage,
     submit,
   };
 };

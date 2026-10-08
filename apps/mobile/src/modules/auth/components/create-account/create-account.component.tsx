@@ -28,7 +28,7 @@ export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const emailInputRef = useRef<NativeTextInput>(null);
-  const { nameField, emailField, canSubmit, isSending, errorMessage, submit } =
+  const { nameField, emailField, canSubmit, isSending, submit } =
     useCreateAccount({
       onCodeRequested,
     });
@@ -47,7 +47,7 @@ export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
       >
         <BackButton />
 
-        <View className="mt-6 gap-6">
+        <View className="mt-6 gap-4">
           <ScreenIntro
             icon={
               <Ionicons
@@ -87,17 +87,9 @@ export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
           </View>
         </View>
 
-        <View className="min-h-6 flex-1" />
+        <View className="min-h-2 flex-1" />
 
         <View className="gap-3.5">
-          {errorMessage ? (
-            <Text
-              accessibilityRole="alert"
-              className="ds-text-list-subtitle text-center text-bad"
-            >
-              {errorMessage}
-            </Text>
-          ) : null}
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={t("createAccount.submit")}

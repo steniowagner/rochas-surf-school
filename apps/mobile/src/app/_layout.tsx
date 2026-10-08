@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/global.css";
 import { FontAssets } from "@/constants/theme";
 import { themeVariables } from "@/constants/theme-variables";
+import { AlertMessageProvider } from "@/providers/alert-message";
 // Initializes i18n before any screen renders, so the first frame is already translated.
 import "@/i18n";
 
@@ -45,8 +46,10 @@ export default function RootLayout() {
         <BottomSheetModalProvider>
           <QueryClientProvider client={queryClient}>
             <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
-              <StatusBar style="auto" />
-              <Stack screenOptions={{ headerShown: false }} />
+              <AlertMessageProvider>
+                <StatusBar style="auto" />
+                <Stack screenOptions={{ headerShown: false }} />
+              </AlertMessageProvider>
             </ThemeProvider>
           </QueryClientProvider>
         </BottomSheetModalProvider>

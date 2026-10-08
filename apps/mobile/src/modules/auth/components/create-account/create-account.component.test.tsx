@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -9,7 +10,12 @@ import {
 import { ReactElement } from "react";
 import { Platform, TextInput as NativeTextInput } from "react-native";
 
+import {
+  TOAST_EXIT_DURATION,
+  TOAST_VISIBLE_DURATION,
+} from "@/components/ui/toast/toast.hook";
 import i18n from "@/i18n";
+import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { CreateAccount } from "./create-account.component";
 
@@ -38,7 +44,7 @@ const renderScreen = (ui: ReactElement) =>
         })
       }
     >
-      {ui}
+      <AlertMessageProvider>{ui}</AlertMessageProvider>
     </QueryClientProvider>,
   );
 
@@ -285,7 +291,9 @@ describe("CreateAccount", () => {
       await user.press(getButton());
 
       await waitFor(() => expect(onCodeRequested).toHaveBeenCalledTimes(1));
-      expect(screen.queryByRole("alert")).toBeNull();
+      expect(
+        screen.queryByRole("alert", { includeHiddenElements: true }),
+      ).toBeNull();
     });
 
     it.each([
@@ -371,7 +379,7 @@ describe("CreateAccount", () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it("hides the error when a field changes", async () => {
+    it("shows the error as an alert that goes away by itself", async () => {
       fetchMock.mockResolvedValue(
         jsonResponse(500, { errors: ["INTERNAL_SERVER_ERROR"] }),
       );
@@ -379,12 +387,19 @@ describe("CreateAccount", () => {
       await renderScreen(<CreateAccount />);
       await fillValidForm(user);
       await user.press(getButton());
-      await screen.findByText("Something went wrong. Please try again.");
-
-      await user.type(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), "x");
 
       expect(
-        screen.queryByText("Something went wrong. Please try again."),
+        await screen.findByText("Something went wrong. Please try again.", {
+          includeHiddenElements: true,
+        }),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        jest.advanceTimersByTime(TOAST_VISIBLE_DURATION + TOAST_EXIT_DURATION);
+      });
+
+      expect(
+        screen.queryByRole("alert", { includeHiddenElements: true }),
       ).toBeNull();
     });
   });

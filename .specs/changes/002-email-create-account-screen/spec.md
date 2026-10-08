@@ -282,4 +282,13 @@ introduces the shared back button, intro block and text input that the next scre
   to remove the border color once a field is filled in correctly. Also: the spacer above "Get code" has a 24px
   minimum, so the button no longer touches the fields when the keyboard is open (user feedback on the simulator).
 
+- 2026-10-08 — D-08, ER-03 and T-05: before, the API error was "one message above the CTA (`text-bad`)" that
+  "disappears as soon as a field is edited"; after, it is shown in a toast (`Toast` in `src/components/ui/toast`,
+  shown through `AlertMessageProvider`/`useAlertMessage` in `src/providers/alert-message`, mounted in the root
+  layout) at the top of the screen, which hides by itself after 3 s. Message selection (D-08's key mapping) and
+  the other ER-03 behaviors are unchanged. Reason: the user asked for a toast to show API errors, inspired by
+  their cine-tasty-mobile `alert-message` provider. Tests: `toast.component.test.tsx`,
+  `alert-message.provider.test.tsx`; the create-account tests check the toast instead of the inline text.
+  Also `jest.config.js` now uses the `react-native-worklets` Jest resolver, which Reanimated's mock needs.
+
 ## Review

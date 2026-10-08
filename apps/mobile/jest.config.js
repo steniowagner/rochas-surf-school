@@ -7,6 +7,8 @@ const [transformer, babelOptions] = jestExpoPreset.transform["\\.[jt]sx?$"];
 /** @type {import('jest').Config} */
 module.exports = {
   preset: "jest-expo",
+  // Resolves react-native-worklets to its JS (non-native) files, which Reanimated's mock needs in tests.
+  resolver: require.resolve("react-native-worklets/jest/resolver"),
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transform: {
     "\\.[jt]sx?$": [

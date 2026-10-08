@@ -196,7 +196,7 @@
   font-size: 18px;
   line-height: 1.2;
   letter-spacing: 0.03em;
-  text-transform: none;
+  text-transform: uppercase;
 }
 
 .ds-text-chip {

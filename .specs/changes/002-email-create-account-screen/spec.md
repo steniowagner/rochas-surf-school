@@ -293,7 +293,7 @@ introduces the shared back button, intro block and text input that the next scre
 
 - 2026-10-08 — ER-03 and T-04: (1) pressing "Get code" now also closes the keyboard (user feedback). (2) The
   `button` type style, used by every CTA label, changed from Nunito 800 / 14.5px to Barlow Condensed 700 / 18px
-  in `packages/design-tokens/src/tokens.ts` (the user asked for all CTA labels in Barlow Condensed); `tokens.css`
+  in `packages/design-tokens/src/tokens.ts`, uppercase (the user asked for all CTA labels in Barlow Condensed, then uppercase); `tokens.css`
   was regenerated, which also fixes its stale state on `main`. This affects the web buttons too.
 
 ## Review

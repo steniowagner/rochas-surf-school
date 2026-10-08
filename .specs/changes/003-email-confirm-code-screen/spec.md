@@ -147,11 +147,12 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   error state, tapping the boxes focuses the input, not editable when `editable={false}`.
   Covers: ER-01 · Done when: `npx jest src/components/ui/otp-input` passes.
   > ✅ 2026-10-08 — created OtpInput (component, hook, types, index, test); an extra `autoFocus` prop was added for the focused input of ER-01; files: `apps/mobile/src/components/ui/otp-input/{index.ts,otp-input.component.tsx,otp-input.hook.ts,otp-input.types.ts,otp-input.component.test.tsx}`; verified: `npx jest src/components/ui/otp-input` (8 passed), tsc and eslint clean; deviations: `autoFocus` prop added to D-02 props; boxes sit in a Pressable that also focuses the input, so tapping them is testable
-- [ ] **T-03** — Add `src/modules/auth/hooks/use-verify-sign-in-code.hook.ts` (`useMutation` over
+- [x] **T-03** — Add `src/modules/auth/hooks/use-verify-sign-in-code.hook.ts` (`useMutation` over
   `apiPost("/auth/email/verify", { email, code, name })`, typed response) and
   `src/modules/auth/utils/verify-code-error.ts` (error → `{ key, placement: "inline" | "toast" }` per D-04), with
   `use-verify-sign-in-code.hook.test.tsx` and `verify-code-error.test.ts` covering every mapped answer.
   Covers: ER-02 · Done when: `npx jest src/modules/auth/hooks src/modules/auth/utils` passes.
+  > ✅ 2026-10-08 — added the verify mutation hook and the error mapper (+ tests); files: `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`, `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.test.tsx`, `apps/mobile/src/modules/auth/utils/verify-code-error.ts`, `apps/mobile/src/modules/auth/utils/verify-code-error.test.ts`; verified: `npx jest src/modules/auth/hooks src/modules/auth/utils` (28 passed), tsc and eslint clean; deviations: none
 - [ ] **T-04** — Build `ConfirmCode` in `src/modules/auth/components/confirm-code/` (component, hook, types,
   index; props `email`, `name`, `onVerified`) with the layout of ER-01 (`BackButton`, `ScreenIntro`, `OtpInput`,
   message line, `Button`, info box with `TextButton`), auto-submit and the verify flow of ER-02, and the

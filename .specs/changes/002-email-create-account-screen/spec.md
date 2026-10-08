@@ -326,7 +326,11 @@ introduces the shared back button, intro block and text input that the next scre
   > files: `apps/mobile/src/modules/auth/components/create-account/create-account.component.test.tsx`;
   > verified: `npx jest src/modules/auth/components/create-account` (37 passed); with the spinner branch removed from the component the new test fails (reverted); `tsc --noEmit` exits 0; `expo lint` 0 errors;
   > deviations: RNTL 14 has no `UNSAFE_*ByType` queries and the indicator has no accessibility role, so the test finds it with `screen.root.queryAll` by host type.
-- [ ] **F-03** (convention) — `toast.hook.ts:17` declares `type UseToastProps`; `.claude/rules/react.md` §1 puts every type of a component and its hook in `<name>.types.ts`. Expected: move it to `toast.types.ts`.
+- [x] **F-03** (convention) — `toast.hook.ts:17` declares `type UseToastProps`; `.claude/rules/react.md` §1 puts every type of a component and its hook in `<name>.types.ts`. Expected: move it to `toast.types.ts`.
+  > ✅ 2026-10-08 16:29 — moved `UseToastProps` to `toast.types.ts`; the hook imports it from there.
+  > files: `apps/mobile/src/components/ui/toast/{toast.hook.ts,toast.types.ts}`;
+  > verified: `npx jest src/components/ui/toast src/providers` (7 passed); `tsc --noEmit` exits 0;
+  > deviations: none
 - [ ] **F-04** (convention) — `create-account.types.ts:24` exports `KeyboardReturnKey`, which nothing uses (dead code). Expected: remove it (and the then-unused `TextInputProps` import).
 
 **Notes**

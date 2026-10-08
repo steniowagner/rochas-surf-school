@@ -6,15 +6,13 @@ import {
   withTiming,
 } from "react-native-reanimated";
 
-import { ToastProps } from "./toast.types";
+import { UseToastProps } from "./toast.types";
 
 export const TOAST_ENTER_DURATION = 250;
 export const TOAST_VISIBLE_DURATION = 3000;
 export const TOAST_EXIT_DURATION = 200;
 
 const HIDDEN_OFFSET = -24;
-
-type UseToastProps = Pick<ToastProps, "onHidden">;
 
 export const useToast = ({ onHidden }: UseToastProps) => {
   const progress = useSharedValue(0);

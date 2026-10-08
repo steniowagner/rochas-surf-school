@@ -3,7 +3,7 @@ id: "002"
 slug: email-create-account-screen
 title: Create account screen (request an email sign-in code)
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-08
 started: 2026-10-08
 base_commit: 1ec9dad
@@ -237,9 +237,12 @@ introduces the shared back button, intro block and text input that the next scre
   > deviations: the hook test file is `.hook.test.tsx` (it renders a provider wrapper); tests use `gcTime: Infinity` so react-query timers don't keep Jest open.
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0 and the simulator journey matches.
-
+  > ✅ 2026-10-08 14:53 — ran the Verification Plan.
+  > files: none (a follow-up commit added `apps/mobile/src/modules/auth/screens/create-account.screen.test.tsx` and an Android-branch test in `create-account.component.test.tsx` for coverage);
+  > verified: `node .specs/scripts/run-related-tests.mjs 002` → RELATED TESTS PASSED; `node .specs/scripts/check-coverage.mjs 002` → COVERAGE OK (15 files); `node .specs/scripts/run-e2e.mjs 002` → E2E PASSED (nothing applies); `expo lint` 0 errors (1 existing warning in bottom-modal.tsx) and `tsc --noEmit` exit 0 in apps/mobile. iOS simulator (iPhone 18 Pro, backend with RESEND_API_KEY empty): Continue with email opens Create account matching the design (light); "Ana" + leaving the field shows the name error and a bad border; completing the name clears it (lagoon border); a valid pair turns Get code to sun; tapping it logged the code for the address in the backend, with no error shown; with the backend stopped, tapping shows "No connection…" above the button; editing a field hides it; the back button returns to the sign-in screen.
+  > deviations: `npx turbo run check-types --filter=…/mobile` fails on the design-tokens check (tokens.css out of date on main, not touched here), so tsc was run directly. Not verified by hand: dark theme, Español, and the second press within 30 s (the simulator input lagged; covered by the tests: es-ES/pt-BR render, resend-too-soon test).
 ## Verification Plan
 
 - Automated:

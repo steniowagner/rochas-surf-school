@@ -1,93 +1,93 @@
 /* Generated from tokens.ts by scripts/build-css.mjs — do not edit by hand. */
 
 :root,
-[data-theme='light'] {
-  --ds-page: #FDF8F3;
-  --ds-surface: #FEFCF9;
-  --ds-dim: rgba(245,230,211,.45);
-  --ds-sand: #F5E6D3;
-  --ds-ink: #3D2E1F;
-  --ds-ink-2: #6B5744;
-  --ds-ink-3: #B8A99A;
-  --ds-grape: #4B2A63;
-  --ds-sun: #F0742B;
-  --ds-sun-2: #D95F1B;
-  --ds-lagoon: #21837F;
-  --ds-sky: #7BA7BC;
-  --ds-tan: #D4A574;
-  --ds-line: rgba(212,165,116,.28);
-  --ds-input: #FFFFFF;
-  --ds-input-line: #E3D3BC;
-  --ds-ok: #4CAF7D;
-  --ds-ok-tint: rgba(76,175,125,.15);
-  --ds-bad: #D4574A;
-  --ds-bad-tint: rgba(212,87,74,.14);
-  --ds-warn: #E8B44A;
-  --ds-warn-tint: rgba(232,180,74,.16);
-  --ds-info-tint: rgba(33,131,127,.13);
-  --ds-on-color: #FFFFFF;
-  --ds-shadow: rgba(61,46,31,.10);
-  --ds-shadow-sun: rgba(240,116,43,.28);
+[data-theme="light"] {
+  --ds-page: #fdf8f3;
+  --ds-surface: #fefcf9;
+  --ds-dim: rgba(245, 230, 211, 0.45);
+  --ds-sand: #f5e6d3;
+  --ds-ink: #3d2e1f;
+  --ds-ink-2: #6b5744;
+  --ds-ink-3: #b8a99a;
+  --ds-grape: #4b2a63;
+  --ds-sun: #f0742b;
+  --ds-sun-2: #d95f1b;
+  --ds-lagoon: #21837f;
+  --ds-sky: #7ba7bc;
+  --ds-tan: #d4a574;
+  --ds-line: rgba(212, 165, 116, 0.28);
+  --ds-input: #ffffff;
+  --ds-input-line: #e3d3bc;
+  --ds-ok: #4caf7d;
+  --ds-ok-tint: rgba(76, 175, 125, 0.15);
+  --ds-bad: #d4574a;
+  --ds-bad-tint: rgba(212, 87, 74, 0.14);
+  --ds-warn: #e8b44a;
+  --ds-warn-tint: rgba(232, 180, 74, 0.16);
+  --ds-info-tint: rgba(33, 131, 127, 0.13);
+  --ds-on-color: #ffffff;
+  --ds-shadow: rgba(61, 46, 31, 0.1);
+  --ds-shadow-sun: rgba(240, 116, 43, 0.28);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --ds-page: #161B27;
+  :root:not([data-theme="light"]) {
+    --ds-page: #161b27;
     --ds-surface: #212736;
-    --ds-dim: rgba(46,52,68,.55);
-    --ds-sand: #2E3444;
-    --ds-ink: #F0E6D8;
-    --ds-ink-2: #9B8E7E;
-    --ds-ink-3: #5A5248;
-    --ds-grape: #7A4E9B;
-    --ds-sun: #F58A45;
-    --ds-sun-2: #E07330;
-    --ds-lagoon: #3FA6A0;
-    --ds-sky: #8BB8CC;
-    --ds-tan: #C49A6C;
-    --ds-line: rgba(196,154,108,.14);
-    --ds-input: #1B2130;
-    --ds-input-line: #3E4555;
-    --ds-ok: #5BC48A;
-    --ds-ok-tint: rgba(91,196,138,.16);
-    --ds-bad: #E8706A;
-    --ds-bad-tint: rgba(232,112,106,.16);
-    --ds-warn: #F0C45A;
-    --ds-warn-tint: rgba(240,196,90,.16);
-    --ds-info-tint: rgba(63,166,160,.16);
-    --ds-on-color: #FFFFFF;
-    --ds-shadow: rgba(0,0,0,.4);
-    --ds-shadow-sun: rgba(245,138,69,.3);
+    --ds-dim: rgba(46, 52, 68, 0.55);
+    --ds-sand: #2e3444;
+    --ds-ink: #f0e6d8;
+    --ds-ink-2: #9b8e7e;
+    --ds-ink-3: #5a5248;
+    --ds-grape: #7a4e9b;
+    --ds-sun: #f58a45;
+    --ds-sun-2: #e07330;
+    --ds-lagoon: #3fa6a0;
+    --ds-sky: #8bb8cc;
+    --ds-tan: #c49a6c;
+    --ds-line: rgba(196, 154, 108, 0.14);
+    --ds-input: #1b2130;
+    --ds-input-line: #3e4555;
+    --ds-ok: #5bc48a;
+    --ds-ok-tint: rgba(91, 196, 138, 0.16);
+    --ds-bad: #e8706a;
+    --ds-bad-tint: rgba(232, 112, 106, 0.16);
+    --ds-warn: #f0c45a;
+    --ds-warn-tint: rgba(240, 196, 90, 0.16);
+    --ds-info-tint: rgba(63, 166, 160, 0.16);
+    --ds-on-color: #ffffff;
+    --ds-shadow: rgba(0, 0, 0, 0.4);
+    --ds-shadow-sun: rgba(245, 138, 69, 0.3);
   }
 }
 
-[data-theme='dark'] {
-  --ds-page: #161B27;
+[data-theme="dark"] {
+  --ds-page: #161b27;
   --ds-surface: #212736;
-  --ds-dim: rgba(46,52,68,.55);
-  --ds-sand: #2E3444;
-  --ds-ink: #F0E6D8;
-  --ds-ink-2: #9B8E7E;
-  --ds-ink-3: #5A5248;
-  --ds-grape: #7A4E9B;
-  --ds-sun: #F58A45;
-  --ds-sun-2: #E07330;
-  --ds-lagoon: #3FA6A0;
-  --ds-sky: #8BB8CC;
-  --ds-tan: #C49A6C;
-  --ds-line: rgba(196,154,108,.14);
-  --ds-input: #1B2130;
-  --ds-input-line: #3E4555;
-  --ds-ok: #5BC48A;
-  --ds-ok-tint: rgba(91,196,138,.16);
-  --ds-bad: #E8706A;
-  --ds-bad-tint: rgba(232,112,106,.16);
-  --ds-warn: #F0C45A;
-  --ds-warn-tint: rgba(240,196,90,.16);
-  --ds-info-tint: rgba(63,166,160,.16);
-  --ds-on-color: #FFFFFF;
-  --ds-shadow: rgba(0,0,0,.4);
-  --ds-shadow-sun: rgba(245,138,69,.3);
+  --ds-dim: rgba(46, 52, 68, 0.55);
+  --ds-sand: #2e3444;
+  --ds-ink: #f0e6d8;
+  --ds-ink-2: #9b8e7e;
+  --ds-ink-3: #5a5248;
+  --ds-grape: #7a4e9b;
+  --ds-sun: #f58a45;
+  --ds-sun-2: #e07330;
+  --ds-lagoon: #3fa6a0;
+  --ds-sky: #8bb8cc;
+  --ds-tan: #c49a6c;
+  --ds-line: rgba(196, 154, 108, 0.14);
+  --ds-input: #1b2130;
+  --ds-input-line: #3e4555;
+  --ds-ok: #5bc48a;
+  --ds-ok-tint: rgba(91, 196, 138, 0.16);
+  --ds-bad: #e8706a;
+  --ds-bad-tint: rgba(232, 112, 106, 0.16);
+  --ds-warn: #f0c45a;
+  --ds-warn-tint: rgba(240, 196, 90, 0.16);
+  --ds-info-tint: rgba(63, 166, 160, 0.16);
+  --ds-on-color: #ffffff;
+  --ds-shadow: rgba(0, 0, 0, 0.4);
+  --ds-shadow-sun: rgba(245, 138, 69, 0.3);
 }
 
 :root {
@@ -98,6 +98,15 @@
   --ds-elevation-icon-button: 0 2px 8px var(--ds-shadow);
   --ds-elevation-card: 0 3px 12px var(--ds-shadow);
   --ds-elevation-primary: 0 8px 20px var(--ds-shadow-sun);
+}
+
+.ds-text-wordmark {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 104px;
+  line-height: 0.84;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 .ds-text-kpi {

@@ -177,7 +177,7 @@ introduces the shared back button, intro block and text input that the next scre
   > files: `apps/mobile/src/components/ui/back-button/{back-button.component.tsx,back-button.types.ts,index.ts,back-button.component.test.tsx}`, `apps/mobile/src/components/ui/screen-intro/{screen-intro.component.tsx,screen-intro.types.ts,index.ts,screen-intro.component.test.tsx}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`, `CLAUDE.md`;
   > verified: `npx jest src/components/ui/back-button src/components/ui/screen-intro` (7 passed); `tsc --noEmit` exits 0;
   > deviations: none
-- [ ] **T-03** — Create `src/components/ui/text-input/` (`text-input.component.tsx`, `.types.ts`, `index.ts`):
+- [x] **T-03** — Create `src/components/ui/text-input/` (`text-input.component.tsx`, `.types.ts`, `index.ts`):
   a 52px-high row with `rounded-control`, 1.5px border, `bg-input`, a leading icon (`useTheme()` color
   `ink-2`), a React Native `TextInput` in `text-ink` body font, and an optional error message below it in
   `text-bad`. Props: `icon`, `status: "neutral" | "valid" | "error"` (border `input-line` / `lagoon` / `bad`),
@@ -186,6 +186,10 @@ introduces the shared back button, intro block and text input that the next scre
   `onChangeText`; shows the placeholder; shows `errorMessage` only when `status` is `error`; applies the border
   class of each status; calls `onBlur` and `onSubmitEditing`; the forwarded ref can `focus()`.
   Covers: ER-02 · Done when: `npx jest src/components/ui/text-input` passes.
+  > ✅ 2026-10-08 14:41 — created the shared TextInput (52px row, status borders, error message, forwarded ref; the native input is imported as NativeTextInput).
+  > files: `apps/mobile/src/components/ui/text-input/{text-input.component.tsx,text-input.types.ts,index.ts,text-input.component.test.tsx}`;
+  > verified: `npx jest src/components/ui/text-input` (9 passed); `tsc --noEmit` exits 0;
+  > deviations: none
 - [ ] **T-04** — Build the screen: route `src/app/(private)/auth/create-account.tsx` →
   `src/modules/auth/screens/create-account.screen.tsx` → `src/modules/auth/components/create-account/`
   (`create-account.component.tsx`, `create-account.hook.ts`, `create-account.types.ts`, `index.ts`). The

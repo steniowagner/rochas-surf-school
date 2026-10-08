@@ -68,6 +68,10 @@ beforeEach(() => {
 
 const getButton = () => screen.getByRole("button", { name: "Get code" });
 
+// ActivityIndicator renders as a host element without an accessibility role, so it is found by type.
+const getSpinners = () =>
+  screen.root?.queryAll((node) => node.type === "ActivityIndicator") ?? [];
+
 describe("CreateAccount", () => {
   describe.each([
     ["en-US", "Create account", "Get code"],
@@ -390,6 +394,30 @@ describe("CreateAccount", () => {
       await user.press(getButton());
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows a spinner instead of the label while sending", async () => {
+      let answer: (response: Response) => void = () => {};
+      fetchMock.mockReturnValue(
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }),
+      );
+      const user = userEvent.setup();
+      await renderScreen(<CreateAccount />);
+      await fillValidForm(user);
+
+      await user.press(getButton());
+
+      expect(getSpinners()).toHaveLength(1);
+      expect(screen.queryByText("Get code")).toBeNull();
+
+      await act(async () => answer(jsonResponse(202, {})));
+
+      await waitFor(() =>
+        expect(screen.getByText("Get code")).toBeOnTheScreen(),
+      );
+      expect(getSpinners()).toHaveLength(0);
     });
 
     it("shows the error as an alert that goes away by itself", async () => {

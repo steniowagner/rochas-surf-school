@@ -321,7 +321,11 @@ introduces the shared back button, intro block and text input that the next scre
   > files: `apps/mobile/src/modules/auth/components/create-account/create-account.component.tsx`;
   > verified: iOS simulator (light, Español), email field focused: the gap between the email field and "Recibir código" is ~24pt (was ~8pt); `npx jest src/modules/auth/components/create-account` passes;
   > deviations: none
-- [ ] **F-02** (tests) — ER-03 says "while it runs, the button shows a spinner", and no test checks it: "ignores presses while sending" only counts `fetch` calls. Expected: in `create-account.component.test.tsx`, with a pending `fetch`, assert the `ActivityIndicator` is shown and the "Get code" label is gone (and that the label returns after the answer).
+- [x] **F-02** (tests) — ER-03 says "while it runs, the button shows a spinner", and no test checks it: "ignores presses while sending" only counts `fetch` calls. Expected: in `create-account.component.test.tsx`, with a pending `fetch`, assert the `ActivityIndicator` is shown and the "Get code" label is gone (and that the label returns after the answer).
+  > ✅ 2026-10-08 16:27 — added "shows a spinner instead of the label while sending": with a pending `fetch`, one `ActivityIndicator` is rendered and the "Get code" text is gone; after the 202 the label is back and the spinner gone.
+  > files: `apps/mobile/src/modules/auth/components/create-account/create-account.component.test.tsx`;
+  > verified: `npx jest src/modules/auth/components/create-account` (37 passed); with the spinner branch removed from the component the new test fails (reverted); `tsc --noEmit` exits 0; `expo lint` 0 errors;
+  > deviations: RNTL 14 has no `UNSAFE_*ByType` queries and the indicator has no accessibility role, so the test finds it with `screen.root.queryAll` by host type.
 - [ ] **F-03** (convention) — `toast.hook.ts:17` declares `type UseToastProps`; `.claude/rules/react.md` §1 puts every type of a component and its hook in `<name>.types.ts`. Expected: move it to `toast.types.ts`.
 - [ ] **F-04** (convention) — `create-account.types.ts:24` exports `KeyboardReturnKey`, which nothing uses (dead code). Expected: remove it (and the then-unused `TextInputProps` import).
 

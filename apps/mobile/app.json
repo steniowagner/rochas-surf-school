@@ -36,7 +36,8 @@
         }
       ],
       "./plugins/with-ios-scene-lifecycle",
-      "expo-font"
+      "expo-font",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

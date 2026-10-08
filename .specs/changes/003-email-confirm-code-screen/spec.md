@@ -166,12 +166,13 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   with "resend") in `confirm-code.component.test.tsx` using fake timers.
   Covers: ER-03 · Done when: `npx jest src/modules/auth/components/confirm-code -t "resend"` passes.
   > ✅ 2026-10-08 — added the timestamp-based resend countdown and the Resend code link to ConfirmCode; files: `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.hook.ts`, `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.component.tsx`, `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.component.test.tsx`; verified: `npx jest src/modules/auth/components/confirm-code -t "resend"` (resend tests passed; whole file 30 passed), tsc and eslint clean; deviations: none
-- [ ] **T-06** — Add the route `src/app/(private)/auth/confirm-code.tsx` and
+- [x] **T-06** — Add the route `src/app/(private)/auth/confirm-code.tsx` and
   `src/modules/auth/screens/confirm-code.screen.tsx` (reads `email` and `name` with `useLocalSearchParams`,
   renders `ConfirmCode`), and make `create-account.screen.tsx` pass `onCodeRequested` that pushes the route with
   both params (D-08). Tests: `confirm-code.screen.test.tsx` (renders with the params) and
   `create-account.screen.test.tsx` ("opens the confirm code screen after the code is requested").
   Covers: ER-01 · Done when: `npx jest src/modules/auth/screens` passes.
+  > ✅ 2026-10-08 — added the confirm-code route and screen, and Create account screen now pushes it with email and name; files: `apps/mobile/src/app/(private)/auth/confirm-code.tsx`, `apps/mobile/src/modules/auth/screens/confirm-code.screen.tsx`, `apps/mobile/src/modules/auth/screens/confirm-code.screen.test.tsx`, `apps/mobile/src/modules/auth/screens/create-account.screen.tsx`, `apps/mobile/src/modules/auth/screens/create-account.screen.test.tsx`; verified: `npx jest src/modules/auth/screens` (3 passed), tsc and eslint clean; deviations: none
 
 ### Verification
 

@@ -16,10 +16,12 @@ export function OtpInput({
   editable = true,
   autoFocus = false,
   accessibilityLabel,
+  inputRef: externalRef,
 }: OtpInputProps) {
   const { inputRef, handleChangeText, focus } = useOtpInput({
     onChangeText,
     length,
+    inputRef: externalRef,
   });
 
   return (

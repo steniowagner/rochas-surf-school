@@ -32,6 +32,23 @@ const messages = {
       generic: "Something went wrong. Please try again.",
     },
   },
+  confirmCode: {
+    title: "Confirm your email",
+    description:
+      "We sent a 6-digit code to <bold>{{email}}</bold>. It expires in 10 minutes.",
+    inputLabel: "6-digit code",
+    submit: "Confirm",
+    resend: "Resend code",
+    resendIn: "Resend code in {{time}}",
+    notReceived:
+      "Didn't get it? Check your spam folder or <change>change the email</change>.",
+    errors: {
+      wrongCode: "Wrong code. Try again.",
+      expired: "This code has expired. Request a new one.",
+      locked: "Too many wrong attempts. Request a new code.",
+      nameNotSaved: "We couldn't save your name. Go back and check it.",
+    },
+  },
 };
 
 export type Messages = typeof messages;

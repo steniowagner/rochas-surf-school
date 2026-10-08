@@ -36,6 +36,23 @@ const messages: Messages = {
       generic: "Algo salió mal. Inténtalo de nuevo.",
     },
   },
+  confirmCode: {
+    title: "Confirma tu correo",
+    description:
+      "Enviamos un código de 6 dígitos a <bold>{{email}}</bold>. Caduca en 10 minutos.",
+    inputLabel: "Código de 6 dígitos",
+    submit: "Confirmar",
+    resend: "Reenviar código",
+    resendIn: "Reenviar código en {{time}}",
+    notReceived:
+      "¿No te llegó? Revisa la carpeta de spam o <change>cambia el correo</change>.",
+    errors: {
+      wrongCode: "Código incorrecto. Inténtalo de nuevo.",
+      expired: "Este código caducó. Pide uno nuevo.",
+      locked: "Demasiados intentos fallidos. Pide un código nuevo.",
+      nameNotSaved: "No pudimos guardar tu nombre. Vuelve y revísalo.",
+    },
+  },
 };
 
 export default messages;

@@ -153,7 +153,7 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   `use-verify-sign-in-code.hook.test.tsx` and `verify-code-error.test.ts` covering every mapped answer.
   Covers: ER-02 · Done when: `npx jest src/modules/auth/hooks src/modules/auth/utils` passes.
   > ✅ 2026-10-08 — added the verify mutation hook and the error mapper (+ tests); files: `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`, `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.test.tsx`, `apps/mobile/src/modules/auth/utils/verify-code-error.ts`, `apps/mobile/src/modules/auth/utils/verify-code-error.test.ts`; verified: `npx jest src/modules/auth/hooks src/modules/auth/utils` (28 passed), tsc and eslint clean; deviations: none
-- [ ] **T-04** — Build `ConfirmCode` in `src/modules/auth/components/confirm-code/` (component, hook, types,
+- [x] **T-04** — Build `ConfirmCode` in `src/modules/auth/components/confirm-code/` (component, hook, types,
   index; props `email`, `name`, `onVerified`) with the layout of ER-01 (`BackButton`, `ScreenIntro`, `OtpInput`,
   message line, `Button`, info box with `TextButton`), auto-submit and the verify flow of ER-02, and the
   `confirmCode.*` strings of D-10 in `src/i18n/messages/{en-US,es-ES,pt-BR}.ts`. The resend line is left to
@@ -161,6 +161,7 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   `confirm-code.component.test.tsx` for ER-01 (rendering in en-US and pt-BR, digits, paste, Confirm enabled,
   change the email) and ER-02 (every case).
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/auth/components/confirm-code` passes.
+  > ✅ 2026-10-08 — built ConfirmCode (component, hook, types, index, test) with auto-submit, inline/toast errors and the confirmCode.* strings in the three locales; OtpInput gained an optional `inputRef` so the screen can refocus it after a wrong code; files: `apps/mobile/src/modules/auth/components/confirm-code/{index.ts,confirm-code.component.tsx,confirm-code.hook.ts,confirm-code.types.ts,confirm-code.component.test.tsx}`, `apps/mobile/src/components/ui/otp-input/{otp-input.component.tsx,otp-input.hook.ts,otp-input.types.ts}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/auth/components/confirm-code` (21 passed), tsc and eslint clean; deviations: `onVerified` is optional (D-03: the route passes none); OtpInput `inputRef` prop added
 - [ ] **T-05** — Add the resend countdown and link to `ConfirmCode` (D-06, D-07), with the ER-03 tests (named
   with "resend") in `confirm-code.component.test.tsx` using fake timers.
   Covers: ER-03 · Done when: `npx jest src/modules/auth/components/confirm-code -t "resend"` passes.

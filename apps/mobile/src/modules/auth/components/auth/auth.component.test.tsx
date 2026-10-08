@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from "@testing-library/react-native";
+import { act, render, screen, userEvent } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 
@@ -105,5 +105,21 @@ describe("AuthComponent terms and privacy links", () => {
       expect(onTermsPress).toHaveBeenCalledTimes(1);
       expect(onPrivacyPress).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("updates the links when the language changes while the screen is shown", async () => {
+    await render(<AuthComponent />);
+
+    await act(async () => {
+      await i18n.changeLanguage("pt-BR");
+    });
+
+    expect(
+      screen.getByRole("link", { name: "Termos de Uso" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("link", { name: "Política de Privacidade" }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByRole("link", { name: "Terms of Use" })).toBeNull();
   });
 });

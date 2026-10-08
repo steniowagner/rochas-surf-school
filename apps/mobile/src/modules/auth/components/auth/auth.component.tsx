@@ -138,8 +138,10 @@ export function AuthComponent({
         />
 
         <Text className="ds-text-list-subtitle mx-2 mt-1.5 text-center text-white/90">
+          {/* `t` makes the element depend on the language: Trans doesn't re-render on language changes by itself, and the React Compiler would otherwise cache it. */}
           <Trans
             i18nKey="auth.terms"
+            t={t}
             components={{
               terms: <TextButton onPress={onTermsPress} />,
               privacy: <TextButton onPress={onPrivacyPress} />,

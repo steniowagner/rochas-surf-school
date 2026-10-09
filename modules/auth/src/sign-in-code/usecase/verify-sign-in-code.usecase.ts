@@ -23,6 +23,7 @@ export interface VerifySignInCodeOut extends StartSessionOut {
     email: string;
     role: UserRole;
     status: UserStatus;
+    createdAt: Date;
   };
 }
 
@@ -84,6 +85,7 @@ export class VerifySignInCode
         email: user.email,
         role: user.role,
         status: user.status,
+        createdAt: user.createdAt,
       },
     };
   }

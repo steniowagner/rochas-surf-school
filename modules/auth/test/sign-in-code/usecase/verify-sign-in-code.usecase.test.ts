@@ -117,6 +117,7 @@ describe("VerifySignInCode", () => {
           email: "ana@example.com",
           role: "student",
           status: "approved",
+          createdAt: ana.createdAt,
         },
       });
       await expect(ctx.signInCodeRepository.findByEmail("ana@example.com")).resolves.toBeNull();
@@ -238,6 +239,7 @@ describe("VerifySignInCode", () => {
         email: "bia@example.com",
         role: "student",
         status: "pending",
+        createdAt: bia.createdAt,
       });
       expect(result.refreshToken).toBe("refresh-1");
       const identities = await ctx.identityRepository.findByUserId(bia.id);
@@ -478,6 +480,7 @@ describe("VerifySignInCode", () => {
         email: "review.admin@example.com",
         role: "admin",
         status: "approved",
+        createdAt: admin.createdAt,
       });
     });
 

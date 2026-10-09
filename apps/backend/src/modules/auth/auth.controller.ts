@@ -1,6 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import {
+  GetCurrentUser,
+  GetCurrentUserOut,
+  RefreshSession,
+  RefreshSessionIn,
+  RefreshSessionOut,
+  SignOut,
+  SignOutIn,
   RequestSignInCode,
   RequestSignInCodeIn,
   RequestSignInCodeOut,
@@ -9,6 +16,7 @@ import {
   VerifySignInCodeIn,
   VerifySignInCodeOut,
 } from '@rochas-surf-school/auth';
+import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import { Public } from '../../shared/decorators/public.decorator.js';
 import { AuthConfig } from './auth.config.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
@@ -74,6 +82,38 @@ export class AuthController {
       email: body?.email as string,
       code: body?.code as string,
       name: body?.name,
+    });
+  }
+
+  @Get('me')
+  me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
+    return new GetCurrentUser(this.userRepository).execute({ id });
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refreshSession(@Body() body: RefreshSessionIn | undefined): Promise<RefreshSessionOut> {
+    const useCase = new RefreshSession(
+      this.refreshTokenRepository,
+      this.userRepository,
+      this.tokenProvider,
+      this.clock,
+      this.authConfig.refreshTokenTtlDays,
+    );
+    return useCase.execute({ refreshToken: body?.refreshToken as string });
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Post('sign-out')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  signOut(@Body() body: SignOutIn | undefined): Promise<void> {
+    return new SignOut(this.refreshTokenRepository, this.tokenProvider, this.clock).execute({
+      refreshToken: body?.refreshToken as string,
     });
   }
 }

@@ -18,4 +18,6 @@ export interface GeneratedRefreshToken {
 export interface TokenProvider {
   signAccessToken(subject: AccessTokenSubject): SignedAccessToken;
   generateRefreshToken(): GeneratedRefreshToken;
+  /** The hash stored for a plaintext refresh token (same as `generateRefreshToken().hash`). */
+  hashRefreshToken(token: string): string;
 }

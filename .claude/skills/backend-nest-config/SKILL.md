@@ -78,6 +78,13 @@ apps/backend/src/shared/
 - `.env` is handled additively: existing keys are not changed.
 - `apps/backend/src/shared/` is fully rewritten on every run — this is the fully deterministic part of the skill. Manual edits inside this folder will be lost on the next apply. Customizations must live outside it.
 
+## Project customization
+
+The template's `JwtStrategy.validate` reloads the user (id, email, role, status) from the database through the
+global `PrismaService` on every request, and `JwtAuthGuard.handleRequest` answers every refusal with
+`UnauthorizedError('auth.token.invalid')` (spec 004). So the template also needs `src/db/prisma.service.ts` (a
+global `DbModule`), `@<scope>/auth` (`UserRole`, `UserStatus`) and the Prisma `User` model.
+
 ## Dependencies between skills
 
 The skill assumes the monorepo has already been initialized by `config-project-fullstack` (which also already adds `@nestjs/config`). The `@<scope>/shared` package must exist (created by `config-package-shared`) because `errors/api-exception.filter.ts` imports `DomainError`, `ValidationError` and `ValidationException` from it.

@@ -81,3 +81,59 @@ Content-Type: application/json
   "email": "{{email}}",
   "code": "{{code}}"
 }
+
+### Current account (expects 200 with id, name, email, role, status and createdAt; any account status)
+# Replace the token with the accessToken returned by the verify request above.
+@accessToken = paste-the-access-token-here
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### Current account without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/auth/me
+
+### Renew the session (expects 200 with a new accessToken and refreshToken, same shape as verify; the sent token is revoked)
+# Replace the token with the refreshToken returned by verify or by the previous refresh.
+@refreshToken = paste-the-refresh-token-here
+# @name refresh
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Renew with the same token again (expects 401 auth.refreshToken.invalid and revokes the whole sign-in)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Renew without a token (expects 422 refreshToken.token.required)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{}
+
+### Sign out (expects 204 with no body; ends this sign-in only, other devices stay signed in; needs no access token)
+POST {{baseUrl}}/auth/sign-out
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Sign out again with the same token (expects 204: it is idempotent)
+POST {{baseUrl}}/auth/sign-out
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Sign out without a token (expects 422 refreshToken.token.required)
+POST {{baseUrl}}/auth/sign-out
+Content-Type: application/json
+
+{}

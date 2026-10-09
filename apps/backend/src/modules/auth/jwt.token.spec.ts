@@ -54,6 +54,16 @@ describe('JwtTokenProvider', () => {
     expect(hash).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  it('hashes a plaintext refresh token the way generateRefreshToken does', () => {
+    const { provider: tokens } = provider();
+    const { token, hash } = tokens.generateRefreshToken();
+
+    expect(tokens.hashRefreshToken(token)).toBe(hash);
+    expect(tokens.hashRefreshToken('other')).toBe(
+      createHash('sha256').update('other').digest('hex'),
+    );
+  });
+
   it('generates a different refresh token every time', () => {
     const { provider: tokens } = provider();
 

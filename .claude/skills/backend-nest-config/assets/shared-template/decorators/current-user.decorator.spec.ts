@@ -28,6 +28,8 @@ describe('CurrentUser', () => {
   const user: AuthenticatedUser = {
     id: 'user-1',
     email: 'ana@example.com',
+    role: 'instructor',
+    status: 'approved',
     claims: { sub: 'user-1' },
   };
   const factory = factoryOf(CurrentUser());
@@ -38,6 +40,11 @@ describe('CurrentUser', () => {
 
   it('returns one field when asked', () => {
     expect(factory('id', context(user))).toBe('user-1');
+  });
+
+  it('carries the role and status loaded from the database', () => {
+    expect(factory('role', context(user))).toBe('instructor');
+    expect(factory('status', context(user))).toBe('approved');
   });
 
   it('returns undefined when nobody is signed in', () => {

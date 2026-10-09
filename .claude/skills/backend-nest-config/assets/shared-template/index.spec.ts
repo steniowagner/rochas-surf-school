@@ -5,7 +5,7 @@ describe('shared barrel', () => {
     expect(shared.JwtAuthGuard).toBeDefined();
     expect(shared.JwtAuthModule).toBeDefined();
     expect(shared.JwtStrategy).toBeDefined();
-    expect(shared.mapJwtPayloadToAuthenticatedUser).toBeDefined();
+    expect(shared.mapUserRecordToAuthenticatedUser).toBeDefined();
     expect(shared.CurrentUser).toBeDefined();
     expect(shared.Public).toBeDefined();
     expect(shared.ApiExceptionFilter).toBeDefined();

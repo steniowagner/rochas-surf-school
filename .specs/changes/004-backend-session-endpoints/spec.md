@@ -222,11 +222,12 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   Covers: ER-04, ER-05, ER-06 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
   > ✅ 2026-10-09 — added `RefreshSession` (validate token → find by hash → refuse unknown/expired/user-less → reuse of a revoked token or a lost `revokeIfActive` revokes the family → rotate in the same family with a fresh 30-day expiry) and the shared `requireRefreshToken` input check (reused by T-04); files: `modules/auth/src/session/usecase/refresh-session.usecase.ts`, `modules/auth/src/session/usecase/refresh-token-input.ts`, `modules/auth/src/session/usecase/index.ts`, `modules/auth/test/session/usecase/refresh-session.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (177 passed), `tsc --noEmit` clean; deviations: skill `module-use-case` not invoked, written by hand following the existing use cases
 
-- [ ] **T-04** — Add the `SignOut` use case in `src/session/usecase/sign-out.usecase.ts` per D-02 and D-11
+- [x] **T-04** — Add the `SignOut` use case in `src/session/usecase/sign-out.usecase.ts` per D-02 and D-11
   (validate the token → 422 `refreshToken.token.required`; revoke the family of a known token; do nothing for an
   unknown one), with tests in `test/session/usecase/sign-out.usecase.test.ts`. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-07, ER-08 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
+  > ✅ 2026-10-09 — added `SignOut` (validate token → find by hash → revoke the family; unknown token does nothing); files: `modules/auth/src/session/usecase/sign-out.usecase.ts`, `modules/auth/src/session/usecase/index.ts`, `modules/auth/test/session/usecase/sign-out.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (187 passed), `tsc --noEmit` clean; deviations: skill `module-use-case` not invoked, written by hand following the existing use cases
 
 ### Backend (`apps/backend`)
 

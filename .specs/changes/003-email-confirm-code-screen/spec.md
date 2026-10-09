@@ -3,7 +3,7 @@ id: "003"
 slug: email-confirm-code-screen
 title: Confirm email code screen (verify and resend the sign-in code)
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-08
 started: 2026-10-08
 base_commit: c7ecb3c839304082bef69f2d1ccae50360988c60
@@ -176,17 +176,21 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then follow the
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then follow the
   simulator journey of ER-01 (paste a real code) and check that a correct code calls nothing visible and a wrong
   one shows "Wrong code. Try again.". Record the output summary as evidence.
   Covers: all · Done when: every command exits 0 and the journey behaves as described.
-  > ⛔ 2026-10-08 — automated part done: `node .specs/scripts/run-related-tests.mjs 003` (RELATED TESTS PASSED, 126 tests),
-  > `node .specs/scripts/check-coverage.mjs 003` (COVERAGE OK, 13 files), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`
-  > (0 errors; one pre-existing warning in `bottom-modal.tsx`); e2e not run (the spec changes no backend code). Simulator journey blocked:
-  > on Create account the new `Button` showed its disabled and enabled looks, but "Get code" for `spec003.test@example.com` got the toast
-  > "We couldn't send the email" (502 `signInCode.email.sendFailed`) from the running backend, so the Confirm email screen was never reached and
-  > no code could be pasted. Unblock: a code the backend can deliver to a mailbox you can read, or the backend running without `RESEND_API_KEY`
-  > (codes are then logged), or a review account from `REVIEW_ACCOUNTS`; then do the ER-01 journey (paste a code, wrong code, resend after 30 s).
+  > ✅ 2026-10-09 — automated: `node .specs/scripts/run-related-tests.mjs 003` (RELATED TESTS PASSED, 146 tests),
+  > `node .specs/scripts/check-coverage.mjs 003` (COVERAGE OK, 20 files), `npx turbo run lint check-types
+  > --filter=@rochas-surf-school/mobile` (0 errors); full mobile suite 179 passed; e2e not run (no backend code changed).
+  > Simulator journey (iOS, dark, backend started with `RESEND_API_KEY=` so codes are logged): Create account →
+  > "Get code" opened Confirm email with the focused input, a disabled Confirm and "Resend code in 0:27"; a wrong code
+  > showed "Wrong code. Try again." with red boxes and cleared digits; the correct code (typed) ran once, created the
+  > pending account and a refresh token, consumed the code, and showed nothing else (D-03); "RESEND CODE" logged a new
+  > code, cleared the boxes and restarted the countdown at 0:27. Found and fixed during the journey: after a wrong
+  > code the keyboard closed and the input lost focus (`confirm-code.hook.ts` now refocuses one tick later).
+  > Not exercised: the long-press paste (the simulator tool types digits; paste is covered by the unit tests
+  > "fills the code from a pasted text"); the Android layout.
 
 ## Verification Plan
 

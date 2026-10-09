@@ -45,10 +45,15 @@ export const useConfirmCode = ({
   const isVerifying = verifyCode.isPending;
 
   // The input is not editable while the request runs, so it gets the focus back afterwards.
+  // It waits one tick: iOS ignores `focus()` until the field is editable again.
   useEffect(() => {
-    if (errorKey && !isVerifying) {
-      inputRef.current?.focus();
+    if (!errorKey || isVerifying) {
+      return;
     }
+
+    const timeout = setTimeout(() => inputRef.current?.focus(), 0);
+
+    return () => clearTimeout(timeout);
   }, [errorKey, isVerifying]);
 
   // The countdown comes from timestamps, so it stays right after the app was in the background.

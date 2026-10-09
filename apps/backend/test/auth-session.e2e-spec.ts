@@ -207,4 +207,146 @@ describe('Session endpoints (e2e)', () => {
       expect(response.body).toMatchObject({ status: 'approved', role: 'instructor' });
     });
   });
+
+  describe('POST /auth/refresh', () => {
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    it('rotates: issues a new session in the same family and revokes the sent token', async () => {
+      const user = await createUser();
+      const session = await signIn(user.email);
+      const before = Date.now();
+
+      const response = await refresh({ refreshToken: session.refreshToken });
+
+      expect(response.status).toBe(200);
+      const body = response.body as Session & {
+        accessTokenExpiresAt: string;
+        refreshTokenExpiresAt: string;
+      };
+      expect(body.refreshToken).not.toBe(session.refreshToken);
+      expect(body.user).toEqual(session.user);
+      expect(Date.parse(body.accessTokenExpiresAt) - before).toBeGreaterThan(14 * 60 * 1000);
+      const old = await rowOf(session.refreshToken);
+      const next = await rowOf(body.refreshToken);
+      expect(old.revokedAt).not.toBeNull();
+      expect(next.revokedAt).toBeNull();
+      expect(next.familyId).toBe(old.familyId);
+      expect(Math.abs(next.expiresAt.getTime() - (before + 30 * DAY_MS))).toBeLessThan(60 * 1000);
+      expect(Date.parse(body.refreshTokenExpiresAt)).toBe(next.expiresAt.getTime());
+      await me(body.accessToken).expect(200);
+    });
+
+    it('rotates again with the new refresh token', async () => {
+      const user = await createUser();
+      const session = await signIn(user.email);
+      const second = (await refresh({ refreshToken: session.refreshToken }).expect(200)).body as Session;
+
+      await refresh({ refreshToken: second.refreshToken }).expect(200);
+    });
+
+    it.each<Status>(['pending', 'denied', 'deleted', 'removed'])(
+      'rotates for a %s account',
+      async (status) => {
+        const user = await createUser({ status });
+        const session = await signIn(user.email);
+
+        const response = await refresh({ refreshToken: session.refreshToken });
+
+        expect(response.status).toBe(200);
+        expect(response.body.user.status).toBe(status);
+      },
+    );
+
+    it('reuse of a rotated token revokes the whole family', async () => {
+      const user = await createUser();
+      const first = await signIn(user.email);
+      const other = await signIn(user.email);
+      const second = (await refresh({ refreshToken: first.refreshToken }).expect(200)).body as Session;
+
+      const reused = await refresh({ refreshToken: first.refreshToken });
+
+      expect(reused.status).toBe(401);
+      expect(reused.body.errors).toEqual(['auth.refreshToken.invalid']);
+      const afterReuse = await refresh({ refreshToken: second.refreshToken });
+      expect(afterReuse.status).toBe(401);
+      expect(afterReuse.body.errors).toEqual(['auth.refreshToken.invalid']);
+      expect((await rowOf(second.refreshToken)).revokedAt).not.toBeNull();
+      await refresh({ refreshToken: other.refreshToken }).expect(200);
+    });
+
+    it('reuse by two concurrent refreshes produces one 200 and one 401 and revokes the family', async () => {
+      const user = await createUser();
+      const session = await signIn(user.email);
+
+      const responses = await Promise.all([
+        refresh({ refreshToken: session.refreshToken }),
+        refresh({ refreshToken: session.refreshToken }),
+      ]);
+
+      expect(responses.map((response) => response.status).sort()).toEqual([200, 401]);
+      const family = (await rowOf(session.refreshToken)).familyId;
+      const rows = await ctx.prisma.refreshToken.findMany({ where: { familyId: family } });
+      expect(rows.every((row) => row.revokedAt !== null)).toBe(true);
+    });
+
+    describe('POST /auth/refresh refuses', () => {
+      const expectInvalid = (response: request.Response) => {
+        expect(response.status).toBe(401);
+        expect(response.body.errors).toEqual(['auth.refreshToken.invalid']);
+      };
+
+      it('an unknown token', async () => {
+        expectInvalid(await refresh({ refreshToken: 'never-issued' }));
+      });
+
+      it('an expired token', async () => {
+        const user = await createUser();
+        const session = await signIn(user.email);
+        await ctx.prisma.refreshToken.updateMany({
+          where: { userId: user.id },
+          data: { expiresAt: new Date(Date.now() - 1000) },
+        });
+
+        expectInvalid(await refresh({ refreshToken: session.refreshToken }));
+        expect(await ctx.prisma.refreshToken.count({ where: { userId: user.id } })).toBe(1);
+      });
+
+      it('a token revoked by a sign-out', async () => {
+        const user = await createUser();
+        const session = await signIn(user.email);
+        await ctx.prisma.refreshToken.updateMany({ where: { userId: user.id }, data: { revokedAt: new Date() } });
+
+        expectInvalid(await refresh({ refreshToken: session.refreshToken }));
+      });
+
+      it('a token whose user no longer exists', async () => {
+        const user = await createUser();
+        const session = await signIn(user.email);
+        await ctx.prisma.user.delete({ where: { id: user.id } });
+
+        expectInvalid(await refresh({ refreshToken: session.refreshToken }));
+      });
+
+      it.each([{}, { refreshToken: '' }, { refreshToken: 42 }, { refreshToken: null }])(
+        'a body without a usable refreshToken (%j) with 422',
+        async (body) => {
+          const response = await refresh(body);
+
+          expect(response.status).toBe(422);
+          expect(response.body.errors).toEqual(['refreshToken.token.required']);
+        },
+      );
+
+      it('the 11th request from one IP within 60 seconds with 429', async () => {
+        for (let i = 0; i < 10; i++) {
+          await refresh({ refreshToken: 'never-issued' }).expect(401);
+        }
+
+        const response = await refresh({ refreshToken: 'never-issued' });
+
+        expect(response.status).toBe(429);
+        expect(response.body.errors).toEqual(['request.rate.limited']);
+      });
+    });
+  });
 });

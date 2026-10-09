@@ -90,3 +90,28 @@ Authorization: Bearer {{accessToken}}
 
 ### Current account without a token (expects 401 auth.token.invalid)
 GET {{baseUrl}}/auth/me
+
+### Renew the session (expects 200 with a new accessToken and refreshToken, same shape as verify; the sent token is revoked)
+# Replace the token with the refreshToken returned by verify or by the previous refresh.
+@refreshToken = paste-the-refresh-token-here
+# @name refresh
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Renew with the same token again (expects 401 auth.refreshToken.invalid and revokes the whole sign-in)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Renew without a token (expects 422 refreshToken.token.required)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{}

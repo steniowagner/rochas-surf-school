@@ -258,13 +258,14 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   `npm run test:e2e --workspace apps/backend -- test/auth-session.e2e-spec.ts` pass.
   > ✅ 2026-10-09 — added protected `GET /auth/me` (`AuthController.me`, `GetCurrentUser` with `@CurrentUser('id')`; `createdAt` is a `Date`, serialized to ISO 8601 by Nest's JSON); created the session e2e suite with the `GET /auth/me` (all five statuses, `createdAt` equal to `users.created_at`, same value in the verify response), `invalid access token` (no header, malformed, other secret, expired, user deleted, public routes still open) and `reloads role and status` scenarios; files: `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-session.e2e-spec.ts`, `apps/backend/test/auth-email.e2e-spec.ts`; verified: `npx vitest run src/modules/auth/auth.controller.spec.ts` (11 passed) and `npm run test:e2e --workspace apps/backend` (43 passed, both e2e files), `tsc --noEmit` clean; deviations: `auth-email.e2e-spec.ts` now expects `createdAt` in the verify `user` (consequence of T-02); skill `backend-nest-controller` not invoked, route added by hand following the existing controller
 
-- [ ] **T-08** — Expose `POST /auth/refresh` (`@Public()`, 200, throttled per D-08) in `auth.controller.ts`
+- [x] **T-08** — Expose `POST /auth/refresh` (`@Public()`, 200, throttled per D-08) in `auth.controller.ts`
   calling `RefreshSession`; add the `rotates`, `reuse` and `POST /auth/refresh refuses` scenarios of ER-04 to
   ER-06 to `test/auth-session.e2e-spec.ts` (including the concurrent-refresh case), a controller unit test, and
   the requests in `auth.integration.http`. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-04, ER-05, ER-06 · Done when: `npm run test:e2e --workspace apps/backend -- test/auth-session.e2e-spec.ts`
   passes.
+  > ✅ 2026-10-09 — added `POST /auth/refresh` (`@Public()`, 200, 10 req/60 s throttle) running `RefreshSession`; e2e scenarios `rotates`, `reuse` (incl. two concurrent refreshes → one 200 and one 401, family revoked, another family untouched) and `POST /auth/refresh refuses` (unknown, expired, revoked, user gone, bad body → 422, 11th request → 429); files: `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-session.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend -- test/auth-session.e2e-spec.ts` (30 passed), controller spec (14 passed), `tsc --noEmit` clean; deviations: the 'revoked by a sign-out' refusal revokes the rows in the database until T-09 adds the route and switches it to the real sign-out; skill `backend-nest-controller` not invoked, route added by hand
 
 - [ ] **T-09** — Expose `POST /auth/sign-out` (`@Public()`, 204, throttled per D-08) in `auth.controller.ts`
   calling `SignOut`; add the `signs out` and `sign-out is idempotent` scenarios of ER-07 and ER-08 to

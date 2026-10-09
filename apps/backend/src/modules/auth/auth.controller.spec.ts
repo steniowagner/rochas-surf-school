@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { HttpStatus, RequestMethod } from '@nestjs/common';
 import {
   GUARDS_METADATA,
@@ -62,10 +63,21 @@ function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
       refreshTokens.push(token);
       return token;
     }),
+    findByTokenHash: vi.fn(
+      async (hash: string) => refreshTokens.find((token) => token.tokenHash === hash) ?? null,
+    ),
+    revokeIfActive: vi.fn(async (id: string, at: Date) => {
+      const index = refreshTokens.findIndex((token) => token.id === id && !token.revokedAt);
+      if (index === -1) return false;
+      refreshTokens[index] = refreshTokens[index]!.clone({ revokedAt: at });
+      return true;
+    }),
+    revokeFamily: vi.fn(),
   };
   const tokenProvider = {
     signAccessToken: vi.fn(() => ({ token: 'access', expiresAt: new Date('2026-10-07T12:15:00.000Z') })),
     generateRefreshToken: vi.fn(() => ({ token: 'refresh', hash: 'f'.repeat(64) })),
+    hashRefreshToken: vi.fn((token: string) => (token === 'refresh' ? 'f'.repeat(64) : '0'.repeat(64))),
   };
   const emailProvider = { sendSignInCode: vi.fn().mockResolvedValue(undefined) };
   const controller = new AuthController(
@@ -79,7 +91,7 @@ function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
     refreshTokenRepository as unknown as PrismaRefreshTokenRepository,
     tokenProvider as unknown as JwtTokenProvider,
   );
-  return { controller, codes, emailProvider, identities, refreshTokens };
+  return { controller, codes, emailProvider, identities, refreshTokens, tokenProvider };
 }
 
 describe('AuthController', () => {
@@ -236,6 +248,60 @@ describe('AuthController', () => {
       await expect(controller.me(ana.id)).rejects.toMatchObject({
         statusCode: 401,
         message: 'auth.token.invalid',
+      });
+    });
+  });
+
+  describe('POST /auth/refresh', () => {
+    const ana = new User({
+      name: 'Ana Rocha',
+      email: 'ana@example.com',
+      whatsappVisible: false,
+      role: 'student',
+      status: 'approved',
+    });
+
+    it('is a public throttled POST on refresh answering 200', () => {
+      const handler = handlerOf('refreshSession');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('refresh');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
+      expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
+    });
+
+    it('runs RefreshSession with the body and the configured TTL', async () => {
+      const { controller, refreshTokens } = setup({}, [ana]);
+      refreshTokens.push(
+        new RefreshToken({
+          userId: ana.id,
+          tokenHash: 'f'.repeat(64),
+          familyId: randomUUID(),
+          expiresAt: new Date('2026-11-06T12:00:00.000Z'),
+        }),
+      );
+
+      const result = await controller.refreshSession({ refreshToken: 'refresh' });
+
+      expect(result).toMatchObject({
+        accessToken: 'access',
+        refreshToken: 'refresh',
+        refreshTokenExpiresAt: new Date('2026-11-06T12:00:00.000Z'),
+        user: { id: ana.id, status: 'approved' },
+      });
+      expect(refreshTokens).toHaveLength(2);
+      expect(refreshTokens[0]!.revokedAt).toEqual(NOW);
+    });
+
+    it('answers refreshToken.token.required when there is no body', async () => {
+      const { controller } = setup();
+
+      await expect(controller.refreshSession(undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'refreshToken.token.required' })],
       });
     });
   });

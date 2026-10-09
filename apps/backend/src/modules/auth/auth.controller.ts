@@ -3,6 +3,9 @@ import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import {
   GetCurrentUser,
   GetCurrentUserOut,
+  RefreshSession,
+  RefreshSessionIn,
+  RefreshSessionOut,
   RequestSignInCode,
   RequestSignInCodeIn,
   RequestSignInCodeOut,
@@ -83,5 +86,21 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
     return new GetCurrentUser(this.userRepository).execute({ id });
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refreshSession(@Body() body: RefreshSessionIn | undefined): Promise<RefreshSessionOut> {
+    const useCase = new RefreshSession(
+      this.refreshTokenRepository,
+      this.userRepository,
+      this.tokenProvider,
+      this.clock,
+      this.authConfig.refreshTokenTtlDays,
+    );
+    return useCase.execute({ refreshToken: body?.refreshToken as string });
   }
 }

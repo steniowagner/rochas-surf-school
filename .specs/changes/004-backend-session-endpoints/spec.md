@@ -213,13 +213,14 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   Covers: ER-01, ER-02 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
   > ✅ 2026-10-09 — added `GetCurrentUser` (401 `auth.token.invalid` for a missing user), exported it, and added `createdAt` to `VerifySignInCodeOut.user`; files: `modules/auth/src/user/usecase/get-current-user.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts`, `modules/auth/test/user/usecase/get-current-user.usecase.test.ts`, `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (158 passed), `tsc --noEmit` clean; deviations: skill `module-use-case` not invoked, written by hand following the existing use cases
 
-- [ ] **T-03** — Add the `RefreshSession` use case in `src/session/usecase/refresh-session.usecase.ts` per D-05,
+- [x] **T-03** — Add the `RefreshSession` use case in `src/session/usecase/refresh-session.usecase.ts` per D-05,
   D-06, D-07, D-09 and D-11 (validate the token → 422 `refreshToken.token.required`; find by hash; refuse unknown,
   expired, revoked or user-less tokens with `UnauthorizedError("auth.refreshToken.invalid")`; revoke a reused
   token's family; rotate within the family), with tests in
   `test/session/usecase/refresh-session.usecase.test.ts` covering every case of ER-04 to ER-06, including a
   `reuse` test where `revokeIfActive` returns false. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04, ER-05, ER-06 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
+  > ✅ 2026-10-09 — added `RefreshSession` (validate token → find by hash → refuse unknown/expired/user-less → reuse of a revoked token or a lost `revokeIfActive` revokes the family → rotate in the same family with a fresh 30-day expiry) and the shared `requireRefreshToken` input check (reused by T-04); files: `modules/auth/src/session/usecase/refresh-session.usecase.ts`, `modules/auth/src/session/usecase/refresh-token-input.ts`, `modules/auth/src/session/usecase/index.ts`, `modules/auth/test/session/usecase/refresh-session.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (177 passed), `tsc --noEmit` clean; deviations: skill `module-use-case` not invoked, written by hand following the existing use cases
 
 - [ ] **T-04** — Add the `SignOut` use case in `src/session/usecase/sign-out.usecase.ts` per D-02 and D-11
   (validate the token → 422 `refreshToken.token.required`; revoke the family of a known token; do nothing for an

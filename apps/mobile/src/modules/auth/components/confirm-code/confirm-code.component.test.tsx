@@ -405,12 +405,10 @@ describe("ConfirmCode", () => {
 
       await advance(28000);
       expect(screen.getByText("Resend code in 0:01")).toBeOnTheScreen();
-      expect(screen.queryByRole("link", { name: "Resend code" })).toBeNull();
+      expect(screen.queryByText("RESEND CODE")).toBeNull();
 
       await advance(1000);
-      expect(
-        screen.getByRole("link", { name: "Resend code" }),
-      ).toBeOnTheScreen();
+      expect(screen.getByText("RESEND CODE")).toBeOnTheScreen();
     });
 
     it("shows the link after a long jump of the clock", async () => {
@@ -418,9 +416,7 @@ describe("ConfirmCode", () => {
 
       await advance(45000);
 
-      expect(
-        screen.getByRole("link", { name: "Resend code" }),
-      ).toBeOnTheScreen();
+      expect(screen.getByText("RESEND CODE")).toBeOnTheScreen();
     });
 
     it("resends the code and restarts the countdown", async () => {
@@ -435,7 +431,7 @@ describe("ConfirmCode", () => {
       await screen.findByText("Wrong code. Try again.");
       await advance(30000);
 
-      await user.press(screen.getByRole("link", { name: "Resend code" }));
+      await user.press(screen.getByText("RESEND CODE"));
 
       await waitFor(() =>
         expect(screen.getByText(COUNTDOWN)).toBeOnTheScreen(),
@@ -457,7 +453,7 @@ describe("ConfirmCode", () => {
       await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
       await advance(30000);
 
-      await user.press(screen.getByRole("link", { name: "Resend code" }));
+      await user.press(screen.getByText("RESEND CODE"));
 
       await waitFor(() =>
         expect(screen.getByText(COUNTDOWN)).toBeOnTheScreen(),
@@ -469,7 +465,7 @@ describe("ConfirmCode", () => {
       fetchMock.mockReturnValue(new Promise(() => {}));
       await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
       await advance(30000);
-      const link = screen.getByRole("link", { name: "Resend code" });
+      const link = screen.getByText("RESEND CODE");
 
       await user.press(link);
       await user.press(link);
@@ -504,14 +500,12 @@ describe("ConfirmCode", () => {
       await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
       await advance(30000);
 
-      await user.press(screen.getByRole("link", { name: "Resend code" }));
+      await user.press(screen.getByText("RESEND CODE"));
 
       expect(
         await screen.findByText(message, { includeHiddenElements: true }),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByRole("link", { name: "Resend code" }),
-      ).toBeOnTheScreen();
+      expect(screen.getByText("RESEND CODE")).toBeOnTheScreen();
     });
   });
 });

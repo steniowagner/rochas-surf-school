@@ -219,5 +219,9 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
 - 2026-10-09 — requested by the user: `Button` gains a `ghost` variant (no background, no border, same size and
   label style); `button`, `chip` and `bottom-modal` moved into their own folders under `components/ui` like the
   other components (`BUTTON_ACTIVE_OPACITY` now lives in `button/button.constants.ts`). Chip and BottomModal got tests.
+- 2026-10-09 — requested by the user (UI): the intro icon on Confirm email is MaterialCommunityIcons
+  `email-check-outline` instead of Ionicons `mail-open-outline` (D-09); "Resend code" is a plain uppercase `Text`
+  (`ds-text-button`) instead of a link (`TextButton`), so the resend tests find it by its text. The sign-in
+  screen's language sheet follows the app theme, and its language button has a `chevron-down`.
 
 ## Review

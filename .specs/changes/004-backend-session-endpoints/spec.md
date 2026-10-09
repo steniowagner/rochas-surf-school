@@ -205,12 +205,13 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   `npx turbo run check-types --filter=@rochas-surf-school/auth` pass.
   > ✅ 2026-10-09 — added `hashRefreshToken` to `TokenProvider`; `findByTokenHash`, `revokeIfActive`, `revokeFamily` to `RefreshTokenRepository`; implemented them in the fakes with tests; files: `modules/auth/src/session/provider/token.provider.ts`, `modules/auth/src/session/provider/refresh-token.repository.ts`, `modules/auth/test/mock/fake-token.provider.ts`, `modules/auth/test/mock/fake-refresh-token.repository.ts`, `modules/auth/test/session/provider/refresh-token.repository.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (151 passed), `tsc --noEmit` in modules/auth clean; deviations: skill `module-repository` not invoked, ports extended by hand following its pattern
 
-- [ ] **T-02** — Add the `GetCurrentUser` use case in `src/user/usecase/get-current-user.usecase.ts` (input
+- [x] **T-02** — Add the `GetCurrentUser` use case in `src/user/usecase/get-current-user.usecase.ts` (input
   `{ id }`, output `{ id, name, email, role, status, createdAt }`, `UnauthorizedError("auth.token.invalid")`
   when the user doesn't exist), export it, and add `createdAt` to `VerifySignInCodeOut.user`; tests in
   `test/user/usecase/get-current-user.usecase.test.ts` and the existing verify test. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
+  > ✅ 2026-10-09 — added `GetCurrentUser` (401 `auth.token.invalid` for a missing user), exported it, and added `createdAt` to `VerifySignInCodeOut.user`; files: `modules/auth/src/user/usecase/get-current-user.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts`, `modules/auth/test/user/usecase/get-current-user.usecase.test.ts`, `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (158 passed), `tsc --noEmit` clean; deviations: skill `module-use-case` not invoked, written by hand following the existing use cases
 
 - [ ] **T-03** — Add the `RefreshSession` use case in `src/session/usecase/refresh-session.usecase.ts` per D-05,
   D-06, D-07, D-09 and D-11 (validate the token → 422 `refreshToken.token.required`; find by hash; refuse unknown,

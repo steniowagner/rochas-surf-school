@@ -17,7 +17,12 @@ import { AlertMessageProvider } from "@/providers/alert-message";
 import { ConfirmCode } from "./confirm-code.component";
 
 jest.mock("expo-router", () => ({
-  router: { back: jest.fn(), push: jest.fn() },
+  router: {
+    back: jest.fn(),
+    canGoBack: jest.fn(() => true),
+    push: jest.fn(),
+    replace: jest.fn(),
+  },
 }));
 jest.useFakeTimers();
 
@@ -167,6 +172,17 @@ describe("ConfirmCode", () => {
 
     expect(getConfirm()).toBeOnTheScreen();
     Platform.OS = original;
+  });
+
+  it("opens Create account when there is no screen to go back to", async () => {
+    jest.mocked(router.canGoBack).mockReturnValueOnce(false);
+    const user = userEvent.setup();
+    await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+    await user.press(screen.getByRole("link", { name: "change the email" }));
+
+    expect(router.replace).toHaveBeenCalledWith("/auth/create-account");
+    expect(router.back).not.toHaveBeenCalled();
   });
 
   describe("confirming", () => {

@@ -210,4 +210,9 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
 
 ## Amendments
 
+- 2026-10-08 — requested by the user after T-06: the auth routes moved from `src/app/(private)/auth/` to
+  `src/app/(public)/auth/` (the sign-in flow is public), with a new `_layout.tsx` Stack for the flow. Paths
+  written as `(private)/auth/...` in T-06 and in Memory Impact now read `(public)/auth/...`. "Change the email"
+  goes back, or opens Create account when there is no screen to go back to.
+
 ## Review

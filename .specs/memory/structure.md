@@ -104,8 +104,9 @@ src/
   app/                          # Expo Router routes only (each renders a screen)
     _layout.tsx                 # root Stack: fonts, theme variables, bottom sheets, QueryClientProvider, AlertMessageProvider
     index.tsx                   # redirects to the sign-in screen
-    (private)/auth/index.tsx    # sign-in screen
-    (private)/auth/create-account.tsx   # Create account screen
+    (public)/auth/_layout.tsx   # Stack of the signed-out flow
+    (public)/auth/index.tsx     # sign-in screen
+    (public)/auth/create-account.tsx    # Create account screen
   modules/auth/
     screens/                    # auth.screen.tsx, create-account.screen.tsx
     components/                 # auth (sign-in), auth-button, language-sheet, create-account (component + hook)

@@ -17,6 +17,10 @@ export const RESEND_COOLDOWN_MS = 30_000;
 const formatCountdown = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
+// Back to Create account; when this screen was opened directly there is nothing to go back to.
+const goToCreateAccount = () =>
+  router.canGoBack() ? router.back() : router.replace("/auth/create-account");
+
 export const useConfirmCode = ({
   email,
   name,
@@ -121,6 +125,6 @@ export const useConfirmCode = ({
     inputRef,
     changeCode,
     confirm: () => verify(code),
-    changeEmail: () => router.back(),
+    changeEmail: goToCreateAccount,
   };
 };

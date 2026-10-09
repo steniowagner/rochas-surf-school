@@ -214,5 +214,7 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   `src/app/(public)/auth/` (the sign-in flow is public), with a new `_layout.tsx` Stack for the flow. Paths
   written as `(private)/auth/...` in T-06 and in Memory Impact now read `(public)/auth/...`. "Change the email"
   goes back, or opens Create account when there is no screen to go back to.
+- 2026-10-08 — requested by the user: app routes live in `src/constants/routes.ts` (`routes.auth.*`) instead of
+  string literals; `router` and `Redirect` calls and their tests use it. No behavior change.
 
 ## Review

@@ -114,6 +114,8 @@ An account's email address SHALL NOT change after the account is created.
 
 #### Signing out
 
+_Implemented in spec 004-backend-session-endpoints._
+
 Users SHALL be able to sign out.
 
 - _Sign out:_ When a signed-in user signs out, then the app returns to the sign-in screen.
@@ -132,6 +134,8 @@ The system SHALL provide one pre-approved review account for each role (student,
 Covers an account from registration to erasure: admin approval, onboarding, deletion, reactivation, and removal by admins.
 
 #### Registrations wait for approval
+
+_Implemented in spec 004-backend-session-endpoints._
 
 A new account SHALL wait for an admin's approval before its user can use the app. While waiting, the user SHALL only see that their account is waiting for approval.
 

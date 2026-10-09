@@ -196,20 +196,36 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   then issues its own tokens; one account per email address.
 - Tokens: a short-lived **access JWT (15 minutes)**, HS256 signed with `JWT_SECRET`, payload
   `{ sub: user id, email }`, plus a **refresh token (30 days)**: 32 random bytes (base64url), stored only as a
-  plain SHA-256 hex in `refresh_tokens` with a `family_id` per sign-in. Planned for the next auth spec, not
-  built yet: using a refresh token replaces it (rotation), and reusing an old one revokes its family.
+  plain SHA-256 hex in `refresh_tokens` with a `family_id` per sign-in; a token is looked up by hashing the
+  plaintext (`TokenProvider.hashRefreshToken`), which is never stored or logged.
+- Session renewal (`POST /auth/refresh`, `@Public()`): **rotation with reuse detection**. The sent token is
+  revoked and its successor (same family) inserted in **one Prisma transaction** (`RefreshTokenRepository.rotate`:
+  a conditional `updateMany` on `revoked_at IS NULL`, then `create`), so of two concurrent refreshes exactly one
+  wins, and the loser — or any later use of an already-revoked token — revokes the whole family. The successor
+  expires `REFRESH_TOKEN_EXPIRES_IN_DAYS` after the rotation (sliding), so an active user stays signed in. An
+  unknown, expired, revoked or user-less token answers 401 `auth.refreshToken.invalid`; the account's status
+  never refuses a refresh. Consequence for the app: one refresh at a time, and no sign-out while one is in
+  flight.
+- Sign-out (`POST /auth/sign-out`, `@Public()`): identified by the refresh token in the body (the access token
+  carries no family and may have expired); it revokes the active tokens of that token's family only — the
+  account's other sign-ins stay — and always answers 204, changing nothing for an unknown, expired or revoked
+  token. Both routes answer 422 `refreshToken.token.required` for a missing, empty or non-string token.
 - Email codes: `crypto.randomInt` padded to 6 digits, stored as hex HMAC-SHA256 keyed by `AUTH_CODE_PEPPER`
   over `` `${email}:${code}` `` and compared with `timingSafeEqual` — 10⁶ codes make a plain hash reversible,
   so the pepper protects them. One row per normalized email (trimmed, lowercase — emails are stored that way
   everywhere); a code is consumed with one atomic `deleteMany({ email, codeHash })`, which makes it single-use
   under concurrent verifies. A cleanup job deletes expired codes every minute.
 - Rate limits: `@nestjs/throttler`, in-memory, by IP, bound per route with `@UseGuards(ThrottlerGuard)` and
-  `@Throttle` (only the email sign-in routes today: 5 and 10 requests per 60 s); its error key is
+  `@Throttle` (code request 5; code verify, refresh and sign-out 10 requests per 60 s); its error key is
   `request.rate.limited`. How the client IP is read behind a proxy is decided by the first spec that deploys.
 - Global `JwtAuthGuard` (from `backend-nest-config`, applied); open routes use `@Public()`; controllers get
-  the user with `@CurrentUser()`. Decided, not built yet (the first spec with a protected route adds it): the
-  guard **reloads the user's status and role on every request**, so a removal, denial, deletion or role change
-  takes effect immediately rather than when the token expires.
+  the user with `@CurrentUser()`. The guard **reloads the user on every request** (`JwtStrategy.validate` reads
+  `id`, `email`, `role` and `status` by the token's `sub` through `PrismaService`), so a removal, denial,
+  deletion or role change takes effect immediately rather than when the token expires; `AuthenticatedUser`
+  carries those four fields plus the claims. The guard never refuses by status or role — use cases do. Every
+  401 it answers (no token, malformed, wrong signature, expired, unknown user) is `auth.token.invalid`, so the
+  app reacts the same way to each (renew, else sign in again). `GET /auth/me` returns the account
+  (`{ id, name, email, role, status, createdAt }`) for any status — the same `user` shape as verify and refresh.
 - Boundary: only `apps/backend/src/shared/auth` and the auth adapters know about tokens; use cases receive a
   plain current-user value and enforce permissions.
 - Variables (names in `apps/backend/.env.example`, values never committed): `JWT_SECRET`, `JWT_EXPIRES_IN`

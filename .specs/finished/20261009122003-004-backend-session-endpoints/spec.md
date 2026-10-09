@@ -2,13 +2,14 @@
 id: "004"
 slug: backend-session-endpoints
 title: Current account, session renewal and sign-out on the backend
-status: accepted
+status: finished
 created: 2026-10-09
 started: 2026-10-09
 base_commit: 465ac664b79a5ad5bf845f8ce1297f1e9edd4102
 reviewed_commit: d77e7e4ec574e249ee7e25c6af740ffd33379e6c
 fronts: [auth, backend]
 depends_on: []
+finished: 2026-10-09
 ---
 
 # 004 — Current account, session renewal and sign-out on the backend

@@ -56,12 +56,27 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 ## Sessions
 
 - **Session**: what a correct code returns — a short access token (15 minutes) naming the user, and a refresh
-  token (30 days) kept only as a hash, each sign-in starting its own family of refresh tokens. Renewing a
-  session and signing out are not built yet.
+  token (30 days) kept only as a hash, each sign-in starting its own family of refresh tokens.
+- **Every request sees the account as it is now**: role and status are read again on each request, so an
+  approval, denial, removal, deletion or role change applies at once, not when the access token expires. A
+  request whose token is missing, bad, expired or names an account that no longer exists is refused with
+  `auth.token.invalid`.
+- **Renewing a session replaces its refresh token**: the one used stops working and a new one, in the same
+  sign-in, lasts 30 days from the renewal — an active person stays signed in. Any account status can renew.
+  An unknown, expired or ended refresh token is refused with `auth.refreshToken.invalid`.
+- **Reusing an old refresh token ends that sign-in**: a refresh token that was already replaced (a stolen copy,
+  or the loser of two renewals at the same moment) ends every token of its sign-in; the account's other
+  sign-ins are untouched.
+- **Signing out ends one sign-in**: it uses the refresh token, so it works after the access token expired; the
+  account's other devices stay signed in. It always succeeds, and an unknown, expired or ended token changes
+  nothing. A missing refresh token is refused with `refreshToken.token.required` (on renewal too).
 
 ## Who can do what
 
-- **Anyone** — asks for a code and signs in or signs up with it; nothing else needs to be signed in yet.
+- **Anyone** — asks for a code and signs in or signs up with it.
+- **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date).
+- **Anyone holding a refresh token** — renews or ends that session (10 requests per minute per network address
+  for each).
 - **In the app**, a new person gives their name and email address on the Create account screen before the
   code is sent; the app keeps the name and sends it with the code check, which creates the account. Asking
   for a code sends only the address and the language. The app accepts a name and an address only when they
@@ -84,3 +99,6 @@ and school rules), erasure and reactivation are rules of the account lifecycle s
   name before the code; a request refused because a code was sent less than 30 seconds ago counts as sent.
 - `003-email-confirm-code-screen` — the app's Confirm email screen checks the typed or pasted code, sending the
   name from Create account, and asks for a new code after 30 seconds.
+- `004-backend-session-endpoints` — the backend reads the current account, renews a session (rotation, reuse
+  ends the sign-in, sliding 30 days) and signs out one sign-in; every request reloads role and status; the
+  verified user gains its creation date.

@@ -279,11 +279,19 @@ shown under the code boxes; every other error in a toast. A new code can be aske
 with a countdown. What happens after a correct code (keeping the session, the waiting-for-approval screen) is
 not built yet: the screen shows nothing more.
 
+**Sessions on the backend** (spec `004-backend-session-endpoints`) — a signed-in app can ask the backend who
+the account is (name, email, role, status and when it was created, whatever its status), renew its session
+before the 15-minute access token runs out, and sign out, which ends that one sign-in and leaves the account's
+other devices signed in. Every request reloads the account's role and status, so an approval, a denial, a
+removal or a role change takes effect at once. Reusing an old refresh token ends that whole sign-in. The app
+doesn't use these yet.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
-The web app is still on its framework template. Keeping the session in the app and routing by account status,
-renewing a session, signing out, and Google and Apple sign-in don't exist yet.
+The web app is still on its framework template. Keeping the session in the app and routing by account status
+(the waiting-for-approval screen), renewing a session and signing out from the app, and Google and Apple
+sign-in don't exist yet.
 
 No spec is active.
 
@@ -300,6 +308,7 @@ No spec is active.
 - An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list); each class
   already shows its seats taken and ratings.
 - A terms-of-use page; the school rules play that role inside the app.
+- Signing out of every device at once: signing out ends the sign-in of one device only.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea

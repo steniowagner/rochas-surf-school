@@ -195,7 +195,7 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Extend the session ports: `hashRefreshToken(token: string): string` on `TokenProvider`
+- [x] **T-01** — Extend the session ports: `hashRefreshToken(token: string): string` on `TokenProvider`
   (`src/session/provider/token.provider.ts`); `findByTokenHash(hash)`, `revokeIfActive(id, at): Promise<boolean>`
   (true only when the token was still active) and `revokeFamily(familyId, at)` on `RefreshTokenRepository`
   (`src/session/provider/refresh-token.repository.ts`); implement them in `test/mock/fake-token.provider.ts`
@@ -203,6 +203,7 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/auth` and
   `npx turbo run check-types --filter=@rochas-surf-school/auth` pass.
+  > ✅ 2026-10-09 — added `hashRefreshToken` to `TokenProvider`; `findByTokenHash`, `revokeIfActive`, `revokeFamily` to `RefreshTokenRepository`; implemented them in the fakes with tests; files: `modules/auth/src/session/provider/token.provider.ts`, `modules/auth/src/session/provider/refresh-token.repository.ts`, `modules/auth/test/mock/fake-token.provider.ts`, `modules/auth/test/mock/fake-refresh-token.repository.ts`, `modules/auth/test/session/provider/refresh-token.repository.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (151 passed), `tsc --noEmit` in modules/auth clean; deviations: skill `module-repository` not invoked, ports extended by hand following its pattern
 
 - [ ] **T-02** — Add the `GetCurrentUser` use case in `src/user/usecase/get-current-user.usecase.ts` (input
   `{ id }`, output `{ id, name, email, role, status, createdAt }`, `UnauthorizedError("auth.token.invalid")`

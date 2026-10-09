@@ -23,6 +23,10 @@ export class FakeTokenProvider implements TokenProvider {
   generateRefreshToken(): GeneratedRefreshToken {
     this.issued++;
     const token = `refresh-${this.issued}`;
-    return { token, hash: createHash("sha256").update(token).digest("hex") };
+    return { token, hash: this.hashRefreshToken(token) };
+  }
+
+  hashRefreshToken(token: string): string {
+    return createHash("sha256").update(token).digest("hex");
   }
 }

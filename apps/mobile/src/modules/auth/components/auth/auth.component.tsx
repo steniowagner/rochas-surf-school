@@ -6,8 +6,9 @@ import { Trans, useTranslation } from "react-i18next";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button";
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { TextButton } from "@/components/ui/text-button";
+import { routes } from "@/constants/routes";
 import { Colors } from "@/constants/theme";
 import { themeVariables } from "@/constants/theme-variables";
 import {
@@ -97,6 +98,7 @@ export function AuthComponent({
           <Text className="ds-text-button text-on-color">
             {localeAcronyms[currentLocale]}
           </Text>
+          <Ionicons name="chevron-down" size={14} color={palette.onColor} />
         </TouchableOpacity>
       </View>
 
@@ -142,7 +144,7 @@ export function AuthComponent({
         <AuthButton
           variant="primary"
           label={t("auth.continueWithEmail")}
-          onPress={() => router.push("/auth/create-account")}
+          onPress={() => router.push(routes.auth.createAccount)}
           icon={
             <Ionicons name="mail-outline" size={20} color={palette.onColor} />
           }

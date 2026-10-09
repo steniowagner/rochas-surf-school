@@ -23,7 +23,7 @@ export function LanguageSheet({ visible, onClose }: LanguageSheetProps) {
 
   return (
     <BottomModal visible={visible} onClose={onClose}>
-      <View className="mb-3.5 gap-[9px]">
+      <View className="mb-3.5 gap-[4px]">
         <Text className="ds-text-sheet-title text-ink">
           {t("language.title")}
         </Text>

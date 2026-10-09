@@ -150,9 +150,15 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   still decides.
 - **Mobile shared UI**: every screen that can go back uses `BackButton` (`src/components/ui/back-button`,
   44×44, `router.back()` by default); inner screens open with `ScreenIntro` (icon tile, title, description)
-  and use the shared `TextInput` (leading icon, `neutral` / `error` border, error message below). API errors
-  are shown in a toast through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides
-  by itself after 3 s), never inline.
+  and use the shared `TextInput` (leading icon, `neutral` / `error` border, error message below), `OtpInput`
+  (digit boxes over a hidden native input that keeps only digits, so paste and one-time-code autofill work) and
+  `Button` (variants, including `ghost`, plus `loading` and `disabled` states). API errors are shown in a toast
+  through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides by itself after 3 s).
+  One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
+  shown inline under the field, because the design shows it there.
+- **Mobile routes**: every app path lives in `src/constants/routes.ts` (`routes.<module>.<screen>`, a function
+  when the route takes params). `router` and `Redirect` calls and their tests use it, never string literals,
+  so a moved route changes in one place.
 - **CTA labels**: the `button` type style is Barlow Condensed 700, 18px, uppercase, on web and mobile.
 - **Generator skills**: new modules, aggregates, entities, repositories, use cases, controllers, Prisma
   repositories and providers are created with the project skills in `.claude/skills/` so they follow one
@@ -228,7 +234,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `details` the `DomainError.details` object (e.g. `resendAvailableAt` on a 429), so the app can show data
   such as a countdown.
   Unexpected errors become 500 with `INTERNAL_SERVER_ERROR` and are logged.
-- The mobile app translates the first key of `errors` and shows it in a toast; unknown keys (and
+- The mobile app translates the first key of `errors` and shows it in a toast (code errors on the Confirm email
+  screen go inline, see Mobile shared UI); unknown keys (and
   `NetworkError`) fall back to a generic or no-connection message. Each feature maps the keys its route can
   answer (e.g. `modules/auth/utils/sign-in-code-error.ts`).
 

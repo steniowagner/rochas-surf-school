@@ -1,6 +1,6 @@
 import { Text, TouchableOpacity } from "react-native";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button";
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Colors, shadowStyle } from "@/constants/theme";
 
 import { AuthButtonProps } from "./auth-button.types";

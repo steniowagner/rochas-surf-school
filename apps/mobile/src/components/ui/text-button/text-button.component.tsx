@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Text } from "react-native";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button";
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 
 import { TextButtonProps } from "./text-button.types";
 

@@ -267,12 +267,13 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   passes.
   > ✅ 2026-10-09 — added `POST /auth/refresh` (`@Public()`, 200, 10 req/60 s throttle) running `RefreshSession`; e2e scenarios `rotates`, `reuse` (incl. two concurrent refreshes → one 200 and one 401, family revoked, another family untouched) and `POST /auth/refresh refuses` (unknown, expired, revoked, user gone, bad body → 422, 11th request → 429); files: `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-session.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend -- test/auth-session.e2e-spec.ts` (30 passed), controller spec (14 passed), `tsc --noEmit` clean; deviations: the 'revoked by a sign-out' refusal revokes the rows in the database until T-09 adds the route and switches it to the real sign-out; skill `backend-nest-controller` not invoked, route added by hand
 
-- [ ] **T-09** — Expose `POST /auth/sign-out` (`@Public()`, 204, throttled per D-08) in `auth.controller.ts`
+- [x] **T-09** — Expose `POST /auth/sign-out` (`@Public()`, 204, throttled per D-08) in `auth.controller.ts`
   calling `SignOut`; add the `signs out` and `sign-out is idempotent` scenarios of ER-07 and ER-08 to
   `test/auth-session.e2e-spec.ts`, a controller unit test, and the requests in `auth.integration.http`. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-07, ER-08 · Done when: `npm run test:e2e --workspace apps/backend -- test/auth-session.e2e-spec.ts`
   passes.
+  > ✅ 2026-10-09 — added `POST /auth/sign-out` (`@Public()`, 204, 10 req/60 s throttle) running `SignOut`; e2e scenarios `signs out` (one family revoked, other family still refreshes, works without Authorization and with an expired access token) and `sign-out is idempotent` (unknown, revoked and expired tokens → 204 with no row changed; bad body → 422; 11th request → 429); the 'revoked by a sign-out' refusal of T-08 now uses the real route; files: `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-session.e2e-spec.ts`, `modules/auth/src/session/usecase/sign-out.usecase.ts`, `modules/auth/test/session/usecase/sign-out.usecase.test.ts`; verified: `npm run test:e2e --workspace apps/backend` (70 passed, both files), controller spec (17 passed), `npm test --workspace @rochas-surf-school/auth` (187 passed), `tsc --noEmit` clean; deviations: ER-08 requires that no row changes for an expired or already-revoked token, so `SignOut` (T-04) now ignores unknown, revoked and expired tokens and only revokes the family of a still-active token (T-04's tests adjusted); skill `backend-nest-controller` not invoked, route added by hand
 
 ### Verification
 

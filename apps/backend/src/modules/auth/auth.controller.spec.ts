@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { Mock } from 'vitest';
 import { HttpStatus, RequestMethod } from '@nestjs/common';
 import {
   GUARDS_METADATA,
@@ -24,6 +25,11 @@ const NOW = new Date('2026-10-07T12:00:00.000Z');
 
 function handlerOf(name: keyof AuthController): object {
   return Object.getOwnPropertyDescriptor(AuthController.prototype, name)!.value as object;
+}
+
+function refreshTokenRepositoryOf(controller: AuthController) {
+  return (controller as unknown as { refreshTokenRepository: { revokeFamily: Mock } })
+    .refreshTokenRepository;
 }
 
 function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
@@ -300,6 +306,46 @@ describe('AuthController', () => {
       const { controller } = setup();
 
       await expect(controller.refreshSession(undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'refreshToken.token.required' })],
+      });
+    });
+  });
+
+  describe('POST /auth/sign-out', () => {
+    it('is a public throttled POST on sign-out answering 204', () => {
+      const handler = handlerOf('signOut');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('sign-out');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.NO_CONTENT);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
+      expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
+    });
+
+    it('runs SignOut: revokes the family of the sent token', async () => {
+      const { controller, refreshTokens } = setup();
+      const familyId = randomUUID();
+      refreshTokens.push(
+        new RefreshToken({
+          userId: randomUUID(),
+          tokenHash: 'f'.repeat(64),
+          familyId,
+          expiresAt: new Date('2026-11-06T12:00:00.000Z'),
+        }),
+      );
+
+      await expect(controller.signOut({ refreshToken: 'refresh' })).resolves.toBeUndefined();
+
+      expect(refreshTokenRepositoryOf(controller).revokeFamily).toHaveBeenCalledWith(familyId, NOW);
+    });
+
+    it('answers refreshToken.token.required when there is no body', async () => {
+      const { controller } = setup();
+
+      await expect(controller.signOut(undefined)).rejects.toMatchObject({
         statusCode: 422,
         errors: [expect.objectContaining({ message: 'refreshToken.token.required' })],
       });

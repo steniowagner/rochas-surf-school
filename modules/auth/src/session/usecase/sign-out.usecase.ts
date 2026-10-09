@@ -7,7 +7,7 @@ export interface SignOutIn {
   refreshToken: string;
 }
 
-/** Ends one sign-in (the token's family). Idempotent: an unknown, expired or revoked token changes nothing. */
+/** Ends one sign-in (the family of its current token). Idempotent: an unknown, expired or revoked token changes nothing. */
 export class SignOut implements UseCase<SignOutIn, void> {
   constructor(
     private readonly refreshTokenRepository: RefreshTokenRepository,
@@ -21,10 +21,11 @@ export class SignOut implements UseCase<SignOutIn, void> {
     const token = await this.refreshTokenRepository.findByTokenHash(
       this.tokenProvider.hashRefreshToken(plaintext),
     );
-    if (!token) {
+    const now = this.clock.now();
+    if (!token || token.revokedAt || now.getTime() >= token.expiresAt.getTime()) {
       return;
     }
 
-    await this.refreshTokenRepository.revokeFamily(token.familyId, this.clock.now());
+    await this.refreshTokenRepository.revokeFamily(token.familyId, now);
   }
 }

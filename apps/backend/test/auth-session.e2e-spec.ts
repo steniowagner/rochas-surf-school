@@ -314,7 +314,7 @@ describe('Session endpoints (e2e)', () => {
       it('a token revoked by a sign-out', async () => {
         const user = await createUser();
         const session = await signIn(user.email);
-        await ctx.prisma.refreshToken.updateMany({ where: { userId: user.id }, data: { revokedAt: new Date() } });
+        await signOut({ refreshToken: session.refreshToken }).expect(204);
 
         expectInvalid(await refresh({ refreshToken: session.refreshToken }));
       });
@@ -343,6 +343,97 @@ describe('Session endpoints (e2e)', () => {
         }
 
         const response = await refresh({ refreshToken: 'never-issued' });
+
+        expect(response.status).toBe(429);
+        expect(response.body.errors).toEqual(['request.rate.limited']);
+      });
+    });
+  });
+
+  describe('POST /auth/sign-out', () => {
+    const activeRows = (familyId: string) =>
+      ctx.prisma.refreshToken.count({ where: { familyId, revokedAt: null } });
+
+    it('signs out one sign-in only: its family is revoked and the other family keeps working', async () => {
+      const user = await createUser();
+      const x = await signIn(user.email);
+      const y = await signIn(user.email);
+      const rotated = (await refresh({ refreshToken: x.refreshToken }).expect(200)).body as Session;
+      const familyX = (await rowOf(x.refreshToken)).familyId;
+
+      const response = await signOut({ refreshToken: rotated.refreshToken });
+
+      expect(response.status).toBe(204);
+      expect(response.text).toBe('');
+      expect(await activeRows(familyX)).toBe(0);
+      const refused = await refresh({ refreshToken: rotated.refreshToken });
+      expect(refused.status).toBe(401);
+      expect(refused.body.errors).toEqual(['auth.refreshToken.invalid']);
+      await refresh({ refreshToken: y.refreshToken }).expect(200);
+    });
+
+    it('signs out without Authorization and with an expired access token', async () => {
+      const user = await createUser();
+      const session = await signIn(user.email);
+      const expired = new JwtService({ secret: process.env.JWT_SECRET }).sign({
+        sub: user.id,
+        email: user.email,
+        exp: Math.floor(Date.now() / 1000) - 60,
+      });
+
+      await signOut({ refreshToken: session.refreshToken })
+        .set('Authorization', `Bearer ${expired}`)
+        .expect(204);
+
+      expect(await activeRows((await rowOf(session.refreshToken)).familyId)).toBe(0);
+    });
+
+    describe('sign-out is idempotent', () => {
+      it('answers 204 for an unknown token', async () => {
+        await signOut({ refreshToken: 'never-issued' }).expect(204);
+      });
+
+      it('answers 204 for an already-revoked token and leaves the rows unchanged', async () => {
+        const user = await createUser();
+        const session = await signIn(user.email);
+        await signOut({ refreshToken: session.refreshToken }).expect(204);
+        const before = await rowOf(session.refreshToken);
+
+        await signOut({ refreshToken: session.refreshToken }).expect(204);
+
+        const after = await rowOf(session.refreshToken);
+        expect(after.revokedAt).toEqual(before.revokedAt);
+      });
+
+      it('answers 204 for an expired token and leaves the rows unchanged', async () => {
+        const user = await createUser();
+        const session = await signIn(user.email);
+        await ctx.prisma.refreshToken.updateMany({
+          where: { userId: user.id },
+          data: { expiresAt: new Date(Date.now() - 1000) },
+        });
+
+        await signOut({ refreshToken: session.refreshToken }).expect(204);
+
+        expect((await rowOf(session.refreshToken)).revokedAt).toBeNull();
+      });
+
+      it.each([{}, { refreshToken: '' }, { refreshToken: 42 }, { refreshToken: null }])(
+        'refuses a body without a usable refreshToken (%j) with 422',
+        async (body) => {
+          const response = await signOut(body);
+
+          expect(response.status).toBe(422);
+          expect(response.body.errors).toEqual(['refreshToken.token.required']);
+        },
+      );
+
+      it('answers the 11th request from one IP within 60 seconds with 429', async () => {
+        for (let i = 0; i < 10; i++) {
+          await signOut({ refreshToken: 'never-issued' }).expect(204);
+        }
+
+        const response = await signOut({ refreshToken: 'never-issued' });
 
         expect(response.status).toBe(429);
         expect(response.body.errors).toEqual(['request.rate.limited']);

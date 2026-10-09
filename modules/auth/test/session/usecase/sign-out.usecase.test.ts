@@ -42,14 +42,16 @@ describe("SignOut", () => {
     expect(revokedAts(ctx.refreshTokenRepository)).toEqual([at, undefined, at]);
   });
 
-  test("keeps the first revocation date of an already-revoked token", async () => {
+  test("an already-revoked token changes nothing", async () => {
     const ctx = setup();
     const x = await ctx.signIn();
     await ctx.useCase.execute({ refreshToken: x.refreshToken });
     ctx.clock.advance(DAY_MS);
+    const before = [...ctx.refreshTokenRepository.tokens];
 
     await expect(ctx.useCase.execute({ refreshToken: x.refreshToken })).resolves.toBeUndefined();
 
+    expect(ctx.refreshTokenRepository.tokens).toEqual(before);
     expect(revokedAts(ctx.refreshTokenRepository)).toEqual([NOW]);
   });
 
@@ -62,12 +64,14 @@ describe("SignOut", () => {
     expect(revokedAts(ctx.refreshTokenRepository)).toEqual([undefined]);
   });
 
-  test("an expired token is answered without error", async () => {
+  test("an expired token changes nothing", async () => {
     const ctx = setup();
     const x = await ctx.signIn();
     ctx.clock.advance(31 * DAY_MS);
 
     await expect(ctx.useCase.execute({ refreshToken: x.refreshToken })).resolves.toBeUndefined();
+
+    expect(revokedAts(ctx.refreshTokenRepository)).toEqual([undefined]);
   });
 
   test.each([undefined, "", 42, null, {}])("a missing or non-string token (%p) is 422", async (value) => {

@@ -6,6 +6,8 @@ import {
   RefreshSession,
   RefreshSessionIn,
   RefreshSessionOut,
+  SignOut,
+  SignOutIn,
   RequestSignInCode,
   RequestSignInCodeIn,
   RequestSignInCodeOut,
@@ -102,5 +104,16 @@ export class AuthController {
       this.authConfig.refreshTokenTtlDays,
     );
     return useCase.execute({ refreshToken: body?.refreshToken as string });
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Post('sign-out')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  signOut(@Body() body: SignOutIn | undefined): Promise<void> {
+    return new SignOut(this.refreshTokenRepository, this.tokenProvider, this.clock).execute({
+      refreshToken: body?.refreshToken as string,
+    });
   }
 }

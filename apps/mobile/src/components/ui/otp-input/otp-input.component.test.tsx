@@ -4,7 +4,7 @@ import {
   screen,
   userEvent,
 } from "@testing-library/react-native";
-import { TextInput as NativeTextInput } from "react-native";
+import { StyleSheet, TextInput as NativeTextInput } from "react-native";
 import { useState } from "react";
 
 import { OtpInput } from "./otp-input.component";
@@ -104,5 +104,14 @@ describe("OtpInput", () => {
     expect(screen.getAllByTestId("otp-box")[0].props.className).not.toContain(
       "border-sun",
     );
+  });
+
+  it("keeps the hidden input hit-testable, so the native paste menu can open", async () => {
+    await render(<Harness />);
+
+    const { opacity } = StyleSheet.flatten(getInput().props.style);
+
+    expect(opacity).toBeGreaterThanOrEqual(0.01);
+    expect(opacity).toBeLessThan(0.05);
   });
 });

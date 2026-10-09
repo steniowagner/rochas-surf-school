@@ -58,6 +58,7 @@ export function OtpInput({
         accessibilityLabel={accessibilityLabel}
         autoComplete="one-time-code"
         autoFocus={autoFocus}
+        caretHidden
         editable={editable}
         keyboardType="number-pad"
         onChangeText={handleChangeText}
@@ -67,7 +68,9 @@ export function OtpInput({
           right: 0,
           bottom: 0,
           left: 0,
-          opacity: 0,
+          // Not 0: UIKit skips views with alpha below 0.01 when hit-testing, and then a long-press
+          // never reaches the field, so its native Paste menu never appears.
+          opacity: 0.011,
         }}
         textContentType="oneTimeCode"
         value={value}

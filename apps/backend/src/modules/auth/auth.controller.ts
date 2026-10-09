@@ -1,6 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import {
+  GetCurrentUser,
+  GetCurrentUserOut,
   RequestSignInCode,
   RequestSignInCodeIn,
   RequestSignInCodeOut,
@@ -9,6 +11,7 @@ import {
   VerifySignInCodeIn,
   VerifySignInCodeOut,
 } from '@rochas-surf-school/auth';
+import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import { Public } from '../../shared/decorators/public.decorator.js';
 import { AuthConfig } from './auth.config.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
@@ -75,5 +78,10 @@ export class AuthController {
       code: body?.code as string,
       name: body?.name,
     });
+  }
+
+  @Get('me')
+  me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
+    return new GetCurrentUser(this.userRepository).execute({ id });
   }
 }

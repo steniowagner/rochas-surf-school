@@ -243,6 +243,7 @@ describe('Email sign-in (e2e)', () => {
           email,
           role: 'student',
           status: 'approved',
+          createdAt: user.createdAt.toISOString(),
         },
       });
       await expect(
@@ -506,6 +507,7 @@ describe('Email sign-in (e2e)', () => {
         email: REVIEW_ADMIN,
         role: 'admin',
         status: 'approved',
+        createdAt: admin.createdAt.toISOString(),
       });
     });
 

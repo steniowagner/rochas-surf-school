@@ -81,3 +81,12 @@ Content-Type: application/json
   "email": "{{email}}",
   "code": "{{code}}"
 }
+
+### Current account (expects 200 with id, name, email, role, status and createdAt; any account status)
+# Replace the token with the accessToken returned by the verify request above.
+@accessToken = paste-the-access-token-here
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### Current account without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/auth/me

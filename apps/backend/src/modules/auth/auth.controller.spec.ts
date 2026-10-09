@@ -44,6 +44,7 @@ function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
     }),
   };
   const userRepository = {
+    findById: vi.fn(async (id: string) => users.find((user) => user.id === id) ?? null),
     findByEmail: vi.fn(async (email: string) => users.find((user) => user.email === email) ?? null),
     create: vi.fn(async (user: User) => user),
   };
@@ -195,6 +196,46 @@ describe('AuthController', () => {
       await expect(controller.verifySignInCode(undefined)).rejects.toMatchObject({
         statusCode: 401,
         message: 'signInCode.code.invalid',
+      });
+    });
+  });
+
+  describe('GET /auth/me', () => {
+    const ana = new User({
+      name: 'Ana Rocha',
+      email: 'ana@example.com',
+      whatsappVisible: false,
+      role: 'instructor',
+      status: 'pending',
+    });
+
+    it('is a protected GET on me answering 200', () => {
+      const handler = handlerOf('me');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('me');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.GET);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('runs GetCurrentUser for the signed-in account', async () => {
+      const { controller } = setup({}, [ana]);
+
+      await expect(controller.me(ana.id)).resolves.toEqual({
+        id: ana.id,
+        name: 'Ana Rocha',
+        email: 'ana@example.com',
+        role: 'instructor',
+        status: 'pending',
+        createdAt: ana.createdAt,
+      });
+    });
+
+    it('answers auth.token.invalid when the account is gone', async () => {
+      const { controller } = setup();
+
+      await expect(controller.me(ana.id)).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'auth.token.invalid',
       });
     });
   });

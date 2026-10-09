@@ -2,7 +2,7 @@
 id: "004"
 slug: backend-session-endpoints
 title: Current account, session renewal and sign-out on the backend
-status: in-review
+status: changes-requested
 created: 2026-10-09
 started: 2026-10-09
 base_commit: 465ac664b79a5ad5bf845f8ce1297f1e9edd4102
@@ -318,3 +318,46 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-09 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/auth`, `@rochas-surf-school/backend`, each task run on its own)
+- related tests ✅ (apps/backend vitest, modules/auth jest, apps/mobile jest 180 passed — imports `@rochas-surf-school/auth`)
+- coverage of the changed lines ✅ `COVERAGE OK` — 11 files, 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` — 70 passed (`auth-session.e2e-spec.ts`, `auth-email.e2e-spec.ts`)
+- every `Verify by` command of ER-01 to ER-08 ✅ (auth unit tests, `src/shared/auth`, `refresh-token.prisma.spec.ts`, each e2e `-t` filter)
+- stress run of the concurrent-refresh e2e case ❌ — 1 failure in ~800 iterations (see F-01)
+
+**Expected Results**
+
+- ER-01 ✅ — `GET /auth/me` → 200 with exactly `{ id, name, email, role, status, createdAt }` for all five statuses; `createdAt` equals `users.created_at` and the verify response carries the same value
+- ER-02 ✅ — no header, malformed, other secret, expired and deleted-user tokens → 401 `auth.token.invalid`; public routes stay open
+- ER-03 ✅ — a DB change of status and role shows on the next `GET /auth/me` with the same token; `JwtStrategy.validate` reads the database on every call
+- ER-04 ✅ — rotation in the same family, old row revoked, new row expiring 30 days after the refresh, new access token accepted, chained refresh and every status can refresh
+- ER-05 ❌ — reuse of a rotated token revokes the family and leaves another family alone, but two concurrent refreshes don't always end with the family revoked — see F-01
+- ER-06 ✅ — unknown, expired, signed-out and user-less tokens → 401 `auth.refreshToken.invalid` with no new row; bad bodies → 422 `refreshToken.token.required`; 11th request → 429 `request.rate.limited`
+- ER-07 ✅ — sign-out → 204 with no body, family X fully revoked, family Y still refreshes; works without `Authorization` and with an expired access token
+- ER-08 ✅ — unknown, already-revoked and expired tokens → 204 with rows unchanged; bad bodies → 422; 11th request → 429
+
+**Findings**
+
+- [ ] **F-01** (ER-05, D-05) — two concurrent refreshes with the same active token can leave the winner's new
+  refresh token **active**, so the family does not end revoked. `RefreshSession` runs `revokeIfActive` and then
+  `create` as separate statements; the loser's `revokeIfActive` returns false and its `revokeFamily` can run
+  before the winner's `create`, missing the new row. The committed e2e test
+  (`reuse by two concurrent refreshes …`) is therefore flaky. Reproduce: run that e2e test in a loop
+  (`it.each` over 400 iterations) — 1 of ~800 runs ended with rows `['revoked', 'active']` and statuses
+  `[200, 401]`. Expected: the family always ends revoked. One way: rotate atomically — revoke the sent token
+  and insert the new one in one Prisma transaction (e.g. a `rotate(currentId, next, at): Promise<boolean>`
+  repository method), so the loser's conditional update waits on the row lock until the winner commits and its
+  `revokeFamily` then sees the new row; cover it with a unit test of the use case and the Prisma repository.
+
+**Notes**
+
+- `JwtStrategy` reads the user through `PrismaService` directly rather than a repository port; that fits D-03
+  and the shared layer, and the `backend-nest-config` templates were updated to match `src/shared` (verified
+  identical apart from the scope placeholder).
+- The e2e output still prints a stack trace from `RequestSignInCode.send` (an `auth-email` scenario where the
+  email fails); it predates this spec and the test passes.

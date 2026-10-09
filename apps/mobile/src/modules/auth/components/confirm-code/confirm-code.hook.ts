@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TextInput } from "react-native";
 
+import { routes } from "@/constants/routes";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { useRequestSignInCode } from "../../hooks/use-request-sign-in-code.hook";
@@ -19,7 +20,9 @@ const formatCountdown = (seconds: number) =>
 
 // Back to Create account; when this screen was opened directly there is nothing to go back to.
 const goToCreateAccount = () =>
-  router.canGoBack() ? router.back() : router.replace("/auth/create-account");
+  router.canGoBack()
+    ? router.back()
+    : router.replace(routes.auth.createAccount);
 
 export const useConfirmCode = ({
   email,

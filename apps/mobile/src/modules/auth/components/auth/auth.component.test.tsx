@@ -1,6 +1,7 @@
 import { act, render, screen, userEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
 
+import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
 
 import { AuthComponent } from "./auth.component";
@@ -15,7 +16,7 @@ describe("AuthComponent email sign-in", () => {
 
     await user.press(screen.getByText("Continue with email"));
 
-    expect(router.push).toHaveBeenCalledWith("/auth/create-account");
+    expect(router.push).toHaveBeenCalledWith(routes.auth.createAccount);
   });
 });
 

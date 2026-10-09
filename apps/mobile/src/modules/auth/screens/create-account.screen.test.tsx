@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react-native";
 import { router } from "expo-router";
 
+import { routes } from "@/constants/routes";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { CreateAccountScreen } from "./create-account.screen";
@@ -63,10 +64,12 @@ describe("CreateAccountScreen", () => {
     await user.press(screen.getByRole("button", { name: "Get code" }));
 
     await waitFor(() =>
-      expect(router.push).toHaveBeenCalledWith({
-        pathname: "/auth/confirm-code",
-        params: { email: "ana.silva@gmail.com", name: "Ana Silva" },
-      }),
+      expect(router.push).toHaveBeenCalledWith(
+        routes.auth.confirmCode({
+          email: "ana.silva@gmail.com",
+          name: "Ana Silva",
+        }),
+      ),
     );
   });
 });

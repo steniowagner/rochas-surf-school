@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { ReactElement } from "react";
 import { Platform, TextInput as NativeTextInput } from "react-native";
 
+import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
@@ -181,7 +182,7 @@ describe("ConfirmCode", () => {
 
     await user.press(screen.getByRole("link", { name: "change the email" }));
 
-    expect(router.replace).toHaveBeenCalledWith("/auth/create-account");
+    expect(router.replace).toHaveBeenCalledWith(routes.auth.createAccount);
     expect(router.back).not.toHaveBeenCalled();
   });
 

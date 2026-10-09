@@ -98,6 +98,7 @@ export function AuthComponent({
           <Text className="ds-text-button text-on-color">
             {localeAcronyms[currentLocale]}
           </Text>
+          <Ionicons name="chevron-down" size={14} color={palette.onColor} />
         </TouchableOpacity>
       </View>
 

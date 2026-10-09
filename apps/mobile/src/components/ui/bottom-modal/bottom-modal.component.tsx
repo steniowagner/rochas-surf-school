@@ -4,9 +4,12 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
 import { useCallback } from "react";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { radii, spacing } from "@/constants/theme";
+import { themeVariables } from "@/constants/theme-variables";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@/hooks/use-theme";
 
 import { useBottomModal } from "./bottom-modal.hook";
@@ -22,6 +25,7 @@ const SCRIM_OPACITY = 0.45;
  */
 export function BottomModal({ visible, onClose, children }: BottomModalProps) {
   const theme = useTheme();
+  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const { bottomSheetRef } = useBottomModal({ visible });
 
@@ -59,7 +63,10 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
           paddingBottom: insets.bottom + spacing.groupGap,
         }}
       >
-        {children}
+        {/* The sheet can sit inside a screen that overrides the palette variables, so it sets the app's own. */}
+        <View style={themeVariables[colorScheme === "dark" ? "dark" : "light"]}>
+          {children}
+        </View>
       </BottomSheetView>
     </BottomSheet>
   );

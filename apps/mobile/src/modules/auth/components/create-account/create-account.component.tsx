@@ -87,12 +87,7 @@ export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
         <View className="min-h-6 flex-1" />
 
         <View className="gap-3.5">
-          <Button
-            className="min-h-[54px] rounded-full"
-            disabled={!canSubmit}
-            loading={isSending}
-            onPress={submit}
-          >
+          <Button disabled={!canSubmit} loading={isSending} onPress={submit}>
             {t("createAccount.submit")}
           </Button>
 

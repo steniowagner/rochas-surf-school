@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Ionicons } from "@expo/vector-icons";
 import { Trans, useTranslation } from "react-i18next";
 import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
@@ -47,8 +48,8 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
         <View className="mt-6 gap-4">
           <ScreenIntro
             icon={
-              <Ionicons
-                name="mail-open-outline"
+              <MaterialCommunityIcons
+                name="email-check-outline"
                 size={28}
                 color={theme.grape}
               />
@@ -87,7 +88,6 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
 
         <View className="gap-3.5">
           <Button
-            className="min-h-[54px] rounded-full"
             disabled={code.length < CODE_LENGTH}
             loading={isVerifying}
             onPress={confirm}
@@ -95,15 +95,18 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
             {t("confirmCode.submit")}
           </Button>
 
-          <Text className="ds-text-list-subtitle text-center text-ink-2">
-            {isCountingDown ? (
-              t("confirmCode.resendIn", { time: countdown })
-            ) : (
-              <TextButton onPress={resend}>
-                {t("confirmCode.resend")}
-              </TextButton>
-            )}
-          </Text>
+          {isCountingDown ? (
+            <Text className="ds-text-list-subtitle text-center text-ink-2">
+              {t("confirmCode.resendIn", { time: countdown })}
+            </Text>
+          ) : (
+            <Text
+              className="my-2 ds-text-button text-center text-ink-2"
+              onPress={resend}
+            >
+              {t("confirmCode.resend").toUpperCase()}
+            </Text>
+          )}
 
           <View className="flex-row items-start gap-2.5 rounded-card border border-line bg-dim p-3.5">
             <Ionicons

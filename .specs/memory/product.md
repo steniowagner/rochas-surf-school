@@ -270,14 +270,20 @@ refresh token) and the account's status. The review accounts are seeded and sign
 screen opens the Create account screen, where a person types their name and email address and asks for a
 sign-in code, sent in the language picked on the sign-in screen. The button works only once both values follow
 the same rules the backend applies, and every error the backend can answer is shown as a short translated
-message. The name is collected here, before the code, and kept in the app until the code is checked. Entering
-the code is not built yet: nothing happens after the code is sent.
+message. The name is collected here, before the code, and kept in the app until the code is checked.
+
+**Confirm email in the app** (spec `003-email-confirm-code-screen`) — once the code is sent, the app opens the
+Confirm email screen, where the person types or pastes the 6-digit code; it is checked as soon as six digits are
+there, with the name from Create account, which creates the pending account. A wrong, expired or locked code is
+shown under the code boxes; every other error in a toast. A new code can be asked 30 seconds after the last one,
+with a countdown. What happens after a correct code (keeping the session, the waiting-for-approval screen) is
+not built yet: the screen shows nothing more.
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
-The web app is still on its framework template. Entering the code in the app, renewing a session, signing
-out, and Google and Apple sign-in don't exist yet.
+The web app is still on its framework template. Keeping the session in the app and routing by account status,
+renewing a session, signing out, and Google and Apple sign-in don't exist yet.
 
 No spec is active.
 

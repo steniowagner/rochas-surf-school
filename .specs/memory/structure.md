@@ -107,17 +107,23 @@ src/
     (public)/auth/_layout.tsx   # Stack of the signed-out flow
     (public)/auth/index.tsx     # sign-in screen
     (public)/auth/create-account.tsx    # Create account screen
+    (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, name)
   modules/auth/
-    screens/                    # auth.screen.tsx, create-account.screen.tsx
-    components/                 # auth (sign-in), auth-button, language-sheet, create-account (component + hook)
-    hooks/                      # use-request-sign-in-code.hook.ts (POST /auth/email/code mutation)
-    utils/                      # sign-in-code-error.ts (API error → translation key)
-  components/ui/                # design-system components (same names/props as web): button, chip, bottom-modal,
-                                # text-button, back-button, screen-intro, text-input, toast
+    screens/                    # auth.screen.tsx, create-account.screen.tsx, confirm-code.screen.tsx
+    components/                 # auth (sign-in), auth-button, language-sheet, create-account, confirm-code
+                                # (code entry, verify, resend countdown) — each component + hook
+    hooks/                      # use-request-sign-in-code.hook.ts (POST /auth/email/code),
+                                # use-verify-sign-in-code.hook.ts (POST /auth/email/verify)
+    utils/                      # sign-in-code-error.ts, verify-code-error.ts (API error → translation key,
+                                # and inline or toast for the code check)
+  components/ui/                # design-system components (same names/props as web), one folder each: button,
+                                # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
+                                # text-input, toast
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   services/api/                 # fetch client (apiPost), ApiError, NetworkError
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)
-  constants/                    # theme.ts (design tokens), theme-variables.ts (--ds-* per scheme), fonts
+  constants/                    # routes.ts (every app path), theme.ts (design tokens), theme-variables.ts
+                                # (--ds-* per scheme), fonts
   hooks/                        # useTheme, color scheme
 plugins/with-ios-scene-lifecycle.js    # config plugin (UIScene life cycle for iOS 27)
 jest.config.js, jest.setup.ts   # jest-expo + RNTL; mocks localization, reanimated, safe-area, bottom sheet

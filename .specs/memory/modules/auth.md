@@ -66,6 +66,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   code is sent; the app keeps the name and sends it with the code check, which creates the account. Asking
   for a code sends only the address and the language. The app accepts a name and an address only when they
   follow the same rules as the account, so the backend won't refuse them.
+- **In the app**, the code is checked on the Confirm email screen, sending the name kept from Create account;
+  the same screen asks for a new code once 30 seconds have passed since the last one.
 
 ## Boundaries
 
@@ -80,3 +82,5 @@ and school rules), erasure and reactivation are rules of the account lifecycle s
   sessions (access and refresh tokens); email sign-ups create a pending student once a name is given.
 - `002-email-create-account-screen` — the app's Create account screen asks for a code by email, collecting the
   name before the code; a request refused because a code was sent less than 30 seconds ago counts as sent.
+- `003-email-confirm-code-screen` — the app's Confirm email screen checks the typed or pasted code, sending the
+  name from Create account, and asks for a new code after 30 seconds.

@@ -3,13 +3,14 @@ id: "003"
 slug: email-confirm-code-screen
 title: Confirm email code screen (verify and resend the sign-in code)
 template: quick
-status: accepted
+status: finished
 created: 2026-10-08
 started: 2026-10-08
 base_commit: c7ecb3c839304082bef69f2d1ccae50360988c60
 reviewed_commit: 06817012253beb7e8e6bb8bfcdddc3e8f2c2f04b
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-09
 ---
 
 # 003 — Confirm email code screen (verify and resend the sign-in code)

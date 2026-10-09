@@ -1,12 +1,15 @@
 import { AuthenticatedUser } from '../types/current-user.type.js';
 import { JwtPayload } from '../types/jwt-payload.type.js';
 
-export function mapJwtPayloadToAuthenticatedUser(
+export function mapUserRecordToAuthenticatedUser(
+  record: Pick<AuthenticatedUser, 'id' | 'email' | 'role' | 'status'>,
   payload: JwtPayload,
 ): AuthenticatedUser {
   return {
-    id: payload.sub,
-    email: typeof payload.email === 'string' ? payload.email : undefined,
+    id: record.id,
+    email: record.email,
+    role: record.role,
+    status: record.status,
     claims: payload,
   };
 }

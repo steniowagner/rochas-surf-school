@@ -1,6 +1,7 @@
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { UnauthorizedError } from '@rochas-surf-school/shared';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 
@@ -38,5 +39,30 @@ describe('JwtAuthGuard', () => {
 
     expect(new JwtAuthGuard(reflector).canActivate(context())).toBe(false);
     expect(parent).toHaveBeenCalled();
+  });
+
+  describe('handleRequest', () => {
+    const guard = () => new JwtAuthGuard(new Reflector());
+
+    it('returns the authenticated user', () => {
+      const user = { id: 'user-1' };
+
+      expect(guard().handleRequest(null, user)).toBe(user);
+    });
+
+    it.each([
+      ['no user (missing, malformed, wrong signature or expired token)', null, false],
+      ['a strategy error (unknown account)', new Error('boom'), { id: 'user-1' }],
+    ])('answers 401 auth.token.invalid for %s', (_name, err, user) => {
+      let thrown: unknown;
+      try {
+        guard().handleRequest(err, user);
+      } catch (e) {
+        thrown = e;
+      }
+
+      expect(thrown).toBeInstanceOf(UnauthorizedError);
+      expect(thrown).toMatchObject({ message: 'auth.token.invalid', statusCode: 401 });
+    });
   });
 });

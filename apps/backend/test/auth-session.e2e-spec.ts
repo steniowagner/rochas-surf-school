@@ -283,7 +283,7 @@ describe('Session endpoints (e2e)', () => {
         refresh({ refreshToken: session.refreshToken }),
       ]);
 
-      expect(responses.map((response) => response.status).sort()).toEqual([200, 401]);
+      expect(responses.map((response) => response.status).sort((a, b) => a - b)).toEqual([200, 401]);
       const family = (await rowOf(session.refreshToken)).familyId;
       const rows = await ctx.prisma.refreshToken.findMany({ where: { familyId: family } });
       expect(rows.every((row) => row.revokedAt !== null)).toBe(true);

@@ -2,7 +2,7 @@
 id: "004"
 slug: backend-session-endpoints
 title: Current account, session renewal and sign-out on the backend
-status: in-progress
+status: in-review
 created: 2026-10-09
 started: 2026-10-09
 base_commit: 465ac664b79a5ad5bf845f8ce1297f1e9edd4102
@@ -277,8 +277,9 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
 
 ### Verification
 
-- [ ] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-09 — ran the Verification Plan with the local Postgres up: `node .specs/scripts/run-related-tests.mjs 004` → RELATED TESTS PASSED (backend, modules/auth, mobile regression); `node .specs/scripts/check-coverage.mjs 004` → COVERAGE OK (11 files, 100%); `npx turbo run lint`, `check-types` and `build` for auth and backend → each passed; `node .specs/scripts/run-e2e.mjs 004` → E2E PASSED (70 tests, both e2e files); every `Verify by` command of ER-01 to ER-08 matched and passed (e2e `-t` filters, auth unit tests, backend specs); files: `apps/backend/test/auth-session.e2e-spec.ts` (sort comparator for the oxlint warning); deviations: running `lint check-types build` in one turbo invocation failed twice on `prisma generate` (check-types and build both regenerate the client in parallel); each task run on its own passes, and `prisma generate` alone passes — a race that predates this spec
 
 ## Verification Plan
 

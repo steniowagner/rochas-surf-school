@@ -3,7 +3,7 @@ id: "003"
 slug: email-confirm-code-screen
 title: Confirm email code screen (verify and resend the sign-in code)
 template: quick
-status: changes-requested
+status: in-review
 created: 2026-10-08
 started: 2026-10-08
 base_commit: c7ecb3c839304082bef69f2d1ccae50360988c60
@@ -66,7 +66,7 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
 
 | ID   | Decision | Reason |
 | ---- | -------- | ------ |
-| D-01 | `Button` (`src/components/ui/button.tsx`) gains a `loading` prop (shows an `ActivityIndicator` in `theme.onColor` instead of the label, and doesn't call `onPress`) and a disabled look when `disabled` is true (`bg-sand`, label `text-ink-2`, no shadow, `accessibilityState.disabled`). Create account's inline CTA is replaced by `<Button>`, and the Confirm button uses it too; the CTA shape stays as today (`min-h-[54px]`, `rounded-full`). | The user asked to reuse the existing components; two screens with the same CTA must not duplicate it. |
+| D-01 | `Button` (`src/components/ui/button.tsx`) gains a `loading` prop (shows an `ActivityIndicator` in `theme.onColor` instead of the label, and doesn't call `onPress`) and a disabled look when `disabled` is true (`bg-sand`, label `text-ink-2`, no shadow, `accessibilityState.disabled`). Create account's inline CTA is replaced by `<Button>`, and the Confirm button uses it too; the CTAs use Button's default shape (`min-h-11`, `rounded-control`). *(amended 2026-10-09)* | The user asked to reuse the existing components; two screens with the same CTA must not duplicate it. |
 | D-02 | A new generic `OtpInput` (`src/components/ui/otp-input/`, props: `value`, `onChangeText`, `length` default 6, `status` `neutral`/`error`, `editable`, `accessibilityLabel`) draws six boxes (`h-[60px]`, `rounded-control`, `bg-input`, 2px border `border-input-line`; the box of the next digit `border-sun`; all `border-bad` on `error`; digits in Barlow Condensed) over a hidden `TextInput` (`opacity: 0`, covering the boxes, `keyboardType="number-pad"`, `textContentType="oneTimeCode"`, `autoComplete="one-time-code"`, no `maxLength`). Every change is normalized to its digits, cut to `length`. Pasting goes through the hidden input's native paste menu and the OS one-time-code autofill; tapping the boxes focuses it. | Paste works without a clipboard library, and the normalization accepts "123 456" or "Your code: 123456". `maxLength` would cut a pasted text before its digits are extracted. |
 | D-03 | On 200 the screen calls its `onVerified(response)` prop once and nothing else; the route passes no handler yet. | Keeping the session and routing by account status is an authentication change for the next spec. |
 | D-04 | Code errors are inline, under the boxes (`text-bad`, boxes in `error`), the code is cleared and the input stays focused: `signInCode.code.invalid` → wrong code, `signInCode.code.expired` → expired, `signInCode.attempts.exceeded` → locked. Every other error goes to the toast (`useAlertMessage().show`): a key starting with `user.name.` → name not saved, `request.rate.limited` → `createAccount.errors.tooManyAttempts`, `NetworkError` → `createAccount.errors.noConnection`, anything else (500, unknown key, non-JSON body) → `createAccount.errors.generic`; the code is kept. The inline message disappears as soon as the code changes. | The design shows code errors inline; the toast is how the app already shows transport errors. |
@@ -227,6 +227,9 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   `email-check-outline` instead of Ionicons `mail-open-outline` (D-09); "Resend code" is a plain uppercase `Text`
   (`ds-text-button`) instead of a link (`TextButton`), so the resend tests find it by its text. The sign-in
   screen's language sheet follows the app theme, and its language button has a `chevron-down`.
+- 2026-10-09 — approved by the user (review F-01): D-01 "the CTA shape stays as today (`min-h-[54px]`, `rounded-full`)" →
+  "the CTAs use Button's default shape (`min-h-11`, `rounded-control`)". Reason: the user changed both CTAs to the
+  rounded-rectangle look of the other controls.
 
 ## Review
 
@@ -256,14 +259,15 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
 
 **Findings**
 
-- [ ] **F-01** (D-01) — `Button` keeps its default `min-h-11 rounded-control` shape, and neither Create account
+- [x] **F-01** (D-01) — `Button` keeps its default `min-h-11 rounded-control` shape, and neither Create account
   nor Confirm email passes a `className`. Both CTAs are now rounded rectangles. D-01 says "the CTA shape stays as
   today (`min-h-[54px]`, `rounded-full`)", which is what Create account's inline CTA used before this spec
   (`git show c7ecb3c:apps/mobile/src/modules/auth/components/create-account/create-account.component.tsx`).
   Reproduce: open Create account or Confirm email in the simulator; the button corners are `rounded-control`,
   not a pill. Expected: both CTAs are `min-h-[54px] rounded-full`, e.g. via `className` on those two `Button`s.
   Otherwise, amend D-01 if the new shape is wanted.
-- [ ] **F-02** (ER-01) — the paste journey in ER-01's `Verify by` ("long-press the boxes, paste, and see the boxes
+  > ✅ 2026-10-09 — the user chose to keep the new look: both CTAs use Button's default shape (`min-h-11 rounded-control`); D-01 amended (see Amendments); no code change; verified: `git grep -n "rounded-full" apps/mobile/src/modules/auth/components/create-account apps/mobile/src/modules/auth/components/confirm-code` finds nothing, and both screens render the rounded-rectangle Button as seen on the simulator
+- [x] **F-02** (ER-01) — the paste journey in ER-01's `Verify by` ("long-press the boxes, paste, and see the boxes
   filled") hasn't been seen by anyone. T-07 says so, and in this review the simulator tool couldn't open the iOS
   edit menu even on a normal text field. There is also a concrete risk in the code: `OtpInput` gives the hidden
   `TextInput` `opacity: 0`, and UIKit's hit-testing skips views with alpha below 0.01. Touches then land on the
@@ -273,6 +277,7 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   email, tap the boxes, long-press them, and look for "Paste". Expected: the menu appears, and choosing Paste fills
   `123456`. If it doesn't, make the input hit-testable, e.g. `opacity: 0.011` or transparent text and caret
   instead of `opacity: 0`, and record the result in T-07's evidence.
+  > ✅ 2026-10-09 — `OtpInput` now sets `opacity: 0.011` (and `caretHidden`) on the hidden input so UIKit hit-tests it; test "keeps the hidden input hit-testable" asserts the opacity; files: `apps/mobile/src/components/ui/otp-input/otp-input.component.tsx`, `apps/mobile/src/components/ui/otp-input/otp-input.component.test.tsx`; verified: `npx jest src/components/ui/otp-input src/modules/auth/components/confirm-code` (42 passed); on the iOS simulator a long-press on the boxes opens the native menu (Paste, AutoFill) and Paste filled the boxes with the digits of the clipboard text (the simulator shares the host clipboard, which held "/spec-execute 003", so the boxes got `003`; non-digits were stripped); deviations: none
 
 **Notes**
 

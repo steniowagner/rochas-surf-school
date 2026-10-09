@@ -3,7 +3,7 @@ id: "003"
 slug: email-confirm-code-screen
 title: Confirm email code screen (verify and resend the sign-in code)
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-08
 started: 2026-10-08
 base_commit: c7ecb3c839304082bef69f2d1ccae50360988c60
@@ -229,3 +229,60 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   screen's language sheet follows the app theme, and its language button has a `chevron-down`.
 
 ## Review
+
+### Round 1 — 2026-10-09 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`)
+- related tests ✅ 146 passed in 14 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` (20 files); no coverage-ignore comments in the diff
+- e2e: no suite declared for apps/mobile, and no backend code changed. iOS simulator (iPhone 18 Pro, iOS 27, the
+  backend, Metro and Postgres already running): the Confirm email screen, "change the email" → back, and the
+  disabled Confirm were seen on screen. Paste couldn't be exercised (see F-02).
+
+**Expected Results**
+
+- ER-01 ❌ — the layout, digits-only input, pasted-text normalization (unit level), the Confirm enabling and the
+  back navigation pass in `confirm-code.component.test.tsx`, `otp-input.component.test.tsx` and both screen tests.
+  The CTA shape breaks D-01 (F-01), and the simulator paste step of `Verify by` hasn't been seen (F-02).
+- ER-02 ✅ — the verify body, `onVerified` once with the body, the spinner and non-editable input, one request at a
+  time, the three inline errors (cleared code, refocus, message hidden on the next digit) and the six toast cases
+  are all asserted against a mocked `fetch`. The executor's simulator journey also covers the wrong code and the
+  correct code against the real backend.
+- ER-03 ✅ — the 0:30 → 0:01 → "RESEND CODE" countdown with fake timers, the 45 s jump, the resend body
+  `{ email, locale: "en" }`, the countdown restart that clears the code and message, tooSoon handled as success,
+  one request in flight, and the four toast cases that keep the resend control.
+
+**Findings**
+
+- [ ] **F-01** (D-01) — `Button` keeps its default `min-h-11 rounded-control` shape, and neither Create account
+  nor Confirm email passes a `className`. Both CTAs are now rounded rectangles. D-01 says "the CTA shape stays as
+  today (`min-h-[54px]`, `rounded-full`)", which is what Create account's inline CTA used before this spec
+  (`git show c7ecb3c:apps/mobile/src/modules/auth/components/create-account/create-account.component.tsx`).
+  Reproduce: open Create account or Confirm email in the simulator; the button corners are `rounded-control`,
+  not a pill. Expected: both CTAs are `min-h-[54px] rounded-full`, e.g. via `className` on those two `Button`s.
+  Otherwise, amend D-01 if the new shape is wanted.
+- [ ] **F-02** (ER-01) — the paste journey in ER-01's `Verify by` ("long-press the boxes, paste, and see the boxes
+  filled") hasn't been seen by anyone. T-07 says so, and in this review the simulator tool couldn't open the iOS
+  edit menu even on a normal text field. There is also a concrete risk in the code: `OtpInput` gives the hidden
+  `TextInput` `opacity: 0`, and UIKit's hit-testing skips views with alpha below 0.01. Touches then land on the
+  `Pressable` underneath, which only calls `focus()`. If so, a long-press never reaches the native field and
+  the Paste menu (D-02's only paste path besides the one-time-code autofill) never appears.
+  Reproduce (by hand, simulator or device): `xcrun simctl pbcopy booted <<< "Your code: 123 456"`; open Confirm
+  email, tap the boxes, long-press them, and look for "Paste". Expected: the menu appears, and choosing Paste fills
+  `123456`. If it doesn't, make the input hit-testable, e.g. `opacity: 0.011` or transparent text and caret
+  instead of `opacity: 0`, and record the result in T-07's evidence.
+
+**Notes**
+
+- "Resend code" is a plain `Text` with `onPress` (Amendment 2026-10-09). It has no `accessibilityRole="button"`,
+  and its touch area is under the 44px target of the design system (section 08). Consider giving it the role and
+  `hitSlop`/`min-h-11`.
+- `language-sheet.component.tsx` also changes the title gap from `9px` to `4px`. That's small and part of the
+  2026-10-09 language-sheet amendment, but the amendment doesn't mention it.
+- `.specs/memory/structure.md` and `CLAUDE.md` were updated during execution for the `(public)/auth` move.
+  `structure.md` still lists only `auth.screen.tsx` and `create-account.screen.tsx`, so `spec-finish` should add
+  the confirm-code route, screen, component, hook, util and `otp-input` (Memory Impact already lists them).
+  Memory Impact should also mention `constants/routes.ts`, the `ghost` Button variant and the `button`/`chip`/
+  `bottom-modal` folders from the amendments.

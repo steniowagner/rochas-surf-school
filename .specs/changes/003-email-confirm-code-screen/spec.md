@@ -3,10 +3,11 @@ id: "003"
 slug: email-confirm-code-screen
 title: Confirm email code screen (verify and resend the sign-in code)
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-08
 started: 2026-10-08
 base_commit: c7ecb3c839304082bef69f2d1ccae50360988c60
+reviewed_commit: 06817012253beb7e8e6bb8bfcdddc3e8f2c2f04b
 fronts: [mobile]
 depends_on: []
 ---
@@ -291,3 +292,38 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   the confirm-code route, screen, component, hook, util and `otp-input` (Memory Impact already lists them).
   Memory Impact should also mention `constants/routes.ts`, the `ghost` Button variant and the `button`/`chip`/
   `bottom-modal` folders from the amendments.
+
+### Round 2 — 2026-10-09 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`)
+- related tests ✅ `RELATED TESTS PASSED` (apps/mobile, 48 changed files)
+- coverage of the changed lines ✅ `COVERAGE OK`; no coverage-ignore comments, TODOs or debug logs in the diff
+- e2e: no suite declared for apps/mobile, and no backend code changed. iOS simulator (iPhone 18 Pro, the backend,
+  Metro and Postgres running): the paste journey below.
+
+**Expected Results**
+
+- ER-01 ✅ — the unit tests still pass, and the paste was checked on the simulator. With "Your code: 123 456 789" on
+  the clipboard, a long-press on the boxes opened the native menu (Paste, AutoFill). Paste filled six digits and
+  submitted them automatically. The CTA shape matches the amended D-01.
+- ER-02 ✅ — unchanged since round 1, and the tests are green. The pasted code above got 401
+  `signInCode.code.invalid` from the real backend. The screen showed "Wrong code. Try again." and red boxes, the code
+  was cleared, and the keyboard stayed open.
+- ER-03 ✅ — unchanged since round 1; the tests are green.
+
+**Findings**
+
+- F-01 (round 1) — closed by the D-01 amendment (logged under Amendments); neither CTA passes a pill `className`.
+- F-02 (round 1) — fixed: `opacity: 0.011` plus `caretHidden` make the hidden input hit-testable. The test "keeps the
+  hidden input hit-testable" checks the opacity, and the paste menu opened on the simulator.
+- No new findings.
+
+**Notes**
+
+- Round 1's notes still apply. "Resend code" has no `accessibilityRole="button"` and a touch area under 44px.
+  `spec-finish` should add to the memory what Memory Impact leaves out: `constants/routes.ts`, the `ghost` Button
+  variant and the `button`/`chip`/`bottom-modal` folders.
+- At `opacity: 0.011` the hidden input's text is drawn at about 1% alpha over the boxes. It can't be seen on the
+  dark theme. Check it on the light theme if it ever shows.

@@ -72,10 +72,11 @@ function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
     findByTokenHash: vi.fn(
       async (hash: string) => refreshTokens.find((token) => token.tokenHash === hash) ?? null,
     ),
-    revokeIfActive: vi.fn(async (id: string, at: Date) => {
+    rotate: vi.fn(async (id: string, next: RefreshToken, at: Date) => {
       const index = refreshTokens.findIndex((token) => token.id === id && !token.revokedAt);
       if (index === -1) return false;
       refreshTokens[index] = refreshTokens[index]!.clone({ revokedAt: at });
+      refreshTokens.push(next);
       return true;
     }),
     revokeFamily: vi.fn(),

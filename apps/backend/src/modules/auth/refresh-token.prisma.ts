@@ -9,15 +9,7 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
 
   async create(refreshToken: RefreshToken): Promise<RefreshToken> {
     const record = await this.prisma.refreshToken.create({
-      data: {
-        id: refreshToken.id,
-        userId: refreshToken.userId,
-        tokenHash: refreshToken.tokenHash,
-        familyId: refreshToken.familyId,
-        expiresAt: refreshToken.expiresAt,
-        revokedAt: refreshToken.revokedAt ?? null,
-        createdAt: refreshToken.createdAt,
-      },
+      data: this.toData(refreshToken),
     });
     return this.toDomain(record);
   }
@@ -35,11 +27,36 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
     return count === 1;
   }
 
+  async rotate(currentId: string, next: RefreshToken, at: Date): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.refreshToken.updateMany({
+        where: { id: currentId, revokedAt: null },
+        data: { revokedAt: at },
+      });
+      if (count !== 1) return false;
+
+      await tx.refreshToken.create({ data: this.toData(next) });
+      return true;
+    });
+  }
+
   async revokeFamily(familyId: string, at: Date): Promise<void> {
     await this.prisma.refreshToken.updateMany({
       where: { familyId, revokedAt: null },
       data: { revokedAt: at },
     });
+  }
+
+  private toData(refreshToken: RefreshToken) {
+    return {
+      id: refreshToken.id,
+      userId: refreshToken.userId,
+      tokenHash: refreshToken.tokenHash,
+      familyId: refreshToken.familyId,
+      expiresAt: refreshToken.expiresAt,
+      revokedAt: refreshToken.revokedAt ?? null,
+      createdAt: refreshToken.createdAt,
+    };
   }
 
   private toDomain(record: RefreshTokenRecord): RefreshToken {

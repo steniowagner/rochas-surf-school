@@ -123,10 +123,10 @@ describe("RefreshSession", () => {
       await expectInvalid(ctx.useCase.execute({ refreshToken: second.refreshToken }));
     });
 
-    test("losing the atomic revocation (concurrent reuse) revokes the family", async () => {
+    test("losing the atomic rotation (concurrent reuse) revokes the family", async () => {
       const ctx = setup();
       const first = await ctx.signIn();
-      jest.spyOn(ctx.refreshTokenRepository, "revokeIfActive").mockResolvedValueOnce(false);
+      jest.spyOn(ctx.refreshTokenRepository, "rotate").mockResolvedValueOnce(false);
 
       await expectInvalid(ctx.useCase.execute({ refreshToken: first.refreshToken }));
 

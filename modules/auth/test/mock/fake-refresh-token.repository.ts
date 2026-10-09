@@ -21,6 +21,13 @@ export class FakeRefreshTokenRepository implements RefreshTokenRepository {
     return true;
   }
 
+  async rotate(currentId: string, next: RefreshToken, at: Date): Promise<boolean> {
+    if (!(await this.revokeIfActive(currentId, at))) return false;
+
+    this.tokens.push(next);
+    return true;
+  }
+
   async revokeFamily(familyId: string, at: Date): Promise<void> {
     this.tokens.forEach((token, index) => {
       if (token.familyId === familyId && !token.revokedAt) {

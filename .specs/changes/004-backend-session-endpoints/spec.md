@@ -2,7 +2,7 @@
 id: "004"
 slug: backend-session-endpoints
 title: Current account, session renewal and sign-out on the backend
-status: changes-requested
+status: in-review
 created: 2026-10-09
 started: 2026-10-09
 base_commit: 465ac664b79a5ad5bf845f8ce1297f1e9edd4102
@@ -343,7 +343,7 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
 
 **Findings**
 
-- [ ] **F-01** (ER-05, D-05) — two concurrent refreshes with the same active token can leave the winner's new
+- [x] **F-01** (ER-05, D-05) — two concurrent refreshes with the same active token can leave the winner's new
   refresh token **active**, so the family does not end revoked. `RefreshSession` runs `revokeIfActive` and then
   `create` as separate statements; the loser's `revokeIfActive` returns false and its `revokeFamily` can run
   before the winner's `create`, missing the new row. The committed e2e test
@@ -353,6 +353,7 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   and insert the new one in one Prisma transaction (e.g. a `rotate(currentId, next, at): Promise<boolean>`
   repository method), so the loser's conditional update waits on the row lock until the winner commits and its
   `revokeFamily` then sees the new row; cover it with a unit test of the use case and the Prisma repository.
+  > ✅ 2026-10-09 — rotation is now atomic: new `RefreshTokenRepository.rotate(currentId, next, at)` revokes the sent token (conditional `updateMany`) and inserts its successor in one Prisma `$transaction`, returning false with nothing stored when the token was already revoked; `RefreshSession` calls it instead of `revokeIfActive` + `create` and revokes the family when it returns false, so the loser's `revokeFamily` always sees the winner's new row; files: `modules/auth/src/session/provider/refresh-token.repository.ts`, `modules/auth/src/session/usecase/refresh-session.usecase.ts`, `modules/auth/test/mock/fake-refresh-token.repository.ts`, `modules/auth/test/session/provider/refresh-token.repository.test.ts`, `modules/auth/test/session/usecase/refresh-session.usecase.test.ts`, `apps/backend/src/modules/auth/refresh-token.prisma.ts`, `apps/backend/src/modules/auth/refresh-token.prisma.spec.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`; verified: reran the concurrent-refresh e2e case 400 times in a temporary looped copy (400 passed, file removed), plus the Verification Plan — related tests, `COVERAGE OK`, lint/check-types/build, `E2E PASSED` (70), auth unit tests 189 passed, backend unit tests 116 passed; deviations: `revokeIfActive` stays on the port (T-01) but `RefreshSession` no longer uses it
 
 **Notes**
 

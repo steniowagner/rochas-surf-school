@@ -51,11 +51,6 @@ export class RefreshSession
       throw new UnauthorizedError(INVALID);
     }
 
-    const rotated = await this.refreshTokenRepository.revokeIfActive(current.id, now);
-    if (!rotated) {
-      return this.rejectReuse(current, now);
-    }
-
     const accessToken = this.tokenProvider.signAccessToken({
       id: user.id,
       email: user.email,
@@ -71,7 +66,10 @@ export class RefreshSession
       expiresAt: refreshTokenExpiresAt,
     });
     next.validate();
-    await this.refreshTokenRepository.create(next);
+    const rotated = await this.refreshTokenRepository.rotate(current.id, next, now);
+    if (!rotated) {
+      return this.rejectReuse(current, now);
+    }
 
     return {
       accessToken: accessToken.token,

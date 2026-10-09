@@ -14,10 +14,12 @@ function setup() {
     findUnique: vi.fn(),
     updateMany: vi.fn(),
   };
-  const repository = new PrismaRefreshTokenRepository({
+  const prisma = {
     refreshToken,
-  } as unknown as PrismaService);
-  return { refreshToken, repository };
+    $transaction: vi.fn(async (work: (tx: unknown) => Promise<unknown>) => work({ refreshToken })),
+  };
+  const repository = new PrismaRefreshTokenRepository(prisma as unknown as PrismaService);
+  return { refreshToken, prisma, repository };
 }
 
 function record(revokedAt: Date | null) {
@@ -133,6 +135,48 @@ describe('PrismaRefreshTokenRepository', () => {
     expect(refreshToken.updateMany).toHaveBeenCalledWith({
       where: { familyId: FAMILY_ID, revokedAt: null },
       data: { revokedAt: NOW },
+    });
+  });
+
+  describe('rotate', () => {
+    const next = () =>
+      new RefreshToken({
+        userId: USER_ID,
+        tokenHash: 'e'.repeat(64),
+        familyId: FAMILY_ID,
+        expiresAt: EXPIRES_AT,
+        createdAt: NOW,
+      });
+
+    it('revokes the current token and stores the successor in one transaction', async () => {
+      const { refreshToken, prisma, repository } = setup();
+      refreshToken.updateMany.mockResolvedValue({ count: 1 });
+      const successor = next();
+
+      await expect(repository.rotate(ID, successor, NOW)).resolves.toBe(true);
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(refreshToken.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, revokedAt: null },
+        data: { revokedAt: NOW },
+      });
+      expect(refreshToken.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          id: successor.id,
+          tokenHash: 'e'.repeat(64),
+          familyId: FAMILY_ID,
+          revokedAt: null,
+        }),
+      });
+    });
+
+    it('stores nothing when the current token was already revoked (reuse)', async () => {
+      const { refreshToken, repository } = setup();
+      refreshToken.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(repository.rotate(ID, next(), NOW)).resolves.toBe(false);
+
+      expect(refreshToken.create).not.toHaveBeenCalled();
     });
   });
 });

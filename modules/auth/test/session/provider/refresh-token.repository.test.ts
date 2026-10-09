@@ -41,6 +41,28 @@ describe("FakeRefreshTokenRepository", () => {
     await expect(repository.revokeIfActive(USER_ID, AT)).resolves.toBe(false);
   });
 
+  test("rotate revokes the current token and stores its successor", async () => {
+    const repository = new FakeRefreshTokenRepository();
+    const current = await repository.create(buildToken("a", FAMILY_A));
+    const next = buildToken("b", FAMILY_A);
+
+    await expect(repository.rotate(current.id, next, AT)).resolves.toBe(true);
+
+    expect(repository.tokens).toHaveLength(2);
+    expect(repository.tokens[0]!.revokedAt).toEqual(AT);
+    expect(repository.tokens[1]).toBe(next);
+  });
+
+  test("rotate stores nothing when the current token was already revoked", async () => {
+    const repository = new FakeRefreshTokenRepository();
+    const current = await repository.create(buildToken("a", FAMILY_A));
+    await repository.revokeIfActive(current.id, AT);
+
+    await expect(repository.rotate(current.id, buildToken("b", FAMILY_A), AT)).resolves.toBe(false);
+
+    expect(repository.tokens).toHaveLength(1);
+  });
+
   test("revokeFamily revokes the active tokens of that family only", async () => {
     const repository = new FakeRefreshTokenRepository();
     const first = await repository.create(buildToken("a", FAMILY_A));

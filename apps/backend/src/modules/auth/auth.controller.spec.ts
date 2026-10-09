@@ -168,6 +168,7 @@ describe('AuthController', () => {
           email: 'ana@example.com',
           role: 'student',
           status: 'approved',
+          createdAt: ana.createdAt,
         },
       });
       expect(refreshTokens).toHaveLength(1);

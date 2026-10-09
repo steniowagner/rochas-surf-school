@@ -231,13 +231,14 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Implement `findByTokenHash`, `revokeIfActive` (one `updateMany` where `id` matches and
+- [x] **T-05** — Implement `findByTokenHash`, `revokeIfActive` (one `updateMany` where `id` matches and
   `revokedAt` is null, returning whether a row changed) and `revokeFamily` (an `updateMany` on the family's
   active tokens) in `src/modules/auth/refresh-token.prisma.ts`, and `hashRefreshToken` in
   `src/modules/auth/jwt.token.ts` (reusing the hash `generateRefreshToken` already computes), with tests in
   `refresh-token.prisma.spec.ts` and `jwt.token.spec.ts`. Skill:
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: enabling · Done when: `npx vitest run src/modules/auth` (from `apps/backend`) passes.
+  > ✅ 2026-10-09 — implemented `findByTokenHash`, `revokeIfActive` (one conditional `updateMany`, true when a row changed) and `revokeFamily` in `PrismaRefreshTokenRepository`, and `hashRefreshToken` in `JwtTokenProvider` (reused by `generateRefreshToken`); files: `apps/backend/src/modules/auth/refresh-token.prisma.ts`, `apps/backend/src/modules/auth/refresh-token.prisma.spec.ts`, `apps/backend/src/modules/auth/jwt.token.ts`, `apps/backend/src/modules/auth/jwt.token.spec.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`; verified: `npx vitest run src/modules/auth` from apps/backend (73 passed), `tsc --noEmit` and oxlint clean (after `npm run build` in modules/auth); deviations: the verify test in `auth.controller.spec.ts` now expects `createdAt` in `user` (a consequence of T-02; `Date` already serializes as ISO 8601, so the controller needed no change); skill `backend-prisma-repository` not invoked, methods added by hand following the existing repository
 
 - [ ] **T-06** — Make the global guard reload the user (D-03, D-04) in `src/shared/auth/`: `JwtStrategy.validate`
   loads the user by `sub` (id, email, role, status) and refuses a missing one; `AuthenticatedUser`

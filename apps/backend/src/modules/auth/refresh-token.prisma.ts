@@ -22,6 +22,26 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
     return this.toDomain(record);
   }
 
+  async findByTokenHash(hash: string): Promise<RefreshToken | null> {
+    const record = await this.prisma.refreshToken.findUnique({ where: { tokenHash: hash } });
+    return record ? this.toDomain(record) : null;
+  }
+
+  async revokeIfActive(id: string, at: Date): Promise<boolean> {
+    const { count } = await this.prisma.refreshToken.updateMany({
+      where: { id, revokedAt: null },
+      data: { revokedAt: at },
+    });
+    return count === 1;
+  }
+
+  async revokeFamily(familyId: string, at: Date): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: { familyId, revokedAt: null },
+      data: { revokedAt: at },
+    });
+  }
+
   private toDomain(record: RefreshTokenRecord): RefreshToken {
     return new RefreshToken({
       id: record.id,

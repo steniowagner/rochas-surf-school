@@ -9,7 +9,11 @@ const NOW = new Date('2026-10-07T12:00:00.000Z');
 const EXPIRES_AT = new Date('2026-11-06T12:00:00.000Z');
 
 function setup() {
-  const refreshToken = { create: vi.fn() };
+  const refreshToken = {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    updateMany: vi.fn(),
+  };
   const repository = new PrismaRefreshTokenRepository({
     refreshToken,
   } as unknown as PrismaService);
@@ -79,5 +83,56 @@ describe('PrismaRefreshTokenRepository', () => {
 
     expect(refreshToken.create.mock.calls[0]![0].data.revokedAt).toEqual(revokedAt);
     expect(created.revokedAt).toEqual(revokedAt);
+  });
+
+  it('finds a token by its hash', async () => {
+    const { refreshToken, repository } = setup();
+    refreshToken.findUnique.mockResolvedValue(record(null));
+
+    const found = await repository.findByTokenHash('f'.repeat(64));
+
+    expect(refreshToken.findUnique).toHaveBeenCalledWith({
+      where: { tokenHash: 'f'.repeat(64) },
+    });
+    expect(found).toBeInstanceOf(RefreshToken);
+    expect(found).toMatchObject({ id: ID, familyId: FAMILY_ID });
+  });
+
+  it('answers null when no token has that hash', async () => {
+    const { refreshToken, repository } = setup();
+    refreshToken.findUnique.mockResolvedValue(null);
+
+    await expect(repository.findByTokenHash('0'.repeat(64))).resolves.toBeNull();
+  });
+
+  it('revokes a token only while it is active (atomic conditional update)', async () => {
+    const { refreshToken, repository } = setup();
+    refreshToken.updateMany.mockResolvedValue({ count: 1 });
+
+    await expect(repository.revokeIfActive(ID, NOW)).resolves.toBe(true);
+
+    expect(refreshToken.updateMany).toHaveBeenCalledWith({
+      where: { id: ID, revokedAt: null },
+      data: { revokedAt: NOW },
+    });
+  });
+
+  it('reports false when the token was already revoked (reuse)', async () => {
+    const { refreshToken, repository } = setup();
+    refreshToken.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(repository.revokeIfActive(ID, NOW)).resolves.toBe(false);
+  });
+
+  it('revokes the active tokens of a family only', async () => {
+    const { refreshToken, repository } = setup();
+    refreshToken.updateMany.mockResolvedValue({ count: 2 });
+
+    await expect(repository.revokeFamily(FAMILY_ID, NOW)).resolves.toBeUndefined();
+
+    expect(refreshToken.updateMany).toHaveBeenCalledWith({
+      where: { familyId: FAMILY_ID, revokedAt: null },
+      data: { revokedAt: NOW },
+    });
   });
 });

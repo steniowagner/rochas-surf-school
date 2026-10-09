@@ -1,16 +1,6 @@
 import { Text, View } from "react-native";
 
-export type ChipTone =
-  | "surf"
-  | "skate"
-  | "info"
-  | "sun"
-  | "grape"
-  | "warn"
-  | "ok"
-  | "bad"
-  | "muted"
-  | "onHighlight";
+import { ChipProps, ChipTone } from "./chip.types";
 
 // Same classes as the web Chip (apps/web/src/components/ui/chip.tsx).
 // Solid colour for the discipline (surf/skate), light tint for level and status.
@@ -26,11 +16,6 @@ const toneClasses: Record<ChipTone, { container: string; label: string }> = {
   muted: { container: "bg-dim", label: "text-ink-2" },
   // On the grape "next lesson" card.
   onHighlight: { container: "bg-white/[.18]", label: "text-on-color" },
-};
-
-export type ChipProps = {
-  tone?: ChipTone;
-  children: string;
 };
 
 export function Chip({ tone = "info", children }: ChipProps) {

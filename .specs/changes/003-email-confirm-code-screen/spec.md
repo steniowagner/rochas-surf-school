@@ -216,5 +216,8 @@ passed. What happens after a correct code (keeping the session, the waiting-for-
   goes back, or opens Create account when there is no screen to go back to.
 - 2026-10-08 — requested by the user: app routes live in `src/constants/routes.ts` (`routes.auth.*`) instead of
   string literals; `router` and `Redirect` calls and their tests use it. No behavior change.
+- 2026-10-09 — requested by the user: `Button` gains a `ghost` variant (no background, no border, same size and
+  label style); `button`, `chip` and `bottom-modal` moved into their own folders under `components/ui` like the
+  other components (`BUTTON_ACTIVE_OPACITY` now lives in `button/button.constants.ts`). Chip and BottomModal got tests.
 
 ## Review

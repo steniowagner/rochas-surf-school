@@ -1,22 +1,18 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import BottomSheet, {
+  BottomSheetBackdrop,
   BottomSheetView,
   type BottomSheetBackdropProps,
-  BottomSheetBackdrop,
 } from "@gorhom/bottom-sheet";
-
+import { useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { radii, spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
-const SCRIM_OPACITY = 0.45;
+import { useBottomModal } from "./bottom-modal.hook";
+import { BottomModalProps } from "./bottom-modal.types";
 
-export type BottomModalProps = {
-  visible: boolean;
-  onClose: () => void;
-  children: ReactNode;
-};
+const SCRIM_OPACITY = 0.45;
 
 /**
  * A bottom sheet that slides up from the bottom of the screen. It closes when the user drags it down,
@@ -27,16 +23,9 @@ export type BottomModalProps = {
 export function BottomModal({ visible, onClose, children }: BottomModalProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const { bottomSheetRef } = useBottomModal({ visible });
 
-  useEffect(() => {
-    if (visible) {
-      bottomSheetRef.current?.expand();
-    } else {
-      bottomSheetRef.current?.forceClose();
-    }
-  }, [visible]);
-
+  // The sheet library keeps the backdrop component, so its identity must follow what it reads.
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -49,7 +38,7 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
         style={[props.style, { backgroundColor: theme.ink }]}
       />
     ),
-    [theme.ink],
+    [onClose, theme.ink],
   );
 
   return (

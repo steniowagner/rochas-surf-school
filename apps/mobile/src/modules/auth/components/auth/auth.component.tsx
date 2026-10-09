@@ -6,7 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button";
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { TextButton } from "@/components/ui/text-button";
 import { routes } from "@/constants/routes";
 import { Colors } from "@/constants/theme";

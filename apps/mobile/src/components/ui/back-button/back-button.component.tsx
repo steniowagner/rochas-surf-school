@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { TouchableOpacity } from "react-native";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button";
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { useTheme } from "@/hooks/use-theme";
 
 import { BackButtonProps } from "./back-button.types";

@@ -2,10 +2,11 @@
 id: "004"
 slug: backend-session-endpoints
 title: Current account, session renewal and sign-out on the backend
-status: in-review
+status: accepted
 created: 2026-10-09
 started: 2026-10-09
 base_commit: 465ac664b79a5ad5bf845f8ce1297f1e9edd4102
+reviewed_commit: d77e7e4ec574e249ee7e25c6af740ffd33379e6c
 fronts: [auth, backend]
 depends_on: []
 ---
@@ -362,3 +363,37 @@ waiting-for-approval screen) and sign out; the app side is a later spec.
   identical apart from the scope placeholder).
 - The e2e output still prints a stack trace from `RequestSignInCode.send` (an `auth-email` scenario where the
   email fails); it predates this spec and the test passes.
+
+### Round 2 — 2026-10-09 — accepted
+
+**Checks**
+
+- lint ✅ (oxlint: 0 warnings, 0 errors) · type check ✅ · build ✅ (`@rochas-surf-school/auth`, `@rochas-surf-school/backend`, each task run on its own)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend vitest, modules/auth jest, apps/mobile jest 180 passed — imports `@rochas-surf-school/auth`)
+- coverage of the changed lines ✅ `COVERAGE OK` — 11 files, 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` — 70 passed (`auth-session.e2e-spec.ts`, `auth-email.e2e-spec.ts`)
+- every `Verify by` command of ER-01 to ER-08 ✅ (auth unit tests incl. the 3 `reuse` tests, `src/shared/auth` 9 passed, `refresh-token.prisma.spec.ts` 9 passed, each e2e `-t` filter)
+- stress run of the concurrent-refresh e2e case ✅ — 800 of 800 iterations passed in a temporary looped copy (also asserting the family has exactly 2 rows, both revoked); file removed
+
+**Expected Results**
+
+- ER-01 ✅ — `GET /auth/me` → 200 with exactly `{ id, name, email, role, status, createdAt }` for all five statuses; `createdAt` equals `users.created_at` and the verify response carries the same value
+- ER-02 ✅ — no header, malformed, other secret, expired and deleted-user tokens → 401 `auth.token.invalid`; public routes stay open
+- ER-03 ✅ — a DB change of status and role shows on the next `GET /auth/me` with the same token; `JwtStrategy.validate` reads the database on every call
+- ER-04 ✅ — rotation in the same family, old row revoked, new row expiring 30 days after the refresh, new access token accepted, chained refresh, every status can refresh
+- ER-05 ✅ — reuse of a rotated token revokes the family and leaves another family alone; two concurrent refreshes give one 200 and one 401 with the family revoked (F-01 fixed: `rotate` revokes and inserts in one `$transaction`, so the loser's conditional update waits on the row lock and its `revokeFamily` sees the winner's row)
+- ER-06 ✅ — unknown, expired, signed-out and user-less tokens → 401 `auth.refreshToken.invalid`; bad bodies → 422 `refreshToken.token.required`; 11th request → 429 `request.rate.limited`
+- ER-07 ✅ — sign-out → 204 with no body, family X fully revoked, family Y still refreshes; works without `Authorization` and with an expired access token
+- ER-08 ✅ — unknown, already-revoked and expired tokens → 204 with rows unchanged; bad bodies → 422; 11th request → 429
+
+**Findings**
+
+None. F-01 of round 1 is verified fixed.
+
+**Notes**
+
+- `RefreshTokenRepository.revokeIfActive` (T-01) is now used by no use case — `RefreshSession` calls `rotate`. It stays tested; a later spec could drop it from the port.
+- A sign-out racing a refresh of the same family can still leave the refresh's new token active (the sign-out's `revokeFamily` may run before the rotation commits). No Expected Result covers it, and D-05 already asks the app to send one refresh at a time; the app spec should also not sign out while a refresh is in flight.
+- `spec-finish`: the Memory Impact should also record that rotation is one transaction (`rotate`) in technical-context → Authentication.
+- `apps/backend/src/shared/types/current-user.type.ts` now imports `UserRole`/`UserStatus` from `@rochas-surf-school/auth` (apps → modules, allowed); the `backend-nest-config` templates match `src/shared` apart from the scope placeholder.
+- Pre-existing e2e noise, not from this spec: `vite-tsconfig-paths` fails to parse `.claude/skills/config-package-shared/assets/shared-template/tsconfig.json`, and an `auth-email` scenario logs a `BadGatewayError` stack trace; the tests pass.

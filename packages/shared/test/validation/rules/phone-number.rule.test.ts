@@ -17,6 +17,16 @@ describe("PhoneNumberRule", () => {
     },
   );
 
+  test.each([
+    "+55 (85) 99999-8888",
+    "+5585999998888 ext. 12",
+    "+55-85-99999-8888",
+    "+55.85.999998888",
+    "+5585999998888 ",
+  ])("refuses the non-E.164 text %j", (number) => {
+    expect(rule.validate(number)).toBe("phone");
+  });
+
   test("leaves absent values to RequiredRule", () => {
     expect(rule.validate(undefined)).toBeNull();
     expect(rule.validate(null)).toBeNull();

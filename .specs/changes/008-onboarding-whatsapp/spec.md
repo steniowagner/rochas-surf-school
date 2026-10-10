@@ -2,7 +2,7 @@
 id: "008"
 slug: onboarding-whatsapp
 title: Onboarding WhatsApp number step
-status: changes-requested
+status: in-review
 created: 2026-10-10
 started: 2026-10-10
 base_commit: 045e0c9a52cc2e43219a20891c39149f40c49cf7
@@ -456,7 +456,7 @@ message for the third.
 
 **Findings**
 
-- [ ] **F-01** (D-03) — `PhoneNumberRule` accepts numbers that are not E.164, so the API stores them as sent:
+- [x] **F-01** (D-03) — `PhoneNumberRule` accepts numbers that are not E.164, so the API stores them as sent:
   `isValidPhoneNumber` also accepts formatted text and extensions once it starts with `+`. The Goal and D-03
   say the number is validated "on an E.164 string" and stored in E.164 (and Out of scope says the backend
   doesn't normalize, so it must refuse instead). Reproduce: approved account, `PUT /auth/me/whatsapp` with
@@ -466,6 +466,12 @@ message for the third.
   `^\+[1-9]\d{1,14}$` as well as `isValidPhoneNumber`), with those cases added to
   `phone-number.rule.test.ts` and an e2e 422 case. The app is unaffected: it always sends
   `parsePhoneNumberFromString(...).number`.
+  > ✅ 2026-10-10 17:45 — `PhoneNumberRule` now also requires the E.164 shape `^\+[1-9]\d{1,14}$` before
+  > `isValidPhoneNumber`; added the five reported inputs to the unit test and three e2e 422 cases (formatted,
+  > extension, trailing space) that re-read `GET /auth/me`; files: `packages/shared/src/validation/rules/phone-number.rule.ts`,
+  > `packages/shared/test/validation/rules/phone-number.rule.test.ts`, `apps/backend/test/auth-whatsapp.e2e-spec.ts`;
+  > verified: shared rebuilt; `run-e2e.mjs 008` (E2E PASSED, 87 passed), `run-related-tests.mjs 008` (RELATED TESTS PASSED),
+  > `check-coverage.mjs 008` (COVERAGE OK), lint + check-types for shared and backend ✅; deviations: none
 
 **Notes**
 

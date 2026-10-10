@@ -167,6 +167,9 @@ describe('PUT /auth/me/whatsapp (e2e)', () => {
     it.each([
       ['a missing number', { whatsappVisible: false }, 'user.whatsappNumber.required'],
       ['an empty number', { whatsappNumber: '', whatsappVisible: false }, 'user.whatsappNumber.required'],
+      ['a formatted number', { whatsappNumber: '+55 (85) 99999-8888', whatsappVisible: false }, 'user.whatsappNumber.phone'],
+      ['a number with an extension', { whatsappNumber: '+5585999998888 ext. 12', whatsappVisible: false }, 'user.whatsappNumber.phone'],
+      ['a number with a trailing space', { whatsappNumber: '+5585999998888 ', whatsappVisible: false }, 'user.whatsappNumber.phone'],
       ['an invalid number', { whatsappNumber: '+55123', whatsappVisible: false }, 'user.whatsappNumber.phone'],
       ['a missing visibility', { whatsappNumber: '+5585999998888' }, 'user.whatsappVisible.required'],
       [

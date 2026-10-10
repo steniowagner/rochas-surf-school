@@ -326,21 +326,21 @@ only add files to a flow's folder and never touch the decision again.
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then follow the ER-06
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then follow the ER-06
   journey in the iOS simulator. Record the output summary and what the journey showed as evidence.
   Covers: all · Done when: every command exits 0 and the ER-06 journey shows the four expected screens.
-  > ⛔ 2026-10-10 02:02 — automated part done: `node .specs/scripts/run-related-tests.mjs 005` (19 suites, 189
-  > passed, RELATED TESTS PASSED); `node .specs/scripts/check-coverage.mjs 005` (COVERAGE OK, every changed line
-  > covered in 19 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile --force` (6 tasks
+  > ✅ 2026-10-10 02:18 — automated: `node .specs/scripts/run-related-tests.mjs 005` (19 suites, 189 passed,
+  > RELATED TESTS PASSED); `node .specs/scripts/check-coverage.mjs 005` (COVERAGE OK, every changed line covered
+  > in 19 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile --force` (6 tasks
   > successful); `node .specs/scripts/run-e2e.mjs 005` (E2E PASSED, no suite applies). ER-06 journey in the iOS
-  > simulator (iPhone 18 Pro, iOS 27, backend and Metro running locally) — partly done: Continue with email →
-  > Create account → Confirm email with a not-yet-existing account's email showed "Onboarding" (the backend
-  > created it as pending); the back-swipe from the left edge stayed on Onboarding; restarting the app showed
-  > the sign-in screen. Blocked: `apps/backend/.env` has only a student entry in `REVIEW_ACCOUNTS` and the
-  > review accounts were never seeded (that student email had no user row, so signing in created it as pending),
-  > so the "Student", "Instructor" and "Admin" legs can't run. Unblock: add an instructor and an admin entry to
-  > `REVIEW_ACCOUNTS`, run `npm run prisma:seed --workspace apps/backend` (it upserts every review account as
-  > approved) and restart the backend, then sign in with each review account.
+  > simulator (iPhone 18 Pro, iOS 27, backend and Metro running locally, `REVIEW_ACCOUNTS` with one account per
+  > role, seeded with `npm run prisma:seed --workspace apps/backend`): Continue with email → Create account →
+  > Confirm email with the student review account showed "Student", with the instructor one "Instructor", with
+  > the admin one "Admin"; an email with no account yet showed "Onboarding" (created as pending); after each
+  > sign-in the back-swipe from the left edge stayed on the flow screen; restarting the app showed the sign-in
+  > screen. Files: none (verification only). Deviations: the first run was blocked because only a student review
+  > account was configured and none was seeded; the user added the instructor and admin accounts and restarted
+  > the backend, and the seed was run.
 
 ## Verification Plan
 

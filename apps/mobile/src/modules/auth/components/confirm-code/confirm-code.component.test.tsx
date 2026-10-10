@@ -182,7 +182,7 @@ describe("ConfirmCode", () => {
 
     await user.press(screen.getByRole("link", { name: "change the email" }));
 
-    expect(router.replace).toHaveBeenCalledWith(routes.auth.createAccount);
+    expect(router.replace).toHaveBeenCalledWith(routes.auth.createAccount());
     expect(router.back).not.toHaveBeenCalled();
   });
 

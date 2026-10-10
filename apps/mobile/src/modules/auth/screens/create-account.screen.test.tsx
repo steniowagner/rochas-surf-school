@@ -14,6 +14,7 @@ import { CreateAccountScreen } from "./create-account.screen";
 
 jest.mock("expo-router", () => ({
   router: { back: jest.fn(), push: jest.fn() },
+  useLocalSearchParams: jest.fn(() => ({})),
 }));
 
 const renderScreen = () =>

@@ -20,13 +20,17 @@ import { useTheme } from "@/hooks/use-theme";
 import { useCreateAccount } from "./create-account.hook";
 import { CreateAccountProps } from "./create-account.types";
 
-export function CreateAccount({ onCodeRequested }: CreateAccountProps) {
+export function CreateAccount({
+  initialEmail,
+  onCodeRequested,
+}: CreateAccountProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const emailInputRef = useRef<NativeTextInput>(null);
   const { nameField, emailField, canSubmit, isSending, submit } =
     useCreateAccount({
+      initialEmail,
       onCodeRequested,
     });
 

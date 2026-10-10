@@ -50,11 +50,12 @@ const getStatus = (
 };
 
 export const useCreateAccount = ({
+  initialEmail = "",
   onCodeRequested,
 }: UseCreateAccountProps) => {
   const { t } = useTranslation();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [isNameTouched, setIsNameTouched] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
 

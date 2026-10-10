@@ -144,7 +144,7 @@ export function AuthComponent({
         <AuthButton
           variant="primary"
           label={t("auth.continueWithEmail")}
-          onPress={() => router.push(routes.auth.createAccount)}
+          onPress={() => router.push(routes.auth.createAccount())}
           icon={
             <Ionicons name="mail-outline" size={20} color={palette.onColor} />
           }

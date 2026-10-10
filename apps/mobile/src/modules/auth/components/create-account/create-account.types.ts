@@ -6,6 +6,7 @@ export type CodeRequest = {
 };
 
 export type CreateAccountProps = {
+  initialEmail?: string;
   onCodeRequested?: (request: CodeRequest) => void;
 };
 

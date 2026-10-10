@@ -4,8 +4,13 @@ import type { Href } from "expo-router";
 export const routes = {
   auth: {
     signIn: "/auth",
-    createAccount: "/auth/create-account",
-    confirmCode: (params: { email: string; name: string }): Href => ({
+    emailChoice: "/auth/email",
+    emailSignIn: "/auth/email-sign-in",
+    createAccount: (params?: { email?: string }): Href => ({
+      pathname: "/auth/create-account",
+      params,
+    }),
+    confirmCode: (params: { email: string; name?: string }): Href => ({
       pathname: "/auth/confirm-code",
       params,
     }),

@@ -22,7 +22,7 @@ const formatCountdown = (seconds: number) =>
 const goToCreateAccount = () =>
   router.canGoBack()
     ? router.back()
-    : router.replace(routes.auth.createAccount);
+    : router.replace(routes.auth.createAccount());
 
 export const useConfirmCode = ({
   email,

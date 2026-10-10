@@ -203,7 +203,7 @@ D-05 copy table:
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Routes and Create account prefill (D-02, D-04): in `src/constants/routes.ts` add
+- [x] **T-01** — Routes and Create account prefill (D-02, D-04): in `src/constants/routes.ts` add
   `routes.auth.emailChoice` and `routes.auth.emailSignIn`, turn `createAccount` into
   `(params?: { email?: string }) => Href` and make `confirmCode`'s `name` optional; make
   `src/modules/auth/screens/create-account.screen.tsx` read the `email` param and pass it to `CreateAccount` as
@@ -214,6 +214,19 @@ D-05 copy table:
   Covers: ER-04 · Done when: `npx jest src/modules/auth src/navigation` passes, including a new create-account
   test "starts with the given email", and `npx turbo run check-types --filter=@rochas-surf-school/mobile`
   exits 0.
+  > ✅ 2026-10-10 — `routes.auth` gained `emailChoice` / `emailSignIn`, `createAccount` is now `(params?) => Href`, `confirmCode`'s
+  > `name` is optional; Create account reads the `email` param (`initialEmail`) and starts its email field with it;
+  > callers updated (auth component, confirm-code hook, their tests, root-navigator tests; the auth component keeps
+  > pushing `routes.auth.createAccount()` until T-02 adds the Choose route file, because typed routes reject a path
+  > without a route file). New test "starts with the given email". Files: `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/modules/auth/screens/create-account.screen.tsx`,
+  > `apps/mobile/src/modules/auth/screens/create-account.screen.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/create-account/create-account.{component.tsx,hook.ts,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.{hook.ts,component.test.tsx}`,
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.tsx`,
+  > `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`;
+  > verified: `npx jest src/modules/auth src/navigation` (13 suites, 214 tests pass), `npx tsc --noEmit` (exit 0);
+  > deviations: Create account / `useConfirmCode` default the `createAccount()` fallback; the auth component's "Continue with email" switch to Choose moved wholly to T-02
 
 - [ ] **T-02** — Choose screen (D-04, D-05, D-06): component `src/modules/auth/components/email-choice/`
   (`email-choice.component.tsx`, `email-choice.types.ts`, `index.ts`, `email-choice.component.test.tsx`) with the

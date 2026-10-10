@@ -16,7 +16,7 @@ describe("AuthComponent email sign-in", () => {
 
     await user.press(screen.getByText("Continue with email"));
 
-    expect(router.push).toHaveBeenCalledWith(routes.auth.createAccount);
+    expect(router.push).toHaveBeenCalledWith(routes.auth.createAccount());
   });
 });
 

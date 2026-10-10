@@ -70,7 +70,9 @@ describe("CountryPicker", () => {
     expect(
       screen.getByRole("button", { name: "Portugal +351" }),
     ).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Afghanistan +93" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Afghanistan +93" }),
+    ).toBeNull();
   });
 
   it("filters without regard to case or accents", async () => {
@@ -79,7 +81,9 @@ describe("CountryPicker", () => {
 
     await user.type(search("Buscar país"), "ESPANA");
 
-    expect(screen.getByRole("button", { name: "España +34" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "España +34" }),
+    ).toBeOnTheScreen();
   });
 
   it("shows an empty list when nothing matches", async () => {

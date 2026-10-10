@@ -48,7 +48,10 @@ export function CountryPicker({
   return (
     <BottomModal visible={visible} onClose={close}>
       <View className="mb-3.5 gap-3.5">
-        <Text accessibilityRole="header" className="ds-text-sheet-title text-ink">
+        <Text
+          accessibilityRole="header"
+          className="ds-text-sheet-title text-ink"
+        >
           {t("whatsapp.pickerTitle")}
         </Text>
         <TextInput

@@ -1,9 +1,6 @@
 import { PhoneNumberRule, RequiredRule } from "@rochas-surf-school/shared";
 import { router } from "expo-router";
-import {
-  CountryCode,
-  parsePhoneNumberFromString,
-} from "libphonenumber-js";
+import { CountryCode, parsePhoneNumberFromString } from "libphonenumber-js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Keyboard } from "react-native";

@@ -1,4 +1,8 @@
-import { CountryCode, getCountries, getCountryCallingCode } from "libphonenumber-js";
+import {
+  CountryCode,
+  getCountries,
+  getCountryCallingCode,
+} from "libphonenumber-js";
 import countries from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
 import es from "i18n-iso-countries/langs/es.json";
@@ -35,14 +39,13 @@ export const getCountryOptions = (locale: string): CountryOption[] => {
 };
 
 const normalize = (text: string) =>
-  text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .trim();
+  text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 /** Keeps the countries whose name contains the query, ignoring case and accents. */
-export const filterCountryOptions = (options: CountryOption[], query: string) => {
+export const filterCountryOptions = (
+  options: CountryOption[],
+  query: string,
+) => {
   const normalizedQuery = normalize(query);
 
   return options.filter((option) =>

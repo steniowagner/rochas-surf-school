@@ -49,7 +49,8 @@ jest.mock("@/navigation/resolve-flow", () => {
     resolveFlow: (input: { onboardingCompleted: boolean }) =>
       actual.resolveFlow({
         ...input,
-        onboardingCompleted: mockOnboardingCompleted || input.onboardingCompleted,
+        onboardingCompleted:
+          mockOnboardingCompleted || input.onboardingCompleted,
       }),
   };
 });

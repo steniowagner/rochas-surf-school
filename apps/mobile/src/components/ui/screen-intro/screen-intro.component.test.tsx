@@ -56,7 +56,12 @@ describe("ScreenIntro", () => {
 
   it("colors the eyebrow as given and in ink-2 by default", async () => {
     const { rerender } = await render(
-      <ScreenIntro icon={null} title="Title" description="Text" eyebrow="Label" />,
+      <ScreenIntro
+        icon={null}
+        title="Title"
+        description="Text"
+        eyebrow="Label"
+      />,
     );
     expect(screen.getByText("Label").props.className).toContain("text-ink-2");
 

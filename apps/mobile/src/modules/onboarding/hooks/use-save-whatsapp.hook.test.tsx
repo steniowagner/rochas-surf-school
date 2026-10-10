@@ -54,7 +54,9 @@ const renderSignedIn = async () => {
     { wrapper },
   );
 
-  await act(async () => hook.result.current.session.setSession({ user, tokens }));
+  await act(async () =>
+    hook.result.current.session.setSession({ user, tokens }),
+  );
 
   return hook;
 };
@@ -139,7 +141,9 @@ describe("useSaveWhatsapp", () => {
 
     await save(hook);
 
-    expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again.");
+    expect(mockShow).toHaveBeenCalledWith(
+      "Something went wrong. Please try again.",
+    );
   });
 
   it("shows the generic message for an unexpected error", async () => {
@@ -148,7 +152,9 @@ describe("useSaveWhatsapp", () => {
 
     await save(hook);
 
-    expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again.");
+    expect(mockShow).toHaveBeenCalledWith(
+      "Something went wrong. Please try again.",
+    );
   });
 
   it("signs out locally when the access token expired", async () => {
@@ -157,16 +163,21 @@ describe("useSaveWhatsapp", () => {
 
     await save(hook);
 
-    expect(mockShow).toHaveBeenCalledWith("Your session expired. Sign in again.");
+    expect(mockShow).toHaveBeenCalledWith(
+      "Your session expired. Sign in again.",
+    );
     expect(hook.result.current.session.user).toBeNull();
     expect(hook.result.current.session.tokens).toBeNull();
   });
 
   it("does not update the session without tokens", async () => {
     respond(200, user);
-    const hook = await renderHook(() => ({ session: useSession(), save: useSaveWhatsapp() }), {
-      wrapper,
-    });
+    const hook = await renderHook(
+      () => ({ session: useSession(), save: useSaveWhatsapp() }),
+      {
+        wrapper,
+      },
+    );
 
     await save(hook as never);
 

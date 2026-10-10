@@ -47,7 +47,11 @@ export const useSaveWhatsapp = () => {
 
       const errorCode = error instanceof ApiError ? error.errors[0] : undefined;
 
-      if (error instanceof ApiError && error.status === 401 && errorCode === INVALID_TOKEN) {
+      if (
+        error instanceof ApiError &&
+        error.status === 401 &&
+        errorCode === INVALID_TOKEN
+      ) {
         alertMessage.show(t("whatsapp.sessionExpired"));
         signOut();
 

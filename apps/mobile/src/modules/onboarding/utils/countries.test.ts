@@ -41,7 +41,9 @@ describe("countries", () => {
   it("filters by a part of the name, ignoring case and accents", () => {
     const options = getCountryOptions("es-ES");
 
-    expect(filterCountryOptions(options, "  ESPANA ").map((o) => o.code)).toEqual(["ES"]);
+    expect(
+      filterCountryOptions(options, "  ESPANA ").map((o) => o.code),
+    ).toEqual(["ES"]);
     expect(filterCountryOptions(options, "").length).toBe(options.length);
     expect(filterCountryOptions(options, "zzzz")).toEqual([]);
   });

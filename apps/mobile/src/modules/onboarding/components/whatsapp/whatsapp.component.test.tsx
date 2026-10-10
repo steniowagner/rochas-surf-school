@@ -9,13 +9,17 @@ import {
 } from "@testing-library/react-native";
 import { router } from "expo-router";
 import { createRef, ReactNode, useImperativeHandle, useState } from "react";
+import { Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 import { SessionContext } from "@/providers/session/session.context";
-import type { Session, SessionContextValue } from "@/providers/session/session.types";
+import type {
+  Session,
+  SessionContextValue,
+} from "@/providers/session/session.types";
 
 import { Whatsapp } from "./whatsapp.component";
 
@@ -93,7 +97,8 @@ const respond = (status: number, body: unknown) =>
   });
 
 const numberInput = () => screen.getByLabelText("WhatsApp number");
-const saveButton = () => screen.getByRole("button", { name: "Save and continue" });
+const saveButton = () =>
+  screen.getByRole("button", { name: "Save and continue" });
 
 beforeEach(() => {
   queryClient = new QueryClient({
@@ -126,10 +131,20 @@ describe("Whatsapp", () => {
         "Only the school's admins will see it. You can change this in your profile.",
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("switch", { name: "Hide my number" }).props.value).toBe(true);
+    expect(
+      screen.getByRole("switch", { name: "Hide my number" }).props.value,
+    ).toBe(true);
     expect(saveButton()).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+  });
+
+  it("renders on Android, where the keyboard resizes the window", async () => {
+    const replaced = jest.replaceProperty(Platform, "OS", "android");
+    await renderWhatsapp();
+
+    expect(saveButton()).toBeOnTheScreen();
+    replaced.restore();
   });
 
   it("shows the first word of a single-word or padded name", async () => {
@@ -213,13 +228,19 @@ describe("Whatsapp", () => {
       }),
     });
     await waitFor(() =>
-      expect(router.replace).toHaveBeenCalledWith(routes.onboarding.schoolRules),
+      expect(router.replace).toHaveBeenCalledWith(
+        routes.onboarding.schoolRules,
+      ),
     );
     expect(currentSession.current?.user).toEqual(saved);
   });
 
   it("sends whatsappVisible true when the switch is turned off", async () => {
-    respond(200, { ...user, whatsappNumber: "+5585999998888", whatsappVisible: true });
+    respond(200, {
+      ...user,
+      whatsappNumber: "+5585999998888",
+      whatsappVisible: true,
+    });
     const press = await renderWhatsapp();
     await press.type(numberInput(), "85 99999-8888");
     fireEvent(
@@ -264,7 +285,11 @@ describe("Whatsapp", () => {
     expect(screen.queryByText("Save and continue")).toBeNull();
 
     await act(async () =>
-      finish({ ok: true, status: 200, json: async () => ({ ...user, whatsappNumber: "+5585999998888" }) }),
+      finish({
+        ok: true,
+        status: 200,
+        json: async () => ({ ...user, whatsappNumber: "+5585999998888" }),
+      }),
     );
   });
 
@@ -284,7 +309,9 @@ describe("Whatsapp", () => {
 
     await press.press(saveButton());
 
-    expect(await screen.findByText("Invalid WhatsApp number.")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Invalid WhatsApp number."),
+    ).toBeOnTheScreen();
     expect(numberInput().props.value).toBe("85 99999-8888");
     expect(router.replace).not.toHaveBeenCalled();
   });
@@ -296,7 +323,9 @@ describe("Whatsapp", () => {
 
     await press.press(saveButton());
 
-    expect(await screen.findByText("Your session expired. Sign in again.")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Your session expired. Sign in again."),
+    ).toBeOnTheScreen();
     expect(router.replace).not.toHaveBeenCalled();
   });
 });

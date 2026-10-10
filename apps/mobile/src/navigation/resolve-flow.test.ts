@@ -99,7 +99,10 @@ describe("onboardingStep", () => {
   });
 
   it("is school-rules once the account has a number", () => {
-    const user = { ...userWith("approved", "student"), whatsappNumber: "+5585999998888" };
+    const user = {
+      ...userWith("approved", "student"),
+      whatsappNumber: "+5585999998888",
+    };
 
     expect(onboardingStep(user)).toBe("school-rules");
   });
@@ -122,13 +125,17 @@ describe("flowEntryRoute", () => {
   });
 
   it("opens onboarding on the WhatsApp step without a number", () => {
-    expect(flowEntryRoute("onboarding", student)).toBe(routes.onboarding.whatsapp);
+    expect(flowEntryRoute("onboarding", student)).toBe(
+      routes.onboarding.whatsapp,
+    );
   });
 
   it("opens onboarding on school rules with a number", () => {
     const withNumber = { ...student, whatsappNumber: "+5585999998888" };
 
-    expect(flowEntryRoute("onboarding", withNumber)).toBe(routes.onboarding.schoolRules);
+    expect(flowEntryRoute("onboarding", withNumber)).toBe(
+      routes.onboarding.schoolRules,
+    );
   });
 
   it("uses the paths of D-10 and D-05", () => {
@@ -159,6 +166,8 @@ describe("flowEntryRoute", () => {
       "/instructor",
       "/admin",
     ]);
-    expect(flowEntryRoute("onboarding", withNumber)).toBe("/onboarding/school-rules");
+    expect(flowEntryRoute("onboarding", withNumber)).toBe(
+      "/onboarding/school-rules",
+    );
   });
 });

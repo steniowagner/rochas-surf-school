@@ -19,7 +19,8 @@ export const routes = {
     home: "/pending",
   },
   onboarding: {
-    home: "/onboarding",
+    whatsapp: "/onboarding",
+    schoolRules: "/onboarding/school-rules",
   },
   reactivation: {
     home: "/reactivation",

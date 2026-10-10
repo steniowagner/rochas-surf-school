@@ -20,6 +20,10 @@ export type SessionUser = {
   status: string;
   // ISO 8601, UTC.
   createdAt: string;
+  // E.164, or null until the account adds one in onboarding.
+  whatsappNumber: string | null;
+  // `false` hides the number from everyone but admins.
+  whatsappVisible: boolean;
 };
 
 export type ResolveFlowInput = {
@@ -28,4 +32,6 @@ export type ResolveFlowInput = {
   onboardingCompleted: boolean;
 };
 
-export type FlowEntryRoutes = Record<Flow, Href>;
+export type OnboardingStep = "whatsapp" | "school-rules";
+
+export type FlowEntryRoutes = Record<Exclude<Flow, "onboarding">, Href>;

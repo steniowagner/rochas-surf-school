@@ -305,7 +305,7 @@ message for the third.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-06** — Routing of the onboarding steps: add `whatsappNumber: string | null` and
+- [x] **T-06** — Routing of the onboarding steps: add `whatsappNumber: string | null` and
   `whatsappVisible: boolean` to `SessionUser` (`src/navigation/resolve-flow.types.ts`); add `onboardingStep`
   and make `flowEntryRoute(flow, user)` step-aware in `src/navigation/resolve-flow.ts` (D-05); in
   `src/constants/routes.ts` replace `onboarding.home` with `onboarding.whatsapp` (`/onboarding`) and add
@@ -316,6 +316,7 @@ message for the third.
   (still the placeholder until T-09); update the test fixtures that build a `SessionUser`. Tests:
   `resolve-flow` unit tests and `root-navigator.component.test.tsx` cases of ER-06. Covers: ER-06 · Done when:
   `npx jest src/navigation src/modules` in `apps/mobile` passes and `npx tsc --noEmit` exits 0.
+  > ✅ 2026-10-10 — `SessionUser` and the verify response carry `whatsappNumber`/`whatsappVisible`; `onboardingStep(user)` and the step-aware `flowEntryRoute(flow, user)` in `resolve-flow.ts` (the onboarding entry is no longer in the static route table); `routes.onboarding.{whatsapp,schoolRules}`; `useRootNavigator` passes `onboardingCompleted: false`; `src/app/index.tsx` passes the session user; School rules route, placeholder screen and `flows.schoolRules` in the three locales; fixtures updated; files: `apps/mobile/src/navigation/resolve-flow.ts`, `apps/mobile/src/navigation/resolve-flow.types.ts`, `apps/mobile/src/navigation/resolve-flow.test.ts`, `apps/mobile/src/navigation/root-navigator/root-navigator.hook.ts`, `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`, `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/app/index.tsx`, `apps/mobile/src/app/(onboarding)/onboarding/school-rules.tsx`, `apps/mobile/src/modules/onboarding/screens/school-rules.screen.tsx`, `apps/mobile/src/modules/onboarding/screens/school-rules.screen.test.tsx`, `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`, fixtures in `apps/mobile/src/providers/session/session.provider.test.tsx`, `apps/mobile/src/modules/auth/screens/confirm-code.screen.test.tsx`, `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.test.tsx`, `apps/mobile/src/modules/pending/components/pending/pending.component.test.tsx`; verified: `npx jest src/navigation src/modules src/providers` (31 suites, 324 passed), `npx tsc --noEmit` exit 0, `npm run lint` clean; deviations: with `onboardingCompleted` now `false`, the existing root-navigator guard tests for the role homes can't reach them, so that test file mocks `resolveFlow` to force onboarding completed by default (new `onboarding steps` cases switch it off and run the real value)
 
 - [ ] **T-07** — Add `apiPut(path, body, options?: { accessToken?: string })` to
   `src/services/api/api.client.ts` (D-10) with its tests in `api.client.test.ts`; add

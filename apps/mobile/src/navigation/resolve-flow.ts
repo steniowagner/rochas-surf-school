@@ -1,9 +1,16 @@
 import { USER_ROLES, USER_STATUSES } from "@rochas-surf-school/auth";
 import type { UserRole, UserStatus } from "@rochas-surf-school/auth";
+import type { Href } from "expo-router";
 
 import { routes } from "@/constants/routes";
 
-import { Flow, FlowEntryRoutes, ResolveFlowInput } from "./resolve-flow.types";
+import {
+  Flow,
+  FlowEntryRoutes,
+  OnboardingStep,
+  ResolveFlowInput,
+  SessionUser,
+} from "./resolve-flow.types";
 
 const isUserRole = (role: string): role is UserRole =>
   (USER_ROLES as readonly string[]).includes(role);
@@ -21,7 +28,6 @@ const FLOW_BY_INACTIVE_STATUS: Record<Exclude<UserStatus, "approved">, Flow> = {
 const FLOW_ENTRY_ROUTES: FlowEntryRoutes = {
   auth: routes.auth.signIn,
   pending: routes.pending.home,
-  onboarding: routes.onboarding.home,
   reactivation: routes.reactivation.home,
   "offboarding-denied": routes.offboarding.denied,
   "offboarding-removed": routes.offboarding.removed,
@@ -51,5 +57,17 @@ export const resolveFlow = ({
   return isUserRole(user.role) ? user.role : "auth";
 };
 
-/** The route a flow opens on (D-10). */
-export const flowEntryRoute = (flow: Flow) => FLOW_ENTRY_ROUTES[flow];
+const ONBOARDING_ENTRY_ROUTES: Record<OnboardingStep, Href> = {
+  whatsapp: routes.onboarding.whatsapp,
+  "school-rules": routes.onboarding.schoolRules,
+};
+
+/** The onboarding step an approved account is on: the WhatsApp number first, then the school rules (D-05). */
+export const onboardingStep = (user: SessionUser | null): OnboardingStep =>
+  user?.whatsappNumber ? "school-rules" : "whatsapp";
+
+/** The route a flow opens on (D-10); the onboarding flow opens on the account's step (D-05). */
+export const flowEntryRoute = (flow: Flow, user: SessionUser | null): Href =>
+  flow === "onboarding"
+    ? ONBOARDING_ENTRY_ROUTES[onboardingStep(user)]
+    : FLOW_ENTRY_ROUTES[flow];

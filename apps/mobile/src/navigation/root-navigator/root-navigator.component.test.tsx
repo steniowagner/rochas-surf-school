@@ -17,6 +17,7 @@ import PendingLayout from "@/app/(pending)/pending/_layout";
 import PendingRoute from "@/app/(pending)/pending/index";
 import OnboardingLayout from "@/app/(onboarding)/onboarding/_layout";
 import OnboardingRoute from "@/app/(onboarding)/onboarding/index";
+import SchoolRulesRoute from "@/app/(onboarding)/onboarding/school-rules";
 import AuthLayout from "@/app/(public)/auth/_layout";
 import ConfirmCodeRoute from "@/app/(public)/auth/confirm-code";
 import CreateAccountRoute from "@/app/(public)/auth/create-account";
@@ -35,6 +36,23 @@ import type {
 } from "@/providers/session/session.types";
 
 import { RootNavigator } from "./root-navigator.component";
+
+// The app never completes onboarding yet (spec 008, D-01), so the role homes are unreachable. Most cases here
+// test the guards of those homes, so they run with onboarding completed; the onboarding cases switch it off.
+let mockOnboardingCompleted = true;
+
+jest.mock("@/navigation/resolve-flow", () => {
+  const actual = jest.requireActual("@/navigation/resolve-flow");
+
+  return {
+    ...actual,
+    resolveFlow: (input: { onboardingCompleted: boolean }) =>
+      actual.resolveFlow({
+        ...input,
+        onboardingCompleted: mockOnboardingCompleted || input.onboardingCompleted,
+      }),
+  };
+});
 
 // The test owns the session: it starts with `initialUser` and is changed through `session.current`.
 let initialUser: SessionUser | null = null;
@@ -95,6 +113,7 @@ const routeTree = {
   "(pending)/pending/index": PendingRoute,
   "(onboarding)/onboarding/_layout": OnboardingLayout,
   "(onboarding)/onboarding/index": OnboardingRoute,
+  "(onboarding)/onboarding/school-rules": SchoolRulesRoute,
   "(reactivation)/reactivation/_layout": ReactivationLayout,
   "(reactivation)/reactivation/index": ReactivationRoute,
   "(offboarding)/offboarding/_layout": OffboardingLayout,
@@ -108,13 +127,19 @@ const routeTree = {
   "(private)/admin/index": AdminRoute,
 };
 
-const account = (status: string, role = "student"): SessionUser => ({
+const account = (
+  status: string,
+  role = "student",
+  whatsappNumber: string | null = null,
+): SessionUser => ({
   id: "user-1",
   name: "Ana Silva",
   email: "ana.silva@gmail.com",
   role,
   status,
   createdAt: "2026-10-10T12:00:00.000Z",
+  whatsappNumber,
+  whatsappVisible: false,
 });
 
 // RNTL 14's render is async, so renderRouter returns a promise; its route helpers (getPathname…) sit on that promise.
@@ -144,7 +169,7 @@ const CREATE_ACCOUNT_PATH = "/auth/create-account";
 
 const FLOW_PATHS = [
   routes.pending.home,
-  routes.onboarding.home,
+  routes.onboarding.whatsapp,
   routes.reactivation.home,
   routes.offboarding.denied,
   routes.offboarding.removed,
@@ -154,6 +179,65 @@ const FLOW_PATHS = [
 ];
 
 describe("RootNavigator", () => {
+  describe("onboarding steps", () => {
+    beforeEach(() => {
+      mockOnboardingCompleted = false;
+    });
+
+    afterEach(() => {
+      mockOnboardingCompleted = true;
+    });
+
+    it.each(["student", "instructor", "admin"])(
+      "approved without a number opens the WhatsApp step for a %s",
+      async (role) => {
+        await openApp(account("approved", role));
+
+        expect(app.getPathname()).toBe(routes.onboarding.whatsapp);
+      },
+    );
+
+    it.each(["student", "instructor", "admin"])(
+      "approved with a number opens school rules for a %s",
+      async (role) => {
+        await openApp(account("approved", role, "+5585999998888"));
+
+        expectFlowScreen(routes.onboarding.schoolRules, "School rules");
+      },
+    );
+
+    it.each([routes.student.home, routes.instructor.home, routes.admin.home])(
+      "keeps an approved account with a number out of %s",
+      async (path) => {
+        await openApp(account("approved", "student", "+5585999998888"));
+
+        await navigate(path);
+
+        expectFlowScreen(routes.onboarding.schoolRules, "School rules");
+      },
+    );
+
+    it("moves from the WhatsApp step to school rules once the number is saved", async () => {
+      await openApp(account("approved"));
+
+      await act(async () =>
+        session.current!.setSession({
+          user: account("approved", "student", "+5585999998888"),
+          tokens: TOKENS,
+        }),
+      );
+      await navigate(routes.onboarding.schoolRules);
+
+      expectFlowScreen(routes.onboarding.schoolRules, "School rules");
+    });
+
+    it("keeps the other flows on their own screens", async () => {
+      await openApp(account("pending", "student"));
+
+      expectFlowScreen(routes.pending.home, "Waiting for approval");
+    });
+  });
+
   describe("signed out", () => {
     it("opens on sign-in when signed out", async () => {
       await openApp(null);
@@ -280,7 +364,7 @@ describe("RootNavigator", () => {
     it.each([
       routes.auth.signIn,
       routes.auth.createAccount(),
-      routes.onboarding.home,
+      routes.onboarding.whatsapp,
       routes.student.home,
       routes.instructor.home,
       routes.admin.home,
@@ -318,7 +402,7 @@ describe("RootNavigator", () => {
       routes.pending.home,
       routes.admin.home,
       routes.instructor.home,
-      routes.onboarding.home,
+      routes.onboarding.whatsapp,
       routes.reactivation.home,
       routes.offboarding.denied,
       routes.offboarding.removed,

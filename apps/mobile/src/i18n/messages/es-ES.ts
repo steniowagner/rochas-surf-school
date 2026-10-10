@@ -92,6 +92,7 @@ const messages: Messages = {
   },
   flows: {
     onboarding: "Primeros pasos",
+    schoolRules: "Normas de la escuela",
     reactivation: "Reactivación",
     offboardingDenied: "Registro rechazado",
     offboardingRemoved: "Acceso eliminado",

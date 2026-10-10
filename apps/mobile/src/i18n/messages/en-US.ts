@@ -88,6 +88,7 @@ const messages = {
   },
   flows: {
     onboarding: "Onboarding",
+    schoolRules: "School rules",
     reactivation: "Reactivation",
     offboardingDenied: "Registration denied",
     offboardingRemoved: "Access removed",

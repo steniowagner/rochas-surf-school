@@ -175,7 +175,7 @@ only add files to a flow's folder and never touch the decision again.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add `Flow` (`auth` | `onboarding` | `reactivation` | `offboarding-denied` |
+- [x] **T-01** — Add `Flow` (`auth` | `onboarding` | `reactivation` | `offboarding-denied` |
   `offboarding-removed` | `student` | `instructor` | `admin`), `resolveFlow({ user, onboardingCompleted })` and
   `flowEntryRoute(flow)` in `src/navigation/resolve-flow.ts` (types in `src/navigation/resolve-flow.types.ts`),
   using `USER_ROLES` / `USER_STATUSES` from `@rochas-surf-school/auth` (D-02, D-03, D-07, D-10). Add the flow
@@ -184,6 +184,12 @@ only add files to a flow's folder and never touch the decision again.
   `routes.admin.home`; D-08). Tests in `src/navigation/resolve-flow.test.ts`, table-driven over every
   status × role pair and each entry route.
   Covers: ER-01 · Done when: `npx jest src/navigation/resolve-flow` passes and covers every line of the file.
+  > ✅ 2026-10-10 01:45 — added the Flow and SessionUser types, resolveFlow (status → flow, unknown status/role →
+  > auth, onboardingCompleted gate for approved accounts) and flowEntryRoute, plus the seven flow paths in
+  > routes.ts; files: `apps/mobile/src/navigation/resolve-flow.ts`, `apps/mobile/src/navigation/resolve-flow.types.ts`,
+  > `apps/mobile/src/navigation/resolve-flow.test.ts`, `apps/mobile/src/constants/routes.ts`;
+  > verified: `npx jest src/navigation/resolve-flow --coverage` (33 passed; resolve-flow.ts 100%
+  > statements/branches/functions/lines); deviations: none
 
 - [ ] **T-02** — Add `SessionProvider` and `useSession` (`user`, `setUser`, `clearUser`; D-06) in
   `src/providers/session/` following the `alert-message` provider's layout (`session.context.ts`,

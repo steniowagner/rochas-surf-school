@@ -77,6 +77,8 @@ describe("RefreshSession", () => {
           role: "student",
           status: "approved",
           createdAt: ana.createdAt,
+          whatsappNumber: null,
+          whatsappVisible: false,
         },
       });
       const [old, rotated] = ctx.refreshTokenRepository.tokens;

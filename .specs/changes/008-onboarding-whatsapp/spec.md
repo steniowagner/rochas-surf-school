@@ -280,11 +280,12 @@ message for the third.
   Covers: ER-02, ER-03, ER-04 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
   > ✅ 2026-10-10 — `User.validate()` now checks `whatsappNumber` with `PhoneNumberRule`; added the `SetWhatsapp` use case (loads the user, 401 when missing, 403 `user.status.notApproved` unless approved, `user.whatsappNumber.required` for a missing/empty number, then `clone` + `validate()` and `UserRepository.update`) and exported it; files: `modules/auth/src/user/model/user.entity.ts`, `modules/auth/src/user/usecase/set-whatsapp.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/model/user.entity.test.ts`, `modules/auth/test/user/usecase/set-whatsapp.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (18 suites, 205 tests passed, new use case 100% covered) and `npm run check-types` (ok); deviations: `SetWhatsappOut` declares the account shape itself (T-04 adds the same two fields to `GetCurrentUserOut`); skill `module-use-case` not invoked, the use case follows the existing ones
 
-- [ ] **T-04** — Add `whatsappNumber: string | null` and `whatsappVisible: boolean` to the user output of
+- [x] **T-04** — Add `whatsappNumber: string | null` and `whatsappVisible: boolean` to the user output of
   `GetCurrentUser`, `VerifySignInCode` and `RefreshSession` (one shared output type if they already share
   one, otherwise the same two fields in each), and update their tests in `modules/auth/test`. Covers: ER-05 ·
   Done when: `npm test --workspace @rochas-surf-school/auth` passes and `npm run check-types --workspace
   @rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-10 — `whatsappNumber: string | null` and `whatsappVisible: boolean` added to `GetCurrentUserOut` (reused by `RefreshSession`) and to the user of `VerifySignInCode`; tests updated and a stored-number case added to each of `GetCurrentUser` and `VerifySignInCode`; files: `modules/auth/src/user/usecase/get-current-user.usecase.ts`, `modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts`, `modules/auth/src/session/usecase/refresh-session.usecase.ts`, `modules/auth/test/user/usecase/get-current-user.usecase.test.ts`, `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`, `modules/auth/test/session/usecase/refresh-session.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (207 passed) and `npm run check-types` (exit 0); deviations: none
 
 ### Backend (`apps/backend`)
 

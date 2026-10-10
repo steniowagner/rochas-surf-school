@@ -13,6 +13,8 @@ export interface GetCurrentUserOut {
   role: UserRole;
   status: UserStatus;
   createdAt: Date;
+  whatsappNumber: string | null;
+  whatsappVisible: boolean;
 }
 
 export class GetCurrentUser
@@ -33,6 +35,8 @@ export class GetCurrentUser
       role: user.role,
       status: user.status,
       createdAt: user.createdAt,
+      whatsappNumber: user.whatsappNumber ?? null,
+      whatsappVisible: user.whatsappVisible,
     };
   }
 }

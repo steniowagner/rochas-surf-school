@@ -2,7 +2,7 @@
 id: "006"
 slug: mobile-pending-screen
 title: Pending approval screen and sign-out in the mobile app
-status: in-progress
+status: in-review
 started: 2026-10-10
 base_commit: a1969872d2916d1474bbb7916212b216fb48125d
 created: 2026-10-10
@@ -251,15 +251,18 @@ reach the onboarding steps that approved accounts will go through.
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey; all
+- [x] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey; all
   pass. Record the output summary as evidence. Covers: all · Done when: `run-related-tests.mjs 006` passes,
   `check-coverage.mjs 006` prints `COVERAGE OK`, lint and check-types exit 0, and both journeys show what they
   describe.
-  > ⛔ 2026-10-10 — automated checks pass: `run-related-tests.mjs 006` (17 suites, 231 tests passed), `check-coverage.mjs 006` (`COVERAGE OK`, 14 files),
-  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0), `run-e2e.mjs 006` (`E2E PASSED`, no suite applies). The simulator journeys
-  > are NOT done: the local backend has a real `RESEND_API_KEY`, so the sign-in code of a new account goes to the inbox of the email used, not to the backend
-  > log, and this session can't read it. Unblock: run the two journeys of the Verification Plan (iPhone 18 Pro is booted, Metro and the backend are running;
-  > the app was relaunched on the new code) with an email the person can read, or temporarily unset `RESEND_API_KEY` in `apps/backend/.env` so the code is logged.
+  > ✅ 2026-10-10 — `run-related-tests.mjs 006` (17 suites, 231 tests passed), `check-coverage.mjs 006` (`COVERAGE OK`, 14 files),
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0), `run-e2e.mjs 006` (`E2E PASSED`, no suite applies). Journeys on the iPhone 18 Pro
+  > simulator (iOS 27), local backend started with `RESEND_API_KEY=` so the code was logged, Metro running: sign-up with a new email → confirm code → the Pending
+  > screen showed "Waiting for approval", the email in bold, the clock tile, "Account created" with "3 minutes ago" (the account came from a first attempt
+  > minutes earlier, so "Now" was not seen on screen; it is covered by the unit tests), "Team approval / Under review", "Book classes" and "Sign out"; the
+  > left-edge back swipe did nothing; "Sign out" returned to the sign-in screen. Not observed: the backend log doesn't log requests, so `POST /auth/sign-out`
+  > answering 204 was checked with curl (204), not from the app; the in-app request is covered by the `useSignOut` tests; sign-in again after sign-out was
+  > not repeated; pt-BR was not driven on screen (unit-tested).
 
 ## Verification Plan
 

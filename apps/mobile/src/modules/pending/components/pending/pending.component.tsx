@@ -4,6 +4,7 @@ import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
+import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
 
 import { PendingStep } from "../pending-step";
@@ -25,24 +26,18 @@ export function Pending() {
       }}
     >
       <View className="mt-6 gap-6">
-        <View className="gap-3">
-          <View className="h-16 w-16 items-center justify-center rounded-card bg-warn-tint">
+        <ScreenIntro
+          icon={
             <MaterialCommunityIcons
               name="clock-outline"
               size={30}
               color={theme.warn}
             />
-          </View>
-          <Text className="ds-text-section-label text-ink-2">
-            {t("pending.eyebrow")}
-          </Text>
-          <Text
-            accessibilityRole="header"
-            className="ds-text-screen-title text-ink"
-          >
-            {t("pending.title")}
-          </Text>
-          <Text className="ds-text-body text-ink-2">
+          }
+          iconTileClassName="bg-warn-tint"
+          eyebrow={t("pending.eyebrow")}
+          title={t("pending.title")}
+          description={
             <Trans
               i18nKey="pending.description"
               t={t}
@@ -51,8 +46,8 @@ export function Pending() {
                 bold: <Text className="font-body-800 text-ink" />,
               }}
             />
-          </Text>
-        </View>
+          }
+        />
 
         <View className="rounded-card border border-line bg-surface px-4">
           <PendingStep

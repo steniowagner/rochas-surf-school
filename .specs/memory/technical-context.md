@@ -22,7 +22,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
 - **`apps/mobile`** — **Expo SDK 57** (React Native 0.86, **Expo Router 57**, Reanimated 4, React Compiler).
   The product: every role (student, instructor, admin) uses it, on iOS and Android. API base URL:
   `EXPO_PUBLIC_API_URL`. Libraries by concern:
-  - Session: tokens in `expo-secure-store`.
+  - Session: tokens in `expo-secure-store` (not used yet: the session is in memory, see Authentication → Mobile session).
   - Sign-in: `@react-native-google-signin/google-signin` (Google) and `expo-apple-authentication` (Apple,
     iOS only).
   - Server data: **TanStack Query 5** — every screen fetches, caches, retries and invalidates the same way.
@@ -159,6 +159,20 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 - **Mobile routes**: every app path lives in `src/constants/routes.ts` (`routes.<module>.<screen>`, a function
   when the route takes params). `router` and `Redirect` calls and their tests use it, never string literals,
   so a moved route changes in one place.
+- **Mobile flows**: each account state has one flow — `auth`, `onboarding`, `reactivation`,
+  `offboarding-denied`, `offboarding-removed`, `student`, `instructor`, `admin` — picked only by `resolveFlow`
+  (`src/navigation/resolve-flow.ts`) from the session's user: no user, or an unknown role or status → `auth`;
+  `pending` → `onboarding`; `approved` → `onboarding` until onboarding is completed, then its role; `deleted` →
+  `reactivation`; `denied` / `removed` → their offboarding flow. `RootNavigator`
+  (`src/navigation/root-navigator/`) wraps each flow's route group in `Stack.Protected` driven by that flow
+  (the offboarding layout guards `denied` and `removed` the same way), and `src/app/index.tsx` redirects to
+  `flowEntryRoute(flow)`. `onboardingCompleted` is fixed to `true` in `useRootNavigator` until the onboarding
+  spec supplies it. Reason: one tested function holds every access rule, so screens, layouts and hooks never
+  decide access, and a flow change never strands a person on a screen they can no longer reach. A flow's
+  screens go in `src/modules/<flow>/screens/` with a route file in that flow's folder under `src/app/`.
+  Route tests use `renderRouter` from `expo-router/testing-library` with a route tree built from the real route
+  files, and read the path with `getPathname()` (the `toHavePathname` matcher doesn't work with RNTL 14's async
+  render).
 - **CTA labels**: the `button` type style is Barlow Condensed 700, 18px, uppercase, on web and mobile.
 - **Generator skills**: new modules, aggregates, entities, repositories, use cases, controllers, Prisma
   repositories and providers are created with the project skills in `.claude/skills/` so they follow one
@@ -233,8 +247,11 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `REFRESH_TOKEN_EXPIRES_IN_DAYS` (default 30), `REVIEW_ACCOUNTS`, `RESEND_API_KEY`, `EMAIL_FROM`. They are
   read and validated in `apps/backend/src/modules/auth/auth.config.ts` (`AuthConfig`) and the providers. The
   Google and Apple client ids come with their sign-in spec.
-- Mobile session: tokens in `expo-secure-store`; the root layout routes by account state (signed out,
-  pending, denied, deleted, removed, onboarding, approved) before any private screen renders.
+- Mobile session: the signed-in account lives in an in-memory React context (`SessionProvider` /
+  `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status }` or `null` —,
+  `setUser`, `clearUser`); the Confirm email screen sets it from the verify response. Nothing is stored on the
+  device yet, so a restart signs out; tokens will go to `expo-secure-store` when the session is kept. The app
+  routes by account state before any private screen renders (see Mobile flows).
 - Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.
   `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
   `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);

@@ -136,6 +136,7 @@ Covers an account from registration to erasure: admin approval, onboarding, dele
 #### Registrations wait for approval
 
 _Implemented in spec 004-backend-session-endpoints._
+_Implemented in spec 005-mobile-flow-routing._
 
 A new account SHALL wait for an admin's approval before its user can use the app. While waiting, the user SHALL only see that their account is waiting for approval.
 
@@ -191,6 +192,8 @@ The system SHALL erase a denied registration's data 30 days after the denial. Af
 - _Signing up again after erasure:_ When a person whose registration was denied more than 30 days ago signs in with the same email address, then a new registration is created and waits for approval.
 
 #### Onboarding after approval
+
+_Implemented in spec 005-mobile-flow-routing._
 
 After their registration is approved, and before using the rest of the app, users SHALL add their WhatsApp number and accept the school rules.
 

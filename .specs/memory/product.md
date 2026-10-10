@@ -276,8 +276,7 @@ message. The name is collected here, before the code, and kept in the app until 
 Confirm email screen, where the person types or pastes the 6-digit code; it is checked as soon as six digits are
 there, with the name from Create account, which creates the pending account. A wrong, expired or locked code is
 shown under the code boxes; every other error in a toast. A new code can be asked 30 seconds after the last one,
-with a countdown. What happens after a correct code (keeping the session, the waiting-for-approval screen) is
-not built yet: the screen shows nothing more.
+with a countdown.
 
 **Sessions on the backend** (spec `004-backend-session-endpoints`) — a signed-in app can ask the backend who
 the account is (name, email, role, status and when it was created, whatever its status), renew its session
@@ -286,12 +285,21 @@ other devices signed in. Every request reloads the account's role and status, so
 removal or a role change takes effect at once. Reusing an old refresh token ends that whole sign-in. The app
 doesn't use these yet.
 
+**One flow per account state in the app** (spec `005-mobile-flow-routing`) — after a correct code, the app
+opens the part of the app that matches the account: a pending account goes to onboarding, an approved one to
+the student, instructor or admin experience of its role, a deleted one to reactivation, and a denied or removed
+one to its own offboarding screen. Nobody can reach another part of the app, and going back after signing in
+doesn't return to the sign-in screens. Each part shows only its name for now; its real screens come with their
+specs. Until the onboarding spec, every approved account counts as having finished onboarding. The app keeps
+the account in memory only, so closing it signs the person out.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
-The web app is still on its framework template. Keeping the session in the app and routing by account status
-(the waiting-for-approval screen), renewing a session and signing out from the app, and Google and Apple
-sign-in don't exist yet.
+The web app is still on its framework template. Keeping the session across app restarts, the real screens of
+each flow (waiting for approval, the WhatsApp and school-rules steps, account deleted and reactivation, the
+denied and removed screens, and every student, instructor and admin screen), renewing a session and signing out
+from the app, and Google and Apple sign-in don't exist yet.
 
 No spec is active.
 

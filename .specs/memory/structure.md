@@ -106,12 +106,22 @@ open routes opt out with `@Public()`.
 ```
 src/
   app/                          # Expo Router routes only (each renders a screen)
-    _layout.tsx                 # root Stack: fonts, theme variables, bottom sheets, QueryClientProvider, AlertMessageProvider
-    index.tsx                   # redirects to the sign-in screen
+    _layout.tsx                 # fonts, theme variables, bottom sheets, QueryClientProvider, AlertMessageProvider,
+                                # SessionProvider; renders RootNavigator
+    index.tsx                   # redirects to the entry route of the resolved flow
     (public)/auth/_layout.tsx   # Stack of the signed-out flow
     (public)/auth/index.tsx     # sign-in screen
     (public)/auth/create-account.tsx    # Create account screen
     (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, name)
+    (onboarding)/onboarding/{_layout,index}.tsx      # onboarding flow (/onboarding)
+    (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
+    (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
+    (private)/{student,instructor,admin}/{_layout,index}.tsx # role experiences (/student, /instructor, /admin)
+  navigation/
+    resolve-flow.ts             # Flow, resolveFlow (session user → flow), flowEntryRoute (flow → entry route)
+    root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator
+  modules/{onboarding,reactivation,offboarding,student,instructor,admin}/screens/
+                                # each flow's screens (placeholders showing the flow's name for now)
   modules/auth/
     screens/                    # auth.screen.tsx, create-account.screen.tsx, confirm-code.screen.tsx
     components/                 # auth (sign-in), auth-button, language-sheet, create-account, confirm-code
@@ -124,6 +134,8 @@ src/
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
                                 # text-input, toast
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
+  providers/session/            # SessionProvider + useSession (signed-in account, in memory)
+  components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen
   services/api/                 # fetch client (apiPost), ApiError, NetworkError
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)
   constants/                    # routes.ts (every app path), theme.ts (design tokens), theme-variables.ts

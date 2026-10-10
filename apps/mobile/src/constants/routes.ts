@@ -10,4 +10,23 @@ export const routes = {
       params,
     }),
   },
+  onboarding: {
+    home: "/onboarding",
+  },
+  reactivation: {
+    home: "/reactivation",
+  },
+  offboarding: {
+    denied: "/offboarding/denied",
+    removed: "/offboarding/removed",
+  },
+  student: {
+    home: "/student",
+  },
+  instructor: {
+    home: "/instructor",
+  },
+  admin: {
+    home: "/admin",
+  },
 } as const;

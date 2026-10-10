@@ -50,6 +50,15 @@ const messages: Messages = {
       nameNotSaved: "Não conseguimos salvar seu nome. Volte e confira.",
     },
   },
+  flows: {
+    onboarding: "Primeiros passos",
+    reactivation: "Reativação",
+    offboardingDenied: "Cadastro recusado",
+    offboardingRemoved: "Acesso removido",
+    student: "Aluno",
+    instructor: "Instrutor",
+    admin: "Administrador",
+  },
 };
 
 export default messages;

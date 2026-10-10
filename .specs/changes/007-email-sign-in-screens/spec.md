@@ -2,10 +2,11 @@
 id: "007"
 slug: email-sign-in-screens
 title: Email sign-in screens — choose path and sign in with email
-status: in-review
+status: accepted
 created: 2026-10-10
 started: 2026-10-10
 base_commit: ec43e72032bd16ceb27f288699a099d9276a336a
+reviewed_commit: b5250ddf6bd2879b563a657941b2ada2964b797c
 fronts: [mobile]
 depends_on: []
 ---
@@ -371,3 +372,47 @@ D-05 copy table:
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-10 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 6 tasks)
+- related tests ✅ 268 passed in 19 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` — 18 files; the two route files are excluded by the technical
+  context (`apps/mobile/src/app/**`); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` — no suite applies to apps/mobile
+- iOS simulator (iPhone 18 Pro, dark theme, Metro + local backend and database): the four user journeys of the
+  Verification Plan, driven by tapping and typing; codes recovered from the local `sign_in_codes` hash
+
+**Expected Results**
+
+- ER-01 ✅ — "Continue with email" → Choose with the header, subtitle, both rows, terms footer and Back (simulator);
+  pt-BR/es-ES strings, `button` role and title labels asserted in `email-choice.component.test.tsx`; real-router
+  test "opens Choose from Continue with email" / "goes back to sign-in from Choose" pass
+- ER-02 ✅ — "I'm new here" → Create account with an empty email, Back → Choose; "I have an account" → Sign in
+  (simulator and `email-auth.navigation.test.tsx`)
+- ER-03 ✅ — Sign in with email shows the D-05 content; Get code disabled until valid and while loading (`Button`
+  disables when `loading`); request body `{ email, locale }` with the trimmed email; too-soon counts as sent;
+  rate-limit and network errors toast and stay; Confirm email opened with only `email` (tests + simulator)
+- ER-04 ✅ — ` review007@example.com ` typed, "Create account" → Create account with the trimmed email, empty name,
+  no error state; Back → Choose (simulator and real-router tests); empty email → no param
+- ER-05 ✅ — existing account `review007b@example.com` via "I have an account" → code → Pending, no name asked
+  (simulator); verify body without a `name` key, create path still sends it, "change the email" fallbacks by path
+  (tests)
+- ER-06 ✅ — unknown `review007b@example.com` on the sign-in path, correct code → toast "We couldn't find an account
+  with this email. Create one to continue.", Create account with the email and an empty name; no user created and
+  the code stayed usable (DB checked); Back → Choose; adding the name and entering the same code → Pending
+  (simulator); create-path name error unchanged and pt-BR/es-ES toasts asserted in tests
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Not driven on the device: light theme and pt-BR/es-ES (covered by the component tests).
+- The review left one pending account in the local dev database (`review007b@example.com`) and an unconsumed code
+  for `review007@example.com`; harmless, delete them if you want a clean local DB.
+- `utils/field-validation.ts` (shared by Create account and Sign in with email) isn't listed in Memory Impact; worth
+  adding to `structure.md` when finishing.

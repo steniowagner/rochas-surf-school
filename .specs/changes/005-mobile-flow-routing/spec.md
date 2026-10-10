@@ -229,7 +229,7 @@ only add files to a flow's folder and never touch the decision again.
   > a path until its route file exists), so T-03 was committed after T-04's routes were written and the check
   > passed — the placeholder and locale changes themselves had no type errors
 
-- [ ] **T-04** — Add the placeholder screens, each rendering `FlowPlaceholder` with its `flows.*` name:
+- [x] **T-04** — Add the placeholder screens, each rendering `FlowPlaceholder` with its `flows.*` name:
   `src/modules/onboarding/screens/onboarding.screen.tsx`,
   `src/modules/reactivation/screens/reactivation.screen.tsx`,
   `src/modules/offboarding/screens/{denied,removed}.screen.tsx`,
@@ -242,6 +242,37 @@ only add files to a flow's folder and never touch the decision again.
   (`*.screen.test.tsx`).
   Covers: ER-04 · Done when: `npx jest src/modules/onboarding src/modules/reactivation src/modules/offboarding
   src/modules/student src/modules/instructor src/modules/admin` passes.
+  > ✅ 2026-10-10 01:49 — added the seven placeholder screens (each FlowPlaceholder with its flows.* name) and
+  > their route groups: Stack layouts with headerShown false, and the offboarding layout guarding denied and
+  > removed with Stack.Protected from useSession + resolveFlow (D-12); files:
+  > `apps/mobile/src/modules/onboarding/screens/onboarding.screen.tsx`,
+  > `apps/mobile/src/modules/onboarding/screens/onboarding.screen.test.tsx`,
+  > `apps/mobile/src/modules/reactivation/screens/reactivation.screen.tsx`,
+  > `apps/mobile/src/modules/reactivation/screens/reactivation.screen.test.tsx`,
+  > `apps/mobile/src/modules/offboarding/screens/denied.screen.tsx`,
+  > `apps/mobile/src/modules/offboarding/screens/denied.screen.test.tsx`,
+  > `apps/mobile/src/modules/offboarding/screens/removed.screen.tsx`,
+  > `apps/mobile/src/modules/offboarding/screens/removed.screen.test.tsx`,
+  > `apps/mobile/src/modules/student/screens/student.screen.tsx`,
+  > `apps/mobile/src/modules/student/screens/student.screen.test.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.tsx`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/app/(onboarding)/onboarding/_layout.tsx`,
+  > `apps/mobile/src/app/(onboarding)/onboarding/index.tsx`,
+  > `apps/mobile/src/app/(reactivation)/reactivation/_layout.tsx`,
+  > `apps/mobile/src/app/(reactivation)/reactivation/index.tsx`,
+  > `apps/mobile/src/app/(offboarding)/offboarding/_layout.tsx`,
+  > `apps/mobile/src/app/(offboarding)/offboarding/denied.tsx`,
+  > `apps/mobile/src/app/(offboarding)/offboarding/removed.tsx`,
+  > `apps/mobile/src/app/(private)/student/_layout.tsx`, `apps/mobile/src/app/(private)/student/index.tsx`,
+  > `apps/mobile/src/app/(private)/instructor/_layout.tsx`,
+  > `apps/mobile/src/app/(private)/instructor/index.tsx`, `apps/mobile/src/app/(private)/admin/_layout.tsx`,
+  > `apps/mobile/src/app/(private)/admin/index.tsx`; verified: `npx jest src/modules/onboarding
+  > src/modules/reactivation src/modules/offboarding src/modules/student src/modules/instructor
+  > src/modules/admin` (7 suites, 7 passed); `npx turbo run check-types --filter=@rochas-surf-school/mobile
+  > --force` exits 0; deviations: none
 
 - [ ] **T-05** — Add `RootNavigator` in `src/navigation/root-navigator/` (`root-navigator.component.tsx`,
   `root-navigator.hook.ts` returning the resolved flow from `useSession` with `onboardingCompleted: true`,

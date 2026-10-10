@@ -91,6 +91,8 @@ const messages: Messages = {
     signOut: "Cerrar sesión",
   },
   whatsapp: {
+    pickerTitle: "País",
+    pickerSearch: "Buscar país",
     invalidNumber: "Número de WhatsApp no válido.",
     sessionExpired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
   },

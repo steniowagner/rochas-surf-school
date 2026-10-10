@@ -87,6 +87,8 @@ const messages = {
     signOut: "Sign out",
   },
   whatsapp: {
+    pickerTitle: "Country",
+    pickerSearch: "Search country",
     invalidNumber: "Invalid WhatsApp number.",
     sessionExpired: "Your session expired. Sign in again.",
   },

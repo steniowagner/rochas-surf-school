@@ -200,10 +200,13 @@ reach the onboarding steps that approved accounts will go through.
   > `apps/mobile/src/providers/session/session.provider.test.tsx`;
   > verified: `npx jest src/providers/session src/modules/auth/screens/confirm-code src/navigation` (81 passed), `npx tsc --noEmit` (clean); deviations: none
 
-- [ ] **T-03** — Create `src/modules/pending/utils/format-created-at.ts` implementing D-04 as a pure function
+- [x] **T-03** — Create `src/modules/pending/utils/format-created-at.ts` implementing D-04 as a pure function
   (inputs: `createdAt` string, current `Date`, app language; output: the "now" marker, a formatted string, or
   nothing for an invalid date), with `format-created-at.test.ts` covering every case of ER-03 in en-US, pt-BR
   and es-ES. Covers: ER-03 · Done when: `npx jest src/modules/pending/utils` passes with every line covered.
+  > ✅ 2026-10-10 — pure `formatCreatedAt(createdAt, now, locale)` per D-04, returning `{type:"now"}`, `{type:"text",text}` or null; files: `apps/mobile/src/modules/pending/utils/format-created-at.ts`,
+  > `apps/mobile/src/modules/pending/utils/format-created-at.types.ts`, `apps/mobile/src/modules/pending/utils/format-created-at.test.ts`;
+  > verified: `npx jest src/modules/pending/utils --coverage` (17 passed, 100% lines/branches); deviations: none
 
 - [ ] **T-04** — Create `src/modules/auth/hooks/use-sign-out.hook.ts` (D-03): returns `signOut()`, which reads
   the tokens, calls `clearSession()` and `queryClient.clear()`, then fires `apiPost("/auth/sign-out",

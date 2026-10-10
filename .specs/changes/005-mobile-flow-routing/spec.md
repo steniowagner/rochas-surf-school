@@ -2,10 +2,11 @@
 id: "005"
 slug: mobile-flow-routing
 title: Route the mobile app to one flow per account state
-status: in-review
+status: accepted
 created: 2026-10-10
 started: 2026-10-10
 base_commit: cdd314e861f931b2e000d921b380c5f8abe1aa25
+reviewed_commit: 5d31512ecd2aa6905ccf1f2b70a907963021a886
 fronts: [mobile]
 depends_on: []
 ---
@@ -386,3 +387,47 @@ only add files to a flow's folder and never touch the decision again.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-10 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile --force`, 6 tasks)
+- related tests ✅ 189 passed in 19 suites (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK — every changed line covered in 19 files; `src/app/**` excluded by the
+  technical context; no coverage-ignore comments in the diff
+- e2e: no suite applies to apps/mobile (E2E PASSED) · mobile: ER-06 exercised in the iOS simulator ✅
+
+**Expected Results**
+
+- ER-01 ✅ — `resolve-flow.test.ts` is table-driven over every status × role pair, both `onboardingCompleted`
+  values, the unknown status/role cases and the eight entry routes (checked against D-10's literal paths)
+- ER-02 ✅ — `root-navigator` tests open `/` and each of the 7 flow paths (as initial URL and by navigating) while
+  signed out and assert the `/auth` path and "Continue with email"; Create account and Confirm email reachable
+- ER-03 ✅ — `confirm-code.screen.test.tsx` asserts the 200 response's user lands in the real `SessionProvider`, and
+  that a 401 (inline message) and a 500 (toast) leave it empty on Confirm email; `root-navigator` "opens onboarding
+  after a pending account signs in" moves from `/auth/confirm-code` to `/onboarding`
+- ER-04 ✅ — one test per account state asserts the path and the en-US name; `flow-placeholder` asserts the pt-BR
+  and es-ES names; the placeholder uses only token classes (`bg-page`, `px-screen`, `ds-text-screen-title`,
+  `text-ink`); the locale files are typed by `Messages`, so the type check enforces the same keys
+- ER-05 ✅ — a student stays on `/student` for all 7 other paths; `router.canGoBack()` is false after signing in
+  from Confirm email; denied and removed can't reach each other's screen; `clearUser` returns every state to sign-in
+- ER-06 ✅ — iPhone 18 Pro / iOS 27, local backend and Metro: restarting the app opened sign-in; the student,
+  instructor and admin review accounts (Continue with email → Create account → Confirm email with the fixed code)
+  showed "Student", "Instructor" and "Admin"; a new email (the user's own, code supplied by the user) showed
+  "Onboarding"; after each sign-in the back-swipe from the left edge stayed on the flow screen
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `flow-placeholder.component.test.tsx` "shows the name in pt-BR and es-ES" logs a React `act(...)` warning: the
+  pt-BR tree is still mounted when `i18n.changeLanguage("es-ES")` re-renders it. Wrapping the language changes in
+  `act`, or unmounting the first render, would silence it.
+- `SessionProvider` memoizes with `useCallback`/`useMemo` although the React Compiler is on
+  (`.claude/rules/react.md` §4); it mirrors the existing `AlertMessageProvider`, so it is consistent, not a finding.
+- The ER-06 sign-up needs an address Resend will deliver to (it refused `@example.com` with "We couldn't send the
+  email"); a later spec could log the code in development so the journey runs without a real inbox.
+- `Memory Impact` matches what was built.

@@ -53,6 +53,15 @@ const messages: Messages = {
       nameNotSaved: "No pudimos guardar tu nombre. Vuelve y revísalo.",
     },
   },
+  flows: {
+    onboarding: "Primeros pasos",
+    reactivation: "Reactivación",
+    offboardingDenied: "Registro rechazado",
+    offboardingRemoved: "Acceso eliminado",
+    student: "Alumno",
+    instructor: "Instructor",
+    admin: "Administrador",
+  },
 };
 
 export default messages;

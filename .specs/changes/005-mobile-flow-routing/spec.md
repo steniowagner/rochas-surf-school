@@ -208,13 +208,26 @@ only add files to a flow's folder and never touch the decision again.
   > provider, context and hook 100%); deviations: the user type is SessionUser from
   > `src/navigation/resolve-flow.types.ts` so the store and resolveFlow share one shape
 
-- [ ] **T-03** — Add the `FlowPlaceholder` component (`title` prop; `ds-text-screen-title` on `bg-page`,
+- [x] **T-03** — Add the `FlowPlaceholder` component (`title` prop; `ds-text-screen-title` on `bg-page`,
   centered, safe-area aware; D-09) in `src/components/flow-placeholder/` (one folder per component), and the
   `flows.*` keys with the ER-04 names in `src/i18n/messages/{en-US,es-ES,pt-BR}.ts`. Tests in
   `src/components/flow-placeholder/flow-placeholder.component.test.tsx`, including "shows the name in pt-BR and
   es-ES".
   Covers: ER-04 · Done when: `npx jest src/components/flow-placeholder` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-10 01:49 — added FlowPlaceholder (title as a header in ds-text-screen-title/text-ink, centered on
+  > bg-page with px-screen, safe-area insets as padding) and the flows.* names in the three locales; files:
+  > `apps/mobile/src/components/flow-placeholder/flow-placeholder.component.tsx`,
+  > `apps/mobile/src/components/flow-placeholder/flow-placeholder.types.ts`,
+  > `apps/mobile/src/components/flow-placeholder/index.ts`,
+  > `apps/mobile/src/components/flow-placeholder/flow-placeholder.component.test.tsx`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`; verified: `npx jest src/components/flow-placeholder` (3 passed,
+  > including "shows the name in pt-BR and es-ES"); `npx turbo run check-types
+  > --filter=@rochas-surf-school/mobile --force` exits 0 (run once T-04's route files existed); deviations:
+  > check-types first failed only on T-01's seven flow paths in `resolve-flow.ts` (Expo typed routes don't know
+  > a path until its route file exists), so T-03 was committed after T-04's routes were written and the check
+  > passed — the placeholder and locale changes themselves had no type errors
 
 - [ ] **T-04** — Add the placeholder screens, each rendering `FlowPlaceholder` with its `flows.*` name:
   `src/modules/onboarding/screens/onboarding.screen.tsx`,

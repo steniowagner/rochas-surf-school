@@ -49,6 +49,15 @@ const messages = {
       nameNotSaved: "We couldn't save your name. Go back and check it.",
     },
   },
+  flows: {
+    onboarding: "Onboarding",
+    reactivation: "Reactivation",
+    offboardingDenied: "Registration denied",
+    offboardingRemoved: "Access removed",
+    student: "Student",
+    instructor: "Instructor",
+    admin: "Admin",
+  },
 };
 
 export type Messages = typeof messages;

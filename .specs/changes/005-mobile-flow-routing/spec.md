@@ -191,12 +191,22 @@ only add files to a flow's folder and never touch the decision again.
   > verified: `npx jest src/navigation/resolve-flow --coverage` (33 passed; resolve-flow.ts 100%
   > statements/branches/functions/lines); deviations: none
 
-- [ ] **T-02** — Add `SessionProvider` and `useSession` (`user`, `setUser`, `clearUser`; D-06) in
+- [x] **T-02** — Add `SessionProvider` and `useSession` (`user`, `setUser`, `clearUser`; D-06) in
   `src/providers/session/` following the `alert-message` provider's layout (`session.context.ts`,
   `session.provider.tsx`, `session.types.ts`, `use-session.ts`, `index.ts`), and mount it in
   `src/app/_layout.tsx` around the navigator. Tests in `src/providers/session/session.provider.test.tsx`
   (starts `null`, `setUser` then `clearUser`, `useSession` outside the provider throws).
   Covers: enabling · Done when: `npx jest src/providers/session` passes.
+  > ✅ 2026-10-10 01:46 — added the in-memory SessionProvider (user starts null, setUser, clearUser) and
+  > useSession (throws outside the provider), laid out like alert-message, and mounted it in the root layout
+  > inside AlertMessageProvider around the navigator; files:
+  > `apps/mobile/src/providers/session/session.context.ts`,
+  > `apps/mobile/src/providers/session/session.provider.tsx`,
+  > `apps/mobile/src/providers/session/session.types.ts`, `apps/mobile/src/providers/session/use-session.ts`,
+  > `apps/mobile/src/providers/session/index.ts`, `apps/mobile/src/providers/session/session.provider.test.tsx`,
+  > `apps/mobile/src/app/_layout.tsx`; verified: `npx jest src/providers/session --coverage` (3 passed;
+  > provider, context and hook 100%); deviations: the user type is SessionUser from
+  > `src/navigation/resolve-flow.types.ts` so the store and resolveFlow share one shape
 
 - [ ] **T-03** — Add the `FlowPlaceholder` component (`title` prop; `ds-text-screen-title` on `bg-page`,
   centered, safe-area aware; D-09) in `src/components/flow-placeholder/` (one folder per component), and the

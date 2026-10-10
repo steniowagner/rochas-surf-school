@@ -2,7 +2,8 @@ import { VerifySignInCodeResponse } from "../../hooks/use-verify-sign-in-code.ho
 
 export type ConfirmCodeProps = {
   email: string;
-  name: string;
+  /** Present on the create-account path; absent when the person is signing in to an existing account. */
+  name?: string;
   onVerified?: (response: VerifySignInCodeResponse) => void;
 };
 

@@ -6,17 +6,17 @@ import { ConfirmCode } from "../components/confirm-code";
 
 export function ConfirmCodeScreen() {
   const { setSession } = useSession();
-  // Create account always sets both params before opening this screen.
+  // Create account sets both params; Sign in with email sets only the email.
   const { email, name } = useLocalSearchParams<{
     email: string;
-    name: string;
+    name?: string;
   }>();
 
   // The verified account and its tokens enter the session, and the route guards open its flow.
   return (
     <ConfirmCode
       email={email}
-      name={name}
+      name={name || undefined}
       onVerified={({ user, ...tokens }) => setSession({ user, tokens })}
     />
   );

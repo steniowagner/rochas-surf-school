@@ -5,7 +5,7 @@ import { apiPost } from "@/services/api";
 export type VerifySignInCodeVariables = {
   email: string;
   code: string;
-  name: string;
+  name?: string;
 };
 
 export type VerifySignInCodeResponse = {

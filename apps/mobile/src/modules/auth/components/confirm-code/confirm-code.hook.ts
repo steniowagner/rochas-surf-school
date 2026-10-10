@@ -18,11 +18,22 @@ export const RESEND_COOLDOWN_MS = 30_000;
 const formatCountdown = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
-// Back to Create account; when this screen was opened directly there is nothing to go back to.
-const goToCreateAccount = () =>
-  router.canGoBack()
-    ? router.back()
-    : router.replace(routes.auth.createAccount());
+// Back to the screen that asked for the code; when this screen was opened directly there is nothing to go back to.
+const goBackToStart = (hasName: boolean) => {
+  if (router.canGoBack()) {
+    return router.back();
+  }
+
+  router.replace(
+    hasName ? routes.auth.createAccount() : routes.auth.emailSignIn,
+  );
+};
+
+// The address has no account: Create account opens over Choose, with the email filled in.
+const openCreateAccount = (email: string) => {
+  router.dismissTo(routes.auth.emailChoice);
+  router.push(routes.auth.createAccount({ email }));
+};
 
 export const useConfirmCode = ({
   email,
@@ -43,6 +54,7 @@ export const useConfirmCode = ({
   const [now, setNow] = useState(() => Date.now());
 
   const isVerifying = verifyCode.isPending;
+  const hasName = Boolean(name);
 
   // The input is not editable while the request runs, so it gets the focus back afterwards.
   // It waits one tick: iOS ignores `focus()` until the field is editable again.
@@ -79,11 +91,14 @@ export const useConfirmCode = ({
     }
 
     verifyCode.mutate(
-      { email, code: codeToVerify, name },
+      { email, code: codeToVerify, ...(hasName ? { name } : {}) },
       {
         onSuccess: (response) => onVerified?.(response),
         onError: (error) => {
-          const { key, placement } = getVerifyCodeError(error);
+          const { key, placement, opensCreateAccount } = getVerifyCodeError(
+            error,
+            hasName,
+          );
 
           if (placement === "inline") {
             setCode("");
@@ -93,6 +108,10 @@ export const useConfirmCode = ({
           }
 
           alertMessage.show(t(key));
+
+          if (opensCreateAccount) {
+            openCreateAccount(email);
+          }
         },
       },
     );
@@ -133,6 +152,6 @@ export const useConfirmCode = ({
     inputRef,
     changeCode,
     confirm: () => verify(code),
-    changeEmail: goToCreateAccount,
+    changeEmail: () => goBackToStart(hasName),
   };
 };

@@ -278,7 +278,7 @@ D-05 copy table:
   > verified: `npx jest src/modules/auth src/navigation` (18 suites, 249 tests pass), `npx tsc --noEmit` (exit 0);
   > deviations: extracted the shared field helpers (small, behavior-preserving change to Create account's hook)
 
-- [ ] **T-04** — Confirm email on both paths (D-01, D-02, D-05): `confirm-code.screen.tsx` reads `name` as
+- [x] **T-04** — Confirm email on both paths (D-01, D-02, D-05): `confirm-code.screen.tsx` reads `name` as
   optional; `confirm-code.hook.ts` sends `name` only when present (`VerifySignInCodeVariables.name` optional in
   `use-verify-sign-in-code.hook.ts`), picks the "change the email" fallback by path, and on the sign-in path turns
   a `user.name.*` answer into the `confirmCode.errors.noAccount` toast plus Create account with the email filled
@@ -289,6 +289,18 @@ D-05 copy table:
   `verify-code-error.test.ts` and `email-auth.navigation.test.tsx`. Follow `.claude/rules/react.md`. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-05, ER-06 · Done when: `npx jest src/modules/auth` passes with the tests named in ER-05 and ER-06.
+  > ✅ 2026-10-10 — Confirm email serves both paths: `name` is optional in the screen, `ConfirmCodeProps` and
+  > `VerifySignInCodeVariables`; the hook sends `name` only when present, "change the email" goes back or replaces with
+  > `/auth/create-account` or `/auth/email-sign-in` by path, and on the sign-in path `getVerifyCodeError(error, hasName)` maps
+  > `user.name.*` to `confirmCode.errors.noAccount` with `opensCreateAccount`, which toasts and runs
+  > `router.dismissTo(emailChoice)` then `router.push(createAccount({ email }))`. The `noAccount` key was added in T-02.
+  > Files: `apps/mobile/src/modules/auth/components/confirm-code/{confirm-code.hook.ts,confirm-code.types.ts,confirm-code.component.test.tsx}`,
+  > `apps/mobile/src/modules/auth/screens/{confirm-code.screen.tsx,confirm-code.screen.test.tsx}`,
+  > `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`,
+  > `apps/mobile/src/modules/auth/utils/{verify-code-error.ts,verify-code-error.test.ts}`,
+  > `apps/mobile/src/modules/auth/email-auth.navigation.test.tsx`;
+  > verified: `npx jest src/modules/auth src/navigation` (18 suites, 265 tests pass, the unknown-email flow runs against the real router stack),
+  > `npx tsc --noEmit` (exit 0); deviations: none
 
 ### Verification
 

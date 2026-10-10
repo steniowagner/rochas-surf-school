@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { userEvent } from "@testing-library/react-native";
+import { fireEvent, userEvent, waitFor } from "@testing-library/react-native";
 import { Stack } from "expo-router";
 import { renderRouter, screen } from "expo-router/testing-library";
 
@@ -141,5 +141,72 @@ describe("email authentication navigation", () => {
 
     expect(app.getPathname()).toBe("/auth/create-account");
     expect(screen.getByPlaceholderText("you@email.com")).toHaveDisplayValue("");
+  });
+
+  describe("unknown email on the sign-in path", () => {
+    const EMAIL = "ana.silva@gmail.com";
+
+    const reachConfirmCode = async () => {
+      await openApp("/auth");
+      await pressText("Continue with email");
+      await press("I have an account");
+      const user = userEvent.setup();
+      await user.type(screen.getByPlaceholderText("you@email.com"), EMAIL);
+      await user.press(screen.getByRole("button", { name: "Get code" }));
+      await waitFor(() => expect(app.getPathname()).toBe("/auth/confirm-code"));
+    };
+
+    beforeEach(() => {
+      process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+      globalThis.fetch = jest.fn(async (url: RequestInfo | URL) =>
+        String(url).endsWith("/auth/email/verify")
+          ? ({
+              ok: false,
+              status: 422,
+              json: async () => ({ errors: ["user.name.required"] }),
+            } as Response)
+          : ({ ok: true, status: 202, json: async () => ({}) } as Response),
+      );
+    });
+
+    it("sends an unknown email to create account", async () => {
+      await reachConfirmCode();
+
+      await fireEvent.changeText(
+        screen.getByLabelText("6-digit code"),
+        "123456",
+      );
+
+      await waitFor(() =>
+        expect(app.getPathname()).toBe("/auth/create-account"),
+      );
+      expect(
+        await screen.findByText(
+          "We couldn't find an account with this email. Create one to continue.",
+          { includeHiddenElements: true },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByPlaceholderText("you@email.com")).toHaveDisplayValue(
+        EMAIL,
+      );
+      expect(
+        screen.getByPlaceholderText("First and last name"),
+      ).toHaveDisplayValue("");
+    });
+
+    it("goes back to Choose from create account after an unknown email", async () => {
+      await reachConfirmCode();
+      await fireEvent.changeText(
+        screen.getByLabelText("6-digit code"),
+        "123456",
+      );
+      await waitFor(() =>
+        expect(app.getPathname()).toBe("/auth/create-account"),
+      );
+
+      await press("Back");
+
+      expect(app.getPathname()).toBe("/auth/email");
+    });
   });
 });

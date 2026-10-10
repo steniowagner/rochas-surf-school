@@ -4,6 +4,8 @@ export type VerifyCodeError = {
   key: string;
   /** `inline` goes under the code boxes; `toast` goes through the alert message. */
   placement: "inline" | "toast";
+  /** The address has no account: the person should go on to Create account. */
+  opensCreateAccount?: boolean;
 };
 
 const inlineKeyByErrorCode: Record<string, string> = {
@@ -17,8 +19,14 @@ const RATE_LIMITED = "request.rate.limited";
 
 const toast = (key: string): VerifyCodeError => ({ key, placement: "toast" });
 
-/** The message for an error of `POST /auth/email/verify`, and where to show it. */
-export const getVerifyCodeError = (error: unknown): VerifyCodeError => {
+/**
+ * The message for an error of `POST /auth/email/verify`, and where to show it. On the sign-in path (`hasName` false)
+ * a name error means the address has no account, since the backend only asks for a name when it must create one.
+ */
+export const getVerifyCodeError = (
+  error: unknown,
+  hasName = true,
+): VerifyCodeError => {
   if (error instanceof NetworkError) {
     return toast("createAccount.errors.noConnection");
   }
@@ -32,7 +40,12 @@ export const getVerifyCodeError = (error: unknown): VerifyCodeError => {
     }
 
     if (errorCode.startsWith(NAME_ERROR_PREFIX)) {
-      return toast("confirmCode.errors.nameNotSaved");
+      return hasName
+        ? toast("confirmCode.errors.nameNotSaved")
+        : {
+            ...toast("confirmCode.errors.noAccount"),
+            opensCreateAccount: true,
+          };
     }
 
     if (errorCode === RATE_LIMITED) {

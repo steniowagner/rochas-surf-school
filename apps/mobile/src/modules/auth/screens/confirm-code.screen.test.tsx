@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
+import { useLocalSearchParams } from "expo-router";
 import { Text } from "react-native";
 
 import i18n from "@/i18n";
@@ -15,10 +16,7 @@ import { ConfirmCodeScreen } from "./confirm-code.screen";
 
 jest.mock("expo-router", () => ({
   router: { back: jest.fn(), canGoBack: jest.fn(() => true) },
-  useLocalSearchParams: () => ({
-    email: "ana.silva@gmail.com",
-    name: "Ana Silva",
-  }),
+  useLocalSearchParams: jest.fn(),
 }));
 jest.useFakeTimers();
 
@@ -69,6 +67,10 @@ const enterCode = () =>
   );
 
 beforeEach(() => {
+  jest.mocked(useLocalSearchParams).mockReturnValue({
+    email: "ana.silva@gmail.com",
+    name: "Ana Silva",
+  });
   fetchMock.mockReset();
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
@@ -82,6 +84,45 @@ describe("ConfirmCodeScreen", () => {
       screen.getByRole("header", { name: "Confirm your email" }),
     ).toBeOnTheScreen();
     expect(screen.getByText("ana.silva@gmail.com")).toBeOnTheScreen();
+  });
+
+  it("verifies without a name when the route has none", async () => {
+    jest
+      .mocked(useLocalSearchParams)
+      .mockReturnValue({ email: "ana.silva@gmail.com" });
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, {
+        accessToken: "a",
+        accessTokenExpiresAt: "2026-01-01T00:00:00.000Z",
+        refreshToken: "r",
+        refreshTokenExpiresAt: "2026-02-01T00:00:00.000Z",
+        user: ACCOUNT,
+      }),
+    );
+    await renderScreen();
+
+    await enterCode();
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      email: "ana.silva@gmail.com",
+      code: "123456",
+    });
+  });
+
+  it("treats an empty name param as the sign-in path", async () => {
+    jest
+      .mocked(useLocalSearchParams)
+      .mockReturnValue({ email: "ana.silva@gmail.com", name: "" });
+    fetchMock.mockResolvedValue(jsonResponse(401, { errors: [] }));
+    await renderScreen();
+
+    await enterCode();
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty(
+      "name",
+    );
   });
 
   it("puts the verified account and its tokens in the session", async () => {

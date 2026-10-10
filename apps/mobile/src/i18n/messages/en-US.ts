@@ -86,6 +86,10 @@ const messages = {
     now: "Now",
     signOut: "Sign out",
   },
+  whatsapp: {
+    invalidNumber: "Invalid WhatsApp number.",
+    sessionExpired: "Your session expired. Sign in again.",
+  },
   flows: {
     onboarding: "Onboarding",
     schoolRules: "School rules",

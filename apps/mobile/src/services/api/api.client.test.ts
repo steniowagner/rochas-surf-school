@@ -1,4 +1,4 @@
-import { apiPost } from "./api.client";
+import { apiPost, apiPut } from "./api.client";
 import { ApiError, NetworkError } from "./api.errors";
 
 const jsonResponse = (status: number, body: unknown) =>
@@ -79,5 +79,61 @@ describe("apiPost", () => {
     fetchMock.mockRejectedValue(new TypeError("Network request failed"));
 
     await expect(apiPost("/x", {})).rejects.toBeInstanceOf(NetworkError);
+  });
+});
+
+describe("apiPut", () => {
+  const fetchMock = jest.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    globalThis.fetch = fetchMock;
+    process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+  });
+
+  it("puts JSON with the bearer token", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, { id: "1" }));
+
+    await expect(
+      apiPut("/auth/me/whatsapp", { whatsappNumber: "+5585999998888" }, { accessToken: "at-1" }),
+    ).resolves.toEqual({ id: "1" });
+
+    expect(fetchMock).toHaveBeenCalledWith("http://api.test/auth/me/whatsapp", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer at-1",
+      },
+      body: JSON.stringify({ whatsappNumber: "+5585999998888" }),
+    });
+  });
+
+  it("sends no Authorization header without a token", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, {}));
+
+    await apiPut("/x", {});
+
+    expect(fetchMock).toHaveBeenCalledWith("http://api.test/x", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+  });
+
+  it("throws ApiError with status, errors and details", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(401, { errors: ["auth.token.invalid"], details: { a: 1 } }),
+    );
+
+    const error = await apiPut("/x", {}).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 401, errors: ["auth.token.invalid"], details: { a: 1 } });
+  });
+
+  it("throws NetworkError when fetch rejects", async () => {
+    fetchMock.mockRejectedValue(new TypeError("Network request failed"));
+
+    await expect(apiPut("/x", {})).rejects.toBeInstanceOf(NetworkError);
   });
 });

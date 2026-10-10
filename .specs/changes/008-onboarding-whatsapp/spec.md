@@ -2,7 +2,7 @@
 id: "008"
 slug: onboarding-whatsapp
 title: Onboarding WhatsApp number step
-status: in-review
+status: changes-requested
 created: 2026-10-10
 started: 2026-10-10
 base_commit: 045e0c9a52cc2e43219a20891c39149f40c49cf7
@@ -427,3 +427,51 @@ message for the third.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-10 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (shared, auth, backend, mobile; `--concurrency=1`, 12 tasks)
+- related tests ✅ (apps/backend, apps/mobile, modules/auth, packages/shared; apps/web has no runner)
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 3 files, 84 passed (database up, no pending migrations)
+- HTTP: `PUT /auth/me/whatsapp` exercised against the running backend with `dev@example.com` (200 save, 422
+  `required` / `phone` / `whatsappVisible.in` / `whatsappVisible.required`); the account was reset to no number
+  afterwards
+- user journeys 1 and 2 (iOS simulator): not run this round — to run in the next round, once F-01 is fixed
+
+**Expected Results**
+
+- ER-01 ❌ — the listed cases pass, but see F-01
+- ER-02 ✅ — e2e "saves…", "replaces…", "same number"; confirmed over HTTP; `SetWhatsapp` unit tests
+- ER-03 ✅ — e2e 403 pending / 401 without and with an invalid token; unit test per non-approved status;
+  `ForbiddenError` tests
+- ER-04 ✅ — e2e 422 cases each re-read `GET /auth/me`; confirmed over HTTP
+- ER-05 ✅ — verify, refresh and `GET /auth/me` assert both fields in e2e and unit tests
+- ER-06 ✅ (tests) — `resolve-flow` and `root-navigator` cases; journey 2 not run yet
+- ER-07 ✅ (tests) — "shows the approved welcome and the defaults"; journey 1 not run yet
+- ER-08 ✅ (tests) — `whatsapp` and `country-picker` tests; journey 1 not run yet
+- ER-09 ✅ (tests) — `apiPut`, `use-save-whatsapp` and `whatsapp` tests; journey 1 not run yet
+
+**Findings**
+
+- [ ] **F-01** (D-03) — `PhoneNumberRule` accepts numbers that are not E.164, so the API stores them as sent:
+  `isValidPhoneNumber` also accepts formatted text and extensions once it starts with `+`. The Goal and D-03
+  say the number is validated "on an E.164 string" and stored in E.164 (and Out of scope says the backend
+  doesn't normalize, so it must refuse instead). Reproduce: approved account, `PUT /auth/me/whatsapp` with
+  `{"whatsappNumber":"+55 (85) 99999-8888","whatsappVisible":false}` → 200 and `GET /auth/me` returns
+  `"+55 (85) 99999-8888"`; same with `"+5585999998888 ext. 12"`, `"+55-85-99999-8888"`, `"+55.85.999998888"`
+  and `"+5585999998888 "`. Expected: 422 `user.whatsappNumber.phone` for each (e.g. require the E.164 shape
+  `^\+[1-9]\d{1,14}$` as well as `isValidPhoneNumber`), with those cases added to
+  `phone-number.rule.test.ts` and an e2e 422 case. The app is unaffected: it always sends
+  `parsePhoneNumberFromString(...).number`.
+
+**Notes**
+
+- The `whatsapp` component test "signs out when the session expired" (named in ER-09's Verify by) checks the
+  toast and that School rules didn't open, but not that the session was cleared; `use-save-whatsapp.hook.test.tsx`
+  does assert it. Asserting the cleared session there too would make the component test stand on its own.
+- An approved account with a number can still navigate to `/onboarding` by URL and see the WhatsApp screen
+  again (the onboarding group is guarded by flow, not by step). The spec doesn't ask for a step guard; worth
+  deciding in the school-rules spec.

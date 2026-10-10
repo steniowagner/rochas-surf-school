@@ -98,4 +98,48 @@ describe("email authentication navigation", () => {
 
     expect(app.getPathname()).toBe("/auth/email");
   });
+
+  it("goes back to Choose from sign in with email", async () => {
+    await openApp("/auth/email");
+    await press("I have an account");
+
+    await press("Back");
+
+    expect(app.getPathname()).toBe("/auth/email");
+  });
+
+  it("replaces sign in with create account keeping the email", async () => {
+    await openApp("/auth/email");
+    await press("I have an account");
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByPlaceholderText("you@email.com"),
+      " ana.silva@gmail.com ",
+    );
+
+    await user.press(screen.getByRole("link", { name: "Create account" }));
+
+    expect(app.getPathname()).toBe("/auth/create-account");
+    expect(screen.getByPlaceholderText("you@email.com")).toHaveDisplayValue(
+      "ana.silva@gmail.com",
+    );
+    expect(
+      screen.getByPlaceholderText("First and last name"),
+    ).toHaveDisplayValue("");
+
+    await press("Back");
+
+    expect(app.getPathname()).toBe("/auth/email");
+  });
+
+  it("opens create account with an empty email when nothing was typed", async () => {
+    await openApp("/auth/email");
+    await press("I have an account");
+    const user = userEvent.setup();
+
+    await user.press(screen.getByRole("link", { name: "Create account" }));
+
+    expect(app.getPathname()).toBe("/auth/create-account");
+    expect(screen.getByPlaceholderText("you@email.com")).toHaveDisplayValue("");
+  });
 });

@@ -254,7 +254,7 @@ D-05 copy table:
   > verified: `npx jest src/modules/auth src/navigation` (15 suites, 223 tests pass; includes the ER-01/ER-02 tests),
   > `npx tsc --noEmit` (exit 0); deviations: the locale keys for T-03/T-04 were added now; sign-in route is a placeholder until T-03
 
-- [ ] **T-03** — Sign in with email screen (D-03, D-05, D-06, D-07): component
+- [x] **T-03** — Sign in with email screen (D-03, D-05, D-06, D-07): component
   `src/modules/auth/components/email-sign-in/` (`email-sign-in.component.tsx`, `email-sign-in.hook.ts`,
   `email-sign-in.types.ts`, `index.ts`, `email-sign-in.component.test.tsx`); screen
   `src/modules/auth/screens/email-sign-in.screen.tsx` (+ `email-sign-in.screen.test.tsx`) that pushes
@@ -265,6 +265,18 @@ D-05 copy table:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-03, ER-04 · Done when: `npx jest src/modules/auth/components/email-sign-in src/modules/auth/screens/email-sign-in src/modules/auth/email-auth.navigation`
   passes with the tests named in ER-03 and ER-04.
+  > ✅ 2026-10-10 — Sign in with email built: `EmailSignIn` (hook, types, component), `EmailSignInScreen` (pushes
+  > `confirmCode({ email })`; the "Create account" link `router.replace`s with the trimmed email, none when empty) and the real
+  > route file replacing T-02's placeholder. The email validation helpers `isValid` / `getStatus` moved out of
+  > `create-account.hook.ts` into `utils/field-validation.ts` (tested) so both screens share them. Navigation tests added for
+  > ER-02's back test and ER-04. Files: `apps/mobile/src/modules/auth/components/email-sign-in/{index.ts,email-sign-in.types.ts,email-sign-in.hook.ts,email-sign-in.component.tsx,email-sign-in.component.test.tsx}`,
+  > `apps/mobile/src/modules/auth/screens/{email-sign-in.screen.tsx,email-sign-in.screen.test.tsx}`,
+  > `apps/mobile/src/app/(public)/auth/email-sign-in.tsx`,
+  > `apps/mobile/src/modules/auth/utils/{field-validation.ts,field-validation.test.ts}`,
+  > `apps/mobile/src/modules/auth/components/create-account/create-account.hook.ts`,
+  > `apps/mobile/src/modules/auth/email-auth.navigation.test.tsx`;
+  > verified: `npx jest src/modules/auth src/navigation` (18 suites, 249 tests pass), `npx tsc --noEmit` (exit 0);
+  > deviations: extracted the shared field helpers (small, behavior-preserving change to Create account's hook)
 
 - [ ] **T-04** — Confirm email on both paths (D-01, D-02, D-05): `confirm-code.screen.tsx` reads `name` as
   optional; `confirm-code.hook.ts` sends `name` only when present (`VerifySignInCodeVariables.name` optional in

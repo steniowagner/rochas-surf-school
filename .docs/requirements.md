@@ -115,6 +115,7 @@ An account's email address SHALL NOT change after the account is created.
 #### Signing out
 
 _Implemented in spec 004-backend-session-endpoints._
+_Implemented in spec 006-mobile-pending-screen._
 
 Users SHALL be able to sign out.
 
@@ -137,6 +138,7 @@ Covers an account from registration to erasure: admin approval, onboarding, dele
 
 _Implemented in spec 004-backend-session-endpoints._
 _Implemented in spec 005-mobile-flow-routing._
+_Implemented in spec 006-mobile-pending-screen._
 
 A new account SHALL wait for an admin's approval before its user can use the app. While waiting, the user SHALL only see that their account is waiting for approval.
 

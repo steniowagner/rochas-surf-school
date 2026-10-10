@@ -19,6 +19,7 @@ export type VerifySignInCodeResponse = {
     email: string;
     role: string;
     status: string;
+    createdAt: string;
   };
 };
 

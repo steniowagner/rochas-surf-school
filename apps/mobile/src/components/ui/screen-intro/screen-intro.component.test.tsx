@@ -35,4 +35,22 @@ describe("ScreenIntro", () => {
 
     expect(screen.getByText("ana@gmail.com")).toBeOnTheScreen();
   });
+
+  it("renders the eyebrow only when given", async () => {
+    const { rerender } = await render(
+      <ScreenIntro icon={null} title="Title" description="Text" />,
+    );
+    expect(screen.queryByText("Account created")).not.toBeOnTheScreen();
+
+    await rerender(
+      <ScreenIntro
+        icon={null}
+        title="Title"
+        description="Text"
+        eyebrow="Account created"
+        iconTileClassName="bg-warn-tint"
+      />,
+    );
+    expect(screen.getByText("Account created")).toBeOnTheScreen();
+  });
 });

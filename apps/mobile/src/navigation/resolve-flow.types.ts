@@ -2,6 +2,7 @@ import type { Href } from "expo-router";
 
 export type Flow =
   | "auth"
+  | "pending"
   | "onboarding"
   | "reactivation"
   | "offboarding-denied"
@@ -17,6 +18,8 @@ export type SessionUser = {
   email: string;
   role: string;
   status: string;
+  // ISO 8601, UTC.
+  createdAt: string;
 };
 
 export type ResolveFlowInput = {

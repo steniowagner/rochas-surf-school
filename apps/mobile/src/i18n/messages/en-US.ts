@@ -49,6 +49,20 @@ const messages = {
       nameNotSaved: "We couldn't save your name. Go back and check it.",
     },
   },
+  pending: {
+    eyebrow: "Account created",
+    title: "Waiting for approval",
+    description:
+      "The Rocha's team will review your sign-up. Once it's approved, you can sign in with <bold>{{email}}</bold>.",
+    steps: {
+      created: "Account created",
+      approval: "Team approval",
+      inReview: "Under review",
+      bookClasses: "Book classes",
+    },
+    now: "Now",
+    signOut: "Sign out",
+  },
   flows: {
     onboarding: "Onboarding",
     reactivation: "Reactivation",

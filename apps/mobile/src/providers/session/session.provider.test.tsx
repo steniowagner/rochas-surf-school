@@ -10,18 +10,29 @@ const ana = {
   email: "ana.silva@gmail.com",
   role: "student",
   status: "approved",
+  createdAt: "2026-10-10T12:00:00.000Z",
+};
+
+const tokensOf = {
+  accessToken: "access-1",
+  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  refreshToken: "refresh-1",
+  refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
 
 function Probe() {
-  const { user, setUser, clearUser } = useSession();
+  const { user, tokens, setSession, clearSession } = useSession();
 
   return (
     <>
       <Text>{user ? `signed in as ${user.email}` : "signed out"}</Text>
-      <TouchableOpacity onPress={() => setUser(ana)}>
+      <Text>{tokens ? `refresh ${tokens.refreshToken}` : "no tokens"}</Text>
+      <TouchableOpacity
+        onPress={() => setSession({ user: ana, tokens: tokensOf })}
+      >
         <Text>sign in</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={clearUser}>
+      <TouchableOpacity onPress={clearSession}>
         <Text>sign out</Text>
       </TouchableOpacity>
     </>
@@ -39,7 +50,7 @@ describe("SessionProvider", () => {
     expect(screen.getByText("signed out")).toBeOnTheScreen();
   });
 
-  it("sets the user and clears it", async () => {
+  it("sets the session and clears it", async () => {
     const user = userEvent.setup();
     await render(
       <SessionProvider>
@@ -51,9 +62,11 @@ describe("SessionProvider", () => {
     expect(
       screen.getByText("signed in as ana.silva@gmail.com"),
     ).toBeOnTheScreen();
+    expect(screen.getByText("refresh refresh-1")).toBeOnTheScreen();
 
     await user.press(screen.getByText("sign out"));
     expect(screen.getByText("signed out")).toBeOnTheScreen();
+    expect(screen.getByText("no tokens")).toBeOnTheScreen();
   });
 
   it("throws when useSession is used without the provider", async () => {

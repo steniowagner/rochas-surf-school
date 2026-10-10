@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { userEvent } from "@testing-library/react-native";
 import { Href, router } from "expo-router";
 import { act, renderRouter, screen } from "expo-router/testing-library";
 import { createRef, ReactNode, useImperativeHandle, useState } from "react";
@@ -12,6 +13,8 @@ import StudentRoute from "@/app/(private)/student/index";
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
 import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
 import RemovedRoute from "@/app/(offboarding)/offboarding/removed";
+import PendingLayout from "@/app/(pending)/pending/_layout";
+import PendingRoute from "@/app/(pending)/pending/index";
 import OnboardingLayout from "@/app/(onboarding)/onboarding/_layout";
 import OnboardingRoute from "@/app/(onboarding)/onboarding/index";
 import AuthLayout from "@/app/(public)/auth/_layout";
@@ -25,17 +28,41 @@ import { routes } from "@/constants/routes";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionContext } from "@/providers/session/session.context";
-import type { SessionContextValue } from "@/providers/session/session.types";
+import type {
+  Session,
+  SessionContextValue,
+  SessionTokens,
+} from "@/providers/session/session.types";
 
 import { RootNavigator } from "./root-navigator.component";
 
 // The test owns the session: it starts with `initialUser` and is changed through `session.current`.
 let initialUser: SessionUser | null = null;
+const TOKENS: SessionTokens = {
+  accessToken: "access-1",
+  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  refreshToken: "refresh-1",
+  refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
+};
 const session = createRef<SessionContextValue>();
 
 function TestSessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState(initialUser);
-  const value = { user, setUser, clearUser: () => setUser(null) };
+  const [tokens, setTokens] = useState<SessionTokens | null>(
+    initialUser ? TOKENS : null,
+  );
+  const value = {
+    user,
+    tokens,
+    setSession: (next: Session) => {
+      setUser(next.user);
+      setTokens(next.tokens);
+    },
+    clearSession: () => {
+      setUser(null);
+      setTokens(null);
+    },
+  };
 
   useImperativeHandle(session, () => value);
 
@@ -64,6 +91,8 @@ const routeTree = {
   "(public)/auth/index": AuthRoute,
   "(public)/auth/create-account": CreateAccountRoute,
   "(public)/auth/confirm-code": ConfirmCodeRoute,
+  "(pending)/pending/_layout": PendingLayout,
+  "(pending)/pending/index": PendingRoute,
   "(onboarding)/onboarding/_layout": OnboardingLayout,
   "(onboarding)/onboarding/index": OnboardingRoute,
   "(reactivation)/reactivation/_layout": ReactivationLayout,
@@ -85,6 +114,7 @@ const account = (status: string, role = "student"): SessionUser => ({
   email: "ana.silva@gmail.com",
   role,
   status,
+  createdAt: "2026-10-10T12:00:00.000Z",
 });
 
 // RNTL 14's render is async, so renderRouter returns a promise; its route helpers (getPathname…) sit on that promise.
@@ -111,6 +141,7 @@ const expectFlowScreen = (path: string, name: string) => {
 };
 
 const FLOW_PATHS = [
+  routes.pending.home,
   routes.onboarding.home,
   routes.reactivation.home,
   routes.offboarding.denied,
@@ -177,8 +208,8 @@ describe("RootNavigator", () => {
       {
         state: "pending",
         user: account("pending"),
-        path: routes.onboarding.home,
-        name: "Onboarding",
+        path: routes.pending.home,
+        name: "Waiting for approval",
       },
       {
         state: "deleted",
@@ -225,7 +256,7 @@ describe("RootNavigator", () => {
       },
     );
 
-    it("opens onboarding after a pending account signs in", async () => {
+    it("opens pending after a pending account signs in", async () => {
       await openApp(
         null,
         "/auth/confirm-code?email=ana.silva%40gmail.com&name=Ana%20Silva",
@@ -234,12 +265,55 @@ describe("RootNavigator", () => {
         screen.getByRole("header", { name: "Confirm your email" }),
       ).toBeOnTheScreen();
 
-      await act(async () => session.current!.setUser(account("pending")));
+      await act(async () =>
+        session.current!.setSession({
+          user: account("pending"),
+          tokens: TOKENS,
+        }),
+      );
 
-      expectFlowScreen(routes.onboarding.home, "Onboarding");
+      expectFlowScreen(routes.pending.home, "Waiting for approval");
     });
 
     it.each([
+      routes.auth.signIn,
+      routes.auth.createAccount,
+      routes.onboarding.home,
+      routes.student.home,
+      routes.instructor.home,
+      routes.admin.home,
+      routes.reactivation.home,
+      routes.offboarding.denied,
+      routes.offboarding.removed,
+    ])("keeps a pending account on pending for %s", async (path) => {
+      await openApp(account("pending"));
+
+      await navigate(path);
+
+      expectFlowScreen(routes.pending.home, "Waiting for approval");
+    });
+
+    it("returns to sign-in after signing out from pending", async () => {
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        json: async () => ({}),
+      });
+      process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+      const user = userEvent.setup();
+      await openApp(account("pending"));
+
+      await user.press(screen.getByRole("button", { name: "Sign out" }));
+
+      expectSignIn();
+
+      await navigate(routes.pending.home);
+
+      expectSignIn();
+    });
+
+    it.each([
+      routes.pending.home,
       routes.admin.home,
       routes.instructor.home,
       routes.onboarding.home,
@@ -268,7 +342,10 @@ describe("RootNavigator", () => {
       );
 
       await act(async () =>
-        session.current!.setUser(account("approved", "student")),
+        session.current!.setSession({
+          user: account("approved", "student"),
+          tokens: TOKENS,
+        }),
       );
       expectFlowScreen(routes.student.home, "Student");
 
@@ -313,7 +390,7 @@ describe("RootNavigator", () => {
       async (user) => {
         await openApp(user);
 
-        await act(async () => session.current!.clearUser());
+        await act(async () => session.current!.clearSession());
 
         expectSignIn();
       },

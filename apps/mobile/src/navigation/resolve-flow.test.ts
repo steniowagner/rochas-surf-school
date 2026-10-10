@@ -9,6 +9,7 @@ const userWith = (status: string, role: string): SessionUser => ({
   id: "user-1",
   name: "Ana Silva",
   email: "ana.silva@gmail.com",
+  createdAt: "2026-10-10T12:00:00.000Z",
   role,
   status,
 });
@@ -19,14 +20,14 @@ const byRole = USER_ROLES.flatMap((role) => [
     status: "pending",
     role,
     onboardingCompleted: true,
-    flow: "onboarding",
+    flow: "pending",
   },
   {
     state: `pending ${role} without onboarding`,
     status: "pending",
     role,
     onboardingCompleted: false,
-    flow: "onboarding",
+    flow: "pending",
   },
   {
     state: `approved ${role} without onboarding`,
@@ -92,6 +93,7 @@ describe("resolveFlow", () => {
 describe("flowEntryRoute", () => {
   it.each<[Flow, string]>([
     ["auth", routes.auth.signIn],
+    ["pending", routes.pending.home],
     ["onboarding", routes.onboarding.home],
     ["reactivation", routes.reactivation.home],
     ["offboarding-denied", routes.offboarding.denied],
@@ -108,6 +110,7 @@ describe("flowEntryRoute", () => {
       (
         [
           "auth",
+          "pending",
           "onboarding",
           "reactivation",
           "offboarding-denied",
@@ -119,6 +122,7 @@ describe("flowEntryRoute", () => {
       ).map(flowEntryRoute),
     ).toEqual([
       "/auth",
+      "/pending",
       "/onboarding",
       "/reactivation",
       "/offboarding/denied",

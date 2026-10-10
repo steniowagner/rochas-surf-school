@@ -2,7 +2,7 @@
 id: "008"
 slug: onboarding-whatsapp
 title: Onboarding WhatsApp number step
-status: in-progress
+status: in-review
 created: 2026-10-10
 started: 2026-10-10
 base_commit: 045e0c9a52cc2e43219a20891c39149f40c49cf7
@@ -359,9 +359,10 @@ message for the third.
 
 ### Verification
 
-- [ ] **T-10** — Run every command in the Verification Plan from the repo root and follow the user journeys;
+- [x] **T-10** — Run every command in the Verification Plan from the repo root and follow the user journeys;
   all pass. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and both
   journeys show what they describe.
+  > ✅ 2026-10-10 — ran the whole Verification Plan; files: only the spec (plus `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.component.test.tsx`, which gained the Android case the coverage gate asked for); verified: `node .specs/scripts/run-related-tests.mjs 008` → RELATED TESTS PASSED (backend, mobile, auth, shared); `node .specs/scripts/check-coverage.mjs 008` → COVERAGE OK (24 files); `node .specs/scripts/run-e2e.mjs 008` → E2E PASSED (3 files, 84 tests, database up); `npx turbo run lint check-types build --concurrency=1` for shared, auth, backend and mobile → 12 tasks successful (run with `--concurrency=1` because two parallel `prisma generate` runs, from backend `build` and `check-types`, collide on `src/generated/prisma`); journeys in the iOS simulator (Expo Go, account `dev@example.com`, approved, no number): 1 → "Account approved", "Welcome to Rocha's, Dev", "BR +55", switch on; an invalid number shows the error after blur and keeps the button disabled; Portugal picked through the search "port"; `912 345 678` enabled the button; saving opened School rules, the back-swipe stayed on it and the row had `whatsapp_number = '+351912345678'`, `whatsapp_visible = false`; light and dark both checked; 2 → signing in again with the same account opened School rules directly; deviations: the journeys ran in English (the simulator language), the pt-BR texts are covered by the component tests; the review account row was reset to no number afterwards
 
 ## Verification Plan
 

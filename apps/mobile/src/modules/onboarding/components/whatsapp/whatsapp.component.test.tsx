@@ -140,11 +140,12 @@ describe("Whatsapp", () => {
   });
 
   it("renders on Android, where the keyboard resizes the window", async () => {
-    const replaced = jest.replaceProperty(Platform, "OS", "android");
+    const original = Platform.OS;
+    Platform.OS = "android";
     await renderWhatsapp();
 
     expect(saveButton()).toBeOnTheScreen();
-    replaced.restore();
+    Platform.OS = original;
   });
 
   it("shows the first word of a single-word or padded name", async () => {

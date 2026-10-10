@@ -268,7 +268,7 @@ message for the third.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-03** — In `modules/auth/src/user/model/user.entity.ts` validate `whatsappNumber` with
+- [x] **T-03** — In `modules/auth/src/user/model/user.entity.ts` validate `whatsappNumber` with
   `PhoneNumberRule` instead of `PhoneRule` (update `test/user/model/user.entity.test.ts`). Add the
   `SetWhatsapp` use case in `src/user/usecase/set-whatsapp.usecase.ts` (In: `{ userId, whatsappNumber,
   whatsappVisible }`; loads the user — missing → `UnauthorizedError("auth.token.invalid")`; status not
@@ -278,6 +278,7 @@ message for the third.
   account shape of D-04), export it, with `test/user/usecase/set-whatsapp.usecase.test.ts` covering ER-02 to
   ER-04 against the in-memory repository. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02, ER-03, ER-04 · Done when: `npm test --workspace @rochas-surf-school/auth` passes.
+  > ✅ 2026-10-10 — `User.validate()` now checks `whatsappNumber` with `PhoneNumberRule`; added the `SetWhatsapp` use case (loads the user, 401 when missing, 403 `user.status.notApproved` unless approved, `user.whatsappNumber.required` for a missing/empty number, then `clone` + `validate()` and `UserRepository.update`) and exported it; files: `modules/auth/src/user/model/user.entity.ts`, `modules/auth/src/user/usecase/set-whatsapp.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/model/user.entity.test.ts`, `modules/auth/test/user/usecase/set-whatsapp.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (18 suites, 205 tests passed, new use case 100% covered) and `npm run check-types` (ok); deviations: `SetWhatsappOut` declares the account shape itself (T-04 adds the same two fields to `GetCurrentUserOut`); skill `module-use-case` not invoked, the use case follows the existing ones
 
 - [ ] **T-04** — Add `whatsappNumber: string | null` and `whatsappVisible: boolean` to the user output of
   `GetCurrentUser`, `VerifySignInCode` and `RefreshSession` (one shared output type if they already share

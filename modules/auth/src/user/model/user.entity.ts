@@ -8,7 +8,7 @@ import {
   MaxLengthRule,
   MinLengthRule,
   PersonNameRule,
-  PhoneRule,
+  PhoneNumberRule,
   PositiveRule,
   RequiredRule,
   UniqueItemsRule,
@@ -134,7 +134,7 @@ export class User extends Entity<UserState> {
       {
         code: "user.whatsappNumber",
         value: this.whatsappNumber,
-        rules: [new PhoneRule()],
+        rules: [new PhoneNumberRule()],
       },
       {
         code: "user.whatsappVisible",

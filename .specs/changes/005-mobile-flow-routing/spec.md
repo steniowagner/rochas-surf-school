@@ -308,11 +308,21 @@ only add files to a flow's folder and never touch the decision again.
   > the session; expo-router's toHavePathname matcher doesn't work with RNTL 14's async render, so the tests
   > read the path from renderRouter's getPathname
 
-- [ ] **T-06** — Pass `onVerified` from `src/modules/auth/screens/confirm-code.screen.tsx` so the verify
+- [x] **T-06** — Pass `onVerified` from `src/modules/auth/screens/confirm-code.screen.tsx` so the verify
   response's `user` goes to `useSession().setUser` (D-06). Update
   `src/modules/auth/screens/confirm-code.screen.test.tsx` with "puts the verified account in the session" and
   "keeps the session empty when the check fails" (wrapping the screen in `SessionProvider`).
   Covers: ER-03, ER-06 · Done when: `npx jest src/modules/auth/screens/confirm-code` passes.
+  > ✅ 2026-10-10 01:58 — ConfirmCodeScreen passes onVerified so the verify response's user goes to
+  > useSession().setUser; the screen test now wraps it in SessionProvider with a probe of the session; files:
+  > `apps/mobile/src/modules/auth/screens/confirm-code.screen.tsx`,
+  > `apps/mobile/src/modules/auth/screens/confirm-code.screen.test.tsx`; verified: the new "puts the verified
+  > account in the session" test failed before the change (no session text), then `npx jest
+  > src/modules/auth/screens/confirm-code --coverage` (4 passed: renders with the params, puts the verified
+  > account in the session, keeps the session empty when the check fails for a wrong code (inline message) and a
+  > server error (toast); screen 100%); `npx turbo run check-types lint --filter=@rochas-surf-school/mobile
+  > --force` exits 0; deviations: the screen test now uses fake timers like the component test, because the
+  > resend countdown kept Jest from exiting with real timers
 
 ### Verification
 

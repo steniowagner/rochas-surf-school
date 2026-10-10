@@ -174,11 +174,13 @@ reach the onboarding steps that approved accounts will go through.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Install `date-fns` and `@date-fns/tz` in `apps/mobile` (`npx expo install date-fns @date-fns/tz`
+- [x] **T-01** — Install `date-fns` and `@date-fns/tz` in `apps/mobile` (`npx expo install date-fns @date-fns/tz`
   or `npm install … --workspace @rochas-surf-school/mobile`), updating `apps/mobile/package.json` and the root
   `package-lock.json`. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: both appear in `apps/mobile/package.json` dependencies and
   `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-10 — installed `date-fns` ^4.4.0 and `@date-fns/tz` ^1.5.0 in `apps/mobile`; files: `apps/mobile/package.json`,
+  > `package-lock.json`; verified: `npx turbo run check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none
 
 - [ ] **T-02** — Keep the tokens and `createdAt` in the session (D-02): add `createdAt` to `SessionUser`
   (`src/navigation/resolve-flow.types.ts`) and to `VerifySignInCodeResponse["user"]`; add a `SessionTokens`

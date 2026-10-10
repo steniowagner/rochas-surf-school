@@ -286,20 +286,26 @@ removal or a role change takes effect at once. Reusing an old refresh token ends
 doesn't use these yet.
 
 **One flow per account state in the app** (spec `005-mobile-flow-routing`) — after a correct code, the app
-opens the part of the app that matches the account: a pending account goes to onboarding, an approved one to
+opens the part of the app that matches the account: a pending account goes to its own waiting screen (spec 006), an approved one to
 the student, instructor or admin experience of its role, a deleted one to reactivation, and a denied or removed
 one to its own offboarding screen. Nobody can reach another part of the app, and going back after signing in
 doesn't return to the sign-in screens. Each part shows only its name for now; its real screens come with their
 specs. Until the onboarding spec, every approved account counts as having finished onboarding. The app keeps
 the account in memory only, so closing it signs the person out.
 
+**Pending screen and sign-out in the app** (spec `006-mobile-pending-screen`) — a pending account, whatever
+its role, opens the Pending screen instead of onboarding: it tells the person the school still has to approve
+the account, shows the address they signed in with and since when the account exists ("Now", a relative time,
+then the date after a week), and offers only "Sign out". Signing out returns to the sign-in screen at once,
+even offline, and ends that sign-in on the backend. The approval is seen the next time the person signs in.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
 The web app is still on its framework template. Keeping the session across app restarts, the real screens of
-each flow (waiting for approval, the WhatsApp and school-rules steps, account deleted and reactivation, the
-denied and removed screens, and every student, instructor and admin screen), renewing a session and signing out
-from the app, and Google and Apple sign-in don't exist yet.
+each flow (the WhatsApp and school-rules steps, account deleted and reactivation, the
+denied and removed screens, and every student, instructor and admin screen), renewing a session, signing out from any
+screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
 No spec is active.
 

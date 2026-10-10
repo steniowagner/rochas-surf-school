@@ -84,9 +84,15 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **In the app**, the code is checked on the Confirm email screen, sending the name kept from Create account;
   the same screen asks for a new code once 30 seconds have passed since the last one.
 - **In the app**, a correct code puts the account in the session and opens the part of the app that matches
-  its status and role: onboarding for a pending account (and, once onboarding exists, for an approved one that
-  hasn't finished it), its role's experience for an approved one, reactivation for a deleted one, and its own
-  screen for a denied or removed one. Every other part stays unreachable.
+  its status and role: the Pending screen for a pending account, onboarding for an approved one that hasn't
+  finished it (once onboarding exists), its role's experience for an approved one, reactivation for a deleted
+  one, and its own screen for a denied or removed one. Every other part stays unreachable.
+- **In the app**, a pending account sees only the Pending screen: that the school still has to approve it, the
+  address it signed in with, and since when the account exists ("Now", then a relative time, then the date
+  after a week). Its only way out is signing out.
+- **In the app**, signing out (from the Pending screen, for now) forgets the session on the phone at once and
+  returns to the sign-in screen, then asks the backend to end that sign-in without waiting for the answer — so
+  it works offline too.
 
 ## Boundaries
 
@@ -108,3 +114,6 @@ and school rules), erasure and reactivation are rules of the account lifecycle s
   verified user gains its creation date.
 - `005-mobile-flow-routing` — the app keeps the verified account in memory and opens one flow per account
   state (onboarding, reactivation, denied, removed, student, instructor, admin), each unreachable from the others.
+- `006-mobile-pending-screen` — a pending account opens its own Pending screen (its own flow, no longer
+  onboarding), which shows since when the account exists; signing out from it ends the sign-in on the phone and
+  on the backend and returns to sign-in. The app keeps the session's tokens and the account's creation date.

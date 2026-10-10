@@ -113,7 +113,8 @@ src/
     (public)/auth/index.tsx     # sign-in screen
     (public)/auth/create-account.tsx    # Create account screen
     (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, name)
-    (onboarding)/onboarding/{_layout,index}.tsx      # onboarding flow (/onboarding)
+    (pending)/pending/{_layout,index}.tsx            # pending flow: waiting for approval (/pending)
+    (onboarding)/onboarding/{_layout,index}.tsx      # onboarding flow of an approved account (/onboarding)
     (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
     (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
     (private)/{student,instructor,admin}/{_layout,index}.tsx # role experiences (/student, /instructor, /admin)
@@ -122,19 +123,24 @@ src/
     root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator
   modules/{onboarding,reactivation,offboarding,student,instructor,admin}/screens/
                                 # each flow's screens (placeholders showing the flow's name for now)
+  modules/pending/
+    screens/pending.screen.tsx  # Pending screen (waiting for approval, sign-out)
+    components/                 # pending (header, timeline, sign-out; ticks every 60 s), pending-step (one row)
+    utils/format-created-at.ts  # the "Account created" label: "now", relative up to 7 days, then the date
   modules/auth/
     screens/                    # auth.screen.tsx, create-account.screen.tsx, confirm-code.screen.tsx
     components/                 # auth (sign-in), auth-button, language-sheet, create-account, confirm-code
                                 # (code entry, verify, resend countdown) — each component + hook
     hooks/                      # use-request-sign-in-code.hook.ts (POST /auth/email/code),
-                                # use-verify-sign-in-code.hook.ts (POST /auth/email/verify)
+                                # use-verify-sign-in-code.hook.ts (POST /auth/email/verify),
+                                # use-sign-out.hook.ts (clears the session, then POST /auth/sign-out)
     utils/                      # sign-in-code-error.ts, verify-code-error.ts (API error → translation key,
                                 # and inline or toast for the code check)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
                                 # text-input, toast
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
-  providers/session/            # SessionProvider + useSession (signed-in account, in memory)
+  providers/session/            # SessionProvider + useSession (signed-in account and tokens, in memory)
   components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen
   services/api/                 # fetch client (apiPost), ApiError, NetworkError
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)

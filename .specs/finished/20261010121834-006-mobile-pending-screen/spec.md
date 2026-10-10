@@ -2,13 +2,14 @@
 id: "006"
 slug: mobile-pending-screen
 title: Pending approval screen and sign-out in the mobile app
-status: accepted
+status: finished
 reviewed_commit: 82ae1924935df9619bca6049fc80778f32dd4c13
 started: 2026-10-10
 base_commit: a1969872d2916d1474bbb7916212b216fb48125d
 created: 2026-10-10
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-10
 ---
 
 # 006 — Pending approval screen and sign-out in the mobile app

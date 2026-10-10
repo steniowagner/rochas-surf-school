@@ -9,6 +9,7 @@ const userWith = (status: string, role: string): SessionUser => ({
   id: "user-1",
   name: "Ana Silva",
   email: "ana.silva@gmail.com",
+  createdAt: "2026-10-10T12:00:00.000Z",
   role,
   status,
 });

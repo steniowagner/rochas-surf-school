@@ -17,6 +17,8 @@ export type SessionUser = {
   email: string;
   role: string;
   status: string;
+  // ISO 8601, UTC.
+  createdAt: string;
 };
 
 export type ResolveFlowInput = {

@@ -182,7 +182,7 @@ reach the onboarding steps that approved accounts will go through.
   > ✅ 2026-10-10 — installed `date-fns` ^4.4.0 and `@date-fns/tz` ^1.5.0 in `apps/mobile`; files: `apps/mobile/package.json`,
   > `package-lock.json`; verified: `npx turbo run check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none
 
-- [ ] **T-02** — Keep the tokens and `createdAt` in the session (D-02): add `createdAt` to `SessionUser`
+- [x] **T-02** — Keep the tokens and `createdAt` in the session (D-02): add `createdAt` to `SessionUser`
   (`src/navigation/resolve-flow.types.ts`) and to `VerifySignInCodeResponse["user"]`; add a `SessionTokens`
   type, `tokens`, `setSession` and `clearSession` in `src/providers/session/` (removing `setUser` /
   `clearUser`); make `src/modules/auth/screens/confirm-code.screen.tsx` call `setSession` with the response's
@@ -192,6 +192,13 @@ reach the onboarding steps that approved accounts will go through.
   Covers: ER-03, ER-05 · Done when: `npx jest src/providers/session src/modules/auth/screens/confirm-code
   src/navigation` passes, including "puts the verified account and its tokens in the session" and a provider
   test "sets the session and clears it" (user and tokens).
+  > ✅ 2026-10-10 — `createdAt` on `SessionUser` and the verify response; session holds `{ user, tokens }` with `setSession` / `clearSession`;
+  > confirm-code calls `setSession`; callers and tests updated; files: `apps/mobile/src/navigation/resolve-flow.types.ts`, `apps/mobile/src/navigation/resolve-flow.test.ts`,
+  > `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`, `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`,
+  > `apps/mobile/src/modules/auth/screens/confirm-code.screen.tsx`, `apps/mobile/src/modules/auth/screens/confirm-code.screen.test.tsx`,
+  > `apps/mobile/src/providers/session/session.types.ts`, `apps/mobile/src/providers/session/session.provider.tsx`,
+  > `apps/mobile/src/providers/session/session.provider.test.tsx`;
+  > verified: `npx jest src/providers/session src/modules/auth/screens/confirm-code src/navigation` (81 passed), `npx tsc --noEmit` (clean); deviations: none
 
 - [ ] **T-03** — Create `src/modules/pending/utils/format-created-at.ts` implementing D-04 as a pure function
   (inputs: `createdAt` string, current `Date`, app language; output: the "now" marker, a formatted string, or

@@ -1,19 +1,22 @@
 import { useCallback, useMemo, useState } from "react";
 
-import type { SessionUser } from "@/navigation/resolve-flow.types";
-
 import { SessionContext } from "./session.context";
-import { SessionProviderProps } from "./session.types";
+import { Session, SessionProviderProps } from "./session.types";
 
-// Keeps the signed-in account in memory only: nothing is stored on the device, so a restart signs out.
+// Keeps the signed-in account and its tokens in memory only: nothing is stored on the device, so a restart signs out.
 export function SessionProvider({ children }: SessionProviderProps) {
-  const [user, setUser] = useState<SessionUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
-  const clearUser = useCallback(() => setUser(null), []);
+  const clearSession = useCallback(() => setSession(null), []);
 
   const value = useMemo(
-    () => ({ user, setUser, clearUser }),
-    [user, clearUser],
+    () => ({
+      user: session?.user ?? null,
+      tokens: session?.tokens ?? null,
+      setSession,
+      clearSession,
+    }),
+    [session, clearSession],
   );
 
   return (

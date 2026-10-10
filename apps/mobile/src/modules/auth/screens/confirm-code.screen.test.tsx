@@ -28,6 +28,7 @@ const ACCOUNT = {
   email: "ana.silva@gmail.com",
   role: "student",
   status: "pending",
+  createdAt: "2026-10-10T12:00:00.000Z",
 };
 
 const fetchMock = jest.fn();
@@ -36,10 +37,12 @@ const jsonResponse = (status: number, body: unknown) =>
   ({ ok: status < 300, status, json: async () => body }) as Response;
 
 function SessionUserProbe() {
-  const { user } = useSession();
+  const { user, tokens } = useSession();
 
   return (
-    <Text>{user ? `session: ${JSON.stringify(user)}` : "no session"}</Text>
+    <Text>
+      {user ? `session: ${JSON.stringify({ user, tokens })}` : "no session"}
+    </Text>
   );
 }
 
@@ -81,22 +84,24 @@ describe("ConfirmCodeScreen", () => {
     expect(screen.getByText("ana.silva@gmail.com")).toBeOnTheScreen();
   });
 
-  it("puts the verified account in the session", async () => {
+  it("puts the verified account and its tokens in the session", async () => {
+    const tokens = {
+      accessToken: "a",
+      accessTokenExpiresAt: "2026-01-01T00:00:00.000Z",
+      refreshToken: "r",
+      refreshTokenExpiresAt: "2026-02-01T00:00:00.000Z",
+    };
     fetchMock.mockResolvedValue(
-      jsonResponse(200, {
-        accessToken: "a",
-        accessTokenExpiresAt: "2026-01-01T00:00:00.000Z",
-        refreshToken: "r",
-        refreshTokenExpiresAt: "2026-02-01T00:00:00.000Z",
-        user: ACCOUNT,
-      }),
+      jsonResponse(200, { ...tokens, user: ACCOUNT }),
     );
     await renderScreen();
 
     await enterCode();
 
     expect(
-      await screen.findByText(`session: ${JSON.stringify(ACCOUNT)}`),
+      await screen.findByText(
+        `session: ${JSON.stringify({ user: ACCOUNT, tokens })}`,
+      ),
     ).toBeOnTheScreen();
   });
 

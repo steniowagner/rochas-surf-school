@@ -36,6 +36,7 @@ export * from "./hex-color.rule";
 export * from "./json-string.rule";
 export * from "./url.rule";
 export * from "./phone.rule";
+export * from "./phone-number.rule";
 export * from "./domain.rule";
 export * from "./bcrypt-hash.rule";
 export * from "./strong-password.rule";

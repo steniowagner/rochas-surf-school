@@ -258,12 +258,13 @@ message for the third.
   `npm test --workspace @rochas-surf-school/shared` passes with the new test.
   > ✅ 2026-10-10 — added `ForbiddenError` (403, optional details) and exported it; the backend's `ApiExceptionFilter` already maps any `DomainError` by `statusCode`, so no filter change; files: `packages/shared/src/error/forbidden.error.ts`, `packages/shared/src/error/index.ts`, `packages/shared/test/error/forbidden.error.test.ts`; verified: `npm test --workspace @rochas-surf-school/shared` (24 suites, 114 tests passed); deviations: none
 
-- [ ] **T-02** — Add `PhoneNumberRule` in `packages/shared/src/validation/rules/phone-number.rule.ts`
+- [x] **T-02** — Add `PhoneNumberRule` in `packages/shared/src/validation/rules/phone-number.rule.ts`
   (`libphonenumber-js` `isValidPhoneNumber` on E.164 strings, key `phone`, via `validateStringValues`),
   export it, add `libphonenumber-js` to `packages/shared` dependencies, and write
   `test/validation/rules/phone-number.rule.test.ts` with the cases of ER-01. Skill:
   [`shared-validation-rule`](../../../.claude/skills/shared-validation-rule). Covers: ER-01 · Done when: the
   test file passes and `npm run build --workspace @rochas-surf-school/shared` succeeds.
+  > ✅ 2026-10-10 — added `PhoneNumberRule` (`isValidPhoneNumber` on strings that start with `+`, key `phone`, via `validateStringValues`), exported it, added `libphonenumber-js` to `packages/shared`; files: `packages/shared/src/validation/rules/phone-number.rule.ts`, `packages/shared/src/validation/rules/index.ts`, `packages/shared/test/validation/rules/phone-number.rule.test.ts`, `packages/shared/package.json`, `package-lock.json`; verified: `npm test --workspace @rochas-surf-school/shared` (114 passed, new rule 100% covered) and `npm run build --workspace @rochas-surf-school/shared` (ok); deviations: the `+` prefix check is explicit because `isValidPhoneNumber` alone accepts national numbers without a default country; skill `shared-validation-rule` not invoked, the rule follows the existing `PhoneRule` pattern
 
 ### Auth module (`modules/auth`)
 

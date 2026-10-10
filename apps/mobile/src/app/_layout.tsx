@@ -1,7 +1,7 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/global.css";
 import { FontAssets } from "@/constants/theme";
 import { themeVariables } from "@/constants/theme-variables";
+import { RootNavigator } from "@/navigation/root-navigator";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider } from "@/providers/session";
 // Initializes i18n before any screen renders, so the first frame is already translated.
@@ -50,7 +51,7 @@ export default function RootLayout() {
               <AlertMessageProvider>
                 <SessionProvider>
                   <StatusBar style="auto" />
-                  <Stack screenOptions={{ headerShown: false }} />
+                  <RootNavigator />
                 </SessionProvider>
               </AlertMessageProvider>
             </ThemeProvider>

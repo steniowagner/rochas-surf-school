@@ -1,8 +1,11 @@
 import { Redirect } from "expo-router";
 
-import { routes } from "@/constants/routes";
+import { flowEntryRoute } from "@/navigation/resolve-flow";
+import { useRootNavigator } from "@/navigation/root-navigator/root-navigator.hook";
 
-// The app opens on the sign-in screen until there is a signed-in area to route to.
+// Every landing goes through the resolver: the app opens on the entry screen of the account's flow (D-10).
 export default function Index() {
-  return <Redirect href={routes.auth.signIn} />;
+  const flow = useRootNavigator();
+
+  return <Redirect href={flowEntryRoute(flow)} />;
 }

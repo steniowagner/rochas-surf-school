@@ -274,7 +274,7 @@ only add files to a flow's folder and never touch the decision again.
   > src/modules/admin` (7 suites, 7 passed); `npx turbo run check-types --filter=@rochas-surf-school/mobile
   > --force` exits 0; deviations: none
 
-- [ ] **T-05** — Add `RootNavigator` in `src/navigation/root-navigator/` (`root-navigator.component.tsx`,
+- [x] **T-05** — Add `RootNavigator` in `src/navigation/root-navigator/` (`root-navigator.component.tsx`,
   `root-navigator.hook.ts` returning the resolved flow from `useSession` with `onboardingCompleted: true`,
   `index.ts`): a `Stack` (`headerShown: false`) with `index` unguarded and one `Stack.Protected` per group —
   `(public)` for `auth`, `(onboarding)`, `(reactivation)`, `(offboarding)` for both offboarding flows,
@@ -286,6 +286,27 @@ only add files to a flow's folder and never touch the decision again.
   in ER-02, ER-04 and ER-05's `Verify by`, plus "opens onboarding after a pending account signs in" (sets the
   session while on `/auth/confirm-code`).
   Covers: ER-02, ER-03, ER-04, ER-05, ER-06 · Done when: `npx jest src/navigation/root-navigator` passes.
+  > ✅ 2026-10-10 01:53 — added RootNavigator (Stack with index unguarded and one Stack.Protected per flow group,
+  > driven by useRootNavigator = resolveFlow(useSession().user, onboardingCompleted true)), rendered it from the
+  > root layout, made index.tsx redirect to flowEntryRoute(flow), and rewrote the apps/mobile paragraph of
+  > CLAUDE.md; files: `apps/mobile/src/navigation/root-navigator/root-navigator.component.tsx`,
+  > `apps/mobile/src/navigation/root-navigator/root-navigator.hook.ts`,
+  > `apps/mobile/src/navigation/root-navigator/index.ts`,
+  > `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`,
+  > `apps/mobile/src/app/_layout.tsx`, `apps/mobile/src/app/index.tsx`,
+  > `apps/mobile/src/app/(offboarding)/offboarding/_layout.tsx`, `CLAUDE.md`; verified: `npx jest
+  > src/navigation/root-navigator --coverage` (41 passed: opens on sign-in when signed out, redirects each of
+  > the 7 flow paths to sign-in when signed out (initial URL and navigate), Create account and Confirm email
+  > reachable, opens each of the 7 account states on its entry route with its name, opens onboarding after a
+  > pending account signs in on /auth/confirm-code, keeps a student on student for 7 paths, can't go back to
+  > auth after signing in, keeps denied and removed on their own screen, returns to sign-in when the session is
+  > cleared from each state; component and hook 100%); a mutation (student guard forced to true) fails 3 tests;
+  > `npx turbo run check-types lint --filter=@rochas-surf-school/mobile --force` exits 0; deviations: the
+  > offboarding layout now reads the flow through useRootNavigator instead of calling resolveFlow itself, so
+  > `onboardingCompleted: true` (D-03) lives in one place; the test uses its own session context provider
+  > (useState seeded per test, controlled through a ref) so a test can open the app with an account already in
+  > the session; expo-router's toHavePathname matcher doesn't work with RNTL 14's async render, so the tests
+  > read the path from renderRouter's getPathname
 
 - [ ] **T-06** — Pass `onVerified` from `src/modules/auth/screens/confirm-code.screen.tsx` so the verify
   response's `user` goes to `useSession().setUser` (D-06). Update

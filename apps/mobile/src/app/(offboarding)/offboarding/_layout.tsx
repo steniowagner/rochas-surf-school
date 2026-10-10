@@ -1,13 +1,10 @@
 import { Stack } from "expo-router";
 
-import { resolveFlow } from "@/navigation/resolve-flow";
-import { useSession } from "@/providers/session";
+import { useRootNavigator } from "@/navigation/root-navigator/root-navigator.hook";
 
 // The offboarding flow: the reason picks the screen, so a denied account can't reach the removed one and vice versa.
 export default function OffboardingLayout() {
-  const { user } = useSession();
-  // Onboarding doesn't change the flow of a denied or removed account.
-  const flow = resolveFlow({ user, onboardingCompleted: true });
+  const flow = useRootNavigator();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

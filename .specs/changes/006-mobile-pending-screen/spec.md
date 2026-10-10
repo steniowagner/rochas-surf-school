@@ -2,7 +2,8 @@
 id: "006"
 slug: mobile-pending-screen
 title: Pending approval screen and sign-out in the mobile app
-status: in-review
+status: accepted
+reviewed_commit: 82ae1924935df9619bca6049fc80778f32dd4c13
 started: 2026-10-10
 base_commit: a1969872d2916d1474bbb7916212b216fb48125d
 created: 2026-10-10
@@ -313,3 +314,47 @@ reach the onboarding steps that approved accounts will go through.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-10 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 6 tasks)
+- related tests ✅ 234 passed in 18 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` — 15 files measured, 3 excluded by technical-context (`src/app/**`); no coverage-ignore comments in the diff
+- e2e: ✅ `E2E PASSED` — no suite applies to apps/mobile
+- iOS simulator (iPhone 18 Pro, iOS 27, dark theme, existing pending session `student@example.com`): Pending screen
+  shows the clock tile, eyebrow, title, email in bold, the bordered timeline ("23 minutes ago", "Under review" pill,
+  dashed "Book classes") and "Sign out"; the left-edge back swipe does nothing; after a minute open the label
+  changed to "24 minutes ago" on its own; "Sign out" returned to the sign-in screen. `POST /auth/sign-out` on the
+  running backend → 204 (curl).
+
+**Expected Results**
+
+- ER-01 ✅ — resolve-flow table (`pending` × every role → `pending`, entry route `/pending`) and root-navigator
+  tests ("keeps a pending account on pending for …" over all nine paths, "keeps a student on student for /pending",
+  approved-without-onboarding still → onboarding) pass
+- ER-02 ✅ — content, pt-BR / es-ES, ghost `Button`, no back button tests pass; no raw colors in the component; seen
+  on the simulator
+- ER-03 ✅ — `format-created-at` covers <60 s, 60 s, 5 min 59 s (3 locales), 3 h 59 min, 6 d 23 h, exactly 7 days
+  (3 locales), other year, future, invalid, the Fortaleza 1 Jan edge (both sides); "updates the created label every
+  minute" passes and the live refresh was seen on the simulator
+- ER-04 ✅ — "clears the session and the query cache" and "returns to sign-in after signing out from pending"
+  (including `/pending` afterwards) pass; seen on the simulator
+- ER-05 ✅ — the five `useSignOut` tests and "puts the verified account and its tokens in the session" pass
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `pending-step.component.tsx` uses `min-h-[54px]` (changed in 82ae192), while T-05's evidence still says
+  `min-h-[46px]`; the code is what was reviewed.
+- The T-07 commit message says the journeys were "blocked on the sign-in code", but its evidence records them as
+  done; the review re-ran the parts it could reach without a sign-in code (above). Not observed live: "Agora" right
+  after sign-up, pt-BR on screen, and signing in again after sign-out — all covered by the unit tests.
+- `px-[22px]` repeats the auth screens' side margin; the `spacing.screen` token is 20. Consistent with existing
+  screens, but worth a token (or using `px-screen`) in a later spec.
+- Memory Impact doesn't mention that the shared `ScreenIntro` gained optional `eyebrow` and `iconTileClassName`
+  props (T-05); `spec-finish` should add it to the Mobile shared UI notes in `technical-context.md`.

@@ -1,7 +1,12 @@
-import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { TextInput } from "@/components/ui/text-input";
@@ -12,7 +17,8 @@ import type { CountryOption } from "../../utils/countries.types";
 import { useCountryPicker } from "./country-picker.hook";
 import { CountryPickerProps } from "./country-picker.types";
 
-const LIST_HEIGHT_RATIO = 0.45;
+// A fixed height: the sheet sizes itself to its content, so a list can't fill it.
+const LIST_HEIGHT_RATIO = 0.4;
 
 export function CountryPicker({
   visible,
@@ -54,9 +60,9 @@ export function CountryPicker({
           autoCapitalize="none"
         />
       </View>
-      <BottomSheetFlatList
+      <FlatList
         data={visibleOptions}
-        keyExtractor={(item: CountryOption) => item.code}
+        keyExtractor={(item) => item.code}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
         style={{ height: height * LIST_HEIGHT_RATIO }}

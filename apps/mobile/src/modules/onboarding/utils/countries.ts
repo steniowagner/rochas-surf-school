@@ -18,16 +18,19 @@ const toLanguage = (locale: string) => locale.slice(0, 2);
 export const getDialCode = (country: CountryCode) =>
   `+${getCountryCallingCode(country)}`;
 
-/** Every country `libphonenumber-js` knows, named in the given app locale and sorted by name. */
+/**
+ * Every country `libphonenumber-js` knows that has a name, in the given app locale, sorted by name. The calling
+ * code areas without an ISO country (such as Ascension Island, `AC`) have no name and are left out.
+ */
 export const getCountryOptions = (locale: string): CountryOption[] => {
   const language = toLanguage(locale);
 
   return getCountries()
-    .map((code) => ({
-      code,
-      name: countries.getName(code, language) ?? code,
-      dialCode: getDialCode(code),
-    }))
+    .flatMap((code) => {
+      const name = countries.getName(code, language);
+
+      return name ? [{ code, name, dialCode: getDialCode(code) }] : [];
+    })
     .sort((a, b) => a.name.localeCompare(b.name, language));
 };
 

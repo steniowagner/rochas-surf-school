@@ -53,4 +53,22 @@ describe("ScreenIntro", () => {
     );
     expect(screen.getByText("Account created")).toBeOnTheScreen();
   });
+
+  it("colors the eyebrow as given and in ink-2 by default", async () => {
+    const { rerender } = await render(
+      <ScreenIntro icon={null} title="Title" description="Text" eyebrow="Label" />,
+    );
+    expect(screen.getByText("Label").props.className).toContain("text-ink-2");
+
+    await rerender(
+      <ScreenIntro
+        icon={null}
+        title="Title"
+        description="Text"
+        eyebrow="Label"
+        eyebrowClassName="text-ok"
+      />,
+    );
+    expect(screen.getByText("Label").props.className).toContain("text-ok");
+  });
 });

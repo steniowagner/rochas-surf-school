@@ -1,5 +1,5 @@
-import { OnboardingScreen } from "@/modules/onboarding/screens/onboarding.screen";
+import { WhatsappScreen } from "@/modules/onboarding/screens/whatsapp.screen";
 
 export default function OnboardingRoute() {
-  return <OnboardingScreen />;
+  return <WhatsappScreen />;
 }

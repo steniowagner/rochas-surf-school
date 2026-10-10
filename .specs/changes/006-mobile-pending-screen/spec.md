@@ -234,6 +234,7 @@ reach the onboarding steps that approved accounts will go through.
   > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`;
   > verified: `npx jest src/modules/pending --coverage` (27 passed, 100% covered), `npx tsc --noEmit` and `eslint` clean;
   > deviations: the ghost-button test asserts `Button` is called with `variant="ghost"` (NativeWind classes aren't observable in Jest); added the `PendingStep` child folder; the design file isn't greppable, so the layout follows the spec's copy and D-06
+  > 🔧 2026-10-10 — after the design check, the timeline rows sit in a bordered card (`rounded-card border border-line bg-surface`) with dividers (`bg-line`), as in the design; file: `apps/mobile/src/modules/pending/components/pending/pending.component.tsx`; verified: `npx jest src/modules/pending` (27 passed), `npx tsc --noEmit`, simulator screenshot
 
 - [x] **T-06** — Add the `pending` flow (D-01): `"pending"` in `Flow` and `FLOW_BY_INACTIVE_STATUS` /
   `FLOW_ENTRY_ROUTES` (`src/navigation/resolve-flow.ts`, `resolve-flow.types.ts`); `routes.pending.home =

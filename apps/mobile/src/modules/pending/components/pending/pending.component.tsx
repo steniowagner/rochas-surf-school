@@ -54,7 +54,7 @@ export function Pending() {
           </Text>
         </View>
 
-        <View className="gap-1">
+        <View className="rounded-card border border-line bg-surface px-4">
           <PendingStep
             state="done"
             title={t("pending.steps.created")}
@@ -66,6 +66,7 @@ export function Pending() {
               ) : null
             }
           />
+          <View className="h-px bg-line" />
           <PendingStep
             state="current"
             title={t("pending.steps.approval")}
@@ -77,6 +78,7 @@ export function Pending() {
               </View>
             }
           />
+          <View className="h-px bg-line" />
           <PendingStep state="future" title={t("pending.steps.bookClasses")} />
         </View>
       </View>

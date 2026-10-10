@@ -255,6 +255,11 @@ reach the onboarding steps that approved accounts will go through.
   pass. Record the output summary as evidence. Covers: all · Done when: `run-related-tests.mjs 006` passes,
   `check-coverage.mjs 006` prints `COVERAGE OK`, lint and check-types exit 0, and both journeys show what they
   describe.
+  > ⛔ 2026-10-10 — automated checks pass: `run-related-tests.mjs 006` (17 suites, 231 tests passed), `check-coverage.mjs 006` (`COVERAGE OK`, 14 files),
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0), `run-e2e.mjs 006` (`E2E PASSED`, no suite applies). The simulator journeys
+  > are NOT done: the local backend has a real `RESEND_API_KEY`, so the sign-in code of a new account goes to the inbox of the email used, not to the backend
+  > log, and this session can't read it. Unblock: run the two journeys of the Verification Plan (iPhone 18 Pro is booted, Metro and the backend are running;
+  > the app was relaunched on the new code) with an email the person can read, or temporarily unset `RESEND_API_KEY` in `apps/backend/.env` so the code is logged.
 
 ## Verification Plan
 

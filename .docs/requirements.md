@@ -66,6 +66,8 @@ Lets people sign in to the app with the method they prefer while keeping exactly
 
 #### Sign-in methods
 
+_Implemented in spec 007-email-sign-in-screens._
+
 The app SHALL let people sign in with Google or a 6-digit code sent to their email address. On iOS, the app SHALL also offer Sign in with Apple. The same screen SHALL serve both signing in and signing up.
 
 - _First sign-in creates an account:_ When a person without an account signs in with any available method, then the system creates an account for them.
@@ -77,6 +79,7 @@ The app SHALL let people sign in with Google or a 6-digit code sent to their ema
 _Implemented in spec 001-email-sign-in-code._
 _Implemented in spec 002-email-create-account-screen._
 _Implemented in spec 003-email-confirm-code-screen._
+_Implemented in spec 007-email-sign-in-screens._
 
 The system SHALL send a 6-digit code to the email address a person enters and SHALL sign them in only when they enter that code. Signing in SHALL NOT require a password.
 
@@ -149,6 +152,7 @@ A new account SHALL wait for an admin's approval before its user can use the app
 _Implemented in spec 001-email-sign-in-code._
 _Implemented in spec 002-email-create-account-screen._
 _Implemented in spec 003-email-confirm-code-screen._
+_Implemented in spec 007-email-sign-in-screens._
 
 Every new account SHALL have a name before it waits for approval. The system SHALL use the name shared by Google or Apple when available, and SHALL ask the person to type one otherwise.
 

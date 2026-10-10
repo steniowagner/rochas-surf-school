@@ -109,6 +109,34 @@ describe("CreateAccount", () => {
     ).toBeOnTheScreen();
   });
 
+  it("starts with the given email", async () => {
+    const user = userEvent.setup();
+    const onCodeRequested = jest.fn();
+    await renderScreen(
+      <CreateAccount
+        initialEmail={VALID_EMAIL}
+        onCodeRequested={onCodeRequested}
+      />,
+    );
+
+    const email = screen.getByPlaceholderText(EMAIL_PLACEHOLDER);
+    expect(email).toHaveDisplayValue(VALID_EMAIL);
+    expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toHaveDisplayValue(
+      "",
+    );
+    expect(screen.queryByText("Enter a valid email.")).not.toBeOnTheScreen();
+
+    await user.type(screen.getByPlaceholderText(NAME_PLACEHOLDER), VALID_NAME);
+    await user.press(getButton());
+
+    await waitFor(() =>
+      expect(onCodeRequested).toHaveBeenCalledWith({
+        name: VALID_NAME,
+        email: VALID_EMAIL,
+      }),
+    );
+  });
+
   describe("Get code button", () => {
     it.each([
       ["both empty", "", ""],

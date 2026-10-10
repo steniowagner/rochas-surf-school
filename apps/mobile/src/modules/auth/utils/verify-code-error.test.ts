@@ -14,6 +14,32 @@ describe("getVerifyCodeError", () => {
     });
   });
 
+  it.each([["user.name.required"], ["user.name.invalid"]])(
+    "sends %s on the sign-in path to Create account",
+    (errorCode) => {
+      expect(getVerifyCodeError(new ApiError(422, [errorCode]), false)).toEqual(
+        {
+          key: "confirmCode.errors.noAccount",
+          placement: "toast",
+          opensCreateAccount: true,
+        },
+      );
+    },
+  );
+
+  it("keeps the other errors the same on the sign-in path", () => {
+    expect(
+      getVerifyCodeError(new ApiError(401, ["signInCode.code.invalid"]), false),
+    ).toEqual({
+      key: "confirmCode.errors.wrongCode",
+      placement: "inline",
+    });
+    expect(getVerifyCodeError(new NetworkError(), false)).toEqual({
+      key: "createAccount.errors.noConnection",
+      placement: "toast",
+    });
+  });
+
   it.each([
     [
       new ApiError(422, ["user.name.invalid"]),

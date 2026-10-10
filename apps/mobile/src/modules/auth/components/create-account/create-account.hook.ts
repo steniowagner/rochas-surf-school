@@ -5,16 +5,15 @@ import {
   PersonNameRule,
   RequiredRule,
   ValidationRule,
-  Validator,
 } from "@rochas-surf-school/shared";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Keyboard } from "react-native";
 
-import { TextInputStatus } from "@/components/ui/text-input/text-input.types";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { useRequestSignInCode } from "../../hooks/use-request-sign-in-code.hook";
+import { getStatus, isValid } from "../../utils/field-validation";
 import { getSignInCodeErrorKey } from "../../utils/sign-in-code-error";
 import { FieldState, UseCreateAccountProps } from "./create-account.types";
 
@@ -31,30 +30,13 @@ const emailRules = (): ValidationRule[] => [
   new EmailRule(),
 ];
 
-const isValid = (value: string, rules: ValidationRule[]) => {
-  try {
-    Validator.validate([{ code: "field", value, rules }]);
-
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const getStatus = (
-  value: string,
-  isValidValue: boolean,
-  isTouched: boolean,
-): TextInputStatus => {
-  return value !== "" && !isValidValue && isTouched ? "error" : "neutral";
-};
-
 export const useCreateAccount = ({
+  initialEmail = "",
   onCodeRequested,
 }: UseCreateAccountProps) => {
   const { t } = useTranslation();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [isNameTouched, setIsNameTouched] = useState(false);
   const [isEmailTouched, setIsEmailTouched] = useState(false);
 

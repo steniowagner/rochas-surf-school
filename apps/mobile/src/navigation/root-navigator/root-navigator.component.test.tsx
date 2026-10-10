@@ -140,6 +140,8 @@ const expectFlowScreen = (path: string, name: string) => {
   expect(screen.getByRole("header", { name })).toBeOnTheScreen();
 };
 
+const CREATE_ACCOUNT_PATH = "/auth/create-account";
+
 const FLOW_PATHS = [
   routes.pending.home,
   routes.onboarding.home,
@@ -182,8 +184,8 @@ describe("RootNavigator", () => {
     it("keeps Create account and Confirm email reachable", async () => {
       await openApp(null);
 
-      await navigate(routes.auth.createAccount);
-      expect(app.getPathname()).toBe(routes.auth.createAccount);
+      await navigate(routes.auth.createAccount());
+      expect(app.getPathname()).toBe(CREATE_ACCOUNT_PATH);
       expect(
         screen.getByRole("header", { name: "Create account" }),
       ).toBeOnTheScreen();
@@ -277,7 +279,7 @@ describe("RootNavigator", () => {
 
     it.each([
       routes.auth.signIn,
-      routes.auth.createAccount,
+      routes.auth.createAccount(),
       routes.onboarding.home,
       routes.student.home,
       routes.instructor.home,
@@ -331,7 +333,7 @@ describe("RootNavigator", () => {
 
     it("can't go back to auth after signing in", async () => {
       await openApp(null);
-      await navigate(routes.auth.createAccount);
+      await navigate(routes.auth.createAccount());
       await act(async () =>
         router.push(
           routes.auth.confirmCode({

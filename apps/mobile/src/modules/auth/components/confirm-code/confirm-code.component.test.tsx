@@ -21,6 +21,7 @@ jest.mock("expo-router", () => ({
   router: {
     back: jest.fn(),
     canGoBack: jest.fn(() => true),
+    dismissTo: jest.fn(),
     push: jest.fn(),
     replace: jest.fn(),
   },
@@ -69,6 +70,9 @@ beforeEach(async () => {
   fetchMock.mockResolvedValue(jsonResponse(200, SESSION));
   globalThis.fetch = fetchMock;
   jest.mocked(router.back).mockClear();
+  jest.mocked(router.replace).mockClear();
+  jest.mocked(router.dismissTo).mockClear();
+  jest.mocked(router.push).mockClear();
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
@@ -182,8 +186,39 @@ describe("ConfirmCode", () => {
 
     await user.press(screen.getByRole("link", { name: "change the email" }));
 
-    expect(router.replace).toHaveBeenCalledWith(routes.auth.createAccount);
+    expect(router.replace).toHaveBeenCalledWith(routes.auth.createAccount());
     expect(router.back).not.toHaveBeenCalled();
+  });
+
+  it("changes the email back to create account when there is no history", async () => {
+    jest.mocked(router.canGoBack).mockReturnValueOnce(false);
+    const user = userEvent.setup();
+    await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+    await user.press(screen.getByRole("link", { name: "change the email" }));
+
+    expect(router.replace).toHaveBeenCalledWith(routes.auth.createAccount());
+  });
+
+  it("changes the email back to sign in with email when there is no history", async () => {
+    jest.mocked(router.canGoBack).mockReturnValueOnce(false);
+    const user = userEvent.setup();
+    await renderScreen(<ConfirmCode email={EMAIL} />);
+
+    await user.press(screen.getByRole("link", { name: "change the email" }));
+
+    expect(router.replace).toHaveBeenCalledWith(routes.auth.emailSignIn);
+    expect(router.back).not.toHaveBeenCalled();
+  });
+
+  it("goes back from change the email on the sign-in path when there is history", async () => {
+    const user = userEvent.setup();
+    await renderScreen(<ConfirmCode email={EMAIL} />);
+
+    await user.press(screen.getByRole("link", { name: "change the email" }));
+
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.replace).not.toHaveBeenCalled();
   });
 
   describe("confirming", () => {
@@ -220,6 +255,89 @@ describe("ConfirmCode", () => {
       expect(
         screen.queryByRole("alert", { includeHiddenElements: true }),
       ).toBeNull();
+    });
+
+    it("verifies with the name on the create path", async () => {
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+      await fireEvent.changeText(getInput(), CODE);
+
+      await waitFor(() => expect(verifyCalls()).toHaveLength(1));
+      expect(JSON.parse(verifyCalls()[0][1].body)).toEqual({
+        email: EMAIL,
+        code: CODE,
+        name: NAME,
+      });
+    });
+
+    it("verifies without a name on the sign-in path", async () => {
+      const onVerified = jest.fn();
+      await renderScreen(<ConfirmCode email={EMAIL} onVerified={onVerified} />);
+
+      await fireEvent.changeText(getInput(), CODE);
+
+      await waitFor(() => expect(onVerified).toHaveBeenCalledWith(SESSION));
+      const body = JSON.parse(verifyCalls()[0][1].body);
+      expect(body).toEqual({ email: EMAIL, code: CODE });
+      expect("name" in body).toBe(false);
+    });
+
+    it.each([
+      [
+        "en-US",
+        "We couldn't find an account with this email. Create one to continue.",
+      ],
+      [
+        "pt-BR",
+        "Não encontramos uma conta com este e-mail. Crie uma para continuar.",
+      ],
+      [
+        "es-ES",
+        "No encontramos una cuenta con este correo. Crea una para continuar.",
+      ],
+    ])(
+      "sends an unknown email to create account (%s)",
+      async (locale, message) => {
+        await i18n.changeLanguage(locale);
+        fetchMock.mockResolvedValue(
+          jsonResponse(422, { errors: ["user.name.required"] }),
+        );
+        const onVerified = jest.fn();
+        await renderScreen(
+          <ConfirmCode email={EMAIL} onVerified={onVerified} />,
+        );
+
+        await fireEvent.changeText(getInput(), CODE);
+
+        expect(
+          await screen.findByText(message, { includeHiddenElements: true }),
+        ).toBeOnTheScreen();
+        expect(router.dismissTo).toHaveBeenCalledWith(routes.auth.emailChoice);
+        expect(router.push).toHaveBeenCalledWith(
+          routes.auth.createAccount({ email: EMAIL }),
+        );
+        expect(onVerified).not.toHaveBeenCalled();
+      },
+    );
+
+    it("keeps the name error on the create path", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(422, { errors: ["user.name.invalid"] }),
+      );
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+      await fireEvent.changeText(getInput(), CODE);
+
+      expect(
+        await screen.findByText(
+          "We couldn't save your name. Go back and check it.",
+          {
+            includeHiddenElements: true,
+          },
+        ),
+      ).toBeOnTheScreen();
+      expect(router.dismissTo).not.toHaveBeenCalled();
+      expect(router.push).not.toHaveBeenCalled();
     });
 
     it("works without an onVerified handler", async () => {

@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import { routes } from "@/constants/routes";
 
@@ -9,5 +9,9 @@ const openConfirmCode = ({ email, name }: CodeRequest) =>
   router.push(routes.auth.confirmCode({ email, name }));
 
 export function CreateAccountScreen() {
-  return <CreateAccount onCodeRequested={openConfirmCode} />;
+  const { email } = useLocalSearchParams<{ email?: string }>();
+
+  return (
+    <CreateAccount initialEmail={email} onCodeRequested={openConfirmCode} />
+  );
 }

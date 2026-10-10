@@ -1,0 +1,91 @@
+import { Ionicons } from "@expo/vector-icons";
+import { Trans, useTranslation } from "react-i18next";
+import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { BackButton } from "@/components/ui/back-button";
+import { Button } from "@/components/ui/button";
+import { ScreenIntro } from "@/components/ui/screen-intro";
+import { TextButton } from "@/components/ui/text-button";
+import { TextInput } from "@/components/ui/text-input";
+import { useTheme } from "@/hooks/use-theme";
+
+import { useEmailSignIn } from "./email-sign-in.hook";
+import { EmailSignInProps } from "./email-sign-in.types";
+
+export function EmailSignIn({
+  onCodeRequested,
+  onCreateAccountPress,
+}: EmailSignInProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { emailField, canSubmit, isSending, submit, createAccount } =
+    useEmailSignIn({ onCodeRequested, onCreateAccountPress });
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      className="flex-1 bg-page"
+    >
+      <View
+        className="flex-1 px-[22px]"
+        style={{
+          paddingTop: insets.top + 12,
+          paddingBottom: Math.max(insets.bottom, 24),
+        }}
+      >
+        <BackButton />
+
+        <View className="mt-6 gap-4">
+          <ScreenIntro
+            icon={
+              <Ionicons name="log-in-outline" size={28} color={theme.grape} />
+            }
+            title={t("emailSignIn.title")}
+            description={t("emailSignIn.subtitle")}
+          />
+
+          <TextInput
+            icon={<Ionicons name="mail-outline" size={20} color={theme.ink2} />}
+            placeholder={t("emailSignIn.emailPlaceholder")}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            returnKeyType="done"
+            onSubmitEditing={submit}
+            {...emailField}
+          />
+
+          <Text className="ds-text-list-subtitle text-center text-ink-2">
+            {/* `t` makes the element depend on the language: Trans doesn't re-render on language changes by itself. */}
+            <Trans
+              i18nKey="emailSignIn.noAccount"
+              t={t}
+              components={{ create: <TextButton onPress={createAccount} /> }}
+            />
+          </Text>
+        </View>
+
+        <View className="min-h-6 flex-1" />
+
+        <View className="gap-3.5">
+          <Button disabled={!canSubmit} loading={isSending} onPress={submit}>
+            {t("emailSignIn.submit")}
+          </Button>
+
+          <Text className="ds-text-list-subtitle mx-2 text-center text-ink-2">
+            <Trans
+              i18nKey="auth.terms"
+              t={t}
+              components={{
+                terms: <TextButton />,
+                privacy: <TextButton />,
+              }}
+            />
+          </Text>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}

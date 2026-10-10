@@ -10,13 +10,13 @@ jest.mock("expo-router", () => ({ router: { push: jest.fn() } }));
 jest.useFakeTimers();
 
 describe("AuthComponent email sign-in", () => {
-  it("opens Create account when Continue with email is pressed", async () => {
+  it("opens Choose when Continue with email is pressed", async () => {
     const user = userEvent.setup();
     await render(<AuthComponent />);
 
     await user.press(screen.getByText("Continue with email"));
 
-    expect(router.push).toHaveBeenCalledWith(routes.auth.createAccount);
+    expect(router.push).toHaveBeenCalledWith(routes.auth.emailChoice);
   });
 });
 

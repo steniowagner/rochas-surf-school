@@ -13,6 +13,9 @@ export function RootNavigator() {
       <Stack.Protected guard={flow === "auth"}>
         <Stack.Screen name="(public)/auth" />
       </Stack.Protected>
+      <Stack.Protected guard={flow === "pending"}>
+        <Stack.Screen name="(pending)/pending" />
+      </Stack.Protected>
       <Stack.Protected guard={flow === "onboarding"}>
         <Stack.Screen name="(onboarding)/onboarding" />
       </Stack.Protected>

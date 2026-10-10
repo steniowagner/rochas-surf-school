@@ -2,6 +2,7 @@ import type { Href } from "expo-router";
 
 export type Flow =
   | "auth"
+  | "pending"
   | "onboarding"
   | "reactivation"
   | "offboarding-denied"

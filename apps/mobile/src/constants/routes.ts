@@ -10,6 +10,9 @@ export const routes = {
       params,
     }),
   },
+  pending: {
+    home: "/pending",
+  },
   onboarding: {
     home: "/onboarding",
   },

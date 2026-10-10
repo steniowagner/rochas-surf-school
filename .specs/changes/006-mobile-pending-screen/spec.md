@@ -235,7 +235,7 @@ reach the onboarding steps that approved accounts will go through.
   > verified: `npx jest src/modules/pending --coverage` (27 passed, 100% covered), `npx tsc --noEmit` and `eslint` clean;
   > deviations: the ghost-button test asserts `Button` is called with `variant="ghost"` (NativeWind classes aren't observable in Jest); added the `PendingStep` child folder; the design file isn't greppable, so the layout follows the spec's copy and D-06
 
-- [ ] **T-06** — Add the `pending` flow (D-01): `"pending"` in `Flow` and `FLOW_BY_INACTIVE_STATUS` /
+- [x] **T-06** — Add the `pending` flow (D-01): `"pending"` in `Flow` and `FLOW_BY_INACTIVE_STATUS` /
   `FLOW_ENTRY_ROUTES` (`src/navigation/resolve-flow.ts`, `resolve-flow.types.ts`); `routes.pending.home =
   "/pending"` in `src/constants/routes.ts`; a `Stack.Protected guard={flow === "pending"}` around
   `(pending)/pending` in `src/navigation/root-navigator/root-navigator.component.tsx`; route files
@@ -243,6 +243,11 @@ reach the onboarding steps that approved accounts will go through.
   onboarding layout comment (no longer "waiting for approval"). Update `resolve-flow.test.ts` and
   `root-navigator.component.test.tsx` with the ER-01 tests and "returns to sign-in after signing out from
   pending" (ER-04). Covers: ER-01, ER-04 · Done when: `npx jest src/navigation` passes with those tests.
+  > ✅ 2026-10-10 — `pending` flow: `resolveFlow` maps `pending` → `pending`, `routes.pending.home = "/pending"`, `Stack.Protected` in `RootNavigator`, route files, onboarding layout comment fixed; tests updated/added (ER-01, ER-04);
+  > files: `apps/mobile/src/navigation/resolve-flow.ts`, `apps/mobile/src/navigation/resolve-flow.types.ts`, `apps/mobile/src/navigation/resolve-flow.test.ts`,
+  > `apps/mobile/src/navigation/root-navigator/root-navigator.component.tsx`, `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`,
+  > `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/app/(pending)/pending/_layout.tsx`, `apps/mobile/src/app/(pending)/pending/index.tsx`,
+  > `apps/mobile/src/app/(onboarding)/onboarding/_layout.tsx`; verified: `npx jest src/navigation` (88 passed), `npx tsc --noEmit` and eslint clean; deviations: none
 
 ### Verification
 

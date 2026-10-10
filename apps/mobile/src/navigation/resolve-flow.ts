@@ -12,7 +12,7 @@ const isUserStatus = (status: string): status is UserStatus =>
   (USER_STATUSES as readonly string[]).includes(status);
 
 const FLOW_BY_INACTIVE_STATUS: Record<Exclude<UserStatus, "approved">, Flow> = {
-  pending: "onboarding",
+  pending: "pending",
   deleted: "reactivation",
   denied: "offboarding-denied",
   removed: "offboarding-removed",
@@ -20,6 +20,7 @@ const FLOW_BY_INACTIVE_STATUS: Record<Exclude<UserStatus, "approved">, Flow> = {
 
 const FLOW_ENTRY_ROUTES: FlowEntryRoutes = {
   auth: routes.auth.signIn,
+  pending: routes.pending.home,
   onboarding: routes.onboarding.home,
   reactivation: routes.reactivation.home,
   "offboarding-denied": routes.offboarding.denied,

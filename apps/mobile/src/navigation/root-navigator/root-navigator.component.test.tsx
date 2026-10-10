@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { userEvent } from "@testing-library/react-native";
 import { Href, router } from "expo-router";
 import { act, renderRouter, screen } from "expo-router/testing-library";
 import { createRef, ReactNode, useImperativeHandle, useState } from "react";
@@ -12,6 +13,8 @@ import StudentRoute from "@/app/(private)/student/index";
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
 import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
 import RemovedRoute from "@/app/(offboarding)/offboarding/removed";
+import PendingLayout from "@/app/(pending)/pending/_layout";
+import PendingRoute from "@/app/(pending)/pending/index";
 import OnboardingLayout from "@/app/(onboarding)/onboarding/_layout";
 import OnboardingRoute from "@/app/(onboarding)/onboarding/index";
 import AuthLayout from "@/app/(public)/auth/_layout";
@@ -88,6 +91,8 @@ const routeTree = {
   "(public)/auth/index": AuthRoute,
   "(public)/auth/create-account": CreateAccountRoute,
   "(public)/auth/confirm-code": ConfirmCodeRoute,
+  "(pending)/pending/_layout": PendingLayout,
+  "(pending)/pending/index": PendingRoute,
   "(onboarding)/onboarding/_layout": OnboardingLayout,
   "(onboarding)/onboarding/index": OnboardingRoute,
   "(reactivation)/reactivation/_layout": ReactivationLayout,
@@ -136,6 +141,7 @@ const expectFlowScreen = (path: string, name: string) => {
 };
 
 const FLOW_PATHS = [
+  routes.pending.home,
   routes.onboarding.home,
   routes.reactivation.home,
   routes.offboarding.denied,
@@ -202,8 +208,8 @@ describe("RootNavigator", () => {
       {
         state: "pending",
         user: account("pending"),
-        path: routes.onboarding.home,
-        name: "Onboarding",
+        path: routes.pending.home,
+        name: "Waiting for approval",
       },
       {
         state: "deleted",
@@ -250,7 +256,7 @@ describe("RootNavigator", () => {
       },
     );
 
-    it("opens onboarding after a pending account signs in", async () => {
+    it("opens pending after a pending account signs in", async () => {
       await openApp(
         null,
         "/auth/confirm-code?email=ana.silva%40gmail.com&name=Ana%20Silva",
@@ -266,10 +272,48 @@ describe("RootNavigator", () => {
         }),
       );
 
-      expectFlowScreen(routes.onboarding.home, "Onboarding");
+      expectFlowScreen(routes.pending.home, "Waiting for approval");
     });
 
     it.each([
+      routes.auth.signIn,
+      routes.auth.createAccount,
+      routes.onboarding.home,
+      routes.student.home,
+      routes.instructor.home,
+      routes.admin.home,
+      routes.reactivation.home,
+      routes.offboarding.denied,
+      routes.offboarding.removed,
+    ])("keeps a pending account on pending for %s", async (path) => {
+      await openApp(account("pending"));
+
+      await navigate(path);
+
+      expectFlowScreen(routes.pending.home, "Waiting for approval");
+    });
+
+    it("returns to sign-in after signing out from pending", async () => {
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        json: async () => ({}),
+      });
+      process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+      const user = userEvent.setup();
+      await openApp(account("pending"));
+
+      await user.press(screen.getByRole("button", { name: "Sign out" }));
+
+      expectSignIn();
+
+      await navigate(routes.pending.home);
+
+      expectSignIn();
+    });
+
+    it.each([
+      routes.pending.home,
       routes.admin.home,
       routes.instructor.home,
       routes.onboarding.home,

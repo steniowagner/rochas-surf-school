@@ -218,7 +218,7 @@ reach the onboarding steps that approved accounts will go through.
   > ✅ 2026-10-10 — `useSignOut` returns `{ signOut }`: clears the session and query cache, then fire-and-forget `apiPost("/auth/sign-out")`; files: `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.ts`,
   > `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.test.tsx`; verified: `npx jest src/modules/auth/hooks/use-sign-out` (6 passed, 100% covered); deviations: none
 
-- [ ] **T-05** — Build the Pending screen: component `src/modules/pending/components/pending/`
+- [x] **T-05** — Build the Pending screen: component `src/modules/pending/components/pending/`
   (`pending.component.tsx`, `pending.hook.ts` — reads the session, the language, ticks every 60 s and calls
   `useSignOut` —, `pending.types.ts`, `index.ts`, `pending.component.test.tsx`) following the design (D-06,
   D-07) with NativeWind classes and tokens only, and the "Terminar sessão" `Button variant="ghost"`; screen
@@ -227,6 +227,13 @@ reach the onboarding steps that approved accounts will go through.
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-02, ER-03, ER-04 · Done when: `npx jest src/modules/pending` passes with the ER-02 tests, "updates
   the created label every minute" and "signs out when Sign out is pressed".
+  > ✅ 2026-10-10 — Pending component (hook ticks every 60 s, uses `useSignOut`), a `PendingStep` child component (own folder, per react.md §5), `PendingScreen`, and the `pending.*` keys in the three locales; files:
+  > `apps/mobile/src/modules/pending/components/pending/{index.ts,pending.component.tsx,pending.hook.ts,pending.types.ts,pending.component.test.tsx}`,
+  > `apps/mobile/src/modules/pending/components/pending-step/{index.ts,pending-step.component.tsx,pending-step.types.ts}`,
+  > `apps/mobile/src/modules/pending/screens/pending.screen.tsx`, `apps/mobile/src/modules/pending/screens/pending.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`;
+  > verified: `npx jest src/modules/pending --coverage` (27 passed, 100% covered), `npx tsc --noEmit` and `eslint` clean;
+  > deviations: the ghost-button test asserts `Button` is called with `variant="ghost"` (NativeWind classes aren't observable in Jest); added the `PendingStep` child folder; the design file isn't greppable, so the layout follows the spec's copy and D-06
 
 - [ ] **T-06** — Add the `pending` flow (D-01): `"pending"` in `Flow` and `FLOW_BY_INACTIVE_STATUS` /
   `FLOW_ENTRY_ROUTES` (`src/navigation/resolve-flow.ts`, `resolve-flow.types.ts`); `routes.pending.home =

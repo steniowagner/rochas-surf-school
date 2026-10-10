@@ -53,6 +53,20 @@ const messages: Messages = {
       nameNotSaved: "No pudimos guardar tu nombre. Vuelve y revísalo.",
     },
   },
+  pending: {
+    eyebrow: "Cuenta creada",
+    title: "Esperando aprobación",
+    description:
+      "El equipo de Rocha's revisará tu registro. Cuando sea aprobado, podrás entrar con <bold>{{email}}</bold>.",
+    steps: {
+      created: "Cuenta creada",
+      approval: "Aprobación del equipo",
+      inReview: "En revisión",
+      bookClasses: "Reservar clases",
+    },
+    now: "Ahora",
+    signOut: "Cerrar sesión",
+  },
   flows: {
     onboarding: "Primeros pasos",
     reactivation: "Reactivación",

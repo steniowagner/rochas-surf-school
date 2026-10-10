@@ -2,13 +2,14 @@
 id: "005"
 slug: mobile-flow-routing
 title: Route the mobile app to one flow per account state
-status: accepted
+status: finished
 created: 2026-10-10
 started: 2026-10-10
 base_commit: cdd314e861f931b2e000d921b380c5f8abe1aa25
 reviewed_commit: 5d31512ecd2aa6905ccf1f2b70a907963021a886
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-10
 ---
 
 # 005 — Route the mobile app to one flow per account state

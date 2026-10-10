@@ -83,6 +83,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   follow the same rules as the account, so the backend won't refuse them.
 - **In the app**, the code is checked on the Confirm email screen, sending the name kept from Create account;
   the same screen asks for a new code once 30 seconds have passed since the last one.
+- **In the app**, a correct code puts the account in the session and opens the part of the app that matches
+  its status and role: onboarding for a pending account (and, once onboarding exists, for an approved one that
+  hasn't finished it), its role's experience for an approved one, reactivation for a deleted one, and its own
+  screen for a denied or removed one. Every other part stays unreachable.
 
 ## Boundaries
 
@@ -102,3 +106,5 @@ and school rules), erasure and reactivation are rules of the account lifecycle s
 - `004-backend-session-endpoints` — the backend reads the current account, renews a session (rotation, reuse
   ends the sign-in, sliding 30 days) and signs out one sign-in; every request reloads role and status; the
   verified user gains its creation date.
+- `005-mobile-flow-routing` — the app keeps the verified account in memory and opens one flow per account
+  state (onboarding, reactivation, denied, removed, student, instructor, admin), each unreachable from the others.

@@ -228,7 +228,7 @@ D-05 copy table:
   > verified: `npx jest src/modules/auth src/navigation` (13 suites, 214 tests pass), `npx tsc --noEmit` (exit 0);
   > deviations: Create account / `useConfirmCode` default the `createAccount()` fallback; the auth component's "Continue with email" switch to Choose moved wholly to T-02
 
-- [ ] **T-02** — Choose screen (D-04, D-05, D-06): component `src/modules/auth/components/email-choice/`
+- [x] **T-02** — Choose screen (D-04, D-05, D-06): component `src/modules/auth/components/email-choice/`
   (`email-choice.component.tsx`, `email-choice.types.ts`, `index.ts`, `email-choice.component.test.tsx`) with the
   child `choice-row` component; screen `src/modules/auth/screens/email-choice.screen.tsx` (rows push
   `routes.auth.emailSignIn` and `routes.auth.createAccount()`); route file `src/app/(public)/auth/email.tsx`; the
@@ -239,6 +239,20 @@ D-05 copy table:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/auth/components/email-choice src/modules/auth/email-auth.navigation src/modules/auth/components/auth`
   passes with the tests named in ER-01 and ER-02.
+  > ✅ 2026-10-10 — Choose screen built from `EmailChoice` (+ child `ChoiceRow`, `Pressable` rows with the `button` role and
+  > the title as label), `EmailChoiceScreen` and route `/auth/email`; "Continue with email" now pushes
+  > `routes.auth.emailChoice`; `emailChoice.*` keys (and, ahead of T-04, `emailSignIn.*` and
+  > `confirmCode.errors.noAccount`) added to the three locale files. A placeholder route file `email-sign-in.tsx`
+  > (a "Sign in" header) lets the navigation tests and typed routes work until T-03 replaces it.
+  > Files: `apps/mobile/src/modules/auth/components/choice-row/{index.ts,choice-row.types.ts,choice-row.component.tsx}`,
+  > `apps/mobile/src/modules/auth/components/email-choice/{index.ts,email-choice.types.ts,email-choice.component.tsx,email-choice.component.test.tsx}`,
+  > `apps/mobile/src/modules/auth/screens/email-choice.screen.tsx`, `apps/mobile/src/app/(public)/auth/email.tsx`,
+  > `apps/mobile/src/app/(public)/auth/email-sign-in.tsx` (placeholder),
+  > `apps/mobile/src/modules/auth/email-auth.navigation.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/auth/{auth.component.tsx,auth.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`;
+  > verified: `npx jest src/modules/auth src/navigation` (15 suites, 223 tests pass; includes the ER-01/ER-02 tests),
+  > `npx tsc --noEmit` (exit 0); deviations: the locale keys for T-03/T-04 were added now; sign-in route is a placeholder until T-03
 
 - [ ] **T-03** — Sign in with email screen (D-03, D-05, D-06, D-07): component
   `src/modules/auth/components/email-sign-in/` (`email-sign-in.component.tsx`, `email-sign-in.hook.ts`,

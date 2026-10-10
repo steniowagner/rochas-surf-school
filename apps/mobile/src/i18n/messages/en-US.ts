@@ -32,6 +32,27 @@ const messages = {
       generic: "Something went wrong. Please try again.",
     },
   },
+  emailChoice: {
+    title: "Continue with email",
+    subtitle:
+      "Do you already have a Rocha's account, or is this your first time?",
+    existing: {
+      title: "I have an account",
+      description: "Sign in with the email you signed up with.",
+    },
+    new: {
+      title: "I'm new here",
+      description: "Create an account with your name and email.",
+    },
+  },
+  emailSignIn: {
+    title: "Sign in",
+    subtitle: "Use your account's email. We'll send you a code to sign in.",
+    emailPlaceholder: "you@email.com",
+    emailInvalid: "Enter a valid email.",
+    noAccount: "Don't have an account? <create>Create account</create>",
+    submit: "Get code",
+  },
   confirmCode: {
     title: "Confirm your email",
     description:
@@ -47,6 +68,8 @@ const messages = {
       expired: "This code has expired. Request a new one.",
       locked: "Too many wrong attempts. Request a new code.",
       nameNotSaved: "We couldn't save your name. Go back and check it.",
+      noAccount:
+        "We couldn't find an account with this email. Create one to continue.",
     },
   },
   pending: {

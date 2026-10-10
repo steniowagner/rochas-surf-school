@@ -36,6 +36,27 @@ const messages: Messages = {
       generic: "Algo salió mal. Inténtalo de nuevo.",
     },
   },
+  emailChoice: {
+    title: "Continuar con email",
+    subtitle: "¿Ya tienes cuenta en Rocha's o es tu primera vez?",
+    existing: {
+      title: "Ya tengo cuenta",
+      description: "Entra con el correo con el que te registraste.",
+    },
+    new: {
+      title: "Es mi primera vez",
+      description: "Crea tu cuenta con tu nombre y correo.",
+    },
+  },
+  emailSignIn: {
+    title: "Entrar",
+    subtitle:
+      "Usa el correo de tu cuenta. Te enviaremos un código para entrar.",
+    emailPlaceholder: "tu@correo.com",
+    emailInvalid: "Escribe un correo válido.",
+    noAccount: "¿Aún no tienes cuenta? <create>Crear cuenta</create>",
+    submit: "Recibir código",
+  },
   confirmCode: {
     title: "Confirma tu correo",
     description:
@@ -51,6 +72,8 @@ const messages: Messages = {
       expired: "Este código caducó. Pide uno nuevo.",
       locked: "Demasiados intentos fallidos. Pide un código nuevo.",
       nameNotSaved: "No pudimos guardar tu nombre. Vuelve y revísalo.",
+      noAccount:
+        "No encontramos una cuenta con este correo. Crea una para continuar.",
     },
   },
   pending: {

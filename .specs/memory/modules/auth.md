@@ -77,11 +77,19 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date).
 - **Anyone holding a refresh token** — renews or ends that session (10 requests per minute per network address
   for each).
+- **In the app**, "Continue with email" asks whether the person already has an account: "I have an account"
+  opens Sign in with email, "I'm new here" opens Create account.
+- **In the app**, a person with an account gives only the email address on Sign in with email (same address
+  rules and error messages as Create account); the code check then sends no name. An address with no account
+  on that path gets a message and opens Create account with the address filled in — the code stays usable, so
+  the person only adds a name. "Create account" on Sign in with email also opens Create account with the
+  address typed so far.
 - **In the app**, a new person gives their name and email address on the Create account screen before the
   code is sent; the app keeps the name and sends it with the code check, which creates the account. Asking
   for a code sends only the address and the language. The app accepts a name and an address only when they
   follow the same rules as the account, so the backend won't refuse them.
-- **In the app**, the code is checked on the Confirm email screen, sending the name kept from Create account;
+- **In the app**, the code is checked on the Confirm email screen, sending the name kept from Create account
+  (none on the sign-in path); "change the email" returns to the screen that asked for the code;
   the same screen asks for a new code once 30 seconds have passed since the last one.
 - **In the app**, a correct code puts the account in the session and opens the part of the app that matches
   its status and role: the Pending screen for a pending account, onboarding for an approved one that hasn't
@@ -117,3 +125,6 @@ and school rules), erasure and reactivation are rules of the account lifecycle s
 - `006-mobile-pending-screen` — a pending account opens its own Pending screen (its own flow, no longer
   onboarding), which shows since when the account exists; signing out from it ends the sign-in on the phone and
   on the backend and returns to sign-in. The app keeps the session's tokens and the account's creation date.
+- `007-email-sign-in-screens` — "Continue with email" opens a Choose screen; the new Sign in with email screen
+  asks only for the address and verifies without a name; an address with no account on that path is sent to
+  Create account with the address filled in. Create account can start with an address.

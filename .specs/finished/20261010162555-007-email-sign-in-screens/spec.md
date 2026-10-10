@@ -2,13 +2,14 @@
 id: "007"
 slug: email-sign-in-screens
 title: Email sign-in screens — choose path and sign in with email
-status: accepted
+status: finished
 created: 2026-10-10
 started: 2026-10-10
 base_commit: ec43e72032bd16ceb27f288699a099d9276a336a
 reviewed_commit: b5250ddf6bd2879b563a657941b2ada2964b797c
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-10
 ---
 
 # 007 — Email sign-in screens — choose path and sign in with email

@@ -266,8 +266,8 @@ Delivered: **email code sign-in on the backend** (spec `001-email-sign-in-code`)
 a pending student by giving a name; the backend returns a session (a 15-minute access token and a 30-day
 refresh token) and the account's status. The review accounts are seeded and sign in with their fixed codes.
 
-**Create account in the app** (spec `002-email-create-account-screen`) — "Continue with email" on the sign-in
-screen opens the Create account screen, where a person types their name and email address and asks for a
+**Create account in the app** (spec `002-email-create-account-screen`) — "I'm new here" on the Choose screen
+(spec 007) opens the Create account screen, where a person types their name and email address and asks for a
 sign-in code, sent in the language picked on the sign-in screen. The button works only once both values follow
 the same rules the backend applies, and every error the backend can answer is shown as a short translated
 message. The name is collected here, before the code, and kept in the app until the code is checked.
@@ -298,6 +298,15 @@ its role, opens the Pending screen instead of onboarding: it tells the person th
 the account, shows the address they signed in with and since when the account exists ("Now", a relative time,
 then the date after a week), and offers only "Sign out". Signing out returns to the sign-in screen at once,
 even offline, and ends that sign-in on the backend. The approval is seen the next time the person signs in.
+
+**Signing in with email to an existing account** (spec `007-email-sign-in-screens`) — "Continue with email" on
+the sign-in screen opens the Choose screen, where the person says whether they already have an account. "I have
+an account" opens Sign in with email, which asks only for the address, sends the code and goes through the same
+Confirm email screen without asking for a name, into the part of the app that matches the account. Whoever picks
+the wrong path is sent to the right one with the address already typed: "Create account" on Sign in with email
+opens Create account with it, and an address with no account on the sign-in path shows a message and opens
+Create account with it after the code, so the person only adds their name (the code stays usable). Accounts are
+created only on the path that collects a name.
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its

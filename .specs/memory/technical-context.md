@@ -159,7 +159,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
   shown inline under the field, because the design shows it there.
 - **Mobile routes**: every app path lives in `src/constants/routes.ts` (`routes.<module>.<screen>`, a function
-  when the route takes params). `router` and `Redirect` calls and their tests use it, never string literals,
+  when the route takes params, optional ones included: `routes.auth.createAccount()` or
+  `routes.auth.createAccount({ email })`). `router` and `Redirect` calls and their tests use it, never string literals,
   so a moved route changes in one place.
 - **Mobile flows**: each account state has one flow — `auth`, `pending`, `onboarding`, `reactivation`,
   `offboarding-denied`, `offboarding-removed`, `student`, `instructor`, `admin` — picked only by `resolveFlow`

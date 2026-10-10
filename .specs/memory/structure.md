@@ -111,8 +111,11 @@ src/
     index.tsx                   # redirects to the entry route of the resolved flow
     (public)/auth/_layout.tsx   # Stack of the signed-out flow
     (public)/auth/index.tsx     # sign-in screen
-    (public)/auth/create-account.tsx    # Create account screen
-    (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, name)
+    (public)/auth/email.tsx             # Choose screen: "I have an account" / "I'm new here" (/auth/email)
+    (public)/auth/email-sign-in.tsx     # Sign in with email screen (/auth/email-sign-in)
+    (public)/auth/create-account.tsx    # Create account screen (optional param: email, prefilled)
+    (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, optional name — absent on the
+                                        # sign-in path)
     (pending)/pending/{_layout,index}.tsx            # pending flow: waiting for approval (/pending)
     (onboarding)/onboarding/{_layout,index}.tsx      # onboarding flow of an approved account (/onboarding)
     (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
@@ -128,14 +131,19 @@ src/
     components/                 # pending (header, timeline, sign-out; ticks every 60 s), pending-step (one row)
     utils/format-created-at.ts  # the "Account created" label: "now", relative up to 7 days, then the date
   modules/auth/
-    screens/                    # auth.screen.tsx, create-account.screen.tsx, confirm-code.screen.tsx
-    components/                 # auth (sign-in), auth-button, language-sheet, create-account, confirm-code
-                                # (code entry, verify, resend countdown) — each component + hook
+    screens/                    # auth.screen.tsx, email-choice.screen.tsx, email-sign-in.screen.tsx,
+                                # create-account.screen.tsx, confirm-code.screen.tsx
+    components/                 # auth (sign-in), auth-button, language-sheet, email-choice (+ its row,
+                                # choice-row), email-sign-in, create-account, confirm-code (code entry, verify,
+                                # resend countdown, both paths) — each component + hook
+    email-auth.navigation.test.tsx  # navigation tests of the email paths against the real auth route files
     hooks/                      # use-request-sign-in-code.hook.ts (POST /auth/email/code),
                                 # use-verify-sign-in-code.hook.ts (POST /auth/email/verify),
                                 # use-sign-out.hook.ts (clears the session, then POST /auth/sign-out)
     utils/                      # sign-in-code-error.ts, verify-code-error.ts (API error → translation key,
-                                # and inline or toast for the code check)
+                                # and inline or toast for the code check; on the sign-in path a name error
+                                # sends the person to Create account), field-validation.ts (isValid with the
+                                # shared rules, getStatus: error only after blur and when not empty)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
                                 # text-input, toast

@@ -208,13 +208,15 @@ reach the onboarding steps that approved accounts will go through.
   > `apps/mobile/src/modules/pending/utils/format-created-at.types.ts`, `apps/mobile/src/modules/pending/utils/format-created-at.test.ts`;
   > verified: `npx jest src/modules/pending/utils --coverage` (17 passed, 100% lines/branches); deviations: none
 
-- [ ] **T-04** — Create `src/modules/auth/hooks/use-sign-out.hook.ts` (D-03): returns `signOut()`, which reads
+- [x] **T-04** — Create `src/modules/auth/hooks/use-sign-out.hook.ts` (D-03): returns `signOut()`, which reads
   the tokens, calls `clearSession()` and `queryClient.clear()`, then fires `apiPost("/auth/sign-out",
   { refreshToken })` and swallows its rejection; no request without tokens. Test it in
   `use-sign-out.hook.test.tsx` with a mocked `fetch`. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-04, ER-05 · Done when: `npx jest src/modules/auth/hooks/use-sign-out` passes with the five tests
   of ER-05 and "clears the session and the query cache".
+  > ✅ 2026-10-10 — `useSignOut` returns `{ signOut }`: clears the session and query cache, then fire-and-forget `apiPost("/auth/sign-out")`; files: `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.test.tsx`; verified: `npx jest src/modules/auth/hooks/use-sign-out` (6 passed, 100% covered); deviations: none
 
 - [ ] **T-05** — Build the Pending screen: component `src/modules/pending/components/pending/`
   (`pending.component.tsx`, `pending.hook.ts` — reads the session, the language, ticks every 60 s and calls

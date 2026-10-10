@@ -289,7 +289,7 @@ message for the third.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Expose `PUT /auth/me/whatsapp` (protected, `@CurrentUser('id')`, 200) in
+- [x] **T-05** — Expose `PUT /auth/me/whatsapp` (protected, `@CurrentUser('id')`, 200) in
   `apps/backend/src/modules/auth/auth.controller.ts`, calling `SetWhatsapp` with the body's two fields; add
   the requests (save, replace, invalid number, missing visibility, pending account) to
   `auth.integration.http`; write `test/auth-whatsapp.e2e-spec.ts` (saves, replaces, same number on two
@@ -301,6 +301,7 @@ message for the third.
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller). Covers: ER-02, ER-03, ER-04,
   ER-05 · Done when: `npm run test:e2e --workspace apps/backend` passes (database up, migrations applied) and
   `npm test` in `apps/backend` passes.
+  > ✅ 2026-10-10 — added `PUT /auth/me/whatsapp` (protected, 200, `@CurrentUser('id')`, runs `SetWhatsapp`); controller unit tests (route metadata, success, missing body, plus the new user fields on verify and `GET /auth/me`); new e2e suite `auth-whatsapp.e2e-spec.ts` (saves, replaces, same number on two accounts, pending → 403, no/invalid token → 401, five 422 cases each checking `GET /auth/me` unchanged, missing body, empty number keeps the stored one); `whatsappNumber`/`whatsappVisible` asserted in the verify, refresh and `GET /auth/me` e2e tests; REST Client requests added; files: `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-whatsapp.e2e-spec.ts`, `apps/backend/test/auth-email.e2e-spec.ts`, `apps/backend/test/auth-session.e2e-spec.ts`; verified: `npm run test:e2e` (3 files, 84 passed, database up), `npm test` (17 files, 119 passed), `npm run lint` and `npm run check-types` clean; deviations: skill `backend-nest-controller` not invoked, the route follows the controller's existing pattern; the approved account for the e2e test is created through Prisma and signed in through the real email flow
 
 ### Mobile (`apps/mobile`)
 

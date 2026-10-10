@@ -82,7 +82,7 @@ Content-Type: application/json
   "code": "{{code}}"
 }
 
-### Current account (expects 200 with id, name, email, role, status and createdAt; any account status)
+### Current account (expects 200 with id, name, email, role, status, createdAt, whatsappNumber and whatsappVisible; any account status)
 # Replace the token with the accessToken returned by the verify request above.
 @accessToken = paste-the-access-token-here
 GET {{baseUrl}}/auth/me
@@ -90,6 +90,66 @@ Authorization: Bearer {{accessToken}}
 
 ### Current account without a token (expects 401 auth.token.invalid)
 GET {{baseUrl}}/auth/me
+
+### Save the WhatsApp number (expects 200 with the account including whatsappNumber and whatsappVisible; only an approved account)
+# Approve the account first: UPDATE users SET status = 'approved' WHERE email = '<email>'
+PUT {{baseUrl}}/auth/me/whatsapp
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+5585999998888",
+  "whatsappVisible": false
+}
+
+### Replace the WhatsApp number and visibility (expects 200 with the new values)
+PUT {{baseUrl}}/auth/me/whatsapp
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+351912345678",
+  "whatsappVisible": true
+}
+
+### Save an invalid WhatsApp number (expects 422 user.whatsappNumber.phone; nothing is saved)
+PUT {{baseUrl}}/auth/me/whatsapp
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+55123",
+  "whatsappVisible": false
+}
+
+### Save without the visibility (expects 422 user.whatsappVisible.required)
+PUT {{baseUrl}}/auth/me/whatsapp
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+5585999998888"
+}
+
+### Save the WhatsApp number of a pending account (expects 403 user.status.notApproved)
+# Use the accessToken of an account that is still pending.
+PUT {{baseUrl}}/auth/me/whatsapp
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+5585999998888",
+  "whatsappVisible": false
+}
+
+### Save the WhatsApp number without a token (expects 401 auth.token.invalid)
+PUT {{baseUrl}}/auth/me/whatsapp
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+5585999998888",
+  "whatsappVisible": false
+}
 
 ### Renew the session (expects 200 with a new accessToken and refreshToken, same shape as verify; the sent token is revoked)
 # Replace the token with the refreshToken returned by verify or by the previous refresh.

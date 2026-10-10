@@ -54,6 +54,11 @@ function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
     findById: vi.fn(async (id: string) => users.find((user) => user.id === id) ?? null),
     findByEmail: vi.fn(async (email: string) => users.find((user) => user.email === email) ?? null),
     create: vi.fn(async (user: User) => user),
+    update: vi.fn(async (user: User) => {
+      const index = users.findIndex((item) => item.id === user.id);
+      if (index !== -1) users[index] = user;
+      return user;
+    }),
   };
   const identities: Identity[] = [];
   const identityRepository = {
@@ -189,6 +194,8 @@ describe('AuthController', () => {
           role: 'student',
           status: 'approved',
           createdAt: ana.createdAt,
+          whatsappNumber: null,
+          whatsappVisible: false,
         },
       });
       expect(refreshTokens).toHaveLength(1);
@@ -246,6 +253,8 @@ describe('AuthController', () => {
         role: 'instructor',
         status: 'pending',
         createdAt: ana.createdAt,
+        whatsappNumber: null,
+        whatsappVisible: false,
       });
     });
 
@@ -255,6 +264,54 @@ describe('AuthController', () => {
       await expect(controller.me(ana.id)).rejects.toMatchObject({
         statusCode: 401,
         message: 'auth.token.invalid',
+      });
+    });
+  });
+
+  describe('PUT /auth/me/whatsapp', () => {
+    const approved = () =>
+      new User({
+        name: 'Ana Rocha',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'student',
+        status: 'approved',
+      });
+
+    it('is a protected PUT on me/whatsapp answering 200', () => {
+      const handler = handlerOf('setWhatsapp');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('me/whatsapp');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.PUT);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('runs SetWhatsapp for the signed-in account', async () => {
+      const ana = approved();
+      const { controller } = setup({}, [ana]);
+
+      await expect(
+        controller.setWhatsapp(ana.id, { whatsappNumber: '+5585999998888', whatsappVisible: true }),
+      ).resolves.toEqual({
+        id: ana.id,
+        name: 'Ana Rocha',
+        email: 'ana@example.com',
+        role: 'student',
+        status: 'approved',
+        createdAt: ana.createdAt,
+        whatsappNumber: '+5585999998888',
+        whatsappVisible: true,
+      });
+    });
+
+    it('answers 422 when there is no body', async () => {
+      const ana = approved();
+      const { controller } = setup({}, [ana]);
+
+      await expect(controller.setWhatsapp(ana.id, undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'user.whatsappNumber.required' })],
       });
     });
   });

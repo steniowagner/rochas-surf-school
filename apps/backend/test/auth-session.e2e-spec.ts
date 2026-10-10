@@ -37,6 +37,8 @@ interface Session {
     role: Role;
     status: Status;
     createdAt: string;
+    whatsappNumber: string | null;
+    whatsappVisible: boolean;
   };
 }
 
@@ -124,8 +126,31 @@ describe('Session endpoints (e2e)', () => {
         role: 'instructor',
         status: 'approved',
         createdAt: user.createdAt.toISOString(),
+        whatsappNumber: null,
+        whatsappVisible: false,
       });
       expect(session.user.createdAt).toBe(user.createdAt.toISOString());
+    });
+
+    it('returns the stored WhatsApp number and visibility', async () => {
+      const user = await ctx.prisma.user.create({
+        data: {
+          id: randomUUID(),
+          name: 'Ana Rocha',
+          email: uniqueEmail('ana'),
+          status: 'approved',
+          role: 'student',
+          whatsappNumber: '+5585999998888',
+          whatsappVisible: true,
+        },
+      });
+      const session = await signIn(user.email);
+
+      expect(session.user).toMatchObject({ whatsappNumber: '+5585999998888', whatsappVisible: true });
+      expect((await me(session.accessToken)).body).toMatchObject({
+        whatsappNumber: '+5585999998888',
+        whatsappVisible: true,
+      });
     });
 
     it.each<Status>(['pending', 'approved', 'denied', 'deleted', 'removed'])(
@@ -225,6 +250,7 @@ describe('Session endpoints (e2e)', () => {
       };
       expect(body.refreshToken).not.toBe(session.refreshToken);
       expect(body.user).toEqual(session.user);
+      expect(body.user).toMatchObject({ whatsappNumber: null, whatsappVisible: false });
       expect(Date.parse(body.accessTokenExpiresAt) - before).toBeGreaterThan(14 * 60 * 1000);
       const old = await rowOf(session.refreshToken);
       const next = await rowOf(body.refreshToken);

@@ -2,10 +2,11 @@
 id: "008"
 slug: onboarding-whatsapp
 title: Onboarding WhatsApp number step
-status: in-review
+status: accepted
 created: 2026-10-10
 started: 2026-10-10
 base_commit: 045e0c9a52cc2e43219a20891c39149f40c49cf7
+reviewed_commit: b7357c0dc69f3c889b59270a082ab2a11ff35c47
 fronts: [shared, auth, backend, mobile]
 depends_on: []
 ---
@@ -481,3 +482,44 @@ message for the third.
 - An approved account with a number can still navigate to `/onboarding` by URL and see the WhatsApp screen
   again (the onboarding group is guarded by flow, not by step). The spec doesn't ask for a step guard; worth
   deciding in the school-rules spec.
+
+### Round 2 — 2026-10-10 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (shared, auth, backend, mobile; `--concurrency=1`, 12 tasks)
+- related tests ✅ (apps/backend, apps/mobile, modules/auth, packages/shared; apps/web has no runner)
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 87 passed (database up), including the three new F-01 422 cases
+- user journeys 1 and 2 (iOS simulator, Expo Go, backend running, `dev@example.com` approved without a number):
+  1 ✅ — in pt-BR, "Conta aprovada", "Boas-vindas à Rocha's, Dev", "Só falta uma coisa antes de começar.",
+  "BR +55", "Ocultar meu número" on, button disabled, no back button; an invalid number shows "Número de WhatsApp
+  inválido." after blur and the button stays disabled; the picker lists names in Portuguese and "port" finds
+  "Porto Rico" and "Portugal". In en-US, "port" → Portugal → chip "PT +351", `912 345 678` enables the button,
+  saving opens "School rules", the back-swipe stays on it, and the row has `whatsapp_number = '+351912345678'`,
+  `whatsapp_visible = false`. Light and dark both checked.
+  2 ✅ — after a restart, signing in again opens School rules directly. The account was reset to no number afterwards.
+
+**Expected Results**
+
+- ER-01 ✅ — rule tests, including the non-E.164 texts of F-01
+- ER-02 ✅ — e2e "saves…", "replaces…", "same number"; `SetWhatsapp` unit tests; journey 1
+- ER-03 ✅ — e2e 403 pending / 401 without and with an invalid token; unit test per non-approved status
+- ER-04 ✅ — e2e 422 cases (now also formatted, extension, trailing space), each re-reading `GET /auth/me`
+- ER-05 ✅ — verify, refresh and `GET /auth/me` assert both fields in e2e and unit tests
+- ER-06 ✅ — `resolve-flow` and `root-navigator` tests; journeys 1 and 2
+- ER-07 ✅ — component test; journey 1 (pt-BR and en-US, light and dark)
+- ER-08 ✅ — `whatsapp` and `country-picker` tests; journey 1
+- ER-09 ✅ — `apiPut`, `use-save-whatsapp` and `whatsapp` tests; journey 1
+
+**Findings**
+
+- F-01 (round 1) is fixed: `PhoneNumberRule` requires `^\+[1-9]\d{1,14}$` before `isValidPhoneNumber`, with unit
+  and e2e cases. No new findings.
+
+**Notes**
+
+- Round 1's notes still stand (the component's session-expired test doesn't assert the cleared session; an
+  approved account with a number can still open `/onboarding` by URL — for the school-rules spec to decide).
+- With a hardware keyboard the `phone-pad` field accepts letters; validation refuses them, so nothing invalid
+  can be saved.

@@ -250,12 +250,13 @@ message for the third.
 
 ### Shared (`packages/shared`)
 
-- [ ] **T-01** — Add `ForbiddenError` (`statusCode` 403, message = translation key, optional `details`, like
+- [x] **T-01** — Add `ForbiddenError` (`statusCode` 403, message = translation key, optional `details`, like
   `UnauthorizedError`) in `packages/shared/src/error/forbidden.error.ts`, export it from
   `src/error/index.ts`, with `test/error/forbidden.error.test.ts`. Check that the backend's
   `ApiExceptionFilter` answers 403 for it (it maps any `DomainError` by `statusCode`; add a case to its spec in
   the `backend-nest-config` templates only if it doesn't). Covers: ER-03 · Done when:
   `npm test --workspace @rochas-surf-school/shared` passes with the new test.
+  > ✅ 2026-10-10 — added `ForbiddenError` (403, optional details) and exported it; the backend's `ApiExceptionFilter` already maps any `DomainError` by `statusCode`, so no filter change; files: `packages/shared/src/error/forbidden.error.ts`, `packages/shared/src/error/index.ts`, `packages/shared/test/error/forbidden.error.test.ts`; verified: `npm test --workspace @rochas-surf-school/shared` (24 suites, 114 tests passed); deviations: none
 
 - [ ] **T-02** — Add `PhoneNumberRule` in `packages/shared/src/validation/rules/phone-number.rule.ts`
   (`libphonenumber-js` `isValidPhoneNumber` on E.164 strings, key `phone`, via `validateStringValues`),

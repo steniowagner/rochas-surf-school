@@ -7,6 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { ReactElement } from "react";
+import { Platform } from "react-native";
 
 import i18n from "@/i18n";
 import { AlertMessageProvider } from "@/providers/alert-message";
@@ -78,6 +79,16 @@ describe("EmailSignIn", () => {
     expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: cta })).toBeOnTheScreen();
     expect(screen.getByPlaceholderText(placeholder)).toBeOnTheScreen();
+  });
+
+  it("renders on Android, where the keyboard does not add padding", async () => {
+    const original = Platform.OS;
+    Platform.OS = "android";
+
+    await renderScreen(<EmailSignIn />);
+
+    expect(getButton()).toBeOnTheScreen();
+    Platform.OS = original;
   });
 
   it("disables Get code until the email is valid", async () => {

@@ -2,7 +2,7 @@
 id: "007"
 slug: email-sign-in-screens
 title: Email sign-in screens — choose path and sign in with email
-status: in-progress
+status: in-review
 created: 2026-10-10
 started: 2026-10-10
 base_commit: ec43e72032bd16ceb27f288699a099d9276a336a
@@ -304,10 +304,22 @@ D-05 copy table:
 
 ### Verification
 
-- [ ] **T-05** — Run every command in the Verification Plan from the repo root and follow its user journeys in
+- [x] **T-05** — Run every command in the Verification Plan from the repo root and follow its user journeys in
   the iOS simulator; all pass. Record the output summary as evidence.
   Covers: all · Done when: `run-related-tests.mjs 007` passes, `check-coverage.mjs 007` prints `COVERAGE OK`,
   lint and type check exit 0, and the four user journeys show what they describe.
+  > ✅ 2026-10-10 — `node .specs/scripts/run-related-tests.mjs 007` → RELATED TESTS PASSED (19 suites, 268 tests);
+  > `node .specs/scripts/check-coverage.mjs 007` → COVERAGE OK (18 files; a missing Android-branch test in the Sign in with
+  > email component was added first); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` → 6 tasks
+  > successful; `node .specs/scripts/run-e2e.mjs 007` → E2E PASSED (no suite applies). iOS simulator (iPhone 18 Pro, dark
+  > theme, Metro + backend running): ER-01 Continue with email → Choose shows both rows and the terms footer; ER-02 "I have
+  > an account" → Sign in; ER-06 unknown email `nobody.test007@example.com` on the sign-in path, correct code → toast "We
+  > couldn't find an account with this email. Create one to continue." and Create account with the email filled in and the
+  > name empty; typing a name, Get code and the new code → Waiting for approval (account created in the local dev DB);
+  > ER-03/ER-05 sign out, "I have an account", same email, Get code, code → Waiting for approval without asking for a name.
+  > Codes were recovered by matching the stored HMAC against the local `AUTH_CODE_PEPPER` because the backend log isn't
+  > reachable from this session. Not driven in the simulator: ER-04's "Create account" link, the Back presses and light
+  > theme / pt-BR / es-ES (covered by the real-router navigation tests and the locale tests); deviations: none
 
 ## Verification Plan
 

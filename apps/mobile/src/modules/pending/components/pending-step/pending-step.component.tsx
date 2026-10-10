@@ -9,7 +9,7 @@ export function PendingStep({ state, title, trailing }: PendingStepProps) {
   const theme = useTheme();
 
   return (
-    <View className="min-h-11 flex-row items-center gap-3">
+    <View className="min-h-[46px] flex-row items-center gap-3">
       {state === "done" ? (
         <View className="h-6 w-6 items-center justify-center rounded-full bg-ok">
           <Ionicons name="checkmark" size={14} color={theme.onColor} />

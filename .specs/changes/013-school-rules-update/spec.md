@@ -2,10 +2,11 @@
 id: "013"
 slug: school-rules-update
 title: Accept updated school rules (backend + mobile)
-status: in-review
+status: accepted
 created: 2026-10-11
 started: 2026-10-11
 base_commit: ab8c62432068474cd754a4720cc41754cc85797b
+reviewed_commit: 316592c0c3029708731b8a5be9ee6ee203f3023e
 fronts: [auth, backend, mobile]
 depends_on: []
 ---
@@ -390,3 +391,35 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-11 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (auth, backend; mobile lint + check-types)
+- related tests ✅ (apps/backend, apps/mobile, modules/auth, modules/school-rules) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` (11 files measured; `src/app/**` excluded by the technical context); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 177 passed — the first run had 1 failure that didn't reproduce in 23 reruns (see Notes)
+- user journey on the iOS simulator (iPhone 18 Pro, local backend + Postgres, review accounts) ✅ all 6 steps — see ER-03 to ER-06
+
+**Expected Results**
+
+- ER-01 ✅ — `account.out.test.ts` covers no acceptance (versions 0 and 3), current, and only-older acceptances; the `rulesAcceptedBefore` e2e describe covers version 0, pending, accept → edit → `rulesAccepted: false` / `rulesAcceptedBefore: true`, reorder unchanged
+- ER-02 ✅ — exact shapes carry the field in verify, refresh, WhatsApp and acceptance answers (controller spec and e2e); the accept answer is `true`, a new pending account `false`
+- ER-03 ✅ — `resolve-flow.test.ts` "rules update": four cases × three roles, non-approved statuses, unknown role → `auth`; on the simulator a first acceptance opened the onboarding step ("ÚLTIMO PASSO", "ENTRAR NO APP") and, after a rule edit, signing in again opened "Regras atualizadas"
+- ER-04 ✅ — screen test asserts eyebrow, header, description, rules 01/02, unchecked box, disabled CTA, tick/untick; loading and load-error disabled states in the shared component tests; seen on the simulator in pt-BR, dark mode
+- ER-05 ✅ — navigator and route-file tests: accept → `/student`, `/instructor`, `/admin` with `canGoBack()` false; body and bearer token and single request for two presses in the shared tests; on the simulator, accepting opened the Instructor home and a left-edge swipe stayed there
+- ER-06 ✅ — no back or sign-out button (screen test, simulator), layout `gestureEnabled: false` (layout test; left-edge swipe did nothing on the simulator), 7 paths keep the account on `/rules-update`; 401 sign-out through the unchanged shared hooks (`useSchoolRules`, `useAcceptSchoolRules` tests)
+- ER-07 ✅ — empty list sends `{ version: 6 }`, retry, outdated (untick, reload, toast) on the screen; offline and 403/422/500 toasts, box kept ticked in the moved shared tests
+- ER-08 ✅ — `npx jest src/modules/onboarding` green; simulator shows the unchanged step copy and CTA
+- ER-09 ✅ — "shows the copy in %s" checks the D-04 texts and each language's checkbox label (title differs from the spec's `-t "in %s"`, as recorded in T-04)
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The backend e2e suite failed once (1 of 177) on the first run and then passed 23 times in a row; the executor saw the same in T-02. The failing test wasn't captured. Worth a separate look at what is order- or time-dependent in the suite.
+- `rules-update-layout.test.tsx` checks the props passed to a mocked `Stack`; that is the observable contract of D-03/ER-06 (`gestureEnabled: false`), and the simulator confirmed swipe-back is off.
+- Side effect of the journey: the local dev database now has two school rules (version 3), and `instructor@example.com` has a WhatsApp number and acceptances of versions 2 and 3.

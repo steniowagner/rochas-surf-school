@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react-native";
 import { Stack } from "expo-router";
 
-import RulesUpdateLayout from "./_layout";
+import RulesUpdateLayout from "@/app/(rules-update)/rules-update/_layout";
 
 jest.mock("expo-router", () => ({ Stack: jest.fn(() => null) }));
 

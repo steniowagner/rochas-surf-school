@@ -276,9 +276,17 @@ comes with spec 015.
 
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every Verification Plan command exits 0, with `COVERAGE OK` and
   `E2E PASSED` printed.
+  > ✅ 2026-10-11 — Verification Plan run from the repo root: `run-related-tests.mjs 014` → RELATED TESTS PASSED
+  > (backend vitest, `modules/auth` jest, and the importers `apps/mobile` and `modules/school-rules` whole
+  > suites); `check-coverage.mjs 014` → COVERAGE OK (5 measured files, every changed line covered;
+  > `request-reactivation.usecase.ts` 19/19 statements, 4/4 branches); `run-e2e.mjs 014` → E2E PASSED (6 files,
+  > 197 tests); `npm test --workspace @rochas-surf-school/auth` → 242 passed; `npx turbo run lint check-types
+  > build --filter=@rochas-surf-school/auth --filter=@rochas-surf-school/backend` → 11 successful;
+  > `npx turbo run check-types --filter=@rochas-surf-school/school-rules --filter=@rochas-surf-school/mobile` →
+  > 5 successful. files: `.specs/changes/014-account-reactivation-request/spec.md`; deviations: none.
 
 ## Verification Plan
 

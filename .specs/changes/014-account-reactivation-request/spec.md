@@ -177,7 +177,7 @@ comes with spec 015.
   > existing entity (one optional field); the school-rules acceptance test uses `toMatchObject`, so it needed no
   > change.
 
-- [ ] **T-02** — Create `RequestReactivation` in
+- [x] **T-02** — Create `RequestReactivation` in
   `modules/auth/src/user/usecase/request-reactivation.usecase.ts` (input `{ userId: string }`, dependencies
   `UserRepository`, `RulesVersionProvider`, `ClockProvider`; output `AccountOut`) applying D-04 and D-05 in
   that order, writing with `userRepository.update`, and export it from the usecase barrel. Tests in
@@ -189,6 +189,20 @@ comes with spec 015.
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02, ER-03, ER-04, ER-05 · Done when: `npm test --workspace @rochas-surf-school/auth` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-11 — `RequestReactivation` (`In { userId }`, `Out = AccountOut`; `UserRepository`,
+  > `RulesVersionProvider`, `ClockProvider`) checks in D-04's order: unknown → `UnauthorizedError`
+  > `auth.token.invalid`, not `deleted` → `ForbiddenError` `user.status.notDeleted`, `denied` → `ConflictError`
+  > `user.reactivation.denied`, `requested` → answers without writing (D-05), otherwise clones with
+  > `reactivationStatus: "requested"` and `reactivationRequestedAt` = clock now, validates and
+  > `userRepository.update`s; exported from the usecase barrel. Tests (written first, 11 failing before the
+  > class existed): `sends the request` (each role), `already requested`, `denied`, `not deleted` (pending,
+  > approved, denied, removed, and removed with a denied reactivation status), `unknown account`; writes
+  > checked with a spy on the fake repository's `update`. files:
+  > `modules/auth/src/user/usecase/request-reactivation.usecase.ts`, `modules/auth/src/user/usecase/index.ts`,
+  > `modules/auth/test/user/usecase/request-reactivation.usecase.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/auth` (242 passed; the use case 100% statements/branches/
+  > functions/lines), `npx turbo run lint check-types --filter=@rochas-surf-school/auth` (2 successful);
+  > deviations: none.
 
 ### Backend (`apps/backend`)
 

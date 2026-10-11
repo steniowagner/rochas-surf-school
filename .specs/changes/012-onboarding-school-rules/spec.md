@@ -2,7 +2,7 @@
 id: "012"
 slug: onboarding-school-rules
 title: Onboarding School rules step (mobile)
-status: in-progress
+status: in-review
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 248126d896b4da5464137165b6fb2f72f8c614df
@@ -315,9 +315,10 @@ an admin changes the rules. The list is built to be reused by the later screens 
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass, and follow the user
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass, and follow the user
   journey. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and the simulator
   journey matches.
+  > ✅ 2026-10-11 — ran the Verification Plan; files: none; verified: `node .specs/scripts/run-related-tests.mjs 012` → RELATED TESTS PASSED (apps/mobile: 43 changed files, all suites pass; design-tokens has no test runner); `node .specs/scripts/check-coverage.mjs 012` → COVERAGE OK (15 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exit 0; `node .specs/scripts/run-e2e.mjs 012` → E2E PASSED, no suite applies. iOS simulator (iPhone 18 Pro, Expo Go, light mode, local backend): added 3 rules as the admin review account; signed in as the student review account (it already had a WhatsApp number, so the journey started at the School rules step) → step matches LOGIN-08 without the Terms line, rules 01–03 in order, box unticked, CTA disabled (step 2); ticking by the text enabled the CTA (sun), accepting opened the student home and the back swipe stayed on it; the backend then answered `rulesAccepted: true` (step 3); editing a rule through the API with the step open, then ticking and pressing the CTA → list showed the new text, box unticked, CTA disabled (step 6; the toast had faded before the screenshot, covered by the jest tests). Not driven by hand: dark mode, the WhatsApp step in this run, a sign-in after a rule change (steps 4 and 5 — step 6 exercises the same version check), the empty list (7: it deletes rules in the dev DB) and the no-connection toast (8: it needs the backend stopped); these are covered by the jest tests (ER-03, ER-08). Left in the dev DB: 3 rules (version 4) and the student review account with the rules accepted; deviations: none
 
 ## Verification Plan
 

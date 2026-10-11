@@ -222,7 +222,7 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Update the exact account shapes in `apps/backend/src/modules/auth/auth.controller.spec.ts` (and
+- [x] **T-02** — Update the exact account shapes in `apps/backend/src/modules/auth/auth.controller.spec.ts` (and
   `school-rules.controller.spec.ts` if needed). Add a `rulesAcceptedBefore` describe to
   `apps/backend/test/auth-session.e2e-spec.ts` (no acceptance → `false`; accept version 1 → `true`; edit a rule →
   `rulesAccepted: false`, `rulesAcceptedBefore: true`; reorder → unchanged; version 0 → `false`); expect
@@ -231,6 +231,14 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
   `test/auth-whatsapp.e2e-spec.ts`. Add the field to the example responses in
   `school-rules.integration.http` / `auth.integration.http` where they show the account. Covers: ER-01, ER-02 ·
   Done when: `npm test --workspace apps/backend` and `npm run test:e2e --workspace apps/backend` pass.
+  > ✅ 2026-10-11 — exact account shapes now carry `rulesAcceptedBefore`; new `rulesAcceptedBefore` describe in the
+  > session e2e (no acceptance, pending account, accept → edit/reorder, refresh answer); the accept answer expects
+  > `true`; `.http` comments mention the field; files: `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/test/auth-session.e2e-spec.ts`, `apps/backend/test/auth-email.e2e-spec.ts`,
+  > `apps/backend/test/auth-whatsapp.e2e-spec.ts`, `apps/backend/test/school-rules-acceptance.e2e-spec.ts`,
+  > `apps/backend/src/modules/school-rules/school-rules.integration.http`; verified: `npm test` in apps/backend
+  > (150 passed), `npm run test:e2e` (177 passed; one run had a single failure that did not reproduce on rerun);
+  > deviations: `school-rules.controller.spec.ts` and `auth.integration.http` needed no change
 
 ### Mobile (`apps/mobile`)
 

@@ -148,12 +148,12 @@ Authorization: Bearer {{adminToken}}
 DELETE {{baseUrl}}/school-rules/00000000-0000-4000-8000-000000000000
 Authorization: Bearer {{adminToken}}
 
-### Read the current version (any approved account); its rulesAccepted says whether this account accepted it
+### Read the current version (any approved account); its rulesAccepted says whether this account accepted it and its rulesAcceptedBefore whether it ever accepted any version
 # @name me
 GET {{baseUrl}}/auth/me
 Authorization: Bearer {{studentToken}}
 
-### Accept the current version (expects 200 with the account and rulesAccepted: true)
+### Accept the current version (expects 200 with the account, rulesAccepted: true and rulesAcceptedBefore: true)
 # Replace 1 with the "version" that GET /school-rules answers. Any approved account can accept, with or without a WhatsApp number.
 POST {{baseUrl}}/school-rules/acceptances
 Authorization: Bearer {{studentToken}}

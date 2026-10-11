@@ -282,6 +282,7 @@ describe('Email sign-in (e2e)', () => {
           whatsappNumber: null,
           whatsappVisible: false,
           rulesAccepted: true,
+          rulesAcceptedBefore: false,
         },
       });
       await expect(
@@ -551,6 +552,7 @@ describe('Email sign-in (e2e)', () => {
         whatsappNumber: null,
         whatsappVisible: false,
         rulesAccepted: true,
+        rulesAcceptedBefore: false,
       });
     });
 

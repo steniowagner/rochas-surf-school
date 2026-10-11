@@ -203,6 +203,7 @@ describe('AuthController', () => {
           whatsappNumber: null,
           whatsappVisible: false,
           rulesAccepted: true,
+          rulesAcceptedBefore: false,
         },
       });
       expect(refreshTokens).toHaveLength(1);
@@ -263,6 +264,7 @@ describe('AuthController', () => {
         whatsappNumber: null,
         whatsappVisible: false,
         rulesAccepted: true,
+        rulesAcceptedBefore: false,
       });
     });
 
@@ -317,6 +319,7 @@ describe('AuthController', () => {
         whatsappNumber: '+5585999998888',
         whatsappVisible: true,
         rulesAccepted: true,
+        rulesAcceptedBefore: false,
       });
     });
 

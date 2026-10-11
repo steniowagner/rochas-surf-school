@@ -92,11 +92,14 @@ Listed in the order people meet them.
   an admin. Admins are notified of each one and see the name, email, deletion date and number of classes
   taken; the person is notified of the decision. After a denial the screen only offers signing in with another
   email. Removed users can't send one.
-- **School rules** (`school-rules`): the rules every user accepts at onboarding, written by admins. Versioned:
-  when admins change them they choose whether the new version must be accepted again; if so, each user accepts
-  it the next time they open the app (no notification). Each user's acceptances are kept per version. A
-  returning (reactivated or restored) account accepts again if a required change happened while it was away.
-  Anyone can read them at any time.
+- **School rules** (`school-rules`): the rules every user accepts at onboarding, written by admins — an
+  ordered list of rules, each with a title (up to 60 characters) and an explanation (up to 300), shown in the
+  order admins chose. Admins add (a new rule goes last), edit, delete (the rules after it move up) and reorder
+  them. Versioned: every add, edit or delete creates a new version that each user accepts the next time they
+  open the app (no notification; admins don't choose); reordering, or saving a rule without changing its text,
+  doesn't. Only the current text is kept, not the text of past versions. Each user's acceptances are kept per
+  version. A returning (reactivated or restored) account accepts again if a change happened while it was away.
+  Any approved account, of any role, can read them at any time.
 - **School settings** (`school-settings`): the school-wide switches admins control — the school's WhatsApp
   number (used by every contact-the-school button) and the waiting list (on by default).
 - **Cancellation rule** (`cancellation-rule`): free text written by admins, one for surf and one for skate,
@@ -236,6 +239,10 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   like anyone.
 - **Pushes are the only notification channel**: no email (except the sign-in code) and no WhatsApp messages.
   Turning pushes off never hides notifications from the notifications screen.
+- **Every change to the school rules asks everyone to accept them again; reordering doesn't**: users always
+  accept the rules as they are now, so admins don't choose whether a change needs acceptance. Only the order
+  of the list, or a save that changes no text, leaves the version alone, so an accidental save doesn't make
+  every user accept again.
 - **Text written by admins is shown as written**: school rules, cancellation rules, notes, reasons and
   broadcasts aren't translated; they're assumed to be Brazilian Portuguese.
 - **All times are America/Fortaleza, whatever the phone's time zone; weeks run Monday to Sunday.**
@@ -316,20 +323,27 @@ number, of any role, opens the WhatsApp screen: it welcomes the person by first 
 with its country (Brazil +55 preselected, any country picked from a searchable list), with "Hide my number" on
 by default — hidden means only admins see it. The number must be valid for the chosen country; it is saved
 with its country code, and the app moves on to the School rules step, which is still empty. An approved account
-that already has a number opens School rules directly. Onboarding can't be completed until the school-rules
-spec, so no account reaches the student, instructor or admin experience for now.
+that already has a number opens School rules directly. Onboarding can't be completed until the School rules
+step lets the person accept the rules, so no account reaches the student, instructor or admin experience for now.
 
 **Brazilian number mask** (spec `009-brazilian-whatsapp-mask`) — with Brazil selected, the WhatsApp number is
 formatted as it is typed: `(XX) XXXX-XXXX` for a landline and `(XX) XXXXX-XXXX` for a mobile. Letters and
 digits past the eleventh are ignored, and a pasted `+55 …` number loses its country code. The number is still
 saved with +55; other countries show the number as typed.
 
+**School rules on the backend** (spec `010-school-rules-management`) — admins add, edit, delete and reorder the
+school rules through the backend, and any approved account reads them, in the admins' order, with the current
+version. Every add, edit or delete raises the version by one; reordering and an unchanged save don't. Only the
+backend exists: no screen shows or manages the rules yet, and accepting a version (the onboarding School rules
+step, and accepting again after a change) is still to come, so onboarding still can't be completed.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
 The web app is still on its framework template. Keeping the session across app restarts, the real screens of
 each flow (the school-rules step, account deleted and reactivation, the
-denied and removed screens, and every student, instructor and admin screen), renewing a session, signing out from any
+denied and removed screens, and every student, instructor and admin screen, the admin's school rules screen
+included), accepting the school rules, renewing a session, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
 No spec is active.
@@ -347,6 +361,9 @@ No spec is active.
 - An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list); each class
   already shows its seats taken and ratings.
 - A terms-of-use page; the school rules play that role inside the app.
+- Keeping the text of past versions of the school rules (spec 010 keeps only the current text; an acceptance
+  records only the version number), and recording who edited, deleted or reordered a rule (only its creator is
+  kept).
 - Signing out of every device at once: signing out ends the sign-in of one device only.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).

@@ -54,6 +54,7 @@ model User {
   rulesAcceptances UserRulesAcceptance[]
   identities       Identity[]
   refreshTokens    RefreshToken[]
+  schoolRules      SchoolRule[]
 
   @@map("users")
 }

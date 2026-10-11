@@ -124,8 +124,9 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 It does not send email itself: it hands the code, the address and the language to the email-delivery
 capability through an abstract contract. It knows nothing about token formats or HTTP: the technical shape of
-tokens is behind its own contract, provided by the backend. Deciding registrations, the school-rules step of
-onboarding, erasure and reactivation are rules of the account lifecycle still to be specified.
+tokens is behind its own contract, provided by the backend. The school rules themselves and their version belong to
+[School rules](school-rules.md); it keeps only the versions each account accepted. Deciding registrations, the
+school-rules step of onboarding, erasure and reactivation are rules of the account lifecycle still to be specified.
 
 ## Spec history
 

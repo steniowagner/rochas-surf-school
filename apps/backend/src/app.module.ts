@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { JwtAuthModule } from './shared/auth/jwt-auth.module.js';
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard.js';
 import { ApiExceptionFilter } from './shared/errors/api-exception.filter.js';
+import { SchoolRulesModule } from './modules/school-rules/school-rules.module.js';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ApiExceptionFilter } from './shared/errors/api-exception.filter.js';
     DbModule,
     JwtAuthModule,
     AuthModule,
+    SchoolRulesModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

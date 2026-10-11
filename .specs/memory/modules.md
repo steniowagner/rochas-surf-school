@@ -4,7 +4,7 @@ This file is the **header of the business modules** of "Rocha's Surf School": a 
 overview of what each module does and why it exists. The details of the concepts and business rules of each
 module live in their own markdown inside `modules/`.
 
-The product has **one business module** so far: **Authentication**. The other areas of the product
+The product has **two business modules** so far: **Authentication** and **School rules**. The other areas of the product
 (scheduling, enrolment, ratings and photos, notifications) enter as new modules when their specs are planned.
 Email delivery is treated as **infrastructure**, not as a business module.
 
@@ -20,6 +20,18 @@ It groups four areas: **Accounts**, **Identities**, **Sign-in codes** and **Sess
 
 - Where it physically lives: `modules/auth`
 - Business details: [modules/auth.md](modules/auth.md)
+
+---
+
+## School rules
+
+Keeps the school's rules: the ordered list admins write, edit, delete and reorder, and its current version,
+which goes up with every change to the rules' text so users can be asked to accept them again. Every approved
+account reads them. Recording that a user accepted a version is not here yet: it comes with the onboarding
+School rules spec.
+
+- Where it physically lives: `modules/school-rules`
+- Business details: [modules/school-rules.md](modules/school-rules.md)
 
 ---
 

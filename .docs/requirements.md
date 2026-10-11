@@ -374,9 +374,12 @@ Lets admins keep the school rules up to date and makes sure users accept the rul
 
 #### Managing the school rules
 
-Admins SHALL be able to add, edit and remove school rules.
+_Implemented in spec 010-school-rules-management._
 
-- _Admin adds a rule:_ When an admin adds a school rule, then the rule appears in the school rules.
+Admins SHALL be able to add, edit, remove and reorder school rules. A new rule goes last; removing a rule moves the rules after it up one place.
+
+- _Admin adds a rule:_ When an admin adds a school rule, then the rule appears last in the school rules.
+- _Admin reorders the rules:_ When an admin puts the rules in a new order, then everyone sees them in that order.
 
 #### Accepting the rules
 
@@ -386,16 +389,20 @@ Users SHALL accept the school rules after their registration is approved and bef
 
 #### Reading the rules
 
-Users SHALL be able to read the school rules at any time.
+_Implemented in spec 010-school-rules-management._
+
+Approved users, of any role, SHALL be able to read the school rules at any time.
 
 - _Reading the rules later:_ When a user opens the school rules in the app, then they see the current rules.
 
 #### Accepting again after a change
 
-When admins change the school rules, they SHALL choose whether users must accept the new version. If they must, each user SHALL accept it the next time they open the app, before continuing. The change SHALL NOT send a notification.
+_Implemented in spec 010-school-rules-management._
 
-- _Change that needs acceptance:_ When an admin changes the rules and requires acceptance, then each user is asked to accept the new rules the next time they open the app.
-- _Change that doesn't need acceptance:_ When an admin changes the rules without requiring acceptance, then users are not asked to accept them again.
+Every time admins add, edit or remove a school rule, the rules SHALL get a new version, and each user SHALL accept it the next time they open the app, before continuing; admins don't choose. Reordering the rules, or saving a rule without changing its text, SHALL NOT create a new version. The change SHALL NOT send a notification.
+
+- _Change to the rules:_ When an admin adds, edits or removes a rule, then each user is asked to accept the new rules the next time they open the app.
+- _Reordering the rules:_ When an admin only changes the order of the rules, then users are not asked to accept them again.
 
 #### Rule changes while an account was away
 

@@ -2,7 +2,7 @@
 id: "010"
 slug: school-rules-management
 title: School rules management (backend)
-status: in-review
+status: changes-requested
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 5517ca275e22def7354b3109edf6152a18eafe19
@@ -431,3 +431,54 @@ will call.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-11 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/school-rules`, `@rochas-surf-school/backend`; turbo `--force`, 11 tasks)
+- related tests ✅ (modules/school-rules jest 87 passed, 100%; apps/backend vitest passed)
+- coverage of the changed lines ✅ COVERAGE OK — 11 files, all 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (137 passed, 50 in `school-rules.e2e-spec.ts`)
+- migration ✅ `prisma:migrate:deploy` on a fresh scratch database: all migrations applied, `rules_versions` has
+  one row at 0, `rules.created_by` → `users.id` `ON DELETE SET NULL`, index on `index` (scratch database dropped)
+- live API ✅ built backend on port 4010 with the review accounts: list, create (trimmed, appended, version +1),
+  instructor refused, reorder (version kept), mismatch 422, unchanged edit (version kept), edit (+1), 61-char
+  title + empty description (both keys), malformed id 404, delete (moves up, +1), all as specified
+
+**Expected Results**
+
+- ER-01 ✅ — every approved role reads `{ version, rules }` sorted by index, no extra field; version 0 / `[]`
+  when empty; 4 non-approved statuses → 403 `user.status.notApproved`; no / bad token → 401
+- ER-02 ✅ — appended at N + 1, trimmed, version + 1, `created_by` = admin; first rule at index 1, version 1
+- ER-03 ✅ — the four keys on create and edit, missing field = empty, both keys together, 60 / 300 accepted,
+  nothing stored or bumped on error
+- ER-04 ✅ — student and instructor get 403 `schoolRule.role.notAdmin` on all four change routes, nothing
+  changes; pending admin → `user.status.notApproved`; no token → 401
+- ER-05 ✅ — edit keeps the index, version + 1; unchanged (after trimming) keeps the version; unknown and
+  malformed id → 404
+- ER-06 ✅ — middle, last and only rule; row gone; 404 for unknown / malformed id
+- ER-07 ✅ — new order applied without a version change, a following GET matches; current order and `[]` → 200
+- ER-08 ✅ — missing / repeated / unknown id → `schoolRule.order.mismatch`; no body, string, numbers, `{}` →
+  `schoolRule.order.required`; indexes unchanged
+- ER-09 ✅ — fresh-database migration as above; `school-rule.prisma.spec.ts` asserts one `$transaction`,
+  bump → delete → upsert order, no bump when `bumpVersion` is false, and rejection when a write fails
+
+**Findings**
+
+- [ ] **F-01** (tests) — `apps/backend/src/modules/school-rules/school-rules.integration.http` signs in with
+  `POST /auth/email/verify` without first requesting a code, so the file doesn't work as written: run top to
+  bottom against the local backend, both sign-ins answer 401 and every following request 401
+  `auth.token.invalid` (reproduced with the three `REVIEW_ACCOUNTS`; after a `POST /auth/email/code` for each
+  email the same verify answers 200). Expected: add a `POST {{baseUrl}}/auth/email/code` request for the admin
+  and for the student before their verify requests, as `auth.integration.http` does, so the file runs end to end.
+
+**Notes**
+
+- Decisions D-01 to D-16 are honored; nothing in Out of scope was built; `## Memory Impact` matches the code.
+- The rollback of `apply` is checked with a mocked `$transaction` (it rejects); the real rollback is Prisma's.
+  A database-level test (a failing write leaves the version unchanged) would make ER-09's edge case direct
+  evidence — optional.
+- `app.module.ts` imports `SchoolRulesModule` after the shared imports rather than next to `AuthModule`;
+  cosmetic.
+

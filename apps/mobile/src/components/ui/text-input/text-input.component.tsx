@@ -26,7 +26,8 @@ export function TextInput({
         {icon}
         <NativeTextInput
           ref={ref}
-          className="ds-text-body flex-1 text-ink"
+          className="ds-text-body h-full flex-1 py-0 text-ink leading-5"
+          textAlignVertical="center"
           placeholderTextColor={theme.ink2}
           {...props}
         />

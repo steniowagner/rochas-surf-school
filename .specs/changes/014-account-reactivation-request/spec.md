@@ -2,7 +2,7 @@
 id: "014"
 slug: account-reactivation-request
 title: Account answer for closed accounts and the reactivation request
-status: in-progress
+status: in-review
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 8a98005fd50cc760b6e3ee41b01e1de1da8f62d3

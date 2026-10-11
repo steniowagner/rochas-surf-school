@@ -2,10 +2,11 @@
 id: "010"
 slug: school-rules-management
 title: School rules management (backend)
-status: in-review
+status: accepted
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 5517ca275e22def7354b3109edf6152a18eafe19
+reviewed_commit: 4371d36ac0cc8f6831868914e1e06aafdc0346ad
 fronts: [school-rules, backend]
 depends_on: []
 ---
@@ -487,3 +488,48 @@ will call.
 - `app.module.ts` imports `SchoolRulesModule` after the shared imports rather than next to `AuthModule`;
   cosmetic.
 
+
+### Round 2 — 2026-10-11 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/school-rules`, `@rochas-surf-school/backend`; turbo `--force`, 11 tasks)
+- related tests ✅ RELATED TESTS PASSED (modules/school-rules jest 87 passed, 100%; apps/backend vitest passed)
+- coverage of the changed lines ✅ COVERAGE OK — 11 files, all 100%; no coverage-ignore comments, debug leftovers
+  or TODOs in the diff
+- e2e: backend suite ✅ E2E PASSED (137 passed, 50 in `school-rules.e2e-spec.ts`); every `Verify by` filter
+  (module and e2e) selects and passes its tests; `school-rule.prisma.spec.ts` 8 passed
+- migration ✅ `prisma:migrate:deploy` — no pending migrations on the local database
+- integration file ✅ `school-rules.integration.http` run top to bottom against the built backend (port 4012)
+  from a database with no rules: both code requests 202, both sign-ins 200, then list, 401, create (+1),
+  empty title 422, student 403, edit (+1), unknown id 404, reorder (version kept), mismatch 422, required 422,
+  delete (+1), unknown delete 404 — each as its comment says. The rules rows and the version were put back to
+  their state before the run (no rules, version 0).
+
+**Expected Results**
+
+- ER-01 ✅ — e2e `GET /school-rules` (9) and `ListSchoolRules` (8); live: version 0 / `[]`, 401 without a token
+- ER-02 ✅ — e2e `POST /school-rules` (3) and `CreateSchoolRule` (11); live: trimmed, appended, version + 1
+- ER-03 ✅ — e2e `invalid` (13: create and edit, each key, both missing, 60 / 300 accepted, storage unchanged)
+- ER-04 ✅ — e2e `not an admin` (4) and `permission` (23); live: student 403 `schoolRule.role.notAdmin`
+- ER-05 ✅ — e2e `PUT /school-rules/:id` (4) and `UpdateSchoolRule` (10); live: edit + 1, unknown id 404
+- ER-06 ✅ — e2e `DELETE /school-rules/:id` (5) and `DeleteSchoolRule` (5); live: delete + 1, unknown id 404
+- ER-07 ✅ — e2e `PUT /school-rules/order` (4) and `ReorderSchoolRules`; live: version unchanged
+- ER-08 ✅ — e2e `order mismatch` (7: missing / repeated / unknown id, four malformed bodies, storage unchanged)
+- ER-09 ✅ — migration in place with the single version row; `school-rule.prisma.spec.ts` asserts the one
+  `$transaction`, bump → delete → upsert order, and the rejection on a failed write
+
+**Findings**
+
+- F-01 from round 1 is fixed: the file requests a code before each verify, and the sign-ins answer 200.
+- No new findings.
+
+**Notes**
+
+- `@ruleId` takes `rules[0].id` from the create response, which is the new rule only when the list was empty
+  (a new rule goes last), and the "Reorder every rule" request sends just that id. On a database that already
+  has rules, edit and delete act on the first rule and the reorder answers 422 `schoolRule.order.mismatch`. The
+  file's comments say to list the ids first, so this is not a defect. `$.rules[-1:]` would pick the new rule
+  (optional). REST Client resolves the paths without `$.` (checked with `jsonpath-plus`).
+- Round 1's notes still apply (the rollback test uses a mocked `$transaction`; the `AppModule` import order is
+  cosmetic).

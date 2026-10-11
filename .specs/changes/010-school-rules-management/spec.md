@@ -278,12 +278,17 @@ will call.
   > rules/test/mock/{school-rule.factory.ts,index.ts}`. Verified: `npx jest create-school-rule` in the module
   > passes and the full module run is 87 passed with 100% coverage; lint, check-types exit 0. Deviations: none
 
-- [ ] **T-06** — `UpdateSchoolRule` use case: checks admin, finds the rule (404 `schoolRule.id.notFound`),
+- [x] **T-06** — `UpdateSchoolRule` use case: checks admin, finds the rule (404 `schoolRule.id.notFound`),
   trims and validates, returns the current list without `apply` when nothing changed (D-08), else saves with
   `bumpVersion: true` keeping the index. Tests in the same test folder. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-05, ER-03, ER-04 · Done when: the tests (edit, unchanged edit keeps version, unknown id, invalid
   fields, non-admin) pass.
+  > ✅ 2026-10-11 14:08 — `UpdateSchoolRule` use case (admin check, 404, trim and validate, unchanged edit
+  > answers the current list without `apply`, else saves keeping the index with `bumpVersion: true`). Files:
+  > `modules/school-rules/src/school-rule/usecase/{update-school-rule.usecase.ts,index.ts}`, `modules/school-
+  > rules/test/school-rule/usecase/update-school-rule.usecase.test.ts`. Verified: module run 87 passed, 100%
+  > coverage; lint, check-types exit 0. Deviations: none
 
 - [ ] **T-07** — `DeleteSchoolRule` use case: checks admin, finds the rule (404), deletes it and saves every
   later rule with index − 1, `bumpVersion: true`. Tests in the same test folder. Skill:

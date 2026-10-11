@@ -15,10 +15,11 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   (stored trimmed and lowercase; never changes), photo, WhatsApp number and its visibility (hidden by default),
   role (`student` | `instructor` | `admin`, `student` by default), status (`pending` | `approved` | `denied` |
   `deleted` | `removed`, `pending` by default), denial reason (up to 500 characters) and dates, reactivation
-  status (`requested` | `denied`), and the versions of the school rules it accepted. Relationships: one or
+  status (`requested` | `denied`) and when the request was sent, and the versions of the school rules it
+  accepted. Relationships: one or
   more identities; many sessions. Lifecycle: as in Product; today only the creation of a `pending` student
-  through an email code is built, plus the seeded review accounts, and an approved account adding its
-  WhatsApp number.
+  through an email code is built, plus the seeded review accounts, an approved account adding its
+  WhatsApp number, and a deleted account sending its reactivation request.
 - **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
   country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
@@ -37,6 +38,15 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **Whether the rules were ever accepted** (`rulesAcceptedBefore`): every answer that carries the account also
   says whether it has an acceptance of any version, so the app tells a new version (the "Regras atualizadas"
   screen) from a first acceptance (the onboarding step). No while no acceptance exists, version 0 included.
+- **Denial reason and reactivation status in every answer**: every answer that carries the account gives the
+  denial reason (none when no reason was given) and the reactivation status (`requested`, `denied` or none), as
+  stored and whatever the status, so the app can show the denied and account-deleted screens. The dates of a
+  denial, deletion, removal or reactivation request are never returned.
+- **One reactivation request**: a deleted account, of any role, sends it; it is recorded as `requested` with
+  when it was sent, and the account stays deleted. Checked in this order: an account that isn't deleted is
+  refused with `user.status.notDeleted` (even a removed one whose request was denied); a denied request can't
+  be sent again (`user.reactivation.denied`); a request already sent is answered with the account and nothing
+  changes, the first date kept. The 30-day window isn't checked, and admins aren't notified yet.
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -94,8 +104,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 - **Anyone** — asks for a code and signs in or signs up with it.
 - **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date,
-  WhatsApp number and its visibility, and whether it accepted the current school rules).
+  WhatsApp number and its visibility, whether it accepted the current school rules, its denial reason and its
+  reactivation status).
 - **An approved account** — sets its own WhatsApp number and visibility.
+- **A deleted account** — sends its one reactivation request.
 - **Anyone holding a refresh token** — renews or ends that session (10 requests per minute per network address
   for each).
 - **In the app**, "Continue with email" asks whether the person already has an account: "I have an account"
@@ -138,7 +150,8 @@ capability through an abstract contract. It knows nothing about token formats or
 tokens is behind its own contract, provided by the backend. The school rules themselves and their version belong to
 [School rules](school-rules.md), which also decides when an acceptance is allowed; this module keeps only the
 versions each account accepted and reports whether the current one is among them. Deciding registrations, the
-school-rules step of onboarding, erasure and reactivation are rules of the account lifecycle still to be specified.
+school-rules step of onboarding, deleting and removing accounts, erasure, notifying admins of reactivation requests and deciding them are rules
+of the account lifecycle still to be specified.
 
 ## Spec history
 
@@ -168,3 +181,6 @@ school-rules step of onboarding, erasure and reactivation are rules of the accou
 - `013-school-rules-update` — every answer that carries the account says whether it ever accepted any version of
   the school rules; the app sends an account that accepted before and missed a change to the "Regras
   atualizadas" screen instead of onboarding.
+- `014-account-reactivation-request` — every answer that carries the account gives the denial reason and the
+  reactivation status; a deleted account sends its one reactivation request (`POST /auth/me/reactivation-request`),
+  stored with when it was sent; a repeat changes nothing and a denied request can't be sent again.

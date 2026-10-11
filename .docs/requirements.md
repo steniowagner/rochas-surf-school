@@ -181,6 +181,8 @@ The system SHALL notify a person when their registration is approved or denied, 
 
 #### Denied registration screen
 
+_Implemented in spec 014-account-reactivation-request._
+
 A person whose registration was denied SHALL see the denial, with its reason when one was given, and a button that opens WhatsApp on their phone with a chat to the school's number.
 
 - _Denied person opens the app:_ When a person whose registration was denied opens the app, then they see the denial and its reason, and they can open a WhatsApp chat with the school.
@@ -235,6 +237,8 @@ Signing in with a deleted account during its reactivation window SHALL show an "
 - _Deleted user signs in:_ When a person signs in with an account deleted less than 30 days ago, then they see the "Account deleted" screen with both options.
 
 #### One reactivation request
+
+_Implemented in spec 014-account-reactivation-request._
 
 A deleted account SHALL be able to send one reactivation request, from the app. Once that request is denied, the account SHALL NOT be able to request reactivation again.
 

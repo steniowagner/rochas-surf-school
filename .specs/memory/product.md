@@ -370,6 +370,14 @@ sign-out and no swipe-back; accepting opens the home of the account's role, and 
 sign-in. A first acceptance still happens on the onboarding step. Every account answer of the backend now also
 says whether the account ever accepted any version of the rules.
 
+**Closed accounts on the backend** (spec `014-account-reactivation-request`) — every account answer of the
+backend now also carries the reason a registration was denied (or nothing, when no reason was given) and
+whether the account's reactivation request was sent or denied, whatever the account's status. A deleted
+account, of any role, sends its one reactivation request through the backend, which records when it was sent;
+sending it again changes nothing, after a denial it is refused, and an account that isn't deleted can't send
+one. Only the backend exists: no screen uses it yet (spec 016), admins aren't notified of a request and can't
+decide it yet, and the 30-day window isn't checked when a request is sent.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
@@ -379,7 +387,8 @@ admin screen, the admin's school rules screen and a screen to read the rules at 
 session, seeing a rule change while the app is open or when it returns from the background, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
-No spec is active.
+Active specs: `015-school-settings-whatsapp` (the school's WhatsApp number) and `016-closed-account-screens`
+(the Denied and Account deleted screens), both planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 

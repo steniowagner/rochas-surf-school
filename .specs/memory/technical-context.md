@@ -266,8 +266,10 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   carries those four fields plus the claims. The guard never refuses by status or role — use cases do. Every
   401 it answers (no token, malformed, wrong signature, expired, unknown user) is `auth.token.invalid`, so the
   app reacts the same way to each (renew, else sign in again). `GET /auth/me` returns the account
-  (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore }`,
-  `whatsappNumber` an E.164 string or `null`) for any status — the same `user` shape as verify and refresh, and
+  (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore,
+  denialReason, reactivationStatus }`, `whatsappNumber` an E.164 string or `null`, `denialReason` the stored
+  reason or `null`, `reactivationStatus` `"requested"` | `"denied"` or `null` — both as stored, whatever the
+  status; the closed-account dates are never returned) for any status — the same `user` shape as verify and refresh, and
   the body of `PUT /auth/me/whatsapp` and `POST /school-rules/acceptances`. One mapper builds it:
   `toAccountOut(user, currentRulesVersion)` / `AccountOut` in `modules/auth/src/user/usecase/account.out.ts`.
 - `rulesAccepted` is `true` when the current school rules version is 0 or the account has an acceptance of the
@@ -286,6 +288,12 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `PhoneNumberRule` (422 `user.whatsappNumber.phone`). Numbers are stored in E.164 as sent: the backend
   validates, never normalizes, and the app sends `parsePhoneNumberFromString(typed, country).number` (for Brazil, of the field's digits). The same
   number may belong to several accounts.
+- Reactivation request: `POST /auth/me/reactivation-request` (`RequestReactivation`, protected, no body)
+  answers 200 with the account shape. It checks, in this order: the account exists (401 `auth.token.invalid`),
+  its status is `deleted` (403 `user.status.notDeleted`), its request wasn't denied (409
+  `user.reactivation.denied`); an account already `requested` gets the account and nothing is written;
+  otherwise it stores `reactivationStatus = "requested"` and `reactivationRequestedAt` (the `ClockProvider`'s
+  now, stored but never returned). The status stays `deleted`; the 30-day window isn't checked.
 - Boundary: only `apps/backend/src/shared/auth` and the auth adapters know about tokens; use cases receive a
   plain current-user value and enforce permissions.
 - Variables (names in `apps/backend/.env.example`, values never committed): `JWT_SECRET`, `JWT_EXPIRES_IN`

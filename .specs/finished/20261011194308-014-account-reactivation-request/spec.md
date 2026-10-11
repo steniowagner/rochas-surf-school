@@ -2,13 +2,14 @@
 id: "014"
 slug: account-reactivation-request
 title: Account answer for closed accounts and the reactivation request
-status: accepted
+status: finished
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 8a98005fd50cc760b6e3ee41b01e1de1da8f62d3
 reviewed_commit: f6300afbbe8ec77fb89921b7e25ffd2e9941b73b
 fronts: [auth, backend]
 depends_on: []
+finished: 2026-10-11
 ---
 
 # 014 — Account answer for closed accounts and the reactivation request

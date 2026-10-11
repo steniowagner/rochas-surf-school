@@ -266,11 +266,17 @@ will call.
   > rules/package.json`, `package-lock.json`. Verified: module test (45 passed, 100% covered), lint, check-
   > types, build exit 0. Deviations: input is `{ actor: { id, role, status } }`
 
-- [ ] **T-05** — `CreateSchoolRule` use case: checks admin, trims, builds the entity at index N + 1 with
+- [x] **T-05** — `CreateSchoolRule` use case: checks admin, trims, builds the entity at index N + 1 with
   `createdBy`, `apply({ save: [rule], delete: [], bumpVersion: true })`, returns the list. Tests in the same
   test folder. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02, ER-03, ER-04 · Done when: the tests (first rule, appended rule, trimming, invalid fields leave
   the fake untouched, non-admin refused) pass.
+  > ✅ 2026-10-11 14:08 — `CreateSchoolRule` use case (admin check, trim, index N + 1, `createdBy`, `bumpVersion:
+  > true`), shared `normalizeSchoolRuleText`, and the test factory (`ADMIN`, `STUDENT`, `buildRule`). Files:
+  > `modules/school-rules/src/school-rule/usecase/{create-school-rule.usecase.ts,school-rule-text.ts,index.ts}`,
+  > `modules/school-rules/test/school-rule/usecase/create-school-rule.usecase.test.ts`, `modules/school-
+  > rules/test/mock/{school-rule.factory.ts,index.ts}`. Verified: `npx jest create-school-rule` in the module
+  > passes and the full module run is 87 passed with 100% coverage; lint, check-types exit 0. Deviations: none
 
 - [ ] **T-06** — `UpdateSchoolRule` use case: checks admin, finds the rule (404 `schoolRule.id.notFound`),
   trims and validates, returns the current list without `apply` when nothing changed (D-08), else saves with

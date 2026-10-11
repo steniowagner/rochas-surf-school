@@ -270,7 +270,7 @@ routing come with a follow-up mobile spec.
 
 ### School rules module (`modules/school-rules`)
 
-- [ ] **T-05** — Create `AcceptSchoolRules` in
+- [x] **T-05** — Create `AcceptSchoolRules` in
   `modules/school-rules/src/school-rule/usecase/accept-school-rules.usecase.ts` (input
   `{ actor: SchoolRuleActor, version: unknown }`, dependencies `SchoolRuleRepository`, `UserRepository`,
   `ClockProvider`; output `AccountOut`), applying D-02, D-04, D-06 and D-08 in that order, writing with
@@ -283,6 +283,16 @@ routing come with a follow-up mobile spec.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06 · Done when:
   `npm test --workspace @rochas-surf-school/school-rules` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/school-rules` exits 0.
+  > ✅ 2026-10-11 — added `AcceptSchoolRules` (user → status → version shape → version 0 → outdated → no-op when
+  > already accepted → `addRulesAcceptance`) and its tests; the module got its own fake user repository and clock;
+  > files: `modules/school-rules/src/school-rule/usecase/accept-school-rules.usecase.ts`,
+  > `modules/school-rules/src/school-rule/usecase/index.ts`, `modules/school-rules/test/mock/fake-user.repository.ts`,
+  > `modules/school-rules/test/mock/fake-clock.provider.ts`, `modules/school-rules/test/mock/index.ts`,
+  > `modules/school-rules/test/school-rule/usecase/accept-school-rules.usecase.test.ts`; verified: `npm test
+  > --workspace @rochas-surf-school/school-rules` (113 passed), `npx turbo run lint check-types
+  > --filter=@rochas-surf-school/school-rules` (5 tasks successful, after rebuilding `shared` and `auth`);
+  > deviations: version 0 / non-integer errors use `ValidationException` (there is no 422 error class besides it); a
+  > list as `version` is treated as not an integer (the validator rules look at each item of a list)
 
 ### Backend (`apps/backend`)
 

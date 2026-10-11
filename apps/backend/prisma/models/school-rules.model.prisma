@@ -1,0 +1,27 @@
+// Models of the school-rules module (modules/school-rules).
+// Tables and columns are snake_case in the database (@@map / @map).
+
+model SchoolRule {
+  id          String   @id @db.Uuid
+  title       String
+  description String
+  index       Int
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  creator User? @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([index])
+  @@map("rules")
+}
+
+// A single row (inserted by the migration at version 0): the current version of the rules.
+model RulesVersion {
+  id        String   @id @db.Uuid
+  version   Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("rules_versions")
+}

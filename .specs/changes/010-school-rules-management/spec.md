@@ -315,13 +315,22 @@ will call.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-09** — Prisma models `SchoolRule` (`rules`) and `RulesVersion` (`rules_versions`) in
+- [x] **T-09** — Prisma models `SchoolRule` (`rules`) and `RulesVersion` (`rules_versions`) in
   `apps/backend/prisma/models/school-rules.model.prisma` per D-13 and D-16 (index on `index`), the back-relation
   on `User` in `apps/backend/prisma/models/auth.model.prisma`, and the migration `school-rules`, edited to
   insert the single version row (`gen_random_uuid()`, `version = 0`). Skill:
   [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: ER-09 · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies on an empty
   database and `SELECT version FROM rules_versions` returns one row, 0.
+  > ✅ 2026-10-11 14:08 — Prisma models `SchoolRule` (`rules`, index on `index`, `created_by` → `users.id`
+  > nullable `ON DELETE SET NULL`) and `RulesVersion` (`rules_versions`), back-relation `schoolRules` on `User`,
+  > and migration `school-rules` (generated with `--create-only`, then edited to insert the single version row
+  > with `gen_random_uuid()`, `version = 0`). Files: `apps/backend/prisma/models/school-rules.model.prisma`,
+  > `apps/backend/prisma/models/auth.model.prisma`,
+  > `apps/backend/prisma/migrations/20261011170812_school_rules/migration.sql`. Verified:
+  > `prisma:migrate:deploy` applied all 4 migrations on a fresh scratch database (dropped afterwards) and
+  > `SELECT version FROM rules_versions` returned one row, 0; applied to the local database, `migrate status` up
+  > to date. Deviations: none (the migration folder is `school_rules`, Prisma replaces the dash)
 
 - [ ] **T-10** — `PrismaSchoolRuleRepository` in `apps/backend/src/modules/school-rules/school-rule.prisma.ts`
   (registered in `school-rules.module.ts`): `findAll` ordered by `index`, `createdAt`; `findById` (null for a

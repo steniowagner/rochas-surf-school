@@ -209,6 +209,118 @@ describe("Whatsapp", () => {
     expect(saveButton()).toBeDisabled();
   });
 
+  it.each([
+    ["8", "(8"],
+    ["85", "(85"],
+    ["859", "(85) 9"],
+    ["859999", "(85) 9999"],
+    ["8533334", "(85) 3333-4"],
+    ["8533334444", "(85) 3333-4444"],
+    ["85999998888", "(85) 99999-8888"],
+  ])("masks %s as %s while typing for Brazil", async (digits, masked) => {
+    const press = await renderWhatsapp();
+
+    await press.type(numberInput(), digits);
+
+    expect(numberInput().props.value).toBe(masked);
+  });
+
+  it("ignores letters and a 12th digit for Brazil", async () => {
+    const press = await renderWhatsapp();
+
+    await press.type(numberInput(), "abc");
+    expect(numberInput().props.value).toBe("");
+
+    await press.type(numberInput(), "859999988889");
+    expect(numberInput().props.value).toBe("(85) 99999-8888");
+  });
+
+  it("masks a pasted +55 number and keeps 55 as the area code", async () => {
+    const press = await renderWhatsapp();
+
+    await act(async () =>
+      numberInput().props.onChangeText("+55 85 99999-8888"),
+    );
+    expect(numberInput().props.value).toBe("(85) 99999-8888");
+
+    await press.clear(numberInput());
+    await act(async () => numberInput().props.onChangeText("55 99999-8888"));
+    expect(numberInput().props.value).toBe("(55) 99999-8888");
+  });
+
+  it("removes a digit on backspace without stopping at a separator", async () => {
+    await renderWhatsapp();
+
+    await act(async () => numberInput().props.onChangeText("85 99999"));
+    expect(numberInput().props.value).toBe("(85) 9999-9");
+    await act(async () => numberInput().props.onChangeText("(85) 9999-"));
+    expect(numberInput().props.value).toBe("(85) 9999");
+
+    await act(async () => numberInput().props.onChangeText("(85) "));
+    expect(numberInput().props.value).toBe("(85");
+  });
+
+  it("saves a Brazilian landline in E.164", async () => {
+    respond(200, { ...user, whatsappNumber: "+558533334444" });
+    const press = await renderWhatsapp();
+    await press.type(numberInput(), "8533334444");
+
+    await press.press(saveButton());
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).whatsappNumber).toBe(
+      "+558533334444",
+    );
+  });
+
+  it("shows the stored digits unmasked for another country and masks them again for Brazil", async () => {
+    const press = await renderWhatsapp();
+    await press.type(numberInput(), "85999998888");
+
+    await press.press(screen.getByText("BR +55"));
+    await press.type(screen.getByPlaceholderText("Search country"), "portu");
+    await press.press(screen.getByRole("button", { name: "Portugal +351" }));
+    expect(numberInput().props.value).toBe("85999998888");
+
+    await press.press(screen.getByText("PT +351"));
+    await press.type(screen.getByPlaceholderText("Search country"), "brazil");
+    await press.press(screen.getByRole("button", { name: "Brazil +55" }));
+    expect(numberInput().props.value).toBe("(85) 99999-8888");
+  });
+
+  it("validates and sends what the field shows after switching to Brazil", async () => {
+    respond(200, { ...user, whatsappNumber: "+5585999998888" });
+    const press = await renderWhatsapp();
+    const pickCountry = async (
+      current: string,
+      search: string,
+      name: string,
+    ) => {
+      await press.press(screen.getByText(current));
+      await press.type(screen.getByPlaceholderText("Search country"), search);
+      await press.press(screen.getByRole("button", { name }));
+    };
+
+    await pickCountry("BR +55", "portu", "Portugal +351");
+    await press.type(numberInput(), "+351 912 345 678");
+    await pickCountry("PT +351", "brazil", "Brazil +55");
+    expect(numberInput().props.value).toBe("(35) 19123-4567");
+    await press.press(saveButton());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).whatsappNumber).toBe(
+      "+5535191234567",
+    );
+
+    fetchMock.mockClear();
+    await pickCountry("BR +55", "portu", "Portugal +351");
+    await press.clear(numberInput());
+    await press.type(numberInput(), "8599999888877");
+    await pickCountry("PT +351", "brazil", "Brazil +55");
+    expect(numberInput().props.value).toBe("(85) 99999-8888");
+    await press.press(saveButton());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).whatsappNumber).toBe(
+      "+5585999998888",
+    );
+  });
+
   it("saves and opens school rules", async () => {
     const saved = { ...user, whatsappNumber: "+5585999998888" };
     respond(200, saved);
@@ -313,7 +425,7 @@ describe("Whatsapp", () => {
     expect(
       await screen.findByText("Invalid WhatsApp number."),
     ).toBeOnTheScreen();
-    expect(numberInput().props.value).toBe("85 99999-8888");
+    expect(numberInput().props.value).toBe("(85) 99999-8888");
     expect(router.replace).not.toHaveBeenCalled();
   });
 

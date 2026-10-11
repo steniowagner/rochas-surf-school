@@ -33,7 +33,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     answer arrives.
   - Phone numbers: **`libphonenumber-js`** (default metadata) turns what the person typed and the chosen
     country into E.164 and lists the countries with their dial codes; **`i18n-iso-countries`** gives their
-    names in en, es and pt, following the app language. Both run under Jest without a transform.
+    names in en, es and pt, following the app language. Both run under Jest without a transform. With Brazil
+    selected, the WhatsApp field keeps only the digits (`toBrazilianDigits`: non-digits dropped, a leading `55`
+    dropped when there are more than 11 digits, capped at 11) and shows them masked as `(XX) XXXX-XXXX` or
+    `(XX) XXXXX-XXXX` (`formatBrazilianPhone`, `modules/onboarding/utils/brazilian-phone.ts`, a pure function
+    rather than `AsYouType`); E.164 is built from those same digits. Other countries keep the typed text.
   - Translations: **i18next** + `react-i18next`, with `expo-localization` for the phone's language
     (pt-BR fallback).
   - Push: `expo-notifications`.
@@ -260,7 +264,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   replaces both, and answers 200 with that same account shape. Only an `approved` account may call it (403
   `user.status.notApproved`); the number is required (422 `user.whatsappNumber.required`) and must pass
   `PhoneNumberRule` (422 `user.whatsappNumber.phone`). Numbers are stored in E.164 as sent: the backend
-  validates, never normalizes, and the app sends `parsePhoneNumberFromString(typed, country).number`. The same
+  validates, never normalizes, and the app sends `parsePhoneNumberFromString(typed, country).number` (for Brazil, of the field's digits). The same
   number may belong to several accounts.
 - Boundary: only `apps/backend/src/shared/auth` and the auth adapters know about tokens; use cases receive a
   plain current-user value and enforce permissions.

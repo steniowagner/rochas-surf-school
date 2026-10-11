@@ -279,6 +279,7 @@ Users SHALL be able to change their profile photo, name and WhatsApp number. The
 #### WhatsApp number format
 
 _Implemented in spec 008-onboarding-whatsapp._
+_Implemented in spec 009-brazilian-whatsapp-mask._
 
 WhatsApp numbers SHALL include a country code, with Brazil (+55) preselected.
 

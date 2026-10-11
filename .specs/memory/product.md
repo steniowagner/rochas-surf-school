@@ -319,6 +319,11 @@ with its country code, and the app moves on to the School rules step, which is s
 that already has a number opens School rules directly. Onboarding can't be completed until the school-rules
 spec, so no account reaches the student, instructor or admin experience for now.
 
+**Brazilian number mask** (spec `009-brazilian-whatsapp-mask`) — with Brazil selected, the WhatsApp number is
+formatted as it is typed: `(XX) XXXX-XXXX` for a landline and `(XX) XXXXX-XXXX` for a mobile. Letters and
+digits past the eleventh are ignored, and a pasted `+55 …` number loses its country code. The number is still
+saved with +55; other countries show the number as typed.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).

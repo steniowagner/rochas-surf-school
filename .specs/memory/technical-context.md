@@ -64,8 +64,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   No sign-in, no private area and no API calls. Build with `next build`. No test runner: the pages are static
   content (see Automated validation).
 - **`modules/<module>`** — business modules (`@rochas-surf-school/<module>`), plain TypeScript compiled with
-  `tsc`. Tests with **Jest 30** + `ts-jest`, in `test/` mirroring `src/` (`*.test.ts`). Only `modules/auth`
-  exists today.
+  `tsc`. Tests with **Jest 30** + `ts-jest`, in `test/` mirroring `src/` (`*.test.ts`). Only `modules/auth` and
+  `modules/school-rules` exist today.
 - **`packages/shared`** — base classes and contracts every module uses: `Entity`, `UseCase`,
   `CrudRepository` and its parts, `DomainError` (with optional `details`) / `ValidationError` /
   `ValidationException` (422) / `NotFoundError` (404) / `UnauthorizedError` (401) / `ForbiddenError` (403) /
@@ -201,7 +201,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `AppController`/`AppService` and its e2e test — so it is never mistaken for product code (done for the backend in
   spec 001 and for mobile before the spec workflow; web still carries its own).
 - **Lint**: each domain module gets oxlint (`.oxlintrc.json` mirroring the backend's) and a `check-types`
-  script (`tsc --noEmit`) in the first spec that touches it, like the backend (`modules/auth` has both).
+  script (`tsc --noEmit`) in the first spec that touches it, like the backend (`modules/auth` and `modules/school-rules` have both).
 - **Naming**: `kebab-case` files with a role suffix; general rules in
   [Naming rules](../shared/naming-rules.md). The project's suffixes:
 

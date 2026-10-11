@@ -2,13 +2,14 @@
 id: "010"
 slug: school-rules-management
 title: School rules management (backend)
-status: accepted
+status: finished
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 5517ca275e22def7354b3109edf6152a18eafe19
 reviewed_commit: 4371d36ac0cc8f6831868914e1e06aafdc0346ad
 fronts: [school-rules, backend]
 depends_on: []
+finished: 2026-10-11
 ---
 
 # 010 — School rules management (backend)

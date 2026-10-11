@@ -157,6 +157,7 @@ describe("VerifySignInCode", () => {
           whatsappNumber: null,
           whatsappVisible: false,
           rulesAccepted: true,
+          rulesAcceptedBefore: false,
         },
       });
       await expect(ctx.signInCodeRepository.findByEmail("ana@example.com")).resolves.toBeNull();
@@ -282,6 +283,7 @@ describe("VerifySignInCode", () => {
         whatsappNumber: null,
         whatsappVisible: false,
         rulesAccepted: true,
+        rulesAcceptedBefore: false,
       });
       expect(result.refreshToken).toBe("refresh-1");
       const identities = await ctx.identityRepository.findByUserId(bia.id);
@@ -539,6 +541,7 @@ describe("VerifySignInCode", () => {
         whatsappNumber: null,
         whatsappVisible: false,
         rulesAccepted: true,
+        rulesAcceptedBefore: false,
       });
     });
 

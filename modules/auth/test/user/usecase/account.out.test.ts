@@ -31,6 +31,7 @@ describe("toAccountOut", () => {
       whatsappNumber: null,
       whatsappVisible: false,
       rulesAccepted: true,
+      rulesAcceptedBefore: false,
     });
   });
 
@@ -64,5 +65,21 @@ describe("toAccountOut", () => {
 
   test("is not accepted when nothing was accepted", () => {
     expect(toAccountOut(buildUser(), 3).rulesAccepted).toBe(false);
+  });
+
+  test("has no earlier acceptance without acceptances, whatever the version", () => {
+    expect(toAccountOut(buildUser(), 0).rulesAcceptedBefore).toBe(false);
+    expect(toAccountOut(buildUser(), 3).rulesAcceptedBefore).toBe(false);
+  });
+
+  test("has an earlier acceptance with the current version accepted", () => {
+    expect(toAccountOut(buildUser([3]), 3).rulesAcceptedBefore).toBe(true);
+  });
+
+  test("has an earlier acceptance with only an older version accepted", () => {
+    expect(toAccountOut(buildUser([1]), 3)).toMatchObject({
+      rulesAccepted: false,
+      rulesAcceptedBefore: true,
+    });
   });
 });

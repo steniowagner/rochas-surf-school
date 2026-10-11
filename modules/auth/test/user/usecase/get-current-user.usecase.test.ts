@@ -34,6 +34,7 @@ describe("GetCurrentUser", () => {
       whatsappNumber: null,
       whatsappVisible: false,
       rulesAccepted: true,
+      rulesAcceptedBefore: false,
     });
   });
 

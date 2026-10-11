@@ -200,7 +200,7 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Add `rulesAcceptedBefore: boolean` to `AccountOut` and `toAccountOut` in
+- [x] **T-01** — Add `rulesAcceptedBefore: boolean` to `AccountOut` and `toAccountOut` in
   `modules/auth/src/user/usecase/account.out.ts` (D-01). Tests in `modules/auth/test/user/usecase/account.out.test.ts`:
   `false` without acceptances (version 0 and above), `true` with an acceptance of the current version, `true` with
   only an older one; update the exact-shape expectations in `get-current-user`, `set-whatsapp`,
@@ -208,6 +208,17 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
   `modules/school-rules/test/school-rule/usecase/accept-school-rules.usecase.test.ts` if it compares the whole
   account. Covers: ER-01, ER-02 · Done when: `npm test --workspace @rochas-surf-school/auth` and
   `npm test --workspace @rochas-surf-school/school-rules` pass.
+  > ✅ 2026-10-11 — added `rulesAcceptedBefore` (`user.rulesAcceptances.length > 0`) to `AccountOut`/`toAccountOut`;
+  > new tests (no acceptance at versions 0 and 3, current version accepted, only an older one) and the exact shapes
+  > updated; files: `modules/auth/src/user/usecase/account.out.ts`,
+  > `modules/auth/test/user/usecase/account.out.test.ts`,
+  > `modules/auth/test/user/usecase/get-current-user.usecase.test.ts`,
+  > `modules/auth/test/user/usecase/set-whatsapp.usecase.test.ts`,
+  > `modules/auth/test/session/usecase/refresh-session.usecase.test.ts`,
+  > `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`,
+  > `modules/school-rules/test/school-rule/usecase/accept-school-rules.usecase.test.ts`; verified: auth 226 passed,
+  > school-rules 113 passed (auth `dist` rebuilt with `npm run build`, which school-rules and the backend consume);
+  > deviations: none
 
 ### Backend (`apps/backend`)
 

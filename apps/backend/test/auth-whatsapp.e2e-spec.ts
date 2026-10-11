@@ -56,6 +56,8 @@ describe('PUT /auth/me/whatsapp (e2e)', () => {
   });
 
   afterEach(async () => {
+    await ctx.prisma.schoolRule.deleteMany();
+    await ctx.prisma.rulesVersion.updateMany({ data: { version: 0 } });
     await ctx.prisma.signInCode.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
     await ctx.prisma.user.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
     await ctx.app.close();
@@ -105,11 +107,28 @@ describe('PUT /auth/me/whatsapp (e2e)', () => {
       createdAt: user.createdAt.toISOString(),
       whatsappNumber: '+5585999998888',
       whatsappVisible: false,
+      rulesAccepted: true,
     });
     expect((await me(accessToken)).body).toMatchObject({
       whatsappNumber: '+5585999998888',
       whatsappVisible: false,
     });
+  });
+
+  it.each([
+    ['accepted the current version', 2, true],
+    ['accepted only an older version', 1, false],
+  ])('says rulesAccepted for an account that %s', async (_label, accepted, expected) => {
+    const { user, accessToken } = await createUser();
+    await ctx.prisma.rulesVersion.updateMany({ data: { version: 2 } });
+    await ctx.prisma.userRulesAcceptance.create({
+      data: { userId: user.id, version: accepted, acceptedAt: new Date() },
+    });
+
+    const response = await save(accessToken, { whatsappNumber: '+5585999998888', whatsappVisible: false });
+
+    expect(response.status).toBe(200);
+    expect(response.body.rulesAccepted).toBe(expected);
   });
 
   it('replaces both values when it is called again', async () => {

@@ -56,6 +56,8 @@ function uniqueEmail(name: string): string {
 }
 
 async function cleanUp(prisma: PrismaService): Promise<void> {
+  await prisma.schoolRule.deleteMany();
+  await prisma.rulesVersion.updateMany({ data: { version: 0 } });
   await prisma.signInCode.deleteMany({
     where: { email: { endsWith: `@${DOMAIN}` } },
   });
@@ -220,6 +222,39 @@ describe('Email sign-in (e2e)', () => {
     });
   });
 
+  describe('rulesAccepted', () => {
+    it.each([
+      ['accepted the current version', 2, true],
+      ['accepted only an older version', 1, false],
+    ])('is %s for an account that %s', async (_label, accepted, expected) => {
+      const email = uniqueEmail('ana');
+      const user = await createUser(email);
+      await ctx.prisma.rulesVersion.updateMany({ data: { version: 2 } });
+      await ctx.prisma.userRulesAcceptance.create({
+        data: { userId: user.id, version: accepted, acceptedAt: new Date() },
+      });
+
+      const response = await verify({ email, code: await codeFor(email) });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user.rulesAccepted).toBe(expected);
+    });
+
+    it.each([
+      [0, true],
+      [3, false],
+    ])('is decided by the current version (%i) for a new sign-up', async (version, expected) => {
+      await ctx.prisma.rulesVersion.updateMany({ data: { version } });
+      const email = uniqueEmail('bia');
+      const code = await codeFor(email);
+
+      const response = await verify({ email, code, name: 'Bia Souza' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user).toMatchObject({ status: 'pending', rulesAccepted: expected });
+    });
+  });
+
   describe('existing account', () => {
     it('signs in with the correct code and deletes it', async () => {
       const email = uniqueEmail('ana');
@@ -246,6 +281,7 @@ describe('Email sign-in (e2e)', () => {
           createdAt: user.createdAt.toISOString(),
           whatsappNumber: null,
           whatsappVisible: false,
+          rulesAccepted: true,
         },
       });
       await expect(
@@ -514,6 +550,7 @@ describe('Email sign-in (e2e)', () => {
         createdAt: admin.createdAt.toISOString(),
         whatsappNumber: null,
         whatsappVisible: false,
+        rulesAccepted: true,
       });
     });
 

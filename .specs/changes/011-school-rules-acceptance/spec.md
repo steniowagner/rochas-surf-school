@@ -308,7 +308,7 @@ routing come with a follow-up mobile spec.
   > `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts`
   > (9 passed); deviations: none (`auth.controller.ts` doesn't type-check until T-07 passes the new provider)
 
-- [ ] **T-07** — Create `PrismaRulesVersionProvider` in `apps/backend/src/modules/auth/rules-version.prisma.ts`
+- [x] **T-07** — Create `PrismaRulesVersionProvider` in `apps/backend/src/modules/auth/rules-version.prisma.ts`
   (reads the single `rules_versions` row) with `rules-version.prisma.spec.ts`; register it in
   `auth.module.ts` and pass it to `GetCurrentUser`, `SetWhatsapp`, `VerifySignInCode` and `RefreshSession` in
   `auth.controller.ts`; update `auth.controller.spec.ts`. Update the expected account shapes in
@@ -319,6 +319,19 @@ routing come with a follow-up mobile spec.
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-07, ER-08 · Done when: `npx vitest run src/modules/auth` passes and
   `npm run test:e2e --workspace apps/backend` passes for the three auth suites.
+  > ✅ 2026-10-11 — `PrismaRulesVersionProvider` (reads the single `rules_versions` row), registered in `AuthModule` and
+  > passed to `GetCurrentUser`, `SetWhatsapp`, `VerifySignInCode` and `RefreshSession`; e2e expectations carry
+  > `rulesAccepted` and the ER-07 / ER-08 cases were added (admin add / edit / delete / reorder through the
+  > `/school-rules` routes, acceptances and versions through Prisma); files:
+  > `apps/backend/src/modules/auth/rules-version.prisma.ts`, `apps/backend/src/modules/auth/rules-version.prisma.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.module.ts`, `apps/backend/src/modules/auth/auth.controller.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/test/auth-email.e2e-spec.ts`,
+  > `apps/backend/test/auth-session.e2e-spec.ts`, `apps/backend/test/auth-whatsapp.e2e-spec.ts`,
+  > `apps/backend/vitest.config.e2e.ts`; verified: `npx vitest run src/modules/auth` (92 passed),
+  > `npx vitest run --config vitest.config.e2e.ts test/auth-email.e2e-spec.ts test/auth-session.e2e-spec.ts
+  > test/auth-whatsapp.e2e-spec.ts` (99 passed; 12 with `-t "rulesAccepted"`), `npx tsc --noEmit` (clean);
+  > deviations: set `fileParallelism: false` in `vitest.config.e2e.ts` — the e2e suites now share the single
+  > `rules_versions` row, so running files side by side would race
 
 - [ ] **T-08** — Expose `POST /school-rules/acceptances` (protected, `@HttpCode(200)`, body
   `Partial<{ version: unknown }> | undefined`) in `apps/backend/src/modules/school-rules/school-rules.controller.ts`,

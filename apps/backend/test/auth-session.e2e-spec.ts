@@ -39,6 +39,7 @@ interface Session {
     createdAt: string;
     whatsappNumber: string | null;
     whatsappVisible: boolean;
+    rulesAccepted: boolean;
   };
 }
 
@@ -73,6 +74,8 @@ describe('Session endpoints (e2e)', () => {
   });
 
   afterEach(async () => {
+    await ctx.prisma.schoolRule.deleteMany();
+    await ctx.prisma.rulesVersion.updateMany({ data: { version: 0 } });
     await ctx.prisma.signInCode.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
     await ctx.prisma.user.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
     await ctx.app.close();
@@ -128,6 +131,7 @@ describe('Session endpoints (e2e)', () => {
         createdAt: user.createdAt.toISOString(),
         whatsappNumber: null,
         whatsappVisible: false,
+        rulesAccepted: true,
       });
       expect(session.user.createdAt).toBe(user.createdAt.toISOString());
     });
@@ -165,6 +169,95 @@ describe('Session endpoints (e2e)', () => {
         expect(response.body.status).toBe(status);
       },
     );
+  });
+
+  describe('rulesAccepted', () => {
+    const asAdmin = (token: string, req: request.Test) => req.set('Authorization', `Bearer ${token}`);
+    const accept = (userId: string, version: number) =>
+      ctx.prisma.userRulesAcceptance.create({ data: { userId, version, acceptedAt: new Date() } });
+
+    async function rulesAccepted(token: string): Promise<boolean> {
+      return (await me(token).expect(200)).body.rulesAccepted as boolean;
+    }
+
+    it('is true while no rule was ever written', async () => {
+      const user = await createUser();
+      const session = await signIn(user.email);
+
+      expect(await rulesAccepted(session.accessToken)).toBe(true);
+    });
+
+    it('follows the rules an admin changes', async () => {
+      const admin = await createUser({ role: 'admin' });
+      const adminToken = (await signIn(admin.email)).accessToken;
+      const user = await createUser();
+      const token = (await signIn(user.email)).accessToken;
+      const write = async (req: request.Test) => (await asAdmin(adminToken, req)).body;
+
+      const first = await write(
+        http().post('/school-rules').send({ title: 'First', description: 'First rule' }),
+      );
+      expect(first.version).toBe(1);
+      expect(await rulesAccepted(token)).toBe(false);
+
+      await accept(user.id, 1);
+      expect(await rulesAccepted(token)).toBe(true);
+
+      const second = await write(
+        http().post('/school-rules').send({ title: 'Second', description: 'Second rule' }),
+      );
+      expect(second.version).toBe(2);
+      expect(await rulesAccepted(token)).toBe(false);
+
+      await accept(user.id, 2);
+      const [a, b] = second.rules as { id: string }[];
+      const reordered = await write(http().put('/school-rules/order').send({ ruleIds: [b!.id, a!.id] }));
+      expect(reordered.version).toBe(2);
+      expect(await rulesAccepted(token)).toBe(true);
+
+      const edited = await write(
+        http().put(`/school-rules/${a!.id}`).send({ title: 'First, edited', description: 'New text' }),
+      );
+      expect(edited.version).toBe(3);
+      expect(await rulesAccepted(token)).toBe(false);
+
+      await accept(user.id, 3);
+      const deleted = await write(http().delete(`/school-rules/${b!.id}`));
+      expect(deleted.version).toBe(4);
+      expect(await rulesAccepted(token)).toBe(false);
+    });
+
+    it('does not count an acceptance of an older version', async () => {
+      const user = await createUser();
+      const token = (await signIn(user.email)).accessToken;
+      await ctx.prisma.rulesVersion.updateMany({ data: { version: 3 } });
+      await accept(user.id, 2);
+
+      expect(await rulesAccepted(token)).toBe(false);
+    });
+
+    it('is present for every status', async () => {
+      await ctx.prisma.rulesVersion.updateMany({ data: { version: 1 } });
+      const user = await createUser({ status: 'pending' });
+      const token = (await signIn(user.email)).accessToken;
+
+      expect((await me(token)).body.rulesAccepted).toBe(false);
+    });
+
+    it.each([
+      [[2], true],
+      [[1], false],
+    ])('is carried by the refresh answer too (accepted %j)', async (accepted, expected) => {
+      const user = await createUser();
+      const session = await signIn(user.email);
+      await ctx.prisma.rulesVersion.updateMany({ data: { version: 2 } });
+      for (const version of accepted) await accept(user.id, version);
+
+      const response = await refresh({ refreshToken: session.refreshToken });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user.rulesAccepted).toBe(expected);
+    });
   });
 
   describe('invalid access token', () => {

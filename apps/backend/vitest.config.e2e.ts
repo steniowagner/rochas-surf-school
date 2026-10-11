@@ -7,5 +7,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    // The suites share the single rules_versions row, so they can't run side by side.
+    fileParallelism: false,
   },
 });

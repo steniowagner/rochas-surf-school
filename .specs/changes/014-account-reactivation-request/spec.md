@@ -2,10 +2,11 @@
 id: "014"
 slug: account-reactivation-request
 title: Account answer for closed accounts and the reactivation request
-status: in-review
+status: accepted
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 8a98005fd50cc760b6e3ee41b01e1de1da8f62d3
+reviewed_commit: f6300afbbe8ec77fb89921b7e25ffd2e9941b73b
 fronts: [auth, backend]
 depends_on: []
 ---
@@ -335,3 +336,50 @@ comes with spec 015.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-11 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/auth`, `@rochas-surf-school/backend`: 11 tasks);
+  type check of the `AccountOut` consumers ✅ (`school-rules`, `mobile`: 5 tasks)
+- related tests ✅ (`apps/backend` vitest, `modules/auth` jest, and the importers `apps/mobile` and
+  `modules/school-rules` whole suites)
+- coverage of the changed lines ✅ `COVERAGE OK` — 5 measured files at 100%
+  (`request-reactivation.usecase.ts` 19/19 statements, 4/4 branches); no coverage-ignore comments in the diff
+- e2e: backend ✅ 6 files, 197 passed (local Postgres, migrations deployed — none pending)
+
+**Expected Results**
+
+- ER-01 ✅ — `toAccountOut` returns `denialReason` / `reactivationStatus` as stored or `null`, independent of the
+  status (D-02); `account.out.test.ts` covers reason present/absent, each reactivation status and the absence of
+  the four dates; `closed account fields` in `auth-session.e2e-spec.ts` checks the same through `GET /auth/me`;
+  the whole-answer shapes are updated in the auth-email, auth-session, auth-whatsapp and school-rules-acceptance
+  suites
+- ER-02 ✅ — `sends the request` (student, instructor, admin) answers 200 with `status: "deleted"`,
+  `reactivationStatus: "requested"`, and the row stores the status and a date ≈ now; any body is ignored
+- ER-03 ✅ — `already requested` writes nothing (spy on `update`) and the e2e test keeps the first stored date;
+  two simultaneous requests both answer 200 and the account ends `requested`
+- ER-04 ✅ — `request denied` → 409 `user.reactivation.denied`, row unchanged (status and date)
+- ER-05 ✅ — pending, approved, denied, removed → 403 `user.status.notDeleted`, nothing stored; removed with a
+  denied reactivation → 403 (D-04 order); no token, malformed, expired and deleted-account tokens → 401
+  `auth.token.invalid`
+
+**Findings**
+
+None.
+
+**Notes**
+
+- D-01 to D-07 are honored: the check order in `RequestReactivation` follows D-04, a repeat writes nothing (D-05),
+  the shared `ForbiddenError` / `ConflictError` are used (D-06), and the migration is
+  `20261011221219_auth_reactivation_requested_at` with no backfill (D-07). Nothing out of scope was built;
+  `## Memory Impact` matches the change.
+- Every changed file is explained by a task; `auth.controller.spec.ts`'s shape updates are logged as a T-05
+  deviation, and the `auth.model.prisma` column realignment comes from `prisma format`.
+- Under two truly concurrent first requests, both pass the `requested` check and the second write can replace
+  `reactivationRequestedAt` with a date a few milliseconds later. ER-03's edge case only requires both to answer
+  200 and the account to end `requested`, which holds; if the future admin tool needs the exact first date, a
+  conditional update (`WHERE reactivation_status IS NULL`) would make it strict.
+- The working tree holds the untracked plans of specs 015 and 016 (`.specs/changes/`), unrelated to this spec's
+  code; they were left untouched.

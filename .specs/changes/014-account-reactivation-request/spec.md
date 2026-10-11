@@ -225,13 +225,26 @@ comes with spec 015.
   > `apps/backend` clean (after rebuilding `@rochas-surf-school/auth` and `prisma:generate`); deviations:
   > `prisma format` realigned the `User` model's columns.
 
-- [ ] **T-04** — Update the expected account shapes (`denialReason`, `reactivationStatus`) in
+- [x] **T-04** — Update the expected account shapes (`denialReason`, `reactivationStatus`) in
   `apps/backend/test/auth-email.e2e-spec.ts`, `auth-session.e2e-spec.ts`, `auth-whatsapp.e2e-spec.ts` and
   `school-rules-acceptance.e2e-spec.ts`, and add the test `closed account fields` to `auth-session.e2e-spec.ts`
   (accounts set through Prisma: denied with a reason, denied without one, deleted with `requested`, deleted with
   `denied`; `GET /auth/me` returns the fields and none of the dates). Covers: ER-01 · Done when:
   `npx vitest run --config vitest.config.e2e.ts test/auth-email.e2e-spec.ts test/auth-session.e2e-spec.ts test/auth-whatsapp.e2e-spec.ts test/school-rules-acceptance.e2e-spec.ts`
   passes (from `apps/backend`, local database up).
+  > ✅ 2026-10-11 — The whole-answer expectations gain `denialReason: null` and `reactivationStatus: null`
+  > (verify existing account and review account in `auth-email`, `GET /auth/me` and the `Session` type in
+  > `auth-session`, `PUT /auth/me/whatsapp`, `POST /school-rules/acceptances`); new `describe('closed account
+  > fields')` under `GET /auth/me` in `auth-session.e2e-spec.ts`: accounts created through Prisma (with
+  > `deniedAt` / `deletedAt` / `reactivationRequestedAt` set) — denied with a reason, denied without one, deleted
+  > with `requested`, deleted with `denied` — each answers its fields and none of `deniedAt`, `deletedAt`,
+  > `removedAt`, `reactivationRequestedAt`. files: `apps/backend/test/auth-email.e2e-spec.ts`,
+  > `apps/backend/test/auth-session.e2e-spec.ts`, `apps/backend/test/auth-whatsapp.e2e-spec.ts`,
+  > `apps/backend/test/school-rules-acceptance.e2e-spec.ts`; verified: the four suites with
+  > `npx vitest run --config vitest.config.e2e.ts …` (131 passed, twice in a row), `npm run check-types` in
+  > `apps/backend` clean; deviations: the very first run failed once on `returns the signed-in account…`
+  > (not reproduced in three later runs; likely another process changing the shared `rules_versions` row on
+  > the local database at the same time).
 
 - [ ] **T-05** — Expose `POST /auth/me/reactivation-request` (protected, `@HttpCode(200)`, no body) in
   `apps/backend/src/modules/auth/auth.controller.ts`, constructing `RequestReactivation` with

@@ -109,6 +109,8 @@ describe('PUT /auth/me/whatsapp (e2e)', () => {
       whatsappVisible: false,
       rulesAccepted: true,
       rulesAcceptedBefore: false,
+      denialReason: null,
+      reactivationStatus: null,
     });
     expect((await me(accessToken)).body).toMatchObject({
       whatsappNumber: '+5585999998888',

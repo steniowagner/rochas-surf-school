@@ -109,6 +109,8 @@ describe('Accepting the school rules (e2e)', () => {
         whatsappVisible: false,
         rulesAccepted: true,
         rulesAcceptedBefore: true,
+        denialReason: null,
+        reactivationStatus: null,
       });
       const rows = await rowsOf(student.id);
       expect(rows.map((row) => row.version)).toEqual([2, 3]);

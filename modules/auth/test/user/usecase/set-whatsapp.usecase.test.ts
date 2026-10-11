@@ -55,6 +55,7 @@ describe("SetWhatsapp", () => {
       whatsappNumber: "+5585999998888",
       whatsappVisible: true,
       rulesAccepted: true,
+      rulesAcceptedBefore: false,
     });
 
     const saved = await repository.findById(ana.id);

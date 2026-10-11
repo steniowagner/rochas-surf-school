@@ -28,6 +28,7 @@ const FLOW_BY_INACTIVE_STATUS: Record<Exclude<UserStatus, "approved">, Flow> = {
 const FLOW_ENTRY_ROUTES: FlowEntryRoutes = {
   auth: routes.auth.signIn,
   pending: routes.pending.home,
+  "rules-update": routes.rulesUpdate.home,
   reactivation: routes.reactivation.home,
   "offboarding-denied": routes.offboarding.denied,
   "offboarding-removed": routes.offboarding.removed,
@@ -51,7 +52,10 @@ export const resolveFlow = ({
   }
 
   if (!onboardingCompleted) {
-    return "onboarding";
+    // An account that accepted the rules before only needs to accept the new version (spec 013, D-03).
+    return user.whatsappNumber && user.rulesAcceptedBefore
+      ? "rules-update"
+      : "onboarding";
   }
 
   return isUserRole(user.role) ? user.role : "auth";

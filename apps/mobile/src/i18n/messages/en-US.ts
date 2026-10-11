@@ -114,6 +114,13 @@ const messages = {
     outdated: "The rules changed. Read them again and accept.",
     retry: "Try again",
   },
+  rulesUpdate: {
+    eyebrow: "Rules updated",
+    title: "School rules",
+    description:
+      "We updated the school rules. Read and accept them to keep using the app.",
+    submit: "Accept and continue",
+  },
   flows: {
     onboarding: "Onboarding",
     reactivation: "Reactivation",

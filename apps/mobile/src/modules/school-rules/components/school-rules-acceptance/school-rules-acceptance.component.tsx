@@ -9,14 +9,20 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
 import { SchoolRulesList } from "@/modules/school-rules/components/school-rules-list";
 
-import { useSchoolRulesStep } from "./school-rules.hook";
+import { useSchoolRulesAcceptance } from "./school-rules-acceptance.hook";
+import { SchoolRulesAcceptanceProps } from "./school-rules-acceptance.types";
 
-export function SchoolRules() {
+export function SchoolRulesAcceptance({
+  eyebrow,
+  title,
+  description,
+  submitLabel,
+}: SchoolRulesAcceptanceProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { isChecked, setIsChecked, canAccept, canSubmit, isAccepting, submit } =
-    useSchoolRulesStep();
+    useSchoolRulesAcceptance();
 
   return (
     <View className="flex-1 bg-page">
@@ -29,9 +35,9 @@ export function SchoolRules() {
           icon={
             <Ionicons name="shield-outline" size={30} color={theme.grape} />
           }
-          eyebrow={t("schoolRules.eyebrow")}
-          title={t("schoolRules.title")}
-          description={t("schoolRules.description")}
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
         />
         <SchoolRulesList />
       </ScrollView>
@@ -47,7 +53,7 @@ export function SchoolRules() {
           disabled={!canAccept}
         />
         <Button disabled={!canSubmit} loading={isAccepting} onPress={submit}>
-          {t("schoolRules.submit")}
+          {submitLabel}
         </Button>
       </View>
     </View>

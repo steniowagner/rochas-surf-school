@@ -10,6 +10,7 @@ export interface AccountOut {
   whatsappNumber: string | null;
   whatsappVisible: boolean;
   rulesAccepted: boolean;
+  rulesAcceptedBefore: boolean;
 }
 
 export function toAccountOut(user: User, currentRulesVersion: number): AccountOut {
@@ -23,5 +24,6 @@ export function toAccountOut(user: User, currentRulesVersion: number): AccountOu
     whatsappNumber: user.whatsappNumber ?? null,
     whatsappVisible: user.whatsappVisible,
     rulesAccepted: currentRulesVersion === 0 || user.hasAcceptedRules(currentRulesVersion),
+    rulesAcceptedBefore: user.rulesAcceptances.length > 0,
   };
 }

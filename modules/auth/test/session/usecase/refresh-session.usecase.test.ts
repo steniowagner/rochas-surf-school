@@ -82,6 +82,7 @@ describe("RefreshSession", () => {
           whatsappNumber: null,
           whatsappVisible: false,
           rulesAccepted: true,
+          rulesAcceptedBefore: false,
         },
       });
       const [old, rotated] = ctx.refreshTokenRepository.tokens;

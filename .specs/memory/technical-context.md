@@ -177,11 +177,14 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   when the route takes params, optional ones included: `routes.auth.createAccount()` or
   `routes.auth.createAccount({ email })`). `router` and `Redirect` calls and their tests use it, never string literals,
   so a moved route changes in one place.
-- **Mobile flows**: each account state has one flow — `auth`, `pending`, `onboarding`, `reactivation`,
+- **Mobile flows**: each account state has one flow — `auth`, `pending`, `onboarding`, `rules-update`, `reactivation`,
   `offboarding-denied`, `offboarding-removed`, `student`, `instructor`, `admin` — picked only by `resolveFlow`
   (`src/navigation/resolve-flow.ts`) from the session's user: no user, or an unknown role or status → `auth`;
   `pending` (any role) → `pending` (`/pending`, the waiting-for-approval screen, whose only way out is signing
-  out); `approved` → `onboarding` until onboarding is completed, then its role; `deleted` →
+  out); `approved` → `onboarding` until onboarding is completed, then its role — except an account with a
+  `whatsappNumber`, `rulesAccepted: false` and `rulesAcceptedBefore: true`, which goes to `rules-update`
+  (`routes.rulesUpdate.home` = `/rules-update`, the "Regras atualizadas" screen; its layout turns swipe-back
+  off and the screen has no back or sign-out button, so accepting is the only way out); `deleted` →
   `reactivation`; `denied` / `removed` → their offboarding flow. `RootNavigator`
   (`src/navigation/root-navigator/`) wraps each flow's route group in `Stack.Protected` driven by that flow
   (the offboarding layout guards `denied` and `removed` the same way), and `src/app/index.tsx` redirects to
@@ -190,7 +193,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   step's route (`routes.onboarding.whatsapp` = `/onboarding`, `routes.onboarding.schoolRules` =
   `/onboarding/school-rules`). `useRootNavigator` passes `onboardingCompleted: isOnboardingCompleted(user)`
   (same file): a WhatsApp number and `rulesAccepted === true`, so an account that hasn't accepted the current
-  school rules version goes back to the School rules step; the app has no version logic of its own, the
+  school rules version goes back to the School rules step (or to `rules-update` when it accepted before); the app has no version logic of its own, the
   backend's `rulesAccepted` decides. The onboarding group is guarded by flow, not by step. Reason: one tested function holds every access rule, so screens, layouts and hooks never
   decide access, and a flow change never strands a person on a screen they can no longer reach. A flow's
   screens go in `src/modules/<flow>/screens/` with a route file in that flow's folder under `src/app/`.
@@ -263,13 +266,14 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   carries those four fields plus the claims. The guard never refuses by status or role — use cases do. Every
   401 it answers (no token, malformed, wrong signature, expired, unknown user) is `auth.token.invalid`, so the
   app reacts the same way to each (renew, else sign in again). `GET /auth/me` returns the account
-  (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible, rulesAccepted }`,
+  (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore }`,
   `whatsappNumber` an E.164 string or `null`) for any status — the same `user` shape as verify and refresh, and
   the body of `PUT /auth/me/whatsapp` and `POST /school-rules/acceptances`. One mapper builds it:
   `toAccountOut(user, currentRulesVersion)` / `AccountOut` in `modules/auth/src/user/usecase/account.out.ts`.
 - `rulesAccepted` is `true` when the current school rules version is 0 or the account has an acceptance of the
   current version, `false` otherwise, computed on every answer so the app's routing stays a function of the
-  session's user. `auth` reads the version through the `RulesVersionProvider` port
+  session's user. `rulesAcceptedBefore` is `true` when the account has an acceptance of any version
+  (`user.rulesAcceptances.length > 0`), so the app tells a new version from a first acceptance. `auth` reads the version through the `RulesVersionProvider` port
   (`modules/auth/src/user/provider/rules-version.provider.ts`, `getCurrentVersion()`), implemented by
   `PrismaRulesVersionProvider` (`apps/backend/src/modules/auth/rules-version.prisma.ts`, the single
   `rules_versions` row) — a port because `modules/school-rules` depends on `auth`, so `auth` can't depend on
@@ -291,7 +295,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   Google and Apple client ids come with their sign-in spec.
 - Mobile session: the signed-in account lives in an in-memory React context (`SessionProvider` /
   `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status, createdAt,
-  whatsappNumber, whatsappVisible, rulesAccepted }` (`createdAt` an ISO 8601 string in UTC) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
+  whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore }` (`createdAt` an ISO 8601 string in UTC) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
   refreshToken, refreshTokenExpiresAt }` or `null` —, `setSession({ user, tokens })`, `clearSession()`); the
   Confirm email screen sets it from the verify response. Nothing is stored on the device yet, so a restart signs
   out; tokens will go to `expo-secure-store` when the session is kept. The app routes by account state before

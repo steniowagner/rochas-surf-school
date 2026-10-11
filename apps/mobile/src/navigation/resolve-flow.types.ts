@@ -4,6 +4,7 @@ export type Flow =
   | "auth"
   | "pending"
   | "onboarding"
+  | "rules-update"
   | "reactivation"
   | "offboarding-denied"
   | "offboarding-removed"
@@ -26,6 +27,8 @@ export type SessionUser = {
   whatsappVisible: boolean;
   // `true` once the account accepted the current school rules (always, while there are none).
   rulesAccepted: boolean;
+  // `true` once the account accepted any version of the school rules: a new version is an update, not a first acceptance.
+  rulesAcceptedBefore: boolean;
 };
 
 export type ResolveFlowInput = {

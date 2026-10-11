@@ -18,6 +18,7 @@ const userWith = (status: string, role: string): SessionUser => ({
   whatsappNumber: null,
   whatsappVisible: false,
   rulesAccepted: false,
+  rulesAcceptedBefore: false,
   role,
   status,
 });
@@ -98,6 +99,73 @@ describe("resolveFlow", () => {
   });
 });
 
+describe("rules update", () => {
+  const flowOf = (user: SessionUser) =>
+    resolveFlow({ user, onboardingCompleted: isOnboardingCompleted(user) });
+
+  const approved = (
+    role: string,
+    {
+      number = "+5585999998888" as string | null,
+      accepted = false,
+      before = false,
+    } = {},
+  ): SessionUser => ({
+    ...userWith("approved", role),
+    whatsappNumber: number,
+    rulesAccepted: accepted,
+    rulesAcceptedBefore: before,
+  });
+
+  it.each(USER_ROLES)(
+    "resolves a %s that accepted before and missed a change to rules-update",
+    (role) => {
+      expect(flowOf(approved(role, { before: true }))).toBe("rules-update");
+    },
+  );
+
+  it.each(USER_ROLES)(
+    "keeps the onboarding step for a first acceptance of a %s",
+    (role) => {
+      expect(flowOf(approved(role))).toBe("onboarding");
+    },
+  );
+
+  it.each(USER_ROLES)(
+    "opens the %s home once the rules are accepted",
+    (role) => {
+      expect(flowOf(approved(role, { accepted: true, before: true }))).toBe(
+        role,
+      );
+    },
+  );
+
+  it.each([true, false])(
+    "keeps the WhatsApp step without a number (accepted before: %s)",
+    (before) => {
+      const user = approved("student", { number: null, before });
+
+      expect(flowOf(user)).toBe("onboarding");
+      expect(onboardingStep(user)).toBe("whatsapp");
+    },
+  );
+
+  it.each(["pending", "deleted", "denied", "removed"])(
+    "keeps the %s flow whatever the flags are",
+    (status) => {
+      const user = { ...approved("student", { before: true }), status };
+
+      expect(flowOf(user)).not.toBe("rules-update");
+    },
+  );
+
+  it("still falls back to auth for an unknown role with the rules accepted", () => {
+    expect(flowOf(approved("owner", { accepted: true, before: true }))).toBe(
+      "auth",
+    );
+  });
+});
+
 describe("onboarding completed", () => {
   const student = userWith("approved", "student");
 
@@ -156,6 +224,7 @@ describe("flowEntryRoute", () => {
 
   it.each<[Exclude<Flow, "onboarding">, string]>([
     ["auth", routes.auth.signIn],
+    ["rules-update", routes.rulesUpdate.home],
     ["pending", routes.pending.home],
     ["reactivation", routes.reactivation.home],
     ["offboarding-denied", routes.offboarding.denied],

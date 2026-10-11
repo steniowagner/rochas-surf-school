@@ -57,7 +57,13 @@ describe("AcceptSchoolRules", () => {
 
       const out = await useCase.execute({ actor: actorOf(ana), version: 3 });
 
-      expect(out).toMatchObject({ id: ana.id, role, rulesAccepted: true, whatsappNumber: null });
+      expect(out).toMatchObject({
+        id: ana.id,
+        role,
+        rulesAccepted: true,
+        rulesAcceptedBefore: true,
+        whatsappNumber: null,
+      });
       const saved = await userRepository.findById(ana.id);
       expect(saved?.rulesAcceptances).toEqual([{ version: 3, acceptedAt: NOW }]);
     },

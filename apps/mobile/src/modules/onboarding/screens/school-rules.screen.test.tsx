@@ -42,6 +42,7 @@ const accountOf = (role: string, rulesAccepted: boolean): SessionUser => ({
   whatsappNumber: "+5585999998888",
   whatsappVisible: false,
   rulesAccepted,
+  rulesAcceptedBefore: false,
 });
 
 let initialUser: SessionUser;

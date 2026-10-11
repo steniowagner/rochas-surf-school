@@ -40,6 +40,7 @@ interface Session {
     whatsappNumber: string | null;
     whatsappVisible: boolean;
     rulesAccepted: boolean;
+    rulesAcceptedBefore: boolean;
   };
 }
 
@@ -132,6 +133,7 @@ describe('Session endpoints (e2e)', () => {
         whatsappNumber: null,
         whatsappVisible: false,
         rulesAccepted: true,
+        rulesAcceptedBefore: false,
       });
       expect(session.user.createdAt).toBe(user.createdAt.toISOString());
     });
@@ -257,6 +259,73 @@ describe('Session endpoints (e2e)', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.user.rulesAccepted).toBe(expected);
+    });
+  });
+
+  describe('rulesAcceptedBefore', () => {
+    const asAdmin = (token: string, req: request.Test) => req.set('Authorization', `Bearer ${token}`);
+    const accept = (userId: string, version: number) =>
+      ctx.prisma.userRulesAcceptance.create({ data: { userId, version, acceptedAt: new Date() } });
+
+    async function flags(token: string) {
+      const { rulesAccepted, rulesAcceptedBefore } = (await me(token).expect(200)).body;
+      return { rulesAccepted, rulesAcceptedBefore };
+    }
+
+    it('is false without an acceptance, even while no rule was ever written', async () => {
+      const user = await createUser();
+      const token = (await signIn(user.email)).accessToken;
+
+      expect(await flags(token)).toEqual({ rulesAccepted: true, rulesAcceptedBefore: false });
+    });
+
+    it('is false for a pending account without an acceptance', async () => {
+      await ctx.prisma.rulesVersion.updateMany({ data: { version: 1 } });
+      const user = await createUser({ status: 'pending' });
+      const token = (await signIn(user.email)).accessToken;
+
+      expect(await flags(token)).toEqual({ rulesAccepted: false, rulesAcceptedBefore: false });
+    });
+
+    it('follows the acceptances and the rules an admin changes', async () => {
+      const admin = await createUser({ role: 'admin' });
+      const adminToken = (await signIn(admin.email)).accessToken;
+      const user = await createUser();
+      const token = (await signIn(user.email)).accessToken;
+      const write = async (req: request.Test) => (await asAdmin(adminToken, req)).body;
+
+      const first = await write(
+        http().post('/school-rules').send({ title: 'First', description: 'First rule' }),
+      );
+      expect(first.version).toBe(1);
+      expect(await flags(token)).toEqual({ rulesAccepted: false, rulesAcceptedBefore: false });
+
+      await accept(user.id, 1);
+      expect(await flags(token)).toEqual({ rulesAccepted: true, rulesAcceptedBefore: true });
+
+      const second = await write(
+        http().post('/school-rules').send({ title: 'Second', description: 'Second rule' }),
+      );
+      expect(second.version).toBe(2);
+      expect(await flags(token)).toEqual({ rulesAccepted: false, rulesAcceptedBefore: true });
+
+      await accept(user.id, 2);
+      const [a, b] = second.rules as { id: string }[];
+      const reordered = await write(http().put('/school-rules/order').send({ ruleIds: [b!.id, a!.id] }));
+      expect(reordered.version).toBe(2);
+      expect(await flags(token)).toEqual({ rulesAccepted: true, rulesAcceptedBefore: true });
+    });
+
+    it('is carried by the refresh answer too', async () => {
+      const user = await createUser();
+      const session = await signIn(user.email);
+      await ctx.prisma.rulesVersion.updateMany({ data: { version: 2 } });
+      await accept(user.id, 1);
+
+      const response = await refresh({ refreshToken: session.refreshToken });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user).toMatchObject({ rulesAccepted: false, rulesAcceptedBefore: true });
     });
   });
 

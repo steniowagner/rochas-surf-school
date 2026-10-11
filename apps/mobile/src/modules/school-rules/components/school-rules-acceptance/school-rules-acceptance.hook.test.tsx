@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 
 import { SessionContext } from "@/providers/session/session.context";
 
-import { useSchoolRulesStep } from "./school-rules.hook";
+import { useSchoolRulesAcceptance } from "./school-rules-acceptance.hook";
 
 const fetchMock = jest.fn();
 
@@ -46,14 +46,14 @@ beforeEach(() => {
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
-describe("useSchoolRulesStep", () => {
+describe("useSchoolRulesAcceptance", () => {
   it("sends nothing while the box is unticked or the rules aren't loaded", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({ version: 3, rules: [] }),
     });
-    const { result } = await renderHook(() => useSchoolRulesStep(), {
+    const { result } = await renderHook(() => useSchoolRulesAcceptance(), {
       wrapper,
     });
 

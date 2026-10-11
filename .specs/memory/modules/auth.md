@@ -34,6 +34,9 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   (version 0); no otherwise, so an add, edit or delete makes it no again until the account accepts the new
   version, and an acceptance of an older version doesn't count. It is given for every status. The current
   version is read from School rules without this module depending on it.
+- **Whether the rules were ever accepted** (`rulesAcceptedBefore`): every answer that carries the account also
+  says whether it has an acceptance of any version, so the app tells a new version (the "Regras atualizadas"
+  screen) from a first acceptance (the onboarding step). No while no acceptance exists, version 0 included.
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -162,3 +165,6 @@ school-rules step of onboarding, erasure and reactivation are rules of the accou
 - `011-school-rules-acceptance` — accepted school rules versions are stored with when they were accepted (a
   repeat keeps the first); every answer that carries the account (current account, code check, renewal,
   WhatsApp number, accepting the rules) says whether the current rules are accepted.
+- `013-school-rules-update` — every answer that carries the account says whether it ever accepted any version of
+  the school rules; the app sends an account that accepted before and missed a change to the "Regras
+  atualizadas" screen instead of onboarding.

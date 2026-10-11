@@ -9,7 +9,7 @@ import {
 import i18n from "@/i18n";
 import { SessionContext } from "@/providers/session/session.context";
 
-import { SchoolRules } from "./school-rules.component";
+import { SchoolRulesAcceptance } from "./school-rules-acceptance.component";
 
 const fetchMock = jest.fn();
 const mockShow = jest.fn();
@@ -29,6 +29,7 @@ const user = {
   whatsappNumber: "+5585999998888",
   whatsappVisible: false,
   rulesAccepted: false,
+  rulesAcceptedBefore: false,
 };
 
 const tokens = {
@@ -77,7 +78,12 @@ const renderStep = () =>
       <SessionContext.Provider
         value={{ user, tokens, setSession, clearSession: jest.fn() }}
       >
-        <SchoolRules />
+        <SchoolRulesAcceptance
+          eyebrow="Last step"
+          title="School rules"
+          description="Few and simple — so classes go well for everyone."
+          submitLabel="Enter the app"
+        />
       </SessionContext.Provider>
     </QueryClientProvider>,
   );
@@ -93,8 +99,8 @@ beforeEach(() => {
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
-describe("SchoolRules", () => {
-  it("shows the intro", async () => {
+describe("SchoolRulesAcceptance", () => {
+  it("shows the copy it is given", async () => {
     serve({
       rules: () => json(200, { version: 3, rules: [1, 2, 3].map(ruleOf) }),
     });
@@ -278,34 +284,19 @@ describe("SchoolRules", () => {
   it.each([
     [
       "en-US",
-      "Last step",
-      "School rules",
       "I have read and accept the rules and terms of Rocha's Surf School.",
-      "Enter the app",
     ],
-    [
-      "pt-BR",
-      "Último passo",
-      "Regras da escola",
-      "Li e aceito as regras e os termos da Rocha's Surf School.",
-      "Entrar no app",
-    ],
+    ["pt-BR", "Li e aceito as regras e os termos da Rocha's Surf School."],
     [
       "es-ES",
-      "Último paso",
-      "Normas de la escuela",
       "He leído y acepto las normas y los términos de Rocha's Surf School.",
-      "Entrar en la app",
     ],
-  ])("shows the copy in %s", async (locale, eyebrow, title, accept, submit) => {
+  ])("shows the checkbox label in %s", async (locale, accept) => {
     await i18n.changeLanguage(locale);
     serve({ rules: () => json(200, { version: 3, rules: [ruleOf(1)] }) });
     await renderStep();
 
-    expect(screen.getByText(eyebrow)).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
     expect(screen.getByText(accept)).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: submit })).toBeOnTheScreen();
     // The rules' text is shown as written, in every language.
     expect(await screen.findByText("Title 1")).toBeOnTheScreen();
   });

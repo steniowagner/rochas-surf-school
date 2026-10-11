@@ -119,6 +119,13 @@ const messages: Messages = {
     outdated: "Las normas cambiaron. Léelas de nuevo y acéptalas.",
     retry: "Intentar de nuevo",
   },
+  rulesUpdate: {
+    eyebrow: "Normas actualizadas",
+    title: "Normas de la escuela",
+    description:
+      "Actualizamos las normas de la escuela. Léelas y acéptalas para seguir usando la app.",
+    submit: "Aceptar y continuar",
+  },
   flows: {
     onboarding: "Primeros pasos",
     reactivation: "Reactivación",

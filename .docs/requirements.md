@@ -387,6 +387,7 @@ Admins SHALL be able to add, edit, remove and reorder school rules. A new rule g
 
 _Implemented in spec 011-school-rules-acceptance._
 _Implemented in spec 012-onboarding-school-rules._
+_Implemented in spec 013-school-rules-update._
 
 Users SHALL accept the school rules after their registration is approved and before using the rest of the app. They accept the current version only; while no rule has ever been written there is nothing to accept.
 
@@ -406,6 +407,7 @@ Approved users, of any role, SHALL be able to read the school rules at any time.
 _Implemented in spec 010-school-rules-management._
 _Implemented in spec 011-school-rules-acceptance._
 _Implemented in spec 012-onboarding-school-rules._
+_Implemented in spec 013-school-rules-update._
 
 Every time admins add, edit or remove a school rule, the rules SHALL get a new version, and each user SHALL accept it the next time they open the app, before continuing; admins don't choose. Reordering the rules, or saving a rule without changing its text, SHALL NOT create a new version. The change SHALL NOT send a notification.
 
@@ -416,6 +418,7 @@ Every time admins add, edit or remove a school rule, the rules SHALL get a new v
 
 _Implemented in spec 011-school-rules-acceptance._
 _Implemented in spec 012-onboarding-school-rules._
+_Implemented in spec 013-school-rules-update._
 
 A reactivated or restored account SHALL accept the school rules again if a change that required acceptance happened while it was deleted or removed.
 

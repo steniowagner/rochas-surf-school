@@ -10,6 +10,10 @@ import { getStatus, isValid } from "@/modules/auth/utils/field-validation";
 import { useSession } from "@/providers/session";
 
 import { useSaveWhatsapp } from "../../hooks/use-save-whatsapp.hook";
+import {
+  formatBrazilianPhone,
+  toBrazilianDigits,
+} from "../../utils/brazilian-phone";
 import { DEFAULT_COUNTRY, getDialCode } from "../../utils/countries";
 
 import { WhatsappNumberField } from "./whatsapp.types";
@@ -38,15 +42,16 @@ export const useWhatsapp = () => {
   const [isHidden, setIsHidden] = useState(true);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
 
+  const isBrazil = country === "BR";
   const trimmed = typed.trim();
   const whatsappNumber = toE164(trimmed, country);
   const isNumberValid = isValid(whatsappNumber, numberRules());
 
   const numberField: WhatsappNumberField = {
-    value: typed,
+    value: isBrazil ? formatBrazilianPhone(toBrazilianDigits(typed)) : typed,
     status: getStatus(trimmed, isNumberValid, isTouched),
     errorMessage: t("whatsapp.invalidNumber"),
-    onChangeText: setTyped,
+    onChangeText: (text) => setTyped(isBrazil ? toBrazilianDigits(text) : text),
     onBlur: () => setIsTouched(true),
   };
 

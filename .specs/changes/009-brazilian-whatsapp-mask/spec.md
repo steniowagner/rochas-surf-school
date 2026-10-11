@@ -99,13 +99,19 @@ sent and stored doesn't change: the number is still saved in E.164.
   > `apps/mobile/src/modules/onboarding/utils/brazilian-phone.ts`,
   > `apps/mobile/src/modules/onboarding/utils/brazilian-phone.test.ts`; verified:
   > `npx jest src/modules/onboarding/utils/brazilian-phone.test.ts` (22 passed, 100% coverage); deviations: none
-- [ ] **T-02** — Use them in `src/modules/onboarding/components/whatsapp/whatsapp.hook.ts` (D-02, D-04): when the
+- [x] **T-02** — Use them in `src/modules/onboarding/components/whatsapp/whatsapp.hook.ts` (D-02, D-04): when the
   country is `BR`, `onChangeText` stores `toBrazilianDigits(text)` and the field value is
   `formatBrazilianPhone(toBrazilianDigits(typed))`; other countries keep the current behavior. In
   `whatsapp.component.test.tsx`, add tests for ER-01's typing, letters, 12th digit, pasted `+55` and backspace
   cases and ER-02's landline save, country switch both ways and saved E.164, and update the existing API-error
   test to expect `(85) 99999-8888`. Follow `.claude/rules/react.md` and the `vercel-react-native-skills` skill.
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/onboarding` passes.
+  > ✅ 2026-10-11 — for `BR` the hook stores `toBrazilianDigits(text)` and shows `formatBrazilianPhone(...)`;
+  > other countries unchanged; added masking, letters/12th digit, pasted `+55`/`55`, backspace, landline save and
+  > country-switch tests, API-error test now expects `(85) 99999-8888`; files:
+  > `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.hook.ts`,
+  > `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.component.test.tsx`; verified:
+  > `npx jest src/modules/onboarding` (7 suites, 77 passed); deviations: none
 
 ### Verification
 

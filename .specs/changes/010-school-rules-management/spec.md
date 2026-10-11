@@ -300,12 +300,18 @@ will call.
   > rule.usecase.test.ts`. Verified: module run 87 passed, 100% coverage; lint, check-types exit 0. Deviations:
   > none
 
-- [ ] **T-08** — `ReorderSchoolRules` use case: checks admin, validates `ruleIds` (422 `ValidationException`
+- [x] **T-08** — `ReorderSchoolRules` use case: checks admin, validates `ruleIds` (422 `ValidationException`
   with `schoolRule.order.required` / `schoolRule.order.mismatch`, D-09), saves only the rules whose index
   changed with `bumpVersion: false`. Tests in the same test folder. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-07, ER-08, ER-04 · Done when: the tests (new order, same order, empty list, missing / repeated /
   unknown id, not an array, non-admin; version unchanged) pass.
+  > ✅ 2026-10-11 14:08 — `ReorderSchoolRules` use case (admin check, `schoolRule.order.required` /
+  > `schoolRule.order.mismatch`, saves only the moved rules with `bumpVersion: false`, no write when the order
+  > is unchanged). Files: `modules/school-rules/src/school-rule/usecase/{reorder-school-
+  > rules.usecase.ts,index.ts}`, `modules/school-rules/test/school-rule/usecase/reorder-school-
+  > rules.usecase.test.ts`. Verified: module run 87 passed, 100% coverage; lint, check-types, build exit 0.
+  > Deviations: none
 
 ### Backend (`apps/backend`)
 

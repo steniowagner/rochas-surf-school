@@ -2,7 +2,8 @@
 id: "012"
 slug: onboarding-school-rules
 title: Onboarding School rules step (mobile)
-status: in-review
+status: accepted
+reviewed_commit: fdc5d48515f872abe5e3b9bb6f00298e4c6f2e6f
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 248126d896b4da5464137165b6fb2f72f8c614df
@@ -375,3 +376,57 @@ an admin changes the rules. The list is built to be reused by the later screens 
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-11 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 6 tasks) · no build
+  script for mobile
+- related tests ✅ 416 passed in 34 suites (apps/mobile); design-tokens and apps/web have no test runner
+- coverage of the changed lines ✅ `COVERAGE OK` (15 files, 100%); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` (no suite applies to mobile)
+- iOS simulator (iPhone 18 Pro, Expo Go, light mode, local backend, student review account, app in en-US): an admin
+  rule edit through the API, then a new sign-in → the School rules step with the edited text, 01–03 in order, box
+  unticked, CTA disabled; ticking by the label enabled the CTA; with the step open, a rule edit, then tick + CTA → the
+  list showed the new text, the box was unticked and the CTA disabled (seen twice); tick + CTA → `/student`, and the
+  back swipe stayed on it; a sign-in through the API then answered `rulesAccepted: true`
+
+**Expected Results**
+
+- ER-01 ✅ — `shows the rules in order`, `numbers twelve rules up to 12`, `shows a loading indicator`, `sends the access
+  token`, `shows the intro` pass; seen in the simulator (header, eyebrow, numbered rows, fixed footer)
+- ER-02 ✅ — Checkbox suite (4) and `enables the CTA only when ticked` pass; ticking by the label seen in the simulator
+- ER-03 ✅ — `shows the empty message`, `accepts an empty list` (POST `{ "version": 4 }` with the bearer token) pass
+- ER-04 ✅ — `retries after a failed load` (500 → 200), `signs out when the session expired`, `disabled while the rules
+  can't be shown (loading|load error)` pass
+- ER-05 ✅ — `puts the account in the session`, `sends the version and the token`, `sends one request for two quick
+  presses`, and `opens the role home after accepting (student|instructor|admin)` in `school-rules.screen.test.tsx`
+  (checks the pathname and `router.canGoBack() === false`) pass; student journey seen in the simulator
+- ER-06 ✅ — `npx jest src/navigation -t "onboarding completed"` → 12 passed; a returning account with
+  `rulesAccepted: false` landed on the step in the simulator
+- ER-07 ✅ — hook and component `outdated` tests pass (toast text, refetch, untick, second POST with `{ "version": 4 }`,
+  session untouched); untick + new text seen in the simulator
+- ER-08 ✅ — hook `error:` tests pass (401 signs out; no connection; generic on 403, 422, 500, non-JSON, unexpected
+  error; session unchanged); `keeps the box ticked after a failed accept` passes
+- ER-09 ✅ — `shows the copy in (en-US|pt-BR|es-ES)`, `shows the empty message in …`, `shows the load error in …`
+  pass (9 tests); the copy matches D-07 in the three message files
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Two `Verify by` commands match no test as written: ER-05's `npx jest src/modules/onboarding/components/school-rules
+  -t "opens the role home"` (T-06 put that test in `src/modules/onboarding/screens/school-rules.screen.test.tsx`) and
+  ER-09's `-t "in %s"` (Jest matches the interpolated names, e.g. `in pt-BR`). Run against the right file / pattern,
+  they pass. Worth fixing in the spec template habits, not in this code.
+- The toasts were not caught on screen: the simulator capture lagged ~20 s behind a 3 s toast. The messages are
+  asserted in the hook tests, and the `Toast` / `AlertMessageProvider` pieces are existing, tested infrastructure.
+  Dark mode was not driven by hand (the screen only uses token classes and `useTheme()` colors).
+- After a 409, until the refetch answers, the old list stays visible and the checkbox is enabled (no spinner, because
+  `isPending` is false during a background refetch). A very fast re-tick sends the old version again and just gets
+  another 409, so the person can never accept unseen text; showing the spinner while `isFetching` after an outdated
+  answer would close the window if it ever matters.
+- Dev DB left with 3 rules (version 8, texts as before) and the student review account with the rules accepted.

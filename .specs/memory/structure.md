@@ -139,6 +139,7 @@ src/
                                 # (searchable bottom sheet of countries with their dial codes)
     hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast; signs out on a 401
     utils/countries.ts          # country options (localized names, dial codes), filter, default country BR
+    utils/brazilian-phone.ts    # toBrazilianDigits, formatBrazilianPhone: the Brazilian number mask
   modules/pending/
     screens/pending.screen.tsx  # Pending screen (waiting for approval, sign-out)
     components/                 # pending (header, timeline, sign-out; ticks every 60 s), pending-step (one row)

@@ -3,13 +3,14 @@ id: "009"
 slug: brazilian-whatsapp-mask
 title: Format Brazilian WhatsApp numbers as they are typed
 template: quick
-status: accepted
+status: finished
 reviewed_commit: 045cd2b028e073d9af14f7d9c294f7388072dcd4
 created: 2026-10-11
 started: 2026-10-11
 base_commit: ec393b3d9c892451b543be0f49409d8c545cdcfc
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-11
 ---
 
 # 009 — Format Brazilian WhatsApp numbers as they are typed

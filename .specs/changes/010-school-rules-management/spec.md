@@ -204,7 +204,7 @@ will call.
 
 ### School rules module (`modules/school-rules`)
 
-- [ ] **T-01** — Scaffold the module `school-rules` with
+- [x] **T-01** — Scaffold the module `school-rules` with
   [`config-new-module`](../../../.claude/skills/config-new-module) using `--skip-web --skip-mobile`
   (creates `modules/school-rules`, `apps/backend/src/modules/school-rules/{school-rules.module.ts,school-rules.controller.ts}`
   and registers it in `AppModule`); add the module's `.oxlintrc.json` (mirroring the backend's) and
@@ -214,6 +214,14 @@ will call.
   Covers: enabling · Done when: `npm run build --workspace @rochas-surf-school/school-rules`,
   `npm run check-types --workspace @rochas-surf-school/school-rules`, `npm run lint --workspace @rochas-surf-school/school-rules`
   and `npm test --workspace @rochas-surf-school/school-rules` pass, and the backend builds.
+  > ✅ 2026-10-11 14:05 — scaffolded `modules/school-rules` (config-new-module --skip-web --skip-mobile) and the
+  > `school-rule` aggregate (module-aggregate, mode example); added `.oxlintrc.json`, `check-types` and `lint`
+  > scripts and oxlint devDependencies; removed the example `CreateSchoolRule` use case (the placeholder entity
+  > and repository are rewritten in T-02/T-03). Files: `modules/school-rules/**`,
+  > `apps/backend/src/modules/school-rules/school-rules.module.ts`, `apps/backend/src/modules/school-
+  > rules/school-rules.controller.ts`, `apps/backend/src/app.module.ts`, `apps/backend/package.json`, `package-
+  > lock.json`. Verified: build, check-types, lint and test of the module exit 0 (1 test passed); `npm run build
+  > --workspace @rochas-surf-school/backend` ok. Deviations: none
 
 - [ ] **T-02** — `SchoolRule` entity in `modules/school-rules/src/school-rule/model/school-rule.entity.ts`
   (`title`, `description`, `index`, `createdBy?`) with `validate()`: code `schoolRule.title` required + max 60,

@@ -3,7 +3,7 @@ id: "009"
 slug: brazilian-whatsapp-mask
 title: Format Brazilian WhatsApp numbers as they are typed
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-11
 started: 2026-10-11
 base_commit: ec393b3d9c892451b543be0f49409d8c545cdcfc
@@ -141,3 +141,44 @@ sent and stored doesn't change: the number is still saved in E.164.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-11 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 6 successful)
+- related tests ✅ 115 passed (apps/mobile, 4 suites)
+- coverage of the changed lines ✅ COVERAGE OK — `whatsapp.hook.ts` and `brazilian-phone.ts` at 100%; no
+  coverage-ignore comments in the diff
+- e2e: no suite applies (only apps/mobile changed) · manual iOS simulator check ⚠️ not completed — the
+  simulator tool can't send backspace or clear a field; left for the user (steps under Notes)
+
+**Expected Results**
+
+- ER-01 ✅ — `brazilian-phone.test.ts` covers every digit count 0–11, letters, the 12th digit, `+55 …`, the `55`
+  DDD and the no-trailing-separator rule; `whatsapp.component.test.tsx` asserts the field value while typing,
+  `abc` → empty and save disabled, the 12th digit, pasted `+55`/`55`, and backspace over `-` and `) `. On the
+  simulator, an 11-digit number shows `(22) 22222-2222`.
+- ER-02 ✅ — the tests assert `+5585999998888`, the landline `+558533334444`, Portugal showing `85999998888`,
+  Brazil masking it again, and the API-error case keeping `(85) 99999-8888`. But see F-01 for a switch the
+  tests don't cover.
+
+**Findings**
+
+- [ ] **F-01** (D-02, D-04) — after a country switch to Brazil, the field shows one number and the app saves
+  another. The hook masks `toBrazilianDigits(typed)` but builds E.164 from the raw `typed`
+  (`toE164(trimmed, country)`), and the raw text is cleaned only on the next keystroke. Reproduce: pick
+  Portugal, type `+351 912 345 678`, pick Brazil. The field shows `(35) 19123-4567`, "Save and continue" is
+  enabled and `whatsappNumber: "+351912345678"` is sent (`parsePhoneNumberFromString("+351 912 345 678", "BR")`
+  → `+351912345678`). A second case: in Portugal type `8599999888877` and pick Brazil. The field shows
+  `(85) 99999-8888`, a valid-looking number, but save stays disabled (`+558599999888877` is invalid).
+  Expected: with Brazil selected, what is validated and sent is the number the field shows. Build E.164 from
+  `toBrazilianDigits(typed)` when the country is `BR`, or apply the clean-up when Brazil is picked. Add a
+  component test for the switch-to-Brazil case with more than 11 digits.
+
+**Notes**
+
+- Manual check for the user, on the onboarding WhatsApp screen of the iOS simulator: with Brazil selected,
+  clear the field and type `85999998888` → `(85) 99999-8888`; backspace to `(85) 9999`; switch to Portugal →
+  `859999`; back to Brazil → `(85) 9999`.
+- Lint and type check came from Turbo's cache (same inputs as the executor's run).

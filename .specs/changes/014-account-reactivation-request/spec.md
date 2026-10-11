@@ -246,7 +246,7 @@ comes with spec 015.
   > (not reproduced in three later runs; likely another process changing the shared `rules_versions` row on
   > the local database at the same time).
 
-- [ ] **T-05** — Expose `POST /auth/me/reactivation-request` (protected, `@HttpCode(200)`, no body) in
+- [x] **T-05** — Expose `POST /auth/me/reactivation-request` (protected, `@HttpCode(200)`, no body) in
   `apps/backend/src/modules/auth/auth.controller.ts`, constructing `RequestReactivation` with
   `PrismaUserRepository`, the rules version provider and `SystemClockProvider`; test it in
   `auth.controller.spec.ts`; add the e2e suite `apps/backend/test/auth-reactivation.e2e-spec.ts` with the tests
@@ -257,6 +257,22 @@ comes with spec 015.
   Covers: ER-02, ER-03, ER-04, ER-05 · Done when: `npx vitest run src/modules/auth` passes and
   `npx vitest run --config vitest.config.e2e.ts test/auth-reactivation.e2e-spec.ts` passes (from
   `apps/backend`).
+  > ✅ 2026-10-11 — `AuthController.requestReactivation`: protected `POST me/reactivation-request`,
+  > `@HttpCode(200)`, no body, runs `RequestReactivation(userRepository, rulesVersionProvider, clock)` for
+  > `@CurrentUser('id')`. `auth.controller.spec.ts`: route metadata, the 200 answer with the clock's date stored,
+  > 409 and 403 mapping. New e2e suite `auth-reactivation.e2e-spec.ts` (accounts put in each state through Prisma,
+  > signed in through the email flow, rows read back): `sends the request` (each role; status stays `deleted`,
+  > date ≈ now; any body ignored), `already requested` (first date kept; two simultaneous requests both 200),
+  > `request denied` (409, row unchanged), `not deleted` (pending, approved, denied, removed — 403, nothing
+  > stored; removed with a denied reactivation → 403), `without a valid token` (none, malformed, expired, account
+  > gone → 401 `auth.token.invalid`). Five requests added to `auth.integration.http`. files:
+  > `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-reactivation.e2e-spec.ts`;
+  > verified: `npx vitest run src/modules/auth` (96 passed), `npx vitest run --config vitest.config.e2e.ts
+  > test/auth-reactivation.e2e-spec.ts` (16 passed), backend `lint` and `check-types` exit 0; deviations: the
+  > existing `GET /auth/me`, `PUT /auth/me/whatsapp` and `POST /auth/email/verify` cases in
+  > `auth.controller.spec.ts` compared the whole account and failed after T-01, so they gained
+  > `denialReason: null` / `reactivationStatus: null` here (no task listed that file for the shape change).
 
 ### Verification
 

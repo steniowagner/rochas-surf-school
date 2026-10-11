@@ -228,4 +228,16 @@ describe("useAcceptSchoolRules", () => {
     expect(hook.result.current.session.user).toEqual(user);
     expect(acceptCalls()).toHaveLength(1);
   });
+
+  it("error: shows the generic message for an unexpected error", async () => {
+    fetchMock.mockResolvedValue(undefined);
+    const hook = await renderSignedIn();
+
+    await accept(hook);
+
+    expect(mockShow).toHaveBeenCalledWith(
+      "Something went wrong. Please try again.",
+    );
+    expect(hook.result.current.session.user).toEqual(user);
+  });
 });

@@ -55,8 +55,12 @@ const request = async <T>(
   return data as T;
 };
 
-export const apiPost = <T>(path: string, body: unknown): Promise<T> =>
-  request<T>("POST", path, body);
+/** A POST that sends `Authorization: Bearer <token>` when an access token is given. */
+export const apiPost = <T>(
+  path: string,
+  body: unknown,
+  options?: RequestOptions,
+): Promise<T> => request<T>("POST", path, body, options);
 
 /** A PUT that sends `Authorization: Bearer <token>` when an access token is given (spec 008, D-10). */
 export const apiPut = <T>(

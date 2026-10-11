@@ -29,6 +29,28 @@ describe("apiPost", () => {
     });
   });
 
+  it("posts JSON with the bearer token when one is given", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, {}));
+
+    await apiPost(
+      "/school-rules/acceptances",
+      { version: 3 },
+      { accessToken: "at-1" },
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/school-rules/acceptances",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer at-1",
+        },
+        body: JSON.stringify({ version: 3 }),
+      },
+    );
+  });
+
   it("returns the parsed body on success", async () => {
     fetchMock.mockResolvedValue(jsonResponse(202, { expiresAt: "x" }));
 
@@ -45,14 +67,17 @@ describe("apiPost", () => {
       },
       { resendAvailableAt: "t" },
     ],
-  ])("throws ApiError with status, errors and details on %s", async (status, body, details) => {
-    fetchMock.mockResolvedValue(jsonResponse(status, body));
+  ])(
+    "throws ApiError with status, errors and details on %s",
+    async (status, body, details) => {
+      fetchMock.mockResolvedValue(jsonResponse(status, body));
 
-    const error = await apiPost("/x", {}).catch((e: unknown) => e);
+      const error = await apiPost("/x", {}).catch((e: unknown) => e);
 
-    expect(error).toBeInstanceOf(ApiError);
-    expect(error).toMatchObject({ status, errors: body.errors, details });
-  });
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error).toMatchObject({ status, errors: body.errors, details });
+    },
+  );
 
   it("throws ApiError with empty errors when the body isn't JSON", async () => {
     fetchMock.mockResolvedValue({
@@ -95,7 +120,11 @@ describe("apiPut", () => {
     fetchMock.mockResolvedValue(jsonResponse(200, { id: "1" }));
 
     await expect(
-      apiPut("/auth/me/whatsapp", { whatsappNumber: "+5585999998888" }, { accessToken: "at-1" }),
+      apiPut(
+        "/auth/me/whatsapp",
+        { whatsappNumber: "+5585999998888" },
+        { accessToken: "at-1" },
+      ),
     ).resolves.toEqual({ id: "1" });
 
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/auth/me/whatsapp", {
@@ -128,7 +157,11 @@ describe("apiPut", () => {
     const error = await apiPut("/x", {}).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(ApiError);
-    expect(error).toMatchObject({ status: 401, errors: ["auth.token.invalid"], details: { a: 1 } });
+    expect(error).toMatchObject({
+      status: 401,
+      errors: ["auth.token.invalid"],
+      details: { a: 1 },
+    });
   });
 
   it("throws NetworkError when fetch rejects", async () => {
@@ -183,7 +216,10 @@ describe("apiGet", () => {
     const error = await apiGet("/x").catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(ApiError);
-    expect(error).toMatchObject({ status: 401, errors: ["auth.token.invalid"] });
+    expect(error).toMatchObject({
+      status: 401,
+      errors: ["auth.token.invalid"],
+    });
   });
 
   it("throws NetworkError when fetch rejects", async () => {

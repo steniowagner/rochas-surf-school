@@ -105,6 +105,7 @@ const messages = {
   schoolRules: {
     empty: "The school has no rules yet.",
     loadError: "Couldn't load the rules.",
+    outdated: "The rules changed. Read them again and accept.",
     retry: "Try again",
   },
   flows: {

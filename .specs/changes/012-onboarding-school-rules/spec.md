@@ -282,7 +282,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   Covers: ER-01, ER-03, ER-04, ER-09 · Done when: `npx jest src/modules/school-rules` passes.
   > ✅ 2026-10-11 — `school-rules` mobile module: types, `useSchoolRules` (401 handled in the query function so two readers sign out once), `SchoolRulesList` with its hook, plus `SchoolRuleRow` extracted to its own folder (react.md rule 5); `schoolRules.{empty,loadError,retry}` in the 3 locales; files (under `apps/mobile/src/`): `modules/school-rules/school-rules.types.ts`, `modules/school-rules/hooks/use-school-rules.hook.ts`, `.../use-school-rules.hook.test.tsx`, `modules/school-rules/components/school-rules-list/{school-rules-list.component.tsx,.hook.ts,.types.ts,index.ts,school-rules-list.component.test.tsx}`, `modules/school-rules/components/school-rule-row/{school-rule-row.component.tsx,.types.ts,index.ts}`, `i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/school-rules` (14 passed), mobile lint + check-types exit 0; deviations: extra `SchoolRuleRow` component; the rule number uses `ds-text-sheet-title` (Barlow Condensed token style) — to be checked against the design in the simulator
 
-- [ ] **T-05** — Add `src/modules/onboarding/hooks/use-accept-school-rules.hook.ts` (+ `.types.ts`): `useMutation`
+- [x] **T-05** — Add `src/modules/onboarding/hooks/use-accept-school-rules.hook.ts` (+ `.types.ts`): `useMutation`
   (`retry: false`) posting `{ version }` to `/school-rules/acceptances` with the access token (extend `apiPost` with
   the same optional `{ accessToken }` options as `apiPut`, with a test in `api.client.test.ts`), `setSession` with
   the returned user on success (D-04), and the errors of D-09 (on 409 `schoolRules.version.outdated`: invalidate
@@ -292,6 +292,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   the toast"; "error: signs out on 401"; "error: shows no connection"; `it.each` "error: shows the generic message
   on %s" (403, 422, 500, a non-JSON body); the session is unchanged on every error.
   Covers: ER-05, ER-07, ER-08 · Done when: `npx jest src/modules/onboarding/hooks src/services/api` passes.
+  > ✅ 2026-10-11 — `useAcceptSchoolRules({ onOutdated })` (+ types), `apiPost` takes the optional `{ accessToken }`, `schoolRules.outdated` in the 3 locales; the outdated case is exposed through the `onOutdated` callback; files (under `apps/mobile/src/`): `modules/onboarding/hooks/use-accept-school-rules.hook.ts`, `.types.ts`, `.hook.test.tsx`, `services/api/api.client.ts`, `services/api/api.client.test.ts`, `i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/onboarding/hooks src/services/api` (37 passed), mobile lint + check-types exit 0; deviations: none
 
 - [ ] **T-06** — Build the screen: `src/modules/onboarding/components/school-rules/` (`school-rules.component.tsx`,
   `school-rules.hook.ts`, `school-rules.types.ts`, `index.ts`) — a `ScrollView` with `ScreenIntro` (`Ionicons`

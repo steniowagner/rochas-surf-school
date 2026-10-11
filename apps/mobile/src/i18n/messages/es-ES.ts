@@ -109,6 +109,7 @@ const messages: Messages = {
   schoolRules: {
     empty: "La escuela todavía no tiene normas.",
     loadError: "No se pudieron cargar las normas.",
+    outdated: "Las normas cambiaron. Léelas de nuevo y acéptalas.",
     retry: "Intentar de nuevo",
   },
   flows: {

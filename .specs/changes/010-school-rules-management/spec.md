@@ -349,7 +349,7 @@ will call.
   > decorator-metadata one that `check-coverage` skips by policy); backend check-types and lint exit 0.
   > Deviations: none
 
-- [ ] **T-11** — `SchoolRulesController` in `apps/backend/src/modules/school-rules/school-rules.controller.ts`
+- [x] **T-11** — `SchoolRulesController` in `apps/backend/src/modules/school-rules/school-rules.controller.ts`
   with the five routes of D-11 (`order` before `:id`; `POST` 201, others 200), passing `@CurrentUser()`'s
   `id`, `role`, `status` to the use cases; requests in `school-rules.integration.http`; the e2e suite
   `apps/backend/test/school-rules.e2e-spec.ts` covering ER-01 to ER-08 with test names containing the strings
@@ -358,6 +358,19 @@ will call.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when:
   `npm run test:e2e --workspace apps/backend -- test/school-rules.e2e-spec.ts` passes against the local
   database.
+  > ✅ 2026-10-11 14:11 — `SchoolRulesController` with the five routes (`GET /`, `POST /` 201, `PUT order`
+  > declared before `PUT :id`, `DELETE :id`; all others 200), passing the signed-in user's `id`, `role`,
+  > `status` as the actor; manual requests; the e2e suite (50 tests, ER-01 to ER-08; tokens are minted with
+  > `JwtTokenProvider` because the sign-in route throttles at 10 per minute, and non-approved statuses are set
+  > on the account after the token is issued). Added a controller unit spec (`school-rules.controller.spec.ts`,
+  > 11 tests) so the controller's lines are covered by the unit run, as the coverage gate requires. Files:
+  > `apps/backend/src/modules/school-rules/school-rules.controller.ts`, `apps/backend/src/modules/school-
+  > rules/school-rules.controller.spec.ts`, `apps/backend/src/modules/school-rules/school-
+  > rules.integration.http`, `apps/backend/test/school-rules.e2e-spec.ts`. Verified: `npm run test:e2e
+  > --workspace apps/backend -- test/school-rules.e2e-spec.ts` (50 passed, local Postgres) and each `Verify by`
+  > filter (GET, POST, invalid, not an admin, PUT :id, DELETE :id, PUT order, order mismatch) selects and passes
+  > its tests; unit spec 22 passed with the prisma spec; backend lint, check-types and build exit 0. Deviations:
+  > tokens minted directly instead of through the sign-in flow
 
 ### Verification
 

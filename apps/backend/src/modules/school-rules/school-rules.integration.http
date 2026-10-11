@@ -1,0 +1,130 @@
+# Manual REST Client requests for the school-rules module (VS Code REST Client).
+# Sign in with the review accounts of REVIEW_ACCOUNTS in apps/backend/.env (one approved account per role):
+# set the emails and codes below to the ones of the admin and of a student.
+
+@baseUrl = http://localhost:4000
+@adminEmail = admin@example.com
+@adminCode = 345678
+@studentEmail = dev@example.com
+@studentCode = 123456
+
+### Sign in as an admin (expects 200 with accessToken)
+# @name adminSession
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "code": "{{adminCode}}"
+}
+
+###
+@adminToken = {{adminSession.response.body.accessToken}}
+
+### Sign in as a student (expects 200 with accessToken)
+# @name studentSession
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "code": "{{studentCode}}"
+}
+
+###
+@studentToken = {{studentSession.response.body.accessToken}}
+
+### List the rules (expects 200 with { version, rules } sorted by index; any approved account)
+GET {{baseUrl}}/school-rules
+Authorization: Bearer {{studentToken}}
+
+### List without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/school-rules
+
+### Add a rule (expects 201; the new rule goes last and the version goes up by 1)
+# @name created
+POST {{baseUrl}}/school-rules
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "  Chega 15 min antes ",
+  "description": "Tempo para vestir o fato."
+}
+
+###
+@ruleId = {{created.response.body.rules[0].id}}
+
+### Add a rule with an empty title (expects 422 schoolRule.title.required)
+POST {{baseUrl}}/school-rules
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "   ",
+  "description": "Tempo para vestir o fato."
+}
+
+### Add a rule as a student (expects 403 schoolRule.role.notAdmin)
+POST {{baseUrl}}/school-rules
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "title": "Regra",
+  "description": "Explicação."
+}
+
+### Edit a rule (expects 200; the version goes up by 1, or stays if the text is the same)
+PUT {{baseUrl}}/school-rules/{{ruleId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Chega 20 min antes",
+  "description": "Tempo para vestir o fato e aquecer."
+}
+
+### Edit an unknown rule (expects 404 schoolRule.id.notFound)
+PUT {{baseUrl}}/school-rules/00000000-0000-4000-8000-000000000000
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "x",
+  "description": "y"
+}
+
+### Reorder every rule (expects 200; the version does not change)
+# List the ids first and send all of them, in the new order.
+PUT {{baseUrl}}/school-rules/order
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "ruleIds": ["{{ruleId}}"]
+}
+
+### Reorder with a list that misses a rule (expects 422 schoolRule.order.mismatch when there are other rules)
+PUT {{baseUrl}}/school-rules/order
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "ruleIds": []
+}
+
+### Reorder without ruleIds (expects 422 schoolRule.order.required)
+PUT {{baseUrl}}/school-rules/order
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{}
+
+### Delete a rule (expects 200; the next rules move up and the version goes up by 1)
+DELETE {{baseUrl}}/school-rules/{{ruleId}}
+Authorization: Bearer {{adminToken}}
+
+### Delete an unknown rule (expects 404 schoolRule.id.notFound)
+DELETE {{baseUrl}}/school-rules/00000000-0000-4000-8000-000000000000
+Authorization: Bearer {{adminToken}}

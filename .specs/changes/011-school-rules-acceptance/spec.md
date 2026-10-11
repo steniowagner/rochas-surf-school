@@ -2,7 +2,7 @@
 id: "011"
 slug: school-rules-acceptance
 title: Accept the school rules (backend)
-status: in-progress
+status: in-review
 created: 2026-10-11
 fronts: [shared, auth, school-rules, backend]
 depends_on: []
@@ -360,9 +360,18 @@ routing come with a follow-up mobile spec.
 
 ### Verification
 
-- [ ] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every Verification Plan command exits 0, with `COVERAGE OK` and
   `E2E PASSED` printed
+  > ✅ 2026-10-11 — ran the whole Verification Plan from the repo root; files: none; verified:
+  > `node .specs/scripts/run-related-tests.mjs 011` (RELATED TESTS PASSED: backend, auth, school-rules, shared and the
+  > whole mobile suite, 467 passed), `node .specs/scripts/check-coverage.mjs 011` (COVERAGE OK, 11 files),
+  > `node .specs/scripts/run-e2e.mjs 011` (E2E PASSED), unit tests of the packages (shared 121, auth 223,
+  > school-rules 113 passed), `npx turbo run lint check-types build --concurrency=1 --filter=…` for shared, auth,
+  > school-rules and backend (11 tasks successful), `npx turbo run check-types --filter=@rochas-surf-school/mobile`
+  > (4 successful); deviations: with the default concurrency, `backend:build` (`prisma generate`) failed alongside
+  > the lint tasks twice and passes alone and with `--concurrency=1` — a race between the tasks, not a change of
+  > this spec (the backend build and the mobile type check pass)
 
 ## Verification Plan
 

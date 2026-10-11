@@ -249,7 +249,7 @@ will call.
   > --workspace @rochas-surf-school/school-rules` (23 passed, fake 100% covered), lint and check-types exit 0.
   > Deviations: none
 
-- [ ] **T-04** — The access checks (`school-rule-access.ts`: approved → else `ForbiddenError`
+- [x] **T-04** — The access checks (`school-rule-access.ts`: approved → else `ForbiddenError`
   `user.status.notApproved`; admin → else `ForbiddenError` `schoolRule.role.notAdmin`, status first), the
   shared output type `SchoolRulesOut` (`{ version, rules: [{ id, title, description, index }] }`) and the
   `ListSchoolRules` use case, in `modules/school-rules/src/school-rule/usecase/`, with tests in
@@ -258,6 +258,13 @@ will call.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-04 · Done when: the tests (every role, every non-approved status, empty list at version 0)
   pass.
+  > ✅ 2026-10-11 14:06 — access checks (`assertCanReadSchoolRules`, `assertCanChangeSchoolRules`, status first),
+  > `SchoolRulesOut` and `ListSchoolRules`; added `@rochas-surf-school/auth` and `shared` as module dependencies
+  > (build order). Files: `modules/school-rules/src/school-rule/usecase/{school-rule-access.ts,school-
+  > rules.out.ts,list-school-rules.usecase.ts,index.ts}`, `modules/school-rules/test/school-
+  > rule/usecase/{school-rule-access.test.ts,list-school-rules.usecase.test.ts}`, `modules/school-
+  > rules/package.json`, `package-lock.json`. Verified: module test (45 passed, 100% covered), lint, check-
+  > types, build exit 0. Deviations: input is `{ actor: { id, role, status } }`
 
 - [ ] **T-05** — `CreateSchoolRule` use case: checks admin, trims, builds the entity at index N + 1 with
   `createdBy`, `apply({ save: [rule], delete: [], bumpVersion: true })`, returns the list. Tests in the same

@@ -203,11 +203,15 @@ routing come with a follow-up mobile spec.
 
 ### Shared (`packages/shared`)
 
-- [ ] **T-01** — Add `ConflictError` (409, optional `details`) in `packages/shared/src/error/conflict.error.ts`,
+- [x] **T-01** — Add `ConflictError` (409, optional `details`) in `packages/shared/src/error/conflict.error.ts`,
   export it from `packages/shared/src/error/index.ts`, and test it in
   `packages/shared/test/error/conflict.error.test.ts` (status 409, message, details).
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/shared -- conflict.error` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/shared` exits 0.
+  > ✅ 2026-10-11 — added `ConflictError` (409, optional details), exported and tested; files:
+  > `packages/shared/src/error/conflict.error.ts`, `packages/shared/src/error/index.ts`,
+  > `packages/shared/test/error/conflict.error.test.ts`; verified: `npm test --workspace @rochas-surf-school/shared -- conflict.error`
+  > (2 passed), `npx turbo run check-types --filter=@rochas-surf-school/shared` (exit 0); deviations: none
 
 ### Auth module (`modules/auth`)
 

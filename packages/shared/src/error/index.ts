@@ -1,4 +1,5 @@
 export * from "./bad-gateway.error";
+export * from "./conflict.error";
 export * from "./domain.error";
 export * from "./forbidden.error";
 export * from "./not-found.error";

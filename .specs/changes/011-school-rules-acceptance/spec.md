@@ -2,12 +2,13 @@
 id: "011"
 slug: school-rules-acceptance
 title: Accept the school rules (backend)
-status: in-review
+status: accepted
 created: 2026-10-11
 fronts: [shared, auth, school-rules, backend]
 depends_on: []
 started: 2026-10-11
 base_commit: e8afa095945c0c405f6c01a6777397c8a5883b2e
+reviewed_commit: aec3a40677d3bad497e713e10a955e94fb67b429
 ---
 
 # 011 — Accept the school rules (backend)
@@ -420,3 +421,54 @@ routing come with a follow-up mobile spec.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-11 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (shared, auth, school-rules, backend; 11 tasks, uncached, default
+  concurrency — the build race noted in T-09 didn't reproduce) · mobile type check ✅
+- related tests ✅ RELATED TESTS PASSED (backend, auth, school-rules, shared, whole mobile suite 467 passed);
+  package unit tests: shared 121, auth 223, school-rules 113 passed
+- coverage of the changed lines ✅ COVERAGE OK — 11 files measured, 100% on every changed line; no
+  coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (5 files, 173 passed)
+
+**Expected Results**
+
+- ER-01 ✅ — `-t "accepts the current version"` 4 passed: 200 with the full account and `rulesAccepted: true`
+  for student, instructor and admin, with and without a WhatsApp number; rows `[2, 3]` (the older acceptance
+  stays), `accepted_at` at request time; unit `-t "AcceptSchoolRules"` 26 passed
+- ER-02 ✅ — `-t "already accepted"` 2 passed: one row, original `accepted_at` kept; two concurrent requests
+  both 200, one row; `user.prisma.spec.ts -t "addRulesAcceptance"` asserts `createMany` + `skipDuplicates`
+- ER-03 ✅ — `-t "outdated"` 3 passed: 3, 5 and -1 at version 4 → 409 `schoolRules.version.outdated`,
+  `details: { currentVersion: 4 }`, no row
+- ER-04 ✅ — `-t "invalid version"`: no body, `{}`, `null` → 422 `required`; `"3"`, `2.5` → 422 `integer`; no
+  row
+- ER-05 ✅ — `-t "nothing to accept"` 3 passed: 0 and 3 at version 0 → 422 `nothingToAccept`; `"0"` answers
+  `integer` first (D-08)
+- ER-06 ✅ — `-t "not approved"` 4 passed (pending, denied, deleted, removed → 403, also with an invalid or
+  missing version, no row); `-t "without a valid token"` 2 passed (no token, malformed → 401)
+- ER-07 ✅ — `auth-session -t "rulesAccepted"` 6 passed: version 0 → true; add → false; accept → true; reorder
+  keeps true; edit and delete → false; an older acceptance doesn't count; pending account gets the field;
+  unit `-t "toAccountOut"` 6 passed
+- ER-08 ✅ — three suites `-t "rulesAccepted"` 12 passed: verify, refresh and `PUT /auth/me/whatsapp` give
+  true for the current version and false for only an older one; a new sign-up gets true at 0, false at 3
+
+**Findings**
+
+None.
+
+**Notes**
+
+- D-01 to D-10 are honored; the check order in `AcceptSchoolRules` matches D-08 exactly.
+- Memory Impact misses one item for `spec-finish`: `technical-context.md` → Automated validation should say
+  the backend e2e files now run one at a time (`fileParallelism: false` in `vitest.config.e2e.ts`) because
+  they share the `rules_versions` row.
+- ER-06 mentions an expired token; the acceptance suite tests none and malformed. The JWT guard is global and
+  its expiry case is covered by the existing auth suites, so this is not a gap.
+- `modules/school-rules/test/mock/fake-user.repository.ts` copies auth's in-memory repository, because
+  auth's test mocks aren't part of its package. If a third module needs it, consider exporting test fakes from
+  `@rochas-surf-school/auth`.
+- `school-rules.integration.http`: the "Accept while no rule was ever written" entry is a heading with no
+  request under it. Harmless, but a request with `{ "version": 0 }` would make it runnable.

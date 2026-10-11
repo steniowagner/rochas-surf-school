@@ -5,8 +5,8 @@ import {
   UseCase,
   Validator,
 } from "@rochas-surf-school/shared";
-import { UserRole, UserStatus } from "../model";
-import { UserRepository } from "../provider";
+import { RulesVersionProvider, UserRepository } from "../provider";
+import { AccountOut, toAccountOut } from "./account.out";
 
 export interface SetWhatsappIn {
   userId: string;
@@ -14,19 +14,13 @@ export interface SetWhatsappIn {
   whatsappVisible: boolean;
 }
 
-export interface SetWhatsappOut {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  status: UserStatus;
-  createdAt: Date;
-  whatsappNumber: string | null;
-  whatsappVisible: boolean;
-}
+export type SetWhatsappOut = AccountOut;
 
 export class SetWhatsapp implements UseCase<SetWhatsappIn, SetWhatsappOut> {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly rulesVersionProvider: RulesVersionProvider,
+  ) {}
 
   async execute(input: SetWhatsappIn): Promise<SetWhatsappOut> {
     const user = await this.userRepository.findById(input.userId);
@@ -52,15 +46,6 @@ export class SetWhatsapp implements UseCase<SetWhatsappIn, SetWhatsappOut> {
     updated.validate();
     await this.userRepository.update(updated);
 
-    return {
-      id: updated.id,
-      name: updated.name,
-      email: updated.email,
-      role: updated.role,
-      status: updated.status,
-      createdAt: updated.createdAt,
-      whatsappNumber: input.whatsappNumber,
-      whatsappVisible: updated.whatsappVisible,
-    };
+    return toAccountOut(updated, await this.rulesVersionProvider.getCurrentVersion());
   }
 }

@@ -6,3 +6,4 @@ export * from "./fake-email.provider";
 export * from "./fake-sign-in-code.provider";
 export * from "./fake-refresh-token.repository";
 export * from "./fake-token.provider";
+export * from "./fake-rules-version.provider";

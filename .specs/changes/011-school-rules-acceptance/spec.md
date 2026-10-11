@@ -215,7 +215,7 @@ routing come with a follow-up mobile spec.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-02** — Add the `RulesVersionProvider` port (`modules/auth/src/user/provider/rules-version.provider.ts`,
+- [x] **T-02** — Add the `RulesVersionProvider` port (`modules/auth/src/user/provider/rules-version.provider.ts`,
   `getCurrentVersion(): Promise<number>`, exported from the provider barrel), the account mapper
   `modules/auth/src/user/usecase/account.out.ts` (`AccountOut`, `toAccountOut(user, currentRulesVersion)` per
   D-03/D-10, exported), and use them in `GetCurrentUser` and `SetWhatsapp` (provider injected in the
@@ -226,14 +226,33 @@ routing come with a follow-up mobile spec.
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-07, ER-08 · Done when: `npm test --workspace @rochas-surf-school/auth` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-11 — added the `RulesVersionProvider` port, `AccountOut` / `toAccountOut`, used them in `GetCurrentUser`
+  > and `SetWhatsapp` (provider is the last constructor argument), fake provider and tests; files:
+  > `modules/auth/src/user/provider/rules-version.provider.ts`, `modules/auth/src/user/provider/index.ts`,
+  > `modules/auth/src/user/usecase/account.out.ts`, `modules/auth/src/user/usecase/index.ts`,
+  > `modules/auth/src/user/usecase/get-current-user.usecase.ts`, `modules/auth/src/user/usecase/set-whatsapp.usecase.ts`,
+  > `modules/auth/test/mock/fake-rules-version.provider.ts`, `modules/auth/test/mock/index.ts`,
+  > `modules/auth/test/user/usecase/account.out.test.ts`, `modules/auth/test/user/usecase/get-current-user.usecase.test.ts`,
+  > `modules/auth/test/user/usecase/set-whatsapp.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth`
+  > (220 passed) and `npx turbo run check-types --filter=@rochas-surf-school/auth` (exit 0), both run with T-03's
+  > change in place — alone, this commit leaves `RefreshSession` (typed as `GetCurrentUserOut`) failing to type-check
+  > until T-03; deviations: none
 
-- [ ] **T-03** — Use `toAccountOut` with the injected `RulesVersionProvider` for the `user` of
+- [x] **T-03** — Use `toAccountOut` with the injected `RulesVersionProvider` for the `user` of
   `VerifySignInCode` (`modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts`) and
   `RefreshSession` (`modules/auth/src/session/usecase/refresh-session.usecase.ts`), and update their tests in
   `modules/auth/test/` (an accepted and a not-accepted case each, and a new sign-up at version 0 and above 0).
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-08 · Done when: `npm test --workspace @rochas-surf-school/auth` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-11 — `VerifySignInCode` and `RefreshSession` build `user` with `toAccountOut` (provider is the last
+  > constructor argument); tests cover accepted and not accepted, and a new sign-up at version 0 and above 0; files:
+  > `modules/auth/src/sign-in-code/usecase/verify-sign-in-code.usecase.ts`,
+  > `modules/auth/src/session/usecase/refresh-session.usecase.ts`,
+  > `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`,
+  > `modules/auth/test/session/usecase/refresh-session.usecase.test.ts`; verified: `npm test --workspace
+  > @rochas-surf-school/auth` (220 passed), `npx turbo run check-types --filter=@rochas-surf-school/auth` (exit 0);
+  > deviations: none
 
 - [ ] **T-04** — Add `addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void>` to
   `UserRepository` (`modules/auth/src/user/provider/user.repository.ts`) and implement it in the module's

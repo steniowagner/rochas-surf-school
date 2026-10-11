@@ -1,26 +1,20 @@
 import { UnauthorizedError, UseCase } from "@rochas-surf-school/shared";
-import { UserRole, UserStatus } from "../model";
-import { UserRepository } from "../provider";
+import { RulesVersionProvider, UserRepository } from "../provider";
+import { AccountOut, toAccountOut } from "./account.out";
 
 export interface GetCurrentUserIn {
   id: string;
 }
 
-export interface GetCurrentUserOut {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  status: UserStatus;
-  createdAt: Date;
-  whatsappNumber: string | null;
-  whatsappVisible: boolean;
-}
+export type GetCurrentUserOut = AccountOut;
 
 export class GetCurrentUser
   implements UseCase<GetCurrentUserIn, GetCurrentUserOut>
 {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly rulesVersionProvider: RulesVersionProvider,
+  ) {}
 
   async execute(input: GetCurrentUserIn): Promise<GetCurrentUserOut> {
     const user = await this.userRepository.findById(input.id);
@@ -28,15 +22,6 @@ export class GetCurrentUser
       throw new UnauthorizedError("auth.token.invalid");
     }
 
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      createdAt: user.createdAt,
-      whatsappNumber: user.whatsappNumber ?? null,
-      whatsappVisible: user.whatsappVisible,
-    };
+    return toAccountOut(user, await this.rulesVersionProvider.getCurrentVersion());
   }
 }

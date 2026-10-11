@@ -36,7 +36,9 @@ apps/  modules/  packages/
   - `src/usecase/` — the `UseCase<In, Out>` contract.
   - `src/db/` — repository contracts (`CrudRepository`, `CreateRepository`, `FindPageRepository`, `PageResult`…).
   - `src/error/` — `DomainError` and its HTTP-mapped subclasses (`validation`, `not-found`, `unauthorized`,
-    `too-many-requests`, `bad-gateway`).
+    `forbidden`, `too-many-requests`, `bad-gateway`).
+  - `src/validation/rules/phone-number.rule.ts` — `PhoneNumberRule` (E.164, valid for its country, with
+    `libphonenumber-js`).
   - `src/validation/` — `Validator` and the reusable rules in `rules/`.
   - `test/` — Jest tests mirroring `src/`.
 - **`packages/design-tokens`** (`@rochas-surf-school/design-tokens`) — `src/tokens.ts` (source of truth) and
@@ -50,7 +52,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 
 - **`modules/auth`** (`@rochas-surf-school/auth`) — 4 aggregates:
   - `user/` — `model/user.entity.ts`, `provider/user.repository.ts`,
-    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,find-user-page,search-users-by-name}.usecase.ts`.
+    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,find-user-page,search-users-by-name}.usecase.ts`.
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
     `usecase/create-identity.usecase.ts`.
   - `sign-in-code/` — `model/sign-in-code.entity.ts` (also the TTL / cooldown / max-attempts constants and
@@ -83,7 +85,8 @@ src/
   modules/auth/
     auth.module.ts              # wiring; ThrottlerModule for the auth routes
     auth.controller.ts          # POST /auth/email/code (202), POST /auth/email/verify (200), POST /auth/refresh (200),
-                                # POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me (protected)
+                                # POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me and
+                                # PUT /auth/me/whatsapp (protected)
     auth.integration.http       # manual REST Client requests
     auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
@@ -95,6 +98,7 @@ src/
 test/
   auth-email.e2e-spec.ts        # e2e suite of the email sign-in routes (Resend replaced by a capturing fake)
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
+  auth-whatsapp.e2e-spec.ts     # e2e suite of PUT /auth/me/whatsapp (approved accounts created through Prisma)
 Dockerfile, docker-compose.yml  # backend + Postgres
 ```
 
@@ -117,15 +121,24 @@ src/
     (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, optional name — absent on the
                                         # sign-in path)
     (pending)/pending/{_layout,index}.tsx            # pending flow: waiting for approval (/pending)
-    (onboarding)/onboarding/{_layout,index}.tsx      # onboarding flow of an approved account (/onboarding)
+    (onboarding)/onboarding/_layout.tsx              # onboarding flow of an approved account
+    (onboarding)/onboarding/index.tsx                # WhatsApp step (/onboarding)
+    (onboarding)/onboarding/school-rules.tsx         # School rules step (/onboarding/school-rules), placeholder
     (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
     (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
     (private)/{student,instructor,admin}/{_layout,index}.tsx # role experiences (/student, /instructor, /admin)
   navigation/
-    resolve-flow.ts             # Flow, resolveFlow (session user → flow), flowEntryRoute (flow → entry route)
+    resolve-flow.ts             # Flow, resolveFlow (session user → flow), onboardingStep (whatsapp / school-rules),
+                                # flowEntryRoute (flow + user → entry route)
     root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator
-  modules/{onboarding,reactivation,offboarding,student,instructor,admin}/screens/
+  modules/{reactivation,offboarding,student,instructor,admin}/screens/
                                 # each flow's screens (placeholders showing the flow's name for now)
+  modules/onboarding/
+    screens/                    # whatsapp.screen.tsx, school-rules.screen.tsx (placeholder)
+    components/                 # whatsapp (welcome, country chip + number, hide switch, save), country-picker
+                                # (searchable bottom sheet of countries with their dial codes)
+    hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast; signs out on a 401
+    utils/countries.ts          # country options (localized names, dial codes), filter, default country BR
   modules/pending/
     screens/pending.screen.tsx  # Pending screen (waiting for approval, sign-out)
     components/                 # pending (header, timeline, sign-out; ticks every 60 s), pending-step (one row)
@@ -150,7 +163,7 @@ src/
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession (signed-in account and tokens, in memory)
   components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen
-  services/api/                 # fetch client (apiPost), ApiError, NetworkError
+  services/api/                 # fetch client (apiPost, apiPut with a bearer token), ApiError, NetworkError
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)
   constants/                    # routes.ts (every app path), theme.ts (design tokens), theme-variables.ts
                                 # (--ds-* per scheme), fonts

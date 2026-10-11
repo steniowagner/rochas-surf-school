@@ -1,2 +1,2 @@
-export { apiPost } from "./api.client";
+export { apiPost, apiPut } from "./api.client";
 export { ApiError, NetworkError } from "./api.errors";

@@ -90,8 +90,25 @@ const messages: Messages = {
     now: "Ahora",
     signOut: "Cerrar sesión",
   },
+  whatsapp: {
+    eyebrow: "Cuenta aprobada",
+    title: "Te damos la bienvenida a Rocha's, {{firstName}}",
+    description: "Solo falta una cosa antes de empezar.",
+    cardTitle: "Número de WhatsApp",
+    helper:
+      "Solo te pedimos el número para que la escuela pueda contactarte si hace falta; por ejemplo, si se cancela una clase por el estado del mar.",
+    hideNumber: "Ocultar mi número",
+    hideNumberHint:
+      "Solo lo verán los administradores de la escuela. Puedes cambiarlo en tu perfil.",
+    submit: "Guardar y continuar",
+    pickerTitle: "País",
+    pickerSearch: "Buscar país",
+    invalidNumber: "Número de WhatsApp no válido.",
+    sessionExpired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
+  },
   flows: {
     onboarding: "Primeros pasos",
+    schoolRules: "Normas de la escuela",
     reactivation: "Reactivación",
     offboardingDenied: "Registro rechazado",
     offboardingRemoved: "Acceso eliminado",

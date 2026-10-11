@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import {
   GetCurrentUser,
@@ -6,6 +6,9 @@ import {
   RefreshSession,
   RefreshSessionIn,
   RefreshSessionOut,
+  SetWhatsapp,
+  SetWhatsappIn,
+  SetWhatsappOut,
   SignOut,
   SignOutIn,
   RequestSignInCode,
@@ -88,6 +91,19 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
     return new GetCurrentUser(this.userRepository).execute({ id });
+  }
+
+  @Put('me/whatsapp')
+  @HttpCode(HttpStatus.OK)
+  setWhatsapp(
+    @CurrentUser('id') id: string,
+    @Body() body: Partial<Pick<SetWhatsappIn, 'whatsappNumber' | 'whatsappVisible'>> | undefined,
+  ): Promise<SetWhatsappOut> {
+    return new SetWhatsapp(this.userRepository).execute({
+      userId: id,
+      whatsappNumber: body?.whatsappNumber as string,
+      whatsappVisible: body?.whatsappVisible as boolean,
+    });
   }
 
   @Public()

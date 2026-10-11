@@ -27,6 +27,8 @@ const ACCOUNT = {
   role: "student",
   status: "pending",
   createdAt: "2026-10-10T12:00:00.000Z",
+  whatsappNumber: null,
+  whatsappVisible: false,
 };
 
 const fetchMock = jest.fn();

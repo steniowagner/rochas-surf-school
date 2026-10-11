@@ -200,6 +200,7 @@ The system SHALL erase a denied registration's data 30 days after the denial. Af
 #### Onboarding after approval
 
 _Implemented in spec 005-mobile-flow-routing._
+_Implemented in spec 008-onboarding-whatsapp._
 
 After their registration is approved, and before using the rest of the app, users SHALL add their WhatsApp number and accept the school rules.
 
@@ -277,12 +278,16 @@ Users SHALL be able to change their profile photo, name and WhatsApp number. The
 
 #### WhatsApp number format
 
+_Implemented in spec 008-onboarding-whatsapp._
+
 WhatsApp numbers SHALL include a country code, with Brazil (+55) preselected.
 
 - _Brazilian number:_ When a user types a number without changing the country, then the number is saved with the +55 country code.
 - _Foreign number:_ When a user picks another country and types their number, then the number is saved with that country's code.
 
 #### WhatsApp number visibility
+
+_Implemented in spec 008-onboarding-whatsapp._
 
 Users SHALL choose whether other users can see their WhatsApp number, and the number SHALL be hidden by default. Admins SHALL always see every user's WhatsApp number.
 

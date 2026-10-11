@@ -99,6 +99,19 @@ async function validationErrorsOf(promise: Promise<unknown>): Promise<string[]> 
 
 describe("VerifySignInCode", () => {
   describe("existing account", () => {
+    test("returns the stored WhatsApp number and visibility", async () => {
+      const ana = buildUser({ whatsappNumber: "+5585999998888", whatsappVisible: true });
+      const ctx = setup({ users: [ana] });
+      await ctx.request.execute({ email: "ana@example.com" });
+
+      const result = await ctx.verify.execute({ email: "ana@example.com", code: "123456" });
+
+      expect(result.user).toMatchObject({
+        whatsappNumber: "+5585999998888",
+        whatsappVisible: true,
+      });
+    });
+
     test("signs in with the correct code and deletes it", async () => {
       const ana = buildUser();
       const ctx = setup({ users: [ana] });
@@ -118,6 +131,8 @@ describe("VerifySignInCode", () => {
           role: "student",
           status: "approved",
           createdAt: ana.createdAt,
+          whatsappNumber: null,
+          whatsappVisible: false,
         },
       });
       await expect(ctx.signInCodeRepository.findByEmail("ana@example.com")).resolves.toBeNull();
@@ -240,6 +255,8 @@ describe("VerifySignInCode", () => {
         role: "student",
         status: "pending",
         createdAt: bia.createdAt,
+        whatsappNumber: null,
+        whatsappVisible: false,
       });
       expect(result.refreshToken).toBe("refresh-1");
       const identities = await ctx.identityRepository.findByUserId(bia.id);
@@ -481,6 +498,8 @@ describe("VerifySignInCode", () => {
         role: "admin",
         status: "approved",
         createdAt: admin.createdAt,
+        whatsappNumber: null,
+        whatsappVisible: false,
       });
     });
 

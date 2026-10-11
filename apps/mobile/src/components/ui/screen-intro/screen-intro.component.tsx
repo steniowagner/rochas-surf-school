@@ -8,6 +8,7 @@ export function ScreenIntro({
   description,
   eyebrow,
   iconTileClassName = "bg-sand",
+  eyebrowClassName = "text-ink-2",
 }: ScreenIntroProps) {
   return (
     <View className="gap-3">
@@ -18,7 +19,9 @@ export function ScreenIntro({
       </View>
       <View className="gap-1">
         {eyebrow ? (
-          <Text className="ds-text-section-label text-ink-2">{eyebrow}</Text>
+          <Text className={`ds-text-section-label ${eyebrowClassName}`}>
+            {eyebrow}
+          </Text>
         ) : null}
         <Text
           accessibilityRole="header"

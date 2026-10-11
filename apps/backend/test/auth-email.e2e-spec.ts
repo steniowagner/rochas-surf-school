@@ -244,6 +244,8 @@ describe('Email sign-in (e2e)', () => {
           role: 'student',
           status: 'approved',
           createdAt: user.createdAt.toISOString(),
+          whatsappNumber: null,
+          whatsappVisible: false,
         },
       });
       await expect(
@@ -341,6 +343,8 @@ describe('Email sign-in (e2e)', () => {
         email,
         role: 'student',
         status: 'pending',
+        whatsappNumber: null,
+        whatsappVisible: false,
       });
       const identities = await ctx.prisma.identity.findMany({
         where: { userId: response.body.user.id as string },
@@ -508,6 +512,8 @@ describe('Email sign-in (e2e)', () => {
         role: 'admin',
         status: 'approved',
         createdAt: admin.createdAt.toISOString(),
+        whatsappNumber: null,
+        whatsappVisible: false,
       });
     });
 

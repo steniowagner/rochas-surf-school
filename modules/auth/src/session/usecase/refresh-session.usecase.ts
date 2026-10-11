@@ -83,6 +83,8 @@ export class RefreshSession
         role: user.role,
         status: user.status,
         createdAt: user.createdAt,
+        whatsappNumber: user.whatsappNumber ?? null,
+        whatsappVisible: user.whatsappVisible,
       },
     };
   }

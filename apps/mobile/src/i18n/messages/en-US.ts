@@ -86,8 +86,25 @@ const messages = {
     now: "Now",
     signOut: "Sign out",
   },
+  whatsapp: {
+    eyebrow: "Account approved",
+    title: "Welcome to Rocha's, {{firstName}}",
+    description: "Just one more thing before you start.",
+    cardTitle: "WhatsApp number",
+    helper:
+      "We only ask for your number so the school can reach you if needed — for example, if a class is cancelled because of the sea.",
+    hideNumber: "Hide my number",
+    hideNumberHint:
+      "Only the school's admins will see it. You can change this in your profile.",
+    submit: "Save and continue",
+    pickerTitle: "Country",
+    pickerSearch: "Search country",
+    invalidNumber: "Invalid WhatsApp number.",
+    sessionExpired: "Your session expired. Sign in again.",
+  },
   flows: {
     onboarding: "Onboarding",
+    schoolRules: "School rules",
     reactivation: "Reactivation",
     offboardingDenied: "Registration denied",
     offboardingRemoved: "Access removed",

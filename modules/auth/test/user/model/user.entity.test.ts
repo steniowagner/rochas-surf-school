@@ -208,6 +208,15 @@ describe("User", () => {
         .toEqual([]);
     });
 
+    it("rejects a number that is impossible for its country", () => {
+      expect(validationMessagesFor({ whatsappNumber: "+55123" })).toEqual([
+        "user.whatsappNumber.phone",
+      ]);
+      expect(validationMessagesFor({ whatsappNumber: "+5500999998888" })).toEqual([
+        "user.whatsappNumber.phone",
+      ]);
+    });
+
     it("rejects a number without a country code", () => {
       expect(validationMessagesFor({ whatsappNumber: "85999998888" })).toEqual(
         ["user.whatsappNumber.phone"],

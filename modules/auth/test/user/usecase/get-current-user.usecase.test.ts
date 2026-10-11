@@ -27,6 +27,25 @@ describe("GetCurrentUser", () => {
       role: "instructor",
       status: "approved",
       createdAt: CREATED_AT,
+      whatsappNumber: null,
+      whatsappVisible: false,
+    });
+  });
+
+  test("returns the stored WhatsApp number and visibility", async () => {
+    const ana = new User({
+      name: "Ana Rocha",
+      email: "ana@example.com",
+      whatsappNumber: "+5585999998888",
+      whatsappVisible: true,
+      role: "student",
+      status: "approved",
+    });
+    const useCase = new GetCurrentUser(new FakeUserRepository([ana]));
+
+    await expect(useCase.execute({ id: ana.id })).resolves.toMatchObject({
+      whatsappNumber: "+5585999998888",
+      whatsappVisible: true,
     });
   });
 

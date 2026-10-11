@@ -223,12 +223,17 @@ will call.
   > lock.json`. Verified: build, check-types, lint and test of the module exit 0 (1 test passed); `npm run build
   > --workspace @rochas-surf-school/backend` ok. Deviations: none
 
-- [ ] **T-02** — `SchoolRule` entity in `modules/school-rules/src/school-rule/model/school-rule.entity.ts`
+- [x] **T-02** — `SchoolRule` entity in `modules/school-rules/src/school-rule/model/school-rule.entity.ts`
   (`title`, `description`, `index`, `createdBy?`) with `validate()`: code `schoolRule.title` required + max 60,
   `schoolRule.description` required + max 300, `schoolRule.index` integer and positive, `schoolRule.createdBy`
   UUID when present; tests in `modules/school-rules/test/school-rule/model/school-rule.entity.test.ts`.
   Skill: [`module-entity`](../../../.claude/skills/module-entity).
   Covers: ER-03 · Done when: the entity tests (60/61 and 300/301 characters, empty, index 0) pass.
+  > ✅ 2026-10-11 14:05 — `SchoolRule` entity (title, description, index, createdBy?) with `validate()` (required
+  > + max 60 / 300, index integer and positive, createdBy UUID). Files: `modules/school-rules/src/school-
+  > rule/model/school-rule.entity.ts`, `modules/school-rules/test/school-rule/model/school-rule.entity.test.ts`.
+  > Verified: `npm test --workspace @rochas-surf-school/school-rules` (17 passed, entity 100% covered), lint and
+  > check-types exit 0. Deviations: none
 
 - [ ] **T-03** — Repository port `SchoolRuleRepository` in
   `modules/school-rules/src/school-rule/provider/school-rule.repository.ts` (`findAll`, `findById`,

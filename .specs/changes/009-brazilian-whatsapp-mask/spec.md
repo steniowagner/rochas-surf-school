@@ -3,7 +3,8 @@ id: "009"
 slug: brazilian-whatsapp-mask
 title: Format Brazilian WhatsApp numbers as they are typed
 template: quick
-status: in-review
+status: accepted
+reviewed_commit: 045cd2b028e073d9af14f7d9c294f7388072dcd4
 created: 2026-10-11
 started: 2026-10-11
 base_commit: ec393b3d9c892451b543be0f49409d8c545cdcfc
@@ -188,3 +189,35 @@ sent and stored doesn't change: the number is still saved in E.164.
   clear the field and type `85999998888` → `(85) 99999-8888`; backspace to `(85) 9999`; switch to Portugal →
   `859999`; back to Brazil → `(85) 9999`.
 - Lint and type check came from Turbo's cache (same inputs as the executor's run).
+
+### Round 2 — 2026-10-11 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile --force`, 6 successful,
+  run without Turbo's cache)
+- related tests ✅ 116 passed (apps/mobile, 4 suites)
+- coverage of the changed lines ✅ COVERAGE OK — `whatsapp.hook.ts` and `brazilian-phone.ts` at 100%; no
+  coverage-ignore comments in the diff
+- e2e: no suite applies (only apps/mobile changed) · manual iOS simulator check ✅ the user ran the Verification
+  Plan steps and reported every value as expected (`(85) 99999-8888`, `(85) 9999`, Portugal `859999`, back to
+  Brazil `(85) 9999`)
+
+**Expected Results**
+
+- ER-01 ✅ — `brazilian-phone.test.ts` and the masking tests in `whatsapp.component.test.tsx` assert every
+  digit count, letters, the 12th digit, pasted `+55`/`55` and backspace over the separators
+- ER-02 ✅ — saved E.164 for mobile and landline numbers, the switch both ways and the API-error case are
+  asserted; after F-01's fix, what is validated and sent matches the field after a switch to Brazil
+
+**Findings**
+
+- F-01 ✅ verified — with Brazil selected the hook validates and builds E.164 from `toBrazilianDigits(typed)`,
+  the digits the field shows. The new test covers both reproductions (`(35) 19123-4567` sent as
+  `+5535191234567`; `(85) 99999-8888` enabled and sent as `+5585999998888`) and fails against round 1's hook.
+
+No new findings.
+
+**Notes**
+
+- Memory Impact matches what was built.

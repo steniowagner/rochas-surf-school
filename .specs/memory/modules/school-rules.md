@@ -64,8 +64,9 @@ The account's status is checked before its role.
 
 It decides when an acceptance is allowed, but doesn't store it: the accepted versions belong to the user's
 account in [Authentication](auth.md), which also reports on every answer whether the current rules are
-accepted. Showing the rules and asking for acceptance in the app (the onboarding School rules step, and again
-after a change) is the app's, not built yet. Acceptances can't be withdrawn, and nothing lists who accepted
+accepted. The app shows the rules (a reusable numbered list) and asks for the acceptance at the onboarding
+School rules step, and again there at the next sign-in after a change; a screen to read the rules at any time and
+the admin's rules screen don't exist yet. Acceptances can't be withdrawn, and nothing lists who accepted
 which version. It sends no notification about changes. It doesn't keep the text of past versions, or who edited, deleted or reordered a
 rule.
 
@@ -75,3 +76,6 @@ rule.
   its version raised by every change to the text, reading by any approved account, changes by approved admins.
 - `011-school-rules-acceptance` — any approved account accepts the current version (an outdated one is refused,
   version 0 needs none, a repeat changes nothing); the acceptance is stored on the account in Authentication.
+- `012-onboarding-school-rules` — the app's onboarding School rules step shows the current rules in order and
+  records the acceptance of the version shown; an account that hasn't accepted the current version returns to
+  that step, so onboarding can be completed.

@@ -2,13 +2,14 @@
 id: "012"
 slug: onboarding-school-rules
 title: Onboarding School rules step (mobile)
-status: accepted
+status: finished
 reviewed_commit: fdc5d48515f872abe5e3b9bb6f00298e4c6f2e6f
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 248126d896b4da5464137165b6fb2f72f8c614df
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-11
 ---
 
 # 012 — Onboarding School rules step (mobile)

@@ -149,21 +149,30 @@ src/
     (pending)/pending/{_layout,index}.tsx            # pending flow: waiting for approval (/pending)
     (onboarding)/onboarding/_layout.tsx              # onboarding flow of an approved account
     (onboarding)/onboarding/index.tsx                # WhatsApp step (/onboarding)
-    (onboarding)/onboarding/school-rules.tsx         # School rules step (/onboarding/school-rules), placeholder
+    (onboarding)/onboarding/school-rules.tsx         # School rules step (/onboarding/school-rules)
     (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
     (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
     (private)/{student,instructor,admin}/{_layout,index}.tsx # role experiences (/student, /instructor, /admin)
   navigation/
-    resolve-flow.ts             # Flow, resolveFlow (session user → flow), onboardingStep (whatsapp / school-rules),
-                                # flowEntryRoute (flow + user → entry route)
+    resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
+                                # rulesAccepted), onboardingStep (whatsapp / school-rules), flowEntryRoute
+                                # (flow + user → entry route)
     root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator
   modules/{reactivation,offboarding,student,instructor,admin}/screens/
                                 # each flow's screens (placeholders showing the flow's name for now)
   modules/onboarding/
-    screens/                    # whatsapp.screen.tsx, school-rules.screen.tsx (placeholder)
+    screens/                    # whatsapp.screen.tsx, school-rules.screen.tsx
     components/                 # whatsapp (welcome, country chip + number, hide switch, save), country-picker
-                                # (searchable bottom sheet of countries with their dial codes)
+                                # (searchable bottom sheet of countries with their dial codes), school-rules
+                                # (intro, SchoolRulesList, fixed footer with the Checkbox and "Entrar no app")
     hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast; signs out on a 401
+    hooks/use-accept-school-rules.hook.ts  # POST /school-rules/acceptances; updates the session; on a 409
+                                # reloads the rules (onOutdated); toast; signs out on a 401
+  modules/school-rules/         # the rules shown in the app, reused by every screen that shows them
+    school-rules.types.ts       # SchoolRule, SchoolRules (mirror the API; no dependency on the module workspace)
+    hooks/use-school-rules.hook.ts  # useSchoolRules: GET /school-rules, query key ["school-rules"]; signs out on a 401
+    components/                 # school-rules-list (card: loading, error + retry, empty, numbered rows),
+                                # school-rule-row (number, title, description)
     utils/countries.ts          # country options (localized names, dial codes), filter, default country BR
     utils/brazilian-phone.ts    # toBrazilianDigits, formatBrazilianPhone: the Brazilian number mask
   modules/pending/
@@ -186,11 +195,11 @@ src/
                                 # shared rules, getStatus: error only after blur and when not empty)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
-                                # text-input, toast
+                                # text-input, toast, checkbox
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession (signed-in account and tokens, in memory)
   components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen
-  services/api/                 # fetch client (apiPost, apiPut with a bearer token), ApiError, NetworkError
+  services/api/                 # fetch client (apiGet, apiPost, apiPut, each with an optional bearer token), ApiError, NetworkError
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)
   constants/                    # routes.ts (every app path), theme.ts (design tokens), theme-variables.ts
                                 # (--ds-* per scheme), fonts

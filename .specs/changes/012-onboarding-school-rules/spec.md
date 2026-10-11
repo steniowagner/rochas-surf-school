@@ -239,12 +239,13 @@ an admin changes the rules. The list is built to be reused by the later screens 
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add `apiGet<T>(path, options?)` to `src/services/api/api.client.ts` (method `GET`, no body, with
+- [x] **T-01** — Add `apiGet<T>(path, options?)` to `src/services/api/api.client.ts` (method `GET`, no body, with
   `Authorization: Bearer <token>` when `accessToken` is given; same `ApiError` / `NetworkError` handling), exported
   from `src/services/api/index.ts`. Tests in `src/services/api/api.client.test.ts`: GETs the base URL + path
   without a body; sends the bearer header only when a token is given; returns the body on 200; throws `ApiError`
   on 401 and `NetworkError` when `fetch` rejects.
   Covers: enabling · Done when: `npx jest src/services/api` passes (from `apps/mobile`).
+  > ✅ 2026-10-11 — added `apiGet` (the shared `request` now takes `GET`, sending no body and no Content-Type); files: `apps/mobile/src/services/api/api.client.ts`, `apps/mobile/src/services/api/index.ts`, `apps/mobile/src/services/api/api.client.test.ts`; verified: `npx jest src/services/api` (16 passed); deviations: none
 
 - [ ] **T-02** — Add `rulesAccepted: boolean` to `SessionUser` (`src/navigation/resolve-flow.types.ts`), add
   `isOnboardingCompleted(user)` to `src/navigation/resolve-flow.ts` (D-03) and use it in

@@ -1,4 +1,4 @@
-import { apiPost, apiPut } from "./api.client";
+import { apiGet, apiPost, apiPut } from "./api.client";
 import { ApiError, NetworkError } from "./api.errors";
 
 const jsonResponse = (status: number, body: unknown) =>
@@ -135,5 +135,60 @@ describe("apiPut", () => {
     fetchMock.mockRejectedValue(new TypeError("Network request failed"));
 
     await expect(apiPut("/x", {})).rejects.toBeInstanceOf(NetworkError);
+  });
+});
+
+describe("apiGet", () => {
+  const fetchMock = jest.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    globalThis.fetch = fetchMock;
+    process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+  });
+
+  it("gets the base URL followed by the path, without a body", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, {}));
+
+    await apiGet("/school-rules");
+
+    expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules", {
+      method: "GET",
+      headers: {},
+    });
+  });
+
+  it("sends the bearer token only when one is given", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, {}));
+
+    await apiGet("/school-rules", { accessToken: "token-1" });
+
+    expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules", {
+      method: "GET",
+      headers: { Authorization: "Bearer token-1" },
+    });
+  });
+
+  it("returns the parsed body on 200", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, { version: 1 }));
+
+    await expect(apiGet("/x")).resolves.toEqual({ version: 1 });
+  });
+
+  it("throws ApiError on 401", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(401, { errors: ["auth.token.invalid"] }),
+    );
+
+    const error = await apiGet("/x").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 401, errors: ["auth.token.invalid"] });
+  });
+
+  it("throws NetworkError when fetch rejects", async () => {
+    fetchMock.mockRejectedValue(new TypeError("Network request failed"));
+
+    await expect(apiGet("/x")).rejects.toBeInstanceOf(NetworkError);
   });
 });

@@ -150,29 +150,36 @@ src/
     (onboarding)/onboarding/_layout.tsx              # onboarding flow of an approved account
     (onboarding)/onboarding/index.tsx                # WhatsApp step (/onboarding)
     (onboarding)/onboarding/school-rules.tsx         # School rules step (/onboarding/school-rules)
+    (rules-update)/rules-update/{_layout,index}.tsx  # rules-update flow: "Regras atualizadas" (/rules-update;
+                                                     # swipe-back off)
     (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
     (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
     (private)/{student,instructor,admin}/{_layout,index}.tsx # role experiences (/student, /instructor, /admin)
   navigation/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
-                                # rulesAccepted), onboardingStep (whatsapp / school-rules), flowEntryRoute
+                                # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
                                 # (flow + user → entry route)
     root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator
+    rules-update-layout.test.tsx  # layout test of the rules-update group (a test under src/app would be a route)
   modules/{reactivation,offboarding,student,instructor,admin}/screens/
                                 # each flow's screens (placeholders showing the flow's name for now)
   modules/onboarding/
     screens/                    # whatsapp.screen.tsx, school-rules.screen.tsx
     components/                 # whatsapp (welcome, country chip + number, hide switch, save), country-picker
-                                # (searchable bottom sheet of countries with their dial codes), school-rules
-                                # (intro, SchoolRulesList, fixed footer with the Checkbox and "Entrar no app")
+                                # (searchable bottom sheet of countries with their dial codes)
+                                # school-rules.screen.tsx renders SchoolRulesAcceptance with the schoolRules.* copy
     hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast; signs out on a 401
-    hooks/use-accept-school-rules.hook.ts  # POST /school-rules/acceptances; updates the session; on a 409
-                                # reloads the rules (onOutdated); toast; signs out on a 401
+  modules/rules-update/
+    screens/rules-update.screen.tsx  # "Regras atualizadas": SchoolRulesAcceptance with the rulesUpdate.* copy
   modules/school-rules/         # the rules shown in the app, reused by every screen that shows them
     school-rules.types.ts       # SchoolRule, SchoolRules (mirror the API; no dependency on the module workspace)
     hooks/use-school-rules.hook.ts  # useSchoolRules: GET /school-rules, query key ["school-rules"]; signs out on a 401
+    hooks/use-accept-school-rules.hook.ts  # POST /school-rules/acceptances; updates the session; on a 409
+                                # reloads the rules (onOutdated); toast; signs out on a 401
     components/                 # school-rules-list (card: loading, error + retry, empty, numbered rows),
-                                # school-rule-row (number, title, description)
+                                # school-rule-row (number, title, description), school-rules-acceptance
+                                # (SchoolRulesAcceptance: icon, eyebrow/title/description/submitLabel props,
+                                # SchoolRulesList, fixed footer with the Checkbox and the CTA)
     utils/countries.ts          # country options (localized names, dial codes), filter, default country BR
     utils/brazilian-phone.ts    # toBrazilianDigits, formatBrazilianPhone: the Brazilian number mask
   modules/pending/

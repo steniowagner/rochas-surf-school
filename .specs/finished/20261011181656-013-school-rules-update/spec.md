@@ -2,13 +2,14 @@
 id: "013"
 slug: school-rules-update
 title: Accept updated school rules (backend + mobile)
-status: accepted
+status: finished
 created: 2026-10-11
 started: 2026-10-11
 base_commit: ab8c62432068474cd754a4720cc41754cc85797b
 reviewed_commit: 316592c0c3029708731b8a5be9ee6ee203f3023e
 fronts: [auth, backend, mobile]
 depends_on: []
+finished: 2026-10-11
 ---
 
 # 013 — Accept updated school rules (backend + mobile)

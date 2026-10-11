@@ -92,7 +92,8 @@ Listed in the order people meet them.
   an admin. Admins are notified of each one and see the name, email, deletion date and number of classes
   taken; the person is notified of the decision. After a denial the screen only offers signing in with another
   email. Removed users can't send one.
-- **School rules** (`school-rules`): the rules every user accepts at onboarding, written by admins — an
+- **School rules** (`school-rules`): the rules every user accepts at onboarding (and again on the "Regras
+  atualizadas" screen after a change), written by admins — an
   ordered list of rules, each with a title (up to 60 characters) and an explanation (up to 300), shown in the
   order admins chose. Admins add (a new rule goes last), edit, delete (the rules after it move up) and reorder
   them. Versioned: every add, edit or delete creates a new version that each user accepts the next time they
@@ -243,8 +244,12 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **Every change to the school rules asks everyone to accept them again; reordering doesn't**: users always
   accept the rules as they are now, so admins don't choose whether a change needs acceptance. Only the order
   of the list, or a save that changes no text, leaves the version alone, so an accidental save doesn't make
-  every user accept again. The app asks again on the same School rules step of onboarding, at the next
-  sign-in: the backend sends no signal to tell a first acceptance from a new one.
+  every user accept again. An account that accepted some version before is asked again, at the next sign-in,
+  on a dedicated "Regras atualizadas" screen — the same layout as the onboarding step, with copy that says the
+  rules changed — that has no way back: the only way out is accepting. A first acceptance stays on the School
+  rules step of onboarding; the backend tells the two apart by saying, in every account answer, whether the
+  account ever accepted any version. An account that finished onboarding while no rule existed (version 0) has
+  never accepted, so the first rule written takes it to the onboarding step, not the update screen.
 - **Text written by admins is shown as written**: school rules, cancellation rules, notes, reasons and
   broadcasts aren't translated; they're assumed to be Brazilian Portuguese.
 - **All times are America/Fortaleza, whatever the phone's time zone; weeks run Monday to Sunday.**
@@ -356,13 +361,22 @@ onboarding, and again at the next sign-in after an admin adds, edits or deletes 
 reusable piece for the later screens that show them. The design's line linking to the Terms and Privacy
 policy isn't shown, since those pages don't exist.
 
+**Accepting updated school rules** (spec `013-school-rules-update`) — an approved account with a number that
+accepted the rules before and hasn't accepted the current version opens, at sign-in, a dedicated "Regras
+atualizadas" screen instead of the onboarding step: the same shield, rules list, checkbox and footer, with the
+eyebrow "Regras atualizadas", the description "Atualizamos as regras da escola. Leia e aceite para continuar
+usando o app." and the button "Aceitar e continuar" (in pt-BR, es-ES and en-US). It has no back button, no
+sign-out and no swipe-back; accepting opens the home of the account's role, and an expired session returns to
+sign-in. A first acceptance still happens on the onboarding step. Every account answer of the backend now also
+says whether the account ever accepted any version of the rules.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
 The web app is still on its framework template. Keeping the session across app restarts, the real screens of
 each flow (account deleted and reactivation, the denied and removed screens, and every student, instructor and
 admin screen, the admin's school rules screen and a screen to read the rules at any time included), renewing a
-session, seeing a rule change while the app is open, signing out from any
+session, seeing a rule change while the app is open or when it returns from the background, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
 No spec is active.

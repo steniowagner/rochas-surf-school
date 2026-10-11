@@ -106,6 +106,11 @@ const messages: Messages = {
     invalidNumber: "Número de WhatsApp no válido.",
     sessionExpired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
   },
+  schoolRules: {
+    empty: "La escuela todavía no tiene normas.",
+    loadError: "No se pudieron cargar las normas.",
+    retry: "Intentar de nuevo",
+  },
   flows: {
     onboarding: "Primeros pasos",
     schoolRules: "Normas de la escuela",

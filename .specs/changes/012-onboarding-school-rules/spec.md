@@ -267,7 +267,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   Covers: ER-02 · Done when: `npx jest src/components/ui/checkbox` passes.
   > ✅ 2026-10-11 — shared `Checkbox` (Pressable row, role checkbox, 26×26 box, check mark in `theme.onColor`); the 8 px box radius was missing, so added token `radii.checkbox` (CSS regenerated, `rounded-checkbox` in Tailwind); files: `apps/mobile/src/components/ui/checkbox/{checkbox.component.tsx,checkbox.types.ts,index.ts,checkbox.component.test.tsx}`, `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`, `apps/mobile/tailwind.config.ts`; verified: `npx jest src/components/ui/checkbox` (4 passed), mobile lint + check-types exit 0; deviations: new radius token (D-10 asks for a token when a value is missing)
 
-- [ ] **T-04** — Create the `school-rules` mobile module: `src/modules/school-rules/school-rules.types.ts` (D-02);
+- [x] **T-04** — Create the `school-rules` mobile module: `src/modules/school-rules/school-rules.types.ts` (D-02);
   `hooks/use-school-rules.hook.ts` (D-01; a 401 `auth.token.invalid` shows `whatsapp.sessionExpired` and calls
   `useSignOut().signOut()` once, D-09); `components/school-rules-list/` (`.component.tsx`, `.hook.ts` if needed,
   `.types.ts`, `index.ts`): the `bg-surface` `rounded-card` `border-line` card with a spinner while loading, the
@@ -280,6 +280,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   numbers 01–03, text as sent; and 12 rules → "12"), "shows the empty message", "retries after a failed load"
   (500 then 200), "shows the messages in %s" (`it.each` over the three locales for empty, load error and retry).
   Covers: ER-01, ER-03, ER-04, ER-09 · Done when: `npx jest src/modules/school-rules` passes.
+  > ✅ 2026-10-11 — `school-rules` mobile module: types, `useSchoolRules` (401 handled in the query function so two readers sign out once), `SchoolRulesList` with its hook, plus `SchoolRuleRow` extracted to its own folder (react.md rule 5); `schoolRules.{empty,loadError,retry}` in the 3 locales; files (under `apps/mobile/src/`): `modules/school-rules/school-rules.types.ts`, `modules/school-rules/hooks/use-school-rules.hook.ts`, `.../use-school-rules.hook.test.tsx`, `modules/school-rules/components/school-rules-list/{school-rules-list.component.tsx,.hook.ts,.types.ts,index.ts,school-rules-list.component.test.tsx}`, `modules/school-rules/components/school-rule-row/{school-rule-row.component.tsx,.types.ts,index.ts}`, `i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/school-rules` (14 passed), mobile lint + check-types exit 0; deviations: extra `SchoolRuleRow` component; the rule number uses `ds-text-sheet-title` (Barlow Condensed token style) — to be checked against the design in the simulator
 
 - [ ] **T-05** — Add `src/modules/onboarding/hooks/use-accept-school-rules.hook.ts` (+ `.types.ts`): `useMutation`
   (`retry: false`) posting `{ version }` to `/school-rules/acceptances` with the access token (extend `apiPost` with

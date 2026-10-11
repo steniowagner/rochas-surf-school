@@ -103,6 +103,11 @@ const messages: Messages = {
     invalidNumber: "Número de WhatsApp inválido.",
     sessionExpired: "Sua sessão expirou. Entre novamente.",
   },
+  schoolRules: {
+    empty: "A escola ainda não tem regras.",
+    loadError: "Não foi possível carregar as regras.",
+    retry: "Tentar novamente",
+  },
   flows: {
     onboarding: "Primeiros passos",
     schoolRules: "Regras da escola",

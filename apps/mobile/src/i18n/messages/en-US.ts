@@ -102,6 +102,11 @@ const messages = {
     invalidNumber: "Invalid WhatsApp number.",
     sessionExpired: "Your session expired. Sign in again.",
   },
+  schoolRules: {
+    empty: "The school has no rules yet.",
+    loadError: "Couldn't load the rules.",
+    retry: "Try again",
+  },
   flows: {
     onboarding: "Onboarding",
     schoolRules: "School rules",

@@ -22,6 +22,8 @@ import AuthLayout from "@/app/(public)/auth/_layout";
 import ConfirmCodeRoute from "@/app/(public)/auth/confirm-code";
 import CreateAccountRoute from "@/app/(public)/auth/create-account";
 import AuthRoute from "@/app/(public)/auth/index";
+import RulesUpdateLayout from "@/app/(rules-update)/rules-update/_layout";
+import RulesUpdateRoute from "@/app/(rules-update)/rules-update/index";
 import ReactivationLayout from "@/app/(reactivation)/reactivation/_layout";
 import ReactivationRoute from "@/app/(reactivation)/reactivation/index";
 import Index from "@/app/index";
@@ -97,6 +99,8 @@ const routeTree = {
   "(onboarding)/onboarding/_layout": OnboardingLayout,
   "(onboarding)/onboarding/index": OnboardingRoute,
   "(onboarding)/onboarding/school-rules": SchoolRulesRoute,
+  "(rules-update)/rules-update/_layout": RulesUpdateLayout,
+  "(rules-update)/rules-update/index": RulesUpdateRoute,
   "(reactivation)/reactivation/_layout": ReactivationLayout,
   "(reactivation)/reactivation/index": ReactivationRoute,
   "(offboarding)/offboarding/_layout": OffboardingLayout,
@@ -115,6 +119,7 @@ const account = (
   role = "student",
   whatsappNumber: string | null = null,
   rulesAccepted = false,
+  rulesAcceptedBefore = false,
 ): SessionUser => ({
   id: "user-1",
   name: "Ana Silva",
@@ -125,6 +130,7 @@ const account = (
   whatsappNumber,
   whatsappVisible: false,
   rulesAccepted,
+  rulesAcceptedBefore,
 });
 
 // An approved account that finished onboarding: it has a WhatsApp number and accepted the rules.
@@ -159,6 +165,7 @@ const CREATE_ACCOUNT_PATH = "/auth/create-account";
 const FLOW_PATHS = [
   routes.pending.home,
   routes.onboarding.whatsapp,
+  routes.rulesUpdate.home,
   routes.reactivation.home,
   routes.offboarding.denied,
   routes.offboarding.removed,
@@ -250,6 +257,95 @@ describe("RootNavigator", () => {
         expect(app.getPathname()).toBe(routes.onboarding.whatsapp);
       },
     );
+  });
+
+  describe("rules update", () => {
+    const updatedAccount = (role: string) =>
+      account("approved", role, "+5585999998888", false, true);
+
+    const serveRules = (role: string) =>
+      (globalThis.fetch = jest.fn().mockImplementation(async (url: string) => ({
+        ok: true,
+        status: 200,
+        json: async () =>
+          url.endsWith("/acceptances")
+            ? { ...updatedAccount(role), rulesAccepted: true }
+            : {
+                version: 5,
+                rules: [
+                  { id: "r1", title: "Rule", description: "Text", index: 0 },
+                ],
+              },
+      })));
+
+    beforeEach(() => {
+      process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+    });
+
+    it.each(["student", "instructor", "admin"])(
+      "opens rules update for a %s that accepted before and missed a change",
+      async (role) => {
+        serveRules(role);
+        await openApp(updatedAccount(role));
+
+        expectFlowScreen(routes.rulesUpdate.home, "School rules");
+        expect(screen.getByText("Rules updated")).toBeOnTheScreen();
+      },
+    );
+
+    it.each([
+      routes.student.home,
+      routes.instructor.home,
+      routes.admin.home,
+      routes.onboarding.whatsapp,
+      routes.onboarding.schoolRules,
+      routes.auth.signIn,
+      routes.pending.home,
+    ])("keeps the account on rules update for %s", async (path) => {
+      serveRules("student");
+      await openApp(updatedAccount("student"));
+
+      await navigate(path);
+
+      expectFlowScreen(routes.rulesUpdate.home, "School rules");
+      expect(screen.getByText("Rules updated")).toBeOnTheScreen();
+    });
+
+    it.each([
+      { role: "student", path: routes.student.home, name: "Student" },
+      { role: "instructor", path: routes.instructor.home, name: "Instructor" },
+      { role: "admin", path: routes.admin.home, name: "Admin" },
+    ])(
+      "opens the $role home after accepting, with no way back",
+      async ({ role, path, name }) => {
+        serveRules(role);
+        const user = userEvent.setup();
+        await openApp(updatedAccount(role));
+        await screen.findByText("Rule");
+
+        await user.press(screen.getByRole("checkbox"));
+        await user.press(
+          screen.getByRole("button", { name: "Accept and continue" }),
+        );
+
+        expect(await screen.findByRole("header", { name })).toBeOnTheScreen();
+        expect(app.getPathname()).toBe(path);
+        expect(router.canGoBack()).toBe(false);
+      },
+    );
+
+    it("opens the onboarding step, not the update, for a first acceptance", async () => {
+      await openApp(account("approved", "student", "+5585999998888", false));
+
+      expectFlowScreen(routes.onboarding.schoolRules, "School rules");
+      expect(screen.getByText("Last step")).toBeOnTheScreen();
+    });
+
+    it("opens the WhatsApp step without a number even after an earlier acceptance", async () => {
+      await openApp(account("approved", "student", null, false, true));
+
+      expect(app.getPathname()).toBe(routes.onboarding.whatsapp);
+    });
   });
 
   describe("signed out", () => {

@@ -23,6 +23,7 @@ export type VerifySignInCodeResponse = {
     whatsappNumber: string | null;
     whatsappVisible: boolean;
     rulesAccepted: boolean;
+    rulesAcceptedBefore: boolean;
   };
 };
 

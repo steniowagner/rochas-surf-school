@@ -25,6 +25,7 @@ const user = {
   whatsappNumber: "+5585999998888",
   whatsappVisible: false,
   rulesAccepted: false,
+  rulesAcceptedBefore: false,
 };
 
 const tokens = {

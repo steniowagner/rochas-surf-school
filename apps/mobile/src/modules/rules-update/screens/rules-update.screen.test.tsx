@@ -5,7 +5,22 @@ import {
   userEvent,
   waitFor,
 } from "@testing-library/react-native";
+import { router } from "expo-router";
+import { renderRouter } from "expo-router/testing-library";
+import { ReactNode, useState } from "react";
 
+import AdminLayout from "@/app/(private)/admin/_layout";
+import AdminRoute from "@/app/(private)/admin/index";
+import InstructorLayout from "@/app/(private)/instructor/_layout";
+import InstructorRoute from "@/app/(private)/instructor/index";
+import StudentLayout from "@/app/(private)/student/_layout";
+import StudentRoute from "@/app/(private)/student/index";
+import RulesUpdateLayout from "@/app/(rules-update)/rules-update/_layout";
+import RulesUpdateRoute from "@/app/(rules-update)/rules-update/index";
+import Index from "@/app/index";
+import { routes } from "@/constants/routes";
+import { RootNavigator } from "@/navigation/root-navigator/root-navigator.component";
+import type { SessionUser } from "@/navigation/resolve-flow.types";
 import i18n from "@/i18n";
 import { SessionContext } from "@/providers/session/session.context";
 
@@ -16,6 +31,7 @@ const mockShow = jest.fn();
 const setSession = jest.fn();
 
 jest.mock("@/providers/alert-message", () => ({
+  ...jest.requireActual("@/providers/alert-message"),
   useAlertMessage: () => ({ show: mockShow }),
 }));
 
@@ -261,6 +277,87 @@ describe("RulesUpdateScreen", () => {
       expect(screen.getByRole("button", { name: submit })).toBeOnTheScreen();
       // The rules' text is the same in every language.
       expect(await screen.findByText("Title 1")).toBeOnTheScreen();
+    },
+  );
+});
+
+describe("RulesUpdateScreen on its route", () => {
+  let initialUser: SessionUser;
+
+  function TestSessionProvider({ children }: { children: ReactNode }) {
+    const [session, setSessionState] = useState<{
+      user: SessionUser;
+      tokens: typeof tokens;
+    } | null>({ user: initialUser, tokens });
+
+    return (
+      <SessionContext.Provider
+        value={{
+          user: session?.user ?? null,
+          tokens: session?.tokens ?? null,
+          setSession: setSessionState,
+          clearSession: () => setSessionState(null),
+        }}
+      >
+        {children}
+      </SessionContext.Provider>
+    );
+  }
+
+  function TestRootLayout() {
+    return (
+      <QueryClientProvider
+        client={
+          new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+          })
+        }
+      >
+        <TestSessionProvider>
+          <RootNavigator />
+        </TestSessionProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  const routeTree = {
+    _layout: TestRootLayout,
+    index: Index,
+    "(rules-update)/rules-update/_layout": RulesUpdateLayout,
+    "(rules-update)/rules-update/index": RulesUpdateRoute,
+    "(private)/student/_layout": StudentLayout,
+    "(private)/student/index": StudentRoute,
+    "(private)/instructor/_layout": InstructorLayout,
+    "(private)/instructor/index": InstructorRoute,
+    "(private)/admin/_layout": AdminLayout,
+    "(private)/admin/index": AdminRoute,
+  };
+
+  it.each([
+    { role: "student", path: routes.student.home, name: "Student" },
+    { role: "instructor", path: routes.instructor.home, name: "Instructor" },
+    { role: "admin", path: routes.admin.home, name: "Admin" },
+  ])(
+    "opens the role home after accepting ($role)",
+    async ({ role, path, name }) => {
+      initialUser = { ...user, role };
+      serve({
+        rules: () => json(200, { version: 5, rules: [ruleOf(1)] }),
+        accept: () => json(200, { ...initialUser, rulesAccepted: true }),
+      });
+      const press = userEvent.setup();
+      const app = renderRouter(routeTree, { initialUrl: "/" });
+      await app;
+
+      expect(app.getPathname()).toBe(routes.rulesUpdate.home);
+      await screen.findByText("Title 1");
+
+      await press.press(checkbox());
+      await press.press(cta());
+
+      expect(await screen.findByRole("header", { name })).toBeOnTheScreen();
+      expect(app.getPathname()).toBe(path);
+      expect(router.canGoBack()).toBe(false);
     },
   );
 });

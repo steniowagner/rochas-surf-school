@@ -39,6 +39,7 @@ const user = {
   whatsappNumber: null,
   whatsappVisible: false,
   rulesAccepted: false,
+  rulesAcceptedBefore: false,
 };
 
 const tokens = {

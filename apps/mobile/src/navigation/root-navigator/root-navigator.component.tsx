@@ -19,6 +19,9 @@ export function RootNavigator() {
       <Stack.Protected guard={flow === "onboarding"}>
         <Stack.Screen name="(onboarding)/onboarding" />
       </Stack.Protected>
+      <Stack.Protected guard={flow === "rules-update"}>
+        <Stack.Screen name="(rules-update)/rules-update" />
+      </Stack.Protected>
       <Stack.Protected guard={flow === "reactivation"}>
         <Stack.Screen name="(reactivation)/reactivation" />
       </Stack.Protected>

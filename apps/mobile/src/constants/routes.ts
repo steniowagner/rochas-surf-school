@@ -22,6 +22,9 @@ export const routes = {
     whatsapp: "/onboarding",
     schoolRules: "/onboarding/school-rules",
   },
+  rulesUpdate: {
+    home: "/rules-update",
+  },
   reactivation: {
     home: "/reactivation",
   },

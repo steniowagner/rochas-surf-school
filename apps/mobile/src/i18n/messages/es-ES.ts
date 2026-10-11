@@ -107,6 +107,13 @@ const messages: Messages = {
     sessionExpired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
   },
   schoolRules: {
+    eyebrow: "Último paso",
+    title: "Normas de la escuela",
+    description:
+      "Pocas y sencillas — para que las clases salgan bien para todos.",
+    accept:
+      "He leído y acepto las normas y los términos de Rocha's Surf School.",
+    submit: "Entrar en la app",
     empty: "La escuela todavía no tiene normas.",
     loadError: "No se pudieron cargar las normas.",
     outdated: "Las normas cambiaron. Léelas de nuevo y acéptalas.",
@@ -114,7 +121,6 @@ const messages: Messages = {
   },
   flows: {
     onboarding: "Primeros pasos",
-    schoolRules: "Normas de la escuela",
     reactivation: "Reactivación",
     offboardingDenied: "Registro rechazado",
     offboardingRemoved: "Acceso eliminado",

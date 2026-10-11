@@ -294,7 +294,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   Covers: ER-05, ER-07, ER-08 · Done when: `npx jest src/modules/onboarding/hooks src/services/api` passes.
   > ✅ 2026-10-11 — `useAcceptSchoolRules({ onOutdated })` (+ types), `apiPost` takes the optional `{ accessToken }`, `schoolRules.outdated` in the 3 locales; the outdated case is exposed through the `onOutdated` callback; files (under `apps/mobile/src/`): `modules/onboarding/hooks/use-accept-school-rules.hook.ts`, `.types.ts`, `.hook.test.tsx`, `services/api/api.client.ts`, `services/api/api.client.test.ts`, `i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/onboarding/hooks src/services/api` (37 passed), mobile lint + check-types exit 0; deviations: none
 
-- [ ] **T-06** — Build the screen: `src/modules/onboarding/components/school-rules/` (`school-rules.component.tsx`,
+- [x] **T-06** — Build the screen: `src/modules/onboarding/components/school-rules/` (`school-rules.component.tsx`,
   `school-rules.hook.ts`, `school-rules.types.ts`, `index.ts`) — a `ScrollView` with `ScreenIntro` (`Ionicons`
   `shield-outline` in `grape`, default `bg-sand` tile, eyebrow, title, description) and `SchoolRulesList`, and a
   fixed footer (`bg-surface`, top border `line`, bottom safe-area padding) with the `Checkbox` and the primary
@@ -311,6 +311,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-07, ER-09 · Done when:
   `npx jest src/modules/onboarding src/modules/school-rules` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-11 — School rules step: `SchoolRules` component + `useSchoolRulesStep` hook (box state, version from the shared `useSchoolRules` cache, untick on outdated), screen renders it, `schoolRules.{eyebrow,title,description,accept,submit}` added in the 3 locales, `flows.schoolRules` removed (nothing else used it); files (under `apps/mobile/src/`): `modules/onboarding/components/school-rules/{school-rules.component.tsx,school-rules.hook.ts,index.ts,school-rules.component.test.tsx}`, `modules/onboarding/screens/school-rules.screen.tsx`, `modules/onboarding/screens/school-rules.screen.test.tsx`, `i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/onboarding src/modules/school-rules` (113 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exit 0; deviations: no `school-rules.types.ts` (the component has no props or local types); extra tests for double press and failed accept; the loading and load-error cases are two tests under the same name prefix
 
 ### Verification
 

@@ -13,6 +13,7 @@ import {
   FakeEmailProvider,
   FakeIdentityRepository,
   FakeRefreshTokenRepository,
+  FakeRulesVersionProvider,
   FakeSignInCodeProvider,
   FakeSignInCodeRepository,
   FakeTokenProvider,
@@ -34,9 +35,10 @@ function buildUser(overrides: Partial<UserState> = {}): User {
 }
 
 function setup(
-  options: { users?: User[]; identities?: Identity[]; reviewCodes?: Record<string, string> } = {},
+  options: { users?: User[]; identities?: Identity[]; reviewCodes?: Record<string, string>; rulesVersion?: number } = {},
 ) {
   const clock = new FakeClockProvider(T);
+  const rulesVersionProvider = new FakeRulesVersionProvider(options.rulesVersion ?? 0);
   const signInCodeRepository = new FakeSignInCodeRepository();
   const codeProvider = new FakeSignInCodeProvider(["123456", "654321", "111111"]);
   const emailProvider = new FakeEmailProvider();
@@ -63,6 +65,7 @@ function setup(
     clock,
     startSession,
     30,
+    rulesVersionProvider,
   );
   return {
     clock,
@@ -112,6 +115,26 @@ describe("VerifySignInCode", () => {
       });
     });
 
+    test("says whether the current rules version was accepted", async () => {
+      const accepted = buildUser({
+        email: "ana@example.com",
+        rulesAcceptances: [{ version: 2, acceptedAt: T }],
+      });
+      const notAccepted = buildUser({
+        email: "bia@example.com",
+        rulesAcceptances: [{ version: 1, acceptedAt: T }],
+      });
+      const ctx = setup({ users: [accepted, notAccepted], rulesVersion: 2 });
+      await ctx.request.execute({ email: "ana@example.com" });
+      await ctx.request.execute({ email: "bia@example.com" });
+
+      const ana = await ctx.verify.execute({ email: "ana@example.com", code: "123456" });
+      const bia = await ctx.verify.execute({ email: "bia@example.com", code: "654321" });
+
+      expect(ana.user.rulesAccepted).toBe(true);
+      expect(bia.user.rulesAccepted).toBe(false);
+    });
+
     test("signs in with the correct code and deletes it", async () => {
       const ana = buildUser();
       const ctx = setup({ users: [ana] });
@@ -133,6 +156,7 @@ describe("VerifySignInCode", () => {
           createdAt: ana.createdAt,
           whatsappNumber: null,
           whatsappVisible: false,
+          rulesAccepted: true,
         },
       });
       await expect(ctx.signInCodeRepository.findByEmail("ana@example.com")).resolves.toBeNull();
@@ -257,6 +281,7 @@ describe("VerifySignInCode", () => {
         createdAt: bia.createdAt,
         whatsappNumber: null,
         whatsappVisible: false,
+        rulesAccepted: true,
       });
       expect(result.refreshToken).toBe("refresh-1");
       const identities = await ctx.identityRepository.findByUserId(bia.id);
@@ -267,6 +292,19 @@ describe("VerifySignInCode", () => {
         email: "bia@example.com",
       });
       await expect(ctx.signInCodeRepository.findByEmail("bia@example.com")).resolves.toBeNull();
+    });
+
+    test("a new account has to accept the rules once their version is above 0", async () => {
+      const ctx = setup({ rulesVersion: 1 });
+      await ctx.request.execute({ email: "bia@example.com" });
+
+      const result = await ctx.verify.execute({
+        email: "bia@example.com",
+        code: "123456",
+        name: "Bia Souza",
+      });
+
+      expect(result.user.rulesAccepted).toBe(false);
     });
 
     test("rejects a short name without consuming the code", async () => {
@@ -500,6 +538,7 @@ describe("VerifySignInCode", () => {
         createdAt: admin.createdAt,
         whatsappNumber: null,
         whatsappVisible: false,
+        rulesAccepted: true,
       });
     });
 

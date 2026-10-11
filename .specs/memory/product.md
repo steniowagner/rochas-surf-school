@@ -243,7 +243,8 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **Every change to the school rules asks everyone to accept them again; reordering doesn't**: users always
   accept the rules as they are now, so admins don't choose whether a change needs acceptance. Only the order
   of the list, or a save that changes no text, leaves the version alone, so an accidental save doesn't make
-  every user accept again.
+  every user accept again. The app asks again on the same School rules step of onboarding, at the next
+  sign-in: the backend sends no signal to tell a first acceptance from a new one.
 - **Text written by admins is shown as written**: school rules, cancellation rules, notes, reasons and
   broadcasts aren't translated; they're assumed to be Brazilian Portuguese.
 - **All times are America/Fortaleza, whatever the phone's time zone; weeks run Monday to Sunday.**
@@ -323,9 +324,8 @@ created only on the path that collects a name.
 number, of any role, opens the WhatsApp screen: it welcomes the person by first name and asks for the number
 with its country (Brazil +55 preselected, any country picked from a searchable list), with "Hide my number" on
 by default — hidden means only admins see it. The number must be valid for the chosen country; it is saved
-with its country code, and the app moves on to the School rules step, which is still empty. An approved account
-that already has a number opens School rules directly. Onboarding can't be completed until the School rules
-step lets the person accept the rules, so no account reaches the student, instructor or admin experience for now.
+with its country code, and the app moves on to the School rules step (spec 012). An approved account that
+already has a number opens School rules directly.
 
 **Brazilian number mask** (spec `009-brazilian-whatsapp-mask`) — with Brazil selected, the WhatsApp number is
 formatted as it is typed: `(XX) XXXX-XXXX` for a landline and `(XX) XXXXX-XXXX` for a mobile. Letters and
@@ -342,16 +342,27 @@ role accepts the current version of the rules through the backend, which records
 accepted; an older or newer version is refused, so the app reloads the rules, and accepting the same version
 again changes nothing. Every answer that carries the account (who the account is, a correct code, a renewed
 session, saving the WhatsApp number) now says whether the account still has to accept the current rules — not
-after an add, edit or delete it hasn't accepted, yes while no rule was ever written. The app doesn't use it yet:
-the School rules step of onboarding is still empty, so onboarding still can't be completed.
+after an add, edit or delete it hasn't accepted, yes while no rule was ever written. The app routes by it
+(spec 012).
+
+**School rules step of onboarding** (spec `012-onboarding-school-rules`) — the last onboarding step shows the
+current school rules, numbered in the admins' order and exactly as written, and asks the person to tick "Li e
+aceito as regras e os termos da Rocha's Surf School." before "Entrar no app" records the acceptance of that
+version and opens the home of the account's role (still a placeholder). Onboarding can now be completed. When
+the school has no rules left the step says so and still asks for the acceptance; a failed load offers "Tentar
+novamente"; when the rules changed while the step was open, the app shows the new rules, unticks the box and
+asks again. An account that has a number but hasn't accepted the current version lands on this step — at
+onboarding, and again at the next sign-in after an admin adds, edits or deletes a rule. The list of rules is a
+reusable piece for the later screens that show them. The design's line linking to the Terms and Privacy
+policy isn't shown, since those pages don't exist.
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
 The web app is still on its framework template. Keeping the session across app restarts, the real screens of
-each flow (the school-rules step, account deleted and reactivation, the
-denied and removed screens, and every student, instructor and admin screen, the admin's school rules screen
-included), accepting the school rules in the app, renewing a session, signing out from any
+each flow (account deleted and reactivation, the denied and removed screens, and every student, instructor and
+admin screen, the admin's school rules screen and a screen to read the rules at any time included), renewing a
+session, seeing a rule change while the app is open, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
 No spec is active.

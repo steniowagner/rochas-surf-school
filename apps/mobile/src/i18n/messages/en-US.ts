@@ -102,9 +102,20 @@ const messages = {
     invalidNumber: "Invalid WhatsApp number.",
     sessionExpired: "Your session expired. Sign in again.",
   },
+  schoolRules: {
+    eyebrow: "Last step",
+    title: "School rules",
+    description: "Few and simple — so classes go well for everyone.",
+    accept:
+      "I have read and accept the rules and terms of Rocha's Surf School.",
+    submit: "Enter the app",
+    empty: "The school has no rules yet.",
+    loadError: "Couldn't load the rules.",
+    outdated: "The rules changed. Read them again and accept.",
+    retry: "Try again",
+  },
   flows: {
     onboarding: "Onboarding",
-    schoolRules: "School rules",
     reactivation: "Reactivation",
     offboardingDenied: "Registration denied",
     offboardingRemoved: "Access removed",

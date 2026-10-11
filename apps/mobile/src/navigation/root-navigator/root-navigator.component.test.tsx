@@ -37,24 +37,6 @@ import type {
 
 import { RootNavigator } from "./root-navigator.component";
 
-// The app never completes onboarding yet (spec 008, D-01), so the role homes are unreachable. Most cases here
-// test the guards of those homes, so they run with onboarding completed; the onboarding cases switch it off.
-let mockOnboardingCompleted = true;
-
-jest.mock("@/navigation/resolve-flow", () => {
-  const actual = jest.requireActual("@/navigation/resolve-flow");
-
-  return {
-    ...actual,
-    resolveFlow: (input: { onboardingCompleted: boolean }) =>
-      actual.resolveFlow({
-        ...input,
-        onboardingCompleted:
-          mockOnboardingCompleted || input.onboardingCompleted,
-      }),
-  };
-});
-
 // The test owns the session: it starts with `initialUser` and is changed through `session.current`.
 let initialUser: SessionUser | null = null;
 const TOKENS: SessionTokens = {
@@ -132,6 +114,7 @@ const account = (
   status: string,
   role = "student",
   whatsappNumber: string | null = null,
+  rulesAccepted = false,
 ): SessionUser => ({
   id: "user-1",
   name: "Ana Silva",
@@ -141,7 +124,12 @@ const account = (
   createdAt: "2026-10-10T12:00:00.000Z",
   whatsappNumber,
   whatsappVisible: false,
+  rulesAccepted,
 });
+
+// An approved account that finished onboarding: it has a WhatsApp number and accepted the rules.
+const onboardedAccount = (role: string): SessionUser =>
+  account("approved", role, "+5585999998888", true);
 
 // RNTL 14's render is async, so renderRouter returns a promise; its route helpers (getPathname…) sit on that promise.
 let app: ReturnType<typeof renderRouter>;
@@ -181,14 +169,6 @@ const FLOW_PATHS = [
 
 describe("RootNavigator", () => {
   describe("onboarding steps", () => {
-    beforeEach(() => {
-      mockOnboardingCompleted = false;
-    });
-
-    afterEach(() => {
-      mockOnboardingCompleted = true;
-    });
-
     it.each(["student", "instructor", "admin"])(
       "approved without a number opens the WhatsApp step for a %s",
       async (role) => {
@@ -237,6 +217,39 @@ describe("RootNavigator", () => {
 
       expectFlowScreen(routes.pending.home, "Waiting for approval");
     });
+  });
+
+  describe("onboarding completed", () => {
+    it.each(["student", "instructor", "admin"])(
+      "opens school rules for a %s with a number and rulesAccepted false",
+      async (role) => {
+        await openApp(account("approved", role, "+5585999998888", false));
+
+        expectFlowScreen(routes.onboarding.schoolRules, "School rules");
+      },
+    );
+
+    it.each([
+      { role: "student", path: routes.student.home, name: "Student" },
+      { role: "instructor", path: routes.instructor.home, name: "Instructor" },
+      { role: "admin", path: routes.admin.home, name: "Admin" },
+    ])(
+      "opens the $role home with a number and rulesAccepted true",
+      async ({ role, path, name }) => {
+        await openApp(onboardedAccount(role));
+
+        expectFlowScreen(path, name);
+      },
+    );
+
+    it.each([true, false])(
+      "opens the WhatsApp step without a number whatever rulesAccepted is (%s)",
+      async (rulesAccepted) => {
+        await openApp(account("approved", "student", null, rulesAccepted));
+
+        expect(app.getPathname()).toBe(routes.onboarding.whatsapp);
+      },
+    );
   });
 
   describe("signed out", () => {
@@ -318,19 +331,19 @@ describe("RootNavigator", () => {
       },
       {
         state: "approved student",
-        user: account("approved", "student"),
+        user: onboardedAccount("student"),
         path: routes.student.home,
         name: "Student",
       },
       {
         state: "approved instructor",
-        user: account("approved", "instructor"),
+        user: onboardedAccount("instructor"),
         path: routes.instructor.home,
         name: "Instructor",
       },
       {
         state: "approved admin",
-        user: account("approved", "admin"),
+        user: onboardedAccount("admin"),
         path: routes.admin.home,
         name: "Admin",
       },
@@ -409,7 +422,7 @@ describe("RootNavigator", () => {
       routes.offboarding.removed,
       routes.auth.signIn,
     ])("keeps a student on student for %s", async (path) => {
-      await openApp(account("approved", "student"));
+      await openApp(onboardedAccount("student"));
 
       await navigate(path);
 
@@ -430,7 +443,7 @@ describe("RootNavigator", () => {
 
       await act(async () =>
         session.current!.setSession({
-          user: account("approved", "student"),
+          user: onboardedAccount("student"),
           tokens: TOKENS,
         }),
       );
@@ -469,9 +482,9 @@ describe("RootNavigator", () => {
       account("deleted"),
       account("denied"),
       account("removed"),
-      account("approved", "student"),
-      account("approved", "instructor"),
-      account("approved", "admin"),
+      onboardedAccount("student"),
+      onboardedAccount("instructor"),
+      onboardedAccount("admin"),
     ])(
       "returns to sign-in when the session is cleared ($status $role)",
       async (user) => {

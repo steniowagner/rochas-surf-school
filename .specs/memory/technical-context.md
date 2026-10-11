@@ -27,8 +27,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     iOS only).
   - Server data: **TanStack Query 5** — every screen fetches, caches, retries and invalidates the same way.
     One `QueryClient` in the root layout, mutations without retry. Requests go through the `fetch` client in
-    `src/services/api/` (`apiPost`, `apiPut`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends JSON (with
-    `Authorization: Bearer <token>` when `apiPut` gets an `accessToken`), and throws `ApiError` (`status`,
+    `src/services/api/` (`apiGet`, `apiPost`, `apiPut`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends
+    JSON for POST and PUT (a GET has no body and no Content-Type), adds `Authorization: Bearer <token>` when
+    given an `accessToken` (an optional `{ accessToken }` on all three), and throws `ApiError` (`status`,
     `errors`, `details`; empty `errors` when the body isn't JSON) on a non-2xx answer or `NetworkError` when no
     answer arrives.
   - Phone numbers: **`libphonenumber-js`** (default metadata) turns what the person typed and the chosen
@@ -166,7 +167,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   unless `eyebrowClassName` passes another)
   and use the shared `TextInput` (leading icon, `neutral` / `error` border, error message below), `OtpInput`
   (digit boxes over a hidden native input that keeps only digits, so paste and one-time-code autofill work) and
-  `Button` (variants, including `ghost`, plus `loading` and `disabled` states). API errors are shown in a toast
+  `Button` (variants, including `ghost`, plus `loading` and `disabled` states). A tick box is the shared
+  `Checkbox` (`src/components/ui/checkbox`: `checked`, `onChange(checked)`, `label`, `disabled`) — one
+  `Pressable` row with role `checkbox`, so the box and its label toggle it, at least 44 pt tall. API errors are shown in a toast
   through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides by itself after 3 s).
   One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
   shown inline under the field, because the design shows it there.
@@ -185,9 +188,10 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `flowEntryRoute(flow, user)`. The onboarding flow has steps, decided in the same file: `onboardingStep(user)`
   is `whatsapp` while the user has no `whatsappNumber`, then `school-rules`, and `flowEntryRoute` opens the
   step's route (`routes.onboarding.whatsapp` = `/onboarding`, `routes.onboarding.schoolRules` =
-  `/onboarding/school-rules`). `onboardingCompleted` is fixed to `false` in `useRootNavigator` until the
-  school-rules spec computes it, so the role homes are unreachable for now; the onboarding group is guarded by
-  flow, not by step. Reason: one tested function holds every access rule, so screens, layouts and hooks never
+  `/onboarding/school-rules`). `useRootNavigator` passes `onboardingCompleted: isOnboardingCompleted(user)`
+  (same file): a WhatsApp number and `rulesAccepted === true`, so an account that hasn't accepted the current
+  school rules version goes back to the School rules step; the app has no version logic of its own, the
+  backend's `rulesAccepted` decides. The onboarding group is guarded by flow, not by step. Reason: one tested function holds every access rule, so screens, layouts and hooks never
   decide access, and a flow change never strands a person on a screen they can no longer reach. A flow's
   screens go in `src/modules/<flow>/screens/` with a route file in that flow's folder under `src/app/`.
   Route tests use `renderRouter` from `expo-router/testing-library` with a route tree built from the real route
@@ -287,7 +291,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   Google and Apple client ids come with their sign-in spec.
 - Mobile session: the signed-in account lives in an in-memory React context (`SessionProvider` /
   `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status, createdAt,
-  whatsappNumber, whatsappVisible }` (`createdAt` an ISO 8601 string in UTC) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
+  whatsappNumber, whatsappVisible, rulesAccepted }` (`createdAt` an ISO 8601 string in UTC) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
   refreshToken, refreshTokenExpiresAt }` or `null` —, `setSession({ user, tokens })`, `clearSession()`); the
   Confirm email screen sets it from the verify response. Nothing is stored on the device yet, so a restart signs
   out; tokens will go to `expo-secure-store` when the session is kept. The app routes by account state before

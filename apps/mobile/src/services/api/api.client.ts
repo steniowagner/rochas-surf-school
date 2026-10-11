@@ -21,21 +21,23 @@ type RequestOptions = {
 };
 
 const request = async <T>(
-  method: "POST" | "PUT",
+  method: "GET" | "POST" | "PUT",
   path: string,
   body: unknown,
   { accessToken }: RequestOptions = {},
 ): Promise<T> => {
+  const hasBody = method !== "GET";
+
   let response: Response;
 
   try {
     response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${path}`, {
       method,
       headers: {
-        "Content-Type": "application/json",
+        ...(hasBody ? { "Content-Type": "application/json" } : {}),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: JSON.stringify(body),
+      ...(hasBody ? { body: JSON.stringify(body) } : {}),
     });
   } catch {
     throw new NetworkError();
@@ -53,8 +55,12 @@ const request = async <T>(
   return data as T;
 };
 
-export const apiPost = <T>(path: string, body: unknown): Promise<T> =>
-  request<T>("POST", path, body);
+/** A POST that sends `Authorization: Bearer <token>` when an access token is given. */
+export const apiPost = <T>(
+  path: string,
+  body: unknown,
+  options?: RequestOptions,
+): Promise<T> => request<T>("POST", path, body, options);
 
 /** A PUT that sends `Authorization: Bearer <token>` when an access token is given (spec 008, D-10). */
 export const apiPut = <T>(
@@ -62,3 +68,7 @@ export const apiPut = <T>(
   body: unknown,
   options?: RequestOptions,
 ): Promise<T> => request<T>("PUT", path, body, options);
+
+/** A GET that sends `Authorization: Bearer <token>` when an access token is given (spec 012). */
+export const apiGet = <T>(path: string, options?: RequestOptions): Promise<T> =>
+  request<T>("GET", path, undefined, options);

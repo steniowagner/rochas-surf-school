@@ -26,6 +26,7 @@ const user = {
   createdAt: new Date(NOW.getTime() - 30 * 1000).toISOString(),
   whatsappNumber: null,
   whatsappVisible: false,
+  rulesAccepted: false,
 };
 
 const tokens = {

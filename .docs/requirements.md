@@ -202,6 +202,7 @@ The system SHALL erase a denied registration's data 30 days after the denial. Af
 _Implemented in spec 005-mobile-flow-routing._
 _Implemented in spec 008-onboarding-whatsapp._
 _Implemented in spec 011-school-rules-acceptance._
+_Implemented in spec 012-onboarding-school-rules._
 
 After their registration is approved, and before using the rest of the app, users SHALL add their WhatsApp number and accept the school rules.
 
@@ -385,6 +386,7 @@ Admins SHALL be able to add, edit, remove and reorder school rules. A new rule g
 #### Accepting the rules
 
 _Implemented in spec 011-school-rules-acceptance._
+_Implemented in spec 012-onboarding-school-rules._
 
 Users SHALL accept the school rules after their registration is approved and before using the rest of the app. They accept the current version only; while no rule has ever been written there is nothing to accept.
 
@@ -393,6 +395,7 @@ Users SHALL accept the school rules after their registration is approved and bef
 #### Reading the rules
 
 _Implemented in spec 010-school-rules-management._
+_Implemented in spec 012-onboarding-school-rules._
 
 Approved users, of any role, SHALL be able to read the school rules at any time.
 
@@ -402,6 +405,7 @@ Approved users, of any role, SHALL be able to read the school rules at any time.
 
 _Implemented in spec 010-school-rules-management._
 _Implemented in spec 011-school-rules-acceptance._
+_Implemented in spec 012-onboarding-school-rules._
 
 Every time admins add, edit or remove a school rule, the rules SHALL get a new version, and each user SHALL accept it the next time they open the app, before continuing; admins don't choose. Reordering the rules, or saving a rule without changing its text, SHALL NOT create a new version. The change SHALL NOT send a notification.
 
@@ -411,6 +415,7 @@ Every time admins add, edit or remove a school rule, the rules SHALL get a new v
 #### Rule changes while an account was away
 
 _Implemented in spec 011-school-rules-acceptance._
+_Implemented in spec 012-onboarding-school-rules._
 
 A reactivated or restored account SHALL accept the school rules again if a change that required acceptance happened while it was deleted or removed.
 

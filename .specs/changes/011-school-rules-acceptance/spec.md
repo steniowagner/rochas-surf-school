@@ -296,13 +296,17 @@ routing come with a follow-up mobile spec.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-06** — Implement `addRulesAcceptance` in `PrismaUserRepository`
+- [x] **T-06** — Implement `addRulesAcceptance` in `PrismaUserRepository`
   (`apps/backend/src/modules/auth/user.prisma.ts`) with
   `userRulesAcceptance.createMany({ data: [{ userId, version, acceptedAt }], skipDuplicates: true })` (D-07),
   and test it in `apps/backend/src/modules/auth/user.prisma.spec.ts` (`describe("addRulesAcceptance")`: the call
   sent to Prisma). Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` passes (from
   `apps/backend`).
+  > ✅ 2026-10-11 — `PrismaUserRepository.addRulesAcceptance` writes through `userRulesAcceptance.createMany` with
+  > `skipDuplicates: true` and doesn't touch `update()`; files: `apps/backend/src/modules/auth/user.prisma.ts`,
+  > `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts`
+  > (9 passed); deviations: none (`auth.controller.ts` doesn't type-check until T-07 passes the new provider)
 
 - [ ] **T-07** — Create `PrismaRulesVersionProvider` in `apps/backend/src/modules/auth/rules-version.prisma.ts`
   (reads the single `rules_versions` row) with `rules-version.prisma.spec.ts`; register it in

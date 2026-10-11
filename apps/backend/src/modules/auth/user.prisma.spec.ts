@@ -51,8 +51,12 @@ function setup() {
     findMany: vi.fn(),
     count: vi.fn(),
   };
-  const repository = new PrismaUserRepository({ user } as unknown as PrismaService);
-  return { user, repository };
+  const userRulesAcceptance = { createMany: vi.fn() };
+  const repository = new PrismaUserRepository({
+    user,
+    userRulesAcceptance,
+  } as unknown as PrismaService);
+  return { user, userRulesAcceptance, repository };
 }
 
 function minimalUser(): User {
@@ -238,5 +242,24 @@ describe('PrismaUserRepository', () => {
       include: { rulesAcceptances: true },
     });
     expect(users.map((item) => item.id)).toEqual([ID]);
+  });
+
+  describe('addRulesAcceptance', () => {
+    const acceptedAt = new Date('2026-10-11T12:00:00.000Z');
+
+    it('writes only the acceptance, skipping one already stored for the version', async () => {
+      const { user, userRulesAcceptance, repository } = setup();
+      userRulesAcceptance.createMany.mockResolvedValue({ count: 1 });
+
+      await expect(
+        repository.addRulesAcceptance(ID, { version: 3, acceptedAt }),
+      ).resolves.toBeUndefined();
+
+      expect(userRulesAcceptance.createMany).toHaveBeenCalledWith({
+        data: [{ userId: ID, version: 3, acceptedAt }],
+        skipDuplicates: true,
+      });
+      expect(user.update).not.toHaveBeenCalled();
+    });
   });
 });

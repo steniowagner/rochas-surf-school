@@ -2,7 +2,7 @@
 id: "010"
 slug: school-rules-management
 title: School rules management (backend)
-status: changes-requested
+status: in-review
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 5517ca275e22def7354b3109edf6152a18eafe19
@@ -466,12 +466,17 @@ will call.
 
 **Findings**
 
-- [ ] **F-01** (tests) — `apps/backend/src/modules/school-rules/school-rules.integration.http` signs in with
+- [x] **F-01** (tests) — `apps/backend/src/modules/school-rules/school-rules.integration.http` signs in with
   `POST /auth/email/verify` without first requesting a code, so the file doesn't work as written: run top to
   bottom against the local backend, both sign-ins answer 401 and every following request 401
   `auth.token.invalid` (reproduced with the three `REVIEW_ACCOUNTS`; after a `POST /auth/email/code` for each
   email the same verify answers 200). Expected: add a `POST {{baseUrl}}/auth/email/code` request for the admin
   and for the student before their verify requests, as `auth.integration.http` does, so the file runs end to end.
+  > ✅ 2026-10-11 14:20 — added a `POST /auth/email/code` request (with `locale`) for the admin and for the
+  > student before their verify requests, as `auth.integration.http` does; files:
+  > `apps/backend/src/modules/school-rules/school-rules.integration.http`; verified: against the built backend
+  > on port 4011, the code request for each review account followed by `POST /auth/email/verify` with its fixed
+  > code answers 200 with an `accessToken` for both; deviations: none
 
 **Notes**
 

@@ -59,6 +59,7 @@ export default {
         ),
       ),
       borderRadius: {
+        checkbox: `${radii.checkbox}px`,
         control: `${radii.control}px`,
         card: `${radii.card}px`,
         sheet: `${radii.sheet}px`,

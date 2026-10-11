@@ -2,13 +2,14 @@
 id: "011"
 slug: school-rules-acceptance
 title: Accept the school rules (backend)
-status: accepted
+status: finished
 created: 2026-10-11
 fronts: [shared, auth, school-rules, backend]
 depends_on: []
 started: 2026-10-11
 base_commit: e8afa095945c0c405f6c01a6777397c8a5883b2e
 reviewed_commit: ef8b5dafea94a185a70c37dd6cae8aeb25ed3470
+finished: 2026-10-11
 ---
 
 # 011 — Accept the school rules (backend)

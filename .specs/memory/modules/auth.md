@@ -26,6 +26,14 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   emptied. Several accounts may share one number (a family phone).
 - **WhatsApp visibility**: hidden by default; hidden means only admins see the number. Nothing shows other
   users' numbers yet.
+- **Accepted school rules**: each acceptance is a version of the school rules with when it was accepted; one
+  per version, and accepting a version already stored keeps the first one, even when two requests arrive at the
+  same moment. The acceptances themselves are recorded by [School rules](school-rules.md).
+- **Whether the current rules are accepted** (`rulesAccepted`): every answer that carries the account says it
+  — yes when the account accepted the current version of the school rules, or while no rule was ever written
+  (version 0); no otherwise, so an add, edit or delete makes it no again until the account accepts the new
+  version, and an acceptance of an older version doesn't count. It is given for every status. The current
+  version is read from School rules without this module depending on it.
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -83,7 +91,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 - **Anyone** — asks for a code and signs in or signs up with it.
 - **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date,
-  WhatsApp number and its visibility).
+  WhatsApp number and its visibility, and whether it accepted the current school rules).
 - **An approved account** — sets its own WhatsApp number and visibility.
 - **Anyone holding a refresh token** — renews or ends that session (10 requests per minute per network address
   for each).
@@ -125,7 +133,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 It does not send email itself: it hands the code, the address and the language to the email-delivery
 capability through an abstract contract. It knows nothing about token formats or HTTP: the technical shape of
 tokens is behind its own contract, provided by the backend. The school rules themselves and their version belong to
-[School rules](school-rules.md); it keeps only the versions each account accepted. Deciding registrations, the
+[School rules](school-rules.md), which also decides when an acceptance is allowed; this module keeps only the
+versions each account accepted and reports whether the current one is among them. Deciding registrations, the
 school-rules step of onboarding, erasure and reactivation are rules of the account lifecycle still to be specified.
 
 ## Spec history
@@ -150,3 +159,6 @@ school-rules step of onboarding, erasure and reactivation are rules of the accou
 - `008-onboarding-whatsapp` — an approved account adds its WhatsApp number (E.164, validated per country) and
   its visibility (hidden by default) through the WhatsApp onboarding step; only approved accounts may; the
   session's account carries both; onboarding then opens an empty School rules step.
+- `011-school-rules-acceptance` — accepted school rules versions are stored with when they were accepted (a
+  repeat keeps the first); every answer that carries the account (current account, code check, renewal,
+  WhatsApp number, accepting the rules) says whether the current rules are accepted.

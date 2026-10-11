@@ -32,6 +32,18 @@ onboarding School rules step.
   one that isn't a list of ids is refused with `schoolRule.order.required`.
 - **A change is all or nothing**: the version, the deleted rule and the moved rules are written together, and a
   failed change never raises the version; two admins saving at the same moment never get the same version.
+- **Only the current version can be accepted**: accepting any other version, older or newer, is refused with
+  `schoolRules.version.outdated` and the current version, so the app reloads the rules — a user accepts only
+  text they actually saw. The acceptance is stored on the account in [Authentication](auth.md) with when it
+  happened, and the answer is the account, now with its rules accepted.
+- **Version 0 needs no acceptance**: while no rule was ever written there is nothing to accept
+  (`schoolRules.version.nothingToAccept`); once the version is above 0 acceptance applies, even if every rule
+  was later deleted.
+- **Accepting again changes nothing**: a version already accepted is answered as accepted, keeping the first
+  acceptance and its date — a double tap or a retry never fails.
+- **An acceptance is checked in a fixed order**: the account (unknown → `auth.token.invalid`), its status
+  (`user.status.notApproved`), the version's shape (missing → `schoolRules.version.required`, not an integer
+  number → `schoolRules.version.integer`), version 0, then whether it is the current version.
 - **Text is stored as written**, only trimmed at both ends — no translation, no other normalization.
 - **Invalid text is refused with its keys**: `schoolRule.title.required`, `schoolRule.title.max.length`,
   `schoolRule.description.required`, `schoolRule.description.max.length` (all that apply); an unknown rule
@@ -43,19 +55,23 @@ onboarding School rules step.
 The account's status is checked before its role.
 
 - **An approved account of any role (student, instructor, admin)** — reads the rules, in order, with the current
-  version. Any other status is refused with `user.status.notApproved`.
+  version, and accepts the current version. Accepting doesn't require the WhatsApp number first: the order of
+  the onboarding steps is the app's. Any other status is refused with `user.status.notApproved`.
 - **An approved admin** — adds, edits, deletes and reorders rules. A student or instructor is refused with
   `schoolRule.role.notAdmin`; an admin who isn't approved, with `user.status.notApproved`.
 
 ## Boundaries
 
-It doesn't record which version a user accepted, nor check whether a user must accept again: the accepted
-versions belong to the user's account in [Authentication](auth.md), and asking for acceptance comes with the
-onboarding School rules spec, which also decides whether only students or every role accepts. It sends no
-notification about changes. It doesn't keep the text of past versions, or who edited, deleted or reordered a
+It decides when an acceptance is allowed, but doesn't store it: the accepted versions belong to the user's
+account in [Authentication](auth.md), which also reports on every answer whether the current rules are
+accepted. Showing the rules and asking for acceptance in the app (the onboarding School rules step, and again
+after a change) is the app's, not built yet. Acceptances can't be withdrawn, and nothing lists who accepted
+which version. It sends no notification about changes. It doesn't keep the text of past versions, or who edited, deleted or reordered a
 rule.
 
 ## Spec history
 
 - `010-school-rules-management` — created the module: the ordered list of rules (add, edit, delete, reorder),
   its version raised by every change to the text, reading by any approved account, changes by approved admins.
+- `011-school-rules-acceptance` — any approved account accepts the current version (an outdated one is refused,
+  version 0 needs none, a repeat changes nothing); the acceptance is stored on the account in Authentication.

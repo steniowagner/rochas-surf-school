@@ -69,6 +69,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
 - **`packages/shared`** — base classes and contracts every module uses: `Entity`, `UseCase`,
   `CrudRepository` and its parts, `DomainError` (with optional `details`) / `ValidationError` /
   `ValidationException` (422) / `NotFoundError` (404) / `UnauthorizedError` (401) / `ForbiddenError` (403) /
+  `ConflictError` (409, for a stale write, e.g. accepting an outdated rules version) /
   `TooManyRequestsError` (429) / `BadGatewayError` (502), and the `Validator` with its reusable rules —
   among them `PhoneNumberRule` (key `phone`: an E.164 string, `^\+[1-9]\d{1,14}$`, that `libphonenumber-js`'s
   `isValidPhoneNumber` accepts for its country). Jest, like the modules.
@@ -258,8 +259,19 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   carries those four fields plus the claims. The guard never refuses by status or role — use cases do. Every
   401 it answers (no token, malformed, wrong signature, expired, unknown user) is `auth.token.invalid`, so the
   app reacts the same way to each (renew, else sign in again). `GET /auth/me` returns the account
-  (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible }`, `whatsappNumber` an E.164
-  string or `null`) for any status — the same `user` shape as verify and refresh.
+  (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible, rulesAccepted }`,
+  `whatsappNumber` an E.164 string or `null`) for any status — the same `user` shape as verify and refresh, and
+  the body of `PUT /auth/me/whatsapp` and `POST /school-rules/acceptances`. One mapper builds it:
+  `toAccountOut(user, currentRulesVersion)` / `AccountOut` in `modules/auth/src/user/usecase/account.out.ts`.
+- `rulesAccepted` is `true` when the current school rules version is 0 or the account has an acceptance of the
+  current version, `false` otherwise, computed on every answer so the app's routing stays a function of the
+  session's user. `auth` reads the version through the `RulesVersionProvider` port
+  (`modules/auth/src/user/provider/rules-version.provider.ts`, `getCurrentVersion()`), implemented by
+  `PrismaRulesVersionProvider` (`apps/backend/src/modules/auth/rules-version.prisma.ts`, the single
+  `rules_versions` row) — a port because `modules/school-rules` depends on `auth`, so `auth` can't depend on
+  it. Acceptances are written with `UserRepository.addRulesAcceptance` (`createMany` with
+  `skipDuplicates: true`), never through `update()`, which rewrites every acceptance: a concurrent repeat is a
+  no-op and the first `acceptedAt` stays.
 - WhatsApp number: `PUT /auth/me/whatsapp` (`SetWhatsapp`) takes `{ whatsappNumber, whatsappVisible }`, always
   replaces both, and answers 200 with that same account shape. Only an `approved` account may call it (403
   `user.status.notApproved`); the number is required (422 `user.whatsappNumber.required`) and must pass
@@ -379,7 +391,9 @@ The public web pages are checked **in a browser**. A Maestro suite for mobile wo
   `npm run prisma:migrate:deploy --workspace apps/backend`; in CI the `e2e` job provides both).
   `.specs/scripts/run-e2e.mjs` runs the suites of the apps a spec touches, `spec-plan` puts it in every
   Verification Plan, `spec-review` runs it instead of driving the app for what the suite covers, and the CI
-  check runs it on every spec pull request.
+  check runs it on every spec pull request. The e2e files run one at a time (`fileParallelism: false` in
+  `apps/backend/vitest.config.e2e.ts`) because they share the single `rules_versions` row; each suite that
+  changes it resets it to 0 (and deletes the school rules) after every test.
 
 ```e2e
 apps/backend: npm run test:e2e --workspace apps/backend   # the API (Nest app + Prisma) against Postgres via DATABASE_*, migrations applied

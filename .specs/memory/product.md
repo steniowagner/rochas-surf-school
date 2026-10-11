@@ -98,7 +98,8 @@ Listed in the order people meet them.
   them. Versioned: every add, edit or delete creates a new version that each user accepts the next time they
   open the app (no notification; admins don't choose); reordering, or saving a rule without changing its text,
   doesn't. Only the current text is kept, not the text of past versions. Each user's acceptances are kept per
-  version. A returning (reactivated or restored) account accepts again if a change happened while it was away.
+  version, with when they accepted; a user can only accept the current version, and accepting it again changes
+  nothing. While no rule was ever written (version 0) there is nothing to accept. A returning (reactivated or restored) account accepts again if a change happened while it was away.
   Any approved account, of any role, can read them at any time.
 - **School settings** (`school-settings`): the school-wide switches admins control — the school's WhatsApp
   number (used by every contact-the-school button) and the waiting list (on by default).
@@ -334,8 +335,15 @@ saved with +55; other countries show the number as typed.
 **School rules on the backend** (spec `010-school-rules-management`) — admins add, edit, delete and reorder the
 school rules through the backend, and any approved account reads them, in the admins' order, with the current
 version. Every add, edit or delete raises the version by one; reordering and an unchanged save don't. Only the
-backend exists: no screen shows or manages the rules yet, and accepting a version (the onboarding School rules
-step, and accepting again after a change) is still to come, so onboarding still can't be completed.
+backend exists: no screen shows or manages the rules yet.
+
+**Accepting the school rules on the backend** (spec `011-school-rules-acceptance`) — an approved account of any
+role accepts the current version of the rules through the backend, which records the version and when it was
+accepted; an older or newer version is refused, so the app reloads the rules, and accepting the same version
+again changes nothing. Every answer that carries the account (who the account is, a correct code, a renewed
+session, saving the WhatsApp number) now says whether the account still has to accept the current rules — not
+after an add, edit or delete it hasn't accepted, yes while no rule was ever written. The app doesn't use it yet:
+the School rules step of onboarding is still empty, so onboarding still can't be completed.
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
@@ -343,7 +351,7 @@ storage, and the app's sign-in screen with its language picker (its Google and A
 The web app is still on its framework template. Keeping the session across app restarts, the real screens of
 each flow (the school-rules step, account deleted and reactivation, the
 denied and removed screens, and every student, instructor and admin screen, the admin's school rules screen
-included), accepting the school rules, renewing a session, signing out from any
+included), accepting the school rules in the app, renewing a session, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
 No spec is active.
@@ -364,6 +372,7 @@ No spec is active.
 - Keeping the text of past versions of the school rules (spec 010 keeps only the current text; an acceptance
   records only the version number), and recording who edited, deleted or reordered a rule (only its creator is
   kept).
+- Withdrawing an acceptance of the school rules, and an admin view of who accepted which version.
 - Signing out of every device at once: signing out ends the sign-in of one device only.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).

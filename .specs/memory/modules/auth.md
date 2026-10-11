@@ -17,7 +17,15 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   `deleted` | `removed`, `pending` by default), denial reason (up to 500 characters) and dates, reactivation
   status (`requested` | `denied`), and the versions of the school rules it accepted. Relationships: one or
   more identities; many sessions. Lifecycle: as in Product; today only the creation of a `pending` student
-  through an email code is built, plus the seeded review accounts.
+  through an email code is built, plus the seeded review accounts, and an approved account adding its
+  WhatsApp number.
+- **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
+  country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
+  is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
+  always replaces both the number and its visibility, and an empty number is refused, so once set it is never
+  emptied. Several accounts may share one number (a family phone).
+- **WhatsApp visibility**: hidden by default; hidden means only admins see the number. Nothing shows other
+  users' numbers yet.
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -74,7 +82,9 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 ## Who can do what
 
 - **Anyone** — asks for a code and signs in or signs up with it.
-- **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date).
+- **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date,
+  WhatsApp number and its visibility).
+- **An approved account** — sets its own WhatsApp number and visibility.
 - **Anyone holding a refresh token** — renews or ends that session (10 requests per minute per network address
   for each).
 - **In the app**, "Continue with email" asks whether the person already has an account: "I have an account"
@@ -93,11 +103,19 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   the same screen asks for a new code once 30 seconds have passed since the last one.
 - **In the app**, a correct code puts the account in the session and opens the part of the app that matches
   its status and role: the Pending screen for a pending account, onboarding for an approved one that hasn't
-  finished it (once onboarding exists), its role's experience for an approved one, reactivation for a deleted
+  finished it, its role's experience for an approved one that has, reactivation for a deleted
   one, and its own screen for a denied or removed one. Every other part stays unreachable.
 - **In the app**, a pending account sees only the Pending screen: that the school still has to approve it, the
   address it signed in with, and since when the account exists ("Now", then a relative time, then the date
   after a week). Its only way out is signing out.
+- **In the app**, onboarding starts with the WhatsApp step for an approved account without a number, of any
+  role: a welcome with the person's first name, the number with its country (Brazil +55 preselected, any
+  country picked from a searchable list with names in the app's language), and "Hide my number", on by default.
+  "Save and continue" works only once the number is valid for the chosen country (same rule as the backend);
+  it saves the number and visibility and opens the School rules step, without a way back. An account that has
+  a number opens School rules directly. School rules is still empty, and onboarding never completes yet, so no
+  account reaches its role's experience. The WhatsApp step has no back button and no sign-out; if the session
+  expired while saving, the app says so and signs out.
 - **In the app**, signing out (from the Pending screen, for now) forgets the session on the phone at once and
   returns to the sign-in screen, then asks the backend to end that sign-in without waiting for the answer — so
   it works offline too.
@@ -106,8 +124,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 It does not send email itself: it hands the code, the address and the language to the email-delivery
 capability through an abstract contract. It knows nothing about token formats or HTTP: the technical shape of
-tokens is behind its own contract, provided by the backend. Deciding registrations, onboarding (WhatsApp number
-and school rules), erasure and reactivation are rules of the account lifecycle still to be specified.
+tokens is behind its own contract, provided by the backend. Deciding registrations, the school-rules step of
+onboarding, erasure and reactivation are rules of the account lifecycle still to be specified.
 
 ## Spec history
 
@@ -128,3 +146,6 @@ and school rules), erasure and reactivation are rules of the account lifecycle s
 - `007-email-sign-in-screens` — "Continue with email" opens a Choose screen; the new Sign in with email screen
   asks only for the address and verifies without a name; an address with no account on that path is sent to
   Create account with the address filled in. Create account can start with an address.
+- `008-onboarding-whatsapp` — an approved account adds its WhatsApp number (E.164, validated per country) and
+  its visibility (hidden by default) through the WhatsApp onboarding step; only approved accounts may; the
+  session's account carries both; onboarding then opens an empty School rules step.

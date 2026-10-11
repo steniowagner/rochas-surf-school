@@ -2,13 +2,14 @@
 id: "008"
 slug: onboarding-whatsapp
 title: Onboarding WhatsApp number step
-status: accepted
+status: finished
 created: 2026-10-10
 started: 2026-10-10
 base_commit: 045e0c9a52cc2e43219a20891c39149f40c49cf7
 reviewed_commit: b7357c0dc69f3c889b59270a082ab2a11ff35c47
 fronts: [shared, auth, backend, mobile]
 depends_on: []
+finished: 2026-10-10
 ---
 
 # 008 — Onboarding WhatsApp number step

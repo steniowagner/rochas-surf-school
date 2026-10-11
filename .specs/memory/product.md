@@ -230,6 +230,10 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   admin review account has a fixed code; a new code (after the 30-second wait) unlocks it.
 - **The sign-in email is the one text the backend writes in the user's language**: email can't be translated
   by the app, so its three versions live in the backend, chosen by the language on the sign-in screen.
+- **Onboarding is the WhatsApp number first, then the school rules**, and an approved account reaches its
+  role's experience only after both. Hiding the number (the default) means only admins see it — not students
+  or instructors. One number may belong to several accounts (a family phone), and the review accounts add one
+  like anyone.
 - **Pushes are the only notification channel**: no email (except the sign-in code) and no WhatsApp messages.
   Turning pushes off never hides notifications from the notifications screen.
 - **Text written by admins is shown as written**: school rules, cancellation rules, notes, reasons and
@@ -290,8 +294,7 @@ opens the part of the app that matches the account: a pending account goes to it
 the student, instructor or admin experience of its role, a deleted one to reactivation, and a denied or removed
 one to its own offboarding screen. Nobody can reach another part of the app, and going back after signing in
 doesn't return to the sign-in screens. Each part shows only its name for now; its real screens come with their
-specs. Until the onboarding spec, every approved account counts as having finished onboarding. The app keeps
-the account in memory only, so closing it signs the person out.
+specs. The app keeps the account in memory only, so closing it signs the person out.
 
 **Pending screen and sign-out in the app** (spec `006-mobile-pending-screen`) — a pending account, whatever
 its role, opens the Pending screen instead of onboarding: it tells the person the school still has to approve
@@ -308,11 +311,19 @@ opens Create account with it, and an address with no account on the sign-in path
 Create account with it after the code, so the person only adds their name (the code stays usable). Accounts are
 created only on the path that collects a name.
 
+**WhatsApp step of onboarding** (spec `008-onboarding-whatsapp`) — an approved account without a WhatsApp
+number, of any role, opens the WhatsApp screen: it welcomes the person by first name and asks for the number
+with its country (Brazil +55 preselected, any country picked from a searchable list), with "Hide my number" on
+by default — hidden means only admins see it. The number must be valid for the chosen country; it is saved
+with its country code, and the app moves on to the School rules step, which is still empty. An approved account
+that already has a number opens School rules directly. Onboarding can't be completed until the school-rules
+spec, so no account reaches the student, instructor or admin experience for now.
+
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
 The web app is still on its framework template. Keeping the session across app restarts, the real screens of
-each flow (the WhatsApp and school-rules steps, account deleted and reactivation, the
+each flow (the school-rules step, account deleted and reactivation, the
 denied and removed screens, and every student, instructor and admin screen), renewing a session, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 

@@ -27,9 +27,13 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     iOS only).
   - Server data: **TanStack Query 5** — every screen fetches, caches, retries and invalidates the same way.
     One `QueryClient` in the root layout, mutations without retry. Requests go through the `fetch` client in
-    `src/services/api/` (`apiPost`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends JSON, and throws
-    `ApiError` (`status`, `errors`, `details`; empty `errors` when the body isn't JSON) on a non-2xx answer or
-    `NetworkError` when no answer arrives.
+    `src/services/api/` (`apiPost`, `apiPut`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends JSON (with
+    `Authorization: Bearer <token>` when `apiPut` gets an `accessToken`), and throws `ApiError` (`status`,
+    `errors`, `details`; empty `errors` when the body isn't JSON) on a non-2xx answer or `NetworkError` when no
+    answer arrives.
+  - Phone numbers: **`libphonenumber-js`** (default metadata) turns what the person typed and the chosen
+    country into E.164 and lists the countries with their dial codes; **`i18n-iso-countries`** gives their
+    names in en, es and pt, following the app language. Both run under Jest without a transform.
   - Translations: **i18next** + `react-i18next`, with `expo-localization` for the phone's language
     (pt-BR fallback).
   - Push: `expo-notifications`.
@@ -60,8 +64,10 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   exists today.
 - **`packages/shared`** — base classes and contracts every module uses: `Entity`, `UseCase`,
   `CrudRepository` and its parts, `DomainError` (with optional `details`) / `ValidationError` /
-  `ValidationException` (422) / `NotFoundError` (404) / `UnauthorizedError` (401) / `TooManyRequestsError`
-  (429) / `BadGatewayError` (502), and the `Validator` with its reusable rules. Jest, like the modules.
+  `ValidationException` (422) / `NotFoundError` (404) / `UnauthorizedError` (401) / `ForbiddenError` (403) /
+  `TooManyRequestsError` (429) / `BadGatewayError` (502), and the `Validator` with its reusable rules —
+  among them `PhoneNumberRule` (key `phone`: an E.164 string, `^\+[1-9]\d{1,14}$`, that `libphonenumber-js`'s
+  `isValidPhoneNumber` accepts for its country). Jest, like the modules.
 - **`packages/design-tokens`** — the design system's tokens; `src/tokens.ts` is the source and `src/tokens.css`
   is generated and committed (`check-types` fails when it is stale).
 
@@ -151,7 +157,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   still decides.
 - **Mobile shared UI**: every screen that can go back uses `BackButton` (`src/components/ui/back-button`,
   44×44, `router.back()` by default); inner screens open with `ScreenIntro` (icon tile, optional eyebrow, title, description; the tile's
-  background is `bg-sand` unless `iconTileClassName` passes another token class)
+  background is `bg-sand` unless `iconTileClassName` passes another token class, and the eyebrow is `text-ink-2`
+  unless `eyebrowClassName` passes another)
   and use the shared `TextInput` (leading icon, `neutral` / `error` border, error message below), `OtpInput`
   (digit boxes over a hidden native input that keeps only digits, so paste and one-time-code autofill work) and
   `Button` (variants, including `ghost`, plus `loading` and `disabled` states). API errors are shown in a toast
@@ -170,8 +177,12 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `reactivation`; `denied` / `removed` → their offboarding flow. `RootNavigator`
   (`src/navigation/root-navigator/`) wraps each flow's route group in `Stack.Protected` driven by that flow
   (the offboarding layout guards `denied` and `removed` the same way), and `src/app/index.tsx` redirects to
-  `flowEntryRoute(flow)`. `onboardingCompleted` is fixed to `true` in `useRootNavigator` until the onboarding
-  spec supplies it. Reason: one tested function holds every access rule, so screens, layouts and hooks never
+  `flowEntryRoute(flow, user)`. The onboarding flow has steps, decided in the same file: `onboardingStep(user)`
+  is `whatsapp` while the user has no `whatsappNumber`, then `school-rules`, and `flowEntryRoute` opens the
+  step's route (`routes.onboarding.whatsapp` = `/onboarding`, `routes.onboarding.schoolRules` =
+  `/onboarding/school-rules`). `onboardingCompleted` is fixed to `false` in `useRootNavigator` until the
+  school-rules spec computes it, so the role homes are unreachable for now; the onboarding group is guarded by
+  flow, not by step. Reason: one tested function holds every access rule, so screens, layouts and hooks never
   decide access, and a flow change never strands a person on a screen they can no longer reach. A flow's
   screens go in `src/modules/<flow>/screens/` with a route file in that flow's folder under `src/app/`.
   Route tests use `renderRouter` from `expo-router/testing-library` with a route tree built from the real route
@@ -243,7 +254,14 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   carries those four fields plus the claims. The guard never refuses by status or role — use cases do. Every
   401 it answers (no token, malformed, wrong signature, expired, unknown user) is `auth.token.invalid`, so the
   app reacts the same way to each (renew, else sign in again). `GET /auth/me` returns the account
-  (`{ id, name, email, role, status, createdAt }`) for any status — the same `user` shape as verify and refresh.
+  (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible }`, `whatsappNumber` an E.164
+  string or `null`) for any status — the same `user` shape as verify and refresh.
+- WhatsApp number: `PUT /auth/me/whatsapp` (`SetWhatsapp`) takes `{ whatsappNumber, whatsappVisible }`, always
+  replaces both, and answers 200 with that same account shape. Only an `approved` account may call it (403
+  `user.status.notApproved`); the number is required (422 `user.whatsappNumber.required`) and must pass
+  `PhoneNumberRule` (422 `user.whatsappNumber.phone`). Numbers are stored in E.164 as sent: the backend
+  validates, never normalizes, and the app sends `parsePhoneNumberFromString(typed, country).number`. The same
+  number may belong to several accounts.
 - Boundary: only `apps/backend/src/shared/auth` and the auth adapters know about tokens; use cases receive a
   plain current-user value and enforce permissions.
 - Variables (names in `apps/backend/.env.example`, values never committed): `JWT_SECRET`, `JWT_EXPIRES_IN`
@@ -252,8 +270,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   read and validated in `apps/backend/src/modules/auth/auth.config.ts` (`AuthConfig`) and the providers. The
   Google and Apple client ids come with their sign-in spec.
 - Mobile session: the signed-in account lives in an in-memory React context (`SessionProvider` /
-  `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status, createdAt }`
-  (`createdAt` an ISO 8601 string in UTC) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
+  `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status, createdAt,
+  whatsappNumber, whatsappVisible }` (`createdAt` an ISO 8601 string in UTC) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
   refreshToken, refreshTokenExpiresAt }` or `null` —, `setSession({ user, tokens })`, `clearSession()`); the
   Confirm email screen sets it from the verify response. Nothing is stored on the device yet, so a restart signs
   out; tokens will go to `expo-secure-store` when the session is kept. The app routes by account state before
@@ -262,7 +280,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   it clears the session and the TanStack Query cache at once, then sends `POST /auth/sign-out` with the refresh
   token without waiting and ignores any failure (no request when there are no tokens). No `router` call: the
   flow guards send a session-less app to `/auth`. Reason: signing out always works, offline included, and the
-  backend answers 204 for any token. Only the Pending screen offers it so far.
+  backend answers 204 for any token. Only the Pending screen offers it so far. Until sessions are renewed, a
+  protected call answering 401 `auth.token.invalid` shows "Your session expired. Sign in again." in the toast
+  and signs out with `useSignOut` (the WhatsApp step's `useSaveWhatsapp` does this).
 - Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.
   `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
   `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);

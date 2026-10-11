@@ -206,13 +206,24 @@ comes with spec 015.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-03** — Add `reactivationRequestedAt DateTime? @map("reactivation_requested_at")` to `User` in
+- [x] **T-03** — Add `reactivationRequestedAt DateTime? @map("reactivation_requested_at")` to `User` in
   `apps/backend/prisma/models/auth.model.prisma`, generate the migration
   `apps/backend/prisma/migrations/<timestamp>_auth_reactivation_requested_at/` (D-07), and map the field both
   ways in `apps/backend/src/modules/auth/user.prisma.ts`, with the cases in `user.prisma.spec.ts`. Skill:
   [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: ER-02 · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies the migration on
   the local database and `npx vitest run src/modules/auth/user.prisma.spec.ts` passes (from `apps/backend`).
+  > ✅ 2026-10-11 — `User` gains `reactivationRequestedAt DateTime? @map("reactivation_requested_at")`; migration
+  > `20261011221219_auth_reactivation_requested_at` (`ALTER TABLE "users" ADD COLUMN "reactivation_requested_at"
+  > TIMESTAMP(3);`, no backfill) created and applied with `prisma:migrate:dev`; `PrismaUserRepository` writes
+  > it (`?? null`) and reads it (`?? undefined`); `user.prisma.spec.ts` covers the full record (written and read
+  > back) and the minimal one (null / undefined). files: `apps/backend/prisma/models/auth.model.prisma`,
+  > `apps/backend/prisma/migrations/20261011221219_auth_reactivation_requested_at/migration.sql`,
+  > `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`;
+  > verified: `npm run prisma:migrate:deploy --workspace apps/backend` (no pending migrations — applied by
+  > migrate dev), `npx vitest run src/modules/auth/user.prisma.spec.ts` (9 passed), `tsc --noEmit` in
+  > `apps/backend` clean (after rebuilding `@rochas-surf-school/auth` and `prisma:generate`); deviations:
+  > `prisma format` realigned the `User` model's columns.
 
 - [ ] **T-04** — Update the expected account shapes (`denialReason`, `reactivationStatus`) in
   `apps/backend/test/auth-email.e2e-spec.ts`, `auth-session.e2e-spec.ts`, `auth-whatsapp.e2e-spec.ts` and

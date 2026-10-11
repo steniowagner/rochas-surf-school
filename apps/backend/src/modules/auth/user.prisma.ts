@@ -111,6 +111,7 @@ export class PrismaUserRepository implements UserRepository {
       deniedAt: user.deniedAt ?? null,
       removedAt: user.removedAt ?? null,
       reactivationStatus: user.reactivationStatus ?? null,
+      reactivationRequestedAt: user.reactivationRequestedAt ?? null,
       deletedAt: user.deletedAt ?? null,
     };
   }
@@ -136,6 +137,7 @@ export class PrismaUserRepository implements UserRepository {
       deniedAt: record.deniedAt ?? undefined,
       removedAt: record.removedAt ?? undefined,
       reactivationStatus: record.reactivationStatus ?? undefined,
+      reactivationRequestedAt: record.reactivationRequestedAt ?? undefined,
       rulesAcceptances: record.rulesAcceptances.map((item) => ({
         version: item.version,
         acceptedAt: item.acceptedAt,

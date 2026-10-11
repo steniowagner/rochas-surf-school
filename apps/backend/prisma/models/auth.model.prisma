@@ -35,21 +35,22 @@ enum IdentityProvider {
 }
 
 model User {
-  id                 String                  @id @db.Uuid
-  name               String
-  email              String                  @unique
-  photoUrl           String?                 @map("photo_url")
-  whatsappNumber     String?                 @map("whatsapp_number")
-  whatsappVisible    Boolean                 @default(false) @map("whatsapp_visible")
-  role               UserRole                @default(student)
-  status             UserStatus              @default(pending)
-  denialReason       String?                 @map("denial_reason")
-  deniedAt           DateTime?               @map("denied_at")
-  removedAt          DateTime?               @map("removed_at")
-  reactivationStatus UserReactivationStatus? @map("reactivation_status")
-  createdAt          DateTime                @default(now()) @map("created_at")
-  updatedAt          DateTime                @updatedAt @map("updated_at")
-  deletedAt          DateTime?               @map("deleted_at")
+  id                      String                  @id @db.Uuid
+  name                    String
+  email                   String                  @unique
+  photoUrl                String?                 @map("photo_url")
+  whatsappNumber          String?                 @map("whatsapp_number")
+  whatsappVisible         Boolean                 @default(false) @map("whatsapp_visible")
+  role                    UserRole                @default(student)
+  status                  UserStatus              @default(pending)
+  denialReason            String?                 @map("denial_reason")
+  deniedAt                DateTime?               @map("denied_at")
+  removedAt               DateTime?               @map("removed_at")
+  reactivationStatus      UserReactivationStatus? @map("reactivation_status")
+  reactivationRequestedAt DateTime?               @map("reactivation_requested_at")
+  createdAt               DateTime                @default(now()) @map("created_at")
+  updatedAt               DateTime                @updatedAt @map("updated_at")
+  deletedAt               DateTime?               @map("deleted_at")
 
   rulesAcceptances UserRulesAcceptance[]
   identities       Identity[]

@@ -19,6 +19,7 @@ const minimalRecord = {
   deniedAt: null,
   removedAt: null,
   reactivationStatus: null,
+  reactivationRequestedAt: null,
   createdAt: CREATED_AT,
   updatedAt: UPDATED_AT,
   deletedAt: null,
@@ -36,6 +37,7 @@ const fullRecord = {
   deniedAt: new Date('2026-10-03T00:00:00.000Z'),
   removedAt: new Date('2026-10-04T00:00:00.000Z'),
   reactivationStatus: 'requested',
+  reactivationRequestedAt: new Date('2026-10-06T00:00:00.000Z'),
   deletedAt: new Date('2026-10-05T00:00:00.000Z'),
   rulesAcceptances: [
     { userId: ID, version: 1, acceptedAt: new Date('2026-10-02T10:00:00.000Z') },
@@ -85,6 +87,7 @@ function fullUser(): User {
     deniedAt: fullRecord.deniedAt,
     removedAt: fullRecord.removedAt,
     reactivationStatus: 'requested',
+    reactivationRequestedAt: fullRecord.reactivationRequestedAt,
     rulesAcceptances: [{ version: 1, acceptedAt: fullRecord.rulesAcceptances[0]!.acceptedAt }],
     createdAt: CREATED_AT,
     deletedAt: fullRecord.deletedAt,
@@ -112,6 +115,7 @@ describe('PrismaUserRepository', () => {
         deniedAt: fullRecord.deniedAt,
         removedAt: fullRecord.removedAt,
         reactivationStatus: 'requested',
+        reactivationRequestedAt: fullRecord.reactivationRequestedAt,
         deletedAt: fullRecord.deletedAt,
         createdAt: CREATED_AT,
         rulesAcceptances: {
@@ -130,6 +134,7 @@ describe('PrismaUserRepository', () => {
     expect(created.deniedAt).toEqual(fullRecord.deniedAt);
     expect(created.removedAt).toEqual(fullRecord.removedAt);
     expect(created.reactivationStatus).toBe('requested');
+    expect(created.reactivationRequestedAt).toEqual(fullRecord.reactivationRequestedAt);
     expect(created.rulesAcceptances).toEqual([
       { version: 1, acceptedAt: fullRecord.rulesAcceptances[0]!.acceptedAt },
     ]);
@@ -150,6 +155,7 @@ describe('PrismaUserRepository', () => {
       deniedAt: null,
       removedAt: null,
       reactivationStatus: null,
+      reactivationRequestedAt: null,
       deletedAt: null,
       rulesAcceptances: { create: [] },
     });
@@ -159,6 +165,7 @@ describe('PrismaUserRepository', () => {
     expect(created.deniedAt).toBeUndefined();
     expect(created.removedAt).toBeUndefined();
     expect(created.reactivationStatus).toBeUndefined();
+    expect(created.reactivationRequestedAt).toBeUndefined();
     expect(created.rulesAcceptances).toEqual([]);
     expect(created.deletedAt).toBeNull();
   });

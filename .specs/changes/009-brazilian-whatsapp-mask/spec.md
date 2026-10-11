@@ -165,7 +165,7 @@ sent and stored doesn't change: the number is still saved in E.164.
 
 **Findings**
 
-- [ ] **F-01** (D-02, D-04) — after a country switch to Brazil, the field shows one number and the app saves
+- [x] **F-01** (D-02, D-04) — after a country switch to Brazil, the field shows one number and the app saves
   another. The hook masks `toBrazilianDigits(typed)` but builds E.164 from the raw `typed`
   (`toE164(trimmed, country)`), and the raw text is cleaned only on the next keystroke. Reproduce: pick
   Portugal, type `+351 912 345 678`, pick Brazil. The field shows `(35) 19123-4567`, "Save and continue" is
@@ -175,6 +175,12 @@ sent and stored doesn't change: the number is still saved in E.164.
   Expected: with Brazil selected, what is validated and sent is the number the field shows. Build E.164 from
   `toBrazilianDigits(typed)` when the country is `BR`, or apply the clean-up when Brazil is picked. Add a
   component test for the switch-to-Brazil case with more than 11 digits.
+  > ✅ 2026-10-11 — with Brazil selected the hook now validates and builds E.164 from `toBrazilianDigits(typed)`,
+  > the same digits the field shows; added a test for both reproductions (`+351 912 345 678` → `(35) 19123-4567`
+  > sent as `+5535191234567`; `8599999888877` → `(85) 99999-8888`, enabled, sent as `+5585999998888`); files:
+  > `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.hook.ts`,
+  > `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.component.test.tsx`; verified:
+  > `npx jest src/modules/onboarding/components/whatsapp` (28 passed); deviations: none
 
 **Notes**
 

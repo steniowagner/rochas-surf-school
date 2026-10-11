@@ -43,12 +43,13 @@ export const useWhatsapp = () => {
   const [isPickerVisible, setIsPickerVisible] = useState(false);
 
   const isBrazil = country === "BR";
-  const trimmed = typed.trim();
+  const shown = isBrazil ? toBrazilianDigits(typed) : typed;
+  const trimmed = shown.trim();
   const whatsappNumber = toE164(trimmed, country);
   const isNumberValid = isValid(whatsappNumber, numberRules());
 
   const numberField: WhatsappNumberField = {
-    value: isBrazil ? formatBrazilianPhone(toBrazilianDigits(typed)) : typed,
+    value: isBrazil ? formatBrazilianPhone(shown) : typed,
     status: getStatus(trimmed, isNumberValid, isTouched),
     errorMessage: t("whatsapp.invalidNumber"),
     onChangeText: (text) => setTyped(isBrazil ? toBrazilianDigits(text) : text),

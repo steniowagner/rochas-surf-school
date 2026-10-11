@@ -287,6 +287,40 @@ describe("Whatsapp", () => {
     expect(numberInput().props.value).toBe("(85) 99999-8888");
   });
 
+  it("validates and sends what the field shows after switching to Brazil", async () => {
+    respond(200, { ...user, whatsappNumber: "+5585999998888" });
+    const press = await renderWhatsapp();
+    const pickCountry = async (
+      current: string,
+      search: string,
+      name: string,
+    ) => {
+      await press.press(screen.getByText(current));
+      await press.type(screen.getByPlaceholderText("Search country"), search);
+      await press.press(screen.getByRole("button", { name }));
+    };
+
+    await pickCountry("BR +55", "portu", "Portugal +351");
+    await press.type(numberInput(), "+351 912 345 678");
+    await pickCountry("PT +351", "brazil", "Brazil +55");
+    expect(numberInput().props.value).toBe("(35) 19123-4567");
+    await press.press(saveButton());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).whatsappNumber).toBe(
+      "+5535191234567",
+    );
+
+    fetchMock.mockClear();
+    await pickCountry("BR +55", "portu", "Portugal +351");
+    await press.clear(numberInput());
+    await press.type(numberInput(), "8599999888877");
+    await pickCountry("PT +351", "brazil", "Brazil +55");
+    expect(numberInput().props.value).toBe("(85) 99999-8888");
+    await press.press(saveButton());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).whatsappNumber).toBe(
+      "+5585999998888",
+    );
+  });
+
   it("saves and opens school rules", async () => {
     const saved = { ...user, whatsappNumber: "+5585999998888" };
     respond(200, saved);

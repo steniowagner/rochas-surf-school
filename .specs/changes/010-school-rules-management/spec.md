@@ -2,7 +2,7 @@
 id: "010"
 slug: school-rules-management
 title: School rules management (backend)
-status: in-progress
+status: in-review
 created: 2026-10-11
 started: 2026-10-11
 base_commit: 5517ca275e22def7354b3109edf6152a18eafe19
@@ -374,9 +374,15 @@ will call.
 
 ### Verification
 
-- [ ] **T-12** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-12** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: `run-related-tests.mjs 010` passes, `check-coverage.mjs 010`
   prints `COVERAGE OK`, `run-e2e.mjs 010` prints `E2E PASSED`, and lint, check-types and build exit 0.
+  > ✅ 2026-10-11 14:11 — ran the Verification Plan from the repo root. `run-related-tests.mjs 010` RELATED TESTS
+  > PASSED (module 87 passed; backend vitest passed); `check-coverage.mjs 010` COVERAGE OK (11 files, all 100%);
+  > `prisma:migrate:deploy` up to date on the local database (and applied from empty in T-09); `run-e2e.mjs 010`
+  > E2E PASSED (backend e2e run: 137 tests passed, including the 50 of school-rules); `npx turbo run lint check-
+  > types build --filter=school-rules --filter=backend` 11 tasks successful. User journeys: none (no screen). No
+  > files changed. Deviations: none
 
 ## Verification Plan
 

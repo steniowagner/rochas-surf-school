@@ -332,13 +332,22 @@ will call.
   > `SELECT version FROM rules_versions` returned one row, 0; applied to the local database, `migrate status` up
   > to date. Deviations: none (the migration folder is `school_rules`, Prisma replaces the dash)
 
-- [ ] **T-10** — `PrismaSchoolRuleRepository` in `apps/backend/src/modules/school-rules/school-rule.prisma.ts`
+- [x] **T-10** — `PrismaSchoolRuleRepository` in `apps/backend/src/modules/school-rules/school-rule.prisma.ts`
   (registered in `school-rules.module.ts`): `findAll` ordered by `index`, `createdAt`; `findById` (null for a
   malformed id); `getVersion`; `apply` in one `$transaction` — `updateMany({ data: { version: { increment: 1 } } })`
   first when `bumpVersion`, then deletes, then upserts, then reads the version. Unit tests in
   `school-rule.prisma.spec.ts`. Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-09 · Done when: `npx vitest run src/modules/school-rules/school-rule.prisma.spec.ts` passes with
   every line of the file covered.
+  > ✅ 2026-10-11 14:08 — `PrismaSchoolRuleRepository` (`findAll` ordered by `index`, `createdAt`; `findById`
+  > answers null for a malformed id without querying; `getVersion`; `apply` in one `$transaction`: atomic
+  > increment first when `bumpVersion`, then deletes, then upserts, then reads the version) registered in
+  > `SchoolRulesModule` with `DbModule`. Files: `apps/backend/src/modules/school-rules/school-rule.prisma.ts`,
+  > `apps/backend/src/modules/school-rules/school-rule.prisma.spec.ts`, `apps/backend/src/modules/school-
+  > rules/school-rules.module.ts`. Verified: `npx vitest run src/modules/school-rules/school-
+  > rule.prisma.spec.ts` (8 passed; every statement, function and line covered, the only uncovered branch is the
+  > decorator-metadata one that `check-coverage` skips by policy); backend check-types and lint exit 0.
+  > Deviations: none
 
 - [ ] **T-11** — `SchoolRulesController` in `apps/backend/src/modules/school-rules/school-rules.controller.ts`
   with the five routes of D-11 (`order` before `:id`; `POST` 201, others 200), passing `@CurrentUser()`'s

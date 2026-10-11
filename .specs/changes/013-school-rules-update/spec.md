@@ -264,13 +264,21 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
   > grep finds no import of the old paths; deviations: the "shows the copy in %s" test now checks the checkbox label
   > per language (the other texts are props)
 
-- [ ] **T-04** — Add the `rulesUpdate` keys (`eyebrow`, `title`, `description`, `submit`) with the D-04 texts to
+- [x] **T-04** — Add the `rulesUpdate` keys (`eyebrow`, `title`, `description`, `submit`) with the D-04 texts to
   `src/i18n/messages/{en-US,es-ES,pt-BR}.ts`, and `src/modules/rules-update/screens/rules-update.screen.tsx`
   (`RulesUpdateScreen`), which renders `SchoolRulesAcceptance` with them. Tests in
   `src/modules/rules-update/screens/rules-update.screen.test.tsx` (mocked `fetch`, session context): "shows the
   updated rules", "enables the CTA only when ticked", "outdated", "no way back" (no back or sign-out button), "in
   %s" for the three languages. Covers: ER-04, ER-07, ER-09 · Done when: `npx jest src/modules/rules-update` passes
   (from `apps/mobile`).
+  > ✅ 2026-10-11 — added the `rulesUpdate` keys in the three languages and `RulesUpdateScreen`, which renders
+  > `SchoolRulesAcceptance` with them; tests: shows the updated rules, enables the CTA only when ticked, empty list,
+  > retry, outdated, no way back, copy in pt-BR/es-ES/en-US; files:
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`,
+  > `apps/mobile/src/modules/rules-update/screens/rules-update.screen.tsx`,
+  > `apps/mobile/src/modules/rules-update/screens/rules-update.screen.test.tsx`; verified:
+  > `npx jest src/modules/rules-update` (9 passed); deviations: the per-language tests are named
+  > "shows the copy in %s" (jest's `-t "in %s"` can't match a formatted title, so use `-t "shows the copy in"`)
 
 - [ ] **T-05** — Route to the update screen (D-03): `rulesAcceptedBefore: boolean` on `SessionUser`
   (`src/navigation/resolve-flow.types.ts`) and on the user type of `use-verify-sign-in-code.hook.ts`; the

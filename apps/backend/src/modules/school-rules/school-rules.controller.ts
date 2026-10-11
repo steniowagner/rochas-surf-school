@@ -9,7 +9,9 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import type { AccountOut } from '@rochas-surf-school/auth';
 import {
+  AcceptSchoolRules,
   CreateSchoolRule,
   CreateSchoolRuleIn,
   DeleteSchoolRule,
@@ -22,6 +24,8 @@ import {
 } from '@rochas-surf-school/school-rules';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import { PrismaUserRepository } from '../auth/user.prisma.js';
+import { SystemClockProvider } from '../auth/system.clock.js';
 import { PrismaSchoolRuleRepository } from './school-rule.prisma.js';
 
 type RuleTextBody = Partial<Pick<CreateSchoolRuleIn, 'title' | 'description'>> | undefined;
@@ -32,12 +36,29 @@ function actorOf(user: AuthenticatedUser): SchoolRuleActor {
 
 @Controller('school-rules')
 export class SchoolRulesController {
-  constructor(private readonly schoolRuleRepository: PrismaSchoolRuleRepository) {}
+  constructor(
+    private readonly schoolRuleRepository: PrismaSchoolRuleRepository,
+    private readonly userRepository: PrismaUserRepository,
+    private readonly clock: SystemClockProvider,
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
   list(@CurrentUser() user: AuthenticatedUser): Promise<SchoolRulesOut> {
     return new ListSchoolRules(this.schoolRuleRepository).execute({ actor: actorOf(user) });
+  }
+
+  // A static path, so it never collides with the ':id' routes.
+  @Post('acceptances')
+  @HttpCode(HttpStatus.OK)
+  accept(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: Partial<{ version: unknown }> | undefined,
+  ): Promise<AccountOut> {
+    return new AcceptSchoolRules(this.schoolRuleRepository, this.userRepository, this.clock).execute({
+      actor: actorOf(user),
+      version: body?.version,
+    });
   }
 
   @Post()

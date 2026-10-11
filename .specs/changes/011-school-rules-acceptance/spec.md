@@ -333,7 +333,7 @@ routing come with a follow-up mobile spec.
   > deviations: set `fileParallelism: false` in `vitest.config.e2e.ts` — the e2e suites now share the single
   > `rules_versions` row, so running files side by side would race
 
-- [ ] **T-08** — Expose `POST /school-rules/acceptances` (protected, `@HttpCode(200)`, body
+- [x] **T-08** — Expose `POST /school-rules/acceptances` (protected, `@HttpCode(200)`, body
   `Partial<{ version: unknown }> | undefined`) in `apps/backend/src/modules/school-rules/school-rules.controller.ts`,
   constructing `AcceptSchoolRules` with `PrismaSchoolRuleRepository`, `PrismaUserRepository` and
   `SystemClockProvider` (provided in `school-rules.module.ts`); test it in `school-rules.controller.spec.ts`; add
@@ -346,6 +346,17 @@ routing come with a follow-up mobile spec.
   `npx vitest run src/modules/school-rules` passes and
   `npx vitest run --config vitest.config.e2e.ts test/school-rules-acceptance.e2e-spec.ts` passes (from
   `apps/backend`).
+  > ✅ 2026-10-11 — `POST /school-rules/acceptances` (protected, 200) builds `AcceptSchoolRules` with the Prisma school
+  > rule and user repositories and `SystemClockProvider`, both provided in `SchoolRulesModule`; controller spec, the
+  > e2e suite (24 tests, rows checked through Prisma, including two concurrent requests) and the `.http` requests
+  > were added; files: `apps/backend/src/modules/school-rules/school-rules.controller.ts`,
+  > `apps/backend/src/modules/school-rules/school-rules.controller.spec.ts`,
+  > `apps/backend/src/modules/school-rules/school-rules.module.ts`,
+  > `apps/backend/src/modules/school-rules/school-rules.integration.http`,
+  > `apps/backend/test/school-rules-acceptance.e2e-spec.ts`; verified: `npx vitest run src/modules/school-rules`
+  > (26 passed), `npx vitest run --config vitest.config.e2e.ts test/school-rules-acceptance.e2e-spec.ts`
+  > (24 passed), whole backend e2e (173 passed) and unit (150 passed), `npx oxlint --type-aware` clean;
+  > deviations: none
 
 ### Verification
 

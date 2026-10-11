@@ -8,7 +8,7 @@ fronts: [shared, auth, school-rules, backend]
 depends_on: []
 started: 2026-10-11
 base_commit: e8afa095945c0c405f6c01a6777397c8a5883b2e
-reviewed_commit: aec3a40677d3bad497e713e10a955e94fb67b429
+reviewed_commit: ef8b5dafea94a185a70c37dd6cae8aeb25ed3470
 ---
 
 # 011 — Accept the school rules (backend)
@@ -474,3 +474,28 @@ None.
   `@rochas-surf-school/auth`.
 - `school-rules.integration.http`: the "Accept while no rule was ever written" entry is a heading with no
   request under it. Harmless, but a request with `{ "version": 0 }` would make it runnable.
+
+### Round 2 — 2026-10-11 — accepted
+
+Scope: only `ef8b5da` (made after round 1, at the user's request), which changes
+`PrismaSchoolRuleRepository.findById` (spec 010's code) to check ids with shared's `UuidRule` instead of its
+own regex. The user asked to finish without a full new review; this round checks the change and reruns the
+gates.
+
+**Checks**
+
+- related tests ✅ RELATED TESTS PASSED · coverage ✅ COVERAGE OK (12 files; `school-rule.prisma.ts` 100%) ·
+  e2e ✅ E2E PASSED
+- backend lint · check-types · build ✅ (11 tasks, uncached, both serial and at default concurrency). One earlier
+  run failed in `check-types` → `prisma generate`, and the same command then passed twice. This is the
+  intermittent race between tasks that T-09 noted, not caused by this change.
+
+**Findings**
+
+None. The behavior changes in one way: a well-formed UUID that isn't v4 now answers 404 without a database
+read. Every id the app creates is v4 (`Entity` uses `uuidv4()`), so no stored rule becomes unreachable.
+
+**Notes**
+
+- `apps/backend`'s `check-types` and `build` both run `prisma generate`, so running them in parallel with turbo
+  sometimes fails. A separate fix could make one depend on the other or move generation into its own task.

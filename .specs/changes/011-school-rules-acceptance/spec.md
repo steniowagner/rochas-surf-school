@@ -254,13 +254,19 @@ routing come with a follow-up mobile spec.
   > @rochas-surf-school/auth` (220 passed), `npx turbo run check-types --filter=@rochas-surf-school/auth` (exit 0);
   > deviations: none
 
-- [ ] **T-04** — Add `addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void>` to
+- [x] **T-04** — Add `addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void>` to
   `UserRepository` (`modules/auth/src/user/provider/user.repository.ts`) and implement it in the module's
   in-memory user repository `modules/auth/test/mock/fake-user.repository.ts` (appends unless that version is already stored, which
   keeps the first `acceptedAt`), with tests for both cases. Skill:
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: ER-01, ER-02 · Done when: `npm test --workspace @rochas-surf-school/auth` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-11 — added `UserRepository.addRulesAcceptance` and its in-memory implementation (appends, keeps the first
+  > `acceptedAt`, ignores an unknown user), with tests; files: `modules/auth/src/user/provider/user.repository.ts`,
+  > `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/user/provider/user.repository.test.ts`;
+  > verified: `npm test --workspace @rochas-surf-school/auth` (223 passed), `npx turbo run check-types
+  > --filter=@rochas-surf-school/auth` (exit 0); deviations: none (the backend's `PrismaUserRepository` no longer
+  > type-checks until T-06)
 
 ### School rules module (`modules/school-rules`)
 

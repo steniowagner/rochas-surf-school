@@ -147,3 +147,54 @@ Authorization: Bearer {{adminToken}}
 ### Delete an unknown rule (expects 404 schoolRule.id.notFound)
 DELETE {{baseUrl}}/school-rules/00000000-0000-4000-8000-000000000000
 Authorization: Bearer {{adminToken}}
+
+### Read the current version (any approved account); its rulesAccepted says whether this account accepted it
+# @name me
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{studentToken}}
+
+### Accept the current version (expects 200 with the account and rulesAccepted: true)
+# Replace 1 with the "version" that GET /school-rules answers. Any approved account can accept, with or without a WhatsApp number.
+POST {{baseUrl}}/school-rules/acceptances
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "version": 1
+}
+
+### Accept an outdated version (expects 409 schoolRules.version.outdated with details.currentVersion)
+POST {{baseUrl}}/school-rules/acceptances
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "version": 0
+}
+
+### Accept without a version (expects 422 schoolRules.version.required)
+POST {{baseUrl}}/school-rules/acceptances
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{}
+
+### Accept with a version that is not an integer (expects 422 schoolRules.version.integer)
+POST {{baseUrl}}/school-rules/acceptances
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "version": "1"
+}
+
+### Accept while no rule was ever written (expects 422 schoolRules.version.nothingToAccept; version 0)
+# Only before the first rule is added.
+
+### Accept without a token (expects 401 auth.token.invalid)
+POST {{baseUrl}}/school-rules/acceptances
+Content-Type: application/json
+
+{
+  "version": 1
+}

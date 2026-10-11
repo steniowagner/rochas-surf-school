@@ -1,7 +1,13 @@
 import { UnauthorizedError, UseCase } from "@rochas-surf-school/shared";
 import { Identity, IdentityRepository } from "../../identity";
 import { StartSession, StartSessionOut } from "../../session";
-import { User, UserRepository, UserRole, UserStatus } from "../../user";
+import {
+  AccountOut,
+  RulesVersionProvider,
+  User,
+  UserRepository,
+  toAccountOut,
+} from "../../user";
 import { SIGN_IN_CODE_MAX_ATTEMPTS, normalizeEmail } from "../model";
 import {
   ClockProvider,
@@ -17,16 +23,7 @@ export interface VerifySignInCodeIn {
 }
 
 export interface VerifySignInCodeOut extends StartSessionOut {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: UserRole;
-    status: UserStatus;
-    createdAt: Date;
-    whatsappNumber: string | null;
-    whatsappVisible: boolean;
-  };
+  user: AccountOut;
 }
 
 export class VerifySignInCode
@@ -40,6 +37,7 @@ export class VerifySignInCode
     private readonly clock: ClockProvider,
     private readonly startSession: StartSession,
     private readonly refreshTokenTtlDays: number,
+    private readonly rulesVersionProvider: RulesVersionProvider,
   ) {}
 
   async execute(input: VerifySignInCodeIn): Promise<VerifySignInCodeOut> {
@@ -81,16 +79,7 @@ export class VerifySignInCode
 
     return {
       ...session,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        createdAt: user.createdAt,
-        whatsappNumber: user.whatsappNumber ?? null,
-        whatsappVisible: user.whatsappVisible,
-      },
+      user: toAccountOut(user, await this.rulesVersionProvider.getCurrentVersion()),
     };
   }
 

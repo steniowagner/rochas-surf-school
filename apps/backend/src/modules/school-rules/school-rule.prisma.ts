@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UuidRule } from '@rochas-surf-school/shared';
 import {
   SchoolRule,
   SchoolRuleChange,
@@ -7,8 +8,7 @@ import {
 import { PrismaService } from '../../db/prisma.service.js';
 import type { SchoolRule as SchoolRuleRecord } from '../../generated/prisma/client.js';
 
-const UUID_FORMAT =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuidRule = new UuidRule();
 
 @Injectable()
 export class PrismaSchoolRuleRepository implements SchoolRuleRepository {
@@ -22,7 +22,7 @@ export class PrismaSchoolRuleRepository implements SchoolRuleRepository {
   }
 
   async findById(id: string): Promise<SchoolRule | null> {
-    if (!UUID_FORMAT.test(id)) return null;
+    if (uuidRule.validate(id) !== null) return null;
 
     const record = await this.prisma.schoolRule.findUnique({ where: { id } });
     return record ? this.toDomain(record) : null;

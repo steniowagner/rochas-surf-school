@@ -17,6 +17,7 @@ import { PrismaIdentityRepository } from './identity.prisma.js';
 import { JwtTokenProvider } from './jwt.token.js';
 import { PrismaRefreshTokenRepository } from './refresh-token.prisma.js';
 import { ResendEmailProvider } from './resend.email.js';
+import { PrismaRulesVersionProvider } from './rules-version.prisma.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaUserRepository } from './user.prisma.js';
@@ -32,7 +33,11 @@ function refreshTokenRepositoryOf(controller: AuthController) {
     .refreshTokenRepository;
 }
 
-function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
+function setup(
+  reviewCodes: Record<string, string> = {},
+  users: User[] = [],
+  rulesVersion = 0,
+) {
   const codes = new Map<string, SignInCode>();
   const signInCodeRepository = {
     findByEmail: vi.fn(async (email: string) => codes.get(email) ?? null),
@@ -102,6 +107,7 @@ function setup(reviewCodes: Record<string, string> = {}, users: User[] = []) {
     identityRepository as unknown as PrismaIdentityRepository,
     refreshTokenRepository as unknown as PrismaRefreshTokenRepository,
     tokenProvider as unknown as JwtTokenProvider,
+    { getCurrentVersion: vi.fn(async () => rulesVersion) } as unknown as PrismaRulesVersionProvider,
   );
   return { controller, codes, emailProvider, identities, refreshTokens, tokenProvider };
 }
@@ -196,6 +202,7 @@ describe('AuthController', () => {
           createdAt: ana.createdAt,
           whatsappNumber: null,
           whatsappVisible: false,
+          rulesAccepted: true,
         },
       });
       expect(refreshTokens).toHaveLength(1);
@@ -255,7 +262,14 @@ describe('AuthController', () => {
         createdAt: ana.createdAt,
         whatsappNumber: null,
         whatsappVisible: false,
+        rulesAccepted: true,
       });
+    });
+
+    it('says the rules are not accepted when the current version wasn\'t', async () => {
+      const { controller } = setup({}, [ana], 2);
+
+      await expect(controller.me(ana.id)).resolves.toMatchObject({ rulesAccepted: false });
     });
 
     it('answers auth.token.invalid when the account is gone', async () => {
@@ -302,7 +316,17 @@ describe('AuthController', () => {
         createdAt: ana.createdAt,
         whatsappNumber: '+5585999998888',
         whatsappVisible: true,
+        rulesAccepted: true,
       });
+    });
+
+    it('says the rules are not accepted when the current version wasn\'t', async () => {
+      const ana = approved();
+      const { controller } = setup({}, [ana], 2);
+
+      await expect(
+        controller.setWhatsapp(ana.id, { whatsappNumber: '+5585999998888', whatsappVisible: true }),
+      ).resolves.toMatchObject({ rulesAccepted: false });
     });
 
     it('answers 422 when there is no body', async () => {

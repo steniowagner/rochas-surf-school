@@ -27,6 +27,7 @@ import { PrismaIdentityRepository } from './identity.prisma.js';
 import { JwtTokenProvider } from './jwt.token.js';
 import { PrismaRefreshTokenRepository } from './refresh-token.prisma.js';
 import { ResendEmailProvider } from './resend.email.js';
+import { PrismaRulesVersionProvider } from './rules-version.prisma.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaUserRepository } from './user.prisma.js';
@@ -43,6 +44,7 @@ export class AuthController {
     private readonly identityRepository: PrismaIdentityRepository,
     private readonly refreshTokenRepository: PrismaRefreshTokenRepository,
     private readonly tokenProvider: JwtTokenProvider,
+    private readonly rulesVersionProvider: PrismaRulesVersionProvider,
   ) {}
 
   @Public()
@@ -80,6 +82,7 @@ export class AuthController {
       this.clock,
       startSession,
       this.authConfig.refreshTokenTtlDays,
+      this.rulesVersionProvider,
     );
     return useCase.execute({
       email: body?.email as string,
@@ -90,7 +93,7 @@ export class AuthController {
 
   @Get('me')
   me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
-    return new GetCurrentUser(this.userRepository).execute({ id });
+    return new GetCurrentUser(this.userRepository, this.rulesVersionProvider).execute({ id });
   }
 
   @Put('me/whatsapp')
@@ -99,7 +102,7 @@ export class AuthController {
     @CurrentUser('id') id: string,
     @Body() body: Partial<Pick<SetWhatsappIn, 'whatsappNumber' | 'whatsappVisible'>> | undefined,
   ): Promise<SetWhatsappOut> {
-    return new SetWhatsapp(this.userRepository).execute({
+    return new SetWhatsapp(this.userRepository, this.rulesVersionProvider).execute({
       userId: id,
       whatsappNumber: body?.whatsappNumber as string,
       whatsappVisible: body?.whatsappVisible as boolean,
@@ -118,6 +121,7 @@ export class AuthController {
       this.tokenProvider,
       this.clock,
       this.authConfig.refreshTokenTtlDays,
+      this.rulesVersionProvider,
     );
     return useCase.execute({ refreshToken: body?.refreshToken as string });
   }

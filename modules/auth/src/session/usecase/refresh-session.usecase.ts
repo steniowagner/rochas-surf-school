@@ -1,7 +1,7 @@
 import { UnauthorizedError, UseCase } from "@rochas-surf-school/shared";
 import { ClockProvider } from "../../sign-in-code/provider";
-import { UserRepository } from "../../user/provider";
-import { GetCurrentUserOut } from "../../user/usecase/get-current-user.usecase";
+import { RulesVersionProvider, UserRepository } from "../../user/provider";
+import { AccountOut, toAccountOut } from "../../user/usecase/account.out";
 import { RefreshToken } from "../model";
 import { RefreshTokenRepository, TokenProvider } from "../provider";
 import { requireRefreshToken } from "./refresh-token-input";
@@ -15,7 +15,7 @@ export interface RefreshSessionIn {
 }
 
 export interface RefreshSessionOut extends StartSessionOut {
-  user: GetCurrentUserOut;
+  user: AccountOut;
 }
 
 export class RefreshSession
@@ -27,6 +27,7 @@ export class RefreshSession
     private readonly tokenProvider: TokenProvider,
     private readonly clock: ClockProvider,
     private readonly refreshTokenTtlDays: number,
+    private readonly rulesVersionProvider: RulesVersionProvider,
   ) {}
 
   async execute(input: RefreshSessionIn): Promise<RefreshSessionOut> {
@@ -76,16 +77,7 @@ export class RefreshSession
       accessTokenExpiresAt: accessToken.expiresAt,
       refreshToken: refreshToken.token,
       refreshTokenExpiresAt,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        createdAt: user.createdAt,
-        whatsappNumber: user.whatsappNumber ?? null,
-        whatsappVisible: user.whatsappVisible,
-      },
+      user: toAccountOut(user, await this.rulesVersionProvider.getCurrentVersion()),
     };
   }
 

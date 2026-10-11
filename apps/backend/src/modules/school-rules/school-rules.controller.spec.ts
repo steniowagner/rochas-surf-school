@@ -4,9 +4,12 @@ import {
   METHOD_METADATA,
   PATH_METADATA,
 } from '@nestjs/common/constants.js';
+import { User } from '@rochas-surf-school/auth';
 import { SchoolRule } from '@rochas-surf-school/school-rules';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import { SystemClockProvider } from '../auth/system.clock.js';
+import { PrismaUserRepository } from '../auth/user.prisma.js';
 import { PrismaSchoolRuleRepository } from './school-rule.prisma.js';
 import { SchoolRulesController } from './school-rules.controller.js';
 
@@ -21,6 +24,8 @@ const ADMIN = {
 function handlerOf(name: keyof SchoolRulesController): object {
   return Object.getOwnPropertyDescriptor(SchoolRulesController.prototype, name)!.value as object;
 }
+
+const NOW = new Date('2026-10-11T12:00:00.000Z');
 
 function setup() {
   const rules = [
@@ -43,14 +48,35 @@ function setup() {
       return version;
     }),
   };
-  const controller = new SchoolRulesController(repository as unknown as PrismaSchoolRuleRepository);
-  return { controller, repository, rules };
+  const student = new User({
+    name: 'Ana Rocha',
+    email: 'ana@example.com',
+    whatsappVisible: false,
+    role: 'student',
+    status: 'approved',
+  });
+  const acceptances: { version: number; acceptedAt: Date }[] = [];
+  const userRepository = {
+    findById: vi.fn(async (id: string) =>
+      id === student.id ? student.clone({ rulesAcceptances: [...acceptances] }) : null,
+    ),
+    addRulesAcceptance: vi.fn(async (_id: string, acceptance: { version: number; acceptedAt: Date }) => {
+      acceptances.push(acceptance);
+    }),
+  };
+  const controller = new SchoolRulesController(
+    repository as unknown as PrismaSchoolRuleRepository,
+    userRepository as unknown as PrismaUserRepository,
+    { now: () => NOW } as SystemClockProvider,
+  );
+  return { controller, repository, rules, student, userRepository };
 }
 
 describe('SchoolRulesController', () => {
   it.each([
     ['list', '/', RequestMethod.GET, HttpStatus.OK],
     ['create', '/', RequestMethod.POST, HttpStatus.CREATED],
+    ['accept', 'acceptances', RequestMethod.POST, HttpStatus.OK],
     ['reorder', 'order', RequestMethod.PUT, HttpStatus.OK],
     ['update', ':id', RequestMethod.PUT, HttpStatus.OK],
     ['delete', ':id', RequestMethod.DELETE, HttpStatus.OK],
@@ -136,6 +162,42 @@ describe('SchoolRulesController', () => {
     await expect(controller.reorder(ADMIN, undefined)).rejects.toMatchObject({
       statusCode: 422,
       errors: [expect.objectContaining({ message: 'schoolRule.order.required' })],
+    });
+  });
+
+  describe('POST /school-rules/acceptances', () => {
+    const asStudent = (student: User) =>
+      ({ id: student.id, email: student.email, role: 'student', status: 'approved', claims: {} }) as unknown as AuthenticatedUser;
+
+    it('records the current version for the signed-in account', async () => {
+      const { controller, student, userRepository } = setup();
+
+      const out = await controller.accept(asStudent(student), { version: 3 });
+
+      expect(out).toMatchObject({ id: student.id, rulesAccepted: true });
+      expect(userRepository.addRulesAcceptance).toHaveBeenCalledWith(student.id, {
+        version: 3,
+        acceptedAt: NOW,
+      });
+    });
+
+    it('answers 409 with the current version when the version is outdated', async () => {
+      const { controller, student } = setup();
+
+      await expect(controller.accept(asStudent(student), { version: 2 })).rejects.toMatchObject({
+        statusCode: 409,
+        message: 'schoolRules.version.outdated',
+        details: { currentVersion: 3 },
+      });
+    });
+
+    it('answers 422 when there is no body', async () => {
+      const { controller, student } = setup();
+
+      await expect(controller.accept(asStudent(student), undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'schoolRules.version.required' })],
+      });
     });
   });
 });

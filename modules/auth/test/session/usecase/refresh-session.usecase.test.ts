@@ -8,6 +8,7 @@ import {
 import {
   FakeClockProvider,
   FakeRefreshTokenRepository,
+  FakeRulesVersionProvider,
   FakeTokenProvider,
   FakeUserRepository,
 } from "../../mock";
@@ -25,7 +26,7 @@ function buildUser(status: UserStatus = "approved"): User {
   });
 }
 
-function setup(users: User[] = [buildUser()]) {
+function setup(users: User[] = [buildUser()], rulesVersion = 0) {
   const clock = new FakeClockProvider(NOW);
   const refreshTokenRepository = new FakeRefreshTokenRepository();
   const userRepository = new FakeUserRepository(users);
@@ -37,6 +38,7 @@ function setup(users: User[] = [buildUser()]) {
     tokenProvider,
     clock,
     30,
+    new FakeRulesVersionProvider(rulesVersion),
   );
   const signIn = (user: User = users[0]!) =>
     startSession.execute({ user: { id: user.id, email: user.email }, refreshTokenTtlDays: 30 });
@@ -79,6 +81,7 @@ describe("RefreshSession", () => {
           createdAt: ana.createdAt,
           whatsappNumber: null,
           whatsappVisible: false,
+          rulesAccepted: true,
         },
       });
       const [old, rotated] = ctx.refreshTokenRepository.tokens;
@@ -87,6 +90,26 @@ describe("RefreshSession", () => {
       expect(rotated!.userId).toBe(ana.id);
       expect(rotated!.tokenHash).toBe(ctx.tokenProvider.hashRefreshToken("refresh-2"));
       expect(rotated!.revokedAt).toBeUndefined();
+    });
+
+    test.each([
+      [[{ version: 2, acceptedAt: NOW }], true],
+      [[{ version: 1, acceptedAt: NOW }], false],
+    ])("says whether the current rules version was accepted (%j)", async (acceptances, expected) => {
+      const ana = new User({
+        name: "Ana Rocha",
+        email: "ana@example.com",
+        whatsappVisible: false,
+        role: "student",
+        status: "approved",
+        rulesAcceptances: acceptances,
+      });
+      const ctx = setup([ana], 2);
+      const first = await ctx.signIn();
+
+      const result = await ctx.useCase.execute({ refreshToken: first.refreshToken });
+
+      expect(result.user.rulesAccepted).toBe(expected);
     });
 
     test("the new refresh token can be refreshed too", async () => {

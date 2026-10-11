@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PageResult } from '@rochas-surf-school/shared';
-import { User, UserPageParams, UserRepository } from '@rochas-surf-school/auth';
+import {
+  RulesAcceptance,
+  User,
+  UserPageParams,
+  UserRepository,
+} from '@rochas-surf-school/auth';
 import { PrismaService } from '../../db/prisma.service.js';
 import type {
   User as UserRecord,
@@ -82,6 +87,15 @@ export class PrismaUserRepository implements UserRepository {
       include,
     });
     return records.map((record) => this.toDomain(record));
+  }
+
+  async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {
+    await this.prisma.userRulesAcceptance.createMany({
+      data: [
+        { userId, version: acceptance.version, acceptedAt: acceptance.acceptedAt },
+      ],
+      skipDuplicates: true,
+    });
   }
 
   private toData(user: User) {

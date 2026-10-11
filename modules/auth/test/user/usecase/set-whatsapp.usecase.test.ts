@@ -4,7 +4,7 @@ import {
   ValidationException,
 } from "@rochas-surf-school/shared";
 import { SetWhatsapp, User, UserStatus } from "../../../src";
-import { FakeUserRepository } from "../../mock";
+import { FakeRulesVersionProvider, FakeUserRepository } from "../../mock";
 
 const CREATED_AT = new Date("2026-09-01T10:30:00.000Z");
 
@@ -30,10 +30,14 @@ async function errorsOf(promise: Promise<unknown>): Promise<string[]> {
 }
 
 describe("SetWhatsapp", () => {
+  const rules = new FakeRulesVersionProvider();
+
+  beforeEach(() => rules.set(0));
+
   test("saves the number and the visibility of an approved account", async () => {
     const ana = buildUser();
     const repository = new FakeUserRepository([ana]);
-    const useCase = new SetWhatsapp(repository);
+    const useCase = new SetWhatsapp(repository, rules);
 
     await expect(
       useCase.execute({
@@ -50,6 +54,7 @@ describe("SetWhatsapp", () => {
       createdAt: CREATED_AT,
       whatsappNumber: "+5585999998888",
       whatsappVisible: true,
+      rulesAccepted: true,
     });
 
     const saved = await repository.findById(ana.id);
@@ -63,7 +68,7 @@ describe("SetWhatsapp", () => {
       whatsappVisible: false,
     });
     const repository = new FakeUserRepository([ana]);
-    const useCase = new SetWhatsapp(repository);
+    const useCase = new SetWhatsapp(repository, rules);
 
     const out = await useCase.execute({
       userId: ana.id,
@@ -72,6 +77,30 @@ describe("SetWhatsapp", () => {
     });
 
     expect(out).toMatchObject({ whatsappNumber: "+351912345678", whatsappVisible: true });
+  });
+
+  test("reports whether the current rules version was accepted", async () => {
+    rules.set(2);
+    const ana = buildUser();
+    const accepted = ana.clone({
+      rulesAcceptances: [{ version: 2, acceptedAt: CREATED_AT }],
+    });
+    const bia = new User({
+      name: "Bia Rocha",
+      email: "bia@example.com",
+      whatsappVisible: false,
+      role: "student",
+      status: "approved",
+    });
+    const useCase = new SetWhatsapp(new FakeUserRepository([accepted, bia]), rules);
+    const input = { whatsappNumber: "+5585999998888", whatsappVisible: false };
+
+    await expect(useCase.execute({ userId: accepted.id, ...input })).resolves.toMatchObject({
+      rulesAccepted: true,
+    });
+    await expect(useCase.execute({ userId: bia.id, ...input })).resolves.toMatchObject({
+      rulesAccepted: false,
+    });
   });
 
   test("lets another account save the same number", async () => {
@@ -83,7 +112,7 @@ describe("SetWhatsapp", () => {
       role: "student",
       status: "approved",
     });
-    const useCase = new SetWhatsapp(new FakeUserRepository([ana, bia]));
+    const useCase = new SetWhatsapp(new FakeUserRepository([ana, bia]), rules);
 
     await expect(
       useCase.execute({
@@ -99,7 +128,7 @@ describe("SetWhatsapp", () => {
     async (status) => {
       const ana = buildUser(status);
       const repository = new FakeUserRepository([ana]);
-      const useCase = new SetWhatsapp(repository);
+      const useCase = new SetWhatsapp(repository, rules);
 
       const error = await useCase
         .execute({
@@ -116,7 +145,7 @@ describe("SetWhatsapp", () => {
   );
 
   test("refuses an account that no longer exists with auth.token.invalid", async () => {
-    const useCase = new SetWhatsapp(new FakeUserRepository());
+    const useCase = new SetWhatsapp(new FakeUserRepository(), rules);
 
     const error = await useCase
       .execute({
@@ -135,7 +164,7 @@ describe("SetWhatsapp", () => {
     async (whatsappNumber) => {
       const ana = buildUser("approved", { whatsappNumber: "+5585999998888" });
       const repository = new FakeUserRepository([ana]);
-      const useCase = new SetWhatsapp(repository);
+      const useCase = new SetWhatsapp(repository, rules);
 
       const messages = await errorsOf(
         useCase.execute({
@@ -155,7 +184,7 @@ describe("SetWhatsapp", () => {
   test("refuses an invalid number and saves nothing", async () => {
     const ana = buildUser();
     const repository = new FakeUserRepository([ana]);
-    const useCase = new SetWhatsapp(repository);
+    const useCase = new SetWhatsapp(repository, rules);
 
     const messages = await errorsOf(
       useCase.execute({ userId: ana.id, whatsappNumber: "+55123", whatsappVisible: true }),
@@ -167,7 +196,7 @@ describe("SetWhatsapp", () => {
 
   test("requires the visibility", async () => {
     const ana = buildUser();
-    const useCase = new SetWhatsapp(new FakeUserRepository([ana]));
+    const useCase = new SetWhatsapp(new FakeUserRepository([ana]), rules);
 
     const messages = await errorsOf(
       useCase.execute({
@@ -182,7 +211,7 @@ describe("SetWhatsapp", () => {
 
   test("refuses a visibility that is not a boolean", async () => {
     const ana = buildUser();
-    const useCase = new SetWhatsapp(new FakeUserRepository([ana]));
+    const useCase = new SetWhatsapp(new FakeUserRepository([ana]), rules);
 
     const messages = await errorsOf(
       useCase.execute({

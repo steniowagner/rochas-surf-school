@@ -36,7 +36,7 @@ apps/  modules/  packages/
   - `src/usecase/` — the `UseCase<In, Out>` contract.
   - `src/db/` — repository contracts (`CrudRepository`, `CreateRepository`, `FindPageRepository`, `PageResult`…).
   - `src/error/` — `DomainError` and its HTTP-mapped subclasses (`validation`, `not-found`, `unauthorized`,
-    `forbidden`, `too-many-requests`, `bad-gateway`).
+    `forbidden`, `conflict`, `too-many-requests`, `bad-gateway`).
   - `src/validation/rules/phone-number.rule.ts` — `PhoneNumberRule` (E.164, valid for its country, with
     `libphonenumber-js`).
   - `src/validation/` — `Validator` and the reusable rules in `rules/`.
@@ -51,8 +51,12 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 `usecase/`, and an `index.ts` barrel; tests in `modules/<m>/test/` mirror `src/`, with fakes in `test/mock/`.
 
 - **`modules/auth`** (`@rochas-surf-school/auth`) — 4 aggregates:
-  - `user/` — `model/user.entity.ts`, `provider/user.repository.ts`,
-    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,find-user-page,search-users-by-name}.usecase.ts`.
+  - `user/` — `model/user.entity.ts`, `provider/user.repository.ts` (with `addRulesAcceptance`),
+    `provider/rules-version.provider.ts` (`RulesVersionProvider`: the current school rules version, read
+    without depending on `school-rules`),
+    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,find-user-page,search-users-by-name}.usecase.ts`
+    and `usecase/account.out.ts` (`AccountOut` / `toAccountOut`: the account shape every answer carries, with
+    `rulesAccepted`).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
     `usecase/create-identity.usecase.ts`.
   - `sign-in-code/` — `model/sign-in-code.entity.ts` (also the TTL / cooldown / max-attempts constants and
@@ -62,10 +66,11 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `usecase/{start-session,refresh-session,sign-out}.usecase.ts` and `usecase/refresh-token-input.ts` (the
     shared `refreshToken.token.required` check).
 - **`modules/school-rules`** (`@rochas-surf-school/school-rules`; depends on `@rochas-surf-school/auth` for
-  `UserRole` / `UserStatus`) — 1 aggregate:
+  `UserRole` / `UserStatus`, and for `User`, `UserRepository`, `ClockProvider` and `toAccountOut` when accepting) —
+  1 aggregate:
   - `school-rule/` — `model/school-rule.entity.ts`, `provider/school-rule.repository.ts` (`findAll`,
     `findById`, `getVersion`, `apply(change)` — one atomic change of saves, deletes and the version bump),
-    `usecase/{list-school-rules,create-school-rule,update-school-rule,delete-school-rule,reorder-school-rules}.usecase.ts`,
+    `usecase/{list-school-rules,create-school-rule,update-school-rule,delete-school-rule,reorder-school-rules,accept-school-rules}.usecase.ts`,
     `usecase/school-rule-access.ts` (approved / approved-admin checks, status first),
     `usecase/school-rule-text.ts` (trimming) and `usecase/school-rules.out.ts` (`{ version, rules }`).
 
@@ -100,16 +105,18 @@ src/
     auth.integration.http       # manual REST Client requests
     auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
+    rules-version.prisma.ts     # PrismaRulesVersionProvider (reads the single rules_versions row)
     hmac.sign-in-code.ts        # HmacSignInCodeProvider (code generation + HMAC)
     jwt.token.ts                # JwtTokenProvider (access JWT, refresh token + hash)
     resend.email.ts             # ResendEmailProvider (pt-BR/es/en copy, dev log fallback)
     system.clock.ts             # SystemClockProvider
     sign-in-code-cleanup.job.ts # every-minute cron deleting expired codes
   modules/school-rules/
-    school-rules.module.ts      # wiring (DbModule)
+    school-rules.module.ts      # wiring (DbModule; also provides PrismaUserRepository and SystemClockProvider)
     school-rules.controller.ts  # GET /school-rules (200), POST /school-rules (201), PUT /school-rules/order,
                                 # PUT /school-rules/:id, DELETE /school-rules/:id (200) — all protected;
-                                # every route answers { version, rules }
+                                # every route answers { version, rules }; POST /school-rules/acceptances (200,
+                                # protected) answers the account
     school-rule.prisma.ts       # PrismaSchoolRuleRepository (apply runs in one $transaction)
     school-rules.integration.http  # manual REST Client requests
 test/
@@ -117,6 +124,7 @@ test/
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
   auth-whatsapp.e2e-spec.ts     # e2e suite of PUT /auth/me/whatsapp (approved accounts created through Prisma)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
+  school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
 Dockerfile, docker-compose.yml  # backend + Postgres
 ```
 

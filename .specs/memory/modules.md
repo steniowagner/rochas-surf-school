@@ -27,8 +27,8 @@ It groups four areas: **Accounts**, **Identities**, **Sign-in codes** and **Sess
 
 Keeps the school's rules: the ordered list admins write, edit, delete and reorder, and its current version,
 which goes up with every change to the rules' text so users can be asked to accept them again. Every approved
-account reads them. Recording that a user accepted a version is not here yet: it comes with the onboarding
-School rules spec.
+account reads them and accepts the current version here; the accepted versions are stored on the account, in
+Authentication, which says on every answer whether the account still has to accept the current rules.
 
 - Where it physically lives: `modules/school-rules`
 - Business details: [modules/school-rules.md](modules/school-rules.md)

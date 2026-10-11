@@ -1,5 +1,5 @@
 import { PageResult } from "@rochas-surf-school/shared";
-import { User, UserPageParams, UserRepository } from "../../src";
+import { RulesAcceptance, User, UserPageParams, UserRepository } from "../../src";
 
 export class FakeUserRepository implements UserRepository {
   readonly users: User[];
@@ -49,5 +49,15 @@ export class FakeUserRepository implements UserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.users.find((item) => item.email === email) ?? null;
+  }
+
+  async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {
+    const index = this.users.findIndex((item) => item.id === userId);
+    const user = this.users[index];
+    if (!user || user.hasAcceptedRules(acceptance.version)) return;
+
+    this.users[index] = user.clone({
+      rulesAcceptances: [...user.rulesAcceptances, acceptance],
+    });
   }
 }

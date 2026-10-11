@@ -46,6 +46,7 @@ describe("User", () => {
         { version: 2, acceptedAt: new Date("2026-04-01T10:00:00Z") },
       ];
       const deletedAt = new Date("2026-04-10T10:00:00Z");
+      const reactivationRequestedAt = new Date("2026-04-12T10:00:00Z");
 
       const user = new User(
         buildState({
@@ -58,6 +59,7 @@ describe("User", () => {
           deniedAt,
           removedAt,
           reactivationStatus: "requested",
+          reactivationRequestedAt,
           rulesAcceptances,
           deletedAt,
         }),
@@ -74,6 +76,7 @@ describe("User", () => {
       expect(user.deniedAt).toEqual(deniedAt);
       expect(user.removedAt).toEqual(removedAt);
       expect(user.reactivationStatus).toBe("requested");
+      expect(user.reactivationRequestedAt).toEqual(reactivationRequestedAt);
       expect(user.rulesAcceptances).toEqual(rulesAcceptances);
       expect(user.deletedAt).toEqual(deletedAt);
       expect(() => user.validate()).not.toThrow();
@@ -88,6 +91,7 @@ describe("User", () => {
       expect(user.deniedAt).toBeUndefined();
       expect(user.removedAt).toBeUndefined();
       expect(user.reactivationStatus).toBeUndefined();
+      expect(user.reactivationRequestedAt).toBeUndefined();
       expect(user.rulesAcceptances).toEqual([]);
     });
 
@@ -293,10 +297,12 @@ describe("User", () => {
         validationMessagesFor({
           deniedAt: invalid,
           removedAt: invalid,
+          reactivationRequestedAt: invalid,
         }),
       ).toEqual([
         "user.deniedAt.invalid.date",
         "user.removedAt.invalid.date",
+        "user.reactivationRequestedAt.invalid.date",
       ]);
     });
   });

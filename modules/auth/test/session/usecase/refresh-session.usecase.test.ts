@@ -83,6 +83,8 @@ describe("RefreshSession", () => {
           whatsappVisible: false,
           rulesAccepted: true,
           rulesAcceptedBefore: false,
+          denialReason: null,
+          reactivationStatus: null,
         },
       });
       const [old, rotated] = ctx.refreshTokenRepository.tokens;

@@ -150,7 +150,7 @@ comes with spec 015.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Add `reactivationRequestedAt?: Date` to `User` in `modules/auth/src/user/model/user.entity.ts`
+- [x] **T-01** — Add `reactivationRequestedAt?: Date` to `User` in `modules/auth/src/user/model/user.entity.ts`
   (props, getter, validated as an optional date like `deletedAt`), and add `denialReason: string | null` and
   `reactivationStatus: UserReactivationStatus | null` to `AccountOut` / `toAccountOut` in
   `modules/auth/src/user/usecase/account.out.ts` (D-02, D-03). Update
@@ -160,6 +160,22 @@ comes with spec 015.
   Skill: [`module-entity`](../../../.claude/skills/module-entity).
   Covers: ER-01 · Done when: `npm test --workspace @rochas-surf-school/auth` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-11 — `User` gains `reactivationRequestedAt` (state, getter, `DateRule` →
+  > `user.reactivationRequestedAt.invalid.date`); `AccountOut` / `toAccountOut` return `denialReason` and
+  > `reactivationStatus` (stored value or `null`), no dates. Tests: entity getter/undefined/invalid date;
+  > `account.out.test.ts` full shape, denied with/without reason, deleted with `requested`/`denied`, dates never
+  > returned; whole-answer shapes updated in the get-current-user, set-whatsapp, refresh-session and
+  > verify-sign-in-code tests (watched them fail first). files: `modules/auth/src/user/model/user.entity.ts`,
+  > `modules/auth/src/user/usecase/account.out.ts`, `modules/auth/test/user/model/user.entity.test.ts`,
+  > `modules/auth/test/user/usecase/account.out.test.ts`,
+  > `modules/auth/test/user/usecase/get-current-user.usecase.test.ts`,
+  > `modules/auth/test/user/usecase/set-whatsapp.usecase.test.ts`,
+  > `modules/auth/test/session/usecase/refresh-session.usecase.test.ts`,
+  > `modules/auth/test/sign-in-code/usecase/verify-sign-in-code.usecase.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/auth` (231 passed), `npx turbo run check-types
+  > --filter=@rochas-surf-school/auth` (1 successful); deviations: `module-entity` skill applied by hand to the
+  > existing entity (one optional field); the school-rules acceptance test uses `toMatchObject`, so it needed no
+  > change.
 
 - [ ] **T-02** — Create `RequestReactivation` in
   `modules/auth/src/user/usecase/request-reactivation.usecase.ts` (input `{ userId: string }`, dependencies

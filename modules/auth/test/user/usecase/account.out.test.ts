@@ -32,6 +32,8 @@ describe("toAccountOut", () => {
       whatsappVisible: false,
       rulesAccepted: true,
       rulesAcceptedBefore: false,
+      denialReason: null,
+      reactivationStatus: null,
     });
   });
 
@@ -81,5 +83,55 @@ describe("toAccountOut", () => {
       rulesAccepted: false,
       rulesAcceptedBefore: true,
     });
+  });
+
+  test("keeps the denial reason of a denied account", () => {
+    const ana = buildUser().clone({
+      status: "denied",
+      denialReason: "Unknown person",
+    });
+
+    expect(toAccountOut(ana, 0)).toMatchObject({
+      status: "denied",
+      denialReason: "Unknown person",
+      reactivationStatus: null,
+    });
+  });
+
+  test("has no denial reason when a denied account got none", () => {
+    const ana = buildUser().clone({ status: "denied" });
+
+    expect(toAccountOut(ana, 0).denialReason).toBeNull();
+  });
+
+  test.each(["requested", "denied"] as const)(
+    "keeps the %s reactivation status of a deleted account",
+    (reactivationStatus) => {
+      const ana = buildUser().clone({ status: "deleted", reactivationStatus });
+
+      expect(toAccountOut(ana, 0)).toMatchObject({
+        status: "deleted",
+        denialReason: null,
+        reactivationStatus,
+      });
+    },
+  );
+
+  test("never returns the closed-account dates", () => {
+    const ana = buildUser().clone({
+      status: "deleted",
+      deniedAt: new Date("2026-09-02T10:00:00.000Z"),
+      removedAt: new Date("2026-09-03T10:00:00.000Z"),
+      deletedAt: new Date("2026-09-04T10:00:00.000Z"),
+      reactivationStatus: "requested",
+      reactivationRequestedAt: new Date("2026-09-05T10:00:00.000Z"),
+    });
+
+    const out = toAccountOut(ana, 0);
+
+    expect(out).not.toHaveProperty("deniedAt");
+    expect(out).not.toHaveProperty("removedAt");
+    expect(out).not.toHaveProperty("deletedAt");
+    expect(out).not.toHaveProperty("reactivationRequestedAt");
   });
 });

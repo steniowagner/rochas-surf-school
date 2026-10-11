@@ -290,10 +290,15 @@ will call.
   > rules/test/school-rule/usecase/update-school-rule.usecase.test.ts`. Verified: module run 87 passed, 100%
   > coverage; lint, check-types exit 0. Deviations: none
 
-- [ ] **T-07** — `DeleteSchoolRule` use case: checks admin, finds the rule (404), deletes it and saves every
+- [x] **T-07** — `DeleteSchoolRule` use case: checks admin, finds the rule (404), deletes it and saves every
   later rule with index − 1, `bumpVersion: true`. Tests in the same test folder. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-06, ER-04 · Done when: the tests (middle, last and only rule, unknown id, non-admin) pass.
+  > ✅ 2026-10-11 14:08 — `DeleteSchoolRule` use case (admin check, 404, deletes the rule and moves every later
+  > one up, `bumpVersion: true`). Files: `modules/school-rules/src/school-rule/usecase/{delete-school-
+  > rule.usecase.ts,index.ts}`, `modules/school-rules/test/school-rule/usecase/delete-school-
+  > rule.usecase.test.ts`. Verified: module run 87 passed, 100% coverage; lint, check-types exit 0. Deviations:
+  > none
 
 - [ ] **T-08** — `ReorderSchoolRules` use case: checks admin, validates `ruleIds` (422 `ValidationException`
   with `schoolRule.order.required` / `schoolRule.order.mismatch`, D-09), saves only the rules whose index

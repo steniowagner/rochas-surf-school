@@ -22,6 +22,7 @@ export type VerifySignInCodeResponse = {
     createdAt: string;
     whatsappNumber: string | null;
     whatsappVisible: boolean;
+    rulesAccepted: boolean;
   };
 };
 

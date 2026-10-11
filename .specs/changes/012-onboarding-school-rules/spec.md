@@ -247,7 +247,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   Covers: enabling · Done when: `npx jest src/services/api` passes (from `apps/mobile`).
   > ✅ 2026-10-11 — added `apiGet` (the shared `request` now takes `GET`, sending no body and no Content-Type); files: `apps/mobile/src/services/api/api.client.ts`, `apps/mobile/src/services/api/index.ts`, `apps/mobile/src/services/api/api.client.test.ts`; verified: `npx jest src/services/api` (16 passed); deviations: none
 
-- [ ] **T-02** — Add `rulesAccepted: boolean` to `SessionUser` (`src/navigation/resolve-flow.types.ts`), add
+- [x] **T-02** — Add `rulesAccepted: boolean` to `SessionUser` (`src/navigation/resolve-flow.types.ts`), add
   `isOnboardingCompleted(user)` to `src/navigation/resolve-flow.ts` (D-03) and use it in
   `src/navigation/root-navigator/root-navigator.hook.ts` instead of `ONBOARDING_COMPLETED`. Add `rulesAccepted` to
   every test fixture that builds a session user (the files listed in Context). Tests: in `resolve-flow.test.ts`,
@@ -257,6 +257,7 @@ an admin changes the rules. The list is built to be reused by the later screens 
   WhatsApp step).
   Covers: ER-06 · Done when: `npx jest src/navigation` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-11 — `SessionUser.rulesAccepted`, `isOnboardingCompleted(user)` used by `useRootNavigator`; the root-navigator test no longer mocks `resolveFlow` (its accounts now carry a number and `rulesAccepted` for the role homes); new `describe("onboarding completed")` in both test files; the sign-in response type in `use-verify-sign-in-code.hook.ts` gained `rulesAccepted`; files: `apps/mobile/src/navigation/resolve-flow.ts`, `resolve-flow.types.ts`, `resolve-flow.test.ts`, `root-navigator/root-navigator.hook.ts`, `root-navigator/root-navigator.component.test.tsx`, `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`, fixtures in `providers/session/session.provider.test.tsx`, `modules/auth/screens/confirm-code.screen.test.tsx`, `modules/auth/hooks/use-sign-out.hook.test.tsx`, `modules/onboarding/components/whatsapp/whatsapp.component.test.tsx`, `modules/onboarding/hooks/use-save-whatsapp.hook.test.tsx`, `modules/pending/components/pending/pending.component.test.tsx` (all under `apps/mobile/src/`); verified: `npx jest src/navigation` (114 passed), whole mobile `npx jest` passes, `npx turbo run check-types --filter=@rochas-surf-school/mobile` exit 0; deviations: removed the `resolveFlow` mock from the root-navigator test (it only existed because onboarding was never completed)
 
 - [ ] **T-03** — Create `src/components/ui/checkbox/` (`checkbox.component.tsx`, `checkbox.types.ts`, `index.ts`)
   per D-10, following `.claude/rules/react.md`. Tests in `checkbox.component.test.tsx`: renders the label with role

@@ -2,7 +2,12 @@ import { USER_ROLES } from "@rochas-surf-school/auth";
 
 import { routes } from "@/constants/routes";
 
-import { flowEntryRoute, onboardingStep, resolveFlow } from "./resolve-flow";
+import {
+  flowEntryRoute,
+  isOnboardingCompleted,
+  onboardingStep,
+  resolveFlow,
+} from "./resolve-flow";
 import { Flow, SessionUser } from "./resolve-flow.types";
 
 const userWith = (status: string, role: string): SessionUser => ({
@@ -12,6 +17,7 @@ const userWith = (status: string, role: string): SessionUser => ({
   createdAt: "2026-10-10T12:00:00.000Z",
   whatsappNumber: null,
   whatsappVisible: false,
+  rulesAccepted: false,
   role,
   status,
 });
@@ -89,6 +95,43 @@ describe("resolveFlow", () => {
     expect(
       resolveFlow({ user: userWith(status, role), onboardingCompleted: true }),
     ).toBe("auth");
+  });
+});
+
+describe("onboarding completed", () => {
+  const student = userWith("approved", "student");
+
+  it.each([
+    {
+      state: "a number and the rules accepted",
+      number: "+5585999998888",
+      accepted: true,
+      expected: true,
+    },
+    {
+      state: "a number and the rules not accepted",
+      number: "+5585999998888",
+      accepted: false,
+      expected: false,
+    },
+    {
+      state: "no number and the rules accepted",
+      number: null,
+      accepted: true,
+      expected: false,
+    },
+  ])("is $expected with $state", ({ number, accepted, expected }) => {
+    expect(
+      isOnboardingCompleted({
+        ...student,
+        whatsappNumber: number,
+        rulesAccepted: accepted,
+      }),
+    ).toBe(expected);
+  });
+
+  it("is false without a user", () => {
+    expect(isOnboardingCompleted(null)).toBe(false);
   });
 });
 

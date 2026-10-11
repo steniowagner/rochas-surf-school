@@ -24,6 +24,8 @@ export type SessionUser = {
   whatsappNumber: string | null;
   // `false` hides the number from everyone but admins.
   whatsappVisible: boolean;
+  // `true` once the account accepted the current school rules (always, while there are none).
+  rulesAccepted: boolean;
 };
 
 export type ResolveFlowInput = {

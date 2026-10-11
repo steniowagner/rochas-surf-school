@@ -57,6 +57,10 @@ export const resolveFlow = ({
   return isUserRole(user.role) ? user.role : "auth";
 };
 
+/** An approved account finished onboarding with a WhatsApp number and the current school rules accepted (D-03). */
+export const isOnboardingCompleted = (user: SessionUser | null): boolean =>
+  !!user?.whatsappNumber && user.rulesAccepted === true;
+
 const ONBOARDING_ENTRY_ROUTES: Record<OnboardingStep, Href> = {
   whatsapp: routes.onboarding.whatsapp,
   "school-rules": routes.onboarding.schoolRules,

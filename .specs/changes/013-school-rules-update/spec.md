@@ -242,7 +242,7 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-03** — Move the acceptance UI and mutation into the school-rules module (D-06): `SchoolRules` →
+- [x] **T-03** — Move the acceptance UI and mutation into the school-rules module (D-06): `SchoolRules` →
   `src/modules/school-rules/components/school-rules-acceptance/` (`SchoolRulesAcceptance` with props `eyebrow`,
   `title`, `description`, `submitLabel` in `school-rules-acceptance.types.ts`; hook `useSchoolRulesAcceptance`;
   `index.ts`), `use-accept-school-rules.hook.ts` (+ types, test) → `src/modules/school-rules/hooks/`; move their
@@ -252,6 +252,17 @@ as today. To tell the two cases apart, the backend starts sending `rulesAccepted
   Covers: ER-07, ER-08 · Done when: `npx jest src/modules/school-rules src/modules/onboarding` passes (from
   `apps/mobile`) and no file imports from `modules/onboarding/components/school-rules` or
   `modules/onboarding/hooks/use-accept-school-rules`.
+  > ✅ 2026-10-11 — moved `SchoolRules` → `SchoolRulesAcceptance` (props `eyebrow`, `title`, `description`,
+  > `submitLabel`; hook `useSchoolRulesAcceptance`) and `useAcceptSchoolRules` into `modules/school-rules` with
+  > `git mv`; the component tests render it with explicit copy and keep the three-language checkbox label check; the
+  > onboarding screen passes the `schoolRules.*` texts; files:
+  > `apps/mobile/src/modules/school-rules/components/school-rules-acceptance/{index.ts,school-rules-acceptance.component.tsx,school-rules-acceptance.component.test.tsx,school-rules-acceptance.hook.ts,school-rules-acceptance.hook.test.tsx,school-rules-acceptance.types.ts}`,
+  > `apps/mobile/src/modules/school-rules/hooks/use-accept-school-rules.{hook.ts,hook.test.tsx,types.ts}`,
+  > `apps/mobile/src/modules/onboarding/screens/school-rules.screen.tsx`; deleted the old
+  > `modules/onboarding/components/school-rules/` and `modules/onboarding/hooks/use-accept-school-rules.*`;
+  > verified: `npx jest src/modules/school-rules src/modules/onboarding` (12 suites, 115 passed), eslint clean,
+  > grep finds no import of the old paths; deviations: the "shows the copy in %s" test now checks the checkbox label
+  > per language (the other texts are props)
 
 - [ ] **T-04** — Add the `rulesUpdate` keys (`eyebrow`, `title`, `description`, `submit`) with the D-04 texts to
   `src/i18n/messages/{en-US,es-ES,pt-BR}.ts`, and `src/modules/rules-update/screens/rules-update.screen.tsx`

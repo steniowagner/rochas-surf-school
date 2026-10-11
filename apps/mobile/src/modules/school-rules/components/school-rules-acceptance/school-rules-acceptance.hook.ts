@@ -4,8 +4,8 @@ import { useSchoolRules } from "@/modules/school-rules/hooks/use-school-rules.ho
 
 import { useAcceptSchoolRules } from "../../hooks/use-accept-school-rules.hook";
 
-/** State of the School rules step: the box, and the acceptance of the version the person was shown (D-09, D-12). */
-export const useSchoolRulesStep = () => {
+/** State of the school rules acceptance: the box, and the acceptance of the version the person was shown (D-09, D-12). */
+export const useSchoolRulesAcceptance = () => {
   const [isChecked, setIsChecked] = useState(false);
   const { data, isError } = useSchoolRules();
   const { mutate, isPending } = useAcceptSchoolRules({

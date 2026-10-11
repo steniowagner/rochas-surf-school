@@ -357,7 +357,9 @@ routing come with a follow-up mobile spec.
   > `apps/backend/test/school-rules-acceptance.e2e-spec.ts`; verified: `npx vitest run src/modules/school-rules`
   > (26 passed), `npx vitest run --config vitest.config.e2e.ts test/school-rules-acceptance.e2e-spec.ts`
   > (24 passed), whole backend e2e (173 passed) and unit (150 passed), `npx oxlint --type-aware` clean;
-  > deviations: none
+  > deviations: none in the task itself; at the user's request, afterwards, `PrismaSchoolRuleRepository.findById` (spec 010's code)
+  > now checks ids with shared's `UuidRule` instead of its own regex (`apps/backend/src/modules/school-rules/school-rule.prisma.ts`;
+  > backend unit 26 and e2e 173 passed) — it only accepts v4 ids, which every id the app generates is
 
 ### Verification
 

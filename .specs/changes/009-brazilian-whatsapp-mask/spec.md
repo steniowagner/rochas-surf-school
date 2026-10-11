@@ -87,13 +87,18 @@ sent and stored doesn't change: the number is still saved in E.164.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add `toBrazilianDigits(text)` (D-03's clean-up: digits only, a leading `55` dropped when there
+- [x] **T-01** — Add `toBrazilianDigits(text)` (D-03's clean-up: digits only, a leading `55` dropped when there
   are more than 11 digits, capped at 11) and `formatBrazilianPhone(digits)` (D-03's mask) in
   `src/modules/onboarding/utils/brazilian-phone.ts`, with `brazilian-phone.test.ts` covering every digit count
   from 0 to 11, letters, the 12th digit, `+55 …`, a `55` DDD and the no-trailing-separator rule. Follow
   `.claude/rules/react.md` and the `vercel-react-native-skills` skill.
   Covers: ER-01 · Done when: `npx jest src/modules/onboarding/utils/brazilian-phone.test.ts` passes with every
   line of `brazilian-phone.ts` covered.
+  > ✅ 2026-10-11 — added `toBrazilianDigits` and `formatBrazilianPhone` with tests for every digit count 0–11,
+  > letters, 12th digit, `+55 …`, a `55` DDD and the no-trailing-separator rule; files:
+  > `apps/mobile/src/modules/onboarding/utils/brazilian-phone.ts`,
+  > `apps/mobile/src/modules/onboarding/utils/brazilian-phone.test.ts`; verified:
+  > `npx jest src/modules/onboarding/utils/brazilian-phone.test.ts` (22 passed, 100% coverage); deviations: none
 - [ ] **T-02** — Use them in `src/modules/onboarding/components/whatsapp/whatsapp.hook.ts` (D-02, D-04): when the
   country is `BR`, `onChangeText` stores `toBrazilianDigits(text)` and the field value is
   `formatBrazilianPhone(toBrazilianDigits(typed))`; other countries keep the current behavior. In

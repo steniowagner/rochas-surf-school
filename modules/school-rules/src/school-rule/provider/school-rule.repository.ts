@@ -1,14 +1,14 @@
-import { CrudRepository } from "@rochas-surf-school/shared";
 import { SchoolRule } from "../model";
 
-export interface SchoolRulePageParams {
-  page: number;
-  perPage: number;
+export interface SchoolRuleChange {
+  save: SchoolRule[];
+  delete: string[];
+  bumpVersion: boolean;
 }
 
-export interface SchoolRuleRepository extends CrudRepository<
-  SchoolRule,
-  SchoolRule,
-  SchoolRule,
-  SchoolRulePageParams
-> {}
+export interface SchoolRuleRepository {
+  findAll(): Promise<SchoolRule[]>;
+  findById(id: string): Promise<SchoolRule | null>;
+  getVersion(): Promise<number>;
+  apply(change: SchoolRuleChange): Promise<number>;
+}

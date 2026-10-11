@@ -235,12 +235,19 @@ will call.
   > Verified: `npm test --workspace @rochas-surf-school/school-rules` (17 passed, entity 100% covered), lint and
   > check-types exit 0. Deviations: none
 
-- [ ] **T-03** — Repository port `SchoolRuleRepository` in
+- [x] **T-03** — Repository port `SchoolRuleRepository` in
   `modules/school-rules/src/school-rule/provider/school-rule.repository.ts` (`findAll`, `findById`,
   `getVersion`, `apply(change)` per D-14) and its in-memory fake in `modules/school-rules/test/mock/`, which
   applies a change all-or-nothing and keeps the version. Skill:
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: enabling · Done when: the fake's tests (sorting, apply with and without `bumpVersion`) pass.
+  > ✅ 2026-10-11 14:06 — repository port `SchoolRuleRepository` (`findAll`, `findById`, `getVersion`,
+  > `apply(change)`) with `SchoolRuleChange`, and the in-memory fake (all-or-nothing apply, `failNextApply` to
+  > simulate a failed write). Files: `modules/school-rules/src/school-rule/provider/school-rule.repository.ts`,
+  > `modules/school-rules/test/mock/fake-school-rule.repository.ts`, `modules/school-rules/test/mock/index.ts`,
+  > `modules/school-rules/test/school-rule/provider/fake-school-rule.repository.test.ts`. Verified: `npm test
+  > --workspace @rochas-surf-school/school-rules` (23 passed, fake 100% covered), lint and check-types exit 0.
+  > Deviations: none
 
 - [ ] **T-04** — The access checks (`school-rule-access.ts`: approved → else `ForbiddenError`
   `user.status.notApproved`; admin → else `ForbiddenError` `schoolRule.role.notAdmin`, status first), the

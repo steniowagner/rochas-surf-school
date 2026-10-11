@@ -3,7 +3,7 @@ id: "009"
 slug: brazilian-whatsapp-mask
 title: Format Brazilian WhatsApp numbers as they are typed
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-11
 started: 2026-10-11
 base_commit: ec393b3d9c892451b543be0f49409d8c545cdcfc
@@ -115,8 +115,12 @@ sent and stored doesn't change: the number is still saved in E.164.
 
 ### Verification
 
-- [ ] **T-03** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-03** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-11 — ran the Verification Plan's automated commands; files: none; verified:
+  > `run-related-tests.mjs 009` (RELATED TESTS PASSED, 115 passed), `check-coverage.mjs 009` (COVERAGE OK, 2 files at
+  > 100%), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (6 successful); deviations: the manual
+  > iOS simulator check was not run, left for the reviewer/user
 
 ## Verification Plan
 

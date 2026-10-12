@@ -442,12 +442,13 @@ The email is shown bold where `{email}` appears.
   existing tests do (`use-save-whatsapp.hook.test.tsx` and `use-request-reactivation.hook.test.tsx` set
   `gcTime: Infinity`; queries need the same, or clear the client after each test).
   > ✅ 2026-10-12 — the five test files now build their `QueryClient` with `gcTime: Infinity` (the reactivation screen test also for mutations), so no 5-minute timer keeps Jest open; files: `apps/mobile/src/modules/offboarding/{hooks/use-school-whatsapp.hook.test.tsx,components/contact-school-button/contact-school-button.component.test.tsx,screens/denied.screen.test.tsx,screens/removed.screen.test.tsx}`, `apps/mobile/src/modules/reactivation/screens/reactivation.screen.test.tsx`; verified: `npx jest` on each of the five exits on its own (removed 5, denied 6, reactivation screens 12, hooks 3, components 5 passed); deviations: none
-- [ ] **F-02** (tests) — in `contact-school-button.component.test.tsx`, "renders nothing when the school has no
+- [x] **F-02** (tests) — in `contact-school-button.component.test.tsx`, "renders nothing when the school has no
   number" and "renders nothing when the request fails" assert right after `fetch` was called, before the query
   settles, so they pass even when the button is wrongly rendered. Reproduce: change the last line of
   `use-school-whatsapp.hook.ts` to `return data ? (data.whatsappNumber ?? "+1") : null;` — all 5 tests still
   pass. Expected: both tests wait until the query has settled (e.g. the answer was consumed) before asserting
   the button is absent, and fail with that change.
+  > ✅ 2026-10-12 — the null and error tests now wait for the school-settings answer to be consumed before asserting the button is absent; reproduced the reviewer's mutation (`return data ? (data.whatsappNumber ?? "+1") : null;`): "renders nothing when the school has no number" now fails (1 failed, 4 passed), and the original passes (5 passed); file: `apps/mobile/src/modules/offboarding/components/contact-school-button/contact-school-button.component.test.tsx`; deviations: none (the error test can't be hit by that mutation, since no data arrives on error)
 - [ ] **F-03** (convention) — the mobile `Button` gained an `icon` prop (T-03), but the web `Button`
   (`apps/web/src/components/ui/button.tsx`) has none; CLAUDE.md requires the same names and props on both
   platforms. Expected: add the same optional `icon` prop to the web `Button` (with a test), or record an

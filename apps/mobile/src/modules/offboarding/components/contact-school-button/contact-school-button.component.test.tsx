@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
+  act,
   render,
   screen,
   userEvent,
@@ -27,7 +28,11 @@ const answer = (whatsappNumber: string | null) =>
 
 const renderButton = () =>
   render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })
+      }
+    >
       <SessionContext.Provider
         value={{
           user: null,
@@ -40,6 +45,15 @@ const renderButton = () =>
       </SessionContext.Provider>
     </QueryClientProvider>,
   );
+
+// Waits until the school-settings request was made and its answer was consumed, so the query has settled.
+const settled = async () => {
+  await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+  await act(async () => {
+    await fetchMock.mock.results[0].value.catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+};
 
 beforeEach(() => {
   fetchMock.mockReset();
@@ -79,7 +93,7 @@ describe("ContactSchoolButton", () => {
     answer(null);
     await renderButton();
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await settled();
     expect(
       screen.queryByRole("button", { name: "Contact the school" }),
     ).not.toBeOnTheScreen();
@@ -89,7 +103,7 @@ describe("ContactSchoolButton", () => {
     fetchMock.mockRejectedValue(new TypeError("offline"));
     await renderButton();
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await settled();
     expect(
       screen.queryByRole("button", { name: "Contact the school" }),
     ).not.toBeOnTheScreen();

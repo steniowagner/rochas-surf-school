@@ -32,12 +32,12 @@ const deniedUser = (denialReason: string | null): SessionUser => ({
   reactivationStatus: null,
 });
 
-const renderDenied = async (denialReason: string | null) => {
+const renderDenied = async (denialReason: string | null, signedIn = true) => {
   await render(
     <QueryClientProvider client={new QueryClient()}>
       <SessionContext.Provider
         value={{
-          user: deniedUser(denialReason),
+          user: signedIn ? deniedUser(denialReason) : null,
           tokens,
           setSession: jest.fn(),
           clearSession,
@@ -118,5 +118,14 @@ describe("DeniedScreen", () => {
     expect(
       screen.getByRole("button", { name: "Hablar con la escuela" }),
     ).toBeOnTheScreen();
+  });
+
+  it("still renders while the session is being cleared", async () => {
+    await renderDenied(null, false);
+
+    expect(
+      screen.getByRole("header", { name: "Not this time" }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText("Message from the team")).not.toBeOnTheScreen();
   });
 });

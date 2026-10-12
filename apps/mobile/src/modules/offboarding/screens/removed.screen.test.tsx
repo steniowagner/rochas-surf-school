@@ -32,12 +32,15 @@ const removedUser = (reactivationStatus: string | null): SessionUser => ({
   reactivationStatus,
 });
 
-const renderRemoved = async (reactivationStatus: string | null = null) => {
+const renderRemoved = async (
+  reactivationStatus: string | null = null,
+  signedIn = true,
+) => {
   await render(
     <QueryClientProvider client={new QueryClient()}>
       <SessionContext.Provider
         value={{
-          user: removedUser(reactivationStatus),
+          user: signedIn ? removedUser(reactivationStatus) : null,
           tokens,
           setSession: jest.fn(),
           clearSession,
@@ -114,6 +117,16 @@ describe("RemovedScreen", () => {
     expect(screen.getByText("¿Tienes dudas?")).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: "Usar otro email" }),
+    ).toBeOnTheScreen();
+  });
+
+  it("still renders while the session is being cleared", async () => {
+    await renderRemoved(null, false);
+
+    expect(
+      screen.getByRole("header", {
+        name: "You no longer have access to the app",
+      }),
     ).toBeOnTheScreen();
   });
 });

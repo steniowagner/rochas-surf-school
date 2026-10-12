@@ -43,11 +43,11 @@ export const useRequestReactivation = () => {
         return;
       }
 
+      const status = error instanceof ApiError ? error.status : undefined;
       const errorCode = error instanceof ApiError ? error.errors[0] : undefined;
 
       if (
-        error instanceof ApiError &&
-        error.status === 409 &&
+        status === 409 &&
         errorCode === REACTIVATION_DENIED &&
         user &&
         tokens
@@ -57,22 +57,14 @@ export const useRequestReactivation = () => {
         return;
       }
 
-      if (
-        error instanceof ApiError &&
-        error.status === 401 &&
-        errorCode === INVALID_TOKEN
-      ) {
+      if (status === 401 && errorCode === INVALID_TOKEN) {
         alertMessage.show(t("whatsapp.sessionExpired"));
         signOut();
 
         return;
       }
 
-      if (
-        error instanceof ApiError &&
-        error.status === 403 &&
-        errorCode === NOT_DELETED
-      ) {
+      if (status === 403 && errorCode === NOT_DELETED) {
         alertMessage.show(t("reactivation.accountChanged"));
         signOut();
 

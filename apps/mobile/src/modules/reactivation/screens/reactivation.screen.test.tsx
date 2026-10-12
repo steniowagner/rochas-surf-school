@@ -226,4 +226,25 @@ describe("ReactivationScreen", () => {
       screen.getAllByRole("header", { name: "No fue posible reactivarla" }),
     ).not.toHaveLength(0);
   });
+
+  it("still renders while the session is being cleared", async () => {
+    await render(
+      <QueryClientProvider client={new QueryClient()}>
+        <SessionContext.Provider
+          value={{
+            user: null,
+            tokens: null,
+            setSession: jest.fn(),
+            clearSession: jest.fn(),
+          }}
+        >
+          <ReactivationScreen />
+        </SessionContext.Provider>
+      </QueryClientProvider>,
+    );
+
+    expect(
+      screen.getByRole("header", { name: "This account is no longer active" }),
+    ).toBeOnTheScreen();
+  });
 });

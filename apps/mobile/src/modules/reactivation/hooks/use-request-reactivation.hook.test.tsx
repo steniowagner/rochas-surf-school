@@ -3,6 +3,7 @@ import { act, renderHook } from "@testing-library/react-native";
 import { ReactNode } from "react";
 
 import { SessionProvider, useSession } from "@/providers/session";
+import { apiPost } from "@/services/api";
 
 import { useRequestReactivation } from "./use-request-reactivation.hook";
 
@@ -12,6 +13,12 @@ const mockShow = jest.fn();
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
 }));
+
+jest.mock("@/services/api", () => {
+  const actual = jest.requireActual("@/services/api");
+
+  return { ...actual, apiPost: jest.fn(actual.apiPost) };
+});
 
 const user = {
   id: "user-1",
@@ -166,5 +173,44 @@ describe("useRequestReactivation", () => {
       "Something went wrong. Please try again.",
     );
     expect(hook.result.current.session.user).toEqual(user);
+  });
+
+  it("other error shows the generic toast for an unexpected failure", async () => {
+    jest.mocked(apiPost).mockRejectedValueOnce(new Error("boom"));
+    const hook = await renderSignedIn();
+
+    await request(hook);
+
+    expect(mockShow).toHaveBeenCalledWith(
+      "Something went wrong. Please try again.",
+    );
+    expect(hook.result.current.session.user).toEqual(user);
+  });
+
+  it("success without a session leaves the session empty", async () => {
+    respond(200, { ...user, reactivationStatus: "requested" });
+    const hook = await renderHook(
+      () => ({ session: useSession(), request: useRequestReactivation() }),
+      { wrapper },
+    );
+
+    await request(hook);
+
+    expect(hook.result.current.session.user).toBeNull();
+  });
+
+  it("denied without a session shows the generic toast", async () => {
+    respond(409, { errors: ["user.reactivation.denied"] });
+    const hook = await renderHook(
+      () => ({ session: useSession(), request: useRequestReactivation() }),
+      { wrapper },
+    );
+
+    await request(hook);
+
+    expect(mockShow).toHaveBeenCalledWith(
+      "Something went wrong. Please try again.",
+    );
+    expect(hook.result.current.session.user).toBeNull();
   });
 });

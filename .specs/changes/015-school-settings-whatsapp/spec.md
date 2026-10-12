@@ -124,7 +124,7 @@ Removed screens of spec 016 are its first users.
 
 ### School settings module (`modules/school-settings`)
 
-- [ ] **T-01** — Scaffold `modules/school-settings` (`@rochas-surf-school/school-settings`) with the
+- [x] **T-01** — Scaffold `modules/school-settings` (`@rochas-surf-school/school-settings`) with the
   `config-new-module` skill using `--skip-web --skip-mobile` (D-01), keeping the NestJS module it creates in
   `apps/backend/src/modules/school-settings` registered in `AppModule`. Add the `school-settings` aggregate in
   `modules/school-settings/src/school-settings/`: the `SchoolSettings` entity
@@ -139,6 +139,31 @@ Removed screens of spec 016 are its first users.
   Covers: ER-03 · Done when: `npm test --workspace @rochas-surf-school/school-settings` passes and
   `npx turbo run lint check-types build --filter=@rochas-surf-school/school-settings --filter=@rochas-surf-school/backend`
   exits 0.
+  > ✅ 2026-10-11 — scaffolded the module with `config-new-module --module school-settings --skip-web --skip-mobile`
+  > (workspace, backend Nest module + placeholder controller registered in `AppModule`, backend dependency) and the
+  > aggregate with `module-aggregate --mode example`; wrote the `SchoolSettings` entity (optional `whatsappNumber`,
+  > `RequiredRule` + `PhoneNumberRule` under `schoolSettings.whatsappNumber`, plus `SCHOOL_SETTINGS_ID`, the fixed
+  > UUID v4 of the single row — D-02), the `SchoolSettingsRepository` port (`get`, `save`) and
+  > `FakeSchoolSettingsRepository`, with their tests. Files: `modules/school-settings/.oxlintrc.json`,
+  > `modules/school-settings/jest.config.ts`, `modules/school-settings/package.json`,
+  > `modules/school-settings/tsconfig.json`, `modules/school-settings/src/index.ts`,
+  > `modules/school-settings/src/school-settings/index.ts`,
+  > `modules/school-settings/src/school-settings/model/index.ts`,
+  > `modules/school-settings/src/school-settings/model/school-settings.entity.ts`,
+  > `modules/school-settings/src/school-settings/provider/index.ts`,
+  > `modules/school-settings/src/school-settings/provider/school-settings.repository.ts`,
+  > `modules/school-settings/src/school-settings/usecase/index.ts`, `modules/school-settings/test/index.test.ts`,
+  > `modules/school-settings/test/mock/index.ts`, `modules/school-settings/test/mock/fake-school-settings.repository.ts`,
+  > `modules/school-settings/test/school-settings/model/school-settings.entity.test.ts`,
+  > `modules/school-settings/test/school-settings/provider/fake-school-settings.repository.test.ts`,
+  > `apps/backend/src/modules/school-settings/school-settings.module.ts`,
+  > `apps/backend/src/modules/school-settings/school-settings.controller.ts`, `apps/backend/src/app.module.ts`,
+  > `apps/backend/package.json`, `package-lock.json`. Verified: `npm test --workspace @rochas-surf-school/school-settings`
+  > (3 suites, 22 tests passed, 100% coverage); `npx turbo run lint check-types build --filter=…school-settings
+  > --filter=…backend` (14 tasks successful, 0 lint warnings). Deviations: added `@rochas-surf-school/shared`, oxlint
+  > (`.oxlintrc.json`, `lint`) and `check-types` to the module, which the template lacks (technical-context →
+  > Lint); removed the aggregate generator's example `create-school-settings.usecase.ts` (the real use cases are
+  > T-02), leaving `usecase/index.ts` as `export {};`; the scaffolded controller stays a placeholder until T-04.
 
 - [ ] **T-02** — Create `GetSchoolSettings` (input `{ actor }`, any status and role; output
   `SchoolSettingsOut = { whatsappNumber: string | null }`) and `SetSchoolWhatsapp` (input

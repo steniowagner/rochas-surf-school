@@ -383,8 +383,9 @@ request is sent. The app sends it from the Account deleted screen (spec 016).
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker. The web app is still on its framework
-template. The real screens of each flow (every student, instructor and admin screen, the admin's school rules
-screen and a screen to read the rules at any time included), reloading the account when the app returns from the
+template. The real screens of each flow (every student and instructor screen, every admin screen besides the
+School tools home and "Join the school", the admin's school rules screen and a screen to read the rules at any
+time included), reloading the account when the app returns from the
 background (a rule change or an admin's decision is seen at the next launch or session renewal), signing out from any
 screen other than the Pending and closed-account screens, and Apple sign-in don't exist yet.
 
@@ -430,6 +431,20 @@ app returns to sign-in with "Your session expired. Sign in again." once (in pt-B
 offline or a backend outage never signs anyone out. On iOS a still-valid session can survive reinstalling the
 app.
 
+**Admins decide registrations** (spec `019-admin-registration-decisions`) — an approved admin who finished
+onboarding opens the admin home, "School tools", with one tool so far: "Join the school", which shows how many
+registrations are waiting. The tool lists a card per pending account, oldest first, with initials, name, email
+and when the person asked ("Asked just now", a relative time, then the date after a week), and Deny and Approve.
+Approve acts at once; Deny opens a sheet with an optional reason of up to 500 characters, shown to the person on
+the Denied screen exactly as written (trimmed; a blank reason counts as none). A decided card leaves the list and
+the person appears under "Decided just now" with "Approved" or "Denied" — newest first, only for the current
+visit to the tool. Every decision is final: a registration already decided, by another admin or at the same
+moment, is refused, and the app says "This registration was already decided." and reloads the list. Only an
+approved admin may list or decide registrations; a pending account of any role is one. The person sees the decision at the
+next launch, sign-in or session renewal (no notifications yet). The card, the "Decided just now" list and the
+deny sheet are built to be reused by "Reactivate accounts" and "Class enrolments". All copy is in pt-BR, es-ES and
+en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -439,6 +454,8 @@ Active specs: none.
 - WhatsApp messages sent by the app, and email notifications.
 - Saved lists of time ranges.
 - Undoing admin decisions.
+- A stored history of registration decisions (who decided, when an account was approved): "Decided just now"
+  lasts only for the admin's visit to the tool (spec 019); and searching, filtering or paging the registrations.
 - Reporting comments or photos.
 - Translating text written by admins.
 - Checking a cancellation rule's wording when it's saved.

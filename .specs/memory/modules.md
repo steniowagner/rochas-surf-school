@@ -14,8 +14,9 @@ Email delivery is treated as **infrastructure**, not as a business module.
 
 Takes care of who people are and how they get in: their accounts (one per email address, with a role and an
 approval status), the ways they sign in (Google, Apple, a code sent by email), the sign-in codes themselves
-and the sessions that keep them signed in. It does not decide registrations or anything about classes; those
-belong to the modules that come with their specs.
+and the sessions that keep them signed in. It also lets admins decide registrations — approving or denying
+each account waiting for approval, once and for good. It does not decide anything about classes; that belongs to
+the modules that come with their specs.
 It groups four areas: **Accounts**, **Identities**, **Sign-in codes** and **Sessions**.
 
 - Where it physically lives: `modules/auth`

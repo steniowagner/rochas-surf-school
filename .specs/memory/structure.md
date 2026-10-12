@@ -51,12 +51,16 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 `usecase/`, and an `index.ts` barrel; tests in `modules/<m>/test/` mirror `src/`, with fakes in `test/mock/`.
 
 - **`modules/auth`** (`@rochas-surf-school/auth`) — 4 aggregates:
-  - `user/` — `model/user.entity.ts`, `provider/user.repository.ts` (with `addRulesAcceptance`),
+  - `user/` — `model/user.entity.ts`, `provider/user.repository.ts` (with `addRulesAcceptance`, `findPending`
+    and `updateIfPending`, the conditional write of a registration decision),
     `provider/rules-version.provider.ts` (`RulesVersionProvider`: the current school rules version, read
     without depending on `school-rules`),
     `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
     and `usecase/account.out.ts` (`AccountOut` / `toAccountOut`: the account shape every answer carries, with
-    `rulesAccepted`, `denialReason` and `reactivationStatus`).
+    `rulesAccepted`, `denialReason` and `reactivationStatus`);
+    `usecase/{list-registrations,approve-registration,deny-registration}.usecase.ts` with
+    `usecase/registration-access.ts` (approved-admin check, status first) and `usecase/pending-registration.ts`
+    (`findPendingRegistration`: UUID check, 404, 409).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
     `provider/google-id-token.provider.ts` (`GoogleIdTokenProvider`: verifies a Google ID token),
     `usecase/{create-identity,sign-in-with-google}.usecase.ts`.
@@ -111,6 +115,8 @@ src/
                                 # POST /auth/google (200), POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
                                 # PUT /auth/me/whatsapp and POST /auth/me/reactivation-request (200) (protected)
     auth.integration.http       # manual REST Client requests
+    registrations.controller.ts # GET /registrations, POST /registrations/:id/approve and /deny (200) — protected
+    registrations.integration.http  # manual REST Client requests
     auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser, GOOGLE_WEB_CLIENT_ID
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
     rules-version.prisma.ts     # PrismaRulesVersionProvider (reads the single rules_versions row)
@@ -140,6 +146,7 @@ test/
   auth-whatsapp.e2e-spec.ts     # e2e suite of PUT /auth/me/whatsapp (approved accounts created through Prisma)
   auth-reactivation.e2e-spec.ts # e2e suite of POST /auth/me/reactivation-request (accounts in each state through Prisma)
   auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
+  registrations.e2e-spec.ts     # e2e suite of the /registrations routes (accounts through Prisma; concurrency)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
   school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
   school-settings.e2e-spec.ts   # e2e suite of the /school-settings routes (accounts in each status and role through Prisma)
@@ -174,6 +181,7 @@ src/
     (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
     (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
     (private)/{student,instructor,admin}/{_layout,index}.tsx # role experiences (/student, /instructor, /admin)
+    (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations)
   navigation/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
                                 # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
@@ -183,8 +191,18 @@ src/
     splash-gate/                # SplashGate: keeps the native splash screen until the fonts are ready and the
                                 # stored session was restored, then renders its children (StatusBar, RootNavigator)
     rules-update-layout.test.tsx  # layout test of the rules-update group (a test under src/app would be a route)
-  modules/{student,instructor,admin}/screens/
+  modules/{student,instructor}/screens/
                                 # each role's screens (placeholders showing the flow's name for now)
+  modules/admin/
+    screens/admin.screen.tsx    # admin home: "School tools" with the "Join the school" row and its pending count
+    screens/registrations.screen.tsx  # "Join the school": DecisionCards (pull-to-refresh, loading, empty,
+                                # error + retry), DecidedList, one DenySheet
+    registrations.types.ts      # Registration, RegistrationsResponse, RegistrationDecision (mirror the API)
+    hooks/                      # use-registrations (query ["registrations"]), use-approve-registration,
+                                # use-deny-registration (mutations), use-registrations-screen (the screen's logic:
+                                # decisions, "Decided just now", the sheet, toasts)
+    utils/                      # registration-error.ts (API error → translation key), registrations-cache.ts
+                                # (removeRegistration: drop a decided item from the cache and invalidate)
   modules/offboarding/
     screens/                    # denied.screen.tsx (reason card when given), removed.screen.tsx — both on
                                 # AccountStatus with ContactSchoolButton and "Use another email" (sign-out)
@@ -218,7 +236,6 @@ src/
   modules/pending/
     screens/pending.screen.tsx  # Pending screen (waiting for approval, sign-out)
     components/                 # pending (header, timeline, sign-out; ticks every 60 s), pending-step (one row)
-    utils/format-created-at.ts  # the "Account created" label: "now", relative up to 7 days, then the date
   modules/auth/
     screens/                    # auth.screen.tsx, email-choice.screen.tsx, email-sign-in.screen.tsx,
                                 # create-account.screen.tsx, confirm-code.screen.tsx, google-name.screen.tsx
@@ -241,7 +258,11 @@ src/
                                 # google-sign-in-error.ts (Google / API error → translation key, or null to ignore)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
-                                # text-input, toast, checkbox
+                                # text-input, text-area, toast, checkbox
+  components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard), decided-list
+                                # ("Decided just now"), deny-sheet (DenySheet: optional reason in a bottom sheet)
+  utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the
+                                # date), get-initials.ts
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession: the session store exposed to React
                                 # (user, tokens, isRestoring, setSession, updateUser, clearSession); starts the restore

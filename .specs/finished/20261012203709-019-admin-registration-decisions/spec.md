@@ -2,13 +2,14 @@
 id: "019"
 slug: admin-registration-decisions
 title: Admins approve or deny registrations ("Join the school")
-status: accepted
+status: finished
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 52df631cada869d940b43771d00f61ab6391ef1c
 reviewed_commit: a72aa1a093042e9574509f12c02f566e4d5d7cc2
 fronts: [auth, backend, mobile]
 depends_on: []
+finished: 2026-10-12
 ---
 
 # 019 — Admins approve or deny registrations ("Join the school")

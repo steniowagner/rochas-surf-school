@@ -2,7 +2,7 @@
 id: "019"
 slug: admin-registration-decisions
 title: Admins approve or deny registrations ("Join the school")
-status: in-progress
+status: in-review
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 52df631cada869d940b43771d00f61ab6391ef1c
@@ -85,7 +85,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 | D-01 | Registration decisions belong to `modules/auth`, `user` aggregate: `ListRegistrations`, `ApproveRegistration`, `DenyRegistration` in `src/user/usecase/`, the access check in `src/user/usecase/registration-access.ts`. The backend routes live in a new `registrations.controller.ts` in `apps/backend/src/modules/auth/`. `spec-finish` updates the module boundary in `modules.md` and `auth.md`. | A registration is a `pending` user; a separate module would write users through auth anyway. Chosen by the user over a new `account-lifecycle` module. |
 | D-02 | `GET /registrations` → 200 `{ items: [{ id, name, email, createdAt }] }`: every user with status `pending`, any role, ordered by `createdAt` ascending (oldest first), unpaginated; `createdAt` an ISO 8601 string in UTC. `POST /registrations/:id/approve` and `POST /registrations/:id/deny` (body `{ reason? }`) → 200 `{ id, status }` (`"approved"` / `"denied"`). | One school: the pending list stays short. The answer carries only what the card shows. |
 | D-03 | Access, checked first on all three routes: status other than `approved` → 403 `user.status.notApproved`; approved non-admin → 403 `user.role.notAdmin`. No token → 401 `auth.token.invalid` (the guard). | Product: only admins decide registrations; same order as `school-rule-access.ts`. |
-| D-04 | Then, on approve and deny: an id that isn't a UUID or names no user → 404 `registration.notFound` (a malformed id is detected in the use case, without a lookup); a user whose status isn't `pending` → 409 `registration.status.notPending`; then the reason (deny only): a `reason` that is present and not a string → 422 `registration.reason.invalid`; longer than 500 characters after trimming → 422 `user.denialReason.maxLength` (the entity's rule). Nothing is written on any error. | Stable, translatable keys; a stale list or a second admin get a clear "already decided". |
+| D-04 | Then, on approve and deny: an id that isn't a UUID or names no user → 404 `registration.notFound` (a malformed id is detected in the use case, without a lookup); a user whose status isn't `pending` → 409 `registration.status.notPending`; then the reason (deny only): a `reason` that is present and not a string → 422 `registration.reason.invalid`; longer than 500 characters after trimming → 422 `user.denialReason.max.length` (the entity's rule). Nothing is written on any error. | Stable, translatable keys; a stale list or a second admin get a clear "already decided". |
 | D-05 | A decision is written with a conditional update: new `UserRepository.updateIfPending(user): Promise<boolean>`, implemented in Prisma as `updateMany({ where: { id, status: 'pending' }, data })`, returning whether a row changed. `false` → 409 `registration.status.notPending`. | `update()` is unconditional: two concurrent decisions would both succeed and the second would overwrite the first, breaking "decisions are final". |
 | D-06 | Deny trims the reason; absent, `null`, empty or whitespace-only means no reason (`denialReason` stays empty). `deniedAt` = the `ClockProvider`'s now. Approve changes only `status`. Neither changes the role or anything else. | Requirements §1.2; the Denied screen already treats a blank reason as none. |
 | D-07 | New `UserRepository.findPending(): Promise<User[]>` (status `pending`, `createdAt` ascending). | The list query the repository doesn't have. |
@@ -171,7 +171,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   has status `denied`, `denial_reason` `Não conhecemos você.` and `denied_at` set to the request time, and P's
   `GET /auth/me` answers `denialReason: "Não conhecemos você."`.
 - **Edge and error cases:** no body, no `reason`, `null`, `""` or `"   "` → denied with `denialReason: null`; a
-  reason of 500 characters is accepted; 501 characters after trimming → 422 `user.denialReason.maxLength` and P
+  reason of 500 characters is accepted; 501 characters after trimming → 422 `user.denialReason.max.length` and P
   stays pending; a non-string `reason` (e.g. `42`) → 422 `registration.reason.invalid` and P stays pending.
 - **Verify by:** `apps/backend/test/registrations.e2e-spec.ts` → "denies with a trimmed reason", "denies without
   a reason" and "refuses an invalid reason", and `modules/auth/test/user/usecase/deny-registration.usecase.test.ts`.
@@ -467,6 +467,8 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 
 ## Amendments
 
+- 2026-10-12 — D-04 and ER-04: the 422 for a reason over 500 characters is `user.denialReason.max.length` (was `user.denialReason.maxLength`). Reason: that is the key the entity rule (shared `MaxLengthRule`) really produces and the e2e and use case tests assert; the documented spelling never existed. T-04's text still says the old key (done work isn't rewritten). Approved by the user (review finding F-02).
+
 ## Review
 
 ### Round 1 — 2026-10-12 — changes-requested
@@ -517,12 +519,12 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   current))` in both places), plus a screen test for this case.
   > ✅ 2026-10-12 16:46 — a decision now closes only its own deny sheet (`closeDenyOf`: `setDenying((current) => current?.id === registration.id ? null : current)`, used on success and on 409); reproduced first with a new screen test (approve held, Bruno's sheet opened with a reason, release) which fails with the old code and passes now; also made the concurrency e2e use distinct reasons ("by first" / "by second") so the row shows which request won (reviewer note); files: `apps/mobile/src/modules/admin/hooks/use-registrations-screen.hook.ts`, `apps/mobile/src/modules/admin/screens/registrations.screen.test.tsx`, `apps/backend/test/registrations.e2e-spec.ts`; verified: `npx jest src/modules/admin` (49 passed), `npx vitest run --config vitest.config.e2e.ts test/registrations.e2e-spec.ts` (22 passed), eslint and oxlint clean
 
-- [ ] **F-02** (ER-04, D-04) — a reason over 500 characters answers 422 `user.denialReason.max.length` (the entity
+- [x] **F-02** (ER-04, D-04) — a reason over 500 characters answers 422 `user.denialReason.max.length` (the entity
   rule's real key, asserted by the e2e and use case tests), while D-04 and ER-04 promise `user.denialReason.maxLength`.
   The deviation is only noted in T-04's evidence; no Amendment records it, and `spec-finish` writes the contract's
   keys into the memory. Reproduce: `POST /registrations/{id}/deny` with a 501-character reason. Expected: either
   amend D-04/ER-04 to the entity's key with `/spec-plan --amend 019`, or make the API answer the documented key.
-  > ⛔ 2026-10-12 16:46 — needs your decision: the key is part of the contract (D-04, ER-04), so I won't change it alone. Option A: amend D-04/ER-04 to the entity rule's real key `user.denialReason.max.length` (a one-key amendment). Option B: keep the contract and make the API answer `user.denialReason.maxLength`.
+  > ✅ 2026-10-12 16:48 — settled by amendment (see Amendments): D-04 and ER-04 now name `user.denialReason.max.length`, the key the API already answers; no code change; verified: `node .specs/scripts/check-spec.mjs 019`
 
 **Notes**
 

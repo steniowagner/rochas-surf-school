@@ -2,7 +2,7 @@
 id: "016"
 slug: closed-account-screens
 title: Denied, Account deleted and Access removed screens
-status: in-review
+status: changes-requested
 started: 2026-10-11
 base_commit: 0e3b64851a703cefd14f99087941cf1e78276629
 created: 2026-10-11
@@ -405,3 +405,56 @@ The email is shown bold where `{email}` appears.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-12 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (apps/mobile; mobile has no build script)
+- related tests ✅ `RELATED TESTS PASSED` (apps/mobile, 42 changed files) · whole mobile suite ✅ 58 suites, 620 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (12 files); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` — no suite applies (mobile has none, D-08)
+- each Expected Result's `Verify by` command ❌ — every filter matches and passes, but five of the new test files
+  keep Jest from exiting (F-01)
+- user journeys: not re-driven on the simulator this round (the findings below already require another round);
+  the executor's T-08 evidence covers journeys 1–8, with 8 only partly
+
+**Expected Results**
+
+- ER-01 ✅ — reason shown as stored (line break and accent), eyebrow/title/bold email; no back button
+- ER-02 ✅ — `null` and `"   "` hide the card
+- ER-03 ❌ — behavior correct in code (`wa.me/<digits>`, hidden while loading/on error/on null, toast on reject),
+  but the component tests of the null and error cases don't prove it (F-02)
+- ER-04 ✅ — card, contact button, no reactivation even with a stored `reactivationStatus`
+- ER-05 ✅ · ER-06 ✅ (in-place switch, one request on a double tap) · ER-07 ✅ · ER-08 ✅ (stored and after 409)
+- ER-09 ✅ — 401, 403, no connection, other error each tested in the hook
+- ER-10 ✅ — "Use another email" signs out from all five states (component tests)
+- ER-11 ✅ — `-t "spanish"` passes in the three screen files; copy matches the Copy table in all three languages
+
+**Findings**
+
+- [ ] **F-01** (tests) — `use-school-whatsapp.hook.test.tsx`, `contact-school-button.component.test.tsx`,
+  `denied.screen.test.tsx`, `removed.screen.test.tsx` and `reactivation.screen.test.tsx` create
+  `new QueryClient()` with the default `gcTime`, so the 5-minute garbage-collection timers keep Jest open after
+  the run: each `Verify by` command of ER-01–ER-08 and ER-11 prints its results and then hangs ("Jest did not
+  exit one second after the test run has completed"). Reproduce (from `apps/mobile`):
+  `npx jest src/modules/offboarding/screens/removed.screen.test.tsx` — never exits. Expected: it exits like the
+  existing tests do (`use-save-whatsapp.hook.test.tsx` and `use-request-reactivation.hook.test.tsx` set
+  `gcTime: Infinity`; queries need the same, or clear the client after each test).
+- [ ] **F-02** (tests) — in `contact-school-button.component.test.tsx`, "renders nothing when the school has no
+  number" and "renders nothing when the request fails" assert right after `fetch` was called, before the query
+  settles, so they pass even when the button is wrongly rendered. Reproduce: change the last line of
+  `use-school-whatsapp.hook.ts` to `return data ? (data.whatsappNumber ?? "+1") : null;` — all 5 tests still
+  pass. Expected: both tests wait until the query has settled (e.g. the answer was consumed) before asserting
+  the button is absent, and fail with that change.
+- [ ] **F-03** (convention) — the mobile `Button` gained an `icon` prop (T-03), but the web `Button`
+  (`apps/web/src/components/ui/button.tsx`) has none; CLAUDE.md requires the same names and props on both
+  platforms. Expected: add the same optional `icon` prop to the web `Button` (with a test), or record an
+  amendment that explains the exception. Either way, list the `Button` change under `## Memory Impact`.
+
+**Notes**
+
+- `AccountStatus` repeats the Pending screen's raw values (`px-[22px]`, icon `size={30}`); not a finding since it
+  follows the existing screen, but both could move to tokens later.
+- Next round: drive at least journeys 1, 3 and 4 on the simulator in light mode and journey 8 in pt-BR/es-ES on
+  the Denied screen, which T-08 left undriven.

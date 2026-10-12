@@ -78,7 +78,14 @@ const renderStep = () =>
       }
     >
       <SessionContext.Provider
-        value={{ user, tokens, setSession, clearSession: jest.fn() }}
+        value={{
+          user,
+          tokens,
+          setSession,
+          clearSession: jest.fn(),
+          isRestoring: false,
+          updateUser: jest.fn(),
+        }}
       >
         <SchoolRulesAcceptance
           eyebrow="Last step"

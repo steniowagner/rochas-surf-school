@@ -58,6 +58,8 @@ function SignedIn({ status }: { status: string | null }) {
     tokens: session?.tokens ?? null,
     setSession,
     clearSession: () => setSession(null),
+    isRestoring: false,
+    updateUser: jest.fn(),
   };
 
   return (
@@ -254,6 +256,8 @@ describe("ReactivationScreen", () => {
             tokens: null,
             setSession: jest.fn(),
             clearSession: jest.fn(),
+            isRestoring: false,
+            updateUser: jest.fn(),
           }}
         >
           <ReactivationScreen />

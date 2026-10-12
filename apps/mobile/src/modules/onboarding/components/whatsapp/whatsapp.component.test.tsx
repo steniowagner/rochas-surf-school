@@ -71,6 +71,8 @@ function SignedInSession({
     tokens: session?.tokens ?? null,
     setSession,
     clearSession: () => setSession(null),
+    isRestoring: false,
+    updateUser: jest.fn(),
   };
   useImperativeHandle(currentSession, () => value);
 

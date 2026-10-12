@@ -94,7 +94,14 @@ const renderScreen = () =>
       }
     >
       <SessionContext.Provider
-        value={{ user, tokens, setSession, clearSession: jest.fn() }}
+        value={{
+          user,
+          tokens,
+          setSession,
+          clearSession: jest.fn(),
+          isRestoring: false,
+          updateUser: jest.fn(),
+        }}
       >
         <RulesUpdateScreen />
       </SessionContext.Provider>
@@ -299,6 +306,8 @@ describe("RulesUpdateScreen on its route", () => {
           tokens: session?.tokens ?? null,
           setSession: setSessionState,
           clearSession: () => setSessionState(null),
+          isRestoring: false,
+          updateUser: jest.fn(),
         }}
       >
         {children}

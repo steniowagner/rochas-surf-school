@@ -35,6 +35,17 @@ beforeEach(() => {
 });
 
 describe("session store", () => {
+  it("resets to the state of a fresh launch", () => {
+    store.setSession(sessionOf(1));
+    store.resetSessionStore();
+
+    expect(store.getSnapshot()).toEqual({
+      session: null,
+      restoring: true,
+      expired: false,
+    });
+  });
+
   it("notifies subscribers and stops after unsubscribe", () => {
     const listener = jest.fn();
     const unsubscribe = store.subscribe(listener);

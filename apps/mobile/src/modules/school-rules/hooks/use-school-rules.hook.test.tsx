@@ -26,7 +26,14 @@ let queryClient: QueryClient;
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={queryClient}>
     <SessionContext.Provider
-      value={{ user: null, tokens, setSession: jest.fn(), clearSession }}
+      value={{
+        user: null,
+        tokens,
+        setSession: jest.fn(),
+        clearSession,
+        isRestoring: false,
+        updateUser: jest.fn(),
+      }}
     >
       {children}
     </SessionContext.Provider>

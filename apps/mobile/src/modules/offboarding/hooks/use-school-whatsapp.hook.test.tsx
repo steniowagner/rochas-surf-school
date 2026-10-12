@@ -27,6 +27,8 @@ const wrapper = ({ children }: { children: ReactNode }) => (
         tokens,
         setSession: jest.fn(),
         clearSession: jest.fn(),
+        isRestoring: false,
+        updateUser: jest.fn(),
       }}
     >
       {children}

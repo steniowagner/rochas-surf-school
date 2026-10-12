@@ -48,6 +48,8 @@ const renderRemoved = async (
           tokens,
           setSession: jest.fn(),
           clearSession,
+          isRestoring: false,
+          updateUser: jest.fn(),
         }}
       >
         <RemovedScreen />

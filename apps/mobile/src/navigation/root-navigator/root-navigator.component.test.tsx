@@ -57,10 +57,12 @@ function TestSessionProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     tokens,
+    isRestoring: false,
     setSession: (next: Session) => {
       setUser(next.user);
       setTokens(next.tokens);
     },
+    updateUser: (next: SessionUser) => setUser(next),
     clearSession: () => {
       setUser(null);
       setTokens(null);

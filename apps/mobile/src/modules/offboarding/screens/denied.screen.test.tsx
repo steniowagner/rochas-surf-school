@@ -45,6 +45,8 @@ const renderDenied = async (denialReason: string | null, signedIn = true) => {
           tokens,
           setSession: jest.fn(),
           clearSession,
+          isRestoring: false,
+          updateUser: jest.fn(),
         }}
       >
         <DeniedScreen />

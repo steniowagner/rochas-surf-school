@@ -23,6 +23,13 @@ const setState = (patch: Partial<SessionState>) => {
   listeners.forEach((listener) => listener());
 };
 
+/** For tests: back to the state of a fresh launch. */
+export const resetSessionStore = () => {
+  generation += 1;
+  refreshInFlight = null;
+  setState({ session: null, restoring: true, expired: false });
+};
+
 export const subscribe = (listener: () => void) => {
   listeners.add(listener);
 

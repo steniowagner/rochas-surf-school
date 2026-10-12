@@ -1,5 +1,16 @@
-import { render, screen, userEvent } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
+import * as SecureStore from "expo-secure-store";
 import { Text, TouchableOpacity } from "react-native";
+
+import {
+  resetSessionStore,
+  setSession as storeSetSession,
+} from "@/services/session/session.store";
 
 import { SessionProvider } from "./session.provider";
 import { useSession } from "./use-session";
@@ -27,10 +38,16 @@ const tokensOf = {
 };
 
 function Probe() {
-  const { user, tokens, setSession, clearSession } = useSession();
+  const { user, tokens, isRestoring, setSession, updateUser, clearSession } =
+    useSession();
 
   return (
     <>
+      <Text>{isRestoring ? "restoring" : "restored"}</Text>
+      <TouchableOpacity onPress={() => updateUser({ ...ana, name: "Ana B" })}>
+        <Text>rename</Text>
+      </TouchableOpacity>
+      <Text>{user ? `name ${user.name}` : "no name"}</Text>
       <Text>{user ? `signed in as ${user.email}` : "signed out"}</Text>
       <Text>{tokens ? `refresh ${tokens.refreshToken}` : "no tokens"}</Text>
       <TouchableOpacity
@@ -45,7 +62,76 @@ function Probe() {
   );
 }
 
+const fetchMock = jest.fn();
+
+beforeEach(async () => {
+  resetSessionStore();
+  fetchMock.mockReset();
+  globalThis.fetch = fetchMock;
+  process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+});
+
 describe("SessionProvider", () => {
+  it("is restoring until the stored session is read", async () => {
+    await SecureStore.setItemAsync(
+      "session.tokens",
+      JSON.stringify({
+        ...tokensOf,
+        accessTokenExpiresAt: "2099-01-01T00:00:00.000Z",
+      }),
+    );
+    await SecureStore.setItemAsync("session.user", JSON.stringify(ana));
+    let answer!: (value: unknown) => void;
+    fetchMock.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+
+    await render(
+      <SessionProvider>
+        <Probe />
+      </SessionProvider>,
+    );
+
+    expect(screen.getByText("restoring")).toBeOnTheScreen();
+
+    answer({
+      ok: true,
+      status: 200,
+      json: async () => ({ ...ana, name: "Ana Reloaded" }),
+    });
+
+    expect(await screen.findByText("restored")).toBeOnTheScreen();
+    expect(screen.getByText("name Ana Reloaded")).toBeOnTheScreen();
+    expect(
+      screen.getByText("signed in as ana.silva@gmail.com"),
+    ).toBeOnTheScreen();
+  });
+
+  it("finishes restoring signed out with nothing stored", async () => {
+    await render(
+      <SessionProvider>
+        <Probe />
+      </SessionProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText("restored")).toBeOnTheScreen());
+    expect(screen.getByText("signed out")).toBeOnTheScreen();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("updates the account and keeps the tokens", async () => {
+    storeSetSession({ user: ana, tokens: tokensOf });
+    const user = userEvent.setup();
+    await render(
+      <SessionProvider>
+        <Probe />
+      </SessionProvider>,
+    );
+
+    await user.press(screen.getByText("rename"));
+
+    expect(screen.getByText("name Ana B")).toBeOnTheScreen();
+    expect(screen.getByText("refresh refresh-1")).toBeOnTheScreen();
+  });
+
   it("starts with no user", async () => {
     await render(
       <SessionProvider>

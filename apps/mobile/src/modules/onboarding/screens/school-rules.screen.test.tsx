@@ -62,6 +62,8 @@ function TestSessionProvider({ children }: { children: ReactNode }) {
         tokens: session?.tokens ?? null,
         setSession,
         clearSession: () => setSession(null),
+        isRestoring: false,
+        updateUser: jest.fn(),
       }}
     >
       {children}

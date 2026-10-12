@@ -4,7 +4,6 @@ import { useFonts } from "expo-font";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
 import { useColorScheme, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
@@ -12,6 +11,7 @@ import "@/global.css";
 import { FontAssets } from "@/constants/theme";
 import { themeVariables } from "@/constants/theme-variables";
 import { RootNavigator } from "@/navigation/root-navigator";
+import { SplashGate } from "@/navigation/splash-gate";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider } from "@/providers/session";
 // Initializes i18n before any screen renders, so the first frame is already translated.
@@ -25,19 +25,9 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  // Keep the native splash screen up until the design-system fonts are ready.
+  // The native splash screen stays up until the design-system fonts are ready and the stored session was restored (SplashGate).
   const [fontsLoaded, fontError] = useFonts(FontAssets);
-  const isReady = fontsLoaded || !!fontError;
-
-  useEffect(() => {
-    if (isReady) {
-      void SplashScreen.hideAsync();
-    }
-  }, [isReady]);
-
-  if (!isReady) {
-    return null;
-  }
+  const fontsReady = fontsLoaded || !!fontError;
 
   const scheme = colorScheme === "dark" ? "dark" : "light";
 
@@ -50,8 +40,10 @@ export default function RootLayout() {
             <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
               <AlertMessageProvider>
                 <SessionProvider>
-                  <StatusBar style="auto" />
-                  <RootNavigator />
+                  <SplashGate fontsReady={fontsReady}>
+                    <StatusBar style="auto" />
+                    <RootNavigator />
+                  </SplashGate>
                 </SessionProvider>
               </AlertMessageProvider>
             </ThemeProvider>

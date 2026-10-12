@@ -47,6 +47,8 @@ const renderPending = (session: Partial<SessionContextValue> = {}) => {
     tokens,
     setSession: jest.fn(),
     clearSession,
+    isRestoring: false,
+    updateUser: jest.fn(),
     ...session,
   };
   const wrapper = ({ children }: { children: ReactNode }) => (

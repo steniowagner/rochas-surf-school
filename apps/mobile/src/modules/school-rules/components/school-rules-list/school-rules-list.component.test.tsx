@@ -52,6 +52,8 @@ const renderList = () =>
           tokens,
           setSession: jest.fn(),
           clearSession: jest.fn(),
+          isRestoring: false,
+          updateUser: jest.fn(),
         }}
       >
         <SchoolRulesList />

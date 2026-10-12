@@ -3,6 +3,7 @@
 import "react-native-gesture-handler/jestSetup";
 
 import i18n from "@/i18n";
+import { resetSessionStore } from "@/services/session/session.store";
 
 jest.mock("expo-localization", () => ({
   getLocales: jest.fn(() => [{ languageCode: "en" }]),
@@ -61,6 +62,8 @@ jest.mock("expo-secure-store", () => ({
 }));
 
 beforeEach(() => {
+  // The session store is module state: every test starts as a fresh launch.
+  resetSessionStore();
   mockSecureStoreData.clear();
   const SecureStore = jest.requireMock("expo-secure-store");
   SecureStore.getItemAsync.mockClear();

@@ -2,10 +2,11 @@
 id: "019"
 slug: admin-registration-decisions
 title: Admins approve or deny registrations ("Join the school")
-status: in-review
+status: accepted
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 52df631cada869d940b43771d00f61ab6391ef1c
+reviewed_commit: a72aa1a093042e9574509f12c02f566e4d5d7cc2
 fronts: [auth, backend, mobile]
 depends_on: []
 ---
@@ -540,3 +541,38 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 - Memory Impact misses: `BottomModal` now forwards `onClose` to the sheet (drag-to-close reaches the caller),
   `getInitials` in `apps/mobile/src/utils/`, and `pending-registration.ts` / `registrations-cache.ts` /
   `use-registrations-screen.hook.ts`.
+
+### Round 2 — 2026-10-12 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, backend, mobile) · build ✅ (auth, backend)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend, apps/mobile, modules/auth, modules/school-rules)
+- whole mobile suite ✅ 84 suites, 842 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (27 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (256 tests, `registrations.e2e-spec.ts` included)
+- mobile: not re-driven in the simulator; the only code change since round 1 is the F-01 fix, which a new screen
+  test covers
+
+**Expected Results**
+
+- ER-01 ✅ · ER-02 ✅ · ER-03 ✅ — unchanged since round 1; e2e green
+- ER-04 ✅ — the amendment of D-04/ER-04 to `user.denialReason.max.length` is logged under Amendments and matches
+  the API (F-02 closed)
+- ER-05 ✅ — the concurrency e2e now sends distinct reasons and asserts the stored row matches the winner
+- ER-06 ✅ · ER-07 ✅ — unchanged since round 1
+- ER-08 ✅ — `closeDenyOf` closes only the deciding registration's sheet; screen test "keeps another card's sheet
+  and reason open when a decision finishes" holds Ana's approve, opens Bruno's sheet with "abc", releases, and
+  asserts "Deny Bruno Lima?" and "3/500" remain (F-01 closed)
+- ER-09 ✅ · ER-10 ✅ (409 still closes the sheet only for its own registration) · ER-11 ✅
+
+**Findings**
+
+- none
+
+**Notes**
+
+- Round 1 notes on Memory Impact still apply: `spec-finish` should also record `BottomModal` forwarding
+  `onClose`, `getInitials` in `apps/mobile/src/utils/`, and `pending-registration.ts` / `registrations-cache.ts` /
+  `use-registrations-screen.hook.ts`.
+- Journey 6 (pt-BR / es-ES on a device) is still only checked against the message files.

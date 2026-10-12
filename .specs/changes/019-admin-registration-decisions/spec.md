@@ -290,7 +290,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   100% coverage.
   > ✅ 2026-10-12 16:21 — added the access check and `ListRegistrations` (by hand following the existing use case pattern; skill not run), exported from the barrel; files: `modules/auth/src/user/usecase/registration-access.ts`, `modules/auth/src/user/usecase/list-registrations.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/registration-access.test.ts`, `modules/auth/test/user/usecase/list-registrations.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (272 passed, both files 100%), `check-types` exit 0; deviations: none
 
-- [ ] **T-03** — Create `modules/auth/src/user/usecase/approve-registration.usecase.ts` (`ApproveRegistration`,
+- [x] **T-03** — Create `modules/auth/src/user/usecase/approve-registration.usecase.ts` (`ApproveRegistration`,
   in `{ actor, registrationId }`, out `{ id, status }`): access check, malformed or unknown id → 404
   `registration.notFound`, not pending → 409, `clone({ status: "approved" })`, `validate()`, `updateIfPending` →
   `false` gives 409 (D-04, D-05, D-06). Tests in `approve-registration.usecase.test.ts`, including the
@@ -298,8 +298,9 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02, ER-03, ER-05 · Done when: `npm test --workspace @rochas-surf-school/auth` passes with the file at
   100% coverage.
+  > ✅ 2026-10-12 16:21 — added `ApproveRegistration` plus a shared `findPendingRegistration` helper (UUID check, 404, 409) used by T-04 too; files: `modules/auth/src/user/usecase/approve-registration.usecase.ts`, `modules/auth/src/user/usecase/pending-registration.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/approve-registration.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (296 passed, file 100%); deviations: helper file added (not in the spec) to avoid duplicating the lookup in T-04; skill not run
 
-- [ ] **T-04** — Create `modules/auth/src/user/usecase/deny-registration.usecase.ts` (`DenyRegistration`, in
+- [x] **T-04** — Create `modules/auth/src/user/usecase/deny-registration.usecase.ts` (`DenyRegistration`, in
   `{ actor, registrationId, reason? }` with `reason` typed `unknown` at the boundary, out `{ id, status }`, with the
   `ClockProvider`): the checks of T-03, then the reason rules of D-04 and D-06 (non-string → 422
   `registration.reason.invalid`; trimmed; blank → none; `validate()` gives `user.denialReason.maxLength` over
@@ -308,6 +309,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02, ER-04, ER-05 · Done when: `npm test --workspace @rochas-surf-school/auth` passes with the file at
   100% coverage, and `npm run lint --workspace @rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-12 16:21 — added `DenyRegistration` (reason typed `unknown`, trimmed, blank → none, non-string → 422 `registration.reason.invalid` as a `ValidationException`, `deniedAt` from the clock); files: `modules/auth/src/user/usecase/deny-registration.usecase.ts`, `modules/auth/test/user/usecase/deny-registration.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (296 passed, file 100%), `npm run lint --workspace @rochas-surf-school/auth` exit 0, `check-types` exit 0; deviations: the entity rule's real key is `user.denialReason.max.length` (the spec says `user.denialReason.maxLength`); I kept the entity's key as D-04 says "the entity's rule", so the 422 for 501 characters carries `user.denialReason.max.length` — mobile and e2e must use that key; skill not run
 
 ### Backend (`apps/backend`)
 

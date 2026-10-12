@@ -72,6 +72,8 @@ export class AuthConfig {
   readonly codePepper: string;
   readonly refreshTokenTtlDays: number;
   readonly reviewAccounts: ReviewAccount[];
+  /** Audience of Google ID tokens. Optional outside production: without it every Google token is refused. */
+  readonly googleWebClientId?: string;
 
   constructor(configService: ConfigService) {
     const pepper = configService.get<string>('AUTH_CODE_PEPPER');
@@ -83,6 +85,12 @@ export class AuthConfig {
       configService.get<string>('REFRESH_TOKEN_EXPIRES_IN_DAYS'),
     );
     this.reviewAccounts = parseReviewAccounts(configService.get<string>('REVIEW_ACCOUNTS'));
+
+    const googleWebClientId = configService.get<string>('GOOGLE_WEB_CLIENT_ID')?.trim();
+    if (!googleWebClientId && configService.get<string>('NODE_ENV') === 'production') {
+      throw new Error('GOOGLE_WEB_CLIENT_ID is not configured');
+    }
+    this.googleWebClientId = googleWebClientId || undefined;
   }
 
   /** Review-account email → its fixed code, for `RequestSignInCode`. */

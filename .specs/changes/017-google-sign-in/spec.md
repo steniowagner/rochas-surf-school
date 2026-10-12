@@ -282,7 +282,7 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Add `google-auth-library` to `apps/backend`; implement `GoogleAuthIdTokenProvider` in
+- [x] **T-02** — Add `google-auth-library` to `apps/backend`; implement `GoogleAuthIdTokenProvider` in
   `apps/backend/src/modules/auth/google.id-token.ts` (D-04, D-06) and register it in `auth.module.ts`; make
   `AuthConfig` read `GOOGLE_WEB_CLIENT_ID` (required in production, D-06). Tests:
   `google.id-token.spec.ts` (`OAuth2Client.verifyIdToken` mocked: maps the payload, `audience`, `rejects` on a
@@ -292,6 +292,17 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   Covers: ER-04, ER-07 · Done when:
   `npx vitest run src/modules/auth/google.id-token.spec.ts src/modules/auth/auth.config.spec.ts` passes (from
   `apps/backend`).
+  > ✅ 2026-10-12 — installed `google-auth-library` (^11.2.0); added `GoogleAuthIdTokenProvider` (audience from
+  > `AuthConfig.googleWebClientId`, rejects with no client id, on a library error or a payload without
+  > `sub`/`email`), registered it in the module, and made `AuthConfig` read `GOOGLE_WEB_CLIENT_ID` (required in
+  > production); files: `apps/backend/package.json`, `package-lock.json`,
+  > `apps/backend/src/modules/auth/google.id-token.ts`, `apps/backend/src/modules/auth/google.id-token.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.config.ts`, `apps/backend/src/modules/auth/auth.config.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.module.ts`; verified: `npx vitest run
+  > src/modules/auth/google.id-token.spec.ts src/modules/auth/auth.config.spec.ts` (31 passed) and
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/backend` (exit 0, after rebuilding the auth
+  > module's output); deviations: the provider takes `AuthConfig` (not `ConfigService`) so the production check
+  > lives in one place.
 
 - [ ] **T-03** — Expose `POST /auth/google` in `apps/backend/src/modules/auth/auth.controller.ts` (D-05), with
   its cases in `auth.controller.spec.ts` and requests in `auth.integration.http`; add

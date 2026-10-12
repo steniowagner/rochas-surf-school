@@ -2,13 +2,14 @@
 id: "016"
 slug: closed-account-screens
 title: Denied, Account deleted and Access removed screens
-status: accepted
+status: finished
 started: 2026-10-11
 base_commit: 0e3b64851a703cefd14f99087941cf1e78276629
 reviewed_commit: 69f94253c1467d14d4a50f2055fe8f34adc43109
 created: 2026-10-11
 fronts: [mobile]
 depends_on: ["014", "015"]
+finished: 2026-10-12
 ---
 
 # 016 — Denied, Account deleted and Access removed screens

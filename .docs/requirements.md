@@ -182,8 +182,9 @@ The system SHALL notify a person when their registration is approved or denied, 
 #### Denied registration screen
 
 _Implemented in spec 014-account-reactivation-request._
+_Implemented in spec 016-closed-account-screens._
 
-A person whose registration was denied SHALL see the denial, with its reason when one was given, and a button that opens WhatsApp on their phone with a chat to the school's number.
+A person whose registration was denied SHALL see the denial, with its reason when one was given, and, when the school has a WhatsApp number, a button that opens WhatsApp on their phone with a chat to the school's number.
 
 - _Denied person opens the app:_ When a person whose registration was denied opens the app, then they see the denial and its reason, and they can open a WhatsApp chat with the school.
 
@@ -234,6 +235,8 @@ When the system erases an account, it SHALL remove the account's name, email add
 
 #### Account deleted screen
 
+_Implemented in spec 016-closed-account-screens._
+
 Signing in with a deleted account during its reactivation window SHALL show an "Account deleted" screen that offers to request reactivation or to sign in with another email address.
 
 - _Deleted user signs in:_ When a person signs in with an account deleted less than 30 days ago, then they see the "Account deleted" screen with both options.
@@ -241,6 +244,7 @@ Signing in with a deleted account during its reactivation window SHALL show an "
 #### One reactivation request
 
 _Implemented in spec 014-account-reactivation-request._
+_Implemented in spec 016-closed-account-screens._
 
 A deleted account SHALL be able to send one reactivation request, from the app. Once that request is denied, the account SHALL NOT be able to request reactivation again.
 
@@ -261,6 +265,8 @@ Approving a reactivation request SHALL restore the account, its history and its 
 - _Reactivated student:_ When an admin approves the reactivation of a student who had upcoming seats when they deleted their account, then the student can use the app again with their history and role, and their cancelled seats are not restored.
 
 #### Removal by admins
+
+_Implemented in spec 016-closed-account-screens._
 
 Admins SHALL be able to remove a user. Removing SHALL close the account and cancel its upcoming seats, pending requests and class assignments, as deleting does. A removed user SHALL see that their access was removed and a button to contact the school on WhatsApp, and SHALL NOT be able to request reactivation.
 

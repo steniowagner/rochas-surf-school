@@ -375,15 +375,15 @@ backend now also carries the reason a registration was denied (or nothing, when 
 whether the account's reactivation request was sent or denied, whatever the account's status. A deleted
 account, of any role, sends its one reactivation request through the backend, which records when it was sent;
 sending it again changes nothing, after a denial it is refused, and an account that isn't deleted can't send
-one. Only the backend exists: no screen uses it yet (spec 016), admins aren't notified of a request and can't
-decide it yet, and the 30-day window isn't checked when a request is sent.
+one. Admins aren't notified of a request and can't decide it yet, and the 30-day window isn't checked when a
+request is sent. The app sends it from the Account deleted screen (spec 016).
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
 The web app is still on its framework template. Keeping the session across app restarts, the real screens of
-each flow (account deleted and reactivation, the denied and removed screens, and every student, instructor and
-admin screen, the admin's school rules screen and a screen to read the rules at any time included), renewing a
+each flow (every student, instructor and admin screen, the admin's school rules screen and a screen to read the
+rules at any time included), renewing a
 session, seeing a rule change while the app is open or when it returns from the background, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
@@ -391,10 +391,22 @@ screen other than the Pending screen, and Google and Apple sign-in don't exist y
 the school's WhatsApp number through the backend, with its country code and no spaces or other characters (the
 same shape as a user's number); it can be replaced but never emptied, and the last save wins. Any signed-in
 account, whatever its role or status, reads it (nothing until one is set), so denied and removed accounts can
-use it. Only the backend exists: no screen sets or uses the number yet (the admin's settings screens and spec
-016), and the waiting-list switch of the school settings isn't built.
+use it. No screen sets the number yet (the admin's settings screens); the Denied and Access removed screens use
+it (spec 016). The waiting-list switch of the school settings isn't built.
 
-Active spec: `016-closed-account-screens` (the Denied and Account deleted screens), planned.
+**Closed-account screens in the app** (spec `016-closed-account-screens`) — a denied, deleted or removed account
+now opens the real screen of its state instead of a placeholder, all built on one shared layout: why the
+account is closed, the address it signed in with, and "Usar outro email", which signs out at once (even
+offline) and returns to sign-in. The Denied screen shows the admin's reason exactly as written in a "Mensagem
+da equipe" card (no card when no reason was given); the Access removed screen says the account can't be
+reactivated from the app. Both offer "Falar com a escola", which opens a WhatsApp chat with the school's number
+— only when the school has one; while it loads, when it fails or when there is none, the button isn't shown.
+The Account deleted screen has three states: not requested, with "Pedir reativação", which sends the one
+request and switches the screen to "Pedido enviado" in place; requested, waiting for the team; and denied, with
+only "Usar outro email". An admin's decision is seen at the next sign-in, since there are no notifications and
+the session isn't refreshed while the screen is open. All copy is in pt-BR, es-ES and en-US.
+
+Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
 

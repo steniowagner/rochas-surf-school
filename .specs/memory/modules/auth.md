@@ -139,9 +139,20 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   a number opens School rules directly. School rules is still empty, and onboarding never completes yet, so no
   account reaches its role's experience. The WhatsApp step has no back button and no sign-out; if the session
   expired while saving, the app says so and signs out.
-- **In the app**, signing out (from the Pending screen, for now) forgets the session on the phone at once and
-  returns to the sign-in screen, then asks the backend to end that sign-in without waiting for the answer — so
-  it works offline too.
+- **In the app**, signing out (from the Pending screen, and "Use another email" on every closed-account screen)
+  forgets the session on the phone at once and returns to the sign-in screen, then asks the backend to end that
+  sign-in without waiting for the answer — so it works offline too.
+- **In the app**, a denied account sees that its registration wasn't approved, the address it signed in with,
+  and the admin's reason exactly as written ("Message from the team"; nothing when no reason was given), and can
+  contact the school on WhatsApp when the school has a number.
+- **In the app**, a deleted account sees the Account deleted screen in the state of its request: not requested,
+  with "Request reactivation", which sends its one request and switches the screen to "Request sent" in place;
+  requested, waiting for the team; or denied, with only "Use another email". The decision is seen at the next
+  sign-in. If the account changed meanwhile (no longer deleted) or the session expired, the app says so and
+  signs out.
+- **In the app**, a removed account sees that its access was removed and can't be reactivated from the app, and
+  can contact the school on WhatsApp when the school has a number; a stored reactivation status changes
+  nothing for it.
 
 ## Boundaries
 
@@ -184,3 +195,7 @@ of the account lifecycle still to be specified.
 - `014-account-reactivation-request` — every answer that carries the account gives the denial reason and the
   reactivation status; a deleted account sends its one reactivation request (`POST /auth/me/reactivation-request`),
   stored with when it was sent; a repeat changes nothing and a denied request can't be sent again.
+- `016-closed-account-screens` — the app's Denied, Account deleted (not requested, requested, denied) and
+  Access removed screens replace the placeholders: the denial reason, the reactivation request sent from the
+  screen, "Contact the school" on WhatsApp for denied and removed accounts, and "Use another email" (sign-out)
+  on every state.

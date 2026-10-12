@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react-native";
 import { router } from "expo-router";
 import { ReactElement } from "react";
-import { Keyboard } from "react-native";
+import { Keyboard, Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -64,6 +64,16 @@ describe("GoogleName", () => {
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toHaveDisplayValue(
       "Maria",
     );
+  });
+
+  it("renders the form on Android, where the keyboard does not add padding", async () => {
+    const original = Platform.OS;
+    Platform.OS = "android";
+
+    await renderScreen(<GoogleName idToken="token" />);
+
+    expect(getButton()).toBeOnTheScreen();
+    Platform.OS = original;
   });
 
   it("starts with an empty field when Google gave no name", async () => {

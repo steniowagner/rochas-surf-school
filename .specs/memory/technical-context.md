@@ -459,6 +459,7 @@ apps/backend/src/main.ts                  # bootstrap only; exercised by the e2e
 apps/backend/src/**/*.module.ts           # Nest wiring (imports/providers lists); exercised by the e2e suite
 apps/backend/src/generated/**             # Prisma client, generated
 apps/backend/prisma/seed/main.ts          # seed runner; the seed tasks themselves are tested
+apps/mobile/jest.setup.ts                 # test setup (native mocks); loaded by Jest before every test, not as source
 apps/mobile/src/app/**                    # Expo Router routes that only render a screen; screens are tested
 apps/web/src/**                           # static public content pages; checked in a browser by the reviewer
 packages/design-tokens/**                 # token data and the CSS generator, verified by its check-types (--check)

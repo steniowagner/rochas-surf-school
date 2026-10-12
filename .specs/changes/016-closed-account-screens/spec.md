@@ -2,7 +2,7 @@
 id: "016"
 slug: closed-account-screens
 title: Denied, Account deleted and Access removed screens
-status: changes-requested
+status: in-progress
 started: 2026-10-11
 base_commit: 0e3b64851a703cefd14f99087941cf1e78276629
 created: 2026-10-11
@@ -433,7 +433,7 @@ The email is shown bold where `{email}` appears.
 
 **Findings**
 
-- [ ] **F-01** (tests) — `use-school-whatsapp.hook.test.tsx`, `contact-school-button.component.test.tsx`,
+- [x] **F-01** (tests) — `use-school-whatsapp.hook.test.tsx`, `contact-school-button.component.test.tsx`,
   `denied.screen.test.tsx`, `removed.screen.test.tsx` and `reactivation.screen.test.tsx` create
   `new QueryClient()` with the default `gcTime`, so the 5-minute garbage-collection timers keep Jest open after
   the run: each `Verify by` command of ER-01–ER-08 and ER-11 prints its results and then hangs ("Jest did not
@@ -441,6 +441,7 @@ The email is shown bold where `{email}` appears.
   `npx jest src/modules/offboarding/screens/removed.screen.test.tsx` — never exits. Expected: it exits like the
   existing tests do (`use-save-whatsapp.hook.test.tsx` and `use-request-reactivation.hook.test.tsx` set
   `gcTime: Infinity`; queries need the same, or clear the client after each test).
+  > ✅ 2026-10-12 — the five test files now build their `QueryClient` with `gcTime: Infinity` (the reactivation screen test also for mutations), so no 5-minute timer keeps Jest open; files: `apps/mobile/src/modules/offboarding/{hooks/use-school-whatsapp.hook.test.tsx,components/contact-school-button/contact-school-button.component.test.tsx,screens/denied.screen.test.tsx,screens/removed.screen.test.tsx}`, `apps/mobile/src/modules/reactivation/screens/reactivation.screen.test.tsx`; verified: `npx jest` on each of the five exits on its own (removed 5, denied 6, reactivation screens 12, hooks 3, components 5 passed); deviations: none
 - [ ] **F-02** (tests) — in `contact-school-button.component.test.tsx`, "renders nothing when the school has no
   number" and "renders nothing when the request fails" assert right after `fetch` was called, before the query
   settles, so they pass even when the button is wrongly rendered. Reproduce: change the last line of

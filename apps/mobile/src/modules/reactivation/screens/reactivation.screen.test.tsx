@@ -69,7 +69,16 @@ function SignedIn({ status }: { status: string | null }) {
 
 const renderScreen = async (status: string | null = null) => {
   await render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider
+      client={
+        new QueryClient({
+          defaultOptions: {
+            queries: { gcTime: Infinity },
+            mutations: { gcTime: Infinity },
+          },
+        })
+      }
+    >
       <SignedIn status={status} />
     </QueryClientProvider>,
   );
@@ -229,7 +238,16 @@ describe("ReactivationScreen", () => {
 
   it("still renders while the session is being cleared", async () => {
     await render(
-      <QueryClientProvider client={new QueryClient()}>
+      <QueryClientProvider
+        client={
+          new QueryClient({
+            defaultOptions: {
+              queries: { gcTime: Infinity },
+              mutations: { gcTime: Infinity },
+            },
+          })
+        }
+      >
         <SessionContext.Provider
           value={{
             user: null,

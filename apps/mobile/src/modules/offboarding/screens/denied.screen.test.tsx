@@ -34,7 +34,11 @@ const deniedUser = (denialReason: string | null): SessionUser => ({
 
 const renderDenied = async (denialReason: string | null, signedIn = true) => {
   await render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })
+      }
+    >
       <SessionContext.Provider
         value={{
           user: signedIn ? deniedUser(denialReason) : null,

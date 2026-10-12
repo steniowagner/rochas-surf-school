@@ -37,7 +37,11 @@ const renderRemoved = async (
   signedIn = true,
 ) => {
   await render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })
+      }
+    >
       <SessionContext.Provider
         value={{
           user: signedIn ? removedUser(reactivationStatus) : null,

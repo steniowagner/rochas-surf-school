@@ -16,7 +16,11 @@ const tokens = {
 };
 
 const wrapper = ({ children }: { children: ReactNode }) => (
-  <QueryClientProvider client={new QueryClient()}>
+  <QueryClientProvider
+    client={
+      new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })
+    }
+  >
     <SessionContext.Provider
       value={{
         user: null,

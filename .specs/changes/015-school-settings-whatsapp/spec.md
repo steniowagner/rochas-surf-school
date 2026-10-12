@@ -258,9 +258,17 @@ Removed screens of spec 016 are its first users.
 
 ### Verification
 
-- [ ] **T-05** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-05** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every Verification Plan command exits 0, with `COVERAGE OK` and
   `E2E PASSED` printed.
+  > ✅ 2026-10-11 — ran the Verification Plan from the repo root (local Postgres up, migrations applied):
+  > `node .specs/scripts/run-related-tests.mjs 015` → RELATED TESTS PASSED (apps/backend vitest ✅,
+  > modules/school-settings jest ✅ 57 tests, 100% coverage); `node .specs/scripts/check-coverage.mjs 015` →
+  > COVERAGE OK (6 measured files at 100%; 2 type-only, 7 excluded by technical-context);
+  > `node .specs/scripts/run-e2e.mjs 015` → E2E PASSED (7 files, 227 tests, `school-settings.e2e-spec.ts`
+  > included); `npm test --workspace @rochas-surf-school/school-settings` → 5 suites, 57 tests passed;
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/school-settings
+  > --filter=@rochas-surf-school/backend` → 14 tasks successful, exit 0. Files: this spec only. Deviations: none.
 
 ## Verification Plan
 

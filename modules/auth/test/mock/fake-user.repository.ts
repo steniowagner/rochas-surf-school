@@ -51,6 +51,20 @@ export class FakeUserRepository implements UserRepository {
     return this.users.find((item) => item.email === email) ?? null;
   }
 
+  async findPending(): Promise<User[]> {
+    return this.users
+      .filter((item) => item.status === "pending")
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  async updateIfPending(user: User): Promise<boolean> {
+    const index = this.users.findIndex((item) => item.equals(user));
+    if (index === -1 || this.users[index].status !== "pending") return false;
+
+    this.users[index] = user;
+    return true;
+  }
+
   async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {
     const index = this.users.findIndex((item) => item.id === userId);
     const user = this.users[index];

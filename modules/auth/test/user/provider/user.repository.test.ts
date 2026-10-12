@@ -65,3 +65,49 @@ describe("UserRepository.addRulesAcceptance (fake)", () => {
     expect(ana.rulesAcceptances).toEqual([]);
   });
 });
+
+describe("UserRepository.findPending (fake)", () => {
+  test("lists only pending users, oldest first", async () => {
+    const newer = buildUser({
+      name: "Bia Souza",
+      email: "bia@example.com",
+      status: "pending",
+      createdAt: new Date("2026-10-02T10:00:00.000Z"),
+    });
+    const older = buildUser({
+      status: "pending",
+      createdAt: new Date("2026-10-01T10:00:00.000Z"),
+    });
+    const approved = buildUser({ name: "Carla Dias", email: "carla@example.com" });
+    const userRepository = new FakeUserRepository([newer, approved, older]);
+
+    await expect(userRepository.findPending()).resolves.toEqual([older, newer]);
+  });
+});
+
+describe("UserRepository.updateIfPending (fake)", () => {
+  test("writes a pending user and answers true", async () => {
+    const ana = buildUser({ status: "pending" });
+    const userRepository = new FakeUserRepository([ana]);
+    const approved = ana.clone({ status: "approved" });
+
+    await expect(userRepository.updateIfPending(approved)).resolves.toBe(true);
+    await expect(userRepository.findById(ana.id)).resolves.toBe(approved);
+  });
+
+  test("keeps a user that is no longer pending and answers false", async () => {
+    const ana = buildUser({ status: "denied" });
+    const userRepository = new FakeUserRepository([ana]);
+
+    await expect(
+      userRepository.updateIfPending(ana.clone({ status: "approved" })),
+    ).resolves.toBe(false);
+    await expect(userRepository.findById(ana.id)).resolves.toBe(ana);
+  });
+
+  test("answers false for an unknown user", async () => {
+    const userRepository = new FakeUserRepository([]);
+
+    await expect(userRepository.updateIfPending(buildUser())).resolves.toBe(false);
+  });
+});

@@ -268,7 +268,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Add `findPending(): Promise<User[]>` (status `pending`, `createdAt` ascending; D-07) and
+- [x] **T-01** — Add `findPending(): Promise<User[]>` (status `pending`, `createdAt` ascending; D-07) and
   `updateIfPending(user: User): Promise<boolean>` (writes the user only while its stored status is `pending`;
   D-05) to `UserRepository` in `modules/auth/src/user/provider/user.repository.ts`, and implement both in the
   in-memory `modules/auth/test/mock/fake-user.repository.ts` (test code, exercised by the use case tests of T-02
@@ -277,6 +277,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/auth` and
   `npm run check-types --workspace @rochas-surf-school/auth` pass (the backend's `PrismaUserRepository` gets the
   methods in T-05; until then `check-types` of the backend is expected to fail and is run after T-05).
+  > ✅ 2026-10-12 16:20 — added `findPending` and `updateIfPending` to the port and the fake (by hand, the pattern is in the existing repository; skill not run); files: `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/user/provider/user.repository.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (261 passed), `npm run check-types --workspace @rochas-surf-school/auth` exit 0; deviations: fake tests added in the existing repository test file
 
 - [ ] **T-02** — Create `modules/auth/src/user/usecase/registration-access.ts` (`RegistrationActor { id, role,
   status }`, `assertCanDecideRegistrations(actor)`: D-03 order and keys) and `list-registrations.usecase.ts`

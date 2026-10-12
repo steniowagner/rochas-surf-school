@@ -2,7 +2,7 @@
 id: "017"
 slug: google-sign-in
 title: Google sign-in
-status: in-review
+status: changes-requested
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 1790b1b6902bf9c2ee7ac684db4e5566eb884681
@@ -505,3 +505,59 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-12 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, backend, mobile) · build ✅ (auth, backend)
+- related tests ✅ backend 74 passed · mobile 519 passed · modules/auth 178 passed · modules/school-rules 113 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (20 files); no coverage-ignore comments in the diff; the
+  `apps/mobile/jest.setup.ts` exclusion added in T-11 (approved by the user) holds, since it is test setup, not source
+- e2e: backend suite ✅ 234 passed (`auth-google.e2e-spec.ts` included, migrations up to date)
+
+**Expected Results**
+
+- ER-01 ✅ — use case `new account` (normalized email, `google` identity with the `sub`, one refresh token) and e2e
+  `creates a pending account` (rows checked through Prisma); body name replacing Google's covered by `name from the body`
+- ER-02 ✅ — `links an existing account` (body name ignored, no new user), `any status` for all five statuses, e2e
+  `links an email account`
+- ER-03 ✅ — `known identity` (email unchanged, nothing created on a second sign-in) and e2e `signs in a known identity`
+- ER-04 ✅ — 422 `idToken.token.required` for no body / `""` / `42` without calling the provider, 401
+  `auth.google.tokenInvalid` on rejection, nothing written (use case, controller spec, `google.id-token.spec.ts`
+  `rejects`, e2e `requires a token` / `refuses an invalid token`)
+- ER-05 ✅ — false and absent `email_verified` refused even with an existing account and identity; e2e
+  `refuses an unverified email` checks no identity and no refresh token
+- ER-06 ✅ — one-word, absent and 81-character names answer `user.name.*` and write nothing; retry with a body name
+  creates the account (use case and e2e `asks for a name`)
+- ER-07 ✅ — `auth.config.spec.ts` (unset/empty/blank throws in production, optional elsewhere, trimmed) and
+  `google.id-token.spec.ts` (`no client id` doesn't call Google; `audience` passed)
+- ER-08 ✅ — `signs in`, `loading`, `ignores a second tap`, Android-only Play Services check; button spinner and
+  disabled state in `auth.component.test.tsx`
+- ER-09 ✅ — cancelled / `SIGN_IN_CANCELLED` / `IN_PROGRESS` silent with no API call; Play Services, no connection,
+  both 401s, generic; loading cleared every time. The pt-BR and es-ES copy matches D-12 word for word (checked in
+  the diff; the `Messages` type keeps the locales' keys in line)
+- ER-10 ✅ — prefilled field, Create account's error on blur, button disabled for an invalid name, `{ idToken, name }`
+  sent trimmed, spinner, session on 200, expired token → toast + `router.replace("/auth")`, `BackButton`
+- ER-11 ✅ — `hides Apple` on iOS and Android
+- ER-12 ✅ — `signOut()` not awaited (a never-settling promise doesn't block), failure ignored, called without tokens
+  and no API request
+- ER-13 ✅ — journey performed by the user (T-10 evidence); database checked again in this review: one `users` row
+  (`steniowagner1@gmail.com`, "Stenio Wagner", `pending`, `student`) with one `google` identity
+  (`105189725173134382392`)
+
+**Findings**
+
+- [ ] **F-01** (convention) — `apps/mobile/src/modules/auth/components/google-name/google-name.hook.ts` lines 10–11
+  import `../../utils/google-sign-in-error` before `../../utils/field-validation`; `.claude/rules/react.md` §2 sorts
+  each import group alphabetically by module path (lint doesn't enforce it). Expected: `field-validation` first,
+  then `google-sign-in-error`.
+
+**Notes**
+
+- Two simultaneous first sign-ins with the same Google account would race on `@@unique([provider, providerUserId])`
+  (or on the user's email) and the loser would get a 500. The spec doesn't ask for it and a double tap is already
+  guarded in the app, so this is not a finding. It could be handled when sessions are hardened.
+- On "Your name", a one-word Google name is prefilled with the button disabled, and the error only shows after the
+  field is blurred, as on Create account. The person may not see why "Continue" is disabled. It meets ER-10, but a
+  later design pass could show the error straight away for a prefilled value.

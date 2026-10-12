@@ -303,14 +303,14 @@ the account is (name, email, role, status and when it was created, whatever its 
 before the 15-minute access token runs out, and sign out, which ends that one sign-in and leaves the account's
 other devices signed in. Every request reloads the account's role and status, so an approval, a denial, a
 removal or a role change takes effect at once. Reusing an old refresh token ends that whole sign-in. The app
-doesn't use these yet.
+uses them to keep and renew its session (spec 018).
 
 **One flow per account state in the app** (spec `005-mobile-flow-routing`) — after a correct code, the app
 opens the part of the app that matches the account: a pending account goes to its own waiting screen (spec 006), an approved one to
 the student, instructor or admin experience of its role, a deleted one to reactivation, and a denied or removed
 one to its own offboarding screen. Nobody can reach another part of the app, and going back after signing in
 doesn't return to the sign-in screens. Each part shows only its name for now; its real screens come with their
-specs. The app keeps the account in memory only, so closing it signs the person out.
+specs. The session survives closing the app (spec 018).
 
 **Pending screen and sign-out in the app** (spec `006-mobile-pending-screen`) — a pending account, whatever
 its role, opens the Pending screen instead of onboarding: it tells the person the school still has to approve
@@ -383,9 +383,9 @@ request is sent. The app sends it from the Account deleted screen (spec 016).
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker. The web app is still on its framework
-template. Keeping the session across app restarts, the real screens of each flow (every student, instructor and
-admin screen, the admin's school rules screen and a screen to read the rules at any time included), renewing a
-session, seeing a rule change while the app is open or when it returns from the background, signing out from any
+template. The real screens of each flow (every student, instructor and admin screen, the admin's school rules
+screen and a screen to read the rules at any time included), reloading the account when the app returns from the
+background (a rule change or an admin's decision is seen at the next launch or session renewal), signing out from any
 screen other than the Pending and closed-account screens, and Apple sign-in don't exist yet.
 
 **The school's WhatsApp number on the backend** (spec `015-school-settings-whatsapp`) — an approved admin sets
@@ -404,8 +404,8 @@ reactivated from the app. Both offer "Falar com a escola", which opens a WhatsAp
 — only when the school has one; while it loads, when it fails or when there is none, the button isn't shown.
 The Account deleted screen has three states: not requested, with "Pedir reativação", which sends the one
 request and switches the screen to "Pedido enviado" in place; requested, waiting for the team; and denied, with
-only "Usar outro email". An admin's decision is seen at the next sign-in, since there are no notifications and
-the session isn't refreshed while the screen is open. All copy is in pt-BR, es-ES and en-US.
+only "Usar outro email". An admin's decision is seen at the next launch or sign-in, or when the session renews
+while the screen is open (spec 018), since there are no notifications. All copy is in pt-BR, es-ES and en-US.
 
 **Google sign-in** (spec `017-google-sign-in`) — "Continue with Google" on the sign-in screen signs in or signs
 up with a Google account, on iOS and Android. The backend checks Google's token and opens the one account for
@@ -418,6 +418,17 @@ picker shows nothing; every other failure shows one short message in the app's l
 out of Google, so the next Google sign-in shows the account picker. The Apple button is hidden until Apple
 sign-in is built; Google's profile photo isn't stored, and Google sign-in on Android hasn't been tried on a
 device yet.
+
+**Staying signed in on the phone** (spec `018-mobile-session-persistence`) — a signed-in person stays signed in
+when they close and reopen the app: the session is kept on the device, and at launch the app reloads the account
+behind the splash screen and opens the part of the app that matches it now (an approval or a role change made
+while the app was closed is seen at once). Offline, or when the backend doesn't answer within about 8 seconds,
+the app opens by the last known account. The session renews by itself while the app is used, and a renewal
+also brings the account's current state, so it can move the person to their new part of the app. The person is
+signed out only by "Sign out" (or "Usar outro email") or when the backend refuses to renew the session: then the
+app returns to sign-in with "Your session expired. Sign in again." once (in pt-BR, es-ES and en-US). Being
+offline or a backend outage never signs anyone out. On iOS a still-valid session can survive reinstalling the
+app.
 
 Active specs: none.
 
@@ -439,6 +450,8 @@ Active specs: none.
   kept).
 - Withdrawing an acceptance of the school rules, and an admin view of who accepted which version.
 - Signing out of every device at once: signing out ends the sign-in of one device only.
+- A biometric or PIN lock on the session kept on the phone, and an offline screen or banner (spec 018 opens an
+  offline launch by the last known account).
 - Using the Google profile photo as the account's photo (spec 017 doesn't store it), and Google One Tap /
   automatic sign-in.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address

@@ -108,6 +108,9 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **Signing out ends one sign-in**: it uses the refresh token, so it works after the access token expired; the
   account's other devices stay signed in. It always succeeds, and an unknown, expired or ended token changes
   nothing. A missing refresh token is refused with `refreshToken.token.required` (on renewal too).
+- **On the phone, a session ends only two ways**: the person signs out, or the backend refuses to renew it. Being
+  offline, a timeout, a server error or a throttled renewal never ends it. A renewal also brings the account as it
+  is now, so the app follows a status or role change made meanwhile.
 
 ## Who can do what
 
@@ -148,7 +151,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   it saves the number and visibility and opens the School rules step, without a way back. An account that has
   a number opens School rules directly. School rules is still empty, and onboarding never completes yet, so no
   account reaches its role's experience. The WhatsApp step has no back button and no sign-out; if the session
-  expired while saving, the app says so and signs out.
+  expired while saving, the app says so once and returns to sign-in.
 - **In the app**, "Continue with Google" opens Google's account picker and signs the person in to the account
   the backend finds or creates, into the part of the app that matches it (Pending for a new account); the button
   shows its loading state and ignores another tap meanwhile. When Google's name doesn't fit, the "Your name"
@@ -159,14 +162,21 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   forgets the session on the phone at once and returns to the sign-in screen, then asks the backend to end that
   sign-in without waiting for the answer — so it works offline too. It also signs out of Google, so the next
   Google sign-in shows the account picker.
+- **In the app**, the session is kept on the phone, so closing and reopening the app keeps the person signed in:
+  at launch, behind the splash screen, the app reloads the account and opens the part that matches it now;
+  offline (or after about 8 seconds without an answer) it opens by the last known account. The session renews by
+  itself before the access token runs out and after a refused token, one renewal at a time. When the backend
+  refuses the renewal, the app forgets the session, returns to sign-in and shows "Your session expired. Sign in
+  again." once, however many calls failed together. Signing out while a renewal runs ends the newest token that
+  renewal produced.
 - **In the app**, a denied account sees that its registration wasn't approved, the address it signed in with,
   and the admin's reason exactly as written ("Message from the team"; nothing when no reason was given), and can
   contact the school on WhatsApp when the school has a number.
 - **In the app**, a deleted account sees the Account deleted screen in the state of its request: not requested,
   with "Request reactivation", which sends its one request and switches the screen to "Request sent" in place;
   requested, waiting for the team; or denied, with only "Use another email". The decision is seen at the next
-  sign-in. If the account changed meanwhile (no longer deleted) or the session expired, the app says so and
-  signs out.
+  launch or sign-in, or when the session renews. If the account changed meanwhile (no longer deleted), the app
+  says so and signs out; an expired session is handled as everywhere in the app.
 - **In the app**, a removed account sees that its access was removed and can't be reactivated from the app, and
   can contact the school on WhatsApp when the school has a number; a stored reactivation status changes
   nothing for it.
@@ -221,3 +231,7 @@ of the account lifecycle still to be specified.
   new pending student; unverified Google addresses refused; a new account needs a name that fits the rules
   ("Your name" in the app); the app's "Continue with Google" works, the Apple button is hidden, and signing out
   also signs out of Google.
+- `018-mobile-session-persistence` — the app keeps the session on the phone (`expo-secure-store`) and restores it
+  at launch behind the splash screen, reloading the account; it renews the session before expiry and after a
+  401, one refresh at a time, storing the returned account; only a refused renewal or a sign-out ends it, with one
+  "session expired" message; sign-out waits for a running renewal to end its newest token.

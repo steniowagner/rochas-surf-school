@@ -2,13 +2,14 @@
 id: "018"
 slug: mobile-session-persistence
 title: Keep the mobile session across restarts and renew it automatically
-status: accepted
+status: finished
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 4bc742aef5c332d7981363bbfc3c41e4acffd757
 reviewed_commit: 67f71e17039e527996f92d6ed3b5dd851f70c71a
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-12
 ---
 
 # 018 — Keep the mobile session across restarts and renew it automatically

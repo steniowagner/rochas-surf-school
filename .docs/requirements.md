@@ -121,10 +121,14 @@ An account's email address SHALL NOT change after the account is created.
 
 _Implemented in spec 004-backend-session-endpoints._
 _Implemented in spec 006-mobile-pending-screen._
+_Implemented in spec 018-mobile-session-persistence._
 
 Users SHALL be able to sign out.
 
 - _Sign out:_ When a signed-in user signs out, then the app returns to the sign-in screen.
+- _Session refused:_ When the backend refuses to renew a signed-in user's session, then the app returns to the
+  sign-in screen and says the session expired. Closing the app, being offline or a backend outage doesn't sign
+  the user out.
 
 #### Review accounts
 

@@ -66,7 +66,7 @@ It decides when an acceptance is allowed, but doesn't store it: the accepted ver
 account in [Authentication](auth.md), which also reports on every answer whether the current rules are
 accepted and whether any version was ever accepted. The app shows the rules (a reusable numbered list) and
 asks for a first acceptance at the onboarding School rules step; an account that accepted before is asked
-for a new version, at the next sign-in, on the "Regras atualizadas" screen, which has no way back but
+for a new version, at the next sign-in, launch or session renewal, on the "Regras atualizadas" screen, which has no way back but
 accepting. Both screens share one acceptance component; a screen to read the rules at any time and
 the admin's rules screen don't exist yet. Acceptances can't be withdrawn, and nothing lists who accepted
 which version. It sends no notification about changes. It doesn't keep the text of past versions, or who edited, deleted or reordered a

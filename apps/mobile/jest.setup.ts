@@ -44,3 +44,26 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
 beforeEach(async () => {
   await i18n.changeLanguage("en-US");
 });
+
+// In-memory stand-in for the native keychain; the store is reset between tests.
+const mockSecureStoreData = new Map<string, string>();
+
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn(
+    async (key: string) => mockSecureStoreData.get(key) ?? null,
+  ),
+  setItemAsync: jest.fn(async (key: string, value: string) => {
+    mockSecureStoreData.set(key, value);
+  }),
+  deleteItemAsync: jest.fn(async (key: string) => {
+    mockSecureStoreData.delete(key);
+  }),
+}));
+
+beforeEach(() => {
+  mockSecureStoreData.clear();
+  const SecureStore = jest.requireMock("expo-secure-store");
+  SecureStore.getItemAsync.mockClear();
+  SecureStore.setItemAsync.mockClear();
+  SecureStore.deleteItemAsync.mockClear();
+});

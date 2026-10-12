@@ -250,13 +250,14 @@ to renew the session.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Install `expo-secure-store` with `npx expo install expo-secure-store` (from `apps/mobile`; no
+- [x] **T-01** — Install `expo-secure-store` with `npx expo install expo-secure-store` (from `apps/mobile`; no
   config plugin entry needed), add its in-memory mock to `apps/mobile/jest.setup.ts` (D-12), and create
   `apps/mobile/src/services/session/session.storage.ts` (`readStoredSession`, `writeStoredSession`,
   `clearStoredSession` over the keys `session.tokens` and `session.user`, D-02) with
   `session.storage.test.ts` (write/read, unreadable, half-written, delete failure).
   Covers: ER-01, ER-03 · Done when: `npx jest src/services/session/session.storage.test.ts` passes and
   `expo-secure-store` is in `apps/mobile/package.json`.
+  > ✅ 2026-10-12 15:35 — installed `expo-secure-store` (~57.0.4; the expo install added a config plugin entry to app.json, reverted since the spec says none is needed), added its in-memory mock to jest.setup.ts, created session storage with tests; files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/jest.setup.ts`, `apps/mobile/src/services/session/session.types.ts`, `apps/mobile/src/services/session/session.storage.ts`, `apps/mobile/src/services/session/session.storage.test.ts`; verified: `npx jest src/services/session/session.storage.test.ts` (8 passed); deviations: none (session.types.ts created here, ahead of T-02)
 
 - [ ] **T-02** — Create the session store `apps/mobile/src/services/session/session.store.ts` (+
   `session.types.ts` moved or re-exported from `src/providers/session/session.types.ts`): state

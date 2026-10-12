@@ -279,7 +279,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   methods in T-05; until then `check-types` of the backend is expected to fail and is run after T-05).
   > ✅ 2026-10-12 16:20 — added `findPending` and `updateIfPending` to the port and the fake (by hand, the pattern is in the existing repository; skill not run); files: `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/user/provider/user.repository.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (261 passed), `npm run check-types --workspace @rochas-surf-school/auth` exit 0; deviations: fake tests added in the existing repository test file
 
-- [ ] **T-02** — Create `modules/auth/src/user/usecase/registration-access.ts` (`RegistrationActor { id, role,
+- [x] **T-02** — Create `modules/auth/src/user/usecase/registration-access.ts` (`RegistrationActor { id, role,
   status }`, `assertCanDecideRegistrations(actor)`: D-03 order and keys) and `list-registrations.usecase.ts`
   (`ListRegistrations`: access check, then `findPending()` mapped to `{ items: [{ id, name, email, createdAt }] }`
   with `createdAt` an ISO string; D-02), exported from the barrel, with tests in
@@ -288,6 +288,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npm test --workspace @rochas-surf-school/auth` passes with these files at
   100% coverage.
+  > ✅ 2026-10-12 16:21 — added the access check and `ListRegistrations` (by hand following the existing use case pattern; skill not run), exported from the barrel; files: `modules/auth/src/user/usecase/registration-access.ts`, `modules/auth/src/user/usecase/list-registrations.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/registration-access.test.ts`, `modules/auth/test/user/usecase/list-registrations.usecase.test.ts`; verified: `npm test --workspace @rochas-surf-school/auth` (272 passed, both files 100%), `check-types` exit 0; deviations: none
 
 - [ ] **T-03** — Create `modules/auth/src/user/usecase/approve-registration.usecase.ts` (`ApproveRegistration`,
   in `{ actor, registrationId }`, out `{ id, status }`): access check, malformed or unknown id → 404

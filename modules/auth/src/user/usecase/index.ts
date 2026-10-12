@@ -8,3 +8,5 @@ export * from "./search-users-by-name.usecase";
 export * from "./set-whatsapp.usecase";
 export * from "./account.out";
 export * from "./request-reactivation.usecase";
+export * from "./registration-access";
+export * from "./list-registrations.usecase";

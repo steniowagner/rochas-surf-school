@@ -325,12 +325,19 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Install `@react-native-google-signin/google-signin` (`npx expo install`), add its config plugin
+- [x] **T-04** — Install `@react-native-google-signin/google-signin` (`npx expo install`), add its config plugin
   with `iosUrlScheme: "com.googleusercontent.apps.983109126096-l33hhbs4p1o2842p9f5qdc1a4urlph6g"` to
   `apps/mobile/app.json`, create `apps/mobile/src/services/google-sign-in.ts` (configures the SDK once, D-08,
   with a test of the `configure` call), and mock the library in `apps/mobile/jest.setup.ts`.
   Covers: enabling · Done when: `npx jest src/services/google-sign-in` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-12 — installed `@react-native-google-signin/google-signin` ^16.1.5 with `npx expo install`, added its
+  > config plugin with the iOS URL scheme, created the service (configures the SDK at load, re-exports
+  > `GoogleSignin`, `statusCodes`, `isErrorWithCode`) and mocked the library in `jest.setup.ts`; files:
+  > `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/app.json`, `apps/mobile/jest.setup.ts`,
+  > `apps/mobile/src/services/google-sign-in.ts`, `apps/mobile/src/services/google-sign-in.test.ts`; verified:
+  > `npx jest src/services/google-sign-in` (1 passed) and
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0, no warnings); deviations: none.
 
 - [ ] **T-05** — Stop rendering the Apple button in
   `apps/mobile/src/modules/auth/components/auth/auth.component.tsx` (D-11), with the `hides Apple` test in

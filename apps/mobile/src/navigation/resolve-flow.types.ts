@@ -29,6 +29,10 @@ export type SessionUser = {
   rulesAccepted: boolean;
   // `true` once the account accepted any version of the school rules: a new version is an update, not a first acceptance.
   rulesAcceptedBefore: boolean;
+  // The reason an admin gave when denying the account, or null.
+  denialReason: string | null;
+  // "requested" or "denied" once a deleted account asked to be reactivated, otherwise null.
+  reactivationStatus: string | null;
 };
 
 export type ResolveFlowInput = {

@@ -121,11 +121,55 @@ const messages = {
       "We updated the school rules. Read and accept them to keep using the app.",
     submit: "Accept and continue",
   },
+  closedAccount: {
+    useAnotherEmail: "Use another email",
+    contactSchool: "Contact the school",
+    whatsappUnavailable: "Couldn't open WhatsApp.",
+  },
+  denied: {
+    eyebrow: "Registration not approved",
+    title: "Not this time",
+    description:
+      "The Rocha's team didn't approve the registration of <bold>{{email}}</bold>. If you think it's a mistake, talk to us.",
+    noteTitle: "Message from the team",
+  },
+  removed: {
+    eyebrow: "Access removed",
+    title: "You no longer have access to the app",
+    description:
+      "The Rocha's team removed access for <bold>{{email}}</bold>. This account can't be reactivated from the app.",
+    noteTitle: "Questions?",
+    noteText: "Talk to the school directly on WhatsApp.",
+  },
+  reactivation: {
+    notRequested: {
+      eyebrow: "Account deleted",
+      title: "This account is no longer active",
+      description:
+        "The account <bold>{{email}}</bold> was deleted. To use it again, ask the Rocha's team to reactivate it.",
+      noteTitle: "How to reactivate",
+      noteText:
+        'Tap "Request reactivation". The team gets the request and decides. Sign in again with this email to see the answer.',
+      request: "Request reactivation",
+    },
+    requested: {
+      eyebrow: "Request sent",
+      title: "The team will review it",
+      description: "We got your request to reactivate <bold>{{email}}</bold>.",
+      noteTitle: "What now?",
+      noteText:
+        "When the team answers, sign in again with this email to see the answer.",
+    },
+    denied: {
+      eyebrow: "Request denied",
+      title: "Couldn't reactivate",
+      description:
+        "The Rocha's team denied the request to reactivate <bold>{{email}}</bold>. This account will stay inactive.",
+    },
+    accountChanged: "Your account changed. Sign in again to continue.",
+  },
   flows: {
     onboarding: "Onboarding",
-    reactivation: "Reactivation",
-    offboardingDenied: "Registration denied",
-    offboardingRemoved: "Access removed",
     student: "Student",
     instructor: "Instructor",
     admin: "Admin",

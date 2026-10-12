@@ -31,6 +31,8 @@ const ACCOUNT = {
   whatsappVisible: false,
   rulesAccepted: false,
   rulesAcceptedBefore: false,
+  denialReason: null,
+  reactivationStatus: null,
 };
 
 const fetchMock = jest.fn();

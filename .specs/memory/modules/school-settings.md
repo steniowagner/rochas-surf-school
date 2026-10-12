@@ -40,11 +40,14 @@ The account's status is checked before its role.
 ## Boundaries
 
 It receives the actor from the backend and doesn't depend on [Authentication](auth.md). It doesn't open WhatsApp
-chats, doesn't record who changed the number or when, and has no seed. No screen sets or shows the number yet
-(the admin's settings screens and the Denied and Removed screens come with their specs), and the waiting-list
-switch isn't built.
+chats, doesn't record who changed the number or when, and has no seed. The app reads the number for the
+"Contact the school" button of the Denied and Access removed screens, which is hidden while no number is set;
+no screen sets it yet (the admin's settings screens come with their spec), and the waiting-list switch isn't
+built.
 
 ## Spec history
 
 - `015-school-settings-whatsapp` — created the module: the school's WhatsApp number, read by any signed-in
   account and set by approved admins.
+- `016-closed-account-screens` — the app reads the number for the "Contact the school" button of the Denied and
+  Access removed screens (hidden while unset).

@@ -131,6 +131,8 @@ const account = (
   whatsappVisible: false,
   rulesAccepted,
   rulesAcceptedBefore,
+  denialReason: null,
+  reactivationStatus: null,
 });
 
 // An approved account that finished onboarding: it has a WhatsApp number and accepted the rules.
@@ -411,19 +413,19 @@ describe("RootNavigator", () => {
         state: "deleted",
         user: account("deleted"),
         path: routes.reactivation.home,
-        name: "Reactivation",
+        name: "This account is no longer active",
       },
       {
         state: "denied",
         user: account("denied"),
         path: routes.offboarding.denied,
-        name: "Registration denied",
+        name: "Not this time",
       },
       {
         state: "removed",
         user: account("removed"),
         path: routes.offboarding.removed,
-        name: "Access removed",
+        name: "You no longer have access to the app",
       },
       {
         state: "approved student",
@@ -554,13 +556,13 @@ describe("RootNavigator", () => {
         state: "denied",
         other: routes.offboarding.removed,
         path: routes.offboarding.denied,
-        name: "Registration denied",
+        name: "Not this time",
       },
       {
         state: "removed",
         other: routes.offboarding.denied,
         path: routes.offboarding.removed,
-        name: "Access removed",
+        name: "You no longer have access to the app",
       },
     ])(
       "keeps denied and removed on their own screen ($state)",

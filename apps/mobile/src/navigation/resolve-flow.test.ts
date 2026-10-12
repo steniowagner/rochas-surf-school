@@ -19,6 +19,8 @@ const userWith = (status: string, role: string): SessionUser => ({
   whatsappVisible: false,
   rulesAccepted: false,
   rulesAcceptedBefore: false,
+  denialReason: null,
+  reactivationStatus: null,
   role,
   status,
 });

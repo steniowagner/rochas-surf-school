@@ -121,11 +121,55 @@ const messages: Messages = {
       "Atualizamos as regras da escola. Leia e aceite para continuar usando o app.",
     submit: "Aceitar e continuar",
   },
+  closedAccount: {
+    useAnotherEmail: "Usar outro email",
+    contactSchool: "Falar com a escola",
+    whatsappUnavailable: "Não foi possível abrir o WhatsApp.",
+  },
+  denied: {
+    eyebrow: "Cadastro não aprovado",
+    title: "Não foi dessa vez",
+    description:
+      "A equipe da Rocha's não aprovou o cadastro de <bold>{{email}}</bold>. Se você acha que foi um engano, fale com a gente.",
+    noteTitle: "Mensagem da equipe",
+  },
+  removed: {
+    eyebrow: "Acesso removido",
+    title: "Você não tem mais acesso ao app",
+    description:
+      "A equipe da Rocha's removeu o acesso de <bold>{{email}}</bold>. Esta conta não pode ser reativada pelo app.",
+    noteTitle: "Tem dúvidas?",
+    noteText: "Fale direto com a escola pelo WhatsApp.",
+  },
+  reactivation: {
+    notRequested: {
+      eyebrow: "Conta excluída",
+      title: "Esta conta não está mais ativa",
+      description:
+        "A conta de <bold>{{email}}</bold> foi excluída. Para voltar a usá-la, peça à equipe da Rocha's que a reative.",
+      noteTitle: "Como reativar",
+      noteText:
+        'Toque em "Pedir reativação". A equipe recebe o pedido e decide. Entre de novo com este email para ver a resposta.',
+      request: "Pedir reativação",
+    },
+    requested: {
+      eyebrow: "Pedido enviado",
+      title: "A equipe vai analisar",
+      description: "Recebemos seu pedido para reativar <bold>{{email}}</bold>.",
+      noteTitle: "E agora?",
+      noteText:
+        "Quando a equipe responder, entre de novo com este email para ver a resposta.",
+    },
+    denied: {
+      eyebrow: "Pedido recusado",
+      title: "Não foi possível reativar",
+      description:
+        "A equipe da Rocha's recusou o pedido para reativar <bold>{{email}}</bold>. Esta conta vai continuar inativa.",
+    },
+    accountChanged: "Sua conta mudou. Entre de novo para continuar.",
+  },
   flows: {
     onboarding: "Primeiros passos",
-    reactivation: "Reativação",
-    offboardingDenied: "Cadastro recusado",
-    offboardingRemoved: "Acesso removido",
     student: "Aluno",
     instructor: "Instrutor",
     admin: "Administrador",

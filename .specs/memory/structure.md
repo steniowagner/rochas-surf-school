@@ -176,8 +176,19 @@ src/
                                 # (flow + user → entry route)
     root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator
     rules-update-layout.test.tsx  # layout test of the rules-update group (a test under src/app would be a route)
-  modules/{reactivation,offboarding,student,instructor,admin}/screens/
-                                # each flow's screens (placeholders showing the flow's name for now)
+  modules/{student,instructor,admin}/screens/
+                                # each role's screens (placeholders showing the flow's name for now)
+  modules/offboarding/
+    screens/                    # denied.screen.tsx (reason card when given), removed.screen.tsx — both on
+                                # AccountStatus with ContactSchoolButton and "Use another email" (sign-out)
+    components/contact-school-button/  # ContactSchoolButton: WhatsApp button, only when the school has a number;
+                                # opens https://wa.me/<digits>, toast when the link fails
+    hooks/use-school-whatsapp.hook.ts  # useSchoolWhatsapp: GET /school-settings → number or null
+  modules/reactivation/
+    screens/reactivation.screen.tsx  # Account deleted: one AccountStatus per reactivationStatus (not requested,
+                                # requested, denied)
+    hooks/use-request-reactivation.hook.ts  # POST /auth/me/reactivation-request; updates the session (denied on
+                                # a 409); toast; signs out on a 401 or 403
   modules/onboarding/
     screens/                    # whatsapp.screen.tsx, school-rules.screen.tsx
     components/                 # whatsapp (welcome, country chip + number, hide switch, save), country-picker
@@ -221,6 +232,9 @@ src/
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession (signed-in account and tokens, in memory)
   components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen
+  components/account-status/    # AccountStatus: the shared layout of every closed-account state (icon tile by
+                                # tone, eyebrow, title, description, optional note card and primary action,
+                                # "Use another email")
   services/api/                 # fetch client (apiGet, apiPost, apiPut, each with an optional bearer token), ApiError, NetworkError
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)
   constants/                    # routes.ts (every app path), theme.ts (design tokens), theme-variables.ts

@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -17,6 +17,7 @@ export function Button({
   style,
   children,
   loading = false,
+  icon,
   disabled = false,
   ...props
 }: ButtonProps) {
@@ -47,6 +48,11 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator color={isGhost ? theme.ink : theme.onColor} />
+      ) : icon ? (
+        <View className="flex-row items-center gap-2">
+          {icon}
+          <Text className={`ds-text-button ${label}`}>{children}</Text>
+        </View>
       ) : (
         <Text className={`ds-text-button ${label}`}>{children}</Text>
       )}

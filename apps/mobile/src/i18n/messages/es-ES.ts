@@ -126,11 +126,56 @@ const messages: Messages = {
       "Actualizamos las normas de la escuela. Léelas y acéptalas para seguir usando la app.",
     submit: "Aceptar y continuar",
   },
+  closedAccount: {
+    useAnotherEmail: "Usar otro email",
+    contactSchool: "Hablar con la escuela",
+    whatsappUnavailable: "No se pudo abrir WhatsApp.",
+  },
+  denied: {
+    eyebrow: "Registro no aprobado",
+    title: "Esta vez no ha sido posible",
+    description:
+      "El equipo de Rocha's no aprobó el registro de <bold>{{email}}</bold>. Si crees que es un error, habla con nosotros.",
+    noteTitle: "Mensaje del equipo",
+  },
+  removed: {
+    eyebrow: "Acceso eliminado",
+    title: "Ya no tienes acceso a la app",
+    description:
+      "El equipo de Rocha's eliminó el acceso de <bold>{{email}}</bold>. Esta cuenta no se puede reactivar desde la app.",
+    noteTitle: "¿Tienes dudas?",
+    noteText: "Habla directamente con la escuela por WhatsApp.",
+  },
+  reactivation: {
+    notRequested: {
+      eyebrow: "Cuenta eliminada",
+      title: "Esta cuenta ya no está activa",
+      description:
+        "La cuenta de <bold>{{email}}</bold> fue eliminada. Para volver a usarla, pide al equipo de Rocha's que la reactive.",
+      noteTitle: "Cómo reactivarla",
+      noteText:
+        "Toca «Pedir reactivación». El equipo recibe la solicitud y decide. Vuelve a entrar con este email para ver la respuesta.",
+      request: "Pedir reactivación",
+    },
+    requested: {
+      eyebrow: "Solicitud enviada",
+      title: "El equipo la revisará",
+      description:
+        "Recibimos tu solicitud para reactivar <bold>{{email}}</bold>.",
+      noteTitle: "¿Y ahora?",
+      noteText:
+        "Cuando el equipo responda, vuelve a entrar con este email para ver la respuesta.",
+    },
+    denied: {
+      eyebrow: "Solicitud rechazada",
+      title: "No fue posible reactivarla",
+      description:
+        "El equipo de Rocha's rechazó la solicitud para reactivar <bold>{{email}}</bold>. Esta cuenta seguirá inactiva.",
+    },
+    accountChanged: "Tu cuenta cambió. Vuelve a entrar para continuar.",
+  },
   flows: {
     onboarding: "Primeros pasos",
-    reactivation: "Reactivación",
-    offboardingDenied: "Registro rechazado",
-    offboardingRemoved: "Acceso eliminado",
     student: "Alumno",
     instructor: "Instructor",
     admin: "Administrador",

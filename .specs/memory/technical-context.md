@@ -168,7 +168,13 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   unless `eyebrowClassName` passes another)
   and use the shared `TextInput` (leading icon, `neutral` / `error` border, error message below), `OtpInput`
   (digit boxes over a hidden native input that keeps only digits, so paste and one-time-code autofill work) and
-  `Button` (variants, including `ghost`, plus `loading` and `disabled` states). A tick box is the shared
+  `Button` (variants, including `ghost`, plus `loading` and `disabled` states, and an optional `icon` — a glyph
+  drawn before the label; the web `Button` takes the same `icon`). Every closed-account state (denied, deleted,
+  removed) is drawn by `AccountStatus` (`src/components/account-status`): a `ScreenIntro` whose icon tile follows
+  `tone` (`bad` → `bg-bad-tint`/`text-bad`, `dim` → `bg-dim`/`text-ink-2`, `sand` → `bg-sand`/`text-grape`), an
+  optional note card (`{ title, text }`), an optional `primaryAction` node, and the ghost "Use another email"
+  button (`onUseAnotherEmail`) always last; it lives outside the modules because `offboarding` and
+  `reactivation` both use it. A tick box is the shared
   `Checkbox` (`src/components/ui/checkbox`: `checked`, `onChange(checked)`, `label`, `disabled`) — one
   `Pressable` row with role `checkbox`, so the box and its label toggle it, at least 44 pt tall. API errors are shown in a toast
   through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides by itself after 3 s).
@@ -304,7 +310,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   Google and Apple client ids come with their sign-in spec.
 - Mobile session: the signed-in account lives in an in-memory React context (`SessionProvider` /
   `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status, createdAt,
-  whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore }` (`createdAt` an ISO 8601 string in UTC) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
+  whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore, denialReason, reactivationStatus }`
+  (`createdAt` an ISO 8601 string in UTC; `denialReason` and `reactivationStatus` plain strings or `null`, as the
+  backend sends them) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
   refreshToken, refreshTokenExpiresAt }` or `null` —, `setSession({ user, tokens })`, `clearSession()`); the
   Confirm email screen sets it from the verify response. Nothing is stored on the device yet, so a restart signs
   out; tokens will go to `expo-secure-store` when the session is kept. The app routes by account state before
@@ -313,9 +321,20 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   it clears the session and the TanStack Query cache at once, then sends `POST /auth/sign-out` with the refresh
   token without waiting and ignores any failure (no request when there are no tokens). No `router` call: the
   flow guards send a session-less app to `/auth`. Reason: signing out always works, offline included, and the
-  backend answers 204 for any token. Only the Pending screen offers it so far. Until sessions are renewed, a
+  backend answers 204 for any token. The Pending screen and the closed-account screens ("Use another email")
+  offer it. Until sessions are renewed, a
   protected call answering 401 `auth.token.invalid` shows "Your session expired. Sign in again." in the toast
-  and signs out with `useSignOut` (the WhatsApp step's `useSaveWhatsapp` does this).
+  and signs out with `useSignOut` (the WhatsApp step's `useSaveWhatsapp` and the Account deleted screen's
+  `useRequestReactivation` do this).
+- Mobile closed-account calls: the Denied and Access removed screens read the school's number with a query on
+  `GET /school-settings` (`useSchoolWhatsapp` in `modules/offboarding/hooks`, with the access token, no retry);
+  the "Contact the school" button renders only with a non-null number and opens `https://wa.me/<digits>` with
+  `Linking.openURL` (a toast when it rejects) — loading, an error and `null` all hide it, because the contact is
+  an extra. The Account deleted screen picks its state from the session's `reactivationStatus` (`null` → not
+  requested, `"requested"`, `"denied"`); `useRequestReactivation` (`modules/reactivation/hooks`) is a mutation
+  on `POST /auth/me/reactivation-request` that puts the answer in the session on 200, sets
+  `reactivationStatus: "denied"` on 409 `user.reactivation.denied`, and signs out with a toast on 401
+  `auth.token.invalid` and 403 `user.status.notDeleted`, so every answer leaves the screen matching the account.
 - Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.
   `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
   `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);

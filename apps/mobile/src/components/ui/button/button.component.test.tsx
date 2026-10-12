@@ -1,4 +1,5 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
+import { Text } from "react-native";
 
 import { Button } from "./button.component";
 import { disabledGhostClasses, variantClasses } from "./button.constants";
@@ -81,5 +82,12 @@ describe("Button", () => {
     );
 
     expect(getSpinners()).toHaveLength(1);
+  });
+
+  it("draws the icon before the label", async () => {
+    await render(<Button icon={<Text>glyph</Text>}>Go</Button>);
+
+    expect(screen.getByText("glyph")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Go" })).toBeOnTheScreen();
   });
 });

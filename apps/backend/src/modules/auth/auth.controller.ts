@@ -6,6 +6,8 @@ import {
   RefreshSession,
   RefreshSessionIn,
   RefreshSessionOut,
+  RequestReactivation,
+  RequestReactivationOut,
   SetWhatsapp,
   SetWhatsappIn,
   SetWhatsappOut,
@@ -106,6 +108,14 @@ export class AuthController {
       userId: id,
       whatsappNumber: body?.whatsappNumber as string,
       whatsappVisible: body?.whatsappVisible as boolean,
+    });
+  }
+
+  @Post('me/reactivation-request')
+  @HttpCode(HttpStatus.OK)
+  requestReactivation(@CurrentUser('id') id: string): Promise<RequestReactivationOut> {
+    return new RequestReactivation(this.userRepository, this.rulesVersionProvider, this.clock).execute({
+      userId: id,
     });
   }
 

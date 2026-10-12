@@ -91,6 +91,28 @@ Authorization: Bearer {{accessToken}}
 ### Current account without a token (expects 401 auth.token.invalid)
 GET {{baseUrl}}/auth/me
 
+### Send the reactivation request (expects 200 with the account, status "deleted" and reactivationStatus "requested"; only a deleted account)
+# Delete the account first: UPDATE users SET status = 'deleted', deleted_at = now() WHERE email = '<email>'
+POST {{baseUrl}}/auth/me/reactivation-request
+Authorization: Bearer {{accessToken}}
+
+### Send the reactivation request again (expects 200 with the same account; the first request date is kept)
+POST {{baseUrl}}/auth/me/reactivation-request
+Authorization: Bearer {{accessToken}}
+
+### Send the reactivation request after a denial (expects 409 user.reactivation.denied)
+# Deny it first: UPDATE users SET reactivation_status = 'denied' WHERE email = '<email>'
+POST {{baseUrl}}/auth/me/reactivation-request
+Authorization: Bearer {{accessToken}}
+
+### Send the reactivation request from an account that is not deleted (expects 403 user.status.notDeleted)
+# Use the accessToken of a pending, approved, denied or removed account.
+POST {{baseUrl}}/auth/me/reactivation-request
+Authorization: Bearer {{accessToken}}
+
+### Send the reactivation request without a token (expects 401 auth.token.invalid)
+POST {{baseUrl}}/auth/me/reactivation-request
+
 ### Save the WhatsApp number (expects 200 with the account including whatsappNumber and whatsappVisible; only an approved account)
 # Approve the account first: UPDATE users SET status = 'approved' WHERE email = '<email>'
 PUT {{baseUrl}}/auth/me/whatsapp

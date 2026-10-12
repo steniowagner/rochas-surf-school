@@ -204,6 +204,8 @@ describe('AuthController', () => {
           whatsappVisible: false,
           rulesAccepted: true,
           rulesAcceptedBefore: false,
+          denialReason: null,
+          reactivationStatus: null,
         },
       });
       expect(refreshTokens).toHaveLength(1);
@@ -265,6 +267,8 @@ describe('AuthController', () => {
         whatsappVisible: false,
         rulesAccepted: true,
         rulesAcceptedBefore: false,
+        denialReason: null,
+        reactivationStatus: null,
       });
     });
 
@@ -320,6 +324,8 @@ describe('AuthController', () => {
         whatsappVisible: true,
         rulesAccepted: true,
         rulesAcceptedBefore: false,
+        denialReason: null,
+        reactivationStatus: null,
       });
     });
 
@@ -339,6 +345,75 @@ describe('AuthController', () => {
       await expect(controller.setWhatsapp(ana.id, undefined)).rejects.toMatchObject({
         statusCode: 422,
         errors: [expect.objectContaining({ message: 'user.whatsappNumber.required' })],
+      });
+    });
+  });
+
+  describe('POST /auth/me/reactivation-request', () => {
+    const deleted = (reactivationStatus?: 'requested' | 'denied') =>
+      new User({
+        name: 'Ana Rocha',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'student',
+        status: 'deleted',
+        reactivationStatus,
+      });
+
+    it('is a protected POST on me/reactivation-request answering 200', () => {
+      const handler = handlerOf('requestReactivation');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('me/reactivation-request');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('runs RequestReactivation for the signed-in account with the clock', async () => {
+      const ana = deleted();
+      const users = [ana];
+      const { controller } = setup({}, users);
+
+      await expect(controller.requestReactivation(ana.id)).resolves.toEqual({
+        id: ana.id,
+        name: 'Ana Rocha',
+        email: 'ana@example.com',
+        role: 'student',
+        status: 'deleted',
+        createdAt: ana.createdAt,
+        whatsappNumber: null,
+        whatsappVisible: false,
+        rulesAccepted: true,
+        rulesAcceptedBefore: false,
+        denialReason: null,
+        reactivationStatus: 'requested',
+      });
+      expect(users[0]!.reactivationRequestedAt).toEqual(NOW);
+    });
+
+    it('answers 409 user.reactivation.denied after a denial', async () => {
+      const ana = deleted('denied');
+      const { controller } = setup({}, [ana]);
+
+      await expect(controller.requestReactivation(ana.id)).rejects.toMatchObject({
+        statusCode: 409,
+        message: 'user.reactivation.denied',
+      });
+    });
+
+    it('answers 403 user.status.notDeleted for an account that is not deleted', async () => {
+      const ana = new User({
+        name: 'Ana Rocha',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'student',
+        status: 'approved',
+      });
+      const { controller } = setup({}, [ana]);
+
+      await expect(controller.requestReactivation(ana.id)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.status.notDeleted',
       });
     });
   });

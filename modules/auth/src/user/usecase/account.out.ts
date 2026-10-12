@@ -1,4 +1,4 @@
-import { User, UserRole, UserStatus } from "../model";
+import { User, UserReactivationStatus, UserRole, UserStatus } from "../model";
 
 export interface AccountOut {
   id: string;
@@ -11,6 +11,8 @@ export interface AccountOut {
   whatsappVisible: boolean;
   rulesAccepted: boolean;
   rulesAcceptedBefore: boolean;
+  denialReason: string | null;
+  reactivationStatus: UserReactivationStatus | null;
 }
 
 export function toAccountOut(user: User, currentRulesVersion: number): AccountOut {
@@ -25,5 +27,7 @@ export function toAccountOut(user: User, currentRulesVersion: number): AccountOu
     whatsappVisible: user.whatsappVisible,
     rulesAccepted: currentRulesVersion === 0 || user.hasAcceptedRules(currentRulesVersion),
     rulesAcceptedBefore: user.rulesAcceptances.length > 0,
+    denialReason: user.denialReason ?? null,
+    reactivationStatus: user.reactivationStatus ?? null,
   };
 }

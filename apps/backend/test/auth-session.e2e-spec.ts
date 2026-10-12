@@ -41,6 +41,8 @@ interface Session {
     whatsappVisible: boolean;
     rulesAccepted: boolean;
     rulesAcceptedBefore: boolean;
+    denialReason: string | null;
+    reactivationStatus: 'requested' | 'denied' | null;
   };
 }
 
@@ -134,6 +136,8 @@ describe('Session endpoints (e2e)', () => {
         whatsappVisible: false,
         rulesAccepted: true,
         rulesAcceptedBefore: false,
+        denialReason: null,
+        reactivationStatus: null,
       });
       expect(session.user.createdAt).toBe(user.createdAt.toISOString());
     });
@@ -171,6 +175,66 @@ describe('Session endpoints (e2e)', () => {
         expect(response.body.status).toBe(status);
       },
     );
+
+    describe('closed account fields', () => {
+      const CLOSED_AT = new Date('2026-10-01T10:00:00.000Z');
+
+      async function meOf(data: {
+        status: Status;
+        denialReason?: string;
+        reactivationStatus?: 'requested' | 'denied';
+      }) {
+        const user = await ctx.prisma.user.create({
+          data: {
+            id: randomUUID(),
+            name: 'Ana Rocha',
+            email: uniqueEmail('ana'),
+            role: 'student',
+            ...data,
+            deniedAt: data.status === 'denied' ? CLOSED_AT : null,
+            deletedAt: data.status === 'deleted' ? CLOSED_AT : null,
+            reactivationRequestedAt: data.reactivationStatus ? CLOSED_AT : null,
+          },
+        });
+        const session = await signIn(user.email);
+        const response = await me(session.accessToken).expect(200);
+        return response.body as Record<string, unknown>;
+      }
+
+      function expectNoDates(body: Record<string, unknown>) {
+        for (const field of ['deniedAt', 'deletedAt', 'removedAt', 'reactivationRequestedAt']) {
+          expect(body).not.toHaveProperty(field);
+        }
+      }
+
+      it('returns the reason of a denied account', async () => {
+        const body = await meOf({ status: 'denied', denialReason: 'Unknown person' });
+
+        expect(body).toMatchObject({
+          status: 'denied',
+          denialReason: 'Unknown person',
+          reactivationStatus: null,
+        });
+        expectNoDates(body);
+      });
+
+      it('returns a null reason for a denied account without one', async () => {
+        const body = await meOf({ status: 'denied' });
+
+        expect(body).toMatchObject({ status: 'denied', denialReason: null, reactivationStatus: null });
+        expectNoDates(body);
+      });
+
+      it.each(['requested', 'denied'] as const)(
+        'returns the %s reactivation status of a deleted account',
+        async (reactivationStatus) => {
+          const body = await meOf({ status: 'deleted', reactivationStatus });
+
+          expect(body).toMatchObject({ status: 'deleted', denialReason: null, reactivationStatus });
+          expectNoDates(body);
+        },
+      );
+    });
   });
 
   describe('rulesAccepted', () => {

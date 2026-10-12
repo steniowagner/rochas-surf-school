@@ -54,9 +54,9 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
   - `user/` — `model/user.entity.ts`, `provider/user.repository.ts` (with `addRulesAcceptance`),
     `provider/rules-version.provider.ts` (`RulesVersionProvider`: the current school rules version, read
     without depending on `school-rules`),
-    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,find-user-page,search-users-by-name}.usecase.ts`
+    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
     and `usecase/account.out.ts` (`AccountOut` / `toAccountOut`: the account shape every answer carries, with
-    `rulesAccepted`).
+    `rulesAccepted`, `denialReason` and `reactivationStatus`).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
     `usecase/create-identity.usecase.ts`.
   - `sign-in-code/` — `model/sign-in-code.entity.ts` (also the TTL / cooldown / max-attempts constants and
@@ -100,8 +100,8 @@ src/
   modules/auth/
     auth.module.ts              # wiring; ThrottlerModule for the auth routes
     auth.controller.ts          # POST /auth/email/code (202), POST /auth/email/verify (200), POST /auth/refresh (200),
-                                # POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me and
-                                # PUT /auth/me/whatsapp (protected)
+                                # POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
+                                # PUT /auth/me/whatsapp and POST /auth/me/reactivation-request (200) (protected)
     auth.integration.http       # manual REST Client requests
     auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
@@ -123,6 +123,7 @@ test/
   auth-email.e2e-spec.ts        # e2e suite of the email sign-in routes (Resend replaced by a capturing fake)
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
   auth-whatsapp.e2e-spec.ts     # e2e suite of PUT /auth/me/whatsapp (approved accounts created through Prisma)
+  auth-reactivation.e2e-spec.ts # e2e suite of POST /auth/me/reactivation-request (accounts in each state through Prisma)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
   school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
 Dockerfile, docker-compose.yml  # backend + Postgres

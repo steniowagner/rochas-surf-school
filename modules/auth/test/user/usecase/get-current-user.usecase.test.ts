@@ -35,6 +35,8 @@ describe("GetCurrentUser", () => {
       whatsappVisible: false,
       rulesAccepted: true,
       rulesAcceptedBefore: false,
+      denialReason: null,
+      reactivationStatus: null,
     });
   });
 

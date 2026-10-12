@@ -49,6 +49,7 @@ export interface UserState extends EntityState {
   deniedAt?: Date;
   removedAt?: Date;
   reactivationStatus?: UserReactivationStatus;
+  reactivationRequestedAt?: Date;
   rulesAcceptances?: RulesAcceptance[];
 }
 
@@ -99,6 +100,10 @@ export class User extends Entity<UserState> {
 
   get reactivationStatus(): UserReactivationStatus | undefined {
     return this.props.reactivationStatus;
+  }
+
+  get reactivationRequestedAt(): Date | undefined {
+    return this.props.reactivationRequestedAt;
   }
 
   get rulesAcceptances(): RulesAcceptance[] {
@@ -170,6 +175,11 @@ export class User extends Entity<UserState> {
         code: "user.reactivationStatus",
         value: this.reactivationStatus,
         rules: [new InRule(USER_REACTIVATION_STATUSES)],
+      },
+      {
+        code: "user.reactivationRequestedAt",
+        value: this.reactivationRequestedAt,
+        rules: [new DateRule()],
       },
       {
         code: "user.rulesAcceptances.version",

@@ -304,7 +304,7 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   > module's output); deviations: the provider takes `AuthConfig` (not `ConfigService`) so the production check
   > lives in one place.
 
-- [ ] **T-03** — Expose `POST /auth/google` in `apps/backend/src/modules/auth/auth.controller.ts` (D-05), with
+- [x] **T-03** — Expose `POST /auth/google` in `apps/backend/src/modules/auth/auth.controller.ts` (D-05), with
   its cases in `auth.controller.spec.ts` and requests in `auth.integration.http`; add
   `apps/backend/test/auth-google.e2e-spec.ts`, overriding `GoogleAuthIdTokenProvider` with a fake (D-13), with
   the tests `creates a pending account`, `links an email account`, `signs in a known identity`,
@@ -314,6 +314,14 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06 · Done when:
   `npx vitest run src/modules/auth/auth.controller.spec.ts` passes and
   `npm run test:e2e --workspace apps/backend` passes against the local database.
+  > ✅ 2026-10-12 — added `POST /auth/google` (public, throttled 10/60 s, 200) running `SignInWithGoogle`, the
+  > `GoogleAuthIdTokenProvider` injected into `AuthController`, the controller spec cases, REST Client requests and
+  > the e2e suite (fake provider through `overrideProvider`; users deleted after each test, identities and
+  > refresh tokens cascade); files: `apps/backend/src/modules/auth/auth.controller.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.integration.http`,
+  > `apps/backend/test/auth-google.e2e-spec.ts`; verified: `npx vitest run src/modules/auth/auth.controller.spec.ts`
+  > (31 passed), `npm run test:e2e --workspace apps/backend` (8 files, 234 passed, local Postgres) and
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/backend` (exit 0); deviations: none.
 
 ### Mobile (`apps/mobile`)
 

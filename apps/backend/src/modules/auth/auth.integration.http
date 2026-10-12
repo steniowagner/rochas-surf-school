@@ -219,3 +219,29 @@ POST {{baseUrl}}/auth/sign-out
 Content-Type: application/json
 
 {}
+
+### Sign in with Google without an idToken (expects 422 idToken.token.required)
+POST {{baseUrl}}/auth/google
+Content-Type: application/json
+
+{}
+
+### Sign in with a bad Google idToken (expects 401 auth.google.tokenInvalid)
+POST {{baseUrl}}/auth/google
+Content-Type: application/json
+
+{
+  "idToken": "not-a-google-token"
+}
+
+### Sign in with Google (expects 200 with accessToken, refreshToken and user; needs a real idToken from the app
+### and GOOGLE_WEB_CLIENT_ID set; a new account answers 422 user.name.* when Google's name has one word,
+### then send the same idToken again with "name")
+@googleIdToken = paste-an-id-token-here
+POST {{baseUrl}}/auth/google
+Content-Type: application/json
+
+{
+  "idToken": "{{googleIdToken}}",
+  "name": "Ana Rocha"
+}

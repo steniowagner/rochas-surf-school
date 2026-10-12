@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity } from "react-native";
 
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Colors, shadowStyle } from "@/constants/theme";
@@ -18,19 +18,36 @@ const authButtonClasses: Record<
 
 const palette = Colors.light;
 
-export function AuthButton({ variant, label, icon, onPress }: AuthButtonProps) {
+export function AuthButton({
+  variant,
+  label,
+  icon,
+  onPress,
+  loading = false,
+}: AuthButtonProps) {
   const classes = authButtonClasses[variant];
 
   return (
     <TouchableOpacity
       accessibilityRole="button"
       activeOpacity={BUTTON_ACTIVE_OPACITY}
+      accessibilityLabel={label}
+      accessibilityState={{ busy: loading }}
+      disabled={loading}
       onPress={onPress}
       className={`min-h-[54px] flex-row items-center justify-center gap-2.5 rounded-control ${classes.container}`}
       style={variant === "primary" ? shadowStyle("primary", palette) : null}
     >
-      {icon}
-      <Text className={`ds-text-button ${classes.label}`}>{label}</Text>
+      {loading ? (
+        <ActivityIndicator
+          color={variant === "primary" ? palette.onColor : palette.ink}
+        />
+      ) : (
+        <>
+          {icon}
+          <Text className={`ds-text-button ${classes.label}`}>{label}</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 }

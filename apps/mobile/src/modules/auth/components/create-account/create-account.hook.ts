@@ -1,8 +1,5 @@
 import {
   EmailRule,
-  MaxLengthRule,
-  MinLengthRule,
-  PersonNameRule,
   RequiredRule,
   ValidationRule,
 } from "@rochas-surf-school/shared";
@@ -13,17 +10,9 @@ import { Keyboard } from "react-native";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { useRequestSignInCode } from "../../hooks/use-request-sign-in-code.hook";
-import { getStatus, isValid } from "../../utils/field-validation";
+import { getStatus, isValid, nameRules } from "../../utils/field-validation";
 import { getSignInCodeErrorKey } from "../../utils/sign-in-code-error";
 import { FieldState, UseCreateAccountProps } from "./create-account.types";
-
-// The same rules as `User.validate()` (modules/auth), so what the app accepts the backend accepts.
-const nameRules = (): ValidationRule[] => [
-  new RequiredRule(),
-  new MinLengthRule(3),
-  new MaxLengthRule(80),
-  new PersonNameRule(),
-];
 
 const emailRules = (): ValidationRule[] => [
   new RequiredRule(),

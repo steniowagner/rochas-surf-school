@@ -4,6 +4,7 @@ import { DbModule } from '../../db/db.module.js';
 import { JwtAuthModule } from '../../shared/auth/jwt-auth.module.js';
 import { AuthConfig } from './auth.config.js';
 import { AuthController } from './auth.controller.js';
+import { GoogleAuthIdTokenProvider } from './google.id-token.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
 import { PrismaIdentityRepository } from './identity.prisma.js';
 import { JwtTokenProvider } from './jwt.token.js';
@@ -37,6 +38,7 @@ import { PrismaUserRepository } from './user.prisma.js';
     SystemClockProvider,
     JwtTokenProvider,
     ResendEmailProvider,
+    GoogleAuthIdTokenProvider,
     SignInCodeCleanupJob,
   ],
 })

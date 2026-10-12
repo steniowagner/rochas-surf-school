@@ -11,6 +11,9 @@ import {
   SetWhatsapp,
   SetWhatsappIn,
   SetWhatsappOut,
+  SignInWithGoogle,
+  SignInWithGoogleIn,
+  SignInWithGoogleOut,
   SignOut,
   SignOutIn,
   RequestSignInCode,
@@ -24,6 +27,7 @@ import {
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import { Public } from '../../shared/decorators/public.decorator.js';
 import { AuthConfig } from './auth.config.js';
+import { GoogleAuthIdTokenProvider } from './google.id-token.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
 import { PrismaIdentityRepository } from './identity.prisma.js';
 import { JwtTokenProvider } from './jwt.token.js';
@@ -47,6 +51,7 @@ export class AuthController {
     private readonly refreshTokenRepository: PrismaRefreshTokenRepository,
     private readonly tokenProvider: JwtTokenProvider,
     private readonly rulesVersionProvider: PrismaRulesVersionProvider,
+    private readonly googleIdTokenProvider: GoogleAuthIdTokenProvider,
   ) {}
 
   @Public()
@@ -91,6 +96,28 @@ export class AuthController {
       code: body?.code as string,
       name: body?.name,
     });
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  signInWithGoogle(@Body() body: SignInWithGoogleIn | undefined): Promise<SignInWithGoogleOut> {
+    const startSession = new StartSession(
+      this.refreshTokenRepository,
+      this.tokenProvider,
+      this.clock,
+    );
+    const useCase = new SignInWithGoogle(
+      this.googleIdTokenProvider,
+      this.userRepository,
+      this.identityRepository,
+      startSession,
+      this.authConfig.refreshTokenTtlDays,
+      this.rulesVersionProvider,
+    );
+    return useCase.execute({ idToken: body?.idToken as string, name: body?.name });
   }
 
   @Get('me')

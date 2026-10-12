@@ -26,6 +26,29 @@ describe('AuthConfig', () => {
     expect(auth.reviewCodes).toEqual({});
   });
 
+  describe('GOOGLE_WEB_CLIENT_ID', () => {
+    it('is read and trimmed', () => {
+      expect(config({ GOOGLE_WEB_CLIENT_ID: ' web-client ' }).googleWebClientId).toBe('web-client');
+    });
+
+    it.each(['', '  '])('may be unset (%j) outside production', (value) => {
+      expect(config({ GOOGLE_WEB_CLIENT_ID: value }).googleWebClientId).toBeUndefined();
+      expect(config({ NODE_ENV: 'development' }).googleWebClientId).toBeUndefined();
+    });
+
+    it.each([undefined, '', '  '])('is required in production (%j)', (value) => {
+      const env: Record<string, string> = { NODE_ENV: 'production' };
+      if (value !== undefined) env.GOOGLE_WEB_CLIENT_ID = value;
+      expect(() => config(env)).toThrow('GOOGLE_WEB_CLIENT_ID is not configured');
+    });
+
+    it('builds in production when set', () => {
+      expect(
+        config({ NODE_ENV: 'production', GOOGLE_WEB_CLIENT_ID: 'web-client' }).googleWebClientId,
+      ).toBe('web-client');
+    });
+  });
+
   it('reads REFRESH_TOKEN_EXPIRES_IN_DAYS', () => {
     expect(config({ REFRESH_TOKEN_EXPIRES_IN_DAYS: '7' }).refreshTokenTtlDays).toBe(7);
     expect(config({ REFRESH_TOKEN_EXPIRES_IN_DAYS: ' ' }).refreshTokenTtlDays).toBe(30);

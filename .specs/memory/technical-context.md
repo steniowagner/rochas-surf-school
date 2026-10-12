@@ -23,8 +23,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   The product: every role (student, instructor, admin) uses it, on iOS and Android. API base URL:
   `EXPO_PUBLIC_API_URL`. Libraries by concern:
   - Session: tokens in `expo-secure-store` (not used yet: the session is in memory, see Authentication → Mobile session).
-  - Sign-in: `@react-native-google-signin/google-signin` (Google) and `expo-apple-authentication` (Apple,
-    iOS only).
+  - Sign-in: `@react-native-google-signin/google-signin` 16 (Google; in use since spec 017, its config plugin in
+    `app.json` carries the iOS URL scheme) and `expo-apple-authentication` (Apple, iOS only; not installed yet,
+    it comes with the Apple spec).
   - Server data: **TanStack Query 5** — every screen fetches, caches, retries and invalidates the same way.
     One `QueryClient` in the root layout, mutations without retry. Requests go through the `fetch` client in
     `src/services/api/` (`apiGet`, `apiPost`, `apiPut`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends
@@ -242,6 +243,22 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 - Passwordless sign-in: **Google** and **Apple** ID tokens obtained natively on the phone and **verified by
   the backend**, and **6-digit email codes** generated, stored hashed and verified by the backend. The backend
   then issues its own tokens; one account per email address.
+- Google sign-in (`POST /auth/google`, `@Public()`, throttled 10 requests per 60 s, `SignInWithGoogle` in
+  `modules/auth/src/identity/usecase/`): takes `{ idToken, name? }` and answers 200 with the same body as
+  `POST /auth/email/verify` (session tokens + `user: AccountOut`). The token is verified behind the
+  `GoogleIdTokenProvider` port (`modules/auth/src/identity/provider/google-id-token.provider.ts`,
+  `verify(idToken)` → `{ sub, email, emailVerified, name? }`, rejecting any invalid token), implemented by
+  `GoogleAuthIdTokenProvider` (`apps/backend/src/modules/auth/google.id-token.ts`) with `google-auth-library`'s
+  `OAuth2Client.verifyIdToken({ idToken, audience: GOOGLE_WEB_CLIENT_ID })` — the native library issues tokens
+  for the **web** client id on both platforms. Order: a missing, empty or non-string `idToken` → 422
+  `idToken.token.required` (provider not called); a rejected token → 401 `auth.google.tokenInvalid`;
+  `email_verified` not `true` → 401 `auth.google.emailNotVerified`, before any lookup. The account is then found
+  by the `google` identity's `sub`, else by the normalized email (a `google` identity is added to it), else
+  created as a `pending` `student` with a `google` identity; the account's email is never changed. A new
+  account's name is the body `name`, else Google's, trimmed; when it fails `User.validate()` the answer is 422
+  `user.name.*` and nothing is written (the app asks for a name and resends the same token). A body `name` is
+  ignored for an existing account. Without `GOOGLE_WEB_CLIENT_ID` outside production every token is refused
+  without calling Google.
 - Tokens: a short-lived **access JWT (15 minutes)**, HS256 signed with `JWT_SECRET`, payload
   `{ sub: user id, email }`, plus a **refresh token (30 days)**: 32 random bytes (base64url), stored only as a
   plain SHA-256 hex in `refresh_tokens` with a `family_id` per sign-in; a token is looked up by hashing the
@@ -264,7 +281,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   everywhere); a code is consumed with one atomic `deleteMany({ email, codeHash })`, which makes it single-use
   under concurrent verifies. A cleanup job deletes expired codes every minute.
 - Rate limits: `@nestjs/throttler`, in-memory, by IP, bound per route with `@UseGuards(ThrottlerGuard)` and
-  `@Throttle` (code request 5; code verify, refresh and sign-out 10 requests per 60 s); its error key is
+  `@Throttle` (code request 5; code verify, Google sign-in, refresh and sign-out 10 requests per 60 s); its error key is
   `request.rate.limited`. How the client IP is read behind a proxy is decided by the first spec that deploys.
 - Global `JwtAuthGuard` (from `backend-nest-config`, applied); open routes use `@Public()`; controllers get
   the user with `@CurrentUser()`. The guard **reloads the user on every request** (`JwtStrategy.validate` reads
@@ -305,27 +322,45 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   plain current-user value and enforce permissions.
 - Variables (names in `apps/backend/.env.example`, values never committed): `JWT_SECRET`, `JWT_EXPIRES_IN`
   (`15m`), `AUTH_CODE_PEPPER` (required: the backend refuses to start without it),
-  `REFRESH_TOKEN_EXPIRES_IN_DAYS` (default 30), `REVIEW_ACCOUNTS`, `RESEND_API_KEY`, `EMAIL_FROM`. They are
-  read and validated in `apps/backend/src/modules/auth/auth.config.ts` (`AuthConfig`) and the providers. The
-  Google and Apple client ids come with their sign-in spec.
+  `REFRESH_TOKEN_EXPIRES_IN_DAYS` (default 30), `REVIEW_ACCOUNTS`, `RESEND_API_KEY`, `EMAIL_FROM`,
+  `GOOGLE_WEB_CLIENT_ID` (the audience of Google ID tokens; required in production — the backend refuses to
+  start without it — optional elsewhere). They are read and validated in
+  `apps/backend/src/modules/auth/auth.config.ts` (`AuthConfig`) and the providers. The Apple client id comes
+  with its sign-in spec. The app reads `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
+  (`apps/mobile/.env.example`; not secret).
 - Mobile session: the signed-in account lives in an in-memory React context (`SessionProvider` /
   `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status, createdAt,
   whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore, denialReason, reactivationStatus }`
   (`createdAt` an ISO 8601 string in UTC; `denialReason` and `reactivationStatus` plain strings or `null`, as the
   backend sends them) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
   refreshToken, refreshTokenExpiresAt }` or `null` —, `setSession({ user, tokens })`, `clearSession()`); the
-  Confirm email screen sets it from the verify response. Nothing is stored on the device yet, so a restart signs
+  Confirm email screen sets it from the verify response, and the sign-in and "Your name" screens from the
+  `POST /auth/google` response. Nothing is stored on the device yet, so a restart signs
   out; tokens will go to `expo-secure-store` when the session is kept. The app routes by account state before
   any private screen renders (see Mobile flows).
 - Mobile sign-out: `useSignOut` (`apps/mobile/src/modules/auth/hooks/use-sign-out.hook.ts`) is local first —
   it clears the session and the TanStack Query cache at once, then sends `POST /auth/sign-out` with the refresh
-  token without waiting and ignores any failure (no request when there are no tokens). No `router` call: the
+  token without waiting and ignores any failure (no request when there are no tokens). It also calls
+  `GoogleSignin.signOut()` without awaiting it and ignores its failure, so the next Google sign-in shows the
+  account picker. No `router` call: the
   flow guards send a session-less app to `/auth`. Reason: signing out always works, offline included, and the
   backend answers 204 for any token. The Pending screen and the closed-account screens ("Use another email")
   offer it. Until sessions are renewed, a
   protected call answering 401 `auth.token.invalid` shows "Your session expired. Sign in again." in the toast
   and signs out with `useSignOut` (the WhatsApp step's `useSaveWhatsapp` and the Account deleted screen's
   `useRequestReactivation` do this).
+- Mobile Google sign-in: `src/services/google-sign-in.ts` calls `GoogleSignin.configure({ webClientId,
+  iosClientId })` once at module load and re-exports `GoogleSignin`, `statusCodes` and `isErrorWithCode`; import
+  the library only from there. `useGoogleSignIn` (`modules/auth/hooks/`) runs `hasPlayServices()` (Android only)
+  and `signIn()`, sends the ID token with `useSignInWithGoogle` (a mutation on `POST /auth/google`), puts a 200
+  answer in the session, and on a 422 `user.name.*` opens "Your name" (`routes.auth.googleName({ idToken, name })`,
+  route `/auth/google-name`; the token and Google's name travel only as route params); a ref ignores a second tap
+  while one runs. Errors map to toasts in `modules/auth/utils/google-sign-in-error.ts`: a `cancelled` answer,
+  `SIGN_IN_CANCELLED` and `IN_PROGRESS` show nothing, `PLAY_SERVICES_NOT_AVAILABLE` → `googleSignIn.playServices`,
+  `NetworkError` → no connection, the two 401 keys → their own toasts, anything else → generic. On "Your name" a
+  401 `auth.google.tokenInvalid` also `router.replace`s to `/auth`, since only a new Google sign-in gets a new
+  token. The name rules shared by Create account and "Your name" are `nameRules()` in
+  `modules/auth/utils/field-validation.ts`, the same as `User.validate()`.
 - Mobile closed-account calls: the Denied and Access removed screens read the school's number with a query on
   `GET /school-settings` (`useSchoolWhatsapp` in `modules/offboarding/hooks`, with the access token, no retry);
   the "Contact the school" button renders only with a non-null number and opens `https://wa.me/<digits>` with
@@ -374,6 +409,16 @@ provider; real keys are never committed.
   on `error`. Variables: `RESEND_API_KEY`, `EMAIL_FROM` (an address on the verified domain; required with a
   key). Without `RESEND_API_KEY` outside production, codes are logged instead of sent (local development); in
   production the backend refuses to start without it.
+
+### Google sign-in
+
+- **Google Identity** (OAuth clients in Google Cloud: Web, iOS and Android debug; consent screen in Testing).
+  The phone gets an ID token with `@react-native-google-signin/google-signin`; the backend verifies it with
+  `google-auth-library` behind the `GoogleIdTokenProvider` port (see Authentication). Variables:
+  `GOOGLE_WEB_CLIENT_ID` (backend), `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
+  (mobile). Tests never call Google: the backend e2e suite overrides `GoogleAuthIdTokenProvider` with a fake
+  (`overrideProvider`), and the mobile tests mock the library in `apps/mobile/jest.setup.ts`. Android is
+  configured (debug SHA-1) but not yet checked on an emulator.
 
 ### Language model (cancellation deadlines)
 
@@ -459,6 +504,7 @@ apps/backend/src/main.ts                  # bootstrap only; exercised by the e2e
 apps/backend/src/**/*.module.ts           # Nest wiring (imports/providers lists); exercised by the e2e suite
 apps/backend/src/generated/**             # Prisma client, generated
 apps/backend/prisma/seed/main.ts          # seed runner; the seed tasks themselves are tested
+apps/mobile/jest.setup.ts                 # test setup (native mocks); loaded by Jest before every test, not as source
 apps/mobile/src/app/**                    # Expo Router routes that only render a screen; screens are tested
 apps/web/src/**                           # static public content pages; checked in a browser by the reviewer
 packages/design-tokens/**                 # token data and the CSS generator, verified by its check-types (--check)

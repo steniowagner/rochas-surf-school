@@ -12,6 +12,7 @@ import { Identity, RefreshToken, SignInCode, User } from '@rochas-surf-school/au
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import { AuthConfig } from './auth.config.js';
 import { AuthController } from './auth.controller.js';
+import { GoogleAuthIdTokenProvider } from './google.id-token.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
 import { PrismaIdentityRepository } from './identity.prisma.js';
 import { JwtTokenProvider } from './jwt.token.js';
@@ -67,6 +68,7 @@ function setup(
   };
   const identities: Identity[] = [];
   const identityRepository = {
+    findByProvider: vi.fn(async () => null),
     findByUserId: vi.fn(async () => identities),
     create: vi.fn(async (identity: Identity) => {
       identities.push(identity);
@@ -97,6 +99,12 @@ function setup(
     hashRefreshToken: vi.fn((token: string) => (token === 'refresh' ? 'f'.repeat(64) : '0'.repeat(64))),
   };
   const emailProvider = { sendSignInCode: vi.fn().mockResolvedValue(undefined) };
+  const googleIdTokenProvider = {
+    verify: vi.fn(async (idToken: string) => {
+      if (idToken !== 'google-token') throw new Error('invalid token');
+      return { sub: 'sub-1', email: 'Bia@Example.com', emailVerified: true, name: 'Bia Souza' };
+    }),
+  };
   const controller = new AuthController(
     { reviewCodes, refreshTokenTtlDays: 30 } as AuthConfig,
     signInCodeRepository as unknown as PrismaSignInCodeRepository,
@@ -108,8 +116,17 @@ function setup(
     refreshTokenRepository as unknown as PrismaRefreshTokenRepository,
     tokenProvider as unknown as JwtTokenProvider,
     { getCurrentVersion: vi.fn(async () => rulesVersion) } as unknown as PrismaRulesVersionProvider,
+    googleIdTokenProvider as unknown as GoogleAuthIdTokenProvider,
   );
-  return { controller, codes, emailProvider, identities, refreshTokens, tokenProvider };
+  return {
+    controller,
+    codes,
+    emailProvider,
+    identities,
+    refreshTokens,
+    tokenProvider,
+    googleIdTokenProvider,
+  };
 }
 
 describe('AuthController', () => {
@@ -232,6 +249,65 @@ describe('AuthController', () => {
       await expect(controller.verifySignInCode(undefined)).rejects.toMatchObject({
         statusCode: 401,
         message: 'signInCode.code.invalid',
+      });
+    });
+  });
+
+  describe('POST /auth/google', () => {
+    it('is a public POST on google answering 200', () => {
+      const handler = handlerOf('signInWithGoogle');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('google');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
+      expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
+    });
+
+    it('runs SignInWithGoogle with StartSession and the configured TTL', async () => {
+      const { controller, identities, refreshTokens } = setup();
+
+      const result = await controller.signInWithGoogle({ idToken: 'google-token' });
+
+      expect(result).toMatchObject({
+        accessToken: 'access',
+        refreshToken: 'refresh',
+        refreshTokenExpiresAt: new Date('2026-11-06T12:00:00.000Z'),
+        user: { name: 'Bia Souza', email: 'bia@example.com', status: 'pending', role: 'student' },
+      });
+      expect(identities).toHaveLength(1);
+      expect(refreshTokens).toHaveLength(1);
+    });
+
+    it('passes the name from the body', async () => {
+      const { controller } = setup();
+
+      const result = await controller.signInWithGoogle({
+        idToken: 'google-token',
+        name: 'Bia Costa',
+      });
+
+      expect(result.user.name).toBe('Bia Costa');
+    });
+
+    it('answers idToken.token.required when there is no body', async () => {
+      const { controller, googleIdTokenProvider } = setup();
+
+      await expect(controller.signInWithGoogle(undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'idToken.token.required' })],
+      });
+      expect(googleIdTokenProvider.verify).not.toHaveBeenCalled();
+    });
+
+    it('answers auth.google.tokenInvalid for a token Google refuses', async () => {
+      const { controller } = setup();
+
+      await expect(controller.signInWithGoogle({ idToken: 'other' })).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'auth.google.tokenInvalid',
       });
     });
   });

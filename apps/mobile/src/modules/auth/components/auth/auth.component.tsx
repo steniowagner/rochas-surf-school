@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Platform, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
@@ -44,6 +44,8 @@ const GRAPE_FADE = `linear-gradient(to bottom, ${palette.grape}00 45%, ${palette
 export function AuthComponent({
   onTermsPress,
   onPrivacyPress,
+  onGooglePress,
+  isGoogleLoading = false,
 }: AuthComponentProps) {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const insets = useSafeAreaInsets();
@@ -123,16 +125,12 @@ export function AuthComponent({
         className="absolute left-[22px] right-[22px] gap-2.5"
         style={{ bottom: Math.max(insets.bottom, 30) }}
       >
-        {Platform.OS === "ios" ? (
-          <AuthButton
-            variant="light"
-            label={t("auth.continueWithApple")}
-            icon={<Ionicons name="logo-apple" size={20} color={palette.ink} />}
-          />
-        ) : null}
+        {/* Sign in with Apple isn't built yet, so its button isn't shown (spec 017, D-11). */}
         <AuthButton
           variant="light"
           label={t("auth.continueWithGoogle")}
+          loading={isGoogleLoading}
+          onPress={onGooglePress}
           icon={
             <Image
               source={GOOGLE_LOGO}

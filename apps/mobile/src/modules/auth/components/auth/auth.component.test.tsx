@@ -1,5 +1,6 @@
 import { act, render, screen, userEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
+import { Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -17,6 +18,68 @@ describe("AuthComponent email sign-in", () => {
     await user.press(screen.getByText("Continue with email"));
 
     expect(router.push).toHaveBeenCalledWith(routes.auth.emailChoice);
+  });
+});
+
+describe("AuthComponent providers", () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Platform.OS = originalOS;
+  });
+
+  it.each(["ios", "android"] as const)(
+    "hides Apple and shows Google and email on %s",
+    async (os) => {
+      Platform.OS = os;
+      await render(<AuthComponent />);
+
+      expect(screen.queryByText("Continue with Apple")).toBeNull();
+      expect(screen.getByText("Continue with Google")).toBeOnTheScreen();
+      expect(screen.getByText("Continue with email")).toBeOnTheScreen();
+    },
+  );
+});
+
+describe("AuthComponent Google sign-in", () => {
+  const getSpinners = () =>
+    screen.root?.queryAll((node) => node.type === "ActivityIndicator") ?? [];
+
+  it("calls onGooglePress when Continue with Google is pressed", async () => {
+    const user = userEvent.setup();
+    const onGooglePress = jest.fn();
+    await render(<AuthComponent onGooglePress={onGooglePress} />);
+
+    await user.press(screen.getByText("Continue with Google"));
+
+    expect(onGooglePress).toHaveBeenCalledTimes(1);
+  });
+
+  it("can be pressed when no handler is given", async () => {
+    const user = userEvent.setup();
+    await render(<AuthComponent />);
+
+    await user.press(screen.getByText("Continue with Google"));
+
+    expect(screen.getByText("Continue with Google")).toBeOnTheScreen();
+  });
+
+  it("loading: shows a spinner on the Google button and ignores presses", async () => {
+    const user = userEvent.setup();
+    const onGooglePress = jest.fn();
+    await render(
+      <AuthComponent isGoogleLoading onGooglePress={onGooglePress} />,
+    );
+
+    expect(getSpinners()).toHaveLength(1);
+    expect(screen.queryByText("Continue with Google")).toBeNull();
+
+    await user.press(
+      screen.getByRole("button", { name: "Continue with Google" }),
+    );
+
+    expect(onGooglePress).not.toHaveBeenCalled();
+    expect(screen.getByText("Continue with email")).toBeOnTheScreen();
   });
 });
 

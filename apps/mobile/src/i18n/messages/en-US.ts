@@ -121,6 +121,11 @@ const messages = {
       "We updated the school rules. Read and accept them to keep using the app.",
     submit: "Accept and continue",
   },
+  closedAccount: {
+    useAnotherEmail: "Use another email",
+    contactSchool: "Contact the school",
+    whatsappUnavailable: "Couldn't open WhatsApp.",
+  },
   flows: {
     onboarding: "Onboarding",
     reactivation: "Reactivation",

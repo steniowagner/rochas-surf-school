@@ -259,7 +259,7 @@ The email is shown bold where `{email}` appears.
   `npm test --workspace @rochas-surf-school/mobile` passes.
   > ✅ 2026-10-11 — added `denialReason` and `reactivationStatus` to `SessionUser` and to the verify response type; both `null` in every fixture; files: `apps/mobile/src/navigation/resolve-flow.types.ts`, `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`, and the `SessionUser` fixtures in 12 mobile test files (`git diff --stat` lists them); verified: `npx turbo run check-types --filter=@rochas-surf-school/mobile` (exit 0), `npm test` in apps/mobile (54 suites, 573 passed); deviations: none
 
-- [ ] **T-02** — Create `AccountStatus` in `apps/mobile/src/components/account-status/`
+- [x] **T-02** — Create `AccountStatus` in `apps/mobile/src/components/account-status/`
   (`account-status.component.tsx`, `account-status.types.ts`, `index.ts`) per D-01: it reuses `ScreenIntro` for
   the icon tile, eyebrow, title and description, renders the note card only when given, the primary action only
   when given (a `Button` with its loading state), and always the ghost `Button` "Usar outro email" calling
@@ -270,6 +270,7 @@ The email is shown bold where `{email}` appears.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-01, ER-02, ER-10 · Done when: `npx jest src/components/account-status` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-11 — added the shared `AccountStatus` (ScreenIntro + optional note card + primary-action slot + ghost "Usar outro email") and the `closedAccount.*` copy in the three message files; files: `apps/mobile/src/components/account-status/{index.ts,account-status.component.tsx,account-status.types.ts,account-status.component.test.tsx}`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/components/account-status` (7 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: the primary action is a `primaryAction` ReactNode slot instead of label/onPress props, so the Contact button (T-03) and the loading Button (T-07) plug in unchanged
 
 - [ ] **T-03** — Create `useSchoolWhatsapp` in `apps/mobile/src/modules/offboarding/hooks/` (TanStack query on
   `GET /school-settings` with the session's access token, returning the number or `null`) and

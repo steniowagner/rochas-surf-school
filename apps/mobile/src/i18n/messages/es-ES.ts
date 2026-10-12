@@ -126,6 +126,11 @@ const messages: Messages = {
       "Actualizamos las normas de la escuela. Léelas y acéptalas para seguir usando la app.",
     submit: "Aceptar y continuar",
   },
+  closedAccount: {
+    useAnotherEmail: "Usar otro email",
+    contactSchool: "Hablar con la escuela",
+    whatsappUnavailable: "No se pudo abrir WhatsApp.",
+  },
   flows: {
     onboarding: "Primeros pasos",
     reactivation: "Reactivación",

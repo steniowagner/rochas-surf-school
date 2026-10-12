@@ -259,13 +259,14 @@ to renew the session.
   `expo-secure-store` is in `apps/mobile/package.json`.
   > ✅ 2026-10-12 15:35 — installed `expo-secure-store` (~57.0.4; the expo install added a config plugin entry to app.json, reverted since the spec says none is needed), added its in-memory mock to jest.setup.ts, created session storage with tests; files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/jest.setup.ts`, `apps/mobile/src/services/session/session.types.ts`, `apps/mobile/src/services/session/session.storage.ts`, `apps/mobile/src/services/session/session.storage.test.ts`; verified: `npx jest src/services/session/session.storage.test.ts` (8 passed); deviations: none (session.types.ts created here, ahead of T-02)
 
-- [ ] **T-02** — Create the session store `apps/mobile/src/services/session/session.store.ts` (+
+- [x] **T-02** — Create the session store `apps/mobile/src/services/session/session.store.ts` (+
   `session.types.ts` moved or re-exported from `src/providers/session/session.types.ts`): state
   `{ session, restoring, expired }`, `subscribe` / `getSnapshot`, `setSession`, `updateUser`, `clearSession`,
   `expireSession`, `acknowledgeExpired`, the generation counter and `signOut()` (D-01, D-02, D-10), writing
   through to `session.storage.ts`; with `session.store.test.ts`.
   Covers: ER-01, ER-11 · Done when: `npx jest src/services/session/session.store.test.ts` passes, including
   "signs out with the token of the running refresh" and "ignores a refresh that finishes after sign-out".
+  > ✅ 2026-10-12 15:36 — created the session store (state, subscribe/getSnapshot, setSession, updateUser, clearSession, expireSession, acknowledgeExpired, generation counter, refresh in-flight slot, commitRefreshedSession, signOut) with write-through to storage. Small technical step: moved the HTTP call out of api.client.ts into `api.request.ts` (`rawRequest`, with optional `timeoutMs`) so the store can send the sign-out request without a circular import; `api.client.ts` now wraps it unchanged (timeout tests land in T-04). files: `apps/mobile/src/services/session/session.store.ts`, `apps/mobile/src/services/session/session.store.test.ts`, `apps/mobile/src/services/api/api.request.ts`, `apps/mobile/src/services/api/api.client.ts`; verified: `npx jest src/services` (40 passed) and `npx tsc --noEmit`; deviations: `session.types.ts` was created in T-01 and the providers' types are re-exported in T-06
 
 - [ ] **T-03** — Create `apps/mobile/src/services/session/session.refresh.ts`: `getAccessToken()` with the 60 s
   margin (D-04) and `refreshSession()` single-flight (D-06) calling `POST /auth/refresh` through a raw request

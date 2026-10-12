@@ -344,11 +344,12 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0.
   > ✅ 2026-10-12 16:24 — moved `format-created-at` (+ types, test) to `apps/mobile/src/utils/` with `git mv` and pointed the Pending hook at `@/utils/format-created-at`; files: `apps/mobile/src/utils/format-created-at.ts`, `apps/mobile/src/utils/format-created-at.types.ts`, `apps/mobile/src/utils/format-created-at.test.ts` (moved), `apps/mobile/src/modules/pending/components/pending/pending.hook.ts`; verified: `npx jest src/utils src/modules/pending` pass, `npx turbo run check-types --filter=@rochas-surf-school/mobile` exit 0; deviations: none
 
-- [ ] **T-08** — Create `TextArea` in `apps/mobile/src/components/ui/text-area/` (component, types, `index.ts`;
+- [x] **T-08** — Create `TextArea` in `apps/mobile/src/components/ui/text-area/` (component, types, `index.ts`;
   D-13) with `text-area.component.test.tsx` (typing, `maxLength` passed to the input, counter text, label).
   Follow `.claude/rules/react.md`. Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-09 · Done when: `npx jest src/components/ui/text-area` passes.
+  > ✅ 2026-10-12 16:24 — created the controlled `TextArea` (multi-line, no icon, `maxLength` on the native input, counter `{length}/{maxLength}`, optional label also as accessibility label, same border tokens as `TextInput`); files: `apps/mobile/src/components/ui/text-area/{index.ts,text-area.component.tsx,text-area.types.ts,text-area.component.test.tsx}`; verified: `npx jest src/components/ui/text-area` (5 passed), eslint clean; deviations: no hook file (no state); `value` and `maxLength` are required props so the counter is always correct
 
 - [ ] **T-09** — Create `DecisionCard`, `DecidedList` and `DenySheet` in `apps/mobile/src/components/decision/`
   (one folder each, props of D-09, layout of D-15 and D-14; `DenySheet` on `BottomModal` + `TextArea` + `Button`,

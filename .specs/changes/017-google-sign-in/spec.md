@@ -257,7 +257,7 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Add the `GoogleIdTokenProvider` port in
+- [x] **T-01** — Add the `GoogleIdTokenProvider` port in
   `modules/auth/src/identity/provider/google-id-token.provider.ts` (D-04) and the `SignInWithGoogle` use case in
   `modules/auth/src/identity/usecase/sign-in-with-google.usecase.ts` (input `{ idToken, name? }`; dependencies
   `GoogleIdTokenProvider`, `UserRepository`, `IdentityRepository`, `StartSession`, refresh token TTL days,
@@ -269,6 +269,16 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06 · Done when:
   `npm test --workspace @rochas-surf-school/auth` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-12 — added the `GoogleIdTokenProvider` port and the `SignInWithGoogle` use case (D-01…D-05) with
+  > a `FakeGoogleIdTokenProvider`; files: `modules/auth/src/identity/provider/google-id-token.provider.ts`,
+  > `modules/auth/src/identity/provider/index.ts`, `modules/auth/src/identity/usecase/sign-in-with-google.usecase.ts`,
+  > `modules/auth/src/identity/usecase/index.ts`, `modules/auth/test/mock/fake-google-id-token.provider.ts`,
+  > `modules/auth/test/mock/index.ts`, `modules/auth/test/identity/usecase/sign-in-with-google.usecase.test.ts`;
+  > verified: `npm test --workspace @rochas-surf-school/auth` (21 suites, 257 passed; the new use case is at 100%
+  > statements/branches/functions/lines) and `npx turbo run lint check-types --filter=@rochas-surf-school/auth`
+  > (exit 0); deviations: an extra test (`known identity whose account is gone`) covers the fallback when an
+  > identity's user no longer exists; the skill's mandatory-reading files (`register-user…`) don't exist in the
+  > repo, so `verify-sign-in-code.usecase.ts` and its test were the pattern.
 
 ### Backend (`apps/backend`)
 

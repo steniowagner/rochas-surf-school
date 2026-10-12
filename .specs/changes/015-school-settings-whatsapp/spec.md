@@ -225,7 +225,7 @@ Removed screens of spec 016 are its first users.
   > Deviations: the model also has `createdAt` (the entity's inherited field, as on `rules_versions`); no
   > `deletedAt`, since the single row is never deleted.
 
-- [ ] **T-04** — Expose `GET /school-settings` and `PUT /school-settings/whatsapp` (both protected, 200, body
+- [x] **T-04** — Expose `GET /school-settings` and `PUT /school-settings/whatsapp` (both protected, 200, body
   `Partial<{ whatsappNumber: unknown }> | undefined`) in
   `apps/backend/src/modules/school-settings/school-settings.controller.ts`, building the actor from
   `@CurrentUser()` and constructing the use cases with `PrismaSchoolSettingsRepository` (provided in
@@ -237,6 +237,24 @@ Removed screens of spec 016 are its first users.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npx vitest run src/modules/school-settings` passes and
   `npx vitest run --config vitest.config.e2e.ts test/school-settings.e2e-spec.ts` passes (from
   `apps/backend`).
+  > ✅ 2026-10-11 — replaced the scaffolded placeholder controller with `GET /school-settings` (`get`) and
+  > `PUT /school-settings/whatsapp` (`setWhatsapp`), both protected and 200, building the actor from
+  > `@CurrentUser()` and constructing `GetSchoolSettings` / `SetSchoolWhatsapp` with
+  > `PrismaSchoolSettingsRepository` (`body?.whatsappNumber`, so a missing body is the missing-number case); unit
+  > spec for routes, metadata and wiring; e2e suite with `reads nothing set`, `reads the number for every status`
+  > (3 roles × 5 statuses), `sets the number` (extra field ignored, row checked through Prisma), `replaces the
+  > number`, same number again, `invalid input` (`it.each` over every ER-03 value, missing body included, stored
+  > number unchanged), `not approved` (4 statuses, plus status before number), `not admin` (student, instructor)
+  > and `without a valid token` (missing, malformed, expired, deleted account — GET and PUT), creating accounts
+  > through Prisma and deleting the settings row before and after each test; REST Client requests. Files:
+  > `apps/backend/src/modules/school-settings/school-settings.controller.ts`,
+  > `apps/backend/src/modules/school-settings/school-settings.controller.spec.ts`,
+  > `apps/backend/src/modules/school-settings/school-settings.integration.http`,
+  > `apps/backend/test/school-settings.e2e-spec.ts`. Verified (from `apps/backend`):
+  > `npx vitest run src/modules/school-settings` (2 files, 11 tests passed);
+  > `npx vitest run --config vitest.config.e2e.ts test/school-settings.e2e-spec.ts` (30 tests passed); backend
+  > `check-types` and `lint` clean. Deviations: none (the provider was already registered in
+  > `school-settings.module.ts` by T-03).
 
 ### Verification
 

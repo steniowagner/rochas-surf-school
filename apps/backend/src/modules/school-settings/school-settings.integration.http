@@ -1,0 +1,106 @@
+# Manual REST Client requests for the school-settings module (VS Code REST Client).
+# Sign in with the review accounts of REVIEW_ACCOUNTS in apps/backend/.env (one approved account per role):
+# set the emails and codes below to the ones of the admin and of a student. Review accounts accept their fixed
+# code after a code request (sent first, below).
+
+@baseUrl = http://localhost:4000
+@adminEmail = admin@example.com
+@adminCode = 345678
+@studentEmail = dev@example.com
+@studentCode = 123456
+
+### Request a sign-in code for the admin (expects 202; with RESEND_API_KEY unset the backend logs the code)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "locale": "pt-BR"
+}
+
+### Sign in as an admin (expects 200 with accessToken)
+# @name adminSession
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "code": "{{adminCode}}"
+}
+
+###
+@adminToken = {{adminSession.response.body.accessToken}}
+
+### Request a sign-in code for the student (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "locale": "pt-BR"
+}
+
+### Sign in as a student (expects 200 with accessToken)
+# @name studentSession
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "code": "{{studentCode}}"
+}
+
+###
+@studentToken = {{studentSession.response.body.accessToken}}
+
+### Read the settings (expects 200 with { whatsappNumber }, null until an admin sets it; any signed-in account, any status)
+GET {{baseUrl}}/school-settings
+Authorization: Bearer {{studentToken}}
+
+### Read without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/school-settings
+
+### Set the school's WhatsApp number (expects 200 with { whatsappNumber: "+5585999998888" })
+PUT {{baseUrl}}/school-settings/whatsapp
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+5585999998888"
+}
+
+### Replace the number (expects 200 with { whatsappNumber: "+351912345678" })
+PUT {{baseUrl}}/school-settings/whatsapp
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+351912345678"
+}
+
+### Set an empty number (expects 422 schoolSettings.whatsappNumber.required; the stored number stays)
+PUT {{baseUrl}}/school-settings/whatsapp
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": ""
+}
+
+### Set a formatted number (expects 422 schoolSettings.whatsappNumber.phone; only E.164 is accepted)
+PUT {{baseUrl}}/school-settings/whatsapp
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+55 (85) 99999-8888"
+}
+
+### Set the number as a student (expects 403 schoolSettings.role.notAdmin)
+PUT {{baseUrl}}/school-settings/whatsapp
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "+5585999998888"
+}

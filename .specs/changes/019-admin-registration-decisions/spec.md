@@ -322,7 +322,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   passes and `npx turbo run check-types --filter=@rochas-surf-school/backend` exits 0.
   > ✅ 2026-10-12 16:22 — implemented `findPending` and `updateIfPending` in the Prisma repository (`updateMany` where id and status pending; `count === 1`); files: `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (12 passed), `npx turbo run check-types --filter=@rochas-surf-school/backend` exit 0; deviations: skill not run
 
-- [ ] **T-06** — Create `apps/backend/src/modules/auth/registrations.controller.ts` (`@Controller('registrations')`,
+- [x] **T-06** — Create `apps/backend/src/modules/auth/registrations.controller.ts` (`@Controller('registrations')`,
   protected: `GET /`, `POST /:id/approve` and `POST /:id/deny` with `@HttpCode(200)`, actor from
   `@CurrentUser()`, body `reason` passed as is), register it in `auth.module.ts`, add
   `registrations.integration.http`, a controller spec `registrations.controller.spec.ts`, and the e2e suite
@@ -332,6 +332,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npm run test:e2e --workspace apps/backend` passes
   (Postgres up, migrations applied) and `npx vitest run src/modules/auth/registrations.controller.spec.ts` passes.
+  > ✅ 2026-10-12 16:23 — added `RegistrationsController` (GET /, POST :id/approve, POST :id/deny, all 200, protected), registered it in `AuthModule`, the `.http` file, the controller spec and the e2e suite (22 tests: list, access, approve, deny, finality, concurrency, 404s); files: `apps/backend/src/modules/auth/registrations.controller.ts`, `apps/backend/src/modules/auth/registrations.controller.spec.ts`, `apps/backend/src/modules/auth/registrations.integration.http`, `apps/backend/src/modules/auth/auth.module.ts`, `apps/backend/test/registrations.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (9 files, 256 passed), `npx vitest run src/modules/auth/registrations.controller.spec.ts` (8 passed), backend unit (195 passed), lint and check-types clean; deviations: the e2e list tests look only at the suite's own `@registrations.e2e.example.com` users because the shared database may hold other pending users (never deleted by the suite); the 501-character 422 key is `user.denialReason.max.length` (see T-04); needed `npm run build --workspace @rochas-surf-school/auth` so the backend sees the new exports; skill not run
 
 ### Mobile (`apps/mobile`)
 

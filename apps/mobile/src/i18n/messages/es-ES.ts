@@ -186,6 +186,11 @@ const messages: Messages = {
     },
     accountChanged: "Tu cuenta cambió. Vuelve a entrar para continuar.",
   },
+  decision: {
+    decidedJustNow: "Decididos ahora",
+    approved: "Aprobado",
+    denied: "Rechazado",
+  },
   flows: {
     onboarding: "Primeros pasos",
     student: "Alumno",

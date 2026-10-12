@@ -180,6 +180,11 @@ const messages: Messages = {
     },
     accountChanged: "Sua conta mudou. Entre de novo para continuar.",
   },
+  decision: {
+    decidedJustNow: "Decididos agora",
+    approved: "Aprovado",
+    denied: "Recusado",
+  },
   flows: {
     onboarding: "Primeiros passos",
     student: "Aluno",

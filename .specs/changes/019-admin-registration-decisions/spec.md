@@ -351,7 +351,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   Covers: ER-09 · Done when: `npx jest src/components/ui/text-area` passes.
   > ✅ 2026-10-12 16:24 — created the controlled `TextArea` (multi-line, no icon, `maxLength` on the native input, counter `{length}/{maxLength}`, optional label also as accessibility label, same border tokens as `TextInput`); files: `apps/mobile/src/components/ui/text-area/{index.ts,text-area.component.tsx,text-area.types.ts,text-area.component.test.tsx}`; verified: `npx jest src/components/ui/text-area` (5 passed), eslint clean; deviations: no hook file (no state); `value` and `maxLength` are required props so the counter is always correct
 
-- [ ] **T-09** — Create `DecisionCard`, `DecidedList` and `DenySheet` in `apps/mobile/src/components/decision/`
+- [x] **T-09** — Create `DecisionCard`, `DecidedList` and `DenySheet` in `apps/mobile/src/components/decision/`
   (one folder each, props of D-09, layout of D-15 and D-14; `DenySheet` on `BottomModal` + `TextArea` + `Button`,
   clearing its text when it closes; `DecidedList` uses `Chip` and renders nothing when empty), with the
   `decision.*` copy in the three message files and a test per component (initials from one and several words,
@@ -361,6 +361,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-07, ER-08, ER-09, ER-11 · Done when: `npx jest src/components/decision` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-12 16:26 — created `DecisionCard`, `DecidedList`, `DenySheet` (+ hook) in `components/decision/`, the `decision.*` copy in the three message files, and `getInitials`; files: `apps/mobile/src/components/decision/{decision-card,decided-list,deny-sheet}/*` (index, component, types, tests; `deny-sheet.hook.ts`), `apps/mobile/src/utils/get-initials.ts`, `apps/mobile/src/utils/get-initials.test.ts`, `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`, `apps/mobile/src/components/ui/bottom-modal/bottom-modal.component.tsx`; verified: `npx jest src/components/decision` (14 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exit 0; deviations: (1) `BottomModal` now passes `onClose` to the sheet library, otherwise dragging the sheet down never told the parent (D-14 needs it; the backdrop press may call it twice, which the callers tolerate); (2) `getInitials` lives in `src/utils` because the card takes `initials` as a prop (D-09), its tests are there; (3) the sheet clears its text by adjusting state when `visible` flips (lint forbids setState in an effect); (4) the sheet test mocks `BottomModal` to expose a backdrop
 
 - [ ] **T-10** — Create in `apps/mobile/src/modules/admin/`: `registrations.types.ts` (`Registration` mirroring
   the API), `hooks/use-registrations.hook.ts` (query `["registrations"]`), `hooks/use-approve-registration.hook.ts`

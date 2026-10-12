@@ -7,8 +7,8 @@ import { routes } from "@/constants/routes";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { useSignInWithGoogle } from "../../hooks/use-sign-in-with-google.hook";
-import { getGoogleApiErrorKey } from "../../utils/google-sign-in-error";
 import { getStatus, isValid, nameRules } from "../../utils/field-validation";
+import { getGoogleApiErrorKey } from "../../utils/google-sign-in-error";
 import { UseGoogleNameProps } from "./google-name.types";
 
 const TOKEN_INVALID_KEY = "googleSignIn.tokenInvalid";

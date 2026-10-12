@@ -2,7 +2,7 @@
 id: "017"
 slug: google-sign-in
 title: Google sign-in
-status: changes-requested
+status: in-review
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 1790b1b6902bf9c2ee7ac684db4e5566eb884681
@@ -548,10 +548,15 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
 
 **Findings**
 
-- [ ] **F-01** (convention) — `apps/mobile/src/modules/auth/components/google-name/google-name.hook.ts` lines 10–11
+- [x] **F-01** (convention) — `apps/mobile/src/modules/auth/components/google-name/google-name.hook.ts` lines 10–11
   import `../../utils/google-sign-in-error` before `../../utils/field-validation`; `.claude/rules/react.md` §2 sorts
   each import group alphabetically by module path (lint doesn't enforce it). Expected: `field-validation` first,
   then `google-sign-in-error`.
+  > ✅ 2026-10-12 — swapped the two imports so `../../utils/field-validation` comes before
+  > `../../utils/google-sign-in-error`; files: `apps/mobile/src/modules/auth/components/google-name/google-name.hook.ts`;
+  > verified: `npx jest src/modules/auth/components/google-name` (16 passed), `node .specs/scripts/run-related-tests.mjs 017`
+  > (`RELATED TESTS PASSED`), `node .specs/scripts/check-coverage.mjs 017` (`COVERAGE OK`) and
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none.
 
 **Notes**
 

@@ -6,7 +6,9 @@ describe("google-sign-in service", () => {
     process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID = "ios-client";
 
     jest.isolateModules(() => {
-      const library = jest.requireMock("@react-native-google-signin/google-signin");
+      const library = jest.requireMock(
+        "@react-native-google-signin/google-signin",
+      );
       library.GoogleSignin.configure.mockClear();
 
       const service = require("./google-sign-in");

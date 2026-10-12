@@ -9,6 +9,14 @@ import type { SessionContextValue } from "@/providers/session/session.types";
 
 import { Pending } from "./pending.component";
 
+const mockSignOut = jest.fn();
+
+// Signing out goes through the session store; the tests only check that it is asked for.
+jest.mock("@/services/session/session.store", () => ({
+  ...jest.requireActual("@/services/session/session.store"),
+  signOut: () => mockSignOut(),
+}));
+
 jest.mock("@/components/ui/button", () => {
   const actual = jest.requireActual("@/components/ui/button");
 
@@ -47,6 +55,8 @@ const renderPending = (session: Partial<SessionContextValue> = {}) => {
     tokens,
     setSession: jest.fn(),
     clearSession,
+    isRestoring: false,
+    updateUser: jest.fn(),
     ...session,
   };
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -63,6 +73,7 @@ const renderPending = (session: Partial<SessionContextValue> = {}) => {
 beforeEach(() => {
   jest.useFakeTimers({ now: NOW });
   clearSession.mockReset();
+  mockSignOut.mockReset();
   globalThis.fetch = jest
     .fn()
     .mockResolvedValue({ ok: true, status: 204, json: async () => ({}) });
@@ -153,6 +164,6 @@ describe("Pending", () => {
 
     await press.press(screen.getByRole("button", { name: "Sign out" }));
 
-    expect(clearSession).toHaveBeenCalledTimes(1);
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 });

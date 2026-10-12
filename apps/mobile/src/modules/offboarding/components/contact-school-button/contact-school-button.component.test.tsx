@@ -39,6 +39,8 @@ const renderButton = () =>
           tokens: null,
           setSession: jest.fn(),
           clearSession: jest.fn(),
+          isRestoring: false,
+          updateUser: jest.fn(),
         }}
       >
         <ContactSchoolButton />

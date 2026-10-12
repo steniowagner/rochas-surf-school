@@ -5,16 +5,13 @@ import {
   userEvent,
   waitFor,
 } from "@testing-library/react-native";
-import { useState } from "react";
 import { Text } from "react-native";
 
 import i18n from "@/i18n";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
+import { SessionProvider, useSession } from "@/providers/session";
 import { SessionContext } from "@/providers/session/session.context";
-import type {
-  Session,
-  SessionContextValue,
-} from "@/providers/session/session.types";
+import { hydrateSession } from "@/services/session/session.store";
 
 import { ReactivationScreen } from "./reactivation.screen";
 
@@ -27,7 +24,7 @@ jest.mock("@/providers/alert-message", () => ({
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -47,27 +44,15 @@ const deletedUser = (reactivationStatus: string | null): SessionUser => ({
   reactivationStatus,
 });
 
-// A session that already holds the deleted account, as after signing in; the account is gone after a sign-out.
-function SignedIn({ status }: { status: string | null }) {
-  const [session, setSession] = useState<Session | null>({
-    user: deletedUser(status),
-    tokens,
-  });
-  const value: SessionContextValue = {
-    user: session?.user ?? null,
-    tokens: session?.tokens ?? null,
-    setSession,
-    clearSession: () => setSession(null),
-  };
+// The real session, seeded with the deleted account as after signing in; the account is gone after a sign-out.
+function SignedIn() {
+  const { user } = useSession();
 
-  return (
-    <SessionContext.Provider value={value}>
-      {session ? <ReactivationScreen /> : <Text>Signed out</Text>}
-    </SessionContext.Provider>
-  );
+  return user ? <ReactivationScreen /> : <Text>Signed out</Text>;
 }
 
 const renderScreen = async (status: string | null = null) => {
+  hydrateSession({ user: deletedUser(status), tokens });
   await render(
     <QueryClientProvider
       client={
@@ -79,7 +64,9 @@ const renderScreen = async (status: string | null = null) => {
         })
       }
     >
-      <SignedIn status={status} />
+      <SessionProvider>
+        <SignedIn />
+      </SessionProvider>
     </QueryClientProvider>,
   );
 };
@@ -254,6 +241,8 @@ describe("ReactivationScreen", () => {
             tokens: null,
             setSession: jest.fn(),
             clearSession: jest.fn(),
+            isRestoring: false,
+            updateUser: jest.fn(),
           }}
         >
           <ReactivationScreen />

@@ -37,7 +37,7 @@ const user = {
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -122,15 +122,14 @@ describe("useRequestReactivation", () => {
     expect(mockShow).not.toHaveBeenCalled();
   });
 
-  it("session expired shows the toast and signs out", async () => {
+  it("shows nothing more when the session expired", async () => {
     respond(401, { errors: ["auth.token.invalid"] });
     const hook = await renderSignedIn();
 
     await request(hook);
 
-    expect(mockShow).toHaveBeenCalledWith(
-      "Your session expired. Sign in again.",
-    );
+    // The message is shown once, for the whole app, by useSessionExpired.
+    expect(mockShow).not.toHaveBeenCalled();
     expect(hook.result.current.session.user).toBeNull();
   });
 

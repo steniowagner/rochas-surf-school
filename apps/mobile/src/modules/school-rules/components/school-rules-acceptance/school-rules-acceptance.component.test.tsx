@@ -8,12 +8,13 @@ import {
 
 import i18n from "@/i18n";
 import { SessionContext } from "@/providers/session/session.context";
+import { hydrateSession } from "@/services/session/session.store";
 
 import { SchoolRulesAcceptance } from "./school-rules-acceptance.component";
 
 const fetchMock = jest.fn();
 const mockShow = jest.fn();
-const setSession = jest.fn();
+const updateUser = jest.fn();
 
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
@@ -36,7 +37,7 @@ const user = {
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -78,7 +79,14 @@ const renderStep = () =>
       }
     >
       <SessionContext.Provider
-        value={{ user, tokens, setSession, clearSession: jest.fn() }}
+        value={{
+          user,
+          tokens,
+          setSession: jest.fn(),
+          clearSession: jest.fn(),
+          isRestoring: false,
+          updateUser,
+        }}
       >
         <SchoolRulesAcceptance
           eyebrow="Last step"
@@ -96,7 +104,8 @@ const cta = () => screen.getByRole("button", { name: "Enter the app" });
 beforeEach(() => {
   fetchMock.mockReset();
   mockShow.mockReset();
-  setSession.mockReset();
+  updateUser.mockReset();
+  hydrateSession({ user, tokens });
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
@@ -185,10 +194,7 @@ describe("SchoolRulesAcceptance", () => {
     await press.press(cta());
 
     await waitFor(() =>
-      expect(setSession).toHaveBeenCalledWith({
-        user: { ...user, rulesAccepted: true },
-        tokens,
-      }),
+      expect(updateUser).toHaveBeenCalledWith({ ...user, rulesAccepted: true }),
     );
     expect(acceptCalls()).toHaveLength(1);
     expect(acceptCalls()[0][1]).toEqual({
@@ -221,7 +227,7 @@ describe("SchoolRulesAcceptance", () => {
     ).toHaveLength(1);
 
     resolveAccept(json(200, { ...user, rulesAccepted: true }));
-    await waitFor(() => expect(setSession).toHaveBeenCalled());
+    await waitFor(() => expect(updateUser).toHaveBeenCalled());
   });
 
   it("outdated: unticks and accepts the new version", async () => {
@@ -257,12 +263,12 @@ describe("SchoolRulesAcceptance", () => {
     );
     expect(checkbox()).not.toBeChecked();
     expect(cta()).toBeDisabled();
-    expect(setSession).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
 
     await press.press(checkbox());
     await press.press(cta());
 
-    await waitFor(() => expect(setSession).toHaveBeenCalled());
+    await waitFor(() => expect(updateUser).toHaveBeenCalled());
     expect(acceptCalls()[1][1].body).toBe(JSON.stringify({ version: 4 }));
   });
 

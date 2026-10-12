@@ -1,74 +1,82 @@
-import { ApiError, NetworkError } from "./api.errors";
+import { getAccessToken, refreshSession } from "../session/session.refresh";
+import { expireSession, getSession } from "../session/session.store";
 
-const parseJson = async (response: Response): Promise<unknown> => {
-  try {
-    return await response.json();
-  } catch {
-    return undefined;
-  }
-};
-
-const toErrors = (body: unknown): string[] => {
-  const errors = (body as { errors?: unknown } | undefined)?.errors;
-
-  return Array.isArray(errors)
-    ? errors.filter((error): error is string => typeof error === "string")
-    : [];
-};
+import { ApiError, SessionExpiredError } from "./api.errors";
+import { rawRequest } from "./api.request";
 
 type RequestOptions = {
-  accessToken?: string;
+  /** Sends the session's access token, renewed first when it is about to expire, and once more after a 401. */
+  authenticated?: true;
+  /** Aborts the request after this many milliseconds (as a `NetworkError`). */
+  timeoutMs?: number;
 };
+
+type Method = "GET" | "POST" | "PUT";
+
+// The backend answers this key for every guard 401 (expired token, unknown user…).
+const isInvalidToken = (error: unknown) =>
+  error instanceof ApiError &&
+  error.status === 401 &&
+  error.errors.includes("auth.token.invalid");
 
 const request = async <T>(
-  method: "GET" | "POST" | "PUT",
+  method: Method,
   path: string,
   body: unknown,
-  { accessToken }: RequestOptions = {},
+  { authenticated, timeoutMs }: RequestOptions = {},
 ): Promise<T> => {
-  const hasBody = method !== "GET";
+  if (!authenticated) {
+    return rawRequest<T>(method, path, body, { timeoutMs });
+  }
 
-  let response: Response;
+  const token = await getAccessToken({ timeoutMs });
 
   try {
-    response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${path}`, {
-      method,
-      headers: {
-        ...(hasBody ? { "Content-Type": "application/json" } : {}),
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      },
-      ...(hasBody ? { body: JSON.stringify(body) } : {}),
+    return await rawRequest<T>(method, path, body, {
+      accessToken: token,
+      timeoutMs,
     });
-  } catch {
-    throw new NetworkError();
+  } catch (error) {
+    if (!isInvalidToken(error)) {
+      throw error;
+    }
   }
 
-  const data = await parseJson(response);
+  const renewed = await refreshSession({ timeoutMs });
 
-  if (!response.ok) {
-    const details = (data as { details?: Record<string, unknown> } | undefined)
-      ?.details;
+  try {
+    return await rawRequest<T>(method, path, body, {
+      accessToken: renewed.tokens.accessToken,
+      timeoutMs,
+    });
+  } catch (error) {
+    if (!isInvalidToken(error)) {
+      throw error;
+    }
 
-    throw new ApiError(response.status, toErrors(data), details);
+    // Renewing didn't help: the session is over, unless the person already signed out.
+    if (getSession()) {
+      expireSession();
+    }
+
+    throw new SessionExpiredError();
   }
-
-  return data as T;
 };
 
-/** A POST that sends `Authorization: Bearer <token>` when an access token is given. */
+/** A POST; `authenticated: true` sends the session's access token. */
 export const apiPost = <T>(
   path: string,
   body: unknown,
   options?: RequestOptions,
 ): Promise<T> => request<T>("POST", path, body, options);
 
-/** A PUT that sends `Authorization: Bearer <token>` when an access token is given (spec 008, D-10). */
+/** A PUT; `authenticated: true` sends the session's access token (spec 008, D-10). */
 export const apiPut = <T>(
   path: string,
   body: unknown,
   options?: RequestOptions,
 ): Promise<T> => request<T>("PUT", path, body, options);
 
-/** A GET that sends `Authorization: Bearer <token>` when an access token is given (spec 012). */
+/** A GET; `authenticated: true` sends the session's access token (spec 012). */
 export const apiGet = <T>(path: string, options?: RequestOptions): Promise<T> =>
   request<T>("GET", path, undefined, options);

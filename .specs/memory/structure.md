@@ -155,7 +155,7 @@ open routes opt out with `@Public()`.
 src/
   app/                          # Expo Router routes only (each renders a screen)
     _layout.tsx                 # fonts, theme variables, bottom sheets, QueryClientProvider, AlertMessageProvider,
-                                # SessionProvider; renders RootNavigator
+                                # SessionProvider; renders RootNavigator inside SplashGate
     index.tsx                   # redirects to the entry route of the resolved flow
     (public)/auth/_layout.tsx   # Stack of the signed-out flow
     (public)/auth/index.tsx     # sign-in screen
@@ -178,7 +178,10 @@ src/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
                                 # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
                                 # (flow + user → entry route)
-    root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator
+    root-navigator/             # RootNavigator: root Stack with one Stack.Protected per flow group; useRootNavigator;
+                                # mounts useSessionExpired
+    splash-gate/                # SplashGate: keeps the native splash screen until the fonts are ready and the
+                                # stored session was restored, then renders its children (StatusBar, RootNavigator)
     rules-update-layout.test.tsx  # layout test of the rules-update group (a test under src/app would be a route)
   modules/{student,instructor,admin}/screens/
                                 # each role's screens (placeholders showing the flow's name for now)
@@ -187,25 +190,25 @@ src/
                                 # AccountStatus with ContactSchoolButton and "Use another email" (sign-out)
     components/contact-school-button/  # ContactSchoolButton: WhatsApp button, only when the school has a number;
                                 # opens https://wa.me/<digits>, toast when the link fails
-    hooks/use-school-whatsapp.hook.ts  # useSchoolWhatsapp: GET /school-settings → number or null
+    hooks/use-school-whatsapp.hook.ts  # useSchoolWhatsapp: GET /school-settings (authenticated) → number or null
   modules/reactivation/
     screens/reactivation.screen.tsx  # Account deleted: one AccountStatus per reactivationStatus (not requested,
                                 # requested, denied)
     hooks/use-request-reactivation.hook.ts  # POST /auth/me/reactivation-request; updates the session (denied on
-                                # a 409); toast; signs out on a 401 or 403
+                                # a 409); toast; signs out on a 403
   modules/onboarding/
     screens/                    # whatsapp.screen.tsx, school-rules.screen.tsx
     components/                 # whatsapp (welcome, country chip + number, hide switch, save), country-picker
                                 # (searchable bottom sheet of countries with their dial codes)
                                 # school-rules.screen.tsx renders SchoolRulesAcceptance with the schoolRules.* copy
-    hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast; signs out on a 401
+    hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast
   modules/rules-update/
     screens/rules-update.screen.tsx  # "Regras atualizadas": SchoolRulesAcceptance with the rulesUpdate.* copy
   modules/school-rules/         # the rules shown in the app, reused by every screen that shows them
     school-rules.types.ts       # SchoolRule, SchoolRules (mirror the API; no dependency on the module workspace)
-    hooks/use-school-rules.hook.ts  # useSchoolRules: GET /school-rules, query key ["school-rules"]; signs out on a 401
+    hooks/use-school-rules.hook.ts  # useSchoolRules: GET /school-rules, query key ["school-rules"]
     hooks/use-accept-school-rules.hook.ts  # POST /school-rules/acceptances; updates the session; on a 409
-                                # reloads the rules (onOutdated); toast; signs out on a 401
+                                # reloads the rules (onOutdated); toast
     components/                 # school-rules-list (card: loading, error + retry, empty, numbered rows),
                                 # school-rule-row (number, title, description), school-rules-acceptance
                                 # (SchoolRulesAcceptance: icon, eyebrow/title/description/submitLabel props,
@@ -227,8 +230,10 @@ src/
                                 # use-verify-sign-in-code.hook.ts (POST /auth/email/verify),
                                 # use-sign-in-with-google.hook.ts (POST /auth/google),
                                 # use-google-sign-in.hook.ts (Google picker → POST /auth/google → session or
-                                # "Your name"), use-sign-out.hook.ts (clears the session, then POST /auth/sign-out
-                                # and GoogleSignin.signOut())
+                                # "Your name"), use-sign-out.hook.ts (the store's signOut(): clears the session
+                                # at once, then POST /auth/sign-out with the newest refresh token; GoogleSignin.signOut()),
+                                # use-session-expired.hook.ts (useSessionExpired: the "session expired" toast once,
+                                # clears the query cache, signs out of Google)
     utils/                      # sign-in-code-error.ts, verify-code-error.ts (API error → translation key,
                                 # and inline or toast for the code check; on the sign-in path a name error
                                 # sends the person to Create account), field-validation.ts (isValid with the
@@ -238,13 +243,20 @@ src/
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
                                 # text-input, toast, checkbox
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
-  providers/session/            # SessionProvider + useSession (signed-in account and tokens, in memory)
+  providers/session/            # SessionProvider + useSession: the session store exposed to React
+                                # (user, tokens, isRestoring, setSession, updateUser, clearSession); starts the restore
   components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen
   components/account-status/    # AccountStatus: the shared layout of every closed-account state (icon tile by
                                 # tone, eyebrow, title, description, optional note card and primary action,
                                 # "Use another email")
   services/google-sign-in.ts    # configures GoogleSignin once; the only import point of the Google library
-  services/api/                 # fetch client (apiGet, apiPost, apiPut, each with an optional bearer token), ApiError, NetworkError
+  services/api/                 # fetch client (apiGet, apiPost, apiPut with { authenticated, timeoutMs }: token,
+                                # renewal and one retry after a 401), api.request.ts (rawRequest: the bare HTTP call),
+                                # ApiError, NetworkError, SessionExpiredError
+  services/session/             # the session, React-free: session.store.ts (state, sign-out generation, the single
+                                # in-flight refresh, signOut), session.storage.ts (expo-secure-store keys
+                                # session.tokens / session.user), session.refresh.ts (getAccessToken with the
+                                # 60 s margin, refreshSession), session.restore.ts (launch restore via GET /auth/me)
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)
   constants/                    # routes.ts (every app path), theme.ts (design tokens), theme-variables.ts
                                 # (--ds-* per scheme), fonts

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { userEvent } from "@testing-library/react-native";
 import { Href, router } from "expo-router";
 import { act, renderRouter, screen } from "expo-router/testing-library";
-import { createRef, ReactNode, useImperativeHandle, useState } from "react";
+import { createRef, ReactNode, useImperativeHandle } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/index";
@@ -30,47 +30,39 @@ import Index from "@/app/index";
 import { routes } from "@/constants/routes";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 import { AlertMessageProvider } from "@/providers/alert-message";
-import { SessionContext } from "@/providers/session/session.context";
+import { SessionProvider, useSession } from "@/providers/session";
 import type {
-  Session,
   SessionContextValue,
   SessionTokens,
 } from "@/providers/session/session.types";
+import { hydrateSession } from "@/services/session/session.store";
 
 import { RootNavigator } from "./root-navigator.component";
 
-// The test owns the session: it starts with `initialUser` and is changed through `session.current`.
-let initialUser: SessionUser | null = null;
+// The test seeds the real session store and changes it through `session.current`.
 const TOKENS: SessionTokens = {
   accessToken: "access-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "refresh-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
 const session = createRef<SessionContextValue>();
 
-function TestSessionProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState(initialUser);
-  const [tokens, setTokens] = useState<SessionTokens | null>(
-    initialUser ? TOKENS : null,
-  );
-  const value = {
-    user,
-    tokens,
-    setSession: (next: Session) => {
-      setUser(next.user);
-      setTokens(next.tokens);
-    },
-    clearSession: () => {
-      setUser(null);
-      setTokens(null);
-    },
-  };
+// Exposes the real session (the store behind SessionProvider) to the tests through `session.current`.
+function SessionHandle() {
+  const value = useSession();
 
   useImperativeHandle(session, () => value);
 
+  return null;
+}
+
+function TestSessionProvider({ children }: { children: ReactNode }) {
   return (
-    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+    <SessionProvider>
+      <SessionHandle />
+      {children}
+    </SessionProvider>
   );
 }
 
@@ -143,7 +135,10 @@ const onboardedAccount = (role: string): SessionUser =>
 let app: ReturnType<typeof renderRouter>;
 
 const openApp = async (user: SessionUser | null, initialUrl = "/") => {
-  initialUser = user;
+  if (user) {
+    hydrateSession({ user, tokens: TOKENS });
+  }
+
   app = renderRouter(routeTree, { initialUrl });
   await app;
 };

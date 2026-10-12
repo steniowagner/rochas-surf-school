@@ -1,23 +1,39 @@
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+
+import { restoreSession } from "@/services/session/session.restore";
+import {
+  clearSession,
+  getSnapshot,
+  setSession,
+  subscribe,
+  updateUser,
+} from "@/services/session/session.store";
 
 import { SessionContext } from "./session.context";
-import { Session, SessionProviderProps } from "./session.types";
+import { SessionProviderProps } from "./session.types";
 
-// Keeps the signed-in account and its tokens in memory only: nothing is stored on the device, so a restart signs out.
+// The session lives in `services/session` (stored on the device, renewed by the API client); this only exposes it to React.
 export function SessionProvider({ children }: SessionProviderProps) {
-  const [session, setSession] = useState<Session | null>(null);
+  const { session, restoring } = useSyncExternalStore(subscribe, getSnapshot);
+  const restoreStarted = useRef(false);
 
-  const clearSession = useCallback(() => setSession(null), []);
+  useEffect(() => {
+    if (restoreStarted.current) {
+      return;
+    }
 
-  const value = useMemo(
-    () => ({
-      user: session?.user ?? null,
-      tokens: session?.tokens ?? null,
-      setSession,
-      clearSession,
-    }),
-    [session, clearSession],
-  );
+    restoreStarted.current = true;
+    void restoreSession();
+  }, []);
+
+  const value = {
+    user: session?.user ?? null,
+    tokens: session?.tokens ?? null,
+    isRestoring: restoring,
+    setSession,
+    updateUser,
+    clearSession,
+  };
 
   return (
     <SessionContext.Provider value={value}>{children}</SessionContext.Provider>

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { renderRouter, screen } from "expo-router/testing-library";
 import { userEvent } from "@testing-library/react-native";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/index";
@@ -20,14 +20,15 @@ import { routes } from "@/constants/routes";
 import { RootNavigator } from "@/navigation/root-navigator/root-navigator.component";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 import { AlertMessageProvider } from "@/providers/alert-message";
-import { SessionContext } from "@/providers/session/session.context";
-import type { Session, SessionTokens } from "@/providers/session/session.types";
+import { SessionProvider } from "@/providers/session";
+import type { SessionTokens } from "@/providers/session/session.types";
+import { hydrateSession } from "@/services/session/session.store";
 
 const fetchMock = jest.fn();
 
 const TOKENS: SessionTokens = {
   accessToken: "access-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "refresh-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -47,26 +48,8 @@ const accountOf = (role: string, rulesAccepted: boolean): SessionUser => ({
   reactivationStatus: null,
 });
 
-let initialUser: SessionUser;
-
 function TestSessionProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>({
-    user: initialUser,
-    tokens: TOKENS,
-  });
-
-  return (
-    <SessionContext.Provider
-      value={{
-        user: session?.user ?? null,
-        tokens: session?.tokens ?? null,
-        setSession,
-        clearSession: () => setSession(null),
-      }}
-    >
-      {children}
-    </SessionContext.Provider>
-  );
+  return <SessionProvider>{children}</SessionProvider>;
 }
 
 function TestRootLayout() {
@@ -123,7 +106,7 @@ describe("SchoolRulesScreen", () => {
   ])(
     "opens the role home after accepting ($role)",
     async ({ role, path, name }) => {
-      initialUser = accountOf(role, false);
+      hydrateSession({ user: accountOf(role, false), tokens: TOKENS });
       fetchMock.mockImplementation(async (url: string) =>
         url.endsWith("/acceptances")
           ? json(accountOf(role, true))

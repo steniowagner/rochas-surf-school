@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react-native";
 import { router } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/index";
@@ -22,13 +22,15 @@ import { routes } from "@/constants/routes";
 import { RootNavigator } from "@/navigation/root-navigator/root-navigator.component";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 import i18n from "@/i18n";
+import { SessionProvider } from "@/providers/session";
 import { SessionContext } from "@/providers/session/session.context";
+import { hydrateSession } from "@/services/session/session.store";
 
 import { RulesUpdateScreen } from "./rules-update.screen";
 
 const fetchMock = jest.fn();
 const mockShow = jest.fn();
-const setSession = jest.fn();
+const updateUser = jest.fn();
 
 jest.mock("@/providers/alert-message", () => ({
   ...jest.requireActual("@/providers/alert-message"),
@@ -52,7 +54,7 @@ const user = {
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -94,7 +96,14 @@ const renderScreen = () =>
       }
     >
       <SessionContext.Provider
-        value={{ user, tokens, setSession, clearSession: jest.fn() }}
+        value={{
+          user,
+          tokens,
+          setSession: jest.fn(),
+          clearSession: jest.fn(),
+          isRestoring: false,
+          updateUser,
+        }}
       >
         <RulesUpdateScreen />
       </SessionContext.Provider>
@@ -108,7 +117,8 @@ beforeEach(async () => {
   await i18n.changeLanguage("en-US");
   fetchMock.mockReset();
   mockShow.mockReset();
-  setSession.mockReset();
+  updateUser.mockReset();
+  hydrateSession({ user, tokens });
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
@@ -173,7 +183,7 @@ describe("RulesUpdateScreen", () => {
     await press.press(checkbox());
     await press.press(cta());
 
-    await waitFor(() => expect(setSession).toHaveBeenCalled());
+    await waitFor(() => expect(updateUser).toHaveBeenCalled());
     expect(acceptCalls()[0][1].body).toBe(JSON.stringify({ version: 6 }));
   });
 
@@ -227,7 +237,7 @@ describe("RulesUpdateScreen", () => {
       "The rules changed. Read them again and accept.",
     );
     expect(checkbox()).not.toBeChecked();
-    expect(setSession).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
   });
 
   it("has no way back: no back or sign-out button", async () => {
@@ -287,23 +297,7 @@ describe("RulesUpdateScreen on its route", () => {
   let initialUser: SessionUser;
 
   function TestSessionProvider({ children }: { children: ReactNode }) {
-    const [session, setSessionState] = useState<{
-      user: SessionUser;
-      tokens: typeof tokens;
-    } | null>({ user: initialUser, tokens });
-
-    return (
-      <SessionContext.Provider
-        value={{
-          user: session?.user ?? null,
-          tokens: session?.tokens ?? null,
-          setSession: setSessionState,
-          clearSession: () => setSessionState(null),
-        }}
-      >
-        {children}
-      </SessionContext.Provider>
-    );
+    return <SessionProvider>{children}</SessionProvider>;
   }
 
   function TestRootLayout() {
@@ -343,6 +337,7 @@ describe("RulesUpdateScreen on its route", () => {
     "opens the role home after accepting ($role)",
     async ({ role, path, name }) => {
       initialUser = { ...user, role };
+      hydrateSession({ user: initialUser, tokens });
       serve({
         rules: () => json(200, { version: 5, rules: [ruleOf(1)] }),
         accept: () => json(200, { ...initialUser, rulesAccepted: true }),

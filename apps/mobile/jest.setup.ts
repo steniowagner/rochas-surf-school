@@ -3,6 +3,7 @@
 import "react-native-gesture-handler/jestSetup";
 
 import i18n from "@/i18n";
+import { resetSessionStore } from "@/services/session/session.store";
 
 jest.mock("expo-localization", () => ({
   getLocales: jest.fn(() => [{ languageCode: "en" }]),
@@ -43,4 +44,29 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
 // Every test starts in English (US), as when the OS language is English.
 beforeEach(async () => {
   await i18n.changeLanguage("en-US");
+});
+
+// In-memory stand-in for the native keychain; the store is reset between tests.
+const mockSecureStoreData = new Map<string, string>();
+
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn(
+    async (key: string) => mockSecureStoreData.get(key) ?? null,
+  ),
+  setItemAsync: jest.fn(async (key: string, value: string) => {
+    mockSecureStoreData.set(key, value);
+  }),
+  deleteItemAsync: jest.fn(async (key: string) => {
+    mockSecureStoreData.delete(key);
+  }),
+}));
+
+beforeEach(() => {
+  // The session store is module state: every test starts as a fresh launch.
+  resetSessionStore();
+  mockSecureStoreData.clear();
+  const SecureStore = jest.requireMock("expo-secure-store");
+  SecureStore.getItemAsync.mockClear();
+  SecureStore.setItemAsync.mockClear();
+  SecureStore.deleteItemAsync.mockClear();
 });

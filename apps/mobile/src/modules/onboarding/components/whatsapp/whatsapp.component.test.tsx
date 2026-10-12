@@ -8,18 +8,16 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { router } from "expo-router";
-import { createRef, ReactNode, useImperativeHandle, useState } from "react";
+import { createRef, useImperativeHandle } from "react";
 import { Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
-import { SessionContext } from "@/providers/session/session.context";
-import type {
-  Session,
-  SessionContextValue,
-} from "@/providers/session/session.types";
+import { SessionProvider, useSession } from "@/providers/session";
+import type { SessionContextValue } from "@/providers/session/session.types";
+import { hydrateSession } from "@/services/session/session.store";
 
 import { Whatsapp } from "./whatsapp.component";
 
@@ -46,7 +44,7 @@ const user = {
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -54,38 +52,26 @@ const tokens = {
 let queryClient: QueryClient;
 const currentSession = createRef<SessionContextValue>();
 
-// A session that starts signed in with the given account, as the app is before the onboarding flow.
-function SignedInSession({
-  account,
-  children,
-}: {
-  account: SessionUser;
-  children: ReactNode;
-}) {
-  const [session, setSession] = useState<Session | null>({
-    user: account,
-    tokens,
-  });
-  const value = {
-    user: session?.user ?? null,
-    tokens: session?.tokens ?? null,
-    setSession,
-    clearSession: () => setSession(null),
-  };
+// The real session, exposed to the tests through `currentSession`.
+function SessionHandle() {
+  const value = useSession();
+
   useImperativeHandle(currentSession, () => value);
 
-  return (
-    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
-  );
+  return null;
 }
 
+// Starts signed in with the given account, as the app is before the onboarding flow.
 const renderWhatsapp = async (account: SessionUser = user) => {
+  hydrateSession({ user: account, tokens });
+
   await render(
     <QueryClientProvider client={queryClient}>
       <AlertMessageProvider>
-        <SignedInSession account={account}>
+        <SessionProvider>
+          <SessionHandle />
           <Whatsapp />
-        </SignedInSession>
+        </SessionProvider>
       </AlertMessageProvider>
     </QueryClientProvider>,
   );
@@ -433,16 +419,18 @@ describe("Whatsapp", () => {
     expect(router.replace).not.toHaveBeenCalled();
   });
 
-  it("signs out when the session expired", async () => {
+  it("shows nothing more when the session expired", async () => {
     respond(401, { errors: ["auth.token.invalid"] });
     const press = await renderWhatsapp();
     await press.type(numberInput(), "85 99999-8888");
 
     await press.press(saveButton());
 
+    // The message is shown once, for the whole app, by useSessionExpired.
+    await waitFor(() => expect(currentSession.current?.user).toBeNull());
     expect(
-      await screen.findByText("Your session expired. Sign in again."),
-    ).toBeOnTheScreen();
+      screen.queryByText("Your session expired. Sign in again."),
+    ).toBeNull();
     expect(router.replace).not.toHaveBeenCalled();
   });
 });

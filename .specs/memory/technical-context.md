@@ -22,17 +22,22 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
 - **`apps/mobile`** — **Expo SDK 57** (React Native 0.86, **Expo Router 57**, Reanimated 4, React Compiler).
   The product: every role (student, instructor, admin) uses it, on iOS and Android. API base URL:
   `EXPO_PUBLIC_API_URL`. Libraries by concern:
-  - Session: tokens in `expo-secure-store` (not used yet: the session is in memory, see Authentication → Mobile session).
+  - Session: **`expo-secure-store`** 57 (no config plugin entry: plain key-value, no Face ID) keeps the session
+    on the device under two keys, `session.tokens` (JSON of the four token fields) and `session.user` (JSON of
+    the account); see Authentication → Mobile session. The Jest setup replaces it with an in-memory mock.
   - Sign-in: `@react-native-google-signin/google-signin` 16 (Google; in use since spec 017, its config plugin in
     `app.json` carries the iOS URL scheme) and `expo-apple-authentication` (Apple, iOS only; not installed yet,
     it comes with the Apple spec).
   - Server data: **TanStack Query 5** — every screen fetches, caches, retries and invalidates the same way.
     One `QueryClient` in the root layout, mutations without retry. Requests go through the `fetch` client in
     `src/services/api/` (`apiGet`, `apiPost`, `apiPut`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends
-    JSON for POST and PUT (a GET has no body and no Content-Type), adds `Authorization: Bearer <token>` when
-    given an `accessToken` (an optional `{ accessToken }` on all three), and throws `ApiError` (`status`,
-    `errors`, `details`; empty `errors` when the body isn't JSON) on a non-2xx answer or `NetworkError` when no
-    answer arrives.
+    JSON for POST and PUT (a GET has no body and no Content-Type), and throws `ApiError` (`status`, `errors`,
+    `details`; empty `errors` when the body isn't JSON) on a non-2xx answer or `NetworkError` when no answer
+    arrives. Options on all three: `{ authenticated: true }` sends the session's access token (renewed first
+    when needed, see Mobile session) — callers never read or pass tokens; `timeoutMs` aborts the request with an
+    `AbortController` and throws `NetworkError` (no timeout unless asked). `SessionExpiredError` means the
+    backend refused to renew the session. The bare HTTP call is `rawRequest` in `api.request.ts` (no session
+    logic), which the client and the session store share so they don't import each other.
   - Phone numbers: **`libphonenumber-js`** (default metadata) turns what the person typed and the chosen
     country into E.164 and lists the countries with their dial codes; **`i18n-iso-countries`** gives their
     names in en, es and pt, following the app language. Both run under Jest without a transform. With Brazil
@@ -328,27 +333,53 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `apps/backend/src/modules/auth/auth.config.ts` (`AuthConfig`) and the providers. The Apple client id comes
   with its sign-in spec. The app reads `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
   (`apps/mobile/.env.example`; not secret).
-- Mobile session: the signed-in account lives in an in-memory React context (`SessionProvider` /
-  `useSession` in `apps/mobile/src/providers/session/`: `user` — `{ id, name, email, role, status, createdAt,
+- Mobile session: the session logic lives in a plain, React-free module store in
+  `apps/mobile/src/services/session/` (`session.store.ts`: `{ session, restoring, expired }`, a sign-out
+  generation counter and the single in-flight refresh promise; `session.storage.ts`: the two SecureStore keys;
+  `session.refresh.ts`; `session.restore.ts`). Reason: the one-refresh-at-a-time lock must be shared by every
+  caller, the API client included. `SessionProvider` / `useSession` (`apps/mobile/src/providers/session/`) read
+  it with `useSyncExternalStore` and expose `user` — `{ id, name, email, role, status, createdAt,
   whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore, denialReason, reactivationStatus }`
   (`createdAt` an ISO 8601 string in UTC; `denialReason` and `reactivationStatus` plain strings or `null`, as the
-  backend sends them) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt,
-  refreshToken, refreshTokenExpiresAt }` or `null` —, `setSession({ user, tokens })`, `clearSession()`); the
-  Confirm email screen sets it from the verify response, and the sign-in and "Your name" screens from the
-  `POST /auth/google` response. Nothing is stored on the device yet, so a restart signs
-  out; tokens will go to `expo-secure-store` when the session is kept. The app routes by account state before
-  any private screen renders (see Mobile flows).
+  backend sends them) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt, refreshToken,
+  refreshTokenExpiresAt }` or `null` —, `isRestoring`, `setSession({ user, tokens })`, `updateUser(user)` (an
+  answer that carries the account) and `clearSession()`. The Confirm email screen sets it from the verify
+  response, and the sign-in and "Your name" screens from the `POST /auth/google` response. Every change is
+  written to SecureStore; a read or parse that throws, or only one key present, counts as no session and both
+  keys are deleted (an Android backup restored to a new Keystore can't be decrypted).
+  - Launch restore (`restoreSession()`, started once by `SessionProvider`): with a stored session it calls
+    `GET /auth/me` (authenticated, `timeoutMs: 8000`, including the refresh it may need) while the native
+    splash screen stays up — `SplashGate` (`src/navigation/splash-gate/`, rendered by the root layout inside
+    `SessionProvider`) hides it and renders `RootNavigator` only once the fonts are ready and `isRestoring` is
+    `false`. 200 → the returned account; no answer, timeout, 5xx or 429 → the stored session as it was (routed
+    by the stored account; every backend request reloads role and status anyway); refused refresh → expired.
+  - Renewal: before each authenticated request, an access token less than **60 s** from expiry (or past it) is
+    renewed first (no timer: timers don't run in the background and would hit the refresh throttle); a request
+    answered 401 `auth.token.invalid` triggers one refresh and one retry, and a second 401 expires the session.
+    One refresh at a time: every caller that needs one awaits the same promise (the backend's reuse detection
+    would revoke the whole sign-in otherwise). A successful refresh stores the new tokens **and** the returned
+    account, so routing follows the account's current state.
+  - Only a refresh answered with a 4xx other than 429 expires the session; no answer, a timeout, a 5xx or a 429
+    keeps the session and stored tokens and throws `NetworkError`. Expiry clears memory and both keys, sets the
+    `expired` notice and throws `SessionExpiredError`. `useSessionExpired`
+    (`modules/auth/hooks/use-session-expired.hook.ts`, mounted in `RootNavigator`) consumes the notice: the toast
+    `session.expired` ("Your session expired. Sign in again."), the TanStack Query cache cleared,
+    `GoogleSignin.signOut()` unawaited; no `POST /auth/sign-out`. The notice stays set until consumed, so an
+    expiry during launch is shown once the navigator mounts. Protected hooks ignore `SessionExpiredError` in
+    their error handling and never handle 401 themselves.
+  - The app routes by account state before any private screen renders (see Mobile flows). On iOS the Keychain
+    survives uninstalling the app, so a reinstall can restore a still-valid session.
 - Mobile sign-out: `useSignOut` (`apps/mobile/src/modules/auth/hooks/use-sign-out.hook.ts`) is local first —
-  it clears the session and the TanStack Query cache at once, then sends `POST /auth/sign-out` with the refresh
-  token without waiting and ignores any failure (no request when there are no tokens). It also calls
+  it calls the store's `signOut()`, which clears the session and both stored keys at once and bumps the
+  generation counter, and clears the TanStack Query cache; then, without the UI waiting, `signOut()` awaits a
+  refresh in flight and sends `POST /auth/sign-out` with the newest refresh token (the one that refresh
+  produced, else the current one), ignoring any failure (no request when there are no tokens). A refresh that
+  finishes after a sign-out never writes the session back. It also calls
   `GoogleSignin.signOut()` without awaiting it and ignores its failure, so the next Google sign-in shows the
   account picker. No `router` call: the
   flow guards send a session-less app to `/auth`. Reason: signing out always works, offline included, and the
   backend answers 204 for any token. The Pending screen and the closed-account screens ("Use another email")
-  offer it. Until sessions are renewed, a
-  protected call answering 401 `auth.token.invalid` shows "Your session expired. Sign in again." in the toast
-  and signs out with `useSignOut` (the WhatsApp step's `useSaveWhatsapp` and the Account deleted screen's
-  `useRequestReactivation` do this).
+  offer it. An expired session is handled once, centrally (see Mobile session).
 - Mobile Google sign-in: `src/services/google-sign-in.ts` calls `GoogleSignin.configure({ webClientId,
   iosClientId })` once at module load and re-exports `GoogleSignin`, `statusCodes` and `isErrorWithCode`; import
   the library only from there. `useGoogleSignIn` (`modules/auth/hooks/`) runs `hasPlayServices()` (Android only)
@@ -362,14 +393,14 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   token. The name rules shared by Create account and "Your name" are `nameRules()` in
   `modules/auth/utils/field-validation.ts`, the same as `User.validate()`.
 - Mobile closed-account calls: the Denied and Access removed screens read the school's number with a query on
-  `GET /school-settings` (`useSchoolWhatsapp` in `modules/offboarding/hooks`, with the access token, no retry);
+  `GET /school-settings` (`useSchoolWhatsapp` in `modules/offboarding/hooks`, authenticated, no retry);
   the "Contact the school" button renders only with a non-null number and opens `https://wa.me/<digits>` with
   `Linking.openURL` (a toast when it rejects) — loading, an error and `null` all hide it, because the contact is
   an extra. The Account deleted screen picks its state from the session's `reactivationStatus` (`null` → not
   requested, `"requested"`, `"denied"`); `useRequestReactivation` (`modules/reactivation/hooks`) is a mutation
-  on `POST /auth/me/reactivation-request` that puts the answer in the session on 200, sets
-  `reactivationStatus: "denied"` on 409 `user.reactivation.denied`, and signs out with a toast on 401
-  `auth.token.invalid` and 403 `user.status.notDeleted`, so every answer leaves the screen matching the account.
+  on `POST /auth/me/reactivation-request` that puts the answer in the session (`updateUser`) on 200, sets
+  `reactivationStatus: "denied"` on 409 `user.reactivation.denied`, and signs out with a toast on 403
+  `user.status.notDeleted`, so every answer leaves the screen matching the account.
 - Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.
   `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
   `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);
@@ -467,6 +498,11 @@ The public web pages are checked **in a browser**. A Maestro suite for mobile wo
   **Vitest** in `apps/backend` (`npm test` unit, `npm run test:e2e` e2e), **Jest via `jest-expo`** in
   `apps/mobile` (`npm test --workspace @rochas-surf-school/mobile`). `apps/web` has none. Specs run only the tests related to their change, with
   `.specs/scripts/run-related-tests.mjs`.
+- Mobile test setup: `apps/mobile/jest.setup.ts` mocks the native pieces — among them `expo-secure-store` as
+  `jest.fn`s over an in-memory `Map`, reset between tests — and calls `resetSessionStore()` before every test,
+  since the session store is module state. Tests that need a signed-in app seed the real store
+  (`hydrateSession`) with an access token far in the future, since one close to expiry triggers a refresh;
+  `fetch` is mocked per test.
 - End-to-end, per app: the suite below. It needs a Postgres reachable through `DATABASE_*` with the
   migrations applied (locally: `npm run db:start --workspace apps/backend`, then
   `npm run prisma:migrate:deploy --workspace apps/backend`; in CI the `e2e` job provides both).

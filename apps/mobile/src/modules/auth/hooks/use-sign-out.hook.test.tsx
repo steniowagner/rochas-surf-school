@@ -19,6 +19,8 @@ const user = {
   whatsappVisible: false,
   rulesAccepted: false,
   rulesAcceptedBefore: false,
+  denialReason: null,
+  reactivationStatus: null,
 };
 
 const tokens = {

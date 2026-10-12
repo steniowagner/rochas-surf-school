@@ -251,12 +251,13 @@ The email is shown bold where `{email}` appears.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add `denialReason: string | null` and `reactivationStatus: string | null` to `SessionUser` in
+- [x] **T-01** — Add `denialReason: string | null` and `reactivationStatus: string | null` to `SessionUser` in
   `apps/mobile/src/navigation/resolve-flow.types.ts` (D-09), and add both fields (as `null`) to every test
   fixture and mock that builds a `SessionUser` or an account answer, so they match the API of spec 014. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0 and
   `npm test --workspace @rochas-surf-school/mobile` passes.
+  > ✅ 2026-10-11 — added `denialReason` and `reactivationStatus` to `SessionUser` and to the verify response type; both `null` in every fixture; files: `apps/mobile/src/navigation/resolve-flow.types.ts`, `apps/mobile/src/modules/auth/hooks/use-verify-sign-in-code.hook.ts`, and the `SessionUser` fixtures in 12 mobile test files (`git diff --stat` lists them); verified: `npx turbo run check-types --filter=@rochas-surf-school/mobile` (exit 0), `npm test` in apps/mobile (54 suites, 573 passed); deviations: none
 
 - [ ] **T-02** — Create `AccountStatus` in `apps/mobile/src/components/account-status/`
   (`account-status.component.tsx`, `account-status.types.ts`, `index.ts`) per D-01: it reuses `ScreenIntro` for

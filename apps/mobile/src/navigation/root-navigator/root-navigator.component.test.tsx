@@ -131,6 +131,8 @@ const account = (
   whatsappVisible: false,
   rulesAccepted,
   rulesAcceptedBefore,
+  denialReason: null,
+  reactivationStatus: null,
 });
 
 // An approved account that finished onboarding: it has a WhatsApp number and accepted the rules.

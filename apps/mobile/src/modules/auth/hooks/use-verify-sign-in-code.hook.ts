@@ -24,6 +24,8 @@ export type VerifySignInCodeResponse = {
     whatsappVisible: boolean;
     rulesAccepted: boolean;
     rulesAcceptedBefore: boolean;
+    denialReason: string | null;
+    reactivationStatus: string | null;
   };
 };
 

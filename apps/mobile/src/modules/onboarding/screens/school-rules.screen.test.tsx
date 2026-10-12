@@ -43,6 +43,8 @@ const accountOf = (role: string, rulesAccepted: boolean): SessionUser => ({
   whatsappVisible: false,
   rulesAccepted,
   rulesAcceptedBefore: false,
+  denialReason: null,
+  reactivationStatus: null,
 });
 
 let initialUser: SessionUser;

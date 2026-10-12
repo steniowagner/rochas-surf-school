@@ -2,7 +2,8 @@
 id: "015"
 slug: school-settings-whatsapp
 title: The school's WhatsApp number
-status: in-review
+status: accepted
+reviewed_commit: 81f046dc48cd0839598d13e1af918af75af77766
 started: 2026-10-11
 base_commit: 315dffd38202368824cef82340ecf5fed3f8413b
 created: 2026-10-11
@@ -312,3 +313,29 @@ Removed screens of spec 016 are its first users.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-11 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (modules/school-settings, apps/backend)
+- related tests ✅ (apps/backend vitest; modules/school-settings jest, 57 passed, 100% coverage)
+- coverage of the changed lines ✅ `COVERAGE OK` — 6 files measured, all 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (7 files, 227 tests, `school-settings.e2e-spec.ts` included)
+
+**Expected Results**
+
+- ER-01 ✅ — null while unset; stored number once set; every role × status reads it; missing, malformed, expired and deleted-account tokens → 401
+- ER-02 ✅ — set, replace and set-again → 200 with the stored number; extra field ignored; row checked through Prisma; a denied student reads it
+- ER-03 ✅ — `.required` for missing body, `{}`, `null`, `""`; `.phone` for formatted, extension, trailing space, `+55123` and a JSON number; stored number unchanged
+- ER-04 ✅ — student/instructor → 403 `schoolSettings.role.notAdmin`; non-approved admin → 403 `user.status.notApproved`; status checked before number and role before number
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Untracked `.specs/changes/016-closed-account-screens/` belongs to another spec and was left alone.
+- The use case's extra non-string guard (before the entity) is a sound reading of D-03 and is covered by tests.
+- `## Memory Impact` matches what was built.

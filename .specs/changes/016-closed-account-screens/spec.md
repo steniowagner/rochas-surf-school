@@ -2,7 +2,7 @@
 id: "016"
 slug: closed-account-screens
 title: Denied, Account deleted and Access removed screens
-status: in-progress
+status: in-review
 started: 2026-10-11
 base_commit: 0e3b64851a703cefd14f99087941cf1e78276629
 created: 2026-10-11
@@ -333,10 +333,11 @@ The email is shown bold where `{email}` appears.
 
 ### Verification
 
-- [ ] **T-08** — Run every command in the Verification Plan from the repo root and follow its user journeys on
+- [x] **T-08** — Run every command in the Verification Plan from the repo root and follow its user journeys on
   the iOS simulator; all pass. Record the output summary and what each journey showed as evidence.
   Covers: all · Done when: every Verification Plan command exits 0 with `COVERAGE OK` printed, and journeys 1–8
   match their expected observations.
+  > ✅ 2026-10-11 — ran the Verification Plan. Automated: `node .specs/scripts/run-related-tests.mjs 016` RELATED TESTS PASSED (apps/mobile, 42 changed files); `node .specs/scripts/check-coverage.mjs 016` COVERAGE OK (12 files); `npm test --workspace @rochas-surf-school/mobile` 58 suites, 620 tests passed; `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exit 0 (it also caught and fixed two uncovered-branch gaps and the root-navigator route tests that still expected the placeholder titles). Journeys on the iOS simulator (iPhone 18 Pro, debug build from this branch, backend of specs 014/015 on local Postgres, backend started without `RESEND_API_KEY` so codes are only logged; account closed.test@example.com, deleted afterwards): 1 ✅ (light) Denied with reason shows the eyebrow, title, bold email, "Mensagem da equipe" card with the accented reason, the contact button with the WhatsApp glyph and "Use another email"; tapping contact opened wa.me in Safari: "Chat on WhatsApp with +55 85 99999-8888"; "Use another email" returned to sign-in; 2 ✅ (light and dark) no reason → no card; 3 ✅ (dark) Removed shows the "Questions?" card and contact button, and after `DELETE FROM school_settings` the same screen without the button; 4 ✅ (dark) not requested → tap → "REQUEST SENT / THE TEAM WILL REVIEW IT" in place, row stored `reactivation_status = 'requested'` with `reactivation_requested_at` 2026-10-12 03:21:42; 5 ✅ signing in again opens the requested state directly; 6 ✅ `reactivation_status = 'denied'` → "REQUEST DENIED / COULDN'T REACTIVATE" with only "Use another email"; 7 ✅ account set to approved while the screen was open, "Pedir reactivación" → toast "Tu cuenta cambió. Vuelve a entrar para continuar." and the sign-in screen; 8 ✅ (partly) with the app in Spanish the Account deleted screen showed the es-ES copy (eyebrow, title, bold email, card, both buttons); the Denied screen in Spanish and the pt-BR copy were not driven (component tests cover both, `-t spanish`). Not driven: Android, light mode for journeys 3–8 (dark used), the physical pt-BR phone language. deviations: journeys 7 and 8 were run in Spanish instead of Portuguese, so journey 7's toast was checked in Spanish
 
 ## Verification Plan
 

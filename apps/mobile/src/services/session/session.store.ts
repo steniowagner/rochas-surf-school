@@ -48,6 +48,11 @@ export const setSession = (session: Session) => {
   void writeStoredSession(session);
 };
 
+/** Puts a session read from storage in memory without writing it back. */
+export const hydrateSession = (session: Session) => {
+  setState({ session });
+};
+
 export const updateUser = (user: SessionUser) => {
   if (!state.session) {
     return;

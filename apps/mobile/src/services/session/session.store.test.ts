@@ -62,6 +62,14 @@ describe("session store", () => {
     );
   });
 
+  it("hydrates a stored session without writing it back", async () => {
+    store.hydrateSession(sessionOf(1));
+    await flush();
+
+    expect(store.getSession()).toEqual(sessionOf(1));
+    expect(SecureStore.setItemAsync).not.toHaveBeenCalled();
+  });
+
   it("updates the user and keeps the tokens", () => {
     store.setSession(sessionOf(1));
     const updated = { ...user, name: "Ana" } as SessionUser;

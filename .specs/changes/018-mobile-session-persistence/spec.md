@@ -285,11 +285,12 @@ to renew the session.
   Covers: ER-04, ER-06, ER-07, ER-08, ER-09 · Done when: `npx jest src/services/api` passes.
   > ✅ 2026-10-12 15:37 — added `{ authenticated: true }` and `timeoutMs` to the client (renews before expiry, retries once after a 401 `auth.token.invalid`, expires the session when the retry is refused again, unless the person already signed out); the deprecated `{ accessToken }` option stays until T-08; files: `apps/mobile/src/services/api/api.client.ts`, `apps/mobile/src/services/api/api.client.test.ts`; verified: `npx jest src/services/api` (32 passed), `npx tsc --noEmit`, `npx eslint src/services`; deviations: `api.errors.ts` and `index.ts` were changed in T-03; the timeout itself lives in `api.request.ts` (T-02)
 
-- [ ] **T-05** — Create `apps/mobile/src/services/session/session.restore.ts` (`restoreSession()`: read
+- [x] **T-05** — Create `apps/mobile/src/services/session/session.restore.ts` (`restoreSession()`: read
   storage, `GET /auth/me` authenticated with `timeoutMs: 8000`, the four outcomes of D-09, `restoring` set to
   `false` in every case) with `session.restore.test.ts`.
   Covers: ER-01, ER-03, ER-04, ER-05 · Done when: `npx jest src/services/session/session.restore.test.ts`
   passes.
+  > ✅ 2026-10-12 15:38 — created `restoreSession()` (reads storage, hydrates the store, `GET /auth/me` authenticated with `timeoutMs: 8000`, keeps the stored session on anything but a refused renewal, always ends `restoring`); added `hydrateSession` to the store (memory only, no write-back); files: `apps/mobile/src/services/session/session.restore.ts`, `apps/mobile/src/services/session/session.restore.test.ts`, `apps/mobile/src/services/session/session.store.ts`, `apps/mobile/src/services/session/session.store.test.ts`; verified: `npx jest src/services` (83 passed), `npx tsc --noEmit`, `npx eslint src/services`; deviations: none
 
 - [ ] **T-06** — Rebuild `apps/mobile/src/providers/session/` on the store (`useSyncExternalStore`; exposes
   `user`, `tokens`, `isRestoring`, `setSession`, `updateUser`, `clearSession`; the provider starts

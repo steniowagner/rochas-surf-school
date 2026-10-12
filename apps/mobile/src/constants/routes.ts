@@ -44,5 +44,6 @@ export const routes = {
   },
   admin: {
     home: "/admin",
+    registrations: "/admin/registrations",
   },
 } as const;

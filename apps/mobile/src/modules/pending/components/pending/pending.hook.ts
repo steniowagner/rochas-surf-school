@@ -4,8 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { AppLocale } from "@/i18n/locales";
 import { useSignOut } from "@/modules/auth/hooks/use-sign-out.hook";
 import { useSession } from "@/providers/session";
-
-import { formatCreatedAt } from "../../utils/format-created-at";
+import { formatCreatedAt } from "@/utils/format-created-at";
 
 import { UsePendingResult } from "./pending.types";
 

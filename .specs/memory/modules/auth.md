@@ -17,9 +17,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   `deleted` | `removed`, `pending` by default), denial reason (up to 500 characters) and dates, reactivation
   status (`requested` | `denied`) and when the request was sent, and the versions of the school rules it
   accepted. Relationships: one or
-  more identities; many sessions. Lifecycle: as in Product; today only the creation of a `pending` student
-  through an email code is built, plus the seeded review accounts, an approved account adding its
-  WhatsApp number, and a deleted account sending its reactivation request.
+  more identities; many sessions. Lifecycle: as in Product; today the creation of a `pending` student
+  through an email code or Google is built, plus the seeded review accounts, an admin approving or denying a
+  `pending` account, an approved account adding its WhatsApp number, and a deleted account sending its
+  reactivation request.
 - **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
   country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
@@ -47,6 +48,16 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   refused with `user.status.notDeleted` (even a removed one whose request was denied); a denied request can't
   be sent again (`user.reactivation.denied`); a request already sent is answered with the account and nothing
   changes, the first date kept. The 30-day window isn't checked, and admins aren't notified yet.
+- **Registration** (a `pending` account, of any role): an approved admin lists them, oldest first (id, name,
+  email, creation date), and approves or denies each one. Approving changes only the status; denying stores the
+  optional reason, trimmed (a blank one is none; up to 500 characters), and when it was denied. The role never
+  changes.
+- **A registration is decided once**: an account that isn't `pending` is refused with
+  `registration.status.notPending`, and of two decisions sent at the same moment exactly one wins — the other is
+  refused the same way and nothing is overwritten. An id that isn't a UUID or names no account →
+  `registration.notFound`; a reason that isn't text → `registration.reason.invalid`; a reason over 500 characters →
+  `user.denialReason.max.length`. Nothing is written on any refusal. The person sees the decision at the next
+  launch, sign-in or session renewal; nobody is notified yet.
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -121,6 +132,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   reactivation status).
 - **An approved account** — sets its own WhatsApp number and visibility.
 - **A deleted account** — sends its one reactivation request.
+- **An approved admin** — lists the pending registrations and approves or denies each one, with an optional
+  reason when denying. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
+  (checked first, so a removed admin gets it), an approved non-admin with `user.role.notAdmin` — before the id is
+  even looked up.
 - **Anyone holding a refresh token** — renews or ends that session (10 requests per minute per network address
   for each).
 - **In the app**, "Continue with email" asks whether the person already has an account: "I have an account"
@@ -177,6 +192,15 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   requested, waiting for the team; or denied, with only "Use another email". The decision is seen at the next
   launch or sign-in, or when the session renews. If the account changed meanwhile (no longer deleted), the app
   says so and signs out; an expired session is handled as everywhere in the app.
+- **In the app**, an approved admin who finished onboarding opens "School tools", whose "Join the school" row
+  shows how many registrations are waiting (no count while loading or after an error). The tool shows a card per
+  registration, oldest first — initials, name, email, "Asked …" — with Deny and Approve, and pull-to-refresh.
+  Approve acts at once; Deny opens a sheet with an optional reason (counter up to 500) and "Deny registration";
+  closing the sheet sends nothing and empties the reason. While a card's decision is sent, its two buttons are
+  disabled; other cards stay usable. A decided card leaves the list and goes on top of "Decided just now"
+  ("Approved" / "Denied"), which lasts only for the visit. An already decided registration shows "This
+  registration was already decided.", reloads the list and isn't added to "Decided just now"; other failures show
+  their toast and keep the card (and the sheet with its reason).
 - **In the app**, a removed account sees that its access was removed and can't be reactivated from the app, and
   can contact the school on WhatsApp when the school has a number; a stored reactivation status changes
   nothing for it.
@@ -188,9 +212,10 @@ email itself: it hands the code, the address and the language to the email-deliv
 capability through an abstract contract. It knows nothing about token formats or HTTP: the technical shape of
 tokens is behind its own contract, provided by the backend. The school rules themselves and their version belong to
 [School rules](school-rules.md), which also decides when an acceptance is allowed; this module keeps only the
-versions each account accepted and reports whether the current one is among them. Deciding registrations, the
-school-rules step of onboarding, deleting and removing accounts, erasure, notifying admins of reactivation requests and deciding them are rules
-of the account lifecycle still to be specified.
+versions each account accepted and reports whether the current one is among them. Deciding registrations belongs
+here (spec 019), since a registration is a `pending` user. Deleting and removing accounts, erasure (denied
+registrations included), notifying admins of new registrations and reactivation requests, telling the person the
+result, and deciding reactivation requests are rules of the account lifecycle still to be specified.
 
 ## Spec history
 
@@ -235,3 +260,7 @@ of the account lifecycle still to be specified.
   at launch behind the splash screen, reloading the account; it renews the session before expiry and after a
   401, one refresh at a time, storing the returned account; only a refused renewal or a sign-out ends it, with one
   "session expired" message; sign-out waits for a running renewal to end its newest token.
+- `019-admin-registration-decisions` — approved admins list pending registrations (`GET /registrations`) and
+  approve or deny them (`POST /registrations/:id/approve|deny`, optional trimmed reason up to 500); a decision is
+  final, written only while the account is still pending, so one of two concurrent decisions wins; the app's
+  admin home "School tools" and its "Join the school" tool, built on reusable decision components.

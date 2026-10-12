@@ -14,6 +14,7 @@ import { PrismaRulesVersionProvider } from './rules-version.prisma.js';
 import { SignInCodeCleanupJob } from './sign-in-code-cleanup.job.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
+import { RegistrationsController } from './registrations.controller.js';
 import { PrismaUserRepository } from './user.prisma.js';
 
 @Module({
@@ -26,7 +27,7 @@ import { PrismaUserRepository } from './user.prisma.js';
       throttlers: [{ ttl: seconds(60), limit: 10 }],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, RegistrationsController],
   providers: [
     AuthConfig,
     PrismaUserRepository,

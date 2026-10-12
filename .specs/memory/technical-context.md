@@ -182,7 +182,19 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   button (`onUseAnotherEmail`) always last; it lives outside the modules because `offboarding` and
   `reactivation` both use it. A tick box is the shared
   `Checkbox` (`src/components/ui/checkbox`: `checked`, `onChange(checked)`, `label`, `disabled`) — one
-  `Pressable` row with role `checkbox`, so the box and its label toggle it, at least 44 pt tall. API errors are shown in a toast
+  `Pressable` row with role `checkbox`, so the box and its label toggle it, at least 44 pt tall. Multi-line text is
+  the shared `TextArea` (`src/components/ui/text-area`: controlled `value` / `onChangeText`, required `maxLength`
+  enforced by the native input, a "{length}/{maxLength}" counter under it, optional `label` also used as the
+  accessibility label, no icon, the `TextInput` border tokens). `BottomModal` passes `onClose` to the sheet
+  library too, so dragging the sheet down reaches the caller (a backdrop tap may call it twice; callers must
+  tolerate that). The admin tools share `src/components/decision/` — `DecisionCard` (initials avatar on
+  `bg-sand`/`text-grape`, title, optional subtitle, detail lines, ghost Deny and primary Approve; `disabled` and
+  `loading: "approve" | "deny"`), `DecidedList` ("Decided just now": rows with a `Chip` tag, tone `ok` / `bad`;
+  renders nothing when empty) and `DenySheet` (`BottomModal` + `TextArea` + `Button`; clears its text when it
+  closes) — with generic props and no registration fields, so "Reactivate accounts" and "Class enrolments" plug in
+  their own data and copy. App-wide helpers live in `src/utils/`: `formatCreatedAt` ("now", relative up to 7
+  days, then the date in America/Fortaleza; used by the Pending screen and the registration cards) and
+  `getInitials` (first letter of the first and of the last word, uppercase). API errors are shown in a toast
   through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides by itself after 3 s).
   One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
   shown inline under the field, because the design shows it there.
@@ -323,6 +335,22 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `user.reactivation.denied`); an account already `requested` gets the account and nothing is written;
   otherwise it stores `reactivationStatus = "requested"` and `reactivationRequestedAt` (the `ClockProvider`'s
   now, stored but never returned). The status stays `deleted`; the 30-day window isn't checked.
+- Registrations (`registrations.controller.ts`, protected; use cases in `modules/auth/src/user/usecase/`):
+  `GET /registrations` (`ListRegistrations`) → 200 `{ items: [{ id, name, email, createdAt }] }`, every
+  `pending` user of any role, `createdAt` ascending, unpaginated; `POST /registrations/:id/approve`
+  (`ApproveRegistration`, body ignored) and `POST /registrations/:id/deny` (`DenyRegistration`, body
+  `{ reason? }` passed as is) → 200 `{ id, status }`. Checked in this order: access
+  (`assertCanDecideRegistrations` in `registration-access.ts`: status other than `approved` → 403
+  `user.status.notApproved`, then a non-admin → 403 `user.role.notAdmin`); then `findPendingRegistration`
+  (`pending-registration.ts`): an id that isn't a UUID (tested by pattern, no lookup) or names no user → 404
+  `registration.notFound`, a user that isn't `pending` → 409 `registration.status.notPending`; then, on deny, a
+  `reason` present and not a string → 422 `registration.reason.invalid`, trimmed, blank or `null` → none, over 500
+  characters → 422 `user.denialReason.max.length` (the entity's rule). Approve changes only `status`; deny sets
+  `status`, `denialReason` and `deniedAt` (the `ClockProvider`'s now). Decisions are written with
+  `UserRepository.updateIfPending(user)` — Prisma `updateMany({ where: { id, status: 'pending' } })`, `true` when
+  a row changed — never `update()`, which is unconditional: of two concurrent decisions exactly one wins and the
+  other gets the 409. `UserRepository.findPending()` reads the list. A decision re-validates the whole user, so a
+  stored row the current entity rules reject can't be decided.
 - Boundary: only `apps/backend/src/shared/auth` and the auth adapters know about tokens; use cases receive a
   plain current-user value and enforce permissions.
 - Variables (names in `apps/backend/.env.example`, values never committed): `JWT_SECRET`, `JWT_EXPIRES_IN`
@@ -401,6 +429,17 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   on `POST /auth/me/reactivation-request` that puts the answer in the session (`updateUser`) on 200, sets
   `reactivationStatus: "denied"` on 409 `user.reactivation.denied`, and signs out with a toast on 403
   `user.status.notDeleted`, so every answer leaves the screen matching the account.
+- Mobile admin calls (`modules/admin`): one query `["registrations"]` (`useRegistrations`, authenticated
+  `GET /registrations`, no retry) feeds both the admin home's pending count and the "Join the school" screen.
+  `useApproveRegistration` / `useDenyRegistration` are mutations without retry (deny sends `{}` for a blank
+  reason); on 200 `removeRegistration` (`utils/registrations-cache.ts`) takes the item out of the cached list at
+  once and invalidates the query, and a 409 `registration.status.notPending` invalidates it too. The mutations
+  show nothing: the screen's hook (`useRegistrationsScreen`) calls `mutateAsync` and maps errors with
+  `getRegistrationErrorKey` (`utils/registration-error.ts`: the 409 → `registrations.alreadyDecided`,
+  `NetworkError` → no connection, `SessionExpiredError` → nothing, else generic), because it also keeps
+  "Decided just now" in screen state (only for the visit; nothing on a 409), guards double taps per card with a
+  ref, and closes the deny sheet only for the registration that was decided or found already decided — a
+  failure keeps the sheet and its reason.
 - Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.
   `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
   `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);

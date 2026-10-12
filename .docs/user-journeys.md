@@ -100,6 +100,8 @@ Each combination of date and time range creates its own class. All the classes i
 
 ### Approve or deny
 
+_Implemented in spec 019-admin-registration-decisions._
+
 - New registrations to the platform, in the Join the school tool.
 - Student requests to enrol in classes, in the Class enrolments tool.
 - Reactivation requests from users whose accounts were deleted, in the Reactivate accounts tool. Each request shows the person's name, email, the date the account was deleted and the number of classes they took.

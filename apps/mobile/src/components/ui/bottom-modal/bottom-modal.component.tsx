@@ -63,6 +63,7 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
       handleIndicatorStyle={{ backgroundColor: theme.line }}
       handleStyle={{ paddingBottom: HANDLE_PADDING - TITLE_ROOM }}
       index={-1}
+      onClose={onClose}
     >
       <BottomSheetView
         style={{

@@ -1,0 +1,65 @@
+# Manual REST Client requests for the registrations routes (VS Code REST Client).
+# Sign in with the admin review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
+# Pending accounts: create them with POST /auth/email/code + POST /auth/email/verify (with a name);
+# codes are read from the backend log when RESEND_API_KEY is unset.
+
+@baseUrl = http://localhost:4000
+@adminEmail = admin@example.com
+@adminCode = 345678
+
+### Request a sign-in code for the admin (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "locale": "pt-BR"
+}
+
+### Sign in as the admin (expects 200 with accessToken)
+# @name adminSession
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "code": "{{adminCode}}"
+}
+
+###
+@adminToken = {{adminSession.response.body.accessToken}}
+# Set to the id of a pending registration returned by the list below.
+@registrationId = 00000000-0000-4000-8000-000000000000
+
+### List the pending registrations, oldest first (expects 200 with { items: [{ id, name, email, createdAt }] })
+GET {{baseUrl}}/registrations
+Authorization: Bearer {{adminToken}}
+
+### List without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/registrations
+
+### Approve a registration (expects 200 with { id, status: "approved" }; 409 registration.status.notPending when already decided; 404 registration.notFound for an unknown id)
+POST {{baseUrl}}/registrations/{{registrationId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### Deny a registration with a reason (expects 200 with { id, status: "denied" }; the reason is trimmed, up to 500 characters)
+POST {{baseUrl}}/registrations/{{registrationId}}/deny
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "reason": "Não conhecemos você."
+}
+
+### Deny without a reason (expects 200; denialReason stays empty)
+POST {{baseUrl}}/registrations/{{registrationId}}/deny
+Authorization: Bearer {{adminToken}}
+
+### Deny with an invalid reason (expects 422 registration.reason.invalid)
+POST {{baseUrl}}/registrations/{{registrationId}}/deny
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "reason": 42
+}

@@ -19,12 +19,14 @@ const messages: Messages = {
   },
   googleSignIn: {
     tokenInvalid: "No pudimos iniciar sesión con Google. Inténtalo de nuevo.",
-    emailNotVerified: "Tu correo de Google no está verificado. Usa otro método para iniciar sesión.",
+    emailNotVerified:
+      "Tu correo de Google no está verificado. Usa otro método para iniciar sesión.",
     playServices: "Google Play Services no está disponible en este teléfono.",
   },
   googleName: {
     title: "¿Cómo te llamas?",
-    description: "Escribe tu nombre completo para que la escuela sepa quién eres.",
+    description:
+      "Escribe tu nombre completo para que la escuela sepa quién eres.",
     submit: "Continuar",
   },
   createAccount: {
@@ -185,6 +187,36 @@ const messages: Messages = {
         "El equipo de Rocha's rechazó la solicitud para reactivar <bold>{{email}}</bold>. Esta cuenta seguirá inactiva.",
     },
     accountChanged: "Tu cuenta cambió. Vuelve a entrar para continuar.",
+  },
+  admin: {
+    home: {
+      title: "Herramientas de la escuela",
+      registrationsRow: "Unirse a la escuela",
+      waiting: "{{count}} esperando",
+    },
+  },
+  registrations: {
+    title: "Unirse a la escuela",
+    description: "Personas esperando la aprobación de la escuela.",
+    asked: "Pidió {{time}}",
+    askedNow: "Pidió ahora",
+    approve: "Aprobar",
+    deny: "Rechazar",
+    empty: "Nadie esperando para unirse.",
+    loadError: "No se pudieron cargar los registros.",
+    retry: "Reintentar",
+    alreadyDecided: "Este registro ya fue decidido.",
+    denySheet: {
+      title: "¿Rechazar a {{name}}?",
+      hint: "El motivo es opcional y se le mostrará a la persona.",
+      label: "Motivo (opcional)",
+      confirm: "Rechazar registro",
+    },
+  },
+  decision: {
+    decidedJustNow: "Decididos ahora",
+    approved: "Aprobado",
+    denied: "Rechazado",
   },
   flows: {
     onboarding: "Primeros pasos",

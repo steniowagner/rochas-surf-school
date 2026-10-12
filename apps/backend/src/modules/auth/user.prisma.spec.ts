@@ -51,6 +51,7 @@ function setup() {
     delete: vi.fn(),
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    updateMany: vi.fn(),
     count: vi.fn(),
   };
   const userRulesAcceptance = { createMany: vi.fn() };
@@ -249,6 +250,46 @@ describe('PrismaUserRepository', () => {
       include: { rulesAcceptances: true },
     });
     expect(users.map((item) => item.id)).toEqual([ID]);
+  });
+
+  it('finds the pending users, oldest first', async () => {
+    const { user, repository } = setup();
+    user.findMany.mockResolvedValue([minimalRecord]);
+
+    const users = await repository.findPending();
+
+    expect(user.findMany).toHaveBeenCalledWith({
+      where: { status: 'pending' },
+      orderBy: { createdAt: 'asc' },
+      include: { rulesAcceptances: true },
+    });
+    expect(users.map((item) => item.id)).toEqual([ID]);
+  });
+
+  describe('updateIfPending', () => {
+    it('writes the user only while it is pending and answers true when a row changed', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 1 });
+
+      await expect(repository.updateIfPending(minimalUser())).resolves.toBe(
+        true,
+      );
+
+      expect(user.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: 'pending' },
+        data: expect.objectContaining({ name: 'Ana Rocha', status: 'pending' }),
+      });
+      expect(user.update).not.toHaveBeenCalled();
+    });
+
+    it('answers false when no row changed', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(repository.updateIfPending(minimalUser())).resolves.toBe(
+        false,
+      );
+    });
   });
 
   describe('addRulesAcceptance', () => {

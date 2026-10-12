@@ -89,6 +89,23 @@ export class PrismaUserRepository implements UserRepository {
     return records.map((record) => this.toDomain(record));
   }
 
+  async findPending(): Promise<User[]> {
+    const records = await this.prisma.user.findMany({
+      where: { status: 'pending' },
+      orderBy: { createdAt: 'asc' },
+      include,
+    });
+    return records.map((record) => this.toDomain(record));
+  }
+
+  async updateIfPending(user: User): Promise<boolean> {
+    const { count } = await this.prisma.user.updateMany({
+      where: { id: user.id, status: 'pending' },
+      data: this.toData(user),
+    });
+    return count === 1;
+  }
+
   async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {
     await this.prisma.userRulesAcceptance.createMany({
       data: [

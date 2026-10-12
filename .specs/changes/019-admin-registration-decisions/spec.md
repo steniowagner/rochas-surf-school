@@ -313,13 +313,14 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Implement `findPending()` (`findMany` where status `pending`, `orderBy createdAt asc`, with the
+- [x] **T-05** — Implement `findPending()` (`findMany` where status `pending`, `orderBy createdAt asc`, with the
   acceptances include) and `updateIfPending(user)` (`updateMany({ where: { id, status: 'pending' }, data:
   toData(user) })`, returns `count === 1`; acceptances untouched) in
   `apps/backend/src/modules/auth/user.prisma.ts`, with cases in `user.prisma.spec.ts`.
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-05 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` (from `apps/backend`)
   passes and `npx turbo run check-types --filter=@rochas-surf-school/backend` exits 0.
+  > ✅ 2026-10-12 16:22 — implemented `findPending` and `updateIfPending` in the Prisma repository (`updateMany` where id and status pending; `count === 1`); files: `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (12 passed), `npx turbo run check-types --filter=@rochas-surf-school/backend` exit 0; deviations: skill not run
 
 - [ ] **T-06** — Create `apps/backend/src/modules/auth/registrations.controller.ts` (`@Controller('registrations')`,
   protected: `GET /`, `POST /:id/approve` and `POST /:id/deny` with `@HttpCode(200)`, actor from

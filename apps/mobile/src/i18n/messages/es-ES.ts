@@ -146,6 +146,9 @@ const messages: Messages = {
     noteTitle: "¿Tienes dudas?",
     noteText: "Habla directamente con la escuela por WhatsApp.",
   },
+  reactivation: {
+    accountChanged: "Tu cuenta cambió. Vuelve a entrar para continuar.",
+  },
   flows: {
     onboarding: "Primeros pasos",
     reactivation: "Reactivación",

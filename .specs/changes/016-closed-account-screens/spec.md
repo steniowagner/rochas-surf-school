@@ -305,7 +305,7 @@ The email is shown bold where `{email}` appears.
   passes and `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
   > ✅ 2026-10-11 — replaced the Removed placeholder with the Access removed screen (`AccountStatus`, tone `bad`, icon `account-minus`, "Tem dúvidas?" card, `ContactSchoolButton`, `useSignOut`), added `removed.*` copy, removed the unused `flows.offboardingRemoved` key; files: `apps/mobile/src/modules/offboarding/screens/removed.screen.tsx`, `apps/mobile/src/modules/offboarding/screens/removed.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, `apps/mobile/src/components/flow-placeholder/flow-placeholder.component.test.tsx`; verified: `npx jest src/modules/offboarding/screens/removed src/components/flow-placeholder` (7 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: the flow-placeholder test dropped the removed key
 
-- [ ] **T-06** — Create `useRequestReactivation` in `apps/mobile/src/modules/reactivation/hooks/`
+- [x] **T-06** — Create `useRequestReactivation` in `apps/mobile/src/modules/reactivation/hooks/`
   (`use-request-reactivation.hook.ts`, `.types.ts`): a mutation on `POST /auth/me/reactivation-request` with the
   access token, handling every answer of D-04 (add `reactivation.accountChanged` to the three message files).
   Test it in `use-request-reactivation.hook.test.tsx`: `success` (session updated with the answer), `denied`
@@ -313,6 +313,7 @@ The email is shown bold where `{email}` appears.
   `other error`. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-06, ER-08, ER-09 · Done when: `npx jest src/modules/reactivation/hooks` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-11 — added `useRequestReactivation` (mutation on `POST /auth/me/reactivation-request`, every answer of D-04) and the `reactivation.accountChanged` copy; files: `apps/mobile/src/modules/reactivation/hooks/{use-request-reactivation.hook.ts,use-request-reactivation.types.ts,use-request-reactivation.hook.test.tsx}`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/reactivation/hooks` (8 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none
 
 - [ ] **T-07** — Replace the placeholder of
   `apps/mobile/src/modules/reactivation/screens/reactivation.screen.tsx` with the Account deleted screen: one

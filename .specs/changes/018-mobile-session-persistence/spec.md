@@ -2,10 +2,11 @@
 id: "018"
 slug: mobile-session-persistence
 title: Keep the mobile session across restarts and renew it automatically
-status: in-review
+status: accepted
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 4bc742aef5c332d7981363bbfc3c41e4acffd757
+reviewed_commit: 67f71e17039e527996f92d6ed3b5dd851f70c71a
 fronts: [mobile]
 depends_on: []
 ---
@@ -392,3 +393,69 @@ to renew the session.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-12 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 6 tasks)
+- related tests ✅ 585 passed in 52 suites (apps/mobile)
+- whole mobile suite ✅ 769 passed in 73 suites
+- coverage of the changed lines ✅ `COVERAGE OK` — 21 files measured; no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` — no suite applies (mobile has none; backend not affected)
+- ER-12 `grep` — one match outside tests, `accessToken: string;` in the sign-in response type of
+  `modules/auth/hooks/use-verify-sign-in-code.hook.ts` (a field of the sign-in answer, not a token passed to a
+  call; see Notes)
+- iOS simulator (iPhone 18 Pro, the existing dev build with `ExpoSecureStore` linked, Metro, local backend with
+  `JWT_EXPIRES_IN=1m`, account `dev@example.com`): journeys 1, 3, 4 and 5 exercised; journey 2 not run by hand
+  (see ER-06)
+
+**Expected Results**
+
+- ER-01 ✅ — named tests pass and assert the `/auth/me` call with the stored token, the account replaced in
+  memory and SecureStore, and the renewal first; simulator: signed in → Student home; relaunch → Student home;
+  `status='pending'` in SQL, relaunch → Pending screen
+- ER-02 ✅ — `session.provider.test.tsx` and `splash-gate.component.test.tsx` pass; simulator: frames captured
+  every 0.7 s during the relaunch show only the splash, then the Student home, never the sign-in screen
+- ER-03 ✅ — storage and restore tests cover none / unreadable / half-written / delete failure; simulator: launch
+  with nothing stored opens sign-in
+- ER-04 ✅ — restore tests cover offline, 8 s timeout (fake timers + abort), 5xx and 429; simulator: backend
+  stopped, relaunch → Pending screen of the stored account, no toast
+- ER-05 ✅ — refused refresh at launch tested (no `/auth/me`, no sign-out call, keys deleted); simulator: refresh
+  tokens revoked in SQL, relaunch → sign-in with "Your session expired. Sign in again." once
+- ER-06 ✅ — refresh and client tests pass (60 s margin, both sides; tokens and account stored); live: each
+  relaunch with the 1-minute token added one `refresh_tokens` row before `/auth/me` answered
+- ER-07 ✅ — retry once after 401 `auth.token.invalid` with the same body, public request not retried, other
+  errors not renewed
+- ER-08 ✅ — one `POST /auth/refresh` for concurrent callers, every waiter fails the same way, a new refresh after
+  settling
+- ER-09 ✅ — refused refresh and refused retry expire the session; `useSessionExpired` shows the message once,
+  clears the cache, calls `GoogleSignin.signOut()`; hooks show nothing more
+- ER-10 ✅ — no answer, 5xx and 429 keep the session and throw `NetworkError`; the next request retries
+- ER-11 ✅ — store tests cover the in-flight token, a failed refresh and a late result; simulator: Sign out on
+  Pending → sign-in at once, 0 active refresh tokens afterwards, relaunch → sign-in
+- ER-12 ✅ — the five hooks use `{ authenticated: true }` and `updateUser`, no 401 branches, no tokens passed;
+  `useRequestReactivation` keeps its 409 and 403 handling (tests pass)
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The ER-12 `grep` is broader than the behavior it checks: it also matches the `accessToken` field of the
+  sign-in response type. A tighter check (e.g. `grep -rn "accessToken: tokens\|auth.token.invalid"`) would
+  pass; worth adjusting if the check is reused.
+- `refreshInFlight` survives a sign-out: if a refresh started before a sign-out were still pending when someone
+  signs in again and makes a request that needs a refresh, that request would await the old promise and send the
+  old account's access token. Practically unreachable (signing in takes seconds; the old refresh settles first),
+  but clearing the slot in `clearSession()` (after `signOut` captured it) would rule it out.
+- `resetSessionStore()` is a test-only export in production code; acceptable, but it could live behind a test
+  helper.
+- `services/google-sign-in.test.ts` changed only in formatting (line wrap); trivial, no task explains it.
+- Memory Impact misses two things that spec-finish should record: `src/navigation/splash-gate/` (`SplashGate`
+  now holds the splash screen, not `_layout.tsx`; CLAUDE.md's description of the root layout says it hides the
+  splash) and `src/services/api/api.request.ts` (`rawRequest`, the session-free HTTP call).
+- Setting up the journeys: the backend kept emailing codes even with `RESEND_API_KEY=` in the environment, so the
+  sign-in code was set through `sign_in_codes` as in T-09. The test account was set back to `approved`; its
+  refresh tokens stay revoked.

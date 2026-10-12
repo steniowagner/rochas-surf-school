@@ -8,7 +8,6 @@ import { FlowPlaceholder } from "./flow-placeholder.component";
 const FLOW_KEYS = [
   "flows.onboarding",
   "flows.reactivation",
-  "flows.offboardingRemoved",
   "flows.student",
   "flows.instructor",
   "flows.admin",
@@ -42,7 +41,6 @@ describe("FlowPlaceholder", () => {
     expect(namesOnScreen()).toEqual([
       "Onboarding",
       "Reactivation",
-      "Access removed",
       "Student",
       "Instructor",
       "Admin",
@@ -56,7 +54,6 @@ describe("FlowPlaceholder", () => {
     expect(namesOnScreen()).toEqual([
       "Primeiros passos",
       "Reativação",
-      "Acesso removido",
       "Aluno",
       "Instrutor",
       "Administrador",
@@ -68,7 +65,6 @@ describe("FlowPlaceholder", () => {
     expect(namesOnScreen()).toEqual([
       "Primeros pasos",
       "Reactivación",
-      "Acceso eliminado",
       "Alumno",
       "Instructor",
       "Administrador",

@@ -295,7 +295,7 @@ The email is shown bold where `{email}` appears.
   passes and `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
   > ✅ 2026-10-11 — replaced the Denied placeholder with the real screen (`AccountStatus`, tone `bad`, icon `close`, reason card per D-05, `ContactSchoolButton`, `useSignOut`), added `denied.*` copy, removed the unused `flows.offboardingDenied` key; files: `apps/mobile/src/modules/offboarding/screens/denied.screen.tsx`, `apps/mobile/src/modules/offboarding/screens/denied.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, `apps/mobile/src/components/flow-placeholder/flow-placeholder.component.test.tsx`; verified: `npx jest src/modules/offboarding/screens/denied src/components/flow-placeholder` (8 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: the flow-placeholder test dropped the removed key
 
-- [ ] **T-05** — Replace the placeholder of `apps/mobile/src/modules/offboarding/screens/removed.screen.tsx` with
+- [x] **T-05** — Replace the placeholder of `apps/mobile/src/modules/offboarding/screens/removed.screen.tsx` with
   the Access removed screen built from `AccountStatus` (tone `bad`, icon `account-minus`), the `removed.*` copy
   in the three message files, the "Tem dúvidas?" card, `ContactSchoolButton` and `useSignOut`; remove
   `flows.offboardingRemoved` if unused. Update `removed.screen.test.tsx`: the copy and card, no reactivation
@@ -303,6 +303,7 @@ The email is shown bold where `{email}` appears.
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-04, ER-10, ER-11 · Done when: `npx jest src/modules/offboarding/screens/removed.screen.test.tsx`
   passes and `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-11 — replaced the Removed placeholder with the Access removed screen (`AccountStatus`, tone `bad`, icon `account-minus`, "Tem dúvidas?" card, `ContactSchoolButton`, `useSignOut`), added `removed.*` copy, removed the unused `flows.offboardingRemoved` key; files: `apps/mobile/src/modules/offboarding/screens/removed.screen.tsx`, `apps/mobile/src/modules/offboarding/screens/removed.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, `apps/mobile/src/components/flow-placeholder/flow-placeholder.component.test.tsx`; verified: `npx jest src/modules/offboarding/screens/removed src/components/flow-placeholder` (7 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: the flow-placeholder test dropped the removed key
 
 - [ ] **T-06** — Create `useRequestReactivation` in `apps/mobile/src/modules/reactivation/hooks/`
   (`use-request-reactivation.hook.ts`, `.types.ts`): a mutation on `POST /auth/me/reactivation-request` with the

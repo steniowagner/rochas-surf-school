@@ -133,10 +133,17 @@ const messages: Messages = {
       "A equipe da Rocha's não aprovou o cadastro de <bold>{{email}}</bold>. Se você acha que foi um engano, fale com a gente.",
     noteTitle: "Mensagem da equipe",
   },
+  removed: {
+    eyebrow: "Acesso removido",
+    title: "Você não tem mais acesso ao app",
+    description:
+      "A equipe da Rocha's removeu o acesso de <bold>{{email}}</bold>. Esta conta não pode ser reativada pelo app.",
+    noteTitle: "Tem dúvidas?",
+    noteText: "Fale direto com a escola pelo WhatsApp.",
+  },
   flows: {
     onboarding: "Primeiros passos",
     reactivation: "Reativação",
-    offboardingRemoved: "Acesso removido",
     student: "Aluno",
     instructor: "Instrutor",
     admin: "Administrador",

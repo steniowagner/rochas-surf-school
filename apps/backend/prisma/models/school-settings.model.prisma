@@ -1,0 +1,12 @@
+// Models of the school-settings module (modules/school-settings).
+// Tables and columns are snake_case in the database (@@map / @map).
+
+// At most one row, keyed by SCHOOL_SETTINGS_ID and created by the first save (upsert).
+model SchoolSettings {
+  id             String   @id @db.Uuid
+  whatsappNumber String?  @map("whatsapp_number")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("school_settings")
+}

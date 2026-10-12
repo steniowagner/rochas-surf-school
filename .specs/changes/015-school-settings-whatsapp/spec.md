@@ -200,7 +200,7 @@ Removed screens of spec 016 are its first users.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-03** — Add `apps/backend/prisma/models/school-settings.model.prisma` (`SchoolSettings`: fixed `id`,
+- [x] **T-03** — Add `apps/backend/prisma/models/school-settings.model.prisma` (`SchoolSettings`: fixed `id`,
   `whatsappNumber String? @map("whatsapp_number")`, `updatedAt`; table `school_settings`), generate the
   migration `apps/backend/prisma/migrations/<timestamp>_school_settings/`, and implement
   `PrismaSchoolSettingsRepository` in `apps/backend/src/modules/school-settings/school-settings.prisma.ts`
@@ -210,6 +210,20 @@ Removed screens of spec 016 are its first users.
   Covers: ER-01, ER-02 · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies the
   migration on the local database and `npx vitest run src/modules/school-settings` passes (from
   `apps/backend`).
+  > ✅ 2026-10-11 — added the `SchoolSettings` model (table `school_settings`: `id` UUID, `whatsapp_number`,
+  > `created_at`, `updated_at`), generated the migration `20261012023213_school_settings` (`migrate dev --name
+  > school_settings --create-only`; SQL reviewed: one `CREATE TABLE`, nothing destructive), applied it, and wrote
+  > `PrismaSchoolSettingsRepository` (`get` → `findUnique` on `SCHOOL_SETTINGS_ID`; `save` → `upsert` of that row —
+  > D-02), provided in `SchoolSettingsModule` with `DbModule`. Files:
+  > `apps/backend/prisma/models/school-settings.model.prisma`,
+  > `apps/backend/prisma/migrations/20261012023213_school_settings/migration.sql`,
+  > `apps/backend/src/modules/school-settings/school-settings.prisma.ts`,
+  > `apps/backend/src/modules/school-settings/school-settings.prisma.spec.ts`,
+  > `apps/backend/src/modules/school-settings/school-settings.module.ts`. Verified:
+  > `npm run prisma:migrate:deploy --workspace apps/backend` ("All migrations have been successfully applied");
+  > `npx vitest run src/modules/school-settings` (1 file, 5 tests passed); backend `check-types` and `lint` clean.
+  > Deviations: the model also has `createdAt` (the entity's inherited field, as on `rules_versions`); no
+  > `deletedAt`, since the single row is never deleted.
 
 - [ ] **T-04** — Expose `GET /school-settings` and `PUT /school-settings/whatsapp` (both protected, 200, body
   `Partial<{ whatsappNumber: unknown }> | undefined`) in

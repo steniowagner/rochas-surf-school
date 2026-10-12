@@ -7,6 +7,14 @@ import type { SessionUser } from "@/navigation/resolve-flow.types";
 
 import { DeniedScreen } from "./denied.screen";
 
+const mockSignOut = jest.fn();
+
+// Signing out goes through the session store; the tests only check that it is asked for.
+jest.mock("@/services/session/session.store", () => ({
+  ...jest.requireActual("@/services/session/session.store"),
+  signOut: () => mockSignOut(),
+}));
+
 const fetchMock = jest.fn();
 const clearSession = jest.fn();
 
@@ -61,6 +69,7 @@ const renderDenied = async (denialReason: string | null, signedIn = true) => {
 beforeEach(() => {
   fetchMock.mockReset();
   clearSession.mockReset();
+  mockSignOut.mockReset();
   fetchMock.mockImplementation(async (url: string) => ({
     ok: true,
     status: url.endsWith("/school-settings") ? 200 : 204,
@@ -106,7 +115,7 @@ describe("DeniedScreen", () => {
       screen.getByRole("button", { name: "Use another email" }),
     );
 
-    expect(clearSession).toHaveBeenCalledTimes(1);
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
   it("shows the spanish copy and keeps the reason as stored", async () => {

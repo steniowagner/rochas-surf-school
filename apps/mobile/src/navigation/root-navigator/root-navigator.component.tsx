@@ -1,11 +1,16 @@
 import { Stack } from "expo-router";
 
+import { useSessionExpired } from "@/modules/auth/hooks/use-session-expired.hook";
+
 import { useRootNavigator } from "./root-navigator.hook";
 
 // Each flow's group is reachable only while resolveFlow picks it (D-01). `index` stays open and redirects to the
 // resolved flow, so when the flow changes the guards fall back to it.
 export function RootNavigator() {
   const flow = useRootNavigator();
+
+  // The only place the "session expired" message is shown, however many calls failed together.
+  useSessionExpired();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

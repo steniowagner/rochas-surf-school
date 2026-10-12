@@ -6,6 +6,14 @@ import { SessionContext } from "@/providers/session/session.context";
 
 import { useSchoolRules } from "./use-school-rules.hook";
 
+const mockSignOut = jest.fn();
+
+// Signing out goes through the session store; the tests only check that it is asked for.
+jest.mock("@/services/session/session.store", () => ({
+  ...jest.requireActual("@/services/session/session.store"),
+  signOut: () => mockSignOut(),
+}));
+
 const fetchMock = jest.fn();
 const mockShow = jest.fn();
 const clearSession = jest.fn();
@@ -54,6 +62,7 @@ beforeEach(() => {
   fetchMock.mockReset();
   mockShow.mockReset();
   clearSession.mockReset();
+  mockSignOut.mockReset();
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
@@ -80,12 +89,12 @@ describe("useSchoolRules", () => {
       { wrapper },
     );
 
-    await waitFor(() => expect(clearSession).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockSignOut).toHaveBeenCalledTimes(1));
     expect(mockShow).toHaveBeenCalledTimes(1);
     expect(mockShow).toHaveBeenCalledWith(
       "Your session expired. Sign in again.",
     );
-    expect(clearSession).toHaveBeenCalledTimes(1);
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the session on another error", async () => {
@@ -95,6 +104,6 @@ describe("useSchoolRules", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(mockShow).not.toHaveBeenCalled();
-    expect(clearSession).not.toHaveBeenCalled();
+    expect(mockSignOut).not.toHaveBeenCalled();
   });
 });

@@ -7,6 +7,14 @@ import { SessionContext } from "@/providers/session/session.context";
 
 import { RemovedScreen } from "./removed.screen";
 
+const mockSignOut = jest.fn();
+
+// Signing out goes through the session store; the tests only check that it is asked for.
+jest.mock("@/services/session/session.store", () => ({
+  ...jest.requireActual("@/services/session/session.store"),
+  signOut: () => mockSignOut(),
+}));
+
 const fetchMock = jest.fn();
 const clearSession = jest.fn();
 
@@ -64,6 +72,7 @@ const renderRemoved = async (
 beforeEach(() => {
   fetchMock.mockReset();
   clearSession.mockReset();
+  mockSignOut.mockReset();
   fetchMock.mockImplementation(async (url: string) => ({
     ok: true,
     status: url.endsWith("/school-settings") ? 200 : 204,
@@ -110,7 +119,7 @@ describe("RemovedScreen", () => {
       screen.getByRole("button", { name: "Use another email" }),
     );
 
-    expect(clearSession).toHaveBeenCalledTimes(1);
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
   it("shows the spanish copy", async () => {

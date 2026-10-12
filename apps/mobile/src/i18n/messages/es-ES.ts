@@ -114,7 +114,9 @@ const messages: Messages = {
     pickerTitle: "País",
     pickerSearch: "Buscar país",
     invalidNumber: "Número de WhatsApp no válido.",
-    sessionExpired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
+  },
+  session: {
+    expired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
   },
   schoolRules: {
     eyebrow: "Último paso",

@@ -36,7 +36,7 @@ export const useSchoolRules = () => {
           error.status === 401 &&
           error.errors[0] === INVALID_TOKEN
         ) {
-          alertMessage.show(t("whatsapp.sessionExpired"));
+          alertMessage.show(t("session.expired"));
           signOut();
         }
 

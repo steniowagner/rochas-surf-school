@@ -93,7 +93,7 @@ describe("useSignOut", () => {
     );
   });
 
-  it("clears the session before the request answers", async () => {
+  it("clears the session at once, before the request answers", async () => {
     fetchMock.mockReturnValue(new Promise(() => {}));
     const { result } = await renderSignedIn();
 

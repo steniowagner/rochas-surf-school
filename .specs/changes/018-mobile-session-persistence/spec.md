@@ -268,13 +268,14 @@ to renew the session.
   "signs out with the token of the running refresh" and "ignores a refresh that finishes after sign-out".
   > ✅ 2026-10-12 15:36 — created the session store (state, subscribe/getSnapshot, setSession, updateUser, clearSession, expireSession, acknowledgeExpired, generation counter, refresh in-flight slot, commitRefreshedSession, signOut) with write-through to storage. Small technical step: moved the HTTP call out of api.client.ts into `api.request.ts` (`rawRequest`, with optional `timeoutMs`) so the store can send the sign-out request without a circular import; `api.client.ts` now wraps it unchanged (timeout tests land in T-04). files: `apps/mobile/src/services/session/session.store.ts`, `apps/mobile/src/services/session/session.store.test.ts`, `apps/mobile/src/services/api/api.request.ts`, `apps/mobile/src/services/api/api.client.ts`; verified: `npx jest src/services` (40 passed) and `npx tsc --noEmit`; deviations: `session.types.ts` was created in T-01 and the providers' types are re-exported in T-06
 
-- [ ] **T-03** — Create `apps/mobile/src/services/session/session.refresh.ts`: `getAccessToken()` with the 60 s
+- [x] **T-03** — Create `apps/mobile/src/services/session/session.refresh.ts`: `getAccessToken()` with the 60 s
   margin (D-04) and `refreshSession()` single-flight (D-06) calling `POST /auth/refresh` through a raw request
   of the API client (no recursion into the authenticated path), storing tokens and account, expiring on a
   non-429 4xx and throwing `NetworkError` on no answer, timeout, 5xx or 429 (D-07); with
   `session.refresh.test.ts`.
   Covers: ER-06, ER-08, ER-09, ER-10 · Done when: `npx jest src/services/session/session.refresh.test.ts`
   passes.
+  > ✅ 2026-10-12 15:37 — created `getAccessToken()` (60 s margin) and single-flight `refreshSession()` (expires on non-429 4xx, `NetworkError` otherwise, never expires or restores a session that signed out meanwhile); also added `SessionExpiredError` to `api.errors.ts` and exported it from `api/index.ts` (needed here; T-04 uses it); files: `apps/mobile/src/services/session/session.refresh.ts`, `apps/mobile/src/services/session/session.refresh.test.ts`, `apps/mobile/src/services/api/api.errors.ts`, `apps/mobile/src/services/api/index.ts`; verified: `npx jest src/services` (57 passed), `npx tsc --noEmit`, `npx eslint src/services`; deviations: `SessionExpiredError` moved from T-04 to T-03
 
 - [ ] **T-04** — In `apps/mobile/src/services/api/api.client.ts`, `api.errors.ts` and `index.ts`: replace
   `{ accessToken }` with `{ authenticated: true }` (token from `getAccessToken()`), retry once after a

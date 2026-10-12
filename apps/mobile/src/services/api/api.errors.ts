@@ -15,3 +15,11 @@ export class NetworkError extends Error {
     this.name = "NetworkError";
   }
 }
+
+/** The backend refused to renew the session: it is cleared and the person must sign in again (spec 018, D-08). */
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("Session expired");
+    this.name = "SessionExpiredError";
+  }
+}

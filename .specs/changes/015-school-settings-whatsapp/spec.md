@@ -165,7 +165,7 @@ Removed screens of spec 016 are its first users.
   > Lint); removed the aggregate generator's example `create-school-settings.usecase.ts` (the real use cases are
   > T-02), leaving `usecase/index.ts` as `export {};`; the scaffolded controller stays a placeholder until T-04.
 
-- [ ] **T-02** — Create `GetSchoolSettings` (input `{ actor }`, any status and role; output
+- [x] **T-02** — Create `GetSchoolSettings` (input `{ actor }`, any status and role; output
   `SchoolSettingsOut = { whatsappNumber: string | null }`) and `SetSchoolWhatsapp` (input
   `{ actor, whatsappNumber: unknown }`, applying D-03 and D-04 in order, saving and answering
   `SchoolSettingsOut`) in `modules/school-settings/src/school-settings/usecase/`, with a `SchoolSettingsActor`
@@ -178,6 +178,25 @@ Removed screens of spec 016 are its first users.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when:
   `npm test --workspace @rochas-surf-school/school-settings` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/school-settings` exits 0.
+  > ✅ 2026-10-11 — wrote the tests first (35 failing), then `GetSchoolSettings` (no status or role check; answers
+  > `{ whatsappNumber: null }` when there is no row), `SetSchoolWhatsapp` (status `approved`, then role `admin`,
+  > then the number; builds the row with `SCHOOL_SETTINGS_ID` or clones the stored one, validates, saves),
+  > `SchoolSettingsActor` and `SchoolSettingsOut` / `toSchoolSettingsOut`, exported from the barrels; shared test
+  > actors in `test/mock/actors.ts`. Files: `modules/school-settings/src/school-settings/usecase/index.ts`,
+  > `modules/school-settings/src/school-settings/usecase/school-settings-actor.ts`,
+  > `modules/school-settings/src/school-settings/usecase/school-settings.out.ts`,
+  > `modules/school-settings/src/school-settings/usecase/get-school-settings.usecase.ts`,
+  > `modules/school-settings/src/school-settings/usecase/set-school-whatsapp.usecase.ts`,
+  > `modules/school-settings/test/mock/actors.ts`, `modules/school-settings/test/mock/index.ts`,
+  > `modules/school-settings/test/school-settings/usecase/get-school-settings.usecase.test.ts`,
+  > `modules/school-settings/test/school-settings/usecase/set-school-whatsapp.usecase.test.ts`,
+  > `modules/school-settings/src/index.ts` and
+  > `modules/school-settings/test/school-settings/model/school-settings.entity.test.ts` (Prettier formatting only).
+  > Verified: `npm test --workspace @rochas-surf-school/school-settings` (5 suites, 57 tests passed, 100% coverage);
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/school-settings` (3 tasks successful, 0 lint
+  > warnings). Deviations: `SetSchoolWhatsapp` refuses a present non-string value (a number, a list, an object)
+  > with `schoolSettings.whatsappNumber.phone` before building the entity, because the shared `PhoneNumberRule`
+  > accepts a list whose items are valid numbers (D-03: a non-string is `.phone`).
 
 ### Backend (`apps/backend`)
 

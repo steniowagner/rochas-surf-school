@@ -36,7 +36,9 @@ describe("SchoolSettings", () => {
     });
 
     it("uses a valid UUID v4 as the fixed id", () => {
-      expect(() => new SchoolSettings({ id: SCHOOL_SETTINGS_ID })).not.toThrow();
+      expect(
+        () => new SchoolSettings({ id: SCHOOL_SETTINGS_ID }),
+      ).not.toThrow();
     });
 
     it("leaves the number undefined when none is given", () => {

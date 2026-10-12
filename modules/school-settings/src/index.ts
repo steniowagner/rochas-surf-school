@@ -1,5 +1,5 @@
 export function getModuleName(): string {
-  return 'school-settings';
+  return "school-settings";
 }
 
 export * from "./school-settings";

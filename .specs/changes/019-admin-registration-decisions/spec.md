@@ -2,7 +2,7 @@
 id: "019"
 slug: admin-registration-decisions
 title: Admins approve or deny registrations ("Join the school")
-status: in-review
+status: changes-requested
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 52df631cada869d940b43771d00f61ab6391ef1c
@@ -468,3 +468,70 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-12 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, backend, mobile) · build ✅ (auth, backend)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend, apps/mobile, modules/auth, modules/school-rules)
+- coverage of the changed lines ✅ `COVERAGE OK` (27 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (9 files, 256 tests, `registrations.e2e-spec.ts` included)
+- mobile: journeys 1–5 driven in the iOS simulator (iPhone 18 Pro, local backend + Postgres, admin review
+  account), light and dark ✅ — except F-01, reproduced with a component test
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "lists pending registrations oldest first" / "answers an empty list" assert order, exact item
+  shape and that other statuses are left out
+- ER-02 ✅ — e2e "refuses non-admins" / "refuses admins that aren't approved" / no token; use case tests check the
+  status-before-role and access-before-lookup order
+- ER-03 ✅ — e2e approve: 200 `{ id, status }`, role kept, reason/`denied_at` null, `/auth/me` approved; body ignored
+- ER-04 ❌ — behavior ✅ (trimmed reason, blank variants, 500 accepted, non-string 422), but the 501-character key
+  differs from the contract — see F-02
+- ER-05 ✅ — e2e second decision on every non-pending status, approve+deny and deny+deny under `Promise.all`, 404
+  for unknown and `abc`; `updateIfPending` unit cases
+- ER-06 ✅ — simulator: "School tools", "Join the school · 9 waiting", opens the tool, back → "6 waiting" after
+  three decisions; zero/loading/error in `admin.screen.test.tsx`
+- ER-07 ✅ — simulator: cards oldest first, initials (one letter for a one-word name), email, "Asked 2 Oct",
+  "Asked 2 hours ago"; pull-to-refresh refetched; loading/empty/error + retry/"just now" in the screen test
+- ER-08 ❌ — simulator: approve moves the person to "Decided just now · Approved"; offline → no-connection toast,
+  card stays usable. But other cards don't fully stay usable while one is sent — see F-01
+- ER-09 ✅ — simulator: sheet "Deny Carla?", hint, "Reason (optional)", "0/500" → "10/500", backdrop closes and the
+  field reopens empty, confirm denies with the reason (stored), a failed deny kept the sheet and the typed reason
+  with the generic toast
+- ER-10 ✅ — simulator: registration approved over HTTP, then "Approve" in the app → "This registration was already
+  decided.", card gone, nothing added to "Decided just now"
+- ER-11 ✅ — simulator: hidden at first, newest first (Denied above Approved), kept through pull-to-refresh and the
+  409 refetch, gone after leaving and reopening the tool
+
+**Findings**
+
+- [ ] **F-01** (ER-08, D-14) — any successful decision, and any 409, closes the deny sheet even when it belongs to
+  another card, dropping the reason being typed: `decide` in
+  `apps/mobile/src/modules/admin/hooks/use-registrations-screen.hook.ts` calls `setDenying(null)` unconditionally.
+  Reproduce: in `registrations.screen.test.tsx`, hold the POST (as the approve test does), tap "Approve" on Ana,
+  tap "Deny" on Bruno and type a reason, release the POST → "Deny Bruno Lima?" is gone. On a device: approve one
+  card on a slow network, open another card's Deny before the answer arrives. Expected: the sheet closes only for
+  the registration it belongs to (e.g. `setDenying((current) => (current?.id === registration.id ? null :
+  current))` in both places), plus a screen test for this case.
+- [ ] **F-02** (ER-04, D-04) — a reason over 500 characters answers 422 `user.denialReason.max.length` (the entity
+  rule's real key, asserted by the e2e and use case tests), while D-04 and ER-04 promise `user.denialReason.maxLength`.
+  The deviation is only noted in T-04's evidence; no Amendment records it, and `spec-finish` writes the contract's
+  keys into the memory. Reproduce: `POST /registrations/{id}/deny` with a 501-character reason. Expected: either
+  amend D-04/ER-04 to the entity's key with `/spec-plan --amend 019`, or make the API answer the documented key.
+
+**Notes**
+
+- The concurrency test "deny + deny" sends the same reason ("by deny") from both admins, so it can't show that the
+  stored row matches the winning request; distinct reasons would.
+- Deciding re-validates the whole user, so a legacy row the current rules reject (e.g. a one-word name, which the
+  entity refuses with `user.name.person.name`) can't be decided and shows the generic toast. Not reachable through
+  sign-up today; ER-07's one-word case only arises from such data.
+- The admin home leaves an empty gap between the title and the row (`ScreenIntro` with `description={null}`).
+- Journey 6 (pt-BR / es-ES on the device) was not driven: the three message files were compared with the Copy
+  table and match it. The "person relaunches" halves of journeys 2–3 were not driven; the e2e suite asserts
+  `/auth/me` after each decision.
+- Memory Impact misses: `BottomModal` now forwards `onClose` to the sheet (drag-to-close reaches the caller),
+  `getInitials` in `apps/mobile/src/utils/`, and `pending-registration.ts` / `registrations-cache.ts` /
+  `use-registrations-screen.hook.ts`.

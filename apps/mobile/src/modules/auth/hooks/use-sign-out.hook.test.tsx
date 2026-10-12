@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { act, renderHook } from "@testing-library/react-native";
 import { ReactNode } from "react";
 
@@ -56,6 +57,7 @@ const renderSignedIn = async (signedIn = true) => {
 beforeEach(() => {
   queryClient = new QueryClient();
   fetchMock.mockReset();
+  jest.mocked(GoogleSignin.signOut).mockReset().mockResolvedValue(null);
   fetchMock.mockResolvedValue({
     ok: true,
     status: 204,
@@ -130,5 +132,38 @@ describe("useSignOut", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result.current.session.user).toBeNull();
+  });
+
+  describe("Google", () => {
+    it("signs out of Google without waiting for it", async () => {
+      jest.mocked(GoogleSignin.signOut).mockReturnValue(new Promise(() => {}));
+      const { result } = await renderSignedIn();
+
+      await act(async () => result.current.signOut.signOut());
+
+      expect(GoogleSignin.signOut).toHaveBeenCalledTimes(1);
+      expect(result.current.session.user).toBeNull();
+    });
+
+    it("ignores a Google failure: the session is cleared and the backend is still told", async () => {
+      jest
+        .mocked(GoogleSignin.signOut)
+        .mockRejectedValue(new Error("native module failed"));
+      const { result } = await renderSignedIn();
+
+      await act(async () => result.current.signOut.signOut());
+
+      expect(result.current.session.user).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("signs out of Google without tokens too, and sends no API request", async () => {
+      const { result } = await renderSignedIn(false);
+
+      await act(async () => result.current.signOut.signOut());
+
+      expect(GoogleSignin.signOut).toHaveBeenCalledTimes(1);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
   });
 });

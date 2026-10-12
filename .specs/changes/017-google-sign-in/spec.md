@@ -414,9 +414,14 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   > whole mobile suite (65 suites, 681 passed) and `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`
   > (exit 0); deviations: none.
 
-- [ ] **T-09** — Call `GoogleSignin.signOut()` (not awaited, failure ignored) in
+- [x] **T-09** — Call `GoogleSignin.signOut()` (not awaited, failure ignored) in
   `src/modules/auth/hooks/use-sign-out.hook.ts` (D-10), with the Google tests in `use-sign-out.hook.test.tsx`.
   Covers: ER-12 · Done when: `npx jest src/modules/auth/hooks/use-sign-out` passes.
+  > ✅ 2026-10-12 — `useSignOut` now calls `GoogleSignin.signOut()` after clearing the session, not awaited and with
+  > its failure ignored; files: `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.test.tsx`; verified:
+  > `npx jest src/modules/auth/hooks/use-sign-out` (9 passed) and
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none.
 
 - [ ] **T-10** — Build the app on the iOS simulator (`npx expo prebuild --platform ios`, `npx expo run:ios`)
   against the local backend with `GOOGLE_WEB_CLIENT_ID` set, and ask the user to perform the ER-13 journey

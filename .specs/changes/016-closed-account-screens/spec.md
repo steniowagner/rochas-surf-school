@@ -2,7 +2,7 @@
 id: "016"
 slug: closed-account-screens
 title: Denied, Account deleted and Access removed screens
-status: in-progress
+status: in-review
 started: 2026-10-11
 base_commit: 0e3b64851a703cefd14f99087941cf1e78276629
 created: 2026-10-11

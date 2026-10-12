@@ -2,9 +2,10 @@
 id: "016"
 slug: closed-account-screens
 title: Denied, Account deleted and Access removed screens
-status: in-review
+status: accepted
 started: 2026-10-11
 base_commit: 0e3b64851a703cefd14f99087941cf1e78276629
+reviewed_commit: 69f94253c1467d14d4a50f2055fe8f34adc43109
 created: 2026-10-11
 fronts: [mobile]
 depends_on: ["014", "015"]
@@ -462,3 +463,52 @@ The email is shown bold where `{email}` appears.
   follows the existing screen, but both could move to tokens later.
 - Next round: drive at least journeys 1, 3 and 4 on the simulator in light mode and journey 8 in pt-BR/es-ES on
   the Denied screen, which T-08 left undriven.
+
+### Round 2 — 2026-10-12 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (apps/mobile, apps/web) · build ✅ (apps/web; mobile has no build script)
+- related tests ✅ `RELATED TESTS PASSED` (37 suites, 474 passed) · whole mobile suite ✅ 58 suites, 620 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (12 files); no coverage-ignore comments, TODOs or debug leftovers in the diff
+- e2e ✅ `E2E PASSED` — no suite applies (mobile has none, D-08)
+- each Expected Result's `Verify by` command ✅ — every filter matches, passes and exits on its own (F-01 fixed)
+- user journeys on the iOS simulator (iPhone 18 Pro, debug build, backend of specs 014/015 on local Postgres, light
+  mode, throwaway `closed.test@example.com`, removed afterwards): 1 (pt-BR), 3 (pt-BR, with a stored
+  `reactivationStatus`), 4 (pt-BR) and 8 (Denied in es-ES) driven this round; 2, 5, 6, 7 rely on the T-08 evidence
+  and the component tests
+
+**Expected Results**
+
+- ER-01 ✅ — journey 1: "CADASTRO NÃO APROVADO" / "NÃO FOI DESSA VEZ", bold email, "Mensagem da equipe" with a
+  two-line accented reason shown as stored; no back button
+- ER-02 ✅ — component tests (`null` and blank reason hide the card)
+- ER-03 ✅ — with no settings row the button is absent and nothing replaces it; with `+5585999998888` "FALAR COM A
+  ESCOLA" shows the WhatsApp glyph and opens wa.me ("Chat on WhatsApp with +55 85 99999-8888"); the null test now
+  fails under round 1's mutation (F-02 fixed); loading, error and link failure by component tests
+- ER-04 ✅ — journey 3: "ACESSO REMOVIDO", "Tem dúvidas?" card, contact button, no reactivation action even with
+  `reactivation_status = 'requested'` stored
+- ER-05 ✅ — journey 4: "CONTA EXCLUÍDA", "Como reativar" card, "PEDIR REATIVAÇÃO"
+- ER-06 ✅ — two quick taps → "PEDIDO ENVIADO / A EQUIPE VAI ANALISAR" in place; the row stores `requested` with
+  `reactivation_requested_at`; one request on a double tap by the screen test
+- ER-07 ✅ — journey 4's resulting screen ("E agora?" card, no primary button) and the `requested` tests
+- ER-08 ✅ · ER-09 ✅ — screen and hook tests (stored and after a 409; 401, 403, no connection, other error)
+- ER-10 ✅ — "Usar outro email" returned to the welcome screen from Denied, Removed and Account deleted; component
+  tests for all five states
+- ER-11 ✅ — journey 8: Denied in es-ES ("REGISTRO NO APROBADO", "ESTA VEZ NO HA SIDO POSIBLE", "Mensaje del
+  equipo", "HABLAR CON LA ESCUELA", "USAR OTRO EMAIL"), reason kept in Portuguese; `-t "spanish"` passes in the
+  three screen files
+
+**Findings**
+
+None. Round 1's F-01, F-02 and F-03 are fixed: the five test files exit on their own, the null test fails under
+the mutation, and the web `Button` takes the same optional `icon` (listed under Memory Impact).
+
+**Notes**
+
+- The tilde of an uppercase "Ã" in the screen title is clipped at the top ("NÃO FOI DESSA VEZ", "VOCÊ NÃO TEM MAIS
+  ACESSO…"). The cause predates this spec: the `screenTitle` token has `lineHeight: 1` and `ScreenIntro` uses it,
+  so every accented uppercase title is affected. Worth a separate fix in the design tokens.
+- When setting the school's number directly in SQL, the row must use the singleton id
+  `00000000-0000-4000-8000-000000000001` (`SCHOOL_SETTINGS_ID`); a random id is ignored. `journeys.md` uses the
+  API for this, which is safer.

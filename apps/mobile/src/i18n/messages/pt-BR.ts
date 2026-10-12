@@ -19,7 +19,8 @@ const messages: Messages = {
   },
   googleSignIn: {
     tokenInvalid: "Não conseguimos entrar com o Google. Tente novamente.",
-    emailNotVerified: "Seu e-mail do Google não está verificado. Use outra forma de entrar.",
+    emailNotVerified:
+      "Seu e-mail do Google não está verificado. Use outra forma de entrar.",
     playServices: "O Google Play Services não está disponível neste celular.",
   },
   googleName: {
@@ -179,6 +180,24 @@ const messages: Messages = {
         "A equipe da Rocha's recusou o pedido para reativar <bold>{{email}}</bold>. Esta conta vai continuar inativa.",
     },
     accountChanged: "Sua conta mudou. Entre de novo para continuar.",
+  },
+  registrations: {
+    title: "Entrar na escola",
+    description: "Pessoas esperando a aprovação da escola.",
+    asked: "Pediu {{time}}",
+    askedNow: "Pediu agora",
+    approve: "Aprovar",
+    deny: "Recusar",
+    empty: "Ninguém esperando para entrar.",
+    loadError: "Não foi possível carregar os cadastros.",
+    retry: "Tentar novamente",
+    alreadyDecided: "Este cadastro já foi decidido.",
+    denySheet: {
+      title: "Recusar {{name}}?",
+      hint: "O motivo é opcional e será mostrado para a pessoa.",
+      label: "Motivo (opcional)",
+      confirm: "Recusar cadastro",
+    },
   },
   decision: {
     decidedJustNow: "Decididos agora",

@@ -18,7 +18,8 @@ const messages = {
   },
   googleSignIn: {
     tokenInvalid: "We couldn't sign you in with Google. Try again.",
-    emailNotVerified: "Your Google email isn't verified. Use another sign-in method.",
+    emailNotVerified:
+      "Your Google email isn't verified. Use another sign-in method.",
     playServices: "Google Play services is unavailable on this phone.",
   },
   googleName: {
@@ -179,6 +180,24 @@ const messages = {
         "The Rocha's team denied the request to reactivate <bold>{{email}}</bold>. This account will stay inactive.",
     },
     accountChanged: "Your account changed. Sign in again to continue.",
+  },
+  registrations: {
+    title: "Join the school",
+    description: "People waiting for the school's approval.",
+    asked: "Asked {{time}}",
+    askedNow: "Asked just now",
+    approve: "Approve",
+    deny: "Deny",
+    empty: "No one is waiting to join.",
+    loadError: "Couldn't load the registrations.",
+    retry: "Try again",
+    alreadyDecided: "This registration was already decided.",
+    denySheet: {
+      title: "Deny {{name}}?",
+      hint: "The reason is optional and is shown to the person.",
+      label: "Reason (optional)",
+      confirm: "Deny registration",
+    },
   },
   decision: {
     decidedJustNow: "Decided just now",

@@ -2,10 +2,11 @@
 id: "017"
 slug: google-sign-in
 title: Google sign-in
-status: in-review
+status: accepted
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 1790b1b6902bf9c2ee7ac684db4e5566eb884681
+reviewed_commit: 958be2704498b30eea36f5523e0a84a32d30e8f1
 fronts: [auth, backend, mobile]
 depends_on: []
 ---
@@ -566,3 +567,31 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
 - On "Your name", a one-word Google name is prefilled with the button disabled, and the error only shows after the
   field is blurred, as on Create account. The person may not see why "Continue" is disabled. It meets ER-10, but a
   later design pass could show the error straight away for a prefilled value.
+
+### Round 2 — 2026-10-12 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, backend, mobile) · build ✅ (auth, backend)
+- related tests ✅ backend 74 passed · mobile 519 passed · modules/auth 178 passed · modules/school-rules 113 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (20 files); no coverage-ignore comments, debug leftovers or TODOs
+  in the diff
+- e2e: backend suite ✅ 234 passed (`auth-google.e2e-spec.ts` included, migrations up to date)
+
+**Expected Results**
+
+- ER-01 … ER-12 ✅ — the only code change since round 1 is F-01's import swap; the named tests exist and pass
+  again, and the source re-read against D-01…D-13 holds
+- ER-13 ✅ — journey performed by the user (T-10 evidence); database checked again: one `users` row
+  (`steniowagner1@gmail.com`, "Stenio Wagner", `pending`, `student`) with one `google` identity
+  (`105189725173134382392`)
+
+**Findings**
+
+- none. F-01 ✅ — `google-name.hook.ts` now imports `../../utils/field-validation` before
+  `../../utils/google-sign-in-error`.
+
+**Notes**
+
+- Round 1's notes (the race between two simultaneous first sign-ins, and the prefilled one-word name's error showing
+  only after blur) still stand as suggestions for later.

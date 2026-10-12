@@ -21,6 +21,11 @@ const messages = {
     emailNotVerified: "Your Google email isn't verified. Use another sign-in method.",
     playServices: "Google Play services is unavailable on this phone.",
   },
+  googleName: {
+    title: "What's your name?",
+    description: "Enter your full name so the school knows who you are.",
+    submit: "Continue",
+  },
   createAccount: {
     title: "Create account",
     subtitle: "Tell us your name and email. We'll send you a code to confirm.",

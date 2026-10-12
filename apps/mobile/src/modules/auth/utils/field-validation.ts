@@ -1,4 +1,11 @@
-import { ValidationRule, Validator } from "@rochas-surf-school/shared";
+import {
+  MaxLengthRule,
+  MinLengthRule,
+  PersonNameRule,
+  RequiredRule,
+  ValidationRule,
+  Validator,
+} from "@rochas-surf-school/shared";
 
 import { TextInputStatus } from "@/components/ui/text-input/text-input.types";
 
@@ -21,3 +28,11 @@ export const getStatus = (
 ): TextInputStatus => {
   return value !== "" && !isValidValue && isTouched ? "error" : "neutral";
 };
+
+/** The same rules as `User.validate()` (modules/auth), so what the app accepts the backend accepts. */
+export const nameRules = (): ValidationRule[] => [
+  new RequiredRule(),
+  new MinLengthRule(3),
+  new MaxLengthRule(80),
+  new PersonNameRule(),
+];

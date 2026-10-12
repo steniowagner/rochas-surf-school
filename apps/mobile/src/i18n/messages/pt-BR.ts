@@ -22,6 +22,11 @@ const messages: Messages = {
     emailNotVerified: "Seu e-mail do Google não está verificado. Use outra forma de entrar.",
     playServices: "O Google Play Services não está disponível neste celular.",
   },
+  googleName: {
+    title: "Qual é o seu nome?",
+    description: "Digite seu nome completo para a escola saber quem é você.",
+    submit: "Continuar",
+  },
   createAccount: {
     title: "Criar conta",
     subtitle: "Informe seu nome e e-mail. Enviaremos um código para confirmar.",

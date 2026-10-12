@@ -14,6 +14,10 @@ export const routes = {
       pathname: "/auth/confirm-code",
       params,
     }),
+    googleName: (params: { idToken: string; name?: string }): Href => ({
+      pathname: "/auth/google-name",
+      params,
+    }),
   },
   pending: {
     home: "/pending",

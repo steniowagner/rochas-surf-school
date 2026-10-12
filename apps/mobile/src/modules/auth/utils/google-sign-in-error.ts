@@ -11,11 +11,8 @@ const keyByApiErrorCode: Record<string, string> = {
   "auth.google.emailNotVerified": "googleSignIn.emailNotVerified",
 };
 
-/**
- * The translation key of the toast for a failed Google sign-in, or `null` when nothing should be shown (the person
- * closed the account picker, or a sign-in is already running).
- */
-export const getGoogleSignInError = (error: unknown): string | null => {
+/** The translation key of the toast for a failed `POST /auth/google` (or an unreachable API). */
+export const getGoogleApiErrorKey = (error: unknown): string => {
   if (error instanceof NetworkError) {
     return "createAccount.errors.noConnection";
   }
@@ -26,6 +23,14 @@ export const getGoogleSignInError = (error: unknown): string | null => {
     );
   }
 
+  return "createAccount.errors.generic";
+};
+
+/**
+ * The translation key of the toast for a failed Google sign-in, or `null` when nothing should be shown (the person
+ * closed the account picker, or a sign-in is already running).
+ */
+export const getGoogleSignInError = (error: unknown): string | null => {
   if (isErrorWithCode(error)) {
     if (IGNORED_CODES.includes(error.code)) {
       return null;
@@ -36,5 +41,5 @@ export const getGoogleSignInError = (error: unknown): string | null => {
     }
   }
 
-  return "createAccount.errors.generic";
+  return getGoogleApiErrorKey(error);
 };

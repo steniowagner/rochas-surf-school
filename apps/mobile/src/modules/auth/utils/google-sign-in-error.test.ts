@@ -1,6 +1,9 @@
 import { ApiError, NetworkError } from "@/services/api";
 
-import { getGoogleSignInError } from "./google-sign-in-error";
+import {
+  getGoogleApiErrorKey,
+  getGoogleSignInError,
+} from "./google-sign-in-error";
 
 describe("getGoogleSignInError", () => {
   it.each(["SIGN_IN_CANCELLED", "IN_PROGRESS"])(
@@ -37,5 +40,20 @@ describe("getGoogleSignInError", () => {
     undefined,
   ])("falls back to the generic message for %p", (error) => {
     expect(getGoogleSignInError(error)).toBe("createAccount.errors.generic");
+  });
+});
+
+describe("getGoogleApiErrorKey", () => {
+  it.each([
+    [new NetworkError(), "createAccount.errors.noConnection"],
+    [
+      new ApiError(401, ["auth.google.tokenInvalid"]),
+      "googleSignIn.tokenInvalid",
+    ],
+    [new ApiError(500, []), "createAccount.errors.generic"],
+    [{ code: "PLAY_SERVICES_NOT_AVAILABLE" }, "createAccount.errors.generic"],
+    [new Error("boom"), "createAccount.errors.generic"],
+  ])("maps %p", (error, key) => {
+    expect(getGoogleApiErrorKey(error)).toBe(key);
   });
 });

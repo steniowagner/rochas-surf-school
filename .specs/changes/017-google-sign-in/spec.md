@@ -365,7 +365,7 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   > src/modules/auth/hooks/use-sign-in-with-google src/modules/auth/utils/google-sign-in-error` (13 passed) and
   > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none.
 
-- [ ] **T-07** — Build "Your name": `routes.auth.googleName({ idToken, name })` in `src/constants/routes.ts`,
+- [x] **T-07** — Build "Your name": `routes.auth.googleName({ idToken, name })` in `src/constants/routes.ts`,
   route `src/app/(public)/auth/google-name.tsx`, screen `src/modules/auth/screens/google-name.screen.tsx`
   (reads the params, puts a 200 answer in the session), component and hook in
   `src/modules/auth/components/google-name/` (name field validated with the shared rules like Create account,
@@ -374,6 +374,25 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   three locales. Tests: `google-name.component.test.tsx`, `google-name.screen.test.tsx`.
   Covers: ER-10 · Done when: `npx jest src/modules/auth/components/google-name src/modules/auth/screens/google-name.screen.test.tsx`
   passes.
+  > ✅ 2026-10-12 — built "Your name": the `routes.auth.googleName` helper, the `/auth/google-name` route, the screen
+  > (route params → component, 200 answer → session), the component and hook (name field validated with the shared
+  > rules, `BackButton`, `ScreenIntro`, primary `Button` with loading; a 401 `auth.google.tokenInvalid` shows its
+  > toast and `router.replace(routes.auth.signIn)`) and the D-12 copy in the three locales; files:
+  > `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/app/(public)/auth/google-name.tsx`,
+  > `apps/mobile/src/modules/auth/screens/google-name.screen.tsx`,
+  > `apps/mobile/src/modules/auth/screens/google-name.screen.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/google-name/{index.ts,google-name.component.tsx,google-name.hook.ts,google-name.types.ts,google-name.component.test.tsx}`,
+  > `apps/mobile/src/modules/auth/utils/google-sign-in-error.ts`,
+  > `apps/mobile/src/modules/auth/utils/google-sign-in-error.test.ts`,
+  > `apps/mobile/src/modules/auth/utils/field-validation.ts`,
+  > `apps/mobile/src/modules/auth/components/create-account/create-account.hook.ts`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest
+  > src/modules/auth/components/google-name src/modules/auth/screens/google-name.screen.test.tsx` (new tests pass;
+  > with the auth utils and create-account suites, 101 passed) and
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: `nameRules` moved from
+  > `create-account.hook.ts` to `utils/field-validation.ts` so both screens share it, and
+  > `google-sign-in-error.ts` gained `getGoogleApiErrorKey` (the API/network part), which T-06's
+  > `getGoogleSignInError` now builds on.
 
 - [ ] **T-08** — Add `useGoogleSignIn` in `src/modules/auth/hooks/use-google-sign-in.hook.ts` (Play Services
   check on Android, `GoogleSignin.signIn()`, `useSignInWithGoogle`, session on 200, `routes.auth.googleName` on

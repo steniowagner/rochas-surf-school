@@ -336,12 +336,13 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-07** — Move `format-created-at.ts`, its `.types.ts` and its test from
+- [x] **T-07** — Move `format-created-at.ts`, its `.types.ts` and its test from
   `apps/mobile/src/modules/pending/utils/` to `apps/mobile/src/utils/` and update the Pending components'
   imports (D-11); no behavior change.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `npx jest src/utils src/modules/pending` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-12 16:24 — moved `format-created-at` (+ types, test) to `apps/mobile/src/utils/` with `git mv` and pointed the Pending hook at `@/utils/format-created-at`; files: `apps/mobile/src/utils/format-created-at.ts`, `apps/mobile/src/utils/format-created-at.types.ts`, `apps/mobile/src/utils/format-created-at.test.ts` (moved), `apps/mobile/src/modules/pending/components/pending/pending.hook.ts`; verified: `npx jest src/utils src/modules/pending` pass, `npx turbo run check-types --filter=@rochas-surf-school/mobile` exit 0; deviations: none
 
 - [ ] **T-08** — Create `TextArea` in `apps/mobile/src/components/ui/text-area/` (component, types, `index.ts`;
   D-13) with `text-area.component.test.tsx` (typing, `maxLength` passed to the input, counter text, label).

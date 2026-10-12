@@ -1,5 +1,6 @@
 import { act, render, screen, userEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
+import { Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -18,6 +19,26 @@ describe("AuthComponent email sign-in", () => {
 
     expect(router.push).toHaveBeenCalledWith(routes.auth.emailChoice);
   });
+});
+
+describe("AuthComponent providers", () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Platform.OS = originalOS;
+  });
+
+  it.each(["ios", "android"] as const)(
+    "hides Apple and shows Google and email on %s",
+    async (os) => {
+      Platform.OS = os;
+      await render(<AuthComponent />);
+
+      expect(screen.queryByText("Continue with Apple")).toBeNull();
+      expect(screen.getByText("Continue with Google")).toBeOnTheScreen();
+      expect(screen.getByText("Continue with email")).toBeOnTheScreen();
+    },
+  );
 });
 
 describe("AuthComponent terms and privacy links", () => {

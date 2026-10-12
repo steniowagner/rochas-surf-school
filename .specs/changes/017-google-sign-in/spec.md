@@ -339,10 +339,15 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   > `npx jest src/services/google-sign-in` (1 passed) and
   > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0, no warnings); deviations: none.
 
-- [ ] **T-05** — Stop rendering the Apple button in
+- [x] **T-05** — Stop rendering the Apple button in
   `apps/mobile/src/modules/auth/components/auth/auth.component.tsx` (D-11), with the `hides Apple` test in
   `auth.component.test.tsx`.
   Covers: ER-11 · Done when: `npx jest src/modules/auth/components/auth` passes.
+  > ✅ 2026-10-12 — removed the Apple button (and the now-unused `Platform` import) from the sign-in screen; added
+  > the `hides Apple` test (iOS and Android: no Apple, Google and email shown); files:
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.tsx`,
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.test.tsx`; verified:
+  > `npx jest src/modules/auth/components/auth` (12 passed) and eslint on the folder (clean); deviations: none.
 
 - [ ] **T-06** — Add the `useSignInWithGoogle` mutation on `POST /auth/google` in
   `apps/mobile/src/modules/auth/hooks/use-sign-in-with-google.hook.ts` (same response type as

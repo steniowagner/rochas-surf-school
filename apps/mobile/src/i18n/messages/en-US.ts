@@ -16,6 +16,11 @@ const messages = {
     terms:
       "By continuing, you agree to our <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>.",
   },
+  googleSignIn: {
+    tokenInvalid: "We couldn't sign you in with Google. Try again.",
+    emailNotVerified: "Your Google email isn't verified. Use another sign-in method.",
+    playServices: "Google Play services is unavailable on this phone.",
+  },
   createAccount: {
     title: "Create account",
     subtitle: "Tell us your name and email. We'll send you a code to confirm.",

@@ -349,12 +349,21 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   > `apps/mobile/src/modules/auth/components/auth/auth.component.test.tsx`; verified:
   > `npx jest src/modules/auth/components/auth` (12 passed) and eslint on the folder (clean); deviations: none.
 
-- [ ] **T-06** — Add the `useSignInWithGoogle` mutation on `POST /auth/google` in
+- [x] **T-06** — Add the `useSignInWithGoogle` mutation on `POST /auth/google` in
   `apps/mobile/src/modules/auth/hooks/use-sign-in-with-google.hook.ts` (same response type as
   `useVerifySignInCode`), and `apps/mobile/src/modules/auth/utils/google-sign-in-error.ts` mapping the D-09
   outcomes to translation keys (or "ignore"), with the D-12 toasts in `src/i18n/messages/{en-US,es-ES,pt-BR}.ts`.
   Tests: `use-sign-in-with-google.hook.test.tsx`, `google-sign-in-error.test.ts`.
   Covers: ER-09 · Done when: both test files pass.
+  > ✅ 2026-10-12 — added the `useSignInWithGoogle` mutation, `getGoogleSignInError` (returns a translation key, or
+  > `null` to ignore) and the D-12 toast copy (`googleSignIn.tokenInvalid` / `emailNotVerified` / `playServices`)
+  > in the three locales; files: `apps/mobile/src/modules/auth/hooks/use-sign-in-with-google.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-sign-in-with-google.hook.test.tsx`,
+  > `apps/mobile/src/modules/auth/utils/google-sign-in-error.ts`,
+  > `apps/mobile/src/modules/auth/utils/google-sign-in-error.test.ts`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`; verified: `npx jest
+  > src/modules/auth/hooks/use-sign-in-with-google src/modules/auth/utils/google-sign-in-error` (13 passed) and
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none.
 
 - [ ] **T-07** — Build "Your name": `routes.auth.googleName({ idToken, name })` in `src/constants/routes.ts`,
   route `src/app/(public)/auth/google-name.tsx`, screen `src/modules/auth/screens/google-name.screen.tsx`

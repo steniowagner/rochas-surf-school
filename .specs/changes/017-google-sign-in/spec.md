@@ -432,10 +432,20 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
 
 ### Verification
 
-- [ ] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: `run-related-tests.mjs 017` passes, `check-coverage.mjs 017` prints
   `COVERAGE OK`, `run-e2e.mjs 017` prints `E2E PASSED`, and the lint, type check and build commands exit 0.
+  > ✅ 2026-10-12 — ran the Verification Plan; files: `apps/mobile/src/modules/auth/components/auth-button/auth-button.component.test.tsx`,
+  > `apps/mobile/src/modules/auth/screens/auth.screen.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/google-name/google-name.component.test.tsx` (tests added to cover the
+  > changed lines the first coverage run flagged), `.specs/memory/technical-context.md` (see deviations); verified:
+  > `node .specs/scripts/run-related-tests.mjs 017` → `RELATED TESTS PASSED` (backend, mobile, auth, school-rules);
+  > `node .specs/scripts/check-coverage.mjs 017` → `COVERAGE OK — every changed line covered in 20 file(s)`;
+  > `node .specs/scripts/run-e2e.mjs 017` → `E2E PASSED`; `npx turbo run lint check-types --filter=…auth
+  > --filter=…backend --filter=…mobile` and `npx turbo run build --filter=…auth --filter=…backend` → exit 0;
+  > deviations: `apps/mobile/jest.setup.ts` (the T-04 library mock) can't be measured by the coverage script, so,
+  > with the user's approval, it was added to the `coverage-exclude` block in `technical-context.md`.
 
 ## Verification Plan
 

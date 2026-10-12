@@ -34,6 +34,10 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
   // A second tap in the same frame must not send twice, before `sending` has re-rendered.
   const inFlight = useRef(new Set<string>());
 
+  // A decision only closes the sheet that belongs to it: another card's sheet, and its reason, stay.
+  const closeDenyOf = (registration: Registration) =>
+    setDenying((current) => (current?.id === registration.id ? null : current));
+
   const decide = async (
     registration: Registration,
     action: RegistrationAction,
@@ -59,7 +63,7 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
         },
         ...current,
       ]);
-      setDenying(null);
+      closeDenyOf(registration);
     } catch (error) {
       const key = getRegistrationErrorKey(error);
 
@@ -68,7 +72,7 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
       }
 
       if (isAlreadyDecided(error)) {
-        setDenying(null);
+        closeDenyOf(registration);
       }
     } finally {
       inFlight.current.delete(registration.id);

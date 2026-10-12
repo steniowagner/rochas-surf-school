@@ -321,14 +321,15 @@ describe('Registrations (e2e)', () => {
       const admin = await account('admin');
       const other = await account('admin');
       const pending = await account('student', 'pending');
-      const send = (kind: string, token: string) =>
+      // Each admin's denial carries its own reason, so the row shows which request won.
+      const send = (kind: string, token: string, reason: string) =>
         kind === 'approve'
           ? approve(token, pending.id)
-          : deny(token, pending.id, { reason: `by ${kind}` });
+          : deny(token, pending.id, { reason });
 
       const responses = await Promise.all([
-        send(first, admin.accessToken),
-        send(second, other.accessToken),
+        send(first, admin.accessToken, 'by first'),
+        send(second, other.accessToken, 'by second'),
       ]);
 
       const statuses = responses
@@ -342,8 +343,9 @@ describe('Registrations (e2e)', () => {
         expect(stored.denialReason).toBeNull();
         expect(stored.deniedAt).toBeNull();
       } else {
+        const winnerIsFirst = winner === responses[0];
         expect(stored.denialReason).toBe(
-          `by ${second === 'deny' ? 'deny' : first}`,
+          winnerIsFirst ? 'by first' : 'by second',
         );
       }
     });

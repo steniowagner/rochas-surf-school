@@ -362,6 +362,40 @@ describe("RegistrationsScreen approve", () => {
 });
 
 describe("RegistrationsScreen deny", () => {
+  it("keeps another card's sheet and reason open when a decision finishes", async () => {
+    const user = userEvent.setup();
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    serve([BRUNO, ANA]);
+    const original = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string, init: RequestInit) => {
+      if (init.method === "POST") {
+        await gate;
+      }
+
+      return original(url, init);
+    });
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(
+      within(cardOf("Ana Souza")).getByRole("button", { name: "Approve" }),
+    );
+    await user.press(
+      within(cardOf("Bruno Lima")).getByRole("button", { name: "Deny" }),
+    );
+    await user.type(screen.getByLabelText("Reason (optional)"), "abc");
+    await act(async () => {
+      release();
+    });
+
+    await screen.findByText("Approved");
+    expect(screen.getByText("Deny Bruno Lima?")).toBeOnTheScreen();
+    expect(screen.getByText("3/500")).toBeOnTheScreen();
+  });
+
   it("opens the sheet, sends the typed reason and moves the person to 'Decided just now'", async () => {
     const user = userEvent.setup();
     const state = serve([ANA]);

@@ -2,7 +2,7 @@
 id: "019"
 slug: admin-registration-decisions
 title: Admins approve or deny registrations ("Join the school")
-status: changes-requested
+status: in-progress
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 52df631cada869d940b43771d00f61ab6391ef1c
@@ -507,7 +507,7 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
 
 **Findings**
 
-- [ ] **F-01** (ER-08, D-14) — any successful decision, and any 409, closes the deny sheet even when it belongs to
+- [x] **F-01** (ER-08, D-14) — any successful decision, and any 409, closes the deny sheet even when it belongs to
   another card, dropping the reason being typed: `decide` in
   `apps/mobile/src/modules/admin/hooks/use-registrations-screen.hook.ts` calls `setDenying(null)` unconditionally.
   Reproduce: in `registrations.screen.test.tsx`, hold the POST (as the approve test does), tap "Approve" on Ana,
@@ -515,11 +515,14 @@ The tool's decision card, "Decided just now" list and deny sheet are generic, so
   card on a slow network, open another card's Deny before the answer arrives. Expected: the sheet closes only for
   the registration it belongs to (e.g. `setDenying((current) => (current?.id === registration.id ? null :
   current))` in both places), plus a screen test for this case.
+  > ✅ 2026-10-12 16:46 — a decision now closes only its own deny sheet (`closeDenyOf`: `setDenying((current) => current?.id === registration.id ? null : current)`, used on success and on 409); reproduced first with a new screen test (approve held, Bruno's sheet opened with a reason, release) which fails with the old code and passes now; also made the concurrency e2e use distinct reasons ("by first" / "by second") so the row shows which request won (reviewer note); files: `apps/mobile/src/modules/admin/hooks/use-registrations-screen.hook.ts`, `apps/mobile/src/modules/admin/screens/registrations.screen.test.tsx`, `apps/backend/test/registrations.e2e-spec.ts`; verified: `npx jest src/modules/admin` (49 passed), `npx vitest run --config vitest.config.e2e.ts test/registrations.e2e-spec.ts` (22 passed), eslint and oxlint clean
+
 - [ ] **F-02** (ER-04, D-04) — a reason over 500 characters answers 422 `user.denialReason.max.length` (the entity
   rule's real key, asserted by the e2e and use case tests), while D-04 and ER-04 promise `user.denialReason.maxLength`.
   The deviation is only noted in T-04's evidence; no Amendment records it, and `spec-finish` writes the contract's
   keys into the memory. Reproduce: `POST /registrations/{id}/deny` with a 501-character reason. Expected: either
   amend D-04/ER-04 to the entity's key with `/spec-plan --amend 019`, or make the API answer the documented key.
+  > ⛔ 2026-10-12 16:46 — needs your decision: the key is part of the contract (D-04, ER-04), so I won't change it alone. Option A: amend D-04/ER-04 to the entity rule's real key `user.denialReason.max.length` (a one-key amendment). Option B: keep the contract and make the API answer `user.denialReason.maxLength`.
 
 **Notes**
 

@@ -315,7 +315,7 @@ The email is shown bold where `{email}` appears.
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
   > ✅ 2026-10-11 — added `useRequestReactivation` (mutation on `POST /auth/me/reactivation-request`, every answer of D-04) and the `reactivation.accountChanged` copy; files: `apps/mobile/src/modules/reactivation/hooks/{use-request-reactivation.hook.ts,use-request-reactivation.types.ts,use-request-reactivation.hook.test.tsx}`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/reactivation/hooks` (8 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none
 
-- [ ] **T-07** — Replace the placeholder of
+- [x] **T-07** — Replace the placeholder of
   `apps/mobile/src/modules/reactivation/screens/reactivation.screen.tsx` with the Account deleted screen: one
   `AccountStatus` whose content follows the session's `reactivationStatus` (D-02) — not requested (tone `dim`,
   icon `account-remove-outline`, "Como reativar" card, primary "Pedir reativação" wired to
@@ -329,6 +329,7 @@ The email is shown bold where `{email}` appears.
   Covers: ER-05, ER-06, ER-07, ER-08, ER-10, ER-11 · Done when:
   `npx jest src/modules/reactivation` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-11 — replaced the Reactivation placeholder with the Account deleted screen (one `AccountStatus` per state from `user.reactivationStatus`: not requested → `dim` + request button wired to `useRequestReactivation`; requested → `sand`; denied → `bad`), added the `reactivation.*` copy, removed the now unused `flows.reactivation` key; files: `apps/mobile/src/modules/reactivation/screens/reactivation.screen.tsx`, `apps/mobile/src/modules/reactivation/screens/reactivation.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, `apps/mobile/src/components/flow-placeholder/flow-placeholder.component.test.tsx`; verified: `npx jest src/modules/reactivation` (19 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: the flow-placeholder test dropped the removed key
 
 ### Verification
 

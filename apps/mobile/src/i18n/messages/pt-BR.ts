@@ -142,11 +142,34 @@ const messages: Messages = {
     noteText: "Fale direto com a escola pelo WhatsApp.",
   },
   reactivation: {
+    notRequested: {
+      eyebrow: "Conta excluída",
+      title: "Esta conta não está mais ativa",
+      description:
+        "A conta de <bold>{{email}}</bold> foi excluída. Para voltar a usá-la, peça à equipe da Rocha's que a reative.",
+      noteTitle: "Como reativar",
+      noteText:
+        'Toque em "Pedir reativação". A equipe recebe o pedido e decide. Entre de novo com este email para ver a resposta.',
+      request: "Pedir reativação",
+    },
+    requested: {
+      eyebrow: "Pedido enviado",
+      title: "A equipe vai analisar",
+      description: "Recebemos seu pedido para reativar <bold>{{email}}</bold>.",
+      noteTitle: "E agora?",
+      noteText:
+        "Quando a equipe responder, entre de novo com este email para ver a resposta.",
+    },
+    denied: {
+      eyebrow: "Pedido recusado",
+      title: "Não foi possível reativar",
+      description:
+        "A equipe da Rocha's recusou o pedido para reativar <bold>{{email}}</bold>. Esta conta vai continuar inativa.",
+    },
     accountChanged: "Sua conta mudou. Entre de novo para continuar.",
   },
   flows: {
     onboarding: "Primeiros passos",
-    reactivation: "Reativação",
     student: "Aluno",
     instructor: "Instrutor",
     admin: "Administrador",

@@ -142,11 +142,34 @@ const messages = {
     noteText: "Talk to the school directly on WhatsApp.",
   },
   reactivation: {
+    notRequested: {
+      eyebrow: "Account deleted",
+      title: "This account is no longer active",
+      description:
+        "The account <bold>{{email}}</bold> was deleted. To use it again, ask the Rocha's team to reactivate it.",
+      noteTitle: "How to reactivate",
+      noteText:
+        'Tap "Request reactivation". The team gets the request and decides. Sign in again with this email to see the answer.',
+      request: "Request reactivation",
+    },
+    requested: {
+      eyebrow: "Request sent",
+      title: "The team will review it",
+      description: "We got your request to reactivate <bold>{{email}}</bold>.",
+      noteTitle: "What now?",
+      noteText:
+        "When the team answers, sign in again with this email to see the answer.",
+    },
+    denied: {
+      eyebrow: "Request denied",
+      title: "Couldn't reactivate",
+      description:
+        "The Rocha's team denied the request to reactivate <bold>{{email}}</bold>. This account will stay inactive.",
+    },
     accountChanged: "Your account changed. Sign in again to continue.",
   },
   flows: {
     onboarding: "Onboarding",
-    reactivation: "Reactivation",
     student: "Student",
     instructor: "Instructor",
     admin: "Admin",

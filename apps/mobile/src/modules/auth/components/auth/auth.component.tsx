@@ -44,6 +44,8 @@ const GRAPE_FADE = `linear-gradient(to bottom, ${palette.grape}00 45%, ${palette
 export function AuthComponent({
   onTermsPress,
   onPrivacyPress,
+  onGooglePress,
+  isGoogleLoading = false,
 }: AuthComponentProps) {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const insets = useSafeAreaInsets();
@@ -127,6 +129,8 @@ export function AuthComponent({
         <AuthButton
           variant="light"
           label={t("auth.continueWithGoogle")}
+          loading={isGoogleLoading}
+          onPress={onGooglePress}
           icon={
             <Image
               source={GOOGLE_LOGO}

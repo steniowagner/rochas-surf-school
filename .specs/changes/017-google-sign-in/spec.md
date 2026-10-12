@@ -394,13 +394,25 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   > `google-sign-in-error.ts` gained `getGoogleApiErrorKey` (the API/network part), which T-06's
   > `getGoogleSignInError` now builds on.
 
-- [ ] **T-08** — Add `useGoogleSignIn` in `src/modules/auth/hooks/use-google-sign-in.hook.ts` (Play Services
+- [x] **T-08** — Add `useGoogleSignIn` in `src/modules/auth/hooks/use-google-sign-in.hook.ts` (Play Services
   check on Android, `GoogleSignin.signIn()`, `useSignInWithGoogle`, session on 200, `routes.auth.googleName` on
   a 422 `user.name.*`, D-09 errors, `isLoading`, a second call ignored while one runs) and wire it to the Google
   button in `auth.component.tsx` (`onPress`, `loading`) through `auth.screen.tsx`. Tests:
   `use-google-sign-in.hook.test.tsx` and the Google cases in `auth.component.test.tsx`.
   Covers: ER-08, ER-09 · Done when: `npx jest src/modules/auth/hooks/use-google-sign-in src/modules/auth/components/auth`
   passes.
+  > ✅ 2026-10-12 — added `useGoogleSignIn` (Play Services check on Android, `GoogleSignin.signIn()`,
+  > `useSignInWithGoogle`, session hand-off, `routes.auth.googleName` on a 422 `user.name.*`, D-09 errors,
+  > `isLoading`, a ref guard against a second tap) and wired it through `auth.screen.tsx` to the Google button;
+  > `AuthButton` gained a `loading` prop (spinner, ignores presses) and `AuthComponent` the `onGooglePress` /
+  > `isGoogleLoading` props; files: `apps/mobile/src/modules/auth/hooks/use-google-sign-in.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-google-sign-in.hook.test.tsx`,
+  > `apps/mobile/src/modules/auth/screens/auth.screen.tsx`,
+  > `apps/mobile/src/modules/auth/components/auth/{auth.component.tsx,auth.types.ts,auth.component.test.tsx}`,
+  > `apps/mobile/src/modules/auth/components/auth-button/{auth-button.component.tsx,auth-button.types.ts}`;
+  > verified: `npx jest src/modules/auth/hooks/use-google-sign-in src/modules/auth/components/auth` (31 passed), the
+  > whole mobile suite (65 suites, 681 passed) and `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`
+  > (exit 0); deviations: none.
 
 - [ ] **T-09** — Call `GoogleSignin.signOut()` (not awaited, failure ignored) in
   `src/modules/auth/hooks/use-sign-out.hook.ts` (D-10), with the Google tests in `use-sign-out.hook.test.tsx`.

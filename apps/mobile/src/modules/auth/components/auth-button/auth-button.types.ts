@@ -5,4 +5,6 @@ export type AuthButtonProps = {
   label: string;
   icon: ReactNode;
   onPress?: () => void;
+  /** Shows a spinner instead of the label and ignores presses. */
+  loading?: boolean;
 };

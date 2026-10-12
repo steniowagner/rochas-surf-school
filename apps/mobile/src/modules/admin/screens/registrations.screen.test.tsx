@@ -193,6 +193,15 @@ describe("RegistrationsScreen list", () => {
     expect(await screen.findByText("Asked just now")).toBeOnTheScreen();
   });
 
+  it("leaves out the 'Asked' line when the date is unreadable", async () => {
+    serve([{ ...ANA, createdAt: "not a date" }]);
+    await renderScreen();
+
+    await screen.findByText("ana@example.com");
+
+    expect(screen.queryByText(/^Asked/)).toBeNull();
+  });
+
   it("shows one initial for a one-word name", async () => {
     serve([{ ...ANA, name: "Madonna" }]);
     await renderScreen();

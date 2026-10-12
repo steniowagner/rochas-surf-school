@@ -2,7 +2,7 @@
 id: "017"
 slug: google-sign-in
 title: Google sign-in
-status: in-progress
+status: in-review
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 1790b1b6902bf9c2ee7ac684db4e5566eb884681
@@ -423,12 +423,20 @@ account's name rule, the app asks for a name first. The Apple button is hidden u
   > `npx jest src/modules/auth/hooks/use-sign-out` (9 passed) and
   > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: none.
 
-- [ ] **T-10** — Build the app on the iOS simulator (`npx expo prebuild --platform ios`, `npx expo run:ios`)
+- [x] **T-10** — Build the app on the iOS simulator (`npx expo prebuild --platform ios`, `npx expo run:ios`)
   against the local backend with `GOOGLE_WEB_CLIENT_ID` set, and ask the user to perform the ER-13 journey
   (D-13); record their result and the `users` / `identities` rows (queried through `psql` or Prisma Studio) in
   the evidence. No code changes unless the journey fails.
   Covers: ER-13 · Done when: the user reports the journey passed and the database shows one `users` row and one
   `google` identity for that Google account.
+  > ✅ 2026-10-12 — `npx expo prebuild --platform ios` (the plugin wrote the Google URL scheme into `Info.plist`) and
+  > `npx expo run:ios` (with `LANG`/`LC_ALL` set to `en_US.UTF-8`, which CocoaPods needs) built the app on the
+  > iPhone 18 Pro simulator against the local backend (`GOOGLE_WEB_CLIENT_ID` set); the user ran the ER-13 journey
+  > with their Google account and reported it worked: Pending screen with the Google email, and the same Pending
+  > screen again after "Use another email" and "Continue with Google". Database check (`psql` in the Postgres
+  > container): one `users` row (`steniowagner1@gmail.com`, "Stenio Wagner", `pending`, `student`) and one
+  > `identities` row with `provider = 'google'`, `provider_user_id = 105189725173134382392`, for that user; no second
+  > `users` row. No code changes; files: none (generated `ios/` is gitignored); deviations: none.
 
 ### Verification
 

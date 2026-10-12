@@ -384,6 +384,7 @@ The email is shown bold where `{email}` appears.
 - `memory/modules/auth.md` — Who can do what (in the app): a denied account sees the reason and contacts the
   school; a deleted account requests reactivation once and sees its state at each sign-in; a removed account
   contacts the school; every closed state signs out with "Usar outro email". Spec history.
+- `memory/technical-context.md` (Mobile shared UI) — the `Button` takes an optional `icon` (a glyph before the label) on mobile and web.
 - `memory/modules/school-settings.md` — the app reads the number for the contact buttons of the Denied and
   Removed screens; hidden while unset. Spec history.
 
@@ -449,10 +450,11 @@ The email is shown bold where `{email}` appears.
   pass. Expected: both tests wait until the query has settled (e.g. the answer was consumed) before asserting
   the button is absent, and fail with that change.
   > ✅ 2026-10-12 — the null and error tests now wait for the school-settings answer to be consumed before asserting the button is absent; reproduced the reviewer's mutation (`return data ? (data.whatsappNumber ?? "+1") : null;`): "renders nothing when the school has no number" now fails (1 failed, 4 passed), and the original passes (5 passed); file: `apps/mobile/src/modules/offboarding/components/contact-school-button/contact-school-button.component.test.tsx`; deviations: none (the error test can't be hit by that mutation, since no data arrives on error)
-- [ ] **F-03** (convention) — the mobile `Button` gained an `icon` prop (T-03), but the web `Button`
+- [x] **F-03** (convention) — the mobile `Button` gained an `icon` prop (T-03), but the web `Button`
   (`apps/web/src/components/ui/button.tsx`) has none; CLAUDE.md requires the same names and props on both
   platforms. Expected: add the same optional `icon` prop to the web `Button` (with a test), or record an
   amendment that explains the exception. Either way, list the `Button` change under `## Memory Impact`.
+  > ✅ 2026-10-12 — added the same optional `icon` prop to the web `Button` (rendered before the label); no test, because `apps/web` has no test runner (technical-context → Automated validation: its pages are checked in a browser) and `apps/web/src/**` is coverage-excluded; the change is listed under `## Memory Impact`; file: `apps/web/src/components/ui/button.tsx`; verified: `npx turbo run lint check-types build --filter=@rochas-surf-school/web` exit 0; deviations: no test for the web prop
 
 **Notes**
 

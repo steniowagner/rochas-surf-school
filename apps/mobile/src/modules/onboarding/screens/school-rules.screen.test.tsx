@@ -102,20 +102,22 @@ describe("SchoolRulesScreen", () => {
   it.each([
     { role: "student", path: routes.student.home, name: "Student" },
     { role: "instructor", path: routes.instructor.home, name: "Instructor" },
-    { role: "admin", path: routes.admin.home, name: "Admin" },
+    { role: "admin", path: routes.admin.home, name: "School tools" },
   ])(
     "opens the role home after accepting ($role)",
     async ({ role, path, name }) => {
       hydrateSession({ user: accountOf(role, false), tokens: TOKENS });
       fetchMock.mockImplementation(async (url: string) =>
-        url.endsWith("/acceptances")
-          ? json(accountOf(role, true))
-          : json({
-              version: 3,
-              rules: [
-                { id: "r1", title: "Rule", description: "Text", index: 0 },
-              ],
-            }),
+        url.endsWith("/registrations")
+          ? json({ items: [] })
+          : url.endsWith("/acceptances")
+            ? json(accountOf(role, true))
+            : json({
+                version: 3,
+                rules: [
+                  { id: "r1", title: "Rule", description: "Text", index: 0 },
+                ],
+              }),
       );
       const press = userEvent.setup();
       const app = renderRouter(routeTree, { initialUrl: "/" });

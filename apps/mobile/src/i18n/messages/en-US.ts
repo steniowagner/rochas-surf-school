@@ -181,6 +181,13 @@ const messages = {
     },
     accountChanged: "Your account changed. Sign in again to continue.",
   },
+  admin: {
+    home: {
+      title: "School tools",
+      registrationsRow: "Join the school",
+      waiting: "{{count}} waiting",
+    },
+  },
   registrations: {
     title: "Join the school",
     description: "People waiting for the school's approval.",

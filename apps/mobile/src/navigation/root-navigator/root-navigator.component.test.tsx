@@ -236,7 +236,7 @@ describe("RootNavigator", () => {
     it.each([
       { role: "student", path: routes.student.home, name: "Student" },
       { role: "instructor", path: routes.instructor.home, name: "Instructor" },
-      { role: "admin", path: routes.admin.home, name: "Admin" },
+      { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
       "opens the $role home with a number and rulesAccepted true",
       async ({ role, path, name }) => {
@@ -265,14 +265,16 @@ describe("RootNavigator", () => {
         ok: true,
         status: 200,
         json: async () =>
-          url.endsWith("/acceptances")
-            ? { ...updatedAccount(role), rulesAccepted: true }
-            : {
-                version: 5,
-                rules: [
-                  { id: "r1", title: "Rule", description: "Text", index: 0 },
-                ],
-              },
+          url.endsWith("/registrations")
+            ? { items: [] }
+            : url.endsWith("/acceptances")
+              ? { ...updatedAccount(role), rulesAccepted: true }
+              : {
+                  version: 5,
+                  rules: [
+                    { id: "r1", title: "Rule", description: "Text", index: 0 },
+                  ],
+                },
       })));
 
     beforeEach(() => {
@@ -311,7 +313,7 @@ describe("RootNavigator", () => {
     it.each([
       { role: "student", path: routes.student.home, name: "Student" },
       { role: "instructor", path: routes.instructor.home, name: "Instructor" },
-      { role: "admin", path: routes.admin.home, name: "Admin" },
+      { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
       "opens the $role home after accepting, with no way back",
       async ({ role, path, name }) => {
@@ -438,7 +440,7 @@ describe("RootNavigator", () => {
         state: "approved admin",
         user: onboardedAccount("admin"),
         path: routes.admin.home,
-        name: "Admin",
+        name: "School tools",
       },
     ])(
       "opens $name on $path for a $state account",

@@ -188,6 +188,13 @@ const messages: Messages = {
     },
     accountChanged: "Tu cuenta cambió. Vuelve a entrar para continuar.",
   },
+  admin: {
+    home: {
+      title: "Herramientas de la escuela",
+      registrationsRow: "Unirse a la escuela",
+      waiting: "{{count}} esperando",
+    },
+  },
   registrations: {
     title: "Unirse a la escuela",
     description: "Personas esperando la aprobación de la escuela.",

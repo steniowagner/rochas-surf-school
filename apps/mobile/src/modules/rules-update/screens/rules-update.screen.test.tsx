@@ -79,9 +79,13 @@ const serve = ({
   rules?: () => unknown;
   accept?: () => unknown;
 }) =>
-  fetchMock.mockImplementation(async (url: string) =>
-    url.endsWith("/acceptances") ? accept?.() : rules?.(),
-  );
+  fetchMock.mockImplementation(async (url: string) => {
+    if (url.endsWith("/registrations")) {
+      return json(200, { items: [] });
+    }
+
+    return url.endsWith("/acceptances") ? accept?.() : rules?.();
+  });
 
 const acceptCalls = () =>
   fetchMock.mock.calls.filter(([url]) => url.endsWith("/acceptances"));
@@ -332,7 +336,7 @@ describe("RulesUpdateScreen on its route", () => {
   it.each([
     { role: "student", path: routes.student.home, name: "Student" },
     { role: "instructor", path: routes.instructor.home, name: "Instructor" },
-    { role: "admin", path: routes.admin.home, name: "Admin" },
+    { role: "admin", path: routes.admin.home, name: "School tools" },
   ])(
     "opens the role home after accepting ($role)",
     async ({ role, path, name }) => {

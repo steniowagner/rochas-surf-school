@@ -181,6 +181,13 @@ const messages: Messages = {
     },
     accountChanged: "Sua conta mudou. Entre de novo para continuar.",
   },
+  admin: {
+    home: {
+      title: "Ferramentas da escola",
+      registrationsRow: "Entrar na escola",
+      waiting: "{{count}} esperando",
+    },
+  },
   registrations: {
     title: "Entrar na escola",
     description: "Pessoas esperando a aprovação da escola.",

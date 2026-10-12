@@ -1,21 +1,84 @@
-import { rawRequest, RawRequestOptions } from "./api.request";
+import { getAccessToken, refreshSession } from "../session/session.refresh";
+import { expireSession, getSession } from "../session/session.store";
 
-type RequestOptions = RawRequestOptions;
+import { ApiError, SessionExpiredError } from "./api.errors";
+import { rawRequest } from "./api.request";
 
-/** A POST that sends `Authorization: Bearer <token>` when an access token is given. */
+type RequestOptions = {
+  /** Sends the session's access token, renewed first when it is about to expire, and once more after a 401. */
+  authenticated?: true;
+  /** @deprecated Pass `authenticated: true`; removed once every caller moved (spec 018, T-08). */
+  accessToken?: string;
+  /** Aborts the request after this many milliseconds (as a `NetworkError`). */
+  timeoutMs?: number;
+};
+
+type Method = "GET" | "POST" | "PUT";
+
+// The backend answers this key for every guard 401 (expired token, unknown user…).
+const isInvalidToken = (error: unknown) =>
+  error instanceof ApiError &&
+  error.status === 401 &&
+  error.errors.includes("auth.token.invalid");
+
+const request = async <T>(
+  method: Method,
+  path: string,
+  body: unknown,
+  { authenticated, accessToken, timeoutMs }: RequestOptions = {},
+): Promise<T> => {
+  if (!authenticated) {
+    return rawRequest<T>(method, path, body, { accessToken, timeoutMs });
+  }
+
+  const token = await getAccessToken({ timeoutMs });
+
+  try {
+    return await rawRequest<T>(method, path, body, {
+      accessToken: token,
+      timeoutMs,
+    });
+  } catch (error) {
+    if (!isInvalidToken(error)) {
+      throw error;
+    }
+  }
+
+  const renewed = await refreshSession({ timeoutMs });
+
+  try {
+    return await rawRequest<T>(method, path, body, {
+      accessToken: renewed.tokens.accessToken,
+      timeoutMs,
+    });
+  } catch (error) {
+    if (!isInvalidToken(error)) {
+      throw error;
+    }
+
+    // Renewing didn't help: the session is over, unless the person already signed out.
+    if (getSession()) {
+      expireSession();
+    }
+
+    throw new SessionExpiredError();
+  }
+};
+
+/** A POST; `authenticated: true` sends the session's access token. */
 export const apiPost = <T>(
   path: string,
   body: unknown,
   options?: RequestOptions,
-): Promise<T> => rawRequest<T>("POST", path, body, options);
+): Promise<T> => request<T>("POST", path, body, options);
 
-/** A PUT that sends `Authorization: Bearer <token>` when an access token is given (spec 008, D-10). */
+/** A PUT; `authenticated: true` sends the session's access token (spec 008, D-10). */
 export const apiPut = <T>(
   path: string,
   body: unknown,
   options?: RequestOptions,
-): Promise<T> => rawRequest<T>("PUT", path, body, options);
+): Promise<T> => request<T>("PUT", path, body, options);
 
-/** A GET that sends `Authorization: Bearer <token>` when an access token is given (spec 012). */
+/** A GET; `authenticated: true` sends the session's access token (spec 012). */
 export const apiGet = <T>(path: string, options?: RequestOptions): Promise<T> =>
-  rawRequest<T>("GET", path, undefined, options);
+  request<T>("GET", path, undefined, options);

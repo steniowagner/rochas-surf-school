@@ -277,12 +277,13 @@ to renew the session.
   passes.
   > ✅ 2026-10-12 15:37 — created `getAccessToken()` (60 s margin) and single-flight `refreshSession()` (expires on non-429 4xx, `NetworkError` otherwise, never expires or restores a session that signed out meanwhile); also added `SessionExpiredError` to `api.errors.ts` and exported it from `api/index.ts` (needed here; T-04 uses it); files: `apps/mobile/src/services/session/session.refresh.ts`, `apps/mobile/src/services/session/session.refresh.test.ts`, `apps/mobile/src/services/api/api.errors.ts`, `apps/mobile/src/services/api/index.ts`; verified: `npx jest src/services` (57 passed), `npx tsc --noEmit`, `npx eslint src/services`; deviations: `SessionExpiredError` moved from T-04 to T-03
 
-- [ ] **T-04** — In `apps/mobile/src/services/api/api.client.ts`, `api.errors.ts` and `index.ts`: replace
+- [x] **T-04** — In `apps/mobile/src/services/api/api.client.ts`, `api.errors.ts` and `index.ts`: replace
   `{ accessToken }` with `{ authenticated: true }` (token from `getAccessToken()`), retry once after a
   refresh on 401 `auth.token.invalid` and expire on a second one (D-05), add `SessionExpiredError` and
   `timeoutMs` (D-03); update `api.client.test.ts`. The old `{ accessToken }` option stays until T-08 moves its
   callers, so the app keeps compiling between the two commits.
   Covers: ER-04, ER-06, ER-07, ER-08, ER-09 · Done when: `npx jest src/services/api` passes.
+  > ✅ 2026-10-12 15:37 — added `{ authenticated: true }` and `timeoutMs` to the client (renews before expiry, retries once after a 401 `auth.token.invalid`, expires the session when the retry is refused again, unless the person already signed out); the deprecated `{ accessToken }` option stays until T-08; files: `apps/mobile/src/services/api/api.client.ts`, `apps/mobile/src/services/api/api.client.test.ts`; verified: `npx jest src/services/api` (32 passed), `npx tsc --noEmit`, `npx eslint src/services`; deviations: `api.errors.ts` and `index.ts` were changed in T-03; the timeout itself lives in `api.request.ts` (T-02)
 
 - [ ] **T-05** — Create `apps/mobile/src/services/session/session.restore.ts` (`restoreSession()`: read
   storage, `GET /auth/me` authenticated with `timeoutMs: 8000`, the four outcomes of D-09, `restoring` set to

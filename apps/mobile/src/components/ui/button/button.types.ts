@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { TouchableOpacityProps } from "react-native";
 
 export type ButtonVariant =
@@ -9,4 +10,6 @@ export type ButtonProps = Omit<TouchableOpacityProps, "children"> & {
   children: string;
   /** Shows a spinner instead of the label and ignores presses. */
   loading?: boolean;
+  /** A glyph drawn before the label. */
+  icon?: ReactNode;
 };

@@ -272,7 +272,7 @@ The email is shown bold where `{email}` appears.
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
   > ✅ 2026-10-11 — added the shared `AccountStatus` (ScreenIntro + optional note card + primary-action slot + ghost "Usar outro email") and the `closedAccount.*` copy in the three message files; files: `apps/mobile/src/components/account-status/{index.ts,account-status.component.tsx,account-status.types.ts,account-status.component.test.tsx}`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/components/account-status` (7 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: the primary action is a `primaryAction` ReactNode slot instead of label/onPress props, so the Contact button (T-03) and the loading Button (T-07) plug in unchanged
 
-- [ ] **T-03** — Create `useSchoolWhatsapp` in `apps/mobile/src/modules/offboarding/hooks/` (TanStack query on
+- [x] **T-03** — Create `useSchoolWhatsapp` in `apps/mobile/src/modules/offboarding/hooks/` (TanStack query on
   `GET /school-settings` with the session's access token, returning the number or `null`) and
   `ContactSchoolButton` in `apps/mobile/src/modules/offboarding/components/contact-school-button/` (renders
   nothing unless a number loaded; a primary `Button` "Falar com a escola" with the WhatsApp glyph; opens
@@ -283,6 +283,7 @@ The email is shown bold where `{email}` appears.
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-03 · Done when: `npx jest src/modules/offboarding` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-11 — added `useSchoolWhatsapp` (query on `GET /school-settings`, number or null) and `ContactSchoolButton` (renders only with a number, opens `https://wa.me/<digits>`, toast when the link rejects); files: `apps/mobile/src/modules/offboarding/hooks/{use-school-whatsapp.hook.ts,use-school-whatsapp.types.ts,use-school-whatsapp.hook.test.tsx}`, `apps/mobile/src/modules/offboarding/components/contact-school-button/{index.ts,contact-school-button.component.tsx,contact-school-button.hook.ts,contact-school-button.types.ts,contact-school-button.component.test.tsx}`, `apps/mobile/src/components/ui/button/{button.component.tsx,button.types.ts,button.component.test.tsx}`; verified: `npx jest src/modules/offboarding src/components/ui/button` (passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (exit 0); deviations: the shared mobile `Button` gained an optional `icon` prop (with a test) to draw the WhatsApp glyph; the web Button has no such prop yet
 
 - [ ] **T-04** — Replace the placeholder of `apps/mobile/src/modules/offboarding/screens/denied.screen.tsx` with
   the Denied screen built from `AccountStatus` (tone `bad`, icon `close`), the `denied.*` copy in the three

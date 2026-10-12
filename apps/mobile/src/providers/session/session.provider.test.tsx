@@ -5,6 +5,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import * as SecureStore from "expo-secure-store";
+import { StrictMode } from "react";
 import { Text, TouchableOpacity } from "react-native";
 
 import {
@@ -115,6 +116,33 @@ describe("SessionProvider", () => {
     await waitFor(() => expect(screen.getByText("restored")).toBeOnTheScreen());
     expect(screen.getByText("signed out")).toBeOnTheScreen();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("starts the restore once even when effects run twice", async () => {
+    await SecureStore.setItemAsync(
+      "session.tokens",
+      JSON.stringify({
+        ...tokensOf,
+        accessTokenExpiresAt: "2099-01-01T00:00:00.000Z",
+      }),
+    );
+    await SecureStore.setItemAsync("session.user", JSON.stringify(ana));
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ana,
+    });
+
+    await render(
+      <StrictMode>
+        <SessionProvider>
+          <Probe />
+        </SessionProvider>
+      </StrictMode>,
+    );
+
+    expect(await screen.findByText("restored")).toBeOnTheScreen();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("updates the account and keeps the tokens", async () => {

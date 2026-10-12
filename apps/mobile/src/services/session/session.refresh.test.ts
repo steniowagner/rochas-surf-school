@@ -219,4 +219,18 @@ describe("refreshSession", () => {
 
     expect(store.getSession()).toBeNull();
   });
+
+  it("leaves a newer in-flight slot alone when an old refresh settles", async () => {
+    store.setSession(sessionExpiringIn(0));
+    let finish!: (value: unknown) => void;
+    fetchMock.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+
+    const refreshing = refreshSession();
+    store.resetSessionStore();
+    finish(answer(200, renewedBody));
+    await refreshing;
+
+    expect(store.getRefreshInFlight()).toBeNull();
+    expect(store.getSession()).toBeNull();
+  });
 });

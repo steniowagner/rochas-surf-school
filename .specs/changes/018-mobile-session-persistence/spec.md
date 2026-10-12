@@ -2,7 +2,7 @@
 id: "018"
 slug: mobile-session-persistence
 title: Keep the mobile session across restarts and renew it automatically
-status: in-progress
+status: in-review
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 4bc742aef5c332d7981363bbfc3c41e4acffd757
@@ -320,10 +320,11 @@ to renew the session.
 
 ### Verification
 
-- [ ] **T-09** — Run every command in the Verification Plan from the repo root and follow the user journeys on
+- [x] **T-09** — Run every command in the Verification Plan from the repo root and follow the user journeys on
   the iOS simulator (after rebuilding the app, since `expo-secure-store` is native); all pass. Record the
   output summary as evidence. Covers: all · Done when: `check-coverage.mjs 018` prints `COVERAGE OK`, lint and
   check-types exit 0, and journeys 1–5 show what they describe.
+  > ✅ 2026-10-12 15:59 — ran the Verification Plan. `run-related-tests.mjs 018`: RELATED TESTS PASSED (52 suites, 583 tests); `check-coverage.mjs 018`: COVERAGE OK (21 files); `npm test` in apps/mobile: 73 suites, 769 passed; `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`: 6 tasks successful; `run-e2e.mjs 018`: E2E PASSED, no suite applies; the ER-12 `grep` has one match outside tests, the type field `accessToken: string;` in `use-verify-sign-in-code.hook.ts`. Two gap tests were added for the coverage gate (StrictMode double effect in `session.provider.test.tsx`, an old refresh settling after a reset in `session.refresh.test.ts`). Journeys on the iOS simulator (iPhone 18 Pro, app rebuilt with `npx expo run:ios`, backend with `JWT_EXPIRES_IN=1m`, account `dev@example.com`): (1) relaunch opened the Student home with no sign-in flash; after `status='pending'` in SQL, relaunch opened the Pending screen. (2) with the 1m token and a 70 s wait, saving a WhatsApp number worked and `refresh_tokens` went from 70 to 71 rows (one refresh), the number was saved. (3) backend stopped, relaunch opened the Pending screen (stored account), no toast. (4) `UPDATE refresh_tokens SET revoked_at = now()`, token expired, relaunch opened sign-in with "Your session expired. Sign in again.". (5) Sign out on the Pending screen opened sign-in at once (0 active refresh tokens afterwards), relaunch opened sign-in. Setup notes: the backend only sends the sign-in code by email (Resend), so I restarted my local backend with `RESEND_API_KEY=` and set a known code hash in `sign_in_codes` for the test account; the test account was set back to approved with its original number afterwards (its refresh tokens stay revoked); files: none; deviations: none
 
 ## Verification Plan
 

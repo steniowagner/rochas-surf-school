@@ -387,8 +387,14 @@ admin screen, the admin's school rules screen and a screen to read the rules at 
 session, seeing a rule change while the app is open or when it returns from the background, signing out from any
 screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
 
-Active specs: `015-school-settings-whatsapp` (the school's WhatsApp number) and `016-closed-account-screens`
-(the Denied and Account deleted screens), both planned.
+**The school's WhatsApp number on the backend** (spec `015-school-settings-whatsapp`) — an approved admin sets
+the school's WhatsApp number through the backend, with its country code and no spaces or other characters (the
+same shape as a user's number); it can be replaced but never emptied, and the last save wins. Any signed-in
+account, whatever its role or status, reads it (nothing until one is set), so denied and removed accounts can
+use it. Only the backend exists: no screen sets or uses the number yet (the admin's settings screens and spec
+016), and the waiting-list switch of the school settings isn't built.
+
+Active spec: `016-closed-account-screens` (the Denied and Account deleted screens), planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 

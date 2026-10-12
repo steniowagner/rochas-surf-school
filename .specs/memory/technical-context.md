@@ -65,8 +65,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   No sign-in, no private area and no API calls. Build with `next build`. No test runner: the pages are static
   content (see Automated validation).
 - **`modules/<module>`** — business modules (`@rochas-surf-school/<module>`), plain TypeScript compiled with
-  `tsc`. Tests with **Jest 30** + `ts-jest`, in `test/` mirroring `src/` (`*.test.ts`). Only `modules/auth` and
-  `modules/school-rules` exist today.
+  `tsc`. Tests with **Jest 30** + `ts-jest`, in `test/` mirroring `src/` (`*.test.ts`). Only `modules/auth`,
+  `modules/school-rules` and `modules/school-settings` exist today (`GET /school-settings` and
+  `PUT /school-settings/whatsapp`, protected, both answer `{ whatsappNumber }`).
 - **`packages/shared`** — base classes and contracts every module uses: `Entity`, `UseCase`,
   `CrudRepository` and its parts, `DomainError` (with optional `details`) / `ValidationError` /
   `ValidationException` (422) / `NotFoundError` (404) / `UnauthorizedError` (401) / `ForbiddenError` (403) /

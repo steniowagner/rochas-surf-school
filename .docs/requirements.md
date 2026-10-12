@@ -189,6 +189,8 @@ A person whose registration was denied SHALL see the denial, with its reason whe
 
 #### School WhatsApp number
 
+_Implemented in spec 015-school-settings-whatsapp._
+
 Admins SHALL be able to set the school's WhatsApp number, which every contact-the-school button in the app uses.
 
 - _Admin changes the number:_ When an admin sets a new school WhatsApp number, then contact-the-school buttons open a chat with that number.

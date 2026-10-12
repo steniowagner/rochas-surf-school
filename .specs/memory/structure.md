@@ -58,7 +58,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     and `usecase/account.out.ts` (`AccountOut` / `toAccountOut`: the account shape every answer carries, with
     `rulesAccepted`, `denialReason` and `reactivationStatus`).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
-    `usecase/create-identity.usecase.ts`.
+    `provider/google-id-token.provider.ts` (`GoogleIdTokenProvider`: verifies a Google ID token),
+    `usecase/{create-identity,sign-in-with-google}.usecase.ts`.
   - `sign-in-code/` — `model/sign-in-code.entity.ts` (also the TTL / cooldown / max-attempts constants and
     `normalizeEmail`), `provider/{sign-in-code.repository,sign-in-code.provider,email.provider,clock.provider}.ts`,
     `usecase/{request-sign-in-code,verify-sign-in-code,delete-expired-sign-in-codes}.usecase.ts`.
@@ -107,15 +108,16 @@ src/
   modules/auth/
     auth.module.ts              # wiring; ThrottlerModule for the auth routes
     auth.controller.ts          # POST /auth/email/code (202), POST /auth/email/verify (200), POST /auth/refresh (200),
-                                # POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
+                                # POST /auth/google (200), POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
                                 # PUT /auth/me/whatsapp and POST /auth/me/reactivation-request (200) (protected)
     auth.integration.http       # manual REST Client requests
-    auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser
+    auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser, GOOGLE_WEB_CLIENT_ID
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
     rules-version.prisma.ts     # PrismaRulesVersionProvider (reads the single rules_versions row)
     hmac.sign-in-code.ts        # HmacSignInCodeProvider (code generation + HMAC)
     jwt.token.ts                # JwtTokenProvider (access JWT, refresh token + hash)
     resend.email.ts             # ResendEmailProvider (pt-BR/es/en copy, dev log fallback)
+    google.id-token.ts          # GoogleAuthIdTokenProvider (google-auth-library verifyIdToken, web client id audience)
     system.clock.ts             # SystemClockProvider
     sign-in-code-cleanup.job.ts # every-minute cron deleting expired codes
   modules/school-rules/
@@ -137,6 +139,7 @@ test/
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
   auth-whatsapp.e2e-spec.ts     # e2e suite of PUT /auth/me/whatsapp (approved accounts created through Prisma)
   auth-reactivation.e2e-spec.ts # e2e suite of POST /auth/me/reactivation-request (accounts in each state through Prisma)
+  auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
   school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
   school-settings.e2e-spec.ts   # e2e suite of the /school-settings routes (accounts in each status and role through Prisma)
@@ -161,6 +164,7 @@ src/
     (public)/auth/create-account.tsx    # Create account screen (optional param: email, prefilled)
     (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, optional name — absent on the
                                         # sign-in path)
+    (public)/auth/google-name.tsx       # "Your name" screen of a Google sign-up (params: idToken, optional name)
     (pending)/pending/{_layout,index}.tsx            # pending flow: waiting for approval (/pending)
     (onboarding)/onboarding/_layout.tsx              # onboarding flow of an approved account
     (onboarding)/onboarding/index.tsx                # WhatsApp step (/onboarding)
@@ -214,18 +218,22 @@ src/
     utils/format-created-at.ts  # the "Account created" label: "now", relative up to 7 days, then the date
   modules/auth/
     screens/                    # auth.screen.tsx, email-choice.screen.tsx, email-sign-in.screen.tsx,
-                                # create-account.screen.tsx, confirm-code.screen.tsx
+                                # create-account.screen.tsx, confirm-code.screen.tsx, google-name.screen.tsx
     components/                 # auth (sign-in), auth-button, language-sheet, email-choice (+ its row,
                                 # choice-row), email-sign-in, create-account, confirm-code (code entry, verify,
-                                # resend countdown, both paths) — each component + hook
+                                # resend countdown, both paths), google-name ("Your name") — each component + hook
     email-auth.navigation.test.tsx  # navigation tests of the email paths against the real auth route files
     hooks/                      # use-request-sign-in-code.hook.ts (POST /auth/email/code),
                                 # use-verify-sign-in-code.hook.ts (POST /auth/email/verify),
-                                # use-sign-out.hook.ts (clears the session, then POST /auth/sign-out)
+                                # use-sign-in-with-google.hook.ts (POST /auth/google),
+                                # use-google-sign-in.hook.ts (Google picker → POST /auth/google → session or
+                                # "Your name"), use-sign-out.hook.ts (clears the session, then POST /auth/sign-out
+                                # and GoogleSignin.signOut())
     utils/                      # sign-in-code-error.ts, verify-code-error.ts (API error → translation key,
                                 # and inline or toast for the code check; on the sign-in path a name error
                                 # sends the person to Create account), field-validation.ts (isValid with the
-                                # shared rules, getStatus: error only after blur and when not empty)
+                                # shared rules, getStatus: error only after blur and when not empty, nameRules),
+                                # google-sign-in-error.ts (Google / API error → translation key, or null to ignore)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
                                 # text-input, toast, checkbox
@@ -235,6 +243,7 @@ src/
   components/account-status/    # AccountStatus: the shared layout of every closed-account state (icon tile by
                                 # tone, eyebrow, title, description, optional note card and primary action,
                                 # "Use another email")
+  services/google-sign-in.ts    # configures GoogleSignin once; the only import point of the Google library
   services/api/                 # fetch client (apiGet, apiPost, apiPut, each with an optional bearer token), ApiError, NetworkError
   i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys)
   constants/                    # routes.ts (every app path), theme.ts (design tokens), theme-variables.ts

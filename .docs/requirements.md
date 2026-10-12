@@ -67,6 +67,7 @@ Lets people sign in to the app with the method they prefer while keeping exactly
 #### Sign-in methods
 
 _Implemented in spec 007-email-sign-in-screens._
+_Implemented in spec 017-google-sign-in._
 
 The app SHALL let people sign in with Google or a 6-digit code sent to their email address. On iOS, the app SHALL also offer Sign in with Apple. The same screen SHALL serve both signing in and signing up.
 
@@ -104,6 +105,7 @@ A sign-in code SHALL expire 10 minutes after it is sent. A person SHALL be able 
 #### One account per email address
 
 _Implemented in spec 001-email-sign-in-code._
+_Implemented in spec 017-google-sign-in._
 
 The system SHALL keep one account per email address. Signing in with any method that provides the same address SHALL open the same account.
 
@@ -153,11 +155,13 @@ _Implemented in spec 001-email-sign-in-code._
 _Implemented in spec 002-email-create-account-screen._
 _Implemented in spec 003-email-confirm-code-screen._
 _Implemented in spec 007-email-sign-in-screens._
+_Implemented in spec 017-google-sign-in._
 
-Every new account SHALL have a name before it waits for approval. The system SHALL use the name shared by Google or Apple when available, and SHALL ask the person to type one otherwise.
+Every new account SHALL have a name before it waits for approval. The system SHALL use the name shared by Google or Apple when it is available and follows the account's name rules, and SHALL ask the person to type one otherwise.
 
 - _Email code sign-up:_ When a person signs up with an email code, then they are asked for their name together with their email address, before the code is sent, and their account is created with that name, waiting for approval, once they enter the correct code.
-- _Name shared by the sign-in method:_ When a person signs up with a method that shares their name, then that name is used for the account.
+- _Name shared by the sign-in method:_ When a person signs up with a method that shares a name that follows the account's name rules, then that name is used for the account.
+- _Shared name doesn't fit:_ When a person signs up with a method that shares no name, or one that doesn't follow the account's name rules, then they are asked for their name, with the shared name filled in, before the account is created.
 
 #### Admins decide registrations
 

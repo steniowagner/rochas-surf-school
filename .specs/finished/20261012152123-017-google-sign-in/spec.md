@@ -2,13 +2,14 @@
 id: "017"
 slug: google-sign-in
 title: Google sign-in
-status: accepted
+status: finished
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 1790b1b6902bf9c2ee7ac684db4e5566eb884681
 reviewed_commit: 958be2704498b30eea36f5523e0a84a32d30e8f1
 fronts: [auth, backend, mobile]
 depends_on: []
+finished: 2026-10-12
 ---
 
 # 017 — Google sign-in

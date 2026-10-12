@@ -75,9 +75,11 @@ Listed in the order people meet them.
     be demoted or removed. Users are notified when their role changes.
 - **Identity** (`identity`): one way a user signs in — Google, Apple (iOS only) or a code sent by email. Key
   fields: method, the email it provides. Relationship: belongs to one user; a user has one or more. Any method
-  that provides the same email opens the same account. The name shared by Google or Apple becomes the
-  account's name; email-code sign-ups type their name after entering a correct code, and the account is
-  created (as a pending student) only then.
+  that provides the same email opens the same account; a Google sign-in keeps opening its account even after
+  the Google address changes, and the account's email never changes. The name shared by Google or Apple becomes
+  the account's name when it fits the name rules, otherwise the person types one before the account is created;
+  email-code sign-ups type their name after entering a correct code, and the account is created (as a pending
+  student) only then.
 - **Sign-in code** (`sign-in-code`): a 6-digit code emailed to sign in or sign up — no passwords exist.
   Expires 10 minutes after it is sent; a new one can be requested 30 seconds after the previous one, and it
   replaces the previous code. Works once. Five wrong guesses lock it until a new code is requested. The email
@@ -380,12 +382,11 @@ request is sent. The app sends it from the Account deleted screen (spec 016).
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
-storage, and the app's sign-in screen with its language picker (its Google and Apple buttons do nothing yet).
-The web app is still on its framework template. Keeping the session across app restarts, the real screens of
-each flow (every student, instructor and admin screen, the admin's school rules screen and a screen to read the
-rules at any time included), renewing a
+storage, and the app's sign-in screen with its language picker. The web app is still on its framework
+template. Keeping the session across app restarts, the real screens of each flow (every student, instructor and
+admin screen, the admin's school rules screen and a screen to read the rules at any time included), renewing a
 session, seeing a rule change while the app is open or when it returns from the background, signing out from any
-screen other than the Pending screen, and Google and Apple sign-in don't exist yet.
+screen other than the Pending and closed-account screens, and Apple sign-in don't exist yet.
 
 **The school's WhatsApp number on the backend** (spec `015-school-settings-whatsapp`) — an approved admin sets
 the school's WhatsApp number through the backend, with its country code and no spaces or other characters (the
@@ -405,6 +406,18 @@ The Account deleted screen has three states: not requested, with "Pedir reativa�
 request and switches the screen to "Pedido enviado" in place; requested, waiting for the team; and denied, with
 only "Usar outro email". An admin's decision is seen at the next sign-in, since there are no notifications and
 the session isn't refreshed while the screen is open. All copy is in pt-BR, es-ES and en-US.
+
+**Google sign-in** (spec `017-google-sign-in`) — "Continue with Google" on the sign-in screen signs in or signs
+up with a Google account, on iOS and Android. The backend checks Google's token and opens the one account for
+that person: the account already signed in with that Google account (even if its Google address changed since),
+else the account with the same email, which gets Google as another way in, else a new pending student. A Google
+address Google hasn't verified is refused. A new account takes Google's name when it fits the name rules;
+otherwise the app opens "Your name", with Google's name filled in, and the account is created once a valid name
+is sent. The person then lands where any sign-in leads (Pending for a new account). Closing Google's account
+picker shows nothing; every other failure shows one short message in the app's language. Signing out also signs
+out of Google, so the next Google sign-in shows the account picker. The Apple button is hidden until Apple
+sign-in is built; Google's profile photo isn't stored, and Google sign-in on Android hasn't been tried on a
+device yet.
 
 Active specs: none.
 
@@ -426,6 +439,8 @@ Active specs: none.
   kept).
 - Withdrawing an acceptance of the school rules, and an admin view of who accepted which version.
 - Signing out of every device at once: signing out ends the sign-in of one device only.
+- Using the Google profile photo as the account's photo (spec 017 doesn't store it), and Google One Tap /
+  automatic sign-in.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea

@@ -58,6 +58,15 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **One account per email address**: signing in with an email code to an address whose account was created
   with another method opens that account and adds an email identity to it — never a second account. An account
   gets at most one email identity.
+- **Google sign-in**: Google's token is checked first, and an address Google hasn't verified is refused before
+  anything is looked up, so nobody can claim an account through an unconfirmed address. The account is then
+  found by the Google identity's id (so a person keeps their account when their Google address changes), else by
+  the email (a Google identity is added to that account, whatever its status), else a new pending student is
+  created with a Google identity. The account's email never changes, even when Google's differs.
+- **Name of a new Google account**: Google's name, trimmed, when it follows the account's name rules; a name sent
+  by the app replaces it. When the name doesn't fit (Google names are often one word, the rule needs two), nothing
+  is created and the app asks for one, then sends the same Google token with it. A name sent for an existing
+  account is ignored.
 
 ## Sign-in codes
 
@@ -102,7 +111,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 ## Who can do what
 
-- **Anyone** — asks for a code and signs in or signs up with it.
+- **Anyone** — asks for a code and signs in or signs up with it; signs in or signs up with a Google account
+  whose address Google verified (10 requests per minute per network address).
 - **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date,
   WhatsApp number and its visibility, whether it accepted the current school rules, its denial reason and its
   reactivation status).
@@ -139,9 +149,16 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   a number opens School rules directly. School rules is still empty, and onboarding never completes yet, so no
   account reaches its role's experience. The WhatsApp step has no back button and no sign-out; if the session
   expired while saving, the app says so and signs out.
+- **In the app**, "Continue with Google" opens Google's account picker and signs the person in to the account
+  the backend finds or creates, into the part of the app that matches it (Pending for a new account); the button
+  shows its loading state and ignores another tap meanwhile. When Google's name doesn't fit, the "Your name"
+  screen opens with it filled in, checks it with Create account's rules and messages, and sends it; if Google's
+  token expired meanwhile, it says so and returns to sign-in. Closing the picker shows nothing; every other
+  failure shows one short message. The Apple button isn't shown until Apple sign-in is built.
 - **In the app**, signing out (from the Pending screen, and "Use another email" on every closed-account screen)
   forgets the session on the phone at once and returns to the sign-in screen, then asks the backend to end that
-  sign-in without waiting for the answer — so it works offline too.
+  sign-in without waiting for the answer — so it works offline too. It also signs out of Google, so the next
+  Google sign-in shows the account picker.
 - **In the app**, a denied account sees that its registration wasn't approved, the address it signed in with,
   and the admin's reason exactly as written ("Message from the team"; nothing when no reason was given), and can
   contact the school on WhatsApp when the school has a number.
@@ -156,7 +173,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 ## Boundaries
 
-It does not send email itself: it hands the code, the address and the language to the email-delivery
+It does not check Google's tokens itself: a contract verifies them, provided by the backend. It does not send
+email itself: it hands the code, the address and the language to the email-delivery
 capability through an abstract contract. It knows nothing about token formats or HTTP: the technical shape of
 tokens is behind its own contract, provided by the backend. The school rules themselves and their version belong to
 [School rules](school-rules.md), which also decides when an acceptance is allowed; this module keeps only the
@@ -199,3 +217,7 @@ of the account lifecycle still to be specified.
   Access removed screens replace the placeholders: the denial reason, the reactivation request sent from the
   screen, "Contact the school" on WhatsApp for denied and removed accounts, and "Use another email" (sign-out)
   on every state.
+- `017-google-sign-in` — Google sign-in (`POST /auth/google`): by Google identity, else linked by email, else a
+  new pending student; unverified Google addresses refused; a new account needs a name that fits the rules
+  ("Your name" in the app); the app's "Continue with Google" works, the Apple button is hidden, and signing out
+  also signs out of Google.

@@ -131,10 +131,16 @@ const messages: Messages = {
     contactSchool: "Hablar con la escuela",
     whatsappUnavailable: "No se pudo abrir WhatsApp.",
   },
+  denied: {
+    eyebrow: "Registro no aprobado",
+    title: "Esta vez no ha sido posible",
+    description:
+      "El equipo de Rocha's no aprobó el registro de <bold>{{email}}</bold>. Si crees que es un error, habla con nosotros.",
+    noteTitle: "Mensaje del equipo",
+  },
   flows: {
     onboarding: "Primeros pasos",
     reactivation: "Reactivación",
-    offboardingDenied: "Registro rechazado",
     offboardingRemoved: "Acceso eliminado",
     student: "Alumno",
     instructor: "Instructor",

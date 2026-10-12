@@ -126,10 +126,16 @@ const messages: Messages = {
     contactSchool: "Falar com a escola",
     whatsappUnavailable: "Não foi possível abrir o WhatsApp.",
   },
+  denied: {
+    eyebrow: "Cadastro não aprovado",
+    title: "Não foi dessa vez",
+    description:
+      "A equipe da Rocha's não aprovou o cadastro de <bold>{{email}}</bold>. Se você acha que foi um engano, fale com a gente.",
+    noteTitle: "Mensagem da equipe",
+  },
   flows: {
     onboarding: "Primeiros passos",
     reactivation: "Reativação",
-    offboardingDenied: "Cadastro recusado",
     offboardingRemoved: "Acesso removido",
     student: "Aluno",
     instructor: "Instrutor",

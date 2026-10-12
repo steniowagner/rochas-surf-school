@@ -4,7 +4,7 @@ This file is the **header of the business modules** of "Rocha's Surf School": a 
 overview of what each module does and why it exists. The details of the concepts and business rules of each
 module live in their own markdown inside `modules/`.
 
-The product has **two business modules** so far: **Authentication** and **School rules**. The other areas of the product
+The product has **three business modules** so far: **Authentication**, **School rules** and **School settings**. The other areas of the product
 (scheduling, enrolment, ratings and photos, notifications) enter as new modules when their specs are planned.
 Email delivery is treated as **infrastructure**, not as a business module.
 
@@ -32,6 +32,17 @@ Authentication, which says on every answer whether the account still has to acce
 
 - Where it physically lives: `modules/school-rules`
 - Business details: [modules/school-rules.md](modules/school-rules.md)
+
+---
+
+## School settings
+
+Keeps the school-wide settings admins control. Today that is the school's WhatsApp number, which every
+contact-the-school button will use: admins set it, and any signed-in account reads it, whatever its status, so a
+denied or removed account can still contact the school. The waiting-list switch joins it with enrolment.
+
+- Where it physically lives: `modules/school-settings`
+- Business details: [modules/school-settings.md](modules/school-settings.md)
 
 ---
 

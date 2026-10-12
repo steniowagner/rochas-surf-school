@@ -2,13 +2,14 @@
 id: "015"
 slug: school-settings-whatsapp
 title: The school's WhatsApp number
-status: accepted
+status: finished
 reviewed_commit: 81f046dc48cd0839598d13e1af918af75af77766
 started: 2026-10-11
 base_commit: 315dffd38202368824cef82340ecf5fed3f8413b
 created: 2026-10-11
 fronts: [school-settings, backend]
 depends_on: []
+finished: 2026-10-11
 ---
 
 # 015 — The school's WhatsApp number

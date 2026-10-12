@@ -2,21 +2,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react-native";
 import { ReactNode } from "react";
 
-import { SessionContext } from "@/providers/session/session.context";
+import { getSnapshot, hydrateSession } from "@/services/session/session.store";
 
 import { useSchoolRules } from "./use-school-rules.hook";
 
-const mockSignOut = jest.fn();
-
-// Signing out goes through the session store; the tests only check that it is asked for.
-jest.mock("@/services/session/session.store", () => ({
-  ...jest.requireActual("@/services/session/session.store"),
-  signOut: () => mockSignOut(),
-}));
-
 const fetchMock = jest.fn();
 const mockShow = jest.fn();
-const clearSession = jest.fn();
 
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
@@ -24,7 +15,7 @@ jest.mock("@/providers/alert-message", () => ({
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -32,20 +23,7 @@ const tokens = {
 let queryClient: QueryClient;
 
 const wrapper = ({ children }: { children: ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    <SessionContext.Provider
-      value={{
-        user: null,
-        tokens,
-        setSession: jest.fn(),
-        clearSession,
-        isRestoring: false,
-        updateUser: jest.fn(),
-      }}
-    >
-      {children}
-    </SessionContext.Provider>
-  </QueryClientProvider>
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
 const respond = (status: number, body: unknown) =>
@@ -61,8 +39,7 @@ beforeEach(() => {
   });
   fetchMock.mockReset();
   mockShow.mockReset();
-  clearSession.mockReset();
-  mockSignOut.mockReset();
+  hydrateSession({ user: { id: "user-1" } as never, tokens });
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
@@ -81,20 +58,18 @@ describe("useSchoolRules", () => {
     expect(result.current.data).toEqual({ version: 1, rules: [] });
   });
 
-  it("signs out when the session expired", async () => {
+  it("fails without a message of its own when the session expired", async () => {
     respond(401, { errors: ["auth.token.invalid"] });
 
-    await renderHook(
+    const { result } = await renderHook(
       () => ({ first: useSchoolRules(), second: useSchoolRules() }),
       { wrapper },
     );
 
-    await waitFor(() => expect(mockSignOut).toHaveBeenCalledTimes(1));
-    expect(mockShow).toHaveBeenCalledTimes(1);
-    expect(mockShow).toHaveBeenCalledWith(
-      "Your session expired. Sign in again.",
-    );
-    expect(mockSignOut).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(result.current.first.isError).toBe(true));
+    // The message is shown once, for the whole app, by useSessionExpired.
+    expect(mockShow).not.toHaveBeenCalled();
+    expect(getSnapshot().expired).toBe(true);
   });
 
   it("keeps the session on another error", async () => {
@@ -104,6 +79,7 @@ describe("useSchoolRules", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(mockShow).not.toHaveBeenCalled();
-    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(getSnapshot().session).not.toBeNull();
+    expect(getSnapshot().expired).toBe(false);
   });
 });

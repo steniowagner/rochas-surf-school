@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react-native";
 import { ReactNode } from "react";
 
-import { SessionContext } from "@/providers/session/session.context";
+import { hydrateSession } from "@/services/session/session.store";
 
 import { useSchoolWhatsapp } from "./use-school-whatsapp.hook";
 
@@ -10,7 +10,7 @@ const fetchMock = jest.fn();
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -21,22 +21,12 @@ const wrapper = ({ children }: { children: ReactNode }) => (
       new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })
     }
   >
-    <SessionContext.Provider
-      value={{
-        user: null,
-        tokens,
-        setSession: jest.fn(),
-        clearSession: jest.fn(),
-        isRestoring: false,
-        updateUser: jest.fn(),
-      }}
-    >
-      {children}
-    </SessionContext.Provider>
+    {children}
   </QueryClientProvider>
 );
 
 beforeEach(() => {
+  hydrateSession({ user: { id: "user-1" } as never, tokens });
   fetchMock.mockReset();
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
@@ -83,6 +73,19 @@ describe("useSchoolWhatsapp", () => {
     const { result } = await renderHook(() => useSchoolWhatsapp(), { wrapper });
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(result.current).toBeNull();
+  });
+
+  it("returns null when the session expired", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ errors: ["auth.token.invalid"] }),
+    });
+
+    const { result } = await renderHook(() => useSchoolWhatsapp(), { wrapper });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     expect(result.current).toBeNull();
   });
 });

@@ -7,8 +7,6 @@ import { rawRequest } from "./api.request";
 type RequestOptions = {
   /** Sends the session's access token, renewed first when it is about to expire, and once more after a 401. */
   authenticated?: true;
-  /** @deprecated Pass `authenticated: true`; removed once every caller moved (spec 018, T-08). */
-  accessToken?: string;
   /** Aborts the request after this many milliseconds (as a `NetworkError`). */
   timeoutMs?: number;
 };
@@ -25,10 +23,10 @@ const request = async <T>(
   method: Method,
   path: string,
   body: unknown,
-  { authenticated, accessToken, timeoutMs }: RequestOptions = {},
+  { authenticated, timeoutMs }: RequestOptions = {},
 ): Promise<T> => {
   if (!authenticated) {
-    return rawRequest<T>(method, path, body, { accessToken, timeoutMs });
+    return rawRequest<T>(method, path, body, { timeoutMs });
   }
 
   const token = await getAccessToken({ timeoutMs });

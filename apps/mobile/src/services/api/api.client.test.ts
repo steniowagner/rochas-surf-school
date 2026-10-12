@@ -10,6 +10,17 @@ const jsonResponse = (status: number, body: unknown) =>
     json: async () => body,
   }) as Response;
 
+const signInWith = (accessToken: string) =>
+  store.setSession({
+    user: { id: "user-1", role: "student" } as never,
+    tokens: {
+      accessToken,
+      accessTokenExpiresAt: new Date(Date.now() + 600_000).toISOString(),
+      refreshToken: "rt-1",
+      refreshTokenExpiresAt: "2099-01-01T00:00:00.000Z",
+    },
+  });
+
 describe("apiPost", () => {
   const fetchMock = jest.fn();
 
@@ -31,13 +42,14 @@ describe("apiPost", () => {
     });
   });
 
-  it("posts JSON with the bearer token when one is given", async () => {
+  it("posts JSON with the bearer token when authenticated", async () => {
+    signInWith("at-1");
     fetchMock.mockResolvedValue(jsonResponse(200, {}));
 
     await apiPost(
       "/school-rules/acceptances",
       { version: 3 },
-      { accessToken: "at-1" },
+      { authenticated: true },
     );
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -119,13 +131,14 @@ describe("apiPut", () => {
   });
 
   it("puts JSON with the bearer token", async () => {
+    signInWith("at-1");
     fetchMock.mockResolvedValue(jsonResponse(200, { id: "1" }));
 
     await expect(
       apiPut(
         "/auth/me/whatsapp",
         { whatsappNumber: "+5585999998888" },
-        { accessToken: "at-1" },
+        { authenticated: true },
       ),
     ).resolves.toEqual({ id: "1" });
 
@@ -193,10 +206,11 @@ describe("apiGet", () => {
     });
   });
 
-  it("sends the bearer token only when one is given", async () => {
+  it("sends the bearer token only when authenticated", async () => {
+    signInWith("token-1");
     fetchMock.mockResolvedValue(jsonResponse(200, {}));
 
-    await apiGet("/school-rules", { accessToken: "token-1" });
+    await apiGet("/school-rules", { authenticated: true });
 
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules", {
       method: "GET",

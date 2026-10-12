@@ -32,7 +32,7 @@ const user = {
 
 const tokens = {
   accessToken: "at-1",
-  accessTokenExpiresAt: "2026-10-10T12:15:00.000Z",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
   refreshToken: "rt-1",
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
@@ -178,15 +178,14 @@ describe("useAcceptSchoolRules", () => {
     expect(hook.result.current.session.user).toEqual(user);
   });
 
-  it("error: signs out on 401", async () => {
+  it("error: shows nothing more when the session expired", async () => {
     respond(401, { errors: ["auth.token.invalid"] });
     const hook = await renderSignedIn();
 
     await accept(hook);
 
-    expect(mockShow).toHaveBeenCalledWith(
-      "Your session expired. Sign in again.",
-    );
+    // The session is cleared and the message shown once, for the whole app, by useSessionExpired.
+    expect(mockShow).not.toHaveBeenCalled();
     expect(hook.result.current.session.user).toBeNull();
     expect(hook.result.current.session.tokens).toBeNull();
   });

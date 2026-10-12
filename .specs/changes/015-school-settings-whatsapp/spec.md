@@ -2,7 +2,7 @@
 id: "015"
 slug: school-settings-whatsapp
 title: The school's WhatsApp number
-status: in-progress
+status: in-review
 started: 2026-10-11
 base_commit: 315dffd38202368824cef82340ecf5fed3f8413b
 created: 2026-10-11

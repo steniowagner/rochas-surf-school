@@ -6,10 +6,12 @@ import {
   radii,
   spacing,
   typography,
+  type TypographyVariant,
 } from "@rochas-surf-school/design-tokens";
 import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
 
+import { accentRoom } from "./src/constants/accent-room";
 import { fontFamilyByWeight } from "./src/constants/font-families";
 import { colorVariable, kebab } from "./src/constants/token-names";
 
@@ -29,6 +31,8 @@ const colorUtilities = Object.fromEntries(
 const typeStyles = Object.fromEntries(
   Object.entries(typography).map(([name, t]) => {
     const families: Record<number, string> = fontFamilyByWeight[t.font];
+    // Room above the first line for accents, padded in and cancelled by a negative margin (see accent-room.ts).
+    const room = accentRoom(name as TypographyVariant);
 
     return [
       `.ds-text-${kebab(name)}`,
@@ -38,6 +42,7 @@ const typeStyles = Object.fromEntries(
         lineHeight: `${Math.round(t.size * t.lineHeight)}px`,
         letterSpacing: `${t.letterSpacing * t.size}px`,
         textTransform: t.uppercase ? "uppercase" : "none",
+        ...(room ? { paddingTop: `${room}px`, marginTop: `-${room}px` } : {}),
       },
     ];
   }),

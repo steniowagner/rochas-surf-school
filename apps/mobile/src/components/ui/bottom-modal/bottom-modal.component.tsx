@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { accentRoom } from "@/constants/accent-room";
 import { radii, spacing } from "@/constants/theme";
 import { themeVariables } from "@/constants/theme-variables";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -16,6 +17,11 @@ import { useBottomModal } from "./bottom-modal.hook";
 import { BottomModalProps } from "./bottom-modal.types";
 
 const SCRIM_OPACITY = 0.45;
+// The handle's padding on each side (the library's default).
+const HANDLE_PADDING = 10;
+// The sheet clips its content, so the accent room above a sheet title is moved from the handle's bottom padding
+// into the content: the title stays where it was and its accents aren't cut.
+const TITLE_ROOM = accentRoom("sheetTitle");
 
 /**
  * A bottom sheet that slides up from the bottom of the screen. It closes when the user drags it down,
@@ -55,10 +61,12 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
         borderTopRightRadius: radii.sheet,
       }}
       handleIndicatorStyle={{ backgroundColor: theme.line }}
+      handleStyle={{ paddingBottom: HANDLE_PADDING - TITLE_ROOM }}
       index={-1}
     >
       <BottomSheetView
         style={{
+          paddingTop: TITLE_ROOM,
           paddingHorizontal: spacing.screen,
           paddingBottom: insets.bottom + spacing.groupGap,
         }}

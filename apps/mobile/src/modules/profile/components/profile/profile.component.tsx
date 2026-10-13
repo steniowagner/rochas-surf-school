@@ -7,6 +7,7 @@ import { ThemeSheet } from "@/components/theme-sheet";
 import { useTheme } from "@/hooks/use-theme";
 
 import { AboutSheet } from "../about-sheet";
+import { DeleteAccountSheet } from "../delete-account-sheet";
 import { ProfileCard } from "../profile-card";
 import { ProfileHeader } from "../profile-header";
 import { ProfileRow } from "../profile-row";
@@ -141,11 +142,25 @@ export function Profile() {
             onPress={() => openSheet("signOut")}
           />
         </ProfileCard>
+
+        <ProfileCard>
+          <ProfileRow
+            icon="trash-outline"
+            label={t("profile.removeAccount")}
+            hideChevron
+            destructive
+            onPress={() => openSheet("deleteAccount")}
+          />
+        </ProfileCard>
       </ScrollView>
 
       <ThemeSheet visible={sheet === "theme"} onClose={closeSheet} />
       <LanguageSheet visible={sheet === "language"} onClose={closeSheet} />
       <AboutSheet visible={sheet === "about"} onClose={closeSheet} />
+      <DeleteAccountSheet
+        visible={sheet === "deleteAccount"}
+        onClose={closeSheet}
+      />
       <SignOutSheet visible={sheet === "signOut"} onClose={closeSheet} />
     </View>
   );

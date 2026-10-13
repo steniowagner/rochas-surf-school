@@ -253,6 +253,7 @@ const messages: Messages = {
     about: "Acerca de la app",
     privacyPolicy: "Política de privacidad",
     termsOfUse: "Términos de uso",
+    removeAccount: "Eliminar la cuenta",
     signOut: "Cerrar sesión",
     comingSoon: "Próximamente.",
   },
@@ -295,6 +296,12 @@ const messages: Messages = {
     creatorGithub: "GitHub del creador",
     creatorLinkedin: "LinkedIn del creador",
     close: "Cerrar",
+  },
+  deleteAccountSheet: {
+    title: "¿Eliminar tu cuenta?",
+    description: "Tu cuenta se cierra ahora y se cancelan tus plazas y solicitudes futuras. Puedes pedir la reactivación en un plazo de 30 días.",
+    confirm: "Eliminar cuenta",
+    cancel: "Cancelar",
   },
 };
 

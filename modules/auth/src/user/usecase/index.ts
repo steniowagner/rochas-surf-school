@@ -7,6 +7,7 @@ export * from "./find-user-page.usecase";
 export * from "./search-users-by-name.usecase";
 export * from "./set-whatsapp.usecase";
 export * from "./set-name.usecase";
+export * from "./delete-account.usecase";
 export * from "./account.out";
 export * from "./request-reactivation.usecase";
 export * from "./registration-access";

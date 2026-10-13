@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import {
   GetCurrentUser,
@@ -8,6 +8,7 @@ import {
   RefreshSessionOut,
   RequestReactivation,
   RequestReactivationOut,
+  DeleteAccount,
   SetName,
   SetNameIn,
   SetNameOut,
@@ -132,6 +133,12 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
     return new GetCurrentUser(this.userRepository, this.rulesVersionProvider).execute({ id });
+  }
+
+  @Delete('me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteAccount(@CurrentUser('id') id: string): Promise<void> {
+    return new DeleteAccount(this.userRepository, this.clock).execute({ userId: id });
   }
 
   @Put('me/name')

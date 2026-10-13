@@ -9,7 +9,7 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { accentRoom } from "@/constants/accent-room";
-import { radii, spacing } from "@/constants/theme";
+import { Colors, radii, spacing } from "@/constants/theme";
 import { themeVariables } from "@/constants/theme-variables";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@/hooks/use-theme";
@@ -18,6 +18,8 @@ import { useBottomModal } from "./bottom-modal.hook";
 import { BottomModalProps } from "./bottom-modal.types";
 
 const SCRIM_OPACITY = 0.45;
+// The scrim is dark in both themes (the theme's own ink turns light in dark mode).
+const SCRIM_COLOR = Colors.light.ink;
 // The handle's padding on each side (the library's default).
 const HANDLE_PADDING = 10;
 // The sheet clips its content, so the accent room above a sheet title is moved from the handle's bottom padding
@@ -47,10 +49,10 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
         opacity={SCRIM_OPACITY}
         onPress={onClose}
         pressBehavior="close"
-        style={[props.style, { backgroundColor: theme.ink }]}
+        style={[props.style, { backgroundColor: SCRIM_COLOR }]}
       />
     ),
-    [onClose, theme.ink],
+    [onClose],
   );
 
   return (
@@ -70,7 +72,8 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
         style={{
           paddingTop: TITLE_ROOM,
           paddingHorizontal: spacing.screen,
-          paddingBottom: insets.bottom + spacing.groupGap,
+          // Just the home-indicator room (or the screen margin on phones without one).
+          paddingBottom: Math.max(insets.bottom, spacing.screen),
         }}
       >
         {/* The sheet can sit inside a screen that overrides the palette variables, so it sets the app's own. */}

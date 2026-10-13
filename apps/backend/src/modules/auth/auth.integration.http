@@ -113,6 +113,13 @@ Authorization: Bearer {{accessToken}}
 ### Send the reactivation request without a token (expects 401 auth.token.invalid)
 POST {{baseUrl}}/auth/me/reactivation-request
 
+### Delete the account (expects 204; only an approved account; the account becomes "deleted")
+DELETE {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### Delete the account without a token (expects 401 auth.token.invalid)
+DELETE {{baseUrl}}/auth/me
+
 ### Change the name (expects 200 with the account and the trimmed name; only an approved account)
 # Approve the account first: UPDATE users SET status = 'approved' WHERE email = '<email>'
 PUT {{baseUrl}}/auth/me/name

@@ -380,6 +380,33 @@ describe('AuthController', () => {
     });
   });
 
+  describe('DELETE /auth/me', () => {
+    it('is a protected DELETE on me answering 204', () => {
+      const handler = handlerOf('deleteAccount');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('me');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.DELETE);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.NO_CONTENT);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('closes the account of the signed-in user', async () => {
+      const ana = new User({
+        name: 'Ana Souza',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'student',
+        status: 'approved',
+      });
+      const users = [ana];
+      const { controller } = setup({}, users);
+
+      await expect(controller.deleteAccount(ana.id)).resolves.toBeUndefined();
+
+      expect(users[0]!.status).toBe('deleted');
+    });
+  });
+
   describe('PUT /auth/me/name', () => {
     const approved = () =>
       new User({

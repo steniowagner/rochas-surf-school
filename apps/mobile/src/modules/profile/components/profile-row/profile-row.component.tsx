@@ -12,14 +12,23 @@ export function ProfileRow({
   value,
   onPress,
   hideChevron = false,
+  destructive = false,
   trailing,
 }: ProfileRowProps) {
   const theme = useTheme();
 
   const content = (
     <>
-      <Ionicons name={icon} size={20} color={theme.lagoon} />
-      <Text className="ds-text-list-title flex-1 text-ink">{label}</Text>
+      <Ionicons
+        name={icon}
+        size={20}
+        color={destructive ? theme.bad : theme.lagoon}
+      />
+      <Text
+        className={`ds-text-list-title flex-1 ${destructive ? "text-bad" : "text-ink"}`}
+      >
+        {label}
+      </Text>
       {trailing}
       {!trailing && value ? (
         <Text className="ds-text-list-subtitle text-ink-2">{value}</Text>

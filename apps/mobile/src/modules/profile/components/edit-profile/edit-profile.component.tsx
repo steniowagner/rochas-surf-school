@@ -51,13 +51,6 @@ export function EditProfile() {
           contentContainerClassName="gap-5 pb-6 pt-6"
           keyboardShouldPersistTaps="handled"
         >
-          <Text
-            accessibilityRole="header"
-            className="ds-text-screen-title text-ink"
-          >
-            {t("editProfile.title")}
-          </Text>
-
           <View className="items-center">
             <ProfileAvatar name={currentName} onChangePhoto={showComingSoon} />
           </View>

@@ -59,7 +59,7 @@ const open = async (overrides: Parameters<typeof account>[0] = {}) => {
 };
 
 // The bottom sheet's mock keeps its content mounted, so only the first buttons are the rows of the page.
-const ROW_COUNT = 10;
+const ROW_COUNT = 11;
 
 const rowLabels = () =>
   screen
@@ -108,6 +108,7 @@ describe("ProfileScreen", () => {
       "Privacy policy",
       "Terms of use",
       "Sign out",
+      "Remove account",
     ]);
     expect(
       screen.getByRole("switch", { name: "Push notifications" }),
@@ -115,7 +116,6 @@ describe("ProfileScreen", () => {
     expect(
       screen.getByText(/Notifications always stay in the app/),
     ).toBeOnTheScreen();
-    expect(screen.queryByText(/Remove/i)).toBeNull();
   });
 
   it("renders on Android, where the screen adds its own status bar room", async () => {
@@ -325,6 +325,74 @@ describe("ProfileScreen", () => {
     });
   });
 
+  describe("remove account", () => {
+    const removeRow = () =>
+      screen.getAllByRole("button", { name: "Remove account" })[0];
+
+    it("asks first, and Cancel keeps the account", async () => {
+      const user = await open();
+
+      await user.press(removeRow());
+
+      expect(screen.getByText("Remove your account?")).toBeOnTheScreen();
+      const cancels = screen.getAllByRole("button", { name: "Cancel" });
+      await user.press(cancels[0]);
+
+      expect(screen.getByText("signed in as Ana Souza")).toBeOnTheScreen();
+      expect(apiDelete).not.toHaveBeenCalled();
+    });
+
+    it("closes the account on the backend and signs out when confirmed", async () => {
+      const user = await open();
+
+      await user.press(removeRow());
+      const confirms = screen.getAllByRole("button", {
+        name: "Remove account",
+      });
+      await user.press(confirms[confirms.length - 1]);
+
+      await waitFor(() =>
+        expect(apiDelete).toHaveBeenCalledWith(
+          "/auth/me",
+          {},
+          { authenticated: true },
+        ),
+      );
+      expect(await screen.findByText("signed out")).toBeOnTheScreen();
+    });
+
+    it("ignores another confirmation while the request is running", async () => {
+      apiDelete.mockReturnValue(new Promise(() => {}));
+      const user = await open();
+
+      await user.press(removeRow());
+      const confirms = screen.getAllByRole("button", {
+        name: "Remove account",
+      });
+      const confirm = confirms[confirms.length - 1];
+      await user.press(confirm);
+      await fireEvent.press(confirm);
+
+      expect(apiDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it("stays signed in and shows the toast when the backend refuses", async () => {
+      apiDelete.mockRejectedValue(new Error("boom"));
+      const user = await open();
+
+      await user.press(removeRow());
+      const confirms = screen.getAllByRole("button", {
+        name: "Remove account",
+      });
+      await user.press(confirms[confirms.length - 1]);
+
+      expect(
+        await screen.findByText("Something went wrong. Please try again."),
+      ).toBeOnTheScreen();
+      expect(screen.getByText("signed in as Ana Souza")).toBeOnTheScreen();
+    });
+  });
+
   describe("sign out", () => {
     it("opens the sheet, and Cancel keeps the session", async () => {
       const user = await open();
@@ -338,7 +406,8 @@ describe("ProfileScreen", () => {
         ),
       ).toBeOnTheScreen();
 
-      await user.press(screen.getByRole("button", { name: "Cancel" }));
+      const cancels = screen.getAllByRole("button", { name: "Cancel" });
+      await user.press(cancels[cancels.length - 1]);
 
       expect(screen.getByText("signed in as Ana Souza")).toBeOnTheScreen();
       expect(fetchMock).not.toHaveBeenCalled();

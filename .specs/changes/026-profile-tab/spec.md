@@ -99,7 +99,7 @@ placeholders that later specs fill.
 - Uploading or changing the profile photo: the Edit profile screen shows the avatar with its camera button, which
   only says "coming soon".
 - Splitting the name into first and last name.
-- Deleting the account ("Remover a conta", PERFIL-08): the row is not shown.
+- ~~Deleting the account ("Remover a conta", PERFIL-08): the row is not shown.~~ (removed by Amendment A-01: the row is now built.)
 - The content of the cancellation rules: the row only says "coming soon".
 - Real data in the About sheet: everything in it is mocked.
 - Managing the school rules (admins read them like everyone here).
@@ -115,7 +115,7 @@ placeholders that later specs fill.
 | D-01 | Tab bars use Expo Router's native tabs (`NativeTabs` from `expo-router/unstable-native-tabs`), one `(tabs)` group per role inside the role's existing `Stack`: `src/app/(private)/<role>/(tabs)/_layout.tsx` plus one route file per tab. Selected tint `sun`, unselected `ink-3`, bar background `page`, all through `useTheme()` (token values); labels are drawn by the system (not uppercase Barlow). | `vercel-react-native-skills` → `navigation-native-navigators`, which CLAUDE.md makes mandatory; chosen by the user over a custom JS tab bar matching the design. |
 | D-02 | Tabs, labels from the Copy table, icons as SF Symbol (iOS) / Material icon (Android): **student** — Agenda `calendar` / `calendar_today` (route `/student`, the first tab), Minhas aulas `figure.surfing` / `surfing` (`/student/my-classes`), Escola `person.2` / `group` (`/student/school`), Perfil `person.crop.circle` / `person` (`/student/profile`); **instructor and admin** — Início `house` / `home` (`/instructor`, `/admin`), Aulas `calendar` / `calendar_today` (`/<role>/classes`), Perfil `person.crop.circle` / `person` (`/<role>/profile`). | Labels proposed and accepted in planning: "Início/Home" instead of "Painel" because metrics dashboards are out of scope and the admin's tab holds "School tools". |
 | D-03 | Tab content: the admin's Início is today's `AdminScreen` ("School tools"); the instructor's Início is today's `InstructorScreen` and the student's Agenda today's `StudentScreen`; every other tab except Perfil renders `FlowPlaceholder` with the tab's label. "Join the school" (`/admin/registrations`) and the profile's inner screens (`/<role>/edit-profile`, `/<role>/whatsapp`, `/<role>/school-rules`) are routes of the role's `Stack`, outside `(tabs)`: they open above the tab bar, without it, and use `BackButton`. Every path is in `src/constants/routes.ts` (`routes.<role>.<screen>`); `flowEntryRoute` and `resolveFlow` don't change. | Inner screens pushed above the tabs is the native pattern and keeps the existing back behavior; the role paths stay the flows' entry routes. |
-| D-04 | One Profile screen for the three roles (`apps/mobile/src/modules/profile/screens/profile.screen.tsx`), every role's `(tabs)/profile.tsx` renders it. Top to bottom: the avatar (initials of the session's name, `getInitials`, 112 pt circle on `bg-sand` with `text-grape`), the name (screen-title type style), a `Chip` with the role label; then four cards of rows: **1** Editar perfil (pencil) → Edit profile; WhatsApp (WhatsApp glyph, right value "Visível"/"Oculto") → WhatsApp screen; Tema (sun/moon, right value: current choice) → Theme sheet; Idioma (languages, right value: current language name) → Language sheet. **2** Notificações push with a switch, and the note under the card. **3** Regras da escola → School rules screen; Regras de cancelamento → "coming soon" toast; Sobre o app → About sheet; Política de privacidade and Termos de uso → web pages (D-10). **4** Sair → Sign out sheet. Each row is a `Pressable` at least 44 pt tall with a leading icon in `lagoon`, the label, an optional right value in `ink-2` and a chevron in `ink-3` (no chevron on Sair and the switch row). No "Remover a conta" row. | Instructor PERFIL-01 is the source of truth for every role (user); the legal links move from About into card 3 (user); deletion and photo upload are out of scope. |
+| D-04 | One Profile screen for the three roles (`apps/mobile/src/modules/profile/screens/profile.screen.tsx`), every role's `(tabs)/profile.tsx` renders it. Top to bottom: the avatar (initials of the session's name, `getInitials`, 112 pt circle on `bg-sand` with `text-grape`), the name (screen-title type style), a `Chip` with the role label; then four cards of rows: **1** Editar perfil (pencil) → Edit profile; WhatsApp (WhatsApp glyph, right value "Visível"/"Oculto") → WhatsApp screen; Tema (sun/moon, right value: current choice) → Theme sheet; Idioma (languages, right value: current language name) → Language sheet. **2** Notificações push with a switch, and the note under the card. **3** Regras da escola → School rules screen; Regras de cancelamento → "coming soon" toast; Sobre o app → About sheet; Política de privacidade and Termos de uso → web pages (D-10). **4** Sair → Sign out sheet. Each row is a `Pressable` at least 44 pt tall with a leading icon in `lagoon`, the label, an optional right value in `ink-2` and a chevron in `ink-3` (no chevron on Sair and the switch row). A fifth card with "Remover a conta" (trash icon and label in the danger color, no chevron) opens a confirmation sheet; confirming calls `DELETE /auth/me` (`DeleteAccount`: an approved account becomes `deleted`) and then signs out as in D-14 (Amendment A-01). | Instructor PERFIL-01 is the source of truth for every role (user); the legal links move from About into card 3 (user); deletion and photo upload are out of scope. |
 | D-05 | "Coming soon": tapping "Regras de cancelamento", or the camera button on Edit profile, shows the toast `profile.comingSoon` through `useAlertMessage()` and nothing else. | The user wants the items built now and their content later; a silent tap would look broken. |
 | D-06 | Name: Edit profile (`/<role>/edit-profile`) shows the avatar with the camera button (D-05; accessibility label `editProfile.changePhoto`), the name `TextInput` prefilled with the session's `name`, the email read-only with the hint "can't be changed", and a primary "Salvar". Save is enabled only when the trimmed name differs from the session's name and passes `nameRules()`. Saving calls `PUT /auth/me/name` `{ name }` (authenticated, no retry); 200 → `updateUser(answer)` and `router.back()`; 422 `user.name.*` → toast `createAccount.nameInvalid` (the existing key); `NetworkError` → the no-connection toast; anything else → the generic toast; `SessionExpiredError` → nothing. No success toast (the toast is styled for problems; the updated header is the feedback). | One name field, like every other place that collects it (user: "just the name"); the same rules as the backend. |
 | D-07 | `SetName` (`modules/auth/src/user/usecase/set-name.usecase.ts`), in `{ userId, name }`, out `AccountOut`: unknown user → 401 `auth.token.invalid`; status not `approved` → 403 `user.status.notApproved`; `name` not a string → 422 `user.name.required`; otherwise the name is trimmed, set with `clone()`, `validate()`d (422 `user.name.*` from the entity) and saved with `update()`. Exposed as `PUT /auth/me/name` (protected, 200, the account shape). Changing only the name, nothing else. | Same shape and checks as `SetWhatsapp`; the trim matches what Google sign-in stores. |
@@ -254,7 +254,7 @@ onboarding WhatsApp and school rules keys) keep their text.
   sees the initials "AS" in a 112 pt circle, "Ana Souza", a chip with its role ("Aluno", "Instrutor" or "Admin"),
   and the rows of D-04 in that order — Editar perfil, WhatsApp, Tema, Idioma; Notificações push and its note;
   Regras da escola, Regras de cancelamento, Sobre o app, Política de privacidade, Termos de uso; Sair — the same
-  for the three roles; no "Remover a conta" row exists.
+  for the three roles; "Remover a conta" closes the account after a confirmation sheet (Amendment A-01).
 - **Edge and error cases:** a one-word name shows one initial; every row is at least 44 pt tall; light and dark
   use the token colors.
 - **Verify by:** `npx jest src/modules/profile/screens/profile.screen.test.tsx` (one case per role); user journey 2.
@@ -654,6 +654,34 @@ onboarding WhatsApp and school rules keys) keep their text.
   > passed), `npm test` in apps/mobile (1001 passed), `npm run lint --workspace @rochas-surf-school/mobile` and
   > check-types clean; deviations: none
 
+- [x] **T-17** — (added during execution, A-01) `DeleteAccount` in `modules/auth` (`delete-account.usecase.ts` and test) and `DELETE /auth/me` (204) in the auth controller, its spec, `auth.integration.http` and e2e cases in `apps/backend/test/auth-profile.e2e-spec.ts`.
+  Covers: A-01 · Done when: `npm test` in `modules/auth` and `apps/backend` and `npm run test:e2e --workspace apps/backend -- auth-profile` pass.
+  > ✅ 2026-10-13 19:28 — Added `DeleteAccount` (approved -> deleted, `deletedAt` from the clock; 403 otherwise,
+  > 401 unknown) and `DELETE /auth/me` (204); files: `modules/auth/src/user/usecase/delete-account.usecase.ts`,
+  > `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/delete-account.usecase.test.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-profile.e2e-spec.ts`;
+  > verified: modules/auth 337 passed (new file 100%), backend 255 passed, `run-e2e.mjs 026` E2E PASSED,
+  > check-types / build clean; deviations: none
+
+- [x] **T-18** — (added during execution, A-01) Mobile: "Remover a conta" row, `DeleteAccountSheet`, `useDeleteAccount`, copy; disabled style for a non-editable `TextInput`; no title on Edit profile; shorter bottom sheets and a dark scrim in both themes.
+  Covers: A-01 · Done when: `npx jest` passes from `apps/mobile`, `check-coverage.mjs 026` prints `COVERAGE OK`.
+  > ✅ 2026-10-13 19:28 — Mobile: "Remover a conta" row (own card, danger color) with `DeleteAccountSheet` and
+  > `useDeleteAccount` (DELETE /auth/me then local sign-out; toasts on errors), `removeAccount` and
+  > `deleteAccountSheet.*` copy; a non-editable `TextInput` now uses the dim background and secondary ink; the
+  > Edit profile title is gone; `BottomModal` bottom padding is the home-indicator room only
+  > (`max(insets.bottom, spacing.screen)`) and its scrim uses the light palette ink so it is dark in both
+  > themes; files: `apps/mobile/src/components/ui/text-input/text-input.component.tsx`,
+  > `apps/mobile/src/components/ui/bottom-modal/bottom-modal.component.tsx`,
+  > `apps/mobile/src/modules/profile/components/{delete-account-sheet,profile,profile-row,edit-profile}/*`,
+  > `apps/mobile/src/modules/profile/hooks/use-delete-account.hook.ts`,
+  > `apps/mobile/src/modules/profile/hooks/use-delete-account.hook.test.tsx`,
+  > `apps/mobile/src/modules/profile/screens/profile.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest` in apps/mobile (1019 passed),
+  > check-types and eslint clean, `check-coverage.mjs 026` COVERAGE OK; on the simulator: dark scrim, shorter
+  > sheet, disabled email field, no title and the new row checked (the delete itself was not run on the dev
+  > account, it is covered by the e2e and screen tests); deviations: none
+
 ### Verification
 
 - [x] **T-16** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
@@ -770,5 +798,7 @@ onboarding WhatsApp and school rules keys) keep their text.
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- **A-01 — 2026-10-14** — requested by the user after trying the app. Before: account deletion out of scope, no "Remover a conta" row (Scope, D-04, ER-05). After: the row exists in its own card, with a confirmation sheet; `DELETE /auth/me` (`DeleteAccount` in `modules/auth`, approved → `deleted`, `deletedAt` stamped, then the phone signs out); the 30-day reactivation and erasure keep working as in the earlier specs. Reason: the user's review ("one missing item: Remove account"). Also asked and done (UI, no contract change): the Edit profile email field looks disabled and the "Editar perfil" title is gone; bottom sheets take only the room they need (home-indicator clearance, no extra gap) and their scrim is dark in the dark theme too. Tasks T-17 and T-18 added.
 
 ## Review

@@ -246,6 +246,7 @@ const messages = {
     about: "About the app",
     privacyPolicy: "Privacy policy",
     termsOfUse: "Terms of use",
+    removeAccount: "Remove account",
     signOut: "Sign out",
     comingSoon: "Coming soon.",
   },
@@ -288,6 +289,12 @@ const messages = {
     creatorGithub: "Creator's GitHub",
     creatorLinkedin: "Creator's LinkedIn",
     close: "Close",
+  },
+  deleteAccountSheet: {
+    title: "Remove your account?",
+    description: "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",
+    confirm: "Remove account",
+    cancel: "Cancel",
   },
 };
 

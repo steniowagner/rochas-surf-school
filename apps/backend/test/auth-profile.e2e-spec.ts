@@ -176,3 +176,56 @@ describe('PUT /auth/me/name (e2e)', () => {
     });
   });
 });
+
+describe('DELETE /auth/me (e2e)', () => {
+  let ctx: Context;
+
+  beforeEach(async () => {
+    ctx = await createApp();
+  });
+
+  afterEach(async () => {
+    await ctx.prisma.signInCode.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
+    await ctx.prisma.user.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
+    await ctx.app.close();
+  });
+
+  const http = () => request(ctx.app.getHttpServer());
+
+  async function createUser(status: Status) {
+    const user = await ctx.prisma.user.create({
+      data: { id: randomUUID(), name: 'Ana Rocha', email: uniqueEmail('del'), status, role: 'student' },
+    });
+    await http().post('/auth/email/code').send({ email: user.email }).expect(202);
+    const code = ctx.email.sent.at(-1)!.code;
+    const verified = await http().post('/auth/email/verify').send({ email: user.email, code }).expect(200);
+    return { user, accessToken: verified.body.accessToken as string };
+  }
+
+  it('closes the account of an approved user', async () => {
+    const { user, accessToken } = await createUser('approved');
+
+    const response = await http().delete('/auth/me').set('Authorization', `Bearer ${accessToken}`);
+
+    expect(response.status).toBe(204);
+    const stored = await ctx.prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(stored.status).toBe('deleted');
+    expect(stored.deletedAt).not.toBeNull();
+  });
+
+  it('refuses a pending account', async () => {
+    const { user, accessToken } = await createUser('pending');
+
+    const response = await http().delete('/auth/me').set('Authorization', `Bearer ${accessToken}`);
+
+    expect(response.status).toBe(403);
+    expect(response.body.errors).toEqual(['user.status.notApproved']);
+    expect((await ctx.prisma.user.findUniqueOrThrow({ where: { id: user.id } })).status).toBe('pending');
+  });
+
+  it('refuses without a token', async () => {
+    const response = await http().delete('/auth/me');
+
+    expect(response.status).toBe(401);
+  });
+});

@@ -10,6 +10,8 @@ export type ProfileRowProps = {
   onPress?: () => void;
   /** Hides the chevron of a pressable row (the sign-out row). */
   hideChevron?: boolean;
+  /** Draws the icon and the label in the danger color (removing the account). */
+  destructive?: boolean;
   /** Replaces the value and the chevron (a switch). */
   trailing?: ReactNode;
 };

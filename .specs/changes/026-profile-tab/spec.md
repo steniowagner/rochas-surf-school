@@ -2,10 +2,11 @@
 id: "026"
 slug: profile-tab
 title: Role tab bars and the Profile tab
-status: in-review
+status: accepted
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 827f464962e4ab8de918f1aa64387c3f073de528
+reviewed_commit: ec2791c1a21300bf714b9dd84c1d493eb8a02ba7
 fronts: [auth, notifications, backend, mobile]
 depends_on: []
 ---
@@ -893,3 +894,50 @@ onboarding WhatsApp and school rules keys) keep their text.
 - Injected taps on a `Switch` don't toggle it in the simulator (a drag does); not an app defect.
 - Remover a conta was not run on the simulator (it would close a dev account); the e2e `DELETE /auth/me` cases and
   the profile screen tests cover it.
+
+### Round 2 — 2026-10-13 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, notifications, backend, mobile — 14 turbo tasks) · build ✅ (auth, notifications, backend)
+- related tests ✅ `RELATED TESTS PASSED` (backend, mobile, auth, notifications, school-rules) · whole mobile suite ✅ 1019 passed (109 suites)
+- coverage of the changed lines ✅ `COVERAGE OK` (59 files); no coverage-ignore comments, TODOs or debug leftovers in the diff
+- e2e ✅ `E2E PASSED` — backend suite (`auth-profile` and `notifications` included); web not affected
+- since round 1 the code changed only in `ec2791c` (import order in three hooks, no behavior); on the iOS simulator
+  (dev build, local backend): cold start kept the dark theme and the admin tab bar (Início / Aulas / Perfil, "Entrar na
+  escola" with its pending count), the Profile rows in order, the Theme sheet with "Escuro" checked, "Claro" applied at
+  once and the row value updated, "Escuro" restored. The other journeys rely on round 1, whose behavior code is unchanged.
+
+**Expected Results**
+
+- ER-01 ✅ — `set-name` unit tests and the `auth-profile` e2e suite pass
+- ER-02 ✅ — `unregister-push-token` unit tests and the `DELETE /notifications/push-token` e2e cases pass
+- ER-03 ✅ — `student-tabs.navigation.test.tsx` passes; journey 1 as in round 1
+- ER-04 ✅ — `instructor-tabs` / `admin-tabs` route tests, `admin.screen.test.tsx`, `use-notification-response.hook.test.tsx`; admin tabs seen again on the simulator
+- ER-05 ✅ — `profile.screen.test.tsx`; the admin Profile seen again on the simulator
+- ER-06 ✅ — `edit-profile.screen.test.tsx`; journey 3 as in round 1
+- ER-07 ✅ — `profile-whatsapp.screen.test.tsx`, the onboarding tests unchanged and passing; journey 4 as in round 1
+- ER-08 ✅ — `theme-sheet` and `preferences` tests; on the simulator the theme sheet (touched by F-01) and a cold start in dark
+- ER-09 ✅ — `language-sheet`, `preferences`, `i18n` tests; journey 5 as in round 1
+- ER-10 ✅ — `use-push-preference` / `use-push-registration` / profile switch tests; journey 6 (simulator fallback) as in round 1
+- ER-11 ✅ — `school-rules.screen.test.tsx`; journey 7 as in round 1
+- ER-12 ✅ — `profile.screen.test.tsx -t "cancellation rules"`
+- ER-13 ✅ — `about-sheet` tests; journey 8 as in round 1
+- ER-14 ✅ — `web-pages` and profile tests; journey 8 as in round 1
+- ER-15 ✅ — `sign-out-sheet` and profile tests; journey 9 as in round 1
+
+Round 1 findings: F-01 ✅ fixed (the three hooks now sort their `@/` imports); F-02 ✅ fixed (Memory Impact lists
+A-01's `DELETE /auth/me` / `DeleteAccount`, the `BottomModal`, `TextInput` and moved shared pieces, and no longer lists
+account deletion as missing).
+
+**Findings**
+
+- None.
+
+**Notes**
+
+- Outside `.claude/rules/react.md`'s component scope, a few files the spec touched still mix the import order:
+  `apps/mobile/src/i18n/index.ts` puts `@/services/preferences/preferences.storage` between the relative imports, and
+  some test files (`profile.screen.test.tsx`, `use-update-name.hook.test.tsx`, `use-push-registration.hook.test.tsx`)
+  are not sorted alphabetically. Worth a tidy-up, not a contract breach.
+- The simulator's screenshots trail injected input by a frame; not an app defect.

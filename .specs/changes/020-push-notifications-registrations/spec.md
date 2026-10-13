@@ -344,13 +344,16 @@ translated), or the fallback when there is none.
   > verified: `npm test` (39 passed), lint, check-types in the workspace pass
   > deviations: ports use Expo-shaped ticket/receipt types (`PushSendTicket`, `PushReceipt`); `getReceipts` returns a record by id; `findCreatedBefore` is inclusive (at or before); the fakes are tested in one file
 
-- [ ] **T-04** — `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`: in
+- [x] **T-04** — `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`: in
   `{ actor: { id, status }, token, locale }` with `token` and `locale` typed `unknown`; D-09 order, upsert with the
   clock's now) and `RemovePushToken` (`remove-push-token.usecase.ts`: in `{ userId, token }`, deletes only that
   user's token), with tests (every status, both 422 keys together, upsert moving a token, second device).
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes with both
   files at 100% coverage.
+  > ✅ 2026-10-12 21:06 — files: `modules/notifications/src/push-token/usecase/{register-push-token,remove-push-token}.usecase.ts`, `src/push-token/usecase/index.ts`, `src/push-token/index.ts`, tests `test/push-token/usecase/{register-push-token,remove-push-token}.usecase.test.ts`
+  > verified: `npm test --workspace @rochas-surf-school/notifications` (54 passed, both files 100%), lint, check-types pass
+  > deviations: none
 
 - [ ] **T-05** — `Notify` (`src/notification/usecase/notify.usecase.ts`, D-04) and `NotifyApprovedAdmins` (same
   folder: reads `findApprovedAdminIds()` and calls `Notify` with `registration.pending`; nothing when the list is

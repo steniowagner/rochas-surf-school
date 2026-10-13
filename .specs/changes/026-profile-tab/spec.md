@@ -655,7 +655,7 @@ onboarding WhatsApp and school rules keys) keep their text.
   > check-types clean; deviations: none
 
 - [x] **T-17** — (added during execution, A-01) `DeleteAccount` in `modules/auth` (`delete-account.usecase.ts` and test) and `DELETE /auth/me` (204) in the auth controller, its spec, `auth.integration.http` and e2e cases in `apps/backend/test/auth-profile.e2e-spec.ts`.
-  Covers: A-01 · Done when: `npm test` in `modules/auth` and `apps/backend` and `npm run test:e2e --workspace apps/backend -- auth-profile` pass.
+  Covers: ER-05 (A-01) · Done when: `npm test` in `modules/auth` and `apps/backend` and `npm run test:e2e --workspace apps/backend -- auth-profile` pass.
   > ✅ 2026-10-13 19:28 — Added `DeleteAccount` (approved -> deleted, `deletedAt` from the clock; 403 otherwise,
   > 401 unknown) and `DELETE /auth/me` (204); files: `modules/auth/src/user/usecase/delete-account.usecase.ts`,
   > `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/delete-account.usecase.test.ts`,
@@ -665,7 +665,7 @@ onboarding WhatsApp and school rules keys) keep their text.
   > check-types / build clean; deviations: none
 
 - [x] **T-18** — (added during execution, A-01) Mobile: "Remover a conta" row, `DeleteAccountSheet`, `useDeleteAccount`, copy; disabled style for a non-editable `TextInput`; no title on Edit profile; shorter bottom sheets and a dark scrim in both themes.
-  Covers: A-01 · Done when: `npx jest` passes from `apps/mobile`, `check-coverage.mjs 026` prints `COVERAGE OK`.
+  Covers: ER-05 (A-01) · Done when: `npx jest` passes from `apps/mobile`, `check-coverage.mjs 026` prints `COVERAGE OK`.
   > ✅ 2026-10-13 19:28 — Mobile: "Remover a conta" row (own card, danger color) with `DeleteAccountSheet` and
   > `useDeleteAccount` (DELETE /auth/me then local sign-out; toasts on errors), `removeAccount` and
   > `deleteAccountSheet.*` copy; a non-editable `TextInput` now uses the dim background and secondary ink; the

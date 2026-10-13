@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import { useColorScheme } from "react-native";
 
 import { routes } from "@/constants/routes";
+import { localeNames, type AppLocale } from "@/i18n/locales";
 import { usePushPreference } from "@/modules/notifications/hooks/use-push-preference.hook";
 import { useAlertMessage } from "@/providers/alert-message";
-import { localeNames, type AppLocale } from "@/i18n/locales";
 import { useSession } from "@/providers/session";
 import { useThemePreference } from "@/services/preferences/theme-preference";
 

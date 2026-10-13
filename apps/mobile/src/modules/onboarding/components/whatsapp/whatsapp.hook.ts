@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 
-import { routes } from "@/constants/routes";
 import type { WhatsappNumberValues } from "@/components/whatsapp-number-form/whatsapp-number-form.types";
+import { routes } from "@/constants/routes";
 import { useSession } from "@/providers/session";
 
 import { useSaveWhatsapp } from "../../hooks/use-save-whatsapp.hook";

@@ -1,5 +1,5 @@
-import { useThemePreference } from "@/services/preferences/theme-preference";
 import type { ThemePreference } from "@/services/preferences/preferences.storage";
+import { useThemePreference } from "@/services/preferences/theme-preference";
 
 import { UseThemeSheetProps } from "./theme-sheet.types";
 

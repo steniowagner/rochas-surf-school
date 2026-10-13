@@ -2,7 +2,7 @@
 id: "026"
 slug: profile-tab
 title: Role tab bars and the Profile tab
-status: changes-requested
+status: in-review
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 827f464962e4ab8de918f1aa64387c3f073de528
@@ -739,7 +739,7 @@ onboarding WhatsApp and school rules keys) keep their text.
   1. Sign in as the student review account → the tab bar Agenda / Minhas aulas / Escola / Perfil with Agenda
      selected; tap each tab. Sign out, sign in as the instructor → Início / Aulas / Perfil; as the admin →
      Início shows "School tools"; tap "Join the school" → no tab bar, back → Início with the tab bar.
-  2. Open Perfil as each role → initials, name, role chip and the rows of ER-05 in order, no "Remover a conta".
+  2. Open Perfil as each role → initials, name, role chip and the rows of ER-05 in order, ending with "Remover a conta" in its own card (not run on a dev account).
   3. "Editar perfil" → name prefilled, email read-only, "Salvar" disabled; change the name and save → back on
      Perfil with the new name; reopen → the new name is prefilled. Tap the camera button → "Em breve.".
   4. WhatsApp row shows "Oculto" (or "Visível"); open it → the stored number and switch; flip the switch and
@@ -763,21 +763,27 @@ onboarding WhatsApp and school rules keys) keep their text.
   not stored on the account; turning pushes off removes the phone's token. Out of scope list: remove "the in-app
   push on/off setting", "linking the privacy policy from the app" and "linking the terms from the app" (except the
   onboarding line), "a screen to read the rules at any time" and "signing out from any screen other than…";
-  add photo upload, account deletion from the Profile and the cancellation rules content as still missing.
+  add photo upload and the cancellation rules content as still missing (account deletion from the Profile is built,
+  A-01: the Remover a conta row, `DeleteAccountSheet`, `DELETE /auth/me`).
 - `memory/technical-context.md` — Applications → `apps/mobile`: native tabs (`expo-router/unstable-native-tabs`),
   the `(tabs)` group per role and inner screens in the role's `Stack`; device preferences in SecureStore
   (`prefs.*`, `src/services/preferences/`, `Appearance.setColorScheme`, stored locale at i18n start);
   `EXPO_PUBLIC_WEB_URL` and `expo-web-browser` for the web pages; `LanguageSheet`, `ThemeSheet` and
   `WhatsappNumberForm` in `src/components/`; push registration skipped while pushes are off. Authentication:
-  `PUT /auth/me/name` (`SetName`). External integrations → Push notifications: `DELETE /notifications/push-token`
+  `PUT /auth/me/name` (`SetName`) and `DELETE /auth/me` (`DeleteAccount`: approved → `deleted`, `deletedAt` stamped, A-01);
+  shared UI: `BottomModal` is a `BottomSheetModal` rendered by the root provider (above the native tab bar) with a scrim
+  dark in both themes, a non-editable `TextInput` gets the disabled style, `CountryPicker` and
+  `utils/{countries,brazilian-phone}` moved to `src/components/` and `src/utils/`. External integrations → Push notifications: `DELETE /notifications/push-token`
   (`UnregisterPushToken`).
 - `memory/structure.md` — mobile routes `(private)/<role>/(tabs)/…`, `/<role>/{edit-profile,whatsapp,school-rules}`;
   `src/modules/profile/`, `src/modules/school-rules/screens/`, `src/services/preferences/`, the moved shared
   components; `modules/auth/src/user/usecase/set-name.usecase.ts`,
   `modules/notifications/src/push-token/usecase/unregister-push-token.usecase.ts`,
-  `apps/backend/test/auth-profile.e2e-spec.ts`.
+  `apps/backend/test/auth-profile.e2e-spec.ts`; `DELETE /auth/me` and `DeleteAccount` in `modules/auth`; the shared
+  components moved to `src/components/country-picker` and `src/utils/{countries,brazilian-phone}`.
 - `memory/modules.md` — None.
-- `memory/modules/auth.md` — an approved account changes its own name (`SetName`, trimmed, the entity's rules);
+- `memory/modules/auth.md` — an approved account changes its own name (`SetName`, trimmed, the entity's rules) and
+  deletes itself (`DeleteAccount`, A-01);
   Spec history.
 - `memory/modules/notifications.md` — a device unregisters its own token (`UnregisterPushToken`); the app's push
   switch; Spec history.
@@ -846,14 +852,19 @@ onboarding WhatsApp and school rules keys) keep their text.
 
 **Findings**
 
-- [ ] **F-01** (convention) — imports are not sorted by module path inside the `@/` group, which
+- [x] **F-01** (convention) — imports are not sorted by module path inside the `@/` group, which
   `.claude/rules/react.md` §2 requires (lint does not catch it):
   `apps/mobile/src/modules/profile/components/profile/profile.hook.ts` (`@/providers/alert-message` before
   `@/i18n/locales`), `apps/mobile/src/components/theme-sheet/theme-sheet.hook.ts`
   (`@/services/preferences/theme-preference` before `@/services/preferences/preferences.storage`),
   `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.hook.ts` (`@/constants/routes` before
   `@/components/whatsapp-number-form/…`). Expected: alphabetical order within each group in the three files.
-- [ ] **F-02** (D-04) — `## Memory Impact` was not updated for Amendment A-01 and for what execution added, and
+  > ✅ 2026-10-13 — sorted the `@/` imports alphabetically in the three hooks; files:
+  > `apps/mobile/src/modules/profile/components/profile/profile.hook.ts`,
+  > `apps/mobile/src/components/theme-sheet/theme-sheet.hook.ts`,
+  > `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.hook.ts`; verified: eslint on the three folders
+  > (clean), `npx jest src/modules/profile src/components/theme-sheet src/modules/onboarding` (105 passed)
+- [x] **F-02** (D-04) — `## Memory Impact` was not updated for Amendment A-01 and for what execution added, and
   `spec-finish` relies on it. It never mentions `DELETE /auth/me` / `DeleteAccount` (technical-context →
   Authentication, `modules/auth.md`, `structure.md`), and its `product.md` line still says to *add* "account
   deletion from the Profile" as still missing. It also omits the shared changes made during execution:
@@ -861,6 +872,13 @@ onboarding WhatsApp and school rules keys) keep their text.
   that is dark in both themes, a non-editable `TextInput` gets the disabled style, and `CountryPicker` /
   `utils/{countries,brazilian-phone}` moved to `src/components/` and `src/utils/`. Expected: Memory Impact lists
   them, and account deletion from the Profile is no longer listed as missing.
+  > ✅ 2026-10-13 — `## Memory Impact` now covers A-01 (`DELETE /auth/me` / `DeleteAccount` in technical-context,
+  > `modules/auth.md`, `structure.md`; account deletion no longer listed as missing in `product.md`) and the shared
+  > changes made during execution (`BottomModal` as `BottomSheetModal` with a dark scrim, disabled `TextInput` style,
+  > `CountryPicker` and `utils/{countries,brazilian-phone}` moved). Also: Verification Plan journey 2 updated for
+  > A-01; commit `887afc5` (taller rows, full-width dividers, and the three design files
+  > `.docs/designs/{student,instructor,admin}-app.html` the Context cites) belongs to A-01's UI polish; files:
+  > `.specs/changes/026-profile-tab/spec.md`; verified: `node .specs/scripts/check-spec.mjs 026`; deviations: none
 
 **Notes**
 

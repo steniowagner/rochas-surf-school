@@ -2,7 +2,7 @@ import type { CountryCode } from "libphonenumber-js";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { filterCountryOptions, getCountryOptions } from "../../utils/countries";
+import { filterCountryOptions, getCountryOptions } from "@/utils/countries";
 
 import { UseCountryPickerProps } from "./country-picker.types";
 

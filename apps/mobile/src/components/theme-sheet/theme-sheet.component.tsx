@@ -37,7 +37,11 @@ export function ThemeSheet({ visible, onClose }: ThemeSheetProps) {
             onPress={() => selectTheme(choice)}
             className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
           >
-            <Ionicons name={THEME_ICONS[choice]} size={20} color={colors.lagoon} />
+            <Ionicons
+              name={THEME_ICONS[choice]}
+              size={20}
+              color={colors.lagoon}
+            />
             <Text className="ds-text-list-title flex-1 text-ink">
               {t(`theme.${choice}`)}
             </Text>

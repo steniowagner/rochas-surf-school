@@ -12,7 +12,7 @@ import { BottomModal } from "@/components/ui/bottom-modal";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 
-import type { CountryOption } from "../../utils/countries.types";
+import type { CountryOption } from "@/utils/countries.types";
 
 import { useCountryPicker } from "./country-picker.hook";
 import { CountryPickerProps } from "./country-picker.types";

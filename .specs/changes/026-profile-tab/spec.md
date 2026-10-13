@@ -543,11 +543,24 @@ onboarding WhatsApp and school rules keys) keep their text.
   > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/profile` (8 passed),
   > check-types and eslint clean; deviations: none
 
-- [ ] **T-10** — Extract the onboarding WhatsApp form (country picker, number field with the Brazilian mask, share
+- [x] **T-10** — Extract the onboarding WhatsApp form (country picker, number field with the Brazilian mask, share
   switch, validation) into `src/components/whatsapp-number-form/`, taking initial values and an `onSubmit`, and
   use it from `src/modules/onboarding/components/whatsapp/` with no visible change.
   Covers: enabling · Done when: `npx jest src/modules/onboarding src/components/whatsapp-number-form` passes with
   the onboarding tests unchanged.
+  > ✅ 2026-10-13 16:53 — Extracted the onboarding WhatsApp form (country picker, masked number, hide switch,
+  > validation, submit button) into `WhatsappNumberForm` (header slot, `initialNumber` / `initialVisible`,
+  > `requireChange`, `onSubmit`); onboarding `Whatsapp` now uses it with no visible change (its tests pass
+  > unchanged); the country picker and the `countries` / `brazilian-phone` utils moved to shared places so the
+  > form does not import from a module; files: `apps/mobile/src/components/whatsapp-number-form/*`,
+  > `apps/mobile/src/components/country-picker/*` (moved from
+  > `src/modules/onboarding/components/country-picker/`),
+  > `apps/mobile/src/utils/{countries,countries.types,brazilian-phone}.ts` and their tests (moved from
+  > `src/modules/onboarding/utils/`),
+  > `apps/mobile/src/modules/onboarding/components/whatsapp/{whatsapp.component.tsx,whatsapp.hook.ts}`, removed
+  > `whatsapp.types.ts`; verified: `npx jest src/components/whatsapp-number-form src/modules/onboarding` passed
+  > with the onboarding tests unchanged, check-types and eslint clean; deviations: moved country-picker and the
+  > two utils (not in the task text) to avoid a component importing from a module
 
 - [ ] **T-11** — Profile WhatsApp screen (D-08): `src/modules/profile/screens/profile-whatsapp.screen.tsx`
   prefilled from the session, saving through the existing save hook (moved or reused), the route file

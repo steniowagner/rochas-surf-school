@@ -10,7 +10,9 @@ jest.useFakeTimers();
 
 describe("ThemeSheet", () => {
   beforeEach(async () => {
-    jest.spyOn(Appearance, "setColorScheme").mockImplementation(() => undefined);
+    jest
+      .spyOn(Appearance, "setColorScheme")
+      .mockImplementation(() => undefined);
     setThemePreference("system");
   });
 

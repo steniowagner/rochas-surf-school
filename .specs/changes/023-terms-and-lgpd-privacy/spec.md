@@ -2,7 +2,7 @@
 id: "023"
 slug: terms-and-lgpd-privacy
 title: Terms of use page and an LGPD-complete privacy policy
-status: in-progress
+status: in-review
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 82427a24d8fc63dc0541f384c1c8f4ff5a3c37c9
@@ -277,10 +277,23 @@ this app.
 
 ### Verification
 
-- [ ] **T-05** — Run every command in the Verification Plan from the repo root, and follow the user journeys;
+- [x] **T-05** — Run every command in the Verification Plan from the repo root, and follow the user journeys;
   all pass. Record the output summary as evidence.
   Covers: all · Done when: every automated command exits 0 (or fails where an Expected Result says it must) and
   each journey's observations are recorded.
+  > ✅ 2026-10-13 — Verification Plan run on `spec/023-terms-and-lgpd-privacy`; no files changed; verified:
+  > `run-related-tests.mjs 023` RELATED TESTS PASSED (web has no runner), `check-coverage.mjs 023` COVERAGE OK (all
+  > nine changed files excluded by technical-context), `run-e2e.mjs 023` E2E PASSED (none applies); `npx turbo run
+  > lint check-types build --filter=@rochas-surf-school/web` with the ER-02 values: 7 tasks successful; ER-04's
+  > builds (done in T-01): six invalid fail naming their variable, empty/masked CNPJ and the ER-02 values build;
+  > `curl` checks of ER-01 (200/404/`wa.me`), ER-02 (four values; none of the CNPJ when unset) and ER-05 (both 307s);
+  > both `grep`s clean (only the existing `gap-[22px]`); browser journeys: terms pages in the three languages
+  > (`lang`, `<title>`, ten sections, WhatsApp link, links to policy and deletion), policy pages (fourteen cards),
+  > home with three rows in order, language pill links on the terms page, and home/policy/terms in the three
+  > languages at 375px and 1100px, in light and dark: no horizontal scroll, no `a`/`button`/`summary` under 44px,
+  > a single `.bg-sun` on the terms pages; the unprefixed `/terms-of-use` redirects by `Accept-Language`; not
+  > driven: the language switch with JavaScript actually disabled (the pill is plain `<a>` links inside `<details>`,
+  > so no script is involved); deviations: none
 
 ## Verification Plan
 

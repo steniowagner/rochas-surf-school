@@ -194,7 +194,7 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Add Vitest, `@vitejs/plugin-react`, `@testing-library/react`, `@testing-library/user-event`,
+- [x] **T-01** — Add Vitest, `@vitejs/plugin-react`, `@testing-library/react`, `@testing-library/user-event`,
   `@testing-library/jest-dom` and `jsdom` as devDependencies of `apps/web`; create `apps/web/vitest.config.ts`
   (jsdom, `@/*` alias as in `tsconfig.json`, `include: ["src/**/*.test.{ts,tsx}"]`, `@vitest/coverage-v8`
   coverage) and a setup file; add the `test` script `vitest run`; write `src/i18n/locales.test.ts`
@@ -202,6 +202,12 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   Skill: [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-07 · Done when: `npm test -w @rochas-surf-school/web` passes with the locales tests and
   `npm run check-types -w @rochas-surf-school/web` exits 0.
+  > ✅ 2026-10-13 12:00 — added Vitest 4, coverage-v8, plugin-react, RTL, user-event, jest-dom and jsdom 30 to
+  > `apps/web` devDependencies, the config (jsdom, `@/` alias, `src/**/*.test.{ts,tsx}`, v8 coverage), the setup
+  > file (jest-dom matchers, cleanup) and the `test` script; files: `apps/web/package.json`, `package-lock.json`,
+  > `apps/web/vitest.config.ts`, `apps/web/vitest.setup.ts`, `apps/web/src/i18n/locales.test.ts`; verified:
+  > `npm test -w @rochas-surf-school/web` (6 passed), `npm run check-types -w @rochas-surf-school/web` (exit 0);
+  > deviations: none (Vite prints a harmless `configLoader: native` warning for the `.ts` config)
 
 - [ ] **T-02** — Component tests for `src/components/theme-toggle/theme-toggle.component.test.tsx`,
   `src/components/language-picker/language-picker.component.test.tsx`,

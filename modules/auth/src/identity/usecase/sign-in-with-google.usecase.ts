@@ -7,6 +7,7 @@ import {
 import { normalizeEmail } from "../../sign-in-code/model";
 import { StartSession } from "../../session";
 import {
+  RegistrationNotifier,
   RulesVersionProvider,
   User,
   UserRepository,
@@ -38,6 +39,7 @@ export class SignInWithGoogle
     private readonly startSession: StartSession,
     private readonly refreshTokenTtlDays: number,
     private readonly rulesVersionProvider: RulesVersionProvider,
+    private readonly registrationNotifier: RegistrationNotifier,
   ) {}
 
   async execute(input: SignInWithGoogleIn): Promise<SignInWithGoogleOut> {
@@ -96,6 +98,10 @@ export class SignInWithGoogle
     const user = this.buildNewUser(email, name, payload.name);
     await this.userRepository.create(user);
     await this.createIdentity(user.id, payload.sub, email);
+    await this.registrationNotifier.registrationPending({
+      id: user.id,
+      name: user.name,
+    });
     return user;
   }
 

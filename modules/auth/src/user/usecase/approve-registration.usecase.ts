@@ -1,6 +1,6 @@
 import { ConflictError, UseCase } from "@rochas-surf-school/shared";
 import { UserStatus } from "../model";
-import { UserRepository } from "../provider";
+import { RegistrationNotifier, UserRepository } from "../provider";
 import {
   findPendingRegistration,
   REGISTRATION_NOT_PENDING,
@@ -24,7 +24,10 @@ export class ApproveRegistration implements UseCase<
   ApproveRegistrationIn,
   ApproveRegistrationOut
 > {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly registrationNotifier: RegistrationNotifier,
+  ) {}
 
   async execute(input: ApproveRegistrationIn): Promise<ApproveRegistrationOut> {
     assertCanDecideRegistrations(input.actor);
@@ -40,6 +43,8 @@ export class ApproveRegistration implements UseCase<
     if (!(await this.userRepository.updateIfPending(approved))) {
       throw new ConflictError(REGISTRATION_NOT_PENDING);
     }
+
+    await this.registrationNotifier.registrationApproved(approved.id);
 
     return { id: approved.id, status: approved.status };
   }

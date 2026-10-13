@@ -379,7 +379,7 @@ translated), or the fallback when there is none.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-07** — Add the `RegistrationNotifier` port (D-02) with an in-memory fake in `test/mock/` that records
+- [x] **T-07** — Add the `RegistrationNotifier` port (D-02) with an in-memory fake in `test/mock/` that records
   calls, and call it: `VerifySignInCode` and `SignInWithGoogle` → `registrationPending({ id, name })` only when
   they create the account (after the user and identity are stored); `ApproveRegistration` →
   `registrationApproved(id)` and `DenyRegistration` → `registrationDenied(id, reason)` (the trimmed reason or
@@ -389,6 +389,9 @@ translated), or the fallback when there is none.
   Covers: ER-04, ER-05, ER-06 · Done when: `npm test --workspace @rochas-surf-school/auth` passes with the four use
   cases at 100% coverage (the backend's controllers get the new constructor argument in T-11; its `check-types`
   runs after T-11).
+  > ✅ 2026-10-12 21:08 — files: `modules/auth/src/user/provider/{registration-notifier.provider,index}.ts`, `src/sign-in-code/usecase/verify-sign-in-code.usecase.ts`, `src/identity/usecase/sign-in-with-google.usecase.ts`, `src/user/usecase/{approve,deny}-registration.usecase.ts`, `test/mock/{fake-registration-notifier.provider,index}.ts`, the four use case tests
+  > verified: `npm test --workspace @rochas-surf-school/auth` (299 passed; the four use cases 100%), check-types pass; apps/backend check-types is expected to fail until T-11 (new constructor argument)
+  > deviations: the notifier is the last constructor argument of each use case; `registrationPending` is called right after the identity is stored, before the session starts
 
 - [ ] **T-08** — Add the `PushTokenRemover` port (D-02) with a fake, and give `SignOut` an optional `pushToken`
   (`SignOutIn`): when the refresh token is found, whatever its state, and `pushToken` is a non-empty string, call

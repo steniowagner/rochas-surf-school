@@ -17,6 +17,7 @@ import {
   FakeRefreshTokenRepository,
   FakeRulesVersionProvider,
   FakeTokenProvider,
+  FakeRegistrationNotifier,
   FakeUserRepository,
 } from "../../mock";
 
@@ -60,6 +61,7 @@ function setup(
     new FakeTokenProvider(clock),
     clock,
   );
+  const notifier = new FakeRegistrationNotifier();
   const signIn = new SignInWithGoogle(
     provider,
     userRepository,
@@ -67,8 +69,9 @@ function setup(
     startSession,
     30,
     new FakeRulesVersionProvider(0),
+    notifier,
   );
-  return { provider, userRepository, identityRepository, refreshTokenRepository, signIn };
+  return { notifier, provider, userRepository, identityRepository, refreshTokenRepository, signIn };
 }
 
 async function rejectionOf(promise: Promise<unknown>): Promise<unknown> {
@@ -120,6 +123,7 @@ describe("SignInWithGoogle", () => {
       email: "maria@example.com",
     });
     expect(ctx.refreshTokenRepository.tokens).toHaveLength(1);
+    expect(ctx.notifier.pending).toEqual([{ id: result.user.id, name: "Maria Silva" }]);
   });
 
   test("name from the body replaces Google's name", async () => {
@@ -173,6 +177,7 @@ describe("SignInWithGoogle", () => {
       provider: "google",
       providerUserId: "sub-ana",
     });
+    expect(ctx.notifier.pending).toEqual([]);
   });
 
   test.each(["pending", "approved", "denied", "deleted", "removed"] as const)(
@@ -188,6 +193,7 @@ describe("SignInWithGoogle", () => {
 
       expect(result.user).toMatchObject({ id: ana.id, status });
       expect(ctx.refreshTokenRepository.tokens).toHaveLength(1);
+      expect(ctx.notifier.pending).toEqual([]);
     },
   );
 

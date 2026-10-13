@@ -17,6 +17,7 @@ import {
   FakeSignInCodeProvider,
   FakeSignInCodeRepository,
   FakeTokenProvider,
+  FakeRegistrationNotifier,
   FakeUserRepository,
 } from "../../mock";
 
@@ -57,6 +58,7 @@ function setup(
     clock,
     options.reviewCodes ?? {},
   );
+  const notifier = new FakeRegistrationNotifier();
   const verify = new VerifySignInCode(
     signInCodeRepository,
     userRepository,
@@ -66,8 +68,10 @@ function setup(
     startSession,
     30,
     rulesVersionProvider,
+    notifier,
   );
   return {
+    notifier,
     clock,
     signInCodeRepository,
     emailProvider,
@@ -165,6 +169,7 @@ describe("VerifySignInCode", () => {
       await expect(ctx.signInCodeRepository.findByEmail("ana@example.com")).resolves.toBeNull();
       expect(ctx.refreshTokenRepository.tokens).toHaveLength(1);
       expect(ctx.refreshTokenRepository.tokens[0]?.userId).toBe(ana.id);
+      expect(ctx.notifier.pending).toEqual([]);
     });
 
     test("matches the email case- and space-insensitively", async () => {
@@ -253,6 +258,7 @@ describe("VerifySignInCode", () => {
       ).resolves.toEqual(["user.name.required"]);
 
       expect(ctx.userRepository.users).toHaveLength(0);
+      expect(ctx.notifier.pending).toEqual([]);
       const code = await ctx.signInCodeRepository.findByEmail("bia@example.com");
       expect(code?.attempts).toBe(0);
     });
@@ -298,6 +304,7 @@ describe("VerifySignInCode", () => {
         email: "bia@example.com",
       });
       await expect(ctx.signInCodeRepository.findByEmail("bia@example.com")).resolves.toBeNull();
+      expect(ctx.notifier.pending).toEqual([{ id: bia.id, name: "Bia Souza" }]);
     });
 
     test("a new account has to accept the rules once their version is above 0", async () => {

@@ -6,6 +6,7 @@ import { LanguageSheet } from "@/components/language-sheet";
 import { ThemeSheet } from "@/components/theme-sheet";
 import { useTheme } from "@/hooks/use-theme";
 
+import { AboutSheet } from "../about-sheet";
 import { ProfileCard } from "../profile-card";
 import { ProfileHeader } from "../profile-header";
 import { ProfileRow } from "../profile-row";
@@ -29,6 +30,8 @@ export function Profile() {
     openEditProfile,
     openWhatsapp,
     openSchoolRules,
+    openPrivacyPolicy,
+    openTermsOfUse,
     showComingSoon,
     sheet,
     openSheet,
@@ -108,6 +111,25 @@ export function Profile() {
             label={t("profile.cancellationRules")}
             onPress={showComingSoon}
           />
+          <ProfileRow
+            icon="information-circle-outline"
+            label={t("profile.about")}
+            onPress={() => openSheet("about")}
+          />
+          {openPrivacyPolicy ? (
+            <ProfileRow
+              icon="lock-closed-outline"
+              label={t("profile.privacyPolicy")}
+              onPress={openPrivacyPolicy}
+            />
+          ) : null}
+          {openTermsOfUse ? (
+            <ProfileRow
+              icon="reader-outline"
+              label={t("profile.termsOfUse")}
+              onPress={openTermsOfUse}
+            />
+          ) : null}
         </ProfileCard>
 
         <ProfileCard>
@@ -122,6 +144,7 @@ export function Profile() {
 
       <ThemeSheet visible={sheet === "theme"} onClose={closeSheet} />
       <LanguageSheet visible={sheet === "language"} onClose={closeSheet} />
+      <AboutSheet visible={sheet === "about"} onClose={closeSheet} />
       <SignOutSheet visible={sheet === "signOut"} onClose={closeSheet} />
     </View>
   );

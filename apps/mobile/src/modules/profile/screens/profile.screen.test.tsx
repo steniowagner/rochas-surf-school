@@ -6,10 +6,12 @@ import {
   within,
 } from "@testing-library/react-native";
 import * as SecureStore from "expo-secure-store";
+import { openBrowserAsync } from "expo-web-browser";
 import { router } from "expo-router";
 import { Appearance, Text } from "react-native";
 
 import { routes } from "@/constants/routes";
+import i18n from "@/i18n";
 import { useSession } from "@/providers/session";
 import { setThemePreference } from "@/services/preferences/theme-preference";
 import * as api from "@/services/api/api.client";
@@ -25,6 +27,7 @@ import {
 
 import { ProfileScreen } from "./profile.screen";
 
+jest.mock("expo-web-browser", () => ({ openBrowserAsync: jest.fn() }));
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), back: jest.fn() },
 }));
@@ -56,7 +59,7 @@ const open = async (overrides: Parameters<typeof account>[0] = {}) => {
 };
 
 // The bottom sheet's mock keeps its content mounted, so only the first buttons are the rows of the page.
-const ROW_COUNT = 7;
+const ROW_COUNT = 10;
 
 const rowLabels = () =>
   screen
@@ -68,6 +71,11 @@ const signOutRow = () => screen.getAllByRole("button", { name: "Sign out" })[0];
 
 describe("ProfileScreen", () => {
   beforeEach(() => {
+    process.env.EXPO_PUBLIC_WEB_URL = "http://localhost:3000";
+    jest
+      .mocked(openBrowserAsync)
+      .mockReset()
+      .mockResolvedValue({ type: "dismiss" } as never);
     jest.mocked(router.push).mockClear();
     apiDelete.mockReset().mockResolvedValue(undefined);
     getPushToken.mockReset().mockResolvedValue("ExponentPushToken[abc]");
@@ -96,6 +104,9 @@ describe("ProfileScreen", () => {
       "Language",
       "School rules",
       "Cancellation rules",
+      "About the app",
+      "Privacy policy",
+      "Terms of use",
       "Sign out",
     ]);
     expect(
@@ -148,6 +159,64 @@ describe("ProfileScreen", () => {
 
     expect(await screen.findByText("Coming soon.")).toBeOnTheScreen();
     expect(router.push).not.toHaveBeenCalled();
+  });
+
+  describe("about and web pages", () => {
+    it("opens the About sheet with the mocked content and no legal links", async () => {
+      const user = await open();
+
+      await user.press(screen.getByRole("button", { name: "About the app" }));
+
+      expect(screen.getAllByText("Rocha's Surf School").length).toBeGreaterThan(
+        0,
+      );
+      expect(screen.getByText("Version 0.9 · beta")).toBeOnTheScreen();
+      expect(screen.getByText("Stenio Wagner")).toBeOnTheScreen();
+    });
+
+    it("opens the privacy policy and the terms in the app language", async () => {
+      await i18n.changeLanguage("pt-BR");
+      const user = await open();
+
+      await user.press(
+        screen.getByRole("button", { name: "Política de privacidade" }),
+      );
+      await user.press(screen.getByRole("button", { name: "Termos de uso" }));
+
+      expect(openBrowserAsync).toHaveBeenNthCalledWith(
+        1,
+        "http://localhost:3000/pt-br/privacy-policy",
+      );
+      expect(openBrowserAsync).toHaveBeenNthCalledWith(
+        2,
+        "http://localhost:3000/pt-br/terms-of-use",
+      );
+    });
+
+    it("shows the generic toast when the browser can't open", async () => {
+      jest.mocked(openBrowserAsync).mockRejectedValue(new Error("no browser"));
+      const user = await open();
+
+      await user.press(screen.getByRole("button", { name: "Privacy policy" }));
+
+      expect(
+        await screen.findByText("Something went wrong. Please try again."),
+      ).toBeOnTheScreen();
+    });
+
+    it("hides both rows without the web address", async () => {
+      delete process.env.EXPO_PUBLIC_WEB_URL;
+      await open();
+
+      expect(
+        screen.queryByRole("button", { name: "Privacy policy" }),
+      ).toBeNull();
+      expect(screen.queryByRole("button", { name: "Terms of use" })).toBeNull();
+      expect(
+        screen.getByRole("button", { name: "About the app" }),
+      ).toBeOnTheScreen();
+      expect(signOutRow()).toBeOnTheScreen();
+    });
   });
 
   describe("theme and language", () => {

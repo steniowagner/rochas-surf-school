@@ -280,6 +280,15 @@ const messages = {
     confirm: "Sign out",
     cancel: "Cancel",
   },
+  about: {
+    version: "Version {{version}}",
+    description: "A personal project to take class booking out of WhatsApp groups: the week's schedule, seat requests and notices in one place.",
+    creatorRole: "Design and development",
+    repository: "App repository",
+    creatorGithub: "Creator's GitHub",
+    creatorLinkedin: "Creator's LinkedIn",
+    close: "Close",
+  },
 };
 
 export type Messages = typeof messages;

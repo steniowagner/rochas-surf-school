@@ -287,6 +287,15 @@ const messages: Messages = {
     confirm: "Cerrar sesión",
     cancel: "Cancelar",
   },
+  about: {
+    version: "Versión {{version}}",
+    description: "Proyecto personal para sacar la reserva de clases de los grupos de WhatsApp: agenda de la semana, solicitudes de plaza y avisos en un solo lugar.",
+    creatorRole: "Diseño y desarrollo",
+    repository: "Repositorio de la app",
+    creatorGithub: "GitHub del creador",
+    creatorLinkedin: "LinkedIn del creador",
+    close: "Cerrar",
+  },
 };
 
 export default messages;

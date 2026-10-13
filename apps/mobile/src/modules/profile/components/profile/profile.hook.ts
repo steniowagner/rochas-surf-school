@@ -10,6 +10,9 @@ import { localeNames, type AppLocale } from "@/i18n/locales";
 import { useSession } from "@/providers/session";
 import { useThemePreference } from "@/services/preferences/theme-preference";
 
+import { useOpenUrl } from "../../hooks/use-open-url.hook";
+import { getWebPageUrl } from "../../utils/web-pages";
+
 import { ProfileRole, ProfileSheet } from "./profile.types";
 
 export const useProfile = () => {
@@ -19,10 +22,15 @@ export const useProfile = () => {
   const { user } = useSession();
   const alertMessage = useAlertMessage();
   const push = usePushPreference();
+  const openUrl = useOpenUrl();
   const [sheet, setSheet] = useState<ProfileSheet | null>(null);
 
   // The tabs only exist for the three roles, so the account always has one of them here.
   const roleRoutes = routes[(user?.role ?? "student") as ProfileRole];
+
+  const locale = i18n.language as AppLocale;
+  const privacyPolicyUrl = getWebPageUrl("privacy-policy", locale);
+  const termsOfUseUrl = getWebPageUrl("terms-of-use", locale);
 
   return {
     name: user?.name ?? "",
@@ -37,6 +45,11 @@ export const useProfile = () => {
     openEditProfile: () => router.push(roleRoutes.editProfile),
     openWhatsapp: () => router.push(roleRoutes.whatsapp),
     openSchoolRules: () => router.push(roleRoutes.schoolRules),
+    // Without the web address the rows that open the web pages are hidden.
+    openPrivacyPolicy: privacyPolicyUrl
+      ? () => void openUrl(privacyPolicyUrl)
+      : null,
+    openTermsOfUse: termsOfUseUrl ? () => void openUrl(termsOfUseUrl) : null,
     showComingSoon: () => alertMessage.show(t("profile.comingSoon")),
     sheet,
     openSheet: setSheet,

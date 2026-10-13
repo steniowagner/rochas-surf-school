@@ -280,6 +280,15 @@ const messages: Messages = {
     confirm: "Sair",
     cancel: "Cancelar",
   },
+  about: {
+    version: "Versão {{version}}",
+    description: "Projeto pessoal para tirar a marcação de aulas dos grupos de WhatsApp: agenda da semana, pedidos de vaga e avisos num só lugar.",
+    creatorRole: "Design e desenvolvimento",
+    repository: "Repositório do app",
+    creatorGithub: "GitHub do criador",
+    creatorLinkedin: "LinkedIn do criador",
+    close: "Fechar",
+  },
 };
 
 export default messages;

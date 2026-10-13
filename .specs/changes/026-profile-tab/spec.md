@@ -631,13 +631,28 @@ onboarding WhatsApp and school rules keys) keep their text.
   > src/components` (143 passed), `npm test` in apps/mobile (985 passed), check-types and eslint clean;
   > deviations: none
 
-- [ ] **T-15** — About and legal links (D-12, D-13): `src/modules/profile/constants/about.ts`,
+- [x] **T-15** — About and legal links (D-12, D-13): `src/modules/profile/constants/about.ts`,
   `src/modules/profile/components/about-sheet/`, `src/modules/profile/utils/web-pages.ts` (URL from
   `EXPO_PUBLIC_WEB_URL` and the app language), the Sobre o app, Política de privacidade and Termos de uso rows,
   `EXPO_PUBLIC_WEB_URL` in `apps/mobile/.env.example`, the `about.*`, `profile.about`, `profile.privacyPolicy`
   and `profile.termsOfUse` copy, and tests for ER-13 and ER-14 (`expo-web-browser` mocked).
   Covers: ER-13, ER-14 · Done when: `npx jest src/modules/profile` and
   `npm run lint --workspace @rochas-surf-school/mobile` pass.
+  > ✅ 2026-10-13 17:00 — About and legal links: `constants/about.ts` (mocked content), `AboutSheet` (links open
+  > in the in-app browser, Close), `utils/web-pages.ts` (`getWebPageUrl` from `EXPO_PUBLIC_WEB_URL` and the app
+  > language, trailing slash dropped, null without the variable), `useOpenUrl` (`openBrowserAsync`, generic
+  > toast on a rejected open), the About / Privacy policy / Terms of use rows (the last two hidden without the
+  > variable), `EXPO_PUBLIC_WEB_URL` in `apps/mobile/.env.example`, the `about.*` copy (the `profile.*` copy was
+  > added in T-07) and tests for ER-13 and ER-14 with `expo-web-browser` mocked; files:
+  > `apps/mobile/src/modules/profile/constants/about.ts`, `apps/mobile/src/modules/profile/utils/web-pages.ts`,
+  > `apps/mobile/src/modules/profile/utils/web-pages.test.ts`,
+  > `apps/mobile/src/modules/profile/hooks/use-open-url.hook.ts`,
+  > `apps/mobile/src/modules/profile/components/about-sheet/*`,
+  > `apps/mobile/src/modules/profile/components/profile/profile.{hook.ts,component.tsx}`,
+  > `apps/mobile/src/modules/profile/screens/profile.screen.test.tsx`, `apps/mobile/.env.example`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/profile` (46
+  > passed), `npm test` in apps/mobile (1001 passed), `npm run lint --workspace @rochas-surf-school/mobile` and
+  > check-types clean; deviations: none
 
 ### Verification
 

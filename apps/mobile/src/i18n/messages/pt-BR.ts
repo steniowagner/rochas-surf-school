@@ -270,6 +270,10 @@ const messages: Messages = {
     description: "Os admins sempre veem seu número. Escolha se alunos e instrutores também podem ver.",
     save: "Salvar",
   },
+  schoolRulesScreen: {
+    title: "Regras da escola",
+    description: "Poucas e simples, para as aulas correrem bem para todos.",
+  },
 };
 
 export default messages;

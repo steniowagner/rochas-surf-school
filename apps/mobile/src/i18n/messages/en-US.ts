@@ -270,6 +270,10 @@ const messages = {
     description: "Admins always see your number. Choose whether students and instructors can see it too.",
     save: "Save",
   },
+  schoolRulesScreen: {
+    title: "School rules",
+    description: "Few and simple, so classes go well for everyone.",
+  },
 };
 
 export type Messages = typeof messages;

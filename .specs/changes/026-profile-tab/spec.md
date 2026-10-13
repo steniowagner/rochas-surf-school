@@ -577,10 +577,20 @@ onboarding WhatsApp and school rules keys) keep their text.
   > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/profile
   > src/modules/onboarding` (55 passed), check-types and eslint clean; deviations: none
 
-- [ ] **T-12** — Read-only School rules screen: `src/modules/school-rules/screens/school-rules.screen.tsx`
+- [x] **T-12** — Read-only School rules screen: `src/modules/school-rules/screens/school-rules.screen.tsx`
   (`BackButton`, `ScreenIntro` with the shield tile, `SchoolRulesList`, loading / error with retry / empty states),
   the route file `school-rules.tsx` in each role's `Stack`, the `schoolRulesScreen.*` copy, and tests for ER-11.
   Covers: ER-11 · Done when: `npx jest src/modules/school-rules` passes.
+  > ✅ 2026-10-13 16:54 — Read-only School rules screen: `SchoolRulesReader` (BackButton, shield `ScreenIntro`,
+  > `SchoolRulesList` with its loading / error+retry / empty states), `SchoolRulesReadScreen`,
+  > `school-rules.tsx` route in each role Stack, `schoolRulesScreen.*` copy and tests (rules numbered, no
+  > checkbox or button, back, loading, error + retry, empty); files:
+  > `apps/mobile/src/modules/school-rules/components/school-rules-reader/*`,
+  > `apps/mobile/src/modules/school-rules/screens/school-rules.screen.tsx`,
+  > `apps/mobile/src/modules/school-rules/screens/school-rules.screen.test.tsx`,
+  > `apps/mobile/src/app/(private)/{student,instructor,admin}/school-rules.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/school-rules` (42
+  > passed), check-types and eslint clean; deviations: none
 
 - [ ] **T-13** — Profile screen (D-04, D-05, D-14): `src/modules/profile/screens/profile.screen.tsx` with its
   components (header, row card, row, sign-out sheet), rendered by every role's `(tabs)/profile.tsx`; rows wired

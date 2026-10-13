@@ -277,6 +277,10 @@ const messages: Messages = {
     description: "Los admins siempre ven tu número. Elige si alumnos e instructores también pueden verlo.",
     save: "Guardar",
   },
+  schoolRulesScreen: {
+    title: "Reglas de la escuela",
+    description: "Pocas y sencillas, para que las clases salgan bien para todos.",
+  },
 };
 
 export default messages;

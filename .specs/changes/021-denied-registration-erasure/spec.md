@@ -234,7 +234,7 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   > `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified:
   > `npx vitest run src/modules/auth/user.prisma.spec.ts` (15 passed); deviations: none
 
-- [ ] **T-06** — Notifications adapters: `NotificationsRegistrationNotifier.registrationPending` passes
+- [x] **T-06** — Notifications adapters: `NotificationsRegistrationNotifier.registrationPending` passes
   `userId: account.id` to `NotifyApprovedAdmins`; `PrismaNotificationRepository.deleteRegistrationPending`
   (`notification.prisma.ts`) deletes `type: 'registration.pending'` rows whose `params.userId` is one of the ids
   (a JSON path filter, nothing for an empty list); a new `NotificationsRegistrationNotificationEraser`
@@ -243,6 +243,13 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   `apps/backend/src/modules/notifications/`. Skill:
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-03 · Done when: `npx vitest run src/modules/notifications` passes (from `apps/backend`).
+  > ✅ 2026-10-12 — the notifier passes `userId: account.id`; `PrismaNotificationRepository.deleteRegistrationPending`
+  > (`type` + an `OR` of JSON-path `params.userId` filters, nothing for an empty list); new
+  > `NotificationsRegistrationNotificationEraser`, provided and exported by `NotificationsModule`; files (all under
+  > `apps/backend/src/modules/notifications/`): `notifications.registration-notifier.ts` and `.spec.ts`,
+  > `notification.prisma.ts` and `.spec.ts`, `notifications.registration-notification-eraser.ts` and `.spec.ts`,
+  > `notifications.module.ts`; verified: `npx vitest run src/modules/notifications` (43 passed),
+  > `npx tsc --noEmit` ok after rebuilding the `auth` and `notifications` modules; deviations: none
 
 - [ ] **T-07** — `AccountErasureJob` (`apps/backend/src/modules/auth/account-erasure.job.ts`) per D-06, running
   `EraseDeniedRegistrations` with `PrismaUserRepository`, `NotificationsRegistrationNotificationEraser` and

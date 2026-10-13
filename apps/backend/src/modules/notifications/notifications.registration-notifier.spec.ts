@@ -52,7 +52,7 @@ describe('NotificationsRegistrationNotifier', () => {
     await notifier.registrationPending({ id: USER_ID, name: 'Ana Souza' });
 
     expect(storedOf(notificationRepository)).toEqual([
-      { userId: ADMIN_ID, type: 'registration.pending', params: { name: 'Ana Souza' } },
+      { userId: ADMIN_ID, type: 'registration.pending', params: { name: 'Ana Souza', userId: USER_ID } },
     ]);
   });
 

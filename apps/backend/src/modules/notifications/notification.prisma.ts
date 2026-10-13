@@ -21,4 +21,17 @@ export class PrismaNotificationRepository implements NotificationRepository {
       })),
     });
   }
+
+  async deleteRegistrationPending(userIds: string[]): Promise<void> {
+    if (userIds.length === 0) return;
+
+    await this.prisma.notification.deleteMany({
+      where: {
+        type: 'registration.pending',
+        OR: userIds.map((userId) => ({
+          params: { path: ['userId'], equals: userId },
+        })),
+      },
+    });
+  }
 }

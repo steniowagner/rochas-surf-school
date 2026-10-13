@@ -4,6 +4,7 @@ import { ExpoPushProvider } from './expo.push.js';
 import { NotificationsController } from './notifications.controller.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsPushTokenRemover } from './notifications.push-token-remover.js';
+import { NotificationsRegistrationNotificationEraser } from './notifications.registration-notification-eraser.js';
 import { NotificationsRegistrationNotifier } from './notifications.registration-notifier.js';
 import { PushReceiptCheckJob } from './push-receipt-check.job.js';
 import { PrismaPushTicketRepository } from './push-ticket.prisma.js';
@@ -23,8 +24,13 @@ import { SystemClockProvider } from './system.clock.js';
     ExpoPushProvider,
     NotificationsRegistrationNotifier,
     NotificationsPushTokenRemover,
+    NotificationsRegistrationNotificationEraser,
     PushReceiptCheckJob,
   ],
-  exports: [NotificationsRegistrationNotifier, NotificationsPushTokenRemover],
+  exports: [
+    NotificationsRegistrationNotifier,
+    NotificationsPushTokenRemover,
+    NotificationsRegistrationNotificationEraser,
+  ],
 })
 export class NotificationsModule {}

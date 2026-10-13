@@ -39,6 +39,12 @@
       "expo-font",
       "expo-localization",
       [
+        "expo-notifications",
+        {
+          "defaultChannel": "default"
+        }
+      ],
+      [
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.983109126096-l33hhbs4p1o2842p9f5qdc1a4urlph6g"

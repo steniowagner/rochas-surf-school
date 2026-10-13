@@ -1,18 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
+import { toBackendLocale } from "@/i18n/backend-locale";
 import { AppLocale } from "@/i18n/locales";
 import { apiPost, ApiError } from "@/services/api";
 
 type RequestSignInCodeVariables = {
   email: string;
-};
-
-// The backend's locales differ from the app's.
-const backendLocaleByAppLocale: Record<AppLocale, string> = {
-  "en-US": "en",
-  "es-ES": "es",
-  "pt-BR": "pt-BR",
 };
 
 const RESEND_TOO_SOON = "signInCode.resend.tooSoon";
@@ -22,7 +16,7 @@ export const useRequestSignInCode = () => {
 
   return useMutation({
     mutationFn: async ({ email }: RequestSignInCodeVariables) => {
-      const locale = backendLocaleByAppLocale[i18n.language as AppLocale];
+      const locale = toBackendLocale(i18n.language as AppLocale);
 
       try {
         await apiPost("/auth/email/code", { email, locale });

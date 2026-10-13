@@ -41,6 +41,31 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
     typeof error === "object" && error !== null && "code" in error,
 }));
 
+// The native pieces of push: tests drive these `jest.fn`s directly (permission, token, listeners).
+jest.mock("expo-notifications", () => ({
+  AndroidImportance: { HIGH: 4 },
+  setNotificationHandler: jest.fn(),
+  setNotificationChannelAsync: jest.fn().mockResolvedValue(null),
+  getPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
+  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
+  getExpoPushTokenAsync: jest
+    .fn()
+    .mockResolvedValue({ data: "ExponentPushToken[test]" }),
+  getLastNotificationResponse: jest.fn(() => null),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+
+jest.mock("expo-device", () => ({ isDevice: true }));
+
+jest.mock("expo-constants", () => ({
+  __esModule: true,
+  default: {
+    expoConfig: { extra: { eas: { projectId: "project-id" } } },
+    easConfig: null,
+  },
+}));
+
 // Every test starts in English (US), as when the OS language is English.
 beforeEach(async () => {
   await i18n.changeLanguage("en-US");

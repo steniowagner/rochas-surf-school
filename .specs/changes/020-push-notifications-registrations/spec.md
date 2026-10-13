@@ -367,12 +367,15 @@ translated), or the fallback when there is none.
   > verified: `npm test --workspace @rochas-surf-school/notifications` (65 passed, both files 100%), lint, check-types pass
   > deviations: none
 
-- [ ] **T-06** — `CheckPushReceipts` (`src/push-token/usecase/check-push-receipts.usecase.ts`, D-08) with tests:
+- [x] **T-06** — `CheckPushReceipts` (`src/push-token/usecase/check-push-receipts.usecase.ts`, D-08) with tests:
   only tickets ≥ 15 minutes old asked, `DeviceNotRegistered` deletes the token, every asked ticket deleted, > 24 h
   deleted unasked, no Expo call with nothing due, a second run asks nothing.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-09 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes with the file at 100%
   coverage, and `npm run lint --workspace @rochas-surf-school/notifications` exits 0.
+  > ✅ 2026-10-12 21:07 — files: `modules/notifications/src/push-token/usecase/check-push-receipts.usecase.ts`, `src/push-token/usecase/index.ts`, `test/push-token/usecase/check-push-receipts.usecase.test.ts`
+  > verified: `npm test --workspace @rochas-surf-school/notifications` (75 passed, file 100%), lint exits 0, check-types pass
+  > deviations: the use case calls `getReceipts` once with every due id; the chunks of 1000 are the adapter's job (T-10)
 
 ### Auth module (`modules/auth`)
 

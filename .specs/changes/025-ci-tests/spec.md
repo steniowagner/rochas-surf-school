@@ -224,12 +224,20 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   > in-memory `localStorage` when Node's experimental global one (Node 26, no `--localstorage-file`) shadows
   > jsdom's; `apps/web/eslint.config.mjs` ignores `coverage/**` so generated coverage reports aren't linted
 
-- [ ] **T-03** — Add `@playwright/test`; create `apps/web/playwright.config.ts` (Chromium project, `testDir:
+- [x] **T-03** — Add `@playwright/test`; create `apps/web/playwright.config.ts` (Chromium project, `testDir:
   "e2e"`, `testMatch: "*.e2e.ts"`, `webServer` running `next build && next start -p 3100`, `baseURL`
   `http://localhost:3100`, `reuseExistingServer: !process.env.CI`); add the `test:e2e` script `playwright test`;
   ignore `test-results/` and `playwright-report/` in `apps/web/.gitignore`; write `e2e/pages.e2e.ts` and
   `e2e/redirect.e2e.ts` (ER-08 pages and redirect). Covers: ER-08 · Done when:
   `npm run test:e2e -w @rochas-surf-school/web` passes with both files.
+  > ✅ 2026-10-13 12:15 — added `@playwright/test`, the Chromium project config (`webServer` builds and starts on
+  > port 3100), the `test:e2e` script, the gitignore entries, the pages test (4 pages × 3 locales: 200, `<html
+  > lang>`, `h1` visible) and the redirect test (`es` → `/es`, `de` → `/pt-br`); files: `apps/web/package.json`,
+  > `package-lock.json`, `apps/web/playwright.config.ts`, `apps/web/.gitignore`, `apps/web/e2e/pages.e2e.ts`,
+  > `apps/web/e2e/redirect.e2e.ts`; verified: `npm run test:e2e -w @rochas-surf-school/web` (14 passed), type check
+  > and lint exit 0; deviations: the redirect tests set Accept-Language through the Playwright `locale` option,
+  > because Chromium ignores it in `extraHTTPHeaders` (the first attempt failed with `/en`); the `webServer`
+  > command uses `npx next build && npx next start`
 
 - [ ] **T-04** — Write `apps/web/e2e/theme-toggle.e2e.ts` (theme kept after reload) and
   `apps/web/e2e/language-picker.e2e.ts` (`/pt-br/terms-of-use` → English → `/en/terms-of-use`).

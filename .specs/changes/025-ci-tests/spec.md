@@ -2,10 +2,11 @@
 id: "025"
 slug: ci-tests
 title: CI test suites per affected app
-status: in-review
+status: accepted
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 502313a29309e521010178dfbf8617568d2f8f1e
+reviewed_commit: a93b45826786a3e28debdc33c82b73fa0b637a0e
 fronts: [web, infra]
 depends_on: []
 ---
@@ -434,3 +435,40 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
 - Memory Impact doesn't mention two T-05 deviations that spec-finish should record: `build` outputs gain
   `dist/**`, and `modules/auth` now declares `@rochas-surf-school/shared` (the internal-dependency list in the
   technical context / `modules.md`).
+
+### Round 2 — 2026-10-13 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (apps/web); web build ✅ through Playwright's `webServer`
+- related tests ✅ apps/web passed · `node --test ".github/scripts/*.test.mjs"` ✅ 21 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (no measurable changed line; `affected.mjs` and
+  `vitest.setup.ts` excluded per the logged amendment); no coverage-ignore comments in the diff
+- e2e: `run-e2e.mjs 025` ✅ backend 292 passed · web Playwright ✅ 16 passed (`CI=true`, through Turbo)
+- actionlint ✅ exit 0, no output
+- `npx turbo run test --filter=…backend --filter=…mobile` ✅ (mobile 897 passed)
+
+**Expected Results**
+
+- ER-01 ✅ — 21 unit tests, including the two new `formatOutput` ones; on a real `modules/auth`-only commit
+  `affected.mjs` printed backend/mobile/domain and wrote `base=origin/<b>` to `$GITHUB_OUTPUT`
+- ER-02 ✅ — unchanged since round 1; commands pass locally
+- ER-03 ✅ — unchanged since round 1; commands pass locally
+- ER-04 ✅ — unchanged since round 1; passes locally
+- ER-05 ✅ — F-01 fixed: in a worktree with the base only as `refs/remotes/origin/<b>`, a `modules/auth`-only
+  commit, `GITHUB_ACTIONS=true GITHUB_BASE_REF=<b>`, the `base` the `changes` step wrote fed as
+  `TURBO_SCM_BASE` → the `domain` command plans `test` for `auth` and `school-rules` only. An empty `base`
+  only happens with `all=true`, where the step without `--affected` runs instead
+- ER-06 ✅ — unchanged since round 1
+- ER-07 ✅ — unchanged since round 1; the suite passes
+- ER-08 ✅ — unchanged since round 1; 16 passed
+
+**Findings**
+
+- none
+
+**Notes**
+
+- Round 1's notes still apply: confirm `--no-experimental-webstorage` on Node 24 at the first CI run, and
+  spec-finish should record the T-05 deviations (`build` outputs gain `dist/**`; `modules/auth` declares
+  `@rochas-surf-school/shared`) although Memory Impact doesn't list them.

@@ -1,6 +1,4 @@
-import type { ReactNode } from "react";
-
-export type ChipTone = "surf" | "skate" | "info" | "sun" | "grape" | "warn" | "ok" | "bad" | "muted" | "onHighlight";
+import type { ChipProps, ChipTone } from "./chip.types";
 
 // Solid colour for the discipline (surf/skate), light tint for level and status.
 const toneClasses: Record<ChipTone, string> = {
@@ -15,11 +13,6 @@ const toneClasses: Record<ChipTone, string> = {
   muted: "bg-dim text-ink-2",
   // On the grape "next lesson" card.
   onHighlight: "bg-white/18 text-on-color",
-};
-
-export type ChipProps = {
-  tone?: ChipTone;
-  children: ReactNode;
 };
 
 export function Chip({ tone = "info", children }: ChipProps) {

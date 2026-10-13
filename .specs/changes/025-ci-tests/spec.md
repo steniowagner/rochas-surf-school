@@ -220,9 +220,9 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   > `apps/web/src/components/language-picker/language-picker.component.test.tsx`,
   > `apps/web/src/components/ui/button/button.component.test.tsx`,
   > `apps/web/src/components/ui/chip/chip.component.test.tsx`; verified: `npm test -w @rochas-surf-school/web`
-  > (5 files, 21 passed), type check and lint exit 0; deviations: `apps/web/vitest.setup.ts` now installs an
-  > in-memory `localStorage` when Node's experimental global one (Node 26, no `--localstorage-file`) shadows
-  > jsdom's; `apps/web/eslint.config.mjs` ignores `coverage/**` so generated coverage reports aren't linted
+  > (5 files, 21 passed), type check and lint exit 0; deviations: `apps/web/vitest.config.ts` sets
+  > `execArgv: ["--no-experimental-webstorage"]`, because Node 26's experimental global `localStorage` (undefined
+  > without `--localstorage-file`) shadows jsdom's; `apps/web/eslint.config.mjs` ignores `coverage/**` so generated coverage reports aren't linted
 
 - [x] **T-03** — Add `@playwright/test`; create `apps/web/playwright.config.ts` (Chromium project, `testDir:
   "e2e"`, `testMatch: "*.e2e.ts"`, `webServer` running `next build && next start -p 3100`, `baseURL`
@@ -304,6 +304,17 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
 - [ ] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every automated command in the Verification Plan exits 0
   (`COVERAGE OK`, `E2E PASSED`, actionlint without errors).
+  > ⛔ 2026-10-13 13:15 — everything in the Verification Plan passes except the coverage gate. Passed:
+  > `run-related-tests.mjs 025` (web: 21 passed), `run-e2e.mjs 025` (backend: 292 passed, `E2E PASSED`),
+  > `node --test ".github/scripts/*.test.mjs"` (19), `npm test` and `npm run test:e2e -w
+  > @rochas-surf-school/web` (21 and 16), actionlint (exit 0), the backend unit + e2e and mobile Turbo commands,
+  > the domain command (only `auth` and `school-rules`), and web `lint`, `check-types`, `build`. Failed:
+  > `check-coverage.mjs 025` → `COVERAGE FAILED`: (1) `apps/web/vitest.setup.ts` — v8 never reports a Vitest
+  > setup file (`apps/mobile/jest.setup.ts` is excluded for the same reason); (2) `.github/scripts/affected.mjs`
+  > — the repo root has no test runner for the coverage tooling, so `node --test` coverage isn't read (92 of 126
+  > lines are covered by `affected.test.mjs`; the rest is the git/turbo plumbing in `main`). Both need a
+  > policy decision from the user (exclusion list or a root runner in `technical-context.md`).
+
 
 ## Verification Plan
 

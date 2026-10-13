@@ -10,6 +10,9 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // Recent Node versions ship an experimental global `localStorage` that shadows jsdom's and is
+    // undefined without `--localstorage-file`.
+    execArgv: ["--no-experimental-webstorage"],
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./vitest.setup.ts"],
     coverage: {

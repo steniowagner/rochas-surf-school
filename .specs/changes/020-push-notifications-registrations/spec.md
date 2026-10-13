@@ -2,7 +2,7 @@
 id: "020"
 slug: push-notifications-registrations
 title: Push notifications foundation, first used for registrations
-status: in-progress
+status: in-review
 created: 2026-10-12
 started: 2026-10-12
 base_commit: f26caad74b27c08241e306009c4a223cf44b0a04
@@ -512,10 +512,13 @@ translated), or the fallback when there is none.
 
 ### Verification
 
-- [ ] **T-17** — Run every command in the Verification Plan from the repo root and follow the user journeys that
+- [x] **T-17** — Run every command in the Verification Plan from the repo root and follow the user journeys that
   don't need a physical device; all pass. Record the output summary as evidence.
   Covers: all · Done when: `check-coverage.mjs 020` prints `COVERAGE OK`, `run-e2e.mjs 020` prints `E2E PASSED`,
   and every other command exits 0.
+  > ✅ 2026-10-12 21:22 — files: `.specs/changes/020-push-notifications-registrations/spec.md`
+  > verified: `run-related-tests.mjs 020` RELATED TESTS PASSED (backend, mobile, auth, notifications, school-rules); `check-coverage.mjs 020` COVERAGE OK (36 files); `run-e2e.mjs 020` E2E PASSED (10 files, 286 tests); `turbo run lint check-types` for notifications, auth, backend, mobile: 14 tasks ok; `turbo run build` for notifications, auth, backend: ok; `npm test --workspace @rochas-surf-school/mobile` 897 passed; journeys 1-2 are what notifications.e2e-spec.ts drives (rows per approved admin, one row per decision, trimmed reason)
+  > deviations: user journey 3 (iOS simulator) was not driven: it needs a native rebuild for the expo-notifications plugin; its outcome (no token and no UI on a simulator) is covered by push.service.test.ts; journey 4 needs a physical device and the EAS setup (Assumptions)
 
 ## Verification Plan
 

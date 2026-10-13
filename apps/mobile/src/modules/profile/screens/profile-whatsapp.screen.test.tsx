@@ -5,7 +5,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { router } from "expo-router";
-import { Text } from "react-native";
+import { Platform, Text } from "react-native";
 
 import { useSession } from "@/providers/session";
 import { NetworkError } from "@/services/api";
@@ -87,6 +87,15 @@ describe("ProfileWhatsappScreen", () => {
       whatsappVisible: true,
     });
     expect(screen.getByText("visible: true")).toBeOnTheScreen();
+  });
+
+  it("renders on Android, where the keyboard resizes the window", async () => {
+    const original = Platform.OS;
+    Platform.OS = "android";
+    await open();
+
+    expect(save()).toBeOnTheScreen();
+    Platform.OS = original;
   });
 
   it("opens a number without an account number as an empty Brazilian form", async () => {

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ScrollView, Switch, Text, View } from "react-native";
+import { Platform, ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageSheet } from "@/components/language-sheet";
@@ -42,10 +42,11 @@ export function Profile() {
     <View className="flex-1 bg-page">
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-[22px]"
+        // On iOS the safe areas and the floating tab bar are added by the scroll view; Android needs its status bar.
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerClassName="gap-6 px-[22px] pb-6"
         contentContainerStyle={{
-          paddingTop: insets.top + 24,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingTop: Platform.OS === "android" ? insets.top + 24 : 24,
         }}
       >
         <ProfileHeader name={name} role={role} />

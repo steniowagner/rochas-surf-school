@@ -6,21 +6,16 @@ type Json = {
   children?: (Json | string)[] | null;
 };
 
-const collect = (node: Json | string | null | undefined): Json[] => {
-  if (!node || typeof node === "string") {
-    return [];
-  }
+const collect = (node: Json | string): Json[] =>
+  typeof node === "string"
+    ? []
+    : [
+        ...(node.type === "RNSTabsScreenIOS" ? [node] : []),
+        ...(node.children ?? []).flatMap(collect),
+      ];
 
-  const own = node.type === "RNSTabsScreenIOS" ? [node] : [];
-
-  return own.concat(...(node.children ?? []).map((child) => collect(child)));
-};
-
-const tabScreens = () => {
-  const tree = screen.toJSON() as Json | Json[] | null;
-
-  return (Array.isArray(tree) ? tree : [tree]).flatMap((node) => collect(node));
-};
+const tabScreens = () =>
+  [screen.toJSON() as Json | Json[]].flat().flatMap(collect);
 
 /** The labels of the native tab bar, left to right. */
 export const tabLabels = () => tabScreens().map((tab) => tab.props.title);

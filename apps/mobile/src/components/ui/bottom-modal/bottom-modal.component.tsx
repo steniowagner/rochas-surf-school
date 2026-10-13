@@ -1,5 +1,6 @@
-import BottomSheet, {
+import {
   BottomSheetBackdrop,
+  BottomSheetModal,
   BottomSheetView,
   type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
@@ -27,7 +28,8 @@ const TITLE_ROOM = accentRoom("sheetTitle");
  * A bottom sheet that slides up from the bottom of the screen. It closes when the user drags it down,
  * flicks it down, or taps the backdrop; dragging above its content stretches it with an elastic effect.
  *
- * Requires a `BottomSheetModalProvider` above it (see the root layout).
+ * It is a modal sheet rendered by the `BottomSheetModalProvider` of the root layout, above the screens and above a
+ * native tab bar (a plain sheet would sit under the tab bar, which floats over the screen's content).
  */
 export function BottomModal({ visible, onClose, children }: BottomModalProps) {
   const theme = useTheme();
@@ -52,7 +54,7 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
   );
 
   return (
-    <BottomSheet
+    <BottomSheetModal
       ref={bottomSheetRef}
       backdropComponent={renderBackdrop}
       backgroundStyle={{
@@ -62,8 +64,7 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
       }}
       handleIndicatorStyle={{ backgroundColor: theme.line }}
       handleStyle={{ paddingBottom: HANDLE_PADDING - TITLE_ROOM }}
-      index={-1}
-      onClose={onClose}
+      onDismiss={onClose}
     >
       <BottomSheetView
         style={{
@@ -77,6 +78,6 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
           {children}
         </View>
       </BottomSheetView>
-    </BottomSheet>
+    </BottomSheetModal>
   );
 }

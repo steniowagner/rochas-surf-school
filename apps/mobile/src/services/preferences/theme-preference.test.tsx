@@ -29,6 +29,15 @@ describe("theme-preference", () => {
     expect(setColorScheme).toHaveBeenCalledWith("dark");
   });
 
+  it("tells the hooks in use about the stored choice at startup", async () => {
+    const view = await renderHook(() => useThemePreference());
+    jest.mocked(SecureStore).setItem("prefs.theme", "light");
+
+    await act(async () => applyStoredThemePreference());
+
+    expect(view.result.current.theme).toBe("light");
+  });
+
   it("follows the phone again for system and for an unknown stored value", () => {
     jest.mocked(SecureStore).setItem("prefs.theme", "sepia");
 

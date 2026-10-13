@@ -5,7 +5,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { router } from "expo-router";
-import { Text } from "react-native";
+import { Platform, Text } from "react-native";
 
 import { useSession } from "@/providers/session";
 
@@ -157,6 +157,44 @@ describe("EditProfileScreen", () => {
     expect(
       await screen.findByText("Something went wrong. Please try again."),
     ).toBeOnTheScreen();
+  });
+
+  it("renders on Android, where the keyboard resizes the window", async () => {
+    const original = Platform.OS;
+    Platform.OS = "android";
+    await open();
+
+    expect(save()).toBeOnTheScreen();
+    Platform.OS = original;
+  });
+
+  it("renders empty fields without a session", async () => {
+    await renderWithProviders(<EditProfileScreen />);
+
+    expect(nameField()).toHaveDisplayValue("");
+    expect(screen.getByLabelText("Email")).toHaveDisplayValue("");
+    expect(save()).toBeDisabled();
+  });
+
+  it("does not submit from the keyboard while nothing changed", async () => {
+    await open();
+
+    await fireEvent(nameField(), "submitEditing");
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("ignores another submit while saving", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockReturnValue(new Promise(() => {}));
+    await open();
+
+    await user.clear(nameField());
+    await user.type(nameField(), "Ana Clara");
+    await user.press(save());
+    await fireEvent(nameField(), "submitEditing");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("says coming soon when the camera button is pressed, and nothing else", async () => {

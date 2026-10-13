@@ -34,7 +34,7 @@ export const seedSession = (user: SessionUser = account()) =>
     },
   });
 
-export const jsonResponse = (status: number, body: unknown = {}) =>
+export const jsonResponse = (status: number, body: unknown) =>
   ({ ok: status < 300, status, json: async () => body }) as Response;
 
 /** Renders under the providers the profile screens need: query client, toast and session. */

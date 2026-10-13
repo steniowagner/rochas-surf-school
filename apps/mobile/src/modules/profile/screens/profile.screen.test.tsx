@@ -8,7 +8,7 @@ import {
 import * as SecureStore from "expo-secure-store";
 import { openBrowserAsync } from "expo-web-browser";
 import { router } from "expo-router";
-import { Appearance, Text } from "react-native";
+import { Appearance, Platform, Text } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -116,6 +116,15 @@ describe("ProfileScreen", () => {
       screen.getByText(/Notifications always stay in the app/),
     ).toBeOnTheScreen();
     expect(screen.queryByText(/Remove/i)).toBeNull();
+  });
+
+  it("renders on Android, where the screen adds its own status bar room", async () => {
+    const original = Platform.OS;
+    Platform.OS = "android";
+    await open();
+
+    expect(screen.getByRole("header", { name: "Ana Souza" })).toBeOnTheScreen();
+    Platform.OS = original;
   });
 
   it("shows one initial for a one-word name", async () => {

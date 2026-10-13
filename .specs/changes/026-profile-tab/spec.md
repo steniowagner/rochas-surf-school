@@ -2,7 +2,7 @@
 id: "026"
 slug: profile-tab
 title: Role tab bars and the Profile tab
-status: in-progress
+status: in-review
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 827f464962e4ab8de918f1aa64387c3f073de528
@@ -656,10 +656,41 @@ onboarding WhatsApp and school rules keys) keep their text.
 
 ### Verification
 
-- [ ] **T-16** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
+- [x] **T-16** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
   pass. Record the output summary as evidence.
   Covers: all · Done when: `check-coverage.mjs 026` prints `COVERAGE OK`, `run-e2e.mjs 026` prints
   `E2E PASSED`, every other command exits 0, and journeys 1–9 show what they describe.
+  > ✅ 2026-10-13 17:18 — Ran the Verification Plan: `run-related-tests.mjs 026` RELATED TESTS PASSED (backend,
+  > mobile, auth, notifications, school-rules), `check-coverage.mjs 026` COVERAGE OK (54 files), `run-e2e.mjs
+  > 026` E2E PASSED (auth-profile and notifications suites against local Postgres), `npm test` in apps/mobile
+  > (1011 passed), `npx turbo run lint check-types` for auth, notifications, backend and mobile (all successful)
+  > and `npx turbo run build` for auth, notifications and backend (successful). Journeys driven on the iOS
+  > simulator (dev build via `expo run:ios`, local backend, `admin@example.com` review account,
+  > `EXPO_PUBLIC_WEB_URL` set in the ignored `.env`): 1 (admin only: Home / Classes / Profile tab bar, Home
+  > selected), 2 (admin: header, chip and every row in order), 3 (name edit saved, header and initials updated,
+  > email read-only), 4 (prefill of number and switch only, not saved), 5 (theme to Dark applied app-wide,
+  > language to Spanish and Portuguese applied app-wide, tab labels follow), 7 (the screen opens; the local
+  > school has no rules, so only the empty state was seen). Not driven by me, for the user: the student and
+  > instructor accounts (journeys 1 and 2), saving the WhatsApp change (4), push on/off against `push_tokens`
+  > (6, a simulator has no EAS token), the rules list with rules (7), About links and the privacy / terms pages
+  > in the in-app browser (8), Sign out (9); the relaunch persistence of theme and language was not re-checked
+  > after a cold start. Fixes found while driving the app and made here (committed under T-16): the floating iOS
+  > tab bar covered the bottom sheets and the end of the Profile, so `BottomModal` now uses `BottomSheetModal`
+  > (rendered by the root provider, above a native tab bar) and never dismisses a sheet that was not shown (that
+  > left it unable to open), and the Profile scroll view uses `contentInsetAdjustmentBehavior="automatic"`; the
+  > role chip is centered. Local dev data changed by the journeys: the admin review account got the number
+  > +5585999990000 (name restored to "Dev Admin"); files:
+  > `apps/mobile/src/components/ui/bottom-modal/{bottom-modal.component.tsx,bottom-modal.hook.ts,bottom-modal.component.test.tsx}`,
+  > `apps/mobile/src/modules/profile/components/profile/profile.component.tsx`,
+  > `apps/mobile/src/modules/profile/components/profile-header/profile-header.component.tsx`, tests:
+  > `apps/mobile/src/components/role-tabs/role-tabs.test-utils.ts`,
+  > `apps/mobile/src/components/role-tabs/role-tabs.test-utils.test.ts`,
+  > `apps/mobile/src/modules/profile/hooks/use-update-name.hook.test.tsx`,
+  > `apps/mobile/src/modules/profile/profile.test-utils.tsx`,
+  > `apps/mobile/src/modules/profile/screens/{edit-profile,profile-whatsapp,profile}.screen.test.tsx`,
+  > `apps/mobile/src/services/preferences/theme-preference.test.tsx`; deviations: the BottomModal change is
+  > outside the listed tasks (needed so the sheets work with D-01); unselected tab labels and icons look black
+  > instead of ink-3 on iOS 26 (the system draws them), left as is
 
 ## Verification Plan
 

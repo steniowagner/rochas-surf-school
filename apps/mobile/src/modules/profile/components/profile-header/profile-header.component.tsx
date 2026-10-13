@@ -20,7 +20,9 @@ export function ProfileHeader({ name, role }: ProfileHeaderProps) {
       >
         {name}
       </Text>
-      <Chip tone="info">{t(`profile.role.${role}`)}</Chip>
+      <View className="self-center">
+        <Chip tone="info">{t(`profile.role.${role}`)}</Chip>
+      </View>
     </View>
   );
 }

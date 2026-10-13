@@ -223,12 +223,16 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Implement `findDeniedBefore` (`findMany` on `status: 'denied'`, `deniedAt: { lte: cutoff }`,
+- [x] **T-05** — Implement `findDeniedBefore` (`findMany` on `status: 'denied'`, `deniedAt: { lte: cutoff }`,
   selecting `id`) and `deleteDenied` (`deleteMany` on `id: { in: ids }`, `status: 'denied'`, returning `count`;
   no query for an empty list) in `PrismaUserRepository` (`apps/backend/src/modules/auth/user.prisma.ts`), with
   specs in `user.prisma.spec.ts`. Skill:
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` passes (from `apps/backend`).
+  > ✅ 2026-10-12 — `findDeniedBefore` and `deleteDenied` in `PrismaUserRepository`, with specs (the prisma mock gained
+  > `deleteMany`); files: `apps/backend/src/modules/auth/user.prisma.ts`,
+  > `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified:
+  > `npx vitest run src/modules/auth/user.prisma.spec.ts` (15 passed); deviations: none
 
 - [ ] **T-06** — Notifications adapters: `NotificationsRegistrationNotifier.registrationPending` passes
   `userId: account.id` to `NotifyApprovedAdmins`; `PrismaNotificationRepository.deleteRegistrationPending`

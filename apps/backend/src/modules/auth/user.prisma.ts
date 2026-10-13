@@ -106,6 +106,23 @@ export class PrismaUserRepository implements UserRepository {
     return count === 1;
   }
 
+  async findDeniedBefore(cutoff: Date): Promise<string[]> {
+    const records = await this.prisma.user.findMany({
+      where: { status: 'denied', deniedAt: { lte: cutoff } },
+      select: { id: true },
+    });
+    return records.map((record) => record.id);
+  }
+
+  async deleteDenied(ids: string[]): Promise<number> {
+    if (ids.length === 0) return 0;
+
+    const { count } = await this.prisma.user.deleteMany({
+      where: { id: { in: ids }, status: 'denied' },
+    });
+    return count;
+  }
+
   async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {
     await this.prisma.userRulesAcceptance.createMany({
       data: [

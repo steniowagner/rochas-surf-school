@@ -95,4 +95,43 @@ export const es = {
       contactLabel: "WhatsApp",
     },
   },
+  accountDeletion: {
+    metaTitle: "Eliminación de cuenta",
+    metaDescription: "Cómo eliminar tu cuenta de Rocha's Surf School y qué pasa con tus datos.",
+    title: "Eliminación de cuenta",
+    description: "Mira cómo eliminar tu cuenta de Rocha's Surf School, qué se borra y qué queda sin tu nombre.",
+    inApp: {
+      title: "Si tienes la app",
+      text: "Abre la app y ve a Perfil → Eliminar cuenta. Después, confirma la eliminación.",
+    },
+    noApp: {
+      title: "Si ya no tienes la app",
+      text: "Habla con la escuela por WhatsApp y pide la eliminación. Un administrador atiende el pedido removiendo tu cuenta.",
+      numberLabel: "WhatsApp de la escuela",
+      button: "Hablar con la escuela por WhatsApp",
+    },
+    erased: {
+      title: "Qué se borra",
+      intro: "Borramos tus datos personales:",
+      items: [
+        "nombre;",
+        "correo electrónico;",
+        "foto;",
+        "número de WhatsApp;",
+        "comentarios.",
+      ],
+    },
+    kept: {
+      title: "Qué queda sin tu nombre",
+      intro: "El historial de la escuela continúa, sin identificarte:",
+      items: [
+        "las calificaciones en estrellas;",
+        "las clases y las fotos, que muestran \"Exalumno\" o \"Exinstructor\" en lugar de la persona.",
+      ],
+    },
+    timing: {
+      title: "Cuándo",
+      text: "Borramos estos datos 30 días después de la eliminación o de la remoción de la cuenta.",
+    },
+  },
 } satisfies Dictionary;

@@ -95,4 +95,43 @@ export const en = {
       contactLabel: "WhatsApp",
     },
   },
+  accountDeletion: {
+    metaTitle: "Account deletion",
+    metaDescription: "How to delete your Rocha's Surf School account and what happens to your data.",
+    title: "Account deletion",
+    description: "See how to delete your Rocha's Surf School account, what is erased and what stays without your name.",
+    inApp: {
+      title: "If you have the app",
+      text: "Open the app and go to Profile → Delete account. Then confirm the deletion.",
+    },
+    noApp: {
+      title: "If you no longer have the app",
+      text: "Message the school on WhatsApp and ask for the deletion. An admin carries out the request by removing your account.",
+      numberLabel: "School's WhatsApp",
+      button: "Message the school on WhatsApp",
+    },
+    erased: {
+      title: "What is erased",
+      intro: "We erase your personal data:",
+      items: [
+        "name;",
+        "email;",
+        "photo;",
+        "WhatsApp number;",
+        "comments.",
+      ],
+    },
+    kept: {
+      title: "What stays without your name",
+      intro: "The school's history continues, without identifying you:",
+      items: [
+        "star ratings;",
+        "classes and photos, which show \"Former student\" or \"Former instructor\" in the person's place.",
+      ],
+    },
+    timing: {
+      title: "When",
+      text: "We erase this data 30 days after the account is deleted or removed.",
+    },
+  },
 } satisfies Dictionary;

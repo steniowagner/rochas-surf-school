@@ -32,4 +32,15 @@ export type Dictionary = {
     site: { title: string; text: string };
     controller: { title: string; text: string; contactLabel: string };
   };
+  accountDeletion: {
+    metaTitle: string;
+    metaDescription: string;
+    title: string;
+    description: string;
+    inApp: { title: string; text: string };
+    noApp: { title: string; text: string; numberLabel: string; button: string };
+    erased: { title: string; intro: string; items: string[] };
+    kept: { title: string; intro: string; items: string[] };
+    timing: { title: string; text: string };
+  };
 };

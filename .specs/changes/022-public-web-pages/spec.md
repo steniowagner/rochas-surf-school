@@ -288,7 +288,7 @@ goes away in the same change.
   > browser at 375×812 (light): same seven headings and 30 list items in the three languages, `scrollWidth` 375,
   > no link or summary under 44px; deviations: config file created in T-04 (see above)
 
-- [ ] **T-05** — WhatsApp config and account deletion page: `src/config/school-whatsapp.ts` (D-07, using
+- [x] **T-05** — WhatsApp config and account deletion page: `src/config/school-whatsapp.ts` (D-07, using
   `PhoneNumberRule` from `@rochas-surf-school/shared` and `libphonenumber-js`, added as a dependency),
   `SCHOOL_WHATSAPP_NUMBER` in `apps/web/.env.example` (and a local `.env` value);
   `src/app/[lang]/account-deletion/page.tsx` (with `generateMetadata`) built from `ScreenIntro` (`UserX`),
@@ -296,6 +296,19 @@ goes away in the same change.
   dictionaries (D-12); the privacy policy's contact (T-04) reads the same config.
   Covers: ER-02, ER-05, ER-08 · Done when: the three builds of ER-05's Verify by behave as stated, and the
   browser journey and `curl | grep` of ER-02 pass.
+  > ✅ 2026-10-12 — the deletion page (`UserX` intro; cards for the in-app steps "Perfil → Excluir conta", the
+  > WhatsApp request carried out by an admin with the formatted number, what is erased, what stays without a
+  > name, and when) with the single primary `Button` linking to `wa.me`, and its copy in the three dictionaries;
+  > `SCHOOL_WHATSAPP_NUMBER` is documented in `.env.example`; `school-whatsapp.ts` was already created in T-04;
+  > files: `apps/web/src/app/[lang]/account-deletion/page.tsx`, `apps/web/src/i18n/dictionary.types.ts`,
+  > `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts` (config and `.env.example`: see T-04); verified: `check-types`,
+  > `lint` pass; builds in `apps/web`: unset (with `.env` moved aside), empty, `85999999999`,
+  > `+55 85 99999-9999` and `+5512` exit 1 with `SCHOOL_WHATSAPP_NUMBER` named in the error, `+5585999999999`
+  > exits 0; `next start`: `curl -s …/en/account-deletion | grep -c 'href="https://wa.me/5585999999999"'` → `1`
+  > (the HTML is one line), the three languages answer 200 and `/fr/…` 404; browser at 375×812 (dark): the page in
+  > the three languages shows 5 cards, the five erased items, the two kept items, `+55 85 99999 9999` and one
+  > `.ds-text-button` (sun, 73px tall, `https://wa.me/5585999999999`, label per language), `scrollWidth` 375, no link
+  > under 44px; deviations: none
 
 ### Verification
 

@@ -306,7 +306,7 @@ translated), or the fallback when there is none.
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-01** — Scaffold `modules/notifications` (`@rochas-surf-school/notifications`) with
+- [x] **T-01** — Scaffold `modules/notifications` (`@rochas-surf-school/notifications`) with
   `config-new-module --skip-web --skip-mobile`, keeping the NestJS module it creates in
   `apps/backend/src/modules/notifications/` and its AppModule registration; add oxlint (`.oxlintrc.json` like the
   backend's) and `check-types` per the Lint convention; create the aggregates `notification` and `push-token`.
@@ -316,6 +316,9 @@ translated), or the fallback when there is none.
   `npm run lint --workspace @rochas-surf-school/notifications` and
   `npm run check-types --workspace @rochas-surf-school/notifications` pass, and `npx turbo run build
   --filter=@rochas-surf-school/backend` builds.
+  > ✅ 2026-10-12 21:04 — files: `modules/notifications/{package.json,tsconfig.json,jest.config.ts,.oxlintrc.json,src/index.ts,test/index.test.ts}`, `apps/backend/src/modules/notifications/{notifications.module.ts,notifications.controller.ts}`, `apps/backend/src/app.module.ts`, `apps/backend/package.json`, `package-lock.json`
+  > verified: `npm test`, `lint`, `check-types` on the workspace pass; `turbo run build --filter=backend` builds
+  > deviations: package.json/.oxlintrc.json copied from school-settings (adds lint, check-types, shared dependency); aggregate folders `notification` and `push-token` are created with their files in T-02+ (the module-aggregate skill only makes folders)
 
 - [ ] **T-02** — Entities with their validation and tests: `Notification` (`userId` required uuid, `type` one of the
   three types, `params` object, D-03) in `src/notification/model/notification.entity.ts`, and `PushToken`

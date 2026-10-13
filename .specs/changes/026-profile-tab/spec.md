@@ -471,11 +471,28 @@ onboarding WhatsApp and school rules keys) keep their text.
   > src/components/theme-sheet` (3 suites, 17 passed), check-types and eslint clean; deviations: copy moved from
   > T-14 to T-06
 
-- [ ] **T-07** — Push preference (D-10): add the no-prompt option to `getPushToken` in
+- [x] **T-07** — Push preference (D-10): add the no-prompt option to `getPushToken` in
   `src/services/push/push.service.ts`; make `usePushRegistration` send the DELETE instead of the PUT while
   pushes are off; create `src/modules/notifications/hooks/use-push-preference.hook.ts` (value, `setEnabled`, the
   off/on/denied paths), with tests for all three files.
   Covers: ER-10 · Done when: `npx jest src/services/push src/modules/notifications` passes.
+  > ✅ 2026-10-13 16:47 — Push preference: `getPushToken({ askPermission })` and `isPushPermissionDenied` in the
+  > push service, `unregisterPushToken` util, `usePushRegistration` sends the DELETE instead of the PUT while
+  > pushes are off, new `usePushPreference` hook (off / on / denied paths); technical steps added inside the
+  > task: `apiDelete` in the API client (DELETE with body) and the whole `profile.*` copy in the three message
+  > files (needed for the denied toast); files: `apps/mobile/src/services/push/push.service.ts`,
+  > `apps/mobile/src/services/push/push.service.test.ts`,
+  > `apps/mobile/src/services/api/{api.client,api.request,index}.ts`,
+  > `apps/mobile/src/services/api/api.client.test.ts`,
+  > `apps/mobile/src/modules/notifications/utils/unregister-push-token.ts`,
+  > `apps/mobile/src/modules/notifications/utils/unregister-push-token.test.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-push-registration.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-push-registration.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-push-preference.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-push-preference.hook.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/services
+  > src/modules/notifications` (15 suites, 167 passed), check-types and eslint clean; deviations: apiDelete and
+  > profile copy added here
 
 - [ ] **T-08** — Tab bars (D-01–D-03): `src/app/(private)/<role>/(tabs)/_layout.tsx` with `NativeTabs` and the
   tab route files for the three roles; the existing `index.tsx` files move into `(tabs)`; `registrations.tsx`

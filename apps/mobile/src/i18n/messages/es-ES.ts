@@ -233,6 +233,29 @@ const messages: Messages = {
     light: "Claro",
     dark: "Oscuro",
   },
+  profile: {
+    role: {
+      student: "Alumno",
+      instructor: "Instructor",
+      admin: "Admin",
+    },
+    editProfile: "Editar perfil",
+    whatsapp: "WhatsApp",
+    whatsappVisible: "Visible",
+    whatsappHidden: "Oculto",
+    theme: "Tema",
+    language: "Idioma",
+    push: "Notificaciones push",
+    pushNote: "Los avisos siempre quedan en la app. Aquí solo eliges si también llegan a tu teléfono.",
+    pushDenied: "Permite las notificaciones de la app en los ajustes del teléfono.",
+    schoolRules: "Reglas de la escuela",
+    cancellationRules: "Reglas de cancelación",
+    about: "Acerca de la app",
+    privacyPolicy: "Política de privacidad",
+    termsOfUse: "Términos de uso",
+    signOut: "Cerrar sesión",
+    comingSoon: "Próximamente.",
+  },
 };
 
 export default messages;

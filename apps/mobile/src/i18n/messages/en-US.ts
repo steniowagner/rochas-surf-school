@@ -226,6 +226,29 @@ const messages = {
     light: "Light",
     dark: "Dark",
   },
+  profile: {
+    role: {
+      student: "Student",
+      instructor: "Instructor",
+      admin: "Admin",
+    },
+    editProfile: "Edit profile",
+    whatsapp: "WhatsApp",
+    whatsappVisible: "Visible",
+    whatsappHidden: "Hidden",
+    theme: "Theme",
+    language: "Language",
+    push: "Push notifications",
+    pushNote: "Notifications always stay in the app. Here you only choose whether they also reach your phone.",
+    pushDenied: "Allow notifications for the app in your phone's settings.",
+    schoolRules: "School rules",
+    cancellationRules: "Cancellation rules",
+    about: "About the app",
+    privacyPolicy: "Privacy policy",
+    termsOfUse: "Terms of use",
+    signOut: "Sign out",
+    comingSoon: "Coming soon.",
+  },
 };
 
 export type Messages = typeof messages;

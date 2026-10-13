@@ -5,14 +5,18 @@ import { toBackendLocale } from "@/i18n/backend-locale";
 import type { AppLocale } from "@/i18n/locales";
 import { useSession } from "@/providers/session";
 import { apiPut } from "@/services/api";
+import { readPushEnabledPreference } from "@/services/preferences/preferences.storage";
 import { getPushToken, setRegisteredPushToken } from "@/services/push/push.service";
+
+import { unregisterPushToken } from "../utils/unregister-push-token";
 
 const REGISTRABLE_STATUSES = ["pending", "approved"];
 
 /**
  * Sends this phone's push token to the backend (with the app language) for a pending or approved account, when
  * the session starts, the app launches with one, the account's status changes or the language changes. Pushes
- * are an extra: no token, or any failure, shows nothing (spec 020, D-12).
+ * are an extra: no token, or any failure, shows nothing (spec 020, D-12). While the person keeps pushes off
+ * (spec 026), nothing is registered and the token is removed instead.
  */
 export const usePushRegistration = () => {
   const { user } = useSession();
@@ -23,6 +27,13 @@ export const usePushRegistration = () => {
 
   useEffect(() => {
     if (!userId || !status || !REGISTRABLE_STATUSES.includes(status)) {
+      return;
+    }
+
+    // Pushes off on this phone: nothing is registered; a DELETE that failed earlier is sent again.
+    if (!readPushEnabledPreference()) {
+      void unregisterPushToken();
+
       return;
     }
 

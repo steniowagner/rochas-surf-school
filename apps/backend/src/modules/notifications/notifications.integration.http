@@ -1,0 +1,79 @@
+# Manual REST Client requests for the notifications module (VS Code REST Client).
+# Sign in with an account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below. Review accounts
+# accept their fixed code after a code request (sent first, below). Pushes only reach a real device that
+# registered a real Expo push token; any ExponentPushToken[...] value is accepted here.
+
+@baseUrl = http://localhost:4000
+@email = admin@example.com
+@code = 345678
+
+### Request a sign-in code (expects 202; with RESEND_API_KEY unset the backend logs the code)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Sign in (expects 200 with accessToken and refreshToken)
+# @name session
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+###
+@accessToken = {{session.response.body.accessToken}}
+@refreshToken = {{session.response.body.refreshToken}}
+
+### Register this device's push token (expects 204; pending and approved accounts only)
+PUT {{baseUrl}}/notifications/push-token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "token": "ExponentPushToken[review-admin]",
+  "locale": "pt-BR"
+}
+
+### Register again with another language (expects 204; the same token keeps one row, now in English)
+PUT {{baseUrl}}/notifications/push-token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "token": "ExponentPushToken[review-admin]",
+  "locale": "en"
+}
+
+### An invalid token and locale (expects 422 with pushToken.token.invalid and pushToken.locale.invalid)
+PUT {{baseUrl}}/notifications/push-token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "token": "abc",
+  "locale": "fr"
+}
+
+### Without a token (expects 401 auth.token.invalid)
+PUT {{baseUrl}}/notifications/push-token
+Content-Type: application/json
+
+{
+  "token": "ExponentPushToken[review-admin]",
+  "locale": "pt-BR"
+}
+
+### Sign out and stop pushing to this device (expects 204)
+POST {{baseUrl}}/auth/sign-out
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}",
+  "pushToken": "ExponentPushToken[review-admin]"
+}

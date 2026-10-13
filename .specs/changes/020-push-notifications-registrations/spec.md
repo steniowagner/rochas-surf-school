@@ -446,7 +446,7 @@ translated), or the fallback when there is none.
   > verified: `npx vitest run src/modules` from apps/backend (196 passed); `npx turbo run check-types --filter=@rochas-surf-school/backend` exits 0
   > deviations: `ExpoPushProvider` and the notifier/remover are providers of `NotificationsModule` (the notifier/remover exported); the `NotificationsController` import in the module still points at the T-01 placeholder until T-12
 
-- [ ] **T-12** — `NotificationsController` (`apps/backend/src/modules/notifications/notifications.controller.ts`:
+- [x] **T-12** — `NotificationsController` (`apps/backend/src/modules/notifications/notifications.controller.ts`:
   `PUT /notifications/push-token`, protected, `@HttpCode(204)`, actor from `@CurrentUser()`) with its spec and
   `notifications.integration.http`; `PushReceiptCheckJob` (`push-receipt-check.job.ts`, `@Cron` every minute,
   runs `CheckPushReceipts`, logs errors) with `push-receipt-check.job.spec.ts`; and
@@ -456,6 +456,9 @@ translated), or the fallback when there is none.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07, ER-09 · Done when: `npx vitest run
   src/modules/notifications` passes and `npm run test:e2e --workspace apps/backend` passes with
   `notifications.e2e-spec.ts` included (Postgres up, migrations applied).
+  > ✅ 2026-10-12 21:13 — files: `apps/backend/src/modules/notifications/{notifications.controller.ts,notifications.controller.spec.ts,notifications.integration.http,push-receipt-check.job.ts,push-receipt-check.job.spec.ts,notifications.module.ts}`, `apps/backend/test/notifications.e2e-spec.ts`
+  > verified: `npx vitest run src/modules/notifications` (40 passed); `npm run test:e2e --workspace apps/backend` (10 files, 286 passed, notifications.e2e-spec.ts included, Postgres up and migrated)
+  > deviations: the e2e fake overrides `ExpoPushProvider` with the raw `PushMessage`s, so the pushed title/body are asserted by running `renderPush` on what the fake received (the text itself is also unit-tested in push-messages.spec.ts)
 
 ### Mobile (`apps/mobile`)
 

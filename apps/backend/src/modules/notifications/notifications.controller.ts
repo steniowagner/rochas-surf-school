@@ -1,9 +1,30 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Put } from '@nestjs/common';
+import {
+  RegisterPushToken,
+  RegisterPushTokenIn,
+} from '@rochas-surf-school/notifications';
+import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
+import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import { PrismaPushTokenRepository } from './push-token.prisma.js';
+import { SystemClockProvider } from './system.clock.js';
 
 @Controller('notifications')
 export class NotificationsController {
-  @Get('/')
-  getNotifications() {
-    return { message: 'Notifications endpoint' };
+  constructor(
+    private readonly pushTokenRepository: PrismaPushTokenRepository,
+    private readonly clock: SystemClockProvider,
+  ) {}
+
+  @Put('push-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  registerPushToken(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: Partial<Pick<RegisterPushTokenIn, 'token' | 'locale'>> | undefined,
+  ): Promise<void> {
+    return new RegisterPushToken(this.pushTokenRepository, this.clock).execute({
+      actor: { id: user.id, status: user.status },
+      token: body?.token,
+      locale: body?.locale,
+    });
   }
 }

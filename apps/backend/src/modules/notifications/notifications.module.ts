@@ -5,6 +5,7 @@ import { NotificationsController } from './notifications.controller.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsPushTokenRemover } from './notifications.push-token-remover.js';
 import { NotificationsRegistrationNotifier } from './notifications.registration-notifier.js';
+import { PushReceiptCheckJob } from './push-receipt-check.job.js';
 import { PrismaPushTicketRepository } from './push-ticket.prisma.js';
 import { PrismaPushTokenRepository } from './push-token.prisma.js';
 import { PrismaRecipientsProvider } from './recipients.prisma.js';
@@ -22,6 +23,7 @@ import { SystemClockProvider } from './system.clock.js';
     ExpoPushProvider,
     NotificationsRegistrationNotifier,
     NotificationsPushTokenRemover,
+    PushReceiptCheckJob,
   ],
   exports: [NotificationsRegistrationNotifier, NotificationsPushTokenRemover],
 })

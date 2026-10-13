@@ -206,7 +206,7 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   > `npm test --workspace @rochas-surf-school/auth` (310 passed),
   > `npx turbo run check-types --filter=@rochas-surf-school/auth` ok; deviations: none
 
-- [ ] **T-04** — `EraseDeniedRegistrations` use case
+- [x] **T-04** — `EraseDeniedRegistrations` use case
   (`modules/auth/src/user/usecase/erase-denied-registrations.usecase.ts`, exported; constructor
   `(userRepository, registrationNotificationEraser, clock)`, `execute(): Promise<{ erased: number }>`) following
   D-02 and D-05, with tests in `modules/auth/test/user/usecase/erase-denied-registrations.usecase.test.ts`:
@@ -214,6 +214,12 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   `{ erased: 0 }` and the eraser not called, a second run ("again") → `{ erased: 0 }`, an eraser that throws →
   the error propagates and no user is deleted. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03 · Done when: `npm test --workspace @rochas-surf-school/auth` passes with these cases.
+  > ✅ 2026-10-12 — `EraseDeniedRegistrations` (select due ids, stop when none, erase notifications, delete users),
+  > exported, with the listed cases; files: `modules/auth/src/user/usecase/erase-denied-registrations.usecase.ts`,
+  > `modules/auth/src/user/usecase/index.ts`,
+  > `modules/auth/test/user/usecase/erase-denied-registrations.usecase.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/auth` (317 passed, 100% on the use case),
+  > `npx turbo run check-types --filter=@rochas-surf-school/auth` ok; deviations: none
 
 ### Backend (`apps/backend`)
 

@@ -12,3 +12,4 @@ export * from "./registration-access";
 export * from "./list-registrations.usecase";
 export * from "./approve-registration.usecase";
 export * from "./deny-registration.usecase";
+export * from "./erase-denied-registrations.usecase";

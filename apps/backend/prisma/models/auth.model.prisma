@@ -56,6 +56,8 @@ model User {
   identities       Identity[]
   refreshTokens    RefreshToken[]
   schoolRules      SchoolRule[]
+  notifications    Notification[]
+  pushTokens       PushToken[]
 
   @@map("users")
 }

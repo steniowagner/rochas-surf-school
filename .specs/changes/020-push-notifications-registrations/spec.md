@@ -407,7 +407,7 @@ translated), or the fallback when there is none.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-09** — Prisma schema `apps/backend/prisma/models/notifications.model.prisma` (D-17) and the migration
+- [x] **T-09** — Prisma schema `apps/backend/prisma/models/notifications.model.prisma` (D-17) and the migration
   `notifications`; Prisma repositories `PrismaNotificationRepository`, `PrismaPushTokenRepository` (upsert by
   token), `PrismaPushTicketRepository` and `PrismaRecipientsProvider` (role `admin` and status `approved`, D-10) in
   `apps/backend/src/modules/notifications/*.prisma.ts`, registered in `notifications.module.ts`, each with its
@@ -416,6 +416,9 @@ translated), or the fallback when there is none.
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-04, ER-08, ER-09 · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies
   the migration on a fresh database, and `npx vitest run src/modules/notifications` (from `apps/backend`) passes.
+  > ✅ 2026-10-12 21:09 — files: `apps/backend/prisma/models/notifications.model.prisma`, `apps/backend/prisma/models/auth.model.prisma` (User relations), `apps/backend/prisma/migrations/20261013000834_notifications/migration.sql`, `apps/backend/src/modules/notifications/{notification,push-token,push-ticket,recipients}.prisma.ts` + specs, `system.clock.ts` + spec, `notifications.module.ts`
+  > verified: `prisma:migrate:deploy` applied all migrations on a fresh database (3 new tables present); `npx vitest run src/modules/notifications` (9 passed; the only uncovered branch is the known decorator-metadata one)
+  > deviations: added a `SystemClockProvider` in the notifications backend module (the module cannot import auth's); migration timestamp comes from the machine clock
 
 - [ ] **T-10** — `ExpoPushProvider` (`apps/backend/src/modules/notifications/expo.push.ts`, D-11) and the copy
   catalog `push-messages.ts` (the Push copy table: `renderPush(type, params, locale)` → `{ title, body }`), with

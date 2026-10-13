@@ -2,7 +2,7 @@
 id: "022"
 slug: public-web-pages
 title: Privacy policy and account deletion pages
-status: in-progress
+status: in-review
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 9bf05d07ed8b0121f5c1a7d145f4bd71f69e2657
@@ -312,9 +312,23 @@ goes away in the same change.
 
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root, and follow the user journeys;
+- [x] **T-06** — Run every command in the Verification Plan from the repo root, and follow the user journeys;
   all pass. Record the output summary as evidence.
   Covers: all · Done when: every automated command exits 0 and each journey's observations are recorded.
+  > ✅ 2026-10-12 — whole Verification Plan run; one small change: `Button`'s `px-[18px] py-[15px]` became the
+  > equivalent `px-4.5 py-3.75` so ER-08's grep finds only the 22px column gap; files:
+  > `apps/web/src/components/ui/button/button.component.tsx`; verified: `run-related-tests.mjs 022` → RELATED TESTS
+  > PASSED (web has no runner); `check-coverage.mjs 022` → COVERAGE OK (all 34 web files excluded by
+  > technical-context); `run-e2e.mjs 022` → E2E PASSED (no suite applies); `SCHOOL_WHATSAPP_NUMBER=+5585999999999 npx
+  > turbo run lint check-types build --filter=@rochas-surf-school/web` → 7 successful; ER-05's builds (T-05 evidence)
+  > fail/pass as stated; curl checks of ER-01, ER-02, ER-03 (T-02, T-04, T-05 evidence) pass; ER-07 `ls` shows no
+  > `public/` and `src/app` holds only `[lang]`, `favicon.ico`, `globals.css`, `grep -c create-next-app` → `0`;
+  > ER-08 grep → only `gap-[22px]`; ER-04: removing `languageLabel` from `es.ts` makes `check-types` fail (TS2741),
+  > restored; browser, all nine pages at 375 px and 1280 px, in light and dark (iframes of each width): no horizontal
+  > overflow, no `a, button, summary` under 44px, body background `rgb(253, 248, 243)` in light and `rgb(22, 27, 39)`
+  > in dark; the language switch, header tile and home rows were followed in T-03; not covered: the no-JavaScript
+  > switch was not exercised with JavaScript actually disabled (the `<details>` and its anchors are in the server
+  > HTML), and the pages were not checked on a real phone; deviations: none
 
 ## Verification Plan
 

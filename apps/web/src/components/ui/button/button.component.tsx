@@ -10,7 +10,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 export function Button(props: ButtonProps) {
   const { variant = "primary", icon, children, className = "", ...rest } = props;
-  const classes = `ds-text-button flex w-full min-h-11 cursor-pointer items-center justify-center gap-2 rounded-control px-[18px] py-[15px] transition-colors ${variantClasses[variant]} ${className}`;
+  const classes = `ds-text-button flex w-full min-h-11 cursor-pointer items-center justify-center gap-2 rounded-control px-4.5 py-3.75 transition-colors ${variantClasses[variant]} ${className}`;
 
   if (props.href !== undefined) {
     const { href, ...anchorProps } = rest as Extract<ButtonProps, { href: string }>;

@@ -229,6 +229,13 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **Erasure keeps the school's history without the person**: personal data and comments go, star ratings stay
   without a name, and the person appears as "Former student" or "Former instructor". This satisfies LGPD and
   the App Store and Google Play account-deletion rules while keeping class history readable.
+- **People without the app ask the school on WhatsApp to delete their account**: the account deletion page gives
+  the school's number, and an admin carries out the request by removing the account, which is then erased like
+  any removed account. The site's number is a copy of the school setting made when the site is built, so
+  changing the number in the app needs the site rebuilt.
+- **The privacy policy names only the providers already chosen**: Google, Apple, Resend and Expo by name; the
+  hosting, the language model and the photo storage by category until a spec chooses them — that spec updates
+  the policy.
 - **Guests get nothing from the app and leave no trace**: no notifications, no link to a later account, and
   their name and WhatsApp number are erased 30 days after their class.
 - **One account per email address, and the email never changes**: every sign-in method with the same email
@@ -382,8 +389,7 @@ request is sent. The app sends it from the Account deleted screen (spec 016).
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
-storage, and the app's sign-in screen with its language picker. The web app is still on its framework
-template. The real screens of each flow (every student and instructor screen, every admin screen besides the
+storage, and the app's sign-in screen with its language picker. The real screens of each flow (every student and instructor screen, every admin screen besides the
 School tools home and "Join the school", the admin's school rules screen and a screen to read the rules at any
 time included), reloading the account when the app returns from the
 background (a rule change or an admin's decision is seen at the next launch or session renewal), signing out from any
@@ -470,6 +476,19 @@ name. Nothing else is kept and nobody is told. The same email address can then s
 Google, as a new registration waiting for approval; a phone still signed in to the erased account gets the
 existing "session expired" handling. Deleted and removed accounts are not erased yet, nor is guest data.
 
+**Public web pages** (spec `022-public-web-pages`) — the small public site the App Store and Google Play require
+exists, in pt-BR, es and en: a home page linking the two pages, the privacy policy (what the app collects, why,
+how long it keeps it — including the 30-day erasures of deleted and removed accounts, denied registrations and
+guest data — which services handle it, and the school as the controller with its WhatsApp number as the contact)
+and the account deletion page (deleting in the app at Perfil → Excluir conta, or asking the school on WhatsApp
+when the app is gone, which an admin carries out by removing the account; what is erased, what stays without a
+name, and when). The language is in the address (`/pt-br/…`, `/es/…`, `/en/…`); an address without one opens in
+the browser's language, Brazilian Portuguese when it is none of the three, and a picker on every page switches
+it. The pages follow the system's light or dark theme, set no cookies and have no tracking. The site isn't
+deployed yet, the app doesn't link to the policy yet, and the copy hasn't had its legal review (it names no
+legal identifiers). The pages describe in-app deletion, admin removal and the erasure of deleted and removed
+accounts before those exist.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -501,6 +520,9 @@ Active specs: none.
   permission dialog (or asking again after a refusal).
 - Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
   "Former instructor" handling), and erasing guest data: spec 021 erases only denied registrations.
+- Deploying the public site (host and domain), linking the privacy policy from the app and the store
+  listings, the legal (LGPD) review of the pages' copy with the school's legal identifiers, and a light/dark
+  switch on the site (it follows the system theme).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea

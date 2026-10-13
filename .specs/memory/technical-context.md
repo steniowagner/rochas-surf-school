@@ -89,8 +89,29 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
 - **`apps/web`** — **Next.js 16** (App Router, `src/`), **Tailwind 4**, port **3000**. Only the public web
   pages the app stores require — the privacy policy and the account-deletion page, each in pt-BR, es and en.
-  No sign-in, no private area and no API calls. Build with `next build`. No test runner: the pages are static
-  content (see Automated validation).
+  No sign-in, no private area and no API calls. Build with `next build`; it needs a **Node runtime**
+  (`next start`, or a platform that runs Next) because of the proxy — no static export. No test runner: the pages
+  are static content (see Automated validation).
+  - Routes: `src/app/[lang]/` holds the root layout (`<html lang>` `pt-BR` / `es` / `en`, fonts, header, footer)
+    and the pages `/{lang}`, `/{lang}/privacy-policy` and `/{lang}/account-deletion`, with `lang` one of `pt-br`,
+    `es`, `en` and English slugs in every language. Every page is statically generated (`generateStaticParams`,
+    `dynamicParams = false`, so another `lang` answers 404) and sets its translated `<title>` and description
+    with `generateMetadata`.
+  - Language: `src/proxy.ts` (Next 16's replacement for middleware, matching only `/`, `/privacy-policy` and
+    `/account-deletion`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
+    order, whose language is `pt`, `es` or `en` (`matchLocale` in `src/i18n/locales.ts`), **pt-BR** when none
+    matches or the header is missing. Copy lives in typed dictionaries (`src/i18n/dictionaries/{pt-br,es,en}.ts`,
+    each `satisfies Dictionary` from `src/i18n/dictionary.types.ts`, loaded server-side by `getDictionary`), so a
+    missing or extra key fails `check-types` and copy changes are text-only. The header's language picker is a
+    `<details>` pill with plain links to the same page in each language, so it works without JavaScript; it is
+    the only client component.
+  - `SCHOOL_WHATSAPP_NUMBER` (server-only, E.164) is read by `src/config/school-whatsapp.ts`, validated with the
+    shared `PhoneNumberRule`, formatted with **`libphonenumber-js`** `formatInternational()` and linked to
+    `https://wa.me/<digits>`; a missing or invalid value throws an error naming the variable, so `next build`
+    fails. It is a build-time copy of the school setting (spec 015): the site is rebuilt when the number changes.
+  - Icons: **`lucide-react`** with stroke width 2. Components follow `.claude/rules/react.md`
+    (`src/components/<name>/`, `src/components/ui/{button,chip}/`); the web `Button` takes an optional `href`
+    and then renders an `<a>` with the same classes.
 - **`modules/<module>`** — business modules (`@rochas-surf-school/<module>`), plain TypeScript compiled with
   `tsc`. Tests with **Jest 30** + `ts-jest`, in `test/` mirroring `src/` (`*.test.ts`). Only `modules/auth`,
   `modules/school-rules`, `modules/school-settings` (`GET /school-settings` and
@@ -257,7 +278,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 - **Template code**: the first spec that touches an app removes its framework template code — Expo's example
   screens and components (`npm run reset-project`), the web design-token preview, the stock
   `AppController`/`AppService` and its e2e test — so it is never mistaken for product code (done for the backend in
-  spec 001 and for mobile before the spec workflow; web still carries its own).
+  spec 001, for mobile before the spec workflow, and for web in spec 022).
 - **Lint**: each domain module gets oxlint (`.oxlintrc.json` mirroring the backend's) and a `check-types`
   script (`tsc --noEmit`) in the first spec that touches it, like the backend (`modules/auth` and `modules/school-rules` have both).
 - **Naming**: `kebab-case` files with a role suffix; general rules in
@@ -514,7 +535,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 
 Every provider sits behind a port in the domain (`*.provider.ts`); its implementation lives in the backend
 module that uses it. Variable names are added to `apps/backend/.env.example` by the spec that introduces the
-provider; real keys are never committed.
+provider; real keys are never committed. The privacy policy page (`apps/web`, spec 022) names the providers
+already chosen (Google, Apple, Resend, Expo) and describes the others by category, so a spec that chooses a
+provider (hosting, language model, photo storage) also updates the policy copy in the three web dictionaries.
 
 ### Push notifications
 

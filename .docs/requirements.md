@@ -1084,12 +1084,16 @@ Publishes the public web pages the app stores require: the privacy policy and a 
 
 #### Privacy policy page
 
+_Implemented in spec 022-public-web-pages._
+
 A privacy policy SHALL be published at a public web address and linked from the app and from the App Store and Google Play listings. It SHALL say what data the app collects, why, how long it is kept, and which services handle it, including the sign-in providers, the push service, hosting, and the language model, which only receives class details.
 
 - _Opening the policy from the app:_ When a user opens the privacy policy from the app, then the public privacy policy page opens.
 - _Retention explained:_ When someone reads the privacy policy, then it explains that deleted accounts are erased 30 days after deletion.
 
 #### Account deletion page
+
+_Implemented in spec 022-public-web-pages._
 
 A public web page SHALL explain how to delete an account in the app and, for people who no longer have the app, give the school's WhatsApp number to request deletion. It SHALL say what is erased, what is kept without a name, and when erasure happens.
 
@@ -1103,6 +1107,8 @@ An admin SHALL carry out a deletion request received through the page by removin
 - _Request received:_ When an admin receives a deletion request from someone who used the page, then they remove the account, and the account is erased 30 days later.
 
 #### Page languages
+
+_Implemented in spec 022-public-web-pages._
 
 Both pages SHALL be available in Brazilian Portuguese, Spanish and English.
 

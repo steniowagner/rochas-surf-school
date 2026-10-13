@@ -2,13 +2,14 @@
 id: "022"
 slug: public-web-pages
 title: Privacy policy and account deletion pages
-status: accepted
+status: finished
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 9bf05d07ed8b0121f5c1a7d145f4bd71f69e2657
 reviewed_commit: be4e6b63d7f86dd76753247ab246a8599a7660b0
 fronts: [web]
 depends_on: []
+finished: 2026-10-13
 ---
 
 # 022 — Privacy policy and account deletion pages

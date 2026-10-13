@@ -13,8 +13,8 @@ Central narrative of the product: **"get approved, ask for a seat, surf, rate an
 The students, instructors and admins of **one** school, Rocha's Surf School, in Brazil (America/Fortaleza
 time). Students are adults trying or practising surf and skate; instructors teach the classes; admins run the
 schedule, the people and the rules. Everyone uses the **same mobile app** (Android and iOS), and what each
-person sees depends on their role. The only web surface is a small public site with the privacy policy and the
-account-deletion page, for the app stores and for people without the app.
+person sees depends on their role. The only web surface is a small public site with the privacy policy, the terms of
+use and the account-deletion page, for the app stores and for people without the app.
 
 Nobody gets in on their own: every account signs up in the app and then waits for an admin's approval before
 it can see anything. The app is in Brazilian Portuguese, Spanish and English.
@@ -236,6 +236,11 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **The privacy policy names only the providers already chosen**: Google, Apple, Resend and Expo by name; the
   hosting, the language model and the photo storage by category until a spec chooses them — that spec updates
   the policy.
+- **The site has terms of use next to the school rules**: the terms govern the app (adults only, accounts approved
+  by the school, admins' decisions final, forbidden content removed by admins who can also remove the account,
+  reports sent to the school on WhatsApp because the app has no report button, no payments, not a liability
+  waiver, Brazilian law with no forum named); the school rules keep governing conduct at the school. The policy
+  names the legal controller and the encarregado (data protection contact) from build configuration.
 - **Guests get nothing from the app and leave no trace**: no notifications, no link to a later account, and
   their name and WhatsApp number are erased 30 days after their class.
 - **One account per email address, and the email never changes**: every sign-in method with the same email
@@ -477,7 +482,7 @@ Google, as a new registration waiting for approval; a phone still signed in to t
 existing "session expired" handling. Deleted and removed accounts are not erased yet, nor is guest data.
 
 **Public web pages** (spec `022-public-web-pages`) — the small public site the App Store and Google Play require
-exists, in pt-BR, es and en: a home page linking the two pages, the privacy policy (what the app collects, why,
+exists, in pt-BR, es and en: a home page linking the three pages, the privacy policy (what the app collects, why,
 how long it keeps it — including the 30-day erasures of deleted and removed accounts, denied registrations and
 guest data — which services handle it, and the school as the controller with its WhatsApp number as the contact)
 and the account deletion page (deleting in the app at Perfil → Excluir conta, or asking the school on WhatsApp
@@ -485,9 +490,16 @@ when the app is gone, which an admin carries out by removing the account; what i
 name, and when). The language is in the address (`/pt-br/…`, `/es/…`, `/en/…`); an address without one opens in
 the browser's language, Brazilian Portuguese when it is none of the three, and a picker on every page switches
 it. The pages follow the system's light or dark theme, set no cookies and have no tracking. The site isn't
-deployed yet, the app doesn't link to the policy yet, and the copy hasn't had its legal review (it names no
-legal identifiers). The pages describe in-app deletion, admin removal and the erasure of deleted and removed
+deployed yet, the app doesn't link to the policy yet, and the copy hasn't had its legal review. The pages describe in-app deletion, admin removal and the erasure of deleted and removed
 accounts before those exist.
+
+**Terms of use and an LGPD-complete policy** (spec `023-terms-and-lgpd-privacy`) — the site gains a terms of use
+page in the three languages (who can use the app, the school rules, what may be posted and how admins handle it,
+reporting through WhatsApp, payments, what the terms don't cover, privacy links, changes, applicable law), a third
+row on the home and the redirect of `/terms-of-use`. The privacy policy now has fourteen sections: the controller
+(school name, legal name, optional CNPJ, WhatsApp) and the encarregado (name and email) from build configuration,
+what is collected, each purpose with its LGPD legal basis, the providers, transfers outside Brazil, every
+retention period, security, adults only, the Art. 18 rights with the ANPD, and links to deletion and the terms.
 
 Active specs: none.
 
@@ -505,7 +517,6 @@ Active specs: none.
 - Checking a cancellation rule's wording when it's saved.
 - An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list); each class
   already shows its seats taken and ratings.
-- A terms-of-use page; the school rules play that role inside the app.
 - Keeping the text of past versions of the school rules (spec 010 keeps only the current text; an acceptance
   records only the version number), and recording who edited, deleted or reordered a rule (only its creator is
   kept).
@@ -521,7 +532,8 @@ Active specs: none.
 - Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
   "Former instructor" handling), and erasing guest data: spec 021 erases only denied registrations.
 - Deploying the public site (host and domain), linking the privacy policy from the app and the store
-  listings, the legal (LGPD) review of the pages' copy with the school's legal identifiers, and a light/dark
+  listings, linking the terms from the app (including the onboarding line), a report button for objectionable content, the
+  legal (LGPD) review of the pages' copy, and a light/dark
   switch on the site (it follows the system theme).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).

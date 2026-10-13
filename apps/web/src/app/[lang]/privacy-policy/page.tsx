@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ContentCard } from "@/components/content-card";
 import { ScreenIntro } from "@/components/screen-intro";
+import { getSchoolLegal } from "@/config/school-legal";
 import { getSchoolWhatsapp } from "@/config/school-whatsapp";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { hasLocale } from "@/i18n/locales";
@@ -34,6 +35,7 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
 
   const { privacyPolicy: policy } = await getDictionary(lang);
   const whatsapp = getSchoolWhatsapp();
+  const legal = getSchoolLegal();
 
   return (
     <>
@@ -46,6 +48,46 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
         {policy.lastUpdatedLabel}: {policy.lastUpdated}
       </p>
       <div className="flex flex-col gap-3">
+        <ContentCard title={policy.controller.title}>
+          <p>{policy.controller.text}</p>
+          <dl className="space-y-1">
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.controller.legalNameLabel}</dt>
+              <dd>{legal.legalName}</dd>
+            </div>
+            {legal.cnpj ? (
+              <div>
+                <dt className="ds-text-list-subtitle text-ink-2">{policy.controller.cnpjLabel}</dt>
+                <dd>{legal.cnpj}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.controller.whatsappLabel}</dt>
+              <dd>
+                <a href={whatsapp.href} className={LINK_CLASSES}>
+                  {whatsapp.formatted}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </ContentCard>
+        <ContentCard title={policy.dpo.title}>
+          <p>{policy.dpo.text}</p>
+          <dl className="space-y-1">
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.dpo.nameLabel}</dt>
+              <dd>{legal.dpoName}</dd>
+            </div>
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.dpo.emailLabel}</dt>
+              <dd>
+                <a href={`mailto:${legal.dpoEmail}`} className={LINK_CLASSES}>
+                  {legal.dpoEmail}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </ContentCard>
         <ContentCard title={policy.collected.title}>
           <p>{policy.collected.intro}</p>
           <ul className="list-disc space-y-1 pl-5">
@@ -55,15 +97,9 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
           </ul>
         </ContentCard>
         <ContentCard title={policy.purposes.title}>
+          <p>{policy.purposes.intro}</p>
           <ul className="list-disc space-y-1 pl-5">
             {policy.purposes.items.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </ContentCard>
-        <ContentCard title={policy.retention.title}>
-          <ul className="list-disc space-y-1 pl-5">
-            {policy.retention.items.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -76,23 +112,55 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
             ))}
           </ul>
         </ContentCard>
+        <ContentCard title={policy.transfers.title}>
+          <p>{policy.transfers.text}</p>
+        </ContentCard>
+        <ContentCard title={policy.retention.title}>
+          <p>{policy.retention.intro}</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {policy.retention.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </ContentCard>
+        <ContentCard title={policy.security.title}>
+          <p>{policy.security.intro}</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {policy.security.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </ContentCard>
+        <ContentCard title={policy.adults.title}>
+          <p>{policy.adults.text}</p>
+        </ContentCard>
         <ContentCard title={policy.rights.title}>
-          <p>{policy.rights.text}</p>
+          <p>{policy.rights.intro}</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {policy.rights.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <p>{policy.rights.howTo}</p>
+          <p>{policy.rights.complaint}</p>
+        </ContentCard>
+        <ContentCard title={policy.deletion.title}>
+          <p>{policy.deletion.text}</p>
           <a href={`/${lang}/account-deletion`} className={LINK_CLASSES}>
-            {policy.rights.deletionLink}
+            {policy.deletion.link}
+          </a>
+        </ContentCard>
+        <ContentCard title={policy.terms.title}>
+          <p>{policy.terms.text}</p>
+          <a href={`/${lang}/terms-of-use`} className={LINK_CLASSES}>
+            {policy.terms.link}
           </a>
         </ContentCard>
         <ContentCard title={policy.site.title}>
           <p>{policy.site.text}</p>
         </ContentCard>
-        <ContentCard title={policy.controller.title}>
-          <p>{policy.controller.text}</p>
-          <p>
-            {policy.controller.contactLabel}:{" "}
-            <a href={whatsapp.href} className={LINK_CLASSES}>
-              {whatsapp.formatted}
-            </a>
-          </p>
+        <ContentCard title={policy.changes.title}>
+          <p>{policy.changes.text}</p>
         </ContentCard>
       </div>
     </>

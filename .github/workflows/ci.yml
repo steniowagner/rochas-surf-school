@@ -23,6 +23,7 @@ jobs:
       mobile: ${{ steps.affected.outputs.mobile }}
       domain: ${{ steps.affected.outputs.domain }}
       all: ${{ steps.affected.outputs.all }}
+      base: ${{ steps.affected.outputs.base }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -126,7 +127,11 @@ jobs:
       # A root-level change (.github, package.json, package-lock.json, turbo.json) runs every suite.
       - if: needs.changes.outputs.all == 'true'
         run: npx turbo run test --filter="./modules/*" --filter="./packages/*"
+      # TURBO_SCM_BASE is the base the `changes` job compared: on a pull request actions/checkout has no local
+      # branch for Turbo to infer it from.
       - if: needs.changes.outputs.all != 'true'
+        env:
+          TURBO_SCM_BASE: ${{ needs.changes.outputs.base }}
         run: npx turbo run test --affected --filter="./modules/*" --filter="./packages/*"
 
   # The one check to require in branch protection: a required job that is skipped would block the PR.

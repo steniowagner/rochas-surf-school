@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { computeJobs, parseTurboList, resolveBase } from "./affected.mjs";
+import { computeJobs, formatOutput, parseTurboList, resolveBase } from "./affected.mjs";
 
 const ws = (path, hasTest = true) => ({ path, hasTest });
 const APPS = [ws("apps/backend"), ws("apps/web"), ws("apps/mobile")];
@@ -117,4 +117,18 @@ test("resolveBase prefers --base, then TURBO_SCM_BASE, then the pull request bas
 test("resolveBase finds nothing for a new branch push or without an event", () => {
   assert.equal(resolveBase({ args: [], env: {}, readEvent: () => ({ before: "0000000000000000000000000000000000000000" }) }), undefined);
   assert.equal(resolveBase({ args: [], env: {}, readEvent: () => undefined }), undefined);
+});
+
+test("formatOutput carries the jobs, all and the base to stdout and $GITHUB_OUTPUT", () => {
+  const { json, githubOutput } = formatOutput({ ...NONE, web: true }, "origin/main");
+
+  assert.deepEqual(JSON.parse(json), { ...NONE, web: true, base: "origin/main" });
+  assert.equal(
+    githubOutput,
+    "backend=false\nweb=true\nmobile=false\ndomain=false\nall=false\nbase=origin/main\n",
+  );
+});
+
+test("formatOutput leaves the base empty when none was resolved", () => {
+  assert.match(formatOutput({ ...NONE, all: true }, undefined).githubOutput, /base=\n$/);
 });

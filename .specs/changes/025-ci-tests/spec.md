@@ -2,7 +2,7 @@
 id: "025"
 slug: ci-tests
 title: CI test suites per affected app
-status: changes-requested
+status: in-review
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 502313a29309e521010178dfbf8617568d2f8f1e
@@ -405,7 +405,7 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
 
 **Findings**
 
-- [ ] **F-01** (ER-05) — on `pull_request` the `domain` job runs every domain suite, not only the affected ones.
+- [x] **F-01** (ER-05) — on `pull_request` the `domain` job runs every domain suite, not only the affected ones.
   It calls `turbo run test --affected` without `TURBO_SCM_BASE`, so Turbo infers the base from
   `GITHUB_BASE_REF` (`main`). `actions/checkout` leaves only `origin/main`, with no local `main`, and
   `githubActionsRemoteBaseRefFallback` is off by default, so Turbo warns "unable to detect git range, assuming
@@ -416,6 +416,14 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   `school-rules`. Expected: the same base as the `changes` job. For example, `affected.mjs` could output the
   `base` it resolved and the `domain` step could set `TURBO_SCM_BASE: ${{ needs.changes.outputs.base }}`.
   A test should cover the new output.
+  > ✅ 2026-10-13 14:00 — `affected.mjs` now outputs the `base` it resolved (new pure `formatOutput`, JSON and
+  > `$GITHUB_OUTPUT`), `changes` exposes it, and the `domain` `--affected` step sets `TURBO_SCM_BASE` from it;
+  > files: `.github/scripts/affected.mjs`, `.github/scripts/affected.test.mjs`, `.github/workflows/ci.yml`;
+  > verified: `node --test ".github/scripts/*.test.mjs"` (21 passed, 2 new for `formatOutput`), actionlint exit 0;
+  > in a worktree with the base only as `refs/remotes/origin/b`, `GITHUB_ACTIONS=true GITHUB_BASE_REF=b
+  > TURBO_SCM_BASE=origin/b turbo run test --affected --filter="./modules/*" --filter="./packages/*" --dry=json`
+  > plans the `test` task only for `auth` and `school-rules` (`shared` appears only as their `^build`);
+  > deviations: none
 
 **Notes**
 

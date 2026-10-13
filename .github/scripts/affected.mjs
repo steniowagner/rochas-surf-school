@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Decides which CI test jobs a change needs, from Turbo's dependency graph (`turbo ls --affected`)
 // and the files the change touched. Prints the jobs as JSON and, inside GitHub Actions, appends them
-// to $GITHUB_OUTPUT.
+// to $GITHUB_OUTPUT, with the `base` it compared so later jobs (`turbo --affected`) use the same one.
 //
 //   node .github/scripts/affected.mjs [--base <ref>]
 //
@@ -82,6 +82,16 @@ export function resolveBase({ args, env, readEvent }) {
   return before && !NULL_SHA.test(before) ? before : undefined;
 }
 
+/** The JSON printed and the `key=value` lines for $GITHUB_OUTPUT: the jobs, `all` and the `base` that was compared. */
+export function formatOutput(jobs, base) {
+  const output = { ...jobs, base: base ?? "" };
+
+  return {
+    json: JSON.stringify(output),
+    githubOutput: [...JOBS, "all", "base"].map((key) => `${key}=${output[key]}\n`).join(""),
+  };
+}
+
 const run = (command, args, env = process.env) =>
   execFileSync(command, args, { encoding: "utf8", env, stdio: ["ignore", "pipe", "inherit"] });
 
@@ -114,10 +124,12 @@ function main() {
     });
   }
 
-  console.log(JSON.stringify(jobs));
+  const { json, githubOutput } = formatOutput(jobs, base);
+
+  console.log(json);
 
   if (process.env.GITHUB_OUTPUT) {
-    appendFileSync(process.env.GITHUB_OUTPUT, [...JOBS, "all"].map((key) => `${key}=${jobs[key]}\n`).join(""));
+    appendFileSync(process.env.GITHUB_OUTPUT, githubOutput);
   }
 }
 

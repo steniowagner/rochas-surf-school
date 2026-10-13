@@ -19,6 +19,10 @@ export const en = {
       title: "Privacy policy",
       description: "What the app collects, why, and for how long.",
     },
+    termsOfUse: {
+      title: "Terms of use",
+      description: "The rules for using the app and what you may post.",
+    },
     accountDeletion: {
       title: "Account deletion",
       description: "How to delete your account and what happens to your data.",

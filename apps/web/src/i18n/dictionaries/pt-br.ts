@@ -19,6 +19,10 @@ export const ptBr = {
       title: "Política de privacidade",
       description: "Quais dados o app coleta, por quê e por quanto tempo.",
     },
+    termsOfUse: {
+      title: "Termos de uso",
+      description: "As regras para usar o app e o que você pode publicar.",
+    },
     accountDeletion: {
       title: "Exclusão de conta",
       description: "Como excluir a sua conta e o que acontece com os seus dados.",

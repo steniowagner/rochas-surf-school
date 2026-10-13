@@ -19,6 +19,10 @@ export const es = {
       title: "Política de privacidad",
       description: "Qué datos recopila la app, por qué y por cuánto tiempo.",
     },
+    termsOfUse: {
+      title: "Términos de uso",
+      description: "Las reglas para usar la app y qué puedes publicar.",
+    },
     accountDeletion: {
       title: "Eliminación de cuenta",
       description: "Cómo eliminar tu cuenta y qué pasa con tus datos.",

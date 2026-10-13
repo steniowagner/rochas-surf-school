@@ -7,12 +7,13 @@ Portuguese, Spanish and English. No sign-in, no private area and no API calls.
 
 | URL | Page |
 | --- | --- |
-| `/{lang}` | Home, with links to both pages |
+| `/{lang}` | Home, with links to the three pages |
 | `/{lang}/privacy-policy` | Privacy policy |
+| `/{lang}/terms-of-use` | Terms of use |
 | `/{lang}/account-deletion` | How to delete an account, with the school's WhatsApp number |
 
-`lang` is `pt-br`, `es` or `en`; any other value answers 404. `/`, `/privacy-policy` and `/account-deletion`
-redirect (307) to the same path under the language picked from the browser's `Accept-Language`, falling back to
+`lang` is `pt-br`, `es` or `en`; any other value answers 404. `/`, `/privacy-policy`, `/terms-of-use` and
+`/account-deletion` redirect (307) to the same path under the language picked from the browser's `Accept-Language`, falling back to
 `pt-br` (`src/proxy.ts`). Copy lives in typed dictionaries in `src/i18n/dictionaries/`.
 
 ## Configuration

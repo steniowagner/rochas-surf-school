@@ -259,11 +259,21 @@ this app.
   > headings in order, `scrollWidth` 375, no `a`/`button`/`summary` under 44px, one `.bg-sun` (header tile);
   > deviations: none
 
-- [ ] **T-04** — Navigation: the terms `LinkRow` on `src/app/[lang]/page.tsx` between the two existing rows
+- [x] **T-04** — Navigation: the terms `LinkRow` on `src/app/[lang]/page.tsx` between the two existing rows
   (D-09) with `home.termsOfUse` in the type and the three dictionaries; `/terms-of-use` in the `matcher` of
   `src/proxy.ts`; confirm the cross-links of T-02 and T-03 resolve.
   Covers: ER-05 · Done when: `check-types`, `lint` and `build` pass; both `curl` cases of ER-05 print the expected
   status and URL; in the browser `/es` shows three rows in order and each opens its page.
+  > ✅ 2026-10-13 — terms `LinkRow` (`FileText`) between privacy policy and account deletion with `home.termsOfUse`
+  > in the type and the three dictionaries; `/terms-of-use` in the proxy `matcher`; README table and redirect line
+  > updated; files: `apps/web/src/app/[lang]/page.tsx`, `apps/web/src/proxy.ts`,
+  > `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`,
+  > `apps/web/README.md`; verified: `check-types`, `lint`, `next build` pass; `curl` with `Accept-Language:
+  > es-MX,es;q=0.9` prints `307 http://localhost:3000/es/terms-of-use`, without the header `307
+  > http://localhost:3000/pt-br/terms-of-use`; browser `/es` shows three rows in order (policy, terms, deletion)
+  > with the right hrefs, no horizontal scroll, no link under 44px; on `/pt-br/terms-of-use` the language pill's
+  > links are plain `<a>` to `/pt-br|es|en/terms-of-use` (work without JavaScript); the cross-links of T-02 and
+  > T-03 resolve to existing pages; deviations: none
 
 ### Verification
 

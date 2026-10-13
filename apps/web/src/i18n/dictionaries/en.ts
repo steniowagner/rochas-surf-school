@@ -149,6 +149,71 @@ export const en = {
       text: "When this policy changes, we publish the new version on this page with a new \"Last updated\" date.",
     },
   },
+  termsOfUse: {
+    metaTitle: "Terms of use",
+    metaDescription: "The rules for using the Rocha's Surf School app: who can use it, what you may post, how to report content and what the terms do not cover.",
+    title: "Terms of use",
+    description: "These terms explain how you may use the Rocha's Surf School app.",
+    lastUpdatedLabel: "Last updated",
+    lastUpdated: "October 13, 2026",
+    about: {
+      title: "About these terms",
+      text: "These terms apply to the Rocha's Surf School app. By using the app, you accept them.",
+    },
+    who: {
+      title: "Who can use the app",
+      intro: "To use the app:",
+      items: [
+        "you must be 18 or older;",
+        "your registration must be approved by the school: every account is reviewed before it can be used;",
+        "the decisions of the school's admins in the app, such as approvals, denials, roles and removals, are final;",
+        "the school can remove an account that breaks these terms or the school rules.",
+      ],
+    },
+    rules: {
+      title: "School rules",
+      text: "The school rules you accept in the app also apply. They keep governing conduct at the school, while these terms govern the use of the app.",
+    },
+    content: {
+      title: "What you post",
+      intro: "Comments and photos you post in the app must respect other people. These are forbidden:",
+      items: [
+        "harassment and bullying;",
+        "hate speech;",
+        "nudity and sexual content;",
+        "violence;",
+        "illegal content;",
+        "other people's private data.",
+      ],
+      outro: "Admins delete content that breaks these rules and can remove the account that posted it.",
+    },
+    reporting: {
+      title: "Reporting content",
+      text: "The app has no report button. To report a comment, a photo or a person, message the school on WhatsApp:",
+    },
+    payments: {
+      title: "Payments",
+      text: "The app does not take payments.",
+    },
+    coverage: {
+      title: "What these terms do not cover",
+      text: "These terms are not a liability waiver. The risks of surfing and skating, and payments, are covered by the school's own agreement with each student.",
+    },
+    privacy: {
+      title: "Privacy",
+      text: "How we handle your data, and how to delete your account, are explained on these pages:",
+      policyLink: "Privacy policy",
+      deletionLink: "Account deletion",
+    },
+    changes: {
+      title: "Changes to these terms",
+      text: "When these terms change, we publish the new version on this page with a new \"Last updated\" date.",
+    },
+    law: {
+      title: "Applicable law",
+      text: "Brazilian law applies to these terms.",
+    },
+  },
   accountDeletion: {
     metaTitle: "Account deletion",
     metaDescription: "How to delete your Rocha's Surf School account and what happens to your data.",

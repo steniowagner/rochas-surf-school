@@ -149,6 +149,71 @@ export const es = {
       text: "Cuando esta política cambie, publicaremos la nueva versión en esta página, con una nueva fecha de \"Última actualización\".",
     },
   },
+  termsOfUse: {
+    metaTitle: "Términos de uso",
+    metaDescription: "Las reglas para usar la app de Rocha's Surf School: quién puede usarla, qué puedes publicar, cómo denunciar contenido y qué no cubren los términos.",
+    title: "Términos de uso",
+    description: "Estos términos explican cómo puedes usar la app de Rocha's Surf School.",
+    lastUpdatedLabel: "Última actualización",
+    lastUpdated: "13 de octubre de 2026",
+    about: {
+      title: "Sobre estos términos",
+      text: "Estos términos se aplican a la app de Rocha's Surf School. Al usar la app, los aceptas.",
+    },
+    who: {
+      title: "Quién puede usar la app",
+      intro: "Para usar la app:",
+      items: [
+        "debes tener 18 años o más;",
+        "tu registro debe ser aprobado por la escuela: toda cuenta se revisa antes de poder usarse;",
+        "las decisiones de los administradores de la escuela en la app, como aprobaciones, denegaciones, perfiles y remociones, son definitivas;",
+        "la escuela puede remover una cuenta que incumpla estos términos o las reglas de la escuela.",
+      ],
+    },
+    rules: {
+      title: "Reglas de la escuela",
+      text: "Las reglas de la escuela que aceptas en la app también se aplican. Siguen rigiendo la conducta en la escuela, mientras que estos términos rigen el uso de la app.",
+    },
+    content: {
+      title: "Qué publicas",
+      intro: "Los comentarios y las fotos que publicas en la app deben respetar a las demás personas. Está prohibido:",
+      items: [
+        "el acoso y la intimidación;",
+        "el discurso de odio;",
+        "la desnudez y el contenido sexual;",
+        "la violencia;",
+        "el contenido ilegal;",
+        "los datos privados de otras personas.",
+      ],
+      outro: "Los administradores borran el contenido que incumple estas reglas y pueden remover la cuenta que lo publicó.",
+    },
+    reporting: {
+      title: "Denunciar contenido",
+      text: "La app no tiene un botón de denuncia. Para denunciar un comentario, una foto o una persona, habla con la escuela por WhatsApp:",
+    },
+    payments: {
+      title: "Pagos",
+      text: "La app no recibe pagos.",
+    },
+    coverage: {
+      title: "Qué no cubren estos términos",
+      text: "Estos términos no son una renuncia de responsabilidad. Los riesgos del surf y del skate, y los pagos, se tratan en el acuerdo propio de la escuela con cada alumno.",
+    },
+    privacy: {
+      title: "Privacidad",
+      text: "Cómo tratamos tus datos y cómo eliminar tu cuenta se explican en estas páginas:",
+      policyLink: "Política de privacidad",
+      deletionLink: "Eliminación de cuenta",
+    },
+    changes: {
+      title: "Cambios en estos términos",
+      text: "Cuando estos términos cambien, publicaremos la nueva versión en esta página, con una nueva fecha de \"Última actualización\".",
+    },
+    law: {
+      title: "Ley aplicable",
+      text: "Estos términos se rigen por la ley brasileña.",
+    },
+  },
   accountDeletion: {
     metaTitle: "Eliminación de cuenta",
     metaDescription: "Cómo eliminar tu cuenta de Rocha's Surf School y qué pasa con tus datos.",

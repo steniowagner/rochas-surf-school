@@ -242,13 +242,22 @@ this app.
   > links to `/{lang}/account-deletion` and `/{lang}/terms-of-use`; the placeholder `grep` prints nothing; browser
   > read of `/pt-br/privacy-policy` lists the 14 headings in order (full per-item journey in T-05); deviations: none
 
-- [ ] **T-03** — Terms of use page: `src/app/[lang]/terms-of-use/page.tsx` (with `generateMetadata`, built like
+- [x] **T-03** — Terms of use page: `src/app/[lang]/terms-of-use/page.tsx` (with `generateMetadata`, built like
   the policy page: `ScreenIntro` with `FileText`, "Last updated" line, D-06's ten `ContentCard`s, the WhatsApp
   link from `getSchoolWhatsapp()`, inline links, no primary button — D-08), and a `termsOfUse` section in the
   `Dictionary` type and the three dictionaries with the complete copy (D-04, D-06, D-07).
   Covers: ER-01, ER-06 · Done when: `check-types`, `lint` and `build` pass; the `curl` checks of ER-01 print
   `200`, `404` and the `wa.me` count; the browser journey of ER-01 finds every item in each language; at 375px
   the terms pages have no horizontal scroll and no link under 44px.
+  > ✅ 2026-10-13 — terms page with `generateMetadata`, `FileText` intro, "Last updated" line and D-06's ten cards
+  > (WhatsApp from `getSchoolWhatsapp()`, inline links, no primary button, no forum named); `termsOfUse` section in
+  > the `Dictionary` type and the three dictionaries; files: `apps/web/src/app/[lang]/terms-of-use/page.tsx`,
+  > `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`; verified:
+  > `check-types`, `lint`, `next build` pass; `curl` prints 200 for pt-br/es/en, 404 for fr and pt, and 1 `wa.me`
+  > link on `/en/terms-of-use`; the ER-06 literal `grep` shows only the existing `gap-[22px]`; the placeholder `grep`
+  > prints nothing; in the browser at 375px on the three languages: correct `<html lang>` and `<title>`, ten
+  > headings in order, `scrollWidth` 375, no `a`/`button`/`summary` under 44px, one `.bg-sun` (header tile);
+  > deviations: none
 
 - [ ] **T-04** — Navigation: the terms `LinkRow` on `src/app/[lang]/page.tsx` between the two existing rows
   (D-09) with `home.termsOfUse` in the type and the three dictionaries; `/terms-of-use` in the `matcher` of

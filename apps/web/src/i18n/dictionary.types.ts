@@ -39,6 +39,24 @@ export type Dictionary = {
     site: { title: string; text: string };
     changes: { title: string; text: string };
   };
+  termsOfUse: {
+    metaTitle: string;
+    metaDescription: string;
+    title: string;
+    description: string;
+    lastUpdatedLabel: string;
+    lastUpdated: string;
+    about: { title: string; text: string };
+    who: { title: string; intro: string; items: string[] };
+    rules: { title: string; text: string };
+    content: { title: string; intro: string; items: string[]; outro: string };
+    reporting: { title: string; text: string };
+    payments: { title: string; text: string };
+    coverage: { title: string; text: string };
+    privacy: { title: string; text: string; policyLink: string; deletionLink: string };
+    changes: { title: string; text: string };
+    law: { title: string; text: string };
+  };
   accountDeletion: {
     metaTitle: string;
     metaDescription: string;

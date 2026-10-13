@@ -2,7 +2,7 @@
 id: "026"
 slug: profile-tab
 title: Role tab bars and the Profile tab
-status: in-review
+status: changes-requested
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 827f464962e4ab8de918f1aa64387c3f073de528
@@ -802,3 +802,76 @@ onboarding WhatsApp and school rules keys) keep their text.
 - **A-01 — 2026-10-14** — requested by the user after trying the app. Before: account deletion out of scope, no "Remover a conta" row (Scope, D-04, ER-05). After: the row exists in its own card, with a confirmation sheet; `DELETE /auth/me` (`DeleteAccount` in `modules/auth`, approved → `deleted`, `deletedAt` stamped, then the phone signs out); the 30-day reactivation and erasure keep working as in the earlier specs. Reason: the user's review ("one missing item: Remove account"). Also asked and done (UI, no contract change): the Edit profile email field looks disabled and the "Editar perfil" title is gone; bottom sheets take only the room they need (home-indicator clearance, no extra gap) and their scrim is dark in the dark theme too. Tasks T-17 and T-18 added.
 
 ## Review
+
+### Round 1 — 2026-10-13 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, notifications, backend, mobile — 14 turbo tasks) · build ✅ (auth, notifications, backend)
+- related tests ✅ `RELATED TESTS PASSED` (backend, mobile 900, auth, notifications, school-rules) · whole mobile suite ✅ 1019 passed (109 suites)
+- coverage of the changed lines ✅ `COVERAGE OK` (59 files); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` — backend 322 passed (12 files, `auth-profile` and `notifications` included)
+- mobile journeys driven on the iOS simulator (dev build, local backend + Postgres, web app on :3000, review accounts):
+  1 (student Agenda / Minhas aulas / Escola / Perfil; instructor Início / Aulas / Perfil; admin Início = School tools
+  with the pending count, "Entrar na escola" without the tab bar, back to Início with it), 2 (student and instructor),
+  3, 4 (saved, DB updated, row "Oculto"), 5 (dark kept after a cold start with the phone light; "Igual ao celular"
+  follows the phone both ways; Español kept after a cold start; a language picked on the sign-in screen kept after a
+  cold start; theme and language kept after sign-out), 6 (simulator fallback: the switch off survives a cold start),
+  7 (admin, empty state only — the local school has no rules), 8 (About sheet, repository link in the in-app browser,
+  privacy policy and terms at `/pt-br/…`), 9 (backdrop and Cancelar keep the session; Sair → sign-in screen).
+  Local dev data changed by the journeys was restored (`dev@example.com` name and WhatsApp visibility).
+
+**Expected Results**
+
+- ER-01 ✅ — `set-name` unit tests and `auth-profile` e2e: trim, 422 for "A" / digits / 81 chars / empty / non-string,
+  403 for pending / denied / deleted / removed, 401 without or with an invalid token, nothing else changes
+- ER-02 ✅ — `unregister-push-token` unit tests and the `DELETE /notifications/push-token` e2e cases
+- ER-03 ✅ — `student-tabs.navigation.test.tsx` and journey 1 on the simulator
+- ER-04 ✅ — `instructor-tabs` / `admin-tabs` route tests, `admin.screen.test.tsx`, `use-notification-response.hook.test.tsx`; journey 1
+- ER-05 ✅ — `profile.screen.test.tsx` (one case per role, row order, one initial, Remover a conta); journey 2
+- ER-06 ✅ — `edit-profile.screen.test.tsx`; on the simulator: prefill, disabled email + hint, Guardar disabled until
+  changed, camera → "Próximamente.", save → `PUT /auth/me/name`, back to Profile with the new name
+- ER-07 ✅ — `profile-whatsapp.screen.test.tsx`, `whatsapp-number-form` and onboarding tests; on the simulator: prefill
+  (BR, masked number, switch), change → Salvar enabled, saved in `users`, row flips to "Oculto"
+- ER-08 ✅ — `theme-sheet`, `preferences` tests; simulator as in journey 5
+- ER-09 ✅ — `language-sheet`, `preferences`, `i18n` tests; simulator as in journey 5 (profile and sign-in paths)
+- ER-10 ✅ — `use-push-preference` / `use-push-registration` / profile switch tests; on the simulator only the
+  persistence (no EAS token there, as the Verification Plan allows)
+- ER-11 ✅ — `school-rules.screen.test.tsx` (numbered rules, no checkbox, loading, error + retry, empty); the
+  simulator only showed the empty state (no rules in the local database)
+- ER-12 ✅ — `profile.screen.test.tsx -t "cancellation rules"`
+- ER-13 ✅ — `about-sheet` tests; on the simulator the mocked content and the repository link in the in-app browser
+- ER-14 ✅ — `web-pages` and profile tests (trailing slash, hidden rows, rejected open); on the simulator both pages in pt-BR
+- ER-15 ✅ — profile sign-out tests; on the simulator the sheet, backdrop / Cancelar and Sair → sign-in
+
+**Findings**
+
+- [ ] **F-01** (convention) — imports are not sorted by module path inside the `@/` group, which
+  `.claude/rules/react.md` §2 requires (lint does not catch it):
+  `apps/mobile/src/modules/profile/components/profile/profile.hook.ts` (`@/providers/alert-message` before
+  `@/i18n/locales`), `apps/mobile/src/components/theme-sheet/theme-sheet.hook.ts`
+  (`@/services/preferences/theme-preference` before `@/services/preferences/preferences.storage`),
+  `apps/mobile/src/modules/onboarding/components/whatsapp/whatsapp.hook.ts` (`@/constants/routes` before
+  `@/components/whatsapp-number-form/…`). Expected: alphabetical order within each group in the three files.
+- [ ] **F-02** (D-04) — `## Memory Impact` was not updated for Amendment A-01 and for what execution added, and
+  `spec-finish` relies on it. It never mentions `DELETE /auth/me` / `DeleteAccount` (technical-context →
+  Authentication, `modules/auth.md`, `structure.md`), and its `product.md` line still says to *add* "account
+  deletion from the Profile" as still missing. It also omits the shared changes made during execution:
+  `BottomModal` is now a `BottomSheetModal` rendered by the root provider (above the native tab bar) with a scrim
+  that is dark in both themes, a non-editable `TextInput` gets the disabled style, and `CountryPicker` /
+  `utils/{countries,brazilian-phone}` moved to `src/components/` and `src/utils/`. Expected: Memory Impact lists
+  them, and account deletion from the Profile is no longer listed as missing.
+
+**Notes**
+
+- Commit `887afc5` (taller rows, full-width dividers) is outside any task and also adds the three design files
+  `.docs/designs/{student,instructor,admin}-app.html` that the spec's Context cites; harmless, but worth a line in a
+  task's evidence or in the amendment.
+- Verification Plan journey 2 still says "no 'Remover a conta'" after A-01.
+- iOS 26 draws unselected tab labels and icons in its own color instead of `ink-3` (already recorded under T-16);
+  the code passes the token as D-01 says.
+- Once, with the dev LogBox banner open, the app showed the light palette while "Escuro" was stored; it did not
+  happen again across cold starts, backgrounding, sign-out or theme switches, so it looks tied to the dev overlay.
+- Injected taps on a `Switch` don't toggle it in the simulator (a drag does); not an app defect.
+- Remover a conta was not run on the simulator (it would close a dev account); the e2e `DELETE /auth/me` cases and
+  the profile screen tests cover it.

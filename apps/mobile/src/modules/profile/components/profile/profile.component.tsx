@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { LanguageSheet } from "@/components/language-sheet";
+import { ThemeSheet } from "@/components/theme-sheet";
 import { useTheme } from "@/hooks/use-theme";
 
 import { ProfileCard } from "../profile-card";
@@ -19,6 +21,9 @@ export function Profile() {
     name,
     role,
     whatsappVisible,
+    themeLabel,
+    isDark,
+    languageLabel,
     isPushEnabled,
     setPushEnabled,
     openEditProfile,
@@ -57,6 +62,18 @@ export function Profile() {
                 : t("profile.whatsappHidden")
             }
             onPress={openWhatsapp}
+          />
+          <ProfileRow
+            icon={isDark ? "moon-outline" : "sunny-outline"}
+            label={t("profile.theme")}
+            value={themeLabel}
+            onPress={() => openSheet("theme")}
+          />
+          <ProfileRow
+            icon="language-outline"
+            label={t("profile.language")}
+            value={languageLabel}
+            onPress={() => openSheet("language")}
           />
         </ProfileCard>
 
@@ -103,6 +120,8 @@ export function Profile() {
         </ProfileCard>
       </ScrollView>
 
+      <ThemeSheet visible={sheet === "theme"} onClose={closeSheet} />
+      <LanguageSheet visible={sheet === "language"} onClose={closeSheet} />
       <SignOutSheet visible={sheet === "signOut"} onClose={closeSheet} />
     </View>
   );

@@ -3,12 +3,15 @@ import {
   screen,
   userEvent,
   waitFor,
+  within,
 } from "@testing-library/react-native";
+import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
-import { Text } from "react-native";
+import { Appearance, Text } from "react-native";
 
 import { routes } from "@/constants/routes";
 import { useSession } from "@/providers/session";
+import { setThemePreference } from "@/services/preferences/theme-preference";
 import * as api from "@/services/api/api.client";
 import { readPushEnabledPreference } from "@/services/preferences/preferences.storage";
 import * as push from "@/services/push/push.service";
@@ -53,7 +56,7 @@ const open = async (overrides: Parameters<typeof account>[0] = {}) => {
 };
 
 // The bottom sheet's mock keeps its content mounted, so only the first buttons are the rows of the page.
-const ROW_COUNT = 5;
+const ROW_COUNT = 7;
 
 const rowLabels = () =>
   screen
@@ -89,6 +92,8 @@ describe("ProfileScreen", () => {
     expect(rowLabels()).toEqual([
       "Edit profile",
       "WhatsApp",
+      "Theme",
+      "Language",
       "School rules",
       "Cancellation rules",
       "Sign out",
@@ -143,6 +148,64 @@ describe("ProfileScreen", () => {
 
     expect(await screen.findByText("Coming soon.")).toBeOnTheScreen();
     expect(router.push).not.toHaveBeenCalled();
+  });
+
+  describe("theme and language", () => {
+    beforeEach(() => {
+      jest
+        .spyOn(Appearance, "setColorScheme")
+        .mockImplementation(() => undefined);
+      setThemePreference("system");
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it("shows the current theme choice and language on their rows", async () => {
+      await open();
+
+      expect(
+        within(screen.getByRole("button", { name: "Theme" })).getByText(
+          "Same as phone",
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(screen.getByRole("button", { name: "Language" })).getByText(
+          "English",
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it("picks a theme from its sheet and shows it on the row", async () => {
+      const user = await open();
+
+      await user.press(screen.getByRole("button", { name: "Theme" }));
+      expect(
+        screen.getByText(
+          "Until you choose, the app follows your phone's theme.",
+        ),
+      ).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: /Dark/ }));
+
+      expect(Appearance.setColorScheme).toHaveBeenCalledWith("dark");
+      expect(screen.getByRole("button", { name: "Theme" })).toBeOnTheScreen();
+      expect(
+        within(screen.getByRole("button", { name: "Theme" })).getByText("Dark"),
+      ).toBeOnTheScreen();
+    });
+
+    it("picks a language from its sheet and shows the profile in it", async () => {
+      const user = await open();
+
+      await user.press(screen.getByRole("button", { name: "Language" }));
+      await user.press(screen.getByRole("button", { name: /Español/ }));
+
+      const languageRow = await screen.findByRole("button", { name: "Idioma" });
+      expect(
+        screen.getByRole("button", { name: "Editar perfil" }),
+      ).toBeOnTheScreen();
+      expect(within(languageRow).getByText("Español")).toBeOnTheScreen();
+      expect(SecureStore.getItem("prefs.locale")).toBe("es-ES");
+    });
   });
 
   describe("push switch", () => {

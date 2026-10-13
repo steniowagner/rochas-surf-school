@@ -617,10 +617,19 @@ onboarding WhatsApp and school rules keys) keep their text.
   > clean; deviations: the Tema, Idioma, About, privacy and terms rows are left to T-14 / T-15 as planned (the
   > bottom-sheet mock keeps sheet content mounted, so tests do not assert a closed sheet is hidden)
 
-- [ ] **T-14** — Add the Tema and Idioma rows to the Profile's first card: each shows the current value (theme
+- [x] **T-14** — Add the Tema and Idioma rows to the Profile's first card: each shows the current value (theme
   choice with a sun or moon icon; language name) and opens `ThemeSheet` / `LanguageSheet`; the `theme.*` and
   `themeSheet.*` copy; tests for the profile part of ER-08 and ER-09.
   Covers: ER-08, ER-09 · Done when: `npx jest src/modules/profile src/components` passes.
+  > ✅ 2026-10-13 16:58 — Added the Theme and Language rows to the Profile first card (value shows the current
+  > choice / language name; the theme icon is a sun or a moon for the theme in effect) opening `ThemeSheet` /
+  > `LanguageSheet`; the `theme.*` / `themeSheet.*` copy was already added in T-06; tests for the profile part
+  > of ER-08 and ER-09 (row values, picking a theme applies it, picking a language switches the profile and
+  > stores it); files: `apps/mobile/src/modules/profile/components/profile/profile.hook.ts`,
+  > `apps/mobile/src/modules/profile/components/profile/profile.component.tsx`,
+  > `apps/mobile/src/modules/profile/screens/profile.screen.test.tsx`; verified: `npx jest src/modules/profile
+  > src/components` (143 passed), `npm test` in apps/mobile (985 passed), check-types and eslint clean;
+  > deviations: none
 
 - [ ] **T-15** — About and legal links (D-12, D-13): `src/modules/profile/constants/about.ts`,
   `src/modules/profile/components/about-sheet/`, `src/modules/profile/utils/web-pages.ts` (URL from

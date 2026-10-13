@@ -274,6 +274,12 @@ const messages: Messages = {
     title: "Regras da escola",
     description: "Poucas e simples, para as aulas correrem bem para todos.",
   },
+  signOutSheet: {
+    title: "Sair da conta?",
+    description: "Para voltar, é só entrar de novo com a mesma conta.",
+    confirm: "Sair",
+    cancel: "Cancelar",
+  },
 };
 
 export default messages;

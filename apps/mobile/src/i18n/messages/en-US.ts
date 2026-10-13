@@ -274,6 +274,12 @@ const messages = {
     title: "School rules",
     description: "Few and simple, so classes go well for everyone.",
   },
+  signOutSheet: {
+    title: "Sign out?",
+    description: "To come back, just sign in again with the same account.",
+    confirm: "Sign out",
+    cancel: "Cancel",
+  },
 };
 
 export type Messages = typeof messages;

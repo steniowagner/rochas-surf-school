@@ -592,7 +592,7 @@ onboarding WhatsApp and school rules keys) keep their text.
   > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/school-rules` (42
   > passed), check-types and eslint clean; deviations: none
 
-- [ ] **T-13** — Profile screen (D-04, D-05, D-14): `src/modules/profile/screens/profile.screen.tsx` with its
+- [x] **T-13** — Profile screen (D-04, D-05, D-14): `src/modules/profile/screens/profile.screen.tsx` with its
   components (header, row card, row, sign-out sheet), rendered by every role's `(tabs)/profile.tsx`; rows wired
   to Edit profile, WhatsApp (with the Visível / Oculto value), School rules, the "coming soon" toast and the push
   switch (`usePushPreference`); the sign-out sheet with `useSignOut`; the `profile.*` and `signOutSheet.*` copy;
@@ -601,6 +601,21 @@ onboarding WhatsApp and school rules keys) keep their text.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-05, ER-07, ER-10, ER-12, ER-15 · Done when: `npx jest src/modules/profile` and
   `npm test --workspace @rochas-surf-school/mobile` pass.
+  > ✅ 2026-10-13 16:57 — Profile screen: `Profile` (+ `useProfile`), `ProfileHeader`, `ProfileCard`,
+  > `ProfileRow`, `SignOutSheet` (uses `useSignOut`), `ProfileScreen`, rendered by every role
+  > `(tabs)/profile.tsx` (replacing the placeholder); rows for Edit profile, WhatsApp (Visible / Hidden from the
+  > session), School rules, Cancellation rules (coming-soon toast), the push switch (`usePushPreference`) with
+  > its note, and Sign out; `signOutSheet.*` copy; tests for ER-05, the WhatsApp row value, the push switch,
+  > ER-12 and ER-15, and the three tab route tests now render the Profile under the providers; files:
+  > `apps/mobile/src/modules/profile/components/{profile,profile-header,profile-card,profile-row,sign-out-sheet}/*`,
+  > `apps/mobile/src/modules/profile/screens/profile.screen.tsx`,
+  > `apps/mobile/src/modules/profile/screens/profile.screen.test.tsx`,
+  > `apps/mobile/src/app/(private)/{student,instructor,admin}/(tabs)/profile.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`,
+  > `apps/mobile/src/modules/{student,instructor,admin}/*-tabs.navigation.test.tsx`; verified: `npx jest
+  > src/modules/profile` (27 passed), `npm test` in apps/mobile (104 suites, 982 passed), check-types and eslint
+  > clean; deviations: the Tema, Idioma, About, privacy and terms rows are left to T-14 / T-15 as planned (the
+  > bottom-sheet mock keeps sheet content mounted, so tests do not assert a closed sheet is hidden)
 
 - [ ] **T-14** — Add the Tema and Idioma rows to the Profile's first card: each shows the current value (theme
   choice with a sun or moon icon; language name) and opens `ThemeSheet` / `LanguageSheet`; the `theme.*` and

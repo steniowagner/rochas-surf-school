@@ -15,6 +15,8 @@ import {
 } from "@/components/role-tabs/role-tabs.test-utils";
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import { AlertMessageProvider } from "@/providers/alert-message";
+import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
 
 const fetchMock = jest.fn();
@@ -26,16 +28,18 @@ const person = (id: string) => ({
   createdAt: "2026-10-12T10:00:00.000Z",
 });
 
-jest.mock("@/providers/alert-message", () => ({
-  useAlertMessage: () => ({ show: jest.fn() }),
-}));
-
 const routeTree = {
   _layout: () => (
     <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
     >
-      <Stack screenOptions={{ headerShown: false }} />
+      <AlertMessageProvider>
+        <SessionProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </SessionProvider>
+      </AlertMessageProvider>
     </QueryClientProvider>
   ),
   "(private)/admin/_layout": AdminLayout,
@@ -98,6 +102,7 @@ describe("admin tabs", () => {
     await act(async () => router.navigate(routes.admin.profile));
     expect(app.getPathname()).toBe("/admin/profile");
     expect(selectedTabLabel()).toBe("Profile");
+    expect(screen.getByRole("header", { name: "Ana Souza" })).toBeOnTheScreen();
   });
 
   it("opens Join the school above the tabs, and back returns to Home with the tab bar", async () => {

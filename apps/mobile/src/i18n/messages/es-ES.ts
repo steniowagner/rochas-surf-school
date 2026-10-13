@@ -281,6 +281,12 @@ const messages: Messages = {
     title: "Reglas de la escuela",
     description: "Pocas y sencillas, para que las clases salgan bien para todos.",
   },
+  signOutSheet: {
+    title: "¿Cerrar sesión?",
+    description: "Para volver, solo inicia sesión otra vez con la misma cuenta.",
+    confirm: "Cerrar sesión",
+    cancel: "Cancelar",
+  },
 };
 
 export default messages;

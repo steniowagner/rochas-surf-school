@@ -1,9 +1,5 @@
-import { useTranslation } from "react-i18next";
-
-import { FlowPlaceholder } from "@/components/flow-placeholder";
+import { ProfileScreen } from "@/modules/profile/screens/profile.screen";
 
 export default function ProfileRoute() {
-  const { t } = useTranslation();
-
-  return <FlowPlaceholder title={t("tabs.profile")} />;
+  return <ProfileScreen />;
 }

@@ -2,13 +2,14 @@
 id: "025"
 slug: ci-tests
 title: CI test suites per affected app
-status: accepted
+status: finished
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 502313a29309e521010178dfbf8617568d2f8f1e
 reviewed_commit: a93b45826786a3e28debdc33c82b73fa0b637a0e
 fronts: [web, infra]
 depends_on: []
+finished: 2026-10-13
 ---
 
 # 025 — CI test suites per affected app

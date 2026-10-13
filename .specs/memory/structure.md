@@ -8,12 +8,13 @@ Turbo configs). Workspace npm namespace: `@rochas-surf-school`.
 
 ```
 package.json          # workspaces, root scripts (dev, build, lint, check-types, format), React/TypeScript overrides
-turbo.json            # build / lint / check-types / dev tasks
+turbo.json            # build / lint / check-types / test / test:e2e / dev tasks
 CLAUDE.md, AGENTS.md  # agent instructions: commands, layout, design system, native builds
 .docs/                # source documents: user-journeys.md, requirements.md, designs/*.html
 .specs/               # project specs and memory (see below)
 .claude/skills/       # project generator skills (module-*, backend-*, config-*) and the spec-* workflow
-.github/workflows/    # spec-check.yml — CI gate for spec pull requests
+.github/workflows/    # ci.yml — runs the test suites of the affected apps on pull requests and pushes to main
+.github/scripts/      # affected.mjs (which CI jobs a change needs, from turbo ls --affected) and its node --test tests
 apps/  modules/  packages/
 ```
 
@@ -358,6 +359,11 @@ src/
   components/                   # one folder each: site-header, language-picker and theme-toggle (the only client
                                 # components), screen-intro, content-card, link-row
   components/ui/{button,chip}/  # design-system components (same names/props as mobile; Button also takes href)
+  **/*.test.{ts,tsx}            # Vitest + React Testing Library tests, next to the file (locales, theme-toggle,
+                                # language-picker, button, chip)
+e2e/                            # Playwright suite (*.e2e.ts): pages, redirect, theme-toggle, language-picker
+vitest.config.ts                # jsdom, @/ alias, src/**/*.test.{ts,tsx}, v8 coverage; vitest.setup.ts (jest-dom, cleanup)
+playwright.config.ts            # Chromium; webServer builds and starts the app on port 3100
 ```
 
 No `public/` folder. `README.md` describes the site, its routes and `SCHOOL_WHATSAPP_NUMBER` and the legal variables.

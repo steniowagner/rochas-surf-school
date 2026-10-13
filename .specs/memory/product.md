@@ -506,6 +506,11 @@ the pages between light and dark. Until a visitor presses it, the site follows t
 the choice is kept in that browser across pages, languages and visits. There is no "follow the device" option
 to go back to; clearing the site's data does.
 
+**Automated checks on every change** (spec `025-ci-tests`) — no change for users: every change proposed or
+pushed to the main line runs, automatically, the tests of the parts of the product it affects (the backend, the
+app, the public site, the business rules), and one summary check says whether they all passed. The public site
+gains its own automated tests, including checks that every page opens in each language.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)

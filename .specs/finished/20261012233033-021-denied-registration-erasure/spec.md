@@ -2,13 +2,14 @@
 id: "021"
 slug: denied-registration-erasure
 title: Erase denied registrations 30 days after the denial
-status: accepted
+status: finished
 started: 2026-10-12
 base_commit: f93006c228aaa82f14d74fae824f6694a328dd15
 reviewed_commit: 39c84c01f2f0da803765c62661fe56ae84dbfd71
 created: 2026-10-12
 fronts: [notifications, auth, backend]
 depends_on: []
+finished: 2026-10-12
 ---
 
 # 021 — Erase denied registrations 30 days after the denial

@@ -64,6 +64,13 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   account or the decision is stored and never changes the answer: a failure is logged and the request succeeds
   as before. The person who doesn't get the push still sees the decision at the next launch, sign-in or session
   renewal.
+- **A denied registration is erased 30 days after the denial**: every minute, each `denied` account denied
+  30 × 24 hours ago or more is deleted with everything that hangs off it (identities, sessions, rules
+  acceptances, its notifications and phones), after the admins' "new registration" notifications about it are
+  deleted. Nothing is kept, anonymized or notified. A denied account with no denial date is never erased, and no
+  other status is erased yet. A second run finds nothing to do. The email address is then free: signing in with
+  it (by email code or Google) creates a new `pending` account, announced to the admins; the erased account's
+  session is refused as invalid.
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -225,8 +232,9 @@ versions each account accepted and reports whether the current one is among them
 here (spec 019), since a registration is a `pending` user. It decides **when** a registration is announced or
 its result told, but doesn't store or push notifications: it calls two abstract contracts — one that notifies
 about registrations and one that removes a phone's push token on sign-out — provided by the backend with
-[Notifications](notifications.md), which doesn't depend on this module (spec 020). Deleting and removing
-accounts, erasure (denied registrations included), notifying admins of reactivation requests, and deciding
+[Notifications](notifications.md), which doesn't depend on this module (spec 020). It decides **when** a denied
+registration is erased, and asks a third contract, provided the same way, to delete the admins' "new
+registration" notifications about it (spec 021). Deleting and removing accounts, their erasure, notifying admins of reactivation requests, and deciding
 reactivation requests are rules of the account lifecycle still to be specified.
 
 ## Spec history
@@ -280,3 +288,6 @@ reactivation requests are rules of the account lifecycle still to be specified.
   approval or denial (with its reason) notifies the person, through the `RegistrationNotifier` contract, after
   the write and without changing the answer; sign-out takes the phone's push token and removes it through the
   `PushTokenRemover` contract, for any known refresh token.
+- `021-denied-registration-erasure` — a denied registration is erased (hard deleted with what hangs off it) 30
+  days after the denial by a job that runs every minute, its admins' "new registration" notifications deleted
+  first through the `RegistrationNotificationEraser` contract; the same email can then sign up again.

@@ -330,6 +330,18 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `apps/backend/src/modules/notifications/` (`NotificationsRegistrationNotifier`, which catches and logs every
   error so notifying never changes the answer, and `NotificationsPushTokenRemover`); `AuthModule` imports
   `NotificationsModule`, never the reverse, and `modules/notifications` doesn't depend on `auth`.
+- Erasure of denied registrations (spec 021): `EraseDeniedRegistrations` (`modules/auth/src/user/usecase/`)
+  selects the ids of the `denied` users whose `deniedAt` is 30 × 24 h or more before the `ClockProvider`'s now
+  (`UserRepository.findDeniedBefore(cutoff)`; a null `deniedAt` is never selected), stops when there are none,
+  then deletes the admins' `registration.pending` notifications about them through the
+  `RegistrationNotificationEraser` port (`modules/auth/src/user/provider/registration-notification-eraser.provider.ts`,
+  `erase(userIds)`) and finally hard deletes the users (`UserRepository.deleteDenied(ids)`, a `deleteMany` on
+  the ids **and** `status: 'denied'`), returning `{ erased }`. That order keeps the ids findable while a step
+  fails, so the next run retries. The database cascade removes identities, refresh tokens, rules acceptances,
+  the user's notifications and push tokens; nothing is anonymized (a denied account has no history).
+  `registration.pending` params are `{ name, userId }` so those rows can be found; the port is implemented by
+  `NotificationsRegistrationNotificationEraser` (running `DeleteRegistrationNotifications`, a JSON-path filter
+  on `params.userId`) and exported by `NotificationsModule`.
 - Email codes: `crypto.randomInt` padded to 6 digits, stored as hex HMAC-SHA256 keyed by `AUTH_CODE_PEPPER`
   over `` `${email}:${code}` `` and compared with `timingSafeEqual` — 10⁶ codes make a plain hash reversible,
   so the pepper protects them. One row per normalized email (trimmed, lowercase — emails are stored that way
@@ -567,11 +579,15 @@ provider; real keys are never committed.
 
 ### Scheduled work
 
-- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today two jobs,
-  `SignInCodeCleanupJob` and `PushReceiptCheckJob`, spec 020): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
+- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today three jobs,
+  `SignInCodeCleanupJob`, `PushReceiptCheckJob` (spec 020) and `AccountErasureJob` (spec 021, cron
+  `account-erasure`, erases denied registrations; the deleted/removed erasures are to be added to it)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
   class start, 30-minute reminders, rating prompts, 30-day erasures of denied/deleted/removed accounts, guest
   data erasure, cancellation-deadline retries), each running every minute and **idempotent** — it records in
   the database what it already did, so a restart or a late tick never sends twice.
+  An erasure is idempotent by the deletion itself: the erased row's absence is the record, and a second tick finds
+  nothing (no marker table). Jobs catch and log every error and never throw; an erasure job logs only the count,
+  never an email, name or id.
 - Assumes **one backend instance**; running several needs a lock or a queue first (a decision for the spec
   that scales out).
 

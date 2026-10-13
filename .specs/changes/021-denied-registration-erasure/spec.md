@@ -2,7 +2,7 @@
 id: "021"
 slug: denied-registration-erasure
 title: Erase denied registrations 30 days after the denial
-status: in-review
+status: changes-requested
 started: 2026-10-12
 base_commit: f93006c228aaa82f14d74fae824f6694a328dd15
 created: 2026-10-12
@@ -343,3 +343,50 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-12 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (notifications, auth, backend — 17 turbo tasks, 0 lint warnings)
+- related tests ✅ (apps/backend, modules/auth, modules/notifications, plus apps/mobile and modules/school-rules,
+  which import `auth`)
+- coverage of the changed lines ✅ `COVERAGE OK`: 8 measured files, all 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 11 files, 292 passed (`account-erasure.e2e-spec.ts` included); every `Verify by` filter
+  (`-t "erases"`, `"idempotent"`, `"notifications"`, `"signs up again"`, the job spec, `-t "again"` in `auth`,
+  `test/notification/usecase` in `notifications`) selects and passes the intended tests
+
+**Expected Results**
+
+- ER-01 ✅ — a denied account at exactly 30 days is deleted with its 2 identities, refresh token, rules acceptance,
+  own notification and push token; 30 days − 1 minute, null `deniedAt` and every other status are kept (e2e and
+  use case tests)
+- ER-02 ✅ — cron `account-erasure`, every minute, `waitForCompletion`; a second run returns `{ erased: 0 }` and the
+  user count is unchanged; nothing due → the eraser isn't called; an eraser failure is logged, the job resolves and
+  no user is deleted; the log line carries the count only
+- ER-03 ✅ — sign-ups store `params: { name, userId }`; the erasure deletes only the erased account's
+  `registration.pending` rows, keeping another denied-recently account's, legacy rows without `userId` and other types
+- ER-04 ❌ — the email-code path holds in full (new id, `pending`, `denialReason`/`reactivationStatus` null, admin
+  notified, old refresh token → 401 `auth.refreshToken.invalid`, old access token → 401 `auth.token.invalid`); the
+  Google path's admin notification is not verified — see F-01
+
+**Findings**
+
+- [ ] **F-01** (ER-04) — ER-04 says that signing up again **by Google** also gives admins a `registration.pending`
+  notification, but `account-erasure.e2e-spec.ts` → "signs up again › by Google, as a new registration" creates no
+  approved admin and asserts no notification, and no other e2e test asserts a `registration.pending` row for a Google
+  sign-up (`auth-google.e2e-spec.ts` has none). The code calls the notifier
+  (`modules/auth/src/identity/usecase/sign-in-with-google.usecase.ts:101`), but nothing proves it end to end.
+  Reproduce: remove the `registrationPending` call there — the Google test still passes. Expected: the Google test
+  creates an approved admin and asserts exactly one `registration.pending` notification for that admin with
+  `params.userId` = the new account's id (as the email-code test does), then deletes the admin's notifications.
+
+**Notes**
+
+- D-01…D-07 are honored; no change outside the tasks; nothing from Out of scope was built; `## Memory Impact`
+  matches what was built.
+- The "rule written by another account is untouched" case of ER-01 is asserted only indirectly (the final
+  `schoolRule.delete` would throw if the rule were gone); an explicit `count` would read better.
+- ER-02's "when the user delete throws" case is covered by the job's generic catch; a use-case test where
+  `deleteDenied` fails (notifications already erased, users kept, next run erases them) would document D-05 more
+  directly. Optional.

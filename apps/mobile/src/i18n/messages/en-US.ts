@@ -265,6 +265,11 @@ const messages = {
     changePhoto: "Change profile photo",
     save: "Save",
   },
+  profileWhatsapp: {
+    title: "WhatsApp",
+    description: "Admins always see your number. Choose whether students and instructors can see it too.",
+    save: "Save",
+  },
 };
 
 export type Messages = typeof messages;

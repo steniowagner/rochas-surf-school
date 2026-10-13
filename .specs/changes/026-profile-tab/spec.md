@@ -562,10 +562,20 @@ onboarding WhatsApp and school rules keys) keep their text.
   > with the onboarding tests unchanged, check-types and eslint clean; deviations: moved country-picker and the
   > two utils (not in the task text) to avoid a component importing from a module
 
-- [ ] **T-11** — Profile WhatsApp screen (D-08): `src/modules/profile/screens/profile-whatsapp.screen.tsx`
+- [x] **T-11** — Profile WhatsApp screen (D-08): `src/modules/profile/screens/profile-whatsapp.screen.tsx`
   prefilled from the session, saving through the existing save hook (moved or reused), the route file
   `whatsapp.tsx` in each role's `Stack`, the `profileWhatsapp.*` copy, and tests for the screen part of ER-07.
   Covers: ER-07 · Done when: `npx jest src/modules/profile src/modules/onboarding` passes.
+  > ✅ 2026-10-13 16:54 — Profile WhatsApp screen: `ProfileWhatsapp` (BackButton, intro, `WhatsappNumberForm`
+  > prefilled from the session with `requireChange`), reusing the onboarding `useSaveWhatsapp` hook;
+  > `ProfileWhatsappScreen`, `whatsapp.tsx` route in each role Stack, `profileWhatsapp.*` copy and tests
+  > (prefill, visibility change saved and session updated, back on success, error toasts); files:
+  > `apps/mobile/src/modules/profile/components/profile-whatsapp/*`,
+  > `apps/mobile/src/modules/profile/screens/profile-whatsapp.screen.tsx`,
+  > `apps/mobile/src/modules/profile/screens/profile-whatsapp.screen.test.tsx`,
+  > `apps/mobile/src/app/(private)/{student,instructor,admin}/whatsapp.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/profile
+  > src/modules/onboarding` (55 passed), check-types and eslint clean; deviations: none
 
 - [ ] **T-12** — Read-only School rules screen: `src/modules/school-rules/screens/school-rules.screen.tsx`
   (`BackButton`, `ScreenIntro` with the shield tile, `SchoolRulesList`, loading / error with retry / empty states),

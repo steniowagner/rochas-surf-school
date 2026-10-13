@@ -265,6 +265,11 @@ const messages: Messages = {
     changePhoto: "Mudar foto de perfil",
     save: "Salvar",
   },
+  profileWhatsapp: {
+    title: "WhatsApp",
+    description: "Os admins sempre veem seu número. Escolha se alunos e instrutores também podem ver.",
+    save: "Salvar",
+  },
 };
 
 export default messages;

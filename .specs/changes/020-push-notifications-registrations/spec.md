@@ -486,11 +486,14 @@ translated), or the fallback when there is none.
   > verified: `npx jest src/modules/notifications src/navigation` (164 passed, hook 100%); check-types and lint for mobile exit 0
   > deviations: none
 
-- [ ] **T-15** — Sign-out sends the token (D-13): `signOut()` in `src/services/session/session.store.ts` reads and
+- [x] **T-15** — Sign-out sends the token (D-13): `signOut()` in `src/services/session/session.store.ts` reads and
   clears the registered token and adds `pushToken` to the body when present; tests in `session.store.test.ts` and
   `use-sign-out.hook.test.tsx` (with and without a token, with a refresh in flight).
   Covers: ER-11 · Done when: `npx jest src/services/session src/modules/auth/hooks` passes with the changed lines
   covered.
+  > ✅ 2026-10-12 21:16 — files: `apps/mobile/src/services/session/{session.store.ts,session.store.test.ts}`, `apps/mobile/src/modules/auth/hooks/use-sign-out.hook.test.tsx`
+  > verified: `npx jest src/services/session src/modules/auth/hooks` (97 passed, session.store.ts 100%); check-types and lint exit 0
+  > deviations: the registered token is forgotten on every sign-out, also without a session
 
 - [ ] **T-16** — `useNotificationResponse` and `useNotificationReceived`
   (`src/modules/notifications/hooks/use-notification-response.hook.ts`, `use-notification-received.hook.ts`;

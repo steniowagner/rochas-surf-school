@@ -2,6 +2,12 @@ import * as SecureStore from "expo-secure-store";
 
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 
+import {
+  clearRegisteredPushToken,
+  getRegisteredPushToken,
+  setRegisteredPushToken,
+} from "../push/push.service";
+
 import * as store from "./session.store";
 import type { Session } from "./session.types";
 
@@ -21,6 +27,7 @@ const fetchMock = jest.fn();
 const flush = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 beforeEach(() => {
+  clearRegisteredPushToken();
   store.clearSession();
   store.acknowledgeExpired();
   store.setRefreshInFlight(null);
@@ -157,6 +164,52 @@ describe("session store", () => {
           body: JSON.stringify({ refreshToken: "rt-1" }),
         }),
       );
+    });
+
+    it("sends the registered push token on sign-out, once", async () => {
+      store.setSession(sessionOf(1));
+      setRegisteredPushToken("ExponentPushToken[abc]");
+
+      await store.signOut();
+
+      expect(fetchMock.mock.calls[0][1].body).toBe(
+        JSON.stringify({
+          refreshToken: "rt-1",
+          pushToken: "ExponentPushToken[abc]",
+        }),
+      );
+      expect(getRegisteredPushToken()).toBeNull();
+
+      store.setSession(sessionOf(2));
+      await store.signOut();
+
+      expect(fetchMock.mock.calls[1][1].body).toBe(
+        JSON.stringify({ refreshToken: "rt-2" }),
+      );
+    });
+
+    it("sends the push token with the newest refresh token when a refresh is running", async () => {
+      store.setSession(sessionOf(1));
+      setRegisteredPushToken("ExponentPushToken[abc]");
+      store.setRefreshInFlight(Promise.resolve(sessionOf(2)));
+
+      await store.signOut();
+
+      expect(fetchMock.mock.calls[0][1].body).toBe(
+        JSON.stringify({
+          refreshToken: "rt-2",
+          pushToken: "ExponentPushToken[abc]",
+        }),
+      );
+    });
+
+    it("forgets the registered push token even without a session", async () => {
+      setRegisteredPushToken("ExponentPushToken[abc]");
+
+      await store.signOut();
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(getRegisteredPushToken()).toBeNull();
     });
 
     it("sends nothing without a session", async () => {

@@ -438,13 +438,23 @@ onboarding WhatsApp and school rules keys) keep their text.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-05** — Create the device preferences service `apps/mobile/src/services/preferences/`
+- [x] **T-05** — Create the device preferences service `apps/mobile/src/services/preferences/`
   (`preferences.storage.ts`: synchronous reads and writes of `prefs.theme`, `prefs.locale`, `prefs.pushEnabled`
   with the defaults and fallbacks of D-09; tests). Make `src/i18n/index.ts` start from the stored locale; move
   `LanguageSheet` from `src/modules/auth/components/language-sheet/` to `src/components/language-sheet/` (imports
   updated, tests moved) and make its selection store the locale.
   Covers: ER-09 · Done when: `npx jest src/services/preferences src/components/language-sheet src/i18n src/modules/auth`
   passes from `apps/mobile` and `npm run check-types --workspace @rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-13 16:43 — Created the preferences service (`prefs.theme`, `prefs.locale`, `prefs.pushEnabled`,
+  > sync SecureStore, fallbacks of D-09), i18n starts from the stored locale, `LanguageSheet` moved to
+  > `src/components/language-sheet/` and stores the locale; files:
+  > `apps/mobile/src/services/preferences/preferences.storage.ts`,
+  > `apps/mobile/src/services/preferences/preferences.storage.test.ts`, `apps/mobile/src/i18n/index.ts`,
+  > `apps/mobile/src/i18n/index.test.ts`, `apps/mobile/src/components/language-sheet/*` (moved from
+  > `src/modules/auth/components/language-sheet/`, hook and test updated),
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.tsx`, `apps/mobile/jest.setup.ts` (sync
+  > SecureStore mock); verified: `npx jest src/services/preferences src/components/language-sheet src/i18n
+  > src/modules/auth` (27 suites, 267 passed), `npm run check-types` exit 0, eslint clean; deviations: none
 
 - [ ] **T-06** — Apply the theme preference: at startup (before the first render) and on change, through
   `Appearance.setColorScheme` (D-09), in `src/services/preferences/theme-preference.ts` with a

@@ -1,6 +1,7 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
+import { readLocalePreference } from "@/services/preferences/preferences.storage";
 
 import { LanguageSheet } from "./language-sheet.component";
 
@@ -34,6 +35,7 @@ describe("LanguageSheet", () => {
     await user.press(screen.getByText("Español"));
 
     expect(i18n.language).toBe("es-ES");
+    expect(readLocalePreference()).toBe("es-ES");
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

@@ -2,6 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
 import { defaultLocale, getDeviceLocale } from "./locales";
+import { readLocalePreference } from "@/services/preferences/preferences.storage";
 import enUS from "./messages/en-US";
 import esES from "./messages/es-ES";
 import ptBR from "./messages/pt-BR";
@@ -14,7 +15,7 @@ i18n.use(initReactI18next).init({
     "es-ES": { translation: esES },
     "pt-BR": { translation: ptBR },
   },
-  lng: getDeviceLocale(),
+  lng: readLocalePreference() ?? getDeviceLocale(),
   fallbackLng: defaultLocale,
   interpolation: {
     // React already escapes output, so i18next must not escape it a second time.

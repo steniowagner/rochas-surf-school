@@ -84,6 +84,11 @@ jest.mock("expo-secure-store", () => ({
   deleteItemAsync: jest.fn(async (key: string) => {
     mockSecureStoreData.delete(key);
   }),
+  // The synchronous pair the device preferences use.
+  getItem: jest.fn((key: string) => mockSecureStoreData.get(key) ?? null),
+  setItem: jest.fn((key: string, value: string) => {
+    mockSecureStoreData.set(key, value);
+  }),
 }));
 
 beforeEach(() => {
@@ -94,4 +99,6 @@ beforeEach(() => {
   SecureStore.getItemAsync.mockClear();
   SecureStore.setItemAsync.mockClear();
   SecureStore.deleteItemAsync.mockClear();
+  SecureStore.getItem.mockClear();
+  SecureStore.setItem.mockClear();
 });

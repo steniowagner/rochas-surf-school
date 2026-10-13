@@ -203,7 +203,7 @@ this app.
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Legal configuration and the controller cards: create `apps/web/src/config/school-legal.ts`
+- [x] **T-01** — Legal configuration and the controller cards: create `apps/web/src/config/school-legal.ts`
   (D-03: `getSchoolLegal()` returning `{ legalName, cnpj: string | null /* formatted */, dpoName, dpoEmail }`,
   CNPJ check digits computed in the file, `EmailRule` from `@rochas-surf-school/shared`, errors naming the
   variable); add the four variables to `apps/web/.env.example` (example values, CNPJ commented as optional) and
@@ -214,6 +214,17 @@ this app.
   Covers: ER-02, ER-04 · Done when: `npm run check-types` and `npm run lint` in `apps/web` pass, every build of
   ER-04's Verify by behaves as stated, and the `curl` of ER-02 prints the four values (and none of the CNPJ when
   it is unset).
+  > ✅ 2026-10-13 — `getSchoolLegal()` (check digits computed in the file, `EmailRule` from shared, errors name the
+  > variable); four variables added to `.env.example`, the local `.env` and the README table; policy page shows the
+  > controller and encarregado cards first (the old controller card and its `contactLabel` key replaced by `controller`
+  > with labels and a new `dpo` section); files: `apps/web/src/config/school-legal.ts`,
+  > `apps/web/src/app/[lang]/privacy-policy/page.tsx`, `apps/web/src/i18n/dictionary.types.ts`,
+  > `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`, `apps/web/.env.example`, `apps/web/README.md` (`.env` is
+  > ignored); verified: `npm run check-types` and `npm run lint` clean; with `.env` aside, builds for
+  > `SCHOOL_LEGAL_NAME` unset / blank, `DPO_NAME` empty, `DPO_EMAIL` empty / `not-an-email`, `SCHOOL_CNPJ`
+  > `11222333000180` / `1122233300018` exit 1 naming their variable, and `SCHOOL_CNPJ` empty, masked
+  > `11.222.333/0001-81` and the ER-02 values exit 0; the `curl` of ER-02 prints the four values on the three
+  > languages, and a build without `SCHOOL_CNPJ` has no CNPJ label or number; deviations: none
 
 - [ ] **T-02** — Privacy policy rework: the rest of D-05 — cards (3) to (14) in that order on
   `src/app/[lang]/privacy-policy/page.tsx`, with the "Last updated" date (D-04), the restructured

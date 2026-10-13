@@ -31,6 +31,19 @@ export const en = {
     description: "This policy explains what data the Rocha's Surf School app collects, why, how long we keep it, and which services handle it.",
     lastUpdatedLabel: "Last updated",
     lastUpdated: "October 12, 2026",
+    controller: {
+      title: "Who is responsible",
+      text: "Rocha's Surf School is responsible for your data. For any privacy question, contact the school.",
+      legalNameLabel: "Legal name",
+      cnpjLabel: "CNPJ",
+      whatsappLabel: "WhatsApp",
+    },
+    dpo: {
+      title: "Data protection contact (encarregado)",
+      text: "The encarregado is the communication channel between you, the school and the ANPD (Brazil's National Data Protection Authority).",
+      nameLabel: "Name",
+      emailLabel: "Email",
+    },
     collected: {
       title: "What we collect",
       intro: "We collect only what the app needs to work:",
@@ -88,11 +101,6 @@ export const en = {
     site: {
       title: "This website",
       text: "This website uses no cookies and has no tracking or analytics.",
-    },
-    controller: {
-      title: "Who is responsible",
-      text: "Rocha's Surf School is responsible for your data. For any privacy question, contact the school:",
-      contactLabel: "WhatsApp",
     },
   },
   accountDeletion: {

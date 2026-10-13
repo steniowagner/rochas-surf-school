@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ContentCard } from "@/components/content-card";
 import { ScreenIntro } from "@/components/screen-intro";
+import { getSchoolLegal } from "@/config/school-legal";
 import { getSchoolWhatsapp } from "@/config/school-whatsapp";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { hasLocale } from "@/i18n/locales";
@@ -34,6 +35,7 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
 
   const { privacyPolicy: policy } = await getDictionary(lang);
   const whatsapp = getSchoolWhatsapp();
+  const legal = getSchoolLegal();
 
   return (
     <>
@@ -46,6 +48,46 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
         {policy.lastUpdatedLabel}: {policy.lastUpdated}
       </p>
       <div className="flex flex-col gap-3">
+        <ContentCard title={policy.controller.title}>
+          <p>{policy.controller.text}</p>
+          <dl className="space-y-1">
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.controller.legalNameLabel}</dt>
+              <dd>{legal.legalName}</dd>
+            </div>
+            {legal.cnpj ? (
+              <div>
+                <dt className="ds-text-list-subtitle text-ink-2">{policy.controller.cnpjLabel}</dt>
+                <dd>{legal.cnpj}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.controller.whatsappLabel}</dt>
+              <dd>
+                <a href={whatsapp.href} className={LINK_CLASSES}>
+                  {whatsapp.formatted}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </ContentCard>
+        <ContentCard title={policy.dpo.title}>
+          <p>{policy.dpo.text}</p>
+          <dl className="space-y-1">
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.dpo.nameLabel}</dt>
+              <dd>{legal.dpoName}</dd>
+            </div>
+            <div>
+              <dt className="ds-text-list-subtitle text-ink-2">{policy.dpo.emailLabel}</dt>
+              <dd>
+                <a href={`mailto:${legal.dpoEmail}`} className={LINK_CLASSES}>
+                  {legal.dpoEmail}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </ContentCard>
         <ContentCard title={policy.collected.title}>
           <p>{policy.collected.intro}</p>
           <ul className="list-disc space-y-1 pl-5">
@@ -84,15 +126,6 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
         </ContentCard>
         <ContentCard title={policy.site.title}>
           <p>{policy.site.text}</p>
-        </ContentCard>
-        <ContentCard title={policy.controller.title}>
-          <p>{policy.controller.text}</p>
-          <p>
-            {policy.controller.contactLabel}:{" "}
-            <a href={whatsapp.href} className={LINK_CLASSES}>
-              {whatsapp.formatted}
-            </a>
-          </p>
         </ContentCard>
       </div>
     </>

@@ -17,8 +17,16 @@ redirect (307) to the same path under the language picked from the browser's `Ac
 
 ## Configuration
 
-`SCHOOL_WHATSAPP_NUMBER` — the school's WhatsApp number in E.164 (e.g. `+5585999999999`). Required at build
-time: `next build` fails when it is missing or invalid. Copy `.env.example` to `.env`.
+All variables are server-only and read at build time: `next build` fails, naming the variable, when a required
+one is missing or invalid. Copy `.env.example` to `.env`.
+
+| Variable | Required | What |
+| --- | --- | --- |
+| `SCHOOL_WHATSAPP_NUMBER` | yes | The school's WhatsApp number in E.164 (e.g. `+5585999999999`) |
+| `SCHOOL_LEGAL_NAME` | yes | The school's legal name, shown as the controller in the privacy policy |
+| `SCHOOL_CNPJ` | no | The CNPJ (14 digits, `.` `/` `-` allowed, check digits validated); shown as `00.000.000/0000-00`. Unset or empty: no CNPJ line |
+| `DPO_NAME` | yes | Name of the data protection contact (encarregado) |
+| `DPO_EMAIL` | yes | Email of the encarregado, shown as a `mailto:` link |
 
 ## Run
 

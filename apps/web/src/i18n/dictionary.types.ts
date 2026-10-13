@@ -24,13 +24,14 @@ export type Dictionary = {
     description: string;
     lastUpdatedLabel: string;
     lastUpdated: string;
+    controller: { title: string; text: string; legalNameLabel: string; cnpjLabel: string; whatsappLabel: string };
+    dpo: { title: string; text: string; nameLabel: string; emailLabel: string };
     collected: { title: string; intro: string; items: string[] };
     purposes: { title: string; items: string[] };
     retention: { title: string; items: string[] };
     services: { title: string; intro: string; items: string[] };
     rights: { title: string; text: string; deletionLink: string };
     site: { title: string; text: string };
-    controller: { title: string; text: string; contactLabel: string };
   };
   accountDeletion: {
     metaTitle: string;

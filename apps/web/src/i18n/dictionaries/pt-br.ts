@@ -31,6 +31,19 @@ export const ptBr = {
     description: "Esta política explica quais dados o app da Rocha's Surf School coleta, por que, por quanto tempo os guardamos e quais serviços os tratam.",
     lastUpdatedLabel: "Última atualização",
     lastUpdated: "12 de outubro de 2026",
+    controller: {
+      title: "Quem é o responsável",
+      text: "A Rocha's Surf School é a responsável pelos seus dados. Para qualquer dúvida sobre privacidade, fale com a escola.",
+      legalNameLabel: "Razão social",
+      cnpjLabel: "CNPJ",
+      whatsappLabel: "WhatsApp",
+    },
+    dpo: {
+      title: "Encarregado pela proteção de dados",
+      text: "O encarregado é o canal de comunicação entre você, a escola e a ANPD (Autoridade Nacional de Proteção de Dados).",
+      nameLabel: "Nome",
+      emailLabel: "E-mail",
+    },
     collected: {
       title: "O que coletamos",
       intro: "Coletamos apenas o que o app precisa para funcionar:",
@@ -88,11 +101,6 @@ export const ptBr = {
     site: {
       title: "Este site",
       text: "Este site não usa cookies, não tem rastreamento nem análise de acessos.",
-    },
-    controller: {
-      title: "Quem é o responsável",
-      text: "A Rocha's Surf School é a responsável pelos seus dados. Para qualquer dúvida sobre privacidade, fale com a escola:",
-      contactLabel: "WhatsApp",
     },
   },
   accountDeletion: {

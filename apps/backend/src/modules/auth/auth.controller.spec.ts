@@ -21,6 +21,8 @@ import { ResendEmailProvider } from './resend.email.js';
 import { PrismaRulesVersionProvider } from './rules-version.prisma.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
+import { NotificationsPushTokenRemover } from '../notifications/notifications.push-token-remover.js';
+import { NotificationsRegistrationNotifier } from '../notifications/notifications.registration-notifier.js';
 import { PrismaUserRepository } from './user.prisma.js';
 
 const NOW = new Date('2026-10-07T12:00:00.000Z');
@@ -105,6 +107,8 @@ function setup(
       return { sub: 'sub-1', email: 'Bia@Example.com', emailVerified: true, name: 'Bia Souza' };
     }),
   };
+  const registrationNotifier = { registrationPending: vi.fn().mockResolvedValue(undefined) };
+  const pushTokenRemover = { remove: vi.fn().mockResolvedValue(undefined) };
   const controller = new AuthController(
     { reviewCodes, refreshTokenTtlDays: 30 } as AuthConfig,
     signInCodeRepository as unknown as PrismaSignInCodeRepository,
@@ -117,9 +121,13 @@ function setup(
     tokenProvider as unknown as JwtTokenProvider,
     { getCurrentVersion: vi.fn(async () => rulesVersion) } as unknown as PrismaRulesVersionProvider,
     googleIdTokenProvider as unknown as GoogleAuthIdTokenProvider,
+    registrationNotifier as unknown as NotificationsRegistrationNotifier,
+    pushTokenRemover as unknown as NotificationsPushTokenRemover,
   );
   return {
     controller,
+    registrationNotifier,
+    pushTokenRemover,
     codes,
     emailProvider,
     identities,
@@ -230,7 +238,7 @@ describe('AuthController', () => {
     });
 
     it('passes the name for a new account', async () => {
-      const { controller, emailProvider } = setup();
+      const { controller, emailProvider, registrationNotifier } = setup();
       await controller.requestSignInCode({ email: 'bia@example.com' });
       const code = (emailProvider.sendSignInCode.mock.calls[0]![0] as { code: string }).code;
 
@@ -241,6 +249,10 @@ describe('AuthController', () => {
       });
 
       expect(result.user).toMatchObject({ name: 'Bia Souza', status: 'pending', role: 'student' });
+      expect(registrationNotifier.registrationPending).toHaveBeenCalledWith({
+        id: result.user.id,
+        name: 'Bia Souza',
+      });
     });
 
     it('answers signInCode.code.invalid when there is no body', async () => {
@@ -267,10 +279,14 @@ describe('AuthController', () => {
     });
 
     it('runs SignInWithGoogle with StartSession and the configured TTL', async () => {
-      const { controller, identities, refreshTokens } = setup();
+      const { controller, identities, refreshTokens, registrationNotifier } = setup();
 
       const result = await controller.signInWithGoogle({ idToken: 'google-token' });
 
+      expect(registrationNotifier.registrationPending).toHaveBeenCalledWith({
+        id: result.user.id,
+        name: 'Bia Souza',
+      });
       expect(result).toMatchObject({
         accessToken: 'access',
         refreshToken: 'refresh',
@@ -576,6 +592,23 @@ describe('AuthController', () => {
       await expect(controller.signOut({ refreshToken: 'refresh' })).resolves.toBeUndefined();
 
       expect(refreshTokenRepositoryOf(controller).revokeFamily).toHaveBeenCalledWith(familyId, NOW);
+    });
+
+    it('passes the push token to SignOut, which removes it for the token owner', async () => {
+      const { controller, refreshTokens, pushTokenRemover } = setup();
+      const userId = randomUUID();
+      refreshTokens.push(
+        new RefreshToken({
+          userId,
+          tokenHash: 'f'.repeat(64),
+          familyId: randomUUID(),
+          expiresAt: new Date('2026-11-06T12:00:00.000Z'),
+        }),
+      );
+
+      await controller.signOut({ refreshToken: 'refresh', pushToken: 'ExponentPushToken[abc]' });
+
+      expect(pushTokenRemover.remove).toHaveBeenCalledWith(userId, 'ExponentPushToken[abc]');
     });
 
     it('answers refreshToken.token.required when there is no body', async () => {

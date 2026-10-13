@@ -36,6 +36,8 @@ import { ResendEmailProvider } from './resend.email.js';
 import { PrismaRulesVersionProvider } from './rules-version.prisma.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
+import { NotificationsPushTokenRemover } from '../notifications/notifications.push-token-remover.js';
+import { NotificationsRegistrationNotifier } from '../notifications/notifications.registration-notifier.js';
 import { PrismaUserRepository } from './user.prisma.js';
 
 @Controller('auth')
@@ -52,6 +54,8 @@ export class AuthController {
     private readonly tokenProvider: JwtTokenProvider,
     private readonly rulesVersionProvider: PrismaRulesVersionProvider,
     private readonly googleIdTokenProvider: GoogleAuthIdTokenProvider,
+    private readonly registrationNotifier: NotificationsRegistrationNotifier,
+    private readonly pushTokenRemover: NotificationsPushTokenRemover,
   ) {}
 
   @Public()
@@ -90,6 +94,7 @@ export class AuthController {
       startSession,
       this.authConfig.refreshTokenTtlDays,
       this.rulesVersionProvider,
+      this.registrationNotifier,
     );
     return useCase.execute({
       email: body?.email as string,
@@ -116,6 +121,7 @@ export class AuthController {
       startSession,
       this.authConfig.refreshTokenTtlDays,
       this.rulesVersionProvider,
+      this.registrationNotifier,
     );
     return useCase.execute({ idToken: body?.idToken as string, name: body?.name });
   }
@@ -169,8 +175,14 @@ export class AuthController {
   @Post('sign-out')
   @HttpCode(HttpStatus.NO_CONTENT)
   signOut(@Body() body: SignOutIn | undefined): Promise<void> {
-    return new SignOut(this.refreshTokenRepository, this.tokenProvider, this.clock).execute({
+    return new SignOut(
+      this.refreshTokenRepository,
+      this.tokenProvider,
+      this.clock,
+      this.pushTokenRemover,
+    ).execute({
       refreshToken: body?.refreshToken as string,
+      pushToken: body?.pushToken,
     });
   }
 }

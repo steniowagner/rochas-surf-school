@@ -432,7 +432,7 @@ translated), or the fallback when there is none.
   > verified: `npx vitest run src/modules/notifications` (all pass); both files 100% lines/statements/functions, the only uncovered branch is the known decorator-metadata one on the class line
   > deviations: none
 
-- [ ] **T-11** — Wire `auth` to notifications: `NotificationsRegistrationNotifier` (implements
+- [x] **T-11** — Wire `auth` to notifications: `NotificationsRegistrationNotifier` (implements
   `RegistrationNotifier` with `NotifyApprovedAdmins` / `Notify`, catching and logging every error, D-05) and
   `NotificationsPushTokenRemover` (implements `PushTokenRemover` with `RemovePushToken`) in
   `apps/backend/src/modules/notifications/`, exported by `NotificationsModule`; `AuthModule` imports it, and
@@ -442,6 +442,9 @@ translated), or the fallback when there is none.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-03, ER-04, ER-05, ER-06, ER-07 · Done when: `npx vitest run src/modules` (from `apps/backend`) passes
   and `npx turbo run check-types --filter=@rochas-surf-school/backend` exits 0.
+  > ✅ 2026-10-12 21:11 — files: `apps/backend/src/modules/notifications/{notifications.registration-notifier.ts,notifications.push-token-remover.ts,notifications.module.ts}` + specs, `apps/backend/src/modules/auth/{auth.module.ts,auth.controller.ts,registrations.controller.ts}` + `auth.controller.spec.ts`, `registrations.controller.spec.ts`
+  > verified: `npx vitest run src/modules` from apps/backend (196 passed); `npx turbo run check-types --filter=@rochas-surf-school/backend` exits 0
+  > deviations: `ExpoPushProvider` and the notifier/remover are providers of `NotificationsModule` (the notifier/remover exported); the `NotificationsController` import in the module still points at the T-01 placeholder until T-12
 
 - [ ] **T-12** — `NotificationsController` (`apps/backend/src/modules/notifications/notifications.controller.ts`:
   `PUT /notifications/push-token`, protected, `@HttpCode(204)`, actor from `@CurrentUser()`) with its spec and

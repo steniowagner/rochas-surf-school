@@ -11,4 +11,10 @@ export type Dictionary = {
   footer: {
     text: string;
   };
+  home: {
+    title: string;
+    description: string;
+    privacyPolicy: { title: string; description: string };
+    accountDeletion: { title: string; description: string };
+  };
 };

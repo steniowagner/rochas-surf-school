@@ -250,13 +250,25 @@ goes away in the same change.
   > `/en`; `fr-FR`, `de`, no header → `/pt-br…`; `pt-PT` → `/pt-br/…`; `/es` and `/en` → 200, `/fr` → 404,
   > `<html lang="es">` on `/es`; deviations: none
 
-- [ ] **T-03** — Shared layout and home page: components `site-header` (brand tile linking to `/{lang}` +
+- [x] **T-03** — Shared layout and home page: components `site-header` (brand tile linking to `/{lang}` +
   `language-picker`), `language-picker` (`<details>` pill and list, D-09a), `screen-intro`, `content-card` and
   `link-row` under `src/components/`, each per `.claude/rules/react.md`; the header in `[lang]/layout.tsx`; and
   `src/app/[lang]/page.tsx` with the home content (D-09f) and its strings in the three dictionaries.
   Covers: ER-04, ER-06, ER-08 · Done when: in the browser, `/es` shows the home in Spanish with both rows, the
   picker switches to `/en` and `/pt-br` (also with JavaScript off), and at 375px there is no horizontal scroll
   and the pill, its options and the rows are at least 44px tall.
+  > ✅ 2026-10-12 — header (brand tile → `/{lang}`, `<details>` language pill whose options keep the current path;
+  > the hook reads `usePathname`, so the only client component is the picker), `ScreenIntro`, `ContentCard`,
+  > `LinkRow`, the layout's 640px centered column with 20px margin, header and footer, and the home page with its
+  > strings in the three dictionaries (replacing T-02's placeholder); files:
+  > `apps/web/src/components/{site-header,language-picker,screen-intro,content-card,link-row}/*` (component,
+  > types, index; the picker also has its hook), `apps/web/src/app/[lang]/{layout.tsx,page.tsx}`,
+  > `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`; verified:
+  > `check-types`, `lint`, `build` pass; browser at 375×812 (dark): `/es` → `scrollWidth` 375 = `innerWidth`, no
+  > `a, button, summary` under 44px with the picker open; the picker's English option opens `/en` with `<html
+  > lang="en">`, English texts, rows linking `/en/privacy-policy` and `/en/account-deletion`, and the check on
+  > English; the no-JavaScript case rests on the native `<details>` and plain anchors (the server HTML carries
+  > all three hrefs, seen with curl); deviations: none
 
 - [ ] **T-04** — Privacy policy page: `src/app/[lang]/privacy-policy/page.tsx` (with `generateMetadata`) built
   from `ScreenIntro` (`ShieldCheck`) and content cards, and the full policy copy of ER-01 in

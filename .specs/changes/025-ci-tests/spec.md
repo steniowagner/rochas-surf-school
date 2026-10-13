@@ -249,12 +249,22 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
 
 ### Infra (repo root, `.github/`)
 
-- [ ] **T-05** — Add `test` (`dependsOn: ["^build"]`, `outputs: ["coverage/**"]`) and `test:e2e`
+- [x] **T-05** — Add `test` (`dependsOn: ["^build"]`, `outputs: ["coverage/**"]`) and `test:e2e`
   (`dependsOn: ["^build"]`, `cache: false`) tasks to `turbo.json`; add `pretest` and `pretest:e2e`
   (`prisma generate`) to `apps/backend/package.json`. Covers: enabling · Done when: after
   `rm -rf packages/shared/dist modules/*/dist apps/backend/src/generated`,
   `npx turbo run test --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile --filter=@rochas-surf-school/web`
   passes.
+  > ✅ 2026-10-13 12:35 — added the `test` and `test:e2e` Turbo tasks and the backend `pretest` / `pretest:e2e`
+  > (`prisma generate`); files: `turbo.json`, `apps/backend/package.json`, `modules/auth/package.json`,
+  > `package-lock.json`; verified: after removing `packages/shared/dist`, `modules/*/dist` and
+  > `apps/backend/src/generated`, `npx turbo run test --filter=@rochas-surf-school/backend
+  > --filter=@rochas-surf-school/mobile --filter=@rochas-surf-school/web --force` ran 9 tasks successfully (web 21,
+  > backend 247, mobile 897 tests passed) and again from the cache after deleting the outputs;
+  > deviations: (1) `build` outputs gain `dist/**` — without it a Turbo cache hit skipped the build and left
+  > `shared/dist` missing, so the mobile Jest run failed; (2) `modules/auth` imports `@rochas-surf-school/shared`
+  > but didn't declare it, so Turbo built it in parallel with `shared` and failed: declared it as a dependency,
+  > as its sibling modules do (this also makes `shared` changes affect `auth` in `turbo ls --affected`)
 
 - [ ] **T-06** — Write `.github/scripts/affected.mjs`: reads the changed files (`git diff --name-only
   <base>...HEAD`, base from `--base`, else `TURBO_SCM_BASE`, else the event: the PR base ref, or the push's

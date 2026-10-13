@@ -82,12 +82,13 @@ the system's color scheme until they choose, and the choice is kept across pages
   Covers: ER-01, ER-02, ER-03 · Done when: `npx turbo run lint check-types --filter=@rochas-surf-school/web`
   passes.
   > ✅ 2026-10-13 — added `ThemeToggle` (button with `Sun`/`Moon`, 44px, tokens), hook flipping `data-theme` and writing `localStorage` in try/catch, CSS icon swap, `header.themeLabel` in the dictionaries; files: `apps/web/src/components/theme-toggle/{index.ts,theme-toggle.component.tsx,theme-toggle.hook.ts,theme-toggle.types.ts}`, `apps/web/src/app/globals.css`, `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/{en,es,pt-br}.ts`; verified: `npx turbo run lint check-types --filter=@rochas-surf-school/web` (4 tasks successful); deviations: none
-- [ ] **T-02** — In `src/app/[lang]/layout.tsx`, add the inline `<head>` script that validates the stored value
+- [x] **T-02** — In `src/app/[lang]/layout.tsx`, add the inline `<head>` script that validates the stored value
   and sets `data-theme`, and `suppressHydrationWarning` on `<html>`. Render `ThemeToggle` in
   `src/components/site-header/site-header.component.tsx` next to `LanguagePicker`, with its label passed from the
   dictionary (update `site-header.types.ts`).
   Covers: ER-01, ER-03 · Done when: with the dev server running, the toggle appears in the header on `/en` and
   its choice survives a reload without a flash.
+  > ✅ 2026-10-13 — added the pre-paint `<head>` script (validates `light`/`dark`, sets `data-theme`) and `suppressHydrationWarning` to `<html>`; `ThemeToggle` rendered in `SiteHeader` beside `LanguagePicker`, label from `header.themeLabel`; files: `apps/web/src/app/[lang]/layout.tsx`, `apps/web/src/components/site-header/site-header.component.tsx`, `apps/web/src/components/site-header/site-header.types.ts`; verified: lint + check-types pass; dev server in the browser (dark OS): toggle shows on `/en` with a 44×44 target, click flips light/dark and icon, the choice survives navigation to `/pt-br/privacy-policy` with `data-theme` already set on load, an invalid stored value falls back to the OS scheme; deviations: none
 
 ### Verification
 

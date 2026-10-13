@@ -377,23 +377,32 @@ onboarding WhatsApp and school rules keys) keep their text.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Create `modules/auth/src/user/usecase/set-name.usecase.ts` (`SetName`, `SetNameIn
+- [x] **T-01** — Create `modules/auth/src/user/usecase/set-name.usecase.ts` (`SetName`, `SetNameIn
   { userId, name }`, `SetNameOut = AccountOut`; D-07) exported from the barrel, with
   `modules/auth/test/user/usecase/set-name.usecase.test.ts` covering the trim, every error of D-07 and that only
   the name changes.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01 · Done when: `npm test --workspace @rochas-surf-school/auth` and
   `npm run check-types --workspace @rochas-surf-school/auth` pass, the new file at 100% coverage.
+  > ✅ 2026-10-13 16:41 — Added `SetName` use case (trim, status/exists checks, entity validation) and its tests;
+  > files: `modules/auth/src/user/usecase/set-name.usecase.ts`, `modules/auth/src/user/usecase/index.ts`,
+  > `modules/auth/test/user/usecase/set-name.usecase.test.ts`; verified: `npm test` in modules/auth (331 passed,
+  > set-name.usecase.ts 100% stmts/branch/funcs/lines), `npm run check-types` exit 0; deviations: none
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-02** — Create `modules/notifications/src/push-token/usecase/unregister-push-token.usecase.ts`
+- [x] **T-02** — Create `modules/notifications/src/push-token/usecase/unregister-push-token.usecase.ts`
   (`UnregisterPushToken`; D-11) exported from the barrel, with
   `modules/notifications/test/push-token/usecase/unregister-push-token.usecase.test.ts` (own token deleted,
   another account's kept, unknown token, missing / empty / non-string token → 422).
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02 · Done when: `npm test --workspace @rochas-surf-school/notifications` and its `check-types` pass,
   the new file at 100% coverage.
+  > ✅ 2026-10-13 16:41 — Added `UnregisterPushToken` use case and its tests; files:
+  > `modules/notifications/src/push-token/usecase/unregister-push-token.usecase.ts`,
+  > `modules/notifications/src/push-token/usecase/index.ts`,
+  > `modules/notifications/test/push-token/usecase/unregister-push-token.usecase.test.ts`; verified: `npm test`
+  > in modules/notifications (86 passed, new file 100% coverage), `npm run check-types` exit 0; deviations: none
 
 ### Backend (`apps/backend`)
 

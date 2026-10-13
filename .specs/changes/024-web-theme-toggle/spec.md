@@ -3,7 +3,7 @@ id: "024"
 slug: web-theme-toggle
 title: Theme toggle in the web header
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-13
 started: 2026-10-13
 base_commit: b873515f3b0042c413a1d700245add6b4735513d
@@ -92,8 +92,9 @@ the system's color scheme until they choose, and the choice is kept across pages
 
 ### Verification
 
-- [ ] **T-03** — Run every command in the Verification Plan from the repo root; all pass, and check ER-01 to
+- [x] **T-03** — Run every command in the Verification Plan from the repo root; all pass, and check ER-01 to
   ER-03 in a browser. Record the output summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-13 — ran the Verification Plan; files: none; verified: `run-related-tests.mjs 024` (RELATED TESTS PASSED; apps/web has no runner), `check-coverage.mjs 024` (COVERAGE OK, web excluded by technical context), `npx turbo run lint check-types build --filter=@rochas-surf-school/web` (7 tasks successful); browser, dark OS: no stored value → dark page, moon, no `data-theme`; click → light + sun, again → dark + moon, `aria-label` "Toggle theme" / "Cambiar tema" / "Alternar tema" on en / es / pt-br, 44×44 button; light chosen persists to `/pt-br/privacy-policy` and invalid stored value falls back to OS; light OS: clicking set dark, which persisted across reload; deviations: none
 
 ## Verification Plan
 

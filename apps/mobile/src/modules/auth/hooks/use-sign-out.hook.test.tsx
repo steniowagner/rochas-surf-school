@@ -4,6 +4,10 @@ import { act, renderHook } from "@testing-library/react-native";
 import { ReactNode } from "react";
 
 import { SessionProvider, useSession } from "@/providers/session";
+import {
+  clearRegisteredPushToken,
+  setRegisteredPushToken,
+} from "@/services/push/push.service";
 
 import { useSignOut } from "./use-sign-out.hook";
 
@@ -55,6 +59,7 @@ const renderSignedIn = async (signedIn = true) => {
 };
 
 beforeEach(() => {
+  clearRegisteredPushToken();
   queryClient = new QueryClient();
   fetchMock.mockReset();
   jest.mocked(GoogleSignin.signOut).mockReset().mockResolvedValue(null);
@@ -89,6 +94,23 @@ describe("useSignOut", () => {
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ refreshToken: "rt-1" }),
+      }),
+    );
+  });
+
+  it("sends the registered push token to sign-out", async () => {
+    setRegisteredPushToken("ExponentPushToken[abc]");
+    const { result } = await renderSignedIn();
+
+    await act(async () => result.current.signOut.signOut());
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/auth/sign-out",
+      expect.objectContaining({
+        body: JSON.stringify({
+          refreshToken: "rt-1",
+          pushToken: "ExponentPushToken[abc]",
+        }),
       }),
     );
   });

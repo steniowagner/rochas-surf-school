@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './shared/auth/jwt-auth.guard.js';
 import { ApiExceptionFilter } from './shared/errors/api-exception.filter.js';
 import { SchoolRulesModule } from './modules/school-rules/school-rules.module.js';
 import { SchoolSettingsModule } from './modules/school-settings/school-settings.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { SchoolSettingsModule } from './modules/school-settings/school-settings.
     AuthModule,
     SchoolRulesModule,
     SchoolSettingsModule,
+    NotificationsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

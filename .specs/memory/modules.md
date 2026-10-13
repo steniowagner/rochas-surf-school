@@ -4,8 +4,9 @@ This file is the **header of the business modules** of "Rocha's Surf School": a 
 overview of what each module does and why it exists. The details of the concepts and business rules of each
 module live in their own markdown inside `modules/`.
 
-The product has **three business modules** so far: **Authentication**, **School rules** and **School settings**. The other areas of the product
-(scheduling, enrolment, ratings and photos, notifications) enter as new modules when their specs are planned.
+The product has **four business modules** so far: **Authentication**, **School rules**, **School settings** and
+**Notifications**. The other areas of the product (scheduling, enrolment, ratings and photos) enter as new modules
+when their specs are planned.
 Email delivery is treated as **infrastructure**, not as a business module.
 
 ---
@@ -44,6 +45,19 @@ denied or removed account can still contact the school. The waiting-list switch 
 
 - Where it physically lives: `modules/school-settings`
 - Business details: [modules/school-settings.md](modules/school-settings.md)
+
+---
+
+## Notifications
+
+The product's only way to reach people outside the app: it keeps every notification for the person it is for,
+then pushes it to each phone they are signed in on, in that phone's language. It knows the people only by their
+ids and the phones they registered; who must be told what, and when, is decided by the module where the event
+happens (Authentication, for registrations), which reaches it through abstract contracts. Today it carries the
+three registration notifications; nothing shows the stored notifications yet.
+
+- Where it physically lives: `modules/notifications`
+- Business details: [modules/notifications.md](modules/notifications.md)
 
 ---
 

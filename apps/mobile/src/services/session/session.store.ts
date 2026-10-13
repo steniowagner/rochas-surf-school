@@ -1,6 +1,10 @@
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 
 import { rawRequest } from "../api/api.request";
+import {
+  clearRegisteredPushToken,
+  getRegisteredPushToken,
+} from "../push/push.service";
 
 import { clearStoredSession, writeStoredSession } from "./session.storage";
 import type { Session } from "./session.types";
@@ -108,13 +112,16 @@ export const acknowledgeExpired = () => {
 
 /**
  * Clears the session at once, then tells the backend with the newest refresh token: the one a running refresh
- * produced, so the backend never sees a reused token nor leaves the rotated one alive (D-10).
+ * produced, so the backend never sees a reused token nor leaves the rotated one alive (D-10). The push token this
+ * phone registered goes in the same request, so the backend stops pushing to it (spec 020, D-13).
  */
 export const signOut = async (): Promise<void> => {
   const refreshToken = state.session?.tokens.refreshToken;
   const inFlight = refreshInFlight;
+  const pushToken = getRegisteredPushToken();
 
   clearSession();
+  clearRegisteredPushToken();
 
   if (!refreshToken) {
     return;
@@ -130,7 +137,8 @@ export const signOut = async (): Promise<void> => {
     }
   }
 
-  await rawRequest("POST", "/auth/sign-out", { refreshToken: newest }).catch(
-    () => {},
-  );
+  await rawRequest("POST", "/auth/sign-out", {
+    refreshToken: newest,
+    ...(pushToken ? { pushToken } : {}),
+  }).catch(() => {});
 };

@@ -10,7 +10,11 @@ import {
   USER_STATUSES,
   UserStatus,
 } from "../../../src";
-import { FakeClockProvider, FakeUserRepository } from "../../mock";
+import {
+  FakeClockProvider,
+  FakeRegistrationNotifier,
+  FakeUserRepository,
+} from "../../mock";
 
 const NOW = new Date("2026-10-12T15:00:00.000Z");
 const admin = { id: "admin-id", role: "admin", status: "approved" } as const;
@@ -28,9 +32,10 @@ function buildUser(status: UserStatus = "pending"): User {
 function setup(user?: User) {
   const repository = new FakeUserRepository(user ? [user] : []);
   const updateIfPending = jest.spyOn(repository, "updateIfPending");
-  const useCase = new DenyRegistration(repository, new FakeClockProvider(NOW));
+  const notifier = new FakeRegistrationNotifier();
+  const useCase = new DenyRegistration(repository, new FakeClockProvider(NOW), notifier);
 
-  return { repository, updateIfPending, useCase };
+  return { repository, updateIfPending, notifier, useCase };
 }
 
 async function deny(reason: unknown) {
@@ -166,5 +171,52 @@ describe("DenyRegistration", () => {
     ).rejects.toThrow(new ConflictError("registration.status.notPending"));
     expect(repository.users[0].status).toBe("approved");
     expect(repository.users[0].denialReason).toBeUndefined();
+  });
+
+  test("tells the person with the trimmed reason, or without one", async () => {
+    const bruno = buildUser();
+    const { notifier, useCase } = setup(bruno);
+    await useCase.execute({
+      actor: admin,
+      registrationId: bruno.id,
+      reason: "  Não conhecemos você.  ",
+    });
+    expect(notifier.denied).toEqual([{ userId: bruno.id, reason: "Não conhecemos você." }]);
+
+    for (const reason of [undefined, null, "   "]) {
+      const other = buildUser();
+      const ctx = setup(other);
+      await ctx.useCase.execute({ actor: admin, registrationId: other.id, reason });
+      expect(ctx.notifier.denied).toEqual([{ userId: other.id, reason: undefined }]);
+    }
+  });
+
+  test("tells nobody when the denial is refused, invalid, not found or lost", async () => {
+    const bruno = buildUser();
+    const { repository, notifier, useCase } = setup(bruno);
+
+    await expect(
+      useCase.execute({
+        actor: { id: "s", role: "student", status: "approved" },
+        registrationId: bruno.id,
+      }),
+    ).rejects.toThrow(ForbiddenError);
+    await expect(
+      useCase.execute({ actor: admin, registrationId: bruno.id, reason: 5 }),
+    ).rejects.toThrow(ValidationException);
+    await expect(
+      useCase.execute({ actor: admin, registrationId: "abc" }),
+    ).rejects.toThrow(NotFoundError);
+    const findById = repository.findById.bind(repository);
+    jest.spyOn(repository, "findById").mockImplementation(async (id) => {
+      const found = await findById(id);
+      repository.users[0] = bruno.clone({ status: "approved" });
+      return found;
+    });
+    await expect(
+      useCase.execute({ actor: admin, registrationId: bruno.id, reason: "x" }),
+    ).rejects.toThrow(ConflictError);
+
+    expect(notifier.denied).toEqual([]);
   });
 });

@@ -178,11 +178,15 @@ Admins SHALL approve or deny each pending registration. When denying, the admin 
 
 #### Admins are told about new registrations
 
-The system SHALL notify admins when a new registration is waiting for approval.
+_Implemented in spec 020-push-notifications-registrations._
 
-- _Someone signs up:_ When a new account starts waiting for approval, then every admin is notified.
+The system SHALL notify admins when a new registration is waiting for approval. Only approved admins are notified; an account with the admin role that is still pending, or is closed, is not.
+
+- _Someone signs up:_ When a new account starts waiting for approval, then every approved admin is notified.
 
 #### People are told the result of their registration
+
+_Implemented in spec 020-push-notifications-registrations._
 
 The system SHALL notify a person when their registration is approved or denied, including the reason when one was given.
 
@@ -474,6 +478,8 @@ Users need to hear about approvals, enrolments and class changes, and to use the
 Delivers every notification as a push and keeps it on an in-app notifications screen, and lets admins broadcast messages to groups of users.
 
 #### Push delivery
+
+_Implemented in spec 020-push-notifications-registrations._
 
 The system SHALL deliver notifications as pushes to the user's phone. It SHALL NOT send notifications by email or WhatsApp.
 

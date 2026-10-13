@@ -3,6 +3,7 @@ import { Identity, IdentityRepository } from "../../identity";
 import { StartSession, StartSessionOut } from "../../session";
 import {
   AccountOut,
+  RegistrationNotifier,
   RulesVersionProvider,
   User,
   UserRepository,
@@ -38,6 +39,7 @@ export class VerifySignInCode
     private readonly startSession: StartSession,
     private readonly refreshTokenTtlDays: number,
     private readonly rulesVersionProvider: RulesVersionProvider,
+    private readonly registrationNotifier: RegistrationNotifier,
   ) {}
 
   async execute(input: VerifySignInCodeIn): Promise<VerifySignInCodeOut> {
@@ -71,6 +73,12 @@ export class VerifySignInCode
       await this.userRepository.create(user);
     }
     await this.ensureEmailIdentity(user);
+    if (!existingUser) {
+      await this.registrationNotifier.registrationPending({
+        id: user.id,
+        name: user.name,
+      });
+    }
 
     const session = await this.startSession.execute({
       user: { id: user.id, email: user.email },

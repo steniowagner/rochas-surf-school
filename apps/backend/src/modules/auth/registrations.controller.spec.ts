@@ -8,6 +8,7 @@ import { User } from '@rochas-surf-school/auth';
 import { ForbiddenError } from '@rochas-surf-school/shared';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import { NotificationsRegistrationNotifier } from '../notifications/notifications.registration-notifier.js';
 import { RegistrationsController } from './registrations.controller.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaUserRepository } from './user.prisma.js';
@@ -50,11 +51,16 @@ function setup(pending: User[] = [pendingUser()]) {
     updateIfPending: vi.fn(async () => true),
   };
   const clock = { now: () => NOW } as unknown as SystemClockProvider;
+  const registrationNotifier = {
+    registrationApproved: vi.fn().mockResolvedValue(undefined),
+    registrationDenied: vi.fn().mockResolvedValue(undefined),
+  };
   const controller = new RegistrationsController(
     repository as unknown as PrismaUserRepository,
     clock,
+    registrationNotifier as unknown as NotificationsRegistrationNotifier,
   );
-  return { controller, repository, pending };
+  return { controller, repository, pending, registrationNotifier };
 }
 
 describe('RegistrationsController', () => {
@@ -100,20 +106,22 @@ describe('RegistrationsController', () => {
   });
 
   it('approves a registration', async () => {
-    const { controller, pending } = setup();
+    const { controller, pending, registrationNotifier } = setup();
 
     await expect(controller.approve(ADMIN, pending[0].id)).resolves.toEqual({
       id: pending[0].id,
       status: 'approved',
     });
+    expect(registrationNotifier.registrationApproved).toHaveBeenCalledWith(pending[0].id);
   });
 
   it('denies a registration with the body reason', async () => {
-    const { controller, pending, repository } = setup();
+    const { controller, pending, repository, registrationNotifier } = setup();
 
     await expect(
       controller.deny(ADMIN, pending[0].id, { reason: ' no ' }),
     ).resolves.toEqual({ id: pending[0].id, status: 'denied' });
+    expect(registrationNotifier.registrationDenied).toHaveBeenCalledWith(pending[0].id, 'no');
 
     const stored = (
       repository.updateIfPending.mock.calls[0] as unknown as [User]

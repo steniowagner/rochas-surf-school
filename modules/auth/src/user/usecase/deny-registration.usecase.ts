@@ -6,7 +6,7 @@ import {
 } from "@rochas-surf-school/shared";
 import { ClockProvider } from "../../sign-in-code/provider";
 import { UserStatus } from "../model";
-import { UserRepository } from "../provider";
+import { RegistrationNotifier, UserRepository } from "../provider";
 import {
   findPendingRegistration,
   REGISTRATION_NOT_PENDING,
@@ -35,6 +35,7 @@ export class DenyRegistration implements UseCase<
   constructor(
     private readonly userRepository: UserRepository,
     private readonly clock: ClockProvider,
+    private readonly registrationNotifier: RegistrationNotifier,
   ) {}
 
   async execute(input: DenyRegistrationIn): Promise<DenyRegistrationOut> {
@@ -45,9 +46,10 @@ export class DenyRegistration implements UseCase<
       input.registrationId,
     );
 
+    const reason = this.toReason(input.reason);
     const denied = user.clone({
       status: "denied",
-      denialReason: this.toReason(input.reason),
+      denialReason: reason,
       deniedAt: this.clock.now(),
     });
     denied.validate();
@@ -55,6 +57,8 @@ export class DenyRegistration implements UseCase<
     if (!(await this.userRepository.updateIfPending(denied))) {
       throw new ConflictError(REGISTRATION_NOT_PENDING);
     }
+
+    await this.registrationNotifier.registrationDenied(denied.id, reason);
 
     return { id: denied.id, status: denied.status };
   }

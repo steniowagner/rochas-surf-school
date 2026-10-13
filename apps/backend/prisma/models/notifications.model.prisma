@@ -1,0 +1,41 @@
+// Models of the notifications module (modules/notifications).
+// Tables and columns are snake_case in the database (@@map / @map).
+
+// A stored notification holds no text: `type` and `params` are enough for the app or the push to draw one.
+model Notification {
+  id        String   @id @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String
+  params    Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// One row per device: the token is the key, so a token registered by another account moves to it.
+model PushToken {
+  token     String   @id
+  userId    String   @map("user_id") @db.Uuid
+  locale    String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_tokens")
+}
+
+// Expo's ticket of an accepted message, kept until its receipt is checked; no foreign key to the token,
+// which may be deleted first.
+model PushTicket {
+  id        String   @id
+  token     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("push_tickets")
+}

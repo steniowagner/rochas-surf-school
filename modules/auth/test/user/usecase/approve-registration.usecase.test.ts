@@ -9,7 +9,7 @@ import {
   USER_STATUSES,
   UserStatus,
 } from "../../../src";
-import { FakeUserRepository } from "../../mock";
+import { FakeRegistrationNotifier, FakeUserRepository } from "../../mock";
 
 const admin = { id: "admin-id", role: "admin", status: "approved" } as const;
 
@@ -27,22 +27,25 @@ function buildUser(status: UserStatus = "pending"): User {
 function setup(user?: User) {
   const repository = new FakeUserRepository(user ? [user] : []);
   const updateIfPending = jest.spyOn(repository, "updateIfPending");
+  const notifier = new FakeRegistrationNotifier();
 
   return {
     repository,
     updateIfPending,
-    useCase: new ApproveRegistration(repository),
+    notifier,
+    useCase: new ApproveRegistration(repository, notifier),
   };
 }
 
 describe("ApproveRegistration", () => {
   test("approves a pending user and changes only the status", async () => {
     const ana = buildUser();
-    const { repository, useCase } = setup(ana);
+    const { repository, notifier, useCase } = setup(ana);
 
     await expect(
       useCase.execute({ actor: admin, registrationId: ana.id }),
     ).resolves.toEqual({ id: ana.id, status: "approved" });
+    expect(notifier.approved).toEqual([ana.id]);
 
     const stored = await repository.findById(ana.id);
     expect(stored?.status).toBe("approved");
@@ -116,5 +119,31 @@ describe("ApproveRegistration", () => {
       useCase.execute({ actor: admin, registrationId: ana.id }),
     ).rejects.toThrow(new ConflictError("registration.status.notPending"));
     expect(repository.users[0].status).toBe("denied");
+  });
+
+  test("tells nobody when the approval is refused, not found or lost", async () => {
+    const ana = buildUser();
+    const { repository, notifier, useCase } = setup(ana);
+
+    await expect(
+      useCase.execute({
+        actor: { id: "s", role: "student", status: "approved" },
+        registrationId: ana.id,
+      }),
+    ).rejects.toThrow(ForbiddenError);
+    await expect(
+      useCase.execute({ actor: admin, registrationId: "abc" }),
+    ).rejects.toThrow(NotFoundError);
+    const findById = repository.findById.bind(repository);
+    jest.spyOn(repository, "findById").mockImplementation(async (id) => {
+      const found = await findById(id);
+      repository.users[0] = ana.clone({ status: "denied" });
+      return found;
+    });
+    await expect(
+      useCase.execute({ actor: admin, registrationId: ana.id }),
+    ).rejects.toThrow(ConflictError);
+
+    expect(notifier.approved).toEqual([]);
   });
 });

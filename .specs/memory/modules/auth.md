@@ -56,8 +56,14 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   `registration.status.notPending`, and of two decisions sent at the same moment exactly one wins — the other is
   refused the same way and nothing is overwritten. An id that isn't a UUID or names no account →
   `registration.notFound`; a reason that isn't text → `registration.reason.invalid`; a reason over 500 characters →
-  `user.denialReason.max.length`. Nothing is written on any refusal. The person sees the decision at the next
-  launch, sign-in or session renewal; nobody is notified yet.
+  `user.denialReason.max.length`. Nothing is written on any refusal.
+- **A registration is announced and its decision is told**: when an account is created (by email code or by
+  Google) — never when an existing account signs in — every approved admin is notified that it is waiting; once
+  a decision is written, the person is notified of the approval, or of the denial with the trimmed reason (or
+  none). Nothing is notified on a refusal or on the decision that lost a race. Notifying happens after the
+  account or the decision is stored and never changes the answer: a failure is logged and the request succeeds
+  as before. The person who doesn't get the push still sees the decision at the next launch, sign-in or session
+  renewal.
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -119,6 +125,9 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **Signing out ends one sign-in**: it uses the refresh token, so it works after the access token expired; the
   account's other devices stay signed in. It always succeeds, and an unknown, expired or ended token changes
   nothing. A missing refresh token is refused with `refreshToken.token.required` (on renewal too).
+- **Signing out stops the pushes to that phone**: when the sign-out names the phone's push token and the refresh
+  token is known — active, ended or expired, since it proves whose phone it is — that token is removed if it
+  belongs to the same account; another account's token is never touched. The sign-out still always succeeds.
 - **On the phone, a session ends only two ways**: the person signs out, or the backend refuses to renew it. Being
   offline, a timeout, a server error or a throttled renewal never ends it. A renewal also brings the account as it
   is now, so the app follows a status or role change made meanwhile.
@@ -213,9 +222,12 @@ capability through an abstract contract. It knows nothing about token formats or
 tokens is behind its own contract, provided by the backend. The school rules themselves and their version belong to
 [School rules](school-rules.md), which also decides when an acceptance is allowed; this module keeps only the
 versions each account accepted and reports whether the current one is among them. Deciding registrations belongs
-here (spec 019), since a registration is a `pending` user. Deleting and removing accounts, erasure (denied
-registrations included), notifying admins of new registrations and reactivation requests, telling the person the
-result, and deciding reactivation requests are rules of the account lifecycle still to be specified.
+here (spec 019), since a registration is a `pending` user. It decides **when** a registration is announced or
+its result told, but doesn't store or push notifications: it calls two abstract contracts — one that notifies
+about registrations and one that removes a phone's push token on sign-out — provided by the backend with
+[Notifications](notifications.md), which doesn't depend on this module (spec 020). Deleting and removing
+accounts, erasure (denied registrations included), notifying admins of reactivation requests, and deciding
+reactivation requests are rules of the account lifecycle still to be specified.
 
 ## Spec history
 
@@ -264,3 +276,7 @@ result, and deciding reactivation requests are rules of the account lifecycle st
   approve or deny them (`POST /registrations/:id/approve|deny`, optional trimmed reason up to 500); a decision is
   final, written only while the account is still pending, so one of two concurrent decisions wins; the app's
   admin home "School tools" and its "Join the school" tool, built on reusable decision components.
+- `020-push-notifications-registrations` — a new account (email or Google) notifies every approved admin, and an
+  approval or denial (with its reason) notifies the person, through the `RegistrationNotifier` contract, after
+  the write and without changing the answer; sign-out takes the phone's push token and removes it through the
+  `PushTokenRemover` contract, for any known refresh token.

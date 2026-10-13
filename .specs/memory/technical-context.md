@@ -11,6 +11,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
 - Workspaces: `apps/*` (backend, mobile, web), `modules/*` (framework-free business modules),
   `packages/*` (`shared`, `design-tokens`, and Turbo's unused `eslint-config` / `typescript-config`).
 - Root scripts: `dev`, `build`, `lint`, `check-types` delegate to `turbo run <task>`; `format` runs Prettier.
+- Turbo tasks: `build` (outputs `.next/**` and `dist/**` — `dist/**` so a cache hit restores the built
+  `packages/shared` and `modules/*`, which the apps import from `dist/`), `lint`, `check-types`, `dev`, and since
+  spec 025 `test` (`dependsOn: ["^build"]`, outputs `coverage/**`) and `test:e2e` (`dependsOn: ["^build"]`,
+  `cache: false`). A workspace that imports another must declare it in its `package.json` so Turbo builds it
+  first and counts it in `--affected` (`modules/auth` declares `@rochas-surf-school/shared` since spec 025).
 - Language: **TypeScript 6** everywhere. Prettier for formatting; **oxlint** in the backend, **ESLint** in web
   and mobile.
 - `react`, `react-dom`, `@types/react` and `typescript` are pinned to Expo's versions through root `overrides`
@@ -84,15 +89,16 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   `@nestjs/schedule` 12 (scheduled work), `@nestjs/throttler` 6 (rate limits, see Authentication), the
   providers' SDKs behind domain ports (`resend` 6 for email, `expo-server-sdk` 7 for pushes; see External
   integrations).
-  Build with `nest build` (`prebuild` runs `prisma generate`). Lint with `oxlint --type-aware`. Tests with
+  Build with `nest build` (`prebuild`, `precheck-types`, `pretest` and `pretest:e2e` run `prisma generate`). Lint with `oxlint --type-aware`. Tests with
   **Vitest 4** — unit tests `src/**/*.spec.ts`, e2e tests `test/**/*.e2e-spec.ts` with supertest.
   Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
 - **`apps/web`** — **Next.js 16** (App Router, `src/`), **Tailwind 4**, port **3000**. Only the public web
   pages the app stores require — the privacy policy, the terms of use and the account-deletion page, each in
   pt-BR, es and en.
   No sign-in, no private area and no API calls. Build with `next build`; it needs a **Node runtime**
-  (`next start`, or a platform that runs Next) because of the proxy — no static export. No test runner: the pages
-  are static content (see Automated validation).
+  (`next start`, or a platform that runs Next) because of the proxy — no static export. Tests (spec 025):
+  **Vitest 4** + React Testing Library + jsdom (`src/**/*.test.{ts,tsx}`, next to the file, `npm test`) and
+  **Playwright** (Chromium only, `e2e/*.e2e.ts`, `npm run test:e2e`), see Automated validation.
   - Routes: `src/app/[lang]/` holds the root layout (`<html lang>` `pt-BR` / `es` / `en`, fonts, header, footer)
     and the pages `/{lang}`, `/{lang}/privacy-policy`, `/{lang}/terms-of-use` and `/{lang}/account-deletion`, with `lang` one of `pt-br`,
     `es`, `en` and English slugs in every language. Every page is statically generated (`generateStaticParams`,
@@ -643,11 +649,15 @@ evidence.
 
 There is **no automated end-to-end test of the mobile app**: user journeys are verified by driving the app in
 the **iOS simulator** (and Android emulator when a spec is platform-specific — e.g. Apple sign-in is iOS only).
-The public web pages are checked **in a browser**. A Maestro suite for mobile would be a spec of its own.
+The public web pages have a **Playwright** suite (spec 025); what it doesn't cover is checked in a browser. A
+Maestro suite for mobile would be a spec of its own.
 
 - Tests, per workspace: **Jest** in `modules/*` and `packages/shared` (`npm test --workspace <name>`),
   **Vitest** in `apps/backend` (`npm test` unit, `npm run test:e2e` e2e), **Jest via `jest-expo`** in
-  `apps/mobile` (`npm test --workspace @rochas-surf-school/mobile`). `apps/web` has none. Specs run only the tests related to their change, with
+  `apps/mobile` (`npm test --workspace @rochas-surf-school/mobile`), **Vitest + React Testing Library + jsdom** in
+  `apps/web` (`npm test --workspace @rochas-surf-school/web`; `vitest.config.ts` passes
+  `--no-experimental-webstorage` to the workers, because Node's experimental global `localStorage` shadows
+  jsdom's). Specs run only the tests related to their change, with
   `.specs/scripts/run-related-tests.mjs`.
 - Mobile test setup: `apps/mobile/jest.setup.ts` mocks the native pieces — among them `expo-secure-store` as
   `jest.fn`s over an in-memory `Map`, reset between tests — and calls `resetSessionStore()` before every test,
@@ -658,10 +668,13 @@ The public web pages are checked **in a browser**. A Maestro suite for mobile wo
   `fetch` is mocked per test.
 - End-to-end, per app: the suite below. It needs a Postgres reachable through `DATABASE_*` with the
   migrations applied (locally: `npm run db:start --workspace apps/backend`, then
-  `npm run prisma:migrate:deploy --workspace apps/backend`; in CI the `e2e` job provides both).
+  `npm run prisma:migrate:deploy --workspace apps/backend`; in CI the `backend` job provides both). The web
+  suite is **Playwright** (Chromium) in `apps/web/e2e/*.e2e.ts`: its `webServer` runs `next build && next start`
+  on port 3100 (reusing a running server outside CI) and needs `apps/web/.env` with the build-time values; it
+  checks every page in the three languages, the language redirect, the theme toggle and the language picker.
+  Chromium ignores `Accept-Language` in `extraHTTPHeaders`, so the redirect tests set the Playwright `locale`.
   `.specs/scripts/run-e2e.mjs` runs the suites of the apps a spec touches, `spec-plan` puts it in every
-  Verification Plan, `spec-review` runs it instead of driving the app for what the suite covers, and the CI
-  check runs it on every spec pull request. The e2e files run one at a time (`fileParallelism: false` in
+  Verification Plan, and `spec-review` runs it instead of driving the app for what the suite covers. The e2e files run one at a time (`fileParallelism: false` in
   `apps/backend/vitest.config.e2e.ts`) because they share the single `rules_versions` row; each suite that
   changes it resets it to 0 (and deletes the school rules) after every test. The suites never call Expo:
   `notifications.e2e-spec.ts` overrides `ExpoPushProvider` with a fake that records the messages and returns
@@ -669,7 +682,30 @@ The public web pages are checked **in a browser**. A Maestro suite for mobile wo
 
 ```e2e
 apps/backend: npm run test:e2e --workspace apps/backend   # the API (Nest app + Prisma) against Postgres via DATABASE_*, migrations applied
+apps/web: npm run test:e2e --workspace apps/web           # the public pages (Playwright, Chromium) against the built app on port 3100
 ```
+
+### Continuous integration
+
+`.github/workflows/ci.yml` (spec 025) runs on every pull request into `main` and every push to `main`, one run
+per ref (a newer one cancels the older). It runs **tests only** — lint, type check and build are not gates.
+
+- `changes` runs `.github/scripts/affected.mjs`: it compares `HEAD` with the base (the pull request's
+  `origin/<base>`, or the push's `before` commit; `--base` or `TURBO_SCM_BASE` override it), asks
+  `turbo ls --affected` which workspaces changed or depend on a changed one, and outputs `backend`, `web`,
+  `mobile`, `domain` (any affected `modules/*` / `packages/*` with a `test` script), `all` and `base`. A change
+  under `.github/` or to the root `package.json`, `package-lock.json` or `turbo.json` runs everything; a change
+  only under `.specs/` or `.docs/` runs nothing; no resolvable base runs everything; `turbo` failing fails the
+  job. The mapping is pure and tested with `node --test ".github/scripts/*.test.mjs"`.
+- `backend` (Postgres 18 service; migrations; `turbo run test` then `test:e2e`), `web` (Chromium install;
+  Vitest then Playwright, `CI=true`), `mobile` (Jest) and `domain` (`turbo run test --affected` over
+  `./modules/*` and `./packages/*` with `TURBO_SCM_BASE` set to the `changes` base — `actions/checkout` leaves no
+  local base branch for Turbo to infer — or every domain suite when `all`) each run only when needed.
+- Every job checks out the full history (`fetch-depth: 0`, which `--affected` needs), uses Node 24 with the npm
+  cache and `npm ci`. CI copies `apps/backend/.env.example` and `apps/web/.env.example` to `.env`; the backend
+  job's `DATABASE_*` point at the service. No GitHub secrets: the suites fake every external provider.
+- `ci` always runs and fails when any job ended `failure` or `cancelled` (skipped passes). It is the one check
+  to require in branch protection, which is configured in GitHub by hand.
 
 ### Coverage
 
@@ -697,7 +733,9 @@ apps/backend/src/generated/**             # Prisma client, generated
 apps/backend/prisma/seed/main.ts          # seed runner; the seed tasks themselves are tested
 apps/mobile/jest.setup.ts                 # test setup (native mocks); loaded by Jest before every test, not as source
 apps/mobile/src/app/**                    # Expo Router routes that only render a screen; screens are tested
-apps/web/src/**                           # static public content pages; checked in a browser by the reviewer
+apps/web/src/**                           # static public content pages; covered by the Playwright suite, unit-tested only in part (full coverage is a follow-up spec)
+apps/web/vitest.setup.ts                  # test setup (matchers, cleanup); loaded by Vitest before every test, not as source
+.github/scripts/affected.mjs              # CI helper; its logic is tested with `node --test` (affected.test.mjs), which the coverage tooling doesn't measure
 packages/design-tokens/**                 # token data and the CSS generator, verified by its check-types (--check)
 modules/*/src/**/index.ts                 # re-export barrels
 packages/shared/src/**/index.ts           # re-export barrels

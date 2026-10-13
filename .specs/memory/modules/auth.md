@@ -291,3 +291,5 @@ reactivation requests are rules of the account lifecycle still to be specified.
 - `021-denied-registration-erasure` — a denied registration is erased (hard deleted with what hangs off it) 30
   days after the denial by a job that runs every minute, its admins' "new registration" notifications deleted
   first through the `RegistrationNotificationEraser` contract; the same email can then sign up again.
+- `025-ci-tests` — no business change: the package declares its dependency on `@rochas-surf-school/shared`, so
+  Turbo builds `shared` first and counts a `shared` change as affecting `auth`.

@@ -266,13 +266,22 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   > but didn't declare it, so Turbo built it in parallel with `shared` and failed: declared it as a dependency,
   > as its sibling modules do (this also makes `shared` changes affect `auth` in `turbo ls --affected`)
 
-- [ ] **T-06** — Write `.github/scripts/affected.mjs`: reads the changed files (`git diff --name-only
+- [x] **T-06** — Write `.github/scripts/affected.mjs`: reads the changed files (`git diff --name-only
   <base>...HEAD`, base from `--base`, else `TURBO_SCM_BASE`, else the event: the PR base ref, or the push's
   `before`) and the affected packages (`npx turbo ls --affected --output=json` with the same base), applies D-01
   and D-10, prints the JSON and appends `backend=`, `web=`, `mobile=`, `domain=` to `$GITHUB_OUTPUT` when set.
   Keep the mapping a pure exported function; write `.github/scripts/affected.test.mjs` (`node:test`) with one
   test per ER-01 rule and edge case. Covers: ER-01 · Done when: `node --test .github/scripts` passes and
   `node .github/scripts/affected.mjs --base HEAD~1` prints the jobs for the last commit.
+  > ✅ 2026-10-13 12:50 — `affected.mjs` with the pure `computeJobs`, `parseTurboList` and `resolveBase` exported;
+  > it also outputs `all` (true on a root change, so the domain job can drop `--affected`, D-10) and runs every
+  > job when no base can be resolved; files: `.github/scripts/affected.mjs`, `.github/scripts/affected.test.mjs`;
+  > verified: `node --test ".github/scripts/*.test.mjs"` (19 passed); `node .github/scripts/affected.mjs --base
+  > HEAD~1` prints all jobs (the last commit touched `package.json`); in a throwaway worktree a commit touching
+  > only `modules/auth` printed backend/mobile/domain true, one touching only `apps/web` printed only web;
+  > deviations: `node --test .github/scripts` (as written in ER-01 and the Verification Plan) fails on Node 26,
+  > which takes the directory for a module — the glob spelling above works and is what the workflow and the
+  > report should use; the spec text is unchanged pending the user's approval to amend it
 
 - [ ] **T-07** — Write `.github/workflows/ci.yml` (D-02, D-07, D-08, D-12): `changes` runs `affected.mjs` and
   exposes its outputs; `backend` (Postgres 18 service with the `.env.example` credentials, migrations, unit then

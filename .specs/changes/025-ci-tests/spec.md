@@ -209,11 +209,20 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   > `npm test -w @rochas-surf-school/web` (6 passed), `npm run check-types -w @rochas-surf-school/web` (exit 0);
   > deviations: none (Vite prints a harmless `configLoader: native` warning for the `.ts` config)
 
-- [ ] **T-02** — Component tests for `src/components/theme-toggle/theme-toggle.component.test.tsx`,
+- [x] **T-02** — Component tests for `src/components/theme-toggle/theme-toggle.component.test.tsx`,
   `src/components/language-picker/language-picker.component.test.tsx`,
   `src/components/ui/button/button.component.test.tsx` and `src/components/ui/chip/chip.component.test.tsx`
   (behavior in ER-07). Skill: [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-07 · Done when: `npm test -w @rochas-surf-school/web` passes with all five test files.
+  > ✅ 2026-10-13 12:05 — component tests for the theme toggle (OS scheme, `<html>` theme, storage, storage
+  > throwing), language picker (`next/navigation` mocked; three links, current page), button (variants, icon,
+  > link form, forwarded props) and chip; files: `apps/web/src/components/theme-toggle/theme-toggle.component.test.tsx`,
+  > `apps/web/src/components/language-picker/language-picker.component.test.tsx`,
+  > `apps/web/src/components/ui/button/button.component.test.tsx`,
+  > `apps/web/src/components/ui/chip/chip.component.test.tsx`; verified: `npm test -w @rochas-surf-school/web`
+  > (5 files, 21 passed), type check and lint exit 0; deviations: `apps/web/vitest.setup.ts` now installs an
+  > in-memory `localStorage` when Node's experimental global one (Node 26, no `--localstorage-file`) shadows
+  > jsdom's; `apps/web/eslint.config.mjs` ignores `coverage/**` so generated coverage reports aren't linted
 
 - [ ] **T-03** — Add `@playwright/test`; create `apps/web/playwright.config.ts` (Chromium project, `testDir:
   "e2e"`, `testMatch: "*.e2e.ts"`, `webServer` running `next build && next start -p 3100`, `baseURL`

@@ -521,12 +521,27 @@ onboarding WhatsApp and school rules keys) keep their text.
   > eslint clean; deviations: none (tab labels are read from the native tab screens `title` since the system
   > draws them)
 
-- [ ] **T-09** — Edit profile (D-06): `src/modules/profile/hooks/use-update-name.hook.ts` (mutation on
+- [x] **T-09** — Edit profile (D-06): `src/modules/profile/hooks/use-update-name.hook.ts` (mutation on
   `PUT /auth/me/name`), `src/modules/profile/screens/edit-profile.screen.tsx` (with its component folder under
   `src/modules/profile/components/` per `.claude/rules/react.md`), the route file `edit-profile.tsx` in each
   role's `Stack`, the `editProfile.*` and `profile.comingSoon` copy, and tests for ER-06.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-06 · Done when: `npx jest src/modules/profile` passes.
+  > ✅ 2026-10-13 16:51 — Edit profile: `useUpdateName` (PUT /auth/me/name, errors per D-06), `EditProfile`
+  > component (avatar with camera button -> "coming soon" toast, name field, read-only email with hint, Save
+  > enabled only for a changed valid name, `router.back()` on success), shared `ProfileAvatar` component,
+  > `EditProfileScreen`, the `edit-profile.tsx` route in each role Stack, `editProfile.*` copy, and the screen
+  > tests (plus `profile.test-utils.tsx`); files:
+  > `apps/mobile/src/modules/profile/hooks/use-update-name.hook.ts`,
+  > `apps/mobile/src/modules/profile/hooks/use-update-name.types.ts`,
+  > `apps/mobile/src/modules/profile/components/edit-profile/*`,
+  > `apps/mobile/src/modules/profile/components/profile-avatar/*`,
+  > `apps/mobile/src/modules/profile/screens/edit-profile.screen.tsx`,
+  > `apps/mobile/src/modules/profile/screens/edit-profile.screen.test.tsx`,
+  > `apps/mobile/src/modules/profile/profile.test-utils.tsx`,
+  > `apps/mobile/src/app/(private)/{student,instructor,admin}/edit-profile.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/profile` (8 passed),
+  > check-types and eslint clean; deviations: none
 
 - [ ] **T-10** — Extract the onboarding WhatsApp form (country picker, number field with the Brazilian mask, share
   switch, validation) into `src/components/whatsapp-number-form/`, taking initial values and an `onSubmit`, and

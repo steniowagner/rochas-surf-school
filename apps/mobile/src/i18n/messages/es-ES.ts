@@ -264,6 +264,14 @@ const messages: Messages = {
     classes: "Clases",
     profile: "Perfil",
   },
+  editProfile: {
+    title: "Editar perfil",
+    nameLabel: "Nombre",
+    emailLabel: "Correo electrónico",
+    emailHint: "Tu correo no se puede cambiar.",
+    changePhoto: "Cambiar foto de perfil",
+    save: "Guardar",
+  },
 };
 
 export default messages;

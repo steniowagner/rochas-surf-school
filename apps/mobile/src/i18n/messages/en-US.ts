@@ -257,6 +257,14 @@ const messages = {
     classes: "Classes",
     profile: "Profile",
   },
+  editProfile: {
+    title: "Edit profile",
+    nameLabel: "Name",
+    emailLabel: "Email",
+    emailHint: "Your email can't be changed.",
+    changePhoto: "Change profile photo",
+    save: "Save",
+  },
 };
 
 export type Messages = typeof messages;

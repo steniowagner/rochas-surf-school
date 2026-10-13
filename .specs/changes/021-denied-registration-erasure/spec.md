@@ -2,7 +2,7 @@
 id: "021"
 slug: denied-registration-erasure
 title: Erase denied registrations 30 days after the denial
-status: in-progress
+status: in-review
 started: 2026-10-12
 base_commit: f93006c228aaa82f14d74fae824f6694a328dd15
 created: 2026-10-12
@@ -284,9 +284,14 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
 
 ### Verification
 
-- [ ] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: `check-coverage.mjs 021` prints `COVERAGE OK`,
   `run-e2e.mjs 021` prints `E2E PASSED`, and every other command exits 0.
+  > ✅ 2026-10-12 — Verification Plan run from the repo root; files: none; verified: `run-related-tests.mjs 021`
+  > RELATED TESTS PASSED (backend, auth, notifications, plus mobile and school-rules for regression);
+  > `check-coverage.mjs 021` COVERAGE OK (8 files, all 100%); `run-e2e.mjs 021` E2E PASSED (11 files, 292 tests);
+  > `npx turbo run lint check-types build` for notifications, auth and backend: 17 tasks successful, 0 lint
+  > warnings or errors; deviations: none
 
 ## Verification Plan
 

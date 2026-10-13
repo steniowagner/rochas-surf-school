@@ -265,7 +265,7 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   > verified: `npx vitest run src/modules/auth/account-erasure.job.spec.ts` (5 passed),
   > `npm run build --workspace apps/backend` ok; deviations: none
 
-- [ ] **T-08** — E2E suite `apps/backend/test/account-erasure.e2e-spec.ts` against Postgres: seeds the accounts and
+- [x] **T-08** — E2E suite `apps/backend/test/account-erasure.e2e-spec.ts` against Postgres: seeds the accounts and
   rows of ER-01 directly through Prisma (`deniedAt` set relative to now), gets `AccountErasureJob` from the app and
   calls `run()`. Tests named "erases …" (ER-01 and its kept cases), "idempotent" (a second run returns
   `{ erased: 0 }` and the row counts don't change), "notifications" (ER-03, an account created through
@@ -274,6 +274,13 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   `auth-google.e2e-spec.ts`; old refresh and access tokens refused). Cleans up the rows it creates.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npm run test:e2e --workspace apps/backend` passes with the new
   file.
+  > ✅ 2026-10-12 — e2e suite with "erases …" (full cascade incl. a rule written by another account kept, and every
+  > kept case), "idempotent", "notifications" (sign-ups through `POST /auth/email/verify`; `userId` stored; only the
+  > erased account's `registration.pending` rows deleted, legacy rows and other types kept) and "signs up again" (by
+  > email code and by Google; old refresh token → 401 `auth.refreshToken.invalid`, old access token → 401
+  > `auth.token.invalid`); cleans up its users and the admins' notifications about them; files:
+  > `apps/backend/test/account-erasure.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend`
+  > (11 files, 292 passed); deviations: none
 
 ### Verification
 

@@ -8,6 +8,7 @@ export const ptBr = {
   header: {
     homeLabel: "Página inicial",
     languageLabel: "Idioma",
+    themeLabel: "Alternar tema",
   },
   footer: {
     text: "Rocha's Surf School",

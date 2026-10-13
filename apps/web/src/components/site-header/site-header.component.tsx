@@ -1,10 +1,11 @@
 import { Waves } from "lucide-react";
 
 import { LanguagePicker } from "@/components/language-picker";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import type { SiteHeaderProps } from "./site-header.types";
 
-export function SiteHeader({ locale, homeLabel, languageLabel }: SiteHeaderProps) {
+export function SiteHeader({ locale, homeLabel, languageLabel, themeLabel }: SiteHeaderProps) {
   return (
     <header className="flex items-center justify-between py-4">
       <a
@@ -14,7 +15,10 @@ export function SiteHeader({ locale, homeLabel, languageLabel }: SiteHeaderProps
       >
         <Waves size={24} strokeWidth={2} aria-hidden />
       </a>
-      <LanguagePicker locale={locale} label={languageLabel} />
+      <div className="flex items-center gap-2">
+        <ThemeToggle label={themeLabel} />
+        <LanguagePicker locale={locale} label={languageLabel} />
+      </div>
     </header>
   );
 }

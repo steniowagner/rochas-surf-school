@@ -332,7 +332,7 @@ translated), or the fallback when there is none.
   > verified: `npm test --workspace @rochas-surf-school/notifications` (29 passed, entity files 100%), lint and check-types clean
   > deviations: `PushTicket` is a plain interface, not an `Entity`: its id is Expo's ticket id, which is not a UUID the entity id rule would accept
 
-- [ ] **T-03** — Ports and in-memory fakes: `NotificationRepository` (`createMany`), `PushTokenRepository`
+- [x] **T-03** — Ports and in-memory fakes: `NotificationRepository` (`createMany`), `PushTokenRepository`
   (`upsert`, `findByUserIds`, `deleteByToken`, `deleteByTokens`, `deleteForUser(userId, token)`),
   `PushTicketRepository` (`createMany`, `findCreatedBefore(date)`, `deleteByIds`), `PushProvider`
   (`send(messages: { token, locale, type, params, notificationId }[])` → tickets in order;
@@ -340,6 +340,9 @@ translated), or the fallback when there is none.
   fakes in `test/mock/` with their tests.
   Skill: [`module-repository`](../../../.claude/skills/module-repository).
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/notifications` and `check-types` pass.
+  > ✅ 2026-10-12 21:05 — files: `modules/notifications/src/notification/provider/{notification.repository,push.provider,recipients.provider,clock.provider,index}.ts`, `src/push-token/provider/{push-token.repository,push-ticket.repository,index}.ts`, barrels, fakes in `test/mock/*` and `test/push-token/provider/fakes.test.ts`
+  > verified: `npm test` (39 passed), lint, check-types in the workspace pass
+  > deviations: ports use Expo-shaped ticket/receipt types (`PushSendTicket`, `PushReceipt`); `getReceipts` returns a record by id; `findCreatedBefore` is inclusive (at or before); the fakes are tested in one file
 
 - [ ] **T-04** — `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`: in
   `{ actor: { id, status }, token, locale }` with `token` and `locale` typed `unknown`; D-09 order, upsert with the

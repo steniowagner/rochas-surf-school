@@ -7,6 +7,7 @@ export type Dictionary = {
   header: {
     homeLabel: string;
     languageLabel: string;
+    themeLabel: string;
   };
   footer: {
     text: string;

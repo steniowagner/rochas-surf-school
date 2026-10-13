@@ -73,7 +73,7 @@ the system's color scheme until they choose, and the choice is kept across pages
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Add `ThemeToggle` in `src/components/theme-toggle/` (`theme-toggle.component.tsx`,
+- [x] **T-01** — Add `ThemeToggle` in `src/components/theme-toggle/` (`theme-toggle.component.tsx`,
   `theme-toggle.hook.ts`, `theme-toggle.types.ts`, `index.ts`, following `.claude/rules/react.md`): a button
   with lucide `Sun` and `Moon`, 44px target, styled with the design tokens. The icon swap is CSS in
   `src/app/globals.css`. The hook reads the effective theme (`data-theme`, else `matchMedia`), flips it, sets
@@ -81,6 +81,7 @@ the system's color scheme until they choose, and the choice is kept across pages
   `src/i18n/dictionary.types.ts` and the en, es and pt-br dictionaries.
   Covers: ER-01, ER-02, ER-03 · Done when: `npx turbo run lint check-types --filter=@rochas-surf-school/web`
   passes.
+  > ✅ 2026-10-13 — added `ThemeToggle` (button with `Sun`/`Moon`, 44px, tokens), hook flipping `data-theme` and writing `localStorage` in try/catch, CSS icon swap, `header.themeLabel` in the dictionaries; files: `apps/web/src/components/theme-toggle/{index.ts,theme-toggle.component.tsx,theme-toggle.hook.ts,theme-toggle.types.ts}`, `apps/web/src/app/globals.css`, `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/{en,es,pt-br}.ts`; verified: `npx turbo run lint check-types --filter=@rochas-surf-school/web` (4 tasks successful); deviations: none
 - [ ] **T-02** — In `src/app/[lang]/layout.tsx`, add the inline `<head>` script that validates the stored value
   and sets `data-theme`, and `suppressHydrationWarning` on `<html>`. Render `ThemeToggle` in
   `src/components/site-header/site-header.component.tsx` next to `LanguagePicker`, with its label passed from the

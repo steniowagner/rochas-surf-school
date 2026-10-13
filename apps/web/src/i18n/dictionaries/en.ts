@@ -8,6 +8,7 @@ export const en = {
   header: {
     homeLabel: "Home",
     languageLabel: "Language",
+    themeLabel: "Toggle theme",
   },
   footer: {
     text: "Rocha's Surf School",

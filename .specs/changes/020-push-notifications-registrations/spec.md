@@ -420,7 +420,7 @@ translated), or the fallback when there is none.
   > verified: `prisma:migrate:deploy` applied all migrations on a fresh database (3 new tables present); `npx vitest run src/modules/notifications` (9 passed; the only uncovered branch is the known decorator-metadata one)
   > deviations: added a `SystemClockProvider` in the notifications backend module (the module cannot import auth's); migration timestamp comes from the machine clock
 
-- [ ] **T-10** — `ExpoPushProvider` (`apps/backend/src/modules/notifications/expo.push.ts`, D-11) and the copy
+- [x] **T-10** — `ExpoPushProvider` (`apps/backend/src/modules/notifications/expo.push.ts`, D-11) and the copy
   catalog `push-messages.ts` (the Push copy table: `renderPush(type, params, locale)` → `{ title, body }`), with
   `expo.push.spec.ts` (SDK mocked: chunking, message shape, tickets in order, a throwing chunk, receipts in chunks,
   `EXPO_ACCESS_TOKEN` passed when set) and `push-messages.spec.ts` (every type × locale, denial with and without a
@@ -428,6 +428,9 @@ translated), or the fallback when there is none.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-04, ER-05, ER-06, ER-08 · Done when: `npx vitest run src/modules/notifications/expo.push.spec.ts
   src/modules/notifications/push-messages.spec.ts` passes with both files at 100% coverage.
+  > ✅ 2026-10-12 21:10 — files: `apps/backend/src/modules/notifications/{expo.push.ts,expo.push.spec.ts,push-messages.ts,push-messages.spec.ts}`, `apps/backend/.env.example`, `apps/backend/package.json`, `package-lock.json` (expo-server-sdk 7.2.0)
+  > verified: `npx vitest run src/modules/notifications` (all pass); both files 100% lines/statements/functions, the only uncovered branch is the known decorator-metadata one on the class line
+  > deviations: none
 
 - [ ] **T-11** — Wire `auth` to notifications: `NotificationsRegistrationNotifier` (implements
   `RegistrationNotifier` with `NotifyApprovedAdmins` / `Notify`, catching and logging every error, D-05) and

@@ -69,6 +69,30 @@ Content-Type: application/json
   "locale": "pt-BR"
 }
 
+### Unregister this device's push token (expects 204; any account status; an unknown token changes nothing)
+DELETE {{baseUrl}}/notifications/push-token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "token": "ExponentPushToken[review-admin]"
+}
+
+### Unregister without a token value (expects 422 pushToken.token.required)
+DELETE {{baseUrl}}/notifications/push-token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{}
+
+### Unregister without a token (expects 401 auth.token.invalid)
+DELETE {{baseUrl}}/notifications/push-token
+Content-Type: application/json
+
+{
+  "token": "ExponentPushToken[review-admin]"
+}
+
 ### Sign out and stop pushing to this device (expects 204)
 POST {{baseUrl}}/auth/sign-out
 Content-Type: application/json

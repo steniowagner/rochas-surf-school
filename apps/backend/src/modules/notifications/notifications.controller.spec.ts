@@ -22,7 +22,7 @@ function userOf(status: AuthenticatedUser['status']): AuthenticatedUser {
 }
 
 function setup() {
-  const repository = { upsert: vi.fn() };
+  const repository = { upsert: vi.fn(), deleteForUser: vi.fn() };
   const controller = new NotificationsController(
     repository as unknown as PrismaPushTokenRepository,
     { now: () => NOW } as SystemClockProvider,
@@ -82,6 +82,43 @@ describe('NotificationsController', () => {
         expect.objectContaining({ message: 'pushToken.token.invalid' }),
         expect.objectContaining({ message: 'pushToken.locale.invalid' }),
       ],
+    });
+  });
+
+  describe('DELETE push-token', () => {
+    it('is a protected DELETE on push-token answering 204', () => {
+      const handler = Object.getOwnPropertyDescriptor(
+        NotificationsController.prototype,
+        'unregisterPushToken',
+      )!.value as object;
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('push-token');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.DELETE);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.NO_CONTENT);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('removes the token of the caller', async () => {
+      const { controller, repository } = setup();
+
+      await expect(
+        controller.unregisterPushToken(userOf('approved').id, { token: 'ExponentPushToken[abc]' }),
+      ).resolves.toBeUndefined();
+
+      expect(repository.deleteForUser).toHaveBeenCalledWith(
+        userOf('approved').id,
+        'ExponentPushToken[abc]',
+      );
+    });
+
+    it('answers 422 when there is no body', async () => {
+      const { controller, repository } = setup();
+
+      await expect(controller.unregisterPushToken(userOf('approved').id, undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'pushToken.token.required' })],
+      });
+      expect(repository.deleteForUser).not.toHaveBeenCalled();
     });
   });
 });

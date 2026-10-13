@@ -166,7 +166,7 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   > `npm test --workspace @rochas-surf-school/notifications` (78 passed, stored params asserted with `userId`);
   > deviations: none
 
-- [ ] **T-02** — Add `deleteRegistrationPending(userIds: string[]): Promise<void>` to `NotificationRepository`
+- [x] **T-02** — Add `deleteRegistrationPending(userIds: string[]): Promise<void>` to `NotificationRepository`
   (`modules/notifications/src/notification/provider/notification.repository.ts`) and its fake
   (`modules/notifications/test/mock/fake-notification.repository.ts`), and a `DeleteRegistrationNotifications`
   use case (`modules/notifications/src/notification/usecase/delete-registration-notifications.usecase.ts`,
@@ -174,6 +174,16 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-03 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes, with tests for a match,
   other accounts' rows kept, other types kept and an empty list.
+  > ✅ 2026-10-12 — `NotificationRepository.deleteRegistrationPending`, its fake (`items` no longer readonly so the
+  > fake can filter) and the `DeleteRegistrationNotifications` use case (exported), with tests for a match, other
+  > accounts' rows and other types kept, and an empty list; files:
+  > `modules/notifications/src/notification/provider/notification.repository.ts`,
+  > `modules/notifications/src/notification/usecase/delete-registration-notifications.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/index.ts`,
+  > `modules/notifications/test/mock/fake-notification.repository.ts`,
+  > `modules/notifications/test/notification/usecase/delete-registration-notifications.usecase.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/notifications` (78 passed, 100% on the new files),
+  > `npx turbo run check-types --filter=@rochas-surf-school/notifications` ok; deviations: none
 
 ### Auth module (`modules/auth`)
 

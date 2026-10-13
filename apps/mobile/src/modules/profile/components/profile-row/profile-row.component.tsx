@@ -41,7 +41,7 @@ export function ProfileRow({
 
   if (!onPress) {
     return (
-      <View className="min-h-11 flex-row items-center gap-3 py-3">
+      <View className="min-h-12 flex-row items-center gap-3 px-4">
         {content}
       </View>
     );
@@ -52,7 +52,7 @@ export function ProfileRow({
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      className="min-h-11 flex-row items-center gap-3 py-3"
+      className="min-h-12 flex-row items-center gap-3 px-4"
     >
       {content}
     </Pressable>

@@ -2,7 +2,7 @@
 id: "025"
 slug: ci-tests
 title: CI test suites per affected app
-status: in-review
+status: changes-requested
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 502313a29309e521010178dfbf8617568d2f8f1e
@@ -371,3 +371,58 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   `.specs/scripts` (a framework change) and is left as a follow-up.
 
 ## Review
+
+### Round 1 — 2026-10-13 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (apps/web); backend `check-types` ✅
+- related tests ✅ apps/web 21 passed (5 files) · `node --test ".github/scripts/*.test.mjs"` ✅ 19 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (no measurable changed line; `affected.mjs` and
+  `vitest.setup.ts` excluded per the logged amendment); no coverage-ignore comments in the diff
+- e2e: `run-e2e.mjs 025` ✅ backend 292 passed · web Playwright ✅ 16 passed (with `CI=true`, through Turbo)
+- actionlint ✅ exit 0, no output
+- `npx turbo run test test:e2e --filter=@rochas-surf-school/backend` ✅ 247 + 292 · mobile ✅ 897 passed
+
+**Expected Results**
+
+- ER-01 ✅ — unit tests cover each rule; also checked on real commits in a throwaway worktree: `modules/auth`
+  only → backend/mobile/domain; `packages/shared` only → all four; `packages/design-tokens` only → web/mobile;
+  a `.specs`-only commit → none; `$GITHUB_OUTPUT` gets `backend=`…`all=`; an unknown base and a failing
+  `turbo` (fake `npx` on `PATH`) both exit 1
+- ER-02 ✅ — Postgres 18.6 service, `.env.example` copied, migrations, unit then e2e; skipped unless
+  `backend == 'true'`; the commands pass locally
+- ER-03 ✅ — Chromium install in `apps/web`, Vitest then Playwright, `CI=true`; the commands pass locally
+- ER-04 ✅ — Jest only, gated on `mobile`; passes locally
+- ER-05 ❌ — see F-01
+- ER-06 ✅ — `ci` has `if: always()`, needs all five jobs and fails on any `failure`/`cancelled` in
+  `needs.*.result` (a failed `changes` fails it)
+- ER-07 ✅ — the five test files assert each behavior and edge case (quality order, regional variants, q=0,
+  missing/empty/unsupported header, `hasLocale`, theme flip from OS / `<html>`, storage throwing, picker links
+  and `aria-current`, Button/Chip props and variants)
+- ER-08 ✅ — 12 page × locale tests (200, `<html lang>`, visible h1), redirect `es` → `/es` and `de` → `/pt-br`,
+  theme kept after reload, picker `/pt-br/terms-of-use` → `/en/terms-of-use`
+
+**Findings**
+
+- [ ] **F-01** (ER-05) — on `pull_request` the `domain` job runs every domain suite, not only the affected ones.
+  It calls `turbo run test --affected` without `TURBO_SCM_BASE`, so Turbo infers the base from
+  `GITHUB_BASE_REF` (`main`). `actions/checkout` leaves only `origin/main`, with no local `main`, and
+  `githubActionsRemoteBaseRefFallback` is off by default, so Turbo warns "unable to detect git range, assuming
+  all files have changed". Reproduce: in a worktree where the base branch exists only as
+  `refs/remotes/origin/<b>`, commit a `modules/auth`-only change and run
+  `GITHUB_ACTIONS=true GITHUB_BASE_REF=<b> npx turbo run test --affected --filter="./modules/*" --filter="./packages/*" --dry=json`.
+  The tasks are all eight domain workspaces; with `TURBO_SCM_BASE=origin/<b>` they are only `auth` and
+  `school-rules`. Expected: the same base as the `changes` job. For example, `affected.mjs` could output the
+  `base` it resolved and the `domain` step could set `TURBO_SCM_BASE: ${{ needs.changes.outputs.base }}`.
+  A test should cover the new output.
+
+**Notes**
+
+- CI runs Node 24, but the local evidence comes from Node 26. `--no-experimental-webstorage` in
+  `vitest.config.ts` should be accepted on Node 24 (boolean flag negation); the first CI run will confirm it.
+- A push whose `before` commit is no longer in history (a force push to `main`) makes `git diff` fail, so the
+  `changes` job fails loudly rather than skipping tests. That matches ER-01's fail-closed intent.
+- Memory Impact doesn't mention two T-05 deviations that spec-finish should record: `build` outputs gain
+  `dist/**`, and `modules/auth` now declares `@rochas-surf-school/shared` (the internal-dependency list in the
+  technical context / `modules.md`).

@@ -217,6 +217,15 @@ const messages: Messages = {
     instructor: "Instrutor",
     admin: "Administrador",
   },
+  themeSheet: {
+    title: "Tema",
+    description: "Até você escolher, o app segue o tema do celular.",
+  },
+  theme: {
+    system: "Igual ao celular",
+    light: "Claro",
+    dark: "Escuro",
+  },
 };
 
 export default messages;

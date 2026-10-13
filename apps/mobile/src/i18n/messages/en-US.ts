@@ -217,6 +217,15 @@ const messages = {
     instructor: "Instructor",
     admin: "Admin",
   },
+  themeSheet: {
+    title: "Theme",
+    description: "Until you choose, the app follows your phone's theme.",
+  },
+  theme: {
+    system: "Same as phone",
+    light: "Light",
+    dark: "Dark",
+  },
 };
 
 export type Messages = typeof messages;

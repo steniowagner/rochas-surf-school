@@ -224,6 +224,15 @@ const messages: Messages = {
     instructor: "Instructor",
     admin: "Administrador",
   },
+  themeSheet: {
+    title: "Tema",
+    description: "Hasta que elijas, la app sigue el tema del teléfono.",
+  },
+  theme: {
+    system: "Igual que el teléfono",
+    light: "Claro",
+    dark: "Oscuro",
+  },
 };
 
 export default messages;

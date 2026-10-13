@@ -456,11 +456,20 @@ onboarding WhatsApp and school rules keys) keep their text.
   > SecureStore mock); verified: `npx jest src/services/preferences src/components/language-sheet src/i18n
   > src/modules/auth` (27 suites, 267 passed), `npm run check-types` exit 0, eslint clean; deviations: none
 
-- [ ] **T-06** — Apply the theme preference: at startup (before the first render) and on change, through
+- [x] **T-06** — Apply the theme preference: at startup (before the first render) and on change, through
   `Appearance.setColorScheme` (D-09), in `src/services/preferences/theme-preference.ts` with a
   `useThemePreference()` hook (current choice, `setTheme`); create `src/components/theme-sheet/` (D-15) with its
   tests.
   Covers: ER-08 · Done when: `npx jest src/services/preferences src/components/theme-sheet` passes.
+  > ✅ 2026-10-13 16:45 — Added `theme-preference.ts` (`applyStoredThemePreference`, `setThemePreference`,
+  > `useThemePreference` over `Appearance.setColorScheme`; "system" maps to "unspecified"), applied before first
+  > render in the root layout, and `ThemeSheet` (D-15); the `theme.*` / `themeSheet.*` copy was added here
+  > instead of T-14; files: `apps/mobile/src/services/preferences/theme-preference.ts`,
+  > `apps/mobile/src/services/preferences/theme-preference.test.tsx`,
+  > `apps/mobile/src/components/theme-sheet/*`, `apps/mobile/src/app/_layout.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/services/preferences
+  > src/components/theme-sheet` (3 suites, 17 passed), check-types and eslint clean; deviations: copy moved from
+  > T-14 to T-06
 
 - [ ] **T-07** — Push preference (D-10): add the no-prompt option to `getPushToken` in
   `src/services/push/push.service.ts`; make `usePushRegistration` send the DELETE instead of the PUT while

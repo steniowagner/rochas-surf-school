@@ -213,13 +213,21 @@ goes away in the same change.
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Remove the template: delete `src/app/page.tsx` and `public/{file,globe,next,vercel,window}.svg`,
+- [x] **T-01** — Remove the template: delete `src/app/page.tsx` and `public/{file,globe,next,vercel,window}.svg`,
   rewrite `README.md` for this site, and move `src/components/ui/button.tsx` and `chip.tsx` into
   `src/components/ui/button/` and `src/components/ui/chip/` (`*.component.tsx`, `*.types.ts`, `index.ts`, per
   `.claude/rules/react.md`), with `Button` gaining an optional `href` that renders an `<a>` with the same
   classes (D-11). Add `lucide-react` as a dependency (D-10).
   Covers: ER-07 · Done when: `npx turbo run lint check-types --filter=@rochas-surf-school/web` passes and the
   `ls`/`grep` in ER-07's Verify by show the files gone and no create-next-app text.
+  > ✅ 2026-10-12 — template removed, components moved, `Button` renders an `<a>` with an `href`; files:
+  > `apps/web/src/app/page.tsx` (deleted), `apps/web/public/{file,globe,next,vercel,window}.svg` (deleted),
+  > `apps/web/README.md`, `apps/web/src/components/ui/button/{button.component.tsx,button.types.ts,index.ts}`,
+  > `apps/web/src/components/ui/chip/{chip.component.tsx,chip.types.ts,index.ts}`, `apps/web/package.json`,
+  > `package-lock.json` (`lucide-react`, `libphonenumber-js` — the latter is T-05's dependency, added here with
+  > the other install); verified: `npm run check-types` and `npm run lint` in `apps/web` pass (after clearing the
+  > stale `.next` types of the deleted page), `ls apps/web/public` → missing, `grep -c create-next-app
+  > apps/web/README.md` → `0`; deviations: none
 
 - [ ] **T-02** — Locales and routing: `src/i18n/locales.ts` (`locales = ["pt-br", "es", "en"]`, `defaultLocale
   = "pt-br"`, `hasLocale`, `matchLocale(acceptLanguage)` per D-02, the `<html lang>` value, native names,

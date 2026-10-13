@@ -3,7 +3,8 @@ id: "024"
 slug: web-theme-toggle
 title: Theme toggle in the web header
 template: quick
-status: in-review
+status: accepted
+reviewed_commit: 0b305d97777efcd0633055c33b1266f4052220bc
 created: 2026-10-13
 started: 2026-10-13
 base_commit: b873515f3b0042c413a1d700245add6b4735513d
@@ -112,3 +113,29 @@ the system's color scheme until they choose, and the choice is kept across pages
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-13 — accepted (self-review)
+
+Ran in a fresh session, not the one that executed the spec; marked self-review because the spec is `template: quick`.
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/web`, 7 tasks)
+- related tests ✅ RELATED TESTS PASSED (apps/web has no test runner)
+- coverage of the changed lines ✅ COVERAGE OK (all 11 files are under `apps/web/src/**`, excluded in the technical context); no coverage-ignore comments in the diff
+- e2e ✅ E2E PASSED (no suite applies to apps/web) · ER-01 to ER-03 exercised in the browser against the dev server
+
+**Expected Results**
+
+- ER-01 ✅ — `/en` with storage cleared: light OS → light page (`rgb(253,248,243)`), sun shown; dark OS → dark page (`rgb(22,27,39)`), moon shown; in both, no `data-theme` on `<html>` and nothing stored. Stored `theme=purple` → ignored, page follows the OS.
+- ER-02 ✅ — clicking the button flips light ↔ dark with the matching icon, both ways; native `<button type="button">`, 44×44; `aria-label` "Toggle theme" (`/en`), "Cambiar tema" (`/es`), "Alternar tema" (`/pt-br`). With `localStorage.setItem` throwing, the toggle still flips the page and raises no error.
+- ER-03 ✅ — light chosen on a dark OS persists to `/es` and `/pt-br/privacy-policy`; dark chosen on a light OS persists to `/en/terms-of-use`. The inline script is a synchronous `<script>` in `<head>`, before `<body>`, so `data-theme` is set before first paint. No hydration warnings in the console.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `technical-context.md` says the language picker "is the only client component" of `apps/web`; `ThemeToggle` is now a second one. `spec-finish` should update that sentence along with the Memory Impact entry.
+- The header fits at 375px wide (toggle and language pill side by side).

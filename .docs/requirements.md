@@ -1059,6 +1059,8 @@ Uploaders SHALL be able to delete their own photos, and admins SHALL be able to 
 
 ## 6. Public web pages
 
+_Implemented in spec 024-web-theme-toggle._
+
 Both app stores require a privacy policy at a public web address, and Google Play also requires a web page where people can request account deletion without the app. The school has no website, so the project has to provide these pages.
 
 **What it covers**

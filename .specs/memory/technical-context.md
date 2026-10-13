@@ -104,8 +104,15 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     matches or the header is missing. Copy lives in typed dictionaries (`src/i18n/dictionaries/{pt-br,es,en}.ts`,
     each `satisfies Dictionary` from `src/i18n/dictionary.types.ts`, loaded server-side by `getDictionary`), so a
     missing or extra key fails `check-types` and copy changes are text-only. The header's language picker is a
-    `<details>` pill with plain links to the same page in each language, so it works without JavaScript; it is
-    the only client component.
+    `<details>` pill with plain links to the same page in each language, so it works without JavaScript. It and
+    the theme toggle are the only client components.
+  - Theme: the site follows the OS color scheme (the tokens' `prefers-color-scheme` palette) until the visitor
+    presses the header's `ThemeToggle`, which sets `data-theme` (`light` or `dark`) on `<html>` and stores it in
+    `localStorage` under `theme` (in a try/catch, so it still works for the page when storage is unavailable).
+    An inline `<script>` in `<head>` of `[lang]/layout.tsx` applies a stored `light`/`dark` before first paint
+    (any other value is ignored), so the choice survives page and language loads without a flash; `<html>` has
+    `suppressHydrationWarning`. The sun/moon icon swap is CSS only (`.theme-toggle-sun` / `.theme-toggle-moon` in
+    `globals.css`), because the server can't know the theme. There is no "system" option in the UI.
   - `SCHOOL_WHATSAPP_NUMBER` (server-only, E.164) is read by `src/config/school-whatsapp.ts`, validated with the
     shared `PhoneNumberRule`, formatted with **`libphonenumber-js`** `formatInternational()` and linked to
     `https://wa.me/<digits>`; a missing or invalid value throws an error naming the variable, so `next build`

@@ -3,13 +3,14 @@ id: "024"
 slug: web-theme-toggle
 title: Theme toggle in the web header
 template: quick
-status: accepted
+status: finished
 reviewed_commit: 0b305d97777efcd0633055c33b1266f4052220bc
 created: 2026-10-13
 started: 2026-10-13
 base_commit: b873515f3b0042c413a1d700245add6b4735513d
 fronts: [web]
 depends_on: []
+finished: 2026-10-13
 ---
 
 # 024 — Theme toggle in the web header

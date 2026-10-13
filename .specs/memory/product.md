@@ -489,7 +489,7 @@ and the account deletion page (deleting in the app at Perfil → Excluir conta, 
 when the app is gone, which an admin carries out by removing the account; what is erased, what stays without a
 name, and when). The language is in the address (`/pt-br/…`, `/es/…`, `/en/…`); an address without one opens in
 the browser's language, Brazilian Portuguese when it is none of the three, and a picker on every page switches
-it. The pages follow the system's light or dark theme, set no cookies and have no tracking. The site isn't
+it. The pages follow the system's light or dark theme (a header toggle overrides it, spec 024), set no cookies and have no tracking. The site isn't
 deployed yet, the app doesn't link to the policy yet, and the copy hasn't had its legal review. The pages describe in-app deletion, admin removal and the erasure of deleted and removed
 accounts before those exist.
 
@@ -500,6 +500,11 @@ row on the home and the redirect of `/terms-of-use`. The privacy policy now has 
 (school name, legal name, optional CNPJ, WhatsApp) and the encarregado (name and email) from build configuration,
 what is collected, each purpose with its LGPD legal basis, the providers, transfers outside Brazil, every
 retention period, security, adults only, the Art. 18 rights with the ANPD, and links to deletion and the terms.
+
+**Theme toggle on the site** (spec `024-web-theme-toggle`) — the site's header has a sun/moon button that switches
+the pages between light and dark. Until a visitor presses it, the site follows the device's theme; once pressed,
+the choice is kept in that browser across pages, languages and visits. There is no "follow the device" option
+to go back to; clearing the site's data does.
 
 Active specs: none.
 

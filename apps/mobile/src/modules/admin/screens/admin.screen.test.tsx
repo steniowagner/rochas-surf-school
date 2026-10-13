@@ -4,7 +4,7 @@ import { Slot } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
-import AdminRoute from "@/app/(private)/admin/index";
+import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
 import { hydrateSession } from "@/services/session/session.store";
@@ -52,7 +52,7 @@ async function openAdminHome() {
         </TestRootLayout>
       ),
       "(private)/admin/_layout": AdminLayout,
-      "(private)/admin/index": AdminRoute,
+      "(private)/admin/(tabs)/index": AdminRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
     },
     { initialUrl: routes.admin.home },

@@ -249,6 +249,14 @@ const messages: Messages = {
     signOut: "Sair",
     comingSoon: "Em breve.",
   },
+  tabs: {
+    agenda: "Agenda",
+    myClasses: "Minhas aulas",
+    school: "Escola",
+    home: "Início",
+    classes: "Aulas",
+    profile: "Perfil",
+  },
 };
 
 export default messages;

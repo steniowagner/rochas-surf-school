@@ -5,11 +5,11 @@ import { userEvent } from "@testing-library/react-native";
 import { ReactNode } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
-import AdminRoute from "@/app/(private)/admin/index";
+import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
-import InstructorRoute from "@/app/(private)/instructor/index";
+import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
-import StudentRoute from "@/app/(private)/student/index";
+import StudentRoute from "@/app/(private)/student/(tabs)/index";
 import OnboardingLayout from "@/app/(onboarding)/onboarding/_layout";
 import OnboardingRoute from "@/app/(onboarding)/onboarding/index";
 import SchoolRulesRoute from "@/app/(onboarding)/onboarding/school-rules";
@@ -79,11 +79,11 @@ const routeTree = {
   "(onboarding)/onboarding/index": OnboardingRoute,
   "(onboarding)/onboarding/school-rules": SchoolRulesRoute,
   "(private)/student/_layout": StudentLayout,
-  "(private)/student/index": StudentRoute,
+  "(private)/student/(tabs)/index": StudentRoute,
   "(private)/instructor/_layout": InstructorLayout,
-  "(private)/instructor/index": InstructorRoute,
+  "(private)/instructor/(tabs)/index": InstructorRoute,
   "(private)/admin/_layout": AdminLayout,
-  "(private)/admin/index": AdminRoute,
+  "(private)/admin/(tabs)/index": AdminRoute,
 };
 
 const json = (body: unknown) => ({

@@ -5,11 +5,11 @@ import { act, renderRouter, screen } from "expo-router/testing-library";
 import { createRef, ReactNode, useImperativeHandle } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
-import AdminRoute from "@/app/(private)/admin/index";
+import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
-import InstructorRoute from "@/app/(private)/instructor/index";
+import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
-import StudentRoute from "@/app/(private)/student/index";
+import StudentRoute from "@/app/(private)/student/(tabs)/index";
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
 import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
 import RemovedRoute from "@/app/(offboarding)/offboarding/removed";
@@ -99,11 +99,11 @@ const routeTree = {
   "(offboarding)/offboarding/denied": DeniedRoute,
   "(offboarding)/offboarding/removed": RemovedRoute,
   "(private)/student/_layout": StudentLayout,
-  "(private)/student/index": StudentRoute,
+  "(private)/student/(tabs)/index": StudentRoute,
   "(private)/instructor/_layout": InstructorLayout,
-  "(private)/instructor/index": InstructorRoute,
+  "(private)/instructor/(tabs)/index": InstructorRoute,
   "(private)/admin/_layout": AdminLayout,
-  "(private)/admin/index": AdminRoute,
+  "(private)/admin/(tabs)/index": AdminRoute,
 };
 
 const account = (

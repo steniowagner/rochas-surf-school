@@ -494,7 +494,7 @@ onboarding WhatsApp and school rules keys) keep their text.
   > src/modules/notifications` (15 suites, 167 passed), check-types and eslint clean; deviations: apiDelete and
   > profile copy added here
 
-- [ ] **T-08** — Tab bars (D-01–D-03): `src/app/(private)/<role>/(tabs)/_layout.tsx` with `NativeTabs` and the
+- [x] **T-08** — Tab bars (D-01–D-03): `src/app/(private)/<role>/(tabs)/_layout.tsx` with `NativeTabs` and the
   tab route files for the three roles; the existing `index.tsx` files move into `(tabs)`; `registrations.tsx`
   stays in the admin `Stack`; placeholder tabs render `FlowPlaceholder`; the paths of D-02 and D-03 in
   `src/constants/routes.ts`; the `tabs.*` copy in the three message files; route tests for the three roles
@@ -503,6 +503,23 @@ onboarding WhatsApp and school rules keys) keep their text.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-03, ER-04 · Done when: the new route tests and `npm test --workspace @rochas-surf-school/mobile`
   pass.
+  > ✅ 2026-10-13 16:50 — Native tab bars for the three roles: shared `RoleTabs` component (NativeTabs, tint
+  > `sun`, unselected `ink-3`, bar `page`), `(tabs)` group per role with the index screens moved in and
+  > placeholder tabs (Profile is a placeholder until T-13), `registrations.tsx` stays in the admin Stack, role
+  > routes in `routes.ts`, `tabs.*` copy, route tests (labels, selected tab, switching, admin Join-the-school
+  > above the tabs and back), and the existing route tests repointed at `(tabs)/index`; files:
+  > `apps/mobile/src/components/role-tabs/*`,
+  > `apps/mobile/src/app/(private)/{student,instructor,admin}/(tabs)/*`, `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`,
+  > `apps/mobile/src/modules/{student,instructor,admin}/*-tabs.navigation.test.tsx`, and the imports of
+  > `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/modules/rules-update/screens/rules-update.screen.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`,
+  > `apps/mobile/src/modules/onboarding/screens/school-rules.screen.test.tsx`,
+  > `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`; verified: `npx jest
+  > tabs.navigation` (3 suites, 8 passed), `npm test` in apps/mobile (99 suites, 943 passed), check-types and
+  > eslint clean; deviations: none (tab labels are read from the native tab screens `title` since the system
+  > draws them)
 
 - [ ] **T-09** — Edit profile (D-06): `src/modules/profile/hooks/use-update-name.hook.ts` (mutation on
   `PUT /auth/me/name`), `src/modules/profile/screens/edit-profile.screen.tsx` (with its component folder under

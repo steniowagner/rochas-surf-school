@@ -249,6 +249,14 @@ const messages = {
     signOut: "Sign out",
     comingSoon: "Coming soon.",
   },
+  tabs: {
+    agenda: "Schedule",
+    myClasses: "My classes",
+    school: "School",
+    home: "Home",
+    classes: "Classes",
+    profile: "Profile",
+  },
 };
 
 export type Messages = typeof messages;

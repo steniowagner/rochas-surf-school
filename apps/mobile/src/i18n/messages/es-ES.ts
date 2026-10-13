@@ -256,6 +256,14 @@ const messages: Messages = {
     signOut: "Cerrar sesión",
     comingSoon: "Próximamente.",
   },
+  tabs: {
+    agenda: "Agenda",
+    myClasses: "Mis clases",
+    school: "Escuela",
+    home: "Inicio",
+    classes: "Clases",
+    profile: "Perfil",
+  },
 };
 
 export default messages;

@@ -4,10 +4,10 @@ import { act, renderRouter, waitFor } from "expo-router/testing-library";
 import { ReactNode } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
-import AdminRoute from "@/app/(private)/admin/index";
+import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import StudentLayout from "@/app/(private)/student/_layout";
-import StudentRoute from "@/app/(private)/student/index";
+import StudentRoute from "@/app/(private)/student/(tabs)/index";
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
 import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
 import PendingLayout from "@/app/(pending)/pending/_layout";
@@ -61,9 +61,9 @@ const routeTree = {
   "(offboarding)/offboarding/_layout": OffboardingLayout,
   "(offboarding)/offboarding/denied": DeniedRoute,
   "(private)/student/_layout": StudentLayout,
-  "(private)/student/index": StudentRoute,
+  "(private)/student/(tabs)/index": StudentRoute,
   "(private)/admin/_layout": AdminLayout,
-  "(private)/admin/index": AdminRoute,
+  "(private)/admin/(tabs)/index": AdminRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
 };
 

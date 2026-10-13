@@ -1,0 +1,264 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as Notifications from "expo-notifications";
+import { act, renderRouter, waitFor } from "expo-router/testing-library";
+import { ReactNode } from "react";
+
+import AdminLayout from "@/app/(private)/admin/_layout";
+import AdminRoute from "@/app/(private)/admin/index";
+import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
+import StudentLayout from "@/app/(private)/student/_layout";
+import StudentRoute from "@/app/(private)/student/index";
+import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
+import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
+import PendingLayout from "@/app/(pending)/pending/_layout";
+import PendingRoute from "@/app/(pending)/pending/index";
+import OnboardingLayout from "@/app/(onboarding)/onboarding/_layout";
+import OnboardingRoute from "@/app/(onboarding)/onboarding/index";
+import AuthLayout from "@/app/(public)/auth/_layout";
+import AuthRoute from "@/app/(public)/auth/index";
+import Index from "@/app/index";
+import { routes } from "@/constants/routes";
+import type { SessionUser } from "@/navigation/resolve-flow.types";
+import { RootNavigator } from "@/navigation/root-navigator";
+import { AlertMessageProvider } from "@/providers/alert-message";
+import { SessionProvider } from "@/providers/session";
+import { getSession, hydrateSession } from "@/services/session/session.store";
+
+const TOKENS = {
+  accessToken: "access-1",
+  accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
+  refreshToken: "refresh-1",
+  refreshTokenExpiresAt: "2099-11-10T12:00:00.000Z",
+};
+
+function Providers({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={new QueryClient()}>
+      <AlertMessageProvider>
+        <SessionProvider>{children}</SessionProvider>
+      </AlertMessageProvider>
+    </QueryClientProvider>
+  );
+}
+
+function TestRootLayout() {
+  return (
+    <Providers>
+      <RootNavigator />
+    </Providers>
+  );
+}
+
+const routeTree = {
+  _layout: TestRootLayout,
+  index: Index,
+  "(public)/auth/_layout": AuthLayout,
+  "(public)/auth/index": AuthRoute,
+  "(pending)/pending/_layout": PendingLayout,
+  "(pending)/pending/index": PendingRoute,
+  "(onboarding)/onboarding/_layout": OnboardingLayout,
+  "(onboarding)/onboarding/index": OnboardingRoute,
+  "(offboarding)/offboarding/_layout": OffboardingLayout,
+  "(offboarding)/offboarding/denied": DeniedRoute,
+  "(private)/student/_layout": StudentLayout,
+  "(private)/student/index": StudentRoute,
+  "(private)/admin/_layout": AdminLayout,
+  "(private)/admin/index": AdminRoute,
+  "(private)/admin/registrations": AdminRegistrationsRoute,
+};
+
+const account = (
+  status: string,
+  role = "student",
+  onboarded = false,
+): SessionUser => ({
+  id: "user-1",
+  name: "Ana Silva",
+  email: "ana.silva@gmail.com",
+  role,
+  status,
+  createdAt: "2026-10-10T12:00:00.000Z",
+  whatsappNumber: onboarded ? "+5585999998888" : null,
+  whatsappVisible: false,
+  rulesAccepted: onboarded,
+  rulesAcceptedBefore: false,
+  denialReason: status === "denied" ? "Sorry" : null,
+  reactivationStatus: null,
+});
+
+const response = (type: string | undefined, id = "n1") =>
+  ({
+    notification: {
+      request: {
+        identifier: `request-${id}`,
+        content: { data: { type, notificationId: id } },
+      },
+    },
+  }) as unknown as Notifications.NotificationResponse;
+
+const fetchMock = jest.fn();
+let app: ReturnType<typeof renderRouter>;
+
+/** `GET /auth/me` answers `me`; every other call (the admin's list) answers an empty list. */
+const answerMe = (me: SessionUser | Error) => {
+  fetchMock.mockImplementation(async (url: string) => {
+    if (url.endsWith("/auth/me")) {
+      if (me instanceof Error) {
+        throw me;
+      }
+
+      return { ok: true, status: 200, json: async () => me };
+    }
+
+    return { ok: true, status: 200, json: async () => ({ items: [] }) };
+  });
+};
+
+const meCalls = () =>
+  fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/auth/me"));
+
+const openApp = async (user: SessionUser | null) => {
+  if (user) {
+    hydrateSession({ user, tokens: TOKENS });
+  }
+
+  app = renderRouter(routeTree, { initialUrl: "/" });
+  await app;
+  await waitFor(() =>
+    expect(
+      Notifications.addNotificationResponseReceivedListener,
+    ).toHaveBeenCalled(),
+  );
+};
+
+const tap = async (pushResponse: Notifications.NotificationResponse) => {
+  const listener = jest.mocked(Notifications.addNotificationResponseReceivedListener)
+    .mock.calls.at(-1)![0];
+
+  await act(async () => listener(pushResponse));
+};
+
+describe("useNotificationResponse", () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    globalThis.fetch = fetchMock;
+    process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+    jest.mocked(Notifications.getLastNotificationResponse).mockReset().mockReturnValue(null);
+    jest.mocked(Notifications.addNotificationResponseReceivedListener).mockClear();
+  });
+
+  it("opens Join the school when an admin taps a new-registration push", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+    expect(app.getPathname()).toBe(routes.admin.home);
+
+    await tap(response("registration.pending"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.registrations));
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it("opens the onboarding WhatsApp step when a pending person taps the approval push", async () => {
+    answerMe(account("approved"));
+    await openApp(account("pending"));
+    expect(app.getPathname()).toBe(routes.pending.home);
+
+    await tap(response("registration.approved"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.onboarding.whatsapp));
+    expect(getSession()?.user.status).toBe("approved");
+  });
+
+  it("opens the Denied screen when the denial push is tapped", async () => {
+    answerMe(account("denied"));
+    await openApp(account("pending"));
+
+    await tap(response("registration.denied"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.offboarding.denied));
+  });
+
+  it("goes to the resolved flow when the new-registration push is tapped by a non-admin", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "student", true));
+    await tap(response("registration.pending"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
+  it("goes to the resolved flow for a push of an unknown type", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response(undefined));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.home));
+  });
+
+  it("navigates with the stored account when the refresh fails offline", async () => {
+    answerMe(new TypeError("offline"));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("registration.pending"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.registrations));
+    expect(getSession()?.user.status).toBe("approved");
+  });
+
+  it("opens sign-in when there is no session, without calling the API", async () => {
+    answerMe(account("approved"));
+    await openApp(null);
+
+    await tap(response("registration.approved"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.auth.signIn));
+    expect(meCalls()).toHaveLength(0);
+  });
+
+  it("handles the tap that launched the app once, even when the listener gets it again", async () => {
+    answerMe(account("approved", "admin", true));
+    jest
+      .mocked(Notifications.getLastNotificationResponse)
+      .mockReturnValue(response("registration.pending", "launch"));
+
+    await openApp(account("approved", "admin", true));
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.registrations));
+    await tap(response("registration.pending", "launch"));
+
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it("identifies a push without a notification id by its request id", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+    const withoutId = {
+      notification: {
+        request: {
+          identifier: "request-only",
+          content: { data: { type: "registration.pending" } },
+        },
+      },
+    } as unknown as Notifications.NotificationResponse;
+
+    await tap(withoutId);
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.registrations));
+    await tap(withoutId);
+
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it("leaves an expired session to the sign-in guard", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+    fetchMock.mockReset().mockImplementation(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ errors: ["auth.token.invalid"] }),
+    }));
+
+    await tap(response("registration.pending"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.auth.signIn));
+    expect(getSession()).toBeNull();
+  });
+});

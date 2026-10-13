@@ -1,6 +1,8 @@
 import { Stack } from "expo-router";
 
 import { useSessionExpired } from "@/modules/auth/hooks/use-session-expired.hook";
+import { useNotificationReceived } from "@/modules/notifications/hooks/use-notification-received.hook";
+import { useNotificationResponse } from "@/modules/notifications/hooks/use-notification-response.hook";
 import { usePushRegistration } from "@/modules/notifications/hooks/use-push-registration.hook";
 
 import { useRootNavigator } from "./root-navigator.hook";
@@ -15,6 +17,10 @@ export function RootNavigator() {
 
   // Sends this phone's push token for a pending or approved account (spec 020, D-12).
   usePushRegistration();
+
+  // A tapped push opens the screen of the account's current state; one received with the app open updates it.
+  useNotificationResponse();
+  useNotificationReceived();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

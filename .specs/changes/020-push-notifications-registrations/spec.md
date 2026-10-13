@@ -495,7 +495,7 @@ translated), or the fallback when there is none.
   > verified: `npx jest src/services/session src/modules/auth/hooks` (97 passed, session.store.ts 100%); check-types and lint exit 0
   > deviations: the registered token is forgotten on every sign-out, also without a session
 
-- [ ] **T-16** — `useNotificationResponse` and `useNotificationReceived`
+- [x] **T-16** — `useNotificationResponse` and `useNotificationReceived`
   (`src/modules/notifications/hooks/use-notification-response.hook.ts`, `use-notification-received.hook.ts`;
   D-15, D-16), sharing a `refreshAccount()` helper in `src/modules/notifications/utils/refresh-account.ts`
   (`GET /auth/me` → `updateUser`, errors other than `SessionExpiredError` swallowed); add `routes.home: "/"`;
@@ -506,6 +506,9 @@ translated), or the fallback when there is none.
   `["registrations"]`, unknown type, refresh failure), plus `refresh-account.test.ts`.
   Covers: ER-12, ER-13 · Done when: `npx jest src/modules/notifications src/navigation` passes with the new files at
   100% coverage, and `npm test --workspace @rochas-surf-school/mobile` passes.
+  > ✅ 2026-10-12 21:21 — files: `apps/mobile/src/modules/notifications/utils/{refresh-account.ts,refresh-account.test.ts}`, `src/modules/notifications/hooks/{use-notification-response.hook.ts,use-notification-response.hook.test.tsx,use-notification-received.hook.ts,use-notification-received.hook.test.tsx}`, `src/constants/routes.ts` (`routes.home`), `src/navigation/root-navigator/root-navigator.component.tsx`, `src/services/push/push.service.ts` (+ test)
+  > verified: `npx jest src/modules/notifications src/navigation` (new files 100%); `npm test --workspace @rochas-surf-school/mobile` (90 suites, all passed); `turbo run check-types lint --filter=mobile` exits 0
+  > deviations: `refreshAccount` returns null on a failed call and rethrows only `SessionExpiredError`, which the hooks swallow (useSessionExpired owns it); the launch response waits for `isRestoring` to end; push.service now imports `{ isDevice }` by name (the namespace copy could not be mutated in the test)
 
 ### Verification
 

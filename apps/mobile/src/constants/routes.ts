@@ -2,6 +2,8 @@ import type { Href } from "expo-router";
 
 /** Every app route in one place. `as const` keeps the paths typed by Expo Router's typed routes. */
 export const routes = {
+  // The entry route: it redirects to the screen of the account's current flow.
+  home: "/",
   auth: {
     signIn: "/auth",
     emailChoice: "/auth/email",

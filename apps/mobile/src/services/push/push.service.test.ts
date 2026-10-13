@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- isolateModules can only load a module again with require */
 
 import Constants from "expo-constants";
-import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
 import {
@@ -15,7 +14,7 @@ const getPermissions = jest.mocked(Notifications.getPermissionsAsync);
 const requestPermissions = jest.mocked(Notifications.requestPermissionsAsync);
 const getExpoPushToken = jest.mocked(Notifications.getExpoPushTokenAsync);
 
-const device = Device as { isDevice: boolean };
+const device = jest.requireMock<{ isDevice: boolean }>("expo-device");
 const constants = Constants as unknown as {
   expoConfig: { extra?: { eas?: { projectId?: string } } };
   easConfig: { projectId?: string } | null;

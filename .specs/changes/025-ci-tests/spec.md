@@ -283,13 +283,21 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   > which takes the directory for a module — the glob spelling above works and is what the workflow and the
   > report should use; the spec text is unchanged pending the user's approval to amend it
 
-- [ ] **T-07** — Write `.github/workflows/ci.yml` (D-02, D-07, D-08, D-12): `changes` runs `affected.mjs` and
+- [x] **T-07** — Write `.github/workflows/ci.yml` (D-02, D-07, D-08, D-12): `changes` runs `affected.mjs` and
   exposes its outputs; `backend` (Postgres 18 service with the `.env.example` credentials, migrations, unit then
   e2e), `web` (Chromium install, Vitest then Playwright, `CI=true`), `mobile` (Jest) and `domain` (affected
   `modules/*`/`packages/*` suites; all of them on a root change) each `needs: changes` and run only when their
   output is `true`; `ci` needs all and checks their results. Covers: ER-02, ER-03, ER-04, ER-05, ER-06 ·
   Done when: `docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:latest` reports no errors and each job's
   test commands pass locally.
+  > ✅ 2026-10-13 13:00 — workflow with `changes`, `backend` (Postgres 18.6 service, migrations, unit then e2e),
+  > `web` (Chromium, Vitest then Playwright, `CI=true`), `mobile`, `domain` (`--affected`, or every suite when
+  > `all` is true) and `ci` (`if: always()`, fails on any `failure`/`cancelled` result); files:
+  > `.github/workflows/ci.yml`; verified: actionlint exit 0 with no output; backend commands with
+  > `apps/backend/.env` replaced by `.env.example` (migrations, 247 unit, 292 e2e passed; the previous `.env` was
+  > restored); web and mobile commands passed in T-03/T-05; the domain command with `TURBO_SCM_BASE=HEAD~1` after
+  > a `modules/auth`-only commit (throwaway worktree) ran only `auth` and `school-rules`;
+  > deviations: none (`permissions: contents: read` added as a least-privilege default)
 
 ### Verification
 

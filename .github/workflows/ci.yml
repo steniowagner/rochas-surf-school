@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Decides which test jobs the change needs (Turbo's dependency graph, see .github/scripts/affected.mjs).
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.affected.outputs.backend }}
+      web: ${{ steps.affected.outputs.web }}
+      mobile: ${{ steps.affected.outputs.mobile }}
+      domain: ${{ steps.affected.outputs.domain }}
+      all: ${{ steps.affected.outputs.all }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - id: affected
+        run: node .github/scripts/affected.mjs
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    env:
+      # Override the values of apps/backend/.env, copied from .env.example below.
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_USER: rochas
+      DATABASE_PASSWORD: rochas
+      DATABASE_NAME: rochas_surf_school
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_USER: rochas
+          POSTGRES_PASSWORD: rochas
+          POSTGRES_DB: rochas_surf_school
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rochas -d rochas_surf_school"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: cp apps/backend/.env.example apps/backend/.env
+      - run: npm run prisma:migrate:deploy -w @rochas-surf-school/backend
+      - run: npx turbo run test --filter=@rochas-surf-school/backend
+      - run: npx turbo run test:e2e --filter=@rochas-surf-school/backend
+
+  web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: cp apps/web/.env.example apps/web/.env
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npx turbo run test --filter=@rochas-surf-school/web
+      - run: npx turbo run test:e2e --filter=@rochas-surf-school/web
+
+  mobile:
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx turbo run test --filter=@rochas-surf-school/mobile
+
+  domain:
+    needs: changes
+    if: needs.changes.outputs.domain == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # A root-level change (.github, package.json, package-lock.json, turbo.json) runs every suite.
+      - if: needs.changes.outputs.all == 'true'
+        run: npx turbo run test --filter="./modules/*" --filter="./packages/*"
+      - if: needs.changes.outputs.all != 'true'
+        run: npx turbo run test --affected --filter="./modules/*" --filter="./packages/*"
+
+  # The one check to require in branch protection: a required job that is skipped would block the PR.
+  ci:
+    needs: [changes, backend, web, mobile, domain]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when a job failed or was cancelled
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              exit 1
+            fi
+          done

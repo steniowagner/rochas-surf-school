@@ -47,7 +47,27 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     rather than `AsYouType`); E.164 is built from those same digits. Other countries keep the typed text.
   - Translations: **i18next** + `react-i18next`, with `expo-localization` for the phone's language
     (pt-BR fallback).
-  - Push: `expo-notifications`.
+  - Push: **`expo-notifications`** 57 (config plugin in `app.json` with `defaultChannel: "default"`; since spec
+    020), with `expo-device` and `expo-constants`. `src/services/push/push.service.ts` sets the foreground
+    handler at module load (banner, list and sound, no badge), creates the Android channel `default` (importance
+    high), and `getPushToken()` returns the Expo push token or `null` — not a physical device, no EAS
+    `projectId` (`Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId`), permission not
+    granted, or the token call throwing; the OS dialog is asked only while the permission is `undetermined`. It
+    also keeps the token this session registered (`get/set/clearRegisteredPushToken`, module state). Hooks in
+    `src/modules/notifications/hooks/`, all mounted in `RootNavigator`: `usePushRegistration` (`PUT
+    /notifications/push-token` with `{ token, locale }` for a `pending` or `approved` user, whenever the user id,
+    its status or the i18n language changes; silent on any failure), `useNotificationResponse` (a tap — the
+    launch response once the session is restored, then the listener; deduplicated by `notificationId`: refreshes
+    the account with `refreshAccount()`, then `router.push(routes.admin.registrations)` for a
+    `registration.pending` push when the account resolves to the `admin` flow, else `router.replace(routes.home)`
+    (`"/"`), so `resolveFlow` alone decides access) and `useNotificationReceived` (a push with the app open:
+    `registration.approved` / `.denied` refresh the account, `registration.pending` invalidates
+    `["registrations"]`; no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
+    mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
+    email and push registration. Pushes need the EAS `projectId` in `app.json` (`eas init`) and the APNs key /
+    FCM service account (`eas credentials`) plus a native rebuild — not set up yet, so the app registers nothing
+    until then.
   - Dates: `date-fns` 4 + `@date-fns/tz`, always displayed in `America/Fortaleza` (`format(…, { in: tz("America/Fortaleza") })`);
     relative times use date-fns locales `ptBR` / `es` / `enUS`, picked from the i18n language.
   - Design system: `@rochas-surf-school/design-tokens` through `src/constants/theme.ts` (see Fixed conventions).
@@ -62,7 +82,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   JSON bodies; dates travel as ISO 8601 strings in UTC. `@nestjs/config` is global; CORS is on. Libraries by
   concern: Prisma 7 (persistence), `@nestjs/jwt` + `passport-jwt` (auth, see Authentication),
   `@nestjs/schedule` 12 (scheduled work), `@nestjs/throttler` 6 (rate limits, see Authentication), the
-  providers' SDKs behind domain ports (`resend` 6 for email; see External integrations).
+  providers' SDKs behind domain ports (`resend` 6 for email, `expo-server-sdk` 7 for pushes; see External
+  integrations).
   Build with `nest build` (`prebuild` runs `prisma generate`). Lint with `oxlint --type-aware`. Tests with
   **Vitest 4** — unit tests `src/**/*.spec.ts`, e2e tests `test/**/*.e2e-spec.ts` with supertest.
   Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
@@ -72,8 +93,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   content (see Automated validation).
 - **`modules/<module>`** — business modules (`@rochas-surf-school/<module>`), plain TypeScript compiled with
   `tsc`. Tests with **Jest 30** + `ts-jest`, in `test/` mirroring `src/` (`*.test.ts`). Only `modules/auth`,
-  `modules/school-rules` and `modules/school-settings` exist today (`GET /school-settings` and
-  `PUT /school-settings/whatsapp`, protected, both answer `{ whatsappNumber }`).
+  `modules/school-rules`, `modules/school-settings` (`GET /school-settings` and
+  `PUT /school-settings/whatsapp`, protected, both answer `{ whatsappNumber }`) and `modules/notifications`
+  (spec 020; no dependency on `auth`, see External integrations → Push notifications) exist today.
 - **`packages/shared`** — base classes and contracts every module uses: `Entity`, `UseCase`,
   `CrudRepository` and its parts, `DomainError` (with optional `details`) / `ValidationError` /
   `ValidationException` (422) / `NotFoundError` (404) / `UnauthorizedError` (401) / `ForbiddenError` (403) /
@@ -143,9 +165,12 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 - **Languages**: code, identifiers, commits, specs and docs in English. The UI is in Brazilian Portuguese,
   Spanish and English through translation keys — no user-facing text is hard-coded in components or sent by
   the backend. Text written by admins (rules, notes, reasons, broadcasts) is stored and shown as written,
-  never translated. **One exception**: the sign-in code email, whose pt-BR / es / en copy lives in
-  `ResendEmailProvider`, because email is the one place the app can't translate; the client sends the
-  `locale` picked on the sign-in screen.
+  never translated. **Two exceptions**, both texts the OS or a mail client draws without the app: the sign-in
+  code email, whose pt-BR / es / en copy lives in `ResendEmailProvider` (the client sends the `locale` picked on
+  the sign-in screen), and the push text, whose catalog (`renderPush(type, params, locale)`) lives in
+  `apps/backend/src/modules/notifications/push-messages.ts` and is drawn per device in the locale that device
+  registered (spec 020). A stored notification holds no text — only `type` and `params` — so the app can
+  translate it.
 - **Contracts**: controllers reuse the use case's `In` interface and return its output; a controller-specific
   DTO only when HTTP really differs from the use case. No `class-validator` / `ValidationPipe`: input is
   validated by the domain, so there is one set of rules.
@@ -292,6 +317,19 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   carries no family and may have expired); it revokes the active tokens of that token's family only — the
   account's other sign-ins stay — and always answers 204, changing nothing for an unknown, expired or revoked
   token. Both routes answer 422 `refreshToken.token.required` for a missing, empty or non-string token.
+  Sign-out also takes an optional `pushToken` (spec 020): when the refresh token is found, whatever its state,
+  and `pushToken` is a non-empty string, `SignOut` deletes that push token if it belongs to the token's user,
+  through the `PushTokenRemover` port (`modules/auth/src/session/provider/push-token-remover.provider.ts`,
+  `remove(userId, token)`); anything else in `pushToken` is ignored.
+- Registration notifications: `auth` declares the `RegistrationNotifier` port
+  (`modules/auth/src/user/provider/registration-notifier.provider.ts`: `registrationPending({ id, name })`,
+  `registrationApproved(userId)`, `registrationDenied(userId, reason?)`). `VerifySignInCode` and
+  `SignInWithGoogle` call `registrationPending` only on the path that creates the account, after the user and
+  identity are stored; `ApproveRegistration` / `DenyRegistration` call theirs only after `updateIfPending`
+  returned `true` (the deny reason trimmed, `undefined` when blank). Both ports are implemented in
+  `apps/backend/src/modules/notifications/` (`NotificationsRegistrationNotifier`, which catches and logs every
+  error so notifying never changes the answer, and `NotificationsPushTokenRemover`); `AuthModule` imports
+  `NotificationsModule`, never the reverse, and `modules/notifications` doesn't depend on `auth`.
 - Email codes: `crypto.randomInt` padded to 6 digits, stored as hex HMAC-SHA256 keyed by `AUTH_CODE_PEPPER`
   over `` `${email}:${code}` `` and compared with `timingSafeEqual` — 10⁶ codes make a plain hash reversible,
   so the pepper protects them. One row per normalized email (trimmed, lowercase — emails are stored that way
@@ -468,8 +506,29 @@ provider; real keys are never committed.
 
 ### Push notifications
 
-- **Expo Push** (`expo-notifications` on the phone; the backend sends through Expo's push API). The user's
-  push setting only controls the push: every notification is stored for the notifications screen first.
+- **Expo Push** (`expo-notifications` on the phone, see Applications; the backend sends through
+  **`expo-server-sdk`** 7). Every notification is stored first (`Notify` in `modules/notifications`), then pushed
+  to every device of its user; the future push setting will only control the push. The port is `PushProvider`
+  (`modules/notifications/src/notification/provider/push.provider.ts`: `send(messages)` → tickets in the order
+  of the messages, `getReceipts(ids)` → receipts by ticket id), implemented by `ExpoPushProvider`
+  (`apps/backend/src/modules/notifications/expo.push.ts`): `chunkPushNotifications` +
+  `sendPushNotificationsAsync`, messages with `sound: "default"`, `priority: "high"`, `channelId: "default"` and
+  `data: { type, notificationId }`, title and body from `renderPush` in the device's locale. A chunk that throws
+  doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
+  logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
+  enhanced push security).
+- Tokens (`push_tokens`, key `token`, one row per device, many per user): `PUT /notifications/push-token`
+  (protected, body `{ token, locale }`, 204) upserts the token for the caller with its locale, moving a token
+  another account held. Order: status not `pending` / `approved` → 403 `pushToken.status.notAllowed`; then
+  `token` not matching `^Expo(nent)?PushToken\[[^\]]+\]$` → 422 `pushToken.token.invalid` and `locale` not
+  `pt-BR` / `es` / `en` → 422 `pushToken.locale.invalid`, listed together. A token is deleted on sign-out (see
+  Authentication) and when Expo reports `DeviceNotRegistered` in a ticket or a receipt — never when a session
+  expires, the account changes status, or by age.
+- Tickets and receipts: every `ok` ticket is stored in `push_tickets` (`id` = Expo ticket id, `token`, no foreign
+  key); `PushReceiptCheckJob` runs `CheckPushReceipts` every minute — tickets 15 minutes old or more are asked
+  about (`getPushNotificationReceiptsAsync` in chunks of up to 1000 ids), the token of each `DeviceNotRegistered`
+  receipt is deleted and every asked ticket is deleted, receipt found or not; tickets older than 24 hours are
+  deleted without asking.
 
 ### Email (sign-in codes)
 
@@ -508,8 +567,8 @@ provider; real keys are never committed.
 
 ### Scheduled work
 
-- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today one job,
-  `SignInCodeCleanupJob`): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
+- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today two jobs,
+  `SignInCodeCleanupJob` and `PushReceiptCheckJob`, spec 020): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
   class start, 30-minute reminders, rating prompts, 30-day erasures of denied/deleted/removed accounts, guest
   data erasure, cancellation-deadline retries), each running every minute and **idempotent** — it records in
   the database what it already did, so a restart or a late tick never sends twice.
@@ -539,7 +598,9 @@ The public web pages are checked **in a browser**. A Maestro suite for mobile wo
   `.specs/scripts/run-related-tests.mjs`.
 - Mobile test setup: `apps/mobile/jest.setup.ts` mocks the native pieces — among them `expo-secure-store` as
   `jest.fn`s over an in-memory `Map`, reset between tests — and calls `resetSessionStore()` before every test,
-  since the session store is module state. Tests that need a signed-in app seed the real store
+  since the session store is module state. It also mocks `expo-notifications` (permissions, token, listeners and
+  `getLastNotificationResponse` as `jest.fn`s), `expo-device` (`isDevice: true`) and `expo-constants` (an EAS
+  `projectId`), so tests drive push behavior through those mocks. Tests that need a signed-in app seed the real store
   (`hydrateSession`) with an access token far in the future, since one close to expiry triggers a refresh;
   `fetch` is mocked per test.
 - End-to-end, per app: the suite below. It needs a Postgres reachable through `DATABASE_*` with the
@@ -549,7 +610,9 @@ The public web pages are checked **in a browser**. A Maestro suite for mobile wo
   Verification Plan, `spec-review` runs it instead of driving the app for what the suite covers, and the CI
   check runs it on every spec pull request. The e2e files run one at a time (`fileParallelism: false` in
   `apps/backend/vitest.config.e2e.ts`) because they share the single `rules_versions` row; each suite that
-  changes it resets it to 0 (and deletes the school rules) after every test.
+  changes it resets it to 0 (and deletes the school rules) after every test. The suites never call Expo:
+  `notifications.e2e-spec.ts` overrides `ExpoPushProvider` with a fake that records the messages and returns
+  configurable tickets (`overrideProvider`).
 
 ```e2e
 apps/backend: npm run test:e2e --workspace apps/backend   # the API (Nest app + Prisma) against Postgres via DATABASE_*, migrations applied

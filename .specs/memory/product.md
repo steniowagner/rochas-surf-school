@@ -406,7 +406,8 @@ reactivated from the app. Both offer "Falar com a escola", which opens a WhatsAp
 The Account deleted screen has three states: not requested, with "Pedir reativação", which sends the one
 request and switches the screen to "Pedido enviado" in place; requested, waiting for the team; and denied, with
 only "Usar outro email". An admin's decision is seen at the next launch or sign-in, or when the session renews
-while the screen is open (spec 018), since there are no notifications. All copy is in pt-BR, es-ES and en-US.
+while the screen is open (spec 018), or at once when its push arrives (spec 020). All copy is in pt-BR, es-ES and
+en-US.
 
 **Google sign-in** (spec `017-google-sign-in`) — "Continue with Google" on the sign-in screen signs in or signs
 up with a Google account, on iOS and Android. The backend checks Google's token and opens the one account for
@@ -440,10 +441,27 @@ the Denied screen exactly as written (trimmed; a blank reason counts as none). A
 the person appears under "Decided just now" with "Approved" or "Denied" — newest first, only for the current
 visit to the tool. Every decision is final: a registration already decided, by another admin or at the same
 moment, is refused, and the app says "This registration was already decided." and reloads the list. Only an
-approved admin may list or decide registrations; a pending account of any role is one. The person sees the decision at the
-next launch, sign-in or session renewal (no notifications yet). The card, the "Decided just now" list and the
+approved admin may list or decide registrations; a pending account of any role is one. The person is told of the
+decision by a push (spec 020), and otherwise sees it at the next launch, sign-in or session renewal. The card, the "Decided just now" list and the
 deny sheet are built to be reused by "Reactivate accounts" and "Class enrolments". All copy is in pt-BR, es-ES and
 en-US.
+
+**Push notifications for registrations** (spec `020-push-notifications-registrations`) — the app now has its
+only outbound channel: every notification is stored for the person first, then pushed to every phone they are
+signed in on (pending and approved accounts register their phone at sign-in, at each launch and when the app
+language changes), in that phone's language (pt-BR, es or en). The OS permission is asked right after the session
+starts, with no screen before it; refusing it, or a phone that can't have a push token (a simulator), shows
+nothing. Every approved admin is told when a new account starts waiting ("New registration — Ana Souza is waiting
+for approval."), and the person is told when their registration is approved ("Account approved") or denied
+("Registration denied", with the admin's reason as written, or "Open the app to learn more." without one).
+Tapping a push reloads the account and opens the screen of its current state: "Join the school" for an admin, the
+onboarding WhatsApp step after an approval, the Denied screen after a denial. A push that arrives with the app
+open is shown as a banner and updates the screen at once (the Pending screen moves on; the admin's waiting count
+and list reload). A failed push never changes the answer of the sign-up or the decision. Signing out stops the
+pushes to that phone; a phone whose session expired without a sign-out keeps receiving its account's pushes
+until someone signs in on it. The notifications screen (with read state) and the in-app push on/off setting
+don't exist yet: the stored notifications aren't shown anywhere, and the phone's own permission is the only
+switch. Delivery to a real phone needs the EAS project and the APNs / FCM credentials, which aren't set up yet.
 
 Active specs: none.
 
@@ -471,6 +489,9 @@ Active specs: none.
   offline launch by the last known account).
 - Using the Google profile photo as the account's photo (spec 017 doesn't store it), and Google One Tap /
   automatic sign-in.
+- The notifications screen (with read / unread state) and the in-app push on/off setting: spec 020 stores every
+  notification but nothing shows them; badges on the app icon, rich pushes, and a screen before the OS
+  permission dialog (or asking again after a refusal).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea

@@ -2,13 +2,14 @@
 id: "020"
 slug: push-notifications-registrations
 title: Push notifications foundation, first used for registrations
-status: accepted
+status: finished
 created: 2026-10-12
 started: 2026-10-12
 base_commit: f26caad74b27c08241e306009c4a223cf44b0a04
 reviewed_commit: 7551a27adb4c5eefc40f3ab60b40b89db031164e
 fronts: [notifications, auth, backend, mobile]
 depends_on: []
+finished: 2026-10-12
 ---
 
 # 020 — Push notifications foundation, first used for registrations

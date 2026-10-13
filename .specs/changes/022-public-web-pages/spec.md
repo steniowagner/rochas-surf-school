@@ -229,7 +229,7 @@ goes away in the same change.
   > stale `.next` types of the deleted page), `ls apps/web/public` → missing, `grep -c create-next-app
   > apps/web/README.md` → `0`; deviations: none
 
-- [ ] **T-02** — Locales and routing: `src/i18n/locales.ts` (`locales = ["pt-br", "es", "en"]`, `defaultLocale
+- [x] **T-02** — Locales and routing: `src/i18n/locales.ts` (`locales = ["pt-br", "es", "en"]`, `defaultLocale
   = "pt-br"`, `hasLocale`, `matchLocale(acceptLanguage)` per D-02, the `<html lang>` value, native names,
   acronyms and flags), `src/i18n/dictionary.types.ts` and `src/i18n/get-dictionary.ts` with the three
   dictionaries holding the shared strings (site name, header, language picker, footer); move the root layout to
@@ -238,6 +238,17 @@ goes away in the same change.
   docs first (`internationalization.md`, `proxy`).
   Covers: ER-03, ER-04 · Done when: `npm run build && npm run start` in `apps/web`, and every `curl` case of
   ER-03 prints the expected status and URL.
+  > ✅ 2026-10-12 — locales, typed dictionaries (shared strings), `getDictionary`, root layout under `[lang]`
+  > (fonts, `<html lang>`, `generateStaticParams`, `dynamicParams = false`, `generateMetadata`) and the proxy
+  > (matcher on the three unprefixed paths only, so prefixed paths, `_next` and `public/` never reach it); a
+  > minimal `[lang]/page.tsx` placeholder (replaced by the home in T-03) lets the build and the checks run; files:
+  > `apps/web/src/i18n/{locales.ts,dictionary.types.ts,get-dictionary.ts}`,
+  > `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`, `apps/web/src/proxy.ts`,
+  > `apps/web/src/app/[lang]/{layout.tsx,page.tsx}`, `apps/web/src/app/layout.tsx` (deleted); verified:
+  > `npm run check-types`, `npm run lint`, `npm run build` in `apps/web` pass; `next start` + curl: `es-MX,es;q=0.9`
+  > `/privacy-policy` → `307 …/es/privacy-policy`; `en-GB` → `/en/account-deletion`; `fr-FR,en;q=0.5` `/` →
+  > `/en`; `fr-FR`, `de`, no header → `/pt-br…`; `pt-PT` → `/pt-br/…`; `/es` and `/en` → 200, `/fr` → 404,
+  > `<html lang="es">` on `/es`; deviations: none
 
 - [ ] **T-03** — Shared layout and home page: components `site-header` (brand tile linking to `/{lang}` +
   `language-picker`), `language-picker` (`<details>` pill and list, D-09a), `screen-intro`, `content-card` and

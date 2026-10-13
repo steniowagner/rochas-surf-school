@@ -2,10 +2,11 @@
 id: "023"
 slug: terms-and-lgpd-privacy
 title: Terms of use page and an LGPD-complete privacy policy
-status: in-review
+status: accepted
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 82427a24d8fc63dc0541f384c1c8f4ff5a3c37c9
+reviewed_commit: 871293b1d5e63090c1b8970ccac0870c5ac9b988
 fronts: [web]
 depends_on: []
 ---
@@ -353,3 +354,32 @@ this app.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-13 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`apps/web`, with the ER-02 values; 7 turbo tasks)
+- related tests ✅ — `RELATED TESTS PASSED` (web has no runner)
+- coverage of the changed lines ✅ — `COVERAGE OK`; the nine changed web files are excluded by technical-context; no coverage-ignore comments in the diff
+- e2e ✅ — `E2E PASSED`, none applies to web
+- placeholder `grep` clean; design-literal `grep` shows only the existing `gap-[22px]`
+
+**Expected Results**
+
+- ER-01 ✅ — `/pt-br|es|en/terms-of-use` 200 with the right `<html lang>` and `<title>`; `/fr` and `/pt` 404; ten sections in order; one `wa.me` link; no forum named
+- ER-02 ✅ — the four values on the policy; with `SCHOOL_CNPJ` unset or empty (`.env` aside) no CNPJ label or number in any language
+- ER-03 ✅ — fourteen cards in order in the three languages; every item of the copy read in the English dictionary; no provider beyond Google, Apple, Resend and Expo named
+- ER-04 ✅ — blank, empty, unset and `not-an-email` values for `SCHOOL_LEGAL_NAME`, `DPO_NAME` and `DPO_EMAIL` exit 1 naming the variable; wrong check digit and 13 digits fail naming `SCHOOL_CNPJ`; empty and masked CNPJ build
+- ER-05 ✅ — `307 …/es/terms-of-use` with `es-MX,es;q=0.9`, `307 …/pt-br/terms-of-use` without; home shows the three rows in order; policy links to terms and deletion, terms link to policy and deletion
+- ER-06 ✅ — nine pages at 375px: no horizontal overflow, no `a`/`button`/`summary` under 44px, a single `.bg-sun` (header tile)
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Next loads `apps/web/.env` over an empty exported variable, so the "CNPJ unset" case needs `.env` moved aside, as the spec says.
+- The copy is a draft; the spec's Assumptions require a legal review before the store submission.
+

@@ -320,7 +320,7 @@ translated), or the fallback when there is none.
   > verified: `npm test`, `lint`, `check-types` on the workspace pass; `turbo run build --filter=backend` builds
   > deviations: package.json/.oxlintrc.json copied from school-settings (adds lint, check-types, shared dependency); aggregate folders `notification` and `push-token` are created with their files in T-02+ (the module-aggregate skill only makes folders)
 
-- [ ] **T-02** — Entities with their validation and tests: `Notification` (`userId` required uuid, `type` one of the
+- [x] **T-02** — Entities with their validation and tests: `Notification` (`userId` required uuid, `type` one of the
   three types, `params` object, D-03) in `src/notification/model/notification.entity.ts`, and `PushToken`
   (`token` matching D-09's pattern → `pushToken.token.invalid`, `userId`, `locale` in `pt-BR`/`es`/`en` →
   `pushToken.locale.invalid`) and `PushTicket` (`id`, `token`) in `src/push-token/model/`; tests in
@@ -328,6 +328,9 @@ translated), or the fallback when there is none.
   Skill: [`module-entity`](../../../.claude/skills/module-entity).
   Covers: ER-02 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes with the entity files
   at 100% coverage.
+  > ✅ 2026-10-12 21:05 — files: `modules/notifications/src/notification/model/{notification.entity.ts,index.ts}`, `src/push-token/model/{push-token.entity.ts,push-ticket.ts,index.ts}`, `src/notification/index.ts`, `src/push-token/index.ts`, `src/index.ts`, tests `test/notification/model/notification.entity.test.ts`, `test/push-token/model/push-token.entity.test.ts`
+  > verified: `npm test --workspace @rochas-surf-school/notifications` (29 passed, entity files 100%), lint and check-types clean
+  > deviations: `PushTicket` is a plain interface, not an `Entity`: its id is Expo's ticket id, which is not a UUID the entity id rule would accept
 
 - [ ] **T-03** — Ports and in-memory fakes: `NotificationRepository` (`createMany`), `PushTokenRepository`
   (`upsert`, `findByUserIds`, `deleteByToken`, `deleteByTokens`, `deleteForUser(userId, token)`),

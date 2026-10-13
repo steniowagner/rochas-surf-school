@@ -343,19 +343,21 @@ src/
     favicon.ico
     [lang]/                     # lang: pt-br | es | en (any other → 404); every page statically generated
       layout.tsx                # root layout: <html lang>, fonts, SiteHeader, 640px column, footer
-      page.tsx                  # home: ScreenIntro + LinkRows to both pages
-      privacy-policy/page.tsx   # the privacy policy
+      page.tsx                  # home: ScreenIntro + LinkRows to the three pages
+      privacy-policy/page.tsx   # the privacy policy (fourteen cards: controller, encarregado, bases, retention, rights…)
+      terms-of-use/page.tsx     # the terms of use (ten cards)
       account-deletion/page.tsx # how to delete an account; primary Button to the school's WhatsApp
-  proxy.ts                      # redirects /, /privacy-policy, /account-deletion to the browser's language
+  proxy.ts                      # redirects /, /privacy-policy, /terms-of-use, /account-deletion to the browser's language
   i18n/
     locales.ts                  # locales, defaultLocale (pt-br), hasLocale, matchLocale, html lang, names, flags
     dictionary.types.ts         # Dictionary: every string of the site
     dictionaries/{pt-br,es,en}.ts
     get-dictionary.ts           # server-side loader
   config/school-whatsapp.ts     # SCHOOL_WHATSAPP_NUMBER → formatted number + wa.me link; throws at build if invalid
+  config/school-legal.ts        # SCHOOL_LEGAL_NAME, SCHOOL_CNPJ (optional), DPO_NAME, DPO_EMAIL; throws at build if invalid
   components/                   # one folder each: site-header, language-picker (the only client component),
                                 # screen-intro, content-card, link-row
   components/ui/{button,chip}/  # design-system components (same names/props as mobile; Button also takes href)
 ```
 
-No `public/` folder. `README.md` describes the site, its routes and `SCHOOL_WHATSAPP_NUMBER`.
+No `public/` folder. `README.md` describes the site, its routes and `SCHOOL_WHATSAPP_NUMBER` and the legal variables.

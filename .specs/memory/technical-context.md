@@ -88,17 +88,18 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   **Vitest 4** — unit tests `src/**/*.spec.ts`, e2e tests `test/**/*.e2e-spec.ts` with supertest.
   Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
 - **`apps/web`** — **Next.js 16** (App Router, `src/`), **Tailwind 4**, port **3000**. Only the public web
-  pages the app stores require — the privacy policy and the account-deletion page, each in pt-BR, es and en.
+  pages the app stores require — the privacy policy, the terms of use and the account-deletion page, each in
+  pt-BR, es and en.
   No sign-in, no private area and no API calls. Build with `next build`; it needs a **Node runtime**
   (`next start`, or a platform that runs Next) because of the proxy — no static export. No test runner: the pages
   are static content (see Automated validation).
   - Routes: `src/app/[lang]/` holds the root layout (`<html lang>` `pt-BR` / `es` / `en`, fonts, header, footer)
-    and the pages `/{lang}`, `/{lang}/privacy-policy` and `/{lang}/account-deletion`, with `lang` one of `pt-br`,
+    and the pages `/{lang}`, `/{lang}/privacy-policy`, `/{lang}/terms-of-use` and `/{lang}/account-deletion`, with `lang` one of `pt-br`,
     `es`, `en` and English slugs in every language. Every page is statically generated (`generateStaticParams`,
     `dynamicParams = false`, so another `lang` answers 404) and sets its translated `<title>` and description
     with `generateMetadata`.
-  - Language: `src/proxy.ts` (Next 16's replacement for middleware, matching only `/`, `/privacy-policy` and
-    `/account-deletion`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
+  - Language: `src/proxy.ts` (Next 16's replacement for middleware, matching only `/`, `/privacy-policy`,
+    `/terms-of-use` and `/account-deletion`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
     order, whose language is `pt`, `es` or `en` (`matchLocale` in `src/i18n/locales.ts`), **pt-BR** when none
     matches or the header is missing. Copy lives in typed dictionaries (`src/i18n/dictionaries/{pt-br,es,en}.ts`,
     each `satisfies Dictionary` from `src/i18n/dictionary.types.ts`, loaded server-side by `getDictionary`), so a
@@ -109,6 +110,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     shared `PhoneNumberRule`, formatted with **`libphonenumber-js`** `formatInternational()` and linked to
     `https://wa.me/<digits>`; a missing or invalid value throws an error naming the variable, so `next build`
     fails. It is a build-time copy of the school setting (spec 015): the site is rebuilt when the number changes.
+  - `SCHOOL_LEGAL_NAME`, `SCHOOL_CNPJ` (optional), `DPO_NAME` and `DPO_EMAIL` (server-only) are read by
+    `src/config/school-legal.ts`: the CNPJ needs 14 digits with valid check digits (masked input accepted, shown
+    as `00.000.000/0000-00`), the email is validated with the shared `EmailRule`, and a missing or invalid value
+    throws an error naming the variable, so `next build` fails. They fill the policy's controller and encarregado
+    cards. Next loads `apps/web/.env` over an empty exported variable.
   - Icons: **`lucide-react`** with stroke width 2. Components follow `.claude/rules/react.md`
     (`src/components/<name>/`, `src/components/ui/{button,chip}/`); the web `Button` takes an optional `href`
     and then renders an `<a>` with the same classes.
@@ -537,7 +543,8 @@ Every provider sits behind a port in the domain (`*.provider.ts`); its implement
 module that uses it. Variable names are added to `apps/backend/.env.example` by the spec that introduces the
 provider; real keys are never committed. The privacy policy page (`apps/web`, spec 022) names the providers
 already chosen (Google, Apple, Resend, Expo) and describes the others by category, so a spec that chooses a
-provider (hosting, language model, photo storage) also updates the policy copy in the three web dictionaries.
+provider (hosting, language model, photo storage), changes a retention period or adds a kind of data also
+updates the policy's legal bases and retention list (spec 023) in the three web dictionaries.
 
 ### Push notifications
 

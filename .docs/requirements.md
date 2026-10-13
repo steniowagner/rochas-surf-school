@@ -1080,16 +1080,24 @@ Both app stores require a privacy policy at a public web address, and Google Pla
 
 ### 6.1 Public web pages
 
-Publishes the public web pages the app stores require: the privacy policy and a way to request account deletion without the app.
+Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app.
 
 #### Privacy policy page
 
-_Implemented in spec 022-public-web-pages._
+_Implemented in spec 022-public-web-pages and 023-terms-and-lgpd-privacy._
 
-A privacy policy SHALL be published at a public web address and linked from the app and from the App Store and Google Play listings. It SHALL say what data the app collects, why, how long it is kept, and which services handle it, including the sign-in providers, the push service, hosting, and the language model, which only receives class details.
+A privacy policy SHALL be published at a public web address and linked from the app and from the App Store and Google Play listings. It SHALL say what data the app collects, why and on what LGPD legal basis, how long it is kept, which services handle it (including the sign-in providers, the push service, hosting, and the language model, which only receives class details) and that data may be processed outside Brazil. It SHALL identify the controller (the school's legal name and, when available, its CNPJ) and the data protection contact (encarregado), state that the app is for adults only, list the data subject's LGPD rights and how to exercise them, including the right to complain to the ANPD.
 
 - _Opening the policy from the app:_ When a user opens the privacy policy from the app, then the public privacy policy page opens.
 - _Retention explained:_ When someone reads the privacy policy, then it explains that deleted accounts are erased 30 days after deletion.
+
+#### Terms of use page
+
+_Implemented in spec 023-terms-and-lgpd-privacy._
+
+Terms of use SHALL be published at a public web address, covering who can use the app (adults only, accounts approved by the school, admins' decisions final), the school rules, the content that may not be posted and how admins handle it, how to report content (through the school's WhatsApp), that the app takes no payments, that the terms are not a liability waiver, and that Brazilian law applies.
+
+- _Reading the terms:_ When someone opens the terms of use page, then they find those topics in their language.
 
 #### Account deletion page
 
@@ -1108,8 +1116,8 @@ An admin SHALL carry out a deletion request received through the page by removin
 
 #### Page languages
 
-_Implemented in spec 022-public-web-pages._
+_Implemented in spec 022-public-web-pages and 023-terms-and-lgpd-privacy._
 
-Both pages SHALL be available in Brazilian Portuguese, Spanish and English.
+The privacy policy, the terms of use and the account deletion page SHALL be available in Brazilian Portuguese, Spanish and English.
 
-- _Reading in Spanish:_ When someone chooses Spanish on either page, then the whole page is shown in Spanish.
+- _Reading in Spanish:_ When someone chooses Spanish on any of the pages, then the whole page is shown in Spanish.

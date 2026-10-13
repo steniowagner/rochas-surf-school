@@ -393,7 +393,7 @@ translated), or the fallback when there is none.
   > verified: `npm test --workspace @rochas-surf-school/auth` (299 passed; the four use cases 100%), check-types pass; apps/backend check-types is expected to fail until T-11 (new constructor argument)
   > deviations: the notifier is the last constructor argument of each use case; `registrationPending` is called right after the identity is stored, before the session starts
 
-- [ ] **T-08** — Add the `PushTokenRemover` port (D-02) with a fake, and give `SignOut` an optional `pushToken`
+- [x] **T-08** — Add the `PushTokenRemover` port (D-02) with a fake, and give `SignOut` an optional `pushToken`
   (`SignOutIn`): when the refresh token is found, whatever its state, and `pushToken` is a non-empty string, call
   `remove(token.userId, pushToken)`; the family is still revoked only when the token is active. Tests in
   `test/session/usecase/sign-out.usecase.test.ts` (active, revoked, expired, unknown token; missing, empty and
@@ -401,6 +401,9 @@ translated), or the fallback when there is none.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-03 · Done when: `npm test --workspace @rochas-surf-school/auth` passes with `sign-out.usecase.ts` at
   100% coverage, and `npm run lint --workspace @rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-12 21:08 — files: `modules/auth/src/session/provider/{push-token-remover.provider,index}.ts`, `src/session/usecase/sign-out.usecase.ts`, `test/mock/{fake-push-token-remover.provider,index}.ts`, `test/session/usecase/sign-out.usecase.test.ts`
+  > verified: `npm test --workspace @rochas-surf-school/auth` (308 passed, sign-out.usecase.ts 100%), lint and check-types pass
+  > deviations: the remover is the last constructor argument of `SignOut`
 
 ### Backend (`apps/backend`)
 

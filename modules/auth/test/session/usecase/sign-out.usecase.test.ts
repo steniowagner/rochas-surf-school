@@ -1,5 +1,10 @@
 import { SignOut, StartSession, User } from "../../../src";
-import { FakeClockProvider, FakeRefreshTokenRepository, FakeTokenProvider } from "../../mock";
+import {
+  FakeClockProvider,
+  FakePushTokenRemover,
+  FakeRefreshTokenRepository,
+  FakeTokenProvider,
+} from "../../mock";
 
 const NOW = new Date("2026-10-07T12:00:00.000Z");
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -16,10 +21,11 @@ function setup() {
   const refreshTokenRepository = new FakeRefreshTokenRepository();
   const tokenProvider = new FakeTokenProvider(clock);
   const startSession = new StartSession(refreshTokenRepository, tokenProvider, clock);
-  const useCase = new SignOut(refreshTokenRepository, tokenProvider, clock);
+  const pushTokenRemover = new FakePushTokenRemover();
+  const useCase = new SignOut(refreshTokenRepository, tokenProvider, clock, pushTokenRemover);
   const signIn = () =>
     startSession.execute({ user: { id: USER.id, email: USER.email }, refreshTokenTtlDays: 30 });
-  return { clock, refreshTokenRepository, useCase, signIn };
+  return { clock, refreshTokenRepository, pushTokenRemover, useCase, signIn };
 }
 
 const revokedAts = (repository: FakeRefreshTokenRepository) =>
@@ -91,5 +97,64 @@ describe("SignOut", () => {
     await expect(ctx.useCase.execute(undefined as never)).rejects.toMatchObject({
       statusCode: 422,
     });
+  });
+
+  describe("push token", () => {
+    const PUSH_TOKEN = "ExponentPushToken[abc]";
+
+    test("removes the device's token for the owner of an active refresh token", async () => {
+      const ctx = setup();
+      const x = await ctx.signIn();
+
+      await ctx.useCase.execute({ refreshToken: x.refreshToken, pushToken: PUSH_TOKEN });
+
+      expect(ctx.pushTokenRemover.removed).toEqual([{ userId: USER.id, token: PUSH_TOKEN }]);
+      expect(revokedAts(ctx.refreshTokenRepository)).toEqual([NOW]);
+    });
+
+    test("removes it for a revoked refresh token, leaving the family as it was", async () => {
+      const ctx = setup();
+      const x = await ctx.signIn();
+      await ctx.useCase.execute({ refreshToken: x.refreshToken });
+      ctx.clock.advance(DAY_MS);
+
+      await ctx.useCase.execute({ refreshToken: x.refreshToken, pushToken: PUSH_TOKEN });
+
+      expect(ctx.pushTokenRemover.removed).toEqual([{ userId: USER.id, token: PUSH_TOKEN }]);
+      expect(revokedAts(ctx.refreshTokenRepository)).toEqual([NOW]);
+    });
+
+    test("removes it for an expired refresh token", async () => {
+      const ctx = setup();
+      const x = await ctx.signIn();
+      ctx.clock.advance(31 * DAY_MS);
+
+      await ctx.useCase.execute({ refreshToken: x.refreshToken, pushToken: PUSH_TOKEN });
+
+      expect(ctx.pushTokenRemover.removed).toEqual([{ userId: USER.id, token: PUSH_TOKEN }]);
+      expect(revokedAts(ctx.refreshTokenRepository)).toEqual([undefined]);
+    });
+
+    test("removes nothing for an unknown refresh token", async () => {
+      const ctx = setup();
+      await ctx.signIn();
+
+      await ctx.useCase.execute({ refreshToken: "never-issued", pushToken: PUSH_TOKEN });
+
+      expect(ctx.pushTokenRemover.removed).toEqual([]);
+    });
+
+    test.each([undefined, "", 42, null, {}])(
+      "ignores a missing, empty or non-string push token (%p)",
+      async (pushToken) => {
+        const ctx = setup();
+        const x = await ctx.signIn();
+
+        await ctx.useCase.execute({ refreshToken: x.refreshToken, pushToken });
+
+        expect(ctx.pushTokenRemover.removed).toEqual([]);
+        expect(revokedAts(ctx.refreshTokenRepository)).toEqual([NOW]);
+      },
+    );
   });
 });

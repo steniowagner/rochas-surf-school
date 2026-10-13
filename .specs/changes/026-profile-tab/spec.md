@@ -406,21 +406,35 @@ onboarding WhatsApp and school rules keys) keep their text.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-03** — Add `PUT /auth/me/name` to `apps/backend/src/modules/auth/auth.controller.ts` (body
+- [x] **T-03** — Add `PUT /auth/me/name` to `apps/backend/src/modules/auth/auth.controller.ts` (body
   `Partial<Pick<SetNameIn, 'name'>>`, 200), its cases in `auth.controller.spec.ts`, requests in
   `auth.integration.http`, and the e2e `apps/backend/test/auth-profile.e2e-spec.ts` (200 trimmed, 422 invalid and
   missing, 403 pending, 401 without token).
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01 · Done when: `npm test --workspace apps/backend` and
   `npm run test:e2e --workspace apps/backend -- auth-profile` pass.
+  > ✅ 2026-10-13 16:42 — Added `PUT /auth/me/name` (`setName`), controller specs, REST Client requests and the
+  > e2e suite; files: `apps/backend/src/modules/auth/auth.controller.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-profile.e2e-spec.ts`;
+  > verified: `npm test --workspace apps/backend` (253 passed), `npm run test:e2e -- auth-profile` (all passed
+  > against local Postgres), `check-types` 0 errors; deviations: none (modules rebuilt with turbo first, since
+  > the backend imports their `dist/`)
 
-- [ ] **T-04** — Add `DELETE /notifications/push-token` to
+- [x] **T-04** — Add `DELETE /notifications/push-token` to
   `apps/backend/src/modules/notifications/notifications.controller.ts` (204, body `{ token }`), its cases in
   `notifications.controller.spec.ts`, a request in `notifications.integration.http`, and the ER-02 cases in
   `apps/backend/test/notifications.e2e-spec.ts`.
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-02 · Done when: `npm test --workspace apps/backend` and
   `npm run test:e2e --workspace apps/backend -- notifications` pass.
+  > ✅ 2026-10-13 16:42 — Added `DELETE /notifications/push-token` (`unregisterPushToken`, 204), controller
+  > specs, REST Client requests and the ER-02 e2e cases; files:
+  > `apps/backend/src/modules/notifications/notifications.controller.ts`,
+  > `apps/backend/src/modules/notifications/notifications.controller.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.integration.http`,
+  > `apps/backend/test/notifications.e2e-spec.ts`; verified: `npm test --workspace apps/backend` (253 passed),
+  > `npm run test:e2e -- notifications` (57 passed across the two suites); deviations: none
 
 ### Mobile (`apps/mobile`)
 

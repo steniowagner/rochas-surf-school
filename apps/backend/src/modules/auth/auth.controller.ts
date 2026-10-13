@@ -8,6 +8,9 @@ import {
   RefreshSessionOut,
   RequestReactivation,
   RequestReactivationOut,
+  SetName,
+  SetNameIn,
+  SetNameOut,
   SetWhatsapp,
   SetWhatsappIn,
   SetWhatsappOut,
@@ -129,6 +132,18 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
     return new GetCurrentUser(this.userRepository, this.rulesVersionProvider).execute({ id });
+  }
+
+  @Put('me/name')
+  @HttpCode(HttpStatus.OK)
+  setName(
+    @CurrentUser('id') id: string,
+    @Body() body: Partial<Pick<SetNameIn, 'name'>> | undefined,
+  ): Promise<SetNameOut> {
+    return new SetName(this.userRepository, this.rulesVersionProvider).execute({
+      userId: id,
+      name: body?.name as string,
+    });
   }
 
   @Put('me/whatsapp')

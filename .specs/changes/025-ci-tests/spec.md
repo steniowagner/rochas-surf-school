@@ -239,9 +239,13 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   > because Chromium ignores it in `extraHTTPHeaders` (the first attempt failed with `/en`); the `webServer`
   > command uses `npx next build && npx next start`
 
-- [ ] **T-04** — Write `apps/web/e2e/theme-toggle.e2e.ts` (theme kept after reload) and
+- [x] **T-04** — Write `apps/web/e2e/theme-toggle.e2e.ts` (theme kept after reload) and
   `apps/web/e2e/language-picker.e2e.ts` (`/pt-br/terms-of-use` → English → `/en/terms-of-use`).
   Covers: ER-08 · Done when: `npm run test:e2e -w @rochas-surf-school/web` passes with all four files.
+  > ✅ 2026-10-13 12:20 — theme test (toggle to dark, reload, `data-theme` kept) and language picker test
+  > (opens the picker, English link, lands on `/en/terms-of-use`); files: `apps/web/e2e/theme-toggle.e2e.ts`,
+  > `apps/web/e2e/language-picker.e2e.ts`; verified: `npm run test:e2e -w @rochas-surf-school/web` (16 passed,
+  > four files), type check and lint exit 0; deviations: none
 
 ### Infra (repo root, `.github/`)
 

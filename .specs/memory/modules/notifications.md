@@ -61,7 +61,9 @@ Rules:
   both reported together. Nothing is stored on a refusal.
 - **Registering again updates the phone**: the same token keeps one entry with the newest language; a token
   registered by another account moves to the caller, since it is now that person's phone.
-- **A phone stops receiving pushes** when its person signs out on it (only that account's phone is removed), or
+- **A phone stops receiving pushes** when its person signs out on it (only that account's phone is removed), when
+  its person turns pushes off on it (the phone asks to remove its own token; a token of another account, or an
+  unknown one, changes nothing, and a token missing or empty is refused with `pushToken.token.required`), or
   when Expo says the app is no longer installed there — on sending, or when the receipt is checked 15 minutes or
   more later. It is **not** removed when a session expires without a sign-out, when the account changes status,
   or with age: the next person who signs in on that phone takes it over.
@@ -72,6 +74,11 @@ Rules:
 
 - **A pending or approved account** — registers the phone it is signed in on, with its language.
 - **Any account that signs out** — stops the pushes to that phone.
+- **Any signed-in account, whatever its status** — removes its own phone's token. In the app, the Profile's
+  "Notificações push" switch does it: pushes are a setting of the phone (on by default, kept after signing out);
+  while it is off the phone never registers again and retries the removal at each launch or sign-in, and turning
+  it on registers the phone at once (a refused OS permission turns it back off). Turning pushes off never touches
+  the stored notifications.
 - **Approved admins** — receive a push for each new registration.
 - **The person whose registration was decided** — receives the approval, or the denial with its reason.
 
@@ -84,7 +91,7 @@ sign-out, one that deletes the "new registration" notifications about erased acc
 backend. It doesn't decide when an event happens — the module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
-state, the in-app push on/off setting (the phone's own permission is the only switch), badges and rich pushes come
+state, badges and rich pushes come
 with their specs, as do the notifications of every other event (reactivation requests, role changes, classes,
 enrolments, broadcasts).
 
@@ -95,3 +102,5 @@ enrolments, broadcasts).
   sending and in receipts); the three registration notifications.
 - `021-denied-registration-erasure` — `registration.pending` carries the account's id, and those about an erased
   account are deleted on Authentication's request.
+- `026-profile-tab` — a phone removes its own token (`DELETE /notifications/push-token`, `UnregisterPushToken`,
+  any status); the app's push switch on the Profile, kept on the phone.

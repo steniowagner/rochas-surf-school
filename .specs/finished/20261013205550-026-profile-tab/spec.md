@@ -2,13 +2,14 @@
 id: "026"
 slug: profile-tab
 title: Role tab bars and the Profile tab
-status: accepted
+status: finished
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 827f464962e4ab8de918f1aa64387c3f073de528
 reviewed_commit: ec2791c1a21300bf714b9dd84c1d493eb8a02ba7
 fronts: [auth, notifications, backend, mobile]
 depends_on: []
+finished: 2026-10-13
 ---
 
 # 026 — Role tab bars and the Profile tab

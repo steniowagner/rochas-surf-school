@@ -113,6 +113,8 @@ The system SHALL keep one account per email address. Signing in with any method 
 
 #### Fixed email address
 
+_Implemented in spec 026-profile-tab._
+
 An account's email address SHALL NOT change after the account is created.
 
 - _Editing the profile:_ When a user edits their profile, then they cannot change their email address.
@@ -122,6 +124,7 @@ An account's email address SHALL NOT change after the account is created.
 _Implemented in spec 004-backend-session-endpoints._
 _Implemented in spec 006-mobile-pending-screen._
 _Implemented in spec 018-mobile-session-persistence._
+_Implemented in spec 026-profile-tab._
 
 Users SHALL be able to sign out.
 
@@ -303,6 +306,8 @@ Lets users manage their own profile and see the other members of the school.
 
 #### Editing one's profile
 
+_Implemented in spec 026-profile-tab._
+
 Users SHALL be able to change their profile photo, name and WhatsApp number. The WhatsApp number SHALL NOT be left empty.
 
 - _User changes their name:_ When a user changes their name, then the new name is shown wherever their name appears in the app.
@@ -321,6 +326,7 @@ WhatsApp numbers SHALL include a country code, with Brazil (+55) preselected.
 #### WhatsApp number visibility
 
 _Implemented in spec 008-onboarding-whatsapp._
+_Implemented in spec 026-profile-tab._
 
 Users SHALL choose whether other users can see their WhatsApp number, and the number SHALL be hidden by default. Admins SHALL always see every user's WhatsApp number.
 
@@ -427,6 +433,7 @@ Users SHALL accept the school rules after their registration is approved and bef
 
 _Implemented in spec 010-school-rules-management._
 _Implemented in spec 012-onboarding-school-rules._
+_Implemented in spec 026-profile-tab._
 
 Approved users, of any role, SHALL be able to read the school rules at any time.
 
@@ -504,9 +511,11 @@ Users SHALL be able to mark a notification as read, and mark all their notificat
 
 #### Push setting
 
-Users SHALL be able to turn phone pushes on or off. Turning them off SHALL only stop pushes on the phone, not notifications on the notifications screen.
+_Implemented in spec 026-profile-tab._
 
-- _Pushes turned off:_ When a user turns pushes off, then they stop receiving pushes on their phone, and new notifications still appear on their notifications screen.
+Users SHALL be able to turn pushes on or off on each phone they use; the setting belongs to the phone and is kept after signing out. Turning them off SHALL only stop pushes on that phone, not notifications on the notifications screen.
+
+- _Pushes turned off:_ When a user turns pushes off, then they stop receiving pushes on that phone, and new notifications still appear on their notifications screen.
 
 #### Broadcasts
 
@@ -527,11 +536,15 @@ Lets users choose the app's language and theme, which otherwise follow the phone
 
 #### Languages
 
+_Implemented in spec 026-profile-tab._
+
 The app SHALL be available in Brazilian Portuguese, Spanish and English, and users SHALL be able to choose one of them.
 
 - _User picks Spanish:_ When a user chooses Spanish, then the app is shown in Spanish.
 
 #### Default language
+
+_Implemented in spec 026-profile-tab._
 
 Until a user chooses a language, the app SHALL use the phone's language if it is Portuguese, Spanish or English, and Brazilian Portuguese otherwise.
 
@@ -539,6 +552,8 @@ Until a user chooses a language, the app SHALL use the phone's language if it is
 - _Phone in another language:_ When a user who hasn't chosen a language has their phone set to French, then the app is shown in Brazilian Portuguese.
 
 #### Theme
+
+_Implemented in spec 026-profile-tab._
 
 The app SHALL offer a light theme and a dark theme. Until a user chooses one, the app SHALL follow the phone's setting.
 

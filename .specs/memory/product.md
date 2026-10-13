@@ -52,7 +52,10 @@ Listed in the order people meet them.
   photo, WhatsApp number (with country code, Brazil +55 preselected; required once approved, never empty
   after), WhatsApp visibility (hidden by default), role (`student` | `instructor` | `admin`), status, and
   preferences: language (follows the phone until chosen; Brazilian Portuguese when the phone's language is
-  not one of the three), theme (light/dark, follows the phone until chosen) and phone pushes (on/off).
+  not one of the three), theme (same as the phone, light or dark; follows the phone until chosen) and phone pushes
+  (on/off, on by default). The preferences belong to the **phone**, not the account: they are kept on it, survive
+  signing out and don't follow the person to another phone. Turning pushes off removes the phone from the
+  account's push recipients; the notifications are still stored.
   Relationships: has one or more identities; has many enrolments, ratings, photos and notifications; an
   instructor or admin teaches many classes. Lifecycle:
   - `pending` (a **registration**: sees only "waiting for approval") → `approved` or `denied` by an admin.
@@ -395,10 +398,9 @@ request is sent. The app sends it from the Account deleted screen (spec 016).
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker. The real screens of each flow (every student and instructor screen, every admin screen besides the
-School tools home and "Join the school", the admin's school rules screen and a screen to read the rules at any
-time included), reloading the account when the app returns from the
-background (a rule change or an admin's decision is seen at the next launch or session renewal), signing out from any
-screen other than the Pending and closed-account screens, and Apple sign-in don't exist yet.
+School tools home, "Join the school" and the Profile tab included, and the admin's school rules screen), reloading the account when the app returns from the
+background (a rule change or an admin's decision is seen at the next launch or session renewal), and Apple sign-in
+don't exist yet.
 
 **The school's WhatsApp number on the backend** (spec `015-school-settings-whatsapp`) — an approved admin sets
 the school's WhatsApp number through the backend, with its country code and no spaces or other characters (the
@@ -470,9 +472,8 @@ onboarding WhatsApp step after an approval, the Denied screen after a denial. A 
 open is shown as a banner and updates the screen at once (the Pending screen moves on; the admin's waiting count
 and list reload). A failed push never changes the answer of the sign-up or the decision. Signing out stops the
 pushes to that phone; a phone whose session expired without a sign-out keeps receiving its account's pushes
-until someone signs in on it. The notifications screen (with read state) and the in-app push on/off setting
-don't exist yet: the stored notifications aren't shown anywhere, and the phone's own permission is the only
-switch. Delivery to a real phone needs the EAS project and the APNs / FCM credentials, which aren't set up yet.
+until someone signs in on it. The notifications screen (with read state) doesn't exist yet: the stored
+notifications aren't shown anywhere. The in-app push switch came with the Profile tab (spec 026). Delivery to a real phone needs the EAS project and the APNs / FCM credentials, which aren't set up yet.
 
 **Denied registrations are erased** (spec `021-denied-registration-erasure`) — 30 days after an admin denies a
 registration, the account is erased with everything it has (its sign-ins, sessions, rules acceptances,
@@ -490,7 +491,7 @@ when the app is gone, which an admin carries out by removing the account; what i
 name, and when). The language is in the address (`/pt-br/…`, `/es/…`, `/en/…`); an address without one opens in
 the browser's language, Brazilian Portuguese when it is none of the three, and a picker on every page switches
 it. The pages follow the system's light or dark theme (a header toggle overrides it, spec 024), set no cookies and have no tracking. The site isn't
-deployed yet, the app doesn't link to the policy yet, and the copy hasn't had its legal review. The pages describe in-app deletion, admin removal and the erasure of deleted and removed
+deployed yet (the app links to it from the Profile, spec 026), and the copy hasn't had its legal review. The pages describe in-app deletion, admin removal and the erasure of deleted and removed
 accounts before those exist.
 
 **Terms of use and an LGPD-complete policy** (spec `023-terms-and-lgpd-privacy`) — the site gains a terms of use
@@ -510,6 +511,25 @@ to go back to; clearing the site's data does.
 pushed to the main line runs, automatically, the tests of the parts of the product it affects (the backend, the
 app, the public site, the business rules), and one summary check says whether they all passed. The public site
 gains its own automated tests, including checks that every page opens in each language.
+
+**Tab bars and the Profile tab** (spec `026-profile-tab`) — an approved account that finished onboarding now
+opens the tab bar of its role: a student has Agenda, Minhas aulas, Escola and Perfil (Agenda first); an instructor
+and an admin have Início, Aulas and Perfil (Início first). Every tab except Perfil and the admin's Início ("School
+tools") is still a placeholder with its name; inner screens such as "Join the school" open above the tab bar,
+without it. Perfil is the same for the three roles: the person's initials, name and role, then "Editar perfil" (the
+name, with the email read-only and the photo "coming soon"), WhatsApp ("Visível" / "Oculto"; the number, its
+country and the share switch), Tema (same as the phone, light or dark, applied at once), Idioma (pt-BR, es-ES or
+en-US, applied at once; the sign-in screen's picker keeps its choice too), "Notificações push" with a switch and a
+note that notifications always stay in the app, "Regras da escola" (the rules, read-only), "Regras de
+cancelamento" ("coming soon"), "Sobre o app" (a sheet with mocked content: version, description, creator and
+links), the privacy policy and the terms of use (the site's pages in the app's language, in the in-app browser;
+hidden while the site's address isn't configured), "Sair" (a confirmation sheet, then the sign-in screen) and
+"Remover a conta" (a confirmation sheet; the account becomes deleted at once and the phone signs out, so the next
+sign-in shows the Account deleted screen). Theme, language and pushes are kept on the phone and survive signing
+out. Turning pushes off removes the phone from the account's pushes at once (retried at the next launch or
+sign-in if it fails); turning them on registers it again, and a refused OS permission keeps the switch off with a
+message. Deleting the account doesn't yet refuse the only admin, nor cancel seats, enrolments or class
+assignments (none exist yet). All copy is in pt-BR, es-ES and en-US.
 
 Active specs: none.
 
@@ -536,15 +556,20 @@ Active specs: none.
   offline launch by the last known account).
 - Using the Google profile photo as the account's photo (spec 017 doesn't store it), and Google One Tap /
   automatic sign-in.
-- The notifications screen (with read / unread state) and the in-app push on/off setting: spec 020 stores every
-  notification but nothing shows them; badges on the app icon, rich pushes, and a screen before the OS
+- The notifications screen (with read / unread state): spec 020 stores every notification but nothing shows
+  them; badges on the app icon, rich pushes, and a screen before the OS
   permission dialog (or asking again after a refusal).
 - Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
   "Former instructor" handling), and erasing guest data: spec 021 erases only denied registrations.
-- Deploying the public site (host and domain), linking the privacy policy from the app and the store
-  listings, linking the terms from the app (including the onboarding line), a report button for objectionable content, the
+- Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
+  line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy, and a light/dark
   switch on the site (it follows the system theme).
+- On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
+  splitting the name into first and last name, the cancellation rules screen ("coming soon"), real data in the
+  About sheet (mocked), keeping the theme, language and push preferences on the account or syncing them across
+  phones, and, when a person deletes their account, refusing the only admin and cancelling their seats,
+  enrolments and class assignments.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea

@@ -476,12 +476,15 @@ translated), or the fallback when there is none.
   > verified: `npx jest src/services/push src/i18n src/modules/auth` (264 passed; push.service.ts and backend-locale.ts 100%); `npx turbo run check-types lint --filter=@rochas-surf-school/mobile` exits 0 with no warnings
   > deviations: expo-constants and expo-device were already installed; `getPushToken` checks device and project id before touching permissions, so no OS dialog appears when a token is impossible
 
-- [ ] **T-14** — `usePushRegistration` (`src/modules/notifications/hooks/use-push-registration.hook.ts`, D-12),
+- [x] **T-14** — `usePushRegistration` (`src/modules/notifications/hooks/use-push-registration.hook.ts`, D-12),
   mounted in `RootNavigator`, with `use-push-registration.hook.test.tsx` (pending and approved register with the
   locale; closed statuses and no session don't; no token → no request; failure silent; language change and user
   change re-register).
   Covers: ER-10 · Done when: `npx jest src/modules/notifications src/navigation` passes with the hook at 100%
   coverage.
+  > ✅ 2026-10-12 21:16 — files: `apps/mobile/src/modules/notifications/hooks/{use-push-registration.hook.ts,use-push-registration.hook.test.tsx}`, `apps/mobile/src/navigation/root-navigator/root-navigator.component.tsx`
+  > verified: `npx jest src/modules/notifications src/navigation` (164 passed, hook 100%); check-types and lint for mobile exit 0
+  > deviations: none
 
 - [ ] **T-15** — Sign-out sends the token (D-13): `signOut()` in `src/services/session/session.store.ts` reads and
   clears the registered token and adds `pushToken` to the body when present; tests in `session.store.test.ts` and

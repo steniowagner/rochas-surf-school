@@ -97,15 +97,9 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
           </ul>
         </ContentCard>
         <ContentCard title={policy.purposes.title}>
+          <p>{policy.purposes.intro}</p>
           <ul className="list-disc space-y-1 pl-5">
             {policy.purposes.items.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </ContentCard>
-        <ContentCard title={policy.retention.title}>
-          <ul className="list-disc space-y-1 pl-5">
-            {policy.retention.items.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -118,14 +112,55 @@ export default async function PrivacyPolicyPage({ params }: PageProps<"/[lang]/p
             ))}
           </ul>
         </ContentCard>
+        <ContentCard title={policy.transfers.title}>
+          <p>{policy.transfers.text}</p>
+        </ContentCard>
+        <ContentCard title={policy.retention.title}>
+          <p>{policy.retention.intro}</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {policy.retention.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </ContentCard>
+        <ContentCard title={policy.security.title}>
+          <p>{policy.security.intro}</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {policy.security.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </ContentCard>
+        <ContentCard title={policy.adults.title}>
+          <p>{policy.adults.text}</p>
+        </ContentCard>
         <ContentCard title={policy.rights.title}>
-          <p>{policy.rights.text}</p>
+          <p>{policy.rights.intro}</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {policy.rights.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <p>{policy.rights.howTo}</p>
+          <p>{policy.rights.complaint}</p>
+        </ContentCard>
+        <ContentCard title={policy.deletion.title}>
+          <p>{policy.deletion.text}</p>
           <a href={`/${lang}/account-deletion`} className={LINK_CLASSES}>
-            {policy.rights.deletionLink}
+            {policy.deletion.link}
+          </a>
+        </ContentCard>
+        <ContentCard title={policy.terms.title}>
+          <p>{policy.terms.text}</p>
+          <a href={`/${lang}/terms-of-use`} className={LINK_CLASSES}>
+            {policy.terms.link}
           </a>
         </ContentCard>
         <ContentCard title={policy.site.title}>
           <p>{policy.site.text}</p>
+        </ContentCard>
+        <ContentCard title={policy.changes.title}>
+          <p>{policy.changes.text}</p>
         </ContentCard>
       </div>
     </>

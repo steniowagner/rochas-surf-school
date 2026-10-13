@@ -27,11 +27,17 @@ export type Dictionary = {
     controller: { title: string; text: string; legalNameLabel: string; cnpjLabel: string; whatsappLabel: string };
     dpo: { title: string; text: string; nameLabel: string; emailLabel: string };
     collected: { title: string; intro: string; items: string[] };
-    purposes: { title: string; items: string[] };
-    retention: { title: string; items: string[] };
+    purposes: { title: string; intro: string; items: string[] };
     services: { title: string; intro: string; items: string[] };
-    rights: { title: string; text: string; deletionLink: string };
+    transfers: { title: string; text: string };
+    retention: { title: string; intro: string; items: string[] };
+    security: { title: string; intro: string; items: string[] };
+    adults: { title: string; text: string };
+    rights: { title: string; intro: string; items: string[]; howTo: string; complaint: string };
+    deletion: { title: string; text: string; link: string };
+    terms: { title: string; text: string; link: string };
     site: { title: string; text: string };
+    changes: { title: string; text: string };
   };
   accountDeletion: {
     metaTitle: string;

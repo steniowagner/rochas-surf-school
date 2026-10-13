@@ -226,13 +226,21 @@ this app.
   > `11.222.333/0001-81` and the ER-02 values exit 0; the `curl` of ER-02 prints the four values on the three
   > languages, and a build without `SCHOOL_CNPJ` has no CNPJ label or number; deviations: none
 
-- [ ] **T-02** — Privacy policy rework: the rest of D-05 — cards (3) to (14) in that order on
+- [x] **T-02** — Privacy policy rework: the rest of D-05 — cards (3) to (14) in that order on
   `src/app/[lang]/privacy-policy/page.tsx`, with the "Last updated" date (D-04), the restructured
   `privacyPolicy` type in `src/i18n/dictionary.types.ts` and the complete copy in
   `src/i18n/dictionaries/{pt-br,es,en}.ts`; the terms link in card (12) points at `/{lang}/terms-of-use` (the page
   arrives in T-03). Links use the page's existing `LINK_CLASSES`.
   Covers: ER-03 · Done when: `check-types`, `lint` and `build` pass in `apps/web`; the three policy URLs answer
   200; the browser journey of ER-03 finds every item in each language; ER-03's placeholder `grep` prints nothing.
+  > ✅ 2026-10-13 — policy restructured into D-05's fourteen cards in order (controller and encarregado from T-01,
+  > then collected, purposes with legal bases, providers, transfers abroad, retention, security, adults only, Art. 18
+  > rights with how to exercise them and the ANPD, deletion link, terms link, no cookies, changes); copy in the three
+  > languages, "Last updated" 13 Oct 2026; files: `apps/web/src/app/[lang]/privacy-policy/page.tsx`,
+  > `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`; verified:
+  > `check-types`, `lint`, `next build` pass; `curl` answers 200 on the three policy URLs, each with 14 cards and
+  > links to `/{lang}/account-deletion` and `/{lang}/terms-of-use`; the placeholder `grep` prints nothing; browser
+  > read of `/pt-br/privacy-policy` lists the 14 headings in order (full per-item journey in T-05); deviations: none
 
 - [ ] **T-03** — Terms of use page: `src/app/[lang]/terms-of-use/page.tsx` (with `generateMetadata`, built like
   the policy page: `ScreenIntro` with `FileText`, "Last updated" line, D-06's ten `ContentCard`s, the WhatsApp

@@ -2,10 +2,11 @@
 id: "020"
 slug: push-notifications-registrations
 title: Push notifications foundation, first used for registrations
-status: in-review
+status: accepted
 created: 2026-10-12
 started: 2026-10-12
 base_commit: f26caad74b27c08241e306009c4a223cf44b0a04
+reviewed_commit: 7551a27adb4c5eefc40f3ab60b40b89db031164e
 fronts: [notifications, auth, backend, mobile]
 depends_on: []
 ---
@@ -593,3 +594,71 @@ translated), or the fallback when there is none.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-12 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (14 turbo tasks: notifications, auth, backend, mobile and their deps) · build ✅ (notifications, auth, backend)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend, apps/mobile, modules/auth, modules/notifications, modules/school-rules)
+- coverage of the changed lines ✅ `COVERAGE OK` (36 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (10 files, 286 tests, `notifications.e2e-spec.ts` included)
+- mobile: whole suite ✅ 90 suites, 897 tests
+- user journey 3 ✅ — iOS simulator (iPhone 18 Pro, iOS 27): after `expo prebuild` + `pod install` + `run:ios` with
+  `expo-notifications` linked, the app launches into the restored session's flow (approved, onboarding WhatsApp
+  step) with no crash, no permission dialog and nothing about pushes on screen; Metro logged no errors. The
+  restored account was approved, not a new pending one; both statuses run the same `usePushRegistration` path,
+  where `getPushToken()` returns `null` because `isDevice` is false.
+- user journeys 1–2: covered by `notifications.e2e-spec.ts` against Postgres ("registration pending",
+  "registration decided"); journey 4 needs a physical device and the EAS setup (Assumptions), not a gate
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "registers", "registers for a pending account and accepts the ExpoPushToken form", "updates the
+  locale", "moves the token to the new user", "keeps several devices": 204 with an empty body, rows checked in
+  `push_tokens`
+- ER-02 ✅ — e2e 401 `auth.token.invalid`; 403 `pushToken.status.notAllowed` for denied / deleted / removed with
+  an invalid body (403 before body checks); 422 listing both keys; missing token / empty body → 422; nothing stored
+- ER-03 ✅ — e2e: own token removed, another user's kept, unknown refresh token keeps it, revoked refresh token
+  removes it, missing / empty / non-string `pushToken` keeps it and the family is still revoked; unit tests cover
+  the expired case
+- ER-04 ✅ — e2e: a row per approved admin with `params.name`, exactly one message to T1 with A1's
+  `notificationId`, pt-BR text; Google sign-up notifies; existing accounts notify nobody; pending / denied /
+  removed admins, students and instructors get nothing; no-admin case in `notify-approved-admins.usecase.test.ts`
+- ER-05 ✅ — e2e "approval": 200 `{ id, status: "approved" }`, one row with `{}`, en and es texts per token;
+  403 / 404 / 409 store and send nothing; no device → row only
+- ER-06 ✅ — e2e: trimmed reason stored and pushed in pt-BR; no body, `null` and blank reason → `{}` and the
+  fallback; 422 (non-string, 501 chars), 403, 404, 409 store and send nothing
+- ER-07 ✅ — e2e: push failure on approve, sign-up and deny answers 200 with the decision and rows stored;
+  `notifications.registration-notifier.spec.ts` logs and swallows store and push failures (no push after a store
+  failure)
+- ER-08 ✅ — `notify.usecase.test.ts` (unregistered device removed, ok tickets stored, other errors keep the
+  token); e2e "tickets"; `expo.push.spec.ts` keeps sending the other chunks and rethrows
+- ER-09 ✅ — `check-push-receipts.usecase.test.ts` (15-minute boundary inclusive, > 24 h deleted unasked, mixed,
+  nothing due, second run) and `push-receipt-check.job.spec.ts` (every minute, errors logged)
+- ER-10 ✅ — `use-push-registration.hook.test.tsx` (pending / approved with `locale: "es"` once; closed statuses
+  and no session; no token; failure silent; language, user and status changes re-register) and
+  `push.service.test.ts` (undetermined → dialog; denied; simulator; no project id; throwing token call)
+- ER-11 ✅ — `session.store.test.ts` (sent once, then without `pushToken`; newest refresh token during a refresh;
+  forgotten without a session) and `use-sign-out.hook.test.tsx`
+- ER-12 ✅ — `use-notification-response.hook.test.tsx` on the real route tree: admin → `/admin/registrations` with
+  one `GET /auth/me`; pending + approval → onboarding WhatsApp step and session `approved`; denial → Denied; non-admin
+  → resolved flow; offline → stored account; no session → sign-in without API calls; launch response handled once
+- ER-13 ✅ — `use-notification-received.hook.test.tsx` (approval → onboarding, denial → Denied, pending
+  invalidates and refetches `["registrations"]`, unknown type does nothing, refresh failure keeps the screen) and
+  `push.service.test.ts` ("shows foreground notifications as a banner")
+
+**Findings**
+
+None.
+
+**Notes**
+
+- D-11's rethrow means that when one chunk fails, `Notify` receives no tickets at all, so the tickets of the
+  chunks that succeeded aren't stored and their `DeviceNotRegistered` tokens aren't removed at send time. This
+  matches D-11 as written and is harmless today (registration pushes fit in one chunk of 100). If broadcasts later
+  send many chunks, consider returning the partial tickets with the error.
+- `PushTokenRepository.deleteByToken` (T-03) has no caller yet.
+- The mobile Jest run prints "A worker process has failed to exit gracefully"; every suite passes.
+- On this machine, `pod install` during `expo run:ios` needs `LANG=en_US.UTF-8` (CocoaPods 1.17 on Ruby 4 raises
+  an encoding error otherwise). This is an environment issue, not part of the spec.

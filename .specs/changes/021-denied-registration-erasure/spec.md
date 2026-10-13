@@ -2,9 +2,10 @@
 id: "021"
 slug: denied-registration-erasure
 title: Erase denied registrations 30 days after the denial
-status: in-review
+status: accepted
 started: 2026-10-12
 base_commit: f93006c228aaa82f14d74fae824f6694a328dd15
+reviewed_commit: 39c84c01f2f0da803765c62661fe56ae84dbfd71
 created: 2026-10-12
 fronts: [notifications, auth, backend]
 depends_on: []
@@ -396,3 +397,38 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
 - ER-02's "when the user delete throws" case is covered by the job's generic catch; a use-case test where
   `deleteDenied` fails (notifications already erased, users kept, next run erases them) would document D-05 more
   directly. Optional.
+
+### Round 2 — 2026-10-12 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (notifications, auth, backend — 17 turbo tasks, 0 lint warnings)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend, modules/auth, modules/notifications, plus apps/mobile and
+  modules/school-rules, which import `auth`)
+- coverage of the changed lines ✅ `COVERAGE OK`: 8 measured files, all 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED`, 11 files, 292 passed; every `Verify by` filter selects and passes its tests
+  (`-t "erases"` 3, `"idempotent"` 1, `"notifications"` 1, `"signs up again"` 2; job spec 5; `auth` `-t "again"` 1;
+  `notifications` `test/notification/usecase` 14)
+
+**Expected Results**
+
+- ER-01 ✅ — exactly 30 days → the user and its 2 identities, refresh token, acceptance, own notification and push
+  token are gone; 30 days − 1 minute, null `deniedAt` and every other status are kept; the other account's rule stays
+- ER-02 ✅ — cron `account-erasure`, every minute, `waitForCompletion`; a second run → `{ erased: 0 }` with the user
+  count unchanged; nothing due → no eraser call; a failing step is logged and the job resolves; the log carries the
+  count only
+- ER-03 ✅ — sign-ups store `params: { name, userId }`; the erasure deletes only the erased account's
+  `registration.pending` rows, keeping another account's, legacy rows and other types
+- ER-04 ✅ — by email code and by Google: new id, `pending`, `denialReason`/`reactivationStatus` null, exactly one
+  `registration.pending` for the admin with the new id (F-01 fixed); old refresh token → 401
+  `auth.refreshToken.invalid`, old access token → 401 `auth.token.invalid`
+
+**Findings**
+
+- none. F-01 verified: the Google test now asserts the admin's `registration.pending` with the new account's id.
+
+**Notes**
+
+- Since round 1 only `account-erasure.e2e-spec.ts` (the F-01 fix) and the spec changed; D-01…D-07 still honored,
+  nothing out of scope, `## Memory Impact` matches what was built.
+- Round 1's optional notes (explicit count for the kept rule; a use-case test where `deleteDenied` fails) still apply.

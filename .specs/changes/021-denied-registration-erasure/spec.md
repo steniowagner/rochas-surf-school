@@ -2,7 +2,7 @@
 id: "021"
 slug: denied-registration-erasure
 title: Erase denied registrations 30 days after the denial
-status: changes-requested
+status: in-progress
 started: 2026-10-12
 base_commit: f93006c228aaa82f14d74fae824f6694a328dd15
 created: 2026-10-12
@@ -372,7 +372,7 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
 
 **Findings**
 
-- [ ] **F-01** (ER-04) — ER-04 says that signing up again **by Google** also gives admins a `registration.pending`
+- [x] **F-01** (ER-04) — ER-04 says that signing up again **by Google** also gives admins a `registration.pending`
   notification, but `account-erasure.e2e-spec.ts` → "signs up again › by Google, as a new registration" creates no
   approved admin and asserts no notification, and no other e2e test asserts a `registration.pending` row for a Google
   sign-up (`auth-google.e2e-spec.ts` has none). The code calls the notifier
@@ -380,6 +380,12 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   Reproduce: remove the `registrationPending` call there — the Google test still passes. Expected: the Google test
   creates an approved admin and asserts exactly one `registration.pending` notification for that admin with
   `params.userId` = the new account's id (as the email-code test does), then deletes the admin's notifications.
+  > ✅ 2026-10-12 23:30 — the Google test in "signs up again" now creates an approved admin, asserts exactly one
+  > `registration.pending` notification for that admin with `params.userId` = the new account's id, then deletes the
+  > admin's notifications; files: `apps/backend/test/account-erasure.e2e-spec.ts`; verified: removing the
+  > `registrationPending` call in `sign-in-with-google.usecase.ts` (and rebuilding `auth`) makes the test fail
+  > (`expected +0 to be 1`); restored, `npx vitest run --config vitest.config.e2e.ts test/account-erasure.e2e-spec.ts`
+  > (6 passed); deviations: none
 
 **Notes**
 

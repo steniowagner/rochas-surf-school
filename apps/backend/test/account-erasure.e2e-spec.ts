@@ -322,6 +322,7 @@ describe('Account erasure (e2e)', () => {
     });
 
     it('by Google, as a new registration', async () => {
+      const admin = await createUser({ status: 'approved', role: 'admin' });
       const userEmail = uniqueEmail('dani');
       const sub = `sub-${randomUUID()}`;
       const signIn = async () => {
@@ -347,6 +348,16 @@ describe('Account erasure (e2e)', () => {
         denialReason: null,
         reactivationStatus: null,
       });
+      await expect(
+        prisma.notification.count({
+          where: {
+            userId: admin.id,
+            type: 'registration.pending',
+            params: { path: ['userId'], equals: again.body.user.id },
+          },
+        }),
+      ).resolves.toBe(1);
+      await prisma.notification.deleteMany({ where: { userId: admin.id } });
     });
   });
 });

@@ -154,12 +154,17 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-01** — `NotifyApprovedAdmins` takes `userId` in `NotifyApprovedAdminsIn` and stores
+- [x] **T-01** — `NotifyApprovedAdmins` takes `userId` in `NotifyApprovedAdminsIn` and stores
   `params: { name, userId }` (`modules/notifications/src/notification/usecase/notify-approved-admins.usecase.ts`),
   with its tests in `modules/notifications/test/notification/usecase/`. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-03 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes, with a test asserting
   the stored params carry `userId`.
+  > ✅ 2026-10-12 — `NotifyApprovedAdmins` takes `userId` and stores `params: { name, userId }`; files:
+  > `modules/notifications/src/notification/usecase/notify-approved-admins.usecase.ts`,
+  > `modules/notifications/test/notification/usecase/notify-approved-admins.usecase.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/notifications` (78 passed, stored params asserted with `userId`);
+  > deviations: none
 
 - [ ] **T-02** — Add `deleteRegistrationPending(userIds: string[]): Promise<void>` to `NotificationRepository`
   (`modules/notifications/src/notification/provider/notification.repository.ts`) and its fake

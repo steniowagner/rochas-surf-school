@@ -355,7 +355,7 @@ translated), or the fallback when there is none.
   > verified: `npm test --workspace @rochas-surf-school/notifications` (54 passed, both files 100%), lint, check-types pass
   > deviations: none
 
-- [ ] **T-05** — `Notify` (`src/notification/usecase/notify.usecase.ts`, D-04) and `NotifyApprovedAdmins` (same
+- [x] **T-05** — `Notify` (`src/notification/usecase/notify.usecase.ts`, D-04) and `NotifyApprovedAdmins` (same
   folder: reads `findApprovedAdminIds()` and calls `Notify` with `registration.pending`; nothing when the list is
   empty), with tests: rows stored before `send` is called, one message per token with its locale and
   `notificationId`, `DeviceNotRegistered` deletes the token, `ok` tickets stored, other errors kept, a user with no
@@ -363,6 +363,9 @@ translated), or the fallback when there is none.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04, ER-05, ER-06, ER-08 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes
   with both files at 100% coverage.
+  > ✅ 2026-10-12 21:06 — files: `modules/notifications/src/notification/usecase/{notify,notify-approved-admins}.usecase.ts`, `src/notification/usecase/index.ts`, `src/notification/index.ts`, tests `test/notification/usecase/{notify,notify-approved-admins}.usecase.test.ts`
+  > verified: `npm test --workspace @rochas-surf-school/notifications` (65 passed, both files 100%), lint, check-types pass
+  > deviations: none
 
 - [ ] **T-06** — `CheckPushReceipts` (`src/push-token/usecase/check-push-receipts.usecase.ts`, D-08) with tests:
   only tickets ≥ 15 minutes old asked, `DeviceNotRegistered` deletes the token, every asked ticket deleted, > 24 h

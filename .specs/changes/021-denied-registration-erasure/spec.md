@@ -251,13 +251,19 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   > `notifications.module.ts`; verified: `npx vitest run src/modules/notifications` (43 passed),
   > `npx tsc --noEmit` ok after rebuilding the `auth` and `notifications` modules; deviations: none
 
-- [ ] **T-07** — `AccountErasureJob` (`apps/backend/src/modules/auth/account-erasure.job.ts`) per D-06, running
+- [x] **T-07** — `AccountErasureJob` (`apps/backend/src/modules/auth/account-erasure.job.ts`) per D-06, running
   `EraseDeniedRegistrations` with `PrismaUserRepository`, `NotificationsRegistrationNotificationEraser` and
   `SystemClockProvider`, registered in `AuthModule` (`auth.module.ts`), with `account-erasure.job.spec.ts`: the
   cron metadata (every minute), the use case's result returned, the count logged only when above 0, and an error
   logged without throwing. Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-02 · Done when: `npx vitest run src/modules/auth/account-erasure.job.spec.ts` passes and the
   backend starts (`npm run build --workspace apps/backend`).
+  > ✅ 2026-10-12 — `AccountErasureJob` (cron `account-erasure`, every minute, `waitForCompletion`) runs
+  > `EraseDeniedRegistrations`, returns its result, logs only the count above 0, and on error logs and resolves with
+  > `{ erased: 0 }`; registered in `AuthModule`; files: `apps/backend/src/modules/auth/account-erasure.job.ts`,
+  > `apps/backend/src/modules/auth/account-erasure.job.spec.ts`, `apps/backend/src/modules/auth/auth.module.ts`;
+  > verified: `npx vitest run src/modules/auth/account-erasure.job.spec.ts` (5 passed),
+  > `npm run build --workspace apps/backend` ok; deviations: none
 
 - [ ] **T-08** — E2E suite `apps/backend/test/account-erasure.e2e-spec.ts` against Postgres: seeds the accounts and
   rows of ER-01 directly through Prisma (`deniedAt` set relative to now), gets `AccountErasureJob` from the app and

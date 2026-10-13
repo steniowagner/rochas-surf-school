@@ -3,6 +3,7 @@ import { ThrottlerModule, seconds } from '@nestjs/throttler';
 import { DbModule } from '../../db/db.module.js';
 import { JwtAuthModule } from '../../shared/auth/jwt-auth.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
+import { AccountErasureJob } from './account-erasure.job.js';
 import { AuthConfig } from './auth.config.js';
 import { AuthController } from './auth.controller.js';
 import { GoogleAuthIdTokenProvider } from './google.id-token.js';
@@ -43,6 +44,7 @@ import { PrismaUserRepository } from './user.prisma.js';
     ResendEmailProvider,
     GoogleAuthIdTokenProvider,
     SignInCodeCleanupJob,
+    AccountErasureJob,
   ],
 })
 export class AuthModule {}

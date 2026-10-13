@@ -17,4 +17,19 @@ export type Dictionary = {
     privacyPolicy: { title: string; description: string };
     accountDeletion: { title: string; description: string };
   };
+  privacyPolicy: {
+    metaTitle: string;
+    metaDescription: string;
+    title: string;
+    description: string;
+    lastUpdatedLabel: string;
+    lastUpdated: string;
+    collected: { title: string; intro: string; items: string[] };
+    purposes: { title: string; items: string[] };
+    retention: { title: string; items: string[] };
+    services: { title: string; intro: string; items: string[] };
+    rights: { title: string; text: string; deletionLink: string };
+    site: { title: string; text: string };
+    controller: { title: string; text: string; contactLabel: string };
+  };
 };

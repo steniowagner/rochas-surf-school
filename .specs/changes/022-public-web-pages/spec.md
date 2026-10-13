@@ -270,11 +270,23 @@ goes away in the same change.
   > English; the no-JavaScript case rests on the native `<details>` and plain anchors (the server HTML carries
   > all three hrefs, seen with curl); deviations: none
 
-- [ ] **T-04** — Privacy policy page: `src/app/[lang]/privacy-policy/page.tsx` (with `generateMetadata`) built
+- [x] **T-04** — Privacy policy page: `src/app/[lang]/privacy-policy/page.tsx` (with `generateMetadata`) built
   from `ScreenIntro` (`ShieldCheck`) and content cards, and the full policy copy of ER-01 in
   `src/i18n/dictionaries/{pt-br,es,en}.ts` (D-05, D-06).
   Covers: ER-01, ER-08 · Done when: the three URLs answer 200, `/fr/privacy-policy` answers 404, and the browser
   journey of ER-01 finds every listed item in each language.
+  > ✅ 2026-10-12 — the policy page (`ShieldCheck` intro, "Last updated" line and seven cards: what is collected,
+  > why, how long, who handles it, rights, this website, controller and contact) with its complete copy in
+  > pt-BR, es and en per D-05/D-06, including the 30-day erasures and the language model receiving only class
+  > details; `getSchoolWhatsapp()` (D-07) was created here instead of in T-05 because the contact line needs the
+  > formatted number — T-05 adds the env var documentation and the deletion page; files:
+  > `apps/web/src/app/[lang]/privacy-policy/page.tsx`, `apps/web/src/config/school-whatsapp.ts`,
+  > `apps/web/.env.example`, `apps/web/.env` (ignored; local value), `apps/web/src/i18n/dictionary.types.ts`,
+  > `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`; verified: `check-types`, `lint`, `build` pass;
+  > `next start` + curl: `pt-br`, `es`, `en` `/privacy-policy` → 200 with `<html lang>` `pt-BR`/`es`/`en`, a
+  > title in that language, `+55 85 99999 9999` and the `wa.me/5585999999999` link; `/fr/…` and `/pt/…` → 404;
+  > browser at 375×812 (light): same seven headings and 30 list items in the three languages, `scrollWidth` 375,
+  > no link or summary under 44px; deviations: config file created in T-04 (see above)
 
 - [ ] **T-05** — WhatsApp config and account deletion page: `src/config/school-whatsapp.ts` (D-07, using
   `PhoneNumberRule` from `@rochas-surf-school/shared` and `libphonenumber-js`, added as a dependency),

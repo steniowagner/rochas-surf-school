@@ -2,10 +2,11 @@
 id: "022"
 slug: public-web-pages
 title: Privacy policy and account deletion pages
-status: in-review
+status: accepted
 created: 2026-10-12
 started: 2026-10-12
 base_commit: 9bf05d07ed8b0121f5c1a7d145f4bd71f69e2657
+reviewed_commit: be4e6b63d7f86dd76753247ab246a8599a7660b0
 fronts: [web]
 depends_on: []
 ---
@@ -389,3 +390,33 @@ goes away in the same change.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-12 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (apps/web; `SCHOOL_WHATSAPP_NUMBER=+5585999999999 npx turbo run lint check-types build --filter=@rochas-surf-school/web --force` → 7 successful)
+- related tests ✅ RELATED TESTS PASSED (apps/web has no runner)
+- coverage of the changed lines ✅ COVERAGE OK (all 34 changed files under `apps/web/src/**`, excluded by technical-context); no coverage-ignore comments, TODOs or debug leftovers in the diff
+- e2e ✅ E2E PASSED (no suite applies to apps/web) · web: every Expected Result exercised with `next start`, curl and the in-app browser
+
+**Expected Results**
+
+- ER-01 ✅ — `/{pt-br,es,en}/privacy-policy` → 200 with `<html lang>` `pt-BR`/`es`/`en` and a translated `<title>`; copy read in the browser (pt-BR, es) and in the dictionaries (en): every collected item, purposes, the 30-day erasures (deleted, removed, denied, guests), named and category providers with the language model receiving only class details and the rule text, the controller with `+55 85 99999 9999`, "Last updated"; `/fr/…` and `/pt/…` → 404
+- ER-02 ✅ — the three pages show the in-app path (D-12) with the confirmation, the WhatsApp request carried out by an admin removing the account, `+55 85 99999 9999`, the five erased items, the kept items with "Ex-aluno"/"Exalumno"/"Former student", and the 30 days; exactly one `bg-sun` `ds-text-button`, an `<a>` to `https://wa.me/5585999999999` (curl grep → 1); `/fr/account-deletion` → 404
+- ER-03 ✅ — `/`, `/privacy-policy`, `/account-deletion` × `es-MX,es;q=0.9` → `/es…`, `en-GB` → `/en…`, `fr-FR,en;q=0.5` → `/en…`, `fr-FR` / `de` / no header / `pt-PT` → `/pt-br…`, all 307; also `en;q=0.2,es;q=0.8` → `/es…` (quality order) and the query string kept; `/es/privacy-policy` → 200; `/favicon.ico` 200 and `/_next/…` not redirected
+- ER-04 ✅ — on `/pt-br/privacy-policy` the pill (🇧🇷 PT) opened the list with the check on Português; choosing Español opened `/es/privacy-policy` with `lang="es"`, Spanish title and text, pill 🇪🇸 ES and `aria-current` on Español; options keep the current path on every page (server HTML); with scripts blocked (sandboxed iframe, no `allow-scripts`) `/pt-br/account-deletion` → summary opens the list → Español → `/es/account-deletion` in Spanish; removing `languageLabel` from `es.ts` fails `tsc` (TS2741) and an extra key fails it (TS2353), file restored
+- ER-05 ✅ — `next build` with the variable unset (`.env` moved aside), empty, `85999999999`, `+55 85 99999-9999` and `+5512` exits 1 with `SCHOOL_WHATSAPP_NUMBER` in the output; `+5585999999999` builds
+- ER-06 ✅ — `/{en,es,pt-br}` show the name, description and the two rows linking `/{lang}/privacy-policy` and `/{lang}/account-deletion` (followed by click on `/en`, and without scripts on `/es`); the header tile links to `/{lang}` on every page (followed without scripts from `/es/account-deletion`)
+- ER-07 ✅ — `apps/web/public` is gone, `src/app` holds `[lang]`, `favicon.ico`, `globals.css`; `grep -c create-next-app apps/web/README.md` → 0; build passes
+- ER-08 ✅ — the literal grep finds only `gap-[22px]`; all nine pages at 375 and 1280 px: `scrollWidth <= innerWidth` and no `a, button, summary` under 44px (picker open); light (`rgb(253, 248, 243)`) and dark (`rgb(22, 27, 39)`) backgrounds follow the system theme; grape only on icon accents and the check
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `/fr` and other unknown paths render Next's default 404 (no `not-found` page in the site's style, since there is no root layout outside `[lang]`); a branded 404 could come with the deployment spec.
+- The home page's `<title>` is the brand name in every language (only its `description` is translated) — consistent with D-03, worth knowing for the store listings.
+- The guest retention line says "30 days after the class"; the requirement says "after their class finishes or is cancelled". Accurate enough for now; the LGPD review can tighten it.

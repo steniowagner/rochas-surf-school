@@ -2,13 +2,14 @@
 id: "023"
 slug: terms-and-lgpd-privacy
 title: Terms of use page and an LGPD-complete privacy policy
-status: accepted
+status: finished
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 82427a24d8fc63dc0541f384c1c8f4ff5a3c37c9
 reviewed_commit: 871293b1d5e63090c1b8970ccac0870c5ac9b988
 fronts: [web]
 depends_on: []
+finished: 2026-10-13
 ---
 
 # 023 — Terms of use page and an LGPD-complete privacy policy

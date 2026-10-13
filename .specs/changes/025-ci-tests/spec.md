@@ -2,7 +2,7 @@
 id: "025"
 slug: ci-tests
 title: CI test suites per affected app
-status: in-progress
+status: in-review
 created: 2026-10-13
 started: 2026-10-13
 base_commit: 502313a29309e521010178dfbf8617568d2f8f1e
@@ -106,7 +106,7 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   `package-lock.json` or `turbo.json` → all four; only `.specs/**` or `.docs/**` → none.
 - **Edge and error cases:** an empty change set → none; `turbo ls` failing → the script exits non-zero (the
   workflow fails rather than silently skipping tests).
-- **Verify by:** `node --test .github/scripts` (`affected.test.mjs`, one test per rule above).
+- **Verify by:** `node --test ".github/scripts/*.test.mjs"` (`affected.test.mjs`, one test per rule above).
 
 ### ER-02 — Backend job runs unit and e2e suites when backend is affected
 
@@ -271,7 +271,7 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   `before`) and the affected packages (`npx turbo ls --affected --output=json` with the same base), applies D-01
   and D-10, prints the JSON and appends `backend=`, `web=`, `mobile=`, `domain=` to `$GITHUB_OUTPUT` when set.
   Keep the mapping a pure exported function; write `.github/scripts/affected.test.mjs` (`node:test`) with one
-  test per ER-01 rule and edge case. Covers: ER-01 · Done when: `node --test .github/scripts` passes and
+  test per ER-01 rule and edge case. Covers: ER-01 · Done when: `node --test ".github/scripts/*.test.mjs"` passes and
   `node .github/scripts/affected.mjs --base HEAD~1` prints the jobs for the last commit.
   > ✅ 2026-10-13 12:50 — `affected.mjs` with the pure `computeJobs`, `parseTurboList` and `resolveBase` exported;
   > it also outputs `all` (true on a root change, so the domain job can drop `--affected`, D-10) and runs every
@@ -301,20 +301,15 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
 
 ### Verification
 
-- [ ] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every automated command in the Verification Plan exits 0
   (`COVERAGE OK`, `E2E PASSED`, actionlint without errors).
-  > ⛔ 2026-10-13 13:15 — everything in the Verification Plan passes except the coverage gate. Passed:
-  > `run-related-tests.mjs 025` (web: 21 passed), `run-e2e.mjs 025` (backend: 292 passed, `E2E PASSED`),
-  > `node --test ".github/scripts/*.test.mjs"` (19), `npm test` and `npm run test:e2e -w
-  > @rochas-surf-school/web` (21 and 16), actionlint (exit 0), the backend unit + e2e and mobile Turbo commands,
-  > the domain command (only `auth` and `school-rules`), and web `lint`, `check-types`, `build`. Failed:
-  > `check-coverage.mjs 025` → `COVERAGE FAILED`: (1) `apps/web/vitest.setup.ts` — v8 never reports a Vitest
-  > setup file (`apps/mobile/jest.setup.ts` is excluded for the same reason); (2) `.github/scripts/affected.mjs`
-  > — the repo root has no test runner for the coverage tooling, so `node --test` coverage isn't read (92 of 126
-  > lines are covered by `affected.test.mjs`; the rest is the git/turbo plumbing in `main`). Both need a
-  > policy decision from the user (exclusion list or a root runner in `technical-context.md`).
-
+  > ✅ 2026-10-13 13:30 — every Verification Plan command passes: `run-related-tests.mjs 025` (web: 21 passed),
+  > `check-coverage.mjs 025` (`COVERAGE OK`, after the two exclusions logged under Amendments), `run-e2e.mjs 025`
+  > (backend: 292 passed, `E2E PASSED`), `node --test ".github/scripts/*.test.mjs"` (19), `npm test` and
+  > `npm run test:e2e -w @rochas-surf-school/web` (21 and 16), actionlint (exit 0), the backend unit + e2e and
+  > mobile Turbo commands, the domain command (only `auth` and `school-rules`), and web `lint`, `check-types`
+  > and `build`; files: `.specs/memory/technical-context.md` (coverage-exclude); deviations: the exclusions
 
 ## Verification Plan
 
@@ -324,7 +319,7 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
   - `node .specs/scripts/check-coverage.mjs 025` — every line this spec adds or changes is covered
   - `node .specs/scripts/run-e2e.mjs 025` — the declared e2e suites of the touched apps pass (the backend's;
     the web suite is declared by spec-finish, so it runs in the next line)
-  - `node --test .github/scripts` — ER-01
+  - `node --test ".github/scripts/*.test.mjs"` — ER-01
   - `npm test -w @rochas-surf-school/web` — ER-07
   - `npm run test:e2e -w @rochas-surf-school/web` — ER-08
   - `docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:latest` — the workflow is valid (ER-02 – ER-06)
@@ -365,5 +360,14 @@ the web job meaningful, `apps/web` gets its first test runners (Vitest and Playw
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-13 — Verify by (ER-01), the T-06 `Done when` and the Verification Plan: `node --test .github/scripts` →
+  `node --test ".github/scripts/*.test.mjs"`. Reason: on Node 26 the directory form is run as a module and fails;
+  the glob form runs the same tests. Approved by the user.
+- 2026-10-13 — Coverage policy (`memory/technical-context.md` → `coverage-exclude`): added
+  `apps/web/vitest.setup.ts` (v8 never reports Vitest setup files, as with `apps/mobile/jest.setup.ts`) and
+  `.github/scripts/affected.mjs` (tested with `node --test`, which the coverage tooling cannot measure). Approved
+  by the user, who chose to also register a measured root runner; that needs `node:test` support in
+  `.specs/scripts` (a framework change) and is left as a follow-up.
 
 ## Review

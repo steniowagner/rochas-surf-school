@@ -698,6 +698,8 @@ apps/backend/prisma/seed/main.ts          # seed runner; the seed tasks themselv
 apps/mobile/jest.setup.ts                 # test setup (native mocks); loaded by Jest before every test, not as source
 apps/mobile/src/app/**                    # Expo Router routes that only render a screen; screens are tested
 apps/web/src/**                           # static public content pages; checked in a browser by the reviewer
+apps/web/vitest.setup.ts                  # test setup (matchers, cleanup); loaded by Vitest before every test, not as source
+.github/scripts/affected.mjs              # CI helper; its logic is tested with `node --test` (affected.test.mjs), which the coverage tooling doesn't measure
 packages/design-tokens/**                 # token data and the CSS generator, verified by its check-types (--check)
 modules/*/src/**/index.ts                 # re-export barrels
 packages/shared/src/**/index.ts           # re-export barrels

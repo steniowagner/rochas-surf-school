@@ -187,7 +187,7 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-03** — Declare the `RegistrationNotificationEraser` port
+- [x] **T-03** — Declare the `RegistrationNotificationEraser` port
   (`modules/auth/src/user/provider/registration-notification-eraser.provider.ts`, exported) and its fake
   (`modules/auth/test/mock/`); add `findDeniedBefore(cutoff: Date): Promise<string[]>` (ids of `denied` users with
   `deniedAt ≤ cutoff`, null `deniedAt` excluded) and `deleteDenied(ids: string[]): Promise<number>` (deletes those
@@ -196,6 +196,15 @@ it is idempotent, and it is the job a later spec extends with the erasure of del
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/auth` and
   `npx turbo run check-types --filter=@rochas-surf-school/auth` pass.
+  > ✅ 2026-10-12 — `RegistrationNotificationEraser` port (exported) and its fake; `findDeniedBefore` and
+  > `deleteDenied` on `UserRepository` and `FakeUserRepository`, with tests of the fake's selection rules; files:
+  > `modules/auth/src/user/provider/registration-notification-eraser.provider.ts`,
+  > `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/provider/user.repository.ts`,
+  > `modules/auth/test/mock/fake-registration-notification-eraser.provider.ts`,
+  > `modules/auth/test/mock/index.ts`, `modules/auth/test/mock/fake-user.repository.ts`,
+  > `modules/auth/test/user/provider/user.repository.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/auth` (310 passed),
+  > `npx turbo run check-types --filter=@rochas-surf-school/auth` ok; deviations: none
 
 - [ ] **T-04** — `EraseDeniedRegistrations` use case
   (`modules/auth/src/user/usecase/erase-denied-registrations.usecase.ts`, exported; constructor

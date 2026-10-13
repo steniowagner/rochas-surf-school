@@ -65,6 +65,23 @@ export class FakeUserRepository implements UserRepository {
     return true;
   }
 
+  async findDeniedBefore(cutoff: Date): Promise<string[]> {
+    return this.users
+      .filter(
+        (item) =>
+          item.status === "denied" && item.deniedAt !== undefined && item.deniedAt <= cutoff,
+      )
+      .map((item) => item.id);
+  }
+
+  async deleteDenied(ids: string[]): Promise<number> {
+    const before = this.users.length;
+    const kept = this.users.filter((item) => !(ids.includes(item.id) && item.status === "denied"));
+    this.users.splice(0, before, ...kept);
+
+    return before - kept.length;
+  }
+
   async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {
     const index = this.users.findIndex((item) => item.id === userId);
     const user = this.users[index];

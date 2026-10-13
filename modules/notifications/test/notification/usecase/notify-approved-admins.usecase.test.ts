@@ -33,11 +33,11 @@ describe("NotifyApprovedAdmins", () => {
   it("notifies every approved admin of the new registration", async () => {
     const { notifications, provider, usecase } = setup([USER_A, USER_B]);
 
-    await usecase.execute({ name: "Ana Souza" });
+    await usecase.execute({ name: "Ana Souza", userId: "new-user" });
 
     expect(notifications.items.map((item) => [item.userId, item.type, item.params])).toEqual([
-      [USER_A, "registration.pending", { name: "Ana Souza" }],
-      [USER_B, "registration.pending", { name: "Ana Souza" }],
+      [USER_A, "registration.pending", { name: "Ana Souza", userId: "new-user" }],
+      [USER_B, "registration.pending", { name: "Ana Souza", userId: "new-user" }],
     ]);
     expect(provider.sent).toHaveLength(1);
     expect(provider.sent[0].token).toBe("ExpoPushToken[a]");
@@ -46,7 +46,7 @@ describe("NotifyApprovedAdmins", () => {
   it("stores and sends nothing with no approved admin", async () => {
     const { notifications, provider, usecase } = setup([]);
 
-    await usecase.execute({ name: "Ana Souza" });
+    await usecase.execute({ name: "Ana Souza", userId: "new-user" });
 
     expect(notifications.items).toEqual([]);
     expect(provider.sent).toEqual([]);

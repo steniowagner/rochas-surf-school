@@ -463,6 +463,13 @@ until someone signs in on it. The notifications screen (with read state) and the
 don't exist yet: the stored notifications aren't shown anywhere, and the phone's own permission is the only
 switch. Delivery to a real phone needs the EAS project and the APNs / FCM credentials, which aren't set up yet.
 
+**Denied registrations are erased** (spec `021-denied-registration-erasure`) — 30 days after an admin denies a
+registration, the account is erased with everything it has (its sign-ins, sessions, rules acceptances,
+notifications and phones), together with the admins' "new registration" notifications that carry the person's
+name. Nothing else is kept and nobody is told. The same email address can then sign up again, by email code or
+Google, as a new registration waiting for approval; a phone still signed in to the erased account gets the
+existing "session expired" handling. Deleted and removed accounts are not erased yet, nor is guest data.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -492,6 +499,8 @@ Active specs: none.
 - The notifications screen (with read / unread state) and the in-app push on/off setting: spec 020 stores every
   notification but nothing shows them; badges on the app icon, rich pushes, and a screen before the OS
   permission dialog (or asking again after a refusal).
+- Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
+  "Former instructor" handling), and erasing guest data: spec 021 erases only denied registrations.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea

@@ -212,6 +212,8 @@ Admins SHALL be able to set the school's WhatsApp number, which every contact-th
 
 #### Denied registrations are erased
 
+_Implemented in spec 021-denied-registration-erasure._
+
 The system SHALL erase a denied registration's data 30 days after the denial. After that, the same email address SHALL be able to sign up again as a new registration.
 
 - _Signing up again after erasure:_ When a person whose registration was denied more than 30 days ago signs in with the same email address, then a new registration is created and waits for approval.
@@ -240,6 +242,8 @@ A deleted account SHALL be reactivatable for 30 days after its deletion. When th
 - _Window ends:_ When 30 days pass after an account was deleted and it has not been reactivated, then the system erases the account.
 
 #### Erasure
+
+_Implemented in spec 021-denied-registration-erasure._
 
 When the system erases an account, it SHALL remove the account's name, email address, photo and WhatsApp number, and delete its comments. Its star ratings SHALL remain without a name, and photos and class lists SHALL show "Former student" in its place, or "Former instructor" when the account was an instructor or an admin. The email address SHALL then be free to sign up again.
 

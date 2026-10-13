@@ -111,3 +111,31 @@ describe("UserRepository.updateIfPending (fake)", () => {
     await expect(userRepository.updateIfPending(buildUser())).resolves.toBe(false);
   });
 });
+
+describe("UserRepository.findDeniedBefore / deleteDenied (fake)", () => {
+  const CUTOFF = new Date("2026-10-07T12:00:00.000Z");
+  const BEFORE = new Date("2026-10-07T11:59:00.000Z");
+  const AFTER = new Date("2026-10-07T12:01:00.000Z");
+
+  test("lists only denied users denied at or before the cutoff", async () => {
+    const old = buildUser({ status: "denied", deniedAt: BEFORE });
+    const exact = buildUser({ status: "denied", deniedAt: CUTOFF });
+    const recent = buildUser({ status: "denied", deniedAt: AFTER });
+    const undated = buildUser({ status: "denied" });
+    const pending = buildUser({ status: "pending", deniedAt: BEFORE });
+    const userRepository = new FakeUserRepository([old, exact, recent, undated, pending]);
+
+    await expect(userRepository.findDeniedBefore(CUTOFF)).resolves.toEqual([old.id, exact.id]);
+  });
+
+  test("deletes only the given users that are still denied and counts them", async () => {
+    const denied = buildUser({ status: "denied", deniedAt: BEFORE });
+    const other = buildUser({ status: "denied", deniedAt: BEFORE });
+    const approved = buildUser({ status: "approved" });
+    const userRepository = new FakeUserRepository([denied, other, approved]);
+
+    await expect(userRepository.deleteDenied([denied.id, approved.id])).resolves.toBe(1);
+
+    expect(userRepository.users).toEqual([other, approved]);
+  });
+});

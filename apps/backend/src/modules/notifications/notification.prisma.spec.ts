@@ -31,4 +31,30 @@ describe('PrismaNotificationRepository', () => {
       ],
     });
   });
+
+  it('deletes the registration.pending notifications whose params.userId is one of the ids', async () => {
+    const notification = { deleteMany: vi.fn() };
+    const repository = new PrismaNotificationRepository({ notification } as unknown as PrismaService);
+
+    await repository.deleteRegistrationPending([USER_ID, 'other-id']);
+
+    expect(notification.deleteMany).toHaveBeenCalledWith({
+      where: {
+        type: 'registration.pending',
+        OR: [
+          { params: { path: ['userId'], equals: USER_ID } },
+          { params: { path: ['userId'], equals: 'other-id' } },
+        ],
+      },
+    });
+  });
+
+  it('deletes nothing for an empty list', async () => {
+    const notification = { deleteMany: vi.fn() };
+    const repository = new PrismaNotificationRepository({ notification } as unknown as PrismaService);
+
+    await repository.deleteRegistrationPending([]);
+
+    expect(notification.deleteMany).not.toHaveBeenCalled();
+  });
 });

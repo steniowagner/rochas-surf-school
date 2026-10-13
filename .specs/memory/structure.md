@@ -141,6 +141,7 @@ src/
     google.id-token.ts          # GoogleAuthIdTokenProvider (google-auth-library verifyIdToken, web client id audience)
     system.clock.ts             # SystemClockProvider
     sign-in-code-cleanup.job.ts # every-minute cron deleting expired codes
+    account-erasure.job.ts      # every-minute cron running EraseDeniedRegistrations (logs only the count)
   modules/school-rules/
     school-rules.module.ts      # wiring (DbModule; also provides PrismaUserRepository and SystemClockProvider)
     school-rules.controller.ts  # GET /school-rules (200), POST /school-rules (201), PUT /school-rules/order,
@@ -156,7 +157,7 @@ src/
     school-settings.prisma.ts   # PrismaSchoolSettingsRepository (get reads the fixed row, save upserts it)
     school-settings.integration.http  # manual REST Client requests
   modules/notifications/
-    notifications.module.ts     # wiring (DbModule); exports the two adapters of auth's ports
+    notifications.module.ts     # wiring (DbModule); exports the three adapters of auth's ports
     notifications.controller.ts # PUT /notifications/push-token (204) — protected
     notifications.integration.http  # manual REST Client requests
     {notification,push-token,push-ticket,recipients}.prisma.ts  # Prisma repositories; PrismaRecipientsProvider
@@ -166,6 +167,8 @@ src/
     notifications.registration-notifier.ts  # RegistrationNotifier adapter (Notify / NotifyApprovedAdmins; logs
                                 # and swallows every error)
     notifications.push-token-remover.ts     # PushTokenRemover adapter (RemovePushToken)
+    notifications.registration-notification-eraser.ts  # RegistrationNotificationEraser adapter
+                                # (DeleteRegistrationNotifications)
     push-receipt-check.job.ts   # every-minute cron running CheckPushReceipts
     system.clock.ts             # SystemClockProvider
 test/
@@ -180,6 +183,8 @@ test/
   school-settings.e2e-spec.ts   # e2e suite of the /school-settings routes (accounts in each status and role through Prisma)
   notifications.e2e-spec.ts     # e2e suite of push tokens, sign-out with a push token and the registration
                                 # notifications (ExpoPushProvider replaced by a recording fake)
+  account-erasure.e2e-spec.ts   # e2e suite of AccountErasureJob (accounts through Prisma; signing up again by
+                                # email code and Google)
 Dockerfile, docker-compose.yml  # backend + Postgres
 ```
 

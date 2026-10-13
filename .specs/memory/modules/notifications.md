@@ -14,7 +14,9 @@ What the person is told, and how it reaches them.
 - **Notification** (`notification`): one message to one person about an event. Key fields: the person, the
   type, the details the type needs, when it was created. It holds **no text**: the app (and the push) write it
   from the type and its details, in the reader's language. Types today:
-  - `registration.pending` — a new account is waiting for approval; details: its name.
+  - `registration.pending` — a new account is waiting for approval; details: its name and its id (`userId`).
+    When that account is erased (a denied registration, spec 021), every `registration.pending` about it is
+    deleted on Authentication's request; older rows without an id are not touched.
   - `registration.approved` — the person's registration was approved; no details.
   - `registration.denied` — the person's registration was denied; details: the admin's reason, exactly as
     stored, when one was given.
@@ -77,8 +79,9 @@ Rules:
 
 It knows people only by their ids and the phones they registered, and it doesn't depend on
 [Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
-it through two contracts of its own (one that notifies about registrations, one that removes a phone's token on
-sign-out), both provided by the backend. It doesn't decide when an event happens — the module of the event does.
+it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
+sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
+backend. It doesn't decide when an event happens — the module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, the in-app push on/off setting (the phone's own permission is the only switch), badges and rich pushes come
@@ -90,3 +93,5 @@ enrolments, broadcasts).
 - `020-push-notifications-registrations` — created the module: stored notifications and their push to every
   registered phone, in its language; phone registration and its cleanup (sign-out, Expo's "not registered" on
   sending and in receipts); the three registration notifications.
+- `021-denied-registration-erasure` — `registration.pending` carries the account's id, and those about an erased
+  account are deleted on Authentication's request.

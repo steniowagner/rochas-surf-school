@@ -38,6 +38,7 @@ export class NotificationsRegistrationNotifier implements RegistrationNotifier {
     return this.safely(`registration.pending for ${account.id}`, () =>
       new NotifyApprovedAdmins(this.recipientsProvider, this.notify).execute({
         name: account.name,
+        userId: account.id,
       }),
     );
   }

@@ -52,6 +52,7 @@ function setup() {
     findUnique: vi.fn(),
     findMany: vi.fn(),
     updateMany: vi.fn(),
+    deleteMany: vi.fn(),
     count: vi.fn(),
   };
   const userRulesAcceptance = { createMany: vi.fn() };
@@ -289,6 +290,42 @@ describe('PrismaUserRepository', () => {
       await expect(repository.updateIfPending(minimalUser())).resolves.toBe(
         false,
       );
+    });
+  });
+
+  describe('findDeniedBefore', () => {
+    it('selects the ids of the denied users denied at or before the cutoff', async () => {
+      const { user, repository } = setup();
+      user.findMany.mockResolvedValue([{ id: ID }]);
+      const cutoff = new Date('2026-09-12T12:00:00.000Z');
+
+      await expect(repository.findDeniedBefore(cutoff)).resolves.toEqual([ID]);
+
+      expect(user.findMany).toHaveBeenCalledWith({
+        where: { status: 'denied', deniedAt: { lte: cutoff } },
+        select: { id: true },
+      });
+    });
+  });
+
+  describe('deleteDenied', () => {
+    it('deletes the given users only while they are denied and answers how many', async () => {
+      const { user, repository } = setup();
+      user.deleteMany.mockResolvedValue({ count: 1 });
+
+      await expect(repository.deleteDenied([ID])).resolves.toBe(1);
+
+      expect(user.deleteMany).toHaveBeenCalledWith({
+        where: { id: { in: [ID] }, status: 'denied' },
+      });
+    });
+
+    it('queries nothing for an empty list', async () => {
+      const { user, repository } = setup();
+
+      await expect(repository.deleteDenied([])).resolves.toBe(0);
+
+      expect(user.deleteMany).not.toHaveBeenCalled();
     });
   });
 

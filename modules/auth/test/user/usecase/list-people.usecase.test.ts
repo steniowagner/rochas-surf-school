@@ -81,7 +81,7 @@ describe("ListPeople", () => {
 
     const result = await run([shared, hidden]);
 
-    expect(result.items.map((item) => item.whatsappNumber).sort()).toEqual([
+    expect(result.items.map((item) => item.whatsappNumber).sort((a, b) => String(a).localeCompare(String(b)))).toEqual([
       "+5585911112222",
       null,
     ]);

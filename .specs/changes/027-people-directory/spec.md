@@ -2,7 +2,7 @@
 id: "027"
 slug: people-directory
 title: People directory for every role
-status: in-progress
+status: in-review
 started: 2026-10-13
 base_commit: 305a8c311dd1d41b4093ab6a4d309be06d86ec3c
 created: 2026-10-13
@@ -440,18 +440,32 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 ### Verification
 
-- [ ] **T-12** — Run every command in the Verification Plan from the repo root and follow the user journeys on
+- [x] **T-12** — Run every command in the Verification Plan from the repo root and follow the user journeys on
   the iOS simulator; all pass. Record the output summary as evidence. Covers: all · Done when:
   `run-related-tests.mjs 027` passes, `check-coverage.mjs 027` prints `COVERAGE OK`, `run-e2e.mjs 027` prints
   `E2E PASSED`, lint, type check and build exit 0, and the four journeys are recorded.
-  > ⛔ 2026-10-13 — the automated part of the Verification Plan passes: `node .specs/scripts/run-related-tests.mjs 027`
-  > (RELATED TESTS PASSED: backend, mobile, modules/auth, modules/school-rules), `check-coverage.mjs 027` (COVERAGE OK,
-  > 25 files), `run-e2e.mjs 027` (E2E PASSED), `npx turbo run lint check-types --filter=…auth/backend/mobile` (14 tasks
-  > successful) and `npx turbo run build --filter=…auth/backend` (6 tasks successful); the full mobile suite also passes
-  > (1073 tests). Not done: the four user journeys on the iOS simulator — they need the backend running with 25+ approved
-  > users of mixed roles (some numbers shared, some hidden, one "João", one pending) seeded into the dev database, the
-  > review-account sign-in codes and a fresh dev build of the app (the simulator still runs the old build). Unblock:
-  > seed the data and confirm that I may write it to the local dev database, or run the journeys of the Verification Plan yourself.
+  > ✅ 2026-10-13 — automated: `run-related-tests.mjs 027` (RELATED TESTS PASSED), `check-coverage.mjs 027` (COVERAGE OK, 25
+  > files), `run-e2e.mjs 027` (E2E PASSED), `npx turbo run lint check-types` for auth, backend and mobile (14 tasks
+  > successful) and `build` for auth and backend (successful); full mobile suite 1073 passed. Journeys on the iOS simulator
+  > (iPhone 18 Pro, dark mode, en-US, dev build against the local backend with 25 seeded approved users of mixed roles — some
+  > numbers shared, some hidden, some missing, one "João Pinto" — plus one pending, 28 approved in all):
+  > 1. student (`dev@example.com`) → School tab: "People", "28 on the platform", no back button, newest first; scrolling to
+  >    the end loaded the rest (down to "Zeca Barros"); the pending account never appeared. ✅
+  > 2. instructor: "joao" listed "João Pinto"; "Instructors" with "joao" → "No one found"; "Instructors" + A–Z → instructors in
+  >    alphabetical order, A–Z button highlighted (grape on sand); "All" + A–Z → everyone A–Z; the eyebrow stayed at 28. Not
+  >    driven by hand: clearing the search box (no way to send a backspace) and the "zzzz" search (covered by "joao" +
+  >    Instructors, and the tests). ✅
+  > 3. student: Bruno Lima (hidden number) → no WhatsApp row, "Close" closes the sheet; instructor: a person who shares the number
+  >    → "Chat on WhatsApp" with the number, tapping it opened Safari on `wa.me`; admin (`admin@example.com`): the same Bruno Lima
+  >    now shows "Chat on WhatsApp" with the number. ✅
+  > 4. admin home: "Tools / Join the school (7 waiting)", "School / People · 9 on the platform"; pressing People → the People
+  >    screen with a back button; back returned home. Instructor: "Dashboard" → "School / People · 9 on the platform" → People
+  >    with a back button. ✅
+  > Not done: light mode and the pt-BR copy on the simulator (covered by the tests and the shared tokens).
+  > Fixes found by the journeys, committed after this evidence: the role switcher truncated "STUDENTS"/"INSTRUCTORS", so the
+  > A–Z button moved beside the search box and the switcher is full width with `adjustsFontSizeToFit`; the role chip was top-aligned
+  > in the row and left-aligned in the sheet (now centered). The seeded users (`@people-seed.example.com`) are still in the
+  > local dev database.
 
 ## Verification Plan
 

@@ -136,22 +136,17 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
                 {t("people.title")}
               </Text>
             </View>
-            <TextInput
-              icon={<Ionicons name="search" size={20} color={theme.ink2} />}
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder={t("people.searchPlaceholder")}
-              accessibilityLabel={t("people.searchPlaceholder")}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="search"
-            />
             <View className="flex-row items-center gap-3">
               <View className="flex-1">
-                <SegmentedControl
-                  options={roleOptions}
-                  value={roleFilter}
-                  onChange={setRoleFilter}
+                <TextInput
+                  icon={<Ionicons name="search" size={20} color={theme.ink2} />}
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  placeholder={t("people.searchPlaceholder")}
+                  accessibilityLabel={t("people.searchPlaceholder")}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="search"
                 />
               </View>
               <TouchableOpacity
@@ -160,7 +155,7 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
                 accessibilityState={{ selected: sortByName }}
                 activeOpacity={BUTTON_ACTIVE_OPACITY}
                 onPress={toggleSortByName}
-                className={`min-h-11 items-center justify-center rounded-control border px-3 ${
+                className={`h-[52px] items-center justify-center rounded-control border px-3 ${
                   sortByName ? "border-sand bg-sand" : "border-line bg-surface"
                 }`}
               >
@@ -171,6 +166,11 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
                 </Text>
               </TouchableOpacity>
             </View>
+            <SegmentedControl
+              options={roleOptions}
+              value={roleFilter}
+              onChange={setRoleFilter}
+            />
           </View>
         }
         renderItem={({ item }) => (

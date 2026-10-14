@@ -25,9 +25,11 @@ export function PersonSheet({ person, visible, onClose }: PersonSheetProps) {
           <View className="items-center gap-2">
             <PersonAvatar name={person.name} size="lg" />
             <Text className="ds-text-sheet-title text-ink">{person.name}</Text>
-            <Chip tone={roleChip[person.role].tone}>
-              {t(roleChip[person.role].labelKey)}
-            </Chip>
+            <View>
+              <Chip tone={roleChip[person.role].tone}>
+                {t(roleChip[person.role].labelKey)}
+              </Chip>
+            </View>
           </View>
           {formattedNumber ? (
             <Pressable

@@ -36,7 +36,9 @@ export function PersonRow({ person, onPress }: PersonRowProps) {
           })}
         </Text>
       </View>
-      <Chip tone={tone}>{t(labelKey)}</Chip>
+      <View>
+        <Chip tone={tone}>{t(labelKey)}</Chip>
+      </View>
       <Ionicons name="chevron-forward" size={18} color={theme.ink3} />
     </Pressable>
   );

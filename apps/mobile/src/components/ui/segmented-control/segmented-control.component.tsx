@@ -25,11 +25,12 @@ export function SegmentedControl<T extends string>({
             accessibilityState={{ selected }}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             onPress={selected ? undefined : () => onChange(option.value)}
-            className={`min-h-11 flex-1 items-center justify-center rounded-card px-2 ${selected ? "bg-surface" : ""}`}
+            className={`min-h-11 flex-1 items-center justify-center rounded-card px-1 ${selected ? "bg-surface" : ""}`}
             style={selected ? shadowStyle("iconButton", theme) : undefined}
           >
             <Text
               numberOfLines={1}
+              adjustsFontSizeToFit
               className={`ds-text-chip uppercase ${selected ? "text-ink" : "text-ink-2"}`}
             >
               {option.label}

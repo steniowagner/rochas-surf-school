@@ -318,7 +318,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Add the directory read to the domain: `DirectoryPageParams` (`page`, `perPage`, `role?`,
+- [x] **T-01** — Add the directory read to the domain: `DirectoryPageParams` (`page`, `perPage`, `role?`,
   `search?`, `sort: "recent" | "name"`) and `UserRepository.findDirectoryPage(params): Promise<PageResult<User>>`
   (approved users only) in `src/user/provider/user.repository.ts`, implemented in
   `test/mock/fake-user.repository.ts` (accent folding with `normalize("NFD")`); the `ListPeople` use case in
@@ -329,6 +329,14 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   for every rule, default and error key. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-04, ER-05 · Done when: `npm test --workspace @rochas-surf-school/auth -- list-people`
   passes and `npm run check-types --workspace @rochas-surf-school/auth` exits 0.
+  > ✅ 2026-10-13 — added `DirectoryPageParams`/`DirectorySort` and `findDirectoryPage`, the fake implementation,
+  > and the `ListPeople` use case (access, D-12 validation, D-02 visibility); the actor comes from the
+  > controller's `@CurrentUser()` (the guard already answers 401 for an unknown user); files:
+  > `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/src/user/usecase/list-people.usecase.ts`,
+  > `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/mock/fake-user.repository.ts`,
+  > `modules/auth/test/user/usecase/list-people.usecase.test.ts`; verified: `npm test --workspace
+  > @rochas-surf-school/auth -- list-people` (19 passed, `list-people.usecase.ts` 100% covered),
+  > `npm run check-types --workspace @rochas-surf-school/auth` (exit 0); deviations: none
 
 ### Backend (`apps/backend`)
 

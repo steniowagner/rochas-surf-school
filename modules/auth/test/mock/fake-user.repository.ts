@@ -1,5 +1,15 @@
 import { PageResult } from "@rochas-surf-school/shared";
-import { RulesAcceptance, User, UserPageParams, UserRepository } from "../../src";
+import {
+  DirectoryPageParams,
+  RulesAcceptance,
+  User,
+  UserPageParams,
+  UserRepository,
+} from "../../src";
+
+function fold(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
 
 export class FakeUserRepository implements UserRepository {
   readonly users: User[];
@@ -37,6 +47,30 @@ export class FakeUserRepository implements UserRepository {
       page: params.page,
       perPage: params.perPage,
       total: this.users.length,
+    };
+  }
+
+  async findDirectoryPage(params: DirectoryPageParams): Promise<PageResult<User>> {
+    const term = params.search ? fold(params.search) : undefined;
+    const matches = this.users
+      .filter((item) => item.status === "approved")
+      .filter((item) => params.role === undefined || item.role === params.role)
+      .filter((item) => term === undefined || fold(item.name).includes(term))
+      .sort((a, b) => {
+        const byOrder =
+          params.sort === "name"
+            ? fold(a.name).localeCompare(fold(b.name))
+            : b.createdAt.getTime() - a.createdAt.getTime();
+
+        return byOrder || a.id.localeCompare(b.id);
+      });
+    const start = (params.page - 1) * params.perPage;
+
+    return {
+      items: matches.slice(start, start + params.perPage),
+      page: params.page,
+      perPage: params.perPage,
+      total: matches.length,
     };
   }
 

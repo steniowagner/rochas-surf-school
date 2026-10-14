@@ -36,6 +36,7 @@ export type NewClassForm = {
   discipline: ClassDiscipline;
   level: ClassLevel;
   startDate: string | null;
+  /** `null` for a single day. */
   endDate: string | null;
   /** ISO weekdays, 1 (Monday) to 7 (Sunday). */
   weekdays: number[];
@@ -62,4 +63,10 @@ export type BatchRequest = {
 
 export type CreateClassesResponse = {
   count: number;
+};
+
+/** A month of the calendar: `month` is 1 (January) to 12. */
+export type CalendarMonth = {
+  year: number;
+  month: number;
 };

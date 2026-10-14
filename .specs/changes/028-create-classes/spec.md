@@ -526,12 +526,16 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/jest.setup.ts`, `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/classes.test-utils.tsx`, `apps/mobile/src/modules/classes/hooks/use-{locations,create-location,time-range-suggestions,teachers,create-classes}.hook.ts` and their `.test.tsx`, `apps/mobile/src/modules/classes/utils/{batch-request,class-error,locations-cache}.ts` and their `.test.ts`;
   > verified: `cd apps/mobile && npx jest src/modules/classes/hooks src/modules/classes/utils --coverage` (27 passed, every new file 100% lines), `tsc --noEmit` and eslint pass; deviations: none
 
-- [ ] **T-14** — `DateRangeCalendar` (`src/modules/classes/components/date-range-calendar/`): the month grid, range
+- [x] **T-14** — `DateRangeCalendar` (`src/modules/classes/components/date-range-calendar/`): the month grid, range
   selection, disabled past days and month navigation, "Limpar", and the "Nos dias" weekday toggles (D-14), with tests.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-09 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/date-range-calendar --coverage`
   passes.
+  > ✅ 2026-10-14 11:10 — Added `DateRangeCalendar` (Monday-first month grid from the tokens, localized month and weekday initials via the date-fns locale, days before today and the previous-month button disabled, today ringed in `sun`, ends `grape`, days between `info-tint`, excluded days struck through, tap-to-range logic, "Limpar", and the "Nos dias" `WeekdayFilter` shown only for a range), its `CalendarDay` and `WeekdayFilter` child components, the pure calendar helpers (`utils/calendar.ts`: Fortaleza today and minutes, month grid, `pressDay`), a `CalendarMonth` type, and — ahead of T-18 — every Copy key in the pt-BR, es-ES and en-US message files, since the components read their copy from them;
+  > files: `apps/mobile/src/modules/classes/components/{date-range-calendar,calendar-day,weekday-filter}/**`, `apps/mobile/src/modules/classes/utils/calendar.ts`, `apps/mobile/src/modules/classes/utils/calendar.test.ts`, `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`;
+  > verified: `cd apps/mobile && npx jest src/modules/classes/components/date-range-calendar src/modules/classes/components/calendar-day src/modules/classes/components/weekday-filter src/modules/classes/utils/calendar --coverage` (27 passed, every new component, hook and helper 100%), `tsc --noEmit` and eslint pass;
+  > deviations: the Copy keys landed here instead of T-18 (the weekday toggles use "EEEEEE" in pt-BR because date-fns' abbreviated form is the whole name there)
 
 - [ ] **T-15** — `TimeRangePicker` (chips: selected, disabled for overlap and past today, the hints, "Novo horário")
   and `TimeRangeSheet` (`BottomModal` with two `DateTimePicker`s in time mode, duration, end-before-start error,

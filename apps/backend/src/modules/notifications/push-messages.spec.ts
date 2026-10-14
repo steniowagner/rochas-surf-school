@@ -35,6 +35,27 @@ describe('renderPush', () => {
     expect(renderPush('registration.denied', { reason: 5 }, locale).body).toBe(fallback);
   });
 
+  it.each([
+    ['pt-BR', 'Novas aulas na sua escala', 'Você foi escalado para 1 aula de Surf.', 'Você foi escalado para 4 aulas de Surf.'],
+    ['es', 'Nuevas clases en tu agenda', 'Te asignaron 1 clase de Surf.', 'Te asignaron 4 clases de Surf.'],
+    ['en', 'New classes on your schedule', "You've been assigned 1 Surf class.", "You've been assigned 4 Surf classes."],
+  ] as const)('writes the class assignment in %s, singular and plural', (locale, title, one, many) => {
+    expect(renderPush('class.assigned', { count: 1, discipline: 'surf' }, locale)).toEqual({ title, body: one });
+    expect(renderPush('class.assigned', { count: 4, discipline: 'surf' }, locale)).toEqual({ title, body: many });
+  });
+
+  it('names Skate for a skate class and falls back on a bad count or discipline', () => {
+    expect(renderPush('class.assigned', { count: 2, discipline: 'skate' }, 'en').body).toBe(
+      "You've been assigned 2 Skate classes.",
+    );
+    expect(renderPush('class.assigned', { count: 'x', discipline: 5 }, 'en').body).toBe(
+      "You've been assigned 1  class.",
+    );
+    expect(renderPush('class.assigned', { count: 2, discipline: 'tennis' }, 'en').body).toBe(
+      "You've been assigned 2  classes.",
+    );
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {

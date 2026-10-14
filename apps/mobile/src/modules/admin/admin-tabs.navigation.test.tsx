@@ -8,6 +8,7 @@ import ClassesRoute from "@/app/(private)/admin/(tabs)/classes";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import ProfileRoute from "@/app/(private)/admin/(tabs)/profile";
 import AdminLayout from "@/app/(private)/admin/_layout";
+import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import {
@@ -48,6 +49,7 @@ const routeTree = {
   "(private)/admin/(tabs)/index": AdminRoute,
   "(private)/admin/(tabs)/classes": ClassesRoute,
   "(private)/admin/(tabs)/profile": ProfileRoute,
+  "(private)/admin/new-class": AdminNewClassRoute,
   "(private)/admin/people": AdminPeopleRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
 };
@@ -115,6 +117,30 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin/registrations");
 
     await user.press(await screen.findByRole("button", { name: "Back" }));
+    expect(app.getPathname()).toBe("/admin");
+    expect(selectedTabLabel()).toBe("Home");
+    expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+  });
+
+  it("opens the new class screen above the tabs, and back returns to Home with the tab bar", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/people?")
+          ? { items: [], page: 1, perPage: 50, total: 0 }
+          : { items: [] },
+    }));
+    const app = await open();
+
+    await user.press(screen.getByText("Create classes"));
+
+    expect(app.getPathname()).toBe("/admin/new-class");
+    expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Home");
     expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);

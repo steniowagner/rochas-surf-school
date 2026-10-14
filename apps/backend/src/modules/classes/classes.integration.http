@@ -1,0 +1,114 @@
+# Manual REST Client requests for POST /classes/batch and GET /classes/time-range-suggestions (VS Code REST Client).
+# Sign in with an approved admin review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
+# Codes are read from the backend log when RESEND_API_KEY is unset.
+
+@baseUrl = http://localhost:4000
+@email = admin@example.com
+@code = 345678
+
+### Request a sign-in code (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Sign in (expects 200 with accessToken)
+# @name session
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+###
+@token = {{session.response.body.accessToken}}
+
+### Create a location to use below (expects 201 with { id, name, address })
+# @name location
+POST {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Praia do Futuro",
+  "address": "Av. Zezé Diogo, 5000 – Fortaleza"
+}
+
+###
+@locationId = {{location.response.body.id}}
+# Set the id of an approved instructor or admin (GET /people?role=instructor,admin) and a future date range.
+@instructorId = 00000000-0000-4000-8000-000000000000
+
+### Create a batch: one class per included day and time range (expects 201 with { count })
+POST {{baseUrl}}/classes/batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "surf",
+  "level": "beginner",
+  "startDate": "2030-10-15",
+  "endDate": "2030-10-17",
+  "weekdays": [1, 2, 3, 4, 5, 6, 7],
+  "timeRanges": [
+    { "start": "08:00", "end": "09:00" },
+    { "start": "16:00", "end": "17:00" }
+  ],
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 8,
+  "notes": "Bring sunscreen"
+}
+
+### An invalid batch (expects 422 with every failure in errors, e.g. class.discipline.invalid, class.timeRanges.overlap, class.capacity.invalid)
+POST {{baseUrl}}/classes/batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "tennis",
+  "level": "beginner",
+  "startDate": "2030-10-15",
+  "endDate": "2030-10-15",
+  "weekdays": [1, 2, 3, 4, 5, 6, 7],
+  "timeRanges": [
+    { "start": "08:00", "end": "09:00" },
+    { "start": "08:30", "end": "09:30" }
+  ],
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 0
+}
+
+### A batch in the past (expects 422 class.startsAt.past)
+POST {{baseUrl}}/classes/batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "surf",
+  "level": "beginner",
+  "startDate": "2020-01-01",
+  "endDate": "2020-01-01",
+  "weekdays": [1, 2, 3, 4, 5, 6, 7],
+  "timeRanges": [{ "start": "08:00", "end": "09:00" }],
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 8
+}
+
+### Time range suggestions from last week's classes (expects 200 with { items: [{ start, end }] }; admins only)
+GET {{baseUrl}}/classes/time-range-suggestions
+Authorization: Bearer {{token}}
+
+### Without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/classes/time-range-suggestions
+
+### As a student or instructor (expects 403 user.role.notAdmin): use that account's token
+GET {{baseUrl}}/classes/time-range-suggestions
+Authorization: Bearer {{token}}

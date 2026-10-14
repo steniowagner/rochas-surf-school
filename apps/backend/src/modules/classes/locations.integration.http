@@ -1,0 +1,76 @@
+# Manual REST Client requests for GET and POST /locations (VS Code REST Client).
+# Sign in with an approved review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
+# Codes are read from the backend log when RESEND_API_KEY is unset.
+
+@baseUrl = http://localhost:4000
+@email = admin@example.com
+@code = 345678
+
+### Request a sign-in code (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Sign in (expects 200 with accessToken)
+# @name session
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+###
+@token = {{session.response.body.accessToken}}
+
+### List every location, sorted by name ignoring case and accents (expects 200 with { items: [{ id, name, address }] }; any approved account)
+GET {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+
+### Create a location (expects 201 with { id, name, address }; admins only)
+POST {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Praia do Futuro",
+  "address": "Av. Zezé Diogo, 5000 – Fortaleza"
+}
+
+### The same name ignoring case and accents (expects 409 location.name.duplicate)
+POST {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "práia do futuro",
+  "address": "Outro endereço"
+}
+
+### Empty name and address (expects 422 with errors location.name.required and location.address.required)
+POST {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "address": ""
+}
+
+### Without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/locations
+
+### As a student or instructor (expects 403 user.role.notAdmin on POST): use that account's token
+POST {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Outro local",
+  "address": "Rua A"
+}

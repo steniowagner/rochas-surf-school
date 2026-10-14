@@ -606,7 +606,9 @@ Lets admins schedule surf and skate classes, one at a time or in batches, and de
 
 #### Class details
 
-A class SHALL have a discipline (surf or skate), a level (beginner, advanced or expert), a date, a start time and an end time, one location, at least one instructor, a capacity, and optional notes of up to 300 characters. The level SHALL only be a label.
+_Implemented in spec 028-create-classes._
+
+A class SHALL have a discipline (surf or skate), a level (beginner, advanced or expert), a date, a start time and an end time, one location, at least one instructor, a capacity from 1 to 20, and optional notes of up to 300 characters. The level SHALL only be a label.
 
 - _Class without an instructor:_ When an admin tries to save a class with no instructor, then the class is not saved.
 - _Notes too long:_ When an admin writes notes longer than 300 characters, then the notes are not accepted.
@@ -614,17 +616,23 @@ A class SHALL have a discipline (surf or skate), a level (beginner, advanced or 
 
 #### Time zone
 
+_Implemented in spec 028-create-classes._
+
 All class dates and times SHALL be in the America/Fortaleza time zone, whatever time zone a phone uses.
 
 - _Phone in another time zone:_ When a user whose phone is set to another time zone views a class that starts at 08:00, then the class is shown as starting at 08:00, Fortaleza time.
 
 #### Batch creation
 
-Admins SHALL be able to create classes in a batch by choosing a date range, the weekdays to include, and one or more time ranges. The system SHALL create one class for each included day and time range, all sharing the batch's discipline, level, location, instructors, capacity and notes.
+_Implemented in spec 028-create-classes._
+
+Admins SHALL be able to create classes in a batch by choosing a date range, the weekdays to include, and one or more time ranges. The system SHALL create one class for each included day and time range, all sharing the batch's discipline, level, location, instructors, capacity and notes. A batch SHALL have at most 200 classes, and SHALL be created whole or not at all.
 
 - _Two days and two time ranges:_ When an admin creates a batch from Thursday to Saturday with only Wednesday, Thursday and Friday included, and two time ranges, then four classes are created: two on Thursday and two on Friday.
 
 #### Time range suggestions
+
+_Implemented in spec 028-create-classes._
 
 When an admin creates a batch, the system SHALL suggest the time ranges used by the previous week's classes, and admins SHALL be able to add other time ranges. The system SHALL NOT keep a separate saved list of time ranges.
 
@@ -632,6 +640,8 @@ When an admin creates a batch, the system SHALL suggest the time ranges used by 
 - _New time range:_ When an admin adds a time range that no class used last week, then it is used for this batch only, and it is suggested later only if classes in the previous week use it.
 
 #### Valid time ranges
+
+_Implemented in spec 028-create-classes._
 
 Each time range SHALL end after it starts, and time ranges in the same batch SHALL NOT overlap. Classes from different batches SHALL be allowed to overlap.
 
@@ -641,7 +651,9 @@ Each time range SHALL end after it starts, and time ranges in the same batch SHA
 
 #### No classes in the past
 
-The system SHALL NOT create a class whose start time has already passed.
+_Implemented in spec 028-create-classes._
+
+The system SHALL NOT create a class whose start time has already passed. A batch with any such class SHALL NOT be created at all.
 
 - _Earlier time today:_ When an admin tries to create a class today at a time that has already passed, then the class is not created.
 
@@ -695,7 +707,9 @@ Admins SHALL be able to delete a class, after a confirmation step, only if it ha
 
 #### Assigning instructors
 
-Admins SHALL be able to assign instructors and admins to teach a class, and remove them from it. An instructor SHALL be notified when assigned to a class or removed from one.
+_Implemented in spec 028-create-classes (assigning when classes are created)._
+
+Admins SHALL be able to assign instructors and admins to teach a class, and remove them from it. An instructor SHALL be notified when assigned to a class or removed from one; an instructor assigned to a batch SHALL be notified once for the whole batch, and the admin who creates it SHALL NOT be notified.
 
 - _Instructor assigned:_ When an admin assigns an instructor to a class, then the instructor is notified.
 - _Instructor removed:_ When an admin removes an instructor from a class, then the instructor is notified.
@@ -707,6 +721,8 @@ When a class that hasn't started loses its only instructor, because that instruc
 - _Only instructor deletes their account:_ When the only instructor of an upcoming class deletes their account, then the class stays scheduled and is flagged as having no instructor, and admins are notified.
 
 #### Capacity
+
+_Implemented in spec 028-create-classes (setting it when classes are created)._
 
 Admins SHALL set each class's capacity. The capacity SHALL NOT be set below the number of seats taken, which counts approved students and guests.
 
@@ -736,6 +752,8 @@ Every approved user SHALL be able to see all classes, past and future, with thei
 Lets admins keep a list of saved locations for classes and controls how changes to a location reach the classes that use it.
 
 #### Saved locations
+
+_Implemented in spec 028-create-classes (a name and an address, without suggestions or a map)._
 
 Admins SHALL be able to save locations with an address, helped by address suggestions and a map, and SHALL pick one saved location for each class.
 

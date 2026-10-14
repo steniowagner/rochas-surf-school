@@ -33,7 +33,12 @@ const TITLE_ROOM = accentRoom("sheetTitle");
  * It is a modal sheet rendered by the `BottomSheetModalProvider` of the root layout, above the screens and above a
  * native tab bar (a plain sheet would sit under the tab bar, which floats over the screen's content).
  */
-export function BottomModal({ visible, onClose, children }: BottomModalProps) {
+export function BottomModal({
+  visible,
+  onClose,
+  children,
+  contentPanningEnabled = true,
+}: BottomModalProps) {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
@@ -62,6 +67,7 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
     <BottomSheetModal
       ref={bottomSheetRef}
       backdropComponent={renderBackdrop}
+      enableContentPanningGesture={contentPanningEnabled}
       backgroundStyle={{
         backgroundColor: theme.page,
         borderTopLeftRadius: radii.sheet,

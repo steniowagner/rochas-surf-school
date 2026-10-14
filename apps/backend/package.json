@@ -47,6 +47,7 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@rochas-surf-school/auth": "*",
+    "@rochas-surf-school/classes": "*",
     "@rochas-surf-school/notifications": "*",
     "@rochas-surf-school/school-rules": "*",
     "@rochas-surf-school/school-settings": "*",

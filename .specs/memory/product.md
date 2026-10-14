@@ -116,7 +116,9 @@ Listed in the order people meet them.
   Relationship: a class has one location; a location has many classes. Lifecycle: `active` → `archived`
   ("removing" it archives it: no longer offered, kept by the classes that used it). Editing it changes every
   class that uses it, past ones included; if upcoming classes use it, the admin chooses whether to notify
-  their students and instructors.
+  their students and instructors. As built (spec 028), a location has only a name (1–40 characters, unique
+  ignoring case and accents) and an address (free text, 1–200 characters); admins create it, every approved
+  account lists it, and the map position, editing and archiving don't exist yet.
 - **Class** (`class`): one surf or skate session at one date and time. Key fields: discipline (`surf` |
   `skate`), level (`beginner` | `advanced` | `expert` — a label only), date, start and end time, location,
   instructors (at least one; instructors or admins), capacity, notes (optional, max 300 characters, visible to
@@ -124,8 +126,9 @@ Listed in the order people meet them.
   guests, ratings, instructor comments and photos. Created one at a time or in a **batch** (a date range, a
   weekday filter and one or more non-overlapping time ranges, each ending after it starts; one class per day
   and time range, all sharing the other fields) — the batch only exists while creating: afterwards each class
-  is edited on its own. The form suggests the time ranges of the previous week's classes. No class starts in
-  the past. Lifecycle, by the clock:
+  is edited on its own. The form suggests the time ranges of the previous week's classes (Monday to Sunday,
+  distinct start–end pairs). No class starts in the past. Limits: capacity 1 to 20 (8 by default), at most 200
+  classes per batch; a batch is created whole or not at all. Lifecycle, by the clock:
   - `not started` → `started` (at its start time) → `finished` (at its end time), with nobody acting.
   - `not started`: can be edited (never into the past), cancelled, or deleted — deleted only when nobody has
     an enrolment or a guest in it (instructors are notified). Capacity can't go below the seats taken.
@@ -276,6 +279,10 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **The level is a label only**: it never restricts who can request a class.
 - **A batch isn't kept**: it only exists while creating classes; each class is edited on its own, and time
   ranges are suggested from the previous week's classes rather than from a saved list.
+- **A batch is all or nothing, and each instructor hears about it once**: "Criar N aulas" always creates
+  exactly N classes, or none when any of them is refused (one in the past refuses the whole batch); each
+  assigned instructor gets one notification per batch with its count, never one per class, and the admin who
+  created it gets none.
 - **Editing a location changes past classes too**: a location is a reference, not a copy; "removing" one only
   archives it.
 - **No option to report comments or photos**: an accepted App Store risk (guideline 1.2). If Apple rejects the
@@ -549,6 +556,23 @@ the phone; when the viewer may not see the number (not shared and the viewer isn
 row is disabled and says "Número não compartilhado.". A hidden number never leaves the backend for a non-admin.
 All copy is in pt-BR, es-ES and en-US.
 
+**Admins create classes in a batch** (spec `028-create-classes`) — classes exist for the first time. An approved
+admin opens "Criar aulas" (below "Entrar na escola" under "Ferramentas" on the home) and, on the "Nova aula"
+screen, creates one class or a batch that share the discipline (Surf or Skate), the level (a label), the
+location, the instructors, the capacity (a stepper from 1 to 20, 8 by default) and optional notes (up to 300
+characters). Days are picked on a Monday-first calendar (no day before today): one day, or a range filtered by
+weekday ("Nos dias", shown only for a range). Time ranges are chips suggested from last week's classes, plus any
+added with "Novo horário" for this batch only (end after start; a chip that overlaps a selected one, or that has
+already started today, is blocked). A location is picked from the saved ones or added in place with "Novo local"
+(name and address; a name already used, ignoring case and accents, is refused). Instructors are the approved
+instructors and admins of the school, none preselected. The screen shows "N dias × M horários · <local>" and
+"Criar aula" / "Criar N aulas", enabled for 1 to 200 classes with a location and an instructor; on success a
+toast ("N aulas criadas") and back to the home. The backend creates the whole batch or nothing — refusing past
+classes, unknown locations, instructors who can't teach, more than 200 classes and every invalid field — and
+pushes one "Novas aulas na sua escala" notification per assigned instructor (not the creator). Classes aren't
+shown anywhere yet (no Aulas tab, no class details), and they can't be edited, cancelled or deleted. All copy is
+in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -595,6 +619,11 @@ Active specs: none.
   bell, metrics and every other row).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
+- After creating classes (spec 028): the map, address suggestions, editing and archiving of locations and the
+  location-change notification (the class-locations spec); the Aulas tab (week view, its "+" / "Criar aula" /
+  "Criar aula neste dia" entry points) and the class details; editing, cancelling and deleting classes and
+  unassigning instructors (with the "no instructor" flag); the instructors' "Surf" / "Skate" subtitles and photos
+  in the picker; a real count on the "Criar aulas" row; and "My classes" for admins who teach.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea
   conditions on class details; class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to

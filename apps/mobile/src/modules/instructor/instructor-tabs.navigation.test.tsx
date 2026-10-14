@@ -78,7 +78,7 @@ describe("instructor tabs", () => {
     expect(app.getPathname()).toBe("/instructor");
     expect(selectedTabLabel()).toBe("Home");
     expect(
-      screen.getByRole("header", { name: "Instructor" }),
+      screen.getByRole("header", { name: "Dashboard" }),
     ).toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.instructor.classes));

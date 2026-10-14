@@ -431,11 +431,12 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   Covers: ER-14 · Done when: `npx jest src/modules/admin/screens/admin.screen.test.tsx` passes.
   > ✅ 2026-10-13 — the admin home gains the "Ferramentas" and "Escola" section labels and the "Pessoas" row (`people.count` with `PEOPLE_COUNT_PLACEHOLDER`) pushing `routes.admin.people`; the row is a small shared component `PeopleEntryRow` (also used by T-11, so both homes look the same); keys `admin.home.toolsSection`, `admin.home.schoolSection`, `home.peopleRow` (and `instructor.home.title` for T-11) in the three message files; files: `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`, `apps/mobile/src/modules/people/components/people-entry-row/*`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/admin src/modules/people/components/people-entry-row` (58 passed), tsc and eslint clean; deviations: shared `PeopleEntryRow` component and `instructor.home.title` added here instead of T-11
 
-- [ ] **T-11** — Replace the instructor placeholder `src/modules/instructor/screens/instructor.screen.tsx` with the
+- [x] **T-11** — Replace the instructor placeholder `src/modules/instructor/screens/instructor.screen.tsx` with the
   "Painel" screen per D-15: `ScreenIntro` "Painel", the "Escola" section label and the "Pessoas" row (same look as
   the admin's, "9 na plataforma") pushing `routes.instructor.people`; add `instructor.home.title` to the three
   message files; tests in `instructor.screen.test.tsx`.
   Covers: ER-15 · Done when: `npx jest src/modules/instructor/screens/instructor.screen.test.tsx` passes.
+  > ✅ 2026-10-13 — the instructor placeholder became the "Painel" screen: title, the "Escola" section label and the shared `PeopleEntryRow` pushing `routes.instructor.people`; `instructor.home.title` was added in T-10; files: `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`, `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`, `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx` (header now "Dashboard"); verified: `npx jest src/modules/instructor` (5 passed), tsc and eslint clean; deviations: none
 
 ### Verification
 

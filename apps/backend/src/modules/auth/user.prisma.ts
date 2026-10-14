@@ -89,8 +89,8 @@ export class PrismaUserRepository implements UserRepository {
 
   async findDirectoryPage(params: DirectoryPageParams): Promise<PageResult<User>> {
     const conditions = [Prisma.sql`status = 'approved'`];
-    if (params.role) {
-      conditions.push(Prisma.sql`role = ${params.role}::user_role`);
+    if (params.roles?.length) {
+      conditions.push(Prisma.sql`role = ANY(${params.roles}::user_role[])`);
     }
     if (params.search) {
       const pattern = `%${escapeLike(params.search)}%`;

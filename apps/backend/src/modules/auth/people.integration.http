@@ -32,8 +32,8 @@ Content-Type: application/json
 GET {{baseUrl}}/people
 Authorization: Bearer {{token}}
 
-### Filter by role and search the name ignoring case and accents (expects 200; "joao" finds "João")
-GET {{baseUrl}}/people?role=instructor&search=joao
+### Filter by one or more roles (comma separated) and search the name ignoring case and accents (expects 200; "joao" finds "João")
+GET {{baseUrl}}/people?role=student,instructor&search=joao
 Authorization: Bearer {{token}}
 
 ### Second page (expects 200; items: [] past the end, with the real total)

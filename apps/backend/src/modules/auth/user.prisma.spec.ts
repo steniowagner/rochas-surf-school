@@ -307,23 +307,23 @@ describe('PrismaUserRepository', () => {
       );
     });
 
-    it('filters by role and by name ignoring accents, escaping LIKE wildcards', async () => {
+    it('filters by roles and by name ignoring accents, escaping LIKE wildcards', async () => {
       const { $queryRaw, repository } = setup();
       $queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ total: 0n }]);
 
       await repository.findDirectoryPage({
         page: 1,
         perPage: 20,
-        role: 'instructor',
+        roles: ['instructor', 'admin'],
         search: '50%_a\\b',
       });
 
       const select = sqlOf($queryRaw, 0);
       expect(select.text).toContain(
-        "status = 'approved' AND role = ?::user_role AND unaccent(lower(name)) LIKE unaccent(lower(?))",
+        "status = 'approved' AND role = ANY(?::user_role[]) AND unaccent(lower(name)) LIKE unaccent(lower(?))",
       );
-      expect(select.values.slice(0, 2)).toEqual(['instructor', '%50\\%\\_a\\\\b%']);
-      expect(sqlOf($queryRaw, 1).values).toEqual(['instructor', '%50\\%\\_a\\\\b%']);
+      expect(select.values.slice(0, 2)).toEqual([['instructor', 'admin'], '%50\\%\\_a\\\\b%']);
+      expect(sqlOf($queryRaw, 1).values).toEqual([['instructor', 'admin'], '%50\\%\\_a\\\\b%']);
     });
 
     it('skips the user query for an empty page', async () => {

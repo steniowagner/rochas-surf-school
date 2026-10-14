@@ -45,6 +45,21 @@ function parseInteger(value: unknown, fallback: number, min: number, max: number
   return parsed >= min && parsed <= max ? parsed : null;
 }
 
+/** `student,admin` → the roles, without repeats; a blank text means every role (`[]`); an unknown role or a non-text is `null`. */
+function parseRoles(value: unknown): UserRole[] | null {
+  if (value === undefined) return [];
+  if (typeof value !== "string") return null;
+
+  const names = value
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean);
+
+  if (!names.every((name) => (USER_ROLES as readonly string[]).includes(name))) return null;
+
+  return [...new Set(names)] as UserRole[];
+}
+
 export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
   constructor(private readonly userRepository: UserRepository) {}
 
@@ -61,9 +76,8 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
     const perPage = parseInteger(input.perPage, DEFAULT_PER_PAGE, 1, MAX_PER_PAGE);
     if (perPage === null) errors.push(new ValidationError("people.perPage.invalid"));
 
-    const roleInvalid =
-      input.role !== undefined && !(USER_ROLES as readonly unknown[]).includes(input.role);
-    if (roleInvalid) errors.push(new ValidationError("people.role.invalid"));
+    const roles = parseRoles(input.role);
+    if (roles === null) errors.push(new ValidationError("people.role.invalid"));
 
     const search = typeof input.search === "string" ? input.search.trim() : undefined;
     if (search !== undefined && search.length > MAX_SEARCH_LENGTH) {
@@ -75,7 +89,7 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
     const result = await this.userRepository.findDirectoryPage({
       page: page as number,
       perPage: perPage as number,
-      role: input.role as UserRole | undefined,
+      roles: roles?.length ? roles : undefined,
       search: search || undefined,
     });
     const viewerIsAdmin = input.actor.role === "admin";

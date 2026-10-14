@@ -116,6 +116,28 @@ describe("ListPeople", () => {
     ]);
   });
 
+  test("filters by users that have at least one of the comma-separated roles", async () => {
+    const users = [
+      buildUser("Ana", { role: "student" }),
+      buildUser("Bia", { role: "instructor" }),
+      buildUser("Caio", { role: "admin" }),
+    ];
+
+    const names = async (role: string) => (await run(users, { role })).items.map((i) => i.name);
+
+    expect(await names("student,instructor")).toEqual(["Ana", "Bia"]);
+    expect(await names(" admin , student,admin")).toEqual(["Ana", "Caio"]);
+    expect(await names("")).toEqual(["Ana", "Bia", "Caio"]);
+    expect(await names(",")).toEqual(["Ana", "Bia", "Caio"]);
+  });
+
+  test("rejects an unknown role in the list and a repeated parameter", async () => {
+    expect(await errorKeys({ role: "student,guest" })).toEqual(["people.role.invalid"]);
+    expect(await errorKeys({ role: ["student", "admin"] as unknown as string })).toEqual([
+      "people.role.invalid",
+    ]);
+  });
+
   test("trims the search and treats a blank one as none", async () => {
     const users = [buildUser("João Pinto"), buildUser("Ana Silva")];
 

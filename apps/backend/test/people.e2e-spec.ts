@@ -174,6 +174,9 @@ describe('People directory (e2e)', () => {
       items: [],
       total: 0,
     });
+    expect(
+      names((await people(token, { role: 'student,instructor' })).body.items).sort(),
+    ).toEqual(['Ana Silva', 'Joana Rocha', 'João Pinto', 'Viewer']);
     expect((await people(token, { search: '  ' })).status).toBe(200);
   });
 

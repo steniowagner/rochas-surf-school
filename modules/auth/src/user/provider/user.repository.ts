@@ -9,7 +9,8 @@ export interface UserPageParams {
 export interface DirectoryPageParams {
   page: number;
   perPage: number;
-  role?: UserRole;
+  /** Users with at least one of these roles; absent or empty means every role. */
+  roles?: UserRole[];
   /** Already trimmed; matched as a "contains" on the name, ignoring case and accents. */
   search?: string;
 }
@@ -20,7 +21,7 @@ export interface UserRepository extends CrudRepository<
   User,
   UserPageParams
 > {
-  /** Page of the `approved` users, filtered by role and name and sorted A–Z by name (ignoring case and accents, ties broken by id). */
+  /** Page of the `approved` users, filtered by roles and name and sorted A–Z by name (ignoring case and accents, ties broken by id). */
   findDirectoryPage(params: DirectoryPageParams): Promise<PageResult<User>>;
   searchByName(name: string): Promise<User[]>;
   findByEmail(email: string): Promise<User | null>;

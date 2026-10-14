@@ -65,14 +65,14 @@ describe('PeopleController', () => {
       userOf('student', 'approved'),
       '2',
       '10',
-      'instructor',
+      'instructor,admin',
       ' joao ',
     );
 
     expect(repository.findDirectoryPage).toHaveBeenCalledWith({
       page: 2,
       perPage: 10,
-      role: 'instructor',
+      roles: ['instructor', 'admin'],
       search: 'joao',
     });
     expect(result).toEqual({
@@ -99,7 +99,7 @@ describe('PeopleController', () => {
     expect(repository.findDirectoryPage).toHaveBeenCalledWith({
       page: 1,
       perPage: 20,
-      role: undefined,
+      roles: undefined,
       search: undefined,
     });
     expect(result.items[0].whatsappNumber).toBe('+5585999998888');

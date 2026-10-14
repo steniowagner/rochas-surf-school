@@ -477,7 +477,7 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/backend/src/modules/classes/school-class.prisma.ts`, `apps/backend/src/modules/classes/school-class.prisma.spec.ts`, `apps/backend/src/modules/classes/teacher-lookup.prisma.ts`, `apps/backend/src/modules/classes/teacher-lookup.prisma.spec.ts`;
   > verified: `cd apps/backend && npx vitest run src/modules/classes --coverage` (11 passed; only the Nest decorator-metadata branch of each class line is uncovered, which the coverage policy skips), `tsc --noEmit` and oxlint pass; deviations: none
 
-- [ ] **T-10** — The `class.assigned` copy in `apps/backend/src/modules/notifications/push-messages.ts` (Copy table,
+- [x] **T-10** — The `class.assigned` copy in `apps/backend/src/modules/notifications/push-messages.ts` (Copy table,
   singular and plural, discipline as "Surf" / "Skate") and `NotificationsClassAssignmentNotifier`
   (`notifications.class-assignment-notifier.ts`: `Notify` for each instructor with `{ count, discipline }`, every
   error logged and swallowed), exported by `NotificationsModule`, with specs.
@@ -485,6 +485,9 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   Covers: ER-07 · Done when:
   `cd apps/backend && npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.class-assignment-notifier.spec.ts --coverage`
   passes.
+  > ✅ 2026-10-14 11:01 — Added the `class.assigned` push copy (pt-BR / es / en, singular and plural, discipline as "Surf" / "Skate") to the catalog and `NotificationsClassAssignmentNotifier` (one `Notify` for all the instructors with `{ count, discipline }`, every error logged and swallowed), registered and exported by `NotificationsModule`;
+  > files: `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`, `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.module.ts`;
+  > verified: `cd apps/backend && npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.class-assignment-notifier.spec.ts --coverage` (18 passed), the whole `src/modules/notifications` folder (54 passed), `tsc --noEmit` and oxlint pass (after rebuilding `modules/notifications`); deviations: none
 
 - [ ] **T-11** — `locations.controller.ts` (`GET /locations`, `POST /locations` → 201) in
   `apps/backend/src/modules/classes/`, wired in `ClassesModule`, with `locations.integration.http`, the controller spec

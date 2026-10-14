@@ -444,6 +444,14 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   the iOS simulator; all pass. Record the output summary as evidence. Covers: all · Done when:
   `run-related-tests.mjs 027` passes, `check-coverage.mjs 027` prints `COVERAGE OK`, `run-e2e.mjs 027` prints
   `E2E PASSED`, lint, type check and build exit 0, and the four journeys are recorded.
+  > ⛔ 2026-10-13 — the automated part of the Verification Plan passes: `node .specs/scripts/run-related-tests.mjs 027`
+  > (RELATED TESTS PASSED: backend, mobile, modules/auth, modules/school-rules), `check-coverage.mjs 027` (COVERAGE OK,
+  > 25 files), `run-e2e.mjs 027` (E2E PASSED), `npx turbo run lint check-types --filter=…auth/backend/mobile` (14 tasks
+  > successful) and `npx turbo run build --filter=…auth/backend` (6 tasks successful); the full mobile suite also passes
+  > (1073 tests). Not done: the four user journeys on the iOS simulator — they need the backend running with 25+ approved
+  > users of mixed roles (some numbers shared, some hidden, one "João", one pending) seeded into the dev database, the
+  > review-account sign-in codes and a fresh dev build of the app (the simulator still runs the old build). Unblock:
+  > seed the data and confirm that I may write it to the local dev database, or run the journeys of the Verification Plan yourself.
 
 ## Verification Plan
 

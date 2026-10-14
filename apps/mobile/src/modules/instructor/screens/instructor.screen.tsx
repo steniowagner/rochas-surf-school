@@ -1,15 +1,19 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
+import { useTheme } from "@/hooks/use-theme";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 
 const openPeople = () => router.push(routes.instructor.people);
 
 export function InstructorScreen() {
   const { t } = useTranslation();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -20,9 +24,17 @@ export function InstructorScreen() {
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >
-      <Text accessibilityRole="header" className="ds-text-screen-title text-ink">
-        {t("instructor.home.title")}
-      </Text>
+      <ScreenIntro
+        icon={
+          <MaterialCommunityIcons
+            name="view-dashboard-outline"
+            size={30}
+            color={theme.grape}
+          />
+        }
+        title={t("instructor.home.title")}
+        description={null}
+      />
       <View className="gap-2">
         <Text className="ds-text-section-label text-ink-2">
           {t("admin.home.schoolSection")}

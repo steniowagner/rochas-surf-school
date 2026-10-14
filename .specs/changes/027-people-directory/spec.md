@@ -406,13 +406,14 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   Covers: ER-07, ER-12 · Done when: `npx jest src/modules/people/components src/modules/people/utils` passes.
   > ✅ 2026-10-13 — `PersonAvatar`, `PersonRow`, `PersonSheet` (+ hook), `roleChip`, `formatSince`, `formatWhatsappNumber`, each with its test; also added every `people.*` key of the Copy table to the three message files now (the components need them; T-08 only adds the screen). `formatInternational()` (D-14) renders "+55 85 99999 8888" (a space, not the hyphen ER-12 shows as an example); D-14 followed; files: `apps/mobile/src/modules/people/components/{person-avatar,person-row,person-sheet}/*`, `apps/mobile/src/modules/people/utils/{role-chip,format-since,format-whatsapp-number}.ts` (+ tests), `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/people` (27 passed), tsc and eslint clean; deviations: i18n keys added in T-07 instead of T-08; phone separator as noted
 
-- [ ] **T-08** — Create `PeopleScreen` in `src/modules/people/screens/people.screen.tsx` with its hook
+- [x] **T-08** — Create `PeopleScreen` in `src/modules/people/screens/people.screen.tsx` with its hook
   (`use-people-screen.hook.ts`: debounced search, role, sort, the selected person, error toasts): optional
   `BackButton` (`showBackButton`), eyebrow from `usePeopleCount`, title, `TextInput` search, `SegmentedControl`,
   the "A–Z" button, a `FlatList` of `PersonRow` with `onEndReached`, footer spinner, empty state, first-load
   spinner, error with retry, `RefreshControl`, and the `PersonSheet`; add every `people.*` key of the Copy table
   to `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; tests in `people.screen.test.tsx` for ER-07–ER-11.
   Covers: ER-07, ER-08, ER-09, ER-10, ER-11 · Done when: `npx jest src/modules/people` passes.
+  > ✅ 2026-10-13 — `PeopleScreen` (optional back button, unfiltered count eyebrow, title, search, role `SegmentedControl`, A–Z toggle, `FlatList` with end-reached paging, footer spinner, empty / loading / error-with-retry states, pull to refresh, `PersonSheet`) and `usePeopleScreen` (300 ms debounce, role, sort, selection, toasts through `getRegistrationErrorKey`); the hook lives in `hooks/` like the admin module's; the i18n keys were already added in T-07; files: `apps/mobile/src/modules/people/screens/{people.screen.tsx,people.screen.types.ts,people.screen.test.tsx}`, `apps/mobile/src/modules/people/hooks/{use-people-screen.hook.ts,use-people-screen.types.ts}`; verified: `npx jest src/modules/people` (42 passed, the module is 100% covered), tsc and eslint clean; deviations: none beyond the hook location
 
 - [ ] **T-09** — Wire the routes: `src/app/(private)/student/(tabs)/school.tsx` renders `PeopleScreen` without a
   back button; new `src/app/(private)/admin/people.tsx` and `src/app/(private)/instructor/people.tsx` render it

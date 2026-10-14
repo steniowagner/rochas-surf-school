@@ -2,10 +2,11 @@
 id: "028"
 slug: create-classes
 title: Admins create classes in a batch
-status: in-review
+status: accepted
 created: 2026-10-14
 started: 2026-10-14
 base_commit: 5c4c69b936ec934e6c920189d268a1f1ad2b2156
+reviewed_commit: 8cc0a7630c5ad9ea26d5df16089cec743e43a063
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
 ---
@@ -727,3 +728,48 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 - As T-20 noted, the shared toast has one look (red, alert icon), so "2 classes created" reads like an error — a
   follow-up for the toast, out of this spec's scope.
 - `## Memory Impact` matches what was built.
+
+### Round 2 — 2026-10-14 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for classes, notifications, backend,
+  mobile: 24 of 24 tasks)
+- related tests ✅ `RELATED TESTS PASSED` — apps/backend 106 passed, apps/mobile 752 passed, modules/classes 144
+  passed, modules/notifications 88 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (54 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (15 files, 373 passed, incl. `classes.e2e-spec.ts` and `locations.e2e-spec.ts`)
+- `Verify by` of ER-09 (11 passed) and ER-13 (`-t "submit"` 11 passed, `class-error.test.ts` 10 passed) rerun on
+  their own
+- F-01's new screen test fails with the one-line fix reverted ("1 day" not found) and passes with it
+- iOS simulator (iPhone 18 Pro, backend `start:prod` and Metro on 8cc0a76, admin account, English): 15th → 17th
+  ("3 days"), SAT off ("2 days", 17th struck through), 17th again → "1 day", no strike-through, "On" hidden; "New
+  time" 12:00–13:00 added and selected; "New location" saved and selected; an instructor ticked → "1 day × 1 time ·
+  Review R2 Beach", "Create class" enabled → toast "Class created", back on the home. The database held one skate
+  class on Saturday 2026-10-17 15:00Z (12:00 Fortaleza) with one instructor, and one `class.assigned`
+  `{ count: 1, discipline: "skate" }`.
+
+**Expected Results**
+
+- ER-01 ✅ · ER-02 ✅ · ER-03 ✅ · ER-04 ✅ · ER-05 ✅ · ER-06 ✅ · ER-07 ✅ — the backend e2e and module suites pass
+  unchanged since round 1 (no backend or module code changed after it)
+- ER-08 ✅ — tests; the row and the route in the simulator
+- ER-09 ✅ — F-01 fixed: a single day counts whatever the filter held (screen test and simulator); the rest as in
+  round 1
+- ER-10 ✅ · ER-11 ✅ · ER-12 ✅ — tests; sheet, location creation and instructor rows exercised again in the simulator
+- ER-13 ✅ — tests and the simulator (toast and back on the home)
+
+**Findings**
+
+- None. F-01 (round 1) verified fixed.
+
+**Notes**
+
+- The only change since round 1 is `useNewClassScreen` (the filter kept apart as `weekdayFilter`, all seven weekdays
+  when `range.endDate` is null) and its test; `pressDay` never produces `endDate === startDate`, so the single-day
+  check is complete. Extending the range again brings back the filter as it was, which is visible in "On".
+- The simulator run left one class, its assignment, the `class.assigned` notification and the "Review R2 Beach"
+  location in the local database: deleting them was blocked by the session's permissions. Remove them by hand if
+  needed (`classes` id `313b67f2-0607-4d02-8773-859f7b2aeba2`).
+- Round 1's notes still stand (dark theme / other languages / Android not exercised in the simulator; `created_by`
+  `ON DELETE RESTRICT` vs the planned account erasure; the one-look toast).

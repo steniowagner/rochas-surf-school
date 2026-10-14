@@ -193,7 +193,7 @@ describe('People directory (e2e)', () => {
     expect((await search('Ab')).sort()).toEqual(['Ab%c', 'Ab\\c', 'Ab_c', 'Abxc'].sort());
   });
 
-  it('pages 20 at a time, newest first', async () => {
+  it('pages 20 at a time, A–Z', async () => {
     const viewer = await account({ name: 'User 00', createdAt: new Date('2026-09-01T00:00:00Z') });
     for (let index = 1; index < 25; index += 1) {
       await account({
@@ -208,13 +208,13 @@ describe('People directory (e2e)', () => {
 
     expect(first.body).toMatchObject({ page: 1, perPage: 20, total: 25 });
     expect(first.body.items).toHaveLength(20);
-    expect(names(first.body.items)[0]).toBe('User 24');
+    expect(names(first.body.items)[0]).toBe('User 00');
     expect(names(second.body.items)).toEqual([
-      'User 04',
-      'User 03',
-      'User 02',
-      'User 01',
-      'User 00',
+      'User 20',
+      'User 21',
+      'User 22',
+      'User 23',
+      'User 24',
     ]);
     expect(past.body).toMatchObject({ items: [], total: 25 });
     expect((await people(viewer.accessToken, { perPage: '50' })).body.items).toHaveLength(25);
@@ -233,12 +233,12 @@ describe('People directory (e2e)', () => {
     expect(new Set(ids).size).toBe(3);
   });
 
-  it('sorts by name ignoring case and accents', async () => {
+  it('sorts A–Z by name ignoring case and accents', async () => {
     const viewer = await account({ name: 'Bruno' });
     await account({ name: 'ana' });
     await account({ name: 'Álvaro' });
 
-    const response = await people(viewer.accessToken, { sort: 'name' });
+    const response = await people(viewer.accessToken);
 
     expect(names(response.body.items)).toEqual(['Álvaro', 'ana', 'Bruno']);
   });
@@ -267,7 +267,6 @@ describe('People directory (e2e)', () => {
       perPage: '51',
       role: 'guest',
       search: 'a'.repeat(81),
-      sort: 'age',
     });
 
     expect(response.status).toBe(422);
@@ -276,7 +275,6 @@ describe('People directory (e2e)', () => {
       'people.perPage.invalid',
       'people.role.invalid',
       'people.search.max.length',
-      'people.sort.invalid',
     ]);
     expect((await people(viewer.accessToken, { page: 'abc' })).status).toBe(422);
     expect((await people(viewer.accessToken, { perPage: '1.5' })).status).toBe(422);

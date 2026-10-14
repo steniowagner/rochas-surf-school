@@ -97,10 +97,7 @@ export class PrismaUserRepository implements UserRepository {
       conditions.push(Prisma.sql`unaccent(lower(name)) LIKE unaccent(lower(${pattern}))`);
     }
     const where = Prisma.join(conditions, ' AND ');
-    const orderBy =
-      params.sort === 'name'
-        ? Prisma.sql`lower(unaccent(name)) ASC, id ASC`
-        : Prisma.sql`created_at DESC, id ASC`;
+    const orderBy = Prisma.sql`lower(unaccent(name)) ASC, id ASC`;
 
     const [rows, counts] = await Promise.all([
       this.prisma.$queryRaw<{ id: string }[]>`

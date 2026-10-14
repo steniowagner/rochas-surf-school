@@ -124,19 +124,10 @@ describe("ListPeople", () => {
     expect((await run(users, { search: "zzzz" }))).toMatchObject({ items: [], total: 0 });
   });
 
-  test("sorts newest first by default and A–Z by name", async () => {
-    const users = [
-      buildUser("Bruno", { createdAt: "2026-09-01T10:00:00.000Z" }),
-      buildUser("Álvaro", { createdAt: "2026-09-02T10:00:00.000Z" }),
-      buildUser("ana", { createdAt: "2026-09-03T10:00:00.000Z" }),
-    ];
+  test("sorts A–Z by name ignoring case and accents", async () => {
+    const users = [buildUser("Bruno"), buildUser("ana"), buildUser("Álvaro")];
 
-    expect((await run(users)).items.map((i) => i.name)).toEqual(["ana", "Álvaro", "Bruno"]);
-    expect((await run(users, { sort: "name" })).items.map((i) => i.name)).toEqual([
-      "Álvaro",
-      "ana",
-      "Bruno",
-    ]);
+    expect((await run(users)).items.map((i) => i.name)).toEqual(["Álvaro", "ana", "Bruno"]);
   });
 
   test("pages 20 at a time by default and honors page and perPage", async () => {
@@ -187,14 +178,12 @@ describe("ListPeople", () => {
         perPage: "51",
         role: "guest",
         search: "a".repeat(81),
-        sort: "age",
       }),
     ).toEqual([
       "people.page.invalid",
       "people.perPage.invalid",
       "people.role.invalid",
       "people.search.max.length",
-      "people.sort.invalid",
     ]);
   });
 

@@ -67,7 +67,6 @@ describe('PeopleController', () => {
       '10',
       'instructor',
       ' joao ',
-      'name',
     );
 
     expect(repository.findDirectoryPage).toHaveBeenCalledWith({
@@ -75,7 +74,6 @@ describe('PeopleController', () => {
       perPage: 10,
       role: 'instructor',
       search: 'joao',
-      sort: 'name',
     });
     expect(result).toEqual({
       items: [
@@ -103,7 +101,6 @@ describe('PeopleController', () => {
       perPage: 20,
       role: undefined,
       search: undefined,
-      sort: 'recent',
     });
     expect(result.items[0].whatsappNumber).toBe('+5585999998888');
   });

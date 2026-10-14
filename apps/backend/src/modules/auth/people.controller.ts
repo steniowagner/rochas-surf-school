@@ -16,7 +16,6 @@ export class PeopleController {
     @Query('perPage') perPage?: string,
     @Query('role') role?: string,
     @Query('search') search?: string,
-    @Query('sort') sort?: string,
   ): Promise<ListPeopleOut> {
     return new ListPeople(this.userRepository).execute({
       actor: { id: user.id, role: user.role, status: user.status },
@@ -24,7 +23,6 @@ export class PeopleController {
       perPage,
       role,
       search,
-      sort,
     });
   }
 }

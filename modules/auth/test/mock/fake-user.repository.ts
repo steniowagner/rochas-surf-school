@@ -57,12 +57,7 @@ export class FakeUserRepository implements UserRepository {
       .filter((item) => params.role === undefined || item.role === params.role)
       .filter((item) => term === undefined || fold(item.name).includes(term))
       .sort((a, b) => {
-        const byOrder =
-          params.sort === "name"
-            ? fold(a.name).localeCompare(fold(b.name))
-            : b.createdAt.getTime() - a.createdAt.getTime();
-
-        return byOrder || a.id.localeCompare(b.id);
+        return fold(a.name).localeCompare(fold(b.name)) || a.id.localeCompare(b.id);
       });
     const start = (params.page - 1) * params.perPage;
 

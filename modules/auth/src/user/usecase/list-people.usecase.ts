@@ -5,14 +5,13 @@ import {
   ValidationException,
 } from "@rochas-surf-school/shared";
 import { USER_ROLES, UserRole } from "../model";
-import { DirectorySort, UserRepository } from "../provider";
+import { UserRepository } from "../provider";
 import { RegistrationActor } from "./registration-access";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = 20;
 const MAX_PER_PAGE = 50;
 const MAX_SEARCH_LENGTH = 80;
-const SORTS: readonly DirectorySort[] = ["recent", "name"];
 
 export interface ListPeopleIn {
   actor: RegistrationActor;
@@ -20,7 +19,6 @@ export interface ListPeopleIn {
   perPage?: string;
   role?: string;
   search?: string;
-  sort?: string;
 }
 
 export interface PersonOut {
@@ -72,10 +70,6 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
       errors.push(new ValidationError("people.search.max.length"));
     }
 
-    const sortInvalid =
-      input.sort !== undefined && !(SORTS as readonly unknown[]).includes(input.sort);
-    if (sortInvalid) errors.push(new ValidationError("people.sort.invalid"));
-
     if (errors.length > 0) throw new ValidationException(errors);
 
     const result = await this.userRepository.findDirectoryPage({
@@ -83,7 +77,6 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
       perPage: perPage as number,
       role: input.role as UserRole | undefined,
       search: search || undefined,
-      sort: (input.sort as DirectorySort | undefined) ?? "recent",
     });
     const viewerIsAdmin = input.actor.role === "admin";
 

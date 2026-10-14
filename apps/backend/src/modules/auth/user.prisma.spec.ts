@@ -290,7 +290,7 @@ describe('PrismaUserRepository', () => {
         .mockResolvedValueOnce([{ total: 25n }]);
       user.findMany.mockResolvedValue([minimalRecord, { ...minimalRecord, id: OTHER_ID }]);
 
-      const result = await repository.findDirectoryPage({ page: 2, perPage: 20, sort: 'recent' });
+      const result = await repository.findDirectoryPage({ page: 2, perPage: 20 });
 
       expect(result.items.map((item) => item.id)).toEqual([OTHER_ID, ID]);
       expect(result).toMatchObject({ page: 2, perPage: 20, total: 25 });
@@ -299,7 +299,7 @@ describe('PrismaUserRepository', () => {
         include: { rulesAcceptances: true },
       });
       expect(sqlOf($queryRaw, 0)).toEqual({
-        text: "SELECT id FROM users WHERE status = 'approved' ORDER BY created_at DESC, id ASC LIMIT ? OFFSET ?",
+        text: "SELECT id FROM users WHERE status = 'approved' ORDER BY lower(unaccent(name)) ASC, id ASC LIMIT ? OFFSET ?",
         values: [20, 20],
       });
       expect(sqlOf($queryRaw, 1).text).toBe(
@@ -316,7 +316,6 @@ describe('PrismaUserRepository', () => {
         perPage: 20,
         role: 'instructor',
         search: '50%_a\\b',
-        sort: 'recent',
       });
 
       const select = sqlOf($queryRaw, 0);
@@ -327,14 +326,13 @@ describe('PrismaUserRepository', () => {
       expect(sqlOf($queryRaw, 1).values).toEqual(['instructor', '%50\\%\\_a\\\\b%']);
     });
 
-    it('sorts by the name without case and accents, id breaking ties, and skips the user query for an empty page', async () => {
+    it('skips the user query for an empty page', async () => {
       const { user, $queryRaw, repository } = setup();
       $queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ total: 3n }]);
 
-      const result = await repository.findDirectoryPage({ page: 5, perPage: 20, sort: 'name' });
+      const result = await repository.findDirectoryPage({ page: 5, perPage: 20 });
 
       expect(result).toEqual({ items: [], page: 5, perPage: 20, total: 3 });
-      expect(sqlOf($queryRaw, 0).text).toContain('ORDER BY lower(unaccent(name)) ASC, id ASC');
       expect(sqlOf($queryRaw, 0).values).toEqual([20, 80]);
       expect(user.findMany).not.toHaveBeenCalled();
     });

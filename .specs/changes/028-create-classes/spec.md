@@ -406,7 +406,7 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `modules/classes/src/school-class/model/{class-limits,time-range,class-batch,index}.ts`, `modules/classes/src/school-class/index.ts`, `modules/classes/src/index.ts`, `modules/classes/test/school-class/model/{time-range,class-batch}.test.ts`;
   > verified: `cd modules/classes && npx jest test/school-class/model --coverage` (28 passed, 100% of the new files), lint and check-types pass; deviations: added the `listBatchDates` / `max` helpers and the date / weekday validators so the use case and the app share the rules (D-13)
 
-- [ ] **T-04** — The `school-class` aggregate: `SchoolClass` entity (discipline, level, `startsAt`, `endsAt`,
+- [x] **T-04** — The `school-class` aggregate: `SchoolClass` entity (discipline, level, `startsAt`, `endsAt`,
   `locationId`, `instructorIds`, capacity, notes, `createdBy`; self-validating with the D-07 limits), the ports
   `SchoolClassRepository` (`createMany(classes)` atomic, `findStartingBetween(from, to)`), `TeacherLookup`
   (`findTeachers(ids)`), `ClassAssignmentNotifier` (`classAssigned({ instructorIds, count, discipline })`) and
@@ -415,6 +415,10 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   [`module-entity`](../../../.claude/skills/module-entity),
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: ER-01, ER-02 · Done when: `cd modules/classes && npx jest test/school-class --coverage` passes.
+  > ✅ 2026-10-14 10:56 — Added the `SchoolClass` entity (self-validating: discipline, level, dates with end after start, location, instructors, capacity 1–20, notes ≤ 300, creator) and the ports `SchoolClassRepository` (`createMany`, `findStartingBetween`), `TeacherLookup`, `ClassAssignmentNotifier` and `ClockProvider`, with fakes in `test/mock/` (repository, teacher lookup, notifier, clock, class factory);
+  > files: `modules/classes/src/school-class/model/{school-class.entity,index}.ts`, `modules/classes/src/school-class/provider/*.ts`, `modules/classes/test/mock/{fake-school-class.repository,fake-teacher.lookup,fake-class-assignment.notifier,fake-clock.provider,school-class.factory,index}.ts`, `modules/classes/test/school-class/model/school-class.entity.test.ts`, `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`;
+  > verified: `cd modules/classes && npx jest test/school-class --coverage` (46 passed; the entity and the repository fake are fully covered, the other fakes are exercised by the use case tests of T-05), lint and check-types pass;
+  > deviations: the entity's own keys come from the shared rules (`class.discipline.in`, `class.capacity.range.value`…); the D-07 keys (`class.discipline.invalid`…) are produced by the use case's shape validation in T-05
 
 - [ ] **T-05** — The `CreateClassBatch` use case: access (D-10), the D-07 shape validation collected into one 422,
   then location, teachers, empty batch, size and past checks in that order, `createMany`, then `classAssigned` for

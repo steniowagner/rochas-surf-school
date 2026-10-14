@@ -500,7 +500,7 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/backend/src/modules/classes/locations.controller.ts`, `apps/backend/src/modules/classes/locations.controller.spec.ts`, `apps/backend/src/modules/classes/locations.integration.http`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts` (deleted), `apps/backend/test/locations.e2e-spec.ts`;
   > verified: `cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/locations.e2e-spec.ts` (12 passed against the local Postgres) and `npx vitest run src/modules/classes/locations.controller.spec.ts` (8 passed), `tsc --noEmit` passes; deviations: none
 
-- [ ] **T-12** — `classes.controller.ts` (`POST /classes/batch` → 201, `GET /classes/time-range-suggestions`) in
+- [x] **T-12** — `classes.controller.ts` (`POST /classes/batch` → 201, `GET /classes/time-range-suggestions`) in
   `apps/backend/src/modules/classes/`, `ClassesModule` importing `NotificationsModule` and injecting the Prisma
   repositories, the teacher lookup, the class-assignment notifier and a system clock; `classes.integration.http`, the
   controller spec and `apps/backend/test/classes.e2e-spec.ts` (ER-01 to ER-05 and ER-07, with the clock and
@@ -509,6 +509,9 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-07 · Done when:
   `cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/classes.e2e-spec.ts` and the controller spec
   pass.
+  > ✅ 2026-10-14 11:04 — Added `ClassesController` (`POST /classes/batch` → 201 `{ count }`, `GET /classes/time-range-suggestions` → 200, both protected), a module-local `SystemClockProvider` (so the e2e suite can fake the clock without touching auth's), `ClassesModule` importing `NotificationsModule` and providing the Prisma repositories, the teacher lookup and the clock, `classes.integration.http`, the controller spec and the e2e suite (creation and its stored fields, one-day batch, repeated instructors, blank notes, overlapping earlier batches, every refusal key, 200 vs 201 classes, the past rules, suggestions, access for every role and status, notifications with a fake `ExpoPushProvider` and a fake clock; each test deletes the classes, locations and users it created);
+  > files: `apps/backend/src/modules/classes/{classes.controller,classes.controller.spec,classes.module,system.clock,system.clock.spec}.ts`, `apps/backend/src/modules/classes/classes.integration.http`, `apps/backend/test/classes.e2e-spec.ts`, `apps/backend/test/locations.e2e-spec.ts` (lint fix);
+  > verified: `cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/classes.e2e-spec.ts` (28 passed), the whole e2e suite (15 files, 373 passed), the whole unit suite (45 files, 298 passed), `tsc --noEmit` and oxlint pass; deviations: none
 
 ### Mobile (`apps/mobile`)
 

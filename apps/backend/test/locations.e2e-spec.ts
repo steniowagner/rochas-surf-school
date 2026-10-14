@@ -130,7 +130,7 @@ describe('Locations (e2e)', () => {
       create(admin, { name, address: ADDRESS }),
     ]);
 
-    expect(responses.map((item) => item.status).sort()).toEqual([201, 409]);
+    expect(responses.map((item) => item.status).sort((a, b) => a - b)).toEqual([201, 409]);
     expect(mine((await list(admin)).body.items)).toEqual(['Praia']);
   });
 

@@ -420,13 +420,17 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > verified: `cd modules/classes && npx jest test/school-class --coverage` (46 passed; the entity and the repository fake are fully covered, the other fakes are exercised by the use case tests of T-05), lint and check-types pass;
   > deviations: the entity's own keys come from the shared rules (`class.discipline.in`, `class.capacity.range.value`…); the D-07 keys (`class.discipline.invalid`…) are produced by the use case's shape validation in T-05
 
-- [ ] **T-05** — The `CreateClassBatch` use case: access (D-10), the D-07 shape validation collected into one 422,
+- [x] **T-05** — The `CreateClassBatch` use case: access (D-10), the D-07 shape validation collected into one 422,
   then location, teachers, empty batch, size and past checks in that order, `createMany`, then `classAssigned` for
   every instructor except the caller (skipped when none is left), returning `{ count }`; tests for each key, the
   order, all-or-nothing (the fake stores nothing on refusal), repeated ids and the creator exclusion.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-07 · Done when:
   `cd modules/classes && npx jest test/school-class/usecase/create-class-batch.usecase.test.ts --coverage` passes.
+  > ✅ 2026-10-14 10:58 — Added `CreateClassBatch`: access (D-10), D-07 shape validation collected into one 422 (`ValidationException`), then in order location (`class.location.notFound`), teachers (`class.instructors.invalid`), empty batch, size (`details.max` 200) and past checks as 422 `DomainError`s, one `createMany`, then one `classAssigned` for every instructor except the caller (skipped when none is left; a throwing notifier is swallowed), returning `{ count }`;
+  > files: `modules/classes/src/school-class/usecase/{create-class-batch.usecase,index}.ts`, `modules/classes/src/school-class/index.ts`, `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts`;
+  > verified: `cd modules/classes && npx jest test/school-class/usecase/create-class-batch.usecase.test.ts --coverage` (62 passed in the folder run, the use case file 100% lines, branches and functions), lint and check-types pass;
+  > deviations: a non-string `notes` answers `class.notes.max.length` (D-07 has no other key for it); a location or instructor id that isn't a UUID is refused as not found / invalid without a lookup
 
 - [ ] **T-06** — The `ListTimeRangeSuggestions` use case (D-09): admin access, last Monday–Sunday week in
   Fortaleza from the clock, distinct sorted `HH:mm` pairs; tests for the week edges (Sunday 23:00, this Monday 00:00),

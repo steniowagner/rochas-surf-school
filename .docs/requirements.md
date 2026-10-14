@@ -327,6 +327,7 @@ WhatsApp numbers SHALL include a country code, with Brazil (+55) preselected.
 
 _Implemented in spec 008-onboarding-whatsapp._
 _Implemented in spec 026-profile-tab._
+_Implemented in spec 027-people-directory._
 
 Users SHALL choose whether other users can see their WhatsApp number, and the number SHALL be hidden by default. Admins SHALL always see every user's WhatsApp number.
 
@@ -335,23 +336,31 @@ Users SHALL choose whether other users can see their WhatsApp number, and the nu
 
 #### Contacting a user on WhatsApp
 
-Admins SHALL be able to open a WhatsApp chat with any user from that user's profile. The chat SHALL open in WhatsApp on the admin's own phone; the app SHALL NOT send WhatsApp messages itself.
+_Implemented in spec 027-people-directory._
 
-- _Admin contacts a user:_ When an admin taps the WhatsApp button on a user's profile, then WhatsApp opens on the admin's phone with a chat to that user's number.
+Admins SHALL be able to open a WhatsApp chat with any user who has a number from that user's entry in the directory, and every other user with any user who shares their number. The chat SHALL open in WhatsApp on the user's own phone; the app SHALL NOT send WhatsApp messages itself.
+
+- _Admin contacts a user:_ When an admin taps the WhatsApp button on a user's directory entry, then WhatsApp opens on the admin's phone with a chat to that user's number.
+- _Number not shared:_ When a non-admin opens the entry of a user who doesn't share their number, then the WhatsApp button is disabled and says the number isn't shared.
 
 #### User directory
 
-The app SHALL show users a directory of approved, active users, with each user's name, photo and role, and their WhatsApp number when they share it. Pending, denied, deleted and removed accounts SHALL NOT appear in it.
+_Implemented in spec 027-people-directory._
+
+The app SHALL show users a directory of approved, active users, with each user's name, photo and role, and their WhatsApp number when they share it (admins see every number). The directory SHALL be sorted A–Z by name, ignoring case and accents. Pending, denied, deleted and removed accounts SHALL NOT appear in it.
 
 - _Pending account:_ When an account is waiting for approval, then it does not appear in the directory.
 - _Shared number:_ When a user shares their WhatsApp number, then their directory entry shows it.
 
 #### Directory search and filter
 
-Users SHALL be able to search the directory by name and filter it by role.
+_Implemented in spec 027-people-directory._
+
+Users SHALL be able to search the directory by name, ignoring case and accents, and filter it by one or more roles.
 
 - _Search by name:_ When a user searches the directory for a name, then only users whose name matches are listed.
 - _Filter by role:_ When a user filters the directory by the instructor role, then only instructors are listed.
+- _Several roles:_ When a user filters the directory by the student and instructor roles, then the students and the instructors are listed.
 
 ### 1.4 User roles
 

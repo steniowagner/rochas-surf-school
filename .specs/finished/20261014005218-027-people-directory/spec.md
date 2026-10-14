@@ -2,13 +2,14 @@
 id: "027"
 slug: people-directory
 title: People directory for every role
-status: accepted
+status: finished
 reviewed_commit: 4c5eca8c0693166c235d74b46a0cfbe10b92949f
 started: 2026-10-13
 base_commit: 305a8c311dd1d41b4093ab6a4d309be06d86ec3c
 created: 2026-10-13
 fronts: [auth, backend, mobile]
 depends_on: []
+finished: 2026-10-14
 ---
 
 # 027 — People directory for every role

@@ -52,8 +52,9 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 `usecase/`, and an `index.ts` barrel; tests in `modules/<m>/test/` mirror `src/`, with fakes in `test/mock/`.
 
 - **`modules/auth`** (`@rochas-surf-school/auth`) — 4 aggregates:
-  - `user/` — `model/user.entity.ts`, `provider/user.repository.ts` (with `addRulesAcceptance`, `findPending`
-    and `updateIfPending`, the conditional write of a registration decision),
+  - `user/` — `model/user.entity.ts`, `provider/user.repository.ts` (with `addRulesAcceptance`, `findPending`,
+    `updateIfPending`, the conditional write of a registration decision, and `findDirectoryPage`, the people
+    directory's page),
     `provider/rules-version.provider.ts` (`RulesVersionProvider`: the current school rules version, read
     without depending on `school-rules`), `provider/registration-notifier.provider.ts` (`RegistrationNotifier`:
     tells admins and the person about a registration, without depending on `notifications`),
@@ -63,7 +64,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `rulesAccepted`, `denialReason` and `reactivationStatus`);
     `usecase/{list-registrations,approve-registration,deny-registration}.usecase.ts` with
     `usecase/registration-access.ts` (approved-admin check, status first) and `usecase/pending-registration.ts`
-    (`findPendingRegistration`: UUID check, 404, 409).
+    (`findPendingRegistration`: UUID check, 404, 409); `usecase/list-people.usecase.ts` (`ListPeople`: the people
+    directory — access, query parsing, WhatsApp visibility).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
     `provider/google-id-token.provider.ts` (`GoogleIdTokenProvider`: verifies a Google ID token),
     `usecase/{create-identity,sign-in-with-google}.usecase.ts`.
@@ -136,6 +138,8 @@ src/
     auth.integration.http       # manual REST Client requests
     registrations.controller.ts # GET /registrations, POST /registrations/:id/approve and /deny (200) — protected
     registrations.integration.http  # manual REST Client requests
+    people.controller.ts        # GET /people (200) — protected; the people directory (ListPeople)
+    people.integration.http     # manual REST Client requests
     auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser, GOOGLE_WEB_CLIENT_ID
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
     rules-version.prisma.ts     # PrismaRulesVersionProvider (reads the single rules_versions row)
@@ -183,6 +187,7 @@ test/
   auth-reactivation.e2e-spec.ts # e2e suite of POST /auth/me/reactivation-request (accounts in each state through Prisma)
   auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
   registrations.e2e-spec.ts     # e2e suite of the /registrations routes (accounts through Prisma; concurrency)
+  people.e2e-spec.ts            # e2e suite of GET /people (accounts through Prisma, isolated by a per-test name tag)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
   school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
   school-settings.e2e-spec.ts   # e2e suite of the /school-settings routes (accounts in each status and role through Prisma)
@@ -226,6 +231,9 @@ src/
     (private)/{instructor,admin}/(tabs)/{index,classes,profile}.tsx # Início (/instructor, /admin), Aulas, Perfil
     (private)/<role>/{edit-profile,whatsapp,school-rules}.tsx  # the Profile's inner screens, above the tab bar
     (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations), above the tab bar
+    (private)/{admin,instructor}/people.tsx          # the People screen with a back button (/admin/people,
+                                                     # /instructor/people), above the tab bar; the student's
+                                                     # (tabs)/school.tsx renders it without one
   navigation/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
                                 # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
@@ -235,11 +243,13 @@ src/
     splash-gate/                # SplashGate: keeps the native splash screen until the fonts are ready and the
                                 # stored session was restored, then renders its children (StatusBar, RootNavigator)
     rules-update-layout.test.tsx  # layout test of the rules-update group (a test under src/app would be a route)
-  modules/{student,instructor}/screens/
-                                # each role's screens (placeholders showing the flow's name for now)
+  modules/student/screens/      # the student's screens (placeholders showing the flow's name for now)
+  modules/instructor/screens/instructor.screen.tsx  # the instructor's Início: "Painel" with the Escola section
+                                # and the People row
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
-    screens/admin.screen.tsx    # admin home: "School tools" with the "Join the school" row and its pending count
+    screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
+                                # pending count, "School" with the People row
     screens/registrations.screen.tsx  # "Join the school": DecisionCards (pull-to-refresh, loading, empty,
                                 # error + retry), DecidedList, one DenySheet
     registrations.types.ts      # Registration, RegistrationsResponse, RegistrationDecision (mirror the API)
@@ -248,6 +258,19 @@ src/
                                 # decisions, "Decided just now", the sheet, toasts)
     utils/                      # registration-error.ts (API error → translation key), registrations-cache.ts
                                 # (removeRegistration: drop a decided item from the cache and invalidate)
+  modules/people/               # the people directory, the same for every role
+    screens/people.screen.tsx   # PeopleScreen (showBackButton): count eyebrow, title, search, RoleFilters, FlatList
+                                # grouped by first letter (end-reached paging, footer spinner, empty, loading,
+                                # error + retry, pull-to-refresh), PersonSheet
+    people.types.ts             # Person, PeoplePage, PeopleRole, PeopleFilters (mirror the API)
+    constants/people.ts         # PEOPLE_PAGE_SIZE (20), PEOPLE_ROLES (fixed order), PEOPLE_COUNT_PLACEHOLDER (9)
+    hooks/                      # use-people (infinite query ["people", { roles, search }]), use-people-count
+                                # (["people", "count"]), use-people-screen (debounce, roles, sheet, toasts)
+    components/                 # role-filters (one toggle button per role), person-avatar (initials), person-row,
+                                # person-sheet (WhatsApp row or "not shared", Close), people-entry-row (the
+                                # homes' "People · N on the platform" row)
+    utils/                      # people-query.ts (buildPeoplePagePath), group-by-initial.ts, format-since.ts
+                                # ("MMM yyyy"), format-whatsapp-number.ts, role-chip.ts (role → chip tone and label)
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
@@ -320,7 +343,7 @@ src/
                                 # google-sign-in-error.ts (Google / API error → translation key, or null to ignore)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal, otp-input, text-button, back-button, screen-intro,
-                                # text-input, text-area, toast, checkbox
+                                # text-input, text-area, toast, checkbox, segmented-control (not used by a screen yet)
   components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard), decided-list
                                 # ("Decided just now"), deny-sheet (DenySheet: optional reason in a bottom sheet)
   utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the

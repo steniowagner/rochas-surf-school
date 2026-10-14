@@ -415,12 +415,13 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   Covers: ER-07, ER-08, ER-09, ER-10, ER-11 · Done when: `npx jest src/modules/people` passes.
   > ✅ 2026-10-13 — `PeopleScreen` (optional back button, unfiltered count eyebrow, title, search, role `SegmentedControl`, A–Z toggle, `FlatList` with end-reached paging, footer spinner, empty / loading / error-with-retry states, pull to refresh, `PersonSheet`) and `usePeopleScreen` (300 ms debounce, role, sort, selection, toasts through `getRegistrationErrorKey`); the hook lives in `hooks/` like the admin module's; the i18n keys were already added in T-07; files: `apps/mobile/src/modules/people/screens/{people.screen.tsx,people.screen.types.ts,people.screen.test.tsx}`, `apps/mobile/src/modules/people/hooks/{use-people-screen.hook.ts,use-people-screen.types.ts}`; verified: `npx jest src/modules/people` (42 passed, the module is 100% covered), tsc and eslint clean; deviations: none beyond the hook location
 
-- [ ] **T-09** — Wire the routes: `src/app/(private)/student/(tabs)/school.tsx` renders `PeopleScreen` without a
+- [x] **T-09** — Wire the routes: `src/app/(private)/student/(tabs)/school.tsx` renders `PeopleScreen` without a
   back button; new `src/app/(private)/admin/people.tsx` and `src/app/(private)/instructor/people.tsx` render it
   with one; add `routes.admin.people` (`/admin/people`) and `routes.instructor.people` (`/instructor/people`) to
   `src/constants/routes.ts`; route tests in `src/modules/{student,admin,instructor}/*-tabs.navigation.test.tsx`.
   Covers: ER-13, ER-14, ER-15 · Done when: `npx jest src/modules/student src/modules/admin src/modules/instructor`
   passes.
+  > ✅ 2026-10-13 — the student's Escola tab renders `PeopleScreen` without a back button; new `/admin/people` and `/instructor/people` routes with one; `routes.admin.people` and `routes.instructor.people`; route tests in the three `*-tabs.navigation.test.tsx` (the student test gains a fetch mock); files: `apps/mobile/src/app/(private)/student/(tabs)/school.tsx`, `apps/mobile/src/app/(private)/admin/people.tsx`, `apps/mobile/src/app/(private)/instructor/people.tsx`, `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/modules/{student,admin,instructor}/*-tabs.navigation.test.tsx`; verified: `npx jest src/modules/student src/modules/admin src/modules/instructor` (62 passed), tsc and eslint clean; deviations: none
 
 - [ ] **T-10** — Update the admin home `src/modules/admin/screens/admin.screen.tsx` per D-15: the "Ferramentas"
   section label above the "Entrar na escola" row, and the "Escola" section label above a "Pessoas" row (people icon,

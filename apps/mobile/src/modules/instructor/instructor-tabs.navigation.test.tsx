@@ -8,6 +8,7 @@ import ClassesRoute from "@/app/(private)/instructor/(tabs)/classes";
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import ProfileRoute from "@/app/(private)/instructor/(tabs)/profile";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
+import InstructorPeopleRoute from "@/app/(private)/instructor/people";
 import {
   selectedTabLabel,
   tabLabels,
@@ -33,9 +34,19 @@ const routeTree = {
   "(private)/instructor/(tabs)/index": InstructorRoute,
   "(private)/instructor/(tabs)/classes": ClassesRoute,
   "(private)/instructor/(tabs)/profile": ProfileRoute,
+  "(private)/instructor/people": InstructorPeopleRoute,
 };
 
+const fetchMock = jest.fn();
+
 beforeEach(() => {
+  fetchMock.mockReset().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({ items: [], page: 1, perPage: 20, total: 0 }),
+  });
+  globalThis.fetch = fetchMock;
+  process.env.EXPO_PUBLIC_API_URL = "http://api.test";
   hydrateSession({
     user: {
       id: "user-1",
@@ -78,6 +89,17 @@ describe("instructor tabs", () => {
     expect(app.getPathname()).toBe("/instructor/profile");
     expect(selectedTabLabel()).toBe("Profile");
     expect(screen.getByRole("header", { name: "Ana Souza" })).toBeOnTheScreen();
+  });
+
+  it("/instructor/people shows the people directory", async () => {
+    const app = await open();
+
+    await act(async () => router.push(routes.instructor.people));
+
+    expect(app.getPathname()).toBe("/instructor/people");
+    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(await screen.findByText("No one found")).toBeOnTheScreen();
   });
 
   it("labels the tabs in the app language", async () => {

@@ -50,6 +50,7 @@ export const routes = {
   instructor: {
     home: "/instructor",
     classes: "/instructor/classes",
+    people: "/instructor/people",
     profile: "/instructor/profile",
     editProfile: "/instructor/edit-profile",
     whatsapp: "/instructor/whatsapp",
@@ -60,6 +61,7 @@ export const routes = {
     classes: "/admin/classes",
     profile: "/admin/profile",
     registrations: "/admin/registrations",
+    people: "/admin/people",
     editProfile: "/admin/edit-profile",
     whatsapp: "/admin/whatsapp",
     schoolRules: "/admin/school-rules",

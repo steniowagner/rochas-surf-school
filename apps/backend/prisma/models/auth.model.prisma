@@ -58,6 +58,8 @@ model User {
   schoolRules      SchoolRule[]
   notifications    Notification[]
   pushTokens       PushToken[]
+  createdClasses   SchoolClass[]
+  classInstructors ClassInstructor[]
 
   @@map("users")
 }

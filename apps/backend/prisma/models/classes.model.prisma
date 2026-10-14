@@ -1,0 +1,65 @@
+// Models of the classes module (modules/classes).
+// Tables, columns and enums are snake_case in the database (@@map / @map).
+
+enum ClassDiscipline {
+  surf
+  skate
+
+  @@map("class_discipline")
+}
+
+enum ClassLevel {
+  beginner
+  advanced
+  expert
+
+  @@map("class_level")
+}
+
+model Location {
+  id        String   @id @db.Uuid
+  name      String
+  // The name without accents, in lower case: unique among all locations.
+  nameKey   String   @unique @map("name_key")
+  address   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  classes SchoolClass[]
+
+  @@map("locations")
+}
+
+model SchoolClass {
+  id         String          @id @db.Uuid
+  discipline ClassDiscipline
+  level      ClassLevel
+  startsAt   DateTime        @map("starts_at")
+  endsAt     DateTime        @map("ends_at")
+  locationId String          @map("location_id") @db.Uuid
+  capacity   Int
+  notes      String?
+  createdBy  String          @map("created_by") @db.Uuid
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+
+  location    Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  creator     User              @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  instructors ClassInstructor[]
+
+  @@index([startsAt])
+  @@index([locationId])
+  @@map("classes")
+}
+
+model ClassInstructor {
+  classId String @map("class_id") @db.Uuid
+  userId  String @map("user_id") @db.Uuid
+
+  schoolClass SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([classId, userId])
+  @@index([userId])
+  @@map("class_instructors")
+}

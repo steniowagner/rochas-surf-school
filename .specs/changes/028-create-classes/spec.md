@@ -455,7 +455,7 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-08** — `apps/backend/prisma/models/classes.model.prisma` (`Location` → `locations` with a unique
+- [x] **T-08** — `apps/backend/prisma/models/classes.model.prisma` (`Location` → `locations` with a unique
   `name_key`; `SchoolClass` → `classes` with `starts_at` indexed, `location_id` FK, `created_by` FK to `users`;
   `ClassInstructor` → `class_instructors`, composite key, FKs to `classes` (cascade) and `users`), the migration
   `classes`, and `PrismaLocationRepository` (`apps/backend/src/modules/classes/location.prisma.ts`, P2002 →
@@ -464,6 +464,9 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-06 · Done when: the migration applies on the local database and
   `cd apps/backend && npx vitest run src/modules/classes/location.prisma.spec.ts --coverage` passes.
+  > ✅ 2026-10-14 11:00 — Added `apps/backend/prisma/models/classes.model.prisma` (`Location` → `locations` with a unique `name_key`; `SchoolClass` → `classes` with `starts_at` indexed, `location_id` FK, `created_by` FK to `users`; `ClassInstructor` → `class_instructors` with a composite key and FKs to `classes` (cascade) and `users` (cascade); enums `class_discipline`, `class_level`), the back-relations on `User` in `auth.model.prisma`, the migration `20261014135926_classes` (applied on the local database) and `PrismaLocationRepository` (P2002 → `ConflictError('location.name.duplicate')`; a non-UUID id is not looked up);
+  > files: `apps/backend/prisma/models/classes.model.prisma`, `apps/backend/prisma/models/auth.model.prisma`, `apps/backend/prisma/migrations/20261014135926_classes/migration.sql`, `apps/backend/src/modules/classes/location.prisma.ts`, `apps/backend/src/modules/classes/location.prisma.spec.ts`;
+  > verified: `npm run prisma:migrate:dev -- --name classes` applied the migration; `cd apps/backend && npx vitest run src/modules/classes/location.prisma.spec.ts --coverage` (7 passed, file fully covered except the Nest decorator-metadata branch the coverage policy skips); `tsc --noEmit` and oxlint pass; deviations: `class_instructors.user_id` and `classes.created_by` FK actions are cascade and restrict respectively
 
 - [ ] **T-09** — `PrismaSchoolClassRepository` (`school-class.prisma.ts`: `createMany` in one `$transaction` with the
   instructors, `findStartingBetween`) and `PrismaTeacherLookup` (`teacher-lookup.prisma.ts`: id, role and status of

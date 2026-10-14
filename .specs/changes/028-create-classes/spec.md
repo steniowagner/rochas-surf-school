@@ -548,13 +548,16 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/mobile/src/modules/classes/components/time-range-picker/**`, `apps/mobile/src/modules/classes/components/time-range-sheet/**`, `apps/mobile/src/modules/classes/utils/time-ranges.ts`, `apps/mobile/src/modules/classes/utils/time-ranges.test.ts`, `apps/mobile/jest.setup.ts`;
   > verified: `cd apps/mobile && npx jest src/modules/classes/components/time-range-picker src/modules/classes/components/time-range-sheet src/modules/classes/utils/time-ranges --coverage` (19 passed, every new file 100%), `tsc --noEmit` and eslint pass; deviations: none
 
-- [ ] **T-16** — `LocationPicker` (rows with name and address, the selected one marked, "Novo local") and
+- [x] **T-16** — `LocationPicker` (rows with name and address, the selected one marked, "Novo local") and
   `LocationSheet` (Nome, Endereço, inline duplicate error, "Salvar local", "Cancelar"; creates through
   `useCreateLocation` and selects the result), with tests.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-11 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/location-picker src/modules/classes/components/location-sheet --coverage`
   passes.
+  > ✅ 2026-10-14 11:14 — Added `LocationPicker` (rows with name, address and a check on the selected one — `radio` rows built with `Pressable` — plus "Novo local") and `LocationSheet` (Nome and Endereço with the 40 / 200 limits, inline duplicate message from the loaded list ignoring case and accents, the same message after a 409 with the list reloaded, toasts for other failures keeping the sheet and its text, saves through `useCreateLocation`, hands the new location to the screen, resets on close);
+  > files: `apps/mobile/src/modules/classes/components/location-picker/**`, `apps/mobile/src/modules/classes/components/location-sheet/**`;
+  > verified: `cd apps/mobile && npx jest src/modules/classes/components/location-picker src/modules/classes/components/location-sheet --coverage` (14 passed, every new file 100%), `tsc --noEmit` and eslint pass; deviations: none (the location list has no loading or error state of its own: an empty list just shows "Novo local")
 
 - [ ] **T-17** — `CapacityStepper` (−/+ `TouchableOpacity` buttons of 44 pt, the number in Barlow Condensed, bounds
   1–20) and `InstructorPicker` (rows with initials, name, role chip and a check box; loading and error-with-retry

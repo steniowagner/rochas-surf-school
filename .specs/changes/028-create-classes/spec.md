@@ -468,11 +468,14 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/backend/prisma/models/classes.model.prisma`, `apps/backend/prisma/models/auth.model.prisma`, `apps/backend/prisma/migrations/20261014135926_classes/migration.sql`, `apps/backend/src/modules/classes/location.prisma.ts`, `apps/backend/src/modules/classes/location.prisma.spec.ts`;
   > verified: `npm run prisma:migrate:dev -- --name classes` applied the migration; `cd apps/backend && npx vitest run src/modules/classes/location.prisma.spec.ts --coverage` (7 passed, file fully covered except the Nest decorator-metadata branch the coverage policy skips); `tsc --noEmit` and oxlint pass; deviations: `class_instructors.user_id` and `classes.created_by` FK actions are cascade and restrict respectively
 
-- [ ] **T-09** — `PrismaSchoolClassRepository` (`school-class.prisma.ts`: `createMany` in one `$transaction` with the
+- [x] **T-09** — `PrismaSchoolClassRepository` (`school-class.prisma.ts`: `createMany` in one `$transaction` with the
   instructors, `findStartingBetween`) and `PrismaTeacherLookup` (`teacher-lookup.prisma.ts`: id, role and status of
   the given users), with specs.
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-05 · Done when: `cd apps/backend && npx vitest run src/modules/classes --coverage` passes.
+  > ✅ 2026-10-14 11:00 — Added `PrismaSchoolClassRepository` (`createMany` writes the classes then their instructors in one `$transaction`; `findStartingBetween` reads `[from, to)` with the instructors) and `PrismaTeacherLookup` (id, role and status of the given users), with specs;
+  > files: `apps/backend/src/modules/classes/school-class.prisma.ts`, `apps/backend/src/modules/classes/school-class.prisma.spec.ts`, `apps/backend/src/modules/classes/teacher-lookup.prisma.ts`, `apps/backend/src/modules/classes/teacher-lookup.prisma.spec.ts`;
+  > verified: `cd apps/backend && npx vitest run src/modules/classes --coverage` (11 passed; only the Nest decorator-metadata branch of each class line is uncovered, which the coverage policy skips), `tsc --noEmit` and oxlint pass; deviations: none
 
 - [ ] **T-10** — The `class.assigned` copy in `apps/backend/src/modules/notifications/push-messages.ts` (Copy table,
   singular and plural, discipline as "Surf" / "Skate") and `NotificationsClassAssignmentNotifier`

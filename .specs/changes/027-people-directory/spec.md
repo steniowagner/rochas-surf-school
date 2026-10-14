@@ -2,7 +2,8 @@
 id: "027"
 slug: people-directory
 title: People directory for every role
-status: in-review
+status: accepted
+reviewed_commit: 4c5eca8c0693166c235d74b46a0cfbe10b92949f
 started: 2026-10-13
 base_commit: 305a8c311dd1d41b4093ab6a4d309be06d86ec3c
 created: 2026-10-13
@@ -656,3 +657,39 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 - `groupByInitial` keys headers `header-<letter>`. If the backend's collation and `getInitialLetter` disagree (e.g. "Łukasz" sorts with L under `unaccent`, but NFD leaves "Ł" alone, so it goes under "#"; "1abc" and "~x" sort at opposite ends), two "#" groups appear and their keys collide. Rare for this school; keying headers by position would make it robust.
 - The usePeople query key holds `roles` in toggle order, so selecting Students then Instructors and the reverse are two cache entries for the same request (`buildPeoplePagePath` already sorts the roles). Harmless.
 - T-12's journey evidence predates the three 2026-10-14 amendments (it mentions "newest first", the A–Z button and "All"); this round re-checked the current behavior on the simulator as the admin.
+
+### Round 2 — 2026-10-14 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, backend, mobile — 14 turbo tasks) · build ✅ (auth, backend)
+- related tests ✅ — backend, mobile, auth and school-rules suites (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (29 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 333 passed, `people.e2e-spec.ts` included (`E2E PASSED`)
+- Since round 1 only `instructor.screen.tsx` (now `ScreenIntro`), the import order of three files, the pt-BR `people.whatsappNotShared` text and a code comment changed in the app; no change touches the backend, so round 1's simulator checks still hold. The instructor "Painel" title is asserted by `instructor.screen.test.tsx` and `instructor-tabs.navigation.test.tsx` (header role, "Dashboard" in en-US).
+
+**Round 1 findings**
+
+- F-01 ✅ — ER-12 amended (logged under Amendments) to the `formatInternational()` output; the comment in `format-whatsapp-number.ts` matches; no "99999-8888" left in the people module.
+- F-02 ✅ — D-12 no longer mentions `sort`; it agrees with D-04 and `ListPeople`.
+- F-03 ✅ — the instructor home renders `ScreenIntro` "Painel" with an icon and `description={null}`, exactly like the admin home.
+- F-04 ✅ — the three files have one packages group, one `@/` group and sorted relative imports. `people.screen.tsx` keeps a blank line between the `../` and `./` imports, which is how most of the mobile code base groups them (29 files vs 8), so it isn't reopened.
+
+**Expected Results**
+
+- ER-01 – ER-06 ✅ — unchanged since round 1; their unit, repository, controller and e2e tests pass again
+- ER-07 – ER-11 ✅ — `npx jest src/modules/people` passes (part of the related tests)
+- ER-12 ✅ — `person-sheet.component.test.tsx` asserts "+55 85 99999 8888", `wa.me` opening, the failure toast, the unparsable number and the not-shared row, as the amended ER-12 states
+- ER-13 ✅ — `student-tabs.navigation.test.tsx`
+- ER-14 ✅ — `admin.screen.test.tsx` and `admin-tabs.navigation.test.tsx`
+- ER-15 ✅ — `instructor.screen.test.tsx` and `instructor-tabs.navigation.test.tsx`
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The D-16 row sits below the Copy table instead of inside the Decisions table, so it renders as a stray row of the Copy table. `spec-finish` should read it as a decision.
+- `ScreenIntro` always renders the description `Text`, so `description={null}` (admin and instructor homes) still adds an empty line and a gap. This was already true before this spec; an optional `description` would fix both homes.
+- `instructor.screen.test.tsx` imports `@tanstack/react-query` inside the `@/` group (a test file, so `.claude/rules/react.md` doesn't strictly apply).

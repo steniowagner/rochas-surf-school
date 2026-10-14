@@ -423,12 +423,13 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   passes.
   > ✅ 2026-10-13 — the student's Escola tab renders `PeopleScreen` without a back button; new `/admin/people` and `/instructor/people` routes with one; `routes.admin.people` and `routes.instructor.people`; route tests in the three `*-tabs.navigation.test.tsx` (the student test gains a fetch mock); files: `apps/mobile/src/app/(private)/student/(tabs)/school.tsx`, `apps/mobile/src/app/(private)/admin/people.tsx`, `apps/mobile/src/app/(private)/instructor/people.tsx`, `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/modules/{student,admin,instructor}/*-tabs.navigation.test.tsx`; verified: `npx jest src/modules/student src/modules/admin src/modules/instructor` (62 passed), tsc and eslint clean; deviations: none
 
-- [ ] **T-10** — Update the admin home `src/modules/admin/screens/admin.screen.tsx` per D-15: the "Ferramentas"
+- [x] **T-10** — Update the admin home `src/modules/admin/screens/admin.screen.tsx` per D-15: the "Ferramentas"
   section label above the "Entrar na escola" row, and the "Escola" section label above a "Pessoas" row (people icon,
   `t("people.count", { count: PEOPLE_COUNT_PLACEHOLDER })`, chevron) that pushes `routes.admin.people`; add
   `admin.home.toolsSection`, `admin.home.schoolSection` and `home.peopleRow` to the three message files; tests in
   `admin.screen.test.tsx`.
   Covers: ER-14 · Done when: `npx jest src/modules/admin/screens/admin.screen.test.tsx` passes.
+  > ✅ 2026-10-13 — the admin home gains the "Ferramentas" and "Escola" section labels and the "Pessoas" row (`people.count` with `PEOPLE_COUNT_PLACEHOLDER`) pushing `routes.admin.people`; the row is a small shared component `PeopleEntryRow` (also used by T-11, so both homes look the same); keys `admin.home.toolsSection`, `admin.home.schoolSection`, `home.peopleRow` (and `instructor.home.title` for T-11) in the three message files; files: `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`, `apps/mobile/src/modules/people/components/people-entry-row/*`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/admin src/modules/people/components/people-entry-row` (58 passed), tsc and eslint clean; deviations: shared `PeopleEntryRow` component and `instructor.home.title` added here instead of T-11
 
 - [ ] **T-11** — Replace the instructor placeholder `src/modules/instructor/screens/instructor.screen.tsx` with the
   "Painel" screen per D-15: `ScreenIntro` "Painel", the "Escola" section label and the "Pessoas" row (same look as

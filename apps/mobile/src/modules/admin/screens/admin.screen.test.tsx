@@ -5,6 +5,7 @@ import { renderRouter } from "expo-router/testing-library";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
+import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
 import { hydrateSession } from "@/services/session/session.store";
@@ -53,6 +54,7 @@ async function openAdminHome() {
       ),
       "(private)/admin/_layout": AdminLayout,
       "(private)/admin/(tabs)/index": AdminRoute,
+      "(private)/admin/people": AdminPeopleRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
     },
     { initialUrl: routes.admin.home },
@@ -87,6 +89,38 @@ describe("AdminScreen", () => {
     ).toBeOnTheScreen();
     expect(await screen.findByText("3 waiting")).toBeOnTheScreen();
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
+  });
+
+  it("shows the Tools and School sections, with the People row and its placeholder count", async () => {
+    respondWith([]);
+    await openAdminHome();
+
+    expect(screen.getByText("Tools")).toBeOnTheScreen();
+    expect(screen.getByText("School")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
+    expect(screen.getByText("9 on the platform")).toBeOnTheScreen();
+  });
+
+  it("opens the people directory, and its back button returns to the admin home", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/people")
+          ? { items: [], page: 1, perPage: 20, total: 0 }
+          : { items: [] },
+    }));
+    const app = await openAdminHome();
+
+    await user.press(screen.getByRole("button", { name: /People/ }));
+
+    expect(app.getPathname()).toBe(routes.admin.people);
+    expect(await screen.findByText("No one found")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(app.getPathname()).toBe(routes.admin.home);
   });
 
   it("shows zero waiting", async () => {

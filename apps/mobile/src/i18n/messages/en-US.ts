@@ -183,10 +183,20 @@ const messages = {
   },
   admin: {
     home: {
+      toolsSection: "Tools",
+      schoolSection: "School",
       title: "School tools",
       registrationsRow: "Join the school",
       waiting: "{{count}} waiting",
     },
+  },
+  instructor: {
+    home: {
+      title: "Dashboard",
+    },
+  },
+  home: {
+    peopleRow: "People",
   },
   registrations: {
     title: "Join the school",

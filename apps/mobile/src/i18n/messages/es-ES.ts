@@ -190,10 +190,20 @@ const messages: Messages = {
   },
   admin: {
     home: {
+      toolsSection: "Herramientas",
+      schoolSection: "Escuela",
       title: "Herramientas de la escuela",
       registrationsRow: "Unirse a la escuela",
       waiting: "{{count}} esperando",
     },
+  },
+  instructor: {
+    home: {
+      title: "Panel",
+    },
+  },
+  home: {
+    peopleRow: "Personas",
   },
   registrations: {
     title: "Unirse a la escuela",

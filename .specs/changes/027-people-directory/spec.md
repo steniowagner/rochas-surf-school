@@ -350,7 +350,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   > prisma:migrate:deploy --workspace apps/backend` ("All migrations have been successfully applied") and
   > `SELECT unaccent('João')` → `Joao`; deviations: none
 
-- [ ] **T-03** — Implement `PrismaUserRepository.findDirectoryPage` in `src/modules/auth/user.prisma.ts`: raw SQL
+- [x] **T-03** — Implement `PrismaUserRepository.findDirectoryPage` in `src/modules/auth/user.prisma.ts`: raw SQL
   with bound parameters over `users` — `status = 'approved'`, optional `role`, optional
   `unaccent(lower(name)) LIKE '%' || unaccent(lower($search)) || '%'` with `%`, `_` and `\` escaped, `ORDER BY`
   per D-04, `LIMIT` / `OFFSET`, and a `COUNT(*)` with the same filters — then load the page's users with their
@@ -359,6 +359,12 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-03, ER-04 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` (from
   `apps/backend`) passes.
+  > ✅ 2026-10-13 — `findDirectoryPage` with `Prisma.sql` fragments (bound parameters; escaped LIKE pattern;
+  > `unaccent(lower(name))`; order per D-04; separate `COUNT(*)`), then the page's users loaded with
+  > `findMany` and mapped in the query's order; the SQL itself runs against Postgres in the T-04 e2e suite;
+  > files: `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`;
+  > verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (18 passed), `npm run check-types
+  > --workspace apps/backend` (exit 0); deviations: none
 
 - [ ] **T-04** — Add `GET /people` (protected) in `src/modules/auth/people.controller.ts`: `@CurrentUser()` plus
   `@Query()` `page`, `perPage`, `role`, `search`, `sort` passed as received to `ListPeople`, registered in

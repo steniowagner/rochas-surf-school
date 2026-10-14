@@ -489,13 +489,16 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`, `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.module.ts`;
   > verified: `cd apps/backend && npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.class-assignment-notifier.spec.ts --coverage` (18 passed), the whole `src/modules/notifications` folder (54 passed), `tsc --noEmit` and oxlint pass (after rebuilding `modules/notifications`); deviations: none
 
-- [ ] **T-11** — `locations.controller.ts` (`GET /locations`, `POST /locations` → 201) in
+- [x] **T-11** — `locations.controller.ts` (`GET /locations`, `POST /locations` → 201) in
   `apps/backend/src/modules/classes/`, wired in `ClassesModule`, with `locations.integration.http`, the controller spec
   and `apps/backend/test/locations.e2e-spec.ts` (create, list order, duplicates ignoring case and accents, validation,
   access).
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-04, ER-06 · Done when: `cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/locations.e2e-spec.ts`
   and the controller spec pass.
+  > ✅ 2026-10-14 11:02 — Added `LocationsController` (`GET /locations` → 200, `POST /locations` → 201, protected) wired in `ClassesModule` with `PrismaLocationRepository`; removed the scaffold's stub `ClassesController` (the real one comes in T-12); added `locations.integration.http`, the controller spec and the e2e suite (create and trim, list order ignoring case and accents, duplicates ignoring case and accents, concurrent creation, validation, access for every role and status; the suite deletes the locations it creates);
+  > files: `apps/backend/src/modules/classes/locations.controller.ts`, `apps/backend/src/modules/classes/locations.controller.spec.ts`, `apps/backend/src/modules/classes/locations.integration.http`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts` (deleted), `apps/backend/test/locations.e2e-spec.ts`;
+  > verified: `cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/locations.e2e-spec.ts` (12 passed against the local Postgres) and `npx vitest run src/modules/classes/locations.controller.spec.ts` (8 passed), `tsc --noEmit` passes; deviations: none
 
 - [ ] **T-12** — `classes.controller.ts` (`POST /classes/batch` → 201, `GET /classes/time-range-suggestions`) in
   `apps/backend/src/modules/classes/`, `ClassesModule` importing `NotificationsModule` and injecting the Prisma

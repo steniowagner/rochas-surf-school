@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ClassesController } from './classes.controller.js';
+import { DbModule } from '../../db/db.module.js';
+import { PrismaLocationRepository } from './location.prisma.js';
+import { LocationsController } from './locations.controller.js';
 
 @Module({
-  controllers: [ClassesController],
+  imports: [DbModule],
+  controllers: [LocationsController],
+  providers: [PrismaLocationRepository],
 })
 export class ClassesModule {}

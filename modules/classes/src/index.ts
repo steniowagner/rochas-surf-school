@@ -5,3 +5,4 @@ export function getModuleName(): string {
 export * from "./access";
 
 export * from "./location";
+export * from "./school-class";

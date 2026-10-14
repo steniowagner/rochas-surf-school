@@ -396,12 +396,15 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `modules/classes/src/access/**`, `modules/classes/src/location/**`, `modules/classes/src/index.ts`, `modules/classes/test/mock/{fake-location.repository,location.factory,index}.ts`, `modules/classes/test/access/class-actor.test.ts`, `modules/classes/test/location/**`;
   > verified: `cd modules/classes && npx jest test/location test/access --coverage` (29 passed, every new line covered), lint and check-types pass; deviations: none
 
-- [ ] **T-03** — The pure batch rules in `src/school-class/model/`: `listBatchClasses({ startDate, endDate,
+- [x] **T-03** — The pure batch rules in `src/school-class/model/`: `listBatchClasses({ startDate, endDate,
   weekdays, timeRanges })` → `{ startsAt, endsAt }[]` in UTC from America/Fortaleza (`@date-fns/tz`), the time-range
   parsing / end-after-start / overlap checks, and the constants `CLASS_CAPACITY_MIN`, `CLASS_CAPACITY_MAX`,
   `CLASS_NOTES_MAX`, `CLASS_BATCH_MAX`, `CLASS_DISCIPLINES`, `CLASS_LEVELS`, all exported for the app (D-13); tests in
   `test/school-class/model/` including the Thursday–Saturday example, touching ranges and an invalid date.
   Covers: ER-01, ER-02 · Done when: `cd modules/classes && npx jest test/school-class/model --coverage` passes.
+  > ✅ 2026-10-14 10:56 — Added the pure batch rules: limits and enums (`class-limits.ts`), time-range parsing / end-after-start / overlap checks (`time-range.ts`), date and weekday validation, `listBatchDates` and `listBatchClasses` (UTC instants from America/Fortaleza via `@date-fns/tz`, optional `max` that stops early so a huge range can't loop long) (`class-batch.ts`);
+  > files: `modules/classes/src/school-class/model/{class-limits,time-range,class-batch,index}.ts`, `modules/classes/src/school-class/index.ts`, `modules/classes/src/index.ts`, `modules/classes/test/school-class/model/{time-range,class-batch}.test.ts`;
+  > verified: `cd modules/classes && npx jest test/school-class/model --coverage` (28 passed, 100% of the new files), lint and check-types pass; deviations: added the `listBatchDates` / `max` helpers and the date / weekday validators so the use case and the app share the rules (D-13)
 
 - [ ] **T-04** — The `school-class` aggregate: `SchoolClass` entity (discipline, level, `startsAt`, `endsAt`,
   `locationId`, `instructorIds`, capacity, notes, `createdBy`; self-validating with the D-07 limits), the ports

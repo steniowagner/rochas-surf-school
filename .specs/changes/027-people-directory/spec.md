@@ -436,7 +436,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   the admin's, "9 na plataforma") pushing `routes.instructor.people`; add `instructor.home.title` to the three
   message files; tests in `instructor.screen.test.tsx`.
   Covers: ER-15 · Done when: `npx jest src/modules/instructor/screens/instructor.screen.test.tsx` passes.
-  > ✅ 2026-10-13 — the instructor placeholder became the "Painel" screen: title, the "Escola" section label and the shared `PeopleEntryRow` pushing `routes.instructor.people`; `instructor.home.title` was added in T-10; files: `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`, `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`, `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx` (header now "Dashboard"); verified: `npx jest src/modules/instructor` (5 passed), tsc and eslint clean; deviations: none
+  > ✅ 2026-10-13 — the instructor placeholder became the "Painel" screen: title, the "Escola" section label and the shared `PeopleEntryRow` pushing `routes.instructor.people`; `instructor.home.title` was added in T-10; files: `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`, `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`, `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx` (header now "Dashboard"); verified: `npx jest src/modules/instructor` (5 passed), tsc and eslint clean; deviations: none; follow-up found by the related-tests run: the instructor-home header assertions in `school-rules.screen.test.tsx`, `rules-update.screen.test.tsx` and `root-navigator.component.test.tsx` now expect "Dashboard" (full mobile suite: 1073 passed)
 
 ### Verification
 

@@ -57,7 +57,7 @@ export function EmailSignIn({
             {...emailField}
           />
 
-          <Text className="ds-text-list-subtitle text-center text-ink-2">
+          <Text className="ds-text-list-subtitle text-left text-ink-2">
             {/* `t` makes the element depend on the language: Trans doesn't re-render on language changes by itself. */}
             <Trans
               i18nKey="emailSignIn.noAccount"

@@ -432,13 +432,16 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > verified: `cd modules/classes && npx jest test/school-class/usecase/create-class-batch.usecase.test.ts --coverage` (62 passed in the folder run, the use case file 100% lines, branches and functions), lint and check-types pass;
   > deviations: a non-string `notes` answers `class.notes.max.length` (D-07 has no other key for it); a location or instructor id that isn't a UUID is refused as not found / invalid without a lookup
 
-- [ ] **T-06** — The `ListTimeRangeSuggestions` use case (D-09): admin access, last Monday–Sunday week in
+- [x] **T-06** — The `ListTimeRangeSuggestions` use case (D-09): admin access, last Monday–Sunday week in
   Fortaleza from the clock, distinct sorted `HH:mm` pairs; tests for the week edges (Sunday 23:00, this Monday 00:00),
   duplicates, sorting and the empty case.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04, ER-05 · Done when:
   `cd modules/classes && npx jest test/school-class/usecase/list-time-range-suggestions.usecase.test.ts --coverage`
   passes.
+  > ✅ 2026-10-14 10:58 — Added `ListTimeRangeSuggestions` (admin access; last Monday 00:00 inclusive to this Monday 00:00 exclusive in America/Fortaleza from the clock via `date-fns` + `@date-fns/tz`; distinct `HH:mm` pairs sorted by start then end);
+  > files: `modules/classes/src/school-class/usecase/{list-time-range-suggestions.usecase,index}.ts`, `modules/classes/test/school-class/usecase/list-time-range-suggestions.usecase.test.ts`;
+  > verified: `cd modules/classes && npx jest test/school-class/usecase/list-time-range-suggestions.usecase.test.ts --coverage` (6 passed, file 100%), lint, check-types and build pass; deviations: none
 
 ### Notifications (`modules/notifications`)
 

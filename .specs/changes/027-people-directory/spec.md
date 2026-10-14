@@ -2,7 +2,7 @@
 id: "027"
 slug: people-directory
 title: People directory for every role
-status: changes-requested
+status: in-review
 started: 2026-10-13
 base_commit: 305a8c311dd1d41b4093ab6a4d309be06d86ec3c
 created: 2026-10-13
@@ -273,7 +273,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 - **Front:** mobile
 - **Behavior:** Given a row whose `whatsappNumber` is `"+5585999998888"`, when it is pressed, then a bottom sheet
-  shows the initials avatar, the name, the role chip, a "Conversar por WhatsApp" row with "+55 85 99999-8888", and
+  shows the initials avatar, the name, the role chip, a "Conversar por WhatsApp" row with "+55 85 99999 8888", and
   the "Fechar" button; pressing the WhatsApp row calls `Linking.openURL("https://wa.me/5585999998888")`; pressing
   "Fechar" (or dragging the sheet down) closes it.
 - **Edge and error cases:** with `whatsappNumber: null` (amendment 2026-10-14) the sheet shows a disabled, non-pressable WhatsApp row — the muted icon, "Conversar por WhatsApp" and "Número não compartilhado." (`people.whatsappNotShared`; es-ES "Número no compartido.", en-US "Number not shared.") — and the "Fechar" button as a filled `subtle` Button; when `openURL` rejects, the
@@ -581,6 +581,8 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 ## Amendments
 
+- 2026-10-14 (review round 1, F-01) — approved by the user. ER-12 before: the sheet shows "+55 85 99999-8888"; after: "+55 85 99999 8888", what `libphonenumber-js` `formatInternational()` (D-14) produces. Reason: the code and tests already followed D-14; the example in ER-12 was wrong.
+
 - 2026-10-14 (review round 1, note) — the user asked for Brazilian Portuguese: `people.whatsappNotShared` pt-BR is "Número não compartilhado." (was "…partilhado."); ER-12 reworded and the key added to the Copy table.
 
 - 2026-10-14 (review round 1) — D-12 lost its stale `sort` clause (the sort parameter went away with the 2026-10-14 amendment) and the Memory Impact now names the `roles` query key and the `bottom-modal` fix.
@@ -638,7 +640,8 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 **Findings**
 
-- [ ] **F-01** (ER-12) — the sheet shows "+55 85 99999 8888", but ER-12 says it shows "+55 85 99999-8888"; `format-whatsapp-number.test.ts` and `person-sheet.component.test.tsx` assert the space version, and the comment in `apps/mobile/src/modules/people/utils/format-whatsapp-number.ts` still promises the hyphen. T-07 recorded this as a deviation but no amendment changed ER-12. Reproduce: `npx jest src/modules/people/components/person-sheet -t "formatted number"` (from `apps/mobile`) passes while asserting "+55 85 99999 8888". Expected: either the app shows the number as ER-12 states, or ER-12 is amended (with the user's approval, logged under `## Amendments`) to the `formatInternational()` output D-14 prescribes — and the code comment matches.
+- [x] **F-01** (ER-12) — the sheet shows "+55 85 99999 8888", but ER-12 says it shows "+55 85 99999-8888"; `format-whatsapp-number.test.ts` and `person-sheet.component.test.tsx` assert the space version, and the comment in `apps/mobile/src/modules/people/utils/format-whatsapp-number.ts` still promises the hyphen. T-07 recorded this as a deviation but no amendment changed ER-12. Reproduce: `npx jest src/modules/people/components/person-sheet -t "formatted number"` (from `apps/mobile`) passes while asserting "+55 85 99999 8888". Expected: either the app shows the number as ER-12 states, or ER-12 is amended (with the user's approval, logged under `## Amendments`) to the `formatInternational()` output D-14 prescribes — and the code comment matches.
+  > ✅ 2026-10-14 — with the user's approval ER-12 now states the `formatInternational()` output D-14 prescribes ("+55 85 99999 8888", logged under Amendments) and the comment in `format-whatsapp-number.ts` matches; files: `.specs/changes/027-people-directory/spec.md`, `apps/mobile/src/modules/people/utils/format-whatsapp-number.ts`; verified: `npx jest src/modules/people` (56 passed); deviations: none
 - [x] **F-02** (D-12) — D-12 still lists a `sort` parameter (`recent` | `name`, default `recent`, `people.sort.invalid`), which the 2026-10-14 amendment removed (D-04 now says there is no `sort` parameter, and `ListPeople` ignores it). The contract contradicts itself and `spec-finish` would carry the stale rule into the memory. Reproduce: read D-12 vs D-04 and `modules/auth/src/user/usecase/list-people.usecase.ts` (no sort). Expected: D-12 without the `sort` clause, the edit logged in the amendment.
   > ✅ 2026-10-14 — D-12 without the `sort` clause (the removal is logged in the 2026-10-14 amendments); files: `.specs/changes/027-people-directory/spec.md`; verified: `check-spec.mjs 027` CHECK OK; deviations: none
 - [x] **F-03** (D-15) — D-15 says the instructor's Início becomes a `ScreenIntro` "Painel"; `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx` renders a plain `Text` header instead, and no evidence records this as a deviation. Reproduce: open the file (lines 22–24). Expected: `ScreenIntro` with the "Painel" title (and an icon, like the admin home), or an amendment to D-15 explaining the plain title.

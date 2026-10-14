@@ -5,8 +5,9 @@ export type UsePeopleScreenResult = {
   people: Person[];
   searchText: string;
   setSearchText: (text: string) => void;
-  role: PeopleRole;
-  setRole: (role: PeopleRole) => void;
+  roles: PeopleRole[];
+  /** Selects the role, or unselects it when it was selected. */
+  toggleRole: (role: PeopleRole) => void;
   isLoading: boolean;
   isError: boolean;
   /** Loaded fine and nobody matches. */

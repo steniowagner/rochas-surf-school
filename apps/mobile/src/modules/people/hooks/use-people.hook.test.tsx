@@ -15,7 +15,7 @@ import { PeopleFilters } from "../people.types";
 
 import { usePeople } from "./use-people.hook";
 
-const DEFAULT: PeopleFilters = { role: "student", search: "" };
+const DEFAULT: PeopleFilters = { roles: [], search: "" };
 
 const render = (filters: PeopleFilters = DEFAULT) =>
   renderHook(() => usePeople(filters), {
@@ -25,14 +25,14 @@ const render = (filters: PeopleFilters = DEFAULT) =>
 beforeEach(setupSignedInUser);
 
 describe("usePeople", () => {
-  it("loads page 1 of the role, authenticated", async () => {
+  it("loads page 1 with only the parameters that are set, authenticated", async () => {
     fetchMock.mockResolvedValue(ok(buildPage(1, 3, 3)));
 
     const { result } = await render();
 
     await waitFor(() => expect(result.current.people).toHaveLength(3));
-    expect(requestedPaths()).toEqual(["/people?page=1&perPage=20&role=student"]);
-    expect(fetchMock).toHaveBeenCalledWith("http://api.test/people?page=1&perPage=20&role=student", {
+    expect(requestedPaths()).toEqual(["/people?page=1&perPage=20"]);
+    expect(fetchMock).toHaveBeenCalledWith("http://api.test/people?page=1&perPage=20", {
       method: "GET",
       headers: { Authorization: "Bearer at-1" },
     });
@@ -41,21 +41,21 @@ describe("usePeople", () => {
   it("sends the role, the trimmed and encoded search", async () => {
     fetchMock.mockResolvedValue(ok(buildPage(1, 1, 1)));
 
-    await render({ role: "instructor", search: "  joão silva " });
+    await render({ roles: ["admin", "student"], search: "  joão silva " });
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(requestedPaths()).toEqual([
-      "/people?page=1&perPage=20&role=instructor&search=jo%C3%A3o%20silva",
+      "/people?page=1&perPage=20&role=student,admin&search=jo%C3%A3o%20silva",
     ]);
   });
 
   it("sends no search for blank text", async () => {
     fetchMock.mockResolvedValue(ok(buildPage(1, 1, 1)));
 
-    await render({ role: "student", search: "   " });
+    await render({ roles: [], search: "   " });
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(requestedPaths()).toEqual(["/people?page=1&perPage=20&role=student"]);
+    expect(requestedPaths()).toEqual(["/people?page=1&perPage=20"]);
   });
 
   it("loads the next page while there are more rows, and stops at the end", async () => {
@@ -71,7 +71,7 @@ describe("usePeople", () => {
     });
 
     await waitFor(() => expect(result.current.people).toHaveLength(25));
-    expect(requestedPaths()[1]).toBe("/people?page=2&perPage=20&role=student");
+    expect(requestedPaths()[1]).toBe("/people?page=2&perPage=20");
     expect(result.current.hasNextPage).toBe(false);
   });
 

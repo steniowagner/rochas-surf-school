@@ -12,15 +12,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
-import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 
+import { RoleFilters } from "../components/role-filters";
 import { PersonRow } from "../components/person-row";
 import { PersonSheet } from "../components/person-sheet";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
 
-import { PeopleRole } from "../people.types";
+import { groupByInitial } from "../utils/group-by-initial";
 
 import { PeopleScreenProps } from "./people.screen.types";
 
@@ -33,8 +33,8 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
     people,
     searchText,
     setSearchText,
-    role,
-    setRole,
+    roles,
+    toggleRole,
     isLoading,
     isError,
     isEmpty,
@@ -48,12 +48,6 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
     openPerson,
     closeSheet,
   } = usePeopleScreen();
-
-  const roleOptions: { value: PeopleRole; label: string }[] = [
-    { value: "student", label: t("people.filter.student") },
-    { value: "instructor", label: t("people.filter.instructor") },
-    { value: "admin", label: t("people.filter.admin") },
-  ];
 
   const renderEmpty = () => {
     if (isLoading) {
@@ -95,8 +89,8 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
     <View className="flex-1 bg-page">
       <FlatList
         testID="people-list"
-        data={people}
-        keyExtractor={(item) => item.id}
+        data={groupByInitial(people)}
+        keyExtractor={(item) => item.key}
         keyboardShouldPersistTaps="handled"
         // On iOS the safe areas and the floating tab bar of a tab root are added by the scroll view.
         contentInsetAdjustmentBehavior={showBackButton ? "never" : "automatic"}
@@ -142,21 +136,26 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
               autoCorrect={false}
               returnKeyType="search"
             />
-            <SegmentedControl
-              options={roleOptions}
-              value={role}
-              onChange={setRole}
-            />
+            <RoleFilters roles={roles} onToggle={toggleRole} />
           </View>
         }
-        renderItem={({ item, index }) => (
-          <PersonRow
-            person={item}
-            onPress={openPerson}
-            isFirst={index === 0}
-            isLast={index === people.length - 1}
-          />
-        )}
+        renderItem={({ item }) =>
+          item.kind === "header" ? (
+            <Text
+              accessibilityRole="header"
+              className="ds-text-section-label mb-2 mt-4 text-ink"
+            >
+              {item.letter}
+            </Text>
+          ) : (
+            <PersonRow
+              person={item.person}
+              onPress={openPerson}
+              isFirst={item.isFirst}
+              isLast={item.isLast}
+            />
+          )
+        }
         ListEmptyComponent={<View className="py-6">{renderEmpty()}</View>}
         ListFooterComponent={
           isFetchingNextPage ? (

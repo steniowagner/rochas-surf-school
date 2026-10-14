@@ -18,7 +18,7 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
   const alertMessage = useAlertMessage();
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
-  const [role, setRole] = useState<PeopleRole>("student");
+  const [roles, setRoles] = useState<PeopleRole[]>([]);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -33,7 +33,7 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     return () => clearTimeout(timer);
   }, [searchText]);
 
-  const query = usePeople({ role, search });
+  const query = usePeople({ roles, search });
   const countQuery = usePeopleCount();
 
   const showError = (error: unknown) => {
@@ -67,8 +67,13 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     people: query.people,
     searchText,
     setSearchText,
-    role,
-    setRole,
+    roles,
+    toggleRole: (role) =>
+      setRoles((current) =>
+        current.includes(role)
+          ? current.filter((item) => item !== role)
+          : [...current, role],
+      ),
     isLoading: query.isPending,
     // An expired session is handled once, centrally; a failed next page keeps its rows and only toasts.
     isError:

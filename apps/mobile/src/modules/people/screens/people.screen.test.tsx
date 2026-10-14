@@ -99,17 +99,16 @@ describe("PeopleScreen", () => {
     expect(screen.getByText("3 on the platform")).toBeOnTheScreen();
     expect(screen.getByText("People")).toBeOnTheScreen();
     expect(screen.getByPlaceholderText("Search people")).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Students", selected: true })).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Instructors", selected: false })).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Admins", selected: false })).toBeOnTheScreen();
-    expect(screen.queryByRole("tab", { name: "All" })).not.toBeOnTheScreen();
+    for (const name of ["Students", "Instructors", "Admins"]) {
+      expect(screen.getByRole("button", { name, selected: false })).toBeOnTheScreen();
+    }
     expect(screen.getAllByText("since Jul 2026")).toHaveLength(3);
     expect(screen.getByText("Instructor")).toBeOnTheScreen();
     expect(screen.getByText("Admin")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Back" })).not.toBeOnTheScreen();
   });
 
-  it("keeps the order the backend answers, without a sort parameter", async () => {
+  it("groups the people by first letter, keeping the order the backend answers, without a sort parameter", async () => {
     serve(
       () =>
         ok({
@@ -128,6 +127,10 @@ describe("PeopleScreen", () => {
     await renderScreen();
 
     await screen.findByText("Álvaro");
+    expect(screen
+        .getAllByRole("header")
+        .map((header) => header.props.children)
+        .filter((text) => text.length === 1)).toEqual(["A", "B"]);
     const names = screen.getAllByRole("button").map((button) => button.props.accessibilityLabel);
     expect(names.filter((name) => ["Álvaro", "ana", "Bruno"].includes(name))).toEqual([
       "Álvaro",
@@ -171,7 +174,7 @@ describe("PeopleScreen", () => {
     fireEvent(screen.getByTestId("people-list"), "endReached");
 
     expect(await screen.findByTestId("people-loading-more")).toBeOnTheScreen();
-    expect(listPaths()).toEqual(["/people?page=1&perPage=20&role=student", "/people?page=2&perPage=20&role=student"]);
+    expect(listPaths()).toEqual(["/people?page=1&perPage=20", "/people?page=2&perPage=20"]);
     await act(async () => releasePage2(ok(buildPage(2, 5, 25))));
     await waitFor(() => expect(screen.queryByTestId("people-loading-more")).not.toBeOnTheScreen());
 
@@ -203,24 +206,35 @@ describe("PeopleScreen", () => {
       serve((path) => ok({ ...buildPage(1, 1, 1), items: [buildPerson(1, { name: path })] }), 1);
     });
 
-    it("searches after the debounce and switches the role, keeping the search", async () => {
+    it("searches after the debounce and toggles roles on and off, keeping the search", async () => {
       jest.useFakeTimers();
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       await renderScreen();
       await act(async () => {});
 
       await user.type(screen.getByPlaceholderText("Search people"), "jo");
-      expect(listPaths()).toEqual(["/people?page=1&perPage=20&role=student"]);
+      expect(listPaths()).toEqual(["/people?page=1&perPage=20"]);
       await act(async () => jest.advanceTimersByTime(300));
-      await waitFor(() =>
-        expect(listPaths()).toContain("/people?page=1&perPage=20&role=student&search=jo"),
-      );
+      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&search=jo"));
 
-      await user.press(screen.getByRole("tab", { name: "Instructors" }));
+      await user.press(screen.getByRole("button", { name: "Instructors" }));
       await waitFor(() =>
         expect(listPaths()).toContain("/people?page=1&perPage=20&role=instructor&search=jo"),
       );
-      expect(screen.getByRole("tab", { name: "Instructors", selected: true })).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Instructors", selected: true })).toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: "Students" }));
+      await waitFor(() =>
+        expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&role=student,instructor&search=jo"),
+      );
+
+      await user.press(screen.getByRole("button", { name: "Instructors" }));
+      await waitFor(() =>
+        expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&role=student&search=jo"),
+      );
+      await user.press(screen.getByRole("button", { name: "Students" }));
+      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&search=jo"));
+      expect(screen.getByRole("button", { name: "Students", selected: false })).toBeOnTheScreen();
       jest.useRealTimers();
     });
 
@@ -242,12 +256,12 @@ describe("PeopleScreen", () => {
       await wait(100);
       await type("joa");
       await wait(300);
-      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&role=student&search=joa"));
+      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&search=joa"));
       expect(listPaths().filter((path) => path.includes("search"))).toHaveLength(1);
 
       await type("   ");
       await wait(300);
-      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&role=student"));
+      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20"));
       jest.useRealTimers();
     });
   });

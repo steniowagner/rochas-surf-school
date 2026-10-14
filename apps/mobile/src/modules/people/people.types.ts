@@ -18,6 +18,7 @@ export type PeoplePage = {
 };
 
 export type PeopleFilters = {
-  role: PeopleRole;
+  /** Users with at least one of these roles; none selected means everyone. */
+  roles: PeopleRole[];
   search: string;
 };

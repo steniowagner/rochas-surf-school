@@ -340,11 +340,15 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Create the migration `auth-enable-unaccent` in `apps/backend/prisma/migrations/` with
+- [x] **T-02** — Create the migration `auth-enable-unaccent` in `apps/backend/prisma/migrations/` with
   `CREATE EXTENSION IF NOT EXISTS unaccent;` (`npm run prisma:migrate:dev --workspace apps/backend -- --create-only --name auth-enable-unaccent`,
   then apply it).
   Covers: enabling · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies it on the local
   database and `SELECT unaccent('João')` returns `Joao`.
+  > ✅ 2026-10-13 — created and applied the migration; files:
+  > `apps/backend/prisma/migrations/20261014021126_auth_enable_unaccent/migration.sql`; verified: `npm run
+  > prisma:migrate:deploy --workspace apps/backend` ("All migrations have been successfully applied") and
+  > `SELECT unaccent('João')` → `Joao`; deviations: none
 
 - [ ] **T-03** — Implement `PrismaUserRepository.findDirectoryPage` in `src/modules/auth/user.prisma.ts`: raw SQL
   with bound parameters over `users` — `status = 'approved'`, optional `role`, optional

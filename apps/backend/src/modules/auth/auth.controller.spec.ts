@@ -380,6 +380,74 @@ describe('AuthController', () => {
     });
   });
 
+  describe('DELETE /auth/me', () => {
+    it('is a protected DELETE on me answering 204', () => {
+      const handler = handlerOf('deleteAccount');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('me');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.DELETE);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.NO_CONTENT);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('closes the account of the signed-in user', async () => {
+      const ana = new User({
+        name: 'Ana Souza',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'student',
+        status: 'approved',
+      });
+      const users = [ana];
+      const { controller } = setup({}, users);
+
+      await expect(controller.deleteAccount(ana.id)).resolves.toBeUndefined();
+
+      expect(users[0]!.status).toBe('deleted');
+    });
+  });
+
+  describe('PUT /auth/me/name', () => {
+    const approved = () =>
+      new User({
+        name: 'Ana Souza',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'student',
+        status: 'approved',
+      });
+
+    it('is a protected PUT on me/name answering 200', () => {
+      const handler = handlerOf('setName');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('me/name');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.PUT);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('runs SetName for the signed-in account', async () => {
+      const ana = approved();
+      const { controller } = setup({}, [ana]);
+
+      await expect(controller.setName(ana.id, { name: '  Ana Clara Souza ' })).resolves.toMatchObject({
+        id: ana.id,
+        name: 'Ana Clara Souza',
+        email: 'ana@example.com',
+      });
+    });
+
+    it('answers 422 when there is no body', async () => {
+      const ana = approved();
+      const { controller } = setup({}, [ana]);
+
+      await expect(controller.setName(ana.id, undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'user.name.required' })],
+      });
+    });
+  });
+
   describe('PUT /auth/me/whatsapp', () => {
     const approved = () =>
       new User({

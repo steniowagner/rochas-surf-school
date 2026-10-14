@@ -24,7 +24,7 @@ const toErrors = (body: unknown): string[] => {
 
 /** One HTTP call with no session logic: the session store and the authenticated client are both built on it. */
 export const rawRequest = async <T>(
-  method: "GET" | "POST" | "PUT",
+  method: "GET" | "POST" | "PUT" | "DELETE",
   path: string,
   body: unknown,
   { accessToken, timeoutMs }: RawRequestOptions = {},

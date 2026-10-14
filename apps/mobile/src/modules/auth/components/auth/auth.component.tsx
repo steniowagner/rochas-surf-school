@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { LanguageSheet } from "@/components/language-sheet";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { TextButton } from "@/components/ui/text-button";
 import { routes } from "@/constants/routes";
@@ -19,7 +20,6 @@ import {
 } from "@/i18n/locales";
 
 import { AuthButton } from "../auth-button";
-import { LanguageSheet } from "../language-sheet";
 import { AuthComponentProps } from "./auth.types";
 
 // The sign-in screen has the same look in light and dark, so it always uses the light palette.

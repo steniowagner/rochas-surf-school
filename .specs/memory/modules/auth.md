@@ -19,8 +19,15 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   accepted. Relationships: one or
   more identities; many sessions. Lifecycle: as in Product; today the creation of a `pending` student
   through an email code or Google is built, plus the seeded review accounts, an admin approving or denying a
-  `pending` account, an approved account adding its WhatsApp number, and a deleted account sending its
-  reactivation request.
+  `pending` account, an approved account adding or changing its WhatsApp number, an approved account changing
+  its name, an approved account deleting itself, and a deleted account sending its reactivation request.
+- **Changing one's name**: an approved account replaces its own name; the name is trimmed and must follow the same
+  rules as at sign-up (refused with a `user.name.*` key otherwise, the stored name kept). Only the name changes;
+  the email never does. Any other status is refused with `user.status.notApproved`.
+- **Deleting one's account**: an approved account closes itself after a confirmation in the app; it becomes
+  `deleted` with the moment of the deletion, and can then send its reactivation request. Any other status is
+  refused with `user.status.notApproved`. Not built yet: refusing the only admin, cancelling the account's
+  seats, enrolments and class assignments (none exist yet), and erasing it 30 days later.
 - **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
   country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
@@ -146,7 +153,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date,
   WhatsApp number and its visibility, whether it accepted the current school rules, its denial reason and its
   reactivation status).
-- **An approved account** — sets its own WhatsApp number and visibility.
+- **An approved account** — sets its own WhatsApp number and visibility, changes its own name, and deletes its
+  own account.
 - **A deleted account** — sends its one reactivation request.
 - **An approved admin** — lists the pending registrations and approves or denies each one, with an optional
   reason when denying. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
@@ -189,7 +197,12 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   screen opens with it filled in, checks it with Create account's rules and messages, and sends it; if Google's
   token expired meanwhile, it says so and returns to sign-in. Closing the picker shows nothing; every other
   failure shows one short message. The Apple button isn't shown until Apple sign-in is built.
-- **In the app**, signing out (from the Pending screen, and "Use another email" on every closed-account screen)
+- **In the app**, every approved role has a Profile tab: "Editar perfil" changes the name (the email shown
+  read-only, "can't be changed"; "Salvar" works only for a changed name that follows the rules), the WhatsApp row
+  shows "Visível" or "Oculto" from the session's account and opens the number, its country and the share switch
+  prefilled (saved only when valid and changed), and "Remover a conta" asks for confirmation, closes the account
+  and signs out. A saved change updates the session at once.
+- **In the app**, signing out (from the Pending screen, the Profile's "Sair" sheet, and "Use another email" on every closed-account screen)
   forgets the session on the phone at once and returns to the sign-in screen, then asks the backend to end that
   sign-in without waiting for the answer — so it works offline too. It also signs out of Google, so the next
   Google sign-in shows the account picker.
@@ -234,8 +247,9 @@ its result told, but doesn't store or push notifications: it calls two abstract 
 about registrations and one that removes a phone's push token on sign-out — provided by the backend with
 [Notifications](notifications.md), which doesn't depend on this module (spec 020). It decides **when** a denied
 registration is erased, and asks a third contract, provided the same way, to delete the admins' "new
-registration" notifications about it (spec 021). Deleting and removing accounts, their erasure, notifying admins of reactivation requests, and deciding
-reactivation requests are rules of the account lifecycle still to be specified.
+registration" notifications about it (spec 021). Deleting one's own account is built (spec 026) without its
+side effects; removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
+requests, and deciding reactivation requests are rules of the account lifecycle still to be specified.
 
 ## Spec history
 
@@ -293,3 +307,7 @@ reactivation requests are rules of the account lifecycle still to be specified.
   first through the `RegistrationNotificationEraser` contract; the same email can then sign up again.
 - `025-ci-tests` — no business change: the package declares its dependency on `@rochas-surf-school/shared`, so
   Turbo builds `shared` first and counts a `shared` change as affecting `auth`.
+- `026-profile-tab` — an approved account changes its own name (`PUT /auth/me/name`, trimmed, the entity's rules)
+  and deletes its own account (`DELETE /auth/me`: `approved` → `deleted`, deletion date stamped; the app then signs
+  out); the app's Profile tab edits the name and the WhatsApp number and visibility, signs out and removes the
+  account.

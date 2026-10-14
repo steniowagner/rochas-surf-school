@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Put } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, HttpStatus, Put } from '@nestjs/common';
 import {
   RegisterPushToken,
   RegisterPushTokenIn,
+  UnregisterPushToken,
 } from '@rochas-surf-school/notifications';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
@@ -25,6 +26,18 @@ export class NotificationsController {
       actor: { id: user.id, status: user.status },
       token: body?.token,
       locale: body?.locale,
+    });
+  }
+
+  @Delete('push-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  unregisterPushToken(
+    @CurrentUser('id') id: string,
+    @Body() body: { token?: unknown } | undefined,
+  ): Promise<void> {
+    return new UnregisterPushToken(this.pushTokenRepository).execute({
+      userId: id,
+      token: body?.token,
     });
   }
 }

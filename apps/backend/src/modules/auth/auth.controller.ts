@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
 import {
   GetCurrentUser,
@@ -8,6 +8,10 @@ import {
   RefreshSessionOut,
   RequestReactivation,
   RequestReactivationOut,
+  DeleteAccount,
+  SetName,
+  SetNameIn,
+  SetNameOut,
   SetWhatsapp,
   SetWhatsappIn,
   SetWhatsappOut,
@@ -129,6 +133,24 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser('id') id: string): Promise<GetCurrentUserOut> {
     return new GetCurrentUser(this.userRepository, this.rulesVersionProvider).execute({ id });
+  }
+
+  @Delete('me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteAccount(@CurrentUser('id') id: string): Promise<void> {
+    return new DeleteAccount(this.userRepository, this.clock).execute({ userId: id });
+  }
+
+  @Put('me/name')
+  @HttpCode(HttpStatus.OK)
+  setName(
+    @CurrentUser('id') id: string,
+    @Body() body: Partial<Pick<SetNameIn, 'name'>> | undefined,
+  ): Promise<SetNameOut> {
+    return new SetName(this.userRepository, this.rulesVersionProvider).execute({
+      userId: id,
+      name: body?.name as string,
+    });
   }
 
   @Put('me/whatsapp')

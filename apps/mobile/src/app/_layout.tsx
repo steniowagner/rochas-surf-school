@@ -14,10 +14,13 @@ import { RootNavigator } from "@/navigation/root-navigator";
 import { SplashGate } from "@/navigation/splash-gate";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider } from "@/providers/session";
+import { applyStoredThemePreference } from "@/services/preferences/theme-preference";
 // Initializes i18n before any screen renders, so the first frame is already translated.
 import "@/i18n";
 
 SplashScreen.preventAutoHideAsync();
+// The stored theme choice is applied before the first render, so no frame shows the wrong colors.
+applyStoredThemePreference();
 
 const queryClient = new QueryClient({
   defaultOptions: { mutations: { retry: false } },

@@ -7,6 +7,7 @@ import {
   clearRegisteredPushToken,
   getPushToken,
   getRegisteredPushToken,
+  isPushPermissionDenied,
   setRegisteredPushToken,
 } from "./push.service";
 
@@ -36,6 +37,21 @@ describe("push.service", () => {
   });
 
   describe("getPushToken", () => {
+    it("never asks the OS permission with askPermission: false", async () => {
+      getPermissions.mockResolvedValue({ status: "undetermined" } as never);
+
+      await expect(getPushToken({ askPermission: false })).resolves.toBeNull();
+
+      expect(requestPermissions).not.toHaveBeenCalled();
+      expect(getExpoPushToken).not.toHaveBeenCalled();
+    });
+
+    it("returns the token with askPermission: false when it is already granted", async () => {
+      await expect(getPushToken({ askPermission: false })).resolves.toBe(
+        "ExponentPushToken[test]",
+      );
+    });
+
     it("returns the Expo push token of the project when permission is granted", async () => {
       await expect(getPushToken()).resolves.toBe("ExponentPushToken[test]");
 
@@ -143,6 +159,22 @@ describe("push.service", () => {
         name: "default",
         importance: 4,
       });
+    });
+  });
+
+  describe("isPushPermissionDenied", () => {
+    it("is true only when the permission was refused", async () => {
+      getPermissions.mockResolvedValue({ status: "denied" } as never);
+      await expect(isPushPermissionDenied()).resolves.toBe(true);
+
+      getPermissions.mockResolvedValue({ status: "undetermined" } as never);
+      await expect(isPushPermissionDenied()).resolves.toBe(false);
+    });
+
+    it("is false when the permission can't be read", async () => {
+      getPermissions.mockRejectedValue(new Error("boom"));
+
+      await expect(isPushPermissionDenied()).resolves.toBe(false);
     });
   });
 });

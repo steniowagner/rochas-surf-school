@@ -11,7 +11,7 @@ type RequestOptions = {
   timeoutMs?: number;
 };
 
-type Method = "GET" | "POST" | "PUT";
+type Method = "GET" | "POST" | "PUT" | "DELETE";
 
 // The backend answers this key for every guard 401 (expired token, unknown user…).
 const isInvalidToken = (error: unknown) =>
@@ -80,3 +80,10 @@ export const apiPut = <T>(
 /** A GET; `authenticated: true` sends the session's access token (spec 012). */
 export const apiGet = <T>(path: string, options?: RequestOptions): Promise<T> =>
   request<T>("GET", path, undefined, options);
+
+/** A DELETE with a JSON body; `authenticated: true` sends the session's access token (spec 026, D-10). */
+export const apiDelete = <T>(
+  path: string,
+  body: unknown,
+  options?: RequestOptions,
+): Promise<T> => request<T>("DELETE", path, body, options);

@@ -6,6 +6,7 @@ import type { SessionUser } from "@/navigation/resolve-flow.types";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api/api.client";
 import * as push from "@/services/push/push.service";
+import { writePushEnabledPreference } from "@/services/preferences/preferences.storage";
 import { hydrateSession } from "@/services/session/session.store";
 
 import { usePushRegistration } from "./use-push-registration.hook";
@@ -14,6 +15,8 @@ jest.mock("@/services/api/api.client");
 jest.mock("@/services/push/push.service");
 
 const apiPut = jest.mocked(api.apiPut);
+const apiDelete = jest.mocked(api.apiDelete);
+const clearRegisteredPushToken = jest.mocked(push.clearRegisteredPushToken);
 const getPushToken = jest.mocked(push.getPushToken);
 const setRegisteredPushToken = jest.mocked(push.setRegisteredPushToken);
 
@@ -53,6 +56,8 @@ const mount = () => renderHook(() => usePushRegistration(), { wrapper });
 describe("usePushRegistration", () => {
   beforeEach(() => {
     apiPut.mockReset().mockResolvedValue(undefined);
+    apiDelete.mockReset().mockResolvedValue(undefined);
+    clearRegisteredPushToken.mockReset();
     getPushToken.mockReset().mockResolvedValue("ExponentPushToken[abc]");
     setRegisteredPushToken.mockReset();
   });
@@ -175,5 +180,43 @@ describe("usePushRegistration", () => {
     await Promise.resolve();
 
     expect(apiPut).not.toHaveBeenCalled();
+  });
+
+  describe("with pushes turned off", () => {
+    beforeEach(() => writePushEnabledPreference(false));
+
+    it("never registers, and removes the token instead", async () => {
+      seed(user());
+
+      await mount();
+
+      await waitFor(() => expect(apiDelete).toHaveBeenCalledTimes(1));
+      expect(getPushToken).toHaveBeenCalledWith({ askPermission: false });
+      expect(apiDelete).toHaveBeenCalledWith(
+        "/notifications/push-token",
+        { token: "ExponentPushToken[abc]" },
+        { authenticated: true },
+      );
+      expect(apiPut).not.toHaveBeenCalled();
+    });
+
+    it("sends the DELETE again after a language change, still no PUT", async () => {
+      seed(user());
+      await mount();
+      await waitFor(() => expect(apiDelete).toHaveBeenCalledTimes(1));
+
+      await i18n.changeLanguage("pt-BR");
+
+      await waitFor(() => expect(apiDelete).toHaveBeenCalledTimes(2));
+      expect(apiPut).not.toHaveBeenCalled();
+    });
+
+    it("does nothing for an account that can't register", async () => {
+      seed(user({ status: "denied" }));
+
+      await mount();
+
+      expect(apiDelete).not.toHaveBeenCalled();
+    });
   });
 });

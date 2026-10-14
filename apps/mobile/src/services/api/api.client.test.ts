@@ -1,6 +1,6 @@
 import * as store from "../session/session.store";
 
-import { apiGet, apiPost, apiPut } from "./api.client";
+import { apiDelete, apiGet, apiPost, apiPut } from "./api.client";
 import { ApiError, NetworkError, SessionExpiredError } from "./api.errors";
 
 const jsonResponse = (status: number, body: unknown) =>
@@ -183,6 +183,34 @@ describe("apiPut", () => {
     fetchMock.mockRejectedValue(new TypeError("Network request failed"));
 
     await expect(apiPut("/x", {})).rejects.toBeInstanceOf(NetworkError);
+  });
+});
+
+describe("apiDelete", () => {
+  const fetchMock = jest.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    globalThis.fetch = fetchMock;
+    process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+  });
+
+  it("deletes with a JSON body and the bearer token", async () => {
+    signInWith("at-1");
+    fetchMock.mockResolvedValue({ ok: true, status: 204, json: async () => { throw new Error("empty"); } });
+
+    await expect(
+      apiDelete("/notifications/push-token", { token: "t" }, { authenticated: true }),
+    ).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenCalledWith("http://api.test/notifications/push-token", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer at-1",
+      },
+      body: JSON.stringify({ token: "t" }),
+    });
   });
 });
 

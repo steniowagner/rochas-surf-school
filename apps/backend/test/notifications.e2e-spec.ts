@@ -241,6 +241,77 @@ describe('Notifications (e2e)', () => {
     });
   });
 
+  describe('DELETE /notifications/push-token', () => {
+    const unregister = (token: string | undefined, body?: object) => {
+      const req = as(token, http().delete('/notifications/push-token'));
+      return body === undefined ? req : req.send(body);
+    };
+
+    it('removes the caller\'s own token', async () => {
+      const user = await account();
+      const token = pushToken('own');
+      await device(user.id, token);
+
+      const response = await unregister(user.accessToken, { token });
+
+      expect(response.status).toBe(204);
+      expect(response.text).toBe('');
+      expect(await prisma.pushToken.findUnique({ where: { token } })).toBeNull();
+    });
+
+    it('keeps a token that belongs to another account', async () => {
+      const caller = await account();
+      const other = await account();
+      const token = pushToken('other');
+      await device(other.id, token);
+
+      await unregister(caller.accessToken, { token }).expect(204);
+
+      expect(await prisma.pushToken.findUnique({ where: { token } })).toMatchObject({ userId: other.id });
+    });
+
+    it('answers 204 for an unknown token', async () => {
+      const user = await account();
+      const own = pushToken('kept');
+      await device(user.id, own);
+
+      await unregister(user.accessToken, { token: pushToken('unknown') }).expect(204);
+
+      expect(await prisma.pushToken.findUnique({ where: { token: own } })).not.toBeNull();
+    });
+
+    it.each(['pending', 'denied', 'deleted', 'removed'] as const)('allows a %s account', async (status) => {
+      const user = await account('student', status);
+      const token = pushToken(status);
+      await device(user.id, token);
+
+      await unregister(user.accessToken, { token }).expect(204);
+
+      expect(await prisma.pushToken.findUnique({ where: { token } })).toBeNull();
+    });
+
+    it.each([
+      ['a missing body', undefined],
+      ['an empty body', {}],
+      ['an empty token', { token: '' }],
+      ['a non-string token', { token: 42 }],
+    ])('answers 422 pushToken.token.required for %s', async (_label, body) => {
+      const user = await account();
+
+      const response = await unregister(user.accessToken, body);
+
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(['pushToken.token.required']);
+    });
+
+    it('answers 401 without a token', async () => {
+      const response = await unregister(undefined, { token: pushToken('anon') });
+
+      expect(response.status).toBe(401);
+      expect(response.body.errors).toEqual(['auth.token.invalid']);
+    });
+  });
+
   describe('sign-out', () => {
     it("removes the caller's token", async () => {
       const user = await account();

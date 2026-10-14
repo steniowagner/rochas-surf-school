@@ -40,12 +40,28 @@ export const routes = {
   },
   student: {
     home: "/student",
+    myClasses: "/student/my-classes",
+    school: "/student/school",
+    profile: "/student/profile",
+    editProfile: "/student/edit-profile",
+    whatsapp: "/student/whatsapp",
+    schoolRules: "/student/school-rules",
   },
   instructor: {
     home: "/instructor",
+    classes: "/instructor/classes",
+    profile: "/instructor/profile",
+    editProfile: "/instructor/edit-profile",
+    whatsapp: "/instructor/whatsapp",
+    schoolRules: "/instructor/school-rules",
   },
   admin: {
     home: "/admin",
+    classes: "/admin/classes",
+    profile: "/admin/profile",
     registrations: "/admin/registrations",
+    editProfile: "/admin/edit-profile",
+    whatsapp: "/admin/whatsapp",
+    schoolRules: "/admin/school-rules",
   },
 } as const;

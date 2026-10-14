@@ -36,9 +36,12 @@ export const clearRegisteredPushToken = () => {
 
 /**
  * The Expo push token of this phone, or null when it can't have one: not a physical device, no EAS project,
- * permission refused, or the call failed. The OS dialog is shown only while the permission is undetermined.
+ * permission refused, or the call failed. The OS dialog is shown only while the permission is undetermined,
+ * and never with `askPermission: false`.
  */
-export const getPushToken = async (): Promise<string | null> => {
+export const getPushToken = async ({
+  askPermission = true,
+}: { askPermission?: boolean } = {}): Promise<string | null> => {
   const projectId =
     Constants.expoConfig?.extra?.eas?.projectId ??
     Constants.easConfig?.projectId;
@@ -50,7 +53,7 @@ export const getPushToken = async (): Promise<string | null> => {
   try {
     let { status } = await Notifications.getPermissionsAsync();
 
-    if (status === "undetermined") {
+    if (status === "undetermined" && askPermission) {
       ({ status } = await Notifications.requestPermissionsAsync());
     }
 
@@ -63,5 +66,16 @@ export const getPushToken = async (): Promise<string | null> => {
     return data;
   } catch {
     return null;
+  }
+};
+
+/** Whether the person refused notifications for the app in the OS (false when it can't be read). */
+export const isPushPermissionDenied = async (): Promise<boolean> => {
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+
+    return status === "denied";
+  } catch {
+    return false;
   }
 };

@@ -17,16 +17,21 @@ export function TextInput({
   ...props
 }: TextInputComponentProps) {
   const theme = useTheme();
+  const isDisabled = props.editable === false;
 
   return (
     <View className="gap-1.5">
       <View
-        className={`h-[52px] flex-row items-center gap-2.5 rounded-control border-[1.5px] bg-input px-3.5 ${borderClasses[status]}`}
+        className={`h-[52px] flex-row items-center gap-2.5 rounded-control border-[1.5px] px-3.5 ${
+          isDisabled
+            ? "border-line bg-dim"
+            : `bg-input ${borderClasses[status]}`
+        }`}
       >
         {icon}
         <NativeTextInput
           ref={ref}
-          className="ds-text-body h-full flex-1 py-0 text-ink leading-5"
+          className={`ds-text-body h-full flex-1 py-0 leading-5 ${isDisabled ? "text-ink-2" : "text-ink"}`}
           textAlignVertical="center"
           placeholderTextColor={theme.ink2}
           {...props}

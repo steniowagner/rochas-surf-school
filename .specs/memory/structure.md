@@ -57,7 +57,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `provider/rules-version.provider.ts` (`RulesVersionProvider`: the current school rules version, read
     without depending on `school-rules`), `provider/registration-notifier.provider.ts` (`RegistrationNotifier`:
     tells admins and the person about a registration, without depending on `notifications`),
-    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
+    `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,set-name,delete-account,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
+    (`SetName`: an approved account renames itself; `DeleteAccount`: an approved account closes itself → `deleted`)
     and `usecase/account.out.ts` (`AccountOut` / `toAccountOut`: the account shape every answer carries, with
     `rulesAccepted`, `denialReason` and `reactivationStatus`);
     `usecase/{list-registrations,approve-registration,deny-registration}.usecase.ts` with
@@ -96,7 +97,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
   - `push-token/` — `model/push-token.entity.ts` (`PushToken`, `PUSH_TOKEN_PATTERN`, `PUSH_LOCALES`),
     `model/push-ticket.ts` (a plain interface: its id is Expo's ticket id),
     `provider/{push-token.repository,push-ticket.repository}.ts`,
-    `usecase/{register-push-token,remove-push-token,check-push-receipts}.usecase.ts`. Fakes of every port and
+    `usecase/{register-push-token,remove-push-token,unregister-push-token,check-push-receipts}.usecase.ts`
+    (`RemovePushToken` on sign-out; `UnregisterPushToken` when a phone turns pushes off). Fakes of every port and
     entity factories are in `test/mock/`.
 
 ## `apps/backend` (NestJS — adapters)
@@ -129,7 +131,8 @@ src/
                                 # RegistrationNotifier and PushTokenRemover adapters)
     auth.controller.ts          # POST /auth/email/code (202), POST /auth/email/verify (200), POST /auth/refresh (200),
                                 # POST /auth/google (200), POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
-                                # PUT /auth/me/whatsapp and POST /auth/me/reactivation-request (200) (protected)
+                                # PUT /auth/me/whatsapp, PUT /auth/me/name and POST /auth/me/reactivation-request
+                                # (200), DELETE /auth/me (204) (protected)
     auth.integration.http       # manual REST Client requests
     registrations.controller.ts # GET /registrations, POST /registrations/:id/approve and /deny (200) — protected
     registrations.integration.http  # manual REST Client requests
@@ -159,7 +162,7 @@ src/
     school-settings.integration.http  # manual REST Client requests
   modules/notifications/
     notifications.module.ts     # wiring (DbModule); exports the three adapters of auth's ports
-    notifications.controller.ts # PUT /notifications/push-token (204) — protected
+    notifications.controller.ts # PUT and DELETE /notifications/push-token (204) — protected
     notifications.integration.http  # manual REST Client requests
     {notification,push-token,push-ticket,recipients}.prisma.ts  # Prisma repositories; PrismaRecipientsProvider
                                 # (role admin and status approved)
@@ -176,6 +179,7 @@ test/
   auth-email.e2e-spec.ts        # e2e suite of the email sign-in routes (Resend replaced by a capturing fake)
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
   auth-whatsapp.e2e-spec.ts     # e2e suite of PUT /auth/me/whatsapp (approved accounts created through Prisma)
+  auth-profile.e2e-spec.ts      # e2e suite of PUT /auth/me/name and DELETE /auth/me (accounts in each status through Prisma)
   auth-reactivation.e2e-spec.ts # e2e suite of POST /auth/me/reactivation-request (accounts in each state through Prisma)
   auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
   registrations.e2e-spec.ts     # e2e suite of the /registrations routes (accounts through Prisma; concurrency)
@@ -216,8 +220,12 @@ src/
                                                      # swipe-back off)
     (reactivation)/reactivation/{_layout,index}.tsx  # reactivation flow of a deleted account (/reactivation)
     (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
-    (private)/{student,instructor,admin}/{_layout,index}.tsx # role experiences (/student, /instructor, /admin)
-    (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations)
+    (private)/{student,instructor,admin}/_layout.tsx # the role's Stack: its (tabs) group and the inner screens
+    (private)/<role>/(tabs)/_layout.tsx              # the role's native tab bar (RoleTabs)
+    (private)/student/(tabs)/{index,my-classes,school,profile}.tsx  # Agenda (/student), Minhas aulas, Escola, Perfil
+    (private)/{instructor,admin}/(tabs)/{index,classes,profile}.tsx # Início (/instructor, /admin), Aulas, Perfil
+    (private)/<role>/{edit-profile,whatsapp,school-rules}.tsx  # the Profile's inner screens, above the tab bar
+    (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations), above the tab bar
   navigation/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
                                 # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
@@ -229,6 +237,7 @@ src/
     rules-update-layout.test.tsx  # layout test of the rules-update group (a test under src/app would be a route)
   modules/{student,instructor}/screens/
                                 # each role's screens (placeholders showing the flow's name for now)
+  modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
     screens/admin.screen.tsx    # admin home: "School tools" with the "Join the school" row and its pending count
     screens/registrations.screen.tsx  # "Join the school": DecisionCards (pull-to-refresh, loading, empty,
@@ -240,11 +249,13 @@ src/
     utils/                      # registration-error.ts (API error → translation key), registrations-cache.ts
                                 # (removeRegistration: drop a decided item from the cache and invalidate)
   modules/notifications/
-    hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved),
+    hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
+                                # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
                                 # use-notification-response (a tapped push → refresh → "Join the school" or "/"),
                                 # use-notification-received (a push with the app open → refresh or invalidate
                                 # ["registrations"])
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
+    utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored
   modules/offboarding/
     screens/                    # denied.screen.tsx (reason card when given), removed.screen.tsx — both on
                                 # AccountStatus with ContactSchoolButton and "Use another email" (sign-out)
@@ -258,10 +269,9 @@ src/
                                 # a 409); toast; signs out on a 403
   modules/onboarding/
     screens/                    # whatsapp.screen.tsx, school-rules.screen.tsx
-    components/                 # whatsapp (welcome, country chip + number, hide switch, save), country-picker
-                                # (searchable bottom sheet of countries with their dial codes)
+    components/                 # whatsapp (welcome header around the shared WhatsappNumberForm)
                                 # school-rules.screen.tsx renders SchoolRulesAcceptance with the schoolRules.* copy
-    hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast
+    hooks/use-save-whatsapp.hook.ts  # PUT /auth/me/whatsapp; updates the session; toast (also used by the Profile)
   modules/rules-update/
     screens/rules-update.screen.tsx  # "Regras atualizadas": SchoolRulesAcceptance with the rulesUpdate.* copy
   modules/school-rules/         # the rules shown in the app, reused by every screen that shows them
@@ -272,16 +282,26 @@ src/
     components/                 # school-rules-list (card: loading, error + retry, empty, numbered rows),
                                 # school-rule-row (number, title, description), school-rules-acceptance
                                 # (SchoolRulesAcceptance: icon, eyebrow/title/description/submitLabel props,
-                                # SchoolRulesList, fixed footer with the Checkbox and the CTA)
-    utils/countries.ts          # country options (localized names, dial codes), filter, default country BR
-    utils/brazilian-phone.ts    # toBrazilianDigits, formatBrazilianPhone: the Brazilian number mask
+                                # SchoolRulesList, fixed footer with the Checkbox and the CTA), school-rules-reader
+                                # (read-only: BackButton, shield ScreenIntro, SchoolRulesList)
+    screens/school-rules.screen.tsx  # the rules read from the Profile (/<role>/school-rules)
+  modules/profile/              # the Profile tab, the same for every role
+    screens/                    # profile.screen.tsx (rendered by every (tabs)/profile.tsx), edit-profile.screen.tsx,
+                                # profile-whatsapp.screen.tsx
+    components/                 # profile (rows, sheets and their state), profile-header (avatar, name, role chip),
+                                # profile-avatar (initials; camera button on Edit profile), profile-card, profile-row,
+                                # edit-profile, profile-whatsapp, sign-out-sheet, delete-account-sheet, about-sheet
+    hooks/                      # use-update-name (PUT /auth/me/name), use-delete-account (DELETE /auth/me, then
+                                # sign-out), use-open-url (in-app browser, toast on failure)
+    constants/about.ts          # the About sheet's mocked content (version, creator, links)
+    utils/web-pages.ts          # getWebPageUrl: privacy policy / terms of use from EXPO_PUBLIC_WEB_URL and the language
   modules/pending/
     screens/pending.screen.tsx  # Pending screen (waiting for approval, sign-out)
     components/                 # pending (header, timeline, sign-out; ticks every 60 s), pending-step (one row)
   modules/auth/
     screens/                    # auth.screen.tsx, email-choice.screen.tsx, email-sign-in.screen.tsx,
                                 # create-account.screen.tsx, confirm-code.screen.tsx, google-name.screen.tsx
-    components/                 # auth (sign-in), auth-button, language-sheet, email-choice (+ its row,
+    components/                 # auth (sign-in), auth-button, email-choice (+ its row,
                                 # choice-row), email-sign-in, create-account, confirm-code (code entry, verify,
                                 # resend countdown, both paths), google-name ("Your name") — each component + hook
     email-auth.navigation.test.tsx  # navigation tests of the email paths against the real auth route files
@@ -304,25 +324,36 @@ src/
   components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard), decided-list
                                 # ("Decided just now"), deny-sheet (DenySheet: optional reason in a bottom sheet)
   utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the
-                                # date), get-initials.ts
+                                # date), get-initials.ts, countries.ts (country options with localized names and
+                                # dial codes, filter, default BR), brazilian-phone.ts (toBrazilianDigits,
+                                # formatBrazilianPhone: the Brazilian number mask)
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession: the session store exposed to React
                                 # (user, tokens, isRestoring, setSession, updateUser, clearSession); starts the restore
-  components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen
+  components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen (also the placeholder tabs)
+  components/role-tabs/         # RoleTabs: a role's NativeTabs (tint sun / ink-3, background page)
+  components/language-sheet/    # LanguageSheet: sign-in screen and Profile; stores the choice
+  components/theme-sheet/       # ThemeSheet: same as phone / light / dark
+  components/whatsapp-number-form/  # WhatsappNumberForm: country, number (Brazilian mask), share switch, submit
+  components/country-picker/    # CountryPicker: searchable bottom sheet of countries with their dial codes
   components/account-status/    # AccountStatus: the shared layout of every closed-account state (icon tile by
                                 # tone, eyebrow, title, description, optional note card and primary action,
                                 # "Use another email")
   services/google-sign-in.ts    # configures GoogleSignin once; the only import point of the Google library
   services/push/push.service.ts # expo-notifications: foreground handler and Android channel at load,
-                                # getPushToken(), the token registered in this session
-  services/api/                 # fetch client (apiGet, apiPost, apiPut with { authenticated, timeoutMs }: token,
+                                # getPushToken({ askPermission }), isPushPermissionDenied(), the token registered
+                                # in this session
+  services/preferences/         # device preferences in SecureStore (prefs.theme / prefs.locale / prefs.pushEnabled,
+                                # synchronous reads); theme-preference.ts (Appearance.setColorScheme,
+                                # useThemePreference)
+  services/api/                 # fetch client (apiGet, apiPost, apiPut, apiDelete with { authenticated, timeoutMs }: token,
                                 # renewal and one retry after a 401), api.request.ts (rawRequest: the bare HTTP call),
                                 # ApiError, NetworkError, SessionExpiredError
   services/session/             # the session, React-free: session.store.ts (state, sign-out generation, the single
                                 # in-flight refresh, signOut — which sends the registered push token), session.storage.ts (expo-secure-store keys
                                 # session.tokens / session.user), session.refresh.ts (getAccessToken with the
                                 # 60 s margin, refreshSession), session.restore.ts (launch restore via GET /auth/me)
-  i18n/                         # i18next setup; messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys);
+  i18n/                         # i18next setup (starts from the stored locale, else the phone's); messages/{en-US,es-ES,pt-BR}.ts (en-US is the source of the keys);
                                 # backend-locale.ts (toBackendLocale: app locale → en / es / pt-BR)
   constants/                    # routes.ts (every app path; routes.home is "/"), theme.ts (design tokens), theme-variables.ts
                                 # (--ds-* per scheme), fonts

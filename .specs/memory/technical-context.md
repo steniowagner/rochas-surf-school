@@ -30,15 +30,35 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   - Session: **`expo-secure-store`** 57 (no config plugin entry: plain key-value, no Face ID) keeps the session
     on the device under two keys, `session.tokens` (JSON of the four token fields) and `session.user` (JSON of
     the account); see Authentication → Mobile session. The Jest setup replaces it with an in-memory mock.
+  - Device preferences (spec 026): theme, language and phone pushes belong to the phone, not the account, and
+    survive signing out. `src/services/preferences/preferences.storage.ts` reads them with the synchronous
+    `SecureStore.getItem` (no frame in the wrong theme or language) and writes them on every change, under
+    `prefs.theme` (`"system"` | `"light"` | `"dark"`, absent → `"system"`), `prefs.locale` (`"en-US"` | `"es-ES"`
+    | `"pt-BR"`, absent → the phone's language) and `prefs.pushEnabled` (`"true"` | `"false"`, absent → on); an
+    unreadable or unknown value counts as absent. `theme-preference.ts` applies the theme app-wide with
+    `Appearance.setColorScheme` (`"system"` → `"unspecified"`, back to the OS), so `useColorScheme()` follows the
+    choice: `applyStoredThemePreference()` runs in the root layout before the first render, and
+    `useThemePreference()` (`useSyncExternalStore`) gives `{ theme, setTheme }`. `src/i18n/index.ts` starts from
+    the stored locale, else the phone's.
+  - Web pages: **`expo-web-browser`** `openBrowserAsync` opens the privacy policy, the terms of use and the About
+    links in the in-app browser (`useOpenUrl` in `src/modules/profile/hooks/`, generic toast on a rejected open).
+    The site's address is `EXPO_PUBLIC_WEB_URL` (`apps/mobile/.env.example`: `http://localhost:3000`; a trailing
+    `/` is dropped); `getWebPageUrl` (`src/modules/profile/utils/web-pages.ts`) builds
+    `{EXPO_PUBLIC_WEB_URL}/{pt-br|es|en}/{privacy-policy|terms-of-use}` from the app language, and without the
+    variable the Profile hides both rows.
+  - Tab bars: Expo Router's native tabs (`NativeTabs` from `expo-router/unstable-native-tabs`), drawn by the
+    system, through the shared `RoleTabs` (`src/components/role-tabs/`: selected `sun`, unselected `ink-3`, bar
+    `page`, from `useTheme()`; label key, SF Symbol and Material icon per tab). iOS 26+ draws unselected labels
+    and icons in its own color, whatever `ink-3` says.
   - Sign-in: `@react-native-google-signin/google-signin` 16 (Google; in use since spec 017, its config plugin in
     `app.json` carries the iOS URL scheme) and `expo-apple-authentication` (Apple, iOS only; not installed yet,
     it comes with the Apple spec).
   - Server data: **TanStack Query 5** — every screen fetches, caches, retries and invalidates the same way.
     One `QueryClient` in the root layout, mutations without retry. Requests go through the `fetch` client in
-    `src/services/api/` (`apiGet`, `apiPost`, `apiPut`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends
-    JSON for POST and PUT (a GET has no body and no Content-Type), and throws `ApiError` (`status`, `errors`,
+    `src/services/api/` (`apiGet`, `apiPost`, `apiPut`, `apiDelete`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends
+    JSON for POST, PUT and DELETE (a DELETE takes a body; a GET has no body and no Content-Type), and throws `ApiError` (`status`, `errors`,
     `details`; empty `errors` when the body isn't JSON) on a non-2xx answer or `NetworkError` when no answer
-    arrives. Options on all three: `{ authenticated: true }` sends the session's access token (renewed first
+    arrives. Options on all four: `{ authenticated: true }` sends the session's access token (renewed first
     when needed, see Mobile session) — callers never read or pass tokens; `timeoutMs` aborts the request with an
     `AbortController` and throws `NetworkError` (no timeout unless asked). `SessionExpiredError` means the
     backend refused to renew the session. The bare HTTP call is `rawRequest` in `api.request.ts` (no session
@@ -48,8 +68,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     names in en, es and pt, following the app language. Both run under Jest without a transform. With Brazil
     selected, the WhatsApp field keeps only the digits (`toBrazilianDigits`: non-digits dropped, a leading `55`
     dropped when there are more than 11 digits, capped at 11) and shows them masked as `(XX) XXXX-XXXX` or
-    `(XX) XXXXX-XXXX` (`formatBrazilianPhone`, `modules/onboarding/utils/brazilian-phone.ts`, a pure function
-    rather than `AsYouType`); E.164 is built from those same digits. Other countries keep the typed text.
+    `(XX) XXXXX-XXXX` (`formatBrazilianPhone`, `src/utils/brazilian-phone.ts`, a pure function
+    rather than `AsYouType`); E.164 is built from those same digits. Other countries keep the typed text. The
+    country list is `src/utils/countries.ts`.
   - Translations: **i18next** + `react-i18next`, with `expo-localization` for the phone's language
     (pt-BR fallback).
   - Push: **`expo-notifications`** 57 (config plugin in `app.json` with `defaultChannel: "default"`; since spec
@@ -57,11 +78,14 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     handler at module load (banner, list and sound, no badge), creates the Android channel `default` (importance
     high), and `getPushToken()` returns the Expo push token or `null` — not a physical device, no EAS
     `projectId` (`Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId`), permission not
-    granted, or the token call throwing; the OS dialog is asked only while the permission is `undetermined`. It
+    granted, or the token call throwing; the OS dialog is asked only while the permission is `undetermined`, and
+    never with `getPushToken({ askPermission: false })`; `isPushPermissionDenied()` reads a refusal. It
     also keeps the token this session registered (`get/set/clearRegisteredPushToken`, module state). Hooks in
     `src/modules/notifications/hooks/`, all mounted in `RootNavigator`: `usePushRegistration` (`PUT
     /notifications/push-token` with `{ token, locale }` for a `pending` or `approved` user, whenever the user id,
-    its status or the i18n language changes; silent on any failure), `useNotificationResponse` (a tap — the
+    its status or the i18n language changes; silent on any failure — while `prefs.pushEnabled` is off it sends
+    nothing of the kind and calls `unregisterPushToken()` instead, so a failed DELETE heals at the next launch or
+    sign-in), `useNotificationResponse` (a tap — the
     launch response once the session is restored, then the listener; deduplicated by `notificationId`: refreshes
     the account with `refreshAccount()`, then `router.push(routes.admin.registrations)` for a
     `registration.pending` push when the account resolves to the `admin` flow, else `router.replace(routes.home)`
@@ -70,7 +94,12 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `["registrations"]`; no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
-    email and push registration. Pushes need the EAS `projectId` in `app.json` (`eas init`) and the APNs key /
+    email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
+    `false` and `unregisterPushToken()` (`src/modules/notifications/utils/`: the token without asking for the
+    permission, `DELETE /notifications/push-token` `{ token }`, any failure ignored, then
+    `clearRegisteredPushToken()`); on → store `true` and register at once (the OS dialog shows while
+    undetermined); a refused permission stores `false` again and shows the `profile.pushDenied` toast. Only removing
+    the token stops pushes: the OS shows background pushes without asking the app. Pushes need the EAS `projectId` in `app.json` (`eas init`) and the APNs key /
     FCM service account (`eas credentials`) plus a native rebuild — not set up yet, so the app registers nothing
     until then.
   - Dates: `date-fns` 4 + `@date-fns/tz`, always displayed in `America/Fortaleza` (`format(…, { in: tz("America/Fortaleza") })`);
@@ -250,9 +279,18 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `Pressable` row with role `checkbox`, so the box and its label toggle it, at least 44 pt tall. Multi-line text is
   the shared `TextArea` (`src/components/ui/text-area`: controlled `value` / `onChangeText`, required `maxLength`
   enforced by the native input, a "{length}/{maxLength}" counter under it, optional `label` also used as the
-  accessibility label, no icon, the `TextInput` border tokens). `BottomModal` passes `onClose` to the sheet
-  library too, so dragging the sheet down reaches the caller (a backdrop tap may call it twice; callers must
-  tolerate that). The admin tools share `src/components/decision/` — `DecisionCard` (initials avatar on
+  accessibility label, no icon, the `TextInput` border tokens); a `TextInput` with `editable={false}` takes the
+  disabled look (`bg-dim`, `border-line`, secondary ink). `BottomModal` is a `BottomSheetModal` presented by the
+  root layout's `BottomSheetModalProvider`, so it opens above the screens and above a native tab bar (a plain sheet
+  sat under the floating tab bar); it presents on `visible` and only dismisses a sheet it presented, its scrim is
+  the light palette's ink at 45% so it is dark in both themes, it takes only the room its content needs plus the
+  home-indicator inset, and it passes `onClose` to the sheet library too, so dragging the sheet down reaches the
+  caller (a backdrop tap may call it twice; callers must tolerate that). Shared pieces used by more than one
+  module live in `src/components/`: `LanguageSheet` (sign-in screen and Profile; choosing stores the locale),
+  `ThemeSheet` (the three choices with a check on the current one), `WhatsappNumberForm` (country picker,
+  Brazilian mask, share switch, validation and submit button; header slot, `initialNumber` / `initialVisible`,
+  `requireChange`, `onSubmit` — used by onboarding and the Profile's WhatsApp screen), `CountryPicker` and
+  `RoleTabs`. The admin tools share `src/components/decision/` — `DecisionCard` (initials avatar on
   `bg-sand`/`text-grape`, title, optional subtitle, detail lines, ghost Deny and primary Approve; `disabled` and
   `loading: "approve" | "deny"`), `DecidedList` ("Decided just now": rows with a `Chip` tag, tone `ok` / `bad`;
   renders nothing when empty) and `DenySheet` (`BottomModal` + `TextArea` + `Button`; clears its text when it
@@ -266,7 +304,13 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 - **Mobile routes**: every app path lives in `src/constants/routes.ts` (`routes.<module>.<screen>`, a function
   when the route takes params, optional ones included: `routes.auth.createAccount()` or
   `routes.auth.createAccount({ email })`). `router` and `Redirect` calls and their tests use it, never string literals,
-  so a moved route changes in one place.
+  so a moved route changes in one place. Each role's folder (`src/app/(private)/<role>/`) has a `Stack` whose
+  `(tabs)` group holds the tab bar (`(tabs)/_layout.tsx` renders `RoleTabs`, one route file per tab; the first tab
+  is the role's `index`, so `/student`, `/instructor` and `/admin` stay the flows' entry routes); inner screens
+  (`/admin/registrations`, `/<role>/edit-profile`, `/<role>/whatsapp`, `/<role>/school-rules`) are routes of the
+  role's `Stack`, outside `(tabs)`, so they open above the tab bar, without it, and go back with `BackButton`.
+  Route tests that render a role live in `src/modules/<role>/*-tabs.navigation.test.tsx`, never under `src/app/`
+  (Expo Router would read a test file there as a route).
 - **Mobile flows**: each account state has one flow — `auth`, `pending`, `onboarding`, `rules-update`, `reactivation`,
   `offboarding-denied`, `offboarding-removed`, `student`, `instructor`, `admin` — picked only by `resolveFlow`
   (`src/navigation/resolve-flow.ts`) from the session's user: no user, or an unknown role or status → `auth`;
@@ -418,7 +462,17 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `user.status.notApproved`); the number is required (422 `user.whatsappNumber.required`) and must pass
   `PhoneNumberRule` (422 `user.whatsappNumber.phone`). Numbers are stored in E.164 as sent: the backend
   validates, never normalizes, and the app sends `parsePhoneNumberFromString(typed, country).number` (for Brazil, of the field's digits). The same
-  number may belong to several accounts.
+  number may belong to several accounts. The app calls it from onboarding and from the Profile's WhatsApp screen;
+  the visibility the Profile shows comes from the session's account, never from the access token.
+- Name: `PUT /auth/me/name` (`SetName`, protected, body `{ name }`, 200 with the account shape). Unknown user →
+  401 `auth.token.invalid`; not `approved` → 403 `user.status.notApproved`; `name` not a string → 422
+  `user.name.required`; otherwise the name is trimmed, set with `clone()` and `validate()`d (422 `user.name.*` from
+  the entity). Only the name changes.
+- Closing one's own account: `DELETE /auth/me` (`DeleteAccount`, protected, no body, 204). Unknown user → 401
+  `auth.token.invalid`; not `approved` → 403 `user.status.notApproved`; otherwise status `deleted` and
+  `deletedAt` from the clock. It doesn't end the account's sessions: the app signs out right after (`useSignOut`),
+  and other devices move to the reactivation flow at their next account read. It doesn't yet refuse the only admin
+  or cancel seats, enrolments and class assignments (none of those exist yet).
 - Reactivation request: `POST /auth/me/reactivation-request` (`RequestReactivation`, protected, no body)
   answers 200 with the account shape. It checks, in this order: the account exists (401 `auth.token.invalid`),
   its status is `deleted` (403 `user.status.notDeleted`), its request wasn't denied (409
@@ -563,7 +617,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 - **Expo Push** (`expo-notifications` on the phone, see Applications; the backend sends through
   **`expo-server-sdk`** 7). Every notification is stored first (`Notify` in `modules/notifications`), then pushed
-  to every device of its user; the future push setting will only control the push. The port is `PushProvider`
+  to every device of its user; the phone's push switch (see Applications) only controls the push, never the stored
+  notification. The port is `PushProvider`
   (`modules/notifications/src/notification/provider/push.provider.ts`: `send(messages)` → tickets in the order
   of the messages, `getReceipts(ids)` → receipts by ticket id), implemented by `ExpoPushProvider`
   (`apps/backend/src/modules/notifications/expo.push.ts`): `chunkPushNotifications` +
@@ -577,7 +632,10 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   another account held. Order: status not `pending` / `approved` → 403 `pushToken.status.notAllowed`; then
   `token` not matching `^Expo(nent)?PushToken\[[^\]]+\]$` → 422 `pushToken.token.invalid` and `locale` not
   `pt-BR` / `es` / `en` → 422 `pushToken.locale.invalid`, listed together. A token is deleted on sign-out (see
-  Authentication) and when Expo reports `DeviceNotRegistered` in a ticket or a receipt — never when a session
+  Authentication), when its phone turns pushes off — `DELETE /notifications/push-token` (`UnregisterPushToken`,
+  protected, body `{ token }`, 204, any status; `token` missing, empty or not a string → 422
+  `pushToken.token.required`; `deleteForUser(userId, token)`, so another account's token or an unknown one
+  changes nothing) — and when Expo reports `DeviceNotRegistered` in a ticket or a receipt; never when a session
   expires, the account changes status, or by age.
 - Tickets and receipts: every `ok` ticket is stored in `push_tickets` (`id` = Expo ticket id, `token`, no foreign
   key); `PushReceiptCheckJob` runs `CheckPushReceipts` every minute — tickets 15 minutes old or more are asked
@@ -660,7 +718,8 @@ Maestro suite for mobile would be a spec of its own.
   jsdom's). Specs run only the tests related to their change, with
   `.specs/scripts/run-related-tests.mjs`.
 - Mobile test setup: `apps/mobile/jest.setup.ts` mocks the native pieces — among them `expo-secure-store` as
-  `jest.fn`s over an in-memory `Map`, reset between tests — and calls `resetSessionStore()` before every test,
+  `jest.fn`s over an in-memory `Map`, reset between tests (the async trio for the session and the synchronous
+  `getItem` / `setItem` for the device preferences) — and calls `resetSessionStore()` before every test,
   since the session store is module state. It also mocks `expo-notifications` (permissions, token, listeners and
   `getLastNotificationResponse` as `jest.fn`s), `expo-device` (`isDevice: true`) and `expo-constants` (an EAS
   `projectId`), so tests drive push behavior through those mocks. Tests that need a signed-in app seed the real store
@@ -678,7 +737,8 @@ Maestro suite for mobile would be a spec of its own.
   `apps/backend/vitest.config.e2e.ts`) because they share the single `rules_versions` row; each suite that
   changes it resets it to 0 (and deletes the school rules) after every test. The suites never call Expo:
   `notifications.e2e-spec.ts` overrides `ExpoPushProvider` with a fake that records the messages and returns
-  configurable tickets (`overrideProvider`).
+  configurable tickets (`overrideProvider`). Mobile tests that open a sheet can't assert a closed sheet is
+  hidden: the bottom-sheet mock keeps its content mounted. `expo-web-browser` is mocked per test.
 
 ```e2e
 apps/backend: npm run test:e2e --workspace apps/backend   # the API (Nest app + Prisma) against Postgres via DATABASE_*, migrations applied

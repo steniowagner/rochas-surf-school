@@ -2,7 +2,7 @@
 id: "028"
 slug: create-classes
 title: Admins create classes in a batch
-status: in-progress
+status: in-review
 created: 2026-10-14
 started: 2026-10-14
 base_commit: 5c4c69b936ec934e6c920189d268a1f1ad2b2156
@@ -594,9 +594,13 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 
 ### Verification
 
-- [ ] **T-20** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-20** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence, and follow the user journey in the iOS simulator.
   Covers: all · Done when: every automated command exits 0 and the journey is recorded.
+  > ✅ 2026-10-14 11:51 — Ran the whole Verification Plan from the repo root, all exit 0: `node .specs/scripts/run-related-tests.mjs 028` → RELATED TESTS PASSED (backend, mobile, modules/classes, modules/notifications); `node .specs/scripts/check-coverage.mjs 028` → COVERAGE OK (54 files); `node .specs/scripts/run-e2e.mjs 028` → E2E PASSED (backend, incl. `classes.e2e-spec.ts` and `locations.e2e-spec.ts`); `npx turbo run lint check-types build` for classes, notifications, backend and mobile → 24 of 24 tasks successful.
+  > iOS simulator journey (iPhone 18 Pro, backend and Metro running, signed in as the admin review account): Home shows "Criar aulas" under "Entrar na escola" and opens "Nova aula"; "Novo local" saved "Praia do Futuro" with an address and selected it; days 15 and 16 picked in the calendar ("2 days", the weekday filter toggles), the range 12:00–13:00 added with "Novo horário" (chip selected, summary "2 days × 1 time · Praia do Futuro"), the instructor ticked → "Create 2 classes" → toast "2 classes created", back on the home; the database held two classes at 15:00Z / 12:00 Fortaleza, two assignments and one `class.assigned` notification `{ count: 2, discipline: "surf" }`. Reopening Nova aula showed no suggestion for the new range (suggestions come from last week); "Novo local" with "praia do futuro" showed "A location with this name already exists." inline. The rows I created were deleted afterwards.
+  > Not driven through the simulator input: dragging the native time wheels (the injected touches did not move them, so the 08:00–09:00 and "10:00–09:00" steps were checked by the unit tests of `TimeRangeSheet` instead), the dark theme / English-only switch (the app's own theme preference stayed light; the screens use only tokens), and Android. Found and fixed during the run: dragging inside the time sheet closed it (see T-15's follow-up). Observation for the follow-ups: the shared toast has one look (red, with an alert icon), so "2 classes created" is drawn like an error.
+  > files: `.specs/changes/028-create-classes/spec.md`; deviations: see the notes above
 
 ## Verification Plan
 

@@ -5,6 +5,7 @@ import {
   mergeTimeRanges,
   rangeLabel,
   rangeOf,
+  sortTimeRanges,
   startsByNow,
   toHHmm,
 } from "./time-ranges";
@@ -18,6 +19,13 @@ describe("time range helpers", () => {
     expect(isSameRange(morning, afternoon)).toBe(false);
     expect(includesRange([afternoon, morning], { ...morning })).toBe(true);
     expect(includesRange([afternoon], morning)).toBe(false);
+  });
+
+  it("sorts by start, then by end, without touching the input", () => {
+    const input = [afternoon, { start: "08:00", end: "10:00" }, morning];
+
+    expect(sortTimeRanges(input)).toEqual([morning, { start: "08:00", end: "10:00" }, afternoon]);
+    expect(input[0]).toBe(afternoon);
   });
 
   it("merges suggestions and added ranges without repeats, by start and then end", () => {

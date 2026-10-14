@@ -11,6 +11,11 @@ export const isSameRange = (a: TimeRange, b: TimeRange): boolean =>
 export const includesRange = (ranges: TimeRange[], range: TimeRange): boolean =>
   ranges.some((item) => isSameRange(item, range));
 
+export const sortTimeRanges = (ranges: TimeRange[]): TimeRange[] =>
+  [...ranges].sort(
+    (a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end),
+  );
+
 /** The suggestions and the ranges added on the spot, without repeats, by start and then end. */
 export const mergeTimeRanges = (
   suggestions: TimeRange[],
@@ -24,9 +29,7 @@ export const mergeTimeRanges = (
     }
   }
 
-  return merged.sort(
-    (a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end),
-  );
+  return sortTimeRanges(merged);
 };
 
 /** A range that starts at or before `nowMinutes` can't be created for today. */

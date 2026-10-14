@@ -570,13 +570,17 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/mobile/src/modules/classes/components/capacity-stepper/**`, `apps/mobile/src/modules/classes/components/instructor-picker/**`;
   > verified: `cd apps/mobile && npx jest src/modules/classes/components/capacity-stepper src/modules/classes/components/instructor-picker --coverage` (9 passed, both components 100%), `tsc --noEmit` and eslint pass; deviations: none
 
-- [ ] **T-18** — `NewClassScreen` (`src/modules/classes/screens/new-class.screen.tsx`) with `useNewClassScreen`:
+- [x] **T-18** — `NewClassScreen` (`src/modules/classes/screens/new-class.screen.tsx`) with `useNewClassScreen`:
   `BackButton`, `ScreenIntro` "Nova aula", the sections in the design's order (Modalidade, Nível, Dias, Horários,
   Local, Lotação máxima, Notas, Instrutores), the D-15 defaults, count, summary and button, submit with the D-16
   success and error handling; every Copy key in the three message files; tests.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-09, ER-13 · Done when: `cd apps/mobile && npx jest src/modules/classes/screens --coverage` passes.
+  > ✅ 2026-10-14 11:28 — Added `NewClassScreen` with `useNewClassScreen` and the `FormSection` block: `BackButton`, `ScreenIntro` "Nova aula", the sections in the design's order (Modalidade, Nível, Dias, Horários, Local, Lotação máxima, Notas, Instrutores), the D-15 defaults (Surf, Iniciante, capacity 8), the day count, the "N dias × M horários · local" summary, the "Criar aula / Criar N aulas" button enabled only for 1–200 classes with a location, an instructor and no past range, the `tooMany` message, and the D-16 submit (toast and `router.back()` on 201; the past / instructors / location / no-connection / generic toasts; the instructors and locations reloaded when stale; nothing for an expired session; the form kept on any error; a ref guard against a double press); a new range from the sheet is selected unless it overlaps or has started; `sortTimeRanges` moved to `utils/time-ranges.ts`;
+  > files: `apps/mobile/src/modules/classes/screens/new-class.screen.tsx`, `apps/mobile/src/modules/classes/screens/new-class.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`, `apps/mobile/src/modules/classes/components/form-section/**`, `apps/mobile/src/modules/classes/utils/time-ranges.ts`, `apps/mobile/src/modules/classes/utils/time-ranges.test.ts`;
+  > verified: `cd apps/mobile && npx jest src/modules/classes --coverage` (21 suites, 132 tests passed, every file of the module 100% statements, branches, functions and lines), `tsc --noEmit` and eslint pass;
+  > deviations: the Copy keys in the three message files were added in T-14 (the components needed them); the screen shows the day count as the right-hand hint of the "Dias" section
 
 - [ ] **T-19** — `routes.admin.newClass` in `src/constants/routes.ts`, the route file
   `src/app/(private)/admin/new-class.tsx`, and the "Criar aulas" row under Ferramentas in

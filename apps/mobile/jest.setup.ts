@@ -58,11 +58,16 @@ jest.mock("expo-notifications", () => ({
 
 // The native time picker isn't available under Jest: a plain view that keeps the value and the change handler, so
 // tests read the value and drive `valueChange` with `fireEvent`.
-jest.mock("@expo/ui/community/datetime-picker", () => ({
-  __esModule: true,
-  default: ({ value, onValueChange, testID }: Record<string, unknown>) =>
-    require("react").createElement("View", { testID, value, onValueChange }),
-}));
+jest.mock("@expo/ui/community/datetime-picker", () => {
+  const DateTimePicker = ({
+    value,
+    onValueChange,
+    testID,
+  }: Record<string, unknown>) =>
+    require("react").createElement("View", { testID, value, onValueChange });
+
+  return { __esModule: true, default: DateTimePicker, DateTimePicker };
+});
 
 jest.mock("expo-device", () => ({ isDevice: true }));
 

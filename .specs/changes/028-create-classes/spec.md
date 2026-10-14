@@ -537,13 +537,16 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > verified: `cd apps/mobile && npx jest src/modules/classes/components/date-range-calendar src/modules/classes/components/calendar-day src/modules/classes/components/weekday-filter src/modules/classes/utils/calendar --coverage` (27 passed, every new component, hook and helper 100%), `tsc --noEmit` and eslint pass;
   > deviations: the Copy keys landed here instead of T-18 (the weekday toggles use "EEEEEE" in pt-BR because date-fns' abbreviated form is the whole name there)
 
-- [ ] **T-15** — `TimeRangePicker` (chips: selected, disabled for overlap and past today, the hints, "Novo horário")
+- [x] **T-15** — `TimeRangePicker` (chips: selected, disabled for overlap and past today, the hints, "Novo horário")
   and `TimeRangeSheet` (`BottomModal` with two `DateTimePicker`s in time mode, duration, end-before-start error,
   "Adicionar horário", "Cancelar"), with tests.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-10 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/time-range-picker src/modules/classes/components/time-range-sheet --coverage`
   passes.
+  > ✅ 2026-10-14 11:12 — Added `TimeRangePicker` (chips from the suggestions plus the ranges added on the spot, selected / blocked states, the three hints, "Novo horário") and `TimeRangeSheet` (`BottomModal` with two `DateTimePicker`s in time mode opening at 12:00 and 13:00, duration, end-before-start error, "Adicionar horário", "Cancelar", reset on close), with `utils/time-ranges.ts` (merge, overlap / past blocking, `HH:mm` building); the `DateTimePicker` mock in `jest.setup.ts` now exposes the named export too;
+  > files: `apps/mobile/src/modules/classes/components/time-range-picker/**`, `apps/mobile/src/modules/classes/components/time-range-sheet/**`, `apps/mobile/src/modules/classes/utils/time-ranges.ts`, `apps/mobile/src/modules/classes/utils/time-ranges.test.ts`, `apps/mobile/jest.setup.ts`;
+  > verified: `cd apps/mobile && npx jest src/modules/classes/components/time-range-picker src/modules/classes/components/time-range-sheet src/modules/classes/utils/time-ranges --coverage` (19 passed, every new file 100%), `tsc --noEmit` and eslint pass; deviations: none
 
 - [ ] **T-16** — `LocationPicker` (rows with name and address, the selected one marked, "Novo local") and
   `LocationSheet` (Nome, Endereço, inline duplicate error, "Salvar local", "Cancelar"; creates through

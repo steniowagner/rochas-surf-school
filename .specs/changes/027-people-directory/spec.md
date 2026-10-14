@@ -384,11 +384,12 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-05** — Create `SegmentedControl` in `src/components/ui/segmented-control/`
+- [x] **T-05** — Create `SegmentedControl` in `src/components/ui/segmented-control/`
   (`segmented-control.component.tsx`, `.types.ts`, `index.ts`) per D-08, with
   `segmented-control.component.test.tsx` (selected state, `onChange`, no call on the selected segment, generic
   values). Follows `.claude/rules/react.md`.
   Covers: ER-06 · Done when: `npx jest src/components/ui/segmented-control` passes.
+  > ✅ 2026-10-13 — generic `SegmentedControl` (tablist, `tab` segments with selected state, min height 44, `bg-sand` track, `shadowStyle("iconButton")` on the selected one); files: `apps/mobile/src/components/ui/segmented-control/{index.ts,segmented-control.component.tsx,segmented-control.types.ts,segmented-control.component.test.tsx}`; verified: `npx jest src/components/ui/segmented-control` (4 passed), `tsc --noEmit` and eslint clean; deviations: none
 
 - [ ] **T-06** — Create the people data layer in `src/modules/people/`: `people.types.ts` (`Person`,
   `PeoplePage`, `PeopleRole`, `PeopleSort`, mirroring the API), `constants/people.ts` (`PEOPLE_PAGE_SIZE = 20`,

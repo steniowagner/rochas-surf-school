@@ -127,6 +127,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 | `people.whatsappUnavailable` | Não foi possível abrir o WhatsApp. | No se pudo abrir WhatsApp. | Couldn't open WhatsApp. |
 | `admin.home.toolsSection` | Ferramentas | Herramientas | Tools |
 | `admin.home.schoolSection` | Escola | Escuela | School |
+| `people.whatsappNotShared` | Número não compartilhado. | Número no compartido. | Number not shared. |
 | `home.peopleRow` | Pessoas | Personas | People |
 | `instructor.home.title` | Painel | Panel | Dashboard |
 
@@ -275,7 +276,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   shows the initials avatar, the name, the role chip, a "Conversar por WhatsApp" row with "+55 85 99999-8888", and
   the "Fechar" button; pressing the WhatsApp row calls `Linking.openURL("https://wa.me/5585999998888")`; pressing
   "Fechar" (or dragging the sheet down) closes it.
-- **Edge and error cases:** with `whatsappNumber: null` (amendment 2026-10-14) the sheet shows a disabled, non-pressable WhatsApp row — the muted icon, "Conversar por WhatsApp" and "Número não partilhado." (`people.whatsappNotShared`; es-ES "Número no compartido.", en-US "Number not shared.") — and the "Fechar" button as a filled `subtle` Button; when `openURL` rejects, the
+- **Edge and error cases:** with `whatsappNumber: null` (amendment 2026-10-14) the sheet shows a disabled, non-pressable WhatsApp row — the muted icon, "Conversar por WhatsApp" and "Número não compartilhado." (`people.whatsappNotShared`; es-ES "Número no compartido.", en-US "Number not shared.") — and the "Fechar" button as a filled `subtle` Button; when `openURL` rejects, the
   toast "Não foi possível abrir o WhatsApp." is shown; a number `libphonenumber-js` can't parse is shown as sent.
 - **Verify by:** `npx jest src/modules/people` — `person-sheet.component.test.tsx`; user journey 3.
 
@@ -579,6 +580,8 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-14 (review round 1, note) — the user asked for Brazilian Portuguese: `people.whatsappNotShared` pt-BR is "Número não compartilhado." (was "…partilhado."); ER-12 reworded and the key added to the Copy table.
 
 - 2026-10-14 (review round 1) — D-12 lost its stale `sort` clause (the sort parameter went away with the 2026-10-14 amendment) and the Memory Impact now names the `roles` query key and the `bottom-modal` fix.
 

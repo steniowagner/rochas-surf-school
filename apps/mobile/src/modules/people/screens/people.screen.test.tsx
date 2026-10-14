@@ -99,11 +99,8 @@ describe("PeopleScreen", () => {
     expect(screen.getByText("3 on the platform")).toBeOnTheScreen();
     expect(screen.getByText("People")).toBeOnTheScreen();
     expect(screen.getByPlaceholderText("Search people")).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "All", selected: true })).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Students" })).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Instructors" })).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Admins" })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Sort by name" })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Open filters" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: /Remove filter/ })).not.toBeOnTheScreen();
     expect(screen.getAllByText("since Jul 2026")).toHaveLength(3);
     expect(screen.getByText("Instructor")).toBeOnTheScreen();
     expect(screen.getByText("Admin")).toBeOnTheScreen();
@@ -176,7 +173,7 @@ describe("PeopleScreen", () => {
       serve((path) => ok({ ...buildPage(1, 1, 1), items: [buildPerson(1, { name: path })] }), 1);
     });
 
-    it("searches after the debounce and filters by role, keeping the search", async () => {
+    it("searches after the debounce and filters by role from the filter sheet, keeping the search", async () => {
       jest.useFakeTimers();
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       await renderScreen();
@@ -187,13 +184,16 @@ describe("PeopleScreen", () => {
       await act(async () => jest.advanceTimersByTime(300));
       await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&search=jo"));
 
+      await user.press(screen.getByRole("button", { name: "Open filters" }));
       await user.press(screen.getByRole("tab", { name: "Instructors" }));
       await waitFor(() =>
         expect(listPaths()).toContain("/people?page=1&perPage=20&role=instructor&search=jo"),
       );
+      expect(screen.getByRole("button", { name: "Remove filter Instructors" })).toBeOnTheScreen();
 
-      await user.press(screen.getByRole("tab", { name: "All" }));
+      await user.press(screen.getByRole("button", { name: "Remove filter Instructors" }));
       await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&search=jo"));
+      expect(screen.queryByRole("button", { name: /Remove filter/ })).not.toBeOnTheScreen();
       jest.useRealTimers();
     });
 
@@ -224,23 +224,35 @@ describe("PeopleScreen", () => {
       jest.useRealTimers();
     });
 
-    it("toggles the name order and keeps it across role changes", async () => {
+    it("sorts by name from the filter sheet, keeps it across role changes and removes it with its chip", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByText("/people?page=1&perPage=20");
-      const sort = screen.getByRole("button", { name: "Sort by name" });
-      expect(sort).toHaveProp("accessibilityState", { selected: false });
 
-      await user.press(sort);
+      await user.press(screen.getByRole("button", { name: "Open filters" }));
+      expect(screen.getByRole("tab", { name: "Ingress date", selected: true })).toBeOnTheScreen();
+      await user.press(screen.getByRole("tab", { name: "Name" }));
       await screen.findByText("/people?page=1&perPage=20&sort=name");
-      expect(screen.getByRole("button", { name: "Sort by name", selected: true })).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Remove filter Name" })).toBeOnTheScreen();
 
       await user.press(screen.getByRole("tab", { name: "Admins" }));
       await screen.findByText("/people?page=1&perPage=20&role=admin&sort=name");
 
-      await user.press(screen.getByRole("button", { name: "Sort by name" }));
+      await user.press(screen.getByRole("button", { name: "Remove filter Name" }));
       await screen.findByText("/people?page=1&perPage=20&role=admin");
-      expect(screen.getByRole("button", { name: "Sort by name", selected: false })).toBeOnTheScreen();
+      expect(screen.getByRole("tab", { name: "Ingress date", selected: true })).toBeOnTheScreen();
+    });
+
+    it("closes the filter sheet", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByText("/people?page=1&perPage=20");
+
+      await user.press(screen.getByRole("button", { name: "Open filters" }));
+      expect(screen.getByText("Filters")).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Close" }));
+
+      expect(screen.queryByText("Filters")).not.toBeOnTheScreen();
     });
   });
 

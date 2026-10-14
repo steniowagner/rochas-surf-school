@@ -1,4 +1,4 @@
-import { PeopleRole, Person } from "../people.types";
+import { PeopleRole, PeopleSort, Person } from "../people.types";
 
 export type PeopleRoleFilter = "all" | PeopleRole;
 
@@ -9,8 +9,11 @@ export type UsePeopleScreenResult = {
   setSearchText: (text: string) => void;
   roleFilter: PeopleRoleFilter;
   setRoleFilter: (role: PeopleRoleFilter) => void;
-  sortByName: boolean;
-  toggleSortByName: () => void;
+  sort: PeopleSort;
+  setSort: (sort: PeopleSort) => void;
+  isFilterVisible: boolean;
+  openFilter: () => void;
+  closeFilter: () => void;
   isLoading: boolean;
   isError: boolean;
   /** Loaded fine and nobody matches. */

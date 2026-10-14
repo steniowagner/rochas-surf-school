@@ -5,7 +5,7 @@ import { getRegistrationErrorKey } from "@/modules/admin/utils/registration-erro
 import { useAlertMessage } from "@/providers/alert-message";
 import { SessionExpiredError } from "@/services/api";
 
-import { Person } from "../people.types";
+import { PeopleSort, Person } from "../people.types";
 
 import { UsePeopleScreenResult, PeopleRoleFilter } from "./use-people-screen.types";
 import { usePeople } from "./use-people.hook";
@@ -19,7 +19,8 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<PeopleRoleFilter>("all");
-  const [sortByName, setSortByName] = useState(false);
+  const [sort, setSort] = useState<PeopleSort>("recent");
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -37,7 +38,7 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
   const query = usePeople({
     role: roleFilter === "all" ? undefined : roleFilter,
     search,
-    sort: sortByName ? "name" : "recent",
+    sort,
   });
   const countQuery = usePeopleCount();
 
@@ -74,8 +75,11 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     setSearchText,
     roleFilter,
     setRoleFilter,
-    sortByName,
-    toggleSortByName: () => setSortByName((current) => !current),
+    sort,
+    setSort,
+    isFilterVisible,
+    openFilter: () => setIsFilterVisible(true),
+    closeFilter: () => setIsFilterVisible(false),
     isLoading: query.isPending,
     // An expired session is handled once, centrally; a failed next page keeps its rows and only toasts.
     isError:

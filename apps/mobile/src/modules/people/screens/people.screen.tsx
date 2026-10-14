@@ -6,22 +6,20 @@ import {
   Platform,
   RefreshControl,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
-import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 
+import { FilterBar } from "../components/filter-bar";
+import { FilterSheet } from "../components/filter-sheet";
 import { PersonRow } from "../components/person-row";
 import { PersonSheet } from "../components/person-sheet";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
-import { PeopleRoleFilter } from "../hooks/use-people-screen.types";
 
 import { PeopleScreenProps } from "./people.screen.types";
 
@@ -36,8 +34,11 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
     setSearchText,
     roleFilter,
     setRoleFilter,
-    sortByName,
-    toggleSortByName,
+    sort,
+    setSort,
+    isFilterVisible,
+    openFilter,
+    closeFilter,
     isLoading,
     isError,
     isEmpty,
@@ -51,13 +52,6 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
     openPerson,
     closeSheet,
   } = usePeopleScreen();
-
-  const roleOptions: { value: PeopleRoleFilter; label: string }[] = [
-    { value: "all", label: t("people.filter.all") },
-    { value: "student", label: t("people.filter.student") },
-    { value: "instructor", label: t("people.filter.instructor") },
-    { value: "admin", label: t("people.filter.admin") },
-  ];
 
   const renderEmpty = () => {
     if (isLoading) {
@@ -123,36 +117,18 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
                 <BackButton />
               </View>
             ) : null}
-            <View className="flex-row items-end justify-between gap-3">
-              <View className="flex-1 gap-1">
-                {count !== undefined ? (
-                  <Text className="ds-text-section-label text-ink-2">
-                    {t("people.count", { count })}
-                  </Text>
-                ) : null}
-                <Text
-                  accessibilityRole="header"
-                  className="ds-text-screen-title text-ink"
-                >
-                  {t("people.title")}
+            <View className="gap-1">
+              {count !== undefined ? (
+                <Text className="ds-text-section-label text-ink-2">
+                  {t("people.count", { count })}
                 </Text>
-              </View>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={t("people.sort.accessibility")}
-                accessibilityState={{ selected: sortByName }}
-                activeOpacity={BUTTON_ACTIVE_OPACITY}
-                onPress={toggleSortByName}
-                className={`min-h-11 items-center justify-center rounded-full border px-4 ${
-                  sortByName ? "border-sand bg-sand" : "border-line bg-surface"
-                }`}
+              ) : null}
+              <Text
+                accessibilityRole="header"
+                className="ds-text-screen-title text-ink"
               >
-                <Text
-                  className={`ds-text-chip uppercase ${sortByName ? "text-grape" : "text-ink-2"}`}
-                >
-                  {t("people.sort.label")}
-                </Text>
-              </TouchableOpacity>
+                {t("people.title")}
+              </Text>
             </View>
             <TextInput
               icon={<Ionicons name="search" size={20} color={theme.ink2} />}
@@ -164,10 +140,12 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
               autoCorrect={false}
               returnKeyType="search"
             />
-            <SegmentedControl
-              options={roleOptions}
-              value={roleFilter}
-              onChange={setRoleFilter}
+            <FilterBar
+              role={roleFilter}
+              sort={sort}
+              onOpen={openFilter}
+              onClearRole={() => setRoleFilter("all")}
+              onClearSort={() => setSort("recent")}
             />
           </View>
         }
@@ -192,6 +170,14 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
+      />
+      <FilterSheet
+        visible={isFilterVisible}
+        onClose={closeFilter}
+        role={roleFilter}
+        sort={sort}
+        onRoleChange={setRoleFilter}
+        onSortChange={setSort}
       />
       <PersonSheet
         person={selectedPerson}

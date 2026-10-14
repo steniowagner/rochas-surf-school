@@ -2,13 +2,14 @@
 id: "028"
 slug: create-classes
 title: Admins create classes in a batch
-status: accepted
+status: finished
 created: 2026-10-14
 started: 2026-10-14
 base_commit: 5c4c69b936ec934e6c920189d268a1f1ad2b2156
 reviewed_commit: 8cc0a7630c5ad9ea26d5df16089cec743e43a063
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
+finished: 2026-10-14
 ---
 
 # 028 — Admins create classes in a batch

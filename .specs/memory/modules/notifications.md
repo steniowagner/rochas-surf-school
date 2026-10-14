@@ -20,6 +20,8 @@ What the person is told, and how it reaches them.
   - `registration.approved` — the person's registration was approved; no details.
   - `registration.denied` — the person's registration was denied; details: the admin's reason, exactly as
     stored, when one was given.
+  - `class.assigned` — the person was assigned to the classes of a batch an admin created; details: how many
+    classes (`count`) and their discipline (`surf` | `skate`). One per instructor and batch.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -27,11 +29,15 @@ What the person is told, and how it reaches them.
   | `registration.pending` | New registration | {name} is waiting for approval. |
   | `registration.approved` | Account approved | You can start using the app now. |
   | `registration.denied` | Registration denied | the reason as written, or "Open the app to learn more." |
+  | `class.assigned` | New classes on your schedule | You've been assigned 1 {discipline} class. / You've been assigned {count} {discipline} classes. |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
-  o app.", "Inscrição recusada" / "Abra o app para saber mais.". es: "Nueva inscripción" / "{name} está esperando
+  o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
+  para 1 aula de {discipline}." ("{count} aulas de"). es: "Nueva inscripción" / "{name} está esperando
   aprobación.", "Cuenta aprobada" / "Ya puedes empezar a usar la app.", "Inscripción rechazada" / "Abre la app
-  para saber más.".
+  para saber más.", "Nuevas clases en tu agenda" / "Te asignaron 1 clase de {discipline}." ("{count} clases de").
+  `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` push uses the app's default
+  (reload the account and open its home).
 
 Rules:
 
@@ -81,6 +87,8 @@ Rules:
   the stored notifications.
 - **Approved admins** — receive a push for each new registration.
 - **The person whose registration was decided** — receives the approval, or the denial with its reason.
+- **An instructor or admin assigned to a batch of classes** — receives one `class.assigned`, unless they
+  created the batch.
 
 ## Boundaries
 
@@ -88,12 +96,14 @@ It knows people only by their ids and the phones they registered, and it doesn't
 [Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
 it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
-backend. It doesn't decide when an event happens — the module of the event does.
+backend. [Classes](classes.md) reaches it the same way, through its own contract for class assignments; a
+failure there is logged and never changes the class creation. It doesn't decide when an event happens — the
+module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
-with their specs, as do the notifications of every other event (reactivation requests, role changes, classes,
-enrolments, broadcasts).
+with their specs, as do the notifications of every other event (reactivation requests, role changes, class
+edits, cancellations, unassignments and reminders, enrolments, broadcasts).
 
 ## Spec history
 
@@ -104,3 +114,5 @@ enrolments, broadcasts).
   account are deleted on Authentication's request.
 - `026-profile-tab` — a phone removes its own token (`DELETE /notifications/push-token`, `UnregisterPushToken`,
   any status); the app's push switch on the Profile, kept on the phone.
+- `028-create-classes` — the `class.assigned` type (`{ count, discipline }`) and its push copy, sent once per
+  instructor and batch through the Classes module's contract.

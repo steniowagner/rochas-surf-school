@@ -445,10 +445,13 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 
 ### Notifications (`modules/notifications`)
 
-- [ ] **T-07** — Add `class.assigned` to `NOTIFICATION_TYPES` in
+- [x] **T-07** — Add `class.assigned` to `NOTIFICATION_TYPES` in
   `modules/notifications/src/notification/model/notification.entity.ts`, with a test that a notification of that type
   and params `{ count, discipline }` is valid.
   Covers: ER-07 · Done when: `cd modules/notifications && npx jest --coverage` passes.
+  > ✅ 2026-10-14 10:59 — Added `class.assigned` to `NOTIFICATION_TYPES` and a test that a notification of that type with params `{ count, discipline }` is valid;
+  > files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`;
+  > verified: `cd modules/notifications && npx jest --coverage` (88 passed, 11 suites); deviations: none (the backend's push catalog gets its `class.assigned` entry in T-10, so the backend type check is red between T-07 and T-10)
 
 ### Backend (`apps/backend`)
 

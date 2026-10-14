@@ -40,6 +40,17 @@ describe("Notification", () => {
     expect(() => build({ type, params: {} }).validate()).not.toThrow();
   });
 
+  it("accepts a class.assigned notification with its count and discipline", () => {
+    const notification = build({
+      type: "class.assigned",
+      params: { count: 4, discipline: "surf" },
+    });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe("class.assigned");
+    expect(notification.params).toEqual({ count: 4, discipline: "surf" });
+  });
+
   it("rejects a missing or invalid user id", () => {
     expect(messagesOf(() => build({ userId: "" }).validate())).toContain(
       "notification.userId.required",

@@ -559,13 +559,16 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > files: `apps/mobile/src/modules/classes/components/location-picker/**`, `apps/mobile/src/modules/classes/components/location-sheet/**`;
   > verified: `cd apps/mobile && npx jest src/modules/classes/components/location-picker src/modules/classes/components/location-sheet --coverage` (14 passed, every new file 100%), `tsc --noEmit` and eslint pass; deviations: none (the location list has no loading or error state of its own: an empty list just shows "Novo local")
 
-- [ ] **T-17** — `CapacityStepper` (−/+ `TouchableOpacity` buttons of 44 pt, the number in Barlow Condensed, bounds
+- [x] **T-17** — `CapacityStepper` (−/+ `TouchableOpacity` buttons of 44 pt, the number in Barlow Condensed, bounds
   1–20) and `InstructorPicker` (rows with initials, name, role chip and a check box; loading and error-with-retry
   states), with tests.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-12 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/capacity-stepper src/modules/classes/components/instructor-picker --coverage`
   passes.
+  > ✅ 2026-10-14 11:14 — Added `CapacityStepper` (−/+ `TouchableOpacity` buttons of 44 pt, the number in Barlow Condensed via `ds-text-lesson-time`, each button off at its bound) and `InstructorPicker` (check rows with the people module's `PersonAvatar`, name and role `Chip`, loading state and error with retry reusing `registrations.retry`);
+  > files: `apps/mobile/src/modules/classes/components/capacity-stepper/**`, `apps/mobile/src/modules/classes/components/instructor-picker/**`;
+  > verified: `cd apps/mobile && npx jest src/modules/classes/components/capacity-stepper src/modules/classes/components/instructor-picker --coverage` (9 passed, both components 100%), `tsc --noEmit` and eslint pass; deviations: none
 
 - [ ] **T-18** — `NewClassScreen` (`src/modules/classes/screens/new-class.screen.tsx`) with `useNewClassScreen`:
   `BackButton`, `ScreenIntro` "Nova aula", the sections in the design's order (Modalidade, Nível, Dias, Horários,

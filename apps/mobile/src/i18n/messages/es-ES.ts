@@ -190,10 +190,20 @@ const messages: Messages = {
   },
   admin: {
     home: {
+      toolsSection: "Herramientas",
+      schoolSection: "Escuela",
       title: "Herramientas de la escuela",
       registrationsRow: "Unirse a la escuela",
       waiting: "{{count}} esperando",
     },
+  },
+  instructor: {
+    home: {
+      title: "Panel",
+    },
+  },
+  home: {
+    peopleRow: "Personas",
   },
   registrations: {
     title: "Unirse a la escuela",
@@ -296,6 +306,22 @@ const messages: Messages = {
     creatorGithub: "GitHub del creador",
     creatorLinkedin: "LinkedIn del creador",
     close: "Cerrar",
+  },
+  people: {
+    title: "Personas",
+    count: "{{count}} en la plataforma",
+    searchPlaceholder: "Buscar persona",
+    filter: {
+      student: "Alumnos",
+      instructor: "Instructores",
+      admin: "Admins",
+    },
+    since: "desde {{date}}",
+    empty: "No se encontró a nadie",
+    loadError: "No se pudo cargar a las personas.",
+    whatsapp: "Chatear por WhatsApp",
+    whatsappNotShared: "Número no compartido.",
+    whatsappUnavailable: "No se pudo abrir WhatsApp.",
   },
   deleteAccountSheet: {
     title: "¿Eliminar tu cuenta?",

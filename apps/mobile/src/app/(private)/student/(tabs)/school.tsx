@@ -1,9 +1,5 @@
-import { useTranslation } from "react-i18next";
-
-import { FlowPlaceholder } from "@/components/flow-placeholder";
+import { PeopleScreen } from "@/modules/people/screens/people.screen";
 
 export default function SchoolRoute() {
-  const { t } = useTranslation();
-
-  return <FlowPlaceholder title={t("tabs.school")} />;
+  return <PeopleScreen showBackButton={false} />;
 }

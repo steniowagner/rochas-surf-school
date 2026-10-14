@@ -62,7 +62,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     when needed, see Mobile session) — callers never read or pass tokens; `timeoutMs` aborts the request with an
     `AbortController` and throws `NetworkError` (no timeout unless asked). `SessionExpiredError` means the
     backend refused to renew the session. The bare HTTP call is `rawRequest` in `api.request.ts` (no session
-    logic), which the client and the session store share so they don't import each other.
+    logic), which the client and the session store share so they don't import each other. A paginated list is one
+    `useInfiniteQuery` per filter combination (key `[<list>, filters]`), the next page while `page * perPage <
+    total`, rows repeated across pages dropped by `id`, no retry (spec 027: `usePeople`).
   - Phone numbers: **`libphonenumber-js`** (default metadata) turns what the person typed and the chosen
     country into E.164 and lists the countries with their dial codes; **`i18n-iso-countries`** gives their
     names in en, es and pt, following the app language. Both run under Jest without a transform. With Brazil
@@ -189,6 +191,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   `<module>-<short-change>` (e.g. `auth-add-refresh-tokens`). Generated with
   `npm run prisma:migrate:dev --workspace apps/backend -- --name <name>`; applied in CI and deploys with
   `prisma:migrate:deploy`. The `backend-prisma-sync-module` skill does this from a module's entities.
+- Accent-insensitive text: the Postgres **`unaccent`** extension (migration `auth-enable-unaccent`, spec 027).
+  Prisma's `contains` / `mode: insensitive` doesn't ignore accents, so a search or sort that must ("joao" finds
+  "João") is raw SQL through `$queryRaw` with `Prisma.sql` fragments — bound parameters only, `%`, `_` and `\`
+  escaped in `LIKE` patterns — that selects the ids in order, then loads the rows with their relations through the
+  normal client and maps them in that order (`PrismaUserRepository.findDirectoryPage`).
 - Seeds (`apps/backend/prisma/seed/main.ts`, one task per module) hold only technical data and the three App
   Store / Google Play review accounts — never demo data.
 - **`users.status` is the authority for deleted and removed accounts**, not the `deleted_at` column inherited
@@ -285,7 +292,12 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   sat under the floating tab bar); it presents on `visible` and only dismisses a sheet it presented, its scrim is
   the light palette's ink at 45% so it is dark in both themes, it takes only the room its content needs plus the
   home-indicator inset, and it passes `onClose` to the sheet library too, so dragging the sheet down reaches the
-  caller (a backdrop tap may call it twice; callers must tolerate that). Shared pieces used by more than one
+  caller (a backdrop tap may call it twice; callers must tolerate that); a sheet dragged or tapped away counts as
+  no longer presented, so the caller's next `visible` opens it again. A switcher between a few options is the
+  shared `SegmentedControl` (`src/components/ui/segmented-control`: generic `options: { value, label }[]`, `value`,
+  `onChange(value)`; equal-width `TouchableOpacity` segments with role `tab` and `accessibilityState.selected`, at
+  least 44 pt tall, a `bg-sand` track with the selected segment on `bg-surface` with `shadowStyle()`; pressing the
+  selected one does nothing; no screen uses it yet). Shared pieces used by more than one
   module live in `src/components/`: `LanguageSheet` (sign-in screen and Profile; choosing stores the locale),
   `ThemeSheet` (the three choices with a check on the current one), `WhatsappNumberForm` (country picker,
   Brazilian mask, share switch, validation and submit button; header slot, `initialNumber` / `initialVisible`,
@@ -307,7 +319,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   so a moved route changes in one place. Each role's folder (`src/app/(private)/<role>/`) has a `Stack` whose
   `(tabs)` group holds the tab bar (`(tabs)/_layout.tsx` renders `RoleTabs`, one route file per tab; the first tab
   is the role's `index`, so `/student`, `/instructor` and `/admin` stay the flows' entry routes); inner screens
-  (`/admin/registrations`, `/<role>/edit-profile`, `/<role>/whatsapp`, `/<role>/school-rules`) are routes of the
+  (`/admin/registrations`, `/admin/people`, `/instructor/people`, `/<role>/edit-profile`, `/<role>/whatsapp`,
+  `/<role>/school-rules`) are routes of the
   role's `Stack`, outside `(tabs)`, so they open above the tab bar, without it, and go back with `BackButton`.
   Route tests that render a role live in `src/modules/<role>/*-tabs.navigation.test.tsx`, never under `src/app/`
   (Expo Router would read a test file there as a route).
@@ -495,6 +508,20 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   a row changed — never `update()`, which is unconditional: of two concurrent decisions exactly one wins and the
   other gets the 409. `UserRepository.findPending()` reads the list. A decision re-validates the whole user, so a
   stored row the current entity rules reject can't be decided.
+- People directory (`people.controller.ts`, protected, spec 027): `GET /people` passes the raw query strings
+  `page`, `perPage`, `role`, `search` to `ListPeople` (`modules/auth/src/user/usecase/`), which checks in this order:
+  status other than `approved` → 403 `user.status.notApproved` (any role may read; an unknown user is the guard's
+  401 `auth.token.invalid`); then the query, every failure collected into one 422: `page` (digits only, ≥ 1,
+  default 1) → `people.page.invalid`; `perPage` (digits only, 1–50, default 20) → `people.perPage.invalid`; `role`
+  (comma-separated `student` | `instructor` | `admin`, repeats dropped; absent or blank = every role; an unknown
+  name or a repeated parameter → `people.role.invalid`); `search` (trimmed, blank = none, over 80 characters →
+  `people.search.max.length`). There is no `sort` parameter. `UserRepository.findDirectoryPage({ page, perPage,
+  roles?, search? })` returns only `approved` users with any of the roles, the name containing the search ignoring
+  case and accents, ordered by `lower(unaccent(name))` then `id` (see Persistence). 200 `{ items: [{ id, name, role,
+  createdAt, whatsappNumber }], page, perPage, total }`: `whatsappNumber` is the stored number when the owner's
+  `whatsappVisible` is true or the viewer is an admin, else `null` — decided in the use case, so a hidden number
+  never leaves the backend; email, photo, status and the visibility flag are never returned. The scaffold's
+  `findPage` / `searchByName` (`FindUserPage`, `SearchUsersByName`) filter by neither status nor role and stay unused.
 - Boundary: only `apps/backend/src/shared/auth` and the auth adapters know about tokens; use cases receive a
   plain current-user value and enforce permissions.
 - Variables (names in `apps/backend/.env.example`, values never committed): `JWT_SECRET`, `JWT_EXPIRES_IN`
@@ -584,6 +611,17 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   "Decided just now" in screen state (only for the visit; nothing on a 409), guards double taps per card with a
   ref, and closes the deny sheet only for the registration that was decided or found already decided — a
   failure keeps the sheet and its reason.
+- Mobile people calls (`modules/people`, spec 027): `usePeople({ roles, search })` is the infinite query
+  `["people", { roles, search }]` (authenticated `GET /people?page=&perPage=20`, `role` as a comma list in the fixed
+  order student, instructor, admin and `search` sent only when set; `buildPeoplePagePath`), and `usePeopleCount` is
+  `["people", "count"]` (`GET /people?perPage=1`, `total`: the unfiltered number for the eyebrow, nothing shown while
+  loading or after an error). `usePeopleScreen` debounces the search by 300 ms, toggles the roles, and maps a
+  failed next page to a toast with `getRegistrationErrorKey` (nothing for `SessionExpiredError`). The list keeps the
+  backend's order and only groups it by first letter (`groupByInitial`: NFD without accents, "#" for a non-letter).
+  The sheet shows the number with `libphonenumber-js` `formatInternational()` (as sent when unparsable) and opens
+  `https://wa.me/<digits>` with `Linking.openURL`, toast `people.whatsappUnavailable` on a rejection. The home rows'
+  "N na plataforma" is the constant `PEOPLE_COUNT_PLACEHOLDER = 9` (`constants/people.ts`) until a backend route
+  gives the count.
 - Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.
   `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
   `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);

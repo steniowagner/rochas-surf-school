@@ -1,0 +1,52 @@
+# Manual REST Client requests for GET /people (VS Code REST Client).
+# Sign in with any approved review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
+# Codes are read from the backend log when RESEND_API_KEY is unset.
+
+@baseUrl = http://localhost:4000
+@email = admin@example.com
+@code = 345678
+
+### Request a sign-in code (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Sign in (expects 200 with accessToken)
+# @name session
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+###
+@token = {{session.response.body.accessToken}}
+
+### Default list: approved users, A–Z by name (ignoring case and accents), 20 per page (expects 200 with { items: [{ id, name, role, createdAt, whatsappNumber }], page, perPage, total })
+GET {{baseUrl}}/people
+Authorization: Bearer {{token}}
+
+### Filter by one or more roles (comma separated) and search the name ignoring case and accents (expects 200; "joao" finds "João")
+GET {{baseUrl}}/people?role=student,instructor&search=joao
+Authorization: Bearer {{token}}
+
+### Second page (expects 200; items: [] past the end, with the real total)
+GET {{baseUrl}}/people?page=2&perPage=20
+Authorization: Bearer {{token}}
+
+### Without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/people
+
+### As a pending, denied, deleted or removed account (expects 403 user.status.notApproved): use that account's token
+GET {{baseUrl}}/people
+Authorization: Bearer {{token}}
+
+### Invalid query (expects 422 with errors people.page.invalid, people.perPage.invalid, people.role.invalid)
+GET {{baseUrl}}/people?page=0&perPage=51&role=guest
+Authorization: Bearer {{token}}

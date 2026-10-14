@@ -1,4 +1,5 @@
 import { User } from '@rochas-surf-school/auth';
+import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../db/prisma.service.js';
 import { PrismaUserRepository } from './user.prisma.js';
 
@@ -55,12 +56,14 @@ function setup() {
     deleteMany: vi.fn(),
     count: vi.fn(),
   };
+  const $queryRaw = vi.fn();
   const userRulesAcceptance = { createMany: vi.fn() };
   const repository = new PrismaUserRepository({
     user,
     userRulesAcceptance,
+    $queryRaw,
   } as unknown as PrismaService);
-  return { user, userRulesAcceptance, repository };
+  return { user, userRulesAcceptance, $queryRaw, repository };
 }
 
 function minimalUser(): User {
@@ -265,6 +268,74 @@ describe('PrismaUserRepository', () => {
       include: { rulesAcceptances: true },
     });
     expect(users.map((item) => item.id)).toEqual([ID]);
+  });
+
+  describe('findDirectoryPage', () => {
+    const OTHER_ID = '1c9f5a3e-77b0-4f0e-8d3a-5b6c7d8e9f01';
+
+    /** The SQL text and bound values of the nth raw query, as Postgres would receive them. */
+    function sqlOf($queryRaw: ReturnType<typeof vi.fn>, call: number) {
+      const [strings, ...values] = $queryRaw.mock.calls[call] as [
+        TemplateStringsArray,
+        ...unknown[],
+      ];
+      const query = Prisma.sql(strings, ...values);
+      return { text: query.sql.replace(/\s+/g, ' ').trim(), values: query.values };
+    }
+
+    it('lists approved users in the query order, mapped to the domain, with the total', async () => {
+      const { user, $queryRaw, repository } = setup();
+      $queryRaw
+        .mockResolvedValueOnce([{ id: OTHER_ID }, { id: ID }])
+        .mockResolvedValueOnce([{ total: 25n }]);
+      user.findMany.mockResolvedValue([minimalRecord, { ...minimalRecord, id: OTHER_ID }]);
+
+      const result = await repository.findDirectoryPage({ page: 2, perPage: 20 });
+
+      expect(result.items.map((item) => item.id)).toEqual([OTHER_ID, ID]);
+      expect(result).toMatchObject({ page: 2, perPage: 20, total: 25 });
+      expect(user.findMany).toHaveBeenCalledWith({
+        where: { id: { in: [OTHER_ID, ID] } },
+        include: { rulesAcceptances: true },
+      });
+      expect(sqlOf($queryRaw, 0)).toEqual({
+        text: "SELECT id FROM users WHERE status = 'approved' ORDER BY lower(unaccent(name)) ASC, id ASC LIMIT ? OFFSET ?",
+        values: [20, 20],
+      });
+      expect(sqlOf($queryRaw, 1).text).toBe(
+        "SELECT COUNT(*) AS total FROM users WHERE status = 'approved'",
+      );
+    });
+
+    it('filters by roles and by name ignoring accents, escaping LIKE wildcards', async () => {
+      const { $queryRaw, repository } = setup();
+      $queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ total: 0n }]);
+
+      await repository.findDirectoryPage({
+        page: 1,
+        perPage: 20,
+        roles: ['instructor', 'admin'],
+        search: '50%_a\\b',
+      });
+
+      const select = sqlOf($queryRaw, 0);
+      expect(select.text).toContain(
+        "status = 'approved' AND role = ANY(?::user_role[]) AND unaccent(lower(name)) LIKE unaccent(lower(?))",
+      );
+      expect(select.values.slice(0, 2)).toEqual([['instructor', 'admin'], '%50\\%\\_a\\\\b%']);
+      expect(sqlOf($queryRaw, 1).values).toEqual([['instructor', 'admin'], '%50\\%\\_a\\\\b%']);
+    });
+
+    it('skips the user query for an empty page', async () => {
+      const { user, $queryRaw, repository } = setup();
+      $queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ total: 3n }]);
+
+      const result = await repository.findDirectoryPage({ page: 5, perPage: 20 });
+
+      expect(result).toEqual({ items: [], page: 5, perPage: 20, total: 3 });
+      expect(sqlOf($queryRaw, 0).values).toEqual([20, 80]);
+      expect(user.findMany).not.toHaveBeenCalled();
+    });
   });
 
   describe('updateIfPending', () => {

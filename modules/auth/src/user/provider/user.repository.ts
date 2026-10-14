@@ -1,9 +1,18 @@
-import { CrudRepository } from "@rochas-surf-school/shared";
-import { RulesAcceptance, User } from "../model";
+import { CrudRepository, PageResult } from "@rochas-surf-school/shared";
+import { RulesAcceptance, User, UserRole } from "../model";
 
 export interface UserPageParams {
   page: number;
   perPage: number;
+}
+
+export interface DirectoryPageParams {
+  page: number;
+  perPage: number;
+  /** Users with at least one of these roles; absent or empty means every role. */
+  roles?: UserRole[];
+  /** Already trimmed; matched as a "contains" on the name, ignoring case and accents. */
+  search?: string;
 }
 
 export interface UserRepository extends CrudRepository<
@@ -12,6 +21,8 @@ export interface UserRepository extends CrudRepository<
   User,
   UserPageParams
 > {
+  /** Page of the `approved` users, filtered by roles and name and sorted A–Z by name (ignoring case and accents, ties broken by id). */
+  findDirectoryPage(params: DirectoryPageParams): Promise<PageResult<User>>;
   searchByName(name: string): Promise<User[]>;
   findByEmail(email: string): Promise<User | null>;
   /** Users with status `pending`, oldest first. */

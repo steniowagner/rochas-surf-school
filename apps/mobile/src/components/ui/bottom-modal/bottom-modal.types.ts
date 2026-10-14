@@ -6,4 +6,4 @@ export type BottomModalProps = {
   children: ReactNode;
 };
 
-export type UseBottomModalProps = Pick<BottomModalProps, "visible">;
+export type UseBottomModalProps = Pick<BottomModalProps, "visible" | "onClose">;

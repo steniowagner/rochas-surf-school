@@ -37,7 +37,29 @@ const routeTree = {
   "(private)/student/(tabs)/profile": ProfileRoute,
 };
 
+const fetchMock = jest.fn();
+
 beforeEach(() => {
+  fetchMock.mockReset().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      items: [
+        {
+          id: "p-1",
+          name: "Bruno Lima",
+          role: "instructor",
+          createdAt: "2026-07-15T12:00:00.000Z",
+          whatsappNumber: null,
+        },
+      ],
+      page: 1,
+      perPage: 20,
+      total: 1,
+    }),
+  });
+  globalThis.fetch = fetchMock;
+  process.env.EXPO_PUBLIC_API_URL = "http://api.test";
   hydrateSession({
     user: {
       id: "user-1",
@@ -87,6 +109,18 @@ describe("student tabs", () => {
     expect(app.getPathname()).toBe("/student/profile");
     expect(selectedTabLabel()).toBe("Profile");
     expect(screen.getByRole("header", { name: "Ana Souza" })).toBeOnTheScreen();
+  });
+
+  it("the Escola tab shows the people directory", async () => {
+    const app = await open();
+
+    await act(async () => router.navigate(routes.student.school));
+
+    expect(app.getPathname()).toBe("/student/school");
+    expect(selectedTabLabel()).toBe("School");
+    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
+    expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).not.toBeOnTheScreen();
   });
 
   it("labels the tabs in the app language", async () => {

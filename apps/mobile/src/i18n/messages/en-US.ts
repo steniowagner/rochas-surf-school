@@ -183,10 +183,20 @@ const messages = {
   },
   admin: {
     home: {
+      toolsSection: "Tools",
+      schoolSection: "School",
       title: "School tools",
       registrationsRow: "Join the school",
       waiting: "{{count}} waiting",
     },
+  },
+  instructor: {
+    home: {
+      title: "Dashboard",
+    },
+  },
+  home: {
+    peopleRow: "People",
   },
   registrations: {
     title: "Join the school",
@@ -289,6 +299,22 @@ const messages = {
     creatorGithub: "Creator's GitHub",
     creatorLinkedin: "Creator's LinkedIn",
     close: "Close",
+  },
+  people: {
+    title: "People",
+    count: "{{count}} on the platform",
+    searchPlaceholder: "Search people",
+    filter: {
+      student: "Students",
+      instructor: "Instructors",
+      admin: "Admins",
+    },
+    since: "since {{date}}",
+    empty: "No one found",
+    loadError: "Couldn't load people.",
+    whatsapp: "Chat on WhatsApp",
+    whatsappNotShared: "Number not shared.",
+    whatsappUnavailable: "Couldn't open WhatsApp.",
   },
   deleteAccountSheet: {
     title: "Remove your account?",

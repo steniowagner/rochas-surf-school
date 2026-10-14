@@ -187,9 +187,12 @@ Listed in the order people meet them.
 - **Broadcast** (`broadcast`): a notification an admin writes (title and description) for an audience —
   `everyone` (admins included), `students` or `instructors` — reaching the approved, active users of those
   roles. The admin sees the number of recipients and confirms before it is sent.
-- **People directory**: not a concept of its own — the list of approved, active users (name, photo, role, and
-  the WhatsApp number when shared), searchable by name and filterable by role. Admins can open a WhatsApp chat
-  with any user from their profile, in WhatsApp on the admin's own phone.
+- **People directory**: not a concept of its own — the list of every approved user of any role, the viewer
+  included (name, photo, role, member since, and the WhatsApp number when its owner shares it or the viewer is an
+  admin), always sorted A–Z by name ignoring case and accents, 20 at a time. It is searched by name (ignoring case
+  and accents) and filtered by any number of roles (a user with one of the chosen roles is listed; none chosen means
+  everyone). Opening a person offers a WhatsApp chat, in WhatsApp on the viewer's own phone, whenever the viewer
+  may see the number — so admins can chat with anyone who has a number.
 
 ## Main journeys
 
@@ -515,7 +518,7 @@ gains its own automated tests, including checks that every page opens in each la
 **Tab bars and the Profile tab** (spec `026-profile-tab`) — an approved account that finished onboarding now
 opens the tab bar of its role: a student has Agenda, Minhas aulas, Escola and Perfil (Agenda first); an instructor
 and an admin have Início, Aulas and Perfil (Início first). Every tab except Perfil and the admin's Início ("School
-tools") is still a placeholder with its name; inner screens such as "Join the school" open above the tab bar,
+tools") was a placeholder (spec 027 then filled the student's Escola and the instructor's Início) with its name; inner screens such as "Join the school" open above the tab bar,
 without it. Perfil is the same for the three roles: the person's initials, name and role, then "Editar perfil" (the
 name, with the email read-only and the photo "coming soon"), WhatsApp ("Visível" / "Oculto"; the number, its
 country and the share switch), Tema (same as the phone, light or dark, applied at once), Idioma (pt-BR, es-ES or
@@ -530,6 +533,21 @@ out. Turning pushes off removes the phone from the account's pushes at once (ret
 sign-in if it fails); turning them on registers it again, and a refused OS permission keeps the switch off with a
 message. Deleting the account doesn't yet refuse the only admin, nor cancel seats, enrolments or class
 assignments (none exist yet). All copy is in pt-BR, es-ES and en-US.
+
+**People directory** (spec `027-people-directory`) — every approved member can now see the school's other
+approved members on one "Pessoas" screen, the same for the three roles: a student opens it from the Escola tab; an
+admin from a "Pessoas" row under a new "Escola" section of the home (the "Entrar na escola" row now sits under
+"Ferramentas"); an instructor from the Início tab, which became "Painel" with that one row. The rows on the homes
+read "9 na plataforma", a fixed number until the real count can be read. The screen shows the real number of
+approved members ("N na plataforma", which doesn't change with the search or the filter), a search box that
+ignores case and accents ("joao" finds "João"), one toggle button per role (Alunos, Instrutores, Admins; any
+number selected, none = everyone), and the list A–Z under letter headers — initials, name, "desde <mês ano>" and
+the role — loading 20 more at the end of the list, with pull-to-refresh, a loading, empty and error-with-retry
+state. Pending, denied, deleted and removed accounts never appear. Tapping a person opens a sheet with their
+initials, name and role and a "Conversar por WhatsApp" row with the number, which opens the chat in WhatsApp on
+the phone; when the viewer may not see the number (not shared and the viewer isn't an admin, or no number), the
+row is disabled and says "Número não compartilhado.". A hidden number never leaves the backend for a non-admin.
+All copy is in pt-BR, es-ES and en-US.
 
 Active specs: none.
 
@@ -570,6 +588,11 @@ Active specs: none.
   About sheet (mocked), keeping the theme, language and push preferences on the account or syncing them across
   phones, and, when a person deletes their account, refusing the only admin and cancelling their seats,
   enrolments and class assignments.
+- On the People directory (spec 027): profile photos (initials only), class counts and the "Acesso total" /
+  "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", promoting, demoting or
+  removing someone from their sheet, searching by email, the real count on the home rows (a fixed "9 na
+  plataforma" until the backend can give it), and the rest of the admin and instructor dashboards (greeting,
+  bell, metrics and every other row).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea

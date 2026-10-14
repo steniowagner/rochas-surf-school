@@ -33,8 +33,19 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
   always replaces both the number and its visibility, and an empty number is refused, so once set it is never
   emptied. Several accounts may share one number (a family phone).
-- **WhatsApp visibility**: hidden by default; hidden means only admins see the number. Nothing shows other
-  users' numbers yet.
+- **WhatsApp visibility**: hidden by default; hidden means only admins see the number. The people directory is
+  the only place other users' numbers are shown.
+- **People directory**: an approved account of any role lists every `approved` user of any role, itself included
+  (approved accounts that haven't finished onboarding too); pending, denied, deleted and removed accounts never
+  appear. Each item carries only the id, name, role, creation date and WhatsApp number — never the email, photo,
+  status or the visibility itself. The number is given when its owner shares it or when the viewer is an admin,
+  and is none otherwise (or when there is no number): a hidden number never leaves the backend for anyone else.
+  The list is always sorted A–Z by name ignoring case and accents (same names by id, so pages never overlap), 20
+  per page by default (up to 50). It can be searched by name — a "contains" match ignoring case and accents, `%`
+  and `_` taken literally, trimmed, up to 80 characters — and filtered by one or more roles (a user with any of
+  them is listed). Wrong parameters are refused together: `people.page.invalid`, `people.perPage.invalid`,
+  `people.role.invalid` (an unknown role or the parameter sent twice), `people.search.max.length`; the access
+  check comes first.
 - **Accepted school rules**: each acceptance is a version of the school rules with when it was accepted; one
   per version, and accepting a version already stored keeps the first one, even when two requests arrive at the
   same moment. The acceptances themselves are recorded by [School rules](school-rules.md).
@@ -153,8 +164,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date,
   WhatsApp number and its visibility, whether it accepted the current school rules, its denial reason and its
   reactivation status).
-- **An approved account** — sets its own WhatsApp number and visibility, changes its own name, and deletes its
-  own account.
+- **An approved account** — sets its own WhatsApp number and visibility, changes its own name, deletes its
+  own account, and reads the people directory (any role; anyone else gets `user.status.notApproved`).
 - **A deleted account** — sends its one reactivation request.
 - **An approved admin** — lists the pending registrations and approves or denies each one, with an optional
   reason when denying. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
@@ -230,6 +241,14 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   ("Approved" / "Denied"), which lasts only for the visit. An already decided registration shows "This
   registration was already decided.", reloads the list and isn't added to "Decided just now"; other failures show
   their toast and keep the card (and the sheet with its reason).
+- **In the app**, every approved role opens the People screen — a student from the Escola tab, an admin from the
+  "Pessoas" row under "Escola" on the home (below "Ferramentas" and "Entrar na escola"), an instructor from the
+  "Pessoas" row of the "Painel" (Início); both rows read a fixed "9 na plataforma" for now. The screen shows the
+  unfiltered number of approved members, a search that waits 300 ms after the last key, one toggle button per role
+  (none selected = everyone), and the people A–Z under letter headers — initials, name, "desde <mês ano>", role —
+  loading the next 20 at the end, with pull-to-refresh and loading, empty and error-with-retry states. A person's
+  sheet opens WhatsApp on the phone with their number when the viewer may see it, and otherwise shows a disabled
+  "Número não compartilhado." row.
 - **In the app**, a removed account sees that its access was removed and can't be reactivated from the app, and
   can contact the school on WhatsApp when the school has a number; a stored reactivation status changes
   nothing for it.
@@ -311,3 +330,7 @@ requests, and deciding reactivation requests are rules of the account lifecycle 
   and deletes its own account (`DELETE /auth/me`: `approved` → `deleted`, deletion date stamped; the app then signs
   out); the app's Profile tab edits the name and the WhatsApp number and visibility, signs out and removes the
   account.
+- `027-people-directory` — any approved account reads the people directory (`GET /people`: approved users only,
+  A–Z ignoring case and accents, paged, searched by name ignoring accents, filtered by any of several roles), with
+  a WhatsApp number only when its owner shares it or the viewer is an admin; the app's People screen for every
+  role (student's Escola tab, admin's and instructor's home rows) and its person sheet with the WhatsApp chat.

@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PageResult } from '@rochas-surf-school/shared';
 import {
+  DirectoryPageParams,
   RulesAcceptance,
   User,
   UserPageParams,
   UserRepository,
 } from '@rochas-surf-school/auth';
 import { PrismaService } from '../../db/prisma.service.js';
+import { Prisma } from '../../generated/prisma/client.js';
 import type {
   User as UserRecord,
   UserRulesAcceptance as UserRulesAcceptanceRecord,
@@ -17,6 +19,11 @@ type UserRecordWithAcceptances = UserRecord & {
 };
 
 const include = { rulesAcceptances: true } as const;
+
+/** Escapes `\`, `%` and `_` so a search is matched literally by LIKE. */
+function escapeLike(text: string): string {
+  return text.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -77,6 +84,41 @@ export class PrismaUserRepository implements UserRepository {
       page: params.page,
       perPage: params.perPage,
       total,
+    };
+  }
+
+  async findDirectoryPage(params: DirectoryPageParams): Promise<PageResult<User>> {
+    const conditions = [Prisma.sql`status = 'approved'`];
+    if (params.roles?.length) {
+      conditions.push(Prisma.sql`role = ANY(${params.roles}::user_role[])`);
+    }
+    if (params.search) {
+      const pattern = `%${escapeLike(params.search)}%`;
+      conditions.push(Prisma.sql`unaccent(lower(name)) LIKE unaccent(lower(${pattern}))`);
+    }
+    const where = Prisma.join(conditions, ' AND ');
+    const orderBy = Prisma.sql`lower(unaccent(name)) ASC, id ASC`;
+
+    const [rows, counts] = await Promise.all([
+      this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM users WHERE ${where} ORDER BY ${orderBy}
+        LIMIT ${params.perPage} OFFSET ${(params.page - 1) * params.perPage}`,
+      this.prisma.$queryRaw<{ total: bigint }[]>`
+        SELECT COUNT(*) AS total FROM users WHERE ${where}`,
+    ]);
+
+    const ids = rows.map((row) => row.id);
+    const records =
+      ids.length === 0
+        ? []
+        : await this.prisma.user.findMany({ where: { id: { in: ids } }, include });
+    const byId = new Map(records.map((record) => [record.id, record]));
+
+    return {
+      items: ids.map((id) => this.toDomain(byId.get(id)!)),
+      page: params.page,
+      perPage: params.perPage,
+      total: Number(counts[0].total),
     };
   }
 

@@ -8,6 +8,7 @@ import ClassesRoute from "@/app/(private)/admin/(tabs)/classes";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import ProfileRoute from "@/app/(private)/admin/(tabs)/profile";
 import AdminLayout from "@/app/(private)/admin/_layout";
+import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import {
   selectedTabLabel,
@@ -47,6 +48,7 @@ const routeTree = {
   "(private)/admin/(tabs)/index": AdminRoute,
   "(private)/admin/(tabs)/classes": ClassesRoute,
   "(private)/admin/(tabs)/profile": ProfileRoute,
+  "(private)/admin/people": AdminPeopleRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
 };
 
@@ -116,6 +118,19 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Home");
     expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+  });
+
+  it("/admin/people shows the people directory", async () => {
+    const app = await open();
+
+    await act(async () => router.push(routes.admin.people));
+
+    expect(app.getPathname()).toBe("/admin/people");
+    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+
+    await act(async () => router.back());
+    expect(app.getPathname()).toBe("/admin");
   });
 
   it("labels the tabs in the app language", async () => {

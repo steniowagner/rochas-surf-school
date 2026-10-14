@@ -2,7 +2,7 @@
 id: "028"
 slug: create-classes
 title: Admins create classes in a batch
-status: in-review
+status: changes-requested
 created: 2026-10-14
 started: 2026-10-14
 base_commit: 5c4c69b936ec934e6c920189d268a1f1ad2b2156
@@ -653,3 +653,68 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-14 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for classes, notifications, backend,
+  mobile: 24 of 24 tasks)
+- related tests ✅ `RELATED TESTS PASSED` — apps/backend 106 passed, apps/mobile 751 passed, modules/classes 144
+  passed, modules/notifications 88 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (54 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (15 files, 373 passed, incl. `classes.e2e-spec.ts` and `locations.e2e-spec.ts`);
+  every `Verify by` command of ER-01 to ER-13 run on its own, each named test exists and passes
+- Copy: the three message files match every row of the Copy table (66 rows, 0 mismatches); push copy checked by
+  `push-messages.spec.ts` and the e2e `notifies` test
+- iOS simulator (iPhone 18 Pro, backend and Metro on this branch, admin account, English): Home → "Create classes"
+  under "Join the school" → "New class" without the tab bar, with the back button and the D-15 defaults; past days and
+  the previous-month button disabled; 15–17 → "3 days", SAT off → "2 days" and the 17th struck through; "New time" sheet
+  at 12:00–13:00 with "Duration: 1 h", "Add time" adds and selects the chip; "New location" with "Save location" off
+  while empty, saved, selected and the sheet closed; instructors listed with initials, name and role chip, none ticked;
+  capacity 8, notes 0/300; summary "2 days × 1 time · Review Beach" → "Create 2 classes" → toast "2 classes created"
+  and back on the home. The database held two classes at 15:00Z (12:00 Fortaleza), one instructor each, no notes, and
+  one `class.assigned` `{ count: 2, discipline: "surf" }`; the rows created were deleted afterwards. Reproduced F-01 in
+  the same session.
+
+**Expected Results**
+
+- ER-01 ✅ — e2e: 4 classes at 11:00Z / 19:00Z with the batch's fields and trimmed notes; one-day batch, repeated ids,
+  blank notes and overlapping batches covered
+- ER-02 ✅ — e2e: every D-07 key collected, touching ranges accepted, `notFound` / `instructors.invalid` /
+  `batch.empty` / `tooLarge` (`details.max` 200, 200 accepted), nothing stored
+- ER-03 ✅ — use case and e2e: past batch refused whole, exactly-now refused, next-day batch creates 4
+- ER-04 ✅ — e2e `access` in both suites: 401, 403 `notApproved` first, 403 `notAdmin`, `GET /locations` for any approved
+  account, nothing written
+- ER-05 ✅ — use case and e2e: last week only, Sunday 23:00 counts, empty case, same start sorted by end
+- ER-06 ✅ — e2e: trimmed 201, order ignoring case and accents, 409 duplicates, collected 422s, concurrent creation
+- ER-07 ✅ — e2e: one stored and pushed notification for the instructor, none for the creator, push failure keeps the
+  201, no phones → stored only, refused batch notifies nobody
+- ER-08 ✅ — tests and the simulator
+- ER-09 ❌ — see F-01; the rest of the behavior holds (tests and the simulator)
+- ER-10 ✅ — tests; in the simulator the sheet, its duration and adding a range (the native wheels can't be moved by
+  injected touches, so end-before-start is proven by `TimeRangeSheet`'s tests)
+- ER-11 ✅ — tests and the simulator (create in place, selected, sheet closed)
+- ER-12 ✅ — tests (every page, loading, error with retry, stepper bounds) and the simulator
+- ER-13 ✅ — tests (body, toasts, reloads, double press) and the simulator (toast and back on the home)
+
+**Findings**
+
+- [ ] **F-01** (D-06) — the weekday filter's state outlives the range, so a single day on a weekday that was turned
+  off can't be created and the screen gives no way out. D-06 says "the app sends all seven weekdays for a one-day
+  batch", and D-14 hides "Nos dias" for a single day; but `useNewClassScreen` keeps `weekdays` from the last range and
+  `buildBatchRequest` sends it as is. Reproduce (simulator, or a screen test with today 2026-10-14): tap the 15th, then
+  the 17th, turn off "SAT", tap the 17th again (starts over on the 17th alone), pick a time range, a location and an
+  instructor → "Days" reads "pick at least 1", "On" is hidden, the 17th shows no strike-through and "Create class"
+  stays disabled. Expected: a single selected day counts as one day whatever the filter held ("1 day", "Create class"
+  enabled) and the request carries `weekdays: [1, 2, 3, 4, 5, 6, 7]`. Add a screen test for this case.
+
+**Notes**
+
+- Not exercised in the simulator: dark theme (the app's own theme preference overrides the system appearance and was
+  left untouched), Spanish / Portuguese, and Android — the screens use only tokens and the copy is checked above.
+- `classes.created_by` is `ON DELETE RESTRICT`: when the planned 30-day erasure of deleted / removed accounts reaches
+  an admin who created classes, it will fail on this key. Worth deciding in that spec (or in class editing).
+- As T-20 noted, the shared toast has one look (red, alert icon), so "2 classes created" reads like an error — a
+  follow-up for the toast, out of this spec's scope.
+- `## Memory Impact` matches what was built.

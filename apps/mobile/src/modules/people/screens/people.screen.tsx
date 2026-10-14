@@ -15,11 +15,10 @@ import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 
-import { RoleFilters } from "../components/role-filters";
 import { PersonRow } from "../components/person-row";
 import { PersonSheet } from "../components/person-sheet";
+import { RoleFilters } from "../components/role-filters";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
-
 import { groupByInitial } from "../utils/group-by-initial";
 
 import { PeopleScreenProps } from "./people.screen.types";

@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
 import { useTheme } from "@/hooks/use-theme";
-
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 
 import { useRegistrations } from "../hooks/use-registrations.hook";

@@ -6,10 +6,9 @@ import { useAlertMessage } from "@/providers/alert-message";
 import { SessionExpiredError } from "@/services/api";
 
 import { PeopleRole, Person } from "../people.types";
-
+import { usePeopleCount } from "./use-people-count.hook";
 import { UsePeopleScreenResult } from "./use-people-screen.types";
 import { usePeople } from "./use-people.hook";
-import { usePeopleCount } from "./use-people-count.hook";
 
 const SEARCH_DEBOUNCE_MS = 300;
 

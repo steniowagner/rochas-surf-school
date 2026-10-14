@@ -275,7 +275,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   shows the initials avatar, the name, the role chip, a "Conversar por WhatsApp" row with "+55 85 99999-8888", and
   the "Fechar" button; pressing the WhatsApp row calls `Linking.openURL("https://wa.me/5585999998888")`; pressing
   "Fechar" (or dragging the sheet down) closes it.
-- **Edge and error cases:** with `whatsappNumber: null` the sheet has no WhatsApp row; when `openURL` rejects, the
+- **Edge and error cases:** with `whatsappNumber: null` (amendment 2026-10-14) the sheet shows a disabled, non-pressable WhatsApp row — the muted icon, "Conversar por WhatsApp" and "Número não partilhado." (`people.whatsappNotShared`; es-ES "Número no compartido.", en-US "Number not shared.") — and the "Fechar" button as a filled `subtle` Button; when `openURL` rejects, the
   toast "Não foi possível abrir o WhatsApp." is shown; a number `libphonenumber-js` can't parse is shown as sent.
 - **Verify by:** `npx jest src/modules/people` — `person-sheet.component.test.tsx`; user journey 3.
 
@@ -579,6 +579,8 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-14 (third request) — user request, with the design. Before: a person who didn't share the number had no WhatsApp row. After: a disabled row saying the number isn't shared, and a filled "Fechar" button (ER-12 edge case reworded; new key `people.whatsappNotShared`). Covered by the `person-sheet` test and the PersonSheet change in commit `fix(spec-027): …not-shared row`.
 
 - 2026-10-14 (second request) — user request, with the designs. Before: a role `SegmentedControl` without "All" and a single role at a time (D-16).
   After: toggle buttons per role, any number selected, none = everyone, `role` on the API takes a comma-separated list (users with at least one

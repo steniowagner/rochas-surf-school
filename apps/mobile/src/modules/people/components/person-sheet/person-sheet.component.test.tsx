@@ -57,12 +57,19 @@ describe("PersonSheet", () => {
     expect(mockShow).toHaveBeenCalledWith("Couldn't open WhatsApp.");
   });
 
-  it("has no WhatsApp row without a number", async () => {
+  it("shows a disabled WhatsApp row saying the number isn't shared, and a filled Close button", async () => {
+    const user = userEvent.setup();
+    const onClose = jest.fn();
     await render(
-      <PersonSheet person={buildPerson(2, { whatsappNumber: null })} visible onClose={jest.fn()} />,
+      <PersonSheet person={buildPerson(2, { whatsappNumber: null })} visible onClose={onClose} />,
     );
 
-    expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
+    expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
+    expect(screen.getByText("Number not shared.")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Chat on WhatsApp" })).not.toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(openURL).not.toHaveBeenCalled();
   });
 
   it("shows a number that can't be parsed as sent", async () => {

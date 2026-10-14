@@ -313,6 +313,7 @@ const messages = {
     empty: "No one found",
     loadError: "Couldn't load people.",
     whatsapp: "Chat on WhatsApp",
+    whatsappNotShared: "Number not shared.",
     whatsappUnavailable: "Couldn't open WhatsApp.",
   },
   deleteAccountSheet: {

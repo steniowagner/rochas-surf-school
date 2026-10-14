@@ -320,6 +320,7 @@ const messages: Messages = {
     empty: "No se encontró a nadie",
     loadError: "No se pudo cargar a las personas.",
     whatsapp: "Chatear por WhatsApp",
+    whatsappNotShared: "Número no compartido.",
     whatsappUnavailable: "No se pudo abrir WhatsApp.",
   },
   deleteAccountSheet: {

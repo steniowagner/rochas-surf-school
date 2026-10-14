@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
+import { Button } from "@/components/ui/button";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
@@ -33,39 +34,59 @@ export function PersonSheet({ person, visible, onClose }: PersonSheetProps) {
               </Chip>
             </View>
           </View>
+          <View className="h-px bg-line" />
           {formattedNumber ? (
-            <>
-              <View className="h-px bg-line" />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t("people.whatsapp")}
-                onPress={openChat}
-                className="min-h-12 flex-row items-center gap-3"
-              >
-                <FontAwesome name="whatsapp" size={20} color={theme.lagoon} />
-                <View className="flex-1">
-                  <Text className="ds-text-list-title text-ink">
-                    {t("people.whatsapp")}
-                  </Text>
-                  <Text className="ds-text-list-subtitle text-ink-2">
-                    {formattedNumber}
-                  </Text>
-                </View>
-                <Feather name="arrow-up-right" size={18} color={theme.ink3} />
-              </Pressable>
-            </>
-          ) : null}
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t("common.close")}
-            activeOpacity={BUTTON_ACTIVE_OPACITY}
-            onPress={onClose}
-            className="min-h-11 items-center justify-center"
-          >
-            <Text className="ds-text-button text-lagoon">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("people.whatsapp")}
+              onPress={openChat}
+              className="min-h-12 flex-row items-center gap-3"
+            >
+              <FontAwesome name="whatsapp" size={20} color={theme.lagoon} />
+              <View className="flex-1">
+                <Text className="ds-text-list-title text-ink">
+                  {t("people.whatsapp")}
+                </Text>
+                <Text className="ds-text-list-subtitle text-ink-2">
+                  {formattedNumber}
+                </Text>
+              </View>
+              <Feather name="arrow-up-right" size={18} color={theme.ink3} />
+            </Pressable>
+          ) : (
+            <View
+              accessible
+              accessibilityState={{ disabled: true }}
+              className="min-h-12 flex-row items-center gap-3"
+            >
+              <FontAwesome name="whatsapp" size={20} color={theme.ink3} />
+              <View className="flex-1">
+                <Text className="ds-text-list-title text-ink-2">
+                  {t("people.whatsapp")}
+                </Text>
+                <Text className="ds-text-list-subtitle text-ink-2">
+                  {t("people.whatsappNotShared")}
+                </Text>
+              </View>
+            </View>
+          )}
+          {formattedNumber ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t("common.close")}
+              activeOpacity={BUTTON_ACTIVE_OPACITY}
+              onPress={onClose}
+              className="min-h-11 items-center justify-center"
+            >
+              <Text className="ds-text-button text-lagoon">
+                {t("common.close")}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <Button variant="subtle" onPress={onClose}>
               {t("common.close")}
-            </Text>
-          </TouchableOpacity>
+            </Button>
+          )}
         </View>
       ) : null}
     </BottomModal>

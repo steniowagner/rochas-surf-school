@@ -290,6 +290,26 @@ const messages: Messages = {
     creatorLinkedin: "LinkedIn do criador",
     close: "Fechar",
   },
+  people: {
+    title: "Pessoas",
+    count: "{{count}} na plataforma",
+    searchPlaceholder: "Procurar pessoa",
+    filter: {
+      all: "Todos",
+      student: "Alunos",
+      instructor: "Instrutores",
+      admin: "Admins",
+    },
+    sort: {
+      label: "A–Z",
+      accessibility: "Ordenar por nome",
+    },
+    since: "desde {{date}}",
+    empty: "Ninguém encontrado",
+    loadError: "Não foi possível carregar as pessoas.",
+    whatsapp: "Conversar por WhatsApp",
+    whatsappUnavailable: "Não foi possível abrir o WhatsApp.",
+  },
   deleteAccountSheet: {
     title: "Remover a conta?",
     description: "Sua conta é encerrada agora e suas vagas e pedidos futuros são cancelados. Você pode pedir a reativação em até 30 dias.",

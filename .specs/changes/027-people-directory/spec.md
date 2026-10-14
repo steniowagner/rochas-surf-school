@@ -399,11 +399,12 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   Covers: ER-07, ER-08 · Done when: `npx jest src/modules/people/hooks` passes.
   > ✅ 2026-10-13 — people types, constants, query-path builder, `usePeople` (`useInfiniteQuery`, key `["people", filters]`, deduplicated rows, no retry) and `usePeopleCount` (`["people", "count"]`, `GET /people?perPage=1`); shared test utils; files: `apps/mobile/src/modules/people/{people.types.ts,people.test-utils.tsx,constants/people.ts,utils/people-query.ts,hooks/use-people.hook.ts,hooks/use-people-count.hook.ts,hooks/use-people.hook.test.tsx,hooks/use-people-count.hook.test.tsx}`; verified: `npx jest src/modules/people/hooks` (8 passed), tsc and eslint clean; deviations: none
 
-- [ ] **T-07** — Create the people components in `src/modules/people/components/`: `person-avatar` (initials,
+- [x] **T-07** — Create the people components in `src/modules/people/components/`: `person-avatar` (initials,
   D-10), `person-row` (avatar, name, "desde <MMM yyyy>", role chip, chevron; a `Pressable` row at least 44 pt tall),
   `person-sheet` (`BottomModal` with avatar, name, chip, the WhatsApp row per D-14 and the ghost "Fechar" `Button`)
   and `utils/role-chip.ts` (role → chip tone and label key), each with its test.
   Covers: ER-07, ER-12 · Done when: `npx jest src/modules/people/components src/modules/people/utils` passes.
+  > ✅ 2026-10-13 — `PersonAvatar`, `PersonRow`, `PersonSheet` (+ hook), `roleChip`, `formatSince`, `formatWhatsappNumber`, each with its test; also added every `people.*` key of the Copy table to the three message files now (the components need them; T-08 only adds the screen). `formatInternational()` (D-14) renders "+55 85 99999 8888" (a space, not the hyphen ER-12 shows as an example); D-14 followed; files: `apps/mobile/src/modules/people/components/{person-avatar,person-row,person-sheet}/*`, `apps/mobile/src/modules/people/utils/{role-chip,format-since,format-whatsapp-number}.ts` (+ tests), `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/people` (27 passed), tsc and eslint clean; deviations: i18n keys added in T-07 instead of T-08; phone separator as noted
 
 - [ ] **T-08** — Create `PeopleScreen` in `src/modules/people/screens/people.screen.tsx` with its hook
   (`use-people-screen.hook.ts`: debounced search, role, sort, the selected person, error toasts): optional

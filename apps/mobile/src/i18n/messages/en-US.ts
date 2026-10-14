@@ -290,6 +290,26 @@ const messages = {
     creatorLinkedin: "Creator's LinkedIn",
     close: "Close",
   },
+  people: {
+    title: "People",
+    count: "{{count}} on the platform",
+    searchPlaceholder: "Search people",
+    filter: {
+      all: "All",
+      student: "Students",
+      instructor: "Instructors",
+      admin: "Admins",
+    },
+    sort: {
+      label: "A–Z",
+      accessibility: "Sort by name",
+    },
+    since: "since {{date}}",
+    empty: "No one found",
+    loadError: "Couldn't load people.",
+    whatsapp: "Chat on WhatsApp",
+    whatsappUnavailable: "Couldn't open WhatsApp.",
+  },
   deleteAccountSheet: {
     title: "Remove your account?",
     description: "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",

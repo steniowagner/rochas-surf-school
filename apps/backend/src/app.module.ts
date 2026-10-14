@@ -10,6 +10,7 @@ import { ApiExceptionFilter } from './shared/errors/api-exception.filter.js';
 import { SchoolRulesModule } from './modules/school-rules/school-rules.module.js';
 import { SchoolSettingsModule } from './modules/school-settings/school-settings.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
+import { ClassesModule } from './modules/classes/classes.module.js';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     SchoolRulesModule,
     SchoolSettingsModule,
     NotificationsModule,
+    ClassesModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

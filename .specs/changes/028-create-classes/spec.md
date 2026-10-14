@@ -371,13 +371,14 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 
 ### Classes (`modules/classes`)
 
-- [ ] **T-01** — Scaffold `modules/classes` (`@rochas-surf-school/classes`) with `config-new-module --skip-web
+- [x] **T-01** — Scaffold `modules/classes` (`@rochas-surf-school/classes`) with `config-new-module --skip-web
   --skip-mobile`, keeping the NestJS module it creates in `apps/backend/src/modules/classes/`; add `.oxlintrc.json`
   and the `check-types` script like `modules/school-rules`; declare `@rochas-surf-school/shared`,
   `@rochas-surf-school/auth`, `date-fns` and `@date-fns/tz` (the mobile app's versions) in its `package.json`.
   Skill: [`config-new-module`](../../../.claude/skills/config-new-module).
   Covers: enabling · Done when: `npm run build --workspace @rochas-surf-school/classes`, its `test`, `lint` and
   `check-types` pass, and the backend builds with the empty `ClassesModule` registered.
+  > ✅ 2026-10-14 10:53 — Scaffolded `modules/classes` with `config-new-module --skip-web --skip-mobile` (workspace, NestJS module + controller stub, AppModule registration, backend dependency); added `.oxlintrc.json`, the `lint` and `check-types` scripts and the dependencies on `@rochas-surf-school/shared`, `@rochas-surf-school/auth`, `date-fns` ^4.4.0 and `@date-fns/tz` ^1.5.0 (the mobile app's versions); files: `modules/classes/**`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/app.module.ts`, `apps/backend/package.json`, `package-lock.json`; verified: build, lint, check-types and test of the workspace pass (1 test), `nest build` of the backend passes with `ClassesModule`; deviations: none
 
 - [ ] **T-02** — The `location` aggregate: `Location` entity (`name`, `address`, `nameKey`; trims, validates the
   D-04 limits with the shared `Validator`, keys `location.name.*` / `location.address.*`), the

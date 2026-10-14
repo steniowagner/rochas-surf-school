@@ -17,7 +17,11 @@ export function TimeRangeSheet(props: TimeRangeSheetProps) {
     useTimeRangeSheet(props);
 
   return (
-    <BottomModal visible={props.visible} onClose={close}>
+    <BottomModal
+      visible={props.visible}
+      onClose={close}
+      contentPanningEnabled={false}
+    >
       <View className="gap-4">
         <View className="gap-1">
           <Text className="ds-text-sheet-title text-ink">

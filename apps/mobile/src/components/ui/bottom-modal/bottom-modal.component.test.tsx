@@ -20,6 +20,7 @@ jest.mock("@gorhom/bottom-sheet", () => {
     BottomSheetModal: function MockBottomSheetModal({
       ref,
       backdropComponent,
+      enableContentPanningGesture,
       onDismiss,
       children,
     }: any) {
@@ -31,7 +32,7 @@ jest.mock("@gorhom/bottom-sheet", () => {
       }));
 
       return (
-        <View>
+        <View testID="mock-sheet" panning={enableContentPanningGesture}>
           {backdropComponent({ style: {} })}
           {children}
         </View>
@@ -70,6 +71,23 @@ describe("BottomModal", () => {
 
     expect(screen.getByText("Content")).toBeOnTheScreen();
     expect(mockPresent).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets the content drag the sheet by default, and not when told so", async () => {
+    const { rerender } = await render(
+      <BottomModal visible onClose={jest.fn()}>
+        <Text>Content</Text>
+      </BottomModal>,
+    );
+    expect(screen.getByTestId("mock-sheet").props.panning).toBe(true);
+
+    await rerender(
+      <BottomModal visible onClose={jest.fn()} contentPanningEnabled={false}>
+        <Text>Content</Text>
+      </BottomModal>,
+    );
+
+    expect(screen.getByTestId("mock-sheet").props.panning).toBe(false);
   });
 
   it.each(["light", "dark"] as const)(

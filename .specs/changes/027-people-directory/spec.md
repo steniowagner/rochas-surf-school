@@ -2,7 +2,7 @@
 id: "027"
 slug: people-directory
 title: People directory for every role
-status: in-review
+status: changes-requested
 started: 2026-10-13
 base_commit: 305a8c311dd1d41b4093ab6a4d309be06d86ec3c
 created: 2026-10-13
@@ -602,3 +602,46 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   task T-13 added). Reason: the user preferred a filter entry point to a permanent switcher. The backend contract is unchanged.
 
 ## Review
+
+### Round 1 — 2026-10-14 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (auth, backend, mobile — 14 turbo tasks) · build ✅ (auth, backend)
+- related tests ✅ — backend 91 passed, mobile 654 passed, auth 279 passed, school-rules 113 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (29 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 333 passed, `people.e2e-spec.ts` included (`E2E PASSED`)
+- iOS simulator (iPhone 18 Pro, en-US, light, local backend with the 28 seeded approved users), as the admin: home "Tools / Join the school (7 waiting)", "School / People · 9 on the platform" → People with a back button and back to home; "28 on the platform"; letter headers with one card per letter; "joao" → João Pinto; + Instructors → "No one found" (button filled with ✕); + Students → João Pinto; João's hidden number shown to the admin; the sheet dragged down and reopened (amendment 4); Carla Dias (no number) → disabled "Chat on WhatsApp / Number not shared." row and the filled Close button; scrolling to the end loaded page 2 down to "Zeca Barros". Not re-driven: the student and instructor accounts (covered by the route tests and the T-12/T-17 journeys).
+
+**Expected Results**
+
+- ER-01 ✅ — use-case, repository and e2e tests ("lists only approved users…", "lists the caller alone…") assert the statuses, the exact fields and the total
+- ER-02 ✅ — e2e "hides unshared numbers from non-admins" / "shows every number to admins"; confirmed on the simulator (admin sees João Pinto's hidden number)
+- ER-03 ✅ — e2e covers `joao`, `JOA`, role + search, `role=student,instructor`, blank search, no match, and `%`/`_`/`\` matched literally
+- ER-04 ✅ — e2e "pages 20 at a time, A–Z", ties by id, page past the end, `perPage=50`, accent/case-insensitive order
+- ER-05 ✅ — e2e 401 without a token, 403 for every non-approved status × role (with a bad `page`), 422 with the four keys in order, `abc` / `1.5`
+- ER-06 ✅ — `segmented-control.component.test.tsx`
+- ER-07 ✅ — `people.screen.test.tsx`; seen on the simulator
+- ER-08 ✅ — hook and screen tests (footer spinner, stop at the end, dedup, failed page toast and retry); page 2 loaded on the simulator
+- ER-09 ✅ — debounce, toggle on/off sequence, one request for fast typing, blank search, empty state; seen on the simulator
+- ER-10 ✅ — `group-by-initial.test.ts` and the screen test (no `sort` parameter)
+- ER-11 ✅ — spinner, error with retry, session expired, pull to refresh (count included)
+- ER-12 ❌ — see F-01; the rest (open `wa.me`, failure toast, unparsable number, not-shared row, Close, drag to close) ✅
+- ER-13 ✅ — `student-tabs.navigation.test.tsx` → "the Escola tab shows the people directory"
+- ER-14 ✅ — `admin.screen.test.tsx` and `admin-tabs.navigation.test.tsx`; seen on the simulator
+- ER-15 ✅ — `instructor.screen.test.tsx` and `instructor-tabs.navigation.test.tsx` (title "Dashboard"/"Painel", the School row, `/instructor/people`)
+
+**Findings**
+
+- [ ] **F-01** (ER-12) — the sheet shows "+55 85 99999 8888", but ER-12 says it shows "+55 85 99999-8888"; `format-whatsapp-number.test.ts` and `person-sheet.component.test.tsx` assert the space version, and the comment in `apps/mobile/src/modules/people/utils/format-whatsapp-number.ts` still promises the hyphen. T-07 recorded this as a deviation but no amendment changed ER-12. Reproduce: `npx jest src/modules/people/components/person-sheet -t "formatted number"` (from `apps/mobile`) passes while asserting "+55 85 99999 8888". Expected: either the app shows the number as ER-12 states, or ER-12 is amended (with the user's approval, logged under `## Amendments`) to the `formatInternational()` output D-14 prescribes — and the code comment matches.
+- [ ] **F-02** (D-12) — D-12 still lists a `sort` parameter (`recent` | `name`, default `recent`, `people.sort.invalid`), which the 2026-10-14 amendment removed (D-04 now says there is no `sort` parameter, and `ListPeople` ignores it). The contract contradicts itself and `spec-finish` would carry the stale rule into the memory. Reproduce: read D-12 vs D-04 and `modules/auth/src/user/usecase/list-people.usecase.ts` (no sort). Expected: D-12 without the `sort` clause, the edit logged in the amendment.
+- [ ] **F-03** (D-15) — D-15 says the instructor's Início becomes a `ScreenIntro` "Painel"; `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx` renders a plain `Text` header instead, and no evidence records this as a deviation. Reproduce: open the file (lines 22–24). Expected: `ScreenIntro` with the "Painel" title (and an icon, like the admin home), or an amendment to D-15 explaining the plain title.
+- [ ] **F-04** (convention) — `.claude/rules/react.md` §2 import order (three groups, alphabetical within each) is broken in: `apps/mobile/src/modules/people/screens/people.screen.tsx` (`../components/role-filters` before `../components/person-row`; the relative group split by blank lines before `../utils/…` and `./people.screen.types`), `apps/mobile/src/modules/people/hooks/use-people-screen.hook.ts` (`./use-people-screen.types`, `./use-people.hook`, `./use-people-count.hook` out of order; `../people.types` in its own group) and `apps/mobile/src/modules/admin/screens/admin.screen.tsx` (`@/modules/people/…` separated from the other `@/` imports by a blank line). Expected: one packages group, one `@/` group and one relative group, each sorted by module path.
+
+**Notes**
+
+- `## Memory Impact` → technical-context says the infinite query key is `["people", { role, search }]`; the code uses `["people", { roles, search }]` (D-07 says the same). Also, amendment 4 changed `useBottomModal` (every sheet in the app) and the Memory Impact doesn't mention it — worth a line in the Mobile shared UI section.
+- The Copy table doesn't list `people.whatsappNotShared` (only ER-12 does); its pt-BR text "Número não partilhado." is European Portuguese — Brazilian Portuguese would be "Número não compartilhado." It matches ER-12 as written, so it's not a finding; worth confirming with the user.
+- `groupByInitial` keys headers `header-<letter>`. If the backend's collation and `getInitialLetter` disagree (e.g. "Łukasz" sorts with L under `unaccent`, but NFD leaves "Ł" alone, so it goes under "#"; "1abc" and "~x" sort at opposite ends), two "#" groups appear and their keys collide. Rare for this school; keying headers by position would make it robust.
+- The usePeople query key holds `roles` in toggle order, so selecting Students then Instructors and the reverse are two cache entries for the same request (`buildPeoplePagePath` already sorts the roles). Harmless.
+- T-12's journey evidence predates the three 2026-10-14 amendments (it mentions "newest first", the A–Z button and "All"); this round re-checked the current behavior on the simulator as the admin.

@@ -366,13 +366,21 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   > verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (18 passed), `npm run check-types
   > --workspace apps/backend` (exit 0); deviations: none
 
-- [ ] **T-04** — Add `GET /people` (protected) in `src/modules/auth/people.controller.ts`: `@CurrentUser()` plus
+- [x] **T-04** — Add `GET /people` (protected) in `src/modules/auth/people.controller.ts`: `@CurrentUser()` plus
   `@Query()` `page`, `perPage`, `role`, `search`, `sort` passed as received to `ListPeople`, registered in
   `auth.module.ts`; `people.controller.spec.ts`; `people.integration.http` (default, filter + search, sort, page 2,
   non-approved, invalid query); and `test/people.e2e-spec.ts` with the cases named in ER-01–ER-05. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npx vitest run src/modules/auth/people.controller.spec.ts`
   passes and `npm run test:e2e --workspace apps/backend -- people` passes against the local Postgres.
+  > ✅ 2026-10-13 — `GET /people` (`PeopleController`, query params passed raw to `ListPeople`), registered in
+  > `AuthModule`; unit spec, REST Client file and an e2e suite with 11 cases (the shared database is isolated by a
+  > per-test name tag); files: `apps/backend/src/modules/auth/people.controller.ts`,
+  > `apps/backend/src/modules/auth/people.controller.spec.ts`, `apps/backend/src/modules/auth/people.integration.http`,
+  > `apps/backend/src/modules/auth/auth.module.ts`, `apps/backend/test/people.e2e-spec.ts`; verified: `npx vitest run
+  > src/modules/auth/people.controller.spec.ts` (5 passed), `npm run test:e2e --workspace apps/backend -- people`
+  > (11 passed against the local Postgres, which also proves the raw SQL of T-03), lint and `check-types` exit 0
+  > (needs the auth package built: `npm run build --workspace @rochas-surf-school/auth`); deviations: none
 
 ### Mobile (`apps/mobile`)
 

@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
-import { Button } from "@/components/ui/button";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
@@ -70,23 +69,17 @@ export function PersonSheet({ person, visible, onClose }: PersonSheetProps) {
               </View>
             </View>
           )}
-          {formattedNumber ? (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel={t("common.close")}
-              activeOpacity={BUTTON_ACTIVE_OPACITY}
-              onPress={onClose}
-              className="min-h-11 items-center justify-center"
-            >
-              <Text className="ds-text-button text-lagoon">
-                {t("common.close")}
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <Button variant="subtle" onPress={onClose}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t("common.close")}
+            activeOpacity={BUTTON_ACTIVE_OPACITY}
+            onPress={onClose}
+            className="min-h-11 items-center justify-center"
+          >
+            <Text className="ds-text-button text-lagoon">
               {t("common.close")}
-            </Button>
-          )}
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : null}
     </BottomModal>

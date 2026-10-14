@@ -37,7 +37,10 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const { bottomSheetRef } = useBottomModal({ visible });
+  const { bottomSheetRef, handleDismiss } = useBottomModal({
+    visible,
+    onClose,
+  });
 
   // The sheet library keeps the backdrop component, so its identity must follow what it reads.
   const renderBackdrop = useCallback(
@@ -66,7 +69,7 @@ export function BottomModal({ visible, onClose, children }: BottomModalProps) {
       }}
       handleIndicatorStyle={{ backgroundColor: theme.line }}
       handleStyle={{ paddingBottom: HANDLE_PADDING - TITLE_ROOM }}
-      onDismiss={onClose}
+      onDismiss={handleDismiss}
     >
       <BottomSheetView
         style={{

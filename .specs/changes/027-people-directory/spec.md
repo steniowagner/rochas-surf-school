@@ -580,6 +580,8 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 ## Amendments
 
+- 2026-10-14 (fourth request) — bug found by the user, outside the spec's scope but fixed in this branch: a `BottomModal` dragged down stayed "visible" for its parent and was then dismissed a second time, so the next `present()` was swallowed and the sheet never reopened. `useBottomModal` now resets its `wasVisible` ref in `onDismiss` before calling `onClose` (`src/components/ui/bottom-modal/`, with a test). Affects every sheet in the app. No Expected Result changed.
+
 - 2026-10-14 (third request) — user request, with the design. Before: a person who didn't share the number had no WhatsApp row. After: a disabled row saying the number isn't shared, and a filled "Fechar" button (ER-12 edge case reworded; new key `people.whatsappNotShared`). Covered by the `person-sheet` test and the PersonSheet change in commit `fix(spec-027): …not-shared row`.
 
 - 2026-10-14 (second request) — user request, with the designs. Before: a role `SegmentedControl` without "All" and a single role at a time (D-16).

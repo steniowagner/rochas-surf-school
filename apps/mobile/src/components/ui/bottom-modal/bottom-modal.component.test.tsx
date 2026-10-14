@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from "@testing-library/react-native";
+import { act, render, screen, userEvent } from "@testing-library/react-native";
 import { Text } from "react-native";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -7,6 +7,7 @@ import { BottomModal } from "./bottom-modal.component";
 
 const mockPresent = jest.fn();
 const mockDismiss = jest.fn();
+const mockOnDismiss: { current: (() => void) | undefined } = { current: undefined };
 
 // Unlike the global mock, this one renders the backdrop and exposes the sheet methods.
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -19,8 +20,11 @@ jest.mock("@gorhom/bottom-sheet", () => {
     BottomSheetModal: function MockBottomSheetModal({
       ref,
       backdropComponent,
+      onDismiss,
       children,
     }: any) {
+      mockOnDismiss.current = onDismiss;
+
       useImperativeHandle(ref, () => ({
         present: mockPresent,
         dismiss: mockDismiss,
@@ -111,6 +115,32 @@ describe("BottomModal", () => {
       </BottomModal>,
     );
     expect(mockDismiss).toHaveBeenCalledTimes(1);
+
+    await view.rerender(
+      <BottomModal visible onClose={onClose}>
+        <Text>Content</Text>
+      </BottomModal>,
+    );
+    expect(mockPresent).toHaveBeenCalledTimes(2);
+  });
+
+  it("doesn't dismiss a sheet that was dragged away, so it opens again", async () => {
+    const onClose = jest.fn();
+    const view = await render(
+      <BottomModal visible onClose={onClose}>
+        <Text>Content</Text>
+      </BottomModal>,
+    );
+
+    await act(async () => mockOnDismiss.current?.());
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    await view.rerender(
+      <BottomModal visible={false} onClose={onClose}>
+        <Text>Content</Text>
+      </BottomModal>,
+    );
+    expect(mockDismiss).not.toHaveBeenCalled();
 
     await view.rerender(
       <BottomModal visible onClose={onClose}>

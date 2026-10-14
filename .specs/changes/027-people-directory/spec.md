@@ -466,6 +466,9 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   > A–Z button moved beside the search box and the switcher is full width with `adjustsFontSizeToFit`; the role chip was top-aligned
   > in the row and left-aligned in the sheet (now centered). The seeded users (`@people-seed.example.com`) are still in the
   > local dev database.
+  > UI aligned to the designs afterwards (user feedback, `fix(spec-027)` commit): pill-shaped switcher; the A–Z button moved to the right
+  > of the title row; the rows form one card with hairline dividers and 40 pt avatars; the person sheet is a row (avatar, name,
+  > chip), a divider, the WhatsApp row (teal icon, ↗ arrow) and a teal "Close" text button. No Expected Result changed.
 
 ## Verification Plan
 

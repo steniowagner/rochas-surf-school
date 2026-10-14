@@ -1,5 +1,5 @@
 export type PersonAvatarProps = {
   name: string;
-  /** `md` (48 pt) in the list, `lg` (80 pt) in the sheet. */
+  /** `md` (48 pt) in the list, `lg` (64 pt) in the sheet. */
   size?: "md" | "lg";
 };

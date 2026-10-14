@@ -104,7 +104,7 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
         keyboardShouldPersistTaps="handled"
         // On iOS the safe areas and the floating tab bar of a tab root are added by the scroll view.
         contentInsetAdjustmentBehavior={showBackButton ? "never" : "automatic"}
-        contentContainerClassName="gap-3 px-screen"
+        contentContainerClassName="px-screen"
         contentContainerStyle={{
           paddingTop: showBackButton
             ? insets.top + 12
@@ -123,31 +123,19 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
                 <BackButton />
               </View>
             ) : null}
-            <View className="gap-1">
-              {count !== undefined ? (
-                <Text className="ds-text-section-label text-ink-2">
-                  {t("people.count", { count })}
+            <View className="flex-row items-end justify-between gap-3">
+              <View className="flex-1 gap-1">
+                {count !== undefined ? (
+                  <Text className="ds-text-section-label text-ink-2">
+                    {t("people.count", { count })}
+                  </Text>
+                ) : null}
+                <Text
+                  accessibilityRole="header"
+                  className="ds-text-screen-title text-ink"
+                >
+                  {t("people.title")}
                 </Text>
-              ) : null}
-              <Text
-                accessibilityRole="header"
-                className="ds-text-screen-title text-ink"
-              >
-                {t("people.title")}
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-3">
-              <View className="flex-1">
-                <TextInput
-                  icon={<Ionicons name="search" size={20} color={theme.ink2} />}
-                  value={searchText}
-                  onChangeText={setSearchText}
-                  placeholder={t("people.searchPlaceholder")}
-                  accessibilityLabel={t("people.searchPlaceholder")}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="search"
-                />
               </View>
               <TouchableOpacity
                 accessibilityRole="button"
@@ -155,7 +143,7 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
                 accessibilityState={{ selected: sortByName }}
                 activeOpacity={BUTTON_ACTIVE_OPACITY}
                 onPress={toggleSortByName}
-                className={`h-[52px] items-center justify-center rounded-control border px-3 ${
+                className={`min-h-11 items-center justify-center rounded-full border px-4 ${
                   sortByName ? "border-sand bg-sand" : "border-line bg-surface"
                 }`}
               >
@@ -166,6 +154,16 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
                 </Text>
               </TouchableOpacity>
             </View>
+            <TextInput
+              icon={<Ionicons name="search" size={20} color={theme.ink2} />}
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder={t("people.searchPlaceholder")}
+              accessibilityLabel={t("people.searchPlaceholder")}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
             <SegmentedControl
               options={roleOptions}
               value={roleFilter}
@@ -173,8 +171,13 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
             />
           </View>
         }
-        renderItem={({ item }) => (
-          <PersonRow person={item} onPress={openPerson} />
+        renderItem={({ item, index }) => (
+          <PersonRow
+            person={item}
+            onPress={openPerson}
+            isFirst={index === 0}
+            isLast={index === people.length - 1}
+          />
         )}
         ListEmptyComponent={<View className="py-6">{renderEmpty()}</View>}
         ListFooterComponent={

@@ -13,7 +13,7 @@ import { PersonAvatar } from "../person-avatar";
 import { PersonRowProps } from "./person-row.types";
 
 /** One person of the directory: avatar, name, "since <month year>", role chip and a chevron. */
-export function PersonRow({ person, onPress }: PersonRowProps) {
+export function PersonRow({ person, onPress, isFirst = false, isLast = false }: PersonRowProps) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const { tone, labelKey } = roleChip[person.role];
@@ -23,7 +23,7 @@ export function PersonRow({ person, onPress }: PersonRowProps) {
       accessibilityRole="button"
       accessibilityLabel={person.name}
       onPress={() => onPress(person)}
-      className="min-h-16 flex-row items-center gap-3 rounded-card border border-line bg-surface p-3"
+      className={`min-h-16 flex-row items-center gap-3 border-x border-b border-line bg-surface px-4 py-3 ${isFirst ? "rounded-t-card border-t" : ""} ${isLast ? "rounded-b-card" : ""}`}
     >
       <PersonAvatar name={person.name} />
       <View className="flex-1 gap-0.5">

@@ -14,7 +14,7 @@ export function SegmentedControl<T extends string>({
   const theme = useTheme();
 
   return (
-    <View accessibilityRole="tablist" className="flex-row gap-1 rounded-card bg-sand p-1">
+    <View accessibilityRole="tablist" className="flex-row gap-1 rounded-full bg-sand p-1">
       {options.map((option) => {
         const selected = option.value === value;
 
@@ -25,7 +25,7 @@ export function SegmentedControl<T extends string>({
             accessibilityState={{ selected }}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             onPress={selected ? undefined : () => onChange(option.value)}
-            className={`min-h-11 flex-1 items-center justify-center rounded-card px-1 ${selected ? "bg-surface" : ""}`}
+            className={`min-h-11 flex-1 items-center justify-center rounded-full px-1 ${selected ? "bg-surface" : ""}`}
             style={selected ? shadowStyle("iconButton", theme) : undefined}
           >
             <Text

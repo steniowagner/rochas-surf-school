@@ -10,11 +10,11 @@ export function PersonAvatar({ name, size = "md" }: PersonAvatarProps) {
 
   return (
     <View
-      className={`items-center justify-center rounded-full bg-sand ${large ? "h-20 w-20" : "h-12 w-12"}`}
+      className={`items-center justify-center rounded-full bg-sand ${large ? "h-16 w-16" : "h-10 w-10"}`}
     >
       <Text
         accessibilityLabel={getInitials(name)}
-        className={`text-grape ${large ? "ds-text-screen-title" : "ds-text-list-title"}`}
+        className={`text-grape ${large ? "ds-text-sheet-title" : "ds-text-list-title"}`}
       >
         {getInitials(name)}
       </Text>

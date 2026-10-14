@@ -515,13 +515,16 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-13** — Data layer in `apps/mobile/src/modules/classes/`: declare `@rochas-surf-school/classes` in
+- [x] **T-13** — Data layer in `apps/mobile/src/modules/classes/`: declare `@rochas-surf-school/classes` in
   `apps/mobile/package.json`; mock `@expo/ui/community/datetime-picker` in `apps/mobile/jest.setup.ts`; hooks
   `useLocations`, `useCreateLocation` (adds to the `["locations"]` cache on 201), `useTimeRangeSuggestions`,
   `useTeachers` (every page of `GET /people?role=instructor,admin&perPage=50`), `useCreateClasses`; utils
   `class-error.ts` (D-16 mapping) and `batch-request.ts` (form → D-06 body); types; tests for each.
   Covers: ER-11, ER-12, ER-13 · Done when: `cd apps/mobile && npx jest src/modules/classes/hooks src/modules/classes/utils --coverage`
   passes.
+  > ✅ 2026-10-14 11:07 — Declared `@rochas-surf-school/classes` in the app, mocked `@expo/ui/community/datetime-picker` in `jest.setup.ts` (a host view that keeps `value` and `onValueChange`), and added the data layer in `src/modules/classes/`: types, hooks `useLocations`, `useCreateLocation` (adds to the `["locations"]` cache on 201), `useTimeRangeSuggestions`, `useTeachers` (every page of `GET /people?role=instructor,admin&perPage=50`), `useCreateClasses`, and utils `class-error.ts` (D-16 mapping), `batch-request.ts` (form → D-06 body) and `locations-cache.ts`, each with tests;
+  > files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/jest.setup.ts`, `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/classes.test-utils.tsx`, `apps/mobile/src/modules/classes/hooks/use-{locations,create-location,time-range-suggestions,teachers,create-classes}.hook.ts` and their `.test.tsx`, `apps/mobile/src/modules/classes/utils/{batch-request,class-error,locations-cache}.ts` and their `.test.ts`;
+  > verified: `cd apps/mobile && npx jest src/modules/classes/hooks src/modules/classes/utils --coverage` (27 passed, every new file 100% lines), `tsc --noEmit` and eslint pass; deviations: none
 
 - [ ] **T-14** — `DateRangeCalendar` (`src/modules/classes/components/date-range-calendar/`): the month grid, range
   selection, disabled past days and month navigation, "Limpar", and the "Nos dias" weekday toggles (D-14), with tests.

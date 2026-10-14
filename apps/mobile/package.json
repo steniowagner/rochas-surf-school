@@ -11,6 +11,7 @@
     "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-google-signin/google-signin": "^16.1.5",
     "@rochas-surf-school/auth": "*",
+    "@rochas-surf-school/classes": "*",
     "@rochas-surf-school/design-tokens": "*",
     "@rochas-surf-school/shared": "*",
     "@tanstack/react-query": "^5.104.1",

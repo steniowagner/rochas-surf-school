@@ -380,7 +380,7 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   `check-types` pass, and the backend builds with the empty `ClassesModule` registered.
   > ✅ 2026-10-14 10:53 — Scaffolded `modules/classes` with `config-new-module --skip-web --skip-mobile` (workspace, NestJS module + controller stub, AppModule registration, backend dependency); added `.oxlintrc.json`, the `lint` and `check-types` scripts and the dependencies on `@rochas-surf-school/shared`, `@rochas-surf-school/auth`, `date-fns` ^4.4.0 and `@date-fns/tz` ^1.5.0 (the mobile app's versions); files: `modules/classes/**`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/app.module.ts`, `apps/backend/package.json`, `package-lock.json`; verified: build, lint, check-types and test of the workspace pass (1 test), `nest build` of the backend passes with `ClassesModule`; deviations: none
 
-- [ ] **T-02** — The `location` aggregate: `Location` entity (`name`, `address`, `nameKey`; trims, validates the
+- [x] **T-02** — The `location` aggregate: `Location` entity (`name`, `address`, `nameKey`; trims, validates the
   D-04 limits with the shared `Validator`, keys `location.name.*` / `location.address.*`), the
   `LocationRepository` port (`findAll`, `findById`, `existsByNameKey`, `create` — the last rejecting a duplicate with
   a `ConflictError('location.name.duplicate')`) with its in-memory fake, the `ListLocations` (approved, any role) and
@@ -392,6 +392,9 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04, ER-06 · Done when: `cd modules/classes && npx jest test/location --coverage` passes with every new
   line covered.
+  > ✅ 2026-10-14 10:55 — Added the `location` aggregate: `Location` entity, `normalizeLocationName` and the limits, `LocationRepository` + in-memory fake, `ListLocations`, `CreateLocation` and the shared access helpers (`src/access/class-actor.ts`: `assertCanReadClasses`, `assertCanManageClasses`, keys per D-10);
+  > files: `modules/classes/src/access/**`, `modules/classes/src/location/**`, `modules/classes/src/index.ts`, `modules/classes/test/mock/{fake-location.repository,location.factory,index}.ts`, `modules/classes/test/access/class-actor.test.ts`, `modules/classes/test/location/**`;
+  > verified: `cd modules/classes && npx jest test/location test/access --coverage` (29 passed, every new line covered), lint and check-types pass; deviations: none
 
 - [ ] **T-03** — The pure batch rules in `src/school-class/model/`: `listBatchClasses({ startDate, endDate,
   weekdays, timeRanges })` → `{ startsAt, endsAt }[]` in UTC from America/Fortaleza (`@date-fns/tz`), the time-range

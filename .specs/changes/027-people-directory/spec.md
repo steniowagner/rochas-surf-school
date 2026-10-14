@@ -391,12 +391,13 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   Covers: ER-06 · Done when: `npx jest src/components/ui/segmented-control` passes.
   > ✅ 2026-10-13 — generic `SegmentedControl` (tablist, `tab` segments with selected state, min height 44, `bg-sand` track, `shadowStyle("iconButton")` on the selected one); files: `apps/mobile/src/components/ui/segmented-control/{index.ts,segmented-control.component.tsx,segmented-control.types.ts,segmented-control.component.test.tsx}`; verified: `npx jest src/components/ui/segmented-control` (4 passed), `tsc --noEmit` and eslint clean; deviations: none
 
-- [ ] **T-06** — Create the people data layer in `src/modules/people/`: `people.types.ts` (`Person`,
+- [x] **T-06** — Create the people data layer in `src/modules/people/`: `people.types.ts` (`Person`,
   `PeoplePage`, `PeopleRole`, `PeopleSort`, mirroring the API), `constants/people.ts` (`PEOPLE_PAGE_SIZE = 20`,
   `PEOPLE_COUNT_PLACEHOLDER = 9`), `hooks/use-people.hook.ts` (`useInfiniteQuery` per D-07, authenticated `apiGet`
   with only the parameters set, deduplicated items) and `hooks/use-people-count.hook.ts` (D-06), with tests for the
   query string, the next-page rule, the end of the list and the deduplication.
   Covers: ER-07, ER-08 · Done when: `npx jest src/modules/people/hooks` passes.
+  > ✅ 2026-10-13 — people types, constants, query-path builder, `usePeople` (`useInfiniteQuery`, key `["people", filters]`, deduplicated rows, no retry) and `usePeopleCount` (`["people", "count"]`, `GET /people?perPage=1`); shared test utils; files: `apps/mobile/src/modules/people/{people.types.ts,people.test-utils.tsx,constants/people.ts,utils/people-query.ts,hooks/use-people.hook.ts,hooks/use-people-count.hook.ts,hooks/use-people.hook.test.tsx,hooks/use-people-count.hook.test.tsx}`; verified: `npx jest src/modules/people/hooks` (8 passed), tsc and eslint clean; deviations: none
 
 - [ ] **T-07** — Create the people components in `src/modules/people/components/`: `person-avatar` (initials,
   D-10), `person-row` (avatar, name, "desde <MMM yyyy>", role chip, chevron; a `Pressable` row at least 44 pt tall),

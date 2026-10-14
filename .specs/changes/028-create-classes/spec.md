@@ -2,7 +2,7 @@
 id: "028"
 slug: create-classes
 title: Admins create classes in a batch
-status: changes-requested
+status: in-review
 created: 2026-10-14
 started: 2026-10-14
 base_commit: 5c4c69b936ec934e6c920189d268a1f1ad2b2156
@@ -700,7 +700,7 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
 
 **Findings**
 
-- [ ] **F-01** (D-06) — the weekday filter's state outlives the range, so a single day on a weekday that was turned
+- [x] **F-01** (D-06) — the weekday filter's state outlives the range, so a single day on a weekday that was turned
   off can't be created and the screen gives no way out. D-06 says "the app sends all seven weekdays for a one-day
   batch", and D-14 hides "Nos dias" for a single day; but `useNewClassScreen` keeps `weekdays` from the last range and
   `buildBatchRequest` sends it as is. Reproduce (simulator, or a screen test with today 2026-10-14): tap the 15th, then
@@ -708,6 +708,15 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   instructor → "Days" reads "pick at least 1", "On" is hidden, the 17th shows no strike-through and "Create class"
   stays disabled. Expected: a single selected day counts as one day whatever the filter held ("1 day", "Create class"
   enabled) and the request carries `weekdays: [1, 2, 3, 4, 5, 6, 7]`. Add a screen test for this case.
+  > ✅ 2026-10-14 — reproduced with a screen test (15th → 17th → SAT off → 17th again): "pick at least 1", 17th
+  > struck through. Fix: `useNewClassScreen` keeps the filter's state apart (`weekdayFilter`) and uses all seven
+  > weekdays whenever the range is a single day, for the count, the calendar and the request; files:
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx` (new test "ignores a weekday turned off
+  > earlier once the range is a single day": "1 day", no strike-through, "Create class" sends
+  > `weekdays: [1..7]`); verified: the test fails without the fix; `npx jest src/modules/classes` (133 passed);
+  > `run-related-tests.mjs 028` RELATED TESTS PASSED; `check-coverage.mjs 028` COVERAGE OK; lint and check-types
+  > for mobile pass; deviations: none
 
 **Notes**
 

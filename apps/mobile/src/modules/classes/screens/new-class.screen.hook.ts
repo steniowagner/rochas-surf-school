@@ -56,7 +56,7 @@ export const useNewClassScreen = () => {
   const [discipline, setDiscipline] = useState<ClassDiscipline>("surf");
   const [level, setLevel] = useState<ClassLevel>("beginner");
   const [range, setRange] = useState<DateRange>({ startDate: null, endDate: null });
-  const [weekdays, setWeekdays] = useState<number[]>(ALL_WEEKDAYS);
+  const [weekdayFilter, setWeekdayFilter] = useState<number[]>(ALL_WEEKDAYS);
   const [selectedRanges, setSelectedRanges] = useState<TimeRange[]>([]);
   const [addedRanges, setAddedRanges] = useState<TimeRange[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -72,6 +72,8 @@ export const useNewClassScreen = () => {
   const { startDate } = range;
   // A single day is a range that ends on its start.
   const endDate = range.endDate ?? startDate;
+  // The filter only applies to a range: a single day counts whatever the filter held.
+  const weekdays = range.endDate === null ? ALL_WEEKDAYS : weekdayFilter;
   const locations = locationsQuery.data?.items ?? [];
   const location = locations.find((item) => item.id === locationId);
 
@@ -185,7 +187,7 @@ export const useNewClassScreen = () => {
     range,
     setRange,
     weekdays,
-    setWeekdays,
+    setWeekdays: setWeekdayFilter,
     dayCount: dates.length,
     suggestions: suggestionsQuery.data?.items ?? [],
     addedRanges,

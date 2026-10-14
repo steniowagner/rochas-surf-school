@@ -242,6 +242,33 @@ describe("NewClassScreen", () => {
       expect(screen.getByRole("button", { name: "Create class" })).toBeEnabled();
     });
 
+    it("ignores a weekday turned off earlier once the range is a single day", async () => {
+      serve({ "POST /classes/batch": () => ({ ...ok({ count: 1 }), status: 201 }) });
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByText("Praia do Futuro");
+
+      await user.press(day("2026-10-15"));
+      await user.press(day("2026-10-17"));
+      await user.press(screen.getByRole("button", { name: "Sat" }));
+      await user.press(day("2026-10-17"));
+      await user.press(screen.getByRole("button", { name: AFTERNOON }));
+      await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
+      await user.press(await screen.findByRole("checkbox", { name: "Ana Souza" }));
+
+      expect(screen.getByText("1 day")).toBeTruthy();
+      expect(screen.getByText("17").props.className).not.toContain("line-through");
+      await user.press(screen.getByRole("button", { name: "Create class" }));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Class created"));
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/classes/batch"));
+      expect(JSON.parse(call?.[1].body)).toMatchObject({
+        startDate: "2026-10-17",
+        endDate: "2026-10-17",
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+      });
+    });
+
     it("clears the range and turns the button off", async () => {
       const user = userEvent.setup();
       await renderScreen();

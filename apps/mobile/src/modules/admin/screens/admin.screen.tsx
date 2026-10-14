@@ -13,6 +13,7 @@ import { useRegistrations } from "../hooks/use-registrations.hook";
 
 const openRegistrations = () => router.push(routes.admin.registrations);
 const openPeople = () => router.push(routes.admin.people);
+const openNewClass = () => router.push(routes.admin.newClass);
 
 export function AdminScreen() {
   const { t } = useTranslation();
@@ -60,6 +61,16 @@ export function AdminScreen() {
                 {t("admin.home.waiting", { count })}
               </Text>
             ) : null}
+            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={openNewClass}
+            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
+          >
+            <Text className="ds-text-list-title flex-1 text-ink">
+              {t("admin.home.newClassRow")}
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
           </Pressable>
         </View>

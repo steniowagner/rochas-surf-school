@@ -5,6 +5,7 @@ import { renderRouter } from "expo-router/testing-library";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
+import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
@@ -44,6 +45,17 @@ const respondWith = (items: ReturnType<typeof person>[]) =>
     json: async () => ({ items }),
   });
 
+/** Answers the registrations of the home and what the Nova aula screen loads. */
+const respondForNewClass = () =>
+  fetchMock.mockImplementation(async (url: string) => {
+    const path = String(url).replace("http://api.test", "");
+    const body = path.startsWith("/people")
+      ? { items: [], page: 1, perPage: 50, total: 0 }
+      : { items: [] };
+
+    return { ok: true, status: 200, json: async () => body };
+  });
+
 async function openAdminHome() {
   const app = renderRouter(
     {
@@ -54,6 +66,7 @@ async function openAdminHome() {
       ),
       "(private)/admin/_layout": AdminLayout,
       "(private)/admin/(tabs)/index": AdminRoute,
+      "(private)/admin/new-class": AdminNewClassRoute,
       "(private)/admin/people": AdminPeopleRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
     },
@@ -117,6 +130,23 @@ describe("AdminScreen", () => {
 
     expect(app.getPathname()).toBe(routes.admin.people);
     expect(await screen.findByText("No one found")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(app.getPathname()).toBe(routes.admin.home);
+  });
+
+  it("shows the Criar aulas (Create classes) row below Join the school, and opens the Nova aula screen", async () => {
+    const user = userEvent.setup();
+    respondForNewClass();
+    const app = await openAdminHome();
+
+    expect(screen.getByText("Create classes")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: /Create classes/ }));
+
+    expect(app.getPathname()).toBe(routes.admin.newClass);
+    expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Back" }));
 

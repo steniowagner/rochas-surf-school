@@ -62,6 +62,7 @@ export const routes = {
     profile: "/admin/profile",
     registrations: "/admin/registrations",
     people: "/admin/people",
+    newClass: "/admin/new-class",
     editProfile: "/admin/edit-profile",
     whatsapp: "/admin/whatsapp",
     schoolRules: "/admin/school-rules",

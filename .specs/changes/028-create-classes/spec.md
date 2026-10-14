@@ -582,11 +582,14 @@ Push copy of `class.assigned`, in `apps/backend/src/modules/notifications/push-m
   > verified: `cd apps/mobile && npx jest src/modules/classes --coverage` (21 suites, 132 tests passed, every file of the module 100% statements, branches, functions and lines), `tsc --noEmit` and eslint pass;
   > deviations: the Copy keys in the three message files were added in T-14 (the components needed them); the screen shows the day count as the right-hand hint of the "Dias" section
 
-- [ ] **T-19** — `routes.admin.newClass` in `src/constants/routes.ts`, the route file
+- [x] **T-19** — `routes.admin.newClass` in `src/constants/routes.ts`, the route file
   `src/app/(private)/admin/new-class.tsx`, and the "Criar aulas" row under Ferramentas in
   `src/modules/admin/screens/admin.screen.tsx`; tests in `admin.screen.test.tsx` and
   `src/modules/admin/admin-tabs.navigation.test.tsx`.
   Covers: ER-08 · Done when: `cd apps/mobile && npx jest src/modules/admin --coverage` passes.
+  > ✅ 2026-10-14 11:30 — Added `routes.admin.newClass` (`/admin/new-class`), the route file in the admin Stack (so it opens above the tab bar and only the admin flow reaches it), and the "Criar aulas" row below "Entrar na escola" in the admin home's Ferramentas card (title and chevron, no count); tests in `admin.screen.test.tsx` (the row, opening the Nova aula screen, Back to the home) and `admin-tabs.navigation.test.tsx` (the route above the tabs, Back returns to Home with the tab bar);
+  > files: `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/app/(private)/admin/new-class.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`, `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`;
+  > verified: `cd apps/mobile && npx jest src/modules/admin --coverage` (8 suites, 58 tests passed, `admin.screen.tsx` fully covered), `tsc --noEmit` and eslint pass; deviations: the "no tab bar" detail isn't asserted — the tab navigator stays mounted under inner routes (as the existing Join the school test shows), so the test checks the route, the screen, Back and the tab bar on return
 
 ### Verification
 

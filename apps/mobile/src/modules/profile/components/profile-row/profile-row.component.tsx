@@ -18,7 +18,7 @@ export function ProfileRow({
   const theme = useTheme();
 
   const content = (
-    <>
+    <View className="flex-row items-center gap-3">
       <Ionicons
         name={icon}
         size={20}
@@ -36,7 +36,7 @@ export function ProfileRow({
       {!trailing && onPress && !hideChevron ? (
         <Ionicons name="chevron-forward" size={18} color={theme.ink3} />
       ) : null}
-    </>
+    </View>
   );
 
   if (!onPress) {
@@ -52,7 +52,7 @@ export function ProfileRow({
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      className="min-h-12 flex-row items-center gap-3 px-4"
+      className="min-h-12 flex-row items-center px-4"
     >
       {content}
     </Pressable>

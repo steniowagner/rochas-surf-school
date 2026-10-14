@@ -15,8 +15,8 @@ depends_on: []
 ## Goal
 
 Every approved member of the school — student, instructor or admin — can browse the school's approved users on
-one "Pessoas" screen: search by name (ignoring case and accents), filter by role with a reusable switcher, sort
-A–Z, and scroll through the list 20 people at a time. Tapping a person opens a sheet with their WhatsApp chat
+one "Pessoas" screen: search by name (ignoring case and accents), switch between students, instructors and admins with a
+reusable switcher, read the list A–Z, and scroll through the list 20 people at a time. Tapping a person opens a sheet with their WhatsApp chat
 button when the backend lets the viewer see the number (the owner shares it, or the viewer is an admin). Students
 reach it from their Escola tab; instructors and admins from a "Pessoas" row in the ESCOLA section of their home
 tab. Today nobody can see the other members of the school in the app.
@@ -60,11 +60,11 @@ tab. Today nobody can see the other members of the school in the app.
 
 ### In scope
 
-- `GET /people`: the paginated directory of approved users, filtered by role and name, sorted newest first or
-  A–Z, with the WhatsApp number only when the viewer may see it.
+- `GET /people`: the paginated directory of approved users, filtered by role and name, always sorted A–Z by
+  name, with the WhatsApp number only when the viewer may see it.
 - A migration enabling the Postgres `unaccent` extension for accent-insensitive search and sort.
 - The reusable `SegmentedControl` component (mobile).
-- The People screen (header with the real count, search, filter button and chips, infinite list, states), the filter sheet and
+- The People screen (header with the real count, search, role switcher, infinite list, states) and
   the Person sheet (WhatsApp chat button, "Fechar").
 - Entry points: the student's Escola tab renders the People screen; the admin home gains the "Ferramentas" and
   "Escola" section labels and a "Pessoas" row; the instructor's Início tab becomes a minimal "Painel" with the
@@ -93,10 +93,10 @@ tab. Today nobody can see the other members of the school in the app.
 | D-01 | The directory lists only users with status `approved`, of every role, the viewer included, and approved accounts that haven't finished onboarding too (their number is `null`). | Requirements → User directory lists approved, active users; including the viewer keeps "N na plataforma" true. |
 | D-02 | `whatsappNumber` is the stored number when the owner's `whatsappVisible` is `true` **or** the viewer's role is `admin`; otherwise `null`. Decided in the `ListPeople` use case, so a hidden number never leaves the backend. The visibility flag itself is never returned. | Product rule (admins always see every number) and the technical context: visibility is enforced by use cases, never only hidden by the UI. |
 | D-03 | Search is a "contains" match on the name, ignoring case and accents (`joao` finds "João"), through Postgres `unaccent` enabled by the migration `auth-enable-unaccent`; the repository uses raw SQL (`$queryRaw` with bound parameters) for the search and for the name sort. The app debounces the search box by 300 ms. | People type names on the phone without accents; Prisma's `contains` / `mode: insensitive` doesn't ignore accents. |
-| D-04 | Two sorts: `recent` ("Ingress date"; default; `created_at` descending, then `id`) and `name` (`lower(unaccent(name))` ascending, then `id`). The app picks one in the filter sheet (D-16, amendment 2026-10-13); the choice lasts for the visit and survives search and role changes. | The request asks for a button that sorts alphabetically, so the default must be another order; the `id` tie-breaker keeps pages stable. |
+| D-04 | (Amendment 2026-10-14.) The directory is always sorted A–Z: `lower(unaccent(name))` ascending, then `id`; there is no `sort` parameter and the app has no sort control. | Requested by the user: sort ascending in the backend and drop the custom sort; the `id` tie-breaker keeps pages stable. |
 | D-05 | The home rows show "{{count}} na plataforma" with `count` from one constant, `PEOPLE_COUNT_PLACEHOLDER = 9`, in `apps/mobile/src/modules/people/constants/people.ts`. | The user's decision: a backend route for this number comes later, and it then replaces one constant. |
 | D-06 | The People screen's eyebrow "N na plataforma" is the **unfiltered** total: `GET /people?perPage=1` with no role, search or sort, query key `["people", "count"]` (`usePeopleCount`). It shows nothing while loading or after an error. | The count names the platform, so it must not change with the search or the filter. |
-| D-07 | The list is one TanStack `useInfiniteQuery` keyed `["people", { role, search, sort }]`, `perPage` 20, next page while `page * perPage < total`; rows repeated across pages (someone approved mid-scroll) are dropped by `id`. No retry on the query. | One cache entry per combination; offset paging can repeat a row when the list grows. |
+| D-07 | The list is one TanStack `useInfiniteQuery` keyed `["people", { role, search }]`, `perPage` 20, next page while `page * perPage < total`; rows repeated across pages (someone approved mid-scroll) are dropped by `id`. No retry on the query. | One cache entry per combination; offset paging can repeat a row when the list grows. |
 | D-08 | `SegmentedControl` (`apps/mobile/src/components/ui/segmented-control/`) is generic — `options: { value: T; label: string }[]`, `value: T`, `onChange(value: T)` — with equal-width `TouchableOpacity` segments of role `tab` (with `accessibilityState.selected`), at least 44 pt tall, no animation, styled as PAINEL-12: a `bg-sand` track and the selected segment on `bg-surface` with `shadowStyle()`, labels in the uppercase chip type style (`ink` selected, `ink-2` otherwise). It knows nothing about roles. | The user wants it reused by other screens; CLAUDE.md requires `TouchableOpacity` for buttons. |
 | D-09 | One `PeopleScreen` in a new mobile module `apps/mobile/src/modules/people/` serves the three roles. It takes `showBackButton`: `true` on `/admin/people` and `/instructor/people` (inner routes of the role's Stack, above the tab bar), `false` on the student's Escola tab (a tab root can't go back). | One screen, one design (PAINEL-12) for every role, as requested. |
 | D-10 | Rows and the sheet show an initials avatar (`getInitials`, `bg-sand` / `text-grape`, like `DecisionCard`), the name, and the subtitle "desde <MMM yyyy>" from `createdAt` (date-fns, America/Fortaleza, the app's locale). Role chips reuse the `profile.role.*` labels: student `muted`, instructor `info`, admin `grape`. | No photos or class counts exist; the existing Chip tones avoid changing the web Chip. |
@@ -117,12 +117,9 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 | `people.title` | Pessoas | Personas | People |
 | `people.count` | {{count}} na plataforma | {{count}} en la plataforma | {{count}} on the platform |
 | `people.searchPlaceholder` | Procurar pessoa | Buscar persona | Search people |
-| `people.filter.all` | Todos | Todos | All |
 | `people.filter.student` | Alunos | Alumnos | Students |
 | `people.filter.instructor` | Instrutores | Instructores | Instructors |
 | `people.filter.admin` | Admins | Admins | Admins |
-| `people.sort.label` | A–Z | A–Z | A–Z |
-| `people.sort.accessibility` | Ordenar por nome | Ordenar por nombre | Sort by name |
 | `people.since` | desde {{date}} | desde {{date}} | since {{date}} |
 | `people.empty` | Ninguém encontrado | No se encontró a nadie | No one found |
 | `people.loadError` | Não foi possível carregar as pessoas. | No se pudo cargar a las personas. | Couldn't load people. |
@@ -133,7 +130,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 | `home.peopleRow` | Pessoas | Personas | People |
 | `instructor.home.title` | Painel | Panel | Dashboard |
 
-| D-16 | (Amendment 2026-10-13, replaces the on-screen role switcher and the "A–Z" button.) The People screen has a filter button at the right, between the search box and the list, that opens a bottom sheet with two `SegmentedControl`s: role (All — the default — / Students / Instructors / Admins) and sort by (Ingress date — the default — / Name). A choice applies at once. The applied non-default filters show as removable chips at the left of the same line (role, name sort); pressing a chip puts that filter back to its default. | Requested by the user: one entry point that scales to more filters, instead of a permanent switcher and a sort button. |
+| D-16 | (Amendment 2026-10-14, replaces the 2026-10-13 filter sheet.) The People screen shows the `SegmentedControl` with three segments — Students (selected by default), Instructors, Admins — under the search box. There is no "All" segment, so the list always shows one role and every list request sends `role`. | Requested by the user: bring the switcher back without "All" and drop the custom filter. |
 
 ## Expected Results
 
@@ -180,22 +177,21 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 - **Front:** backend
 - **Behavior:** Given 25 approved users, when an approved account calls `GET /people`, then it answers `page: 1`,
-  `perPage: 20`, 20 items and `total: 25`, newest `createdAt` first; `?page=2` answers the remaining 5;
-  `?sort=name` orders by name A–Z ignoring case and accents ("Álvaro" before "Bruno", "ana" before "Bruno");
-  `?perPage=50` is accepted.
-- **Edge and error cases:** two users with the same `createdAt` (or the same name under `sort=name`) are ordered
+  `perPage: 20`, 20 items and `total: 25`, ordered by name A–Z ignoring case and accents ("Álvaro" before "Bruno", "ana" before "Bruno");
+  `?page=2` answers the remaining 5; `?perPage=50` is accepted.
+- **Edge and error cases:** two users with the same name are ordered
   by `id`, so pages never overlap; a page past the end answers `items: []` with the real `total`.
 - **Verify by:** `npx vitest run src/modules/auth/user.prisma.spec.ts -t "findDirectoryPage"` and
-  `test/people.e2e-spec.ts` → "pages 20 at a time" and "sorts by name".
+  `test/people.e2e-spec.ts` → "pages 20 at a time" and "sorts A–Z by name".
 
 ### ER-05 — Access and parameter validation
 
 - **Front:** backend
 - **Behavior:** When `GET /people` is called without a token, it answers 401 `auth.token.invalid`; by an account
   whose status is `pending`, `denied`, `deleted` or `removed` (any role), 403 `user.status.notApproved`; by an
-  approved account with `page=0`, `perPage=51`, `role=guest`, an 81-character `search` and `sort=age`, 422 with
+  approved account with `page=0`, `perPage=51`, `role=guest`, and an 81-character `search`, 422 with
   `errors` holding `people.page.invalid`, `people.perPage.invalid`, `people.role.invalid`,
-  `people.search.max.length` and `people.sort.invalid`.
+  and `people.search.max.length`.
 - **Edge and error cases:** non-numeric `page` / `perPage` (`abc`, `1.5`) are invalid; the access check runs
   before validation, so a non-approved account with bad parameters gets the 403.
 - **Verify by:** `npm test --workspace @rochas-surf-school/auth -- list-people`,
@@ -216,8 +212,8 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 - **Front:** mobile
 - **Behavior:** Given the backend answers 3 approved users unfiltered (`total: 3`), when the People screen opens,
-  then it shows the title "Pessoas", the eyebrow "3 na plataforma", the search box "Procurar pessoa", the filter button
-  (no chips while the defaults apply), and one row per user with the
+  then it shows the title "Pessoas", the eyebrow "3 na plataforma", the search box "Procurar pessoa", the switcher
+  "Alunos / Instrutores / Admins" with "Alunos" selected, and one row per user with the
   initials avatar, the name, "desde <mês ano>" (e.g. "desde jul 2026") and the role chip ("Aluno", "Instrutor",
   "Admin").
 - **Edge and error cases:** with a filter or search applied, the eyebrow still shows the unfiltered total (D-06);
@@ -242,25 +238,22 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 
 - **Front:** mobile
 - **Behavior:** Given the People screen, when the person types "jo" and 300 ms pass, then the list reloads from
-  page 1 with `search=jo`; when they then open the filter sheet and choose "Instrutores", it reloads from page 1 with
-  `role=instructor&search=jo` and a removable "Instrutores" chip shows beside the filter button; pressing the chip (or choosing
-  "Todos") sends no `role`.
+  page 1 with `role=student&search=jo`; when they then press "Instrutores", it reloads from page 1 with
+  `role=instructor&search=jo` and that segment shows as selected; every list request sends `role`.
 - **Edge and error cases:** typing faster than 300 ms sends one request for the final text; a search of only
   spaces sends no `search`; when the answer has no items, "Ninguém encontrado" is shown instead of rows.
 - **Verify by:** `npx jest src/modules/people` — `people.screen.test.tsx` → "searches and filters by role" and
   "shows the empty state"; user journey 2.
 
-### ER-10 — The filter sheet sorts by name or ingress date
+### ER-10 — The list keeps the backend's A–Z order
 
 - **Front:** mobile
-- **Behavior:** Given the People screen in the default order (no `sort` sent, newest first, "Data de entrada" selected in the
-  filter sheet), when "Nome" is chosen in the sheet, then the list reloads from page 1 with `sort=name` and a removable "Nome"
-  chip shows at the left of the filter button; pressing the chip (or choosing "Data de entrada") reloads with the default order
-  and removes the chip.
-- **Edge and error cases:** the chosen order is kept when the search or the role changes during the visit; the filter button has
-  the accessibility label "Abrir filtros", every chip is at least 44 pt tall and its label says "Remover filtro <nome>".
-- **Verify by:** `npx jest src/modules/people` — `people.screen.test.tsx` → "sorts by name from the filter sheet…",
-  `filter-sheet.component.test.tsx`, `filter-bar.component.test.tsx`; user journey 2.
+- **Behavior:** Given the backend answers three people in A–Z order, when the People screen opens, then the rows are shown
+  in that order, and no list request carries a `sort` parameter.
+- **Edge and error cases:** there is no sort control on the screen; changing the search or the role keeps the order the
+  backend answers.
+- **Verify by:** `npx jest src/modules/people` — `use-people.hook.test.tsx` (the query string) and `people.screen.test.tsx` →
+  "keeps the order the backend answers".
 
 ### ER-11 — Loading, error and refresh states
 
@@ -441,7 +434,7 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   Covers: ER-15 · Done when: `npx jest src/modules/instructor/screens/instructor.screen.test.tsx` passes.
   > ✅ 2026-10-13 — the instructor placeholder became the "Painel" screen: title, the "Escola" section label and the shared `PeopleEntryRow` pushing `routes.instructor.people`; `instructor.home.title` was added in T-10; files: `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`, `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`, `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx` (header now "Dashboard"); verified: `npx jest src/modules/instructor` (5 passed), tsc and eslint clean; deviations: none; follow-up found by the related-tests run: the instructor-home header assertions in `school-rules.screen.test.tsx`, `rules-update.screen.test.tsx` and `root-navigator.component.test.tsx` now expect "Dashboard" (full mobile suite: 1073 passed)
 
-- [x] **T-13** — (added during execution, amendment 2026-10-13) Replace the page-level role switcher and the A–Z button with the
+- [x] **T-13** — (added during execution, amendment 2026-10-13; superseded by T-14 and T-15, amendment 2026-10-14) Replace the page-level role switcher and the A–Z button with the
   filter (D-16): `FilterSheet` and `FilterBar` in `src/modules/people/components/`, `usePeopleScreen` exposes `sort`/`setSort` and the
   sheet's visibility, the `people.filter.*` keys (title, button, role, sort labels, remove) replace `people.sort.*` in the three message
   files, and the screen, hook and component tests follow. Covers: ER-09, ER-10 · Done when: `npx jest src/modules/people` passes.
@@ -451,6 +444,25 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
   > verified: `npx jest src/modules/people` (52 passed), tsc and eslint clean, and on the simulator: the filter button opens the sheet
   > (Role: All / Students / Instructors / Admins, Sort by: Ingress date / Name), choosing Instructors + Name shows both chips at the
   > left of the filter button and reloads the list; deviations: none
+
+- [x] **T-14** — (added during execution, amendment 2026-10-14) Backend: always sort A–Z by name (D-04): drop `sort` from
+  `DirectoryPageParams`, `ListPeople` (and its `people.sort.invalid` key), the controller, the fake and Prisma repositories, the REST
+  Client file and their tests (unit, repository, controller and e2e). Covers: ER-04, ER-05 · Done when: `npm test --workspace
+  @rochas-surf-school/auth -- list-people`, `npx vitest run src/modules/auth` (from `apps/backend`) and `npm run test:e2e --workspace
+  apps/backend -- people` pass.
+  > ✅ 2026-10-14 — files: `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/src/user/usecase/list-people.usecase.ts`,
+  > `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/user/usecase/list-people.usecase.test.ts`,
+  > `apps/backend/src/modules/auth/{user.prisma.ts,user.prisma.spec.ts,people.controller.ts,people.controller.spec.ts,people.integration.http}`,
+  > `apps/backend/test/people.e2e-spec.ts`; verified: auth module tests (356 passed), `vitest run src/modules/auth` (148 passed), people
+  > e2e (11 passed against the local Postgres), `check-types` clean; deviations: none
+
+- [x] **T-15** — (added during execution, amendment 2026-10-14) Mobile: remove `FilterSheet`, `FilterBar`, the sort state and the
+  `people.sort.*` / extra `people.filter.*` keys; bring back the `SegmentedControl` under the search box with Students (default),
+  Instructors and Admins, no "All" (D-16); every list request sends `role`; no `sort` is sent. Covers: ER-07, ER-09, ER-10 · Done
+  when: `npx jest src/modules/people` passes.
+  > ✅ 2026-10-14 — files: `apps/mobile/src/modules/people/{people.types.ts,utils/people-query.ts,hooks/use-people-screen.hook.ts,hooks/use-people-screen.types.ts,hooks/use-people.hook.test.tsx,screens/people.screen.tsx,screens/people.screen.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; deleted `apps/mobile/src/modules/people/components/{filter-sheet,filter-bar}/`;
+  > verified: `npx jest src/modules/people` (43 passed + the order test; full mobile suite 1073 passed), tsc and eslint clean; deviations: none
 
 ### Verification
 
@@ -498,11 +510,10 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 - User journeys (iOS simulator, backend running with at least 25 approved users of mixed roles — some with a shared
   number, some hidden, one with an accented name such as "João" — plus one pending account):
   1. Sign in as the student review account → Escola tab: "Pessoas", "N na plataforma" (N = approved users), no
-     back button, 20 rows newest first; scroll to the end → the remaining rows load with a footer spinner; the
+     back button, 20 rows A–Z, students only; scroll to the end → the remaining rows load with a footer spinner; the
      pending account never appears.
-  2. Type "joao" → "João …" is listed; open the filter sheet and choose "Instrutores" → only instructors matching, with a chip;
-     clear the search → all instructors; choose "Nome" → instructors A–Z, a second chip; press the chips → back to the defaults;
-     type "zzzz" → "Ninguém encontrado"; the eyebrow never changes.
+  2. Type "joao" → "João …" is listed (students); press "Instrutores" → only instructors matching (here none); clear the search →
+     all instructors, A–Z; press "Admins" → only admins; type "zzzz" → "Ninguém encontrado"; the eyebrow never changes.
   3. As the student, open a person who shares their number → "Conversar por WhatsApp" with the formatted number;
      tapping it tries to open WhatsApp (on the simulator without WhatsApp, the browser opens `wa.me` or the toast
      "Não foi possível abrir o WhatsApp." shows); open a person with a hidden number → no WhatsApp row; "Fechar"
@@ -516,20 +527,20 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 ## Memory Impact
 
 - `memory/product.md` — Current state: the People directory (approved users, search ignoring case and accents,
-  role filter, A–Z, pages of 20, WhatsApp chat when the number is visible to the viewer) for every role; the
+  role switcher, always A–Z, pages of 20, WhatsApp chat when the number is visible to the viewer) for every role; the
   student's Escola tab and the admin's and instructor's home "Pessoas" rows; out-of-scope items (removed accounts
   section, role actions, photos, class counts, the real home count) to the future evolution list; the People
-  directory concept gains the sort and paging.
+  directory concept gains the A–Z order and paging.
 - `memory/technical-context.md` — Persistence: the `unaccent` extension and raw SQL for accent-insensitive search
   and sort; Authentication: `GET /people` (`ListPeople`, parameters, defaults, error keys, visibility rule);
   Fixed conventions → Mobile shared UI: `SegmentedControl`; Applications → `apps/mobile`: `useInfiniteQuery` for
-  paginated lists (`usePeople`, key `["people", { role, search, sort }]`, `["people", "count"]`).
+  paginated lists (`usePeople`, key `["people", { role, search }]`, `["people", "count"]`).
 - `memory/structure.md` — `apps/mobile/src/modules/people/` (screens, components, hooks, constants, utils),
   `src/components/ui/segmented-control/`, the routes `/admin/people` and `/instructor/people`, the student's Escola
   tab rendering `PeopleScreen`, the instructor's Painel; `apps/backend/src/modules/auth/people.controller.ts` and
   the `auth-enable-unaccent` migration.
 - `memory/modules/auth.md` — Accounts: the directory (who is listed, what each item carries, who sees a WhatsApp
-  number, search, filter, sort, paging); Who can do what: any approved account reads the directory; In the app:
+  number, search, role filter, A–Z order, paging); Who can do what: any approved account reads the directory; In the app:
   the People screen and its entry points; spec history.
 
 ## Assumptions
@@ -546,6 +557,13 @@ failure toasts reuse `createAccount.errors.generic` / `.noConnection`, and "Tent
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-14 — user request. Before: a filter button opened a sheet with role (incl. "All") and sort (ingress date / name), with removable
+  chips (D-16, 2026-10-13). After: the role `SegmentedControl` is back with Students (default), Instructors and Admins — no "All" — and the
+  filter sheet, the sort choice and the `sort` API parameter are gone; the backend always sorts A–Z by name (D-04 and D-16 rewritten;
+  ER-04, ER-05, ER-07, ER-09 reworded; ER-10 now "the list keeps the backend's A–Z order"; the copy table lost `people.filter.all` and
+  `people.sort.*`; journeys 1 and 2 and the Memory Impact reworded; tasks T-14 and T-15 added, T-13 superseded). Reason: the user wanted
+  the simpler switcher and a fixed ascending order. Consequence: no screen lists every role at once.
 
 - 2026-10-13 — user request. Before: the screen had a role `SegmentedControl` and an "A–Z" button (D-04, ER-07, ER-09, ER-10, journey 2).
   After: one filter button opens a bottom sheet with role (All by default) and sort by (Ingress date by default, or Name); the applied

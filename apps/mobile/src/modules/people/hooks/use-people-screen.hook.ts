@@ -5,9 +5,9 @@ import { getRegistrationErrorKey } from "@/modules/admin/utils/registration-erro
 import { useAlertMessage } from "@/providers/alert-message";
 import { SessionExpiredError } from "@/services/api";
 
-import { PeopleSort, Person } from "../people.types";
+import { PeopleRole, Person } from "../people.types";
 
-import { UsePeopleScreenResult, PeopleRoleFilter } from "./use-people-screen.types";
+import { UsePeopleScreenResult } from "./use-people-screen.types";
 import { usePeople } from "./use-people.hook";
 import { usePeopleCount } from "./use-people-count.hook";
 
@@ -18,9 +18,7 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
   const alertMessage = useAlertMessage();
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<PeopleRoleFilter>("all");
-  const [sort, setSort] = useState<PeopleSort>("recent");
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [role, setRole] = useState<PeopleRole>("student");
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -35,11 +33,7 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     return () => clearTimeout(timer);
   }, [searchText]);
 
-  const query = usePeople({
-    role: roleFilter === "all" ? undefined : roleFilter,
-    search,
-    sort,
-  });
+  const query = usePeople({ role, search });
   const countQuery = usePeopleCount();
 
   const showError = (error: unknown) => {
@@ -73,13 +67,8 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     people: query.people,
     searchText,
     setSearchText,
-    roleFilter,
-    setRoleFilter,
-    sort,
-    setSort,
-    isFilterVisible,
-    openFilter: () => setIsFilterVisible(true),
-    closeFilter: () => setIsFilterVisible(false),
+    role,
+    setRole,
     isLoading: query.isPending,
     // An expired session is handled once, centrally; a failed next page keeps its rows and only toasts.
     isError:

@@ -99,12 +99,42 @@ describe("PeopleScreen", () => {
     expect(screen.getByText("3 on the platform")).toBeOnTheScreen();
     expect(screen.getByText("People")).toBeOnTheScreen();
     expect(screen.getByPlaceholderText("Search people")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Open filters" })).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: /Remove filter/ })).not.toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "Students", selected: true })).toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "Instructors", selected: false })).toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "Admins", selected: false })).toBeOnTheScreen();
+    expect(screen.queryByRole("tab", { name: "All" })).not.toBeOnTheScreen();
     expect(screen.getAllByText("since Jul 2026")).toHaveLength(3);
     expect(screen.getByText("Instructor")).toBeOnTheScreen();
     expect(screen.getByText("Admin")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Back" })).not.toBeOnTheScreen();
+  });
+
+  it("keeps the order the backend answers, without a sort parameter", async () => {
+    serve(
+      () =>
+        ok({
+          items: [
+            buildPerson(1, { name: "Álvaro" }),
+            buildPerson(2, { name: "ana" }),
+            buildPerson(3, { name: "Bruno" }),
+          ],
+          page: 1,
+          perPage: 20,
+          total: 3,
+        }),
+      3,
+    );
+
+    await renderScreen();
+
+    await screen.findByText("Álvaro");
+    const names = screen.getAllByRole("button").map((button) => button.props.accessibilityLabel);
+    expect(names.filter((name) => ["Álvaro", "ana", "Bruno"].includes(name))).toEqual([
+      "Álvaro",
+      "ana",
+      "Bruno",
+    ]);
+    expect(listPaths().every((path) => !path.includes("sort"))).toBe(true);
   });
 
   it("shows the back button when asked", async () => {
@@ -141,7 +171,7 @@ describe("PeopleScreen", () => {
     fireEvent(screen.getByTestId("people-list"), "endReached");
 
     expect(await screen.findByTestId("people-loading-more")).toBeOnTheScreen();
-    expect(listPaths()).toEqual(["/people?page=1&perPage=20", "/people?page=2&perPage=20"]);
+    expect(listPaths()).toEqual(["/people?page=1&perPage=20&role=student", "/people?page=2&perPage=20&role=student"]);
     await act(async () => releasePage2(ok(buildPage(2, 5, 25))));
     await waitFor(() => expect(screen.queryByTestId("people-loading-more")).not.toBeOnTheScreen());
 
@@ -173,27 +203,24 @@ describe("PeopleScreen", () => {
       serve((path) => ok({ ...buildPage(1, 1, 1), items: [buildPerson(1, { name: path })] }), 1);
     });
 
-    it("searches after the debounce and filters by role from the filter sheet, keeping the search", async () => {
+    it("searches after the debounce and switches the role, keeping the search", async () => {
       jest.useFakeTimers();
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       await renderScreen();
       await act(async () => {});
 
       await user.type(screen.getByPlaceholderText("Search people"), "jo");
-      expect(listPaths()).toEqual(["/people?page=1&perPage=20"]);
+      expect(listPaths()).toEqual(["/people?page=1&perPage=20&role=student"]);
       await act(async () => jest.advanceTimersByTime(300));
-      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&search=jo"));
+      await waitFor(() =>
+        expect(listPaths()).toContain("/people?page=1&perPage=20&role=student&search=jo"),
+      );
 
-      await user.press(screen.getByRole("button", { name: "Open filters" }));
       await user.press(screen.getByRole("tab", { name: "Instructors" }));
       await waitFor(() =>
         expect(listPaths()).toContain("/people?page=1&perPage=20&role=instructor&search=jo"),
       );
-      expect(screen.getByRole("button", { name: "Remove filter Instructors" })).toBeOnTheScreen();
-
-      await user.press(screen.getByRole("button", { name: "Remove filter Instructors" }));
-      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&search=jo"));
-      expect(screen.queryByRole("button", { name: /Remove filter/ })).not.toBeOnTheScreen();
+      expect(screen.getByRole("tab", { name: "Instructors", selected: true })).toBeOnTheScreen();
       jest.useRealTimers();
     });
 
@@ -215,44 +242,13 @@ describe("PeopleScreen", () => {
       await wait(100);
       await type("joa");
       await wait(300);
-      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&search=joa"));
+      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&role=student&search=joa"));
       expect(listPaths().filter((path) => path.includes("search"))).toHaveLength(1);
 
       await type("   ");
       await wait(300);
-      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20"));
+      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&role=student"));
       jest.useRealTimers();
-    });
-
-    it("sorts by name from the filter sheet, keeps it across role changes and removes it with its chip", async () => {
-      const user = userEvent.setup();
-      await renderScreen();
-      await screen.findByText("/people?page=1&perPage=20");
-
-      await user.press(screen.getByRole("button", { name: "Open filters" }));
-      expect(screen.getByRole("tab", { name: "Ingress date", selected: true })).toBeOnTheScreen();
-      await user.press(screen.getByRole("tab", { name: "Name" }));
-      await screen.findByText("/people?page=1&perPage=20&sort=name");
-      expect(screen.getByRole("button", { name: "Remove filter Name" })).toBeOnTheScreen();
-
-      await user.press(screen.getByRole("tab", { name: "Admins" }));
-      await screen.findByText("/people?page=1&perPage=20&role=admin&sort=name");
-
-      await user.press(screen.getByRole("button", { name: "Remove filter Name" }));
-      await screen.findByText("/people?page=1&perPage=20&role=admin");
-      expect(screen.getByRole("tab", { name: "Ingress date", selected: true })).toBeOnTheScreen();
-    });
-
-    it("closes the filter sheet", async () => {
-      const user = userEvent.setup();
-      await renderScreen();
-      await screen.findByText("/people?page=1&perPage=20");
-
-      await user.press(screen.getByRole("button", { name: "Open filters" }));
-      expect(screen.getByText("Filters")).toBeOnTheScreen();
-      await user.press(screen.getByRole("button", { name: "Close" }));
-
-      expect(screen.queryByText("Filters")).not.toBeOnTheScreen();
     });
   });
 

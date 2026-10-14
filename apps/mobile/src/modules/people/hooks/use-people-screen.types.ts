@@ -1,19 +1,12 @@
-import { PeopleRole, PeopleSort, Person } from "../people.types";
-
-export type PeopleRoleFilter = "all" | PeopleRole;
+import { PeopleRole, Person } from "../people.types";
 
 export type UsePeopleScreenResult = {
   count: number | undefined;
   people: Person[];
   searchText: string;
   setSearchText: (text: string) => void;
-  roleFilter: PeopleRoleFilter;
-  setRoleFilter: (role: PeopleRoleFilter) => void;
-  sort: PeopleSort;
-  setSort: (sort: PeopleSort) => void;
-  isFilterVisible: boolean;
-  openFilter: () => void;
-  closeFilter: () => void;
+  role: PeopleRole;
+  setRole: (role: PeopleRole) => void;
   isLoading: boolean;
   isError: boolean;
   /** Loaded fine and nobody matches. */

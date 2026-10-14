@@ -1,8 +1,5 @@
 export type PeopleRole = "student" | "instructor" | "admin";
 
-/** `recent` is the backend's default (newest first); `name` is A–Z. */
-export type PeopleSort = "recent" | "name";
-
 /** One approved user, as `GET /people` answers it (`createdAt` an ISO 8601 string in UTC). */
 export type Person = {
   id: string;
@@ -21,7 +18,6 @@ export type PeoplePage = {
 };
 
 export type PeopleFilters = {
-  role?: PeopleRole;
+  role: PeopleRole;
   search: string;
-  sort: PeopleSort;
 };

@@ -12,14 +12,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 
-import { FilterBar } from "../components/filter-bar";
-import { FilterSheet } from "../components/filter-sheet";
 import { PersonRow } from "../components/person-row";
 import { PersonSheet } from "../components/person-sheet";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
+
+import { PeopleRole } from "../people.types";
 
 import { PeopleScreenProps } from "./people.screen.types";
 
@@ -32,13 +33,8 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
     people,
     searchText,
     setSearchText,
-    roleFilter,
-    setRoleFilter,
-    sort,
-    setSort,
-    isFilterVisible,
-    openFilter,
-    closeFilter,
+    role,
+    setRole,
     isLoading,
     isError,
     isEmpty,
@@ -52,6 +48,12 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
     openPerson,
     closeSheet,
   } = usePeopleScreen();
+
+  const roleOptions: { value: PeopleRole; label: string }[] = [
+    { value: "student", label: t("people.filter.student") },
+    { value: "instructor", label: t("people.filter.instructor") },
+    { value: "admin", label: t("people.filter.admin") },
+  ];
 
   const renderEmpty = () => {
     if (isLoading) {
@@ -140,12 +142,10 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
               autoCorrect={false}
               returnKeyType="search"
             />
-            <FilterBar
-              role={roleFilter}
-              sort={sort}
-              onOpen={openFilter}
-              onClearRole={() => setRoleFilter("all")}
-              onClearSort={() => setSort("recent")}
+            <SegmentedControl
+              options={roleOptions}
+              value={role}
+              onChange={setRole}
             />
           </View>
         }
@@ -170,14 +170,6 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
-      />
-      <FilterSheet
-        visible={isFilterVisible}
-        onClose={closeFilter}
-        role={roleFilter}
-        sort={sort}
-        onRoleChange={setRoleFilter}
-        onSortChange={setSort}
       />
       <PersonSheet
         person={selectedPerson}

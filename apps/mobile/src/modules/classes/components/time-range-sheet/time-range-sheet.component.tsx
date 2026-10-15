@@ -9,6 +9,10 @@ import { useTheme } from "@/hooks/use-theme";
 import { useTimeRangeSheet } from "./time-range-sheet.hook";
 import { TimeRangeSheetProps } from "./time-range-sheet.types";
 
+// The native picker only sizes itself to its content vertically; without a width inside a centered column its frame
+// collapses to zero, so the wheels are drawn but never receive a touch.
+const pickerStyle = { width: "100%" } as const;
+
 /** "Novo horário": the start and the end of a range that is only for this batch. */
 export function TimeRangeSheet(props: TimeRangeSheetProps) {
   const { t } = useTranslation();
@@ -38,6 +42,7 @@ export function TimeRangeSheet(props: TimeRangeSheetProps) {
             </Text>
             <DateTimePicker
               testID="time-range-start"
+              style={pickerStyle}
               mode="time"
               display="spinner"
               is24Hour
@@ -52,6 +57,7 @@ export function TimeRangeSheet(props: TimeRangeSheetProps) {
             </Text>
             <DateTimePicker
               testID="time-range-end"
+              style={pickerStyle}
               mode="time"
               display="spinner"
               is24Hour

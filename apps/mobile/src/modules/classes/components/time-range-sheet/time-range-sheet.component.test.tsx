@@ -19,6 +19,15 @@ describe("TimeRangeSheet", () => {
     expect(screen.getByRole("button", { name: "Add time" })).toBeEnabled();
   });
 
+  it.each(["time-range-start", "time-range-end"])(
+    "gives %s a width, or its wheels can't be touched",
+    async (testID) => {
+      await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />);
+
+      expect(screen.getByTestId(testID).props.style).toEqual({ width: "100%" });
+    },
+  );
+
   it("shows the duration with minutes", async () => {
     await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />);
 

@@ -62,9 +62,10 @@ jest.mock("@expo/ui/community/datetime-picker", () => {
   const DateTimePicker = ({
     value,
     onValueChange,
+    style,
     testID,
   }: Record<string, unknown>) =>
-    require("react").createElement("View", { testID, value, onValueChange });
+    require("react").createElement("View", { testID, value, onValueChange, style });
 
   return { __esModule: true, default: DateTimePicker, DateTimePicker };
 });

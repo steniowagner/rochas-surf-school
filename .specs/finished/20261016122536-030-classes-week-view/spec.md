@@ -2,13 +2,14 @@
 id: "030"
 slug: classes-week-view
 title: "Aulas tab: week view and class details"
-status: accepted
+status: finished
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8a4501ee0316065450772fd48571ce5e187b7832
 reviewed_commit: 04c72a219ee3e215c71dc5264f96f1a436c5bf55
 fronts: [classes, backend, mobile]
 depends_on: []
+finished: 2026-10-16
 ---
 
 # 030 — Aulas tab: week view and class details

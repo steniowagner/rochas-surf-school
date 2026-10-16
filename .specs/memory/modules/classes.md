@@ -4,8 +4,8 @@
 
 It schedules the school's classes, as [Product](../product.md) describes **Class** (`class`) and **Location**
 (`location`): admins create classes one at a time or in a batch, at a saved location, with the instructors who
-teach them, and the instructors are told. It is the base that the class list, editing, enrolment, ratings and
-photos build on. It brings together two business areas: **Locations** and **Classes**.
+teach them, and the instructors are told; every approved account then browses the classes week by week and
+reads each one. It is the base that editing, enrolment, ratings and photos build on. It brings together two business areas: **Locations** and **Classes**.
 
 ## Locations
 
@@ -33,7 +33,8 @@ The classes themselves, and how a batch becomes classes.
 - **Class** (`class`, `school-class` in code — "Class" is avoided as a name): one session. Key fields:
   discipline (`surf` | `skate`), level (`beginner` | `advanced` | `expert`, a label only), when it starts and
   ends, location, instructors (one or more instructors or admins), capacity, notes (optional), who created it.
-  Lifecycle: created only, for now. Limits: capacity 1 to 20; notes up to 300 characters after trimming (blank
+  Lifecycle: created only, for now; its state follows the clock — `not-started` before its start, `started` from
+  its start, `finished` from its end — computed, never stored. Limits: capacity 1 to 20; notes up to 300 characters after trimming (blank
   notes are stored as none).
 - **Batch** (not stored): what the admin chooses to create classes — a first and a last date (inclusive), the
   weekdays to include (Monday 1 to Sunday 7), the dates of the range left out (`excludedDates`, optional), one
@@ -41,6 +42,8 @@ The classes themselves, and how a batch becomes classes.
   and the fields every class shares. It becomes one class per included day and time range. The app always sends
   all seven weekdays and removes single days with `excludedDates`; the API keeps `weekdays` for older builds.
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
+- **Class view** (not stored): a class as people read it — its fields, its location's name and address, and
+  its instructors' ids and names.
 
 Rules:
 
@@ -75,27 +78,39 @@ Rules:
 - **Suggestions come from last week**: the distinct start–end pairs, in Fortaleza time, of the classes starting
   from last Monday 00:00 (inclusive) to this Monday 00:00 (exclusive), sorted by start then end; none →
   an empty list. Ranges added on the spot are never kept.
+- **A week is Monday 00:00 to the next Monday 00:00, Fortaleza, by start**: any day of the week (`YYYY-MM-DD`)
+  names it; the week answers its Monday and the classes starting in it, sorted by start, then end, then id; a
+  week without classes is an empty list. A date that is missing, malformed or impossible is refused with
+  `class.date.invalid` (422), after the account's status.
+- **The instructors of a class are listed A–Z by name**, ignoring case and accents, then by id.
+- **A class is read by its id**: an id that isn't a UUID, or no class with it, is `class.notFound` (404).
+- **The state is the same everywhere**: `not-started` while now is before the start, `started` from the start
+  until before the end, `finished` from the end; the app computes it with the phone's clock, so the API never
+  sends a state, and later rules (editing, cancelling) use the same boundaries.
 
 ## Who can do what
 
 The account's status is checked before its role (`user.status.notApproved`, then `user.role.notAdmin`, both
 403); an unknown account is refused as signed out.
 
-- **An approved account of any role** — lists the locations.
+- **An approved account of any role** — lists the locations, lists the classes of any week, past or future,
+  and reads any class with its notes.
 - **An approved admin** — creates locations and batches of classes, and reads the time-range suggestions.
 - **An assigned instructor or admin** — receives one notification per batch they were assigned to (unless
   they created it).
 
 ## Boundaries
 
-It knows people only by their ids: whether an id is an approved instructor or admin comes through its own
-contract, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
+It knows people only by their ids: whether an id is an approved instructor or admin, and the names shown with a
+class, come through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
 status names. It doesn't send notifications itself: it hands the instructors, the count and the discipline to a
 contract that [Notifications](notifications.md) fulfils. It doesn't read the clock directly either. In the app,
 admins create classes on the "Nova aula" screen, which uses the module's own batch expansion and limits so its
 count matches what the backend creates: it removes single days of a range and, when today is among the dates,
-leaves out today's classes of the times that have already started and sends `skipPast`. Nothing shows the classes yet (Aulas tab, class details), and editing,
-cancelling and deleting classes, unassigning instructors, the map, suggestions, editing and archiving of
+leaves out today's classes of the times that have already started and sends `skipPast`. Every role sees the
+classes on its week screen (the student's Agenda, the Aulas tab of instructors and admins) and their details,
+built from the module's state rule; seats are not shown yet (capacity only), and the classes a person teaches
+aren't marked. Editing, cancelling and deleting classes, "My classes", unassigning instructors, the map, suggestions, editing and archiving of
 locations, enrolment, ratings and photos come with their specs. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
@@ -108,3 +123,6 @@ which stops that account from being erased while the link exists — a decision 
 - `029-batch-excluded-dates-skip-past` — a batch can leave out single dates (`excludedDates`) and skip the
   classes that have already started (`skipPast`), with their shape errors; with `skipPast` the days before today
   are dropped before the 200 limit is judged; the app's form removes single days and skips today's past times.
+- `030-classes-week-view` — the class state by the clock (`not-started` / `started` / `finished`); any approved
+  account lists one Fortaleza week of classes (`class.date.invalid`) and reads one class (`class.notFound`), with
+  the location and the instructors sorted by name; the app's week view and class details for the three roles.

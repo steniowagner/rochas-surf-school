@@ -2,7 +2,7 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: in-review
+status: changes-requested
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
@@ -535,3 +535,42 @@ Approved by the user in chat, after seeing the build on the simulator: the day n
 (AGENDA-01's size) to Barlow 24 (`ds-text-calendar-day`), "just a little bit" larger; the month grid is unchanged. D-09
 updated. Task T-09 added.
 
+
+## Review
+
+### Round 1 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8 tasks; design-tokens `check-types` ✅, so `tokens.css` is not stale)
+- related tests ✅ 715 passed, 57 suites (apps/mobile, apps/web) — `RELATED TESTS PASSED`; the named tests of every Expected Result's `Verify by` run alone: 93 passed in the 6 suites of the spec
+- coverage of the changed lines ✅ `COVERAGE OK` — 15 files, no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` (backend skipped, web suite green; no suite applies to the mobile app)
+- ER-12 grep ✅ prints nothing · no TODO/FIXME/console.log in the diff · working tree clean (only the untracked, unrelated `.expo/`)
+- simulator journey ❌ not run (see F-03)
+
+**Expected Results**
+
+- ER-01 ✅ in tests (opens on the week, seven days, caption, only the selected day on `grape`, today `sun`) — the simulator half is open, see F-03
+- ER-02 ✅ — `weekCaption` tests: one month, two months, two years, trailing dot dropped
+- ER-03 ✅ — week row, month grid (adjacent days included) and screen: one dot per day with classes, `on-color` on the selected day of the week row
+- ER-04 ✅ — pill switches views, caption, label, `expanded`, arrow labels follow the view
+- ER-05 ✅ in tests — selecting a day keeps the view in both views and the list shows that day's cards; the spec text still says "title" (F-01)
+- ER-06 ✅ — selection carries across views, including 2026-11-01 → November
+- ER-07 ✅ — 4, 5 and 6 row grids, initials Monday first, adjacent days `ink-3`
+- ER-08 ✅ — 2026-11-01 and 2026-09-28 move the grid, view unchanged
+- ER-09 ✅ — arrows by view, day capped (31 Jan → 28 Feb, 31 Mar → 30 Apr, 2027-03-31 → 2027-02-28)
+- ER-10 — removed by amendment 1; no "Hoje" chip or subtitle remains in the code, and a test asserts there is no shortcut
+- ER-11 ✅ — the month requests exactly the four other Mondays and not 2026-10-12 again; a failing visible week shows no message; pull refetches every visible week; the selected week's error keeps "Try again"; the spinner follows only the user's pull
+- ER-12 ✅ — no imports from the modules; the range is reported on mount and when it changes
+
+**Findings**
+
+- [ ] **F-01** (scope) — The task T-11 ("remove the day title and the class count above the cards") cites "amendment 3", but `## Amendments` only has amendments 1 and 2: the change to the contract is not logged. ER-05 still says "the list below shows that day's title and classes", and Memory Impact doesn't mention that the day title and count are gone. Expected: log Amendment 3 (what the user approved, why, T-11) under `## Amendments`, take "title" out of ER-05's behavior, and add the removal to the Memory Impact line for `product.md`.
+- [ ] **F-02** (D-09) — The selected day of `CalendarWeekRow` is drawn with `rounded-control` (`calendar-week-row.component.tsx`, the inner `View`: `rounded-control py-2 bg-grape`), but D-09 says "a `grape` card, `rounded-card`". Expected: use `rounded-card`, or, if the design asks for the control radius, log it as an amendment and change D-09.
+- [ ] **F-03** (ER-01, ER-03, ER-04, ER-05, ER-06, ER-09 — Verification Plan) — The iOS simulator journeys (student and admin, light and dark theme, week and month, arrows, a day of the next month, "Criar aula neste dia" with the selected day) were not run by the executor (T-07 says so) and I did not run them: the app isn't installed on the booted simulator, there is no backend running and no local sign-in. Until someone has seen them, they are not a pass. Expected: the user runs the journey and reports what they saw (the layout fixes T-08 to T-12 came from their earlier looks, but no complete pass was reported), and the result is recorded in T-07's evidence.
+
+**Notes**
+
+- The test "shows another day's cards and count" (`classes-week.screen.test.tsx`) still says "count" although T-11 removed the count; rename it when touching the file.
+- `useVisibleWeeksClasses` mounts cached weeks refetching in the background (no `staleTime` in the app's `QueryClient`), as T-05 notes; it's the spec 030 behavior and D-04 accepts it.

@@ -111,25 +111,4 @@ describe("useVisibleWeeksClasses", () => {
 
     expect(requestedPaths()).toHaveLength(10);
   });
-
-  it("reports that it is refetching", async () => {
-    let release: () => void = () => {};
-    serveWeeks();
-    const { result } = await setup({ from: "2026-10-12", to: "2026-10-18" });
-    await waitFor(() => expect(result.current.isRefetching).toBe(false));
-    fetchMock.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          release = () => resolve(ok({ weekStart: "2026-10-12", items: [] }));
-        }),
-    );
-
-    await act(async () => {
-      void result.current.refetch();
-    });
-    await waitFor(() => expect(result.current.isRefetching).toBe(true));
-
-    await act(async () => release());
-    await waitFor(() => expect(result.current.isRefetching).toBe(false));
-  });
 });

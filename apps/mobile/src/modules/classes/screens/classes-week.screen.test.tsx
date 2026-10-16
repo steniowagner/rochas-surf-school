@@ -330,6 +330,48 @@ describe("ClassesWeekScreen", () => {
     expect(screen.queryAllByTestId("calendar-day-2026-10-20-dot")).toHaveLength(0);
   });
 
+  it("doesn't show the pull-to-refresh spinner when the month refetches cached weeks", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+    await waitFor(() => expect(requestedPaths()).toHaveLength(5));
+    await user.press(screen.getByRole("button", { name: "Show the week" }));
+    await user.press(screen.getByRole("button", { name: "Show the next week" }));
+    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    const before = fetchMock.mock.calls.length;
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(before));
+    expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(false);
+  });
+
+  it("shows the pull-to-refresh spinner only while the user's refresh runs", async () => {
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    let release: () => void = () => {};
+    fetchMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve(ok({ weekStart: THIS_MONDAY, items: [] }));
+        }),
+    );
+
+    await act(async () => {
+      screen.getByTestId("classes-week-list").props.refreshControl.props.onRefresh();
+    });
+
+    expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(true);
+
+    await act(async () => release());
+
+    await waitFor(() =>
+      expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(false),
+    );
+  });
+
   it("refetches every visible week when pulled in the month view", async () => {
     const user = userEvent.setup();
     await renderScreen();

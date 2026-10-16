@@ -430,6 +430,21 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > passed), `check-coverage.mjs 031` COVERAGE OK; deviations: the tests "selecting a day in the month…" and "shows
   > another day's cards" now tell the days apart by a different card time (09:00 – 10:00) instead of the title
 
+- [x] **T-12** (added during execution) — Fix the list sinking like a pull-to-refresh when switching to the month view
+  (found by the user on the simulator): `isRefreshing` was `isRefetching` of the queries, so the cached weeks the month
+  view mounts refetching in the background turned the `RefreshControl` on. The spinner now follows only the user's
+  pull (a local state around `refresh()`), and `useVisibleWeeksClasses` no longer returns `isRefetching`.
+  Covers: ER-05, ER-11 · Done when: `npx jest src/modules/classes` passes.
+  > ✅ 2026-10-16 — files: `apps/mobile/src/modules/classes/screens/classes-week.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.test.tsx`; verified: the new test "doesn't show
+  > the pull-to-refresh spinner when the month refetches cached weeks" failed before the fix (`refreshing` was true)
+  > and passes after, plus "shows the pull-to-refresh spinner only while the user's refresh runs"; `npx jest
+  > src/modules/classes/screens/classes-week src/modules/classes/hooks/use-visible` (29 passed), `npm run lint` and
+  > `npm run check-types` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (715 passed), `check-coverage.mjs
+  > 031` COVERAGE OK; deviations: the hook's `isRefetching` test was removed with the field
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS

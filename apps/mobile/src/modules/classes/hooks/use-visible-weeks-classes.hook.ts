@@ -24,7 +24,6 @@ export const useVisibleWeeksClasses = (range: VisibleRange) =>
     queries: mondaysBetween(range).map(weekClassesOptions),
     combine: (results) => ({
       items: results.flatMap((result) => result.data?.items ?? []),
-      isRefetching: results.some((result) => result.isRefetching),
       refetch: () => Promise.all(results.map((result) => result.refetch())),
     }),
   });

@@ -33,6 +33,9 @@ export const useClassesWeekScreen = ({
     to: addDays(currentWeek, 6),
   });
   const weekStart = mondayOf(selectedDate);
+  // Only the user's pull-to-refresh turns the spinner on: a week refetching in the background (the month view mounting
+  // its cached weeks) must not, or the list would sink as in a pull-to-refresh.
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const query = useWeekClasses(weekStart);
   const visibleWeeks = useVisibleWeeksClasses(visibleRange);
 
@@ -46,6 +49,15 @@ export const useClassesWeekScreen = ({
 
   const canCreateOnDay = canCreate === true && selectedDate >= today;
 
+  // Every week the calendar draws, the selected day's one included.
+  const refresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await visibleWeeks.refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   const updateVisibleRange = (range: VisibleRange) =>
     setVisibleRange((current) =>
       current.from === range.from && current.to === range.to ? current : range,
@@ -68,9 +80,8 @@ export const useClassesWeekScreen = ({
     isLoading: query.isPending,
     // An expired session is handled by the session flow: nothing to show here.
     isError: query.isError && !(query.error instanceof SessionExpiredError),
-    isRefreshing: query.isRefetching || visibleWeeks.isRefetching,
-    // Every week the calendar draws, the selected day's one included.
-    refresh: () => void visibleWeeks.refetch(),
+    isRefreshing,
+    refresh,
     retry: () => void query.refetch(),
     selectDate: setSelectedDate,
     updateVisibleRange,

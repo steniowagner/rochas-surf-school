@@ -25,6 +25,7 @@
   --ds-warn: #E8B44A;
   --ds-warn-tint: rgba(232,180,74,.16);
   --ds-info-tint: rgba(33,131,127,.13);
+  --ds-grape-tint: rgba(75,42,99,.14);
   --ds-on-color: #FFFFFF;
   --ds-shadow: rgba(61,46,31,.10);
   --ds-shadow-sun: rgba(240,116,43,.28);
@@ -55,6 +56,7 @@
     --ds-warn: #F0C45A;
     --ds-warn-tint: rgba(240,196,90,.16);
     --ds-info-tint: rgba(63,166,160,.16);
+    --ds-grape-tint: rgba(122,78,155,.24);
     --ds-on-color: #FFFFFF;
     --ds-shadow: rgba(0,0,0,.4);
     --ds-shadow-sun: rgba(245,138,69,.3);
@@ -85,6 +87,7 @@
   --ds-warn: #F0C45A;
   --ds-warn-tint: rgba(240,196,90,.16);
   --ds-info-tint: rgba(63,166,160,.16);
+  --ds-grape-tint: rgba(122,78,155,.24);
   --ds-on-color: #FFFFFF;
   --ds-shadow: rgba(0,0,0,.4);
   --ds-shadow-sun: rgba(245,138,69,.3);

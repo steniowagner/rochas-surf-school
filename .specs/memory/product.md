@@ -123,9 +123,9 @@ Listed in the order people meet them.
   `skate`), level (`beginner` | `advanced` | `expert` — a label only), date, start and end time, location,
   instructors (at least one; instructors or admins), capacity, notes (optional, max 300 characters, visible to
   everyone), cancellation deadline. Relationships: one location; one or more instructors; many enrolments,
-  guests, ratings, instructor comments and photos. Created one at a time or in a **batch** (a date range, a
-  weekday filter and one or more non-overlapping time ranges, each ending after it starts; one class per day
-  and time range, all sharing the other fields) — the batch only exists while creating: afterwards each class
+  guests, ratings, instructor comments and photos. Created one at a time or in a **batch** (a date range with
+  single days removed, and one or more non-overlapping time ranges, each ending after it starts; one class per
+  remaining day and time range, all sharing the other fields) — the batch only exists while creating: afterwards each class
   is edited on its own. The form suggests the time ranges of the previous week's classes (Monday to Sunday,
   distinct start–end pairs). No class starts in the past. Limits: capacity 1 to 20 (8 by default), at most 200
   classes per batch; a batch is created whole or not at all. Lifecycle, by the clock:
@@ -280,7 +280,9 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **A batch isn't kept**: it only exists while creating classes; each class is edited on its own, and time
   ranges are suggested from the previous week's classes rather than from a saved list.
 - **A batch is all or nothing, and each instructor hears about it once**: "Criar N aulas" always creates
-  exactly N classes, or none when any of them is refused (one in the past refuses the whole batch); each
+  exactly N classes, or none when any of them is refused (one in the past refuses the whole batch). The one
+  exception is today's past times: when today is among the dates and a chosen time has already started, the app
+  skips today's class at that time and creates the rest — N already leaves it out, so N still means N; each
   assigned instructor gets one notification per batch with its count, never one per class, and the admin who
   created it gets none.
 - **Editing a location changes past classes too**: a location is a reference, not a copy; "removing" one only
@@ -560,18 +562,27 @@ All copy is in pt-BR, es-ES and en-US.
 admin opens "Criar aulas" (below "Entrar na escola" under "Ferramentas" on the home) and, on the "Nova aula"
 screen, creates one class or a batch that share the discipline (Surf or Skate), the level (a label), the
 location, the instructors, the capacity (a stepper from 1 to 20, 8 by default) and optional notes (up to 300
-characters). Days are picked on a Monday-first calendar (no day before today): one day, or a range filtered by
-weekday ("Nos dias", shown only for a range). Time ranges are chips suggested from last week's classes, plus any
-added with "Novo horário" for this batch only (end after start; a chip that overlaps a selected one, or that has
-already started today, is blocked). A location is picked from the saved ones or added in place with "Novo local"
+characters). Days are picked on a Monday-first calendar (no day before today): one day, or a range shown as a
+band from which single days are removed by pressing them (struck through, listed under "Dias removidos"; pressed
+again, they come back; pressing an end of the range clears it) — spec `029-batch-excluded-dates-skip-past`
+replaced the "Nos dias" weekday filter this way. Time ranges are chips suggested from last week's classes, plus any
+added with "Novo horário" for this batch only (end after start; a chip that overlaps a selected one is blocked). A
+time that has already started today stays selectable: when today is among the dates, its class today is skipped
+("Os horários que já passaram não terão aula hoje.") and the other days are created (spec 029).
+A location is picked from the saved ones or added in place with "Novo local"
 (name and address; a name already used, ignoring case and accents, is refused). Instructors are the approved
 instructors and admins of the school, none preselected. The screen shows "N dias × M horários · <local>" and
 "Criar aula" / "Criar N aulas", enabled for 1 to 200 classes with a location and an instructor; on success a
 toast ("N aulas criadas") and back to the home. The backend creates the whole batch or nothing — refusing past
-classes, unknown locations, instructors who can't teach, more than 200 classes and every invalid field — and
+classes (unless asked to skip them, spec 029), unknown locations, instructors who can't teach, more than 200 classes and every invalid field — and
 pushes one "Novas aulas na sua escala" notification per assigned instructor (not the creator). Classes aren't
 shown anywhere yet (no Aulas tab, no class details), and they can't be edited, cancelled or deleted. All copy is
 in pt-BR, es-ES and en-US.
+
+**Batches without single days and without the past** (spec `029-batch-excluded-dates-skip-past`) — a batch can
+leave out single dates of its range, whatever their weekday, and can skip the classes that have already started
+instead of being refused whole; the "Nova aula" form uses both (see the paragraph above). Days before today never
+get a class, and the 200-class limit counts only the classes that will be created.
 
 Active specs: none.
 

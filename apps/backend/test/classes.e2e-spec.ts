@@ -462,9 +462,33 @@ describe('Classes (e2e)', () => {
         skipPast: true,
       });
 
+      expect(malformed.status).toBe(422);
       expect(malformed.body.errors).toEqual(['class.skipPast.invalid']);
       expect(allPast.status).toBe(422);
       expect(allPast.body.errors).toEqual(['class.batch.empty']);
+      expect(await countClasses(admin.id)).toBe(0);
+    });
+
+    it('refuses more than 200 classes left after skipping a start date in the past', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+
+      // Ten days before the server's today (14 Oct 2026) to eight months after it: ~259 classes left.
+      const response = await batch(
+        admin.accessToken,
+        validBody([instructor.id], {
+          startDate: '2026-10-04',
+          endDate: '2027-06-14',
+          weekdays: [1, 2, 3, 4, 5, 6, 7],
+          timeRanges: [{ start: '16:00', end: '17:00' }],
+          skipPast: true,
+        }),
+      );
+
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(['class.batch.tooLarge']);
+      expect(response.body.details).toEqual({ max: 200 });
+      expect(await countClasses(admin.id)).toBe(0);
     });
 
     it('refuses a class that starts exactly now and judges by the server clock', async () => {

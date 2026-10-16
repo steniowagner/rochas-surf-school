@@ -36,8 +36,10 @@ The classes themselves, and how a batch becomes classes.
   Lifecycle: created only, for now. Limits: capacity 1 to 20; notes up to 300 characters after trimming (blank
   notes are stored as none).
 - **Batch** (not stored): what the admin chooses to create classes — a first and a last date (inclusive), the
-  weekdays to include (Monday 1 to Sunday 7), one or more time ranges (`HH:mm`), and the fields every class
-  shares. It becomes one class per included day and time range; a one-day batch sends all seven weekdays.
+  weekdays to include (Monday 1 to Sunday 7), the dates of the range left out (`excludedDates`, optional), one
+  or more time ranges (`HH:mm`), whether to skip the classes that have already started (`skipPast`, optional),
+  and the fields every class shares. It becomes one class per included day and time range. The app always sends
+  all seven weekdays and removes single days with `excludedDates`; the API keeps `weekdays` for older builds.
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
 
 Rules:
@@ -46,17 +48,25 @@ Rules:
   instant, so the phone's time zone never matters.
 - **A batch is all or nothing**: every class and its instructors are written together, and nothing is stored on
   any refusal — "Criar N aulas" always means N.
+- **An excluded date gets no class**, whatever its weekday; excluding every date of the range leaves the batch
+  empty.
+- **No class is ever created after its start**: without `skipPast`, one class starting at or before the server's
+  now refuses the whole batch; with `skipPast`, those classes are left out and the rest is created. With
+  `skipPast` the batch is listed from the later of its first date and today (Fortaleza), so the days before today
+  get no class and the 200 limit is judged on the classes that remain, whatever the first date.
 - **The shape is checked first, every problem reported together** (422): `class.discipline.invalid`,
   `class.level.invalid`, `class.dates.invalid` (malformed or impossible date, or the last before the first),
-  `class.weekdays.invalid`, `class.timeRanges.required`, `class.timeRanges.invalid` (malformed time),
+  `class.weekdays.invalid`, `class.excludedDates.invalid` (a date that isn't a real `YYYY-MM-DD`),
+  `class.skipPast.invalid` (not a boolean), `class.timeRanges.required`, `class.timeRanges.invalid` (malformed time),
   `class.timeRanges.endBeforeStart`, `class.timeRanges.overlap` (touching ranges such as 08:00–09:00 and
   09:00–10:00 don't overlap), `class.capacity.invalid`, `class.notes.max.length` (also for notes that aren't
   text), `class.instructors.required`, `class.location.required`.
 - **Then, one at a time and in this order** (422): `class.location.notFound`; `class.instructors.invalid` (an id
   that isn't an approved instructor or admin — a student or a pending instructor is refused; repeated ids count
-  once); `class.batch.empty` (the weekdays exclude every date); `class.batch.tooLarge` (more than 200 classes,
-  with the maximum in the details); `class.startsAt.past` (any class starting at or before the server's now —
-  one past class refuses the whole batch).
+  once); `class.batch.empty` (no class left: the weekdays and the excluded dates leave out every date or, with
+  `skipPast`, every class has started); `class.batch.tooLarge` (more than 200 classes, with the maximum in the
+  details); `class.startsAt.past` (without `skipPast`, any class starting at or before the server's now — one
+  past class refuses the whole batch).
 - **Classes of different batches may overlap**: only the ranges inside one batch are checked against each
   other.
 - **Each assigned instructor is told once per batch**: one `class.assigned` notification with the number of
@@ -83,7 +93,8 @@ contract, provided by the backend from [Authentication](auth.md)'s accounts; it 
 status names. It doesn't send notifications itself: it hands the instructors, the count and the discipline to a
 contract that [Notifications](notifications.md) fulfils. It doesn't read the clock directly either. In the app,
 admins create classes on the "Nova aula" screen, which uses the module's own batch expansion and limits so its
-count matches what the backend creates. Nothing shows the classes yet (Aulas tab, class details), and editing,
+count matches what the backend creates: it removes single days of a range and, when today is among the dates,
+leaves out today's classes of the times that have already started and sends `skipPast`. Nothing shows the classes yet (Aulas tab, class details), and editing,
 cancelling and deleting classes, unassigning instructors, the map, suggestions, editing and archiving of
 locations, enrolment, ratings and photos come with their specs. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
@@ -94,3 +105,6 @@ which stops that account from being erased while the link exists — a decision 
   created in an all-or-nothing batch in America/Fortaleza time, with the shape, location, instructor, size and
   past checks; time-range suggestions from last week; one `class.assigned` notification per instructor and
   batch.
+- `029-batch-excluded-dates-skip-past` — a batch can leave out single dates (`excludedDates`) and skip the
+  classes that have already started (`skipPast`), with their shape errors; with `skipPast` the days before today
+  are dropped before the 200 limit is judged; the app's form removes single days and skips today's past times.

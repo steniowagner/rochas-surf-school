@@ -108,7 +108,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     relative times use date-fns locales `ptBR` / `es` / `enUS`, picked from the i18n language. The class
     calendar (spec 028) is a custom component built from the tokens (Monday first, month names and weekday
     initials from the date-fns locale); "today" and the current minutes are computed in Fortaleza
-    (`src/modules/classes/utils/calendar.ts`).
+    (`src/modules/classes/utils/calendar.ts`). Since spec 029 it marks a range as a band (`bg-grape-tint`, the
+    `grapeTint` token, light and dark) and has no weekday filter: once a range is complete, pressing one of its
+    ends clears it, pressing a day between them removes it (struck through) or puts it back, and pressing a day
+    outside starts a new range with nothing removed (`pressDay`); `DateRangeSummary` lists the removed days
+    ("Dias removidos" / "Nenhum dia removido" and how to remove one).
   - Time pickers: **`@expo/ui`** 57's `DateTimePicker` (`@expo/ui/community/datetime-picker`, native wheels in
     time mode; spec 028's "Novo horário" sheet). No other native picker is installed. Inside a `BottomModal`,
     a picker needs `contentPanningEnabled={false}` so the sheet's content pan doesn't take the drag.
@@ -662,12 +666,17 @@ guard's 401 `auth.token.invalid`.
   `nameKey` then `id`, unpaginated. `POST /locations` (admins) `{ name, address }` → 201 `{ id, name, address }`
   (both trimmed); 422 with `location.name.required` / `.max.length` (40) and `location.address.required` /
   `.max.length` (200) collected (a non-string counts as missing); 409 `location.name.duplicate`.
-- `POST /classes/batch` (admins) `{ discipline, level, startDate, endDate, weekdays, timeRanges, locationId,
-  instructorIds, capacity, notes? }` → 201 `{ count }`. Dates `YYYY-MM-DD` and times `HH:mm` are America/Fortaleza;
-  `CreateClassBatch` expands them (`listBatchClasses`) and stores `startsAt` / `endsAt` in UTC. Shape errors are
-  one 422 `ValidationException` (keys in [modules/classes.md](modules/classes.md)); then, alone and in order,
-  `class.location.notFound`, `class.instructors.invalid`, `class.batch.empty`, `class.batch.tooLarge`
-  (`details: { max: 200 }`) and `class.startsAt.past`, each a 422 `DomainError`. A location or instructor id that
+- `POST /classes/batch` (admins) `{ discipline, level, startDate, endDate, weekdays, excludedDates?, skipPast?,
+  timeRanges, locationId, instructorIds, capacity, notes? }` → 201 `{ count }`. Dates `YYYY-MM-DD` and times
+  `HH:mm` are America/Fortaleza; `CreateClassBatch` expands them (`listBatchClasses`) and stores `startsAt` /
+  `endsAt` in UTC. `excludedDates` (absent or `null` = none; `class.excludedDates.invalid`) are left out by
+  `listBatchDates` whatever their weekday; `skipPast` (boolean; `class.skipPast.invalid`) lists the batch from the
+  later of `startDate` and today in Fortaleza (by the clock), caps the listing at `CLASS_BATCH_MAX +
+  timeRanges.length` (so only today's classes can have started, one per range), then drops the classes starting
+  at or before now. Shape errors are one 422 `ValidationException` (keys in
+  [modules/classes.md](modules/classes.md)); then, alone and in order, `class.location.notFound`,
+  `class.instructors.invalid`, `class.batch.empty`, `class.batch.tooLarge` (`details: { max: 200 }`, judged after
+  the skip) and `class.startsAt.past` (only without `skipPast`), each a 422 `DomainError`. A location or instructor id that
   isn't a UUID is refused as not found / invalid without a lookup. Instructors are checked through the
   `TeacherLookup` port (`PrismaTeacherLookup`: id, role, status). The batch is written by
   `SchoolClassRepository.createMany` in one transaction; then `ClassAssignmentNotifier.classAssigned({
@@ -682,7 +691,10 @@ guard's 401 `auth.token.invalid`.
   (`useTimeRangeSuggestions`; a failed load shows only "Novo horário", no toast) and `["people", "teachers"]`
   (`useTeachers`: every page of `GET /people?role=instructor,admin&perPage=50`); mutations `useCreateLocation`
   (adds the new location to the `["locations"]` cache) and `useCreateClasses`, both without retry. `useNewClassScreen`
-  builds the body with `buildBatchRequest` (all seven weekdays for a single day; trimmed notes, omitted when blank),
+  builds the body with `buildBatchRequest` (always all seven weekdays; `excludedDates` only when not empty;
+  `skipPast: true` only when a selected time has already started today and today is among the dates — the count
+  leaves those classes out, and the chip stays selectable with the `timeRanges.hintPast` hint; trimmed notes,
+  omitted when blank),
   guards a double press with a ref, and maps errors with `getClassErrorKey` (`utils/class-error.ts`):
   `class.startsAt.past` → `newClass.errors.past`; `class.instructors.invalid` → its toast and the teachers query
   refetched; `class.location.notFound` → its toast and the locations refetched; 409 `location.name.duplicate` →

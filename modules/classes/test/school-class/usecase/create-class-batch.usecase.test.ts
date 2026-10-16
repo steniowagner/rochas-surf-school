@@ -149,6 +149,44 @@ describe("CreateClassBatch", () => {
     expect(classes.all.map((item) => item.startsAt.toISOString())).not.toContain("2026-10-14T11:00:00.000Z");
   });
 
+  it("judges the 200-class limit on the classes left after skipping the past", async () => {
+    const { useCase, input, classes } = setup();
+    const every = { weekdays: [1, 2, 3, 4, 5, 6, 7], skipPast: true, startDate: "2026-10-14" };
+
+    // 67 days x 3 ranges = 201 listed, the 14th at 08:00 has started: 200 remain.
+    const out = await useCase.execute({
+      ...input,
+      ...every,
+      endDate: "2026-12-19",
+      timeRanges: [
+        { start: "08:00", end: "09:00" },
+        { start: "16:00", end: "17:00" },
+        { start: "18:00", end: "19:00" },
+      ],
+    });
+
+    expect(out).toEqual({ count: 200 });
+    expect(classes.all).toHaveLength(200);
+
+    // 101 days x 2 ranges = 202 listed, one has started: 201 remain.
+    const { useCase: other, input: otherInput, classes: otherClasses } = setup();
+    const error = await errorOf(
+      other.execute({
+        ...otherInput,
+        ...every,
+        endDate: "2027-01-22",
+        timeRanges: [
+          { start: "08:00", end: "09:00" },
+          { start: "16:00", end: "17:00" },
+        ],
+      }),
+    );
+
+    expect(error.message).toBe("class.batch.tooLarge");
+    expect(error.details).toEqual({ max: 200 });
+    expect(otherClasses.all).toHaveLength(0);
+  });
+
   it("keeps one assignment for a repeated instructor id", async () => {
     const { useCase, input, classes } = setup();
 
@@ -448,6 +486,51 @@ describe("CreateClassBatch", () => {
       expect(error.statusCode).toBe(422);
       expect(classes.all).toHaveLength(0);
       expect(notifier.events).toHaveLength(0);
+    });
+
+    it("refuses more than 200 classes left when the batch starts before today", async () => {
+      const { useCase, input, classes, notifier } = setup();
+
+      const error = await errorOf(
+        useCase.execute({
+          ...input,
+          startDate: "2026-10-04",
+          endDate: "2027-06-30",
+          weekdays: [1, 2, 3, 4, 5, 6, 7],
+          skipPast: true,
+          timeRanges: [{ start: "16:00", end: "17:00" }],
+        }),
+      );
+
+      expect(error.message).toBe("class.batch.tooLarge");
+      expect(error.details).toEqual({ max: 200 });
+      expect(classes.all).toHaveLength(0);
+      expect(notifier.events).toHaveLength(0);
+    });
+
+    it("creates only the classes that have not started when the batch starts before today", async () => {
+      const { useCase, input, classes } = setup();
+
+      const out = await useCase.execute({
+        ...input,
+        startDate: "2026-10-10",
+        endDate: "2026-10-16",
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+        skipPast: true,
+        timeRanges: [
+          { start: "08:00", end: "09:00" },
+          { start: "16:00", end: "17:00" },
+        ],
+      });
+
+      expect(out).toEqual({ count: 5 });
+      expect(classes.all.map((item) => item.startsAt.toISOString())).toEqual([
+        "2026-10-14T19:00:00.000Z",
+        "2026-10-15T11:00:00.000Z",
+        "2026-10-15T19:00:00.000Z",
+        "2026-10-16T11:00:00.000Z",
+        "2026-10-16T19:00:00.000Z",
+      ]);
     });
 
     it("refuses a class that starts exactly now", async () => {

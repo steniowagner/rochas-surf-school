@@ -113,7 +113,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `ConflictError`), `usecase/{list-locations,create-location}.usecase.ts`, `usecase/location.out.ts`.
   - `school-class/` — `model/class-limits.ts` (disciplines, levels, capacity / notes / batch limits,
     `CLASS_TIME_ZONE`), `model/time-range.ts` (`HH:mm` parsing, end after start, overlap),
-    `model/class-batch.ts` (date and weekday checks, `listBatchDates`, `listBatchClasses`: the batch expanded
+    `model/class-batch.ts` (date, weekday and excluded-date checks, `listBatchDates`, `listBatchClasses`: the batch expanded
     to UTC instants from America/Fortaleza, with an optional `max` that stops early),
     `model/school-class.entity.ts` (`SchoolClass`),
     `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,clock.provider}.ts`
@@ -314,14 +314,16 @@ src/
                                 # defaults, count, summary, submit and its errors)
     classes.types.ts            # ClassLocation, Teacher, NewClassForm, BatchRequest, CalendarMonth and the answers
                                 # (mirror the API)
-    components/                 # form-section, date-range-calendar (+ calendar-day, weekday-filter),
-                                # time-range-picker, time-range-sheet (two @expo/ui DateTimePickers in time mode),
+    components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
+                                # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
+                                # time-range-sheet (two @expo/ui DateTimePickers in time mode),
                                 # location-picker, location-sheet, capacity-stepper, instructor-picker
     hooks/                      # use-locations (["locations"]), use-create-location (adds to that cache),
                                 # use-time-range-suggestions (["classes", "time-range-suggestions"]), use-teachers
                                 # (["people", "teachers"], every page of GET /people?role=instructor,admin&perPage=50),
                                 # use-create-classes (POST /classes/batch, no retry)
-    utils/                      # calendar.ts (Fortaleza today and minutes, month grid, pressDay), time-ranges.ts,
+    utils/                      # calendar.ts (Fortaleza today and minutes, month grid, pressDay: ranges and their
+                                # removed days), time-ranges.ts (incl. startsByNow),
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
                                 # key), locations-cache.ts
     classes.test-utils.tsx      # shared test helpers of the module

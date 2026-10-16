@@ -233,7 +233,7 @@
 .ds-text-calendar-day {
   font-family: var(--ds-font-display), sans-serif;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
   letter-spacing: 0em;
   text-transform: none;

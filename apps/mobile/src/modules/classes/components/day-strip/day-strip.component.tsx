@@ -41,7 +41,7 @@ export function DayStrip({ days, selected, today, counts, onSelect }: DayStripPr
             >
               {weekdayAbbreviation(day, locale)}
             </Text>
-            <Text className={`ds-text-kpi ${number}`}>{Number(day.slice(8))}</Text>
+            <Text className={`ds-text-day-number ${number}`}>{Number(day.slice(8))}</Text>
             <View className="h-1.5 flex-row gap-0.5">
               {Array.from({ length: dots }, (_, index) => (
                 <View

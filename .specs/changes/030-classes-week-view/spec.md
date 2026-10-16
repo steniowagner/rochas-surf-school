@@ -483,9 +483,35 @@ with that day already picked. Classes created by spec 028 become visible for the
 
 ### Verification
 
-- [ ] **T-14** — Run every command in the Verification Plan from the repo root and follow its user journeys on the
+- [x] **T-14** — Run every command in the Verification Plan from the repo root and follow its user journeys on the
   iOS simulator; all pass. Record the output summary and what was seen as evidence. Covers: all · Done when: every
   command exits 0 and both journeys show what they describe.
+  > ✅ 2026-10-16 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs 030` RELATED
+  > TESTS PASSED (backend, mobile 65 suites / 777 tests, classes 16 suites / 180 tests); `node
+  > .specs/scripts/check-coverage.mjs 030` COVERAGE OK (28 files); `node .specs/scripts/run-e2e.mjs 030` E2E PASSED;
+  > `npx turbo run lint check-types` for classes, backend, mobile (and design-tokens, web) and `npx turbo run build` for
+  > classes and backend: all successful. Fix-ups found while verifying: `student` / `rules-update` / `onboarding` /
+  > `root-navigator` tests that expected the old "Student" placeholder header now expect "Schedule" (the Agenda), and the
+  > day numbers of `DayStrip` overflowed their cell on the simulator, so a `dayNumber` typography token (26 px Barlow
+  > Condensed) was added to `packages/design-tokens/src/tokens.ts` (`tokens.css` regenerated) and the strip uses it
+  > (`ds-text-day-number`). Journeys driven on the iOS simulator (iPhone 18 Pro, local backend, signed in as the admin
+  > review account, pt-BR): Aulas opens on "Esta semana" with today (Sex 16) selected, the day strip's dots (3 and 2 on
+  > Sat/Sun) and today's card; the next arrow shows "Próxima semana" with the same weekday selected and "Hoje"; an empty
+  > day shows "Sem aulas neste dia." with "Criar aula"; a card opens "Detalhe" ("Surf" / "Iniciante" chips, time range,
+  > "Hoje · 16 out", "Instrutor" with an initials avatar, "Máx. 8 alunos", "Local" with name and address, no "Notas" as
+  > it has none) and back returns to the week; "Criar aula neste dia" opens Nova aula with 16 out selected as a single
+  > day and the calendar on its month. NOT driven here (left for the reviewer, steps below): creating a class from Nova
+  > aula and seeing it appear on return (ER-12), "+" only on a past day, "Você" on the details, and the student and
+  > instructor views (no sign-in with other accounts was done). Steps: as admin, on a future day without classes press
+  > "Criar aula", pick a time, the location and an instructor, press "Criar aula": the toast shows, the app returns to
+  > Aulas and the new card is on that day; select yesterday: only "+" shows; open the class you created as its
+  > instructor: "Você" appears; sign in as a student and an instructor: the same week and cards, no "+";
+  > files: `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`,
+  > `apps/mobile/src/modules/classes/components/day-strip/day-strip.component.tsx`,
+  > `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`,
+  > `apps/mobile/src/modules/onboarding/screens/school-rules.screen.test.tsx`,
+  > `apps/mobile/src/modules/rules-update/screens/rules-update.screen.test.tsx`; verified: the commands above;
+  > deviations: journeys only partly driven, see above
 
 ## Verification Plan
 

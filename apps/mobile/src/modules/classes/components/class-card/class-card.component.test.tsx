@@ -1,5 +1,6 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
 
+import { glyph } from "../../classes.test-utils";
 import type { ClassItem } from "../../classes.types";
 
 import { ClassCard } from "./class-card.component";
@@ -39,6 +40,19 @@ describe("ClassCard", () => {
     );
 
     expect(screen.getByText("Skate")).toBeOnTheScreen();
+  });
+
+  it("draws the discipline icon and the clock on the state chip", async () => {
+    await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+    expect(screen.getByText(glyph("water-outline"))).toBeOnTheScreen();
+    expect(screen.queryByText(glyph("time-outline"))).not.toBeOnTheScreen();
+    expect(screen.queryByText(glyph("disc-outline"))).not.toBeOnTheScreen();
+
+    await render(
+      <ClassCard item={item({ discipline: "skate" })} now={DURING} onPress={jest.fn()} />,
+    );
+    expect(screen.getByText(glyph("disc-outline"))).toBeOnTheScreen();
+    expect(screen.getByText(glyph("time-outline"))).toBeOnTheScreen();
   });
 
   it("shows no state chip before the start", async () => {

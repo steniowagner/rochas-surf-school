@@ -25,7 +25,7 @@ export function ClassCard({ item, now, onPress }: ClassCardProps) {
     >
       <View className="gap-3 p-4">
         <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-row flex-wrap gap-2">
+          <View className="flex-1 flex-row flex-wrap gap-2">
             <Chip
               tone={item.discipline === "surf" ? "surf" : "skate"}
               icon={item.discipline === "surf" ? "water-outline" : "disc-outline"}
@@ -34,16 +34,14 @@ export function ClassCard({ item, now, onPress }: ClassCardProps) {
             </Chip>
             <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>
           </View>
-          <View className="items-end gap-1">
-            {state === "started" ? (
-              <Chip tone="sun" icon="time-outline">{t("classesWeek.state.started")}</Chip>
-            ) : null}
-            {state === "finished" ? (
-              <Chip tone="muted">{t("classesWeek.state.finished")}</Chip>
-            ) : null}
-            <Text className="ds-text-lesson-time text-ink">{timeRange}</Text>
-          </View>
+          {state === "started" ? (
+            <Chip tone="sun" icon="time-outline">{t("classesWeek.state.started")}</Chip>
+          ) : null}
+          {state === "finished" ? (
+            <Chip tone="muted">{t("classesWeek.state.finished")}</Chip>
+          ) : null}
         </View>
+        <Text className="ds-text-lesson-time text-ink">{timeRange}</Text>
         <View className="flex-row items-center gap-1 self-start rounded-full bg-dim px-2.5 py-1">
           <Ionicons name="location-outline" size={14} color={theme.ink2} />
           <Text className="ds-text-chip text-ink-2">{item.location.name}</Text>

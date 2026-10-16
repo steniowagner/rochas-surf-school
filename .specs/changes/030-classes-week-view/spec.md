@@ -281,9 +281,13 @@ with that day already picked. Classes created by spec 028 become visible for the
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add `src/school-class/model/class-state.ts` (`ClassState`, `getClassState`, D-05), export it from
+- [x] **T-01** — Add `src/school-class/model/class-state.ts` (`ClassState`, `getClassState`, D-05), export it from
   the model barrel, with `test/school-class/model/class-state.test.ts`.
   Covers: ER-04 · Done when: `npx jest test/school-class/model/class-state.test.ts` passes from `modules/classes`.
+  > ✅ 2026-10-16 — added `getClassState`/`ClassState` and its boundary tests; files:
+  > `modules/classes/src/school-class/model/class-state.ts`, `modules/classes/src/school-class/model/index.ts`,
+  > `modules/classes/test/school-class/model/class-state.test.ts`; verified: `npx jest
+  > test/school-class/model/class-state.test.ts` from `modules/classes` (5 passed); deviations: none
 
 - [ ] **T-02** — Add the read port `src/school-class/provider/class-view-reader.provider.ts` (`ClassView`,
   `ClassViewReader`, D-03) with an in-memory fake in `test/mock/fake-class-view.reader.ts` (exported from

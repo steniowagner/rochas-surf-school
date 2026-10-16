@@ -417,6 +417,19 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > deviations: Jest doesn't lay views out, so the test can't fail on the collapse itself, the visual fix needs the
   > user's check on the simulator (a Fast Refresh is enough)
 
+- [x] **T-11** (added during execution) — Remove the day title and the class count above the day's cards (amendment 3),
+  with the keys `classesWeek.classCount_*` and the screen hook's `dayTitle`; adapt the screen tests, which used them to
+  wait for the list, to wait for a card's time.
+  Covers: ER-05 · Done when: `npx jest src/modules/classes` passes and `npm run lint` and `npm run check-types` exit 0
+  (from `apps/mobile`).
+  > ✅ 2026-10-16 — files: `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`; verified: `npx jest src/modules/classes src/i18n` (240
+  > passed), `npm run lint` and `npm run check-types` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (714
+  > passed), `check-coverage.mjs 031` COVERAGE OK; deviations: the tests "selecting a day in the month…" and "shows
+  > another day's cards" now tell the days apart by a different card time (09:00 – 10:00) instead of the title
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS

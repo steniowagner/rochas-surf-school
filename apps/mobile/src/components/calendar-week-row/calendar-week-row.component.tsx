@@ -6,7 +6,10 @@ import { useCalendarWeekRow } from "./calendar-week-row.hook";
 import type { CalendarWeekRowProps } from "./calendar-week-row.types";
 
 /** The seven days of a week in a row: only the selected day has a background, and a day with classes has one dot. */
-export function CalendarWeekRow({ onSelectDate, ...props }: CalendarWeekRowProps) {
+export function CalendarWeekRow({
+  onSelectDate,
+  ...props
+}: CalendarWeekRowProps) {
   const { weekDays } = useCalendarWeekRow(props);
 
   return (
@@ -31,14 +34,16 @@ export function CalendarWeekRow({ onSelectDate, ...props }: CalendarWeekRowProps
           >
             <View
               testID={`calendar-day-${day.date}-background`}
-              className={`items-center justify-center gap-1 rounded-card py-2 ${day.selected ? "bg-grape" : ""}`}
+              className={`items-center justify-center gap-1 rounded-control py-2 ${day.selected ? "bg-grape" : ""}`}
             >
               <Text
                 className={`ds-text-chip ${day.selected ? "text-on-color" : "text-ink-2"}`}
               >
                 {day.weekday}
               </Text>
-              <Text className={`ds-text-calendar-day ${number}`}>{day.number}</Text>
+              <Text className={`ds-text-calendar-day ${number}`}>
+                {day.number}
+              </Text>
               <View className="h-1">
                 {day.marked ? (
                   <View

@@ -1,17 +1,10 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
 import { routes } from "@/constants/routes";
 import { SessionExpiredError } from "@/services/api";
-import {
-  addDays,
-  formatIsoDate,
-  getDateLocale,
-  mondayOf,
-  weekdayName,
-} from "@/utils/calendar-dates";
+import { addDays, mondayOf } from "@/utils/calendar-dates";
 
 import type { ClassItem } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
@@ -28,9 +21,7 @@ export const useClassesWeekScreen = ({
   classRoute,
   canCreate,
 }: UseClassesWeekScreenProps) => {
-  const { i18n } = useTranslation();
   const now = useNow();
-  const locale = getDateLocale(i18n.language);
   const today = todayInSchoolZone(now);
   const currentWeek = mondayOf(today);
 
@@ -72,7 +63,6 @@ export const useClassesWeekScreen = ({
     selectedDate,
     markedDates,
     dayItems,
-    dayTitle: `${weekdayName(selectedDate, locale)} · ${formatIsoDate(selectedDate, "d MMM", locale)}`,
     canCreate: canCreate === true,
     canCreateOnDay,
     isLoading: query.isPending,

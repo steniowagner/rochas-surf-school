@@ -280,8 +280,6 @@ const messages = {
   },
   classesWeek: {
     hasClasses: "with classes",
-    classCount_one: "{{count}} class",
-    classCount_other: "{{count}} classes",
     empty: "No classes on this day.",
     create: "Create class",
     createOnDay: "Create class on this day",

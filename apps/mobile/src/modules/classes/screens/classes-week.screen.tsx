@@ -92,14 +92,6 @@ export function ClassesWeekScreen({
         </View>
       ) : (
         <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text className="ds-text-section-label text-ink-2">
-              {screen.dayTitle}
-            </Text>
-            <Text className="ds-text-list-subtitle text-ink-2">
-              {t("classesWeek.classCount", { count: screen.dayItems.length })}
-            </Text>
-          </View>
           {screen.dayItems.length === 0 ? (
             <View className="items-center gap-3 rounded-card border border-line bg-surface p-6">
               <Text className="ds-text-body text-center text-ink-2">

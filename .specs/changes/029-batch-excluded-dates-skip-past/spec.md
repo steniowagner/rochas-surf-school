@@ -148,12 +148,18 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add to `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts` the test
+- [x] **T-01** — Add to `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts` the test
   that, with `skipPast: true`, a batch listing 201 classes of which one has started is created (200 classes) and
   one listing 202 with one started is refused with `class.batch.tooLarge` and `details: { max: 200 }`. No source
   change.
   Covers: ER-02 · Done when: `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts` passes from
   `modules/classes` with the new test.
+  > ✅ 2026-10-15 — added the test "judges the 200-class limit on the classes left after skipping the past": 201
+  > listed with one started → 200 created; 202 listed with one started → `class.batch.tooLarge`, `details: { max:
+  > 200 }`, nothing stored; files: `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts`;
+  > verified: `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts` from `modules/classes` (70
+  > passed); the test fails when the use case judges the limit on the listed classes instead of the remaining
+  > ones (checked by temporarily changing the source, then restored); deviations: none
 
 ### Backend (`apps/backend`)
 

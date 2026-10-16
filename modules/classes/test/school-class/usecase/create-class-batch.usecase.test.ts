@@ -149,6 +149,44 @@ describe("CreateClassBatch", () => {
     expect(classes.all.map((item) => item.startsAt.toISOString())).not.toContain("2026-10-14T11:00:00.000Z");
   });
 
+  it("judges the 200-class limit on the classes left after skipping the past", async () => {
+    const { useCase, input, classes } = setup();
+    const every = { weekdays: [1, 2, 3, 4, 5, 6, 7], skipPast: true, startDate: "2026-10-14" };
+
+    // 67 days x 3 ranges = 201 listed, the 14th at 08:00 has started: 200 remain.
+    const out = await useCase.execute({
+      ...input,
+      ...every,
+      endDate: "2026-12-19",
+      timeRanges: [
+        { start: "08:00", end: "09:00" },
+        { start: "16:00", end: "17:00" },
+        { start: "18:00", end: "19:00" },
+      ],
+    });
+
+    expect(out).toEqual({ count: 200 });
+    expect(classes.all).toHaveLength(200);
+
+    // 101 days x 2 ranges = 202 listed, one has started: 201 remain.
+    const { useCase: other, input: otherInput, classes: otherClasses } = setup();
+    const error = await errorOf(
+      other.execute({
+        ...otherInput,
+        ...every,
+        endDate: "2027-01-22",
+        timeRanges: [
+          { start: "08:00", end: "09:00" },
+          { start: "16:00", end: "17:00" },
+        ],
+      }),
+    );
+
+    expect(error.message).toBe("class.batch.tooLarge");
+    expect(error.details).toEqual({ max: 200 });
+    expect(otherClasses.all).toHaveLength(0);
+  });
+
   it("keeps one assignment for a repeated instructor id", async () => {
     const { useCase, input, classes } = setup();
 

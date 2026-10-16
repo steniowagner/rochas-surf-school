@@ -163,11 +163,19 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — With Postgres up and the migrations applied (`npm run db:start --workspace apps/backend`, then
+- [x] **T-02** — With Postgres up and the migrations applied (`npm run db:start --workspace apps/backend`, then
   `npm run prisma:migrate:deploy --workspace apps/backend`), run the backend e2e suite and confirm the tests named
   in ER-01 and ER-02 run and pass. No code change; record the counts as evidence.
   Covers: ER-01, ER-02 · Done when: `npm run test:e2e --workspace apps/backend` exits 0 with those tests listed as
   passed.
+  > ✅ 2026-10-15 — the local Postgres was already up; migrations: "No pending migrations to apply" (9 found); the
+  > e2e suite passes, and `classes.e2e-spec.ts` run verbose lists as passed "creates no class on an excluded date,
+  > whatever its weekday", "refuses malformed excluded dates and a batch whose dates are all excluded", `past` →
+  > "creates only the classes that have not started when asked to skip the past", "refuses a malformed skipPast and
+  > an all-past batch even when skipping" and "refuses the whole batch when one class has already started"; files:
+  > none; verified: `npm run test:e2e --workspace apps/backend` (15 files, 377 tests passed) and
+  > `npx vitest run --config ./vitest.config.e2e.ts test/classes.e2e-spec.ts --reporter=verbose` (32 passed);
+  > deviations: none (the `ERROR` lines in the output are logged by tests that force notifier or email failures)
 
 ### Mobile (`apps/mobile`)
 

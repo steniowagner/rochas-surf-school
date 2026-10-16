@@ -100,7 +100,7 @@ beforeEach(() => {
 
 describe("SchoolRulesScreen", () => {
   it.each([
-    { role: "student", path: routes.student.home, name: "Student" },
+    { role: "student", path: routes.student.home, name: "Schedule" },
     { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
     { role: "admin", path: routes.admin.home, name: "School tools" },
   ])(

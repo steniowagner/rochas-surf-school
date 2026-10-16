@@ -577,12 +577,14 @@ Text written by admins, such as school rules, cancellation rules, class notes, r
 
 ## 3. Class scheduling
 
+_Implemented in spec 029-batch-excluded-dates-skip-past._
+
 Admins need to schedule surf and skate classes, often many at once, and everyone needs to see them. A class's states, and what each state allows, are the base that enrolment, ratings and photos build on.
 
 **What it covers**
 
 - Classes with a discipline, a level, a date, a start and end time, a location, instructors, a capacity and optional notes.
-- Batch creation from a date range, a weekday filter and one or more time ranges, with time ranges suggested from last week's classes.
+- Batch creation from a date range with single days removed and one or more time ranges, with time ranges suggested from last week's classes.
 - Class states that follow the clock (not started, started, finished) plus cancelled, and rules for editing, cancelling and deleting in each state.
 - Saved locations that admins edit or archive, with an optional notification when an edit affects upcoming classes.
 - All times in the America/Fortaleza time zone, and every user able to see all classes.
@@ -626,9 +628,12 @@ All class dates and times SHALL be in the America/Fortaleza time zone, whatever 
 
 _Implemented in spec 028-create-classes._
 
-Admins SHALL be able to create classes in a batch by choosing a date range, the weekdays to include, and one or more time ranges. The system SHALL create one class for each included day and time range, all sharing the batch's discipline, level, location, instructors, capacity and notes. A batch SHALL have at most 200 classes, and SHALL be created whole or not at all.
+_Implemented in spec 029-batch-excluded-dates-skip-past._
 
-- _Two days and two time ranges:_ When an admin creates a batch from Thursday to Saturday with only Wednesday, Thursday and Friday included, and two time ranges, then four classes are created: two on Thursday and two on Friday.
+Admins SHALL be able to create classes in a batch by choosing a date range, removing single days from it, and choosing one or more time ranges. The system SHALL create one class for each remaining day and time range, all sharing the batch's discipline, level, location, instructors, capacity and notes. A batch SHALL have at most 200 classes, and SHALL be created whole or not at all.
+
+- _Two days and two time ranges:_ When an admin creates a batch from Thursday to Saturday, removes Saturday, and chooses two time ranges, then four classes are created: two on Thursday and two on Friday.
+- _Every day removed:_ When every day of a batch's range is removed, then no class is created.
 
 #### Time range suggestions
 
@@ -653,9 +658,12 @@ Each time range SHALL end after it starts, and time ranges in the same batch SHA
 
 _Implemented in spec 028-create-classes._
 
-The system SHALL NOT create a class whose start time has already passed. A batch with any such class SHALL NOT be created at all.
+_Implemented in spec 029-batch-excluded-dates-skip-past._
+
+The system SHALL NOT create a class whose start time has already passed. A batch with any such class SHALL NOT be created at all, unless the app asks to skip the classes that have already started: then only those are left out and the rest of the batch is created. The app asks for it when today is among the batch's dates and a chosen time has already started today; the class count it shows already leaves those classes out.
 
 - _Earlier time today:_ When an admin tries to create a class today at a time that has already passed, then the class is not created.
+- _Today and tomorrow, a time that has passed:_ When an admin creates a batch for today and tomorrow at a time that has already passed today, then only tomorrow's class is created, and the button said one class.
 
 #### Editing a class
 

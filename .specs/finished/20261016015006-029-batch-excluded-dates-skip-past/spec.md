@@ -2,13 +2,14 @@
 id: "029"
 slug: batch-excluded-dates-skip-past
 title: "Batch creation: remove days and skip past times"
-status: accepted
+status: finished
 created: 2026-10-15
 started: 2026-10-15
 base_commit: d152690c7f7b0efcec32af45720c2ffb958acd55
 reviewed_commit: bee851bbc7bcb62a5ec795750c13b53369385d30
 fronts: [classes, backend, mobile]
 depends_on: []
+finished: 2026-10-16
 ---
 
 # 029 — Batch creation: remove days and skip past times

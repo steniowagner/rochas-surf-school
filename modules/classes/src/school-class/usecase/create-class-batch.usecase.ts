@@ -21,6 +21,7 @@ import {
   hasOverlappingTimeRanges,
   isValidDateRange,
   isValidTimeRange,
+  isValidExcludedDates,
   isValidWeekdays,
   listBatchClasses,
   timeRangeEndsAfterStart,
@@ -39,6 +40,10 @@ export interface CreateClassBatchIn {
   startDate: unknown;
   endDate: unknown;
   weekdays: unknown;
+  /** Optional: `YYYY-MM-DD` dates of the range to leave out. */
+  excludedDates?: unknown;
+  /** Optional boolean: leave out the classes that have already started instead of refusing the batch. */
+  skipPast?: unknown;
   timeRanges: unknown;
   locationId: unknown;
   instructorIds: unknown;
@@ -102,6 +107,18 @@ function shapeErrors(input: CreateClassBatchIn): string[] {
     errors.push("class.weekdays.invalid");
   }
 
+  if (!isValidExcludedDates(input.excludedDates)) {
+    errors.push("class.excludedDates.invalid");
+  }
+
+  if (
+    input.skipPast !== undefined &&
+    input.skipPast !== null &&
+    typeof input.skipPast !== "boolean"
+  ) {
+    errors.push("class.skipPast.invalid");
+  }
+
   errors.push(...timeRangeErrors(input.timeRanges));
 
   if (
@@ -163,15 +180,23 @@ export class CreateClassBatch
     await this.assertTeachers(instructorIds);
 
     const discipline = input.discipline as ClassDiscipline;
-    const batch = listBatchClasses(
+    const skipPast = input.skipPast === true;
+    const now = this.clockProvider.now().getTime();
+    // Classes that have already started can only be on today's date, one per time range at most.
+    const timeRanges = input.timeRanges as TimeRange[];
+    const listed = listBatchClasses(
       {
         startDate: input.startDate as string,
         endDate: input.endDate as string,
         weekdays: input.weekdays as number[],
-        timeRanges: input.timeRanges as TimeRange[],
+        excludedDates: (input.excludedDates as string[] | null | undefined) ?? undefined,
+        timeRanges,
       },
-      CLASS_BATCH_MAX,
+      CLASS_BATCH_MAX + (skipPast ? timeRanges.length : 0),
     );
+    const batch = skipPast
+      ? listed.filter((item) => item.startsAt.getTime() > now)
+      : listed;
 
     if (batch.length === 0) {
       throw refusal("class.batch.empty");
@@ -181,7 +206,6 @@ export class CreateClassBatch
       throw refusal("class.batch.tooLarge", { max: CLASS_BATCH_MAX });
     }
 
-    const now = this.clockProvider.now().getTime();
     if (batch.some((item) => item.startsAt.getTime() <= now)) {
       throw refusal("class.startsAt.past");
     }

@@ -38,8 +38,10 @@ export type NewClassForm = {
   startDate: string | null;
   /** `null` for a single day. */
   endDate: string | null;
-  /** ISO weekdays, 1 (Monday) to 7 (Sunday). */
-  weekdays: number[];
+  /** Days of the range taken out of it, `YYYY-MM-DD`. */
+  excludedDates: string[];
+  /** A selected time has started on today's date: leave those classes out instead of refusing the batch. */
+  skipPast: boolean;
   timeRanges: TimeRange[];
   locationId: string | null;
   instructorIds: string[];
@@ -53,7 +55,12 @@ export type BatchRequest = {
   level: ClassLevel;
   startDate: string;
   endDate: string;
+  /** ISO weekdays, 1 (Monday) to 7 (Sunday): the app always sends all seven. */
   weekdays: number[];
+  /** Days of the range left out; absent when none is. */
+  excludedDates?: string[];
+  /** Only sent as `true`: the classes that have already started are left out. */
+  skipPast?: boolean;
   timeRanges: TimeRange[];
   locationId: string;
   instructorIds: string[];

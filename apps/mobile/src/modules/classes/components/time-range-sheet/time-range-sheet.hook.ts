@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { rangeOf } from "../../utils/time-ranges";
 
@@ -14,7 +13,6 @@ export const useTimeRangeSheet = ({
   onClose,
   onSubmit,
 }: UseTimeRangeSheetProps) => {
-  const { t } = useTranslation();
   const [start, setStart] = useState(defaultStart);
   const [end, setEnd] = useState(defaultEnd);
   const [wasVisible, setWasVisible] = useState(visible);
@@ -28,18 +26,10 @@ export const useTimeRangeSheet = ({
     }
   }
 
-  const { range, valid, minutes } = rangeOf(start, end);
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  const duration = valid
-    ? rest === 0
-      ? t("timeRangeSheet.hours", { hours })
-      : t("timeRangeSheet.hoursMinutes", { hours, minutes: rest })
-    : null;
-
+  const { range, valid } = rangeOf(start, end);
   const changeStart = (_event: unknown, date: Date) => setStart(date);
   const changeEnd = (_event: unknown, date: Date) => setEnd(date);
   const submit = () => onSubmit(range);
 
-  return { start, end, valid, duration, changeStart, changeEnd, submit, close: onClose };
+  return { start, end, valid, changeStart, changeEnd, submit, close: onClose };
 };

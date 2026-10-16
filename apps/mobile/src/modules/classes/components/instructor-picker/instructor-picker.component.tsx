@@ -3,10 +3,8 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
-import { roleChip } from "@/modules/people/utils/role-chip";
 
 import { InstructorPickerProps } from "./instructor-picker.types";
 
@@ -47,7 +45,6 @@ export function InstructorPicker({
     <View className="overflow-hidden rounded-card border border-line bg-surface">
       {teachers.map((teacher, index) => {
         const checked = selectedIds.includes(teacher.id);
-        const { tone, labelKey } = roleChip[teacher.role];
 
         return (
           <Pressable
@@ -61,17 +58,15 @@ export function InstructorPicker({
             }`}
           >
             <PersonAvatar name={teacher.name} />
-            <View className="flex-1 gap-0.5">
-              <Text numberOfLines={1} className="ds-text-list-title text-ink">
-                {teacher.name}
-              </Text>
-              <View>
-                <Chip tone={tone}>{t(labelKey)}</Chip>
-              </View>
-            </View>
+            <Text
+              numberOfLines={1}
+              className="ds-text-list-title flex-1 text-ink"
+            >
+              {teacher.name}
+            </Text>
             <View
               className={`h-[26px] w-[26px] items-center justify-center rounded-checkbox border-2 ${
-                checked ? "border-lagoon bg-lagoon" : "border-input-line bg-input"
+                checked ? "border-grape bg-grape" : "border-input-line bg-input"
               }`}
             >
               {checked ? (

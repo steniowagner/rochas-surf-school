@@ -1,5 +1,5 @@
 import { tz } from "@date-fns/tz";
-import { format } from "date-fns";
+import { format, type Locale } from "date-fns";
 import { enUS, es, ptBR } from "date-fns/locale";
 
 import type { AppLocale } from "@/i18n/locales";
@@ -55,18 +55,35 @@ export const isoWeekdayOf = (isoDate: string): number => {
   return day === 0 ? 7 : day;
 };
 
-/** The weeks of a month, Monday first; days outside the month are `null`. */
-export const buildMonthGrid = (month: CalendarMonth): (string | null)[][] => {
+const FULL_GRID_WEEKS = 6;
+
+/**
+ * The weeks of a month, Monday first. The cells after the last day are the first days of the next month, so a week
+ * that crosses the month can be picked. The cells before the 1st are `null`, unless `full` is set: then they are the
+ * last days of the previous month and the grid always has six weeks, a full 7x7 matrix with the weekday row.
+ */
+export const buildMonthGrid = (
+  month: CalendarMonth,
+  full = false,
+): (string | null)[][] => {
   const first = toIsoDate(month, 1);
   const leading = isoWeekdayOf(first) - 1;
   const length = new Date(month.year, month.month, 0).getDate();
+  const previous = addMonths(month, -1);
+  const previousLength = new Date(previous.year, previous.month, 0).getDate();
+  const next = addMonths(month, 1);
   const cells: (string | null)[] = [
-    ...Array<null>(leading).fill(null),
+    ...Array.from({ length: leading }, (_, index) =>
+      full ? toIsoDate(previous, previousLength - leading + index + 1) : null,
+    ),
     ...Array.from({ length }, (_, index) => toIsoDate(month, index + 1)),
   ];
+  const total = full
+    ? FULL_GRID_WEEKS * 7
+    : Math.ceil(cells.length / 7) * 7;
 
-  while (cells.length % 7 !== 0) {
-    cells.push(null);
+  for (let day = 1; cells.length < total; day += 1) {
+    cells.push(toIsoDate(next, day));
   }
 
   return Array.from({ length: cells.length / 7 }, (_, week) =>
@@ -78,20 +95,44 @@ export type DateRange = {
   startDate: string | null;
   /** `null` while a single day (or nothing) is chosen. */
   endDate: string | null;
+  /** Days of a complete range that are left out: no class is created on them. */
+  excludedDates: string[];
 };
+
+export const EMPTY_RANGE: DateRange = { startDate: null, endDate: null, excludedDates: [] };
 
 /**
- * What tapping a day does: the first tap sets the start, a later day sets the end, an earlier day moves the start,
- * and a tap after a complete range starts over.
+ * What tapping a day does: the first tap sets the start, a later day sets the end, an earlier day moves the start.
+ * Once the range is complete, a tap on one of its ends removes the range, a tap on a day between them takes the day out
+ * of the range (or puts it back), and a tap outside starts over.
  */
 export const pressDay = (range: DateRange, day: string): DateRange => {
-  if (range.startDate === null || range.endDate !== null) {
-    return { startDate: day, endDate: null };
+  const { startDate, endDate, excludedDates } = range;
+
+  if (startDate !== null && endDate !== null && (day === startDate || day === endDate)) {
+    return EMPTY_RANGE;
   }
 
-  if (day > range.startDate) {
-    return { startDate: range.startDate, endDate: day };
+  if (startDate !== null && endDate !== null && day > startDate && day < endDate) {
+    return {
+      startDate,
+      endDate,
+      excludedDates: excludedDates.includes(day)
+        ? excludedDates.filter((date) => date !== day)
+        : [...excludedDates, day].sort(),
+    };
   }
 
-  return { startDate: day, endDate: null };
+  if (startDate === null || endDate !== null) {
+    return { startDate: day, endDate: null, excludedDates: [] };
+  }
+
+  if (day > startDate) {
+    return { startDate, endDate: day, excludedDates: [] };
+  }
+
+  return { startDate: day, endDate: null, excludedDates: [] };
 };
+
+export const formatIsoDate = (isoDate: string, pattern: string, locale: Locale): string =>
+  format(toLocalDate(isoDate), pattern, { locale });

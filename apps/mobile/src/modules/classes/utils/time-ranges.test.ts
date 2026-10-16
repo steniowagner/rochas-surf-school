@@ -50,16 +50,10 @@ describe("time range helpers", () => {
   it("blocks a range that overlaps a selected one, never the selected one itself", () => {
     const overlapping = { start: "08:30", end: "09:30" };
 
-    expect(isRangeBlocked(overlapping, [morning], null)).toBe(true);
-    expect(isRangeBlocked(morning, [morning], null)).toBe(false);
-    expect(isRangeBlocked({ start: "09:00", end: "10:00" }, [morning], null)).toBe(false);
-    expect(isRangeBlocked(afternoon, [morning], null)).toBe(false);
-  });
-
-  it("blocks a range that has started when today is among the dates", () => {
-    expect(isRangeBlocked(morning, [], 10 * 60)).toBe(true);
-    expect(isRangeBlocked(afternoon, [], 10 * 60)).toBe(false);
-    expect(isRangeBlocked(morning, [], null)).toBe(false);
+    expect(isRangeBlocked(overlapping, [morning])).toBe(true);
+    expect(isRangeBlocked(morning, [morning])).toBe(false);
+    expect(isRangeBlocked({ start: "09:00", end: "10:00" }, [morning])).toBe(false);
+    expect(isRangeBlocked(afternoon, [morning])).toBe(false);
   });
 
   it("labels and builds ranges", () => {
@@ -68,7 +62,6 @@ describe("time range helpers", () => {
     expect(rangeOf(new Date(2000, 0, 1, 8, 0), new Date(2000, 0, 1, 9, 30))).toEqual({
       range: { start: "08:00", end: "09:30" },
       valid: true,
-      minutes: 90,
     });
     expect(rangeOf(new Date(2000, 0, 1, 9, 0), new Date(2000, 0, 1, 9, 0)).valid).toBe(false);
   });

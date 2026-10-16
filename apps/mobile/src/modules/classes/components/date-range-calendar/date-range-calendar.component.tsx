@@ -6,7 +6,7 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { useTheme } from "@/hooks/use-theme";
 
 import { CalendarDay } from "../calendar-day";
-import { WeekdayFilter } from "../weekday-filter";
+import { DateRangeSummary } from "../date-range-summary";
 
 import { useDateRangeCalendar } from "./date-range-calendar.hook";
 import { DateRangeCalendarProps } from "./date-range-calendar.types";
@@ -21,8 +21,6 @@ export function DateRangeCalendar(props: DateRangeCalendarProps) {
     weekdayInitials,
     canGoPrevious,
     dayState,
-    hint,
-    isRange,
     goPrevious,
     goNext,
     selectDay,
@@ -40,7 +38,7 @@ export function DateRangeCalendar(props: DateRangeCalendarProps) {
             disabled={!canGoPrevious}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             onPress={goPrevious}
-            className="h-11 w-11 items-center justify-center"
+            className="h-11 w-11 items-center justify-center rounded-full bg-sand"
           >
             <Ionicons
               name="chevron-back"
@@ -48,13 +46,13 @@ export function DateRangeCalendar(props: DateRangeCalendarProps) {
               color={canGoPrevious ? theme.ink : theme.ink3}
             />
           </TouchableOpacity>
-          <Text className="ds-text-list-title text-ink">{monthLabel}</Text>
+          <Text className="ds-text-button text-ink">{monthLabel}</Text>
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={t("newClass.calendar.nextMonth")}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             onPress={goNext}
-            className="h-11 w-11 items-center justify-center"
+            className="h-11 w-11 items-center justify-center rounded-full bg-sand"
           >
             <Ionicons name="chevron-forward" size={20} color={theme.ink} />
           </TouchableOpacity>
@@ -86,33 +84,12 @@ export function DateRangeCalendar(props: DateRangeCalendarProps) {
           </View>
         ))}
       </View>
-      <View className="min-h-11 flex-row items-center justify-between gap-3">
-        <Text className="ds-text-list-subtitle flex-1 text-ink-2">
-          {hint.kind === "start"
-            ? t("newClass.calendar.start")
-            : hint.kind === "pickEnd"
-              ? t("newClass.calendar.pickEnd", { date: hint.date })
-              : hint.text}
-        </Text>
-        {props.startDate !== null ? (
-          <TouchableOpacity
-            accessibilityRole="button"
-            activeOpacity={BUTTON_ACTIVE_OPACITY}
-            onPress={clear}
-            className="min-h-11 justify-center px-2"
-          >
-            <Text className="ds-text-chip text-grape">
-              {t("newClass.calendar.clear")}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
-      </View>
-      {isRange ? (
-        <WeekdayFilter
-          weekdays={props.weekdays}
-          onChange={props.onWeekdaysChange}
-        />
-      ) : null}
+      <DateRangeSummary
+        startDate={props.startDate}
+        endDate={props.endDate}
+        excludedDates={props.excludedDates}
+        onClear={clear}
+      />
     </View>
   );
 }

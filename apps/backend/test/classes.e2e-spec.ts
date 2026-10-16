@@ -209,6 +209,48 @@ describe('Classes (e2e)', () => {
     expect(classes.every((item) => item.notes === null && item.instructors.length === 1)).toBe(true);
   });
 
+  it('creates no class on an excluded date, whatever its weekday', async () => {
+    const admin = await account();
+    const instructor = await account('instructor');
+
+    const response = await batch(
+      admin.accessToken,
+      validBody([instructor.id], {
+        startDate: '2026-10-20',
+        endDate: '2026-10-22',
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+        excludedDates: ['2026-10-21'],
+      }),
+    );
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({ count: 4 });
+    const classes = await storedClasses(admin.id);
+    expect(classes.map((item) => item.startsAt.toISOString().slice(0, 10))).toEqual([
+      '2026-10-20',
+      '2026-10-20',
+      '2026-10-22',
+      '2026-10-22',
+    ]);
+  });
+
+  it('refuses malformed excluded dates and a batch whose dates are all excluded', async () => {
+    const admin = await account();
+    const instructor = await account('instructor');
+
+    const malformed = await batch(admin.accessToken, validBody([instructor.id], { excludedDates: ['16/10/2026'] }));
+    const everyDate = await batch(
+      admin.accessToken,
+      validBody([instructor.id], { excludedDates: ['2026-10-15', '2026-10-16'] }),
+    );
+
+    expect(malformed.status).toBe(422);
+    expect(malformed.body.errors).toEqual(['class.excludedDates.invalid']);
+    expect(everyDate.status).toBe(422);
+    expect(everyDate.body.errors).toEqual(['class.batch.empty']);
+    expect(await countClasses(admin.id)).toBe(0);
+  });
+
   it('creates classes that overlap those of an earlier batch', async () => {
     const admin = await account();
     const instructor = await account('instructor');
@@ -394,6 +436,35 @@ describe('Classes (e2e)', () => {
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual({ count: 4 });
+    });
+
+    it('creates only the classes that have not started when asked to skip the past', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+
+      const response = await batch(admin.accessToken, { ...pastBody(instructor.id), skipPast: true });
+
+      // 14 Oct has 08:00 (past, it is 10:00) and 16:00; the 15th and 16th have both: five classes.
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({ count: 5 });
+      expect(await countClasses(admin.id)).toBe(5);
+    });
+
+    it('refuses a malformed skipPast and an all-past batch even when skipping', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+
+      const malformed = await batch(admin.accessToken, { ...pastBody(instructor.id), skipPast: 'yes' });
+      const allPast = await batch(admin.accessToken, {
+        ...pastBody(instructor.id),
+        endDate: '2026-10-14',
+        timeRanges: [{ start: '08:00', end: '09:00' }],
+        skipPast: true,
+      });
+
+      expect(malformed.body.errors).toEqual(['class.skipPast.invalid']);
+      expect(allPast.status).toBe(422);
+      expect(allPast.body.errors).toEqual(['class.batch.empty']);
     });
 
     it('refuses a class that starts exactly now and judges by the server clock', async () => {

@@ -26,6 +26,7 @@
   --color-warn: var(--ds-warn);
   --color-warn-tint: var(--ds-warn-tint);
   --color-info-tint: var(--ds-info-tint);
+  --color-grape-tint: var(--ds-grape-tint);
   --color-on-color: var(--ds-on-color);
 
   --radius-control: var(--ds-radius-control);

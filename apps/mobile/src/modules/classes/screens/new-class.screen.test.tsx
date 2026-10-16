@@ -210,39 +210,66 @@ describe("NewClassScreen", () => {
   });
 
   describe("batch", () => {
-    it("counts the days and the classes from the calendar, the weekday filter and the ranges", async () => {
+    it("counts the days and the classes from the calendar, the days taken out and the ranges", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByText("Praia do Futuro");
 
       await user.press(day("2026-10-15"));
       await user.press(day("2026-10-17"));
-      await user.press(screen.getByRole("button", { name: "Sat" }));
+      await user.press(day("2026-10-16"));
       await user.press(screen.getByRole("button", { name: MORNING }));
       await user.press(screen.getByRole("button", { name: AFTERNOON }));
       await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
       await user.press(await screen.findByRole("checkbox", { name: "Ana Souza" }));
 
       expect(screen.getByText("2 days")).toBeTruthy();
-      expect(screen.getByText("17").props.className).toContain("line-through");
+      expect(screen.getByText("16").props.className).toContain("line-through");
+      expect(screen.getByTestId("excluded-2026-10-16")).toBeTruthy();
       expect(screen.getByText("2 days × 2 times · Praia do Futuro")).toBeTruthy();
       expect(screen.getByRole("button", { name: "Create 4 classes" })).toBeEnabled();
     });
 
-    it("counts one class per range for a single day, and hides the weekday filter", async () => {
+    it("counts one class per range for a single day, and shows no removed days", async () => {
       const user = userEvent.setup();
       await renderScreen();
 
       await fillValidBatch(user, { singleDay: true });
       await user.press(screen.getByRole("button", { name: AFTERNOON }));
 
-      expect(screen.queryByText("On")).toBeNull();
+      expect(screen.queryByText("Removed days")).toBeNull();
       expect(screen.getByText("1 day")).toBeTruthy();
       expect(screen.getByText("1 day × 1 time · Praia do Futuro")).toBeTruthy();
       expect(screen.getByRole("button", { name: "Create class" })).toBeEnabled();
     });
 
-    it("ignores a weekday turned off earlier once the range is a single day", async () => {
+    it("sends the days taken out of the range", async () => {
+      serve({ "POST /classes/batch": () => ({ ...ok({ count: 2 }), status: 201 }) });
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByText("Praia do Futuro");
+
+      await user.press(day("2026-10-15"));
+      await user.press(day("2026-10-17"));
+      await user.press(day("2026-10-16"));
+      await user.press(screen.getByRole("button", { name: AFTERNOON }));
+      await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
+      await user.press(await screen.findByRole("checkbox", { name: "Ana Souza" }));
+
+      expect(screen.getByText("2 days")).toBeTruthy();
+      await user.press(screen.getByRole("button", { name: "Create 2 classes" }));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("2 classes created"));
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/classes/batch"));
+      expect(JSON.parse(call?.[1].body)).toMatchObject({
+        startDate: "2026-10-15",
+        endDate: "2026-10-17",
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+        excludedDates: ["2026-10-16"],
+      });
+    });
+
+    it("forgets the removed days when a new range is started", async () => {
       serve({ "POST /classes/batch": () => ({ ...ok({ count: 1 }), status: 201 }) });
       const user = userEvent.setup();
       await renderScreen();
@@ -250,23 +277,33 @@ describe("NewClassScreen", () => {
 
       await user.press(day("2026-10-15"));
       await user.press(day("2026-10-17"));
-      await user.press(screen.getByRole("button", { name: "Sat" }));
-      await user.press(day("2026-10-17"));
+      await user.press(day("2026-10-16"));
+      await user.press(day("2026-10-20"));
+      await user.press(day("2026-10-21"));
       await user.press(screen.getByRole("button", { name: AFTERNOON }));
       await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
       await user.press(await screen.findByRole("checkbox", { name: "Ana Souza" }));
 
-      expect(screen.getByText("1 day")).toBeTruthy();
-      expect(screen.getByText("17").props.className).not.toContain("line-through");
-      await user.press(screen.getByRole("button", { name: "Create class" }));
+      expect(screen.getByText("2 days")).toBeTruthy();
+      expect(screen.queryByTestId("excluded-2026-10-16")).toBeNull();
+      await user.press(screen.getByRole("button", { name: "Create 2 classes" }));
 
-      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Class created"));
+      await waitFor(() => expect(mockShow).toHaveBeenCalled());
       const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/classes/batch"));
-      expect(JSON.parse(call?.[1].body)).toMatchObject({
-        startDate: "2026-10-17",
-        endDate: "2026-10-17",
-        weekdays: [1, 2, 3, 4, 5, 6, 7],
-      });
+      expect(JSON.parse(call?.[1].body)).not.toHaveProperty("excludedDates");
+    });
+
+    it("removes the range when one of its ends is pressed, and turns the button off", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await fillValidBatch(user);
+      expect(submitButton()).toBeEnabled();
+
+      await user.press(day("2026-10-15"));
+
+      expect(submitButton()).toBeDisabled();
+      expect(screen.getByText("Tap a day to start")).toBeTruthy();
+      expect(screen.getByText("pick at least 1", { exact: true })).toBeTruthy();
     });
 
     it("clears the range and turns the button off", async () => {
@@ -325,32 +362,57 @@ describe("NewClassScreen", () => {
       expect(submitButton()).toBeDisabled();
     });
 
-    it("blocks the ranges that started when today is among the dates", async () => {
+    it("keeps the ranges that started selectable when today is among the dates, and says so", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByRole("button", { name: MORNING });
 
       await user.press(day("2026-10-14"));
 
-      expect(screen.getByRole("button", { name: MORNING })).toBeDisabled();
+      expect(screen.getByRole("button", { name: MORNING })).toBeEnabled();
       expect(screen.getByRole("button", { name: AFTERNOON })).toBeEnabled();
-      expect(screen.getByText("Times that already passed today are blocked.")).toBeTruthy();
+      expect(screen.getByText("Times that already passed today have no class today.")).toBeTruthy();
     });
 
-    it("keeps a range that became past selected and blocks the button", async () => {
+    it("counts no class for a time that has passed today, and creates the other days with skipPast", async () => {
+      serve({ "POST /classes/batch": () => ({ ...ok({ count: 3 }), status: 201 }) });
       const user = userEvent.setup();
       await renderScreen();
-      await fillValidBatch(user, { singleDay: true });
-      expect(submitButton()).toBeEnabled();
+      await screen.findByText("Praia do Futuro");
 
+      // 14 to 16 Oct, now is 10:00 on the 14th: the morning range has started there.
       await user.press(day("2026-10-14"));
+      await user.press(day("2026-10-16"));
+      await user.press(screen.getByRole("button", { name: MORNING }));
+      await user.press(screen.getByRole("button", { name: AFTERNOON }));
+      await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
+      await user.press(await screen.findByRole("checkbox", { name: "Ana Souza" }));
+
+      // 3 days x 2 times = 6, less the 14th's morning class that is already past.
+      expect(screen.getByRole("button", { name: "Create 5 classes" })).toBeEnabled();
+      await user.press(screen.getByRole("button", { name: "Create 5 classes" }));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalled());
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/classes/batch"));
+      expect(JSON.parse(call?.[1].body)).toMatchObject({ startDate: "2026-10-14", endDate: "2026-10-16", skipPast: true });
+    });
+
+    it("creates nothing when the only date is today and every selected time has passed", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByText("Praia do Futuro");
+      await user.press(day("2026-10-14"));
+      await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
+      await user.press(await screen.findByRole("checkbox", { name: "Ana Souza" }));
+
+      await user.press(screen.getByRole("button", { name: MORNING }));
 
       expect(screen.getByRole("button", { name: MORNING })).toBeSelected();
       expect(submitButton()).toBeDisabled();
 
-      await user.press(screen.getByRole("button", { name: MORNING }));
+      await user.press(screen.getByRole("button", { name: AFTERNOON }));
 
-      expect(submitButton()).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Create class" })).toBeEnabled();
     });
   });
 

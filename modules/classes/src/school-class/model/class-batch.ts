@@ -7,6 +7,8 @@ export interface ClassBatchDates {
   endDate: string;
   /** ISO weekdays: 1 (Monday) to 7 (Sunday). */
   weekdays: number[];
+  /** `YYYY-MM-DD` dates of the range left out of the batch, even when their weekday is listed. */
+  excludedDates?: string[];
 }
 
 export interface ClassBatchInput extends ClassBatchDates {
@@ -61,24 +63,38 @@ export function isValidWeekdays(weekdays: unknown): weekdays is number[] {
   );
 }
 
+/** Absent (or null) when nothing is excluded; otherwise a list of real `YYYY-MM-DD` dates. */
+export function isValidExcludedDates(
+  excludedDates: unknown,
+): excludedDates is string[] | undefined | null {
+  return (
+    excludedDates === undefined ||
+    excludedDates === null ||
+    (Array.isArray(excludedDates) && excludedDates.every(isValidIsoDate))
+  );
+}
+
 /**
- * The dates of the range, inclusive, whose ISO weekday is listed. With `max`,
+ * The dates of the range, inclusive, whose ISO weekday is listed and that are not excluded. With `max`,
  * stops after `max + 1` dates so a huge range never loops for long.
  */
 export function listBatchDates(
-  { startDate, endDate, weekdays }: ClassBatchDates,
+  { startDate, endDate, weekdays, excludedDates }: ClassBatchDates,
   max = Number.POSITIVE_INFINITY,
 ): string[] {
   const start = parseDate(startDate)!;
   const end = parseDate(endDate)!;
+  const excluded = new Set(excludedDates);
   const dates: string[] = [];
 
   for (let time = start; time <= end && dates.length <= max; time += DAY_MS) {
     const date = new Date(time);
     const weekday = date.getUTCDay() === 0 ? 7 : date.getUTCDay();
 
-    if (weekdays.includes(weekday)) {
-      dates.push(date.toISOString().slice(0, 10));
+    const isoDate = date.toISOString().slice(0, 10);
+
+    if (weekdays.includes(weekday) && !excluded.has(isoDate)) {
+      dates.push(isoDate);
     }
   }
 

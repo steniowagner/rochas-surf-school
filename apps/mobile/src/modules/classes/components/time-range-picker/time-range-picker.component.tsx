@@ -5,6 +5,8 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { useTheme } from "@/hooks/use-theme";
 
+import { TimeRangeHint } from "../time-range-hint";
+
 import { useTimeRangePicker } from "./time-range-picker.hook";
 import { TimeRangePickerProps } from "./time-range-picker.types";
 
@@ -60,21 +62,15 @@ export function TimeRangePicker({
           </Text>
         </TouchableOpacity>
       </View>
-      <View className="gap-0.5">
+      <View className="gap-1.5">
         {showSuggestionsHint ? (
-          <Text className="ds-text-list-subtitle text-ink-2">
-            {t("newClass.timeRanges.hint")}
-          </Text>
+          <TimeRangeHint>{t("newClass.timeRanges.hint")}</TimeRangeHint>
         ) : null}
         {showPastHint ? (
-          <Text className="ds-text-list-subtitle text-ink-2">
-            {t("newClass.timeRanges.hintPast")}
-          </Text>
+          <TimeRangeHint>{t("newClass.timeRanges.hintPast")}</TimeRangeHint>
         ) : null}
         {showOverlapHint ? (
-          <Text className="ds-text-list-subtitle text-ink-2">
-            {t("newClass.timeRanges.hintOverlap")}
-          </Text>
+          <TimeRangeHint>{t("newClass.timeRanges.hintOverlap")}</TimeRangeHint>
         ) : null}
       </View>
     </View>

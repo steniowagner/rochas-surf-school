@@ -65,6 +65,45 @@ Content-Type: application/json
   "notes": "Bring sunscreen"
 }
 
+### A batch that leaves out some dates of the range (expects 201 { count: 4 }: the 15th and the 17th, two time ranges each)
+POST {{baseUrl}}/classes/batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "surf",
+  "level": "beginner",
+  "startDate": "2030-10-15",
+  "endDate": "2030-10-17",
+  "weekdays": [1, 2, 3, 4, 5, 6, 7],
+  "excludedDates": ["2030-10-16"],
+  "timeRanges": [
+    { "start": "08:00", "end": "09:00" },
+    { "start": "16:00", "end": "17:00" }
+  ],
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 8
+}
+
+### A batch that skips the classes that already started (expects 201 with only the future classes; without skipPast a past class gives 422 class.startsAt.past)
+POST {{baseUrl}}/classes/batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "surf",
+  "level": "beginner",
+  "startDate": "2030-10-15",
+  "endDate": "2030-10-17",
+  "weekdays": [1, 2, 3, 4, 5, 6, 7],
+  "skipPast": true,
+  "timeRanges": [{ "start": "08:00", "end": "09:00" }],
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 8
+}
+
 ### An invalid batch (expects 422 with every failure in errors, e.g. class.discipline.invalid, class.timeRanges.overlap, class.capacity.invalid)
 POST {{baseUrl}}/classes/batch
 Authorization: Bearer {{token}}

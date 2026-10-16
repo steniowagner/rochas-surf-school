@@ -351,14 +351,17 @@ const messages = {
       previousMonth: "Previous month",
       nextMonth: "Next month",
     },
-    weekdays: {
-      label: "On",
+    range: {
+      excluded: "Removed days",
+      noneExcluded: "No days removed",
+      description:
+        "Tap a day in the range to remove it. Tap it again to put it back.",
     },
     timeRanges: {
       label: "Times",
       pickOne: "pick at least 1",
       hint: "Suggested from last week's classes.",
-      hintPast: "Times that already passed today are blocked.",
+      hintPast: "Times that already passed today have no class today.",
       hintOverlap: "Overlapping times can't go in the same batch.",
       add: "New time",
     },
@@ -377,7 +380,6 @@ const messages = {
       label: "Notes",
       optional: "optional",
       placeholder: "E.g. Meet in front of the lifeguard tower. Bring sunscreen.",
-      hint: "Shown in the class details",
     },
     instructors: {
       label: "Instructors",
@@ -407,9 +409,6 @@ const messages = {
     description: "Set the start and end time. It's for this batch only — it isn't kept as a suggestion.",
     start: "Start",
     end: "End",
-    duration: "Duration: {{duration}}",
-    hours: "{{hours}} h",
-    hoursMinutes: "{{hours}} h {{minutes}} min",
     endBeforeStart: "The end must be after the start.",
     submit: "Add time",
   },

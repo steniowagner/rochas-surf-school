@@ -17,14 +17,14 @@ const props = {
 };
 
 describe("InstructorPicker", () => {
-  it("lists every teacher with initials, name and role, none ticked", async () => {
+  it("lists every teacher with initials and name, none ticked", async () => {
     await render(<InstructorPicker {...props} />);
 
     expect(screen.getByText("Ana Souza")).toBeTruthy();
     expect(screen.getByText("AS")).toBeTruthy();
-    expect(screen.getByText("Instructor")).toBeTruthy();
+    expect(screen.queryByText("Instructor")).toBeNull();
     expect(screen.getByText("Bruno Lima")).toBeTruthy();
-    expect(screen.getByText("Admin")).toBeTruthy();
+    expect(screen.queryByText("Admin")).toBeNull();
     expect(screen.getByRole("checkbox", { name: "Ana Souza" })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Bruno Lima" })).not.toBeChecked();
   });

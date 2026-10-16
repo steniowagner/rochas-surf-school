@@ -17,7 +17,7 @@ const pickerStyle = { width: "100%" } as const;
 export function TimeRangeSheet(props: TimeRangeSheetProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { start, end, valid, duration, changeStart, changeEnd, submit, close } =
+  const { start, end, valid, changeStart, changeEnd, submit, close } =
     useTimeRangeSheet(props);
 
   return (
@@ -67,11 +67,7 @@ export function TimeRangeSheet(props: TimeRangeSheetProps) {
             />
           </View>
         </View>
-        {valid ? (
-          <Text className="ds-text-list-subtitle text-center text-ink-2">
-            {t("timeRangeSheet.duration", { duration })}
-          </Text>
-        ) : (
+        {valid ? null : (
           <Text className="ds-text-list-subtitle text-center text-bad">
             {t("timeRangeSheet.endBeforeStart")}
           </Text>

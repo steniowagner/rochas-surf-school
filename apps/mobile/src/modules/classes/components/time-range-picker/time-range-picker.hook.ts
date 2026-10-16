@@ -15,8 +15,7 @@ export const useTimeRangePicker = ({
       range,
       label: rangeLabel(range),
       selected: isSelected,
-      // A selected range can always be turned off, even when it has since gone past.
-      blocked: !isSelected && isRangeBlocked(range, selected, nowMinutes),
+      blocked: !isSelected && isRangeBlocked(range, selected),
     };
   });
 

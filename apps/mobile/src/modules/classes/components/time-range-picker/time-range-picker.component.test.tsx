@@ -22,7 +22,7 @@ describe("TimeRangePicker", () => {
     expect(screen.getByRole("button", { name: "16:00 – 17:00" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "New time" })).toBeTruthy();
     expect(screen.getByText("Suggested from last week's classes.")).toBeTruthy();
-    expect(screen.queryByText("Times that already passed today are blocked.")).toBeNull();
+    expect(screen.queryByText("Times that already passed today have no class today.")).toBeNull();
     expect(screen.queryByText("Overlapping times can't go in the same batch.")).toBeNull();
   });
 
@@ -57,24 +57,17 @@ describe("TimeRangePicker", () => {
     expect(screen.getByText("Overlapping times can't go in the same batch.")).toBeTruthy();
   });
 
-  it("disables the ranges that started when today is among the dates, with the hint", async () => {
-    await render(<TimeRangePicker {...props} nowMinutes={10 * 60} />);
-
-    expect(screen.getByRole("button", { name: "08:00 – 09:00" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "16:00 – 17:00" })).toBeEnabled();
-    expect(screen.getByText("Times that already passed today are blocked.")).toBeTruthy();
-  });
-
-  it("keeps a selected range that has gone past pressable, to turn it off", async () => {
+  it("keeps the ranges that started pressable when today is among the dates, and says they have no class today", async () => {
     const onToggle = jest.fn();
     const user = userEvent.setup();
-    await render(
-      <TimeRangePicker {...props} selected={[morning]} nowMinutes={10 * 60} onToggle={onToggle} />,
-    );
+    await render(<TimeRangePicker {...props} nowMinutes={10 * 60} onToggle={onToggle} />);
+
+    expect(screen.getByRole("button", { name: "08:00 – 09:00" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "16:00 – 17:00" })).toBeEnabled();
+    expect(screen.getByText("Times that already passed today have no class today.")).toBeTruthy();
 
     await user.press(screen.getByRole("button", { name: "08:00 – 09:00" }));
 
-    expect(screen.getByRole("button", { name: "08:00 – 09:00" })).toBeSelected();
     expect(onToggle).toHaveBeenCalledWith(morning);
   });
 });

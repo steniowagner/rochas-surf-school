@@ -50,6 +50,8 @@ export class ClassesController {
       startDate: body?.startDate,
       endDate: body?.endDate,
       weekdays: body?.weekdays,
+      excludedDates: body?.excludedDates,
+      skipPast: body?.skipPast,
       timeRanges: body?.timeRanges,
       locationId: body?.locationId,
       instructorIds: body?.instructorIds,

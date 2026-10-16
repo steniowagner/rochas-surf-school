@@ -6,12 +6,13 @@ import { CalendarMonth } from "../../classes.types";
 import {
   addMonths,
   buildMonthGrid,
+  EMPTY_RANGE,
+  formatIsoDate,
   getDateLocale,
   isSameMonth,
   isoWeekdayOf,
   monthOf,
   pressDay,
-  toLocalDate,
 } from "../../utils/calendar";
 
 import { UseDateRangeCalendarProps } from "./date-range-calendar.types";
@@ -26,7 +27,7 @@ export const useDateRangeCalendar = ({
   today,
   startDate,
   endDate,
-  weekdays,
+  excludedDates,
   onRangeChange,
 }: UseDateRangeCalendarProps) => {
   const { i18n } = useTranslation();
@@ -36,7 +37,8 @@ export const useDateRangeCalendar = ({
   );
 
   const isRange = startDate !== null && endDate !== null;
-  const weeks = buildMonthGrid(visibleMonth);
+  // The current month hides the days before it, which are past; any later month shows both neighbors in full.
+  const weeks = buildMonthGrid(visibleMonth, !isSameMonth(visibleMonth, monthOf(today)));
   const monthLabel = capitalize(
     format(new Date(visibleMonth.year, visibleMonth.month - 1, 1), "LLLL yyyy", {
       locale,
@@ -47,32 +49,26 @@ export const useDateRangeCalendar = ({
   );
   const canGoPrevious = !isSameMonth(visibleMonth, monthOf(today));
 
-  const formatDay = (date: string, pattern: string): string =>
-    format(toLocalDate(date), pattern, { locale });
+  // The band runs from the first to the last day, edges included, once they are two different days.
+  const hasBand = isRange && startDate !== endDate;
 
-  const dayState = (date: string) => ({
-    disabled: date < today,
-    today: date === today,
-    edge: date === startDate || date === endDate,
-    inRange: isRange && date > startDate && date < endDate,
-    excluded:
-      isRange &&
-      date >= startDate &&
-      date <= endDate &&
-      !weekdays.includes(isoWeekdayOf(date)),
-    accessibilityLabel: formatDay(date, "PPPP"),
-  });
+  const dayState = (date: string) => {
+    const inRange = hasBand && date >= startDate && date <= endDate;
+    const weekday = isoWeekdayOf(date);
 
-  // The first line under the grid: what to do next, or the range chosen.
-  const hint =
-    startDate === null
-      ? { kind: "start" as const }
-      : endDate === null
-        ? { kind: "pickEnd" as const, date: formatDay(startDate, "d MMM") }
-        : {
-            kind: "range" as const,
-            text: `${formatDay(startDate, "d MMM")} – ${formatDay(endDate, "d MMM")}`,
-          };
+    return {
+      disabled: date < today,
+      adjacentMonth: !isSameMonth(monthOf(date), visibleMonth),
+      today: date === today,
+      edge: date === startDate || date === endDate,
+      inRange,
+      // Each week's stretch of the band is a pill of its own: it also ends at the edges of the grid.
+      bandStart: inRange && (date === startDate || weekday === 1),
+      bandEnd: inRange && (date === endDate || weekday === 7),
+      excluded: inRange && excludedDates.includes(date),
+      accessibilityLabel: formatIsoDate(date, "PPPP", locale),
+    };
+  };
 
   // The button is disabled on the current month, so there is no way to go before it.
   const goPrevious = () => setVisibleMonth((current) => addMonths(current, -1));
@@ -80,10 +76,10 @@ export const useDateRangeCalendar = ({
   const goNext = () => setVisibleMonth((current) => addMonths(current, 1));
 
   const selectDay = (date: string) => {
-    onRangeChange(pressDay({ startDate, endDate }, date));
+    onRangeChange(pressDay({ startDate, endDate, excludedDates }, date));
   };
 
-  const clear = () => onRangeChange({ startDate: null, endDate: null });
+  const clear = () => onRangeChange(EMPTY_RANGE);
 
   return {
     weeks,
@@ -91,8 +87,6 @@ export const useDateRangeCalendar = ({
     weekdayInitials,
     canGoPrevious,
     dayState,
-    hint,
-    isRange,
     goPrevious,
     goNext,
     selectDay,

@@ -2,7 +2,7 @@
 id: "030"
 slug: classes-week-view
 title: "Aulas tab: week view and class details"
-status: changes-requested
+status: in-progress
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8a4501ee0316065450772fd48571ce5e187b7832
@@ -540,8 +540,9 @@ with that day already picked. Classes created by spec 028 become visible for the
   `GetClass`), `getClassState` and its boundaries, the week rule (Monday 00:00 to the next Monday, Fortaleza, by
   start), `class.date.invalid` and `class.notFound`; Who can do what: any approved account lists a week and reads a
   class; Boundaries: the class list and details now exist (remove them from "nothing shows the classes yet").
-- `memory/technical-context.md` — Classes: `GET /classes?date=` and `GET /classes/:id` (answer shape, errors,
-  route order), `PrismaClassViewReader`; the mobile part: `ClassesWeekScreen` / `ClassDetailsScreen`, the query
+- `memory/technical-context.md` — Mobile shared UI: `Chip` takes an optional `icon` (an Ionicons name on mobile, a
+  `ReactNode` on web); design-tokens: the `dayNumber` type style (`ds-text-day-number`); Classes: `GET /classes?date=`
+  and `GET /classes/:id` (answer shape, errors, route order), `PrismaClassViewReader`; the mobile part: `ClassesWeekScreen` / `ClassDetailsScreen`, the query
   keys `["classes", "week", weekStart]` and `["classes", "detail", id]`, `useNow`, the invalidation after creating
   and on a `class.assigned` push, Nova aula's `date` param; Push: a `class.assigned` tap opens the Aulas tab;
   Fixed conventions → Mobile routes: the `class/[id]` inner routes and `routes.admin.newClass(params?)`.
@@ -701,7 +702,7 @@ with that day already picked. Classes created by spec 028 become visible for the
 
 **Findings**
 
-- [ ] **F-04** (ER-07) — since the icons were added (F-01), the chips row is wider and the card's time range no
+- [x] **F-04** (ER-07) — since the icons were added (F-01), the chips row is wider and the card's time range no
   longer fits beside it: the chips group doesn't shrink, so the time column runs past the card's right padding and is
   cut by `overflow-hidden`. Reproduce: simulator iPhone 18 Pro (402 pt), admin → Aulas → this week → Sáb 17: the
   "00:00 – 01:00" card and the Skate "12:00 – 13:00" card lose the last digit at the right border; the Surf ·
@@ -709,10 +710,27 @@ with that day already picked. Classes created by spec 028 become visible for the
   ("Intermediário") or a narrower phone (375 pt) clips more. Expected: the whole time range stays inside the card's
   padding for every discipline and level on a 375 pt phone — e.g. let the chip group shrink and wrap, or put the time
   on its own row under the chips as AULAS-01's `aulaCard` does.
-- [ ] **F-05** (D-09) — the details screen's discipline chip has no icon: D-09's "the two chips" are D-08's chips
+  > ✅ 2026-10-16 — the time range moved out of the chips' row to its own row under it (as AULAS-01's card), and the
+  > chips group is `flex-1 flex-row flex-wrap`, so the discipline and level chips shrink and wrap and the state
+  > chip ("Em andamento" / "Finalizada") stays at the right of the row; nothing is wider than the card's padding on a
+  > 375 pt phone. Test: the card now asserts which icon each chip draws (`water-outline` / `disc-outline`,
+  > `time-outline` only on "Em andamento"), through a `glyph()` helper added to `classes.test-utils.tsx`. Files:
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/classes.test-utils.tsx`. Verified: iOS simulator (iPhone 18 Pro, local backend):
+  > Aulas → Sáb 17, the "00:00 – 01:00" and "12:00 – 13:00" cards and the Skate card show the whole range inside the
+  > padding; `npx jest src/modules/classes/components/class-card` ✅; `tsc --noEmit` and ESLint ✅.
+  > Deviation: none (the 375 pt width was reasoned from the layout, not run on a simulator).
+- [x] **F-05** (D-09) — the details screen's discipline chip has no icon: D-09's "the two chips" are D-08's chips
   (discipline with its icon), and AULAS-02's `dHeader` draws the same `waves` / `disc` icon as the card. Reproduce:
   open any class → the "SURF" chip is text only (`class-details.screen.tsx`, the `<Chip>` for the discipline).
   Expected: the same icon as on the card.
+  > ✅ 2026-10-16 — the details' discipline chip takes the same icon as the card (`water-outline` for Surf,
+  > `disc-outline` for Skate). Tests: "draws the surf icon on the discipline chip" and the skate test now assert the
+  > icon. Files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`. Verified: iOS simulator: the details of
+  > the "00:00 – 01:00" class show the "SURF" chip with its icon; `npx jest src/modules/classes/screens/class-details`
+  > ✅ (26 passed with the card tests); deviations: none.
 
 **Notes**
 

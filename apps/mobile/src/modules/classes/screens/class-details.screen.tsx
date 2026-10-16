@@ -54,7 +54,10 @@ export function ClassDetailsScreen() {
         <>
           <View className="gap-3">
             <View className="flex-row flex-wrap gap-2">
-              <Chip tone={item.discipline === "surf" ? "surf" : "skate"}>
+              <Chip
+                tone={item.discipline === "surf" ? "surf" : "skate"}
+                icon={item.discipline === "surf" ? "water-outline" : "disc-outline"}
+              >
                 {t(`newClass.discipline.${item.discipline}`)}
               </Chip>
               <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>

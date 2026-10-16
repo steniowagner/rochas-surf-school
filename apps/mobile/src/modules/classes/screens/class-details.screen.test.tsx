@@ -5,7 +5,7 @@ import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
 import type { ClassItem } from "../classes.types";
-import { fetchMock, ok, setupSignedInUser } from "../classes.test-utils";
+import { fetchMock, glyph, ok, setupSignedInUser } from "../classes.test-utils";
 
 import { ClassDetailsScreen } from "./class-details.screen";
 
@@ -104,11 +104,20 @@ describe("ClassDetailsScreen", () => {
     expect(screen.queryByText("Class finished")).not.toBeOnTheScreen();
   });
 
+  it("draws the surf icon on the discipline chip", async () => {
+    serve(makeClass());
+    await renderScreen();
+
+    await screen.findByText("Surf");
+    expect(screen.getByText(glyph("water-outline"))).toBeOnTheScreen();
+  });
+
   it("shows the skate chip for skate", async () => {
     serve(makeClass({ discipline: "skate" }));
     await renderScreen();
 
     expect(await screen.findByText("Skate")).toBeOnTheScreen();
+    expect(screen.getByText(glyph("disc-outline"))).toBeOnTheScreen();
   });
 
   it("hides the notes when there are none", async () => {

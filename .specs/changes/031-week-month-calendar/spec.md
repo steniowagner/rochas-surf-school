@@ -336,7 +336,7 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > on a week already cached still refetches it in the background (the app's QueryClient has no `staleTime`, same as
   > spec 030's week navigation); a week stays un-requested when the same instance's range grows (week → month)
 
-- [ ] **T-06** — Rewire `ClassesWeekScreen` (`src/modules/classes/screens/classes-week.screen.tsx`, `.hook.ts`):
+- [x] **T-06** — Rewire `ClassesWeekScreen` (`src/modules/classes/screens/classes-week.screen.tsx`, `.hook.ts`):
   replace `WeekNav` and `DayStrip` with `WeekMonthCalendar`; keep the selection as one `selectedDate` (opening on
   Fortaleza's today); load the list with `useWeekClasses(mondayOf(selectedDate))` and the dots with
   `useVisibleWeeksClasses` over the range the calendar reports (`markedDates` = the days with at least one class);
@@ -349,6 +349,19 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   the month", "subtitle follows the selected day" and "month view loads its weeks".
   Covers: ER-01, ER-03, ER-05, ER-10, ER-11 · Done when: `npx jest src/modules/classes` passes and `npm run lint`
   and `npm run check-types` exit 0 (from `apps/mobile`).
+  > ✅ 2026-10-16 — `ClassesWeekScreen` now renders `WeekMonthCalendar` (for the three roles) with one `selectedDate`
+  > (opening on Fortaleza's today); the list loads `useWeekClasses(mondayOf(selectedDate))`, the dots come from
+  > `useVisibleWeeksClasses` over the range the calendar reports (`markedDates` = the days with a class); the subtitle
+  > follows the selected day's week; pull-to-refresh refetches every visible week; `markedLabel` =
+  > `classesWeek.hasClasses` (added in the three locales); admins' create buttons work from the selected day. Deleted
+  > `WeekNav`, `DayStrip` (with their tests) and the keys `classesWeek.previousWeek`, `nextWeek`, `today`; files:
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx`, `…/classes-week.screen.hook.ts`,
+  > `…/classes-week.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`; deleted
+  > `apps/mobile/src/modules/classes/components/week-nav/*` and `…/components/day-strip/*`; verified: `npx jest
+  > src/modules/classes` (30 suites, 241 tests passed), `npm run lint` (exit 0), `npm run check-types` (exit 0);
+  > deviations: none to the plan. Note: running the screen test file prints one React "not wrapped in act" console
+  > warning from a test that ends before its last query notification lands (the base commit printed none); all 23
+  > tests pass
 
 ### Verification
 

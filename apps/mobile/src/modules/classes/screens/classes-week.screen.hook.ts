@@ -2,22 +2,20 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
 import { routes } from "@/constants/routes";
 import { SessionExpiredError } from "@/services/api";
 import {
   addDays,
-  addWeeks,
   formatIsoDate,
   getDateLocale,
-  isoWeekdayOf,
   mondayOf,
-  weekCaption,
   weekdayName,
-  weekDays,
 } from "@/utils/calendar-dates";
 
 import type { ClassItem } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
+import { useVisibleWeeksClasses } from "../hooks/use-visible-weeks-classes.hook";
 import { useWeekClasses } from "../hooks/use-week-classes.hook";
 import { todayInSchoolZone } from "../utils/calendar";
 import { relativeWeek, schoolDayOf, weeksBetween } from "../utils/week";
@@ -36,65 +34,60 @@ export const useClassesWeekScreen = ({
   const today = todayInSchoolZone(now);
   const currentWeek = mondayOf(today);
 
-  const [weekStart, setWeekStart] = useState(currentWeek);
-  // The weekday stays selected when moving between weeks.
-  const [weekday, setWeekday] = useState(() => isoWeekdayOf(today));
+  // One selected day: the calendar derives the week or the month it draws from it.
+  const [selectedDate, setSelectedDate] = useState(today);
+  // The days the calendar draws, reported by it: the dots come from the classes of all those weeks.
+  const [visibleRange, setVisibleRange] = useState<VisibleRange>({
+    from: currentWeek,
+    to: addDays(currentWeek, 6),
+  });
+  const weekStart = mondayOf(selectedDate);
   const query = useWeekClasses(weekStart);
+  const visibleWeeks = useVisibleWeeksClasses(visibleRange);
 
-  const days = weekDays(weekStart);
-  const selectedDay = addDays(weekStart, weekday - 1);
   const items = query.data?.items ?? NO_ITEMS;
-  const counts: Record<string, number> = {};
-  for (const item of items) {
-    const day = schoolDayOf(item.startsAt);
-    counts[day] = (counts[day] ?? 0) + 1;
-  }
   const dayItems = items.filter(
-    (item) => schoolDayOf(item.startsAt) === selectedDay,
+    (item) => schoolDayOf(item.startsAt) === selectedDate,
   );
+  const markedDates = [
+    ...new Set(visibleWeeks.items.map((item) => schoolDayOf(item.startsAt))),
+  ];
 
   const relative = relativeWeek(weeksBetween(currentWeek, weekStart));
-  const canCreateOnDay = canCreate === true && selectedDay >= today;
+  const canCreateOnDay = canCreate === true && selectedDate >= today;
 
-  const goToWeek = (offset: number) =>
-    setWeekStart((current) => addWeeks(current, offset));
-  const goToToday = () => {
-    setWeekStart(currentWeek);
-    setWeekday(isoWeekdayOf(today));
-  };
-  const selectDay = (day: string) => setWeekday(isoWeekdayOf(day));
+  const updateVisibleRange = (range: VisibleRange) =>
+    setVisibleRange((current) =>
+      current.from === range.from && current.to === range.to ? current : range,
+    );
   // Only today or later can start a batch: a past day opens Nova aula with nothing picked.
   const createClass = () =>
     router.push(
-      routes.admin.newClass(canCreateOnDay ? { date: selectedDay } : undefined),
+      routes.admin.newClass(canCreateOnDay ? { date: selectedDate } : undefined),
     );
   const openClass = (id: string) => router.push(classRoute(id));
 
   return {
     now,
     today,
-    days,
-    selectedDay,
-    counts,
+    selectedDate,
+    markedDates,
     dayItems,
     weekLabel: t(`classesWeek.relative.${relative.key}`, {
       count: relative.count,
     }),
-    caption: weekCaption(weekStart, locale),
-    dayTitle: `${weekdayName(selectedDay, locale)} · ${formatIsoDate(selectedDay, "d MMM", locale)}`,
-    showToday: weekStart !== currentWeek,
+    dayTitle: `${weekdayName(selectedDate, locale)} · ${formatIsoDate(selectedDate, "d MMM", locale)}`,
     canCreate: canCreate === true,
     canCreateOnDay,
     isLoading: query.isPending,
     // An expired session is handled by the session flow: nothing to show here.
     isError: query.isError && !(query.error instanceof SessionExpiredError),
-    isRefreshing: query.isRefetching,
-    refresh: () => void query.refetch(),
+    isRefreshing: query.isRefetching || visibleWeeks.isRefetching,
+    // Every week the calendar draws, the selected day's one included.
+    refresh: () => void visibleWeeks.refetch(),
     retry: () => void query.refetch(),
-    goToPreviousWeek: () => goToWeek(-1),
-    goToNextWeek: () => goToWeek(1),
-    goToToday,
-    selectDay,
+    selectDate: setSelectedDate,
+    updateVisibleRange,
     createClass,
     openClass,
   };

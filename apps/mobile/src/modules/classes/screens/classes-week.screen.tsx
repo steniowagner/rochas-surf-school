@@ -12,11 +12,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
+import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
 
 import { ClassCard } from "../components/class-card";
-import { DayStrip } from "../components/day-strip";
-import { WeekNav } from "../components/week-nav";
 
 import { useClassesWeekScreen } from "./classes-week.screen.hook";
 import type { ClassesWeekScreenProps } from "./classes-week.screen.types";
@@ -71,19 +70,13 @@ export function ClassesWeekScreen({
           </TouchableOpacity>
         ) : null}
       </View>
-      <WeekNav
-        caption={screen.caption}
-        showToday={screen.showToday}
-        onPrevious={screen.goToPreviousWeek}
-        onNext={screen.goToNextWeek}
-        onToday={screen.goToToday}
-      />
-      <DayStrip
-        days={screen.days}
-        selected={screen.selectedDay}
+      <WeekMonthCalendar
+        selectedDate={screen.selectedDate}
         today={screen.today}
-        counts={screen.counts}
-        onSelect={screen.selectDay}
+        markedDates={screen.markedDates}
+        markedLabel={t("classesWeek.hasClasses")}
+        onSelectDate={screen.selectDate}
+        onVisibleRangeChange={screen.updateVisibleRange}
       />
       {screen.isLoading ? (
         <ActivityIndicator

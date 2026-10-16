@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Button } from "@/components/ui/button";
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { useTheme } from "@/hooks/use-theme";
 
 import { ClassCard } from "../components/class-card";

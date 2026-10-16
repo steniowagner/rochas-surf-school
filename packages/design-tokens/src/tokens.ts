@@ -85,6 +85,7 @@ export const typography = {
   // The school name stacked over the sign-in photo.
   wordmark: { font: 'display', weight: 700, size: 104, lineHeight: 0.84, letterSpacing: -0.01, uppercase: true },
   kpi: { font: 'display', weight: 700, size: 52, lineHeight: 0.9, letterSpacing: 0, uppercase: false },
+  dayNumber: { font: 'display', weight: 700, size: 26, lineHeight: 1, letterSpacing: 0, uppercase: false },
   lessonTime: { font: 'display', weight: 700, size: 38, lineHeight: 1, letterSpacing: 0, uppercase: false },
   screenTitle: { font: 'display', weight: 700, size: 34, lineHeight: 1, letterSpacing: 0, uppercase: true },
   screenTitleWithBack: { font: 'display', weight: 700, size: 26, lineHeight: 1, letterSpacing: 0, uppercase: true },

@@ -1,3 +1,6 @@
+import type { Ionicons } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
+
 export type ChipTone =
   | "surf"
   | "skate"
@@ -12,5 +15,6 @@ export type ChipTone =
 
 export type ChipProps = {
   tone?: ChipTone;
+  icon?: ComponentProps<typeof Ionicons>["name"];
   children: string;
 };

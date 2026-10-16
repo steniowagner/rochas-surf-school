@@ -33,6 +33,19 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
+  // A batch has many classes and the push names none: the Aulas tab is where the new ones are.
+  if (data?.type === "class.assigned" && flow === "instructor") {
+    router.push(routes.instructor.classes);
+
+    return;
+  }
+
+  if (data?.type === "class.assigned" && flow === "admin") {
+    router.push(routes.admin.classes);
+
+    return;
+  }
+
   // Access is decided only by resolveFlow: `index` redirects to the flow of the (refreshed) account.
   router.replace(routes.home);
 };

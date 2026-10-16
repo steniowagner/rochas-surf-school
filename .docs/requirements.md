@@ -680,6 +680,8 @@ When a class is edited, its students, anyone with a pending request for it, and 
 
 #### Class states
 
+_Implemented in spec 030-classes-week-view (not started, started and finished, computed from the clock; cancelled comes with its spec)._
+
 A class SHALL be not started until its start time, started from its start time until its end time, and finished after its end time. These changes SHALL happen on their own at those times. A class SHALL become cancelled only when an admin cancels it.
 
 - _Class reaches its start time:_ When a class's start time arrives, then the class is started, without anyone acting.
@@ -738,11 +740,15 @@ Admins SHALL set each class's capacity. The capacity SHALL NOT be set below the 
 
 #### Class notes visibility
 
+_Implemented in spec 030-classes-week-view._
+
 Class notes SHALL be shown to everyone who can see the class.
 
 - _Student reads the notes:_ When a student opens a class that has notes, then they see the notes.
 
 #### Seeing classes
+
+_Implemented in spec 030-classes-week-view._
 
 Every approved user SHALL be able to see all classes, past and future, with their details. The classes view SHALL open on the current week, and users SHALL be able to move to any other week.
 
@@ -835,6 +841,8 @@ When a student requests a class, admins and the class's instructors SHALL be not
 - _Request arrives:_ When a student requests a class, then admins and the class's instructors are notified.
 
 #### Seats
+
+_Partly implemented in spec 030-classes-week-view (everyone sees a class's capacity; the seats taken come with enrolment)._
 
 A pending request SHALL NOT hold a seat. A class's seats taken SHALL count its approved students and its guests. Everyone who can see a class SHALL see its capacity and how many seats are taken.
 

@@ -234,7 +234,7 @@ describe("RootNavigator", () => {
     );
 
     it.each([
-      { role: "student", path: routes.student.home, name: "Student" },
+      { role: "student", path: routes.student.home, name: "Schedule" },
       { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
       { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
@@ -311,7 +311,7 @@ describe("RootNavigator", () => {
     });
 
     it.each([
-      { role: "student", path: routes.student.home, name: "Student" },
+      { role: "student", path: routes.student.home, name: "Schedule" },
       { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
       { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
@@ -428,7 +428,7 @@ describe("RootNavigator", () => {
         state: "approved student",
         user: onboardedAccount("student"),
         path: routes.student.home,
-        name: "Student",
+        name: "Schedule",
       },
       {
         state: "approved instructor",
@@ -521,7 +521,7 @@ describe("RootNavigator", () => {
 
       await navigate(path);
 
-      expectFlowScreen(routes.student.home, "Student");
+      expectFlowScreen(routes.student.home, "Schedule");
     });
 
     it("can't go back to auth after signing in", async () => {
@@ -542,7 +542,7 @@ describe("RootNavigator", () => {
           tokens: TOKENS,
         }),
       );
-      expectFlowScreen(routes.student.home, "Student");
+      expectFlowScreen(routes.student.home, "Schedule");
 
       // The auth screens left the history with their guard, so there is nothing to go back to.
       expect(router.canGoBack()).toBe(false);

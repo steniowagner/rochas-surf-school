@@ -145,7 +145,7 @@ describe("AdminScreen", () => {
 
     await user.press(screen.getByRole("button", { name: /Create classes/ }));
 
-    expect(app.getPathname()).toBe(routes.admin.newClass);
+    expect(app.getPathname()).toBe("/admin/new-class");
     expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Back" }));

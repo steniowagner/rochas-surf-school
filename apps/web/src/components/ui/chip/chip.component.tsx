@@ -15,11 +15,12 @@ const toneClasses: Record<ChipTone, string> = {
   onHighlight: "bg-white/18 text-on-color",
 };
 
-export function Chip({ tone = "info", children }: ChipProps) {
+export function Chip({ tone = "info", icon, children }: ChipProps) {
   return (
     <span
       className={`ds-text-chip inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${toneClasses[tone]}`}
     >
+      {icon}
       {children}
     </span>
   );

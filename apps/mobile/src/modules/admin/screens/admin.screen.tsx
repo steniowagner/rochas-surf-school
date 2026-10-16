@@ -13,7 +13,7 @@ import { useRegistrations } from "../hooks/use-registrations.hook";
 
 const openRegistrations = () => router.push(routes.admin.registrations);
 const openPeople = () => router.push(routes.admin.people);
-const openNewClass = () => router.push(routes.admin.newClass);
+const openNewClass = () => router.push(routes.admin.newClass());
 
 export function AdminScreen() {
   const { t } = useTranslation();

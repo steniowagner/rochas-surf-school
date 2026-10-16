@@ -122,6 +122,15 @@
   text-transform: none;
 }
 
+.ds-text-day-number {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
 .ds-text-lesson-time {
   font-family: var(--ds-font-display), sans-serif;
   font-weight: 700;

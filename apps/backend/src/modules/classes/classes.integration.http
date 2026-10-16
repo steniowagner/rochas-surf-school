@@ -151,3 +151,23 @@ GET {{baseUrl}}/classes/time-range-suggestions
 ### As a student or instructor (expects 403 user.role.notAdmin): use that account's token
 GET {{baseUrl}}/classes/time-range-suggestions
 Authorization: Bearer {{token}}
+
+### The classes of the week that holds a date, Monday to Sunday in Fortaleza (expects 200 with { weekStart, items }; any approved account)
+GET {{baseUrl}}/classes?date=2026-10-15
+Authorization: Bearer {{token}}
+
+### A missing, malformed or impossible date (expects 422 class.date.invalid)
+GET {{baseUrl}}/classes?date=2026-02-30
+Authorization: Bearer {{token}}
+
+### Without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/classes?date=2026-10-15
+
+### One class by id (expects 200 with the class; set classId to an id from the week list)
+@classId = 00000000-0000-4000-8000-000000000000
+GET {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+
+### An unknown or malformed id (expects 404 class.notFound)
+GET {{baseUrl}}/classes/not-a-uuid
+Authorization: Bearer {{token}}

@@ -1,0 +1,327 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import { router } from "expo-router";
+
+import { routes } from "@/constants/routes";
+import * as api from "@/services/api";
+
+import type { ClassItem } from "../classes.types";
+import {
+  fetchMock,
+  ok,
+  requestedPaths,
+  setupSignedInUser,
+} from "../classes.test-utils";
+
+import { ClassesWeekScreen } from "./classes-week.screen";
+
+jest.mock("expo-router", () => ({
+  router: { push: jest.fn(), back: jest.fn() },
+}));
+
+jest.mock("@/services/api", () => {
+  const actual = jest.requireActual("@/services/api");
+
+  return { ...actual, apiGet: jest.fn(actual.apiGet) };
+});
+
+// Wednesday 2026-10-14, 10:15 in Fortaleza.
+const NOW = new Date("2026-10-14T13:15:00.000Z");
+const THIS_MONDAY = "2026-10-12";
+
+const makeClass = (
+  id: string,
+  startsAt: string,
+  endsAt: string,
+  overrides: Partial<ClassItem> = {},
+): ClassItem => ({
+  id,
+  discipline: "surf",
+  level: "beginner",
+  startsAt,
+  endsAt,
+  capacity: 8,
+  notes: null,
+  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+  instructors: [{ id: "i-1", name: "Ana" }],
+  ...overrides,
+});
+
+// Today's three classes (Fortaleza 08:00–09:00, 10:00–11:30, 16:00–17:00).
+const FINISHED = makeClass("c-1", "2026-10-14T11:00:00.000Z", "2026-10-14T12:00:00.000Z");
+const STARTED = makeClass("c-2", "2026-10-14T13:00:00.000Z", "2026-10-14T14:30:00.000Z", {
+  discipline: "skate",
+});
+const LATER = makeClass("c-3", "2026-10-14T19:00:00.000Z", "2026-10-14T20:00:00.000Z");
+
+const serveWeeks = (weeks: Record<string, ClassItem[]> = { [THIS_MONDAY]: [FINISHED, STARTED, LATER] }) =>
+  fetchMock.mockImplementation(async (url: string) => {
+    const weekStart = new URL(String(url)).searchParams.get("date") as string;
+
+    return ok({ weekStart, items: weeks[weekStart] ?? [] });
+  });
+
+const openClass = (id: string) => ({ pathname: "/student/class/[id]", params: { id } });
+
+const renderScreen = async (props: Partial<Parameters<typeof ClassesWeekScreen>[0]> = {}) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+  const view = await render(
+    <QueryClientProvider client={queryClient}>
+      <ClassesWeekScreen titleKey="tabs.classes" classRoute={openClass as never} {...props} />
+    </QueryClientProvider>,
+  );
+
+  return { ...view, queryClient };
+};
+
+beforeEach(() => {
+  setupSignedInUser();
+  (router.push as jest.Mock).mockReset();
+  jest.useFakeTimers({
+    now: NOW,
+    doNotFake: [
+      "nextTick",
+      "setImmediate",
+      "clearImmediate",
+      "setInterval",
+      "clearInterval",
+      "setTimeout",
+      "clearTimeout",
+      "queueMicrotask",
+      "requestAnimationFrame",
+      "cancelAnimationFrame",
+      "requestIdleCallback",
+      "cancelIdleCallback",
+      "performance",
+      "hrtime",
+    ],
+  });
+  serveWeeks();
+});
+
+afterEach(() => jest.useRealTimers());
+
+describe("ClassesWeekScreen", () => {
+  it("opens on the current week with today selected", async () => {
+    await renderScreen();
+
+    expect(screen.getByRole("header", { name: "Classes" })).toBeOnTheScreen();
+    expect(screen.getByText("This week")).toBeOnTheScreen();
+    expect(screen.getByText("12 Oct – 18 Oct")).toBeOnTheScreen();
+    expect(screen.getByTestId("day-2026-10-14")).toBeSelected();
+    expect(await screen.findByText("Wednesday · 14 Oct")).toBeOnTheScreen();
+    expect(await screen.findByText("3 classes")).toBeOnTheScreen();
+    expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
+    expect(requestedPaths()).toEqual([`/classes?date=${THIS_MONDAY}`]);
+  });
+
+  it("uses the title it is given", async () => {
+    await renderScreen({ titleKey: "tabs.agenda" });
+
+    expect(screen.getByRole("header", { name: "Schedule" })).toBeOnTheScreen();
+  });
+
+  it("shows each card's state from the phone's clock", async () => {
+    await renderScreen();
+
+    expect(await screen.findByText("In progress")).toBeOnTheScreen();
+    expect(screen.getAllByText("Finished")).toHaveLength(1);
+  });
+
+  it("moves to the next and previous weeks keeping the weekday", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("3 classes");
+
+    await user.press(screen.getByRole("button", { name: "Show the next week" }));
+
+    expect(await screen.findByText("Next week")).toBeOnTheScreen();
+    expect(screen.getByTestId("day-2026-10-21")).toBeSelected();
+    expect(screen.getByRole("button", { name: "Today" })).toBeOnTheScreen();
+    expect(requestedPaths()).toContain("/classes?date=2026-10-19");
+
+    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    expect(await screen.findByText("Last week")).toBeOnTheScreen();
+    expect(screen.getByTestId("day-2026-10-07")).toBeSelected();
+
+    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    expect(await screen.findByText("2 weeks ago")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    expect(await screen.findByText("3 weeks ago")).toBeOnTheScreen();
+  });
+
+  it("says how many weeks ahead", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+
+    for (let index = 0; index < 3; index += 1) {
+      await user.press(screen.getByRole("button", { name: "Show the next week" }));
+    }
+
+    expect(await screen.findByText("In 3 weeks")).toBeOnTheScreen();
+  });
+
+  it("returns to today", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await user.press(screen.getByRole("button", { name: "Show the next week" }));
+    await user.press(screen.getByTestId("day-2026-10-23"));
+
+    await user.press(screen.getByRole("button", { name: "Today" }));
+
+    expect(await screen.findByText("This week")).toBeOnTheScreen();
+    expect(screen.getByTestId("day-2026-10-14")).toBeSelected();
+    expect(screen.queryByRole("button", { name: "Today" })).not.toBeOnTheScreen();
+  });
+
+  it("shows one dot per class, at most three", async () => {
+    const five = Array.from({ length: 5 }, (_, index) =>
+      makeClass(`f-${index}`, "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z"),
+    );
+    serveWeeks({ [THIS_MONDAY]: [FINISHED, ...five] });
+    await renderScreen();
+    await screen.findByText("1 class");
+
+    expect(screen.getAllByTestId("day-2026-10-14-dot")).toHaveLength(1);
+    expect(screen.getAllByTestId("day-2026-10-15-dot")).toHaveLength(3);
+    expect(screen.queryAllByTestId("day-2026-10-16-dot")).toHaveLength(0);
+  });
+
+  it("shows another day's cards and count", async () => {
+    const user = userEvent.setup();
+    serveWeeks({
+      [THIS_MONDAY]: [
+        FINISHED,
+        makeClass("c-9", "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z"),
+      ],
+    });
+    await renderScreen();
+    await screen.findByText("1 class");
+
+    await user.press(screen.getByTestId("day-2026-10-15"));
+
+    expect(screen.getByText("Thursday · 15 Oct")).toBeOnTheScreen();
+    expect(screen.getByText("1 class")).toBeOnTheScreen();
+  });
+
+  it("opens the class details when a card is pressed", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+
+    await user.press(await screen.findByText("16:00 – 17:00"));
+
+    expect(router.push).toHaveBeenCalledWith(openClass("c-3"));
+  });
+
+  it("updates a card's state as the clock passes its start", async () => {
+    jest.useFakeTimers({ now: new Date("2026-10-14T18:59:00.000Z") });
+    await renderScreen();
+    expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
+    expect(screen.getAllByText("Finished")).toHaveLength(2);
+    expect(screen.queryAllByText("In progress")).toHaveLength(0);
+
+    await act(async () => {
+      jest.advanceTimersByTime(60_000);
+    });
+
+    expect(screen.getAllByText("In progress")).toHaveLength(1);
+    expect(screen.getAllByText("Finished")).toHaveLength(2);
+  });
+
+  it("shows the loading state", async () => {
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+    await renderScreen();
+
+    expect(screen.getByTestId("classes-week-loading")).toBeOnTheScreen();
+  });
+
+  it("shows the error and retries", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    await renderScreen();
+
+    expect(await screen.findByText("Couldn't load the classes.")).toBeOnTheScreen();
+
+    serveWeeks();
+    await user.press(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByText("3 classes")).toBeOnTheScreen();
+    expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
+  });
+
+  it("shows no error state when the session expired", async () => {
+    (api.apiGet as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+    const { queryClient } = await renderScreen();
+
+    await waitFor(() =>
+      expect(queryClient.getQueryState(["classes", "week", THIS_MONDAY])?.status).toBe("error"),
+    );
+
+    expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
+  });
+
+  it("shows an empty day", async () => {
+    serveWeeks({ [THIS_MONDAY]: [] });
+    await renderScreen();
+
+    expect(await screen.findByText("No classes on this day.")).toBeOnTheScreen();
+    expect(screen.getByText("0 classes")).toBeOnTheScreen();
+  });
+
+  it("refetches the week when pulled", async () => {
+    await renderScreen();
+    await screen.findByText("3 classes");
+    const before = fetchMock.mock.calls.length;
+
+    await act(async () => {
+      screen.getByTestId("classes-week-list").props.refreshControl.props.onRefresh();
+    });
+
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBe(before + 1));
+  });
+});
+
+describe("ClassesWeekScreen admin entry points", () => {
+  it("offers them on today and later", async () => {
+    const user = userEvent.setup();
+    await renderScreen({ canCreate: true });
+
+    await screen.findByText("3 classes");
+    expect(screen.getByRole("button", { name: "New class" })).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Create class on this day" }));
+    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-14" }));
+
+    await user.press(screen.getByRole("button", { name: "New class" }));
+    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-14" }));
+
+    await user.press(screen.getByTestId("day-2026-10-17"));
+    await user.press(screen.getByRole("button", { name: "Create class" }));
+    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-17" }));
+  });
+
+  it("offers only the + on a past day", async () => {
+    const user = userEvent.setup();
+    await renderScreen({ canCreate: true });
+    await screen.findByText("3 classes");
+
+    await user.press(screen.getByTestId("day-2026-10-13"));
+
+    expect(screen.queryByRole("button", { name: "Create class" })).not.toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Create class on this day" })).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "New class" }));
+    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass(undefined));
+  });
+
+  it("offers no entry point without canCreate", async () => {
+    await renderScreen();
+    await screen.findByText("3 classes");
+
+    expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Create class on this day" })).not.toBeOnTheScreen();
+  });
+});

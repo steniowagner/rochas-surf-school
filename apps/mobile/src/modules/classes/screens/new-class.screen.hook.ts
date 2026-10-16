@@ -10,7 +10,7 @@ import {
   type TimeRange,
 } from "@rochas-surf-school/classes";
 import { useQueryClient } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,7 +24,7 @@ import { useTimeRangeSuggestions } from "../hooks/use-time-range-suggestions.hoo
 import { buildBatchRequest } from "../utils/batch-request";
 import {
   DateRange,
-  EMPTY_RANGE,
+  initialRange,
   minutesInSchoolZone,
   todayInSchoolZone,
 } from "../utils/calendar";
@@ -53,10 +53,13 @@ export const useNewClassScreen = () => {
   const suggestionsQuery = useTimeRangeSuggestions();
   const teachersQuery = useTeachers();
   const createClasses = useCreateClasses();
+  // The Aulas tab opens this screen with the day that was selected there.
+  const { date } = useLocalSearchParams<{ date?: string }>();
+  const today = todayInSchoolZone();
 
   const [discipline, setDiscipline] = useState<ClassDiscipline>("surf");
   const [level, setLevel] = useState<ClassLevel>("beginner");
-  const [range, setRange] = useState<DateRange>(EMPTY_RANGE);
+  const [range, setRange] = useState<DateRange>(() => initialRange(date, today));
   const [selectedRanges, setSelectedRanges] = useState<TimeRange[]>([]);
   const [addedRanges, setAddedRanges] = useState<TimeRange[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -68,7 +71,6 @@ export const useNewClassScreen = () => {
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
   const sending = useRef(false);
 
-  const today = todayInSchoolZone();
   const { startDate, excludedDates } = range;
   // A single day is a range that ends on its start.
   const endDate = range.endDate ?? startDate;

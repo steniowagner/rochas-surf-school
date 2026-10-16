@@ -68,7 +68,9 @@ stored notifications yet.
 Schedules the school's classes and keeps the places where they happen. Admins save locations (a name and an
 address) and create classes one at a time or in a batch — one class per chosen day and time range, all or
 nothing, never in the past — with the instructors who teach them, who are told once per batch. Time ranges are
-suggested from last week's classes. Enrolment, ratings and photos will build on its classes.
+suggested from last week's classes. Every approved person browses the classes week by week (Monday to Sunday,
+Fortaleza) and reads each one; a class is not started, started or finished by the clock. Enrolment, ratings and
+photos will build on its classes.
 
 - Where it physically lives: `modules/classes`
 - Business details: [modules/classes.md](modules/classes.md)

@@ -36,8 +36,9 @@ What the person is told, and how it reaches them.
   para 1 aula de {discipline}." ("{count} aulas de"). es: "Nueva inscripción" / "{name} está esperando
   aprobación.", "Cuenta aprobada" / "Ya puedes empezar a usar la app.", "Inscripción rechazada" / "Abre la app
   para saber más.", "Nuevas clases en tu agenda" / "Te asignaron 1 clase de {discipline}." ("{count} clases de").
-  `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` push uses the app's default
-  (reload the account and open its home).
+  `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` push reloads the account and
+  opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
+  with the app open reloads the classes of the weeks it shows.
 
 Rules:
 
@@ -116,3 +117,5 @@ edits, cancellations, unassignments and reminders, enrolments, broadcasts).
   any status); the app's push switch on the Profile, kept on the phone.
 - `028-create-classes` — the `class.assigned` type (`{ count, discipline }`) and its push copy, sent once per
   instructor and batch through the Classes module's contract.
+- `030-classes-week-view` — in the app, tapping a `class.assigned` push opens the Aulas tab, and one received
+  with the app open reloads the shown weeks.

@@ -3,6 +3,7 @@ import {
   buildMonthGrid,
   formatIsoDate,
   getDateLocale,
+  initialRange,
   isoWeekdayOf,
   isSameMonth,
   minutesInSchoolZone,
@@ -97,6 +98,28 @@ describe("buildMonthGrid", () => {
     expect(grid).toHaveLength(4);
     expect(grid.flat().every((day) => day !== null)).toBe(true);
   });
+});
+
+describe("initialRange", () => {
+  it("is a single day for a real date that is today or later", () => {
+    expect(initialRange("2026-10-14", "2026-10-14")).toEqual({
+      startDate: "2026-10-14",
+      endDate: null,
+      excludedDates: [],
+    });
+    expect(initialRange("2027-01-01", "2026-10-14").startDate).toBe("2027-01-01");
+  });
+
+  it.each(["2026-10-13", "2026-02-30", "14/10/2026", undefined, ["2026-10-20"]])(
+    "is empty for %p",
+    (date) => {
+      expect(initialRange(date, "2026-10-14")).toEqual({
+        startDate: null,
+        endDate: null,
+        excludedDates: [],
+      });
+    },
+  );
 });
 
 describe("pressDay", () => {

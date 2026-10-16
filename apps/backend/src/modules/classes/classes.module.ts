@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DbModule } from '../../db/db.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
+import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { LocationsController } from './locations.controller.js';
@@ -12,6 +13,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
   imports: [DbModule, NotificationsModule],
   controllers: [ClassesController, LocationsController],
   providers: [
+    PrismaClassViewReader,
     PrismaLocationRepository,
     PrismaSchoolClassRepository,
     PrismaTeacherLookup,

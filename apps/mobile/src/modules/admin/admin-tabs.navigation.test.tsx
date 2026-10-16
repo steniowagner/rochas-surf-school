@@ -8,6 +8,7 @@ import ClassesRoute from "@/app/(private)/admin/(tabs)/classes";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import ProfileRoute from "@/app/(private)/admin/(tabs)/profile";
 import AdminLayout from "@/app/(private)/admin/_layout";
+import AdminClassRoute from "@/app/(private)/admin/class/[id]";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
@@ -29,6 +30,18 @@ const person = (id: string) => ({
   email: `${id}@example.com`,
   createdAt: "2026-10-12T10:00:00.000Z",
 });
+
+const aClass = {
+  id: "c-1",
+  discipline: "surf",
+  level: "beginner",
+  startsAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  endsAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+  capacity: 8,
+  notes: null,
+  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+  instructors: [{ id: "i-1", name: "Bruno Lima" }],
+};
 
 const routeTree = {
   _layout: () => (
@@ -52,6 +65,7 @@ const routeTree = {
   "(private)/admin/new-class": AdminNewClassRoute,
   "(private)/admin/people": AdminPeopleRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
+  "(private)/admin/class/[id]": AdminClassRoute,
 };
 
 const open = async () => {
@@ -81,6 +95,16 @@ beforeEach(() => {
     status: 200,
     json: async () => ({ items: [person("a"), person("b")] }),
   });
+  fetchMock.mockImplementation(async (url: string) => ({
+    ok: true,
+    status: 200,
+    json: async () =>
+      String(url).includes("/classes?date=")
+        ? { weekStart: "x", items: [aClass] }
+        : String(url).includes("/classes/")
+          ? aClass
+          : { items: [person("a"), person("b")] },
+  }));
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
@@ -102,6 +126,8 @@ describe("admin tabs", () => {
     await act(async () => router.navigate(routes.admin.classes));
     expect(app.getPathname()).toBe("/admin/classes");
     expect(selectedTabLabel()).toBe("Classes");
+    expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "New class" })).toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.admin.profile));
     expect(app.getPathname()).toBe("/admin/profile");
@@ -144,6 +170,33 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Home");
     expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+  });
+
+  it("opens a class above the tabs, and back returns to Classes with the tab bar", async () => {
+    const user = userEvent.setup();
+    const app = await open();
+    await act(async () => router.navigate(routes.admin.classes));
+
+    await user.press(await screen.findByText("Praia do Futuro"));
+
+    expect(app.getPathname()).toBe("/admin/class/c-1");
+    expect(await screen.findByText("Max. 8 students")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(app.getPathname()).toBe("/admin/classes");
+    expect(selectedTabLabel()).toBe("Classes");
+  });
+
+  it("opens Nova aula with the day from the Aulas tab", async () => {
+    const user = userEvent.setup();
+    const app = await open();
+    await act(async () => router.navigate(routes.admin.classes));
+    await screen.findByText("Praia do Futuro");
+
+    await user.press(screen.getByRole("button", { name: "Create class on this day" }));
+
+    expect(app.getPathname()).toBe("/admin/new-class");
   });
 
   it("/admin/people shows the people directory", async () => {

@@ -323,12 +323,19 @@ with that day already picked. Classes created by spec 028 become visible for the
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-04** — Add `src/modules/classes/class-view-reader.prisma.ts` (`PrismaClassViewReader`, D-03: one
+- [x] **T-04** — Add `src/modules/classes/class-view-reader.prisma.ts` (`PrismaClassViewReader`, D-03: one
   `findMany` / `findUnique` with the location and the instructors' `user.name`, ordered by `startsAt`, `endsAt`,
   `id`), register it in `classes.module.ts`, with `class-view-reader.prisma.spec.ts`. Skill:
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-03 · Done when: `npx vitest run src/modules/classes/class-view-reader.prisma.spec.ts` passes
   from `apps/backend`.
+  > ✅ 2026-10-16 — added `PrismaClassViewReader` (one `findMany` / `findUnique` with the location and the
+  > instructors' `user` id and name, ordered by `startsAt`, `endsAt`, `id`) and registered it; files:
+  > `apps/backend/src/modules/classes/class-view-reader.prisma.ts`,
+  > `apps/backend/src/modules/classes/class-view-reader.prisma.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.module.ts`; verified: `npx vitest run
+  > src/modules/classes/class-view-reader.prisma.spec.ts` from `apps/backend` (3 passed), `npx tsc --noEmit` clean;
+  > deviations: none
 
 - [ ] **T-05** — Add `GET /classes` (query `date`) and `GET /classes/:id` to `classes.controller.ts` (after
   `time-range-suggestions`, D-02) with their cases in `classes.controller.spec.ts`, the `week`, `class` and

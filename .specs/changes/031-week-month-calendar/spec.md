@@ -279,7 +279,7 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > src/utils` (99 passed), `npm run check-types` (exit 0), eslint clean; deviations: the fitted grid is its own function
   > (`buildFittedMonthGrid`, returns `string[][]`) rather than a third mode of `buildMonthGrid`
 
-- [ ] **T-03** — Add the presentational children `CalendarWeekRow` (`src/components/calendar-week-row/`: seven days,
+- [x] **T-03** — Add the presentational children `CalendarWeekRow` (`src/components/calendar-week-row/`: seven days,
   weekday and number, only the selected day on `grape`, today in `sun`, one dot per marked day, `on-color` on the
   selected one) and `CalendarMonthGrid` (`src/components/calendar-month-grid/`: weekday initials, fitted grid,
   adjacent days in `ink-3`, selected circle, today in `sun`, one `lagoon` dot per marked day), both with the day
@@ -287,6 +287,16 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   `<name>.component.test.tsx` (tests "only the selected day has a background", "one dot", "adjacent days").
   Covers: ER-03, ER-07 · Done when: `npx jest src/components/calendar-week-row src/components/calendar-month-grid`
   passes.
+  > ✅ 2026-10-16 — added `CalendarWeekRow` and `CalendarMonthGrid` (component, hook, types, index each) with the day
+  > buttons, labels, `selected` state and `testID`s of D-10 and the tokens of D-09; the week row takes the seven `days`,
+  > the month grid takes a `month` and builds its fitted weeks itself; files:
+  > `apps/mobile/src/components/calendar-week-row/{index.ts,calendar-week-row.component.tsx,calendar-week-row.hook.ts,calendar-week-row.types.ts,calendar-week-row.component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-month-grid/{index.ts,calendar-month-grid.component.tsx,calendar-month-grid.hook.ts,calendar-month-grid.types.ts,calendar-month-grid.component.test.tsx}`,
+  > `apps/mobile/src/utils/calendar-dates.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`; verified: `npx jest
+  > src/components/calendar-week-row src/components/calendar-month-grid` (2 suites, 17 tests passed), `npm run
+  > check-types` (exit 0), eslint clean; deviations: added `dayAccessibilityLabel` (D-10's label) to `calendar-dates.ts`
+  > with its test, shared by both children; the week row's background sits on an inner `View`
+  > (`calendar-day-<date>-background`) because a `TouchableOpacity` doesn't expose its `className` to tests
 
 - [ ] **T-04** — Add `WeekMonthCalendar` in `src/components/week-month-calendar/` (`.component.tsx`, `.hook.ts`,
   `.types.ts`, `index.ts`) with the props of D-05: the header (arrows, pill with icon, caption and chevron, "Hoje" —

@@ -163,3 +163,14 @@ export const weekdayName = (isoDate: string, locale: Locale): string =>
 /** "MON". */
 export const weekdayAbbreviation = (isoDate: string, locale: Locale): string =>
   formatIsoDate(isoDate, "EEEE", locale).slice(0, 3).toUpperCase();
+
+/** The accessibility label of a day: its full date, then `, <markedLabel>` when the day is marked and a label is given. */
+export const dayAccessibilityLabel = (
+  isoDate: string,
+  locale: Locale,
+  markedLabel: string | undefined,
+): string => {
+  const date = formatIsoDate(isoDate, "PPPP", locale);
+
+  return markedLabel === undefined ? date : `${date}, ${markedLabel}`;
+};

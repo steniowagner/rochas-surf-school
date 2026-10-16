@@ -7,6 +7,7 @@ import {
   addWeeks,
   buildFittedMonthGrid,
   buildMonthGrid,
+  dayAccessibilityLabel,
   formatIsoDate,
   getDateLocale,
   isoWeekdayOf,
@@ -228,5 +229,15 @@ describe("fitted month grid", () => {
     expect(grid.flat()[0]).toBe("2026-09-28");
     expect(grid.flat().at(-1)).toBe("2026-11-01");
     expect(grid.every((week) => week.length === 7)).toBe(true);
+  });
+});
+
+describe("dayAccessibilityLabel", () => {
+  it("is the full date, followed by the marked label when there is one", () => {
+    expect(dayAccessibilityLabel("2026-10-14", enUS, undefined)).toBe("Wednesday, October 14th, 2026");
+    expect(dayAccessibilityLabel("2026-10-14", enUS, "with classes")).toBe(
+      "Wednesday, October 14th, 2026, with classes",
+    );
+    expect(dayAccessibilityLabel("2026-10-14", ptBR, undefined)).toBe("quarta-feira, 14 de outubro de 2026");
   });
 });

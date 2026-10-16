@@ -2,7 +2,7 @@
 id: "030"
 slug: classes-week-view
 title: "Aulas tab: week view and class details"
-status: in-review
+status: changes-requested
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8a4501ee0316065450772fd48571ce5e187b7832
@@ -663,3 +663,63 @@ with that day already picked. Classes created by spec 028 become visible for the
   (Jest hung on single-file runs in this session), so it is not a finding — worth a look by whoever touches Nova aula
   next.
 - `npx turbo run lint check-types build` answered from Turbo's cache (same inputs as the executor's run).
+
+### Round 2 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (classes, backend, mobile, web; `npx turbo run lint check-types --force`) · build ✅ (classes,
+  backend)
+- related tests ✅ `RELATED TESTS PASSED` — backend, mobile, web, classes (16 suites / 180 tests)
+- coverage of the changed lines ✅ `COVERAGE OK` (29 files, the mobile `Chip` included); no coverage-ignore comments in
+  the diff
+- e2e ✅ `E2E PASSED` — backend and web (16 passed)
+- iOS simulator (iPhone 18 Pro, 402 pt wide, local backend, pt-BR, admin account): Aulas this week, Sáb 17 (three
+  classes), a class under way on Sex 16, a card's details and back
+
+**Round 1 findings**
+
+- F-01 — the card's chips now carry the icons (Surf `water-outline`, Skate `disc-outline`, "Em andamento"
+  `time-outline`), seen on the simulator and matching AULAS-01's `waves` / `disc` / `clock`; but the wider chips
+  broke the card's layout (F-04) and the details screen's chip was left out (F-05).
+- F-02 ✅ — the details use `getInitials`: "Dev Instructor" shows "DI".
+- F-03 ✅ — import order fixed; lint clean.
+
+**Expected Results**
+
+- ER-01 ✅ · ER-02 ✅ · ER-03 ✅ — e2e `week`, `class`, `access` and `suggestions`; the use-case tests
+- ER-04 ✅ — `class-state.test.ts`
+- ER-05 ✅ · ER-06 ✅ · ER-08 ✅ — screen tests; simulator: "Esta semana", 12 out – 18 out, Sex 16 selected, dots on
+  Sex 16 / Sáb 17 / Dom 18, selecting Sáb 17 shows "3 aulas"
+- ER-07 ❌ — states, border and footer hold (tests; simulator: "Em andamento" with its clock icon and `sun` border on
+  the 12:00 class), but the time range overflows the card — see F-04
+- ER-09 ❌ — the screen tests pass; simulator: "Detalhe", the chips, "12:00 – 13:00", "Amanhã · 17 out", "Instrutor"
+  with "DI" / "Você", "Máx. 8 alunos", no "Notas", "Local"; back returns to the week — but the discipline chip has no
+  icon, see F-05
+- ER-10 ✅ · ER-11 ✅ · ER-12 ✅ · ER-13 ✅ — their tests; code unchanged since round 1, which exercised ER-11 and ER-12
+  on the simulator
+
+**Findings**
+
+- [ ] **F-04** (ER-07) — since the icons were added (F-01), the chips row is wider and the card's time range no
+  longer fits beside it: the chips group doesn't shrink, so the time column runs past the card's right padding and is
+  cut by `overflow-hidden`. Reproduce: simulator iPhone 18 Pro (402 pt), admin → Aulas → this week → Sáb 17: the
+  "00:00 – 01:00" card and the Skate "12:00 – 13:00" card lose the last digit at the right border; the Surf ·
+  Iniciante "12:00 – 13:00" cards end about 4 pt from the border against 16 pt on the left. A longer level
+  ("Intermediário") or a narrower phone (375 pt) clips more. Expected: the whole time range stays inside the card's
+  padding for every discipline and level on a 375 pt phone — e.g. let the chip group shrink and wrap, or put the time
+  on its own row under the chips as AULAS-01's `aulaCard` does.
+- [ ] **F-05** (D-09) — the details screen's discipline chip has no icon: D-09's "the two chips" are D-08's chips
+  (discipline with its icon), and AULAS-02's `dHeader` draws the same `waves` / `disc` icon as the card. Reproduce:
+  open any class → the "SURF" chip is text only (`class-details.screen.tsx`, the `<Chip>` for the discipline).
+  Expected: the same icon as on the card.
+
+**Notes**
+
+- The mobile `Chip` icon test only checks that the chip has two children, and the `ClassCard` tests don't check which
+  icon each chip carries; asserting the icon name (e.g. by the Ionicons `name` prop) would catch a swapped or dropped
+  icon.
+- `Chip` now takes an `icon` on both platforms (an Ionicons name on mobile, a `ReactNode` on web): add it to the
+  Memory Impact for the technical context's Mobile shared UI, next to the round 1 note about the `dayNumber` token.
+- Round 1's notes still apply (the section title's full weekday, a failed background refetch replacing cached cards,
+  the Nova aula double-press test under `TZ=Asia/Tokyo`).

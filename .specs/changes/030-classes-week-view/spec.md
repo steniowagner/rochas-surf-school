@@ -337,13 +337,21 @@ with that day already picked. Classes created by spec 028 become visible for the
   > src/modules/classes/class-view-reader.prisma.spec.ts` from `apps/backend` (3 passed), `npx tsc --noEmit` clean;
   > deviations: none
 
-- [ ] **T-05** — Add `GET /classes` (query `date`) and `GET /classes/:id` to `classes.controller.ts` (after
+- [x] **T-05** — Add `GET /classes` (query `date`) and `GET /classes/:id` to `classes.controller.ts` (after
   `time-range-suggestions`, D-02) with their cases in `classes.controller.spec.ts`, the `week`, `class` and
   `access` tests named in ER-01–ER-03 in `test/classes.e2e-spec.ts` (classes in the past stored through Prisma),
   and the requests in `classes.integration.http`. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx vitest run src/modules/classes` and
   `npm run test:e2e --workspace apps/backend` pass.
+  > ✅ 2026-10-16 — added `GET /classes?date=` (`week`) and `GET /classes/:id` (`one`) after `time-range-suggestions`,
+  > with `PrismaClassViewReader` injected as the controller's last constructor argument; controller specs, the `week`,
+  > `class` and `access` e2e tests (e2e assertions filter by the test's own location because the dev database holds
+  > other classes) and the REST Client requests; files: `apps/backend/src/modules/classes/classes.controller.ts`,
+  > `apps/backend/src/modules/classes/classes.controller.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.integration.http`, `apps/backend/test/classes.e2e-spec.ts`; verified:
+  > `npx vitest run src/modules/classes` (37 passed), `npm run test:e2e` (387 passed), `tsc --noEmit` clean;
+  > deviations: none
 
 ### Mobile (`apps/mobile`)
 

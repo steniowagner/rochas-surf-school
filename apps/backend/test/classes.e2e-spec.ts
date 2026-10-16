@@ -550,6 +550,167 @@ describe('Classes (e2e)', () => {
     });
   });
 
+  describe('week', () => {
+    const week = (token: string | undefined, query = '?date=2026-10-15') => as(token, http().get(`/classes${query}`));
+
+    async function seedFull(creatorId: string, start: string, end: string, instructorIds: string[] = [], notes?: string) {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date(start),
+          endsAt: new Date(end),
+          locationId,
+          capacity: 8,
+          notes,
+          createdBy: creatorId,
+          instructors: { create: instructorIds.map((userId) => ({ userId })) },
+        },
+      });
+      return id;
+    }
+
+    // The database may hold other classes (review data): only this test's location counts.
+    const mine = (items: { id: string; notes: string | null; instructors: unknown[]; location: { id: string } }[]) =>
+      items.filter((item) => item.location.id === locationId);
+
+    it('lists the classes of the week that holds the date, in Fortaleza time', async () => {
+      const admin = await account();
+      const bruno = await account('instructor');
+      const ana = await account('instructor');
+      await prisma.user.update({ where: { id: bruno.id }, data: { name: 'Bruno' } });
+      await prisma.user.update({ where: { id: ana.id }, data: { name: 'ana' } });
+      await seedFull(admin.id, '2026-10-12T02:59:00.000Z', '2026-10-12T03:30:00.000Z'); // Sunday 23:59
+      const monday = await seedFull(admin.id, '2026-10-12T03:00:00.000Z', '2026-10-12T04:00:00.000Z');
+      const early = await seedFull(
+        admin.id,
+        '2026-10-14T11:00:00.000Z',
+        '2026-10-14T12:00:00.000Z',
+        [bruno.id, ana.id],
+        'Bring sunscreen',
+      );
+      const late = await seedFull(admin.id, '2026-10-14T19:00:00.000Z', '2026-10-14T20:00:00.000Z');
+      const sunday = await seedFull(admin.id, '2026-10-19T02:00:00.000Z', '2026-10-19T02:30:00.000Z'); // Sunday 23:00
+      await seedFull(admin.id, '2026-10-19T03:00:00.000Z', '2026-10-19T04:00:00.000Z'); // next Monday
+
+      const response = await week(admin.accessToken);
+
+      expect(response.status).toBe(200);
+      expect(response.body.weekStart).toBe('2026-10-12');
+      expect(mine(response.body.items).map((item) => item.id)).toEqual([monday, early, late, sunday]);
+      const items = mine(response.body.items);
+      expect(items[1]).toEqual({
+        id: early,
+        discipline: 'surf',
+        level: 'beginner',
+        startsAt: '2026-10-14T11:00:00.000Z',
+        endsAt: '2026-10-14T12:00:00.000Z',
+        capacity: 8,
+        notes: 'Bring sunscreen',
+        location: { id: locationId, name: expect.stringContaining(MARK), address: 'Av. Beira Mar' },
+        instructors: [
+          { id: ana.id, name: 'ana' },
+          { id: bruno.id, name: 'Bruno' },
+        ],
+      });
+      expect(items[0]!.notes).toBeNull();
+      expect(items[0]!.instructors).toEqual([]);
+      for (const date of ['2026-10-12', '2026-10-18']) {
+        const same = await week(admin.accessToken, `?date=${date}`);
+        expect(mine(same.body.items).map((item) => item.id)).toEqual([monday, early, late, sunday]);
+      }
+    });
+
+    it('answers an empty week', async () => {
+      const admin = await account();
+
+      const response = await week(admin.accessToken, '?date=2031-03-05');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ weekStart: '2031-03-03', items: [] });
+    });
+
+    it('lets every approved role read the week', async () => {
+      for (const role of ['student', 'instructor', 'admin'] as const) {
+        const response = await week((await account(role)).accessToken);
+
+        expect(response.status).toBe(200);
+      }
+    });
+
+    it('refuses a missing, malformed or impossible date', async () => {
+      const token = (await account('student')).accessToken;
+
+      for (const query of ['', '?date=15/10/2026', '?date=2026-02-30']) {
+        const response = await week(token, query);
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(['class.date.invalid']);
+      }
+    });
+  });
+
+  describe('class', () => {
+    const one = (token: string | undefined, id: string) => as(token, http().get(`/classes/${id}`));
+
+    it('answers one class with its location and instructors', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'skate',
+          level: 'advanced',
+          startsAt: new Date('2026-10-14T19:00:00.000Z'),
+          endsAt: new Date('2026-10-14T20:30:00.000Z'),
+          locationId,
+          capacity: 5,
+          createdBy: admin.id,
+          instructors: { create: [{ userId: instructor.id }] },
+        },
+      });
+
+      const response = await one((await account('student')).accessToken, id);
+      const list = await as(admin.accessToken, http().get('/classes?date=2026-10-14'));
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        id,
+        discipline: 'skate',
+        level: 'advanced',
+        capacity: 5,
+        notes: null,
+        location: { id: locationId, address: 'Av. Beira Mar' },
+        instructors: [{ id: instructor.id, name: 'Person instructor' }],
+      });
+      expect(list.body.items.filter((item: { id: string }) => item.id === id)).toEqual([response.body]);
+    });
+
+    it('answers 404 for an unknown or malformed id', async () => {
+      const token = (await account('student')).accessToken;
+
+      for (const id of [randomUUID(), 'not-a-uuid']) {
+        const response = await one(token, id);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toEqual(['class.notFound']);
+      }
+    });
+
+    it('keeps the suggestions route: an admin gets them and a student a 403', async () => {
+      const ok = await suggestions((await account('admin')).accessToken);
+      const refused = await suggestions((await account('student')).accessToken);
+
+      expect(ok.status).toBe(200);
+      expect(ok.body).toEqual({ items: [] });
+      expect(refused.status).toBe(403);
+      expect(refused.body.errors).toEqual(['user.role.notAdmin']);
+    });
+  });
+
   describe('access', () => {
     it('answers 401 without a token', async () => {
       const [write, read] = await Promise.all([batch(undefined, {}), suggestions(undefined)]);
@@ -586,6 +747,30 @@ describe('Classes (e2e)', () => {
       expect(read.body.errors).toEqual(['user.role.notAdmin']);
       expect(await countClasses(caller.id)).toBe(0);
       expect(await countClasses(admin.id)).toBe(0);
+    });
+
+    it('refuses a pending account the week and the class, before checking the date', async () => {
+      for (const role of ['student', 'instructor', 'admin'] as const) {
+        const token = (await account(role, 'pending')).accessToken;
+
+        const list = await as(token, http().get('/classes?date=nope'));
+        const one = await as(token, http().get(`/classes/${randomUUID()}`));
+
+        expect(list.status).toBe(403);
+        expect(list.body.errors).toEqual(['user.status.notApproved']);
+        expect(one.status).toBe(403);
+        expect(one.body.errors).toEqual(['user.status.notApproved']);
+      }
+    });
+
+    it('answers 401 without a token on the week and the class', async () => {
+      const list = await http().get('/classes?date=2026-10-15');
+      const one = await http().get(`/classes/${randomUUID()}`);
+
+      expect(list.status).toBe(401);
+      expect(list.body.errors).toEqual(['auth.token.invalid']);
+      expect(one.status).toBe(401);
+      expect(one.body.errors).toEqual(['auth.token.invalid']);
     });
   });
 

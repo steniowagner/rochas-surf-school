@@ -8,6 +8,7 @@ import { Location, SchoolClass } from '@rochas-surf-school/classes';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
+import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
@@ -40,12 +41,17 @@ function setup() {
     findTeachers: vi.fn(async () => [{ id: INSTRUCTOR_ID, role: 'instructor', status: 'approved' }]),
   };
   const notifier = { classAssigned: vi.fn(async () => undefined) };
+  const classViewReader = {
+    findStartingBetween: vi.fn(async () => []),
+    findById: vi.fn(async () => null),
+  };
   const controller = new ClassesController(
     classRepository as unknown as PrismaSchoolClassRepository,
     locationRepository as unknown as PrismaLocationRepository,
     teacherLookup as unknown as PrismaTeacherLookup,
     notifier as unknown as NotificationsClassAssignmentNotifier,
     { now: () => NOW } as SystemClockProvider,
+    classViewReader as unknown as PrismaClassViewReader,
   );
   const body = {
     discipline: 'surf',
@@ -59,13 +65,15 @@ function setup() {
     capacity: 8,
     notes: 'Bring sunscreen',
   };
-  return { controller, classRepository, notifier, stored, body };
+  return { controller, classRepository, classViewReader, notifier, stored, body };
 }
 
 describe('ClassesController', () => {
   it.each([
     ['createBatch', 'batch', RequestMethod.POST, HttpStatus.CREATED],
     ['timeRangeSuggestions', 'time-range-suggestions', RequestMethod.GET, HttpStatus.OK],
+    ['week', '/', RequestMethod.GET, HttpStatus.OK],
+    ['one', ':id', RequestMethod.GET, HttpStatus.OK],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
     const handler = handlerOf(name);
 
@@ -146,5 +154,58 @@ describe('ClassesController', () => {
       statusCode: 403,
       message: 'user.status.notApproved',
     });
+  });
+
+  it('lists the week of the date for any approved role', async () => {
+    const { controller, classViewReader } = setup();
+
+    const out = await controller.week(userOf('student'), '2026-10-15');
+
+    expect(out).toEqual({ weekStart: '2026-10-12', items: [] });
+    expect(classViewReader.findStartingBetween).toHaveBeenCalledWith(
+      new Date('2026-10-12T03:00:00.000Z'),
+      new Date('2026-10-19T03:00:00.000Z'),
+    );
+  });
+
+  it('answers 422 for a missing date and 403 for a pending account', async () => {
+    const { controller } = setup();
+
+    await expect(controller.week(userOf('admin'))).rejects.toMatchObject({
+      statusCode: 422,
+      errors: [expect.objectContaining({ message: 'class.date.invalid' })],
+    });
+    await expect(controller.week(userOf('student', 'pending'), 'x')).rejects.toMatchObject({
+      statusCode: 403,
+      message: 'user.status.notApproved',
+    });
+  });
+
+  it('answers 404 class.notFound for an unknown class', async () => {
+    const { controller } = setup();
+
+    await expect(controller.one(userOf('student'), INSTRUCTOR_ID)).rejects.toMatchObject({
+      statusCode: 404,
+      message: 'class.notFound',
+    });
+  });
+
+  it('answers one class by id', async () => {
+    const { controller, classViewReader } = setup();
+    classViewReader.findById.mockResolvedValueOnce({
+      id: INSTRUCTOR_ID,
+      discipline: 'surf',
+      level: 'beginner',
+      startsAt: NOW,
+      endsAt: NOW,
+      capacity: 8,
+      notes: null,
+      location: { id: 'l', name: 'Praia', address: 'Av.' },
+      instructors: [],
+    } as never);
+
+    const out = await controller.one(userOf('instructor'), INSTRUCTOR_ID);
+
+    expect(out).toMatchObject({ id: INSTRUCTOR_ID, startsAt: NOW.toISOString() });
   });
 });

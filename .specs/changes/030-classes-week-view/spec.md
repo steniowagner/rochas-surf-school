@@ -289,7 +289,7 @@ with that day already picked. Classes created by spec 028 become visible for the
   > `modules/classes/test/school-class/model/class-state.test.ts`; verified: `npx jest
   > test/school-class/model/class-state.test.ts` from `modules/classes` (5 passed); deviations: none
 
-- [ ] **T-02** — Add the read port `src/school-class/provider/class-view-reader.provider.ts` (`ClassView`,
+- [x] **T-02** — Add the read port `src/school-class/provider/class-view-reader.provider.ts` (`ClassView`,
   `ClassViewReader`, D-03) with an in-memory fake in `test/mock/fake-class-view.reader.ts` (exported from
   `test/mock/index.ts`), and the use case `src/school-class/usecase/list-week-classes.usecase.ts`
   (`ListWeekClasses`: access, `class.date.invalid` through `isValidIsoDate`, the Fortaleza week bounds from the
@@ -298,12 +298,28 @@ with that day already picked. Classes created by spec 028 become visible for the
   [`module-repository`](../../../.claude/skills/module-repository),
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npx jest test/school-class` passes from `modules/classes`.
+  > ✅ 2026-10-16 — added the `ClassViewReader` port (`ClassView`), its fake, `ListWeekClasses` (Fortaleza Monday-to-Monday
+  > bounds, order, `class.date.invalid`) and the shared `toClassItem` (ISO dates, instructors sorted by name); files:
+  > `modules/classes/src/school-class/provider/class-view-reader.provider.ts`,
+  > `modules/classes/src/school-class/provider/index.ts`, `modules/classes/src/school-class/usecase/class-item.ts`,
+  > `modules/classes/src/school-class/usecase/list-week-classes.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/test/mock/fake-class-view.reader.ts`,
+  > `modules/classes/test/mock/index.ts`, `modules/classes/test/mock/school-class.factory.ts` (`buildClassView`),
+  > `modules/classes/test/school-class/provider/fake-class-view.reader.test.ts`,
+  > `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npx jest
+  > test/school-class` from `modules/classes` (150 passed, 100% coverage), `tsc --noEmit` and `oxlint` clean;
+  > deviations: `ClassItem`/`toClassItem` live in `usecase/class-item.ts` so both use cases share them
 
-- [ ] **T-03** — Add the use case `src/school-class/usecase/get-class.usecase.ts` (`GetClass`: access, non-UUID
+- [x] **T-03** — Add the use case `src/school-class/usecase/get-class.usecase.ts` (`GetClass`: access, non-UUID
   and unknown id → `NotFoundError("class.notFound")`, instructors sorted; D-02) with
   `test/school-class/usecase/get-class.usecase.test.ts`. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-03 · Done when: `npx jest test/school-class/usecase/get-class.usecase.test.ts` passes.
+  > ✅ 2026-10-16 — added `GetClass` (access, non-UUID without lookup and unknown id → `class.notFound`); files:
+  > `modules/classes/src/school-class/usecase/get-class.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`,
+  > `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`; verified: `npx jest
+  > test/school-class/usecase/get-class.usecase.test.ts` (4 passed); deviations: none
 
 ### Backend (`apps/backend`)
 

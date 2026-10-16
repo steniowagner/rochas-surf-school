@@ -417,10 +417,20 @@ with that day already picked. Classes created by spec 028 become visible for the
   > src/modules/classes/screens/classes-week.screen.test.tsx` from `apps/mobile` (18 passed, 100% statements / lines /
   > functions on the screen and its hook), `npm run check-types` exit 0, eslint clean; deviations: none
 
-- [ ] **T-10** — `ClassDetailsScreen` with its hook in `src/modules/classes/screens/class-details.screen.tsx` /
+- [x] **T-10** — `ClassDetailsScreen` with its hook in `src/modules/classes/screens/class-details.screen.tsx` /
   `.hook.ts` (reads `id` from the route; D-09, D-15; "Você" from the session user's id), its copy keys and
   `class-details.screen.test.tsx` with the tests named in ER-09 and ER-10.
   Covers: ER-09, ER-10 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes.
+  > ✅ 2026-10-16 — added `ClassDetailsScreen` and `useClassDetailsScreen` (reads `id` from the route; chips, time range, date
+  > line, started / finished banners ticking with `useNow`, instructors with initials avatars and "Você" from the session
+  > user, capacity, notes only when present, location; loading, error + retry, 404 message, nothing on an expired
+  > session); files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `.../class-details.screen.hook.ts`,
+  > `.../class-details.screen.types.ts`, `.../class-details.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/hooks/use-class.hook.ts`, `.../use-class.hook.test.tsx`; verified: `npx jest
+  > src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/hooks/use-class` from `apps/mobile`
+  > (20 passed, 100% on the screen, its hook and `useClass`), `npm run check-types` exit 0, eslint clean; deviations:
+  > `useClass` also skips retrying a `SessionExpiredError` (D-15 says nothing is shown for it, which a pending retry would
+  > contradict)
 
 - [ ] **T-11** — Route files (D-14): `src/app/(private)/student/(tabs)/index.tsx`,
   `.../instructor/(tabs)/classes.tsx` and `.../admin/(tabs)/classes.tsx` render `ClassesWeekScreen` (admin with

@@ -1,5 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
+import * as api from "@/services/api";
+
 import {
   createQueryClient,
   createWrapper,
@@ -11,7 +13,16 @@ import {
 
 import { useClass } from "./use-class.hook";
 
-beforeEach(setupSignedInUser);
+jest.mock("@/services/api", () => {
+  const actual = jest.requireActual("@/services/api");
+
+  return { ...actual, apiGet: jest.fn(actual.apiGet) };
+});
+
+beforeEach(() => {
+  setupSignedInUser();
+  (api.apiGet as jest.Mock).mockClear();
+});
 
 const notFound = () => ({
   ok: false,
@@ -40,6 +51,17 @@ describe("useClass", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not retry an expired session", async () => {
+    (api.apiGet as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+
+    const { result } = await renderHook(() => useClass("c-1"), {
+      wrapper: createWrapper(createQueryClient()),
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(api.apiGet).toHaveBeenCalledTimes(1);
   });
 
   it("retries other failures", async () => {

@@ -1,20 +1,24 @@
-import { enUS, ptBR } from "date-fns/locale";
+import { enUS, es, ptBR } from "date-fns/locale";
 
 import {
   addDays,
   addMonths,
+  addMonthsKeepingDay,
   addWeeks,
+  buildFittedMonthGrid,
   buildMonthGrid,
   formatIsoDate,
   getDateLocale,
   isoWeekdayOf,
   isSameMonth,
   mondayOf,
+  monthCaption,
   monthOf,
   toIsoDate,
   toLocalDate,
   weekCaption,
   weekdayAbbreviation,
+  weekdayInitials,
   weekdayName,
   weekDays,
 } from "./calendar-dates";
@@ -130,14 +134,99 @@ describe("week arithmetic", () => {
 });
 
 describe("captions and names", () => {
-  it("writes the week caption in the locale", () => {
-    expect(weekCaption("2026-10-12", ptBR)).toBe("12 out – 18 out");
-    expect(weekCaption("2026-10-12", enUS)).toBe("12 Oct – 18 Oct");
-  });
-
   it("names and abbreviates a weekday", () => {
     expect(weekdayName("2026-10-14", enUS)).toBe("Wednesday");
     expect(weekdayAbbreviation("2026-10-14", enUS)).toBe("WED");
     expect(weekdayAbbreviation("2026-10-14", ptBR)).toBe("QUA");
+  });
+});
+
+describe("weekCaption", () => {
+  it("shows the month once for a week inside one month", () => {
+    expect(weekCaption("2026-10-12", enUS)).toBe("12 – 18 OCT");
+    expect(weekCaption("2026-10-12", ptBR)).toBe("12 – 18 OUT");
+  });
+
+  it("shows both months for a week that spans two", () => {
+    expect(weekCaption("2026-09-28", enUS)).toBe("28 SEP – 4 OCT");
+    expect(weekCaption("2026-09-28", ptBR)).toBe("28 SET – 4 OUT");
+  });
+
+  it("leaves the year out for a week that spans two years", () => {
+    expect(weekCaption("2026-12-28", enUS)).toBe("28 DEC – 3 JAN");
+  });
+
+  it("drops the trailing dot of a month abbreviation", () => {
+    const dotted = { ...es, localize: { ...es.localize, month: () => "sep." } } as unknown as typeof es;
+
+    expect(weekCaption("2026-09-14", dotted)).toBe("14 – 20 SEP");
+    expect(weekCaption("2026-10-12", es)).toBe("12 – 18 OCT");
+  });
+});
+
+describe("monthCaption", () => {
+  it("writes the month and the year in capitals", () => {
+    expect(monthCaption({ year: 2026, month: 10 }, enUS)).toBe("OCTOBER 2026");
+    expect(monthCaption({ year: 2026, month: 10 }, ptBR)).toBe("OUTUBRO 2026");
+  });
+});
+
+describe("addMonthsKeepingDay", () => {
+  it("keeps the day number when the target month has it", () => {
+    expect(addMonthsKeepingDay("2026-10-14", 1)).toBe("2026-11-14");
+    expect(addMonthsKeepingDay("2026-10-14", -1)).toBe("2026-09-14");
+  });
+
+  it("caps the day at the last day of the target month", () => {
+    expect(addMonthsKeepingDay("2027-01-31", 1)).toBe("2027-02-28");
+    expect(addMonthsKeepingDay("2026-03-31", 1)).toBe("2026-04-30");
+    expect(addMonthsKeepingDay("2027-03-31", -1)).toBe("2027-02-28");
+    expect(addMonthsKeepingDay("2028-01-31", 1)).toBe("2028-02-29");
+  });
+
+  it("crosses years", () => {
+    expect(addMonthsKeepingDay("2026-12-15", 1)).toBe("2027-01-15");
+    expect(addMonthsKeepingDay("2026-01-15", -1)).toBe("2025-12-15");
+  });
+});
+
+describe("weekdayInitials", () => {
+  it("lists the initials Monday first, in capitals", () => {
+    expect(weekdayInitials(enUS)).toEqual(["M", "T", "W", "T", "F", "S", "S"]);
+    expect(weekdayInitials(ptBR)).toEqual(["S", "T", "Q", "Q", "S", "S", "D"]);
+  });
+});
+
+describe("fitted month grid", () => {
+  it("has 4 rows for February 2027, all inside the month", () => {
+    const grid = buildFittedMonthGrid({ year: 2027, month: 2 });
+
+    expect(grid).toHaveLength(4);
+    expect(grid[0]?.[0]).toBe("2027-02-01");
+    expect(grid[3]?.[6]).toBe("2027-02-28");
+  });
+
+  it("has 5 rows for September 2026, from 31 Aug to 4 Oct", () => {
+    const grid = buildFittedMonthGrid({ year: 2026, month: 9 });
+
+    expect(grid).toHaveLength(5);
+    expect(grid[0]?.[0]).toBe("2026-08-31");
+    expect(grid[4]?.[6]).toBe("2026-10-04");
+  });
+
+  it("has 6 rows for August 2026, from 27 Jul to 6 Sep", () => {
+    const grid = buildFittedMonthGrid({ year: 2026, month: 8 });
+
+    expect(grid).toHaveLength(6);
+    expect(grid[0]?.[0]).toBe("2026-07-27");
+    expect(grid[5]?.[6]).toBe("2026-09-06");
+  });
+
+  it("draws October 2026 from 28 Sep to 1 Nov", () => {
+    const grid = buildFittedMonthGrid({ year: 2026, month: 10 });
+
+    expect(grid.flat()[0]).toBe("2026-09-28");
+    expect(grid.flat().at(-1)).toBe("2026-11-01");
+    expect(grid.every((week) => week.length === 7)).toBe(true);
   });
 });

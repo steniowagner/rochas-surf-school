@@ -263,13 +263,21 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > src/modules/classes` (clean); deviations: `toUtcMs` is also exported from `calendar-dates.ts` (a small technical
   > step: `addDays` needs it there and `weeksBetween` / `formatDateLine` stay in the classes `week.ts`)
 
-- [ ] **T-02** — Add to `src/utils/calendar-dates.ts`, with tests in `src/utils/calendar-dates.test.ts`: a fitted
+- [x] **T-02** — Add to `src/utils/calendar-dates.ts`, with tests in `src/utils/calendar-dates.test.ts`: a fitted
   month grid (the days of the previous month before the 1st, only the weeks needed — D-09; `buildMonthGrid`'s
   existing modes keep working for Nova aula), `weekCaption` in the new format (D-08, replacing the old "12 Oct – 18
   Oct" one and updating its caller), `monthCaption` ("OCTOBER 2026"), `addMonthsKeepingDay(date, amount)` (capped at
   the month's last day, D-06) and `weekdayInitials(locale)` (D-08). Tests named "weekCaption", "fitted month grid"
   and "addMonthsKeepingDay" cover every example of ER-02, ER-07 and ER-09.
   Covers: ER-02, ER-07, ER-09 · Done when: `npx jest src/utils/calendar-dates.test.ts` passes.
+  > ✅ 2026-10-16 — added `buildFittedMonthGrid`, the new `weekCaption` (D-08), `monthCaption`, `addMonthsKeepingDay` and
+  > `weekdayInitials` to `calendar-dates.ts`; `buildMonthGrid` untouched; the one caller of `weekCaption` (the week
+  > screen hook) needed no change, its test assertion moved to "12 – 18 OCT"; files:
+  > `apps/mobile/src/utils/calendar-dates.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest
+  > src/utils/calendar-dates.test.ts` (31 passed), `npx jest src/modules/classes/screens/classes-week.screen.test.tsx
+  > src/utils` (99 passed), `npm run check-types` (exit 0), eslint clean; deviations: the fitted grid is its own function
+  > (`buildFittedMonthGrid`, returns `string[][]`) rather than a third mode of `buildMonthGrid`
 
 - [ ] **T-03** — Add the presentational children `CalendarWeekRow` (`src/components/calendar-week-row/`: seven days,
   weekday and number, only the selected day on `grape`, today in `sun`, one dot per marked day, `on-color` on the

@@ -109,7 +109,7 @@ describe("ClassesWeekScreen", () => {
 
     expect(screen.getByRole("header", { name: "Classes" })).toBeOnTheScreen();
     expect(screen.getByText("This week")).toBeOnTheScreen();
-    expect(screen.getByText("12 Oct – 18 Oct")).toBeOnTheScreen();
+    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
     expect(screen.getByTestId("day-2026-10-14")).toBeSelected();
     expect(await screen.findByText("Wednesday · 14 Oct")).toBeOnTheScreen();
     expect(await screen.findByText("3 classes")).toBeOnTheScreen();

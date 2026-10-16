@@ -104,9 +104,54 @@ export const addWeeks = (weekStart: string, amount: number): string =>
 export const weekDays = (weekStart: string): string[] =>
   Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
 
-/** "12 Oct – 18 Oct". */
-export const weekCaption = (weekStart: string, locale: Locale): string =>
-  `${formatIsoDate(weekStart, "d MMM", locale)} – ${formatIsoDate(addDays(weekStart, 6), "d MMM", locale)}`;
+/** "OCT": upper-cased, without the trailing dot some locales put on the abbreviation. */
+const monthAbbreviation = (isoDate: string, locale: Locale): string =>
+  formatIsoDate(isoDate, "MMM", locale).replace(/\.$/, "").toUpperCase();
+
+/** "18 OCT". */
+const dayAndMonth = (isoDate: string, locale: Locale): string =>
+  `${formatIsoDate(isoDate, "d", locale)} ${monthAbbreviation(isoDate, locale)}`;
+
+/** "12 – 18 OCT" for a week inside one month, "28 SEP – 4 OCT" when it spans two (the year is never shown). */
+export const weekCaption = (weekStart: string, locale: Locale): string => {
+  const weekEnd = addDays(weekStart, 6);
+  const start =
+    weekStart.slice(0, 7) === weekEnd.slice(0, 7)
+      ? formatIsoDate(weekStart, "d", locale)
+      : dayAndMonth(weekStart, locale);
+
+  return `${start} – ${dayAndMonth(weekEnd, locale)}`;
+};
+
+/** "OCTOBER 2026". */
+export const monthCaption = (month: CalendarMonth, locale: Locale): string =>
+  formatIsoDate(toIsoDate(month, 1), "MMMM yyyy", locale).toUpperCase();
+
+/**
+ * A `YYYY-MM-DD` date moved by whole months, keeping the day number, or the last day of the target month when it
+ * has fewer days (31 Jan + 1 month = 28 Feb).
+ */
+export const addMonthsKeepingDay = (isoDate: string, amount: number): string => {
+  const target = addMonths(monthOf(isoDate), amount);
+  const lastDay = new Date(target.year, target.month, 0).getDate();
+
+  return toIsoDate(target, Math.min(Number(isoDate.slice(8, 10)), lastDay));
+};
+
+/** The initials of the weekdays, Monday first, upper-cased: "M T W T F S S". */
+export const weekdayInitials = (locale: Locale): string[] =>
+  weekDays("2026-10-12").map((day) => formatIsoDate(day, "EEEEE", locale).toUpperCase());
+
+/**
+ * The weeks of a month, Monday first, with only the weeks it needs (4 to 6): the days before the 1st are the last
+ * days of the previous month, and the days after the last are the first days of the next one.
+ */
+export const buildFittedMonthGrid = (month: CalendarMonth): string[][] => {
+  const leading = isoWeekdayOf(toIsoDate(month, 1)) - 1;
+  const length = new Date(month.year, month.month, 0).getDate();
+
+  return (buildMonthGrid(month, true) as string[][]).slice(0, Math.ceil((leading + length) / 7));
+};
 
 const capitalize = (text: string): string =>
   text.charAt(0).toUpperCase() + text.slice(1);

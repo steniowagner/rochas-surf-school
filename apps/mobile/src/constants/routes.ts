@@ -46,6 +46,10 @@ export const routes = {
     editProfile: "/student/edit-profile",
     whatsapp: "/student/whatsapp",
     schoolRules: "/student/school-rules",
+    classDetail: (id: string): Href => ({
+      pathname: "/student/class/[id]",
+      params: { id },
+    }),
   },
   instructor: {
     home: "/instructor",
@@ -55,6 +59,10 @@ export const routes = {
     editProfile: "/instructor/edit-profile",
     whatsapp: "/instructor/whatsapp",
     schoolRules: "/instructor/school-rules",
+    classDetail: (id: string): Href => ({
+      pathname: "/instructor/class/[id]",
+      params: { id },
+    }),
   },
   admin: {
     home: "/admin",
@@ -62,9 +70,16 @@ export const routes = {
     profile: "/admin/profile",
     registrations: "/admin/registrations",
     people: "/admin/people",
-    newClass: "/admin/new-class",
+    newClass: (params?: { date?: string }): Href => ({
+      pathname: "/admin/new-class",
+      params,
+    }),
     editProfile: "/admin/edit-profile",
     whatsapp: "/admin/whatsapp",
     schoolRules: "/admin/school-rules",
+    classDetail: (id: string): Href => ({
+      pathname: "/admin/class/[id]",
+      params: { id },
+    }),
   },
 } as const;

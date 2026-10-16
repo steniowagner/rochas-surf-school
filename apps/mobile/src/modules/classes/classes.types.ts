@@ -77,3 +77,28 @@ export type CalendarMonth = {
   year: number;
   month: number;
 };
+
+/** A person teaching a class. */
+export type ClassInstructor = {
+  id: string;
+  name: string;
+};
+
+/** A class as `GET /classes` and `GET /classes/:id` answer it; dates are ISO 8601 UTC. */
+export type ClassItem = {
+  id: string;
+  discipline: ClassDiscipline;
+  level: ClassLevel;
+  startsAt: string;
+  endsAt: string;
+  capacity: number;
+  notes: string | null;
+  location: ClassLocation;
+  instructors: ClassInstructor[];
+};
+
+/** The answer of `GET /classes?date=`: `weekStart` is the Monday, `YYYY-MM-DD`. */
+export type WeekClasses = {
+  weekStart: string;
+  items: ClassItem[];
+};

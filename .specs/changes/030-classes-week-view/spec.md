@@ -355,7 +355,7 @@ with that day already picked. Classes created by spec 028 become visible for the
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-06** — Data layer in `src/modules/classes/`: the `ClassItem` / `WeekClasses` types in `classes.types.ts`,
+- [x] **T-06** — Data layer in `src/modules/classes/`: the `ClassItem` / `WeekClasses` types in `classes.types.ts`,
   `hooks/use-week-classes.hook.ts` (`["classes", "week", weekStart]`), `hooks/use-class.hook.ts`
   (`["classes", "detail", id]`, no retry on 404), `hooks/use-now.hook.ts` (60 s tick, D-05), and
   `utils/week.ts` (Monday of a date in Fortaleza, adding weeks, the relative week label, the week caption, the
@@ -364,6 +364,19 @@ with that day already picked. Classes created by spec 028 become visible for the
   `routes.admin.newClass` updated.
   Covers: ER-06, ER-07 · Done when: `npx jest src/modules/classes src/modules/admin` passes from `apps/mobile` and
   `npm run check-types --workspace @rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-10-16 — added `ClassItem`/`WeekClasses` types, `useWeekClasses`, `useClass` (no retry on 404), `useNow` (60 s
+  > tick), `utils/week.ts` (Monday of a date, week arithmetic, relative week, caption, weekday names, Fortaleza day and
+  > time of an instant, date line) with tests; `routes.<role>.classDetail(id)` and `routes.admin.newClass(params?)`, the
+  > admin home caller and its test updated; files: `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/hooks/use-week-classes.hook.ts`,
+  > `.../use-week-classes.hook.test.tsx`, `.../use-class.hook.ts`, `.../use-class.hook.test.tsx`, `.../use-now.hook.ts`,
+  > `.../use-now.hook.test.tsx`, `apps/mobile/src/modules/classes/utils/week.ts`, `.../week.test.ts`,
+  > `apps/mobile/src/app/(private)/{student,instructor,admin}/class/[id].tsx` (placeholder routes, see deviations);
+  > verified: `npx jest src/modules/classes src/modules/admin` from `apps/mobile` (all pass) and
+  > `npm run check-types --workspace @rochas-surf-school/mobile` exit 0; deviations: the three `class/[id].tsx` route files
+  > exist as empty placeholders because typed routes fail the type check without them — T-11 renders the details screen
+  > in them; weekday abbreviations are the first three letters of the weekday name
 
 - [ ] **T-07** — `ClassCard` in `src/modules/classes/components/class-card/` (D-08, using `getClassState` from
   `@rochas-surf-school/classes` and the shared `Chip`), with its copy keys in the three locales and

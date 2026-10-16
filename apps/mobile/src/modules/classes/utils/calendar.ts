@@ -1,3 +1,4 @@
+import { isValidIsoDate } from "@rochas-surf-school/classes";
 import { tz } from "@date-fns/tz";
 import { format, type Locale } from "date-fns";
 import { enUS, es, ptBR } from "date-fns/locale";
@@ -100,6 +101,15 @@ export type DateRange = {
 };
 
 export const EMPTY_RANGE: DateRange = { startDate: null, endDate: null, excludedDates: [] };
+
+/**
+ * The range Nova aula opens with: the day it was opened for, as a single day, when it is a real date that is today or
+ * later; otherwise nothing is picked.
+ */
+export const initialRange = (date: unknown, today: string): DateRange =>
+  isValidIsoDate(date) && date >= today
+    ? { startDate: date, endDate: null, excludedDates: [] }
+    : EMPTY_RANGE;
 
 /**
  * What tapping a day does: the first tap sets the start, a later day sets the end, an earlier day moves the start.

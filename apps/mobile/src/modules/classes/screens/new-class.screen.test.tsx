@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import * as api from "@/services/api";
 
@@ -37,7 +37,10 @@ jest.mock("@/services/api", () => {
   return { ...actual, apiPost: jest.fn(actual.apiPost) };
 });
 
-jest.mock("expo-router", () => ({ router: { back: jest.fn() } }));
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  useLocalSearchParams: jest.fn(() => ({})),
+}));
 
 // Wednesday 2026-10-14, 10:00 in Fortaleza; only Date is faked so timers and user events keep working.
 const NOW = new Date("2026-10-14T13:00:00.000Z");
@@ -154,6 +157,37 @@ afterEach(() => {
 });
 
 describe("NewClassScreen", () => {
+  describe("day from the week", () => {
+    const openWith = async (date: string) => {
+      (useLocalSearchParams as jest.Mock).mockReturnValue({ date });
+      await renderScreen();
+    };
+
+    afterEach(() => (useLocalSearchParams as jest.Mock).mockReturnValue({}));
+
+    it("starts on the day passed by the week", async () => {
+      await openWith("2027-02-20");
+
+      expect(day("2027-02-20")).toBeSelected();
+      expect(screen.getByText("1 day")).toBeOnTheScreen();
+      expect(screen.getByText("February 2027")).toBeOnTheScreen();
+    });
+
+    it("starts on today when the week passes today", async () => {
+      await openWith("2026-10-14");
+
+      expect(day("2026-10-14")).toBeSelected();
+      expect(screen.getByText("1 day")).toBeOnTheScreen();
+    });
+
+    it.each(["2026-10-13", "2026-02-30", "nope"])("ignores the past or malformed day %s", async (date) => {
+      await openWith(date);
+
+      expect(screen.getAllByText("pick at least 1").length).toBeGreaterThan(0);
+      expect(screen.queryByText("1 day")).not.toBeOnTheScreen();
+    });
+  });
+
   it("shows the form in the design's order with its defaults", async () => {
     await renderScreen();
 

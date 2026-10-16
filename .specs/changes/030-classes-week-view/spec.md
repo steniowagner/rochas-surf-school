@@ -452,11 +452,22 @@ with that day already picked. Classes created by spec 028 become visible for the
   > src/modules/instructor src/modules/admin` from `apps/mobile` (all pass), `npm run check-types` exit 0, eslint clean;
   > deviations: none
 
-- [ ] **T-12** — Nova aula's optional `date` param in `src/modules/classes/screens/new-class.screen.hook.ts` (and
+- [x] **T-12** — Nova aula's optional `date` param in `src/modules/classes/screens/new-class.screen.hook.ts` (and
   the calendar's initial month, D-11), and the invalidation of `["classes", "week"]` in
   `hooks/use-create-classes.hook.ts` (D-12), with the tests named in ER-11 and ER-12.
   Covers: ER-11, ER-12 · Done when: `npx jest src/modules/classes/screens/new-class.screen.test.tsx src/modules/classes/hooks/use-create-classes.hook.test.tsx`
   passes.
+  > ✅ 2026-10-16 — Nova aula reads an optional `date` route param (`initialRange` in `utils/calendar.ts`: a real
+  > `YYYY-MM-DD` that is today or later becomes a single-day range and the calendar opens on its month; anything else is
+  > ignored), and `useCreateClasses` invalidates `["classes", "week"]` on success only; files:
+  > `apps/mobile/src/modules/classes/utils/calendar.ts`, `apps/mobile/src/modules/classes/utils/calendar.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/hooks/use-create-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-create-classes.hook.test.tsx`; verified: `npx jest src/modules/classes
+  > src/modules/admin` from `apps/mobile` (all pass), `npm run check-types` exit 0, eslint clean; deviations: test names
+  > differ slightly from the spec's ("starts on the day passed by the week" and "ignores the past or malformed day …" sit
+  > under "day from the week"; the invalidation also has an "invalidates nothing when creating fails" test)
 
 - [ ] **T-13** — `class.assigned` in `src/modules/notifications/hooks/use-notification-response.hook.ts` (D-13)
   and `use-notification-received.hook.ts` (D-12), with the tests named in ER-13.

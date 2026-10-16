@@ -432,12 +432,25 @@ with that day already picked. Classes created by spec 028 become visible for the
   > `useClass` also skips retrying a `SessionExpiredError` (D-15 says nothing is shown for it, which a pending retry would
   > contradict)
 
-- [ ] **T-11** — Route files (D-14): `src/app/(private)/student/(tabs)/index.tsx`,
+- [x] **T-11** — Route files (D-14): `src/app/(private)/student/(tabs)/index.tsx`,
   `.../instructor/(tabs)/classes.tsx` and `.../admin/(tabs)/classes.tsx` render `ClassesWeekScreen` (admin with
   `canCreate`); `src/app/(private)/{student,instructor,admin}/class/[id].tsx` render `ClassDetailsScreen`; delete
   `src/modules/student/screens/student.screen.tsx` and its test; the three `*-tabs.navigation.test.tsx` cover the
   classes tab and opening a class.
   Covers: ER-05, ER-09 · Done when: `npx jest src/modules/student src/modules/instructor src/modules/admin` passes.
+  > ✅ 2026-10-16 — the student's Agenda tab and the instructor's and admin's Aulas tabs now render `ClassesWeekScreen` (admin
+  > with `canCreate`); `class/[id]` routes of the three roles render `ClassDetailsScreen`; `StudentScreen` and its test
+  > deleted; the three `*-tabs.navigation.test.tsx` cover the classes tab, opening a class and back (and, for admin, the
+  > "+" and the day's create button); files: `apps/mobile/src/app/(private)/student/(tabs)/index.tsx`,
+  > `apps/mobile/src/app/(private)/instructor/(tabs)/classes.tsx`, `apps/mobile/src/app/(private)/admin/(tabs)/classes.tsx`,
+  > `apps/mobile/src/app/(private)/{student,instructor,admin}/class/[id].tsx`,
+  > `apps/mobile/src/modules/student/screens/student.screen.tsx` (deleted),
+  > `apps/mobile/src/modules/student/screens/student.screen.test.tsx` (deleted),
+  > `apps/mobile/src/modules/student/student-tabs.navigation.test.tsx`,
+  > `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx`,
+  > `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`; verified: `npx jest src/modules/student
+  > src/modules/instructor src/modules/admin` from `apps/mobile` (all pass), `npm run check-types` exit 0, eslint clean;
+  > deviations: none
 
 - [ ] **T-12** — Nova aula's optional `date` param in `src/modules/classes/screens/new-class.screen.hook.ts` (and
   the calendar's initial month, D-11), and the invalidation of `["classes", "week"]` in

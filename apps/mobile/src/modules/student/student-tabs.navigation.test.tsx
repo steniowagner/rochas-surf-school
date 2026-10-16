@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act } from "@testing-library/react-native";
+import { act, userEvent } from "@testing-library/react-native";
 import { router, Stack } from "expo-router";
 import { renderRouter, screen } from "expo-router/testing-library";
 
@@ -8,6 +8,7 @@ import StudentRoute from "@/app/(private)/student/(tabs)/index";
 import MyClassesRoute from "@/app/(private)/student/(tabs)/my-classes";
 import ProfileRoute from "@/app/(private)/student/(tabs)/profile";
 import SchoolRoute from "@/app/(private)/student/(tabs)/school";
+import StudentClassRoute from "@/app/(private)/student/class/[id]";
 import StudentLayout from "@/app/(private)/student/_layout";
 import {
   selectedTabLabel,
@@ -35,29 +36,52 @@ const routeTree = {
   "(private)/student/(tabs)/my-classes": MyClassesRoute,
   "(private)/student/(tabs)/school": SchoolRoute,
   "(private)/student/(tabs)/profile": ProfileRoute,
+  "(private)/student/class/[id]": StudentClassRoute,
+};
+
+const aClass = {
+  id: "c-1",
+  discipline: "surf",
+  level: "beginner",
+  startsAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  endsAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+  capacity: 8,
+  notes: null,
+  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+  instructors: [{ id: "i-1", name: "Carla Dias" }],
+};
+
+const people = {
+  items: [
+    {
+      id: "p-1",
+      name: "Bruno Lima",
+      role: "instructor",
+      createdAt: "2026-07-15T12:00:00.000Z",
+      whatsappNumber: null,
+    },
+  ],
+  page: 1,
+  perPage: 20,
+  total: 1,
+};
+
+const respond = (url: string) => {
+  if (url.includes("/classes?date=")) {
+    return { weekStart: "x", items: [aClass] };
+  }
+
+  return url.includes("/classes/") ? aClass : people;
 };
 
 const fetchMock = jest.fn();
 
 beforeEach(() => {
-  fetchMock.mockReset().mockResolvedValue({
+  fetchMock.mockReset().mockImplementation(async (url: string) => ({
     ok: true,
     status: 200,
-    json: async () => ({
-      items: [
-        {
-          id: "p-1",
-          name: "Bruno Lima",
-          role: "instructor",
-          createdAt: "2026-07-15T12:00:00.000Z",
-          whatsappNumber: null,
-        },
-      ],
-      page: 1,
-      perPage: 20,
-      total: 1,
-    }),
-  });
+    json: async () => respond(String(url)),
+  }));
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
   hydrateSession({
@@ -95,7 +119,8 @@ describe("student tabs", () => {
     ]);
     expect(app.getPathname()).toBe("/student");
     expect(selectedTabLabel()).toBe("Schedule");
-    expect(screen.getByRole("header", { name: "Student" })).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Schedule" })).toBeOnTheScreen();
+    expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.student.myClasses));
     expect(app.getPathname()).toBe("/student/my-classes");
@@ -109,6 +134,21 @@ describe("student tabs", () => {
     expect(app.getPathname()).toBe("/student/profile");
     expect(selectedTabLabel()).toBe("Profile");
     expect(screen.getByRole("header", { name: "Ana Souza" })).toBeOnTheScreen();
+  });
+
+  it("opens a class above the tabs, and back returns to the Agenda with the tab bar", async () => {
+    const user = userEvent.setup();
+    const app = await open();
+
+    await user.press(await screen.findByText("Praia do Futuro"));
+
+    expect(app.getPathname()).toBe("/student/class/c-1");
+    expect(await screen.findByText("Max. 8 students")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(app.getPathname()).toBe("/student");
+    expect(selectedTabLabel()).toBe("Schedule");
   });
 
   it("the Escola tab shows the people directory", async () => {

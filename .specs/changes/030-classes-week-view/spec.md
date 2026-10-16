@@ -392,10 +392,16 @@ with that day already picked. Classes created by spec 028 become visible for the
   > discipline and "Em andamento" chips carry no icon (adding one would change a shared component on both platforms); all
   > the screens' copy keys were added here at once
 
-- [ ] **T-08** — `WeekNav` and `DayStrip` in `src/modules/classes/components/{week-nav,day-strip}/` (D-06), with their
+- [x] **T-08** — `WeekNav` and `DayStrip` in `src/modules/classes/components/{week-nav,day-strip}/` (D-06), with their
   copy keys and tests.
   Covers: ER-06 · Done when: `npx jest src/modules/classes/components/week-nav src/modules/classes/components/day-strip`
   passes.
+  > ✅ 2026-10-16 — added `WeekNav` (44 pt arrows, caption, "Hoje" only for another week) and `DayStrip` (seven days Monday
+  > first, weekday abbreviation and number, today's number in `sun`, selected day on `grape`, one `lagoon` dot per class,
+  > at most 3); files: `apps/mobile/src/modules/classes/components/week-nav/{index.ts,week-nav.component.tsx,week-nav.types.ts,week-nav.component.test.tsx}`,
+  > `apps/mobile/src/modules/classes/components/day-strip/{index.ts,day-strip.component.tsx,day-strip.types.ts,day-strip.component.test.tsx}`;
+  > verified: `npx jest src/modules/classes/components/week-nav src/modules/classes/components/day-strip` from `apps/mobile`
+  > (7 passed), `npm run check-types` exit 0, `npx eslint src/modules/classes` clean; deviations: none
 
 - [ ] **T-09** — `ClassesWeekScreen` with its hook in `src/modules/classes/screens/classes-week.screen.tsx` /
   `.hook.ts` (props: title key, detail route builder, `canCreate`; D-06, D-07, D-10, D-15: selection, states,

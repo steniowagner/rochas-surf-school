@@ -368,6 +368,18 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
 - [ ] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS
   simulator; all pass. Record the output summary and what was seen as evidence.
   Covers: all · Done when: every command exits 0 and the journey shows what it describes.
+  > ⛔ 2026-10-16 — the automated half passes, the simulator journey is not done. Passed: `node
+  > .specs/scripts/run-related-tests.mjs 031` (57 suites, 724 tests, coverage 100% statements/branches/functions/lines;
+  > the first run had one failure in `new-class.screen.test.tsx › sends once when pressed twice in the same frame`, a
+  > timing flake under load that passes alone, twice, and in the rerun of the whole command), `node
+  > .specs/scripts/check-coverage.mjs 031` (COVERAGE OK, 15 files), `node .specs/scripts/run-e2e.mjs 031` (E2E PASSED,
+  > no suite applies), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (8 tasks successful), the
+  > ER-12 grep (prints nothing). Blocked: the journey needs the app on the iOS simulator (not installed on the booted
+  > iPhone 18 Pro), the backend on port 4000 (not running) and a signed-in student and admin with classes on a few days
+  > of this and the next month; the only local sign-in is `REVIEW_ACCOUNTS` (empty in `.env.example`), and setting it up
+  > means editing the local `.env` and writing users and classes into the running dev Postgres
+  > (`rochas-surf-school-postgres-1`). Needs the user's go-ahead, or the user running the journey of the Verification
+  > Plan themself.
 
 ## Verification Plan
 

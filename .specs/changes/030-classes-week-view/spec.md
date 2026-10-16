@@ -2,7 +2,7 @@
 id: "030"
 slug: classes-week-view
 title: "Aulas tab: week view and class details"
-status: in-progress
+status: in-review
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8a4501ee0316065450772fd48571ce5e187b7832

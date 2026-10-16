@@ -318,13 +318,23 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > nothing; deviations: added `monthRange(month)` to `calendar-dates.ts` (with its test) for the month view's
   > reported range — a small technical step
 
-- [ ] **T-05** — Add `useVisibleWeeksClasses({ from, to })` in
+- [x] **T-05** — Add `useVisibleWeeksClasses({ from, to })` in
   `src/modules/classes/hooks/use-visible-weeks-classes.hook.ts`: one query per Monday from `mondayOf(from)` to `to`
   with `useQueries`, sharing the key and request of `useWeekClasses` through a query-options factory exported from
   `use-week-classes.hook.ts`; returns the loaded items of every week (failed weeks contribute nothing), and
   `refetch()` for all of them (D-04). Test `use-visible-weeks-classes.hook.test.tsx`: the Mondays requested for a
   month range, cached weeks not requested again, a failed week leaves the others' items, `refetch` refetches all.
   Covers: ER-11 · Done when: `npx jest src/modules/classes/hooks` passes.
+  > ✅ 2026-10-16 — added `useVisibleWeeksClasses(range)` (`useQueries` over each Monday from `mondayOf(from)` to `to`,
+  > `combine` into `{ items, isRefetching, refetch }`; failed weeks contribute nothing) and exported
+  > `weekClassesOptions(weekStart)` from `use-week-classes.hook.ts`, which `useWeekClasses` now uses too (same key and
+  > request); files: `apps/mobile/src/modules/classes/hooks/use-week-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.test.tsx`; verified: `npx jest
+  > src/modules/classes/hooks` (9 suites, 31 tests passed), `npm run check-types` (exit 0), eslint clean; deviations:
+  > the hook also returns `isRefetching` (for the pull-to-refresh spinner in T-06). Note: a hook instance that mounts
+  > on a week already cached still refetches it in the background (the app's QueryClient has no `staleTime`, same as
+  > spec 030's week navigation); a week stays un-requested when the same instance's range grows (week → month)
 
 - [ ] **T-06** — Rewire `ClassesWeekScreen` (`src/modules/classes/screens/classes-week.screen.tsx`, `.hook.ts`):
   replace `WeekNav` and `DayStrip` with `WeekMonthCalendar`; keep the selection as one `selectedDate` (opening on

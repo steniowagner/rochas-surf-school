@@ -403,12 +403,19 @@ with that day already picked. Classes created by spec 028 become visible for the
   > verified: `npx jest src/modules/classes/components/week-nav src/modules/classes/components/day-strip` from `apps/mobile`
   > (7 passed), `npm run check-types` exit 0, `npx eslint src/modules/classes` clean; deviations: none
 
-- [ ] **T-09** — `ClassesWeekScreen` with its hook in `src/modules/classes/screens/classes-week.screen.tsx` /
+- [x] **T-09** — `ClassesWeekScreen` with its hook in `src/modules/classes/screens/classes-week.screen.tsx` /
   `.hook.ts` (props: title key, detail route builder, `canCreate`; D-06, D-07, D-10, D-15: selection, states,
   pull-to-refresh, admin entry points), its copy keys and `classes-week.screen.test.tsx` with the tests named in
   ER-05–ER-08 and ER-11.
   Covers: ER-05, ER-06, ER-07, ER-08, ER-11 · Done when: `npx jest src/modules/classes/screens/classes-week.screen.test.tsx`
   passes.
+  > ✅ 2026-10-16 — added `ClassesWeekScreen` and `useClassesWeekScreen` (selection kept across weeks, relative week label,
+  > `WeekNav`, `DayStrip`, day section with its count, cards ticking with `useNow`, loading / error + retry / empty day,
+  > pull-to-refresh, the admin "+", "Criar aula" and "Criar aula neste dia" entry points); files:
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx`, `.../classes-week.screen.hook.ts`,
+  > `.../classes-week.screen.types.ts`, `.../classes-week.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes/screens/classes-week.screen.test.tsx` from `apps/mobile` (18 passed, 100% statements / lines /
+  > functions on the screen and its hook), `npm run check-types` exit 0, eslint clean; deviations: none
 
 - [ ] **T-10** — `ClassDetailsScreen` with its hook in `src/modules/classes/screens/class-details.screen.tsx` /
   `.hook.ts` (reads `id` from the route; D-09, D-15; "Você" from the session user's id), its copy keys and

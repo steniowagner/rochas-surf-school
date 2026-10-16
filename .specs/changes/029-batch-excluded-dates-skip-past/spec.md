@@ -214,7 +214,7 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   > none; verified: `npm run test:e2e --workspace apps/backend` (15 files, 377 tests passed) and
   > `npx vitest run --config ./vitest.config.e2e.ts test/classes.e2e-spec.ts --reporter=verbose` (32 passed);
   > deviations: none (the `ERROR` lines in the output are logged by tests that force notifier or email failures)
-- [ ] **T-06** — In `apps/backend/test/classes.e2e-spec.ts` → `past`: add "refuses more than 200 classes left
+- [x] **T-06** — In `apps/backend/test/classes.e2e-spec.ts` → `past`: add "refuses more than 200 classes left
   after skipping a start date in the past" (`POST /classes/batch` with a `startDate` ten days before the server's
   today, an `endDate` eight months after it, every weekday, one time range, `skipPast: true` → 422
   `class.batch.tooLarge` with `details: { max: 200 }`, and no class stored); and make "refuses a malformed skipPast
@@ -222,6 +222,13 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   stored. Needs T-05.
   Covers: ER-02 · Done when: `npm run test:e2e --workspace apps/backend` exits 0 with both tests listed as passed
   (Postgres up, migrations applied), and the new test fails without T-05's fix.
+  > ✅ 2026-10-16 — added "refuses more than 200 classes left after skipping a start date in the past" to `past`
+  > (`startDate` 2026-10-04, ten days before the test clock's today, `endDate` 2027-06-14, every weekday, one range,
+  > `skipPast: true` → 422 `class.batch.tooLarge`, `details: { max: 200 }`, no class stored) and made "refuses a
+  > malformed skipPast and an all-past batch even when skipping" also assert the malformed 422 and that nothing was
+  > stored; files: `apps/backend/test/classes.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend`
+  > (15 files, 378 tests passed, after `npm run build --workspace modules/classes` since the backend reads the
+  > module from `dist`); the new test got 201 instead of 422 on the module built before T-05; deviations: none
 
 ### Mobile (`apps/mobile`)
 

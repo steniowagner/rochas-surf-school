@@ -2,9 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
-
-import { getDateLocale } from "../../utils/calendar";
-import { weekdayAbbreviation } from "../../utils/week";
+import { getDateLocale, weekdayAbbreviation } from "@/utils/calendar-dates";
 
 import type { DayStripProps } from "./day-strip.types";
 

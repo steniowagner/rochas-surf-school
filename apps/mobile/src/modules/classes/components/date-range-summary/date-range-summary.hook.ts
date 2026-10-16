@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { formatIsoDate, getDateLocale } from "../../utils/calendar";
+import { formatIsoDate, getDateLocale } from "@/utils/calendar-dates";
 
 import { UseDateRangeSummaryProps } from "./date-range-summary.types";
 

@@ -1,6 +1,6 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
 
-import { weekDays } from "../../utils/week";
+import { weekDays } from "@/utils/calendar-dates";
 
 import { DayStrip } from "./day-strip.component";
 

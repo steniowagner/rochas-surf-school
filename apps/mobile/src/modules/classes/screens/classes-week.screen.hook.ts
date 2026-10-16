@@ -4,27 +4,23 @@ import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
 import { SessionExpiredError } from "@/services/api";
+import {
+  addDays,
+  addWeeks,
+  formatIsoDate,
+  getDateLocale,
+  isoWeekdayOf,
+  mondayOf,
+  weekCaption,
+  weekdayName,
+  weekDays,
+} from "@/utils/calendar-dates";
 
 import type { ClassItem } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
 import { useWeekClasses } from "../hooks/use-week-classes.hook";
-import {
-  formatIsoDate,
-  getDateLocale,
-  isoWeekdayOf,
-  todayInSchoolZone,
-} from "../utils/calendar";
-import {
-  addDays,
-  addWeeks,
-  mondayOf,
-  relativeWeek,
-  schoolDayOf,
-  weekCaption,
-  weekdayName,
-  weekDays,
-  weeksBetween,
-} from "../utils/week";
+import { todayInSchoolZone } from "../utils/calendar";
+import { relativeWeek, schoolDayOf, weeksBetween } from "../utils/week";
 
 import type { UseClassesWeekScreenProps } from "./classes-week.screen.types";
 

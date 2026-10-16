@@ -242,7 +242,7 @@ Before writing code under `apps/mobile`, load the `vercel-react-native-skills` a
 skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (component folders split into
 `*.component.tsx`, `*.hook.ts`, `*.types.ts`, `index.ts`; child components in sibling folders).
 
-- [ ] **T-01** — Move the general date helpers listed in D-11 from `src/modules/classes/utils/calendar.ts` and
+- [x] **T-01** — Move the general date helpers listed in D-11 from `src/modules/classes/utils/calendar.ts` and
   `src/modules/classes/utils/week.ts` (and `CalendarMonth` from `src/modules/classes/classes.types.ts`) to
   `src/utils/calendar-dates.ts` / `src/utils/calendar-dates.types.ts`, moving their tests from
   `src/modules/classes/utils/{calendar,week}.test.ts` to `src/utils/calendar-dates.test.ts`, and point every import
@@ -250,6 +250,18 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `npx jest src/utils src/modules/classes` passes and `npm run check-types` exits 0
   (both from `apps/mobile`).
+  > ✅ 2026-10-16 — moved the D-11 helpers (and `CalendarMonth`) to `src/utils/calendar-dates.ts` /
+  > `calendar-dates.types.ts`, pointed every import in `src/modules/classes/` at them, no re-exports; the school-zone,
+  > date-range and class helpers stay; files: `apps/mobile/src/utils/calendar-dates.ts`,
+  > `apps/mobile/src/utils/calendar-dates.types.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`,
+  > `apps/mobile/src/modules/classes/utils/{calendar,week}.ts`, `…/utils/{calendar,week}.test.ts`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/{classes-week.screen.hook,class-details.screen.hook}.ts`,
+  > `apps/mobile/src/modules/classes/components/{date-range-calendar/date-range-calendar.hook,date-range-summary/date-range-summary.hook}.ts`,
+  > `apps/mobile/src/modules/classes/components/day-strip/day-strip.component{,.test}.tsx`; verified: `npx jest src/utils
+  > src/modules/classes` (36 suites, 305 tests passed), `npm run check-types` (exit 0), `npx eslint src/utils
+  > src/modules/classes` (clean); deviations: `toUtcMs` is also exported from `calendar-dates.ts` (a small technical
+  > step: `addDays` needs it there and `weeksBetween` / `formatDateLine` stay in the classes `week.ts`)
 
 - [ ] **T-02** — Add to `src/utils/calendar-dates.ts`, with tests in `src/utils/calendar-dates.test.ts`: a fitted
   month grid (the days of the previous month before the 1st, only the weeks needed — D-09; `buildMonthGrid`'s

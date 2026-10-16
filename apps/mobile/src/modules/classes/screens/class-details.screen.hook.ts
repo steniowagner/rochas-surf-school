@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
+import { getInitials } from "@/utils/get-initials";
 
 import { useClass } from "../hooks/use-class.hook";
 import { useNow } from "../hooks/use-now.hook";
@@ -11,14 +12,6 @@ import { getDateLocale, todayInSchoolZone } from "../utils/calendar";
 import { formatDateLine, schoolDayOf, schoolTimeOf } from "../utils/week";
 
 import type { ClassDetailsInstructor } from "./class-details.screen.types";
-
-const initialsOf = (name: string): string =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
 
 export const useClassDetailsScreen = () => {
   const { t, i18n } = useTranslation();
@@ -31,7 +24,7 @@ export const useClassDetailsScreen = () => {
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
     (instructor) => ({
       ...instructor,
-      initials: initialsOf(instructor.name),
+      initials: getInitials(instructor.name),
       isViewer: instructor.id === user?.id,
     }),
   );

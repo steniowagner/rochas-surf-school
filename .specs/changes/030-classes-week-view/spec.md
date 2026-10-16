@@ -2,7 +2,7 @@
 id: "030"
 slug: classes-week-view
 title: "Aulas tab: week view and class details"
-status: in-review
+status: changes-requested
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8a4501ee0316065450772fd48571ce5e187b7832
@@ -574,3 +574,82 @@ with that day already picked. Classes created by spec 028 become visible for the
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (classes, backend, mobile; `npx turbo run lint check-types` / `build`)
+- related tests ✅ `RELATED TESTS PASSED` — mobile 65 suites / 777 tests, classes 16 suites / 180 tests, backend unit
+- coverage of the changed lines ✅ `COVERAGE OK` (28 files); no coverage-ignore comments in the diff
+- e2e: ✅ `E2E PASSED` — backend 15 files / 387 tests, web (imports design-tokens) 16 passed
+- HTTP (local backend): `GET /classes?date=…` and `GET /classes/not-a-uuid` with an invalid token → 401
+  `auth.token.invalid` ✅
+- Phone in another time zone: `TZ=Pacific/Honolulu npx jest src/modules/classes src/modules/notifications` ✅ 306
+  passed; `TZ=Asia/Tokyo` — classes-week and class-details suites ✅, Nova aula see Notes
+- iOS simulator (iPhone 18 Pro, local backend, pt-BR), both user journeys of the Verification Plan: admin, student
+  and instructor ✅ (details under the Expected Results)
+
+**Expected Results**
+
+- ER-01 ✅ — e2e `week` → "lists the classes of the week that holds the date…" and "answers an empty week";
+  `list-week-classes.usecase.test.ts` covers the same-start order (`endsAt`, then `id`)
+- ER-02 ✅ — e2e "lets every approved role read the week", "refuses a missing, malformed or impossible date", `access`
+  → pending account 403 before the date; invalid token 401 checked by hand
+- ER-03 ✅ — e2e `class` (one class equals its week item, 404 for unknown and malformed ids, suggestions route still
+  answers 200 / 403); `get-class.usecase.test.ts`
+- ER-04 ✅ — `class-state.test.ts` (1 ms before / at start, 1 ms before / at end, days away)
+- ER-05 ✅ — screen test; simulator: admin Aulas, student Agenda and instructor Aulas open on "Esta semana", 12 out –
+  18 out, Sex 16 selected, today's card
+- ER-06 ✅ — screen test (next / previous keeping the weekday, "Há 3 semanas", "Daqui a 3 semanas", Hoje, dots ≤ 3);
+  `use-week-classes.hook.test.tsx` → one cache entry per week; simulator: next arrow → "Próxima semana", Sex 23, "Hoje";
+  "Hoje" → back to Sex 16, "Hoje" hidden
+- ER-07 ✅ behavior (states, sun border, opacity, "Ana · Bruno +1", minute tick with fake timers) — but see F-01 (D-08
+  icons)
+- ER-08 ✅ — loading, error + retry, `SessionExpiredError` without error state, empty day, pull-to-refresh
+- ER-09 ✅ — screen tests; simulator: the class created in the journey shows "Detalhe", Surf / Iniciante, "12:00 –
+  13:00", "Sexta-feira · 23 out", "Instrutores" with "Você" (admin) and "Dev Instructor", "Máx. 8 alunos", "Notas",
+  "Local"; as the student the same without "Você"; back returns to the week — see F-02 for the initials
+- ER-10 ✅ — banners, loading, error + retry, 404 message, banner appearing on the minute tick
+- ER-11 ✅ — screen tests and `new-class.screen.test.tsx` → "day from the week"; simulator: "Criar aula" on Sex 23 opens
+  Nova aula with 23 out as a single day on October; on yesterday (Qui 15) only "+" shows and it opens Nova aula with no
+  day; student and instructor see no "+" and no create buttons
+- ER-12 ✅ — `use-create-classes.hook.test.tsx`; simulator: created 12:00–13:00 on Sex 23 → back on Aulas the new card
+  ("Dev Admin · Dev Instructor") is there without pulling
+- ER-13 ✅ — `use-notification-response.hook.test.tsx` (instructor, admin, now a student → home) and
+  `use-notification-received.hook.test.tsx` → "reloads the weeks when a class assignment arrives"
+
+**Findings**
+
+- [ ] **F-01** (D-08) — the card's discipline chip and its "Em andamento" chip have no icon; D-08 says "Surf on
+  `lagoon`, Skate on `tan`, icon" and "'Em andamento' on `sun` with a clock icon". T-07 records the omission as a
+  deviation (the shared `Chip` has no icon prop), but a change to a Decision needs the user's approval and an entry
+  under `## Amendments`, and there is none. Reproduce: open Aulas with a class under way — `class-card.component.tsx`
+  renders `<Chip>` with text only. Expected: the icons (e.g. an optional `icon` on `Chip`, added on web and mobile with
+  the same props, per CLAUDE.md), or D-08 amended with the user's approval.
+- [ ] **F-02** (convention) — `class-details.screen.hook.ts` defines its own `initialsOf` (first letters of the first
+  two words) instead of the app-wide `getInitials` from `src/utils/` (first and last word) that the technical context
+  names and the other avatars use, so the same person gets different initials on different screens: "Ana Maria de
+  Souza" is "AM" on the details and "AS" in the people directory. Expected: use `getInitials`.
+- [ ] **F-03** (convention) — `.claude/rules/react.md` §2 import order: `classes-week.screen.hook.ts` imports
+  `@/services/api` before `@/constants/routes`, and `classes-week.screen.tsx` imports
+  `@/components/ui/button/button.constants` before `@/components/ui/button`. Expected: alphabetical by module path
+  within each group.
+
+**Notes**
+
+- D-06 quotes the section title as "Segunda · 12 out"; the screen shows the full weekday ("Segunda-feira · 12 out",
+  upper-cased by the section-label style). The Decision's example and the implementation differ only in the weekday's
+  length — worth aligning with the design when F-01 is fixed, not a finding on its own.
+- `useClass` also skips retrying a `SessionExpiredError` (recorded in T-10); consistent with D-15's "shows nothing".
+- A failed background refetch of a week that is already cached replaces its cards with the error state; acceptable
+  under D-15, but keeping the cached cards would be friendlier.
+- Memory Impact: add the new `dayNumber` typography token (`ds-text-day-number`, T-14) to the design-tokens part of the
+  technical context.
+- With the phone in `TZ=Asia/Tokyo`, `new-class.screen.test.tsx` → "submit › sends once when pressed twice in the same
+  frame, and shows the loading state" failed 3 times out of 3 when the whole file ran ("Create 4 classes" still shown
+  after the double press), and passed when run alone; it passes in the project's normal setup (related tests above).
+  It is a spec-028 test in a file this spec touched; the comparison with the pre-spec files could not be completed
+  (Jest hung on single-file runs in this session), so it is not a finding — worth a look by whoever touches Nova aula
+  next.
+- `npx turbo run lint check-types build` answered from Turbo's cache (same inputs as the executor's run).

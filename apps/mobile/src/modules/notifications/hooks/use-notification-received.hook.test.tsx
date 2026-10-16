@@ -148,6 +148,16 @@ describe("useNotificationReceived", () => {
     expect(meCalls()).toHaveLength(0);
   });
 
+  it("reloads the weeks when a class assignment arrives", async () => {
+    answerMe(account("approved", "instructor"));
+    await openApp(account("approved", "instructor"));
+
+    await receive(push("class.assigned"));
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["classes", "week"] });
+    expect(meCalls()).toHaveLength(0);
+  });
+
   it.each([undefined, "something.else"])(
     "shows nothing more for the type %s",
     async (type) => {

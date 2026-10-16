@@ -10,7 +10,7 @@ import { refreshAccount } from "../utils/refresh-account";
 /**
  * A push that arrives with the app open (shown as a banner by the push service) also updates what is on screen
  * (spec 020, D-16): a decision refreshes the account, so the flow guards move the app on by themselves, and a
- * new registration refreshes the admin's list. No navigation.
+ * new registration refreshes the admin's list, and a class assignment reloads the cached weeks. No navigation.
  */
 export const useNotificationReceived = () => {
   const queryClient = useQueryClient();
@@ -23,6 +23,14 @@ export const useNotificationReceived = () => {
         if (type === "registration.pending") {
           void queryClient.invalidateQueries({
             queryKey: REGISTRATIONS_QUERY_KEY,
+          });
+
+          return;
+        }
+
+        if (type === "class.assigned") {
+          void queryClient.invalidateQueries({
+            queryKey: ["classes", "week"],
           });
 
           return;

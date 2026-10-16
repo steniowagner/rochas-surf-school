@@ -469,9 +469,17 @@ with that day already picked. Classes created by spec 028 become visible for the
   > differ slightly from the spec's ("starts on the day passed by the week" and "ignores the past or malformed day …" sit
   > under "day from the week"; the invalidation also has an "invalidates nothing when creating fails" test)
 
-- [ ] **T-13** — `class.assigned` in `src/modules/notifications/hooks/use-notification-response.hook.ts` (D-13)
+- [x] **T-13** — `class.assigned` in `src/modules/notifications/hooks/use-notification-response.hook.ts` (D-13)
   and `use-notification-received.hook.ts` (D-12), with the tests named in ER-13.
   Covers: ER-13 · Done when: `npx jest src/modules/notifications` passes.
+  > ✅ 2026-10-16 — a tap on a `class.assigned` push, after the account reload, opens `/instructor/classes` or `/admin/classes`
+  > for those flows (anything else keeps `router.replace(routes.home)`); a `class.assigned` push received with the app open
+  > invalidates `["classes", "week"]` (no account reload); files:
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications` from `apps/mobile` (53 passed), `npm run check-types` exit 0, eslint clean; deviations: none
 
 ### Verification
 

@@ -5,7 +5,11 @@ import { ReactNode } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
+import AdminClassesRoute from "@/app/(private)/admin/(tabs)/classes";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
+import InstructorLayout from "@/app/(private)/instructor/_layout";
+import InstructorClassesRoute from "@/app/(private)/instructor/(tabs)/classes";
+import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
 import StudentRoute from "@/app/(private)/student/(tabs)/index";
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
@@ -65,6 +69,10 @@ const routeTree = {
   "(private)/admin/_layout": AdminLayout,
   "(private)/admin/(tabs)/index": AdminRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
+  "(private)/admin/(tabs)/classes": AdminClassesRoute,
+  "(private)/instructor/_layout": InstructorLayout,
+  "(private)/instructor/(tabs)/index": InstructorRoute,
+  "(private)/instructor/(tabs)/classes": InstructorClassesRoute,
 };
 
 const account = (
@@ -156,6 +164,35 @@ describe("useNotificationResponse", () => {
 
     await waitFor(() => expect(app.getPathname()).toBe(routes.admin.registrations));
     expect(meCalls()).toHaveLength(1);
+  });
+
+  it("opens the Aulas tab for a class assignment", async () => {
+    answerMe(account("approved", "instructor", true));
+    await openApp(account("approved", "instructor", true));
+    expect(app.getPathname()).toBe(routes.instructor.home);
+
+    await tap(response("class.assigned"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.classes));
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it("opens the admin's Aulas tab for a class assignment", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("class.assigned"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.classes));
+  });
+
+  it("goes to the resolved flow when a class assignment is tapped by someone who is now a student", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "instructor", true));
+
+    await tap(response("class.assigned"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
   it("opens the onboarding WhatsApp step when a pending person taps the approval push", async () => {

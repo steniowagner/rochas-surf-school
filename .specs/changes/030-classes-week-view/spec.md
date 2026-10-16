@@ -2,10 +2,11 @@
 id: "030"
 slug: classes-week-view
 title: "Aulas tab: week view and class details"
-status: in-review
+status: accepted
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8a4501ee0316065450772fd48571ce5e187b7832
+reviewed_commit: 04c72a219ee3e215c71dc5264f96f1a436c5bf55
 fronts: [classes, backend, mobile]
 depends_on: []
 ---
@@ -741,3 +742,53 @@ with that day already picked. Classes created by spec 028 become visible for the
   Memory Impact for the technical context's Mobile shared UI, next to the round 1 note about the `dayNumber` token.
 - Round 1's notes still apply (the section title's full weekday, a failed background refetch replacing cached cards,
   the Nova aula double-press test under `TZ=Asia/Tokyo`).
+
+### Round 3 — 2026-10-16 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (classes, backend, mobile, web; `npx turbo run lint check-types --force`, 18 tasks) · build ✅
+  (classes, backend)
+- related tests ✅ `RELATED TESTS PASSED` — backend, mobile (71 suites / 820 tests), web, classes (16 suites / 180 tests)
+- coverage of the changed lines ✅ `COVERAGE OK` (30 files); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` — backend 15 files / 387 tests, web 16 passed
+- HTTP (local backend): `GET /classes?date=2026-10-15`, `GET /classes/not-a-uuid` and
+  `GET /classes/time-range-suggestions` with an invalid token → 401 `auth.token.invalid` ✅
+- iOS simulator (iPhone 18 Pro, 402 pt, local backend, pt-BR, instructor account): Aulas this week, Sex 16 (a class
+  under way) and Sáb 17 (three classes), the details of a surf and a skate class, back to the week
+
+**Round 2 findings**
+
+- F-04 ✅ — the time range sits on its own row under the chips; on Sex 16 the widest row (Surf + Iniciante + "Em
+  andamento" with its clock) fits inside the padding, and on Sáb 17 the "00:00 – 01:00", "12:00 – 13:00" and Skate
+  cards show the whole range. The chips group is `flex-1 flex-wrap`, so a longer level or a 375 pt phone wraps the
+  level chip instead of pushing past the border (reasoned from the layout: the widest row measures about 299 pt
+  against about 301 pt of card content at 375 pt).
+- F-05 ✅ — the details' discipline chip draws `water-outline` for Surf and `disc-outline` for Skate, seen on the
+  simulator; `class-details.screen.test.tsx` asserts both icons.
+
+**Expected Results**
+
+- ER-01 ✅ · ER-02 ✅ · ER-03 ✅ — e2e `week`, `class`, `access` and `suggestions`; the use-case tests
+- ER-04 ✅ — `class-state.test.ts`
+- ER-05 ✅ · ER-06 ✅ · ER-08 ✅ — screen tests; simulator: "Esta semana", 12 out – 18 out, Sex 16 selected, dots on
+  Sex 16 / Sáb 17 / Dom 18, Sáb 17 → "3 aulas"
+- ER-07 ✅ — card tests (states, `sun` border, icons, footer, minute tick); simulator: "Em andamento" with its clock
+  and the `sun` border on the 12:00 class of Sex 16, every range inside the card
+- ER-09 ✅ — screen tests; simulator: "Detalhe", the chips with their icons, "12:00 – 13:00", "Hoje · 16 out" /
+  "Amanhã · 17 out", "Instrutor" with "DI" / "Você" and "DR" / "Davi Reis", "Máx. 8 alunos", "Local"; back returns
+  to the week
+- ER-10 ✅ — screen tests; simulator: the "Em andamento — Começou às 12:00 e termina às 13:00." banner
+- ER-11 ✅ — screen and Nova aula tests; simulator: the instructor sees no "+" and no create buttons (round 1 drove
+  the admin's entry points)
+- ER-12 ✅ · ER-13 ✅ — their hook tests; code unchanged since round 1, which drove ER-12 on the simulator
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Round 1's notes still apply (the section title's full weekday, a failed background refetch replacing cached cards,
+  the Nova aula double-press test under `TZ=Asia/Tokyo`).
+- The Memory Impact now lists the `Chip` `icon` and the `dayNumber` token, as rounds 1 and 2 noted.

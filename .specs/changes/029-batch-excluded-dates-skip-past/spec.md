@@ -17,7 +17,8 @@ depends_on: []
 Bring into the spec workflow the batch changes made on `main` after spec 028 without a spec: a batch can leave
 out single dates of its range, and the API can skip the classes that have already started instead of refusing
 the whole batch, which the "Nova aula" screen now uses. The spec checks that the behavior is what the code and
-its tests do, closes the one gap in the tests, and — once finished — makes the project memory and the
+its tests do, closes the one gap in the tests, fixes the one bug the review found (with `skipPast`, a batch starting
+before today escaped the 200-class limit), and — once finished — makes the project memory and the
 requirements describe it, so the next spec (the Aulas tab, which opens this form) builds on the real rules.
 
 ## Context
@@ -58,12 +59,17 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   the existing tests and on the simulator.
 - One module unit test for the one rule no test asserts: with `skipPast`, the 200-class limit is judged on the
   classes that remain.
+- The fix of review finding F-01 in `create-class-batch.usecase.ts` (D-05), with its unit and e2e tests, and the
+  missing 422 and nothing-stored assertions of the e2e "refuses a malformed skipPast…".
 - Recording the behavior in the memory and the linked requirement sections (done by `spec-finish` from Memory
   Impact).
 
 ### Out of scope
 
-- Any change to the product code: the commits above are kept as they are.
+- Any other change to the product code: the commits above are kept as they are, except for the F-01 fix (D-05).
+- Re-reading the clock when "Criar N aulas" is pressed, so a "Nova aula" screen left open across midnight or across
+  a time's start still skips the past (follow-up).
+- The success toast drawn with the error style (spec 028's `alertMessage.show`; follow-up).
 - Removing `weekdays` from the API (see D-03).
 - Mapping `class.excludedDates.invalid` and `class.skipPast.invalid` to messages in the app: the app never sends
   invalid values, so they fall back to the generic error like any unexpected key.
@@ -73,10 +79,11 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 
 | ID   | Decision | Reason |
 | ---- | -------- | ------ |
-| D-01 | The spec changes no product code; its only code is the unit test of T-01. | The behavior already shipped with passing tests and full coverage of its changed lines; the gap is the record, not the code. |
+| D-01 | The spec's only product change is the F-01 fix in `modules/classes/src/school-class/usecase/create-class-batch.usecase.ts` (D-05); its other code is tests (T-01, T-05, T-06). | The behavior already shipped with passing tests and full coverage of its changed lines; the gap is the record, plus the one bug the review found. |
 | D-02 | The related tests and the coverage gate run with `--base cd59871` (the spec-028 merge commit), not the spec's `base_commit`. | The change predates the spec branch: measured from `base_commit`, nothing would be in scope. |
 | D-03 | The API keeps `weekdays` as it is; the app always sends all seven and removes single days with `excludedDates`. The requirement describes a date range with single days removed. | Older app builds keep working, and the API stays a superset of what the app uses. |
 | D-04 | Product rule: no class is ever created after its start. The app skips a time that has already passed today for today only and creates the rest of the batch, sending `skipPast: true`; the "Criar N aulas" count already leaves those classes out, so N is still exactly what is created. Without `skipPast` the API keeps refusing the whole batch with `class.startsAt.past`. | Confirmed by the user: admins no longer have to deselect today's past times by hand, and "no class in the past" and "N means N" both still hold. |
+| D-05 | With `skipPast`, the use case lists the batch from the later of `startDate` and today's date in America/Fortaleza (by the server clock), so the days before today are dropped before the listing cap (`CLASS_BATCH_MAX + timeRanges.length`) is applied; started classes can then only be today's, one per time range at most, and the cap's margin holds. Without `skipPast` the listing is unchanged, so a past day still refuses the batch with `class.startsAt.past`. When today is after `endDate`, nothing remains → `class.batch.empty`. | Fixes F-01 while keeping the cap that stops a huge range from looping for long; dropping the cap brings that loop back, and counting only future classes inside `listBatchClasses` changes the model's signature and still walks every past day. |
 
 ## Expected Results
 
@@ -106,12 +113,20 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   batch whose classes have all started → 422 `class.batch.empty` even with `skipPast`; a class starting exactly at
   the server's now counts as started; with `skipPast`, more than 200 classes *after* leaving out the started ones
   → 422 `class.batch.tooLarge` (`details: { max: 200 }`), while 201 listed classes of which one has started are
-  created (200).
+  created (200); with `skipPast` and a `startDate` before today, the days before today get no class and the 200
+  limit holds whatever the start date: from 2026-10-04 to 2027-06-30 (clock 2026-10-14 10:00 Fortaleza), every
+  weekday, 16:00–17:00 → 422 `class.batch.tooLarge` (`details: { max: 200 }`) with nothing stored, while a past
+  `startDate` with at most 200 classes left creates only those that haven't started. The malformed `skipPast`
+  is refused with status 422 and stores nothing.
 - **Verify by:** `apps/backend/test/classes.e2e-spec.ts` → `past` → "creates only the classes that have not
   started when asked to skip the past", "refuses a malformed skipPast and an all-past batch even when skipping"
-  and "refuses the whole batch when one class has already started"; the 200-limit case in
-  `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts` (added by T-01;
-  `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts -t "skip"` from `modules/classes`).
+  (asserting 422 and nothing stored, by T-06), "refuses the whole batch when one class has already started" and
+  "refuses more than 200 classes left after skipping a start date in the past" (added by T-06); in
+  `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts` the 200-limit case (added by
+  T-01) and "refuses more than 200 classes left when the batch starts before today" and "creates only the
+  classes that have not started when the batch starts before today" (added by T-05) —
+  `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts -t "skip|before today"` from
+  `modules/classes`.
 
 ### ER-03 — Nova aula removes single days of a range
 
@@ -160,6 +175,19 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   > verified: `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts` from `modules/classes` (70
   > passed); the test fails when the use case judges the limit on the listed classes instead of the remaining
   > ones (checked by temporarily changing the source, then restored); deviations: none
+- [ ] **T-05** — Fix F-01 in `modules/classes/src/school-class/usecase/create-class-batch.usecase.ts` as D-05
+  says: with `skipPast`, list the batch from the later of `startDate` and today's date in America/Fortaleza (from
+  `clockProvider.now()`, `CLASS_TIME_ZONE`), keeping the listing cap and updating its comment; without `skipPast`
+  the listing is unchanged. Add to `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts`,
+  with the test setup's clock (2026-10-14 10:00 Fortaleza): "refuses more than 200 classes left when the batch
+  starts before today" (2026-10-04 → 2027-06-30, every weekday, 16:00–17:00, `skipPast: true` →
+  `class.batch.tooLarge`, `details: { max: 200 }`, nothing stored, nobody notified) and "creates only the classes
+  that have not started when the batch starts before today" (2026-10-10 → 2026-10-16, 08:00–09:00 and
+  16:00–17:00, `skipPast: true` → `{ count: 5 }`, the classes from the 14th at 16:00 on). Skill:
+  `module-use-case`.
+  Covers: ER-02 · Done when: `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts` passes from
+  `modules/classes` with the two new tests, the first fails on the code before the fix, and every line the fix
+  changes is covered.
 
 ### Backend (`apps/backend`)
 
@@ -176,6 +204,14 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   > none; verified: `npm run test:e2e --workspace apps/backend` (15 files, 377 tests passed) and
   > `npx vitest run --config ./vitest.config.e2e.ts test/classes.e2e-spec.ts --reporter=verbose` (32 passed);
   > deviations: none (the `ERROR` lines in the output are logged by tests that force notifier or email failures)
+- [ ] **T-06** — In `apps/backend/test/classes.e2e-spec.ts` → `past`: add "refuses more than 200 classes left
+  after skipping a start date in the past" (`POST /classes/batch` with a `startDate` ten days before the server's
+  today, an `endDate` eight months after it, every weekday, one time range, `skipPast: true` → 422
+  `class.batch.tooLarge` with `details: { max: 200 }`, and no class stored); and make "refuses a malformed skipPast
+  and an all-past batch even when skipping" also assert the malformed request's 422 status and that nothing was
+  stored. Needs T-05.
+  Covers: ER-02 · Done when: `npm run test:e2e --workspace apps/backend` exits 0 with both tests listed as passed
+  (Postgres up, migrations applied), and the new test fails without T-05's fix.
 
 ### Mobile (`apps/mobile`)
 
@@ -210,16 +246,19 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   > .specs/scripts/run-e2e.mjs 029` (E2E PASSED, apps/backend), `npx turbo run lint check-types --filter=…classes
   > --filter=…backend --filter=…mobile` (16 tasks successful, no errors); the user journeys are in T-03; deviations:
   > none
+- [ ] **T-07** — After T-05 and T-06, run every command in the Verification Plan again from the repo root; all
+  pass. Record the output summary as evidence. Covers: all · Done when: every command exits 0.
 
 ## Verification Plan
 
 - Automated:
   - `node .specs/scripts/run-related-tests.mjs --base cd59871` — the tests related to the commits since the
-    spec-028 merge and to T-01 pass, with coverage (D-02).
+    spec-028 merge and to T-01, T-05 and T-06 pass, with coverage (D-02).
   - `node .specs/scripts/check-coverage.mjs --base cd59871` — `COVERAGE OK`: every changed line since the spec-028
     merge is covered.
-  - `node .specs/scripts/run-e2e.mjs 029` — the backend e2e suite passes (it runs because the backend depends on
-    `modules/classes`, which T-01 changes; Postgres up, migrations applied).
+  - `node .specs/scripts/run-e2e.mjs 029` — the backend e2e suite passes, with T-06's tests (it runs because the
+    backend depends on `modules/classes`, which T-01 and T-05 change, and T-06 changes the backend's e2e tests;
+    Postgres up, migrations applied).
   - `npx turbo run lint check-types --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile`
     — no errors.
 - User journeys (iOS simulator, signed in as an approved admin, local backend):
@@ -237,7 +276,8 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 - `memory/modules/classes.md` — the Batch concept: a first and a last date, the weekdays to include, the dates
   left out (`excludedDates`), time ranges; the rules: excluded dates get no class; `class.excludedDates.invalid`
   and `class.skipPast.invalid` among the shape errors; with `skipPast` the classes that have started are left out
-  (then `class.batch.empty` when none remain, and the 200 limit judged on the rest), without it one past class
+  (then `class.batch.empty` when none remain, and the 200 limit judged on the rest), and the days before today
+  are skipped before listing, so the 200 limit holds whatever the start date (D-05); without it one past class
   refuses the batch; the app's form removes single days and skips today's past times.
 - `memory/technical-context.md` — Classes: the `POST /classes/batch` body gains `excludedDates?` and `skipPast?`
   with their errors and the filter order; the mobile part: `buildBatchRequest` sends all seven weekdays,
@@ -260,6 +300,26 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-16 — /spec-plan --amend — D-01 changed: "The spec changes no product code; its only code is the unit
+  test of T-01" → "The spec's only product change is the F-01 fix in `create-class-batch.usecase.ts` (D-05); its
+  other code is tests (T-01, T-05, T-06)". Reason: review finding F-01 needs a product fix. Approved by the user.
+- 2026-10-16 — /spec-plan --amend — D-05 added: with `skipPast`, list the batch from the later of `startDate` and
+  today in Fortaleza, keeping the listing cap. Reason: the fix the user chose for F-01 over dropping the cap or
+  counting only future classes inside `listBatchClasses`. Approved by the user.
+- 2026-10-16 — /spec-plan --amend — ER-02 changed: edge cases gain "with `skipPast` and a `startDate` before today,
+  the days before today get no class and the 200 limit holds whatever the start date" and the malformed
+  `skipPast`'s 422 and nothing stored; Verify by gains the T-05 unit tests and the T-06 e2e test. Reason: F-01.
+  Approved by the user.
+- 2026-10-16 — /spec-plan --amend — T-05 added (classes module, Covers: ER-02): the fix and its unit tests.
+  T-06 added (backend, Covers: ER-02): the e2e test for a past start date and the tightened malformed-skipPast
+  test. T-07 added (Verification, Covers: all): rerun the Verification Plan; T-04 stays done, its run predates
+  the fix. Reason: F-01 and the review's note on the e2e test. Approved by the user.
+- 2026-10-16 — /spec-plan --amend — Goal, Scope, Verification Plan and Memory Impact changed: the Goal and In
+  scope name the F-01 fix; Out of scope "Any change to the product code" → "Any other change to the product
+  code", plus re-reading the clock on submit in "Nova aula" and the success toast's error style as follow-ups;
+  the Verification Plan names T-05 and T-06; Memory Impact (`modules/classes.md`) adds that the 200 limit holds
+  whatever the start date. Reason: F-01 and the review's notes. Approved by the user.
 
 ## Review
 

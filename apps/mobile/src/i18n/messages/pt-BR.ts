@@ -351,14 +351,17 @@ const messages: Messages = {
       previousMonth: "Mês anterior",
       nextMonth: "Próximo mês",
     },
-    weekdays: {
-      label: "Nos dias",
+    range: {
+      excluded: "Dias removidos",
+      noneExcluded: "Nenhum dia removido",
+      description:
+        "Toque em um dia do intervalo para removê-lo. Toque de novo para incluí-lo.",
     },
     timeRanges: {
       label: "Horários",
       pickOne: "escolha pelo menos 1",
       hint: "Sugeridos a partir das aulas da semana passada.",
-      hintPast: "Os horários que já passaram hoje estão bloqueados.",
+      hintPast: "Os horários que já passaram não terão aula hoje.",
       hintOverlap: "Horários sobrepostos não podem ir no mesmo lote.",
       add: "Novo horário",
     },
@@ -377,7 +380,6 @@ const messages: Messages = {
       label: "Notas",
       optional: "opcional",
       placeholder: "Ex.: Ponto de encontro em frente à barraca do salva-vidas. Traga protetor solar.",
-      hint: "Aparece nos detalhes da aula",
     },
     instructors: {
       label: "Instrutores",
@@ -407,9 +409,6 @@ const messages: Messages = {
     description: "Defina a hora de início e de fim. Vale só para este lote — não fica nas sugestões.",
     start: "Início",
     end: "Fim",
-    duration: "Duração: {{duration}}",
-    hours: "{{hours}} h",
-    hoursMinutes: "{{hours}} h {{minutes}} min",
     endBeforeStart: "O fim precisa ser depois do início.",
     submit: "Adicionar horário",
   },

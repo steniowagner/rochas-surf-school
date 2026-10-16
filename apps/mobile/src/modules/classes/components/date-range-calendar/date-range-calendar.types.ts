@@ -6,9 +6,9 @@ export type DateRangeCalendarProps = {
   startDate: string | null;
   /** `null` while a single day (or nothing) is chosen. */
   endDate: string | null;
-  weekdays: number[];
+  /** Days of the range that are left out. */
+  excludedDates: string[];
   onRangeChange: (range: DateRange) => void;
-  onWeekdaysChange: (weekdays: number[]) => void;
 };
 
 export type UseDateRangeCalendarProps = DateRangeCalendarProps;

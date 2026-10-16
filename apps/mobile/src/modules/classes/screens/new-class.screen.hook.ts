@@ -24,6 +24,7 @@ import { useTimeRangeSuggestions } from "../hooks/use-time-range-suggestions.hoo
 import { buildBatchRequest } from "../utils/batch-request";
 import {
   DateRange,
+  EMPTY_RANGE,
   minutesInSchoolZone,
   todayInSchoolZone,
 } from "../utils/calendar";
@@ -55,8 +56,7 @@ export const useNewClassScreen = () => {
 
   const [discipline, setDiscipline] = useState<ClassDiscipline>("surf");
   const [level, setLevel] = useState<ClassLevel>("beginner");
-  const [range, setRange] = useState<DateRange>({ startDate: null, endDate: null });
-  const [weekdayFilter, setWeekdayFilter] = useState<number[]>(ALL_WEEKDAYS);
+  const [range, setRange] = useState<DateRange>(EMPTY_RANGE);
   const [selectedRanges, setSelectedRanges] = useState<TimeRange[]>([]);
   const [addedRanges, setAddedRanges] = useState<TimeRange[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -69,37 +69,43 @@ export const useNewClassScreen = () => {
   const sending = useRef(false);
 
   const today = todayInSchoolZone();
-  const { startDate } = range;
+  const { startDate, excludedDates } = range;
   // A single day is a range that ends on its start.
   const endDate = range.endDate ?? startDate;
-  // The filter only applies to a range: a single day counts whatever the filter held.
-  const weekdays = range.endDate === null ? ALL_WEEKDAYS : weekdayFilter;
   const locations = locationsQuery.data?.items ?? [];
   const location = locations.find((item) => item.id === locationId);
 
   const dates =
     startDate === null || endDate === null
       ? []
-      : listBatchDates({ startDate, endDate, weekdays }, CLASS_BATCH_MAX);
+      : listBatchDates({ startDate, endDate, weekdays: ALL_WEEKDAYS, excludedDates }, CLASS_BATCH_MAX);
   // Only when today is among the dates can a time range have started already.
   const nowMinutes = dates.includes(today) ? minutesInSchoolZone() : null;
+  // Selected times that have started on today's date: their classes there don't exist, one per time range at most.
+  const pastRanges =
+    nowMinutes === null
+      ? []
+      : selectedRanges.filter((item) => startsByNow(item, nowMinutes));
+  const skipPast = pastRanges.length > 0;
   const classCount =
     startDate === null || endDate === null || selectedRanges.length === 0
       ? 0
       : listBatchClasses(
-          { startDate, endDate, weekdays, timeRanges: selectedRanges },
-          CLASS_BATCH_MAX,
-        ).length;
-  const hasPastRange =
-    nowMinutes !== null &&
-    selectedRanges.some((item) => startsByNow(item, nowMinutes));
+          {
+            startDate,
+            endDate,
+            weekdays: ALL_WEEKDAYS,
+            excludedDates,
+            timeRanges: selectedRanges,
+          },
+          CLASS_BATCH_MAX + selectedRanges.length,
+        ).length - pastRanges.length;
   const tooMany = classCount > CLASS_BATCH_MAX;
   const canSubmit =
     classCount >= 1 &&
     !tooMany &&
     location !== undefined &&
-    instructorIds.length > 0 &&
-    !hasPastRange;
+    instructorIds.length > 0;
 
   const toggleTimeRange = (item: TimeRange) =>
     setSelectedRanges((current) =>
@@ -115,7 +121,7 @@ export const useNewClassScreen = () => {
     // A new range that can't go with the batch is only added to the list, as a blocked chip.
     if (
       !includesRange(selectedRanges, item) &&
-      !isRangeBlocked(item, selectedRanges, nowMinutes)
+      !isRangeBlocked(item, selectedRanges)
     ) {
       setSelectedRanges((current) => sortTimeRanges([...current, item]));
     }
@@ -148,7 +154,8 @@ export const useNewClassScreen = () => {
           level,
           startDate,
           endDate,
-          weekdays,
+          excludedDates,
+          skipPast,
           timeRanges: selectedRanges,
           locationId: location.id,
           instructorIds,
@@ -186,8 +193,6 @@ export const useNewClassScreen = () => {
     today,
     range,
     setRange,
-    weekdays,
-    setWeekdays: setWeekdayFilter,
     dayCount: dates.length,
     suggestions: suggestionsQuery.data?.items ?? [],
     addedRanges,

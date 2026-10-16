@@ -8,14 +8,14 @@ const change = async (testID: string, date: Date) =>
   await fireEvent(screen.getByTestId(testID), "valueChange", {}, date);
 
 describe("TimeRangeSheet", () => {
-  it("opens at 12:00 to 13:00 with a duration of 1 h", async () => {
+  it("opens at 12:00 to 13:00", async () => {
     await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />);
 
     expect(screen.getByText("New time")).toBeTruthy();
     expect(screen.getByText(/only|batch/i)).toBeTruthy();
     expect(screen.getByTestId("time-range-start").props.value).toEqual(at(12));
     expect(screen.getByTestId("time-range-end").props.value).toEqual(at(13));
-    expect(screen.getByText("Duration: 1 h")).toBeTruthy();
+    expect(screen.queryByText(/Duration/)).toBeNull();
     expect(screen.getByRole("button", { name: "Add time" })).toBeEnabled();
   });
 
@@ -27,14 +27,6 @@ describe("TimeRangeSheet", () => {
       expect(screen.getByTestId(testID).props.style).toEqual({ width: "100%" });
     },
   );
-
-  it("shows the duration with minutes", async () => {
-    await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />);
-
-    await change("time-range-end", at(14, 30));
-
-    expect(screen.getByText("Duration: 2 h 30 min")).toBeTruthy();
-  });
 
   it("adds the chosen range as HH:mm", async () => {
     const onSubmit = jest.fn();

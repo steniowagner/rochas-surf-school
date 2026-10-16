@@ -1,14 +1,11 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
-import { ScreenIntro } from "@/components/ui/screen-intro";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
-import { useTheme } from "@/hooks/use-theme";
 
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
@@ -23,7 +20,6 @@ import { useNewClassScreen } from "./new-class.screen.hook";
 
 export function NewClassScreen() {
   const { t } = useTranslation();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const screen = useNewClassScreen();
 
@@ -45,20 +41,15 @@ export function NewClassScreen() {
         contentContainerClassName="gap-6 px-screen pb-6"
         contentContainerStyle={{ paddingTop: insets.top + 12 }}
       >
-        <View className="items-start">
+        <View className="flex-row items-center gap-4">
           <BackButton />
+          <Text
+            accessibilityRole="header"
+            className="ds-text-screen-title-with-back flex-1 text-ink"
+          >
+            {t("newClass.title")}
+          </Text>
         </View>
-        <ScreenIntro
-          icon={
-            <MaterialCommunityIcons
-              name="calendar-plus"
-              size={30}
-              color={theme.grape}
-            />
-          }
-          title={t("newClass.title")}
-          description={null}
-        />
         <FormSection label={t("newClass.discipline.label")}>
           <SegmentedControl
             options={disciplineOptions}
@@ -88,9 +79,8 @@ export function NewClassScreen() {
             today={screen.today}
             startDate={screen.range.startDate}
             endDate={screen.range.endDate}
-            weekdays={screen.weekdays}
+            excludedDates={screen.range.excludedDates}
             onRangeChange={screen.setRange}
-            onWeekdaysChange={screen.setWeekdays}
           />
         </FormSection>
         <FormSection
@@ -138,15 +128,12 @@ export function NewClassScreen() {
           hint={t("newClass.notes.optional")}
         >
           <TextArea
-            label={t("newClass.notes.label")}
+            accessibilityLabel={t("newClass.notes.label")}
             placeholder={t("newClass.notes.placeholder")}
             value={screen.notes}
             maxLength={screen.notesMaxLength}
             onChangeText={screen.setNotes}
           />
-          <Text className="ds-text-list-subtitle text-ink-2">
-            {t("newClass.notes.hint")}
-          </Text>
         </FormSection>
         <FormSection
           label={t("newClass.instructors.label")}

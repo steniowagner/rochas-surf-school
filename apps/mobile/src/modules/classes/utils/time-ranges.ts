@@ -32,21 +32,13 @@ export const mergeTimeRanges = (
   return sortTimeRanges(merged);
 };
 
-/** A range that starts at or before `nowMinutes` can't be created for today. */
+/** A range that starts at or before `nowMinutes` has no class left today. */
 export const startsByNow = (range: TimeRange, nowMinutes: number): boolean =>
   parseTimeOfDay(range.start)! <= nowMinutes;
 
-/**
- * A range that can't be picked: it overlaps one already selected, or today is among the dates and it has started.
- * `nowMinutes` is `null` when today isn't among the dates.
- */
-export const isRangeBlocked = (
-  range: TimeRange,
-  selected: TimeRange[],
-  nowMinutes: number | null,
-): boolean =>
-  selected.some((item) => !isSameRange(item, range) && timeRangesOverlap(item, range)) ||
-  (nowMinutes !== null && startsByNow(range, nowMinutes));
+/** A range that can't be picked: it overlaps one already selected. */
+export const isRangeBlocked = (range: TimeRange, selected: TimeRange[]): boolean =>
+  selected.some((item) => !isSameRange(item, range) && timeRangesOverlap(item, range));
 
 export const rangeLabel = (range: TimeRange): string => `${range.start} – ${range.end}`;
 
@@ -57,12 +49,11 @@ export const toHHmm = (date: Date): string =>
 export const rangeOf = (
   start: Date,
   end: Date,
-): { range: TimeRange; valid: boolean; minutes: number } => {
+): { range: TimeRange; valid: boolean } => {
   const range = { start: toHHmm(start), end: toHHmm(end) };
 
   return {
     range,
     valid: timeRangeEndsAfterStart(range),
-    minutes: parseTimeOfDay(range.end)! - parseTimeOfDay(range.start)!,
   };
 };

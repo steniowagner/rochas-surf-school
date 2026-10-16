@@ -54,9 +54,6 @@ export function ClassesWeekScreen({
           >
             {t(titleKey)}
           </Text>
-          <Text className="ds-text-list-subtitle text-ink-2">
-            {screen.weekLabel}
-          </Text>
         </View>
         {screen.canCreate ? (
           <TouchableOpacity

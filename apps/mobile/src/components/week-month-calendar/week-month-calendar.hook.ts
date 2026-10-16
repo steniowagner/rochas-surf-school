@@ -5,7 +5,6 @@ import {
   addDays,
   addMonthsKeepingDay,
   getDateLocale,
-  isSameMonth,
   mondayOf,
   monthCaption,
   monthOf,
@@ -22,7 +21,6 @@ import type {
 
 export const useWeekMonthCalendar = ({
   selectedDate,
-  today,
   onSelectDate,
   onVisibleRangeChange,
 }: UseWeekMonthCalendarProps) => {
@@ -51,12 +49,10 @@ export const useWeekMonthCalendar = ({
     days,
     month,
     caption: isMonth ? monthCaption(month, locale) : weekCaption(weekStart, locale),
-    showToday: isMonth ? !isSameMonth(monthOf(today), month) : !days.includes(today),
     toggleView: () => setView(isMonth ? "week" : "month"),
     goPrevious: () =>
       onSelectDate(isMonth ? addMonthsKeepingDay(selectedDate, -1) : addDays(selectedDate, -7)),
     goNext: () =>
       onSelectDate(isMonth ? addMonthsKeepingDay(selectedDate, 1) : addDays(selectedDate, 7)),
-    goToday: () => onSelectDate(today),
   };
 };

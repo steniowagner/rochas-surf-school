@@ -2,33 +2,11 @@ import { enUS } from "date-fns/locale";
 
 import {
   formatDateLine,
-  relativeWeek,
   schoolDayOf,
   schoolTimeOf,
-  weeksBetween,
 } from "./week";
 
 const LABELS = { today: "Today", tomorrow: "Tomorrow", yesterday: "Yesterday" };
-
-describe("weeksBetween", () => {
-  it("counts the weeks between two Mondays", () => {
-    expect(weeksBetween("2026-10-12", "2026-10-12")).toBe(0);
-    expect(weeksBetween("2026-10-12", "2026-11-02")).toBe(3);
-    expect(weeksBetween("2026-10-12", "2026-09-21")).toBe(-3);
-  });
-});
-
-describe("relativeWeek", () => {
-  it.each([
-    [0, { key: "current", count: 0 }],
-    [-1, { key: "previous", count: 1 }],
-    [1, { key: "next", count: 1 }],
-    [-3, { key: "past", count: 3 }],
-    [3, { key: "future", count: 3 }],
-  ])("offset %s", (offset, expected) => {
-    expect(relativeWeek(offset)).toEqual(expected);
-  });
-});
 
 describe("school time", () => {
   it("reads the day and time in America/Fortaleza", () => {

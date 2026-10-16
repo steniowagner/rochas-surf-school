@@ -88,12 +88,12 @@ classes module so that other screens can plug it in later.
 | D-04 | No backend change. The screen loads the classes of every week the calendar shows (one week in the week view; each Monday of the month grid, 4 to 6, in the month view) with `useQueries`, each under the existing key `["classes", "week", <Monday>]` and the existing `GET /classes?date=<Monday>`, so a week already loaded is not requested again and the week and month share the cache. The list's loading and error-with-retry states keep following only the selected day's week (`useWeekClasses`); a failed load of another visible week just leaves its days without dots, with no message. Pull-to-refresh refetches every visible week. | A month is at most 6 small week requests that are mostly cached already; a range endpoint can come later if it is ever needed. |
 | D-05 | `WeekMonthCalendar` (`src/components/week-month-calendar/`) is controlled for the selection and owns only the view. Props: `selectedDate` (`YYYY-MM-DD`), `today` (`YYYY-MM-DD`, given by the parent — the classes screen passes Fortaleza's today), `markedDates: string[]` (the days that get a dot), `onSelectDate(date: string)`, `onVisibleRangeChange?(range: { from: string; to: string })` (first and last day drawn, called on mount and whenever they change), `markedLabel?: string` (appended to a marked day's accessibility label). The view (`"week"` \| `"month"`) is internal state, starting on `"week"`. Neither the component nor its children import anything from `src/modules/`. | A shared component can't depend on a feature module; keeping the selection in the parent lets each screen decide what a selected day means. |
 | D-06 | What the calendar shows is always derived from `selectedDate` and the view: the week view shows the Monday-to-Sunday week that holds the selected day; the month view shows the month of the selected day. So every move goes through `onSelectDate`: the week arrows select the same weekday one week before or after (±7 days); the month arrows select the same day number one month before or after, capped at that month's last day (31 Jan 2027 → 28 Feb 2027, 31 Mar → 30 Apr); tapping a day of the month before or after in the grid selects it, and the grid therefore moves to that month. | The selected day is always on screen, and switching views always lands on it (the user's requirement), without a second "visible period" state to keep in sync. |
-| D-07 | "Hoje" (a chip like today's, `grape-tint` with `grape` text) sits in the header between the pill and the right arrow, only while today isn't drawn as part of the shown period: in the week view, when today isn't in the shown week; in the month view, when today isn't in the shown month (a day of an adjacent month drawn in the grid doesn't count). Tapping it selects today and keeps the view. While it shows, the pill is no longer centered. The screen's subtitle ("Esta semana", "Semana passada", …) keeps describing the selected day's week in both views. | Keeps spec 030's way back to today; the subtitle already describes the selected day's week, and the list below shows that day. |
+| D-07 | ~~"Hoje" (a chip like today's, `grape-tint` with `grape` text) sits in the header between the pill and the right arrow, only while today isn't drawn as part of the shown period: in the week view, when today isn't in the shown week; in the month view, when today isn't in the shown month (a day of an adjacent month drawn in the grid doesn't count). Tapping it selects today and keeps the view. While it shows, the pill is no longer centered. The screen's subtitle ("Esta semana", "Semana passada", …) keeps describing the selected day's week in both views.~~ (removed: amendment 1, the user wants no "Hoje" shortcut and no relative-week subtitle) | Keeps spec 030's way back to today; the subtitle already describes the selected day's week, and the list below shows that day. |
 | D-08 | Captions, built with the date-fns locale of the app language, upper-cased, with a trailing "." dropped from month abbreviations: week inside one month "12 – 18 OUT" (`d` – `d MMM`); week across two months "28 SET – 4 OUT" (`d MMM` – `d MMM`); across two years the same, without the year ("28 DEZ – 3 JAN"); month "OUTUBRO 2026" (`MMMM yyyy`). The weekday abbreviations of the week row stay as in spec 030 ("QUA", "SÁB"); the month grid's weekday initials are date-fns `EEEEE`, upper-cased, Monday first ("S T Q Q S S D" in pt-BR, "M T W T F S S" in en-US). | AGENDA-01 / 01A; a week that spans two months needs both months to be unambiguous. |
-| D-09 | Look, with design tokens only (no raw colors, sizes or radii; every touch target at least 44 pt): the header row has the two round arrows (as today's `WeekNav`) and the pill with a calendar icon, the caption in `ds-text-button` and a chevron — outlined (`border-line`, `bg-surface`, `ink` text) with a down chevron in the week view, filled `grape` with `on-color` text and an up chevron in the month view. Week row: seven columns, weekday in `ds-text-chip` and number in `ds-text-day-number`; only the selected day has a background (a `grape` card, `rounded-card`, `on-color` text); the other days have none. Month grid: initials in `ds-text-section-label` `ink-2`, numbers in `ds-text-day-number`; the selected day sits in a filled `grape` circle with `on-color` text; the days of the months around it are `ink-3`. Today's number is `sun` (when not selected) in both views, with no background or ring. The grid has only the weeks it needs: from the week of the 1st to the week of the last day (4, 5 or 6 rows). | AGENDA-01 / 01A as the user described them; CLAUDE.md's design rules. |
+| D-09 | Look, matching AGENDA-01 / 01A (amendment 1), with design tokens only (no raw colors, sizes or radii; every touch target at least 44 pt, the 36 pt circles get a `hitSlop`): the header row has the two round arrows (36 pt circle, `border-line`, `bg-surface`, 18 pt icon) and the pill with a calendar icon, the caption in `ds-text-pill` (Nunito 12.5, 800, uppercase) and a chevron — outlined (`border-line`, `bg-dim`, `ink` text) with a down chevron in the week view, filled `grape` with `on-color` text and an up chevron in the month view. Week row: seven columns, weekday in `ds-text-chip` and number in `ds-text-calendar-day` (Barlow 22); only the selected day has a background (a `grape` card, `rounded-card`, `on-color` text); the other days have none. Month grid: initials in `ds-text-chip` `ink-3`, numbers in `ds-text-calendar-month-day` (Barlow 19); the selected day sits in a filled `grape` circle with `on-color` text; the days of the months around it are `ink-3`. Today's number is `sun` (when not selected) in both views, with no background or ring. The grid has only the weeks it needs: from the week of the 1st to the week of the last day (4, 5 or 6 rows). | AGENDA-01 / 01A as the user described them and, after review of the first build, as the designs size them; CLAUDE.md's design rules. |
 | D-10 | Accessibility: the pill is a button labelled "Ver o mês" in the week view and "Ver a semana" in the month view, with `accessibilityState.expanded` true in the month view; the arrows are labelled by the view ("Ver a semana anterior" / "Ver a semana seguinte", "Ver o mês anterior" / "Ver o mês seguinte"); each day is a button whose label is its full date (date-fns `PPPP` in the app language) followed by `, <markedLabel>` when it has a dot and a `markedLabel` was given, with `accessibilityState.selected`. The classes screen passes `markedLabel` = `classesWeek.hasClasses`. Each day has `testID` `calendar-day-<YYYY-MM-DD>` and each dot `calendar-day-<YYYY-MM-DD>-dot`. | Screen readers need to know the view, the move and which days have classes; stable ids for the tests. |
 | D-11 | The general date helpers move to `src/utils/calendar-dates.ts` (types in `calendar-dates.types.ts`): `CalendarMonth`, `toLocalDate`, `toIsoDate`, `monthOf`, `addMonths`, `isSameMonth`, `isoWeekdayOf`, `buildMonthGrid`, `formatIsoDate`, `getDateLocale`, `addDays`, `mondayOf`, `addWeeks`, `weekDays`, `weekCaption`, `weekdayName`, `weekdayAbbreviation`; their tests move with them, and every import in `src/modules/classes/` points at the new file (no re-exports left behind). The school-zone, date-range and class helpers stay in the classes module. `WeekNav`, `DayStrip` (with their tests) and the keys `classesWeek.previousWeek`, `classesWeek.nextWeek` and `classesWeek.today` are deleted. | Shared code can't import a module; leaving re-exports would keep two homes for the same helper. |
-| D-12 | New copy, under `weekMonthCalendar` in `src/i18n/messages/{pt-BR,en-US,es-ES}.ts`: `showMonth` "Ver o mês" / "Show the month" / "Ver el mes"; `showWeek` "Ver a semana" / "Show the week" / "Ver la semana"; `previousWeek` "Ver a semana anterior" / "Show the previous week" / "Ver la semana anterior"; `nextWeek` "Ver a semana seguinte" / "Show the next week" / "Ver la semana siguiente"; `previousMonth` "Ver o mês anterior" / "Show the previous month" / "Ver el mes anterior"; `nextMonth` "Ver o mês seguinte" / "Show the next month" / "Ver el mes siguiente"; `today` "Hoje" / "Today" / "Hoy". Under `classesWeek`: `hasClasses` "com aulas" / "with classes" / "con clases". | The component's copy is generic and lives in its own namespace; "with classes" is the classes screen's word. |
+| D-12 | New copy, under `weekMonthCalendar` in `src/i18n/messages/{pt-BR,en-US,es-ES}.ts`: `showMonth` "Ver o mês" / "Show the month" / "Ver el mes"; `showWeek` "Ver a semana" / "Show the week" / "Ver la semana"; `previousWeek` "Ver a semana anterior" / "Show the previous week" / "Ver la semana anterior"; `nextWeek` "Ver a semana seguinte" / "Show the next week" / "Ver la semana siguiente"; `previousMonth` "Ver o mês anterior" / "Show the previous month" / "Ver el mes anterior"; `nextMonth` "Ver o mês seguinte" / "Show the next month" / "Ver el mes siguiente"; ~~`today` "Hoje" / "Today" / "Hoy"~~ (removed: amendment 1). Under `classesWeek`: `hasClasses` "com aulas" / "with classes" / "con clases". | The component's copy is generic and lives in its own namespace; "with classes" is the classes screen's word. |
 
 ## Expected Results
 
@@ -197,7 +197,7 @@ examples are what the simulator shows. The screen tests use the fixed clock of `
 - **Verify by:** `npx jest src/components/week-month-calendar -t "arrows"`; `npx jest src/utils/calendar-dates.test.ts
   -t "addMonthsKeepingDay"`.
 
-### ER-10 — "Today" and the subtitle
+### ~~ER-10 — "Today" and the subtitle~~ (removed: amendment 1, no "Hoje" shortcut and no subtitle under the title)
 
 - **Front:** mobile
 - **Behavior:** Given the week view after one tap on the next arrow, when the screen shows 19–25 Oct, then "Today" is
@@ -363,6 +363,34 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > warning from a test that ends before its last query notification lands (the base commit printed none); all 23
   > tests pass
 
+- [x] **T-08** (added during execution) — UI changes the user asked for after seeing T-06 on the simulator (amendment
+  1): remove the "Hoje" chip from `WeekMonthCalendar` (and its `weekMonthCalendar.today` key) and its tests; remove
+  the relative-week subtitle under the screen title (and `relativeWeek`, `weeksBetween`, the `classesWeek.relative`
+  keys and their tests, now unused); size the calendar as AGENDA-01 / 01A (D-09: 36 pt arrows, `ds-text-pill`
+  caption, `ds-text-calendar-day` and `ds-text-calendar-month-day` numbers), adding those three typography tokens to
+  `packages/design-tokens/src/tokens.ts` and regenerating `tokens.css`; update the tests of the screen and the calendar.
+  Covers: ER-01, ER-03, ER-04, ER-05, ER-09 · Done when: `npx jest src/components src/modules/classes src/utils`
+  passes and `npm run lint` and `npm run check-types` exit 0 (from `apps/mobile`), and `npm run check-types -w
+  @rochas-surf-school/design-tokens` exits 0.
+  > ✅ 2026-10-16 — removed the "Hoje" chip (and the `weekMonthCalendar.today` key), the subtitle under the title and
+  > the code and copy only it used (`relativeWeek`, `weeksBetween`, `classesWeek.relative.*`); resized the calendar as
+  > the designs (36 pt arrows with a 4 pt `hitSlop`, `ds-text-pill` caption on a `bg-dim` pill, `ds-text-calendar-day`
+  > and `ds-text-calendar-month-day` numbers, 4 pt dots, initials `ds-text-chip` `ink-3`), with the three typography
+  > tokens added and `tokens.css` regenerated; there is no other shortcut like "Hoje" in the screen; files:
+  > `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`,
+  > `apps/mobile/src/components/week-month-calendar/{week-month-calendar.component.tsx,week-month-calendar.hook.ts,week-month-calendar.types.ts,week-month-calendar.component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-week-row/calendar-week-row.component.tsx`,
+  > `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.component.tsx`,
+  > `apps/mobile/src/modules/classes/screens/{classes-week.screen.tsx,classes-week.screen.hook.ts,classes-week.screen.test.tsx}`,
+  > `apps/mobile/src/modules/classes/utils/{week.ts,week.test.ts}`, `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`;
+  > verified: `npx jest src/components src/modules/classes src/utils src/i18n` (61 suites, 476 tests passed), `npm run
+  > lint` and `npm run check-types` (exit 0, `apps/mobile`), `npm run check-types -w
+  > @rochas-surf-school/design-tokens` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (57 suites, 713 tests
+  > passed), `node .specs/scripts/check-coverage.mjs 031` (COVERAGE OK), the ER-12 grep (prints nothing); not checked on
+  > the simulator: the new sizes are taken from the design source (`pkGen` in the App Aluno bundle), the visual result
+  > is for the user's journey; deviations: the pill's outlined background is `bg-dim` as the design, not `bg-surface`
+  > (logged in D-09)
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS
@@ -410,7 +438,7 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
 
 - `memory/product.md` — Current state: the week view gains the month view (pill in the middle of the header, the
   selected day kept across views, selecting a day never switching the view, one dot per day with classes, the arrows
-  moving a week or a month, "Hoje"), for the three roles; remove "the student Agenda's month view" from Out of scope
+  moving a week or a month; no "Hoje" shortcut and no relative-week subtitle), for the three roles; remove "the student Agenda's month view" from Out of scope
   → spec 030's item.
 - `memory/technical-context.md` — Classes → the mobile week paragraph: `WeekMonthCalendar` instead of `WeekNav` /
   `DayStrip`, the selection as one date, `useVisibleWeeksClasses` (`useQueries` over the visible weeks, shared key);
@@ -433,5 +461,18 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+### Amendment 1 — 2026-10-16
+
+Approved by the user in chat, after seeing the first build on the simulator (before review):
+
+- D-07 removed: no "Hoje" chip (nor any other shortcut back to today). ER-10 removed with it; the subtitle under the
+  screen title ("Esta semana", "Daqui a 2 semanas"…) is removed too. D-12: the `today` key removed.
+- D-09 changed: the calendar is sized as the designs (AGENDA-01 / 01A) — 36 pt arrows with a 44 pt hit area, the pill
+  caption in Nunito 12.5 (`ds-text-pill`), the day numbers in Barlow 22 / 19 (`ds-text-calendar-day`,
+  `ds-text-calendar-month-day`), the pill's outlined background `bg-dim` and the month initials `ink-3`. Before: the
+  caption in `ds-text-button` (Barlow 18) and the numbers in `ds-text-day-number` (Barlow 26).
+- Task T-08 added to carry this out. Reason: the first build's header was too large and truncated the month name
+  ("NOVEMBRO 2…") on the simulator.
 
 ## Review

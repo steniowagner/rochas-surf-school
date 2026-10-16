@@ -186,48 +186,18 @@ describe("WeekMonthCalendar", () => {
     expect(day("2027-02-28")).toBeSelected();
   });
 
-  it("shows Today only when today isn't in the shown week, and goes back to it keeping the view", async () => {
+  it("has no shortcut back to today, away from today's week or month", async () => {
     await render(<Harness />);
-
-    expect(screen.queryByRole("button", { name: "Today" })).not.toBeOnTheScreen();
 
     await press("Show the next week");
 
-    expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+    expect(screen.queryByText("Today")).not.toBeOnTheScreen();
 
-    await press("Today");
-
-    expect(day("2026-10-14")).toBeSelected();
-    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
-    expect(isWeekRow()).toBe(true);
-    expect(screen.queryByRole("button", { name: "Today" })).not.toBeOnTheScreen();
-  });
-
-  it("shows Today only when today isn't in the shown month, and goes back to it keeping the view", async () => {
-    await render(<Harness initial="2026-10-20" />);
     await press("Show the month");
-
-    expect(screen.queryByRole("button", { name: "Today" })).not.toBeOnTheScreen();
-
     await press("Show the next month");
 
     expect(screen.getByText("NOVEMBER 2026")).toBeOnTheScreen();
-
-    await press("Today");
-
-    expect(day("2026-10-14")).toBeSelected();
-    expect(screen.getByText("OCTOBER 2026")).toBeOnTheScreen();
-    expect(isWeekRow()).toBe(false);
-  });
-
-  it("doesn't count a day of an adjacent month drawn in the grid as today", async () => {
-    await render(<Harness initial="2026-11-15" today="2026-10-31" />);
-    await press("Show the month");
-
-    // 2026-10-31 is drawn in the first week of the November grid, but the shown month is November.
-    expect(screen.getByTestId("calendar-day-2026-10-31")).toBeOnTheScreen();
-    expect(screen.getByText("NOVEMBER 2026")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Today" })).toBeOnTheScreen();
+    expect(screen.queryByText("Today")).not.toBeOnTheScreen();
   });
 
   it("shows a dot only on the days with classes, in both views", async () => {

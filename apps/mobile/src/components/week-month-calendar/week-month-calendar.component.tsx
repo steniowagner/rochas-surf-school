@@ -10,6 +10,10 @@ import { useTheme } from "@/hooks/use-theme";
 import { useWeekMonthCalendar } from "./week-month-calendar.hook";
 import type { WeekMonthCalendarProps } from "./week-month-calendar.types";
 
+// The arrows and the pill are drawn at the designs' size, smaller than a touch target: this makes up the 44 pt.
+const ARROW_HIT_SLOP = 4;
+const PILL_HIT_SLOP = { top: 7, bottom: 7, left: 0, right: 0 };
+
 /**
  * A week or a month to pick a day from. The pill in the middle of the header switches between the two; picking a day
  * never does, and the selected day is the one both views are drawn around. The parent owns the selection.
@@ -24,8 +28,8 @@ export function WeekMonthCalendar({
 }: WeekMonthCalendarProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { view, days, month, caption, showToday, toggleView, goPrevious, goNext, goToday } =
-    useWeekMonthCalendar({ selectedDate, today, onSelectDate, onVisibleRangeChange });
+  const { view, days, month, caption, toggleView, goPrevious, goNext } =
+    useWeekMonthCalendar({ selectedDate, onSelectDate, onVisibleRangeChange });
   const isMonth = view === "month";
   const pillColor = isMonth ? theme.onColor : theme.ink;
 
@@ -37,9 +41,10 @@ export function WeekMonthCalendar({
           accessibilityLabel={t(isMonth ? "weekMonthCalendar.previousMonth" : "weekMonthCalendar.previousWeek")}
           activeOpacity={BUTTON_ACTIVE_OPACITY}
           onPress={goPrevious}
-          className="h-11 w-11 items-center justify-center rounded-full border border-line bg-surface"
+          hitSlop={ARROW_HIT_SLOP}
+          className="h-9 w-9 items-center justify-center rounded-full border border-line bg-surface"
         >
-          <Ionicons name="chevron-back" size={20} color={theme.ink} />
+          <Ionicons name="chevron-back" size={18} color={theme.ink} />
         </TouchableOpacity>
         <View className="flex-1 flex-row items-center justify-center gap-2">
           <TouchableOpacity
@@ -48,38 +53,30 @@ export function WeekMonthCalendar({
             accessibilityState={{ expanded: isMonth }}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             onPress={toggleView}
-            className={`min-h-11 shrink flex-row items-center justify-center gap-2 rounded-full px-4 ${
-              isMonth ? "bg-grape" : "border border-line bg-surface"
+            hitSlop={PILL_HIT_SLOP}
+            className={`shrink flex-row items-center justify-center gap-2 rounded-full border px-3 py-2 ${
+              isMonth ? "border-grape bg-grape" : "border-line bg-dim"
             }`}
           >
-            <Ionicons name="calendar-outline" size={18} color={pillColor} />
+            <Ionicons name="calendar-outline" size={15} color={pillColor} />
             <Text
               numberOfLines={1}
-              className={`ds-text-button shrink ${isMonth ? "text-on-color" : "text-ink"}`}
+              className={`ds-text-pill shrink ${isMonth ? "text-on-color" : "text-ink"}`}
             >
               {caption}
             </Text>
-            <Ionicons name={isMonth ? "chevron-up" : "chevron-down"} size={16} color={pillColor} />
+            <Ionicons name={isMonth ? "chevron-up" : "chevron-down"} size={14} color={pillColor} />
           </TouchableOpacity>
-          {showToday ? (
-            <TouchableOpacity
-              accessibilityRole="button"
-              activeOpacity={BUTTON_ACTIVE_OPACITY}
-              onPress={goToday}
-              className="min-h-11 justify-center rounded-full bg-grape-tint px-4"
-            >
-              <Text className="ds-text-button text-grape">{t("weekMonthCalendar.today")}</Text>
-            </TouchableOpacity>
-          ) : null}
         </View>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={t(isMonth ? "weekMonthCalendar.nextMonth" : "weekMonthCalendar.nextWeek")}
           activeOpacity={BUTTON_ACTIVE_OPACITY}
           onPress={goNext}
-          className="h-11 w-11 items-center justify-center rounded-full border border-line bg-surface"
+          hitSlop={ARROW_HIT_SLOP}
+          className="h-9 w-9 items-center justify-center rounded-full border border-line bg-surface"
         >
-          <Ionicons name="chevron-forward" size={20} color={theme.ink} />
+          <Ionicons name="chevron-forward" size={18} color={theme.ink} />
         </TouchableOpacity>
       </View>
       {isMonth ? (

@@ -23,5 +23,5 @@ export type WeekMonthCalendarProps = {
 
 export type UseWeekMonthCalendarProps = Pick<
   WeekMonthCalendarProps,
-  "selectedDate" | "today" | "onSelectDate" | "onVisibleRangeChange"
+  "selectedDate" | "onSelectDate" | "onVisibleRangeChange"
 >;

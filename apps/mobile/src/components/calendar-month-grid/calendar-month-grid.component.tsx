@@ -15,7 +15,7 @@ export function CalendarMonthGrid({ onSelectDate, ...props }: CalendarMonthGridP
         {initials.map((initial, index) => (
           <Text
             key={index}
-            className="ds-text-section-label flex-1 text-center text-ink-2"
+            className="ds-text-chip flex-1 text-center text-ink-3"
           >
             {initial}
           </Text>
@@ -41,20 +41,20 @@ export function CalendarMonthGrid({ onSelectDate, ...props }: CalendarMonthGridP
                 accessibilityState={{ selected: day.selected }}
                 activeOpacity={BUTTON_ACTIVE_OPACITY}
                 onPress={() => onSelectDate(day.date)}
-                className="min-h-14 flex-1 items-center justify-center gap-0.5"
+                className="min-h-12 flex-1 items-center justify-center gap-0.5"
               >
                 <View
                   className={`h-10 w-10 items-center justify-center rounded-full ${day.selected ? "bg-grape" : ""}`}
                 >
-                  <Text className={`ds-text-day-number ${number}`}>
+                  <Text className={`ds-text-calendar-month-day ${number}`}>
                     {day.number}
                   </Text>
                 </View>
-                <View className="h-1.5">
+                <View className="h-1">
                   {day.marked ? (
                     <View
                       testID={`calendar-day-${day.date}-dot`}
-                      className="h-1.5 w-1.5 rounded-full bg-lagoon"
+                      className="h-1 w-1 rounded-full bg-lagoon"
                     />
                   ) : null}
                 </View>

@@ -27,23 +27,23 @@ export function CalendarWeekRow({ onSelectDate, ...props }: CalendarWeekRowProps
             accessibilityState={{ selected: day.selected }}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             onPress={() => onSelectDate(day.date)}
-            className="min-h-[64px] flex-1"
+            className="flex-1"
           >
             <View
               testID={`calendar-day-${day.date}-background`}
-              className={`flex-1 items-center justify-center gap-1 rounded-card ${day.selected ? "bg-grape" : ""}`}
+              className={`flex-1 items-center justify-center gap-1 rounded-card py-2 ${day.selected ? "bg-grape" : ""}`}
             >
               <Text
                 className={`ds-text-chip ${day.selected ? "text-on-color" : "text-ink-2"}`}
               >
                 {day.weekday}
               </Text>
-              <Text className={`ds-text-day-number ${number}`}>{day.number}</Text>
-              <View className="h-1.5">
+              <Text className={`ds-text-calendar-day ${number}`}>{day.number}</Text>
+              <View className="h-1">
                 {day.marked ? (
                   <View
                     testID={`calendar-day-${day.date}-dot`}
-                    className={`h-1.5 w-1.5 rounded-full ${day.selected ? "bg-on-color" : "bg-lagoon"}`}
+                    className={`h-1 w-1 rounded-full ${day.selected ? "bg-on-color" : "bg-lagoon"}`}
                   />
                 ) : null}
               </View>

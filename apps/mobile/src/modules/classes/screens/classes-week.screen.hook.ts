@@ -18,7 +18,7 @@ import { useNow } from "../hooks/use-now.hook";
 import { useVisibleWeeksClasses } from "../hooks/use-visible-weeks-classes.hook";
 import { useWeekClasses } from "../hooks/use-week-classes.hook";
 import { todayInSchoolZone } from "../utils/calendar";
-import { relativeWeek, schoolDayOf, weeksBetween } from "../utils/week";
+import { schoolDayOf } from "../utils/week";
 
 import type { UseClassesWeekScreenProps } from "./classes-week.screen.types";
 
@@ -28,7 +28,7 @@ export const useClassesWeekScreen = ({
   classRoute,
   canCreate,
 }: UseClassesWeekScreenProps) => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const now = useNow();
   const locale = getDateLocale(i18n.language);
   const today = todayInSchoolZone(now);
@@ -53,7 +53,6 @@ export const useClassesWeekScreen = ({
     ...new Set(visibleWeeks.items.map((item) => schoolDayOf(item.startsAt))),
   ];
 
-  const relative = relativeWeek(weeksBetween(currentWeek, weekStart));
   const canCreateOnDay = canCreate === true && selectedDate >= today;
 
   const updateVisibleRange = (range: VisibleRange) =>
@@ -73,9 +72,6 @@ export const useClassesWeekScreen = ({
     selectedDate,
     markedDates,
     dayItems,
-    weekLabel: t(`classesWeek.relative.${relative.key}`, {
-      count: relative.count,
-    }),
     dayTitle: `${weekdayName(selectedDate, locale)} · ${formatIsoDate(selectedDate, "d MMM", locale)}`,
     canCreate: canCreate === true,
     canCreateOnDay,

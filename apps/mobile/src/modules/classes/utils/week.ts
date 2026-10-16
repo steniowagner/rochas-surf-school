@@ -7,26 +7,6 @@ import { SCHOOL_TIME_ZONE, todayInSchoolZone } from "./calendar";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** How many weeks `weekStart` is after `currentWeekStart` (negative for the past). */
-export const weeksBetween = (currentWeekStart: string, weekStart: string): number =>
-  Math.round((toUtcMs(weekStart) - toUtcMs(currentWeekStart)) / (7 * DAY_MS));
-
-export type RelativeWeek = {
-  /** A key under `classesWeek.relative`. */
-  key: "current" | "previous" | "next" | "past" | "future";
-  count: number;
-};
-
-export const relativeWeek = (offset: number): RelativeWeek => {
-  if (offset === 0) return { key: "current", count: 0 };
-  if (offset === -1) return { key: "previous", count: 1 };
-  if (offset === 1) return { key: "next", count: 1 };
-
-  return offset < 0
-    ? { key: "past", count: -offset }
-    : { key: "future", count: offset };
-};
-
 /** The `YYYY-MM-DD` day (America/Fortaleza) an instant falls on. */
 export const schoolDayOf = (instant: string): string =>
   todayInSchoolZone(new Date(instant));

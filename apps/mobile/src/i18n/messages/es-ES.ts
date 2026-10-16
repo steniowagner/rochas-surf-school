@@ -284,18 +284,8 @@ const messages: Messages = {
     nextWeek: "Ver la semana siguiente",
     previousMonth: "Ver el mes anterior",
     nextMonth: "Ver el mes siguiente",
-    today: "Hoy",
   },
   classesWeek: {
-    relative: {
-      current: "Esta semana",
-      previous: "Semana pasada",
-      next: "Próxima semana",
-      past_one: "Hace {{count}} semana",
-      past_other: "Hace {{count}} semanas",
-      future_one: "Dentro de {{count}} semana",
-      future_other: "Dentro de {{count}} semanas",
-    },
     hasClasses: "con clases",
     classCount_one: "{{count}} clase",
     classCount_other: "{{count}} clases",

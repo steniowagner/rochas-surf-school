@@ -2,7 +2,7 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: in-progress
+status: in-review
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
@@ -365,10 +365,10 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS
+- [x] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS
   simulator; all pass. Record the output summary and what was seen as evidence.
   Covers: all · Done when: every command exits 0 and the journey shows what it describes.
-  > ⛔ 2026-10-16 — the automated half passes, the simulator journey is not done. Passed: `node
+  > ✅ (automated part only) 2026-10-16 — the automated half passes; the simulator journey is NOT verified by the agent. Passed: `node
   > .specs/scripts/run-related-tests.mjs 031` (57 suites, 724 tests, coverage 100% statements/branches/functions/lines;
   > the first run had one failure in `new-class.screen.test.tsx › sends once when pressed twice in the same frame`, a
   > timing flake under load that passes alone, twice, and in the rerun of the whole command), `node
@@ -378,8 +378,9 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > iPhone 18 Pro), the backend on port 4000 (not running) and a signed-in student and admin with classes on a few days
   > of this and the next month; the only local sign-in is `REVIEW_ACCOUNTS` (empty in `.env.example`), and setting it up
   > means editing the local `.env` and writing users and classes into the running dev Postgres
-  > (`rochas-surf-school-postgres-1`). Needs the user's go-ahead, or the user running the journey of the Verification
-  > Plan themself.
+  > (`rochas-surf-school-postgres-1`). 2026-10-16: the user chose to run the simulator journey of the Verification Plan
+  > themself, so the box is checked only so the spec can go to review, as the user asked: the journey was not run or seen by
+  > the agent. The reviewer should not count it as verified until the user reports its result.
 
 ## Verification Plan
 

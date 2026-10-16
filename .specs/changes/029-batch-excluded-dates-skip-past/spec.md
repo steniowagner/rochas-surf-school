@@ -2,7 +2,7 @@
 id: "029"
 slug: batch-excluded-dates-skip-past
 title: "Batch creation: remove days and skip past times"
-status: changes-requested
+status: in-progress
 created: 2026-10-15
 started: 2026-10-15
 base_commit: d152690c7f7b0efcec32af45720c2ffb958acd55
@@ -175,7 +175,7 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   > verified: `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts` from `modules/classes` (70
   > passed); the test fails when the use case judges the limit on the listed classes instead of the remaining
   > ones (checked by temporarily changing the source, then restored); deviations: none
-- [ ] **T-05** — Fix F-01 in `modules/classes/src/school-class/usecase/create-class-batch.usecase.ts` as D-05
+- [x] **T-05** — Fix F-01 in `modules/classes/src/school-class/usecase/create-class-batch.usecase.ts` as D-05
   says: with `skipPast`, list the batch from the later of `startDate` and today's date in America/Fortaleza (from
   `clockProvider.now()`, `CLASS_TIME_ZONE`), keeping the listing cap and updating its comment; without `skipPast`
   the listing is unchanged. Add to `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts`,
@@ -188,6 +188,16 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   Covers: ER-02 · Done when: `npx jest test/school-class/usecase/create-class-batch.usecase.test.ts` passes from
   `modules/classes` with the two new tests, the first fails on the code before the fix, and every line the fix
   changes is covered.
+  > ✅ 2026-10-16 — with `skipPast`, the use case now lists from the later of `startDate` and today in
+  > America/Fortaleza (`format(now, "yyyy-MM-dd", { in: tz(CLASS_TIME_ZONE) })`), keeping the cap; the comment is
+  > updated, and without `skipPast` the listing is unchanged; added the tests "refuses more than 200 classes left
+  > when the batch starts before today" and "creates only the classes that have not started when the batch starts
+  > before today" (5 classes, the 14th at 16:00 on); files:
+  > `modules/classes/src/school-class/usecase/create-class-batch.usecase.ts`,
+  > `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts`; verified: `npx jest
+  > test/school-class/usecase/create-class-batch.usecase.test.ts` from `modules/classes` (72 passed); with the
+  > source change stashed the first new test fails (`tooLarge` not thrown) and the second passes; both branches of
+  > the changed ternary are exercised (past start date and the other tests); deviations: none
 
 ### Backend (`apps/backend`)
 

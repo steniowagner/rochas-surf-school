@@ -1,3 +1,5 @@
+import { tz } from "@date-fns/tz";
+import { format } from "date-fns";
 import {
   DomainError,
   UseCase,
@@ -14,6 +16,7 @@ import {
   CLASS_DISCIPLINES,
   CLASS_LEVELS,
   CLASS_NOTES_MAX,
+  CLASS_TIME_ZONE,
   ClassDiscipline,
   ClassLevel,
   SchoolClass,
@@ -182,11 +185,14 @@ export class CreateClassBatch
     const discipline = input.discipline as ClassDiscipline;
     const skipPast = input.skipPast === true;
     const now = this.clockProvider.now().getTime();
-    // Classes that have already started can only be on today's date, one per time range at most.
     const timeRanges = input.timeRanges as TimeRange[];
+    // With skipPast, the days before today are dropped before the listing cap, so the classes that
+    // have started can only be today's, one per time range at most, and the cap's margin holds.
+    const today = format(new Date(now), "yyyy-MM-dd", { in: tz(CLASS_TIME_ZONE) });
+    const startDate = input.startDate as string;
     const listed = listBatchClasses(
       {
-        startDate: input.startDate as string,
+        startDate: skipPast && today > startDate ? today : startDate,
         endDate: input.endDate as string,
         weekdays: input.weekdays as number[],
         excludedDates: (input.excludedDates as string[] | null | undefined) ?? undefined,

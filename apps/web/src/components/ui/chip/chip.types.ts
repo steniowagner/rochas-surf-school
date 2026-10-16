@@ -4,5 +4,6 @@ export type ChipTone = "surf" | "skate" | "info" | "sun" | "grape" | "warn" | "o
 
 export type ChipProps = {
   tone?: ChipTone;
+  icon?: ReactNode;
   children: ReactNode;
 };

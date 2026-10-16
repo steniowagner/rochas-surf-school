@@ -26,14 +26,17 @@ export function ClassCard({ item, now, onPress }: ClassCardProps) {
       <View className="gap-3 p-4">
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-row flex-wrap gap-2">
-            <Chip tone={item.discipline === "surf" ? "surf" : "skate"}>
+            <Chip
+              tone={item.discipline === "surf" ? "surf" : "skate"}
+              icon={item.discipline === "surf" ? "water-outline" : "disc-outline"}
+            >
               {t(`newClass.discipline.${item.discipline}`)}
             </Chip>
             <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>
           </View>
           <View className="items-end gap-1">
             {state === "started" ? (
-              <Chip tone="sun">{t("classesWeek.state.started")}</Chip>
+              <Chip tone="sun" icon="time-outline">{t("classesWeek.state.started")}</Chip>
             ) : null}
             {state === "finished" ? (
               <Chip tone="muted">{t("classesWeek.state.finished")}</Chip>

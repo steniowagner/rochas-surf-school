@@ -2,7 +2,7 @@
 id: "030"
 slug: classes-week-view
 title: "Aulas tab: week view and class details"
-status: changes-requested
+status: in-progress
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8a4501ee0316065450772fd48571ce5e187b7832
@@ -621,20 +621,30 @@ with that day already picked. Classes created by spec 028 become visible for the
 
 **Findings**
 
-- [ ] **F-01** (D-08) — the card's discipline chip and its "Em andamento" chip have no icon; D-08 says "Surf on
+- [x] **F-01** (D-08) — the card's discipline chip and its "Em andamento" chip have no icon; D-08 says "Surf on
   `lagoon`, Skate on `tan`, icon" and "'Em andamento' on `sun` with a clock icon". T-07 records the omission as a
   deviation (the shared `Chip` has no icon prop), but a change to a Decision needs the user's approval and an entry
   under `## Amendments`, and there is none. Reproduce: open Aulas with a class under way — `class-card.component.tsx`
   renders `<Chip>` with text only. Expected: the icons (e.g. an optional `icon` on `Chip`, added on web and mobile with
   the same props, per CLAUDE.md), or D-08 amended with the user's approval.
-- [ ] **F-02** (convention) — `class-details.screen.hook.ts` defines its own `initialsOf` (first letters of the first
+  > ✅ 2026-10-16 — added an optional `icon` to the shared `Chip` (mobile: an Ionicons name coloured like the tone's
+  > label; web: a `ReactNode`) and used it on the `ClassCard`: `water-outline` (Surf), `disc-outline` (Skate) and
+  > `time-outline` on "Em andamento". Files: `apps/mobile/src/components/ui/chip/{chip.component.tsx,chip.types.ts,
+  > chip.component.test.tsx}`, `apps/web/src/components/ui/chip/{chip.component.tsx,chip.types.ts,
+  > chip.component.test.tsx}`, `apps/mobile/src/modules/classes/components/class-card/class-card.component.tsx`.
+  > `npx jest src/components/ui/chip src/modules/classes` ✅ 265 passed; web chip vitest ✅; lint + check-types ✅.
+  > Deviation: web `icon` is a `ReactNode` (web has no icon set), mobile takes the icon name.
+- [x] **F-02** (convention) — `class-details.screen.hook.ts` defines its own `initialsOf` (first letters of the first
   two words) instead of the app-wide `getInitials` from `src/utils/` (first and last word) that the technical context
   names and the other avatars use, so the same person gets different initials on different screens: "Ana Maria de
   Souza" is "AM" on the details and "AS" in the people directory. Expected: use `getInitials`.
-- [ ] **F-03** (convention) — `.claude/rules/react.md` §2 import order: `classes-week.screen.hook.ts` imports
+  > ✅ 2026-10-16 — `class-details.screen.hook.ts` now uses `getInitials` from `@/utils/get-initials` (own `initialsOf`
+  > removed). `npx jest src/modules/classes` ✅ (in the 265 above).
+- [x] **F-03** (convention) — `.claude/rules/react.md` §2 import order: `classes-week.screen.hook.ts` imports
   `@/services/api` before `@/constants/routes`, and `classes-week.screen.tsx` imports
   `@/components/ui/button/button.constants` before `@/components/ui/button`. Expected: alphabetical by module path
   within each group.
+  > ✅ 2026-10-16 — import order fixed in `classes-week.screen.hook.ts` and `classes-week.screen.tsx`. Lint ✅.
 
 **Notes**
 

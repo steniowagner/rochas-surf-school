@@ -26,4 +26,17 @@ describe("Chip", () => {
 
     expect(screen.getByText("Label")).toBeOnTheScreen();
   });
+
+  it("renders the icon before the label when given one", async () => {
+    await render(
+      <Chip tone="sun" icon="time-outline">
+        Label
+      </Chip>,
+    );
+
+    expect(screen.getByText("Label")).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchObject({
+      children: [expect.anything(), expect.anything()],
+    });
+  });
 });

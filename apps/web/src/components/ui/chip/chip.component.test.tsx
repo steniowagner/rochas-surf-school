@@ -15,4 +15,10 @@ describe("Chip", () => {
 
     expect(screen.getByText("Paid")).toHaveClass("bg-ok-tint");
   });
+
+  it("renders the icon next to the label", () => {
+    render(<Chip icon={<svg data-testid="chip-icon" />}>Paid</Chip>);
+
+    expect(screen.getByTestId("chip-icon")).toBeInTheDocument();
+  });
 });

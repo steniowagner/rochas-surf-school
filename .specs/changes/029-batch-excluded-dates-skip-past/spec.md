@@ -2,7 +2,7 @@
 id: "029"
 slug: batch-excluded-dates-skip-past
 title: "Batch creation: remove days and skip past times"
-status: in-progress
+status: in-review
 created: 2026-10-15
 started: 2026-10-15
 base_commit: d152690c7f7b0efcec32af45720c2ffb958acd55
@@ -201,8 +201,15 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 
 ### Verification
 
-- [ ] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-15 23:31 — ran the whole Verification Plan; files: none; verified: `node
+  > .specs/scripts/run-related-tests.mjs --base cd59871` (RELATED TESTS PASSED: backend, mobile, `modules/classes` — 12
+  > suites, 155 tests — and the web suite; `packages/design-tokens` has no test runner), `node
+  > .specs/scripts/check-coverage.mjs --base cd59871` (COVERAGE OK — every changed line covered in 24 files), `node
+  > .specs/scripts/run-e2e.mjs 029` (E2E PASSED, apps/backend), `npx turbo run lint check-types --filter=…classes
+  > --filter=…backend --filter=…mobile` (16 tasks successful, no errors); the user journeys are in T-03; deviations:
+  > none
 
 ## Verification Plan
 

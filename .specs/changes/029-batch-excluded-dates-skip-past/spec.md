@@ -2,10 +2,11 @@
 id: "029"
 slug: batch-excluded-dates-skip-past
 title: "Batch creation: remove days and skip past times"
-status: in-review
+status: accepted
 created: 2026-10-15
 started: 2026-10-15
 base_commit: d152690c7f7b0efcec32af45720c2ffb958acd55
+reviewed_commit: bee851bbc7bcb62a5ec795750c13b53369385d30
 fronts: [classes, backend, mobile]
 depends_on: []
 ---
@@ -417,3 +418,50 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
   reproduced, so it is not a finding.
 - Memory Impact matches what the code does; once F-01 is fixed, add to `memory/modules/classes.md` that the 200
   limit holds whatever the start date.
+
+### Round 2 — 2026-10-16 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types` for classes, backend, mobile: 16 tasks successful)
+- related tests ✅ `run-related-tests.mjs --base cd59871` (D-02): backend, mobile, `modules/classes` (157 passed) and
+  web (21 passed) — RELATED TESTS PASSED
+- coverage of the changed lines ✅ `check-coverage.mjs --base cd59871`: COVERAGE OK, 24 files
+  (`create-class-batch.usecase.ts` 100% on its changed lines); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `run-e2e.mjs 029` (15 files, 378 passed, after `npm run build --workspace modules/classes`
+  and with no pending migrations) · mobile: no app code changed since round 1 (`45995d3..HEAD` touches only the
+  module, the backend e2e test and the spec), so round 1's simulator journeys stand
+- scope ✅ — `base_commit..HEAD` touches the spec, the T-01/T-05 unit tests, the T-05 fix (D-01, D-05) and the
+  T-06 e2e test
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "creates no class on an excluded date, whatever its weekday" and "refuses malformed excluded
+  dates and a batch whose dates are all excluded" pass and assert 201 `{ count: 4 }` with the stored dates, 422
+  `class.excludedDates.invalid`, 422 `class.batch.empty` and nothing stored; the module test passes.
+- ER-02 ✅ — F-01 fixed: "refuses more than 200 classes left when the batch starts before today" (unit) and
+  "refuses more than 200 classes left after skipping a start date in the past" (e2e) assert 422
+  `class.batch.tooLarge`, `details: { max: 200 }`, nothing stored (and nobody notified in the unit test); with the
+  fix reverted the unit test fails (checked here), so it guards the fix. "creates only the classes that have not
+  started when the batch starts before today" asserts the five instants from the 14th at 16:00. The malformed
+  `skipPast` e2e now asserts 422 and nothing stored. The other named cases pass (5 of 6 with `skipPast`,
+  `class.startsAt.past` without it, all-past → `class.batch.empty`, exactly-now counts as started, 201→200 /
+  202→`tooLarge`). Also probed with a throwaway unit test (deleted): a range wholly before today with `skipPast` →
+  `class.batch.empty`, nothing stored (D-05's "today after `endDate`"); excluded dates before and after today with
+  a past start → only the remaining future classes; without `skipPast` the listing is unchanged.
+- ER-03 ✅ — the named tests pass; round 1's simulator journey stands (no mobile change since).
+- ER-04 ✅ — the named tests pass; round 1's simulator journey stands (no mobile change since).
+
+**Findings**
+
+None. Round 1's F-01 is fixed (verified above).
+
+**Notes**
+
+- The comment in the new e2e test says "~259 classes left", but its range ends on 2027-06-14, which leaves 244
+  (the 259 came from the unit test's 2027-06-30 end). Harmless — the assertion holds either way — but worth
+  correcting next time that file is touched.
+- No test pins D-05's "today after `endDate`" case on its own (the clamped start then falls after the end); the
+  behavior holds (probed above) and the all-past case of ER-02 is tested on a same-day range.
+- The follow-ups from round 1 still stand: re-read the clock when "Criar N aulas" is pressed, and the success
+  toast drawn with the error style.

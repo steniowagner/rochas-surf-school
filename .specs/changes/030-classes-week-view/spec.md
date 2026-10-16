@@ -378,10 +378,19 @@ with that day already picked. Classes created by spec 028 become visible for the
   > exist as empty placeholders because typed routes fail the type check without them — T-11 renders the details screen
   > in them; weekday abbreviations are the first three letters of the weekday name
 
-- [ ] **T-07** — `ClassCard` in `src/modules/classes/components/class-card/` (D-08, using `getClassState` from
+- [x] **T-07** — `ClassCard` in `src/modules/classes/components/class-card/` (D-08, using `getClassState` from
   `@rochas-surf-school/classes` and the shared `Chip`), with its copy keys in the three locales and
   `class-card.component.test.tsx`.
   Covers: ER-07 · Done when: `npx jest src/modules/classes/components/class-card` passes.
+  > ✅ 2026-10-16 — added `ClassCard` (chips, state chip, time range, location pill, instructors footer, `sun` border when
+  > started, reduced opacity when finished) with its hook (`getClassState` from `@rochas-surf-school/classes`) and the
+  > `classesWeek` / `classDetails` copy in the three locales; files:
+  > `apps/mobile/src/modules/classes/components/class-card/{index.ts,class-card.component.tsx,class-card.hook.ts,class-card.types.ts,class-card.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest src/modules/classes/components/class-card` from
+  > `apps/mobile` (9 passed), `npm run check-types` exit 0; deviations: the shared `Chip` has no icon prop, so the
+  > discipline and "Em andamento" chips carry no icon (adding one would change a shared component on both platforms); all
+  > the screens' copy keys were added here at once
 
 - [ ] **T-08** — `WeekNav` and `DayStrip` in `src/modules/classes/components/{week-nav,day-strip}/` (D-06), with their
   copy keys and tests.

@@ -174,3 +174,13 @@ export const dayAccessibilityLabel = (
 
   return markedLabel === undefined ? date : `${date}, ${markedLabel}`;
 };
+
+/** The first and the last day drawn by the fitted grid of a month (`buildFittedMonthGrid`). */
+export const monthRange = (month: CalendarMonth): { from: string; to: string } => {
+  const first = toIsoDate(month, 1);
+  const leading = isoWeekdayOf(first) - 1;
+  const length = new Date(month.year, month.month, 0).getDate();
+  const from = addDays(first, -leading);
+
+  return { from, to: addDays(from, Math.ceil((leading + length) / 7) * 7 - 1) };
+};

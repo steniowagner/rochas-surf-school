@@ -298,7 +298,7 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > with its test, shared by both children; the week row's background sits on an inner `View`
   > (`calendar-day-<date>-background`) because a `TouchableOpacity` doesn't expose its `className` to tests
 
-- [ ] **T-04** — Add `WeekMonthCalendar` in `src/components/week-month-calendar/` (`.component.tsx`, `.hook.ts`,
+- [x] **T-04** — Add `WeekMonthCalendar` in `src/components/week-month-calendar/` (`.component.tsx`, `.hook.ts`,
   `.types.ts`, `index.ts`) with the props of D-05: the header (arrows, pill with icon, caption and chevron, "Hoje" —
   D-07, D-09, D-10), the internal view starting on `"week"`, the moves of D-06 through `onSelectDate`, and
   `onVisibleRangeChange`; add the `weekMonthCalendar` keys of D-12 to `src/i18n/messages/{pt-BR,en-US,es-ES}.ts`.
@@ -307,6 +307,16 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   across views", "adjacent month day moves the grid", "arrows", "Today" and "visible range".
   Covers: ER-01, ER-04, ER-05, ER-06, ER-08, ER-09, ER-10, ER-12 · Done when: `npx jest
   src/components/week-month-calendar` passes and the grep of ER-12 prints nothing.
+  > ✅ 2026-10-16 — added `WeekMonthCalendar` with the props of D-05: header (round arrows, pill with calendar icon,
+  > caption and chevron, "Hoje" chip), the internal view starting on `"week"`, the moves of D-06 through `onSelectDate`
+  > and `onVisibleRangeChange` (through `useEffectEvent`, fired on mount and when `from`/`to` change); the
+  > `weekMonthCalendar` keys of D-12 in the three locales; files:
+  > `apps/mobile/src/components/week-month-calendar/{index.ts,week-month-calendar.component.tsx,week-month-calendar.hook.ts,week-month-calendar.types.ts,week-month-calendar.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`, `apps/mobile/src/utils/calendar-dates.ts`,
+  > `apps/mobile/src/utils/calendar-dates.test.ts`; verified: `npx jest src/components/week-month-calendar` (16
+  > passed), `npx jest src/utils` (all passed), `npm run check-types` (exit 0), eslint clean, the ER-12 grep prints
+  > nothing; deviations: added `monthRange(month)` to `calendar-dates.ts` (with its test) for the month view's
+  > reported range — a small technical step
 
 - [ ] **T-05** — Add `useVisibleWeeksClasses({ from, to })` in
   `src/modules/classes/hooks/use-visible-weeks-classes.hook.ts`: one query per Monday from `mondayOf(from)` to `to`

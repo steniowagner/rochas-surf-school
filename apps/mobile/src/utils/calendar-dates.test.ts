@@ -14,6 +14,7 @@ import {
   isSameMonth,
   mondayOf,
   monthCaption,
+  monthRange,
   monthOf,
   toIsoDate,
   toLocalDate,
@@ -239,5 +240,13 @@ describe("dayAccessibilityLabel", () => {
       "Wednesday, October 14th, 2026, with classes",
     );
     expect(dayAccessibilityLabel("2026-10-14", ptBR, undefined)).toBe("quarta-feira, 14 de outubro de 2026");
+  });
+});
+
+describe("monthRange", () => {
+  it("is the first and the last day the fitted grid draws", () => {
+    expect(monthRange({ year: 2026, month: 10 })).toEqual({ from: "2026-09-28", to: "2026-11-01" });
+    expect(monthRange({ year: 2027, month: 2 })).toEqual({ from: "2027-02-01", to: "2027-02-28" });
+    expect(monthRange({ year: 2026, month: 8 })).toEqual({ from: "2026-07-27", to: "2026-09-06" });
   });
 });

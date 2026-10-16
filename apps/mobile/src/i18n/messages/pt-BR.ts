@@ -270,6 +270,15 @@ const messages: Messages = {
     classes: "Aulas",
     profile: "Perfil",
   },
+  weekMonthCalendar: {
+    showMonth: "Ver o mês",
+    showWeek: "Ver a semana",
+    previousWeek: "Ver a semana anterior",
+    nextWeek: "Ver a semana seguinte",
+    previousMonth: "Ver o mês anterior",
+    nextMonth: "Ver o mês seguinte",
+    today: "Hoje",
+  },
   classesWeek: {
     relative: {
       current: "Esta semana",

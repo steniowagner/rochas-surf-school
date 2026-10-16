@@ -1,5 +1,6 @@
 import {
   isValidDateRange,
+  isValidExcludedDates,
   isValidIsoDate,
   isValidWeekdays,
   listBatchClasses,
@@ -39,7 +40,42 @@ describe("isValidWeekdays", () => {
   });
 });
 
+describe("isValidExcludedDates", () => {
+  it("is optional, and otherwise a list of real dates", () => {
+    expect(isValidExcludedDates(undefined)).toBe(true);
+    expect(isValidExcludedDates(null)).toBe(true);
+    expect(isValidExcludedDates([])).toBe(true);
+    expect(isValidExcludedDates(["2026-10-16", "2026-10-21"])).toBe(true);
+    expect(isValidExcludedDates(["2026-02-30"])).toBe(false);
+    expect(isValidExcludedDates(["16/10/2026"])).toBe(false);
+    expect(isValidExcludedDates([20261016])).toBe(false);
+    expect(isValidExcludedDates("2026-10-16")).toBe(false);
+  });
+});
+
 describe("listBatchDates", () => {
+  it("leaves out the excluded dates, whatever their weekday", () => {
+    expect(
+      listBatchDates({
+        startDate: "2026-10-15",
+        endDate: "2026-10-22",
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+        excludedDates: ["2026-10-16", "2026-10-21", "2026-12-25"],
+      }),
+    ).toEqual(["2026-10-15", "2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-22"]);
+  });
+
+  it("combines the weekdays and the excluded dates", () => {
+    expect(
+      listBatchDates({
+        startDate: "2026-10-12",
+        endDate: "2026-10-18",
+        weekdays: [1, 7],
+        excludedDates: ["2026-10-12"],
+      }),
+    ).toEqual(["2026-10-18"]);
+  });
+
   it("lists the included weekdays of the range, ends included", () => {
     expect(
       listBatchDates({

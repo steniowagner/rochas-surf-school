@@ -90,6 +90,18 @@ describe('ClassesController', () => {
     });
   });
 
+  it('leaves out the excluded dates of the body', async () => {
+    const { controller, stored, body } = setup();
+
+    const out = await controller.createBatch(
+      userOf('admin'),
+      { ...body, endDate: '2026-10-17', excludedDates: ['2026-10-16'] } as never,
+    );
+
+    expect(out).toEqual({ count: 2 });
+    expect(stored.map((item) => item.startsAt.toISOString().slice(0, 10))).toEqual(['2026-10-15', '2026-10-17']);
+  });
+
   it('answers 422 when creating without a body', async () => {
     const { controller } = setup();
 

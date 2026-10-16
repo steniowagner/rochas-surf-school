@@ -115,6 +115,40 @@ describe("CreateClassBatch", () => {
     expect(classes.all).toHaveLength(1);
   });
 
+  it("creates no class on an excluded date", async () => {
+    const { useCase, input, classes } = setup();
+
+    const out = await useCase.execute({
+      ...input,
+      weekdays: [1, 2, 3, 4, 5, 6, 7],
+      excludedDates: ["2026-10-16"],
+    });
+
+    // 15 and 17, two ranges each.
+    expect(out).toEqual({ count: 4 });
+    expect(classes.all.map((item) => item.startsAt.toISOString().slice(0, 10))).not.toContain("2026-10-16");
+  });
+
+  it("leaves out the classes that already started when asked to skip the past", async () => {
+    const { useCase, input, classes } = setup();
+
+    const out = await useCase.execute({
+      ...input,
+      startDate: "2026-10-14",
+      endDate: "2026-10-16",
+      weekdays: [1, 2, 3, 4, 5, 6, 7],
+      skipPast: true,
+      timeRanges: [
+        { start: "08:00", end: "09:00" },
+        { start: "16:00", end: "17:00" },
+      ],
+    });
+
+    // 14th 08:00 has passed (it is 10:00): five of the six classes remain.
+    expect(out).toEqual({ count: 5 });
+    expect(classes.all.map((item) => item.startsAt.toISOString())).not.toContain("2026-10-14T11:00:00.000Z");
+  });
+
   it("keeps one assignment for a repeated instructor id", async () => {
     const { useCase, input, classes } = setup();
 
@@ -191,6 +225,9 @@ describe("CreateClassBatch", () => {
       ["end before start", { startDate: "2026-10-17", endDate: "2026-10-15" }, ["class.dates.invalid"]],
       ["empty weekdays", { weekdays: [] }, ["class.weekdays.invalid"]],
       ["weekday 8", { weekdays: [8] }, ["class.weekdays.invalid"]],
+      ["skipPast not a boolean", { skipPast: "yes" }, ["class.skipPast.invalid"]],
+      ["excluded dates not a list", { excludedDates: "2026-10-16" }, ["class.excludedDates.invalid"]],
+      ["impossible excluded date", { excludedDates: ["2026-02-30"] }, ["class.excludedDates.invalid"]],
       ["missing ranges", { timeRanges: undefined }, ["class.timeRanges.required"]],
       ["empty ranges", { timeRanges: [] }, ["class.timeRanges.required"]],
       ["malformed time", { timeRanges: [{ start: "8:00", end: "09:00" }] }, ["class.timeRanges.invalid"]],
@@ -319,6 +356,35 @@ describe("CreateClassBatch", () => {
 
       expect(error.message).toBe("class.batch.empty");
       expect(error.statusCode).toBe(422);
+      expect(classes.all).toHaveLength(0);
+    });
+
+    it("refuses a batch that is all in the past even when asked to skip it", async () => {
+      const { useCase, input, classes } = setup();
+
+      const error = await errorOf(
+        useCase.execute({
+          ...input,
+          startDate: "2026-10-14",
+          endDate: "2026-10-14",
+          weekdays: [3],
+          skipPast: true,
+          timeRanges: [{ start: "08:00", end: "09:00" }],
+        }),
+      );
+
+      expect(error.message).toBe("class.batch.empty");
+      expect(classes.all).toHaveLength(0);
+    });
+
+    it("refuses a batch whose dates are all excluded", async () => {
+      const { useCase, input, classes } = setup();
+
+      const error = await errorOf(
+        useCase.execute({ ...input, excludedDates: ["2026-10-15", "2026-10-16", "2026-10-17"] }),
+      );
+
+      expect(error.message).toBe("class.batch.empty");
       expect(classes.all).toHaveLength(0);
     });
 

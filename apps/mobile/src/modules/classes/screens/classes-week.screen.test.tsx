@@ -169,7 +169,7 @@ describe("ClassesWeekScreen", () => {
     expect(screen.getByLabelText("Thursday, October 15th, 2026, with classes")).toBeOnTheScreen();
   });
 
-  it("shows another day's cards and count", async () => {
+  it("shows another day's cards", async () => {
     const user = userEvent.setup();
     serveWeeks({
       [THIS_MONDAY]: [

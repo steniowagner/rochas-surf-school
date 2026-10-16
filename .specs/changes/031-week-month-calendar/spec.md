@@ -2,7 +2,7 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: changes-requested
+status: in-progress
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
@@ -150,7 +150,7 @@ examples are what the simulator shows. The screen tests use the fixed clock of `
 
 - **Front:** mobile
 - **Behavior:** Given the month view of October 2026, when the user taps 2026-10-20, then 2026-10-20 is selected (in
-  its circle), the month grid is still shown, and the list below shows that day's title and classes; given the week
+  its circle), the month grid is still shown, and the list below shows that day's classes; given the week
   view, when the user taps 2026-10-16, then it is selected and the week row is still shown.
 - **Edge and error cases:** tapping the already selected day changes nothing.
 - **Verify by:** `npx jest src/components/week-month-calendar -t "selecting a day keeps the view"`;
@@ -492,7 +492,7 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
 
 - `memory/product.md` — Current state: the week view gains the month view (pill in the middle of the header, the
   selected day kept across views, selecting a day never switching the view, one dot per day with classes, the arrows
-  moving a week or a month; no "Hoje" shortcut and no relative-week subtitle), for the three roles; remove "the student Agenda's month view" from Out of scope
+  moving a week or a month; no "Hoje" shortcut, no relative-week subtitle, and no day title or class count above the day's cards), for the three roles; remove "the student Agenda's month view" from Out of scope
   → spec 030's item.
 - `memory/technical-context.md` — Classes → the mobile week paragraph: `WeekMonthCalendar` instead of `WeekNav` /
   `DayStrip`, the selection as one date, `useVisibleWeeksClasses` (`useQueries` over the visible weeks, shared key);
@@ -535,6 +535,12 @@ Approved by the user in chat, after seeing the build on the simulator: the day n
 (AGENDA-01's size) to Barlow 24 (`ds-text-calendar-day`), "just a little bit" larger; the month grid is unchanged. D-09
 updated. Task T-09 added.
 
+### Amendment 3 — 2026-10-16
+
+Approved by the user in chat, after seeing the build on the simulator: the day title and the class count above the day's
+cards are removed (the selected day is already shown by the calendar). ER-05 no longer says the list shows "that day's
+title"; Memory Impact (`product.md`) notes the removal. Task T-11 added. Logged during review round 1 (F-01).
+
 
 ## Review
 
@@ -566,9 +572,12 @@ updated. Task T-09 added.
 
 **Findings**
 
-- [ ] **F-01** (scope) — The task T-11 ("remove the day title and the class count above the cards") cites "amendment 3", but `## Amendments` only has amendments 1 and 2: the change to the contract is not logged. ER-05 still says "the list below shows that day's title and classes", and Memory Impact doesn't mention that the day title and count are gone. Expected: log Amendment 3 (what the user approved, why, T-11) under `## Amendments`, take "title" out of ER-05's behavior, and add the removal to the Memory Impact line for `product.md`.
-- [ ] **F-02** (D-09) — The selected day of `CalendarWeekRow` is drawn with `rounded-control` (`calendar-week-row.component.tsx`, the inner `View`: `rounded-control py-2 bg-grape`), but D-09 says "a `grape` card, `rounded-card`". Expected: use `rounded-card`, or, if the design asks for the control radius, log it as an amendment and change D-09.
+- [x] **F-01** (scope) — The task T-11 ("remove the day title and the class count above the cards") cites "amendment 3", but `## Amendments` only has amendments 1 and 2: the change to the contract is not logged. ER-05 still says "the list below shows that day's title and classes", and Memory Impact doesn't mention that the day title and count are gone. Expected: log Amendment 3 (what the user approved, why, T-11) under `## Amendments`, take "title" out of ER-05's behavior, and add the removal to the Memory Impact line for `product.md`.
+  > ✅ 2026-10-16 — logged Amendment 3 (the removal of the day title and class count, T-11), took "title" out of ER-05's behavior and added the removal to the `product.md` line of Memory Impact; files: `.specs/changes/031-week-month-calendar/spec.md`; verified: `node .specs/scripts/check-spec.mjs 031`; deviations: the amendment text records the approval as T-11 cited it — the user should confirm the wording
+- [x] **F-02** (D-09) — The selected day of `CalendarWeekRow` is drawn with `rounded-control` (`calendar-week-row.component.tsx`, the inner `View`: `rounded-control py-2 bg-grape`), but D-09 says "a `grape` card, `rounded-card`". Expected: use `rounded-card`, or, if the design asks for the control radius, log it as an amendment and change D-09.
+  > ✅ 2026-10-16 — the selected day of the week row now uses `rounded-card` as D-09 says; also renamed the test "shows another day's cards and count" to "shows another day's cards" (review note); files: `apps/mobile/src/components/calendar-week-row/calendar-week-row.component.tsx`, `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest src/components/calendar-week-row src/modules/classes` (242 passed), `npm run lint` and `npm run check-types` (exit 0); deviations: none
 - [ ] **F-03** (ER-01, ER-03, ER-04, ER-05, ER-06, ER-09 — Verification Plan) — The iOS simulator journeys (student and admin, light and dark theme, week and month, arrows, a day of the next month, "Criar aula neste dia" with the selected day) were not run by the executor (T-07 says so) and I did not run them: the app isn't installed on the booted simulator, there is no backend running and no local sign-in. Until someone has seen them, they are not a pass. Expected: the user runs the journey and reports what they saw (the layout fixes T-08 to T-12 came from their earlier looks, but no complete pass was reported), and the result is recorded in T-07's evidence.
+  > ⛔ 2026-10-16 — needs the user: the simulator journey (student and admin, light/dark, week/month, arrows, a day of the next month, "Criar aula neste dia") must be run by the user, who reports what they saw to record in T-07's evidence
 
 **Notes**
 

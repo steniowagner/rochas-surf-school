@@ -2,7 +2,7 @@
 id: "029"
 slug: batch-excluded-dates-skip-past
 title: "Batch creation: remove days and skip past times"
-status: in-review
+status: changes-requested
 created: 2026-10-15
 started: 2026-10-15
 base_commit: d152690c7f7b0efcec32af45720c2ffb958acd55
@@ -262,3 +262,69 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types` for classes, backend, mobile: 16 tasks successful)
+- related tests ✅ `run-related-tests.mjs --base cd59871` (D-02): mobile 503 passed, `modules/classes` 155 passed,
+  web 21 passed, backend unit 8 passed — RELATED TESTS PASSED
+- coverage of the changed lines ✅ `check-coverage.mjs --base cd59871`: COVERAGE OK, 24 files; no coverage-ignore
+  comments in the diff
+- e2e: backend suite ✅ `run-e2e.mjs 029` (15 files, 377 passed) · mobile: both user journeys exercised on the iOS
+  simulator (iPhone 18 Pro, local backend and Postgres) ✅
+- scope ✅ — `base_commit..HEAD` touches only the spec and the T-01 test (D-01)
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "creates no class on an excluded date, whatever its weekday" asserts 201 `{ count: 4 }` and the
+  stored dates (20, 20, 22, 22); "refuses malformed excluded dates…" asserts 422 `class.excludedDates.invalid`, 422
+  `class.batch.empty` and nothing stored; `null`/absent covered by `isValidExcludedDates` and the module tests.
+- ER-02 ❌ — the named cases pass (5 of 6 created with `skipPast`, `class.startsAt.past` without it,
+  `class.skipPast.invalid`, all-past → `class.batch.empty`, exactly-now counts as started, T-01's 201→200 / 202→
+  `tooLarge`), but the 200 limit is not enforced when the batch starts on an earlier date: see F-01.
+- ER-03 ✅ — named tests pass; on the simulator, range 17–21 Oct ("5 dias", "Nenhum dia removido" with the
+  explanation) → pressing the 19th struck it through, listed "19 OUT" under "Dias removidos", "4 dias"; pressing it
+  again restored it; removed again + 12:00–13:00 + location + instructor → "CRIAR 4 AULAS", toast "4 aulas
+  criadas", and the database got classes on 17, 18, 20 and 21 Oct only. No "Nos dias" filter on the screen.
+- ER-04 ✅ — named tests pass; on the simulator at 01:04 Fortaleza, today (16) + 17 with 00:00–01:00 → the chip
+  stayed selected, the hint "Os horários que já passaram não terão aula hoje." showed, the button read "CRIAR AULA"
+  (one class), toast "Aula criada", and the database got one class, 17 Oct 00:00 Fortaleza, none for today. The
+  only-today case is covered by "creates nothing when the only date is today and every selected time has passed"
+  (not repeated on the simulator; the executor saw it in T-03).
+
+**Findings**
+
+- [ ] **F-01** (ER-02) — with `skipPast: true` and a `startDate` before today, a batch of more than 200 future
+  classes is silently cut short and created instead of refused. `CreateClassBatch` lists at most
+  `CLASS_BATCH_MAX + timeRanges.length` classes, assuming (its comment says so) that started classes can only be on
+  today's date; but nothing stops `startDate` from being in the past, so the past days eat the margin, the list is
+  truncated before the filter, and the remainder passes the 200 check.
+  Reproduce: in `modules/classes`, with the test setup's clock (2026-10-14 10:00 Fortaleza), execute the use case
+  with `startDate: "2026-10-04"`, `endDate: "2027-06-30"`, all seven weekdays, one range 16:00–17:00 and
+  `skipPast: true` → `{ count: 192 }`, 192 classes stored, the last on 2027-04-23; the range holds ~259 classes that
+  haven't started. Same through the API: `POST /classes/batch` with a `startDate` ten days ago, an `endDate` eight
+  months ahead, one range and `skipPast: true` → 201. Expected: 422 `class.batch.tooLarge` with
+  `details: { max: 200 }` and nothing stored (ER-02: "more than 200 classes *after* leaving out the started ones →
+  422"), plus a unit test for it. The fix touches product code, which D-01 rules out, so it needs an amendment
+  first (`/spec-plan --amend 029`): e.g. drop the cap when `skipPast` is set (the range is already bounded by the
+  date checks) or count the started classes before capping.
+
+**Notes**
+
+- The app is not affected by F-01: the calendar disables the days before today, so the app never sends a past
+  `startDate`, and its own count (`CLASS_BATCH_MAX + selectedRanges.length` minus the past ranges) is right for
+  ranges that start today.
+- The "Nova aula" screen reads today and the time only when it renders: a screen left open across midnight (found
+  that way on the simulator: opened on the 15th, still showing the 15th as today at 01:02 on the 16th) or across a
+  time's start sends no `skipPast` and gets the whole batch refused with `class.startsAt.past`. Outside D-04's
+  wording, but worth a follow-up (re-read the clock on submit).
+- The e2e "refuses a malformed skipPast…" checks the error key of the malformed request but not its 422 status nor
+  that nothing was stored; the module test covers both. Worth tightening while fixing F-01.
+- The success toast is drawn with the error style (red, alert icon) — from spec 028's `alertMessage.show`, already
+  noted by the executor as a follow-up.
+- An earlier toast with an empty message was left on the screen of the simulator session; it couldn't be
+  reproduced, so it is not a finding.
+- Memory Impact matches what the code does; once F-01 is fixed, add to `memory/modules/classes.md` that the 200
+  limit holds whatever the start date.

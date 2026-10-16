@@ -229,6 +229,22 @@ describe("ClassesWeekScreen", () => {
     expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
   });
 
+  it("keeps the calendar when the week fails to load", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    await renderScreen();
+
+    expect(await screen.findByText("Couldn't load the classes.")).toBeOnTheScreen();
+    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+    expect(screen.getByText("WED")).toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
+
+    await user.press(screen.getByTestId("calendar-day-2026-10-16"));
+
+    expect(screen.getByTestId("calendar-day-2026-10-16")).toBeSelected();
+    expect(screen.getByText("Couldn't load the classes.")).toBeOnTheScreen();
+  });
+
   it("shows no error state when the session expired", async () => {
     (api.apiGet as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
     const { queryClient } = await renderScreen();

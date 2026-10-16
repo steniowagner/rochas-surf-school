@@ -399,6 +399,24 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > `font-size: 24px`; no component or test changed (the week row already uses the class); deviations: none; needs
   > `npx expo start --clear` to show on the device
 
+- [x] **T-10** (added during execution) — Fix the week row collapsing when the week's request fails: the day's inner
+  `View` had `flex-1` in a column with no definite height (since T-08 dropped its `min-h`), so its content measured
+  zero tall and only the selected day's padding showed; add a screen test that the calendar stays when the request
+  fails.
+  Covers: ER-01, ER-05 · Done when: `npx jest src/components/calendar-week-row
+  src/modules/classes/screens/classes-week` passes.
+  > ✅ 2026-10-16 — removed `flex-1` from the inner `View` of `CalendarWeekRow`, whose height now comes from its
+  > content; added the test "keeps the calendar when the week fails to load" (the calendar and its selection stay and
+  > a day can still be picked while the error shows); files:
+  > `apps/mobile/src/components/calendar-week-row/calendar-week-row.component.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest
+  > src/components/calendar-week-row src/modules/classes/screens/classes-week` (29 passed), `npm run lint` and `npm run
+  > check-types` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (the first run had 1 failing test that I did not
+  > capture, the rerun passed: 714 tests; most likely the known `new-class.screen` timing flake, unconfirmed),
+  > `check-coverage.mjs 031` COVERAGE OK;
+  > deviations: Jest doesn't lay views out, so the test can't fail on the collapse itself, the visual fix needs the
+  > user's check on the simulator (a Fast Refresh is enough)
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS

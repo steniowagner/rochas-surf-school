@@ -31,7 +31,7 @@ export function CalendarWeekRow({ onSelectDate, ...props }: CalendarWeekRowProps
           >
             <View
               testID={`calendar-day-${day.date}-background`}
-              className={`flex-1 items-center justify-center gap-1 rounded-card py-2 ${day.selected ? "bg-grape" : ""}`}
+              className={`items-center justify-center gap-1 rounded-card py-2 ${day.selected ? "bg-grape" : ""}`}
             >
               <Text
                 className={`ds-text-chip ${day.selected ? "text-on-color" : "text-ink-2"}`}

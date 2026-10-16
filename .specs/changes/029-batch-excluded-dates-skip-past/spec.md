@@ -179,10 +179,25 @@ requirements describe it, so the next spec (the Aulas tab, which opens this form
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-03** — Run the classes tests of the app and follow the two user journeys of the Verification Plan on the
+- [x] **T-03** — Run the classes tests of the app and follow the two user journeys of the Verification Plan on the
   iOS simulator against the local backend. No code change; record the counts and what was seen as evidence.
   Covers: ER-03, ER-04 · Done when: `npx jest src/modules/classes` passes from `apps/mobile` with the tests named
   in ER-03 and ER-04, and both journeys show what they describe.
+  > ✅ 2026-10-15 23:28 — ran the classes tests of the app and both journeys on the iOS simulator (iPhone 18 Pro,
+  > signed in as the dev admin, backend from `apps/backend/dist` on :4000, local Postgres). Days: range 18–22 Oct
+  > ("5 dias"); pressing the 20th struck it through, listed "20 OUT" under "Dias removidos" and the count went to "4
+  > dias"; pressing it again brought it back ("5 dias", "Nenhum dia removido"); removed again, one time (12:00–13:00),
+  > "Review R2 Beach" and "Dev Instructor" → the caption read "4 dias × 1 horário · Review R2 Beach", the button
+  > "CRIAR 4 AULAS", the toast "4 aulas criadas", and the database got classes on 18, 19, 21 and 22 Oct only, none on
+  > the 20th. Past times (23:26 in Fortaleza, today the 15th): today + tomorrow with 12:00–13:00 → the chip stayed
+  > selected, the hint "Os horários que já passaram não terão aula hoje." showed, the caption "2 dias × 1 horário" and
+  > the toast "Aula criada"; the database got one class, 16 Oct 12:00 Fortaleza, none for today. Only today with the
+  > same time and everything else filled → "CRIAR AULA" stayed disabled. Files: none; verified: `npx jest
+  > src/modules/classes` from `apps/mobile` (22 suites, 162 tests passed, the seven tests named in ER-03 and ER-04
+  > listed as passed with `--verbose`); deviations: with one class the button reads "Criar aula" (singular, no number)
+  > rather than the "Criar 1 aula" the journey text says; the creation toast is drawn with a red background and an
+  > alert icon even though it is a success (noted as a follow-up, outside this spec); the local database kept the 5
+  > classes the journeys created
 
 ### Verification
 

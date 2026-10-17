@@ -404,13 +404,14 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   Covers: ER-14 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
   > ✅ 2026-10-17 01:09 — useNotificationResponse opens the class details of the resolved instructor/admin flow for a class.cancelled push with a classId (else home); useNotificationReceived invalidates ["classes"] for it; files: `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `use-notification-received.hook.ts`, `use-notification-response.hook.test.tsx`, `use-notification-received.hook.test.tsx`; verified: `npx jest src/modules/notifications/hooks` (59 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
-- [ ] **T-17** (added by amendment) — Take "Cancelar aula" and `CancelClassSheet` out of `EditClassScreen`
+- [x] **T-17** (added by amendment) — Take "Cancelar aula" and `CancelClassSheet` out of `EditClassScreen`
   (`src/modules/classes/screens/edit-class.screen.tsx`, `edit-class.screen.hook.ts`: the button, the sheet, the
   cancel request and its error handling), keeping the cancelled state and the `class.cancelled` save toast (D-13);
   update the "cancel" cases of `edit-class.screen.test.tsx` (they move to T-19) and remove the unused
   `editClass.cancel` copy from `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`. It undoes the editor wiring of T-14.
   Covers: ER-09, ER-13 · Done when: `npx jest src/modules/classes/screens/edit-class.screen.test.tsx` passes with a
   case proving "Editar aula" has no "Cancelar aula" button, and `npx tsc --noEmit` passes from `apps/mobile`.
+  > ✅ 2026-10-17 15:40 — Removed the 'Cancelar aula' button, CancelClassSheet and the cancel request/error handling from EditClassScreen and its hook, kept the cancelled state and the class.cancelled save toast, dropped the editClass.cancel copy, moved the cancel test cases out (they return in T-19) and added a case proving the editor has no Cancel class button; files: `apps/mobile/src/modules/classes/screens/edit-class.screen.tsx`, `edit-class.screen.hook.ts`, `edit-class.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/screens/edit-class` (43 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
 - [ ] **T-18** (added by amendment) — Add `ClassToolsSheet` (`src/modules/classes/components/class-tools-sheet/`:
   component, hook, types, index; D-18) with the `classTools.*` copy in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`,

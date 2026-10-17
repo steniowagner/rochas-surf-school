@@ -484,7 +484,6 @@ const messages: Messages = {
     },
     note: "Ao salvar, avisamos os instrutores da aula.",
     submit: "Salvar e notificar",
-    cancel: "Cancelar aula",
     saved: "Alterações salvas",
     errors: {
       started: "A aula já começou: só dá para trocar os instrutores.",

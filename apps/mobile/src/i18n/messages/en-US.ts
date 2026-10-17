@@ -484,7 +484,6 @@ const messages = {
     },
     note: "When you save, the class's instructors are notified.",
     submit: "Save and notify",
-    cancel: "Cancel class",
     saved: "Changes saved",
     errors: {
       started: "The class has started: only the instructors can be changed.",

@@ -491,7 +491,6 @@ const messages: Messages = {
     },
     note: "Al guardar, avisamos a los instructores de la clase.",
     submit: "Guardar y notificar",
-    cancel: "Cancelar clase",
     saved: "Cambios guardados",
     errors: {
       started: "La clase ya empezó: solo se pueden cambiar los instructores.",

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,7 +8,6 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
 import { useTheme } from "@/hooks/use-theme";
 
-import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
 import { FormSection } from "../components/form-section";
@@ -194,13 +192,6 @@ export function EditClassScreen() {
             onRetry={screen.retryTeachers}
           />
         </FormSection>
-        <Button
-          variant="outline"
-          icon={<Ionicons name="close-circle-outline" size={20} color={theme.ink} />}
-          onPress={screen.openCancelSheet}
-        >
-          {t("editClass.cancel")}
-        </Button>
       </ScrollView>
       <View
         className="gap-2 border-t border-line bg-page px-screen pt-3"
@@ -222,12 +213,6 @@ export function EditClassScreen() {
         visible={screen.timeSheetVisible}
         onClose={screen.closeTimeSheet}
         onSubmit={screen.addTimeRange}
-      />
-      <CancelClassSheet
-        visible={screen.cancelSheetVisible}
-        loading={screen.cancelling}
-        onConfirm={screen.cancel}
-        onClose={screen.closeCancelSheet}
       />
       <LocationSheet
         visible={screen.locationSheetVisible}

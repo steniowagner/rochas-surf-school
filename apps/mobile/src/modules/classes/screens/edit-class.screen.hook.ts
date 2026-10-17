@@ -15,7 +15,6 @@ import { ApiError, SessionExpiredError } from "@/services/api";
 
 import { ClassItem, ClassLocation, EditClassRequest, Teacher } from "../classes.types";
 import { useClass } from "../hooks/use-class.hook";
-import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useEditClass } from "../hooks/use-edit-class.hook";
 import { useLocations } from "../hooks/use-locations.hook";
 import { useNow } from "../hooks/use-now.hook";
@@ -23,7 +22,6 @@ import { useTeachers } from "../hooks/use-teachers.hook";
 import { useTimeRangeSuggestions } from "../hooks/use-time-range-suggestions.hook";
 import { DateRange, minutesInSchoolZone, todayInSchoolZone } from "../utils/calendar";
 import {
-  getCancelClassErrorKey,
   getEditClassErrorKey,
   getSeatsTaken,
   isClassCancelledError,
@@ -64,7 +62,6 @@ export const useEditClassScreen = () => {
   const suggestionsQuery = useTimeRangeSuggestions();
   const teachersQuery = useTeachers();
   const editClass = useEditClass(id);
-  const cancelClass = useCancelClass(id);
   const item = classQuery.data;
   const today = todayInSchoolZone(now);
 
@@ -77,9 +74,6 @@ export const useEditClassScreen = () => {
   const [locationSheetVisible, setLocationSheetVisible] = useState(false);
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
   const sending = useRef(false);
-  const [cancelSheetVisible, setCancelSheetVisible] = useState(false);
-  // Same guard for the cancellation, whose sheet can be confirmed twice in a frame.
-  const cancelling = useRef(false);
 
   const initial = item ? formOf(item) : null;
   const form = initial ? { ...initial, ...changes } : null;
@@ -234,43 +228,6 @@ export const useEditClassScreen = () => {
     }
   };
 
-  const showCancelError = (error: unknown) => {
-    if (isClassCancelledError(error) || isClassFinishedError(error)) {
-      setCancelSheetVisible(false);
-      void classQuery.refetch();
-    }
-
-    if (isClassNotFoundError(error)) {
-      router.back();
-    }
-
-    const messageKey = getCancelClassErrorKey(error);
-
-    if (messageKey !== null) {
-      alertMessage.show(t(messageKey));
-    }
-  };
-
-  const cancel = async (message: string | undefined) => {
-    if (cancelling.current) {
-      return;
-    }
-
-    cancelling.current = true;
-
-    try {
-      await cancelClass.mutateAsync(message === undefined ? {} : { message });
-
-      alertMessage.show(t("cancelClass.done"));
-      setCancelSheetVisible(false);
-      router.back();
-    } catch (error) {
-      showCancelError(error);
-    } finally {
-      cancelling.current = false;
-    }
-  };
-
   const isNotFound = classQuery.error instanceof ApiError && classQuery.error.status === 404;
 
   return {
@@ -281,11 +238,6 @@ export const useEditClassScreen = () => {
     retry: () => void classQuery.refetch(),
     isFinished: state === "finished",
     isCancelled: state === "cancelled",
-    cancelSheetVisible,
-    openCancelSheet: () => setCancelSheetVisible(true),
-    closeCancelSheet: () => setCancelSheetVisible(false),
-    cancelling: cancelClass.isPending,
-    cancel,
     isStarted,
     form,
     today,

@@ -70,7 +70,7 @@ describe("CalendarMonthGrid", () => {
     expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
   });
 
-  it("shows one lagoon dot for a day with classes, including adjacent days", async () => {
+  it("shows one dot, lagoon, for a day with classes, including adjacent days", async () => {
     await render(setup(["2026-10-14", "2026-10-15", "2026-11-01"]).ui);
 
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(3);

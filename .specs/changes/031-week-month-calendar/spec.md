@@ -2,7 +2,7 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: changes-requested
+status: in-progress
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
@@ -616,7 +616,8 @@ Round 1's findings: F-01 ✅ (Amendment 3 logged, ER-05 and Memory Impact update
 
 **Findings**
 
-- [ ] **F-01** (tests, ER-03) — ER-03's `Verify by` `npx jest src/components/calendar-month-grid -t "one dot"` selects no test (`Tests: 9 skipped, 9 total`): the month grid's test is named "shows one lagoon dot for a day with classes, including adjacent days", which "one dot" doesn't match. Reproduce: run that command from `apps/mobile`. Expected: it runs and passes the month grid's dot test — rename the test so its name contains "one dot" (e.g. "shows one dot, lagoon, for a day with classes, including adjacent days").
+- [x] **F-01** (tests, ER-03) — ER-03's `Verify by` `npx jest src/components/calendar-month-grid -t "one dot"` selects no test (`Tests: 9 skipped, 9 total`): the month grid's test is named "shows one lagoon dot for a day with classes, including adjacent days", which "one dot" doesn't match. Reproduce: run that command from `apps/mobile`. Expected: it runs and passes the month grid's dot test — rename the test so its name contains "one dot" (e.g. "shows one dot, lagoon, for a day with classes, including adjacent days").
+  > ✅ 2026-10-16 — reproduced (9 skipped), then renamed the test to "shows one dot, lagoon, for a day with classes, including adjacent days" (body unchanged); files: `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.component.test.tsx`; verified: `npx jest src/components/calendar-month-grid -t "one dot"` from `apps/mobile` (1 passed, 8 skipped); deviations: none
 - [ ] **F-02** (convention) — `useCalendarWeekRow` (`calendar-week-row.hook.ts`) and `useCalendarMonthGrid` (`calendar-month-grid.hook.ts`) type their parameter with an inline `Pick<CalendarWeekRowProps, …>` / `Pick<CalendarMonthGridProps, …>` in the hook file; `.claude/rules/react.md` §1 puts the hook's props (`UseCalendarWeekRowProps`, `UseCalendarMonthGridProps`) in the component's `.types.ts`, as `WeekMonthCalendar` does with `UseWeekMonthCalendarProps` and the other 26 component hooks of the app do. Expected: declare both types in their `.types.ts` and use them in the hooks.
 
 **Notes**

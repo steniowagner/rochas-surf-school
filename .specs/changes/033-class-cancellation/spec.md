@@ -327,11 +327,12 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   `apps/backend`.
   > ✅ 2026-10-17 00:35 — Added the class.cancelled entry (title and both bodies, three locales, message trimmed and blank counted as none) to the push catalog; files: `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications/push-messages.spec.ts` (29 passed); deviations: none
 
-- [ ] **T-08** — Add `classCancelled` to `NotificationsClassChangeNotifier`
+- [x] **T-08** — Add `classCancelled` to `NotificationsClassChangeNotifier`
   (`src/modules/notifications/notifications.class-change-notifier.ts`, D-08), with cases in its spec.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-07 · Done when: `npx vitest run src/modules/notifications/notifications.class-change-notifier.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-17 00:35 — Added classCancelled to NotificationsClassChangeNotifier (Notify with class.cancelled, message only when present, errors logged and swallowed); files: `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts`; verified: `npx vitest run src/modules/notifications/notifications.class-change-notifier.spec.ts` (8 passed); deviations: skill backend-provider-implementation not invoked, the existing classEdited adapter was extended directly
 
 - [ ] **T-09** — Expose `POST /classes/:id/cancel` in `src/modules/classes/classes.controller.ts` (running
   `CancelClass` with the repository, the change notifier and the clock, then answering the class read back as in

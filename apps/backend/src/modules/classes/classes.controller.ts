@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
 import {
+  CancelClass,
   ClassActor,
   CreateClassBatch,
   CreateClassBatchIn,
@@ -26,6 +27,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
 
 type CreateClassBatchBody = Partial<Omit<CreateClassBatchIn, 'actor'>> | undefined;
 type EditClassBody = Partial<Omit<EditClassIn, 'actor' | 'id'>> | undefined;
+type CancelClassBody = { message?: unknown } | undefined;
 
 function actorOf(user: AuthenticatedUser): ClassActor {
   return { id: user.id, role: user.role, status: user.status };
@@ -127,6 +129,24 @@ export class ClassesController {
       instructorIds: body?.instructorIds,
       capacity: body?.capacity,
       notes: body?.notes,
+    });
+
+    return new GetClass(this.classViewReader).execute({ actor, id });
+  }
+
+  @Post(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  async cancel(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body?: CancelClassBody,
+  ): Promise<GetClassOut> {
+    const actor = actorOf(user);
+
+    await new CancelClass(this.schoolClassRepository, this.classChangeNotifier, this.clock).execute({
+      actor,
+      id,
+      message: body?.message,
     });
 
     return new GetClass(this.classViewReader).execute({ actor, id });

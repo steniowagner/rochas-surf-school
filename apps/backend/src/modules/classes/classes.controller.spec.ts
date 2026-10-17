@@ -40,7 +40,9 @@ function setup() {
     findById: vi.fn(async (id: string) => stored.find((item) => item.id === id) ?? null),
     update: vi.fn(async (schoolClass: SchoolClass) => {
       stored.splice(0, stored.length, schoolClass);
+      return true;
     }),
+    cancel: vi.fn(async () => true),
   };
   const locationRepository = { findById: vi.fn(async () => location) };
   const teacherLookup = {
@@ -50,7 +52,10 @@ function setup() {
     classAssigned: vi.fn(async () => undefined),
     classUnassigned: vi.fn(async () => undefined),
   };
-  const changeNotifier = { classEdited: vi.fn(async () => undefined) };
+  const changeNotifier = {
+    classEdited: vi.fn(async () => undefined),
+    classCancelled: vi.fn(async () => undefined),
+  };
   const classViewReader = {
     findStartingBetween: vi.fn(async () => []),
     findById: vi.fn(async () => null),
@@ -87,6 +92,7 @@ describe('ClassesController', () => {
     ['week', '/', RequestMethod.GET, HttpStatus.OK],
     ['one', ':id', RequestMethod.GET, HttpStatus.OK],
     ['edit', ':id', RequestMethod.PUT, HttpStatus.OK],
+    ['cancel', ':id/cancel', RequestMethod.POST, HttpStatus.OK],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
     const handler = handlerOf(name);
 
@@ -308,6 +314,107 @@ describe('ClassesController', () => {
       await expect(controller.edit(userOf('admin'), INSTRUCTOR_ID, editBody as never)).rejects.toMatchObject({
         statusCode: 404,
         message: 'class.notFound',
+      });
+    });
+  });
+
+  describe('cancel', () => {
+    const CANCELLED_ID = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+    const OTHER_INSTRUCTOR_ID = '3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f';
+
+    function withStoredClass() {
+      const context = setup();
+      context.stored.push(
+        new SchoolClass({
+          id: CANCELLED_ID,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date('2026-10-15T11:00:00.000Z'),
+          endsAt: new Date('2026-10-15T12:00:00.000Z'),
+          locationId: context.location.id,
+          instructorIds: [INSTRUCTOR_ID, ADMIN_ID, OTHER_INSTRUCTOR_ID],
+          capacity: 8,
+          createdBy: ADMIN_ID,
+        }),
+      );
+      context.classViewReader.findById.mockImplementation((async () => ({
+        id: CANCELLED_ID,
+        discipline: 'surf',
+        level: 'beginner',
+        startsAt: new Date('2026-10-15T11:00:00.000Z'),
+        endsAt: new Date('2026-10-15T12:00:00.000Z'),
+        capacity: 8,
+        notes: null,
+        cancelledAt: NOW,
+        cancellationMessage: 'Mar muito grande.',
+        location: { id: context.location.id, name: 'Praia', address: 'Av.' },
+        instructors: [],
+      })) as never);
+      return context;
+    }
+
+    it('cancels the class with the trimmed message and answers the class item', async () => {
+      const { controller, classRepository } = withStoredClass();
+
+      const out = await controller.cancel(userOf('admin'), CANCELLED_ID, { message: '  Mar muito grande.  ' });
+
+      expect(classRepository.cancel).toHaveBeenCalledWith(CANCELLED_ID, NOW, 'Mar muito grande.');
+      expect(out).toMatchObject({
+        id: CANCELLED_ID,
+        cancelledAt: NOW.toISOString(),
+        cancellationMessage: 'Mar muito grande.',
+      });
+    });
+
+    it('stores no message when there is no body', async () => {
+      const { controller, classRepository } = withStoredClass();
+
+      await controller.cancel(userOf('admin'), CANCELLED_ID, undefined);
+
+      expect(classRepository.cancel).toHaveBeenCalledWith(CANCELLED_ID, NOW, null);
+    });
+
+    it('notifies the other instructors through the change notifier, never the caller', async () => {
+      const { controller, changeNotifier } = withStoredClass();
+
+      await controller.cancel(userOf('admin'), CANCELLED_ID, { message: 'Mar muito grande.' });
+
+      expect(changeNotifier.classCancelled).toHaveBeenCalledWith({
+        instructorIds: [INSTRUCTOR_ID, OTHER_INSTRUCTOR_ID],
+        classId: CANCELLED_ID,
+        discipline: 'surf',
+        startsAt: new Date('2026-10-15T11:00:00.000Z'),
+        message: 'Mar muito grande.',
+      });
+    });
+
+    it('answers 409 class.cancelled when the cancel loses the race', async () => {
+      const { controller, classRepository, changeNotifier } = withStoredClass();
+      classRepository.cancel.mockResolvedValueOnce(false);
+
+      await expect(controller.cancel(userOf('admin'), CANCELLED_ID, {})).rejects.toMatchObject({
+        statusCode: 409,
+        message: 'class.cancelled',
+      });
+      expect(changeNotifier.classCancelled).not.toHaveBeenCalled();
+    });
+
+    it('answers 403 for an instructor, 404 for an unknown class and 422 for a long message', async () => {
+      const { controller } = withStoredClass();
+
+      await expect(controller.cancel(userOf('instructor'), CANCELLED_ID, {})).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.role.notAdmin',
+      });
+      await expect(controller.cancel(userOf('admin'), INSTRUCTOR_ID, {})).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'class.notFound',
+      });
+      await expect(
+        controller.cancel(userOf('admin'), CANCELLED_ID, { message: 'm'.repeat(301) }),
+      ).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'class.cancellationMessage.max.length' })],
       });
     });
   });

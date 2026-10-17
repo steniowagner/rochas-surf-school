@@ -334,13 +334,14 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   passes from `apps/backend`.
   > ✅ 2026-10-17 00:35 — Added classCancelled to NotificationsClassChangeNotifier (Notify with class.cancelled, message only when present, errors logged and swallowed); files: `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts`; verified: `npx vitest run src/modules/notifications/notifications.class-change-notifier.spec.ts` (8 passed); deviations: skill backend-provider-implementation not invoked, the existing classEdited adapter was extended directly
 
-- [ ] **T-09** — Expose `POST /classes/:id/cancel` in `src/modules/classes/classes.controller.ts` (running
+- [x] **T-09** — Expose `POST /classes/:id/cancel` in `src/modules/classes/classes.controller.ts` (running
   `CancelClass` with the repository, the change notifier and the clock, then answering the class read back as in
   `PUT`), add cases to `classes.controller.spec.ts`, the scenarios to `classes.integration.http`, and the e2e tests of
   ER-01–ER-05 and ER-07 to `test/classes.e2e-spec.ts` (named as their `Verify by`).
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-07 · Done when: `npx vitest run src/modules/classes/classes.controller.spec.ts`
   and `npm run test:e2e --workspace apps/backend -- test/classes.e2e-spec.ts` pass.
+  > ✅ 2026-10-17 00:38 — Exposed POST /classes/:id/cancel (protected, 200, runs CancelClass then answers the class read back) in ClassesController; added the controller cases, the REST Client scenarios and the e2e tests of ER-01–ER-05 and ER-07 (including 'PUT /classes/:id refuses a cancelled class'); the existing week e2e expectation now includes the two new null fields; files: `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`, `apps/backend/src/modules/classes/classes.integration.http`, `apps/backend/test/classes.e2e-spec.ts`; verified: `npx vitest run src/modules/classes/classes.controller.spec.ts` (25 passed) and `npm run test:e2e -- test/classes.e2e-spec.ts` (75 passed, local Postgres), `npm run check-types` in apps/backend; deviations: backend-nest-controller skill not invoked, the existing controller pattern was followed
 
 ### Mobile (`apps/mobile`)
 

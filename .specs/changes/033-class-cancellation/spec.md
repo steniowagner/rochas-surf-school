@@ -309,7 +309,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-06** — Add `cancelledAt` / `cancellationMessage` to `SchoolClass` in `prisma/models/classes.model.prisma`
+- [x] **T-06** — Add `cancelledAt` / `cancellationMessage` to `SchoolClass` in `prisma/models/classes.model.prisma`
   and generate the migration `classes-add-cancellation`
   (`npm run prisma:migrate:dev --workspace apps/backend -- --name classes-add-cancellation`); implement `cancel` and
   the conditional `update` (D-04, D-06) in `src/modules/classes/school-class.prisma.ts` and map the two fields in it
@@ -319,6 +319,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   Covers: ER-01, ER-03, ER-05 · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies cleanly and
   `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/class-view-reader.prisma.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-17 00:35 — Added cancelledAt/cancellationMessage to the SchoolClass Prisma model and the migration classes_add_cancellation (created and applied with prisma migrate dev); PrismaSchoolClassRepository.cancel (one updateMany where cancelledAt is null, true when 1 row) and a conditional update (updateMany inside the transaction, instructors replaced only when it matched, boolean result); both Prisma mappers carry the two fields; files: `apps/backend/prisma/models/classes.model.prisma`, `apps/backend/prisma/migrations/20261017033444_classes_add_cancellation/migration.sql`, `apps/backend/src/modules/classes/school-class.prisma.ts`, `apps/backend/src/modules/classes/class-view-reader.prisma.ts`, `apps/backend/src/modules/classes/school-class.prisma.spec.ts`, `apps/backend/src/modules/classes/class-view-reader.prisma.spec.ts`; verified: `npm run prisma:migrate:deploy --workspace apps/backend` (no pending migrations) and `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/class-view-reader.prisma.spec.ts` (14 passed, after rebuilding the classes module dist); deviations: skill backend-prisma-sync-module not invoked, the schema and migration were written directly with prisma migrate dev
 
 - [ ] **T-07** — Add the D-09 catalog entry for `class.cancelled` to `src/modules/notifications/push-messages.ts`,
   with cases in `push-messages.spec.ts` (both bodies, three locales, blank message).

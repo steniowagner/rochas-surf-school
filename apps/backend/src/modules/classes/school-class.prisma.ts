@@ -55,10 +55,11 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     return record ? this.toDomain(record) : null;
   }
 
-  async update(schoolClass: SchoolClass): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      await tx.schoolClass.update({
-        where: { id: schoolClass.id },
+  async update(schoolClass: SchoolClass): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      // The check sits on the write itself: an edit that read the class before a cancel writes nothing.
+      const { count } = await tx.schoolClass.updateMany({
+        where: { id: schoolClass.id, cancelledAt: null },
         data: {
           discipline: schoolClass.discipline,
           level: schoolClass.level,
@@ -70,11 +71,26 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
           updatedAt: schoolClass.updatedAt,
         },
       });
+      if (count === 0) {
+        return false;
+      }
+
       await tx.classInstructor.deleteMany({ where: { classId: schoolClass.id } });
       await tx.classInstructor.createMany({
         data: schoolClass.instructorIds.map((userId) => ({ classId: schoolClass.id, userId })),
       });
+
+      return true;
     });
+  }
+
+  async cancel(id: string, at: Date, message: string | null): Promise<boolean> {
+    const { count } = await this.prisma.schoolClass.updateMany({
+      where: { id, cancelledAt: null },
+      data: { cancelledAt: at, cancellationMessage: message },
+    });
+
+    return count === 1;
   }
 
   private toDomain(record: SchoolClassWithInstructors): SchoolClass {
@@ -88,6 +104,8 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
       instructorIds: record.instructors.map((item) => item.userId),
       capacity: record.capacity,
       notes: record.notes,
+      cancelledAt: record.cancelledAt,
+      cancellationMessage: record.cancellationMessage,
       createdBy: record.createdBy,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,

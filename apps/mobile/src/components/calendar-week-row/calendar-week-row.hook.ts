@@ -8,7 +8,7 @@ import {
 
 import type {
   CalendarWeekRowDay,
-  CalendarWeekRowProps,
+  UseCalendarWeekRowProps,
 } from "./calendar-week-row.types";
 
 export const useCalendarWeekRow = ({
@@ -17,10 +17,7 @@ export const useCalendarWeekRow = ({
   today,
   markedDates,
   markedLabel,
-}: Pick<
-  CalendarWeekRowProps,
-  "days" | "selectedDate" | "today" | "markedDates" | "markedLabel"
->) => {
+}: UseCalendarWeekRowProps) => {
   const { i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
   const marked = new Set(markedDates);

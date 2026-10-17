@@ -11,7 +11,7 @@ import {
 
 import type {
   CalendarMonthGridDay,
-  CalendarMonthGridProps,
+  UseCalendarMonthGridProps,
 } from "./calendar-month-grid.types";
 
 export const useCalendarMonthGrid = ({
@@ -20,10 +20,7 @@ export const useCalendarMonthGrid = ({
   today,
   markedDates,
   markedLabel,
-}: Pick<
-  CalendarMonthGridProps,
-  "month" | "selectedDate" | "today" | "markedDates" | "markedLabel"
->) => {
+}: UseCalendarMonthGridProps) => {
   const { i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
   const marked = new Set(markedDates);

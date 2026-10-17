@@ -12,6 +12,11 @@ export type CalendarWeekRowProps = {
   onSelectDate: (date: string) => void;
 };
 
+export type UseCalendarWeekRowProps = Pick<
+  CalendarWeekRowProps,
+  "days" | "selectedDate" | "today" | "markedDates" | "markedLabel"
+>;
+
 export type CalendarWeekRowDay = {
   date: string;
   /** "WED". */

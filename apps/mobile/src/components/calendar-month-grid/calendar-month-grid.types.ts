@@ -14,6 +14,11 @@ export type CalendarMonthGridProps = {
   onSelectDate: (date: string) => void;
 };
 
+export type UseCalendarMonthGridProps = Pick<
+  CalendarMonthGridProps,
+  "month" | "selectedDate" | "today" | "markedDates" | "markedLabel"
+>;
+
 export type CalendarMonthGridDay = {
   date: string;
   number: number;

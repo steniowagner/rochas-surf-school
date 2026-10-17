@@ -68,9 +68,9 @@ unassigned); nothing shows the stored notifications yet.
 Schedules the school's classes and keeps the places where they happen. Admins save locations (a name and an
 address) and create classes one at a time or in a batch — one class per chosen day and time range, all or
 nothing, never in the past — with the instructors who teach them, who are told once per batch. Time ranges are
-suggested from last week's classes. Every approved person browses the classes week by week (Monday to Sunday,
-Fortaleza) and reads each one; a class is not started, started or finished by the clock. Admins edit one class at
-a time — anything before it starts, only its instructors once started, nothing once finished — and its
+suggested from last week's classes. Every approved person browses the classes by week (Monday to Sunday,
+Fortaleza) or by month and reads each one; a class is not started, started or finished by the clock. Admins edit one
+class at a time — anything before it starts, only its instructors once started, nothing once finished — and its
 instructors are told. Cancelling, deleting, enrolment, ratings and photos will build on its classes.
 
 - Where it physically lives: `modules/classes`

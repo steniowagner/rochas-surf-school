@@ -757,10 +757,12 @@ Class notes SHALL be shown to everyone who can see the class.
 #### Seeing classes
 
 _Implemented in spec 030-classes-week-view._
+_Implemented in spec 031-week-month-calendar._
 
-Every approved user SHALL be able to see all classes, past and future, with their details. The classes view SHALL open on the current week, and users SHALL be able to move to any other week.
+Every approved user SHALL be able to see all classes, past and future, with their details. The classes view SHALL open on the current week, and users SHALL be able to move to any other week, or switch to the whole month and back, keeping the selected day.
 
 - _Opening the classes view:_ When a user opens the classes view, then it shows the current week, and the user can move to past and future weeks.
+- _Switching to the month:_ When a user switches the classes view to the month, then it shows the month of the selected day, marks the days that have classes, and selecting a day keeps the month shown.
 
 #### Reminders
 

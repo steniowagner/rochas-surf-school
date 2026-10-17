@@ -1,70 +1,11 @@
 import { tz } from "@date-fns/tz";
 import { format, type Locale } from "date-fns";
 
-import {
-  formatIsoDate,
-  isoWeekdayOf,
-  SCHOOL_TIME_ZONE,
-  todayInSchoolZone,
-} from "./calendar";
+import { formatIsoDate, toUtcMs, weekdayName } from "@/utils/calendar-dates";
+
+import { SCHOOL_TIME_ZONE, todayInSchoolZone } from "./calendar";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-const toUtcMs = (isoDate: string): number => {
-  const [year, month, day] = isoDate.split("-").map(Number) as [number, number, number];
-
-  return Date.UTC(year, month - 1, day);
-};
-
-/** A `YYYY-MM-DD` date moved by whole days. */
-export const addDays = (isoDate: string, amount: number): string =>
-  new Date(toUtcMs(isoDate) + amount * DAY_MS).toISOString().slice(0, 10);
-
-/** The Monday of the week that holds the date. */
-export const mondayOf = (isoDate: string): string =>
-  addDays(isoDate, 1 - isoWeekdayOf(isoDate));
-
-export const addWeeks = (weekStart: string, amount: number): string =>
-  addDays(weekStart, amount * 7);
-
-/** The seven days of the week, Monday first. */
-export const weekDays = (weekStart: string): string[] =>
-  Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
-
-/** How many weeks `weekStart` is after `currentWeekStart` (negative for the past). */
-export const weeksBetween = (currentWeekStart: string, weekStart: string): number =>
-  Math.round((toUtcMs(weekStart) - toUtcMs(currentWeekStart)) / (7 * DAY_MS));
-
-export type RelativeWeek = {
-  /** A key under `classesWeek.relative`. */
-  key: "current" | "previous" | "next" | "past" | "future";
-  count: number;
-};
-
-export const relativeWeek = (offset: number): RelativeWeek => {
-  if (offset === 0) return { key: "current", count: 0 };
-  if (offset === -1) return { key: "previous", count: 1 };
-  if (offset === 1) return { key: "next", count: 1 };
-
-  return offset < 0
-    ? { key: "past", count: -offset }
-    : { key: "future", count: offset };
-};
-
-/** "12 Oct – 18 Oct". */
-export const weekCaption = (weekStart: string, locale: Locale): string =>
-  `${formatIsoDate(weekStart, "d MMM", locale)} – ${formatIsoDate(addDays(weekStart, 6), "d MMM", locale)}`;
-
-const capitalize = (text: string): string =>
-  text.charAt(0).toUpperCase() + text.slice(1);
-
-/** "Monday". */
-export const weekdayName = (isoDate: string, locale: Locale): string =>
-  capitalize(formatIsoDate(isoDate, "EEEE", locale));
-
-/** "MON". */
-export const weekdayAbbreviation = (isoDate: string, locale: Locale): string =>
-  formatIsoDate(isoDate, "EEEE", locale).slice(0, 3).toUpperCase();
 
 /** The `YYYY-MM-DD` day (America/Fortaleza) an instant falls on. */
 export const schoolDayOf = (instant: string): string =>

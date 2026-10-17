@@ -5,11 +5,12 @@ import { useTranslation } from "react-i18next";
 import { routes } from "@/constants/routes";
 import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
+import { getDateLocale } from "@/utils/calendar-dates";
 import { getInitials } from "@/utils/get-initials";
 
 import { useClass } from "../hooks/use-class.hook";
 import { useNow } from "../hooks/use-now.hook";
-import { getDateLocale, todayInSchoolZone } from "../utils/calendar";
+import { todayInSchoolZone } from "../utils/calendar";
 import { formatDateLine, schoolDayOf, schoolTimeOf } from "../utils/week";
 
 import type {

@@ -96,6 +96,11 @@ export const typography = {
   sectionLabel: { font: 'body', weight: 800, size: 11, lineHeight: 1.4, letterSpacing: 0.1, uppercase: true },
   button: { font: 'display', weight: 700, size: 18, lineHeight: 1.2, letterSpacing: 0.03, uppercase: true },
   chip: { font: 'body', weight: 800, size: 10.5, lineHeight: 1.3, letterSpacing: 0.07, uppercase: true },
+  // The pill that switches the week and month calendar (AGENDA-01 / 01A).
+  pill: { font: 'body', weight: 800, size: 12.5, lineHeight: 1.3, letterSpacing: 0.06, uppercase: true },
+  // The day numbers of the week row (a little larger than AGENDA-01's 22, as the user asked) and of the month grid.
+  calendarDay: { font: 'display', weight: 700, size: 24, lineHeight: 1, letterSpacing: 0, uppercase: false },
+  calendarMonthDay: { font: 'display', weight: 700, size: 19, lineHeight: 1, letterSpacing: 0, uppercase: false },
 } as const;
 
 export type TypographyVariant = keyof typeof typography;

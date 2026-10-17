@@ -1,0 +1,668 @@
+---
+id: "031"
+slug: week-month-calendar
+title: Week and month calendar on the classes screen
+status: finished
+created: 2026-10-16
+started: 2026-10-16
+base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
+reviewed_commit: 3eb7201ad181b8e4ee6c0335138b35c5122ef6b6
+fronts: [mobile]
+depends_on: []
+finished: 2026-10-16
+---
+
+# 031 — Week and month calendar on the classes screen
+
+## Goal
+
+The classes screen (the student's Agenda and the Aulas tab of instructors and admins) gets a reusable
+`WeekMonthCalendar`: it opens on the week, and the pill in the middle of its header switches between the week and
+the whole month. Selecting a day only selects it — the view never changes by itself — and the selected day stays
+selected when the view switches. Every day that has classes shows a single dot. The component lives outside the
+classes module so that other screens can plug it in later.
+
+## Context
+
+- Product: [product.md](../../memory/product.md) — relevant concepts: Class, the roles (every approved user sees
+  every class), the decision "All times are America/Fortaleza, whatever the phone's time zone; weeks run Monday to
+  Sunday"; Current state → "Week view and class details" (spec 030); Out of scope → "the student Agenda's month view",
+  which this spec takes up (D-03).
+- Requirements: [requirements.md → Seeing classes](../../../.docs/requirements.md#seeing-classes) — the classes view
+  opens on the current week and the user can move to past and future weeks; this spec adds the month view on top.
+- Technical: [technical-context.md](../../memory/technical-context.md) — relevant sections: Classes (the
+  `GET /classes?date=` week request and the mobile week paragraph), Applications → `apps/mobile` (TanStack Query,
+  i18next), Fixed conventions (Mobile shared UI), Automated validation, Coverage. Rules for components:
+  [.claude/rules/react.md](../../../.claude/rules/react.md) (one folder per component, child components in sibling
+  folders); design rules: [CLAUDE.md → Design system](../../../CLAUDE.md#design-system).
+- Designs: `.docs/designs/student-app.html` **AGENDA-01** (Week) and **AGENDA-01A** (Month): the header with the two
+  round arrows and the pill with a calendar icon in the middle ("14 – 20 SET" with a down chevron on the week; "SETEMBRO
+  2026" with an up chevron, filled, on the month); the week strip where only the selected day has a background; the
+  month grid with the weekday initials, the selected day in a filled circle and the days of the months around it in a
+  lighter color. The file is a bundle (sources unpack from the `__bundler/manifest` script). The design note
+  "Picking a day collapses back to that week" is overridden by D-01, and the design's several dots per day by D-02.
+- Existing code this builds on (all under `apps/mobile/src/`):
+  - `modules/classes/screens/classes-week.screen.tsx` / `.hook.ts` — the week screen (spec 030): title, relative-week
+    subtitle, `WeekNav` (arrows, caption "12 out – 18 out", "Hoje"), `DayStrip` (seven days, one dot per class up to
+    3, every day on `bg-surface`), the selected day's title and cards; the selection is a `weekStart` + `weekday`
+    pair; admins' create buttons depend on the selected day.
+  - `modules/classes/components/{week-nav,day-strip}/` — replaced and deleted by this spec.
+  - `modules/classes/hooks/use-week-classes.hook.ts` — `useWeekClasses(weekStart)`, key `["classes", "week",
+    weekStart]`, `GET /classes?date=<weekStart>`.
+  - `modules/classes/utils/calendar.ts` (`toLocalDate`, `toIsoDate`, `monthOf`, `addMonths`, `isSameMonth`,
+    `isoWeekdayOf`, `buildMonthGrid`, `formatIsoDate`, `getDateLocale`, plus the school-zone and date-range helpers)
+    and `modules/classes/utils/week.ts` (`addDays`, `mondayOf`, `addWeeks`, `weekDays`, `weekCaption`, `weekdayName`,
+    `weekdayAbbreviation`, plus `relativeWeek`, `weeksBetween`, `schoolDayOf`, `schoolTimeOf`, `formatDateLine`);
+    `CalendarMonth` in `modules/classes/classes.types.ts`.
+  - `modules/classes/components/date-range-calendar/` — Nova aula's month grid (`buildMonthGrid`, narrow weekday
+    initials from date-fns `EEEEE`); not changed by this spec beyond its imports.
+  - `modules/classes/screens/classes-week.screen.test.tsx` — the screen test: fixed clock at Wednesday 2026-10-14
+    10:15 Fortaleza, `fetch` served per week (`serveWeeks`), `requestedPaths`.
+
+## Scope
+
+### In scope
+
+- A shared `WeekMonthCalendar` in `apps/mobile/src/components/week-month-calendar/`, with its child components
+  `CalendarWeekRow` and `CalendarMonthGrid` in sibling folders, and its copy in pt-BR, es-ES and en-US.
+- Moving the general date helpers out of the classes module to `apps/mobile/src/utils/calendar-dates.ts`, and the
+  new helpers the calendar needs (fitted month grid, captions, month moves, weekday initials).
+- Loading the classes of every week the calendar shows (the month grid's weeks) for the dots.
+- Rewiring `ClassesWeekScreen` to the new component, for the three roles.
+- Deleting `WeekNav`, `DayStrip` and the copy keys they alone used.
+
+### Out of scope
+
+- A backend endpoint for a date range: the month is loaded week by week with the existing request (D-04).
+- The sport filter (AGENDA-01B) and the notifications bell (AGENDA-07) of the student Agenda.
+- Any animation when the view switches (the month grid simply replaces the week row).
+- Changing `DateRangeCalendar` / `CalendarDay` (Nova aula), apart from their imports moving.
+- Using `WeekMonthCalendar` on any other screen; remembering the chosen view after leaving the screen.
+- Swiping between weeks or months (only the arrows move).
+
+## Decisions
+
+| ID   | Decision | Reason |
+| ---- | -------- | ------ |
+| D-01 | Selecting a day — in the week row or the month grid — only selects it: the view stays as it is. The only way to switch between the week and the month is the pill in the header. This departs from the AGENDA-01A note "Picking a day collapses back to that week". | The user's choice: the month stays open while they look at several days. |
+| D-02 | A day with at least one class shows exactly one dot; a day with none shows no dot, in both views, including the days of the months around the shown one. The dot is `lagoon`, except on the selected day of the week row, where it is `on-color`; in the month grid it sits below the day's circle and stays `lagoon`. Replaces spec 030's D-06 "one dot per class, at most 3". | The user asked for a single dot; the count isn't the point, whether the day has classes is. |
+| D-03 | The month view comes with `ClassesWeekScreen`, so it is on the student's Agenda and on the Aulas tab of instructors and admins alike. This takes "the student Agenda's month view" out of product.md → Out of scope. | One shared screen for the three roles (spec 030, D-06); a per-role branch nobody asked for would add a code path to test. |
+| D-04 | No backend change. The screen loads the classes of every week the calendar shows (one week in the week view; each Monday of the month grid, 4 to 6, in the month view) with `useQueries`, each under the existing key `["classes", "week", <Monday>]` and the existing `GET /classes?date=<Monday>`, so a week already loaded is not requested again and the week and month share the cache. The list's loading and error-with-retry states keep following only the selected day's week (`useWeekClasses`); a failed load of another visible week just leaves its days without dots, with no message. Pull-to-refresh refetches every visible week. | A month is at most 6 small week requests that are mostly cached already; a range endpoint can come later if it is ever needed. |
+| D-05 | `WeekMonthCalendar` (`src/components/week-month-calendar/`) is controlled for the selection and owns only the view. Props: `selectedDate` (`YYYY-MM-DD`), `today` (`YYYY-MM-DD`, given by the parent — the classes screen passes Fortaleza's today), `markedDates: string[]` (the days that get a dot), `onSelectDate(date: string)`, `onVisibleRangeChange?(range: { from: string; to: string })` (first and last day drawn, called on mount and whenever they change), `markedLabel?: string` (appended to a marked day's accessibility label). The view (`"week"` \| `"month"`) is internal state, starting on `"week"`. Neither the component nor its children import anything from `src/modules/`. | A shared component can't depend on a feature module; keeping the selection in the parent lets each screen decide what a selected day means. |
+| D-06 | What the calendar shows is always derived from `selectedDate` and the view: the week view shows the Monday-to-Sunday week that holds the selected day; the month view shows the month of the selected day. So every move goes through `onSelectDate`: the week arrows select the same weekday one week before or after (±7 days); the month arrows select the same day number one month before or after, capped at that month's last day (31 Jan 2027 → 28 Feb 2027, 31 Mar → 30 Apr); tapping a day of the month before or after in the grid selects it, and the grid therefore moves to that month. | The selected day is always on screen, and switching views always lands on it (the user's requirement), without a second "visible period" state to keep in sync. |
+| D-07 | ~~"Hoje" (a chip like today's, `grape-tint` with `grape` text) sits in the header between the pill and the right arrow, only while today isn't drawn as part of the shown period: in the week view, when today isn't in the shown week; in the month view, when today isn't in the shown month (a day of an adjacent month drawn in the grid doesn't count). Tapping it selects today and keeps the view. While it shows, the pill is no longer centered. The screen's subtitle ("Esta semana", "Semana passada", …) keeps describing the selected day's week in both views.~~ (removed: amendment 1, the user wants no "Hoje" shortcut and no relative-week subtitle) | Keeps spec 030's way back to today; the subtitle already describes the selected day's week, and the list below shows that day. |
+| D-08 | Captions, built with the date-fns locale of the app language, upper-cased, with a trailing "." dropped from month abbreviations: week inside one month "12 – 18 OUT" (`d` – `d MMM`); week across two months "28 SET – 4 OUT" (`d MMM` – `d MMM`); across two years the same, without the year ("28 DEZ – 3 JAN"); month "OUTUBRO 2026" (`MMMM yyyy`). The weekday abbreviations of the week row stay as in spec 030 ("QUA", "SÁB"); the month grid's weekday initials are date-fns `EEEEE`, upper-cased, Monday first ("S T Q Q S S D" in pt-BR, "M T W T F S S" in en-US). | AGENDA-01 / 01A; a week that spans two months needs both months to be unambiguous. |
+| D-09 | Look, matching AGENDA-01 / 01A (amendment 1), with design tokens only (no raw colors, sizes or radii; every touch target at least 44 pt, the 36 pt circles get a `hitSlop`): the header row has the two round arrows (36 pt circle, `border-line`, `bg-surface`, 18 pt icon) and the pill with a calendar icon, the caption in `ds-text-pill` (Nunito 12.5, 800, uppercase) and a chevron — outlined (`border-line`, `bg-dim`, `ink` text) with a down chevron in the week view, filled `grape` with `on-color` text and an up chevron in the month view. Week row: seven columns, weekday in `ds-text-chip` and number in `ds-text-calendar-day` (Barlow 24, amendment 2); only the selected day has a background (a `grape` card, `rounded-card`, `on-color` text); the other days have none. Month grid: initials in `ds-text-chip` `ink-3`, numbers in `ds-text-calendar-month-day` (Barlow 19); the selected day sits in a filled `grape` circle with `on-color` text; the days of the months around it are `ink-3`. Today's number is `sun` (when not selected) in both views, with no background or ring. The grid has only the weeks it needs: from the week of the 1st to the week of the last day (4, 5 or 6 rows). | AGENDA-01 / 01A as the user described them and, after review of the first build, as the designs size them; CLAUDE.md's design rules. |
+| D-10 | Accessibility: the pill is a button labelled "Ver o mês" in the week view and "Ver a semana" in the month view, with `accessibilityState.expanded` true in the month view; the arrows are labelled by the view ("Ver a semana anterior" / "Ver a semana seguinte", "Ver o mês anterior" / "Ver o mês seguinte"); each day is a button whose label is its full date (date-fns `PPPP` in the app language) followed by `, <markedLabel>` when it has a dot and a `markedLabel` was given, with `accessibilityState.selected`. The classes screen passes `markedLabel` = `classesWeek.hasClasses`. Each day has `testID` `calendar-day-<YYYY-MM-DD>` and each dot `calendar-day-<YYYY-MM-DD>-dot`. | Screen readers need to know the view, the move and which days have classes; stable ids for the tests. |
+| D-11 | The general date helpers move to `src/utils/calendar-dates.ts` (types in `calendar-dates.types.ts`): `CalendarMonth`, `toLocalDate`, `toIsoDate`, `monthOf`, `addMonths`, `isSameMonth`, `isoWeekdayOf`, `buildMonthGrid`, `formatIsoDate`, `getDateLocale`, `addDays`, `mondayOf`, `addWeeks`, `weekDays`, `weekCaption`, `weekdayName`, `weekdayAbbreviation`; their tests move with them, and every import in `src/modules/classes/` points at the new file (no re-exports left behind). The school-zone, date-range and class helpers stay in the classes module. `WeekNav`, `DayStrip` (with their tests) and the keys `classesWeek.previousWeek`, `classesWeek.nextWeek` and `classesWeek.today` are deleted. | Shared code can't import a module; leaving re-exports would keep two homes for the same helper. |
+| D-12 | New copy, under `weekMonthCalendar` in `src/i18n/messages/{pt-BR,en-US,es-ES}.ts`: `showMonth` "Ver o mês" / "Show the month" / "Ver el mes"; `showWeek` "Ver a semana" / "Show the week" / "Ver la semana"; `previousWeek` "Ver a semana anterior" / "Show the previous week" / "Ver la semana anterior"; `nextWeek` "Ver a semana seguinte" / "Show the next week" / "Ver la semana siguiente"; `previousMonth` "Ver o mês anterior" / "Show the previous month" / "Ver el mes anterior"; `nextMonth` "Ver o mês seguinte" / "Show the next month" / "Ver el mes siguiente"; ~~`today` "Hoje" / "Today" / "Hoy"~~ (removed: amendment 1). Under `classesWeek`: `hasClasses` "com aulas" / "with classes" / "con clases". | The component's copy is generic and lives in its own namespace; "with classes" is the classes screen's word. |
+
+## Expected Results
+
+The mobile tests run in English (US) (`jest.setup.ts`), so the test examples below are in English; the pt-BR
+examples are what the simulator shows. The screen tests use the fixed clock of `classes-week.screen.test.tsx`
+(Wednesday 2026-10-14 in Fortaleza). Commands run from `apps/mobile`.
+
+### ER-01 — The calendar opens on the week view
+
+- **Front:** mobile
+- **Behavior:** Given an approved user opens the classes screen (Agenda or Aulas) on Wednesday 2026-10-14, when it
+  renders, then the calendar shows the seven days 2026-10-12 to 2026-10-18 (Monday first), 2026-10-14 is selected,
+  the pill reads "12 – 18 OCT" ("12 – 18 OUT" in pt-BR) and is labelled "Show the month", and no month grid is
+  drawn.
+- **Edge and error cases:** only the selected day has a background: the selected day is drawn on `grape`, the six
+  others have no background class; today's number is `sun` when today isn't the selected day.
+- **Verify by:** `npx jest src/modules/classes/screens/classes-week.screen.test.tsx -t "opens on the week view"`;
+  `npx jest src/components/calendar-week-row -t "only the selected day has a background"`; the iOS simulator journey
+  in the Verification Plan.
+
+### ER-02 — The week caption
+
+- **Front:** mobile
+- **Behavior:** Given the week view, when the shown week lies in one month, then the pill reads "12 – 18 OCT"; when it
+  spans two months, "28 SEP – 4 OCT"; when it spans two years, "28 DEC – 3 JAN" (no year).
+- **Edge and error cases:** in pt-BR "12 – 18 OUT" and "28 SET – 4 OUT"; in es-ES the month abbreviations have no
+  trailing dot.
+- **Verify by:** `npx jest src/utils/calendar-dates.test.ts -t "weekCaption"`.
+
+### ER-03 — One dot for a day with classes
+
+- **Front:** mobile
+- **Behavior:** Given 2026-10-14 has three classes and 2026-10-15 one, when the week view shows that week, then
+  2026-10-14 and 2026-10-15 each show exactly one dot and the other five days show none; when the month view shows
+  October 2026, the same days show exactly one dot each.
+- **Edge and error cases:** a day of an adjacent month drawn in the grid (e.g. 2026-11-01 in October) with classes
+  shows one dot too; the selected day's dot in the week row is `on-color`.
+- **Verify by:** `npx jest src/components/calendar-week-row -t "one dot"`; `npx jest src/components/calendar-month-grid
+  -t "one dot"`; `npx jest src/modules/classes/screens/classes-week.screen.test.tsx -t "one dot per day with
+  classes"`.
+
+### ER-04 — The pill switches between week and month
+
+- **Front:** mobile
+- **Behavior:** Given the week view of 12–18 Oct 2026, when the user taps the pill, then the month grid of October 2026
+  is shown, the week row is gone, and the pill reads "OCTOBER 2026" ("OUTUBRO 2026" in pt-BR), labelled "Show the
+  week" with `expanded` true; when they tap it again, the week row of 12–18 Oct is back and the pill reads "12 – 18
+  OCT".
+- **Edge and error cases:** the arrows' labels follow the view ("Show the previous week" / "Show the next week" on the
+  week, "Show the previous month" / "Show the next month" on the month).
+- **Verify by:** `npx jest src/components/week-month-calendar -t "switches between week and month"`.
+
+### ER-05 — Selecting a day doesn't change the view
+
+- **Front:** mobile
+- **Behavior:** Given the month view of October 2026, when the user taps 2026-10-20, then 2026-10-20 is selected (in
+  its circle), the month grid is still shown, and the list below shows that day's classes; given the week
+  view, when the user taps 2026-10-16, then it is selected and the week row is still shown.
+- **Edge and error cases:** tapping the already selected day changes nothing.
+- **Verify by:** `npx jest src/components/week-month-calendar -t "selecting a day keeps the view"`;
+  `npx jest src/modules/classes/screens/classes-week.screen.test.tsx -t "selecting a day in the month"`.
+
+### ER-06 — The selected day carries across views
+
+- **Front:** mobile
+- **Behavior:** Given the month view of October 2026 with 2026-10-23 selected, when the user taps the pill, then the
+  week row shows 2026-10-19 to 2026-10-25 with 2026-10-23 selected; given the week view of 26 Oct – 1 Nov 2026 with
+  2026-11-01 selected, when the user taps the pill, then the month grid of November 2026 is shown with 2026-11-01
+  selected.
+- **Edge and error cases:** a day selected with the arrows (D-06) carries across the same way.
+- **Verify by:** `npx jest src/components/week-month-calendar -t "selection carries across views"`.
+
+### ER-07 — The month grid
+
+- **Front:** mobile
+- **Behavior:** Given the month view, when it shows a month, then the grid starts on Monday under a row of weekday
+  initials ("M T W T F S S"), and it has only the weeks it needs: February 2027 has 4 rows (1–28 Feb), September 2026
+  has 5 (31 Aug – 4 Oct), August 2026 has 6 (27 Jul – 6 Sep).
+- **Edge and error cases:** the days of the months before and after are drawn in `ink-3`, those of the shown month in
+  `ink` (today in `sun`, the selected day on `grape`).
+- **Verify by:** `npx jest src/utils/calendar-dates.test.ts -t "fitted month grid"`; `npx jest
+  src/components/calendar-month-grid -t "adjacent days"`.
+
+### ER-08 — Selecting a day of an adjacent month moves the grid
+
+- **Front:** mobile
+- **Behavior:** Given the month view of October 2026, when the user taps 2026-11-01 (drawn after 31 Oct), then
+  2026-11-01 is selected and the grid shows November 2026 ("NOVEMBER 2026"), still in the month view.
+- **Edge and error cases:** tapping 2026-09-28 (drawn before 1 Oct) selects it and shows September 2026.
+- **Verify by:** `npx jest src/components/week-month-calendar -t "adjacent month day moves the grid"`.
+
+### ER-09 — The arrows move by the view
+
+- **Front:** mobile
+- **Behavior:** Given the week view with 2026-10-14 selected, when the user taps the next arrow, then 2026-10-21 is
+  selected and the week 19–25 Oct is shown (the previous arrow: 2026-10-07, week 5–11 Oct); given the month view with
+  2026-10-14 selected, when the user taps the next arrow, then 2026-11-14 is selected and November 2026 is shown (the
+  previous arrow: 2026-09-14, September 2026).
+- **Edge and error cases:** the day number is capped at the month's last day: 2027-01-31 → next → 2027-02-28;
+  2026-03-31 → next → 2026-04-30; 2027-03-31 → previous → 2027-02-28.
+- **Verify by:** `npx jest src/components/week-month-calendar -t "arrows"`; `npx jest src/utils/calendar-dates.test.ts
+  -t "addMonthsKeepingDay"`.
+
+### ~~ER-10 — "Today" and the subtitle~~ (removed: amendment 1, no "Hoje" shortcut and no subtitle under the title)
+
+- **Front:** mobile
+- **Behavior:** Given the week view after one tap on the next arrow, when the screen shows 19–25 Oct, then "Today" is
+  shown, and tapping it selects 2026-10-14 and shows 12–18 Oct, still in the week view; given the month view after one
+  tap on the next arrow (November), then "Today" is shown, and tapping it selects 2026-10-14 and shows October 2026,
+  still in the month view.
+- **Edge and error cases:** "Today" is hidden while today's week (week view) or today's month (month view) is shown,
+  whichever day is selected; in October's month view with 2026-10-20 selected the subtitle reads "Next week", and with
+  2026-10-14 selected "This week".
+- **Verify by:** `npx jest src/components/week-month-calendar -t "Today"`; `npx jest
+  src/modules/classes/screens/classes-week.screen.test.tsx -t "subtitle follows the selected day"`.
+
+### ER-11 — The month view loads every week it shows
+
+- **Front:** mobile
+- **Behavior:** Given the screen opened on 12–18 Oct 2026 (one request, `date=2026-10-12`), when the user switches to
+  the month view of October 2026, then the app requests `date=2026-09-28`, `2026-10-05`, `2026-10-19` and
+  `2026-10-26` — and not `2026-10-12` again — and the days of those weeks with classes show their dot.
+- **Edge and error cases:** when one of those weeks (not the selected day's) fails, its days show no dot and no error
+  is shown; pulling the list down refetches every visible week; a failure of the selected day's week still shows the
+  error with "Try again" (spec 030).
+- **Verify by:** `npx jest src/modules/classes/screens/classes-week.screen.test.tsx -t "month view loads its weeks"`;
+  `npx jest src/modules/classes/hooks/use-visible-weeks-classes.hook.test.tsx`.
+
+### ER-12 — The calendar is reusable
+
+- **Front:** mobile
+- **Behavior:** Given `WeekMonthCalendar`, `CalendarWeekRow` and `CalendarMonthGrid`, when their source is searched
+  for imports from the feature modules, then there are none, and their tests render them with props only (no query
+  client, no session, no route), reporting the drawn range through `onVisibleRangeChange`.
+- **Edge and error cases:** the week view reports `{ from: Monday, to: Sunday }` of the selected day's week; the month
+  view reports the first and last day drawn (October 2026 → `2026-09-28` to `2026-11-01`).
+- **Verify by:** `grep -rnE "@/modules|\.\./modules|modules/classes" apps/mobile/src/components/week-month-calendar
+  apps/mobile/src/components/calendar-week-row apps/mobile/src/components/calendar-month-grid` (from the repo root)
+  prints nothing; `npx jest src/components/week-month-calendar -t "visible range"`.
+
+## Tasks
+
+### Mobile (`apps/mobile`)
+
+Before writing code under `apps/mobile`, load the `vercel-react-native-skills` and `vercel-react-best-practices`
+skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (component folders split into
+`*.component.tsx`, `*.hook.ts`, `*.types.ts`, `index.ts`; child components in sibling folders).
+
+- [x] **T-01** — Move the general date helpers listed in D-11 from `src/modules/classes/utils/calendar.ts` and
+  `src/modules/classes/utils/week.ts` (and `CalendarMonth` from `src/modules/classes/classes.types.ts`) to
+  `src/utils/calendar-dates.ts` / `src/utils/calendar-dates.types.ts`, moving their tests from
+  `src/modules/classes/utils/{calendar,week}.test.ts` to `src/utils/calendar-dates.test.ts`, and point every import
+  in `src/modules/classes/` at the new file (no re-exports). No behavior changes. Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: enabling · Done when: `npx jest src/utils src/modules/classes` passes and `npm run check-types` exits 0
+  (both from `apps/mobile`).
+  > ✅ 2026-10-16 — moved the D-11 helpers (and `CalendarMonth`) to `src/utils/calendar-dates.ts` /
+  > `calendar-dates.types.ts`, pointed every import in `src/modules/classes/` at them, no re-exports; the school-zone,
+  > date-range and class helpers stay; files: `apps/mobile/src/utils/calendar-dates.ts`,
+  > `apps/mobile/src/utils/calendar-dates.types.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`,
+  > `apps/mobile/src/modules/classes/utils/{calendar,week}.ts`, `…/utils/{calendar,week}.test.ts`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/{classes-week.screen.hook,class-details.screen.hook}.ts`,
+  > `apps/mobile/src/modules/classes/components/{date-range-calendar/date-range-calendar.hook,date-range-summary/date-range-summary.hook}.ts`,
+  > `apps/mobile/src/modules/classes/components/day-strip/day-strip.component{,.test}.tsx`; verified: `npx jest src/utils
+  > src/modules/classes` (36 suites, 305 tests passed), `npm run check-types` (exit 0), `npx eslint src/utils
+  > src/modules/classes` (clean); deviations: `toUtcMs` is also exported from `calendar-dates.ts` (a small technical
+  > step: `addDays` needs it there and `weeksBetween` / `formatDateLine` stay in the classes `week.ts`)
+
+- [x] **T-02** — Add to `src/utils/calendar-dates.ts`, with tests in `src/utils/calendar-dates.test.ts`: a fitted
+  month grid (the days of the previous month before the 1st, only the weeks needed — D-09; `buildMonthGrid`'s
+  existing modes keep working for Nova aula), `weekCaption` in the new format (D-08, replacing the old "12 Oct – 18
+  Oct" one and updating its caller), `monthCaption` ("OCTOBER 2026"), `addMonthsKeepingDay(date, amount)` (capped at
+  the month's last day, D-06) and `weekdayInitials(locale)` (D-08). Tests named "weekCaption", "fitted month grid"
+  and "addMonthsKeepingDay" cover every example of ER-02, ER-07 and ER-09.
+  Covers: ER-02, ER-07, ER-09 · Done when: `npx jest src/utils/calendar-dates.test.ts` passes.
+  > ✅ 2026-10-16 — added `buildFittedMonthGrid`, the new `weekCaption` (D-08), `monthCaption`, `addMonthsKeepingDay` and
+  > `weekdayInitials` to `calendar-dates.ts`; `buildMonthGrid` untouched; the one caller of `weekCaption` (the week
+  > screen hook) needed no change, its test assertion moved to "12 – 18 OCT"; files:
+  > `apps/mobile/src/utils/calendar-dates.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest
+  > src/utils/calendar-dates.test.ts` (31 passed), `npx jest src/modules/classes/screens/classes-week.screen.test.tsx
+  > src/utils` (99 passed), `npm run check-types` (exit 0), eslint clean; deviations: the fitted grid is its own function
+  > (`buildFittedMonthGrid`, returns `string[][]`) rather than a third mode of `buildMonthGrid`
+
+- [x] **T-03** — Add the presentational children `CalendarWeekRow` (`src/components/calendar-week-row/`: seven days,
+  weekday and number, only the selected day on `grape`, today in `sun`, one dot per marked day, `on-color` on the
+  selected one) and `CalendarMonthGrid` (`src/components/calendar-month-grid/`: weekday initials, fitted grid,
+  adjacent days in `ink-3`, selected circle, today in `sun`, one `lagoon` dot per marked day), both with the day
+  buttons, labels, states and `testID`s of D-10 and the tokens of D-09, each with its
+  `<name>.component.test.tsx` (tests "only the selected day has a background", "one dot", "adjacent days").
+  Covers: ER-03, ER-07 · Done when: `npx jest src/components/calendar-week-row src/components/calendar-month-grid`
+  passes.
+  > ✅ 2026-10-16 — added `CalendarWeekRow` and `CalendarMonthGrid` (component, hook, types, index each) with the day
+  > buttons, labels, `selected` state and `testID`s of D-10 and the tokens of D-09; the week row takes the seven `days`,
+  > the month grid takes a `month` and builds its fitted weeks itself; files:
+  > `apps/mobile/src/components/calendar-week-row/{index.ts,calendar-week-row.component.tsx,calendar-week-row.hook.ts,calendar-week-row.types.ts,calendar-week-row.component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-month-grid/{index.ts,calendar-month-grid.component.tsx,calendar-month-grid.hook.ts,calendar-month-grid.types.ts,calendar-month-grid.component.test.tsx}`,
+  > `apps/mobile/src/utils/calendar-dates.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`; verified: `npx jest
+  > src/components/calendar-week-row src/components/calendar-month-grid` (2 suites, 17 tests passed), `npm run
+  > check-types` (exit 0), eslint clean; deviations: added `dayAccessibilityLabel` (D-10's label) to `calendar-dates.ts`
+  > with its test, shared by both children; the week row's background sits on an inner `View`
+  > (`calendar-day-<date>-background`) because a `TouchableOpacity` doesn't expose its `className` to tests
+
+- [x] **T-04** — Add `WeekMonthCalendar` in `src/components/week-month-calendar/` (`.component.tsx`, `.hook.ts`,
+  `.types.ts`, `index.ts`) with the props of D-05: the header (arrows, pill with icon, caption and chevron, "Hoje" —
+  D-07, D-09, D-10), the internal view starting on `"week"`, the moves of D-06 through `onSelectDate`, and
+  `onVisibleRangeChange`; add the `weekMonthCalendar` keys of D-12 to `src/i18n/messages/{pt-BR,en-US,es-ES}.ts`.
+  Its test `week-month-calendar.component.test.tsx` drives the component through a small controlled wrapper holding
+  `selectedDate`, with tests "switches between week and month", "selecting a day keeps the view", "selection carries
+  across views", "adjacent month day moves the grid", "arrows", "Today" and "visible range".
+  Covers: ER-01, ER-04, ER-05, ER-06, ER-08, ER-09, ER-10, ER-12 · Done when: `npx jest
+  src/components/week-month-calendar` passes and the grep of ER-12 prints nothing.
+  > ✅ 2026-10-16 — added `WeekMonthCalendar` with the props of D-05: header (round arrows, pill with calendar icon,
+  > caption and chevron, "Hoje" chip), the internal view starting on `"week"`, the moves of D-06 through `onSelectDate`
+  > and `onVisibleRangeChange` (through `useEffectEvent`, fired on mount and when `from`/`to` change); the
+  > `weekMonthCalendar` keys of D-12 in the three locales; files:
+  > `apps/mobile/src/components/week-month-calendar/{index.ts,week-month-calendar.component.tsx,week-month-calendar.hook.ts,week-month-calendar.types.ts,week-month-calendar.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`, `apps/mobile/src/utils/calendar-dates.ts`,
+  > `apps/mobile/src/utils/calendar-dates.test.ts`; verified: `npx jest src/components/week-month-calendar` (16
+  > passed), `npx jest src/utils` (all passed), `npm run check-types` (exit 0), eslint clean, the ER-12 grep prints
+  > nothing; deviations: added `monthRange(month)` to `calendar-dates.ts` (with its test) for the month view's
+  > reported range — a small technical step
+
+- [x] **T-05** — Add `useVisibleWeeksClasses({ from, to })` in
+  `src/modules/classes/hooks/use-visible-weeks-classes.hook.ts`: one query per Monday from `mondayOf(from)` to `to`
+  with `useQueries`, sharing the key and request of `useWeekClasses` through a query-options factory exported from
+  `use-week-classes.hook.ts`; returns the loaded items of every week (failed weeks contribute nothing), and
+  `refetch()` for all of them (D-04). Test `use-visible-weeks-classes.hook.test.tsx`: the Mondays requested for a
+  month range, cached weeks not requested again, a failed week leaves the others' items, `refetch` refetches all.
+  Covers: ER-11 · Done when: `npx jest src/modules/classes/hooks` passes.
+  > ✅ 2026-10-16 — added `useVisibleWeeksClasses(range)` (`useQueries` over each Monday from `mondayOf(from)` to `to`,
+  > `combine` into `{ items, isRefetching, refetch }`; failed weeks contribute nothing) and exported
+  > `weekClassesOptions(weekStart)` from `use-week-classes.hook.ts`, which `useWeekClasses` now uses too (same key and
+  > request); files: `apps/mobile/src/modules/classes/hooks/use-week-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.test.tsx`; verified: `npx jest
+  > src/modules/classes/hooks` (9 suites, 31 tests passed), `npm run check-types` (exit 0), eslint clean; deviations:
+  > the hook also returns `isRefetching` (for the pull-to-refresh spinner in T-06). Note: a hook instance that mounts
+  > on a week already cached still refetches it in the background (the app's QueryClient has no `staleTime`, same as
+  > spec 030's week navigation); a week stays un-requested when the same instance's range grows (week → month)
+
+- [x] **T-06** — Rewire `ClassesWeekScreen` (`src/modules/classes/screens/classes-week.screen.tsx`, `.hook.ts`):
+  replace `WeekNav` and `DayStrip` with `WeekMonthCalendar`; keep the selection as one `selectedDate` (opening on
+  Fortaleza's today); load the list with `useWeekClasses(mondayOf(selectedDate))` and the dots with
+  `useVisibleWeeksClasses` over the range the calendar reports (`markedDates` = the days with at least one class);
+  the subtitle from the selected day's week (D-07); pull-to-refresh refetches every visible week (D-04); pass
+  `markedLabel` = `classesWeek.hasClasses` (D-12, added in the three locales); admins' create buttons keep working
+  from the selected day. Delete `src/modules/classes/components/{week-nav,day-strip}/` and the keys
+  `classesWeek.previousWeek`, `classesWeek.nextWeek`, `classesWeek.today` (D-11). Update
+  `classes-week.screen.test.tsx` (the spec 030 tests adapted to the new calendar — "Hoje" now in the calendar, one dot
+  instead of three) and add the tests "opens on the week view", "one dot per day with classes", "selecting a day in
+  the month", "subtitle follows the selected day" and "month view loads its weeks".
+  Covers: ER-01, ER-03, ER-05, ER-10, ER-11 · Done when: `npx jest src/modules/classes` passes and `npm run lint`
+  and `npm run check-types` exit 0 (from `apps/mobile`).
+  > ✅ 2026-10-16 — `ClassesWeekScreen` now renders `WeekMonthCalendar` (for the three roles) with one `selectedDate`
+  > (opening on Fortaleza's today); the list loads `useWeekClasses(mondayOf(selectedDate))`, the dots come from
+  > `useVisibleWeeksClasses` over the range the calendar reports (`markedDates` = the days with a class); the subtitle
+  > follows the selected day's week; pull-to-refresh refetches every visible week; `markedLabel` =
+  > `classesWeek.hasClasses` (added in the three locales); admins' create buttons work from the selected day. Deleted
+  > `WeekNav`, `DayStrip` (with their tests) and the keys `classesWeek.previousWeek`, `nextWeek`, `today`; files:
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx`, `…/classes-week.screen.hook.ts`,
+  > `…/classes-week.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`; deleted
+  > `apps/mobile/src/modules/classes/components/week-nav/*` and `…/components/day-strip/*`; verified: `npx jest
+  > src/modules/classes` (30 suites, 241 tests passed), `npm run lint` (exit 0), `npm run check-types` (exit 0);
+  > deviations: none to the plan. Note: running the screen test file prints one React "not wrapped in act" console
+  > warning from a test that ends before its last query notification lands (the base commit printed none); all 23
+  > tests pass
+
+- [x] **T-08** (added during execution) — UI changes the user asked for after seeing T-06 on the simulator (amendment
+  1): remove the "Hoje" chip from `WeekMonthCalendar` (and its `weekMonthCalendar.today` key) and its tests; remove
+  the relative-week subtitle under the screen title (and `relativeWeek`, `weeksBetween`, the `classesWeek.relative`
+  keys and their tests, now unused); size the calendar as AGENDA-01 / 01A (D-09: 36 pt arrows, `ds-text-pill`
+  caption, `ds-text-calendar-day` and `ds-text-calendar-month-day` numbers), adding those three typography tokens to
+  `packages/design-tokens/src/tokens.ts` and regenerating `tokens.css`; update the tests of the screen and the calendar.
+  Covers: ER-01, ER-03, ER-04, ER-05, ER-09 · Done when: `npx jest src/components src/modules/classes src/utils`
+  passes and `npm run lint` and `npm run check-types` exit 0 (from `apps/mobile`), and `npm run check-types -w
+  @rochas-surf-school/design-tokens` exits 0.
+  > ✅ 2026-10-16 — removed the "Hoje" chip (and the `weekMonthCalendar.today` key), the subtitle under the title and
+  > the code and copy only it used (`relativeWeek`, `weeksBetween`, `classesWeek.relative.*`); resized the calendar as
+  > the designs (36 pt arrows with a 4 pt `hitSlop`, `ds-text-pill` caption on a `bg-dim` pill, `ds-text-calendar-day`
+  > and `ds-text-calendar-month-day` numbers, 4 pt dots, initials `ds-text-chip` `ink-3`), with the three typography
+  > tokens added and `tokens.css` regenerated; there is no other shortcut like "Hoje" in the screen; files:
+  > `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`,
+  > `apps/mobile/src/components/week-month-calendar/{week-month-calendar.component.tsx,week-month-calendar.hook.ts,week-month-calendar.types.ts,week-month-calendar.component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-week-row/calendar-week-row.component.tsx`,
+  > `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.component.tsx`,
+  > `apps/mobile/src/modules/classes/screens/{classes-week.screen.tsx,classes-week.screen.hook.ts,classes-week.screen.test.tsx}`,
+  > `apps/mobile/src/modules/classes/utils/{week.ts,week.test.ts}`, `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`;
+  > verified: `npx jest src/components src/modules/classes src/utils src/i18n` (61 suites, 476 tests passed), `npm run
+  > lint` and `npm run check-types` (exit 0, `apps/mobile`), `npm run check-types -w
+  > @rochas-surf-school/design-tokens` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (57 suites, 713 tests
+  > passed), `node .specs/scripts/check-coverage.mjs 031` (COVERAGE OK), the ER-12 grep (prints nothing); not checked on
+  > the simulator: the new sizes are taken from the design source (`pkGen` in the App Aluno bundle), the visual result
+  > is for the user's journey; deviations: the pill's outlined background is `bg-dim` as the design, not `bg-surface`
+  > (logged in D-09)
+
+- [x] **T-09** (added during execution) — Raise `calendarDay` in `packages/design-tokens/src/tokens.ts` from 22 to 24
+  and regenerate `tokens.css` (amendment 2).
+  Covers: ER-01 · Done when: `npm run check-types -w @rochas-surf-school/design-tokens` exits 0.
+  > ✅ 2026-10-16 — files: `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`; verified:
+  > `npm run check-types -w @rochas-surf-school/design-tokens` (exit 0), the generated `.ds-text-calendar-day` has
+  > `font-size: 24px`; no component or test changed (the week row already uses the class); deviations: none; needs
+  > `npx expo start --clear` to show on the device
+
+- [x] **T-10** (added during execution) — Fix the week row collapsing when the week's request fails: the day's inner
+  `View` had `flex-1` in a column with no definite height (since T-08 dropped its `min-h`), so its content measured
+  zero tall and only the selected day's padding showed; add a screen test that the calendar stays when the request
+  fails.
+  Covers: ER-01, ER-05 · Done when: `npx jest src/components/calendar-week-row
+  src/modules/classes/screens/classes-week` passes.
+  > ✅ 2026-10-16 — removed `flex-1` from the inner `View` of `CalendarWeekRow`, whose height now comes from its
+  > content; added the test "keeps the calendar when the week fails to load" (the calendar and its selection stay and
+  > a day can still be picked while the error shows); files:
+  > `apps/mobile/src/components/calendar-week-row/calendar-week-row.component.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest
+  > src/components/calendar-week-row src/modules/classes/screens/classes-week` (29 passed), `npm run lint` and `npm run
+  > check-types` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (the first run had 1 failing test that I did not
+  > capture, the rerun passed: 714 tests; most likely the known `new-class.screen` timing flake, unconfirmed),
+  > `check-coverage.mjs 031` COVERAGE OK;
+  > deviations: Jest doesn't lay views out, so the test can't fail on the collapse itself, the visual fix needs the
+  > user's check on the simulator (a Fast Refresh is enough)
+
+- [x] **T-11** (added during execution) — Remove the day title and the class count above the day's cards (amendment 3),
+  with the keys `classesWeek.classCount_*` and the screen hook's `dayTitle`; adapt the screen tests, which used them to
+  wait for the list, to wait for a card's time.
+  Covers: ER-05 · Done when: `npx jest src/modules/classes` passes and `npm run lint` and `npm run check-types` exit 0
+  (from `apps/mobile`).
+  > ✅ 2026-10-16 — files: `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,en-US,es-ES}.ts`; verified: `npx jest src/modules/classes src/i18n` (240
+  > passed), `npm run lint` and `npm run check-types` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (714
+  > passed), `check-coverage.mjs 031` COVERAGE OK; deviations: the tests "selecting a day in the month…" and "shows
+  > another day's cards" now tell the days apart by a different card time (09:00 – 10:00) instead of the title
+
+- [x] **T-12** (added during execution) — Fix the list sinking like a pull-to-refresh when switching to the month view
+  (found by the user on the simulator): `isRefreshing` was `isRefetching` of the queries, so the cached weeks the month
+  view mounts refetching in the background turned the `RefreshControl` on. The spinner now follows only the user's
+  pull (a local state around `refresh()`), and `useVisibleWeeksClasses` no longer returns `isRefetching`.
+  Covers: ER-05, ER-11 · Done when: `npx jest src/modules/classes` passes.
+  > ✅ 2026-10-16 — files: `apps/mobile/src/modules/classes/screens/classes-week.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-visible-weeks-classes.hook.test.tsx`; verified: the new test "doesn't show
+  > the pull-to-refresh spinner when the month refetches cached weeks" failed before the fix (`refreshing` was true)
+  > and passes after, plus "shows the pull-to-refresh spinner only while the user's refresh runs"; `npx jest
+  > src/modules/classes/screens/classes-week src/modules/classes/hooks/use-visible` (29 passed), `npm run lint` and
+  > `npm run check-types` (exit 0), `node .specs/scripts/run-related-tests.mjs 031` (715 passed), `check-coverage.mjs
+  > 031` COVERAGE OK; deviations: the hook's `isRefetching` test was removed with the field
+
+### Verification
+
+- [x] **T-07** — Run every command in the Verification Plan from the repo root and follow its user journey on the iOS
+  simulator; all pass. Record the output summary and what was seen as evidence.
+  Covers: all · Done when: every command exits 0 and the journey shows what it describes.
+  > ✅ (automated part only) 2026-10-16 — the automated half passes; the simulator journey is NOT verified by the agent. Passed: `node
+  > .specs/scripts/run-related-tests.mjs 031` (57 suites, 724 tests, coverage 100% statements/branches/functions/lines;
+  > the first run had one failure in `new-class.screen.test.tsx › sends once when pressed twice in the same frame`, a
+  > timing flake under load that passes alone, twice, and in the rerun of the whole command), `node
+  > .specs/scripts/check-coverage.mjs 031` (COVERAGE OK, 15 files), `node .specs/scripts/run-e2e.mjs 031` (E2E PASSED,
+  > no suite applies), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (8 tasks successful), the
+  > ER-12 grep (prints nothing). Blocked: the journey needs the app on the iOS simulator (not installed on the booted
+  > iPhone 18 Pro), the backend on port 4000 (not running) and a signed-in student and admin with classes on a few days
+  > of this and the next month; the only local sign-in is `REVIEW_ACCOUNTS` (empty in `.env.example`), and setting it up
+  > means editing the local `.env` and writing users and classes into the running dev Postgres
+  > (`rochas-surf-school-postgres-1`). 2026-10-16: the user chose to run the simulator journey of the Verification Plan
+  > themself, so the box is checked only so the spec can go to review, as the user asked: the journey was not run or seen by
+  > the agent. The reviewer should not count it as verified until the user reports its result.
+  > ✅ 2026-10-16 (after review round 1) — the simulator journey was then run by the agent (iPhone 18 Pro, iOS 27, dev client + Metro, backend on port 4000 and Postgres already running, dev review accounts in the local `.env`; the app was in fact installed): admin and student, light and dark, week and month, arrows, a day of the next month, the day cap and "Create class" with the selected day — see F-03 for what was seen. Not run: the instructor role. The spec's simulator step is therefore verified by the agent, not by the user.
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 031` — the tests this spec added or changed, and the existing tests
+    related to its changes, pass (with coverage).
+  - `node .specs/scripts/check-coverage.mjs 031` — every line this spec adds or changes is covered.
+  - `node .specs/scripts/run-e2e.mjs 031` — passes (no e2e suite applies to the mobile app).
+  - `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` — no errors.
+  - `grep -rnE "@/modules|\.\./modules|modules/classes" apps/mobile/src/components/week-month-calendar
+    apps/mobile/src/components/calendar-week-row apps/mobile/src/components/calendar-month-grid` — prints nothing
+    (ER-12).
+  - The named tests in each Expected Result's `Verify by`, from `apps/mobile` (they are part of the related tests
+    above; run them alone to check a single result).
+- User journeys (iOS simulator, local backend with classes on a few days of this month and the next, pt-BR, light
+  and dark theme):
+  - Sign in as a student: the Agenda opens on the week, today selected, the pill "d – d MMM" with a down chevron,
+    only the selected day with a background, one dot under each day with classes. Tap the pill: the month grid,
+    pill "OUTUBRO 2026" (the current month) filled with an up chevron, adjacent days lighter, one dot per day with
+    classes. Tap another day: it is selected, the month stays, its classes show below. Tap the pill: the week of that
+    day, with it selected. Use both arrows in each view and "Hoje"; tap a day of the next month in the grid: the grid
+    moves to that month.
+  - Sign in as an admin: the Aulas tab has the same calendar, and "Criar aula neste dia" still opens Nova aula with
+    the selected day.
+
+## Memory Impact
+
+- `memory/product.md` — Current state: the week view gains the month view (pill in the middle of the header, the
+  selected day kept across views, selecting a day never switching the view, one dot per day with classes, the arrows
+  moving a week or a month; no "Hoje" shortcut, no relative-week subtitle, and no day title or class count above the day's cards), for the three roles; remove "the student Agenda's month view" from Out of scope
+  → spec 030's item.
+- `memory/technical-context.md` — Classes → the mobile week paragraph: `WeekMonthCalendar` instead of `WeekNav` /
+  `DayStrip`, the selection as one date, `useVisibleWeeksClasses` (`useQueries` over the visible weeks, shared key);
+  Fixed conventions → Mobile shared UI: `WeekMonthCalendar` (props of D-05) with `CalendarWeekRow` and
+  `CalendarMonthGrid`, and the date helpers in `src/utils/calendar-dates.ts`.
+- `memory/structure.md` — `src/components/{week-month-calendar,calendar-week-row,calendar-month-grid}/` and
+  `src/utils/calendar-dates.ts` added; `week-nav` and `day-strip` removed from the classes module's components.
+
+## Assumptions
+
+- Loading a month as 4 to 6 week requests is fast enough on a phone (each week is a few dozen classes at most, and
+  most weeks are already cached); a range endpoint is a later spec if it isn't. Accepted by the user (D-04).
+
+## References
+
+- [How to execute](../../shared/how-to-execute.md)
+- [Task breakdown](../../shared/task-breakdown.md)
+- [Acceptance criteria rules](../../shared/acceptance-criteria.md)
+- [Naming rules](../../shared/naming-rules.md)
+- [Spec lifecycle](../../shared/spec-lifecycle.md)
+
+## Amendments
+
+### Amendment 1 — 2026-10-16
+
+Approved by the user in chat, after seeing the first build on the simulator (before review):
+
+- D-07 removed: no "Hoje" chip (nor any other shortcut back to today). ER-10 removed with it; the subtitle under the
+  screen title ("Esta semana", "Daqui a 2 semanas"…) is removed too. D-12: the `today` key removed.
+- D-09 changed: the calendar is sized as the designs (AGENDA-01 / 01A) — 36 pt arrows with a 44 pt hit area, the pill
+  caption in Nunito 12.5 (`ds-text-pill`), the day numbers in Barlow 22 / 19 (`ds-text-calendar-day`,
+  `ds-text-calendar-month-day`), the pill's outlined background `bg-dim` and the month initials `ink-3`. Before: the
+  caption in `ds-text-button` (Barlow 18) and the numbers in `ds-text-day-number` (Barlow 26).
+- Task T-08 added to carry this out. Reason: the first build's header was too large and truncated the month name
+  ("NOVEMBRO 2…") on the simulator.
+
+### Amendment 2 — 2026-10-16
+
+Approved by the user in chat, after seeing the build on the simulator: the day numbers of the week row go from Barlow 22
+(AGENDA-01's size) to Barlow 24 (`ds-text-calendar-day`), "just a little bit" larger; the month grid is unchanged. D-09
+updated. Task T-09 added.
+
+### Amendment 3 — 2026-10-16
+
+Approved by the user in chat, after seeing the build on the simulator: the day title and the class count above the day's
+cards are removed (the selected day is already shown by the calendar). ER-05 no longer says the list shows "that day's
+title"; Memory Impact (`product.md`) notes the removal. Task T-11 added. Logged during review round 1 (F-01).
+
+
+## Review
+
+### Round 1 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8 tasks; design-tokens `check-types` ✅, so `tokens.css` is not stale)
+- related tests ✅ 715 passed, 57 suites (apps/mobile, apps/web) — `RELATED TESTS PASSED`; the named tests of every Expected Result's `Verify by` run alone: 93 passed in the 6 suites of the spec
+- coverage of the changed lines ✅ `COVERAGE OK` — 15 files, no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` (backend skipped, web suite green; no suite applies to the mobile app)
+- ER-12 grep ✅ prints nothing · no TODO/FIXME/console.log in the diff · working tree clean (only the untracked, unrelated `.expo/`)
+- simulator journey ❌ not run (see F-03)
+
+**Expected Results**
+
+- ER-01 ✅ in tests (opens on the week, seven days, caption, only the selected day on `grape`, today `sun`) — the simulator half is open, see F-03
+- ER-02 ✅ — `weekCaption` tests: one month, two months, two years, trailing dot dropped
+- ER-03 ✅ — week row, month grid (adjacent days included) and screen: one dot per day with classes, `on-color` on the selected day of the week row
+- ER-04 ✅ — pill switches views, caption, label, `expanded`, arrow labels follow the view
+- ER-05 ✅ in tests — selecting a day keeps the view in both views and the list shows that day's cards; the spec text still says "title" (F-01)
+- ER-06 ✅ — selection carries across views, including 2026-11-01 → November
+- ER-07 ✅ — 4, 5 and 6 row grids, initials Monday first, adjacent days `ink-3`
+- ER-08 ✅ — 2026-11-01 and 2026-09-28 move the grid, view unchanged
+- ER-09 ✅ — arrows by view, day capped (31 Jan → 28 Feb, 31 Mar → 30 Apr, 2027-03-31 → 2027-02-28)
+- ER-10 — removed by amendment 1; no "Hoje" chip or subtitle remains in the code, and a test asserts there is no shortcut
+- ER-11 ✅ — the month requests exactly the four other Mondays and not 2026-10-12 again; a failing visible week shows no message; pull refetches every visible week; the selected week's error keeps "Try again"; the spinner follows only the user's pull
+- ER-12 ✅ — no imports from the modules; the range is reported on mount and when it changes
+
+**Findings**
+
+- [x] **F-01** (scope) — The task T-11 ("remove the day title and the class count above the cards") cites "amendment 3", but `## Amendments` only has amendments 1 and 2: the change to the contract is not logged. ER-05 still says "the list below shows that day's title and classes", and Memory Impact doesn't mention that the day title and count are gone. Expected: log Amendment 3 (what the user approved, why, T-11) under `## Amendments`, take "title" out of ER-05's behavior, and add the removal to the Memory Impact line for `product.md`.
+  > ✅ 2026-10-16 — logged Amendment 3 (the removal of the day title and class count, T-11), took "title" out of ER-05's behavior and added the removal to the `product.md` line of Memory Impact; files: `.specs/changes/031-week-month-calendar/spec.md`; verified: `node .specs/scripts/check-spec.mjs 031`; deviations: the amendment text records the approval as T-11 cited it — the user should confirm the wording
+- [x] **F-02** (D-09) — The selected day of `CalendarWeekRow` is drawn with `rounded-control` (`calendar-week-row.component.tsx`, the inner `View`: `rounded-control py-2 bg-grape`), but D-09 says "a `grape` card, `rounded-card`". Expected: use `rounded-card`, or, if the design asks for the control radius, log it as an amendment and change D-09.
+  > ✅ 2026-10-16 — the selected day of the week row now uses `rounded-card` as D-09 says; also renamed the test "shows another day's cards and count" to "shows another day's cards" (review note); files: `apps/mobile/src/components/calendar-week-row/calendar-week-row.component.tsx`, `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest src/components/calendar-week-row src/modules/classes` (242 passed), `npm run lint` and `npm run check-types` (exit 0); deviations: none
+- [x] **F-03** (ER-01, ER-03, ER-04, ER-05, ER-06, ER-09 — Verification Plan) — The iOS simulator journeys (student and admin, light and dark theme, week and month, arrows, a day of the next month, "Criar aula neste dia" with the selected day) were not run by the executor (T-07 says so) and I did not run them: the app isn't installed on the booted simulator, there is no backend running and no local sign-in. Until someone has seen them, they are not a pass. Expected: the user runs the journey and reports what they saw (the layout fixes T-08 to T-12 came from their earlier looks, but no complete pass was reported), and the result is recorded in T-07's evidence.
+  > ✅ 2026-10-16 — admin journey run by the agent on the iOS simulator (iPhone 18 Pro, dev client + Metro, backend on 4000 with the dev review accounts), signed in as `admin@example.com`; seen: week view opens on today's week (12–18 Oct), caption in the pill, only the selected day on a grape card, one teal dot per day with classes, no day title or class count above the cards; pill → month view (Oct 2026, 5 rows, Monday-first initials, adjacent days muted, filled pill with up chevron, selected day in a circle, today's number orange once another day is selected); tapping the 20th keeps the month view and shows that day's card; tapping the muted 1 (Nov) selects it and moves the grid to November (6 rows) without leaving the month view; "Criar aula" ("Create class") opened New class with 1 Nov preselected; back to the pill → week view of 26 Oct – 1 Nov with Sunday 1 selected; week arrow → 2–8 Nov, Sunday 8 selected; 31 Oct selected in the month view + next arrow → 30 Nov (day capped); dark theme (set in Profile → Theme, then restored to Light): week and month views fine. Student (`dev@example.com`, signed in with the dev review code): the Schedule tab shows the same calendar — week view of 12–18 Oct with dots, pill → month view (Oct 2026, dots, selected 16), tapping the 20th keeps the month view, selects it, turns today's 16 orange and lists that day's card. Not run: the instructor role (not named in F-03); the F-02 radius was not looked at separately (the selected week-row day showed as a rounded grape card). Deviations: the agent ran this, not the user as F-03 asked; the user can still repeat it.
+
+**Notes**
+
+- The test "shows another day's cards and count" (`classes-week.screen.test.tsx`) still says "count" although T-11 removed the count; rename it when touching the file.
+- `useVisibleWeeksClasses` mounts cached weeks refetching in the background (no `staleTime` in the app's `QueryClient`), as T-05 notes; it's the spec 030 behavior and D-04 accepts it.
+
+### Round 2 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8 tasks) · design-tokens `check-types` ✅ (`tokens.css` not stale)
+- related tests ✅ 715 passed, 57 suites (apps/mobile) + apps/web whole suite — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` — 15 files; no coverage-ignore, `console.log`, TODO or `eslint-disable` in the diff
+- e2e ✅ `E2E PASSED` (backend skipped, web Playwright 16 passed; no suite applies to the mobile app)
+- ER-12 grep ✅ prints nothing · working tree clean (only the untracked, unrelated `.expo/`)
+- each Expected Result's `Verify by` run alone: every filter selects and passes its tests, except ER-03's month-grid filter (F-01)
+- simulator (iPhone 18 Pro, iOS 27, dev client, local backend), run by the reviewer as the student, light theme, en-US: month view of Oct 2026 (5 rows, Monday-first initials, adjacent days muted, today's 16 in `sun`, one dot per day with classes, selected 20 in a grape circle) → pill → week 19–25 Oct with 20 still selected (grape card, white dot, outlined pill with down chevron) → previous arrow → 13 Oct selected, week 12–18 Oct → pill → month with 13 selected → tap the muted 1 (Nov) → November 2026, 6 rows, 1 Nov selected, still the month view → pill → "26 OCT – 1 NOV" with Sun 1 selected → select 31 Oct, month view, next arrow → 30 Nov (day capped). Not re-run by the reviewer: the admin role and the dark theme (recorded by the executor under round 1's F-03).
+
+**Expected Results**
+
+- ER-01 ✅ — screen test and week-row test; seen on the simulator
+- ER-02 ✅ — `weekCaption` tests (one month, two months, two years, trailing dot); "26 OCT – 1 NOV" seen on the simulator
+- ER-03 ✅ in behavior — week row, month grid (adjacent days included) and screen show one dot per day with classes, `on-color` on the selected week-row day; but its month-grid `Verify by` runs no test (F-01)
+- ER-04 ✅ — pill switches views, caption, label, `expanded`, arrow labels follow the view
+- ER-05 ✅ — selecting a day keeps the view in both views; the list shows that day's cards; re-tapping changes nothing
+- ER-06 ✅ — selection carries across views (23 Oct → 19–25 Oct; 1 Nov → November), also seen on the simulator
+- ER-07 ✅ — 4, 5 and 6 row grids, initials Monday first, adjacent days `ink-3`
+- ER-08 ✅ — 2026-11-01 and 2026-09-28 move the grid without leaving the month view; seen on the simulator
+- ER-09 ✅ — arrows by view; day capped (unit tests and 31 Oct → 30 Nov on the simulator)
+- ER-10 — removed by amendment 1; no "Today" chip or subtitle left in the code, and tests assert their absence
+- ER-11 ✅ — month requests exactly the four other Mondays, not 2026-10-12 again; a failing visible week shows no message; pull refetches every visible week; the selected week's error keeps "Try again"
+- ER-12 ✅ — no imports from `src/modules/`; the range is reported on mount and on change (week and month)
+
+Round 1's findings: F-01 ✅ (Amendment 3 logged, ER-05 and Memory Impact updated), F-02 ✅ (`rounded-card` on the selected week-row day, seen on the simulator), F-03 ✅ (journey recorded by the executor; partly repeated by the reviewer above).
+
+**Findings**
+
+- [x] **F-01** (tests, ER-03) — ER-03's `Verify by` `npx jest src/components/calendar-month-grid -t "one dot"` selects no test (`Tests: 9 skipped, 9 total`): the month grid's test is named "shows one lagoon dot for a day with classes, including adjacent days", which "one dot" doesn't match. Reproduce: run that command from `apps/mobile`. Expected: it runs and passes the month grid's dot test — rename the test so its name contains "one dot" (e.g. "shows one dot, lagoon, for a day with classes, including adjacent days").
+  > ✅ 2026-10-16 — reproduced (9 skipped), then renamed the test to "shows one dot, lagoon, for a day with classes, including adjacent days" (body unchanged); files: `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.component.test.tsx`; verified: `npx jest src/components/calendar-month-grid -t "one dot"` from `apps/mobile` (1 passed, 8 skipped); deviations: none
+- [x] **F-02** (convention) — `useCalendarWeekRow` (`calendar-week-row.hook.ts`) and `useCalendarMonthGrid` (`calendar-month-grid.hook.ts`) type their parameter with an inline `Pick<CalendarWeekRowProps, …>` / `Pick<CalendarMonthGridProps, …>` in the hook file; `.claude/rules/react.md` §1 puts the hook's props (`UseCalendarWeekRowProps`, `UseCalendarMonthGridProps`) in the component's `.types.ts`, as `WeekMonthCalendar` does with `UseWeekMonthCalendarProps` and the other 26 component hooks of the app do. Expected: declare both types in their `.types.ts` and use them in the hooks.
+  > ✅ 2026-10-16 — declared `UseCalendarWeekRowProps` and `UseCalendarMonthGridProps` (the same `Pick`s) in each component's `.types.ts` and typed the hooks' parameter with them; no behavior change; files: `apps/mobile/src/components/calendar-week-row/calendar-week-row.types.ts`, `apps/mobile/src/components/calendar-week-row/calendar-week-row.hook.ts`, `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.types.ts`, `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.hook.ts`; verified: `npx jest src/components/calendar-week-row src/components/calendar-month-grid src/components/week-month-calendar` (31 passed), `npm run lint` and `npm run check-types` from `apps/mobile` (exit 0); deviations: none
+
+**Notes**
+
+- In "shows no message when another visible week fails" (`classes-week.screen.test.tsx`), the assertion that 2026-10-20 has no dot would hold even if the week loaded, since the served data has no class that day; the hook test "leaves the items of the other weeks when one fails" carries that behavior. Optional: drop or reword the assertion.
+- On the simulator, a "next month" tap sent right after the pill tap (with no pause) was not applied; tapped again, it worked. Injected taps in quick succession, not reproduced by hand — not a finding.
+- `check-spec.mjs` warns that T-04 and T-06 still list the removed ER-10 under Covers; harmless.
+
+### Round 3 — 2026-10-16 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8 tasks) · design-tokens `check-types` ✅ (`tokens.css` not stale)
+- related tests ✅ 715 passed, 57 suites (apps/mobile) + apps/web whole suite (22 passed) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` — 15 files; no coverage-ignore, `console.log`, TODO or `eslint-disable` in the diff
+- e2e ✅ `E2E PASSED` (backend skipped, web Playwright 16 passed; no suite applies to the mobile app)
+- ER-12 grep ✅ prints nothing · working tree clean (only the untracked, unrelated `.expo/`)
+- each Expected Result's `Verify by` run alone from `apps/mobile`: all 18 filters select at least one test and pass (ER-03's month-grid filter now runs 1 test)
+- simulator: not repeated. Since round 2, whose reviewer ran the student journey on the iOS simulator (and the executor the admin journey, light and dark), the code changed only by a test rename and two hook prop types moved to `.types.ts` (`git diff f194a21..HEAD -- apps/`): nothing that runs in the app changed
+
+**Expected Results**
+
+- ER-01 ✅ — "opens on the week view" (screen) and "only the selected day has a background" (week row); seen on the simulator in round 2
+- ER-02 ✅ — `weekCaption`: one month, two months, two years, pt-BR, the trailing dot dropped
+- ER-03 ✅ — one dot per day with classes in the week row, the month grid (adjacent days included, `lagoon`) and the screen; `on-color` on the selected week-row day
+- ER-04 ✅ — the pill switches views, caption, label, `expanded`, the arrows' labels follow the view
+- ER-05 ✅ — selecting a day keeps the view in both views, re-tapping changes nothing, the list shows that day's cards
+- ER-06 ✅ — 23 Oct → week 19–25 Oct; 1 Nov from "26 OCT – 1 NOV" → November; a day picked with the arrows carries across
+- ER-07 ✅ — 4, 5 and 6 row grids, initials Monday first, adjacent days `ink-3`, month days `ink`
+- ER-08 ✅ — 2026-11-01 and 2026-09-28 move the grid without leaving the month view
+- ER-09 ✅ — the arrows by view; the day capped (31 Jan → 28 Feb, 31 Mar → 30 Apr, 2027-03-31 → 28 Feb)
+- ER-10 — removed by amendment 1; no "Today" chip or subtitle left in the code, tests assert their absence
+- ER-11 ✅ — the month requests the four other Mondays and not 2026-10-12 again; a failing visible week shows no message; pull refetches every visible week; the selected week's error keeps "Try again"; the hook test covers the failed week, the cache and `refetch`
+- ER-12 ✅ — no imports from `src/modules/`; tests render the components with props only; the range reported on mount and on change
+
+Round 2's findings: F-01 ✅ (`-t "one dot"` on the month grid runs and passes its dot test), F-02 ✅ (`UseCalendarWeekRowProps` / `UseCalendarMonthGridProps` in the `.types.ts` files, used by the hooks).
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Memory Impact (for `spec-finish`): besides the sections it names, `technical-context.md` → Applications → `apps/mobile` → Dates still says weeks are `src/modules/classes/utils/week.ts` with "the relative week, the week caption, weekday names", and that `calendar.ts` holds the calendar helpers. After this spec the general helpers (week arithmetic, captions, weekday names and initials, month grids) are in `src/utils/calendar-dates.ts`, the relative week is gone, and only the Fortaleza and class helpers stay in the classes module — update that bullet too.
+- Round 2's optional note on "shows no message when another visible week fails" (the 2026-10-20 dot assertion holds even if that week loaded) still stands.

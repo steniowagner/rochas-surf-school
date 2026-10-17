@@ -47,6 +47,36 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     return records.map((record) => this.toDomain(record));
   }
 
+  async findById(id: string): Promise<SchoolClass | null> {
+    const record = await this.prisma.schoolClass.findUnique({
+      where: { id },
+      include: { instructors: { select: { userId: true } } },
+    });
+    return record ? this.toDomain(record) : null;
+  }
+
+  async update(schoolClass: SchoolClass): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.schoolClass.update({
+        where: { id: schoolClass.id },
+        data: {
+          discipline: schoolClass.discipline,
+          level: schoolClass.level,
+          startsAt: schoolClass.startsAt,
+          endsAt: schoolClass.endsAt,
+          locationId: schoolClass.locationId,
+          capacity: schoolClass.capacity,
+          notes: schoolClass.notes,
+          updatedAt: schoolClass.updatedAt,
+        },
+      });
+      await tx.classInstructor.deleteMany({ where: { classId: schoolClass.id } });
+      await tx.classInstructor.createMany({
+        data: schoolClass.instructorIds.map((userId) => ({ classId: schoolClass.id, userId })),
+      });
+    });
+  }
+
   private toDomain(record: SchoolClassWithInstructors): SchoolClass {
     return new SchoolClass({
       id: record.id,

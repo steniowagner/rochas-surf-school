@@ -32,9 +32,12 @@ function setup() {
   const schoolClass = {
     createMany: vi.fn(async () => calls.push('classes')),
     findMany: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(async () => calls.push('class')),
   };
   const classInstructor = {
     createMany: vi.fn(async () => calls.push('instructors')),
+    deleteMany: vi.fn(async () => calls.push('unassign')),
   };
   const prisma = {
     schoolClass,
@@ -127,5 +130,73 @@ describe('PrismaSchoolClassRepository', () => {
       notes: null,
     });
     expect(classes[0].startsAt).toEqual(STARTS_AT);
+  });
+
+  it('finds a class by id with its instructors, or null', async () => {
+    const { schoolClass, repository } = setup();
+    schoolClass.findUnique
+      .mockResolvedValueOnce({
+        id: ID,
+        discipline: 'surf',
+        level: 'beginner',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        locationId: LOCATION_ID,
+        capacity: 8,
+        notes: 'Bring sunscreen',
+        createdBy: ADMIN_ID,
+        createdAt: NOW,
+        updatedAt: NOW,
+        instructors: [{ userId: INSTRUCTOR_ID }, { userId: ADMIN_ID }],
+      })
+      .mockResolvedValueOnce(null);
+
+    const found = await repository.findById(ID);
+
+    expect(schoolClass.findUnique).toHaveBeenCalledWith({
+      where: { id: ID },
+      include: { instructors: { select: { userId: true } } },
+    });
+    expect(found).toMatchObject({ id: ID, instructorIds: [INSTRUCTOR_ID, ADMIN_ID], capacity: 8 });
+    expect(await repository.findById(OTHER_ID)).toBeNull();
+  });
+
+  it('updates the class row and replaces its instructors in one transaction', async () => {
+    const { schoolClass, classInstructor, prisma, calls, repository } = setup();
+    const edited = domain().clone({
+      capacity: 12,
+      notes: null,
+      instructorIds: [ADMIN_ID],
+      updatedAt: NOW,
+    });
+
+    await repository.update(edited);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual(['class', 'unassign', 'instructors']);
+    expect(schoolClass.update).toHaveBeenCalledWith({
+      where: { id: ID },
+      data: {
+        discipline: 'surf',
+        level: 'beginner',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        locationId: LOCATION_ID,
+        capacity: 12,
+        notes: null,
+        updatedAt: NOW,
+      },
+    });
+    expect(classInstructor.deleteMany).toHaveBeenCalledWith({ where: { classId: ID } });
+    expect(classInstructor.createMany).toHaveBeenCalledWith({
+      data: [{ classId: ID, userId: ADMIN_ID }],
+    });
+  });
+
+  it('propagates an update failure so the transaction rolls back', async () => {
+    const { classInstructor, repository } = setup();
+    classInstructor.createMany.mockRejectedValue(new Error('down'));
+
+    await expect(repository.update(domain())).rejects.toThrow('down');
   });
 });

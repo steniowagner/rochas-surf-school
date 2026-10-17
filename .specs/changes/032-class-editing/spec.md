@@ -320,12 +320,13 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   passes from `apps/backend`.
   > ✅ 2026-10-16 22:48 — added `classUnassigned` to `NotificationsClassAssignmentNotifier` and the new `NotificationsClassChangeNotifier` (both run `Notify`, send `startsAt` as ISO text, log and swallow every error), provided and exported by `NotificationsModule`; files: `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.module.ts`; verified: `npx vitest run src/modules/notifications` from apps/backend (14 files, 70 passed), no tsc errors in notifications; deviations: none
 
-- [ ] **T-06** — Implement `findById` and `update` (one `$transaction`: the class row, then its `class_instructors`
+- [x] **T-06** — Implement `findById` and `update` (one `$transaction`: the class row, then its `class_instructors`
   replaced) in `src/modules/classes/school-class.prisma.ts`, and add `NoEnrolmentSeatCounter`
   (`src/modules/classes/no-enrolment.seat-counter.ts`, answers 0), with `school-class.prisma.spec.ts` and
   `no-enrolment.seat-counter.spec.ts`. Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-05 · Done when: `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/no-enrolment.seat-counter.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-16 22:49 — implemented `findById` and `update` (one `$transaction`: class row updated, its `class_instructors` deleted and recreated) in `PrismaSchoolClassRepository`, and added `NoEnrolmentSeatCounter` (answers 0); files: `apps/backend/src/modules/classes/school-class.prisma.ts`, `apps/backend/src/modules/classes/school-class.prisma.spec.ts`, `apps/backend/src/modules/classes/no-enrolment.seat-counter.ts`, `apps/backend/src/modules/classes/no-enrolment.seat-counter.spec.ts`; verified: `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/no-enrolment.seat-counter.spec.ts` from apps/backend (7 passed); deviations: none (registration in the module is T-07)
 
 - [ ] **T-07** — Expose `PUT /classes/:id` in `src/modules/classes/classes.controller.ts` (running `EditClass` with
   the repository, the location repository, the teacher lookup, both notifiers, the seat counter and the clock),

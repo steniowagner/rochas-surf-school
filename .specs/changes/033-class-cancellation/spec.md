@@ -277,11 +277,12 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   `npm run check-types --workspace @rochas-surf-school/classes` pass.
   > ✅ 2026-10-17 00:32 — Added cancelledAt/cancellationMessage to SchoolClass (validated, max 300), the cancelled state and cancelledAt param of getClassState, and the two fields to ClassView and ClassItem/toClassItem; files: `modules/classes/src/school-class/model/class-limits.ts`, `class-state.ts`, `school-class.entity.ts`, `modules/classes/src/school-class/provider/class-view-reader.provider.ts`, `modules/classes/src/school-class/usecase/class-item.ts`, `modules/classes/test/mock/school-class.factory.ts`, `modules/classes/test/school-class/model/class-state.test.ts`, `school-class.entity.test.ts`, `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npm test` in modules/classes (248 passed) and `npm run check-types`; deviations: none
 
-- [ ] **T-02** — Add `SchoolClassRepository.cancel(id, at, message): Promise<boolean>`, change `update` to return
+- [x] **T-02** — Add `SchoolClassRepository.cancel(id, at, message): Promise<boolean>`, change `update` to return
   `Promise<boolean>` (D-04, D-06), add `ClassChangeNotifier.classCancelled` (`provider/class-change-notifier.provider.ts`,
   event `ClassCancelled`), and extend the fakes in `test/mock/` (`fake-school-class.repository.ts` refusing a
   cancelled class in both methods, `fake-class-change.notifier.ts`) with their tests in `test/school-class/provider/`.
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/classes` passes.
+  > ✅ 2026-10-17 00:33 — Added SchoolClassRepository.cancel and boolean update, ClassCancelled / ClassChangeNotifier.classCancelled, and extended the fakes (cancelled class refused by both repository methods; notifier records cancelledEvents); files: `modules/classes/src/school-class/provider/school-class.repository.ts`, `modules/classes/src/school-class/provider/class-change-notifier.provider.ts`, `modules/classes/test/mock/fake-school-class.repository.ts`, `modules/classes/test/mock/fake-class-change.notifier.ts`, `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`, `modules/classes/test/school-class/provider/fake-class-change.notifier.test.ts`; verified: `npm test` in modules/classes (252 passed), `npm run check-types`; deviations: none
 
 - [ ] **T-03** — Add `CancelClass` (`src/school-class/usecase/cancel-class.usecase.ts`, exported from the usecase
   barrel): D-02, D-03, D-04 and D-07, with `test/school-class/usecase/cancel-class.usecase.test.ts` (tests named

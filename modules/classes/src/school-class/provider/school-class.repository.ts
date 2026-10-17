@@ -7,6 +7,14 @@ export interface SchoolClassRepository {
   findStartingBetween(from: Date, to: Date): Promise<SchoolClass[]>;
   /** The class with its instructor ids, or null when there is none. */
   findById(id: string): Promise<SchoolClass | null>;
-  /** Writes the class and replaces its instructors in one atomic write. */
-  update(schoolClass: SchoolClass): Promise<void>;
+  /**
+   * Writes the class and replaces its instructors in one atomic write. Returns `false`, writing nothing,
+   * when the stored class is cancelled.
+   */
+  update(schoolClass: SchoolClass): Promise<boolean>;
+  /**
+   * Marks the class as cancelled at `at`, with the message (or none). Returns `true` when it cancelled the
+   * class and `false` when it was already cancelled (or is gone): of two simultaneous cancels exactly one wins.
+   */
+  cancel(id: string, at: Date, message: string | null): Promise<boolean>;
 }

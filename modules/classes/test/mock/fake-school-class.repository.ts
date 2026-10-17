@@ -3,6 +3,7 @@ import { SchoolClass, SchoolClassRepository } from "../../src";
 export class FakeSchoolClassRepository implements SchoolClassRepository {
   readonly createManyCalls: SchoolClass[][] = [];
   readonly updateCalls: SchoolClass[] = [];
+  readonly cancelCalls: { id: string; at: Date; message: string | null }[] = [];
   failNextCreate = false;
   private classes: SchoolClass[];
 
@@ -36,10 +37,29 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
     return this.classes.find((item) => item.id === id) ?? null;
   }
 
-  async update(schoolClass: SchoolClass): Promise<void> {
+  async update(schoolClass: SchoolClass): Promise<boolean> {
     this.updateCalls.push(schoolClass);
+
+    const stored = this.classes.find((item) => item.id === schoolClass.id);
+    if (!stored || stored.cancelledAt) return false;
+
     this.classes = this.classes.map((item) =>
       item.id === schoolClass.id ? schoolClass : item,
     );
+
+    return true;
+  }
+
+  async cancel(id: string, at: Date, message: string | null): Promise<boolean> {
+    this.cancelCalls.push({ id, at, message });
+
+    const stored = this.classes.find((item) => item.id === id);
+    if (!stored || stored.cancelledAt) return false;
+
+    this.classes = this.classes.map((item) =>
+      item.id === id ? item.clone({ cancelledAt: at, cancellationMessage: message }) : item,
+    );
+
+    return true;
   }
 }

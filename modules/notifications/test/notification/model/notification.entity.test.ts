@@ -51,6 +51,22 @@ describe("Notification", () => {
     expect(notification.params).toEqual({ count: 4, discipline: "surf" });
   });
 
+  it.each(["class.edited", "class.unassigned"] as const)(
+    "accepts a %s notification with its class id, discipline and start",
+    (type) => {
+      const params = {
+        classId: "9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47",
+        discipline: "surf",
+        startsAt: "2026-10-18T11:00:00.000Z",
+      };
+      const notification = build({ type, params });
+
+      expect(() => notification.validate()).not.toThrow();
+      expect(notification.type).toBe(type);
+      expect(notification.params).toEqual(params);
+    },
+  );
+
   it("rejects a missing or invalid user id", () => {
     expect(messagesOf(() => build({ userId: "" }).validate())).toContain(
       "notification.userId.required",

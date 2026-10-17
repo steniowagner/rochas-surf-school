@@ -297,9 +297,10 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-03** — Add `class.edited` and `class.unassigned` to `NOTIFICATION_TYPES`
+- [x] **T-03** — Add `class.edited` and `class.unassigned` to `NOTIFICATION_TYPES`
   (`src/notification/model/notification.entity.ts`) with cases in `test/notification/model/notification.entity.test.ts`.
   Covers: ER-07, ER-08 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes.
+  > ✅ 2026-10-16 22:47 — added `class.edited` and `class.unassigned` to `NOTIFICATION_TYPES`; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npm test` in modules/notifications passes, `check-types` clean; deviations: none
 
 ### Backend (`apps/backend`)
 

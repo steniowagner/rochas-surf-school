@@ -305,6 +305,11 @@ const messages = {
       title: "Class finished",
       description: "Ended at {{end}}.",
     },
+    cancelled: {
+      title: "Class cancelled",
+      description: "This class won't take place.",
+    },
+    message: "Message from the team",
     instructor_one: "Instructor",
     instructor_other: "Instructors",
     you: "You",

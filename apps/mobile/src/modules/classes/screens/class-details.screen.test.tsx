@@ -189,6 +189,68 @@ describe("ClassDetailsScreen", () => {
     expect(screen.getByText("In progress")).toBeOnTheScreen();
   });
 
+  describe("cancelled", () => {
+    const CANCELLED = { cancelledAt: "2026-10-13T10:00:00.000Z" };
+
+    it("shows the banner and the team's message instead of the started banner", async () => {
+      serve(
+        makeClass({
+          ...CANCELLED,
+          cancellationMessage: "Mar muito grande.",
+          startsAt: "2026-10-14T12:00:00.000Z",
+          endsAt: "2026-10-14T14:00:00.000Z",
+        }),
+      );
+      await renderScreen();
+
+      expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+      expect(screen.getByText("This class won't take place.")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("close-circle-outline"))).toBeOnTheScreen();
+      expect(screen.getByText("Message from the team")).toBeOnTheScreen();
+      expect(screen.getByText("Mar muito grande.")).toBeOnTheScreen();
+      expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
+    });
+
+    it("shows the banner instead of the finished banner, whatever the clock", async () => {
+      serve(
+        makeClass({
+          ...CANCELLED,
+          startsAt: "2026-10-14T08:00:00.000Z",
+          endsAt: "2026-10-14T09:00:00.000Z",
+        }),
+      );
+      await renderScreen();
+
+      expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+      expect(screen.queryByText("Class finished")).not.toBeOnTheScreen();
+    });
+
+    it("shows no message card without a message", async () => {
+      serve(makeClass({ ...CANCELLED, cancellationMessage: null }));
+      await renderScreen();
+
+      expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+      expect(screen.queryByText("Message from the team")).not.toBeOnTheScreen();
+    });
+
+    it("shows neither for a class that isn't cancelled", async () => {
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
+      expect(screen.queryByText("Class cancelled")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Message from the team")).not.toBeOnTheScreen();
+    });
+
+    it("hides the pencil from an admin", async () => {
+      serve(makeClass(CANCELLED));
+      await renderScreen(true);
+
+      expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "Edit class" })).not.toBeOnTheScreen();
+    });
+  });
+
   it("shows the loading state", async () => {
     fetchMock.mockReturnValue(new Promise(() => undefined));
     await renderScreen();

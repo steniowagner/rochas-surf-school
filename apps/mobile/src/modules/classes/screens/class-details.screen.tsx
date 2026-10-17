@@ -95,6 +95,29 @@ export function ClassDetailsScreen({ canEdit = false }: ClassDetailsScreenProps)
               </Text>
             </View>
           ) : null}
+          {screen.state === "cancelled" ? (
+            <>
+              <View className="flex-row items-center gap-3 rounded-card bg-bad-tint p-4">
+                <Ionicons name="close-circle-outline" size={24} color={theme.bad} />
+                <View className="flex-1 gap-1">
+                  <Text className="ds-text-list-title text-ink">
+                    {t("classDetails.cancelled.title")}
+                  </Text>
+                  <Text className="ds-text-list-subtitle text-ink-2">
+                    {t("classDetails.cancelled.description")}
+                  </Text>
+                </View>
+              </View>
+              {item.cancellationMessage !== null ? (
+                <View className="gap-1 rounded-card border border-line bg-surface p-4">
+                  <Text className="ds-text-section-label text-ink-2">
+                    {t("classDetails.message")}
+                  </Text>
+                  <Text className="ds-text-body text-ink">{item.cancellationMessage}</Text>
+                </View>
+              ) : null}
+            </>
+          ) : null}
           {screen.state === "finished" ? (
             <View className="gap-1 rounded-card bg-dim p-4">
               <Text className="ds-text-list-title text-ink">

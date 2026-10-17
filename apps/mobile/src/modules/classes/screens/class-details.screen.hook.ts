@@ -38,7 +38,12 @@ export const useClassDetailsScreen = ({
   const start = item ? schoolTimeOf(item.startsAt) : "";
   const end = item ? schoolTimeOf(item.endsAt) : "";
   const state = item
-    ? getClassState(new Date(item.startsAt), new Date(item.endsAt), now)
+    ? getClassState(
+        new Date(item.startsAt),
+        new Date(item.endsAt),
+        now,
+        item.cancelledAt ? new Date(item.cancelledAt) : null,
+      )
     : null;
 
   return {
@@ -60,8 +65,12 @@ export const useClassDetailsScreen = ({
         )
       : "",
     state,
-    // A finished class can't change, and nothing is shown for one that isn't loaded.
-    showEdit: canEdit && item !== undefined && state !== "finished",
+    // A finished or cancelled class can't change, and nothing is shown for one that isn't loaded.
+    showEdit:
+      canEdit &&
+      item !== undefined &&
+      state !== "finished" &&
+      state !== "cancelled",
     edit: () => router.push(routes.admin.editClass(id)),
     isLoading: query.isPending,
     isNotFound: query.error instanceof ApiError && query.error.status === 404,

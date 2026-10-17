@@ -358,12 +358,13 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   Covers: ER-11 · Done when: `npx jest src/modules/classes/components/class-card` passes from `apps/mobile`.
   > ✅ 2026-10-17 00:42 — ClassCard now passes the cancellation to getClassState and draws a cancelled class: bad chip 'Cancelada' with close-circle-outline instead of the clock states, time range struck through in text-ink-2, no sun border and no fading; copy classesWeek.cancelled in the three locales; files: `apps/mobile/src/modules/classes/components/class-card/class-card.hook.ts`, `class-card.component.tsx`, `class-card.component.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/components/class-card` (15 passed), `npx tsc --noEmit`; deviations: none
 
-- [ ] **T-12** — Add the cancelled banner and the "Mensagem da equipe" card to `ClassDetailsScreen`, and hide the
+- [x] **T-12** — Add the cancelled banner and the "Mensagem da equipe" card to `ClassDetailsScreen`, and hide the
   pencil for a cancelled class (`src/modules/classes/screens/class-details.screen.tsx` and its hook, D-15), with the
   `classDetails.cancelled` and `classDetails.message` copy and cases named "cancelled" in
   `class-details.screen.test.tsx`.
   Covers: ER-12 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes from
   `apps/mobile`.
+  > ✅ 2026-10-17 00:42 — ClassDetailsScreen computes the state with the cancellation, shows the 'Aula cancelada' banner (bad-tint, close-circle-outline in bad) instead of the started/finished ones, a 'Mensagem da equipe' card when there is a message, and hides the pencil for a cancelled class; copy classDetails.cancelled.* and classDetails.message in the three locales; files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `class-details.screen.hook.ts`, `class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/screens/class-details` (28 passed), `npx tsc --noEmit`; deviations: none
 
 - [ ] **T-13** — Add `CancelClassSheet` (`src/modules/classes/components/cancel-class-sheet/`: component, hook, types,
   index; D-11) with the `cancelClass` copy, and its component test (message, counter, confirm with the trimmed

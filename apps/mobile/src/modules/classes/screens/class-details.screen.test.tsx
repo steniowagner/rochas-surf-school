@@ -1,16 +1,18 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import { router } from "expo-router";
 
+import { routes } from "@/constants/routes";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
 import type { ClassItem } from "../classes.types";
-import { fetchMock, glyph, ok, setupSignedInUser } from "../classes.test-utils";
+import { failure, fetchMock, glyph, ok, setupSignedInUser } from "../classes.test-utils";
 
 import { ClassDetailsScreen } from "./class-details.screen";
 
 jest.mock("expo-router", () => ({
-  router: { back: jest.fn() },
+  router: { back: jest.fn(), push: jest.fn() },
   useLocalSearchParams: () => ({ id: "c-1" }),
 }));
 
@@ -41,7 +43,7 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
 
 const serve = (item: ClassItem) => fetchMock.mockResolvedValue(ok(item));
 
-const renderScreen = async () => {
+const renderScreen = async (canEdit?: boolean) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
@@ -49,7 +51,7 @@ const renderScreen = async () => {
   await render(
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <ClassDetailsScreen />
+        <ClassDetailsScreen canEdit={canEdit} />
       </SessionProvider>
     </QueryClientProvider>,
   );
@@ -233,4 +235,83 @@ describe("ClassDetailsScreen", () => {
     expect(screen.queryByRole("button", { name: "Try again" })).not.toBeOnTheScreen();
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
   });
+
+  it("pencil: does not show after a failed load", async () => {
+    jest.useFakeTimers();
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    await renderScreen(true);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(20_000);
+    });
+
+    expect(screen.getByText("Couldn't load the class.")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Edit class" })).toBeNull();
+  });
+
+  describe("pencil", () => {
+    const pencil = () => screen.queryByRole("button", { name: "Edit class" });
+
+    beforeEach(() => (router.push as jest.Mock).mockClear());
+
+    it("opens the editor of a class that hasn't started", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen(true);
+
+      await user.press(await screen.findByRole("button", { name: "Edit class" }));
+
+      expect(router.push).toHaveBeenCalledWith(routes.admin.editClass("c-1"));
+    });
+
+    it("shows on a class that has started", async () => {
+      serve(makeClass({ startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T14:00:00.000Z" }));
+      await renderScreen(true);
+
+      expect(await screen.findByText("In progress")).toBeOnTheScreen();
+      expect(pencil()).toBeOnTheScreen();
+    });
+
+    it("does not show on a class that has finished", async () => {
+      serve(makeClass({ startsAt: "2026-10-14T11:00:00.000Z", endsAt: "2026-10-14T12:00:00.000Z" }));
+      await renderScreen(true);
+
+      expect(await screen.findByText("Class finished")).toBeOnTheScreen();
+      expect(pencil()).toBeNull();
+    });
+
+    it("does not show for anyone but an admin", async () => {
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
+      expect(pencil()).toBeNull();
+    });
+
+    it("does not show while loading or for a missing class", async () => {
+      fetchMock.mockReturnValue(new Promise(() => undefined));
+      const { unmount } = await renderWithUnmount();
+      expect(pencil()).toBeNull();
+      unmount();
+
+      fetchMock.mockResolvedValue(failure(404));
+      const missing = await renderWithUnmount();
+      expect(await screen.findByText("This class no longer exists.")).toBeOnTheScreen();
+      expect(pencil()).toBeNull();
+      missing.unmount();
+    });
+  });
 });
+
+const renderWithUnmount = async () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider>
+        <ClassDetailsScreen canEdit />
+      </SessionProvider>
+    </QueryClientProvider>,
+  );
+};

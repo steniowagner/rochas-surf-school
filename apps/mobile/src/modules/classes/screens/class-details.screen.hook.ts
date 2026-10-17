@@ -1,7 +1,8 @@
 import { getClassState } from "@rochas-surf-school/classes";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { routes } from "@/constants/routes";
 import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
 import { getInitials } from "@/utils/get-initials";
@@ -11,9 +12,14 @@ import { useNow } from "../hooks/use-now.hook";
 import { getDateLocale, todayInSchoolZone } from "../utils/calendar";
 import { formatDateLine, schoolDayOf, schoolTimeOf } from "../utils/week";
 
-import type { ClassDetailsInstructor } from "./class-details.screen.types";
+import type {
+  ClassDetailsInstructor,
+  UseClassDetailsScreenProps,
+} from "./class-details.screen.types";
 
-export const useClassDetailsScreen = () => {
+export const useClassDetailsScreen = ({
+  canEdit = false,
+}: UseClassDetailsScreenProps = {}) => {
   const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useSession();
@@ -30,6 +36,9 @@ export const useClassDetailsScreen = () => {
   );
   const start = item ? schoolTimeOf(item.startsAt) : "";
   const end = item ? schoolTimeOf(item.endsAt) : "";
+  const state = item
+    ? getClassState(new Date(item.startsAt), new Date(item.endsAt), now)
+    : null;
 
   return {
     item,
@@ -49,9 +58,10 @@ export const useClassDetailsScreen = () => {
           },
         )
       : "",
-    state: item
-      ? getClassState(new Date(item.startsAt), new Date(item.endsAt), now)
-      : null,
+    state,
+    // A finished class can't change, and nothing is shown for one that isn't loaded.
+    showEdit: canEdit && item !== undefined && state !== "finished",
+    edit: () => router.push(routes.admin.editClass(id)),
     isLoading: query.isPending,
     isNotFound: query.error instanceof ApiError && query.error.status === 404,
     // An expired session is handled by the session flow: nothing to show here.

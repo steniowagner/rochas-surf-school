@@ -107,17 +107,22 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     FCM service account (`eas credentials`) plus a native rebuild — not set up yet, so the app registers nothing
     until then.
   - Dates: `date-fns` 4 + `@date-fns/tz`, always displayed in `America/Fortaleza` (`format(…, { in: tz("America/Fortaleza") })`);
-    relative times use date-fns locales `ptBR` / `es` / `enUS`, picked from the i18n language. The class
-    calendar (spec 028) is a custom component built from the tokens (Monday first, month names and weekday
+    relative times use date-fns locales `ptBR` / `es` / `enUS`, picked from the i18n language. The general
+    `YYYY-MM-DD` helpers live in `src/utils/calendar-dates.ts` (spec 031; `CalendarMonth` in
+    `calendar-dates.types.ts`): the date-fns locale of the app language, months and ISO weekdays, adding days, weeks
+    and months (`addMonthsKeepingDay`), the Monday and the seven days of a week, the month grids (`buildMonthGrid`
+    for Nova aula, `buildFittedMonthGrid` and `monthRange` for only the weeks a month needs), the captions
+    (`weekCaption` "12 – 18 OCT" / "28 SEP – 4 OCT", `monthCaption` "OCTOBER 2026", upper-cased, a trailing "."
+    dropped from month abbreviations), weekday names, abbreviations and initials, and a day's accessibility label.
+    The class calendar (spec 028) is a custom component built from the tokens (Monday first, month names and weekday
     initials from the date-fns locale); "today" and the current minutes are computed in Fortaleza
-    (`src/modules/classes/utils/calendar.ts`). Since spec 029 it marks a range as a band (`bg-grape-tint`, the
+    (`src/modules/classes/utils/calendar.ts`, with the date-range helpers). Since spec 029 it marks a range as a band (`bg-grape-tint`, the
     `grapeTint` token, light and dark) and has no weekday filter: once a range is complete, pressing one of its
     ends clears it, pressing a day between them removes it (struck through) or puts it back, and pressing a day
     outside starts a new range with nothing removed (`pressDay`); `DateRangeSummary` lists the removed days
-    ("Dias removidos" / "Nenhum dia removido" and how to remove one). Weeks (spec 030) are
-    `src/modules/classes/utils/week.ts`: the Monday of a day, adding days and weeks, the relative week, the week
-    caption, weekday names, the Fortaleza day and `HH:mm` of an instant, and the class's date line (Hoje / Amanhã /
-    Ontem, else the weekday, plus the year when it isn't the current one).
+    ("Dias removidos" / "Nenhum dia removido" and how to remove one). The classes' own week helpers (spec 030) are
+    `src/modules/classes/utils/week.ts`: the Fortaleza day and `HH:mm` of an instant, and the class's date line
+    (Hoje / Amanhã / Ontem, else the weekday, plus the year when it isn't the current one).
   - Time pickers: **`@expo/ui`** 57's `DateTimePicker` (`@expo/ui/community/datetime-picker`, native wheels in
     time mode; spec 028's "Novo horário" sheet). No other native picker is installed. Inside a `BottomModal`,
     a picker needs `contentPanningEnabled={false}` so the sheet's content pan doesn't take the drag.
@@ -197,8 +202,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   among them `PhoneNumberRule` (key `phone`: an E.164 string, `^\+[1-9]\d{1,14}$`, that `libphonenumber-js`'s
   `isValidPhoneNumber` accepts for its country). Jest, like the modules.
 - **`packages/design-tokens`** — the design system's tokens; `src/tokens.ts` is the source and `src/tokens.css`
-  is generated and committed (`check-types` fails when it is stale). Among the type styles, `dayNumber`
-  (`ds-text-day-number`, 26 px Barlow Condensed; spec 030) draws the day numbers of the classes' day strip.
+  is generated and committed (`check-types` fails when it is stale). Among the type styles, the week and month
+  calendar (spec 031) uses `pill` (`ds-text-pill`, Nunito 12.5, 800, uppercase: the pill's caption),
+  `calendarDay` (`ds-text-calendar-day`, Barlow Condensed 24: the week row's numbers) and `calendarMonthDay`
+  (`ds-text-calendar-month-day`, Barlow Condensed 19: the month grid's numbers). `dayNumber`
+  (`ds-text-day-number`, 26 px; spec 030's day strip) is still defined but no screen uses it.
 
 ## Persistence
 
@@ -342,9 +350,20 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `loading: "approve" | "deny"`), `DecidedList` ("Decided just now": rows with a `Chip` tag, tone `ok` / `bad`;
   renders nothing when empty) and `DenySheet` (`BottomModal` + `TextArea` + `Button`; clears its text when it
   closes) — with generic props and no registration fields, so "Reactivate accounts" and "Class enrolments" plug in
-  their own data and copy. App-wide helpers live in `src/utils/`: `formatCreatedAt` ("now", relative up to 7
-  days, then the date in America/Fortaleza; used by the Pending screen and the registration cards) and
-  `getInitials` (first letter of the first and of the last word, uppercase). API errors are shown in a toast
+  their own data and copy. A week or a month to pick a day from is the shared `WeekMonthCalendar`
+  (`src/components/week-month-calendar`, spec 031), drawn with `CalendarWeekRow` and `CalendarMonthGrid` in sibling
+  folders; none of them imports from `src/modules/`. It is controlled for the selection and owns only the view
+  (`"week"` | `"month"`, starting on the week; the pill in the header is the only switch). Props: `selectedDate`
+  and `today` (`YYYY-MM-DD`, the parent decides the zone), `markedDates` (one dot each), `onSelectDate`,
+  `onVisibleRangeChange?({ from, to })` (the first and last day drawn, on mount and on change, through
+  `useEffectEvent`) and `markedLabel?` (appended to a marked day's accessibility label). Everything shown derives
+  from `selectedDate` and the view, so the arrows select ±7 days or ±1 month (`addMonthsKeepingDay`, capped at the
+  month's last day). Days are buttons labelled with date-fns `PPPP` and `accessibilityState.selected`, `testID`
+  `calendar-day-<date>` (dot `calendar-day-<date>-dot`); the pill has `accessibilityState.expanded` on the month;
+  the 36 pt arrows and the pill reach 44 pt through `hitSlop`. Copy under `weekMonthCalendar`. App-wide helpers
+  live in `src/utils/`: `formatCreatedAt` ("now", relative up to 7 days, then the date in America/Fortaleza; used
+  by the Pending screen and the registration cards), `getInitials` (first letter of the first and of the last
+  word, uppercase) and the date helpers of `calendar-dates.ts` (see Dates). API errors are shown in a toast
   through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides by itself after 3 s).
   One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
   shown inline under the field, because the design shows it there.
@@ -729,9 +748,16 @@ guard's 401 `auth.token.invalid`.
   `titleKey`, `classRoute`, `canCreate`) is the student's Agenda (`(tabs)/index.tsx`) and the Aulas tab of
   instructors and admins (`canCreate` for admins only: the header "+", "Criar aula" and "Criar aula neste dia",
   the two buttons only on today or later, each opening `routes.admin.newClass({ date })` — without `date` on a
-  past day). It loads `useWeekClasses(weekStart)` (`["classes", "week", weekStart]`, `GET /classes?date=<Monday>`),
-  keeps the selected weekday across weeks, and uses `WeekNav`, `DayStrip` and `ClassCard`
-  (`components/{week-nav,day-strip,class-card}/`); pull-to-refresh refetches the shown week. `ClassDetailsScreen`
+  past day). Since spec 031 its selection is one `selectedDate` (opening on Fortaleza's today) shown in the shared
+  `WeekMonthCalendar`; the list loads `useWeekClasses(mondayOf(selectedDate))` (`["classes", "week", <Monday>]`,
+  `GET /classes?date=<Monday>`, built by the exported `weekClassesOptions(weekStart)`), which alone drives the
+  loading and error-with-retry states. The dots come from `useVisibleWeeksClasses({ from, to })`
+  (`hooks/use-visible-weeks-classes.hook.ts`): `useQueries` over each Monday of the range the calendar reports
+  (`onVisibleRangeChange`; one week, or the 4 to 6 weeks of the month grid) with the same options, so the week and
+  the month share the cache; a failed week just contributes no items. `markedDates` is the Fortaleza days with a
+  class, `markedLabel` `classesWeek.hasClasses`. Pull-to-refresh refetches every visible week; its spinner is local
+  state around that refetch, not the queries' `isRefetching` (a month mounting cached weeks refetches them in the
+  background and must not show it). The cards are `ClassCard` (`components/class-card/`). `ClassDetailsScreen`
   (`screens/class-details.screen.tsx`, route `/<role>/class/[id]`) loads `useClass(id)` (`["classes", "detail",
   id]`, no retry on a 404 or a `SessionExpiredError`) and names the session's user "Você". Both compute the state
   with `getClassState` from `@rochas-surf-school/classes` and `useNow()` (`hooks/use-now.hook.ts`, the phone's

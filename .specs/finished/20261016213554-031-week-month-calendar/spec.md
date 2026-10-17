@@ -2,13 +2,14 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: accepted
+status: finished
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
 reviewed_commit: 3eb7201ad181b8e4ee6c0335138b35c5122ef6b6
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-16
 ---
 
 # 031 — Week and month calendar on the classes screen

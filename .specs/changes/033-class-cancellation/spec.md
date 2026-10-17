@@ -381,10 +381,11 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   from `apps/mobile`.
   > ✅ 2026-10-17 01:08 — EditClassScreen: outline 'Cancelar aula' button (close-circle-outline) below the sections in both modes opening CancelClassSheet; confirm sends once (ref guard) via useCancelClass, toast cancelClass.done, closes the sheet and router.back(); D-12 errors (cancelled/finished close the sheet and refetch the class, 404 toast and back, others toast, sheet usable again); a cancelled class shows editClass.errors.cancelled instead of the form, and a save refused with class.cancelled shows the same toast and goes back; copy was added in T-13; files: `apps/mobile/src/modules/classes/screens/edit-class.screen.tsx`, `edit-class.screen.hook.ts`, `edit-class.screen.test.tsx`; verified: `npx jest src/modules/classes/screens/edit-class` (55 passed), `npx tsc --noEmit`, `npx eslint src/modules/classes` clean; deviations: a save refused with class.cancelled also invalidates ["classes"] so the details behind show the cancellation (not spelled out in D-13)
 
-- [ ] **T-15** — Handle `class.cancelled` in `useNotificationResponse` (open the class details of the resolved flow)
+- [x] **T-15** — Handle `class.cancelled` in `useNotificationResponse` (open the class details of the resolved flow)
   and `useNotificationReceived` (invalidate `["classes"]`) in `src/modules/notifications/hooks/` (D-17), with cases
   in their tests.
   Covers: ER-14 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
+  > ✅ 2026-10-17 01:09 — useNotificationResponse opens the class details of the resolved instructor/admin flow for a class.cancelled push with a classId (else home); useNotificationReceived invalidates ["classes"] for it; files: `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `use-notification-received.hook.ts`, `use-notification-response.hook.test.tsx`, `use-notification-received.hook.test.tsx`; verified: `npx jest src/modules/notifications/hooks` (59 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
 ### Verification
 

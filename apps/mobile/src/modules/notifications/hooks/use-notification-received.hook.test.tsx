@@ -158,7 +158,7 @@ describe("useNotificationReceived", () => {
     expect(meCalls()).toHaveLength(0);
   });
 
-  it.each(["class.edited", "class.unassigned"])(
+  it.each(["class.edited", "class.unassigned", "class.cancelled"])(
     "reloads every cached class when a %s push arrives",
     async (type) => {
       answerMe(account("approved", "instructor"));

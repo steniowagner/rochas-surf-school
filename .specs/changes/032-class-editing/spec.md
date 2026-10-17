@@ -285,7 +285,7 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   `npm run check-types --workspace @rochas-surf-school/classes` pass.
   > ✅ 2026-10-16 22:46 — added `SchoolClassRepository.findById`/`update`, `SeatCounter`, `ClassChangeNotifier` (`classEdited`), `ClassAssignmentNotifier.classUnassigned`, exported from the provider barrel; fakes extended (`FakeSchoolClassRepository` with `updateCalls`, `FakeClassAssignmentNotifier.unassignedEvents`, new `FakeClassChangeNotifier`, `FakeSeatCounter`); files: `modules/classes/src/school-class/provider/{school-class.repository,class-assignment-notifier.provider,seat-counter.provider,class-change-notifier.provider,index}.ts`, `modules/classes/test/mock/{fake-school-class.repository,fake-class-assignment.notifier,fake-seat.counter,fake-class-change.notifier,index}.ts`, `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`; verified: `npm test` in modules/classes (182 passed), `npm run check-types` clean; deviations: none (the new fakes for the seat counter and change notifier are exercised by T-02's tests)
 
-- [ ] **T-02** — Add `EditClass` (`src/school-class/usecase/edit-class.usecase.ts`, exported from the usecase
+- [x] **T-02** — Add `EditClass` (`src/school-class/usecase/edit-class.usecase.ts`, exported from the usecase
   barrel): D-01–D-04 and D-06–D-07 — access, 404, shape, finished, started, location, added instructors, past start,
   seats taken, the D-03 comparison, the update and the notifications — with
   `test/school-class/usecase/edit-class.usecase.test.ts` (tests named "edits every field", "past", "started",
@@ -293,6 +293,7 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07 · Done when: `npx jest test/school-class/usecase/edit-class.usecase.test.ts --coverage`
   passes from `modules/classes` with every line of the use case covered.
+  > ✅ 2026-10-16 22:47 — added `EditClass` (access, 404, shape, finished, started, location, added-instructor eligibility, past start, seats taken, D-03 comparison, update, notifications; the editing admin is never notified; notifier failures swallowed) and exported `toInstant` from the batch model to reuse its Fortaleza conversion; files: `modules/classes/src/school-class/usecase/edit-class.usecase.ts`, `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/src/school-class/model/class-batch.ts`, `modules/classes/test/school-class/usecase/edit-class.usecase.test.ts`; verified: `npx jest test/school-class/usecase/edit-class.usecase.test.ts --coverage` from modules/classes (61 passed, edit-class.usecase.ts 100% statements/branches/functions/lines), whole module suite and `check-types` pass; deviations: use case returns `{ id }` (the controller reads the `ClassItem` through `ClassViewReader`)
 
 ### Notifications module (`modules/notifications`)
 

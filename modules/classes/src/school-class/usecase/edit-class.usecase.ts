@@ -140,7 +140,11 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     }
 
     const now = this.clockProvider.now();
-    const state = getClassState(stored.startsAt, stored.endsAt, now);
+    const state = getClassState(stored.startsAt, stored.endsAt, now, stored.cancelledAt);
+
+    if (state === "cancelled") {
+      throw new DomainError("class.cancelled", 409);
+    }
 
     if (state === "finished") {
       throw new DomainError("class.finished", 409);
@@ -205,7 +209,9 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     });
     edited.validate();
 
-    await this.schoolClassRepository.update(edited);
+    if (!(await this.schoolClassRepository.update(edited))) {
+      throw new DomainError("class.cancelled", 409);
+    }
 
     const others = (ids: string[]) => ids.filter((id) => id !== input.actor.id);
     const { discipline } = edited;

@@ -292,12 +292,13 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   passes from `modules/classes` with every line of the use case covered.
   > ✅ 2026-10-17 00:33 — Added CancelClass (access, id, message shape, class.cancelled, class.finished, conditional cancel, notification of the instructors but the actor) and exported it; files: `modules/classes/src/school-class/usecase/cancel-class.usecase.ts`, `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/test/school-class/usecase/cancel-class.usecase.test.ts`; verified: `npx jest test/school-class/usecase/cancel-class.usecase.test.ts --coverage` (25 passed, use case 100% statements/branches/functions/lines); deviations: followed the pattern of EditClass/GetClass rather than re-reading every reference of the module-use-case skill
 
-- [ ] **T-04** — Make `EditClass` (`src/school-class/usecase/edit-class.usecase.ts`) refuse a cancelled class with
+- [x] **T-04** — Make `EditClass` (`src/school-class/usecase/edit-class.usecase.ts`) refuse a cancelled class with
   409 `class.cancelled` after the shape and before `class.finished`, pass `cancelledAt` to `getClassState`, and turn
   `update` returning `false` into 409 `class.cancelled` without notifying (D-06), with cases named "cancelled" in
   `test/school-class/usecase/edit-class.usecase.test.ts`.
   Covers: ER-05 · Done when: `npx jest test/school-class/usecase/edit-class.usecase.test.ts` passes from
   `modules/classes`.
+  > ✅ 2026-10-17 00:34 — EditClass now computes the state with the stored cancellation, refuses a cancelled class with 409 class.cancelled (after the shape, before class.finished) and turns update returning false into the same 409 without notifying; files: `modules/classes/src/school-class/usecase/edit-class.usecase.ts`, `modules/classes/test/school-class/usecase/edit-class.usecase.test.ts`; verified: `npx jest test/school-class/usecase/edit-class.usecase.test.ts` (65 passed, use case 100% covered), full `npm test` in modules/classes (281 passed), `npm run check-types`; deviations: none
 
 ### Notifications module (`modules/notifications`)
 

@@ -117,11 +117,12 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     to UTC instants from America/Fortaleza, with an optional `max` that stops early),
     `model/school-class.entity.ts` (`SchoolClass`), `model/class-state.ts` (`ClassState`, `getClassState`: the
     state by the clock, also used by the app),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,clock.provider,class-view-reader.provider}.ts`
-    (`createMany` atomic, `findStartingBetween`; `TeacherLookup.findTeachers`; `ClassAssignmentNotifier.classAssigned`;
-    `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model with the location and the
-    instructors' names),
-    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class}.usecase.ts`, and
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,clock.provider,class-view-reader.provider}.ts`
+    (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic; `TeacherLookup.findTeachers`;
+    `ClassAssignmentNotifier.classAssigned` / `classUnassigned`; `ClassChangeNotifier.classEdited`;
+    `SeatCounter.countSeatsTaken`; `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model
+    with the location and the instructors' names),
+    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class}.usecase.ts`, and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share). Fakes of every port and entity
     factories are in `test/mock/`.
 
@@ -203,17 +204,21 @@ src/
     notifications.registration-notification-eraser.ts  # RegistrationNotificationEraser adapter
                                 # (DeleteRegistrationNotifications)
     notifications.class-assignment-notifier.ts  # ClassAssignmentNotifier adapter of classes (Notify
-                                # class.assigned; logs and swallows every error)
+                                # class.assigned / class.unassigned; logs and swallows every error)
+    notifications.class-change-notifier.ts  # ClassChangeNotifier adapter of classes (Notify class.edited; logs
+                                # and swallows every error)
     push-receipt-check.job.ts   # every-minute cron running CheckPushReceipts
     system.clock.ts             # SystemClockProvider
   modules/classes/
-    classes.module.ts           # wiring (DbModule; imports NotificationsModule for the class-assignment notifier)
+    classes.module.ts           # wiring (DbModule; imports NotificationsModule for the class-assignment and
+                                # class-change notifiers)
     locations.controller.ts     # GET /locations (200), POST /locations (201) — protected
     classes.controller.ts       # POST /classes/batch (201 { count }), GET /classes/time-range-suggestions (200),
-                                # GET /classes?date= (200, one week) and GET /classes/:id (200), in that order
-                                # — protected
+                                # GET /classes?date= (200, one week), GET /classes/:id (200), in that order, and
+                                # PUT /classes/:id (200 ClassItem) — protected
     {location,school-class}.prisma.ts  # Prisma repositories (P2002 on name_key → location.name.duplicate;
-                                # createMany writes classes and instructors in one $transaction)
+                                # createMany and update write classes and instructors in one $transaction)
+    no-enrolment.seat-counter.ts  # NoEnrolmentSeatCounter (SeatCounter answering 0 until enrolment)
     teacher-lookup.prisma.ts    # PrismaTeacherLookup (id, role and status of the given users)
     class-view-reader.prisma.ts # PrismaClassViewReader (one query per read, with the location and instructors' names)
     system.clock.ts             # SystemClockProvider of the module (the e2e suite overrides it)
@@ -276,6 +281,7 @@ src/
     (private)/<role>/{edit-profile,whatsapp,school-rules}.tsx  # the Profile's inner screens, above the tab bar
     (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations), above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
+    (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
     (private)/{student,instructor,admin}/class/[id].tsx  # class details (/<role>/class/<id>), above the tab bar
     (private)/{admin,instructor}/people.tsx          # the People screen with a back button (/admin/people,
                                                      # /instructor/people), above the tab bar; the student's
@@ -316,16 +322,20 @@ src/
                                 # homes' "People · N on the platform" row)
     utils/                      # people-query.ts (buildPeoplePagePath), group-by-initial.ts, format-since.ts
                                 # ("MMM yyyy"), format-whatsapp-number.ts, role-chip.ts (role → chip tone and label)
-  modules/classes/              # the week of classes and their details (every role) and creating classes (admins);
+  modules/classes/              # the week of classes and their details (every role), creating and editing classes
+                                # (admins);
                                 # imports @rochas-surf-school/classes for the batch expansion, time-range checks,
                                 # limits and getClassState
     screens/new-class.screen.tsx  # NewClassScreen + new-class.screen.hook.ts (useNewClassScreen: form state, D-15
                                 # defaults, the optional date param, count, summary, submit and its errors)
     screens/classes-week.screen.tsx  # ClassesWeekScreen + hook (the week, the selected day, states,
                                 # pull-to-refresh, the admin's entry points); the Agenda and Aulas tabs
-    screens/class-details.screen.tsx  # ClassDetailsScreen + hook (one class by the route's id, banners, "Você")
-    classes.types.ts            # ClassLocation, Teacher, NewClassForm, BatchRequest, CalendarMonth, ClassItem,
-                                # WeekClasses and the answers (mirror the API)
+    screens/class-details.screen.tsx  # ClassDetailsScreen + hook (one class by the route's id, banners, "Você",
+                                # the admin's pencil with canEdit)
+    screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
+                                # changes, single day and time, started mode, states, submit and its errors)
+    classes.types.ts            # ClassLocation, Teacher, NewClassForm, BatchRequest, EditClassRequest,
+                                # CalendarMonth, ClassItem, WeekClasses and the answers (mirror the API)
     components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
                                 # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
                                 # time-range-sheet (two @expo/ui DateTimePickers in time mode),
@@ -335,13 +345,14 @@ src/
                                 # use-time-range-suggestions (["classes", "time-range-suggestions"]), use-teachers
                                 # (["people", "teachers"], every page of GET /people?role=instructor,admin&perPage=50),
                                 # use-create-classes (POST /classes/batch, no retry; invalidates ["classes", "week"]),
+                                # use-edit-class (PUT /classes/:id, no retry; invalidates the weeks and the details),
                                 # use-week-classes (["classes", "week", weekStart]), use-class (["classes", "detail",
                                 # id]), use-now (the clock, every 60 s)
     utils/                      # calendar.ts (Fortaleza today and minutes, month grid, pressDay: ranges and their
                                 # removed days, initialRange), week.ts (Monday of a day, relative week, captions,
                                 # the date line), time-ranges.ts (incl. startsByNow),
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
-                                # key), locations-cache.ts
+                                # key, for Nova aula and Editar aula), locations-cache.ts
     classes.test-utils.tsx      # shared test helpers of the module
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;

@@ -2,13 +2,14 @@
 id: "032"
 slug: class-editing
 title: "Editing a class"
-status: accepted
+status: finished
 created: 2026-10-16
 started: 2026-10-16
 base_commit: eddd36f3a935ddb68e819c1a65d0f4a17ffe6197
 reviewed_commit: 8c094b2c418d1eb9de21be2f06a9300336451a06
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
+finished: 2026-10-17
 ---
 
 # 032 — Editing a class

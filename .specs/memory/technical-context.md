@@ -92,10 +92,12 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     the account with `refreshAccount()`, then `router.push(routes.admin.registrations)` for a
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
     / `router.push(routes.admin.classes)` for a `class.assigned` push when it resolves to the `instructor` / `admin`
-    flow (spec 030), else `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
+    flow (spec 030), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
+    for a `class.edited` / `class.unassigned` push with a string `data.classId` (spec 032), else
+    `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
-    `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`; no
-    navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
+    `class.edited` / `class.unassigned` invalidate `["classes"]` (weeks and details); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -224,7 +226,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   index; the use case checks it first and the repository maps Prisma's `P2002` to the same 409, so concurrent
   creations leave one row.
 - Writes that must be all or nothing go through one `$transaction` in the repository (`PrismaSchoolClassRepository.createMany`:
-  the classes, then their `class_instructors`). `classes.created_by` and `classes.location_id` are `ON DELETE
+  the classes, then their `class_instructors`; `PrismaSchoolClassRepository.update`: the class row, then its
+  `class_instructors` deleted and recreated). `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
   classes before it can delete the row.
 - Seeds (`apps/backend/prisma/seed/main.ts`, one task per module) hold only technical data and the three App
@@ -354,7 +357,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   so a moved route changes in one place. Each role's folder (`src/app/(private)/<role>/`) has a `Stack` whose
   `(tabs)` group holds the tab bar (`(tabs)/_layout.tsx` renders `RoleTabs`, one route file per tab; the first tab
   is the role's `index`, so `/student`, `/instructor` and `/admin` stay the flows' entry routes); inner screens
-  (`/admin/registrations`, `/admin/people`, `/admin/new-class`, `/instructor/people`, `/<role>/edit-profile`,
+  (`/admin/registrations`, `/admin/people`, `/admin/new-class`, `/admin/edit-class/[id]` —
+  `routes.admin.editClass(id)` —, `/instructor/people`, `/<role>/edit-profile`,
   `/<role>/whatsapp`, `/<role>/school-rules`, `/<role>/class/[id]` — `routes.<role>.classDetail(id)`) are routes of the
   role's `Stack`, outside `(tabs)`, so they open above the tab bar, without it, and go back with `BackButton`.
   Route tests that render a role live in `src/modules/<role>/*-tabs.navigation.test.tsx`, never under `src/app/`
@@ -707,6 +711,25 @@ guard's 401 `auth.token.invalid`.
   `Date`s), implemented by `PrismaClassViewReader` (`class-view-reader.prisma.ts`): one `findMany` / `findUnique`
   with the location and the instructors' `user` id and name. The API never returns a state: `getClassState(startsAt,
   endsAt, now)` (`model/class-state.ts`, `not-started` / `started` / `finished`) is computed by the caller.
+- `PUT /classes/:id` (admins; spec 032, `EditClass` in `usecase/edit-class.usecase.ts`) `{ discipline, level, date,
+  start, end, locationId, instructorIds, capacity, notes? }` (`date` `YYYY-MM-DD`, `start` / `end` `HH:mm`,
+  Fortaleza, turned into `startsAt` / `endsAt` with `toInstant` from `model/class-batch.ts`; the whole class every
+  time) → 200 the updated `ClassItem` (the controller runs `EditClass`, which returns `{ id }`, then `GetClass`).
+  Order: access; a non-UUID id (no lookup) or no class (`SchoolClassRepository.findById`) → 404 `class.notFound`;
+  shape errors in one 422 `ValidationException` (keys in [modules/classes.md](modules/classes.md)); then, alone and
+  in order, 409 `class.finished` (now ≥ `endsAt`), 409 `class.started` (now ≥ `startsAt` and a class field
+  differs), 422 `class.location.notFound`, 422 `class.instructors.invalid` (only the ids not already on the class
+  go through `TeacherLookup`), 422 `class.startsAt.past` (not started and the new start ≤ now), 422
+  `class.capacity.belowSeatsTaken` (`details: { seatsTaken }`). "Differs" compares discipline, level, `startsAt`,
+  `endsAt`, location id, capacity and trimmed notes (`null` for none), and the instructors as a set; nothing
+  differing → 200 with no write (not even `updatedAt`) and no notification. Otherwise
+  `SchoolClassRepository.update` (one `$transaction`, see Persistence; last save wins), then, all except the
+  caller and each swallowed when it throws: `ClassChangeNotifier.classEdited({ instructorIds, classId,
+  discipline, startsAt })` to the kept instructors when a class field differs, `ClassAssignmentNotifier.classAssigned({
+  count: 1, … })` to the added ones and `classUnassigned({ instructorIds, classId, discipline, startsAt })` to the
+  removed ones. Seats taken come from the `SeatCounter` port (`provider/seat-counter.provider.ts`,
+  `countSeatsTaken(classId)`), implemented by `NoEnrolmentSeatCounter`
+  (`apps/backend/src/modules/classes/no-enrolment.seat-counter.ts`, always 0) until enrolment replaces it.
 - The clock is the module's `ClockProvider` port, implemented by a `SystemClockProvider` local to
   `ClassesModule`, so the e2e suite fakes the time without touching auth's clock.
 - Mobile (`src/modules/classes`): queries `["locations"]` (`useLocations`), `["classes", "time-range-suggestions"]`
@@ -738,6 +761,24 @@ guard's 401 `auth.token.invalid`.
   clock re-read every 60 s while mounted). Loading is a `grape` `ActivityIndicator`; a failed load shows the
   error with "Tentar novamente", a 404 on the details "Esta aula não existe mais." without retry, and a
   `SessionExpiredError` nothing. Copy lives under `classesWeek` and `classDetails`.
+- Mobile editing (spec 032): `ClassDetailsScreen` takes `canEdit` (set only by `admin/class/[id].tsx`); with it, a
+  loaded class that isn't finished shows a round 44×44 pencil (`bg-surface`, `shadowStyle`) at the right of the
+  header, opening `routes.admin.editClass(id)`. `EditClassScreen` (`screens/edit-class.screen.tsx` + hook, route
+  `/admin/edit-class/[id]`) loads `useClass(id)`, `useLocations`, `useTimeRangeSuggestions` and `useTeachers`, and
+  keeps only the admin's changes over the class's values. The day is `DateRangeCalendar` with `single` (a press
+  selects only that day, no summary) and the time `TimeRangePicker` with `single` (a press selects only that chip,
+  the selected one stays; on today a chip starting at or before now is blocked except `ownRange`, the class's own
+  range while it hasn't started); the class's own range and location are always listed, and its instructors who
+  aren't in `useTeachers` are listed too. A started class (by `getClassState` and `useNow`, or after the server
+  answers `class.started` — `startedByServer`) shows the `sun` banner and only the instructors, and sends the
+  stored values back with them. The submit is enabled when the form is valid and a field differs (the same
+  comparison as the backend), guarded by a ref against a double press, and sent by `useEditClass`
+  (`apiPut`, no retry; invalidates `["classes", "week"]` and `["classes", "detail", id]` on success); then toast
+  `editClass.saved` and `router.back()`. Errors map with `getEditClassErrorKey` (`utils/class-error.ts`, with
+  `isClassStartedError`, `isClassFinishedError`, `isClassNotFoundError` and `getSeatsTaken`): `class.started` →
+  its toast and the class refetched; `class.finished` and 404 → their toast and back; seats taken →
+  `editClass.errors.seatsTaken` with `count`; the rest as Nova aula's `getClassErrorKey` (with the same
+  refetches). Copy lives under `editClass` (plus `classDetails.edit`).
 
 ## Error handling
 
@@ -772,7 +813,10 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   of the messages, `getReceipts(ids)` → receipts by ticket id), implemented by `ExpoPushProvider`
   (`apps/backend/src/modules/notifications/expo.push.ts`): `chunkPushNotifications` +
   `sendPushNotificationsAsync`, messages with `sound: "default"`, `priority: "high"`, `channelId: "default"` and
-  `data: { type, notificationId }`, title and body from `renderPush` in the device's locale. A chunk that throws
+  `data: { type, notificationId, classId? }` (`classId` copied from the notification's params when it is a
+  string; spec 032), title and body from `renderPush` in the device's locale (dates in the copy, such as the class
+  start of `class.edited` / `class.unassigned`, are formatted by hand in Fortaleza time — fixed UTC-3, no
+  `Intl` — so the text is the same on every machine). A chunk that throws
   doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
   logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
   enhanced push security).
@@ -792,8 +836,11 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   receipt is deleted and every asked ticket is deleted, receipt found or not; tickets older than 24 hours are
   deleted without asking.
 - Other modules notify through their own ports, each with an adapter in `apps/backend/src/modules/notifications/`
-  that runs `Notify` and logs and swallows every error: `RegistrationNotifier` (auth) and `ClassAssignmentNotifier`
-  (classes, `NotificationsClassAssignmentNotifier`, type `class.assigned` with `{ count, discipline }`; spec 028).
+  that runs `Notify` and logs and swallows every error: `RegistrationNotifier` (auth), `ClassAssignmentNotifier`
+  (classes, `NotificationsClassAssignmentNotifier`: `classAssigned` → `class.assigned` with `{ count, discipline }`,
+  spec 028; `classUnassigned` → `class.unassigned` with `{ classId, discipline, startsAt }`, spec 032) and
+  `ClassChangeNotifier` (classes, `NotificationsClassChangeNotifier`: `classEdited` → `class.edited` with
+  `{ classId, discipline, startsAt }`, `startsAt` as ISO text; spec 032, the port cancelling and deleting extend).
   `NotificationsModule` exports them; a push type without a catalog entry in `push-messages.ts` fails the backend's
   type check.
 

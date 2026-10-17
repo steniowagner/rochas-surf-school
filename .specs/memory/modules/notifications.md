@@ -21,7 +21,12 @@ What the person is told, and how it reaches them.
   - `registration.denied` — the person's registration was denied; details: the admin's reason, exactly as
     stored, when one was given.
   - `class.assigned` — the person was assigned to the classes of a batch an admin created; details: how many
-    classes (`count`) and their discipline (`surf` | `skate`). One per instructor and batch.
+    classes (`count`) and their discipline (`surf` | `skate`). One per instructor and batch, and one (count 1)
+    for an instructor added to a class by an edit.
+  - `class.edited` — a class the person teaches (before and after the edit) was changed; details: the class's id
+    (`classId`), its discipline and its new start (`startsAt`, ISO UTC).
+  - `class.unassigned` — the person was removed from a class by an edit; details: the class's id, its discipline
+    and its start.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -30,22 +35,32 @@ What the person is told, and how it reaches them.
   | `registration.approved` | Account approved | You can start using the app now. |
   | `registration.denied` | Registration denied | the reason as written, or "Open the app to learn more." |
   | `class.assigned` | New classes on your schedule | You've been assigned 1 {discipline} class. / You've been assigned {count} {discipline} classes. |
+  | `class.edited` | Class changed | Your {discipline} class on {MM/dd} at {HH:mm} was changed. Open the app to see it. |
+  | `class.unassigned` | Removed from a class | You're no longer teaching the {discipline} class on {MM/dd} at {HH:mm}. |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
   para 1 aula de {discipline}." ("{count} aulas de"). es: "Nueva inscripción" / "{name} está esperando
   aprobación.", "Cuenta aprobada" / "Ya puedes empezar a usar la app.", "Inscripción rechazada" / "Abre la app
   para saber más.", "Nuevas clases en tu agenda" / "Te asignaron 1 clase de {discipline}." ("{count} clases de").
+  `class.edited`: pt-BR "Aula alterada" / "A aula de {discipline} de {dd/MM} às {HH:mm} foi alterada. Abra o app
+  para ver.", es "Clase modificada" / "La clase de {discipline} del {dd/MM} a las {HH:mm} cambió. Abre la app para
+  verla."; `class.unassigned`: pt-BR "Você saiu de uma aula" / "Você não dá mais a aula de {discipline} de {dd/MM}
+  às {HH:mm}.", es "Saliste de una clase" / "Ya no das la clase de {discipline} del {dd/MM} a las {HH:mm}.". The
+  start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
-  with the app open reloads the classes of the weeks it shows.
+  with the app open reloads the classes of the weeks it shows. Tapping a `class.edited` or `class.unassigned` push
+  reloads the account and opens that class's details as an instructor or an admin (else the home, also when the
+  push carries no class); one received with the app open reloads every class shown (weeks and details).
 
 Rules:
 
 - **Stored first, then pushed**: every notification of an event is stored, for every recipient, before the first
   push is sent, so a failed push never loses one. A person without phones gets the stored notification only.
 - **One push per phone**: each phone of each recipient gets its own push, in the language it registered, carrying
-  the type and the notification it belongs to (so a tap can open the right screen).
+  the type and the notification it belongs to, plus the class's id when the details carry one (so a tap can open
+  the right screen).
 - **Who hears about a registration**: every account with role admin **and** status approved (onboarding finished
   or not) — a pending, denied, deleted or removed admin is a registration or a closed account, not an admin. With
   no approved admin nothing is stored or sent. The result of a registration goes to the person only.
@@ -90,6 +105,8 @@ Rules:
 - **The person whose registration was decided** — receives the approval, or the denial with its reason.
 - **An instructor or admin assigned to a batch of classes** — receives one `class.assigned`, unless they
   created the batch.
+- **An instructor or admin of an edited class** — receives `class.edited` (kept, when a class field changed),
+  `class.assigned` (added) or `class.unassigned` (removed), unless they made the edit.
 
 ## Boundaries
 
@@ -97,14 +114,15 @@ It knows people only by their ids and the phones they registered, and it doesn't
 [Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
 it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
-backend. [Classes](classes.md) reaches it the same way, through its own contract for class assignments; a
-failure there is logged and never changes the class creation. It doesn't decide when an event happens — the
+backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
+and removed) and class changes; a failure there is logged and never changes the class creation or edit. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
 with their specs, as do the notifications of every other event (reactivation requests, role changes, class
-edits, cancellations, unassignments and reminders, enrolments, broadcasts).
+cancellations, deletions, the "no instructor" flag and reminders, enrolments, broadcasts) and those of an edit
+to the class's students and pending requests.
 
 ## Spec history
 
@@ -119,3 +137,6 @@ edits, cancellations, unassignments and reminders, enrolments, broadcasts).
   instructor and batch through the Classes module's contract.
 - `030-classes-week-view` — in the app, tapping a `class.assigned` push opens the Aulas tab, and one received
   with the app open reloads the shown weeks.
+- `032-class-editing` — the `class.edited` and `class.unassigned` types (`{ classId, discipline, startsAt }`) and
+  their push copy with the start in Fortaleza time; `classId` in the push data; in the app, tapping one opens the
+  class's details and one received with the app open reloads the classes.

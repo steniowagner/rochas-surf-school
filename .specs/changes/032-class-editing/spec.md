@@ -2,10 +2,11 @@
 id: "032"
 slug: class-editing
 title: "Editing a class"
-status: in-review
+status: accepted
 created: 2026-10-16
 started: 2026-10-16
 base_commit: eddd36f3a935ddb68e819c1a65d0f4a17ffe6197
+reviewed_commit: 8c094b2c418d1eb9de21be2f06a9300336451a06
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
 ---
@@ -521,3 +522,52 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
 - The journeys changed the local dev database: "Surf 12:00–13:00" of Sat 17 moved to Sun 18 14:00–15:00, and a class
   "Surf 23:44–23:59" of Fri 16 was created (Dev Admin, then Dev Instructor added).
 - `## Memory Impact` matches what was built.
+
+### Round 2 — 2026-10-17 — accepted
+
+**Checks**
+
+- lint ✅ (0 warnings) · type check ✅ (classes, notifications, backend, mobile: 16 tasks) · build ✅ (classes,
+  notifications, backend: 7 tasks)
+- related tests ✅ `RELATED TESTS PASSED` — backend 121, modules/classes 243, modules/notifications 92, apps/mobile 864;
+  run at 23:54 America/Fortaleza, the hour the navigation suites failed in round 1
+- coverage of the changed lines ✅ `COVERAGE OK` (26 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (15 files, 405 tests); every `PUT /classes/:id` `Verify by` filter passes on its
+  own (1, 1, 2, 1, 7 and 4 tests) · mobile: the round 1 simulator journeys stand — since `a292b55` only test files
+  and one unused import changed, no runtime code
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "edits a class that hasn't started"; use case "edits every field"
+- ER-02 ✅ — e2e "refuses a start in the past"; use case "past" (3)
+- ER-03 ✅ — e2e "on a started class" (2); use case "started" (13)
+- ER-04 ✅ — e2e "refuses a finished class"; use case "finished" (2)
+- ER-05 ✅ — use case "seats taken" (2); `no-enrolment.seat-counter.spec.ts` passes
+- ER-06 ✅ — e2e "refuses" (7); the whole use case file (61)
+- ER-07 ✅ — use case "notifies" (6); e2e "notifies" (4)
+- ER-08 ✅ — `push-messages.spec.ts`, `expo.push.spec.ts` (with the seat counter spec: 30); entity test (15)
+- ER-09 ✅ — "pencil" 7 passed and the command exits 0 (F-02 fixed); simulator pass of round 1
+- ER-10 ✅ — `edit-class.screen.test.tsx` 39 passed; simulator pass of round 1
+- ER-11 ✅ — "started" 7 passed; simulator pass of round 1
+- ER-12 ✅ — `class-error.test.ts` + screen "error": 34 passed, exits 0
+- ER-13 ✅ — hook tests "class." 12 passed
+
+**Round 1 findings**
+
+- F-01 ✅ — the three tab navigation suites fix the clock (Date only) and restore it; 16/16 pass at 00:01 Fortaleza and
+  inside the related run at 23:54
+- F-02 ✅ — `class-details.screen.test.tsx -t pencil` exits 0 (7 passed, no "did not exit"); the held fetch is released
+- F-03 ✅ — `npm run lint` in modules/classes: 0 warnings
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `edit-class.screen.test.tsx` still doesn't exit when run alone (ER-10 and ER-11's `Verify by` print their results,
+  then hang); `new-class.screen.test.tsx` at the same commit does the same, so it stays the existing pattern noted in
+  round 1. Worth fixing for both screens together.
+- The F-01 fix leaves two blank lines after `afterAll(...)` in each navigation suite; Prettier isn't enforced (the base
+  files already fail `prettier --check`), so it isn't a finding.
+- Round 1's notes on D-12's own-range exception and the reused Nova aula copy still apply.

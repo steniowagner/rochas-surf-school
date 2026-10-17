@@ -2,7 +2,7 @@
 id: "032"
 slug: class-editing
 title: "Editing a class"
-status: in-progress
+status: in-review
 created: 2026-10-16
 started: 2026-10-16
 base_commit: eddd36f3a935ddb68e819c1a65d0f4a17ffe6197
@@ -492,18 +492,18 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   `node .specs/scripts/run-related-tests.mjs 032` between 23:00 and 24:00 America/Fortaleza (or shift the clock: they pass
   16/16 at 12:00). Expected: green at any hour — fix their clock as `edit-class.screen.test.tsx` does
   (`jest.useFakeTimers({ now, doNotFake: [...] })`) or build the class within today.
+  > ✅ 2026-10-16 23:52 — the three navigation suites now fix the clock at 2026-10-16T15:00Z (Date only, as `edit-class.screen.test.tsx` does) and restore it afterwards; files: `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx`, `apps/mobile/src/modules/student/student-tabs.navigation.test.tsx`; verified: `npx jest` on the three suites plus class-details from apps/mobile passes (39 tests) at 23:51 Fortaleza, the hour they failed before; deviations: none
 - [x] **F-02** (tests) — `class-details.screen.test.tsx` no longer exits when run on its own: ER-09's `Verify by`
   (`npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "pencil"`) prints 6 passed, then "Jest did not
   exit one second after the test run has completed" and hangs. The new "pencil › does not show while loading or for a
   missing class" causes it (alone it hangs; every other test of the file exits; the file at `base_commit` exits, 16
   passed). Expected: the command exits — clean up what that test leaves running (the never-resolving fetch and its
   `QueryClient` in `renderWithUnmount`).
+  > ✅ 2026-10-16 23:52 — split the test into "does not show while loading" (the fetch is held and released at the end) and "does not show for a missing class", both through `renderScreen`; the `renderWithUnmount` helper and its never-resolving fetch are gone; files: `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t pencil` exits 0 (7 passed, no "did not exit"); deviations: none
 - [x] **F-03** (convention) — `modules/classes/src/school-class/usecase/edit-class.usecase.ts:19` imports `SchoolClass`
   without using it: `npm run lint --workspace @rochas-surf-school/classes` reports `no-unused-vars`, the module's only
   warning. Expected: no warning.
   > ✅ 2026-10-16 23:52 — removed the unused `SchoolClass` import; files: `modules/classes/src/school-class/usecase/edit-class.usecase.ts`; verified: `npm run lint` in modules/classes prints no warning, `tsc --noEmit` clean; deviations: none
-  > ✅ 2026-10-16 23:52 — split the test into "does not show while loading" (the fetch is held and released at the end) and "does not show for a missing class", both through `renderScreen`; the `renderWithUnmount` helper and its never-resolving fetch are gone; files: `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t pencil` exits 0 (7 passed, no "did not exit"); deviations: none
-  > ✅ 2026-10-16 23:52 — the three navigation suites now fix the clock at 2026-10-16T15:00Z (Date only, as `edit-class.screen.test.tsx` does) and restore it afterwards; files: `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx`, `apps/mobile/src/modules/student/student-tabs.navigation.test.tsx`; verified: `npx jest` on the three suites plus class-details from apps/mobile passes (39 tests) at 23:51 Fortaleza, the hour they failed before; deviations: none
 
 **Notes**
 

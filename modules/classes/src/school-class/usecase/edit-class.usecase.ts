@@ -16,7 +16,6 @@ import {
   CLASS_NOTES_MAX,
   ClassDiscipline,
   ClassLevel,
-  SchoolClass,
   getClassState,
   isValidIsoDate,
   parseTimeOfDay,

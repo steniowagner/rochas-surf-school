@@ -7,7 +7,9 @@ import type { ClassToolsSheetProps } from "./class-tools-sheet.types";
 
 jest.useFakeTimers();
 
-function props(overrides: Partial<ClassToolsSheetProps> = {}): ClassToolsSheetProps {
+function props(
+  overrides: Partial<ClassToolsSheetProps> = {},
+): ClassToolsSheetProps {
   return {
     visible: true,
     onClose: jest.fn(),
@@ -18,16 +20,22 @@ function props(overrides: Partial<ClassToolsSheetProps> = {}): ClassToolsSheetPr
 }
 
 describe("ClassToolsSheet", () => {
-  it("shows the title and the three tools with their icons", async () => {
+  it("shows the title and the three tools, with no icons", async () => {
     await render(<ClassToolsSheet {...props()} />);
 
     expect(screen.getByText("Class tools")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Edit class" })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Notify students and instructors" })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Cancel class" })).toBeOnTheScreen();
-    expect(screen.getByText(glyph("pencil-outline"))).toBeOnTheScreen();
-    expect(screen.getByText(glyph("megaphone-outline"))).toBeOnTheScreen();
-    expect(screen.getByText(glyph("close-circle-outline"))).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Edit class" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Notify students and instructors" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Cancel class" }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText(glyph("pencil-outline"))).toBeNull();
+    expect(screen.queryByText(glyph("megaphone-outline"))).toBeNull();
+    expect(screen.queryByText(glyph("close-circle-outline"))).toBeNull();
   });
 
   it("closes the sheet, then edits", async () => {
@@ -59,7 +67,9 @@ describe("ClassToolsSheet", () => {
     const sheet = props();
     await render(<ClassToolsSheet {...sheet} />);
 
-    await user.press(screen.getByRole("button", { name: "Notify students and instructors" }));
+    await user.press(
+      screen.getByRole("button", { name: "Notify students and instructors" }),
+    );
 
     expect(sheet.onClose).not.toHaveBeenCalled();
     expect(sheet.onEdit).not.toHaveBeenCalled();

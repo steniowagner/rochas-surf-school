@@ -25,6 +25,10 @@ export const isClassStartedError = (error: unknown): boolean =>
 export const isClassFinishedError = (error: unknown): boolean =>
   hasKey(error, 409, "class.finished");
 
+/** The class was already cancelled (409). */
+export const isClassCancelledError = (error: unknown): boolean =>
+  hasKey(error, 409, "class.cancelled");
+
 /** The class is gone (404). */
 export const isClassNotFoundError = (error: unknown): boolean =>
   hasKey(error, 404, "class.notFound");
@@ -84,6 +88,10 @@ export const getEditClassErrorKey = (error: unknown): string | null => {
     return "editClass.errors.finished";
   }
 
+  if (isClassCancelledError(error)) {
+    return "editClass.errors.cancelled";
+  }
+
   if (isClassNotFoundError(error)) {
     return "classDetails.notFound";
   }
@@ -93,4 +101,32 @@ export const getEditClassErrorKey = (error: unknown): string | null => {
   }
 
   return getClassErrorKey(error);
+};
+
+/**
+ * The translation key of the toast for a failed cancellation, or `null` when nothing should be shown. A message over
+ * the limit can't be typed, so it falls to the generic copy.
+ */
+export const getCancelClassErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError) {
+    return null;
+  }
+
+  if (isClassCancelledError(error)) {
+    return "cancelClass.errors.cancelled";
+  }
+
+  if (isClassFinishedError(error)) {
+    return "cancelClass.errors.finished";
+  }
+
+  if (isClassNotFoundError(error)) {
+    return "classDetails.notFound";
+  }
+
+  if (error instanceof NetworkError) {
+    return "createAccount.errors.noConnection";
+  }
+
+  return "createAccount.errors.generic";
 };

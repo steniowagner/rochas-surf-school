@@ -345,12 +345,13 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-10** — Add `cancelledAt` / `cancellationMessage` to `ClassItem` (`src/modules/classes/classes.types.ts`),
+- [x] **T-10** — Add `cancelledAt` / `cancellationMessage` to `ClassItem` (`src/modules/classes/classes.types.ts`),
   the `useCancelClass` mutation (`src/modules/classes/hooks/use-cancel-class.hook.ts`), `getCancelClassErrorKey` and
   the `class.cancelled` case of `getEditClassErrorKey` in `src/modules/classes/utils/class-error.ts` (D-10, D-12), with
   `use-cancel-class.hook.test.tsx` and `class-error.test.ts`.
   Covers: ER-10 · Done when: `npx jest src/modules/classes/hooks/use-cancel-class.hook.test.tsx src/modules/classes/utils/class-error.test.ts`
   passes from `apps/mobile`.
+  > ✅ 2026-10-17 00:41 — Added cancelledAt/cancellationMessage to ClassItem, CancelClassRequest, useCancelClass (apiPost, no retry, invalidates ["classes"]), isClassCancelledError, getCancelClassErrorKey and the class.cancelled case of getEditClassErrorKey; existing test fixtures got the two null fields; files: `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/hooks/use-cancel-class.hook.ts`, `apps/mobile/src/modules/classes/hooks/use-cancel-class.hook.test.tsx`, `apps/mobile/src/modules/classes/utils/class-error.ts`, `apps/mobile/src/modules/classes/utils/class-error.test.ts`, `apps/mobile/src/modules/classes/components/class-card/class-card.component.test.tsx`, `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest src/modules/classes` (313 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
 - [ ] **T-11** — Draw a cancelled class in `ClassCard` (`src/modules/classes/components/class-card/`, D-14) with the
   `classesWeek.cancelled` copy in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, and cases named "cancelled" in its test.

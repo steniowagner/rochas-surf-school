@@ -33,6 +33,8 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
   endsAt: "2026-10-14T20:30:00.000Z", // 17:30
   capacity: 8,
   notes: "Ponto de encontro na barraca 3.",
+  cancelledAt: null,
+  cancellationMessage: null,
   location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
   instructors: [
     { id: "u-1", name: "Ana Souza" },

@@ -81,6 +81,11 @@ export type EditClassRequest = {
   notes?: string;
 };
 
+/** The body of `POST /classes/:id/cancel`; a blank message is left out. */
+export type CancelClassRequest = {
+  message?: string;
+};
+
 export type CreateClassesResponse = {
   count: number;
 };
@@ -100,6 +105,10 @@ export type ClassItem = {
   endsAt: string;
   capacity: number;
   notes: string | null;
+  /** When an admin cancelled the class (ISO 8601 UTC), or `null`. */
+  cancelledAt: string | null;
+  /** The admin's message, as written, or `null`. */
+  cancellationMessage: string | null;
   location: ClassLocation;
   instructors: ClassInstructor[];
 };

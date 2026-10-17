@@ -13,6 +13,8 @@ const item = (overrides: Partial<ClassItem> = {}): ClassItem => ({
   endsAt: "2026-10-14T14:30:00.000Z", // 11:30
   capacity: 8,
   notes: null,
+  cancelledAt: null,
+  cancellationMessage: null,
   location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
   instructors: [{ id: "i-1", name: "Ana" }],
   ...overrides,

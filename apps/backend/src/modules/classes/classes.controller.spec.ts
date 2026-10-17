@@ -8,9 +8,11 @@ import { Location, SchoolClass } from '@rochas-surf-school/classes';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
+import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
+import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
@@ -35,12 +37,20 @@ function setup() {
       stored.push(...classes);
     }),
     findStartingBetween: vi.fn(async () => stored),
+    findById: vi.fn(async (id: string) => stored.find((item) => item.id === id) ?? null),
+    update: vi.fn(async (schoolClass: SchoolClass) => {
+      stored.splice(0, stored.length, schoolClass);
+    }),
   };
   const locationRepository = { findById: vi.fn(async () => location) };
   const teacherLookup = {
     findTeachers: vi.fn(async () => [{ id: INSTRUCTOR_ID, role: 'instructor', status: 'approved' }]),
   };
-  const notifier = { classAssigned: vi.fn(async () => undefined) };
+  const notifier = {
+    classAssigned: vi.fn(async () => undefined),
+    classUnassigned: vi.fn(async () => undefined),
+  };
+  const changeNotifier = { classEdited: vi.fn(async () => undefined) };
   const classViewReader = {
     findStartingBetween: vi.fn(async () => []),
     findById: vi.fn(async () => null),
@@ -52,6 +62,8 @@ function setup() {
     notifier as unknown as NotificationsClassAssignmentNotifier,
     { now: () => NOW } as SystemClockProvider,
     classViewReader as unknown as PrismaClassViewReader,
+    changeNotifier as unknown as NotificationsClassChangeNotifier,
+    new NoEnrolmentSeatCounter(),
   );
   const body = {
     discipline: 'surf',
@@ -65,7 +77,7 @@ function setup() {
     capacity: 8,
     notes: 'Bring sunscreen',
   };
-  return { controller, classRepository, classViewReader, notifier, stored, body };
+  return { controller, classRepository, classViewReader, notifier, changeNotifier, stored, location, body };
 }
 
 describe('ClassesController', () => {
@@ -74,6 +86,7 @@ describe('ClassesController', () => {
     ['timeRangeSuggestions', 'time-range-suggestions', RequestMethod.GET, HttpStatus.OK],
     ['week', '/', RequestMethod.GET, HttpStatus.OK],
     ['one', ':id', RequestMethod.GET, HttpStatus.OK],
+    ['edit', ':id', RequestMethod.PUT, HttpStatus.OK],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
     const handler = handlerOf(name);
 
@@ -207,5 +220,95 @@ describe('ClassesController', () => {
     const out = await controller.one(userOf('instructor'), INSTRUCTOR_ID);
 
     expect(out).toMatchObject({ id: INSTRUCTOR_ID, startsAt: NOW.toISOString() });
+  });
+
+  describe('edit', () => {
+    const EDITED_ID = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+
+    function withStoredClass() {
+      const context = setup();
+      const existing = new SchoolClass({
+        id: EDITED_ID,
+        discipline: 'surf',
+        level: 'beginner',
+        startsAt: new Date('2026-10-15T11:00:00.000Z'),
+        endsAt: new Date('2026-10-15T12:00:00.000Z'),
+        locationId: context.location.id,
+        instructorIds: [INSTRUCTOR_ID],
+        capacity: 8,
+        createdBy: ADMIN_ID,
+      });
+      context.stored.push(existing);
+      context.classViewReader.findById.mockImplementation((async () => ({
+        id: EDITED_ID,
+        discipline: 'skate',
+        level: 'beginner',
+        startsAt: new Date('2026-10-16T11:00:00.000Z'),
+        endsAt: new Date('2026-10-16T12:00:00.000Z'),
+        capacity: 8,
+        notes: null,
+        location: { id: context.location.id, name: 'Praia', address: 'Av.' },
+        instructors: [],
+      })) as never);
+      const editBody = {
+        discipline: 'skate',
+        level: 'beginner',
+        date: '2026-10-16',
+        start: '08:00',
+        end: '09:00',
+        locationId: context.location.id,
+        instructorIds: [INSTRUCTOR_ID],
+        capacity: 8,
+      };
+      return { ...context, editBody };
+    }
+
+    it('edits the class and answers the updated class item', async () => {
+      const { controller, classRepository, editBody } = withStoredClass();
+
+      const out = await controller.edit(userOf('admin'), EDITED_ID, editBody as never);
+
+      expect(classRepository.update).toHaveBeenCalledTimes(1);
+      expect(out).toMatchObject({
+        id: EDITED_ID,
+        discipline: 'skate',
+        startsAt: '2026-10-16T11:00:00.000Z',
+      });
+    });
+
+    it('notifies the instructors kept by the edit through the change notifier', async () => {
+      const { controller, changeNotifier, editBody } = withStoredClass();
+
+      await controller.edit(userOf('admin'), EDITED_ID, editBody as never);
+
+      expect(changeNotifier.classEdited).toHaveBeenCalledWith({
+        instructorIds: [INSTRUCTOR_ID],
+        classId: EDITED_ID,
+        discipline: 'skate',
+        startsAt: new Date('2026-10-16T11:00:00.000Z'),
+      });
+    });
+
+    it('answers 422 when editing without a body', async () => {
+      const { controller } = withStoredClass();
+
+      await expect(controller.edit(userOf('admin'), EDITED_ID, undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: expect.arrayContaining([expect.objectContaining({ message: 'class.date.invalid' })]),
+      });
+    });
+
+    it('answers 403 for an instructor and 404 for an unknown class', async () => {
+      const { controller, editBody } = withStoredClass();
+
+      await expect(controller.edit(userOf('instructor'), EDITED_ID, editBody as never)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.role.notAdmin',
+      });
+      await expect(controller.edit(userOf('admin'), INSTRUCTOR_ID, editBody as never)).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'class.notFound',
+      });
+    });
   });
 });

@@ -328,13 +328,14 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   passes from `apps/backend`.
   > ✅ 2026-10-16 22:49 — implemented `findById` and `update` (one `$transaction`: class row updated, its `class_instructors` deleted and recreated) in `PrismaSchoolClassRepository`, and added `NoEnrolmentSeatCounter` (answers 0); files: `apps/backend/src/modules/classes/school-class.prisma.ts`, `apps/backend/src/modules/classes/school-class.prisma.spec.ts`, `apps/backend/src/modules/classes/no-enrolment.seat-counter.ts`, `apps/backend/src/modules/classes/no-enrolment.seat-counter.spec.ts`; verified: `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/no-enrolment.seat-counter.spec.ts` from apps/backend (7 passed); deviations: none (registration in the module is T-07)
 
-- [ ] **T-07** — Expose `PUT /classes/:id` in `src/modules/classes/classes.controller.ts` (running `EditClass` with
+- [x] **T-07** — Expose `PUT /classes/:id` in `src/modules/classes/classes.controller.ts` (running `EditClass` with
   the repository, the location repository, the teacher lookup, both notifiers, the seat counter and the clock),
   register `NoEnrolmentSeatCounter` in `classes.module.ts`, add the scenarios to `classes.integration.http`, cases
   to `classes.controller.spec.ts`, and the e2e tests of ER-01–ER-04, ER-06 and ER-07 to `test/classes.e2e-spec.ts`
   (named as their `Verify by`). Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-06, ER-07 · Done when: `npx vitest run src/modules/classes/classes.controller.spec.ts`
   and `npm run test:e2e --workspace apps/backend -- test/classes.e2e-spec.ts` pass.
+  > ✅ 2026-10-16 22:50 — exposed `PUT /classes/:id` (runs `EditClass`, then answers the class through `GetClass`, so the shape is `GET /classes/:id`'s), injected `NotificationsClassChangeNotifier` and `NoEnrolmentSeatCounter` (registered in `ClassesModule`), added the scenarios to `classes.integration.http`, controller cases and 15 e2e tests under `PUT /classes/:id` (edit, blank notes/instructor replace, no-change, past, started, finished, shape, endBeforeStart, 404, lookups, kept non-teacher, access, notifies ×4); files: `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.integration.http`, `apps/backend/test/classes.e2e-spec.ts`; verified: `npx vitest run src/modules/classes/classes.controller.spec.ts` (19 passed) and `npm run test:e2e -- test/classes.e2e-spec.ts` (60 passed, Postgres up), `tsc --noEmit` clean; deviations: none
 
 ### Mobile (`apps/mobile`)
 

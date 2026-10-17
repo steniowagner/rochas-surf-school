@@ -171,3 +171,72 @@ Authorization: Bearer {{token}}
 ### An unknown or malformed id (expects 404 class.notFound)
 GET {{baseUrl}}/classes/not-a-uuid
 Authorization: Bearer {{token}}
+
+### Edit a class (expects 200 with the updated class; admins only; the whole class every time; date and times in Fortaleza)
+PUT {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "surf",
+  "level": "beginner",
+  "date": "2026-10-21",
+  "start": "08:00",
+  "end": "09:00",
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 8,
+  "notes": "Bring sunscreen"
+}
+
+### A start in the past (expects 422 class.startsAt.past)
+PUT {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "surf",
+  "level": "beginner",
+  "date": "2020-01-01",
+  "start": "08:00",
+  "end": "09:00",
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 8
+}
+
+### A class that has started: only the instructors change (expects 409 class.started for any other field)
+PUT {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "discipline": "surf",
+  "level": "beginner",
+  "date": "2026-10-21",
+  "start": "08:00",
+  "end": "09:00",
+  "locationId": "{{locationId}}",
+  "instructorIds": ["{{instructorId}}"],
+  "capacity": 12
+}
+
+### An invalid body (expects 422 with every shape key)
+PUT {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### An unknown or malformed id (expects 404 class.notFound)
+PUT {{baseUrl}}/classes/not-a-uuid
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### As a student or instructor (expects 403 user.role.notAdmin) or without a token (expects 401)
+PUT {{baseUrl}}/classes/{{classId}}
+Content-Type: application/json
+
+{}

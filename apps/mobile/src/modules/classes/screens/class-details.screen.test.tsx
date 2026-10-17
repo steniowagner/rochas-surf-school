@@ -261,7 +261,7 @@ describe("ClassDetailsScreen", () => {
   describe("cancelled", () => {
     const CANCELLED = { cancelledAt: "2026-10-13T10:00:00.000Z" };
 
-    it("shows the banner and the team's message instead of the started banner", async () => {
+    it("shows the banner with the reason in it, instead of the started banner", async () => {
       serve(
         makeClass({
           ...CANCELLED,
@@ -273,12 +273,10 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
-      expect(
-        screen.getByText("This class won't take place."),
-      ).toBeOnTheScreen();
-      expect(screen.getByText(glyph("close-circle-outline"))).toBeOnTheScreen();
-      expect(screen.getByText("Message from the team")).toBeOnTheScreen();
       expect(screen.getByText("Mar muito grande.")).toBeOnTheScreen();
+      expect(screen.queryByText("This class won't take place.")).toBeNull();
+      expect(screen.getByText(glyph("close-circle-outline"))).toBeOnTheScreen();
+      expect(screen.queryByText("Message from the team")).toBeNull();
       expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
     });
 
@@ -296,12 +294,15 @@ describe("ClassDetailsScreen", () => {
       expect(screen.queryByText("Class finished")).not.toBeOnTheScreen();
     });
 
-    it("shows no message card without a message", async () => {
+    it("shows the default text in the banner without a message", async () => {
       serve(makeClass({ ...CANCELLED, cancellationMessage: null }));
       await renderScreen();
 
       expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
-      expect(screen.queryByText("Message from the team")).not.toBeOnTheScreen();
+      expect(
+        screen.getByText("This class won't take place."),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText("Message from the team")).toBeNull();
     });
 
     it("shows neither for a class that isn't cancelled", async () => {
@@ -310,7 +311,7 @@ describe("ClassDetailsScreen", () => {
 
       expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
       expect(screen.queryByText("Class cancelled")).not.toBeOnTheScreen();
-      expect(screen.queryByText("Message from the team")).not.toBeOnTheScreen();
+      expect(screen.queryByText("This class won't take place.")).toBeNull();
     });
 
     it("hides the pencil from an admin", async () => {

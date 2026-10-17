@@ -309,7 +309,6 @@ const messages: Messages = {
       title: "Aula cancelada",
       description: "Esta aula não vai acontecer.",
     },
-    message: "Mensagem da equipe",
     instructor_one: "Instrutor",
     instructor_other: "Instrutores",
     you: "Você",

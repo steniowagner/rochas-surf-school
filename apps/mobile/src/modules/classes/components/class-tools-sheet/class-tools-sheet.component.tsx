@@ -23,11 +23,11 @@ export function ClassToolsSheet({
           {t("classTools.title")}
         </Text>
         <View className="gap-2">
-          <Button variant="outline" onPress={edit}>
+          <Button variant="subtle" onPress={edit}>
             {t("classTools.edit")}
           </Button>
           {/* Placeholder: sending a message to the class's people comes with its own spec. */}
-          <Button variant="outline">{t("classTools.notify")}</Button>
+          <Button variant="subtle">{t("classTools.notify")}</Button>
           <Button variant="danger" onPress={cancel}>
             {t("classTools.cancel")}
           </Button>

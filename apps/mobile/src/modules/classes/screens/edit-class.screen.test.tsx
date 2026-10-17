@@ -34,7 +34,12 @@ jest.mock("@/components/ui/bottom-modal", () => {
 jest.mock("@/services/api", () => {
   const actual = jest.requireActual("@/services/api");
 
-  return { ...actual, apiGet: jest.fn(actual.apiGet), apiPut: jest.fn(actual.apiPut) };
+  return {
+    ...actual,
+    apiGet: jest.fn(actual.apiGet),
+    apiPut: jest.fn(actual.apiPut),
+    apiPost: jest.fn(actual.apiPost),
+  };
 });
 
 jest.mock("expo-router", () => ({
@@ -66,6 +71,8 @@ const classItem = {
   endsAt: "2026-10-15T12:00:00.000Z",
   capacity: 8,
   notes: "Bring a hat",
+  cancelledAt: null,
+  cancellationMessage: null,
   location: futuro,
   instructors: [
     { id: "t-1", name: "Ana Souza" },
@@ -94,6 +101,7 @@ const serve = (overrides: Record<string, Handler> = {}) => {
         total: 2,
       }),
     "PUT /classes/c-1": () => ok(classItem),
+    "POST /classes/c-1/cancel": () => ok({ ...classItem, cancelledAt: NOW.toISOString() }),
     ...overrides,
   };
 
@@ -162,6 +170,7 @@ beforeEach(() => {
   mockShow.mockClear();
   (router.back as jest.Mock).mockClear();
   (api.apiPut as jest.Mock).mockClear();
+  (api.apiPost as jest.Mock).mockClear();
   (api.apiGet as jest.Mock).mockClear();
 });
 
@@ -460,6 +469,196 @@ describe("EditClassScreen", () => {
     await act(async () => finish(ok(classItem)));
     await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
     expect(puts()).toHaveLength(1);
+  });
+
+  describe("cancel", () => {
+    const cancelButton = () => screen.getByRole("button", { name: "Cancel class" });
+    const confirmButton = () => screen.getByRole("button", { name: "Cancel and notify" });
+    const posts = () =>
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "POST") as [string, { body: string }][];
+
+    async function openSheet() {
+      const user = userEvent.setup();
+      const view = await renderScreen();
+      await loaded();
+      await user.press(cancelButton());
+
+      return Object.assign(user, { queryClient: view.queryClient });
+    }
+
+    it("offers Cancel class below the form and opens the sheet", async () => {
+      await openSheet();
+
+      expect(screen.getByText("Cancel this class?")).toBeOnTheScreen();
+      expect(screen.getByText("Message (optional)")).toBeOnTheScreen();
+      expect(posts()).toHaveLength(0);
+    });
+
+    it("cancels with the trimmed message, shows the toast and goes back, reloading the classes", async () => {
+      const user = await openSheet();
+      const invalidate = jest.spyOn(user.queryClient, "invalidateQueries");
+
+      await user.type(screen.getByLabelText("Message (optional)"), "  Big waves.  ");
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
+      expect(posts()).toHaveLength(1);
+      expect(posts()[0]![0]).toBe("http://api.test/classes/c-1/cancel");
+      expect(JSON.parse(posts()[0]![1].body)).toEqual({ message: "Big waves." });
+      expect(mockShow).toHaveBeenCalledWith("Class cancelled");
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["classes"] });
+      expect(screen.queryByText("Cancel this class?")).toBeNull();
+    });
+
+    it("omits a blank message from the request", async () => {
+      const user = await openSheet();
+
+      await user.type(screen.getByLabelText("Message (optional)"), "   ");
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(posts()).toHaveLength(1));
+      expect(JSON.parse(posts()[0]![1].body)).toEqual({});
+    });
+
+    it("keeps the class: Keep class closes the sheet without a request", async () => {
+      const user = await openSheet();
+
+      await user.press(screen.getByRole("button", { name: "Keep class" }));
+
+      expect(screen.queryByText("Cancel this class?")).toBeNull();
+      expect(posts()).toHaveLength(0);
+      expect(router.back).not.toHaveBeenCalled();
+    });
+
+    it("sends once on a double press", async () => {
+      let finish: (value: unknown) => void = () => undefined;
+      serve({ "POST /classes/c-1/cancel": () => new Promise((resolve) => (finish = resolve)) });
+      await openSheet();
+      const button = confirmButton();
+
+      await act(async () => {
+        void fireEvent.press(button);
+        void fireEvent.press(button);
+      });
+
+      await waitFor(() => expect(posts()).toHaveLength(1));
+      await act(async () => finish(ok(classItem)));
+      await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
+      expect(posts()).toHaveLength(1);
+    });
+
+    it("offers it on a started class too", async () => {
+      jest.setSystemTime(STARTED_NOW);
+      await renderScreen();
+      await loaded();
+
+      expect(cancelButton()).toBeOnTheScreen();
+    });
+
+    it.each([
+      ["class.cancelled", "This class was already cancelled."],
+      ["class.finished", "This class has finished and can't be cancelled."],
+    ])("on %s shows its toast, closes the sheet and reloads the class", async (key, message) => {
+      serve({ "POST /classes/c-1/cancel": failure(409, key) });
+      const user = await openSheet();
+      const loads = () => requestedPaths().filter((path) => path === "/classes/c-1").length;
+      const before = loads();
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+      expect(screen.queryByText("Cancel this class?")).toBeNull();
+      await waitFor(() => expect(loads()).toBeGreaterThan(before));
+      expect(router.back).not.toHaveBeenCalled();
+    });
+
+    it("on a missing class shows its toast and goes back", async () => {
+      serve({ "POST /classes/c-1/cancel": failure(404, "class.notFound") });
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("This class no longer exists."));
+      expect(router.back).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      [422, "class.cancellationMessage.max.length"],
+      [500, "INTERNAL_SERVER_ERROR"],
+    ])("on %s %s shows the generic toast and keeps the sheet usable", async (status, key) => {
+      serve({ "POST /classes/c-1/cancel": failure(status, key) });
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again."));
+      expect(screen.getByText("Cancel this class?")).toBeOnTheScreen();
+      expect(confirmButton()).toBeEnabled();
+      expect(router.back).not.toHaveBeenCalled();
+    });
+
+    it("shows the no-connection toast when there is no answer", async () => {
+      serve({
+        "POST /classes/c-1/cancel": () => {
+          throw new TypeError("Network request failed");
+        },
+      });
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+      expect(mockShow.mock.calls[0]![0]).not.toBe("Class cancelled");
+      expect(confirmButton()).toBeEnabled();
+    });
+
+    it("shows nothing when the session expired", async () => {
+      const user = await openSheet();
+      (api.apiPost as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(api.apiPost).toHaveBeenCalled());
+      expect(mockShow).not.toHaveBeenCalled();
+      expect(router.back).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("cancelled class", () => {
+    const cancelledItem = { ...classItem, cancelledAt: "2026-10-13T10:00:00.000Z", cancellationMessage: "Big waves." };
+
+    it("says the class was cancelled, with no form, footer or Cancel class", async () => {
+      serve({ "GET /classes/c-1": () => ok(cancelledItem) });
+      await renderScreen();
+
+      expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
+      expect(screen.queryByRole("checkbox", { name: "Ana Souza" })).toBeNull();
+    });
+
+    it("says it for a cancelled class that has started too", async () => {
+      jest.setSystemTime(STARTED_NOW);
+      serve({ "GET /classes/c-1": () => ok(cancelledItem) });
+      await renderScreen();
+
+      expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+    });
+
+    it("shows the toast and goes back when a save is refused with class.cancelled", async () => {
+      serve({ "PUT /classes/c-1": failure(409, "class.cancelled") });
+      const user = userEvent.setup();
+      await renderScreen();
+      await loaded();
+      await user.press(screen.getByRole("button", { name: AFTERNOON }));
+
+      await user.press(saveButton());
+
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith("This class was cancelled and can't be changed."),
+      );
+      expect(router.back).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("started class", () => {

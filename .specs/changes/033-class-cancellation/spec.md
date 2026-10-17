@@ -373,12 +373,13 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   `apps/mobile`.
   > ✅ 2026-10-17 00:43 — Added CancelClassSheet (BottomModal with title, description, TextArea limited to 300 with counter, danger 'Cancelar e avisar' with loading, ghost 'Manter aula'; confirms with the trimmed message or undefined when blank; clears on close) and the cancelClass copy in the three locales; the editClass.cancel and editClass.errors.cancelled copy of T-14 was added here too, in the same locale files; files: `apps/mobile/src/modules/classes/components/cancel-class-sheet/{index.ts,cancel-class-sheet.component.tsx,cancel-class-sheet.hook.ts,cancel-class-sheet.types.ts,cancel-class-sheet.component.test.tsx}`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/components/cancel-class-sheet src/i18n` (16 passed), `npx tsc --noEmit`; deviations: none
 
-- [ ] **T-14** — Wire "Cancelar aula" and `CancelClassSheet` into `EditClassScreen`
+- [x] **T-14** — Wire "Cancelar aula" and `CancelClassSheet` into `EditClassScreen`
   (`src/modules/classes/screens/edit-class.screen.tsx` and its hook: the button in both modes, the request, the
   success toast and back, D-12's errors) and its cancelled state (D-13), with the `editClass.cancel` and
   `editClass.errors.cancelled` copy and cases named "cancel" / "cancelled" in `edit-class.screen.test.tsx`.
   Covers: ER-09, ER-10, ER-13 · Done when: `npx jest src/modules/classes/screens/edit-class.screen.test.tsx` passes
   from `apps/mobile`.
+  > ✅ 2026-10-17 01:08 — EditClassScreen: outline 'Cancelar aula' button (close-circle-outline) below the sections in both modes opening CancelClassSheet; confirm sends once (ref guard) via useCancelClass, toast cancelClass.done, closes the sheet and router.back(); D-12 errors (cancelled/finished close the sheet and refetch the class, 404 toast and back, others toast, sheet usable again); a cancelled class shows editClass.errors.cancelled instead of the form, and a save refused with class.cancelled shows the same toast and goes back; copy was added in T-13; files: `apps/mobile/src/modules/classes/screens/edit-class.screen.tsx`, `edit-class.screen.hook.ts`, `edit-class.screen.test.tsx`; verified: `npx jest src/modules/classes/screens/edit-class` (55 passed), `npx tsc --noEmit`, `npx eslint src/modules/classes` clean; deviations: a save refused with class.cancelled also invalidates ["classes"] so the details behind show the cancellation (not spelled out in D-13)
 
 - [ ] **T-15** — Handle `class.cancelled` in `useNotificationResponse` (open the class details of the resolved flow)
   and `useNotificationReceived` (invalidate `["classes"]`) in `src/modules/notifications/hooks/` (D-17), with cases

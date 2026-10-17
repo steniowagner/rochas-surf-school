@@ -393,6 +393,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   pass. Record the output summary as evidence.
   Covers: all · Done when: every automated command passes (`COVERAGE OK`, `E2E PASSED`) and both journeys show what
   they describe.
+  > ⛔ 2026-10-17 01:12 — automated part done, the two user journeys are not: they need a signed-in admin and student on the iOS simulator (email-code/Google sign-in), which this session cannot do. Passed: `node .specs/scripts/run-related-tests.mjs 033` (RELATED TESTS PASSED: backend, mobile, classes, notifications), `node .specs/scripts/check-coverage.mjs 033` (COVERAGE OK, 27 files), `node .specs/scripts/run-e2e.mjs 033` (E2E PASSED, 75 tests in classes.e2e-spec), `npm run prisma:migrate:deploy --workspace apps/backend` (no pending migrations), `npx turbo run lint check-types` for classes, notifications, backend and mobile (16 tasks ok), `npx turbo run build` for classes, notifications and backend (7 tasks ok). Unblocks: run "Cancel a class" and "Other roles and a started class" from the Verification Plan and confirm what they describe.
 
 ## Verification Plan
 

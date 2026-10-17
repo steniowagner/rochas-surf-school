@@ -287,31 +287,23 @@ describe("ClassDetailsScreen", () => {
       expect(pencil()).toBeNull();
     });
 
-    it("does not show while loading or for a missing class", async () => {
-      fetchMock.mockReturnValue(new Promise(() => undefined));
-      const { unmount } = await renderWithUnmount();
-      expect(pencil()).toBeNull();
-      unmount();
+    it("does not show while loading", async () => {
+      let finish: (value: unknown) => void = () => undefined;
+      fetchMock.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+      await renderScreen(true);
 
+      expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
+      expect(pencil()).toBeNull();
+
+      await act(async () => finish(ok(makeClass())));
+    });
+
+    it("does not show for a missing class", async () => {
       fetchMock.mockResolvedValue(failure(404));
-      const missing = await renderWithUnmount();
+      await renderScreen(true);
+
       expect(await screen.findByText("This class no longer exists.")).toBeOnTheScreen();
       expect(pencil()).toBeNull();
-      missing.unmount();
     });
   });
 });
-
-const renderWithUnmount = async () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
-  });
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <ClassDetailsScreen canEdit />
-      </SessionProvider>
-    </QueryClientProvider>,
-  );
-};

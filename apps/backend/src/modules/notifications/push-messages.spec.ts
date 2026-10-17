@@ -56,6 +56,45 @@ describe('renderPush', () => {
     );
   });
 
+  const STARTS_AT = '2026-10-18T11:00:00.000Z'; // 08:00 in Fortaleza
+
+  it.each([
+    ['pt-BR', 'Aula alterada', 'A aula de Surf de 18/10 às 08:00 foi alterada. Abra o app para ver.'],
+    ['es', 'Clase modificada', 'La clase de Surf del 18/10 a las 08:00 cambió. Abre la app para verla.'],
+    ['en', 'Class changed', 'Your Surf class on 10/18 at 08:00 was changed. Open the app to see it.'],
+  ] as const)('writes the edited class in %s', (locale, title, body) => {
+    expect(renderPush('class.edited', { discipline: 'surf', startsAt: STARTS_AT }, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Você saiu de uma aula', 'Você não dá mais a aula de Skate de 18/10 às 08:00.'],
+    ['es', 'Saliste de una clase', 'Ya no das la clase de Skate del 18/10 a las 08:00.'],
+    ['en', 'Removed from a class', "You're no longer teaching the Skate class on 10/18 at 08:00."],
+  ] as const)('writes the unassigned class in %s', (locale, title, body) => {
+    expect(renderPush('class.unassigned', { discipline: 'skate', startsAt: STARTS_AT }, locale)).toEqual({
+      title,
+      body,
+    });
+  });
+
+  it('shows the start in Fortaleza even when it falls on the previous or next UTC day', () => {
+    expect(renderPush('class.edited', { discipline: 'surf', startsAt: '2026-10-19T01:30:00.000Z' }, 'pt-BR').body).toBe(
+      'A aula de Surf de 18/10 às 22:30 foi alterada. Abra o app para ver.',
+    );
+    expect(renderPush('class.edited', { discipline: 'surf', startsAt: '2026-01-01T02:59:00.000Z' }, 'en').body).toBe(
+      'Your Surf class on 12/31 at 23:59 was changed. Open the app to see it.',
+    );
+  });
+
+  it('leaves the date blank when the start is missing or not a date', () => {
+    expect(renderPush('class.edited', { discipline: 'surf' }, 'pt-BR').body).toBe(
+      'A aula de Surf de  às  foi alterada. Abra o app para ver.',
+    );
+    expect(renderPush('class.unassigned', { discipline: 'surf', startsAt: 'nope' }, 'en').body).toBe(
+      "You're no longer teaching the Surf class on  at .",
+    );
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {

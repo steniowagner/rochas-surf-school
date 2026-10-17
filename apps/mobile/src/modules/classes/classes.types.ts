@@ -68,6 +68,19 @@ export type BatchRequest = {
   notes?: string;
 };
 
+/** The body of `PUT /classes/:id`: the whole class every time; `date` is `YYYY-MM-DD`, `start` / `end` are `HH:mm`. */
+export type EditClassRequest = {
+  discipline: ClassDiscipline;
+  level: ClassLevel;
+  date: string;
+  start: string;
+  end: string;
+  locationId: string;
+  instructorIds: string[];
+  capacity: number;
+  notes?: string;
+};
+
 export type CreateClassesResponse = {
   count: number;
 };

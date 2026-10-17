@@ -1,4 +1,11 @@
-import { includesRange, isRangeBlocked, mergeTimeRanges, rangeLabel } from "../../utils/time-ranges";
+import {
+  includesRange,
+  isRangeBlocked,
+  isSameRange,
+  mergeTimeRanges,
+  rangeLabel,
+  startsByNow,
+} from "../../utils/time-ranges";
 
 import { UseTimeRangePickerProps } from "./time-range-picker.types";
 
@@ -7,7 +14,16 @@ export const useTimeRangePicker = ({
   added,
   selected,
   nowMinutes,
+  single,
+  ownRange,
+  onToggle,
 }: UseTimeRangePickerProps) => {
+  const isPast = (range: UseTimeRangePickerProps["selected"][number]) =>
+    single &&
+    nowMinutes !== null &&
+    startsByNow(range, nowMinutes) &&
+    !(ownRange !== null && isSameRange(ownRange, range));
+
   const chips = mergeTimeRanges(suggestions, added).map((range) => {
     const isSelected = includesRange(selected, range);
 
@@ -15,14 +31,24 @@ export const useTimeRangePicker = ({
       range,
       label: rangeLabel(range),
       selected: isSelected,
-      blocked: !isSelected && isRangeBlocked(range, selected),
+      // Only one range is chosen in single mode, so nothing overlaps; the ones that started are blocked instead.
+      blocked:
+        !isSelected &&
+        (single ? isPast(range) : isRangeBlocked(range, selected)),
     };
   });
 
+  const pressChip = (range: UseTimeRangePickerProps["selected"][number], isSelected: boolean) => {
+    if (!(single && isSelected)) {
+      onToggle(range);
+    }
+  };
+
   return {
     chips,
+    pressChip,
     showSuggestionsHint: suggestions.length > 0,
-    showPastHint: nowMinutes !== null,
-    showOverlapHint: selected.length > 0,
+    showPastHint: !single && nowMinutes !== null,
+    showOverlapHint: !single && selected.length > 0,
   };
 };

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DbModule } from '../../db/db.module.js';
 import { ExpoPushProvider } from './expo.push.js';
 import { NotificationsClassAssignmentNotifier } from './notifications.class-assignment-notifier.js';
+import { NotificationsClassChangeNotifier } from './notifications.class-change-notifier.js';
 import { NotificationsController } from './notifications.controller.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsPushTokenRemover } from './notifications.push-token-remover.js';
@@ -25,6 +26,7 @@ import { SystemClockProvider } from './system.clock.js';
     ExpoPushProvider,
     NotificationsRegistrationNotifier,
     NotificationsClassAssignmentNotifier,
+    NotificationsClassChangeNotifier,
     NotificationsPushTokenRemover,
     NotificationsRegistrationNotificationEraser,
     PushReceiptCheckJob,
@@ -32,6 +34,7 @@ import { SystemClockProvider } from './system.clock.js';
   exports: [
     NotificationsRegistrationNotifier,
     NotificationsClassAssignmentNotifier,
+    NotificationsClassChangeNotifier,
     NotificationsPushTokenRemover,
     NotificationsRegistrationNotificationEraser,
   ],

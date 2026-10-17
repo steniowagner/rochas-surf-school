@@ -17,6 +17,28 @@ export const isLocationNotFoundError = (error: unknown): boolean =>
 export const isInstructorsInvalidError = (error: unknown): boolean =>
   hasKey(error, 422, "class.instructors.invalid");
 
+/** The class has started, so only its instructors can change (409). */
+export const isClassStartedError = (error: unknown): boolean =>
+  hasKey(error, 409, "class.started");
+
+/** The class has finished and can't change (409). */
+export const isClassFinishedError = (error: unknown): boolean =>
+  hasKey(error, 409, "class.finished");
+
+/** The class is gone (404). */
+export const isClassNotFoundError = (error: unknown): boolean =>
+  hasKey(error, 404, "class.notFound");
+
+/** The seats taken that a too-small capacity ran into (422), or `null` for any other error. */
+export const getSeatsTaken = (error: unknown): number | null => {
+  if (!hasKey(error, 422, "class.capacity.belowSeatsTaken")) {
+    return null;
+  }
+
+  const seatsTaken = (error as ApiError).details?.seatsTaken;
+  return typeof seatsTaken === "number" ? seatsTaken : null;
+};
+
 /**
  * The translation key of the toast for a failed request of the Nova aula screen, or `null` when nothing should be
  * shown (an expired session is handled once, centrally).
@@ -47,4 +69,28 @@ export const getClassErrorKey = (error: unknown): string | null => {
   }
 
   return "createAccount.errors.generic";
+};
+
+/**
+ * The translation key of the toast for a failed save of the Editar aula screen, or `null` when nothing should be
+ * shown. `editClass.errors.seatsTaken` takes the seats taken as `count` (see `getSeatsTaken`).
+ */
+export const getEditClassErrorKey = (error: unknown): string | null => {
+  if (isClassStartedError(error)) {
+    return "editClass.errors.started";
+  }
+
+  if (isClassFinishedError(error)) {
+    return "editClass.errors.finished";
+  }
+
+  if (isClassNotFoundError(error)) {
+    return "classDetails.notFound";
+  }
+
+  if (getSeatsTaken(error) !== null) {
+    return "editClass.errors.seatsTaken";
+  }
+
+  return getClassErrorKey(error);
 };

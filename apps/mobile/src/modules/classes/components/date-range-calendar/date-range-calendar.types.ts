@@ -9,6 +9,8 @@ export type DateRangeCalendarProps = {
   /** Days of the range that are left out. */
   excludedDates: string[];
   onRangeChange: (range: DateRange) => void;
+  /** Pressing a day selects only it: no range, no days taken out, and no summary under the grid. */
+  single?: boolean;
 };
 
 export type UseDateRangeCalendarProps = DateRangeCalendarProps;

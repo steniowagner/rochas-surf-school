@@ -2,6 +2,7 @@ import { SchoolClass, SchoolClassRepository } from "../../src";
 
 export class FakeSchoolClassRepository implements SchoolClassRepository {
   readonly createManyCalls: SchoolClass[][] = [];
+  readonly updateCalls: SchoolClass[] = [];
   failNextCreate = false;
   private classes: SchoolClass[];
 
@@ -28,6 +29,17 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
       (item) =>
         item.startsAt.getTime() >= from.getTime() &&
         item.startsAt.getTime() < to.getTime(),
+    );
+  }
+
+  async findById(id: string): Promise<SchoolClass | null> {
+    return this.classes.find((item) => item.id === id) ?? null;
+  }
+
+  async update(schoolClass: SchoolClass): Promise<void> {
+    this.updateCalls.push(schoolClass);
+    this.classes = this.classes.map((item) =>
+      item.id === schoolClass.id ? schoolClass : item,
     );
   }
 }

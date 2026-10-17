@@ -22,6 +22,30 @@ import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
 
+// The classes start an hour from "now": fix the clock, or from 23:00 in Fortaleza they fall on the next day.
+jest.useFakeTimers({
+  now: new Date("2026-10-16T15:00:00.000Z"),
+  doNotFake: [
+    "nextTick",
+    "setImmediate",
+    "clearImmediate",
+    "setInterval",
+    "clearInterval",
+    "setTimeout",
+    "clearTimeout",
+    "queueMicrotask",
+    "requestAnimationFrame",
+    "cancelAnimationFrame",
+    "requestIdleCallback",
+    "cancelIdleCallback",
+    "performance",
+    "hrtime",
+  ],
+});
+
+afterAll(() => jest.useRealTimers());
+
+
 const fetchMock = jest.fn();
 
 const person = (id: string) => ({

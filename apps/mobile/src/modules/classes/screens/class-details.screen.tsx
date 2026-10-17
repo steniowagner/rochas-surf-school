@@ -1,20 +1,23 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
+import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 import { useClassDetailsScreen } from "./class-details.screen.hook";
+import type { ClassDetailsScreenProps } from "./class-details.screen.types";
 
-export function ClassDetailsScreen() {
+export function ClassDetailsScreen({ canEdit = false }: ClassDetailsScreenProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const screen = useClassDetailsScreen();
+  const screen = useClassDetailsScreen({ canEdit });
   const { item } = screen;
 
   return (
@@ -34,6 +37,18 @@ export function ClassDetailsScreen() {
         >
           {t("classDetails.title")}
         </Text>
+        {screen.showEdit ? (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t("classDetails.edit")}
+            activeOpacity={BUTTON_ACTIVE_OPACITY}
+            onPress={screen.edit}
+            style={shadowStyle("iconButton", theme)}
+            className="h-11 w-11 items-center justify-center rounded-full bg-surface"
+          >
+            <Ionicons name="pencil" size={18} color={theme.ink} />
+          </TouchableOpacity>
+        ) : null}
       </View>
       {screen.isLoading ? (
         <ActivityIndicator testID="class-details-loading" color={theme.grape} />

@@ -29,6 +29,7 @@ export const useDateRangeCalendar = ({
   endDate,
   excludedDates,
   onRangeChange,
+  single = false,
 }: UseDateRangeCalendarProps) => {
   const { i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
@@ -76,7 +77,11 @@ export const useDateRangeCalendar = ({
   const goNext = () => setVisibleMonth((current) => addMonths(current, 1));
 
   const selectDay = (date: string) => {
-    onRangeChange(pressDay({ startDate, endDate, excludedDates }, date));
+    onRangeChange(
+      single
+        ? { startDate: date, endDate: null, excludedDates: [] }
+        : pressDay({ startDate, endDate, excludedDates }, date),
+    );
   };
 
   const clear = () => onRangeChange(EMPTY_RANGE);

@@ -845,4 +845,405 @@ describe('Classes (e2e)', () => {
       expect(push.sent).toHaveLength(0);
     });
   });
+
+  describe('PUT /classes/:id', () => {
+    const edit = (token: string | undefined, id: string, body: Record<string, unknown>) =>
+      as(token, http().put(`/classes/${id}`)).send(body);
+
+    // Tomorrow (2026-10-15) 08:00-09:00 in Fortaleza, unless the test moves it.
+    async function makeClass(
+      creatorId: string,
+      instructorIds: string[],
+      overrides: { startsAt?: string; endsAt?: string } = {},
+    ) {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date(overrides.startsAt ?? '2026-10-15T11:00:00.000Z'),
+          endsAt: new Date(overrides.endsAt ?? '2026-10-15T12:00:00.000Z'),
+          locationId,
+          capacity: 8,
+          notes: 'Bring a hat',
+          createdBy: creatorId,
+          instructors: { create: instructorIds.map((userId) => ({ userId })) },
+        },
+      });
+      return id;
+    }
+
+    // The stored values as the body of a no-change save.
+    const sameBody = (instructorIds: string[], overrides: Record<string, unknown> = {}) => ({
+      discipline: 'surf',
+      level: 'beginner',
+      date: '2026-10-15',
+      start: '08:00',
+      end: '09:00',
+      locationId,
+      instructorIds,
+      capacity: 8,
+      notes: 'Bring a hat',
+      ...overrides,
+    });
+
+    const stored = (id: string) =>
+      prisma.schoolClass.findUniqueOrThrow({ where: { id }, include: { instructors: true } });
+
+    it("edits a class that hasn't started", async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      const sibling = await makeClass(admin.id, [instructor.id], {
+        startsAt: '2026-10-16T11:00:00.000Z',
+        endsAt: '2026-10-16T12:00:00.000Z',
+      });
+      const otherLocation = await prisma.location.create({
+        data: {
+          id: randomUUID(),
+          name: `${MARK} other ${randomUUID().slice(0, 8)}`,
+          nameKey: `${MARK} ${randomUUID()}`,
+          address: 'Av. Zezé Diogo',
+        },
+      });
+
+      const response = await edit(
+        admin.accessToken,
+        id,
+        sameBody([instructor.id], {
+          discipline: 'skate',
+          level: 'expert',
+          date: '2026-10-21',
+          start: '16:30',
+          end: '17:45',
+          locationId: otherLocation.id,
+          capacity: 12,
+          notes: '  Bring water  ',
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        id,
+        discipline: 'skate',
+        level: 'expert',
+        startsAt: '2026-10-21T19:30:00.000Z',
+        endsAt: '2026-10-21T20:45:00.000Z',
+        capacity: 12,
+        notes: 'Bring water',
+        location: { id: otherLocation.id },
+        instructors: [{ id: instructor.id, name: 'Person instructor' }],
+      });
+      const read = await as(admin.accessToken, http().get(`/classes/${id}`));
+      expect(read.body).toEqual(response.body);
+      const week = await as(admin.accessToken, http().get('/classes?date=2026-10-21'));
+      expect(week.body.items.map((item: { id: string }) => item.id)).toContain(id);
+      const untouched = await stored(sibling);
+      expect(untouched).toMatchObject({ discipline: 'surf', capacity: 8, notes: 'Bring a hat' });
+      expect(untouched.startsAt.toISOString()).toBe('2026-10-16T11:00:00.000Z');
+    });
+
+    it('stores blank notes as none and replaces the instructors', async () => {
+      const admin = await account();
+      const first = await account('instructor');
+      const second = await account('instructor');
+      const id = await makeClass(admin.id, [first.id]);
+
+      const response = await edit(admin.accessToken, id, sameBody([second.id, second.id], { notes: '   ' }));
+
+      expect(response.status).toBe(200);
+      expect(response.body.notes).toBeNull();
+      expect((await stored(id)).instructors.map((link) => link.userId)).toEqual([second.id]);
+    });
+
+    it('answers 200 and leaves updatedAt untouched when nothing differs', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      const before = await stored(id);
+
+      const response = await edit(admin.accessToken, id, sameBody([instructor.id]));
+
+      expect(response.status).toBe(200);
+      expect((await stored(id)).updatedAt).toEqual(before.updatedAt);
+    });
+
+    it('refuses a start in the past', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      for (const body of [
+        { date: '2026-10-13' },
+        { date: '2026-10-14', start: '07:00', end: '08:00' },
+        { date: '2026-10-14', start: '10:00', end: '11:00' },
+      ]) {
+        const response = await edit(admin.accessToken, id, sameBody([instructor.id], body));
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(['class.startsAt.past']);
+      }
+      expect((await stored(id)).startsAt.toISOString()).toBe('2026-10-15T11:00:00.000Z');
+    });
+
+    it('accepts a start one minute after now', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      const response = await edit(
+        admin.accessToken,
+        id,
+        sameBody([instructor.id], { date: '2026-10-14', start: '10:01', end: '11:00' }),
+      );
+
+      expect(response.status).toBe(200);
+    });
+
+    it('on a started class changes only the instructors', async () => {
+      const admin = await account();
+      const first = await account('instructor');
+      const second = await account('instructor');
+      const id = await makeClass(admin.id, [first.id]);
+      now = new Date('2026-10-15T11:30:00.000Z');
+
+      const swap = await edit(admin.accessToken, id, sameBody([second.id]));
+      expect(swap.status).toBe(200);
+      expect((await stored(id)).instructors.map((link) => link.userId)).toEqual([second.id]);
+
+      const refused = await edit(admin.accessToken, id, sameBody([second.id], { locationId: randomUUID() }));
+      expect(refused.status).toBe(409);
+      expect(refused.body.errors).toEqual(['class.started']);
+      expect((await stored(id)).locationId).toBe(locationId);
+
+      const same = await edit(admin.accessToken, id, sameBody([second.id]));
+      expect(same.status).toBe(200);
+    });
+
+    it('on a started class counts a class starting exactly now as started', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      now = new Date('2026-10-15T11:00:00.000Z');
+
+      const response = await edit(admin.accessToken, id, sameBody([instructor.id], { capacity: 9 }));
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors).toEqual(['class.started']);
+    });
+
+    it('refuses a finished class, also when nothing differs', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      now = new Date('2026-10-15T12:00:00.000Z');
+
+      for (const body of [sameBody([instructor.id]), sameBody([instructor.id], { capacity: 9 })]) {
+        const response = await edit(admin.accessToken, id, body);
+
+        expect(response.status).toBe(409);
+        expect(response.body.errors).toEqual(['class.finished']);
+      }
+      expect((await stored(id)).capacity).toBe(8);
+    });
+
+    it('refuses a malformed body with every shape key, before the class state', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      now = new Date('2026-10-15T12:00:00.000Z');
+
+      const response = await edit(admin.accessToken, id, {
+        discipline: 'tennis',
+        level: 'pro',
+        date: '2026-02-30',
+        start: '9am',
+        capacity: 0,
+        notes: 'x'.repeat(301),
+        instructorIds: [],
+        locationId: '',
+      });
+
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual([
+        'class.discipline.invalid',
+        'class.level.invalid',
+        'class.date.invalid',
+        'class.time.invalid',
+        'class.capacity.invalid',
+        'class.notes.max.length',
+        'class.instructors.required',
+        'class.location.required',
+      ]);
+    });
+
+    it('refuses an end that is not after the start', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      const response = await edit(admin.accessToken, id, sameBody([instructor.id], { end: '08:00' }));
+
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(['class.time.endBeforeStart']);
+    });
+
+    it('refuses an unknown or malformed id with 404', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+
+      for (const id of [randomUUID(), 'not-a-uuid']) {
+        const response = await edit(admin.accessToken, id, sameBody([instructor.id]));
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toEqual(['class.notFound']);
+      }
+    });
+
+    it('refuses an unknown location, and an added instructor who is not an approved teacher', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      const location = await edit(admin.accessToken, id, sameBody([instructor.id], { locationId: randomUUID() }));
+      expect(location.status).toBe(422);
+      expect(location.body.errors).toEqual(['class.location.notFound']);
+
+      for (const added of [await account('student'), await account('instructor', 'pending')]) {
+        const response = await edit(admin.accessToken, id, sameBody([instructor.id, added.id]));
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(['class.instructors.invalid']);
+      }
+      expect((await stored(id)).instructors).toHaveLength(1);
+    });
+
+    it('keeps an instructor who is now a student', async () => {
+      const admin = await account();
+      const student = await account('student');
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [student.id]);
+
+      const response = await edit(admin.accessToken, id, sameBody([student.id, instructor.id]));
+
+      expect(response.status).toBe(200);
+      expect((await stored(id)).instructors.map((link) => link.userId).sort()).toEqual(
+        [student.id, instructor.id].sort(),
+      );
+    });
+
+    it('refuses everyone but an approved admin, and a missing token', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      const body = sameBody([instructor.id], { capacity: 9 });
+
+      expect((await edit(undefined, id, body)).status).toBe(401);
+
+      const student = await edit((await account('student')).accessToken, id, body);
+      expect(student.status).toBe(403);
+      expect(student.body.errors).toEqual(['user.role.notAdmin']);
+      expect((await edit(instructor.accessToken, id, body)).body.errors).toEqual(['user.role.notAdmin']);
+
+      for (const status of NOT_APPROVED) {
+        const response = await edit((await account('admin', status)).accessToken, id, body);
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['user.status.notApproved']);
+      }
+      expect((await stored(id)).capacity).toBe(8);
+    });
+
+    describe('notifies', () => {
+      async function withPhone(userId: string, locale = 'pt-BR') {
+        await prisma.pushToken.create({
+          data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId, locale },
+        });
+      }
+
+      const notificationsOf = (userId: string) =>
+        prisma.notification.findMany({
+          where: { userId, type: { in: ['class.edited', 'class.assigned', 'class.unassigned'] } },
+        });
+
+      it('tells kept, added and removed instructors, and never the editing admin', async () => {
+        const admin = await account();
+        const kept = await account('instructor');
+        const removed = await account('instructor');
+        const added = await account('instructor');
+        for (const person of [admin, kept, removed, added]) await withPhone(person.id);
+        const id = await makeClass(admin.id, [kept.id, removed.id, admin.id]);
+
+        const response = await edit(
+          admin.accessToken,
+          id,
+          sameBody([kept.id, added.id, admin.id], { start: '09:00', end: '10:00' }),
+        );
+
+        expect(response.status).toBe(200);
+        const params = { classId: id, discipline: 'surf', startsAt: '2026-10-15T12:00:00.000Z' };
+        const keptNotifications = await notificationsOf(kept.id);
+        expect(keptNotifications.map((item) => [item.type, item.params])).toEqual([['class.edited', params]]);
+        expect((await notificationsOf(added.id)).map((item) => [item.type, item.params])).toEqual([
+          ['class.assigned', { count: 1, discipline: 'surf' }],
+        ]);
+        expect((await notificationsOf(removed.id)).map((item) => [item.type, item.params])).toEqual([
+          ['class.unassigned', params],
+        ]);
+        expect(await notificationsOf(admin.id)).toHaveLength(0);
+
+        expect(push.sent).toHaveLength(3);
+        const edited = push.sent.find((message) => message.type === 'class.edited')!;
+        expect(renderPush('class.edited', edited.params, 'pt-BR')).toEqual({
+          title: 'Aula alterada',
+          body: 'A aula de Surf de 15/10 às 09:00 foi alterada. Abra o app para ver.',
+        });
+        const unassigned = push.sent.find((message) => message.type === 'class.unassigned')!;
+        expect(renderPush('class.unassigned', unassigned.params, 'pt-BR').title).toBe('Você saiu de uma aula');
+      });
+
+      it('tells only the added and removed instructors when only the instructors change', async () => {
+        const admin = await account();
+        const kept = await account('instructor');
+        const removed = await account('instructor');
+        const added = await account('instructor');
+        const id = await makeClass(admin.id, [kept.id, removed.id]);
+
+        const response = await edit(admin.accessToken, id, sameBody([kept.id, added.id]));
+
+        expect(response.status).toBe(200);
+        expect(await notificationsOf(kept.id)).toHaveLength(0);
+        expect((await notificationsOf(added.id)).map((item) => item.type)).toEqual(['class.assigned']);
+        expect((await notificationsOf(removed.id)).map((item) => item.type)).toEqual(['class.unassigned']);
+      });
+
+      it('tells nobody when nothing differs or the edit is refused', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        await withPhone(instructor.id);
+        const id = await makeClass(admin.id, [instructor.id]);
+
+        await edit(admin.accessToken, id, sameBody([instructor.id]));
+        await edit(admin.accessToken, id, sameBody([instructor.id], { capacity: 0 }));
+
+        expect(await notificationsOf(instructor.id)).toHaveLength(0);
+        expect(push.sent).toHaveLength(0);
+      });
+
+      it('keeps the 200 and the change when the push provider fails', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        await withPhone(instructor.id);
+        const id = await makeClass(admin.id, [instructor.id]);
+        push.failing = true;
+
+        const response = await edit(admin.accessToken, id, sameBody([instructor.id], { capacity: 9 }));
+
+        expect(response.status).toBe(200);
+        expect((await stored(id)).capacity).toBe(9);
+        expect(await notificationsOf(instructor.id)).toHaveLength(1);
+      });
+    });
+  });
 });

@@ -158,6 +158,19 @@ describe("useNotificationReceived", () => {
     expect(meCalls()).toHaveLength(0);
   });
 
+  it.each(["class.edited", "class.unassigned"])(
+    "reloads every cached class when a %s push arrives",
+    async (type) => {
+      answerMe(account("approved", "instructor"));
+      await openApp(account("approved", "instructor"));
+
+      await receive(push(type));
+
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["classes"] });
+      expect(meCalls()).toHaveLength(0);
+    },
+  );
+
   it.each([undefined, "something.else"])(
     "shows nothing more for the type %s",
     async (type) => {

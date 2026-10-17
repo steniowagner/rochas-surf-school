@@ -321,6 +321,7 @@ const messages: Messages = {
     loadError: "No se pudo cargar la clase.",
     notFound: "Esta clase ya no existe.",
     retry: "Intentar de nuevo",
+    edit: "Editar clase",
   },
   editProfile: {
     title: "Editar perfil",
@@ -454,6 +455,28 @@ const messages: Messages = {
       past: "Uno de los horarios ya pasó. Revisa las fechas y los horarios.",
       instructors: "Uno de los instructores ya no puede dar clases.",
       location: "El lugar elegido ya no existe.",
+    },
+  },
+  editClass: {
+    title: "Editar clase",
+    day: {
+      label: "Día",
+      hint: "Cualquier día desde hoy",
+    },
+    time: {
+      label: "Inicio y fin",
+    },
+    started: {
+      title: "La clase ya empezó",
+      description: "Solo se pueden cambiar los instructores.",
+    },
+    note: "Al guardar, avisamos a los instructores de la clase.",
+    submit: "Guardar y notificar",
+    saved: "Cambios guardados",
+    errors: {
+      started: "La clase ya empezó: solo se pueden cambiar los instructores.",
+      finished: "Esta clase ya terminó y no se puede cambiar.",
+      seatsTaken: "La capacidad no puede quedar por debajo de las {{count}} plazas ocupadas.",
     },
   },
   timeRangeSheet: {

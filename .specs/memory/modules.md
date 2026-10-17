@@ -54,9 +54,9 @@ denied or removed account can still contact the school. The waiting-list switch 
 The product's only way to reach people outside the app: it keeps every notification for the person it is for,
 then pushes it to each phone they are signed in on, in that phone's language. It knows the people only by their
 ids and the phones they registered; who must be told what, and when, is decided by the module where the event
-happens (Authentication for registrations, Classes for class assignments), which reaches it through abstract
-contracts. Today it carries the three registration notifications and the class-assignment one; nothing shows the
-stored notifications yet.
+happens (Authentication for registrations, Classes for class assignments and edits), which reaches it through
+abstract contracts. Today it carries the three registration notifications and the class ones (assigned, edited,
+unassigned); nothing shows the stored notifications yet.
 
 - Where it physically lives: `modules/notifications`
 - Business details: [modules/notifications.md](modules/notifications.md)
@@ -69,8 +69,9 @@ Schedules the school's classes and keeps the places where they happen. Admins sa
 address) and create classes one at a time or in a batch — one class per chosen day and time range, all or
 nothing, never in the past — with the instructors who teach them, who are told once per batch. Time ranges are
 suggested from last week's classes. Every approved person browses the classes by week (Monday to Sunday,
-Fortaleza) or by month and reads each one; a class is not started, started or finished by the clock. Enrolment, ratings and
-photos will build on its classes.
+Fortaleza) or by month and reads each one; a class is not started, started or finished by the clock. Admins edit one
+class at a time — anything before it starts, only its instructors once started, nothing once finished — and its
+instructors are told. Cancelling, deleting, enrolment, ratings and photos will build on its classes.
 
 - Where it physically lives: `modules/classes`
 - Business details: [modules/classes.md](modules/classes.md)

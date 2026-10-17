@@ -1,9 +1,11 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
 import {
   ClassActor,
   CreateClassBatch,
   CreateClassBatchIn,
   CreateClassBatchOut,
+  EditClass,
+  EditClassIn,
   GetClass,
   GetClassOut,
   ListWeekClasses,
@@ -14,13 +16,16 @@ import {
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
+import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { PrismaLocationRepository } from './location.prisma.js';
+import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
 
 type CreateClassBatchBody = Partial<Omit<CreateClassBatchIn, 'actor'>> | undefined;
+type EditClassBody = Partial<Omit<EditClassIn, 'actor' | 'id'>> | undefined;
 
 function actorOf(user: AuthenticatedUser): ClassActor {
   return { id: user.id, role: user.role, status: user.status };
@@ -35,6 +40,8 @@ export class ClassesController {
     private readonly classAssignmentNotifier: NotificationsClassAssignmentNotifier,
     private readonly clock: SystemClockProvider,
     private readonly classViewReader: PrismaClassViewReader,
+    private readonly classChangeNotifier: NotificationsClassChangeNotifier,
+    private readonly seatCounter: NoEnrolmentSeatCounter,
   ) {}
 
   @Post('batch')
@@ -89,5 +96,39 @@ export class ClassesController {
   @HttpCode(HttpStatus.OK)
   one(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<GetClassOut> {
     return new GetClass(this.classViewReader).execute({ actor: actorOf(user), id });
+  }
+
+  @Put(':id')
+  @HttpCode(HttpStatus.OK)
+  async edit(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body?: EditClassBody,
+  ): Promise<GetClassOut> {
+    const actor = actorOf(user);
+
+    await new EditClass(
+      this.schoolClassRepository,
+      this.locationRepository,
+      this.teacherLookup,
+      this.classAssignmentNotifier,
+      this.classChangeNotifier,
+      this.seatCounter,
+      this.clock,
+    ).execute({
+      actor,
+      id,
+      discipline: body?.discipline,
+      level: body?.level,
+      date: body?.date,
+      start: body?.start,
+      end: body?.end,
+      locationId: body?.locationId,
+      instructorIds: body?.instructorIds,
+      capacity: body?.capacity,
+      notes: body?.notes,
+    });
+
+    return new GetClass(this.classViewReader).execute({ actor, id });
   }
 }

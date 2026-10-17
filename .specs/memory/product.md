@@ -577,7 +577,8 @@ instructors and admins of the school, none preselected. The screen shows "N dias
 toast ("N aulas criadas") and back to the home. The backend creates the whole batch or nothing — refusing past
 classes (unless asked to skip them, spec 029), unknown locations, instructors who can't teach, more than 200 classes and every invalid field — and
 pushes one "Novas aulas na sua escala" notification per assigned instructor (not the creator). Spec 030 shows the
-classes (see below); they can't be edited, cancelled or deleted. All copy is in pt-BR, es-ES and en-US.
+classes (see below) and spec 032 lets admins edit them one at a time (see below); they can't be cancelled or
+deleted yet. All copy is in pt-BR, es-ES and en-US.
 
 **Batches without single days and without the past** (spec `029-batch-excluded-dates-skip-past`) — a batch can
 leave out single dates of its range, whatever their weekday, and can skip the classes that have already started
@@ -615,6 +616,26 @@ one week (the same weekday) in the week view and one month (the same day number,
 31 Jan → 28 Feb) in the month view. Every day with at least one class shows a single dot, in both views and on the
 days of the months around. There is no "Hoje" shortcut, no relative-week subtitle ("Esta semana"…) and no day title
 or class count above the cards. The calendar is a shared piece of the app that other screens can reuse.
+
+**Editing a class** (spec `032-class-editing`) — an approved admin edits one class at a time from a round pencil
+in the header of its details (shown to admins only, and not on a finished class). Before the class starts every
+field can change, but its start never moves to now or earlier; once it has started only its instructors can
+change (a substitute); once it has finished nothing can. The capacity can't go below the seats taken (always zero
+until enrolment exists). An edit can't leave a class without an instructor; a new instructor must be an approved
+instructor or admin, while the ones already on the class can stay whatever their role is now. The "Editar aula"
+screen starts from the class's values with the Nova aula sections, but one day ("Dia", no day before today) and
+one time range ("Início e fim": the class's own, last week's suggestions and any added with "Novo horário"; on
+today a time that has already started is blocked, except the class's own while it hasn't started); the
+instructor list also shows the class's instructors who no longer teach, so they can be removed. A started class
+shows "A aula já começou" / "Só dá para trocar os instrutores." and only the instructors. "Salvar e notificar"
+(with "Ao salvar, avisamos os instrutores da aula.") is enabled only when something changed and the form is
+valid; on success "Alterações salvas" and back to the details, with the week and the details reloaded; each
+refusal has its own message (started — the screen switches to the instructors only —, finished, gone, past,
+seats taken, unknown instructor or location). Saving without a change does nothing and tells nobody. The
+instructors are told, never the admin who edits: the ones who stay get "Aula alterada" when a class field
+changed, the new ones "Novas aulas na sua escala", the removed ones "Você saiu de uma aula"; tapping one of the
+first or last opens that class's details, and one received with the app open reloads the classes. All copy is in
+pt-BR, es-ES and en-US.
 
 Active specs: none.
 
@@ -663,15 +684,19 @@ Active specs: none.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - After creating classes (spec 028): the map, address suggestions, editing and archiving of locations and the
-  location-change notification (the class-locations spec); editing, cancelling and deleting classes and
-  unassigning instructors (with the "no instructor" flag); the instructors' "Surf" / "Skate" subtitles and photos
+  location-change notification (the class-locations spec); cancelling and deleting classes (specs 033 and 034)
+  and the "no instructor" flag (spec 035); the instructors' "Surf" / "Skate" subtitles and photos
   in the picker; a real count on the "Criar aulas" row; and "My classes" for admins who teach.
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
   class highlighted, and a marker on the cards of one's own classes; seats taken, the occupancy bar, "Sem vagas" /
   "Turma cheia", the list of students and the request / waiting-list button (with enrolment); cancelled classes,
-  the "Sem instrutor" flag and the edit pencil; the cancellation-rule and school-rules rows, the map, "Direções"
+  the "Sem instrutor" flag; the cancellation-rule and school-rules rows, the map, "Direções"
   and the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's sport filter and
   notifications bell; opening a person's sheet from the details, and profile photos (initials only).
+- On editing a class (spec 032): telling its students and the people with pending requests, and warning the
+  admin about guests (with enrolment); recomputing the cancellation deadline after an edit (the
+  cancellation-rule spec); editing several classes at once; the seat and pending-request counts in the editor's
+  footer note, and its "gerir" links to manage time ranges and locations.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.

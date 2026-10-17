@@ -667,6 +667,8 @@ The system SHALL NOT create a class whose start time has already passed. A batch
 
 #### Editing a class
 
+_Implemented in spec 032-class-editing._
+
 Admins SHALL be able to edit a single class. An edit SHALL NOT move a class's start into the past.
 
 - _One class edited:_ When an admin edits one class from a batch, then only that class changes.
@@ -674,7 +676,9 @@ Admins SHALL be able to edit a single class. An edit SHALL NOT move a class's st
 
 #### Edit notifications
 
-When a class is edited, its students, anyone with a pending request for it, and its instructors SHALL be notified.
+_Implemented in spec 032-class-editing (its instructors; students and pending requests come with enrolment)._
+
+When a class is edited, its students, anyone with a pending request for it, and its instructors SHALL be notified. The admin who makes the edit SHALL NOT be notified, even when teaching the class, and a save that changes nothing SHALL notify nobody.
 
 - _Time changed:_ When an admin changes a class's time, then its students, the people with pending requests for it and its instructors are notified.
 
@@ -688,6 +692,8 @@ A class SHALL be not started until its start time, started from its start time u
 - _Class reaches its end time:_ When a class's end time arrives, then the class is finished.
 
 #### Changes after a class starts
+
+_Implemented in spec 032-class-editing (changing instructors, and refusing other edits; cancelling comes with its spec)._
 
 Once a class has started, admins SHALL only be able to cancel it or change its instructors. Once it has finished, the class itself SHALL NOT change, and only ratings, comments and photos SHALL be added to it.
 
@@ -718,8 +724,9 @@ Admins SHALL be able to delete a class, after a confirmation step, only if it ha
 #### Assigning instructors
 
 _Implemented in spec 028-create-classes (assigning when classes are created)._
+_Implemented in spec 032-class-editing (adding and removing instructors when a class is edited)._
 
-Admins SHALL be able to assign instructors and admins to teach a class, and remove them from it. An instructor SHALL be notified when assigned to a class or removed from one; an instructor assigned to a batch SHALL be notified once for the whole batch, and the admin who creates it SHALL NOT be notified.
+Admins SHALL be able to assign instructors and admins to teach a class, and remove them from it. An instructor SHALL be notified when assigned to a class or removed from one; an instructor assigned to a batch SHALL be notified once for the whole batch, and the admin who creates the batch or edits the class SHALL NOT be notified.
 
 - _Instructor assigned:_ When an admin assigns an instructor to a class, then the instructor is notified.
 - _Instructor removed:_ When an admin removes an instructor from a class, then the instructor is notified.
@@ -733,6 +740,7 @@ When a class that hasn't started loses its only instructor, because that instruc
 #### Capacity
 
 _Implemented in spec 028-create-classes (setting it when classes are created)._
+_Implemented in spec 032-class-editing (changing it, never below the seats taken — always zero until enrolment)._
 
 Admins SHALL set each class's capacity. The capacity SHALL NOT be set below the number of seats taken, which counts approved students and guests.
 

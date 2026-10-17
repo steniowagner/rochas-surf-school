@@ -8,6 +8,7 @@ import { SystemClockProvider } from './system.clock.js';
 
 const INSTRUCTOR_ID = '22222222-2222-4222-8222-222222222222';
 const OTHER_ID = '33333333-3333-4333-8333-333333333333';
+const CLASS_ID = '44444444-4444-4444-8444-444444444444';
 
 function setup() {
   const notificationRepository = { createMany: vi.fn().mockResolvedValue(undefined) };
@@ -93,5 +94,54 @@ describe('NotificationsClassAssignmentNotifier', () => {
     await notifier.classAssigned({ instructorIds: [INSTRUCTOR_ID], count: 2, discipline: 'surf' });
 
     expect(error).toHaveBeenCalledWith(expect.stringContaining('class.assigned'), 'boom');
+  });
+
+  describe('classUnassigned', () => {
+    const startsAt = new Date('2026-10-18T11:00:00.000Z');
+
+    it('stores one class.unassigned notification per instructor with the class id, discipline and start', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classUnassigned({
+        instructorIds: [INSTRUCTOR_ID, OTHER_ID],
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt,
+      });
+
+      const stored = notificationRepository.createMany.mock.calls[0]![0].map(
+        (notification: { userId: string; type: string; params: unknown }) => ({
+          userId: notification.userId,
+          type: notification.type,
+          params: notification.params,
+        }),
+      );
+      const params = { classId: CLASS_ID, discipline: 'surf', startsAt: '2026-10-18T11:00:00.000Z' };
+      expect(stored).toEqual([
+        { userId: INSTRUCTOR_ID, type: 'class.unassigned', params },
+        { userId: OTHER_ID, type: 'class.unassigned', params },
+      ]);
+    });
+
+    it('logs and swallows a failure', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValue(new Error('db down'));
+
+      await expect(
+        notifier.classUnassigned({ instructorIds: [INSTRUCTOR_ID], classId: CLASS_ID, discipline: 'surf', startsAt }),
+      ).resolves.toBeUndefined();
+
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(error.mock.calls[0]![0]).toContain('class.unassigned');
+    });
+
+    it('logs a thrown value that is not an Error', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValue('boom');
+
+      await notifier.classUnassigned({ instructorIds: [INSTRUCTOR_ID], classId: CLASS_ID, discipline: 'surf', startsAt });
+
+      expect(error).toHaveBeenCalledWith(expect.stringContaining('class.unassigned'), 'boom');
+    });
   });
 });

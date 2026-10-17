@@ -101,7 +101,7 @@ export function listBatchDates(
   return dates;
 }
 
-function toInstant(date: string, minutes: number): Date {
+export function toInstant(date: string, minutes: number): Date {
   const [year, month, day] = date.split("-").map(Number) as [number, number, number];
   const zoned = new TZDate(
     year,

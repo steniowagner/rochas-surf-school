@@ -6,3 +6,10 @@ export type ClassDetailsInstructor = {
   /** The signed-in viewer teaches the class: shown as "You". */
   isViewer: boolean;
 };
+
+export type ClassDetailsScreenProps = {
+  /** Admins only: shows the pencil that opens the class for editing (unless it has finished). */
+  canEdit?: boolean;
+};
+
+export type UseClassDetailsScreenProps = Required<ClassDetailsScreenProps>;

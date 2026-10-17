@@ -21,6 +21,27 @@ const DISCIPLINE_NAMES: Record<string, string> = { surf: 'Surf', skate: 'Skate' 
 const disciplineName = (value: unknown): string =>
   typeof value === 'string' ? (DISCIPLINE_NAMES[value] ?? '') : '';
 
+// America/Fortaleza is UTC-3 all year (no daylight saving since 2019). Formatted by hand so the text never depends on
+// the machine's locale data.
+const FORTALEZA_OFFSET_MS = -3 * 60 * 60 * 1000;
+
+const pad = (value: number): string => String(value).padStart(2, '0');
+
+/** The class start as `{ day, time }` in Fortaleza (`dd/MM` or `MM/dd`, and `HH:mm`), blank when it isn't a date. */
+const startParts = (value: unknown, monthFirst = false): { day: string; time: string } => {
+  const date = new Date(typeof value === 'string' ? value : NaN);
+  if (Number.isNaN(date.getTime())) {
+    return { day: '', time: '' };
+  }
+  const local = new Date(date.getTime() + FORTALEZA_OFFSET_MS);
+  const day = pad(local.getUTCDate());
+  const month = pad(local.getUTCMonth() + 1);
+  return {
+    day: monthFirst ? `${month}/${day}` : `${day}/${month}`,
+    time: `${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`,
+  };
+};
+
 const classCount = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : 1;
 
@@ -90,6 +111,52 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
         classCount(count) === 1
           ? `You've been assigned 1 ${disciplineName(discipline)} class.`
           : `You've been assigned ${classCount(count)} ${disciplineName(discipline)} classes.`,
+    },
+  },
+  'class.edited': {
+    'pt-BR': {
+      title: 'Aula alterada',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `A aula de ${disciplineName(discipline)} de ${day} às ${time} foi alterada. Abra o app para ver.`;
+      },
+    },
+    es: {
+      title: 'Clase modificada',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `La clase de ${disciplineName(discipline)} del ${day} a las ${time} cambió. Abre la app para verla.`;
+      },
+    },
+    en: {
+      title: 'Class changed',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return `Your ${disciplineName(discipline)} class on ${day} at ${time} was changed. Open the app to see it.`;
+      },
+    },
+  },
+  'class.unassigned': {
+    'pt-BR': {
+      title: 'Você saiu de uma aula',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `Você não dá mais a aula de ${disciplineName(discipline)} de ${day} às ${time}.`;
+      },
+    },
+    es: {
+      title: 'Saliste de una clase',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `Ya no das la clase de ${disciplineName(discipline)} del ${day} a las ${time}.`;
+      },
+    },
+    en: {
+      title: 'Removed from a class',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return `You're no longer teaching the ${disciplineName(discipline)} class on ${day} at ${time}.`;
+      },
     },
   },
 };

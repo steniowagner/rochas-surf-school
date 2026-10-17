@@ -84,6 +84,27 @@ describe('ExpoPushProvider', () => {
     ]);
   });
 
+  it('adds the class id to the data of a class notification, and only when it is text', async () => {
+    await provider().send([
+      message('ExponentPushToken[a]', {
+        type: 'class.edited',
+        params: { classId: 'c1', discipline: 'surf', startsAt: '2026-10-18T11:00:00.000Z' },
+        notificationId: 'n3',
+      }),
+      message('ExponentPushToken[b]', {
+        type: 'class.assigned',
+        params: { classId: 7, count: 1, discipline: 'surf' },
+        notificationId: 'n4',
+      }),
+    ]);
+
+    const [sent] = expo.send.mock.calls[0] as [{ data: unknown }[]];
+    expect(sent.map((item) => item.data)).toEqual([
+      { type: 'class.edited', notificationId: 'n3', classId: 'c1' },
+      { type: 'class.assigned', notificationId: 'n4' },
+    ]);
+  });
+
   it('sends in chunks and returns the tickets in the order of the messages', async () => {
     expo.send
       .mockResolvedValueOnce([{ status: 'ok', id: 'k1' }, { status: 'ok', id: 'k2' }])

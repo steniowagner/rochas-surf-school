@@ -104,21 +104,26 @@ beforeEach(() => {
 afterEach(() => jest.useRealTimers());
 
 describe("ClassesWeekScreen", () => {
-  it("opens on the current week with today selected", async () => {
+  it("opens on the week view with today selected", async () => {
     await renderScreen();
 
     expect(screen.getByRole("header", { name: "Classes" })).toBeOnTheScreen();
-    expect(screen.getByText("This week")).toBeOnTheScreen();
-    expect(screen.getByText("12 Oct – 18 Oct")).toBeOnTheScreen();
-    expect(screen.getByTestId("day-2026-10-14")).toBeSelected();
-    expect(await screen.findByText("Wednesday · 14 Oct")).toBeOnTheScreen();
-    expect(await screen.findByText("3 classes")).toBeOnTheScreen();
-    expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
+    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Show the month" })).toBeOnTheScreen();
+    expect(screen.queryByText("This week")).not.toBeOnTheScreen();
+    expect(screen.queryByTestId("calendar-day-2026-11-01")).not.toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
+    expect(await screen.findByText("08:00 – 09:00")).toBeOnTheScreen();
+    expect(screen.getByText("10:00 – 11:30")).toBeOnTheScreen();
+    expect(screen.getByText("16:00 – 17:00")).toBeOnTheScreen();
+    expect(screen.queryByText("Wednesday · 14 Oct")).not.toBeOnTheScreen();
+    expect(screen.queryByText("3 classes")).not.toBeOnTheScreen();
     expect(requestedPaths()).toEqual([`/classes?date=${THIS_MONDAY}`]);
   });
 
   it("uses the title it is given", async () => {
     await renderScreen({ titleKey: "tabs.agenda" });
+    await screen.findByText("16:00 – 17:00");
 
     expect(screen.getByRole("header", { name: "Schedule" })).toBeOnTheScreen();
   });
@@ -133,78 +138,52 @@ describe("ClassesWeekScreen", () => {
   it("moves to the next and previous weeks keeping the weekday", async () => {
     const user = userEvent.setup();
     await renderScreen();
-    await screen.findByText("3 classes");
+    await screen.findByText("16:00 – 17:00");
 
     await user.press(screen.getByRole("button", { name: "Show the next week" }));
 
-    expect(await screen.findByText("Next week")).toBeOnTheScreen();
-    expect(screen.getByTestId("day-2026-10-21")).toBeSelected();
-    expect(screen.getByRole("button", { name: "Today" })).toBeOnTheScreen();
+    expect(await screen.findByText("19 – 25 OCT")).toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-10-21")).toBeSelected();
     expect(requestedPaths()).toContain("/classes?date=2026-10-19");
+    expect(screen.queryByText("Today")).not.toBeOnTheScreen();
+    expect(screen.queryByText("Next week")).not.toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Show the previous week" }));
     await user.press(screen.getByRole("button", { name: "Show the previous week" }));
-    expect(await screen.findByText("Last week")).toBeOnTheScreen();
-    expect(screen.getByTestId("day-2026-10-07")).toBeSelected();
 
-    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
-    expect(await screen.findByText("2 weeks ago")).toBeOnTheScreen();
-    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
-    expect(await screen.findByText("3 weeks ago")).toBeOnTheScreen();
+    expect(await screen.findByText("5 – 11 OCT")).toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-10-07")).toBeSelected();
   });
 
-  it("says how many weeks ahead", async () => {
-    const user = userEvent.setup();
-    await renderScreen();
-
-    for (let index = 0; index < 3; index += 1) {
-      await user.press(screen.getByRole("button", { name: "Show the next week" }));
-    }
-
-    expect(await screen.findByText("In 3 weeks")).toBeOnTheScreen();
-  });
-
-  it("returns to today", async () => {
-    const user = userEvent.setup();
-    await renderScreen();
-    await user.press(screen.getByRole("button", { name: "Show the next week" }));
-    await user.press(screen.getByTestId("day-2026-10-23"));
-
-    await user.press(screen.getByRole("button", { name: "Today" }));
-
-    expect(await screen.findByText("This week")).toBeOnTheScreen();
-    expect(screen.getByTestId("day-2026-10-14")).toBeSelected();
-    expect(screen.queryByRole("button", { name: "Today" })).not.toBeOnTheScreen();
-  });
-
-  it("shows one dot per class, at most three", async () => {
+  it("shows one dot per day with classes", async () => {
     const five = Array.from({ length: 5 }, (_, index) =>
       makeClass(`f-${index}`, "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z"),
     );
-    serveWeeks({ [THIS_MONDAY]: [FINISHED, ...five] });
+    serveWeeks({ [THIS_MONDAY]: [FINISHED, STARTED, ...five] });
     await renderScreen();
-    await screen.findByText("1 class");
+    await screen.findByText("08:00 – 09:00");
 
-    expect(screen.getAllByTestId("day-2026-10-14-dot")).toHaveLength(1);
-    expect(screen.getAllByTestId("day-2026-10-15-dot")).toHaveLength(3);
-    expect(screen.queryAllByTestId("day-2026-10-16-dot")).toHaveLength(0);
+    expect(await screen.findAllByTestId("calendar-day-2026-10-14-dot")).toHaveLength(1);
+    expect(screen.getAllByTestId("calendar-day-2026-10-15-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-16-dot")).toHaveLength(0);
+    expect(screen.getByLabelText("Thursday, October 15th, 2026, with classes")).toBeOnTheScreen();
   });
 
-  it("shows another day's cards and count", async () => {
+  it("shows another day's cards", async () => {
     const user = userEvent.setup();
     serveWeeks({
       [THIS_MONDAY]: [
         FINISHED,
-        makeClass("c-9", "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z"),
+        makeClass("c-9", "2026-10-15T12:00:00.000Z", "2026-10-15T13:00:00.000Z"),
       ],
     });
     await renderScreen();
-    await screen.findByText("1 class");
+    await screen.findByText("08:00 – 09:00");
 
-    await user.press(screen.getByTestId("day-2026-10-15"));
+    await user.press(screen.getByTestId("calendar-day-2026-10-15"));
 
-    expect(screen.getByText("Thursday · 15 Oct")).toBeOnTheScreen();
-    expect(screen.getByText("1 class")).toBeOnTheScreen();
+    expect(screen.getByText("09:00 – 10:00")).toBeOnTheScreen();
+    expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
   });
 
   it("opens the class details when a card is pressed", async () => {
@@ -248,8 +227,24 @@ describe("ClassesWeekScreen", () => {
     serveWeeks();
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
-    expect(await screen.findByText("3 classes")).toBeOnTheScreen();
+    expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
     expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
+  });
+
+  it("keeps the calendar when the week fails to load", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    await renderScreen();
+
+    expect(await screen.findByText("Couldn't load the classes.")).toBeOnTheScreen();
+    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+    expect(screen.getByText("WED")).toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
+
+    await user.press(screen.getByTestId("calendar-day-2026-10-16"));
+
+    expect(screen.getByTestId("calendar-day-2026-10-16")).toBeSelected();
+    expect(screen.getByText("Couldn't load the classes.")).toBeOnTheScreen();
   });
 
   it("shows no error state when the session expired", async () => {
@@ -268,12 +263,133 @@ describe("ClassesWeekScreen", () => {
     await renderScreen();
 
     expect(await screen.findByText("No classes on this day.")).toBeOnTheScreen();
-    expect(screen.getByText("0 classes")).toBeOnTheScreen();
+  });
+
+  it("selecting a day in the month keeps the month and shows that day's classes", async () => {
+    const user = userEvent.setup();
+    serveWeeks({
+      [THIS_MONDAY]: [FINISHED],
+      "2026-10-19": [makeClass("c-20", "2026-10-20T12:00:00.000Z", "2026-10-20T13:00:00.000Z")],
+    });
+    await renderScreen();
+    await screen.findByText("08:00 – 09:00");
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+
+    await user.press(screen.getByTestId("calendar-day-2026-10-20"));
+
+    expect(screen.getByTestId("calendar-day-2026-10-20")).toBeSelected();
+    expect(screen.getByText("OCTOBER 2026")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Show the week" })).toBeOnTheScreen();
+    expect(await screen.findByText("09:00 – 10:00")).toBeOnTheScreen();
+    expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
+  });
+
+  it("month view loads its weeks", async () => {
+    const user = userEvent.setup();
+    serveWeeks({
+      [THIS_MONDAY]: [FINISHED],
+      "2026-09-28": [makeClass("c-s", "2026-09-30T11:00:00.000Z", "2026-09-30T12:00:00.000Z")],
+      "2026-10-26": [makeClass("c-n", "2026-11-01T11:00:00.000Z", "2026-11-01T12:00:00.000Z")],
+    });
+    await renderScreen();
+    await screen.findByText("08:00 – 09:00");
+    expect(requestedPaths()).toEqual([`/classes?date=${THIS_MONDAY}`]);
+
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+
+    await waitFor(() => expect(requestedPaths()).toHaveLength(5));
+    expect(requestedPaths().slice(1).sort()).toEqual([
+      "/classes?date=2026-09-28",
+      "/classes?date=2026-10-05",
+      "/classes?date=2026-10-19",
+      "/classes?date=2026-10-26",
+    ]);
+    expect(await screen.findByTestId("calendar-day-2026-09-30-dot")).toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-11-01-dot")).toBeOnTheScreen();
+    expect(screen.getByTestId("calendar-day-2026-10-14-dot")).toBeOnTheScreen();
+    expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(3);
+  });
+
+  it("shows no message when another visible week fails", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => {
+      const weekStart = new URL(String(url)).searchParams.get("date") as string;
+
+      return weekStart === "2026-10-19"
+        ? { ok: false, status: 500, json: async () => ({ errors: [] }) }
+        : ok({ weekStart, items: weekStart === THIS_MONDAY ? [FINISHED] : [] });
+    });
+    await renderScreen();
+    await screen.findByText("08:00 – 09:00");
+
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+    await waitFor(() => expect(requestedPaths()).toHaveLength(5));
+
+    expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
+    expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
+    expect(screen.queryAllByTestId("calendar-day-2026-10-20-dot")).toHaveLength(0);
+  });
+
+  it("doesn't show the pull-to-refresh spinner when the month refetches cached weeks", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+    await waitFor(() => expect(requestedPaths()).toHaveLength(5));
+    await user.press(screen.getByRole("button", { name: "Show the week" }));
+    await user.press(screen.getByRole("button", { name: "Show the next week" }));
+    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    const before = fetchMock.mock.calls.length;
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(before));
+    expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(false);
+  });
+
+  it("shows the pull-to-refresh spinner only while the user's refresh runs", async () => {
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    let release: () => void = () => {};
+    fetchMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve(ok({ weekStart: THIS_MONDAY, items: [] }));
+        }),
+    );
+
+    await act(async () => {
+      screen.getByTestId("classes-week-list").props.refreshControl.props.onRefresh();
+    });
+
+    expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(true);
+
+    await act(async () => release());
+
+    await waitFor(() =>
+      expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(false),
+    );
+  });
+
+  it("refetches every visible week when pulled in the month view", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+    await waitFor(() => expect(requestedPaths()).toHaveLength(5));
+    const before = fetchMock.mock.calls.length;
+
+    await act(async () => {
+      screen.getByTestId("classes-week-list").props.refreshControl.props.onRefresh();
+    });
+
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBe(before + 5));
   });
 
   it("refetches the week when pulled", async () => {
     await renderScreen();
-    await screen.findByText("3 classes");
+    await screen.findByText("16:00 – 17:00");
     const before = fetchMock.mock.calls.length;
 
     await act(async () => {
@@ -289,7 +405,7 @@ describe("ClassesWeekScreen admin entry points", () => {
     const user = userEvent.setup();
     await renderScreen({ canCreate: true });
 
-    await screen.findByText("3 classes");
+    await screen.findByText("16:00 – 17:00");
     expect(screen.getByRole("button", { name: "New class" })).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Create class on this day" }));
@@ -298,7 +414,7 @@ describe("ClassesWeekScreen admin entry points", () => {
     await user.press(screen.getByRole("button", { name: "New class" }));
     expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-14" }));
 
-    await user.press(screen.getByTestId("day-2026-10-17"));
+    await user.press(screen.getByTestId("calendar-day-2026-10-17"));
     await user.press(screen.getByRole("button", { name: "Create class" }));
     expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-17" }));
   });
@@ -306,9 +422,9 @@ describe("ClassesWeekScreen admin entry points", () => {
   it("offers only the + on a past day", async () => {
     const user = userEvent.setup();
     await renderScreen({ canCreate: true });
-    await screen.findByText("3 classes");
+    await screen.findByText("16:00 – 17:00");
 
-    await user.press(screen.getByTestId("day-2026-10-13"));
+    await user.press(screen.getByTestId("calendar-day-2026-10-13"));
 
     expect(screen.queryByRole("button", { name: "Create class" })).not.toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Create class on this day" })).not.toBeOnTheScreen();
@@ -319,7 +435,7 @@ describe("ClassesWeekScreen admin entry points", () => {
 
   it("offers no entry point without canCreate", async () => {
     await renderScreen();
-    await screen.findByText("3 classes");
+    await screen.findByText("16:00 – 17:00");
 
     expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Create class on this day" })).not.toBeOnTheScreen();

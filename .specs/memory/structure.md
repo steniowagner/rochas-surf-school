@@ -321,25 +321,25 @@ src/
                                 # limits and getClassState
     screens/new-class.screen.tsx  # NewClassScreen + new-class.screen.hook.ts (useNewClassScreen: form state, D-15
                                 # defaults, the optional date param, count, summary, submit and its errors)
-    screens/classes-week.screen.tsx  # ClassesWeekScreen + hook (the week, the selected day, states,
-                                # pull-to-refresh, the admin's entry points); the Agenda and Aulas tabs
+    screens/classes-week.screen.tsx  # ClassesWeekScreen + hook (WeekMonthCalendar, the selected day, its cards,
+                                # states, pull-to-refresh, the admin's entry points); the Agenda and Aulas tabs
     screens/class-details.screen.tsx  # ClassDetailsScreen + hook (one class by the route's id, banners, "Você")
-    classes.types.ts            # ClassLocation, Teacher, NewClassForm, BatchRequest, CalendarMonth, ClassItem,
+    classes.types.ts            # ClassLocation, Teacher, NewClassForm, BatchRequest, ClassItem,
                                 # WeekClasses and the answers (mirror the API)
     components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
                                 # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
                                 # time-range-sheet (two @expo/ui DateTimePickers in time mode),
-                                # location-picker, location-sheet, capacity-stepper, instructor-picker,
-                                # week-nav (arrows, caption, "Hoje"), day-strip (seven days, dots), class-card
+                                # location-picker, location-sheet, capacity-stepper, instructor-picker, class-card
     hooks/                      # use-locations (["locations"]), use-create-location (adds to that cache),
                                 # use-time-range-suggestions (["classes", "time-range-suggestions"]), use-teachers
                                 # (["people", "teachers"], every page of GET /people?role=instructor,admin&perPage=50),
                                 # use-create-classes (POST /classes/batch, no retry; invalidates ["classes", "week"]),
-                                # use-week-classes (["classes", "week", weekStart]), use-class (["classes", "detail",
-                                # id]), use-now (the clock, every 60 s)
-    utils/                      # calendar.ts (Fortaleza today and minutes, month grid, pressDay: ranges and their
-                                # removed days, initialRange), week.ts (Monday of a day, relative week, captions,
-                                # the date line), time-ranges.ts (incl. startsByNow),
+                                # use-week-classes (["classes", "week", weekStart], weekClassesOptions),
+                                # use-visible-weeks-classes (useQueries over every week a calendar draws, same key),
+                                # use-class (["classes", "detail", id]), use-now (the clock, every 60 s)
+    utils/                      # calendar.ts (Fortaleza today and minutes, pressDay: ranges and their removed
+                                # days, initialRange), week.ts (an instant's Fortaleza day and time, the date line),
+                                # time-ranges.ts (incl. startsByNow),
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
                                 # key), locations-cache.ts
     classes.test-utils.tsx      # shared test helpers of the module
@@ -422,7 +422,9 @@ src/
   utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the
                                 # date), get-initials.ts, countries.ts (country options with localized names and
                                 # dial codes, filter, default BR), brazilian-phone.ts (toBrazilianDigits,
-                                # formatBrazilianPhone: the Brazilian number mask)
+                                # formatBrazilianPhone: the Brazilian number mask), calendar-dates.ts (+ .types.ts:
+                                # CalendarMonth; YYYY-MM-DD arithmetic, month grids, captions, weekday names and
+                                # initials, the date-fns locale)
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession: the session store exposed to React
                                 # (user, tokens, isRestoring, setSession, updateUser, clearSession); starts the restore
@@ -435,6 +437,9 @@ src/
   components/account-status/    # AccountStatus: the shared layout of every closed-account state (icon tile by
                                 # tone, eyebrow, title, description, optional note card and primary action,
                                 # "Use another email")
+  components/week-month-calendar/  # WeekMonthCalendar: header (arrows, the week/month pill), the view, the moves;
+                                # draws calendar-week-row/ (CalendarWeekRow: seven days) or calendar-month-grid/
+                                # (CalendarMonthGrid: the fitted month); controlled selection, one dot per marked day
   services/google-sign-in.ts    # configures GoogleSignin once; the only import point of the Google library
   services/push/push.service.ts # expo-notifications: foreground handler and Android channel at load,
                                 # getPushToken({ askPermission }), isPushPermissionDenied(), the token registered

@@ -586,15 +586,13 @@ get a class, and the 200-class limit counts only the classes that will be create
 
 **Week view and class details** (spec `030-classes-week-view`) — every approved person who finished onboarding sees
 the school's classes, past and future, on one week screen: the student's Agenda tab and the Aulas tab of
-instructors and admins. It opens on the current week (Monday to Sunday, Fortaleza) with today selected and shows
-the relative week ("Esta semana", "Semana passada", "Próxima semana", "Há N semanas", "Daqui a N semanas"),
-arrows to move one week at a time keeping the same weekday, the week's dates ("12 out – 18 out"), "Hoje" when
-another week is shown, a strip of the seven days (today's number highlighted, the selected day filled, one dot per
-class up to three), the selected day's title with "N aulas" and its classes as cards: discipline and level, the
-time, the location and the instructors ("Ana · Bruno +1"). A class's state follows the clock with nobody acting:
+instructors and admins. It opens on the current week (Monday to Sunday, Fortaleza) with today selected, in the
+week and month calendar of spec 031 (below), and shows the selected day's classes as cards: discipline and level,
+the time, the location and the instructors ("Ana · Bruno +1"). A class's state follows the clock with nobody acting:
 "Em andamento" (highlighted border) from its start, "Finalizada" (faded) from its end, nothing before — updated
-every minute while the screen is open. Pulling the list down reloads the week; loading, error-with-retry and
-"Sem aulas neste dia." states are shown. Pressing a card opens the class details: the chips, the time, the date
+every minute while the screen is open. Pulling the list down reloads every week the calendar shows; loading,
+error-with-retry (for the selected day's week) and "Sem aulas neste dia." states are shown. Pressing a card opens
+the class details: the chips, the time, the date
 ("Hoje", "Amanhã", "Ontem" or the weekday, with the year when it isn't this one), a banner while it is under way
 ("Começou às … e termina às …") or once it finished ("Terminou às …"), the instructors with initials ("Você" for
 the viewer), "Máx. N alunos", the notes (only when there are any) and the location's name and address; a class
@@ -602,8 +600,21 @@ that no longer exists says so. Admins also get a round "+" in the header, "Criar
 aula neste dia" below a day's classes; on today or a later day they open Nova aula with that day already picked,
 and on a past day only the "+" shows and opens Nova aula with no day. After creating classes, the Aulas tab shows
 them without reloading by hand. Tapping a "Novas aulas na sua escala" push opens the instructor's or admin's Aulas
-tab, and one that arrives with the app open reloads the shown week. Seats taken aren't shown yet (only the
+tab, and one that arrives with the app open reloads the shown weeks. Seats taken aren't shown yet (only the
 capacity). All copy is in pt-BR, es-ES and en-US.
+
+**Week and month calendar** (spec `031-week-month-calendar`) — the classes screen of the three roles (the
+student's Agenda, the Aulas tab of instructors and admins) picks its day in a calendar that opens on the week. The
+pill in the middle of its header ("12 – 18 OUT", "28 SET – 4 OUT" across two months) switches to the whole month
+("OUTUBRO 2026", filled, with an up chevron) and back; it is the only way to switch: selecting a day, in the week or
+in the month, only selects it, and the selected day stays selected when the view switches. The week shows the
+seven days with only the selected one filled; the month shows Monday-first weekday initials and only the weeks it
+needs (4 to 6 rows), the days of the months around it in a lighter color, the selected day in a filled circle, and
+tapping one of those days moves the grid to its month. Today's number is highlighted in both views. The arrows move
+one week (the same weekday) in the week view and one month (the same day number, capped at the month's last day:
+31 Jan → 28 Feb) in the month view. Every day with at least one class shows a single dot, in both views and on the
+days of the months around. There is no "Hoje" shortcut, no relative-week subtitle ("Esta semana"…) and no day title
+or class count above the cards. The calendar is a shared piece of the app that other screens can reuse.
 
 Active specs: none.
 
@@ -659,8 +670,11 @@ Active specs: none.
   class highlighted, and a marker on the cards of one's own classes; seats taken, the occupancy bar, "Sem vagas" /
   "Turma cheia", the list of students and the request / waiting-list button (with enrolment); cancelled classes,
   the "Sem instrutor" flag and the edit pencil; the cancellation-rule and school-rules rows, the map, "Direções"
-  and the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's month view, sport
-  filter and notifications bell; opening a person's sheet from the details, and profile photos (initials only).
+  and the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's sport filter and
+  notifications bell; opening a person's sheet from the details, and profile photos (initials only).
+- On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
+  when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
+  screens.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea
   conditions on class details; class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to

@@ -2,18 +2,18 @@ import { addDays, format } from "date-fns";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CalendarMonth } from "../../classes.types";
 import {
   addMonths,
   buildMonthGrid,
-  EMPTY_RANGE,
   formatIsoDate,
   getDateLocale,
   isSameMonth,
   isoWeekdayOf,
   monthOf,
-  pressDay,
-} from "../../utils/calendar";
+} from "@/utils/calendar-dates";
+import type { CalendarMonth } from "@/utils/calendar-dates.types";
+
+import { EMPTY_RANGE, pressDay } from "../../utils/calendar";
 
 import { UseDateRangeCalendarProps } from "./date-range-calendar.types";
 

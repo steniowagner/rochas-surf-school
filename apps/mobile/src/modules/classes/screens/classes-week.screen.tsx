@@ -12,11 +12,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
+import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
 
 import { ClassCard } from "../components/class-card";
-import { DayStrip } from "../components/day-strip";
-import { WeekNav } from "../components/week-nav";
 
 import { useClassesWeekScreen } from "./classes-week.screen.hook";
 import type { ClassesWeekScreenProps } from "./classes-week.screen.types";
@@ -55,9 +54,6 @@ export function ClassesWeekScreen({
           >
             {t(titleKey)}
           </Text>
-          <Text className="ds-text-list-subtitle text-ink-2">
-            {screen.weekLabel}
-          </Text>
         </View>
         {screen.canCreate ? (
           <TouchableOpacity
@@ -71,19 +67,13 @@ export function ClassesWeekScreen({
           </TouchableOpacity>
         ) : null}
       </View>
-      <WeekNav
-        caption={screen.caption}
-        showToday={screen.showToday}
-        onPrevious={screen.goToPreviousWeek}
-        onNext={screen.goToNextWeek}
-        onToday={screen.goToToday}
-      />
-      <DayStrip
-        days={screen.days}
-        selected={screen.selectedDay}
+      <WeekMonthCalendar
+        selectedDate={screen.selectedDate}
         today={screen.today}
-        counts={screen.counts}
-        onSelect={screen.selectDay}
+        markedDates={screen.markedDates}
+        markedLabel={t("classesWeek.hasClasses")}
+        onSelectDate={screen.selectDate}
+        onVisibleRangeChange={screen.updateVisibleRange}
       />
       {screen.isLoading ? (
         <ActivityIndicator
@@ -102,14 +92,6 @@ export function ClassesWeekScreen({
         </View>
       ) : (
         <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text className="ds-text-section-label text-ink-2">
-              {screen.dayTitle}
-            </Text>
-            <Text className="ds-text-list-subtitle text-ink-2">
-              {t("classesWeek.classCount", { count: screen.dayItems.length })}
-            </Text>
-          </View>
           {screen.dayItems.length === 0 ? (
             <View className="items-center gap-3 rounded-card border border-line bg-surface p-6">
               <Text className="ds-text-body text-center text-ink-2">

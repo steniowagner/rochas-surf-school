@@ -4,7 +4,7 @@
 
 It schedules the school's classes, as [Product](../product.md) describes **Class** (`class`) and **Location**
 (`location`): admins create classes one at a time or in a batch, at a saved location, with the instructors who
-teach them, and the instructors are told; every approved account then browses the classes week by week and
+teach them, and the instructors are told; every approved account then browses the classes by week or by month and
 reads each one. It is the base that editing, enrolment, ratings and photos build on. It brings together two business areas: **Locations** and **Classes**.
 
 ## Locations
@@ -126,3 +126,5 @@ which stops that account from being erased while the link exists — a decision 
 - `030-classes-week-view` — the class state by the clock (`not-started` / `started` / `finished`); any approved
   account lists one Fortaleza week of classes (`class.date.invalid`) and reads one class (`class.notFound`), with
   the location and the instructors sorted by name; the app's week view and class details for the three roles.
+- `031-week-month-calendar` — no change to the module's rules or API: the app's classes screen picks its day in a
+  week and month calendar (one dot per day with classes), loading each week it shows with the existing week request.

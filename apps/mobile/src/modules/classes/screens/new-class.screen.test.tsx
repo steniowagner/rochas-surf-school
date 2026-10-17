@@ -655,8 +655,10 @@ describe("NewClassScreen", () => {
         void fireEvent.press(button);
       });
 
+      // `isPending` reaches React through TanStack Query's scheduled notification, which a slow runner (CI) may not
+      // have delivered when `act` returns: wait for the loading state while the request is still held.
+      await waitFor(() => expect(screen.queryByText("Create 4 classes")).toBeNull());
       expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/classes/batch"))).toHaveLength(1);
-      expect(screen.queryByText("Create 4 classes")).toBeNull();
 
       await act(async () => finish({ ...ok({ count: 4 }), status: 201 }));
       await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));

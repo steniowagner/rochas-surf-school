@@ -284,12 +284,13 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/classes` passes.
   > ✅ 2026-10-17 00:33 — Added SchoolClassRepository.cancel and boolean update, ClassCancelled / ClassChangeNotifier.classCancelled, and extended the fakes (cancelled class refused by both repository methods; notifier records cancelledEvents); files: `modules/classes/src/school-class/provider/school-class.repository.ts`, `modules/classes/src/school-class/provider/class-change-notifier.provider.ts`, `modules/classes/test/mock/fake-school-class.repository.ts`, `modules/classes/test/mock/fake-class-change.notifier.ts`, `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`, `modules/classes/test/school-class/provider/fake-class-change.notifier.test.ts`; verified: `npm test` in modules/classes (252 passed), `npm run check-types`; deviations: none
 
-- [ ] **T-03** — Add `CancelClass` (`src/school-class/usecase/cancel-class.usecase.ts`, exported from the usecase
+- [x] **T-03** — Add `CancelClass` (`src/school-class/usecase/cancel-class.usecase.ts`, exported from the usecase
   barrel): D-02, D-03, D-04 and D-07, with `test/school-class/usecase/cancel-class.usecase.test.ts` (tests named
   "cancels", "started", "refuses", "notifies", and one per check of D-02).
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-07 · Done when: `npx jest test/school-class/usecase/cancel-class.usecase.test.ts --coverage`
   passes from `modules/classes` with every line of the use case covered.
+  > ✅ 2026-10-17 00:33 — Added CancelClass (access, id, message shape, class.cancelled, class.finished, conditional cancel, notification of the instructors but the actor) and exported it; files: `modules/classes/src/school-class/usecase/cancel-class.usecase.ts`, `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/test/school-class/usecase/cancel-class.usecase.test.ts`; verified: `npx jest test/school-class/usecase/cancel-class.usecase.test.ts --coverage` (25 passed, use case 100% statements/branches/functions/lines); deviations: followed the pattern of EditClass/GetClass rather than re-reading every reference of the module-use-case skill
 
 - [ ] **T-04** — Make `EditClass` (`src/school-class/usecase/edit-class.usecase.ts`) refuse a cancelled class with
   409 `class.cancelled` after the shape and before `class.finished`, pass `cancelledAt` to `getClassState`, and turn

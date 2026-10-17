@@ -2,7 +2,7 @@
 id: "033"
 slug: class-cancellation
 title: "Cancelling a class"
-status: in-review
+status: changes-requested
 started: 2026-10-17
 base_commit: e08a9739ca92401665a9bfd829d3fcc9b5abf84a
 created: 2026-10-17
@@ -534,3 +534,57 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 - 2026-10-17 — /spec-plan --amend — T-17, T-18, T-19 added: remove the cancel button from the editor (undoing T-14's editor wiring), add `ClassToolsSheet`, wire the tools and the cancel flow into the details (replacing T-12's pencil). T-12, T-13 and T-14 stay as committed. Verification Plan journeys and Memory Impact updated. Approved by the user.
 
 ## Review
+
+### Round 1 — 2026-10-17 — changes-requested
+
+**Checks**
+
+- lint ✅ (0 errors; 1 warning, see Notes) · type check ✅ · build ✅ (classes, notifications, backend, mobile)
+- related tests ✅ backend 145 · mobile 780 · classes 281 · notifications 94 passed
+- coverage of the changed lines ✅ COVERAGE OK, 29 files; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (15 files, 420 tests); every backend `Verify by` filter ran and passed
+- `prisma:migrate:deploy` ✅ no pending migrations
+- mobile `Verify by` filters ✅ (ER-09 31, ER-10 29, ER-11 5, ER-12 6, ER-13 3, ER-14 5, ER-15 14 passed)
+- iOS simulator (local backend, admin account): "Class tools" journey ✅; "Cancel a class" journey ❌ at its last step (F-01); the student sign-in of "Other roles" was not driven (ER-12 for other roles rests on the component tests)
+
+**Expected Results**
+
+- ER-01 ✅ — e2e: 200, `cancelledAt` = server now, message trimmed; same fields on `GET /classes/:id` and the week; blank/null/absent → `null`
+- ER-02 ✅ — e2e and unit: cancelled during the class and exactly at its start
+- ER-03 ✅ — e2e: finished → 409 `class.finished`; again → 409 `class.cancelled`, unchanged; two concurrent → one 200, one 409; cancelled after its end → `class.cancelled`
+- ER-04 ✅ — e2e: 401/403 (both keys)/404 (unknown, non-UUID)/422 (301 chars, number, array), 300 chars accepted, nothing stored or sent
+- ER-05 ✅ — e2e `PUT` on a cancelled class → 409, nothing changes, malformed body still 422; unit: `update` → `false` → 409 without notifying; Prisma `updateMany` on `cancelledAt: null`
+- ER-06 ✅ — `getClassState` and `SchoolClass.validate` tests
+- ER-07 ✅ — unit and e2e: instructor gets the details with the message, the cancelling admin nothing, a failing provider keeps the 200; in the simulator the instructor's `class.cancelled` row was stored with the trimmed message
+- ER-08 ✅ — push catalog and notifier specs, entity test
+- ER-09 ❌ — sheet, trimmed message, toast, details kept, banner and hidden tools all seen in the simulator; the week card stays stale — see F-01
+- ER-10 ✅ — error-key, hook and details tests (409s close and refetch, 404 goes back, buttons usable again)
+- ER-11 ✅ — card tests; seen in the simulator (chip, struck-through time, day dot kept) once the week is refetched
+- ER-12 ✅ — details tests; banner with the message and with the default text seen in the simulator, no tools button
+- ER-13 ✅ — edit screen tests
+- ER-14 ✅ — notification hook tests
+- ER-15 ✅ — tests; in the simulator: tools button in place of the pencil, the three tools, Notify does nothing, Edit class opens the editor with no Cancel class button
+
+**Findings**
+
+- [ ] **F-01** (ER-09) — after a successful cancel, going back from the details to the classes screen still shows the
+  class's card as not cancelled (no "Cancelada" chip, time not struck through); it only updates after the week is
+  fetched again (e.g. next week and back). The API is right and `["classes"]` is invalidated, but the visible week
+  doesn't show the result, so the "Cancel a class" journey (ER-09's `Verify by`) fails at "Back on the classes screen,
+  the card shows Cancelada". Reproduce: iOS simulator, admin, Classes → a class of tomorrow → tools → Cancel class →
+  Cancel and notify → back. Seen on two classes. The same happens after saving an edit (spec 032: the level stays
+  "Beginner" on the card), so the gap is in how the week screen picks up invalidations made while another screen is on
+  top, not in `useCancelClass`. Expected: the card shows "Cancelada" with its time struck through as soon as the
+  admin is back on the classes screen (and a test that proves the week refreshes after the cancel).
+
+**Notes**
+
+- `oxlint` warns `require-array-sort-compare` at `apps/backend/test/classes.e2e-spec.ts:1424` (`.sort()` on the
+  statuses); harmless, a compare function would silence it.
+- The success toast "Class cancelled" is drawn by the shared alert in its red style with a "!" icon, which reads like
+  an error; that is the shared component's look, not something this spec changed.
+- With the keyboard open in the cancel sheet, the first tap on "Cancel and notify" only closes the keyboard; a second
+  tap sends. Worth `keyboardShouldPersistTaps` on the sheet's content.
+- Test data left in the local dev database by this review: class `b5e9c84b…` (an existing class, now cancelled with
+  "Mar Muir grande"), and two classes added for the reproduction, `9048413c…` (cancelled) and `7828269d…` (edited to
+  advanced), with their instructor notifications.

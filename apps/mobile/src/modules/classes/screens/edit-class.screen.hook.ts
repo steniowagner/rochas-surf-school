@@ -20,7 +20,7 @@ import { useLocations } from "../hooks/use-locations.hook";
 import { useNow } from "../hooks/use-now.hook";
 import { useTeachers } from "../hooks/use-teachers.hook";
 import { useTimeRangeSuggestions } from "../hooks/use-time-range-suggestions.hook";
-import { minutesInSchoolZone, todayInSchoolZone } from "../utils/calendar";
+import { DateRange, minutesInSchoolZone, todayInSchoolZone } from "../utils/calendar";
 import {
   getEditClassErrorKey,
   getSeatsTaken,
@@ -126,11 +126,8 @@ export const useEditClassScreen = () => {
   const change = (patch: Partial<EditClassForm>) =>
     setChanges((current) => ({ ...current, ...patch }));
 
-  const selectDate = (date: string | null) => {
-    if (date !== null) {
-      change({ date });
-    }
-  };
+  // The calendar is in single mode: pressing a day always gives a start date.
+  const selectDate = (range: DateRange) => change({ date: range.startDate! });
 
   const selectRange = (range: TimeRange) => change({ range });
 
@@ -148,14 +145,13 @@ export const useEditClassScreen = () => {
   const selectLocation = (created: ClassLocation) => change({ locationId: created.id });
 
   const toggleInstructor = (instructorId: string) => {
-    if (form === null) {
-      return;
-    }
+    // The instructors are only listed once the class is loaded.
+    const { instructorIds } = form!;
 
     change({
-      instructorIds: form.instructorIds.includes(instructorId)
-        ? form.instructorIds.filter((other) => other !== instructorId)
-        : [...form.instructorIds, instructorId],
+      instructorIds: instructorIds.includes(instructorId)
+        ? instructorIds.filter((other) => other !== instructorId)
+        : [...instructorIds, instructorId],
     });
   };
 

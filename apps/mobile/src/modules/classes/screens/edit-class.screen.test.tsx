@@ -34,7 +34,7 @@ jest.mock("@/components/ui/bottom-modal", () => {
 jest.mock("@/services/api", () => {
   const actual = jest.requireActual("@/services/api");
 
-  return { ...actual, apiPut: jest.fn(actual.apiPut) };
+  return { ...actual, apiGet: jest.fn(actual.apiGet), apiPut: jest.fn(actual.apiPut) };
 });
 
 jest.mock("expo-router", () => ({
@@ -162,6 +162,7 @@ beforeEach(() => {
   mockShow.mockClear();
   (router.back as jest.Mock).mockClear();
   (api.apiPut as jest.Mock).mockClear();
+  (api.apiGet as jest.Mock).mockClear();
 });
 
 afterEach(() => {
@@ -185,6 +186,14 @@ describe("EditClassScreen", () => {
     expect(screen.getByRole("checkbox", { name: "Bruno Lima" })).not.toBeChecked();
     expect(screen.getByText("When you save, the class's instructors are notified.")).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
+  });
+
+  it("lists the class's own time while the suggestions are still loading", async () => {
+    serve({ "GET /classes/time-range-suggestions": () => new Promise(() => undefined) });
+    await renderScreen();
+    await loaded();
+
+    expect(screen.getByRole("button", { name: MORNING })).toBeSelected();
   });
 
   it("lists the class's own time even when last week had no such class", async () => {
@@ -379,6 +388,60 @@ describe("EditClassScreen", () => {
     expect(saveButton()).toBeEnabled();
   });
 
+  it("keeps a time added twice as a single chip", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await loaded();
+
+    await user.press(screen.getByRole("button", { name: "New time" }));
+    await user.press(screen.getByRole("button", { name: "Add time" }));
+    await user.press(screen.getByRole("button", { name: "New time" }));
+    await user.press(screen.getByRole("button", { name: "Add time" }));
+
+    expect(screen.getAllByRole("button", { name: "12:00 – 13:00" })).toHaveLength(1);
+  });
+
+  it("closes the new time sheet on Cancel without adding anything", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await loaded();
+
+    await user.press(screen.getByRole("button", { name: "New time" }));
+    await user.press(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("button", { name: "Add time" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "12:00 – 13:00" })).toBeNull();
+    expect(saveButton()).toBeDisabled();
+  });
+
+  it("lists the class's own location when the list of locations lacks it, and a class without notes", async () => {
+    serve({
+      "GET /classes/c-1": () => ok({ ...classItem, notes: null }),
+      "GET /locations": () => ok({ items: [cumbuco] }),
+    });
+    await renderScreen();
+    await loaded();
+
+    expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Cumbuco" })).not.toBeChecked();
+    expect(screen.queryByDisplayValue("Bring a hat")).toBeNull();
+  });
+
+  it("offers to retry the instructors when they fail to load", async () => {
+    serve({ "GET /people?page=1&perPage=50&role=instructor,admin": failure(500, "INTERNAL_SERVER_ERROR") });
+    const user = userEvent.setup();
+    await renderScreen();
+
+    expect(await screen.findByText("Couldn't load the instructors.")).toBeOnTheScreen();
+    const before = requestedPaths().filter((path) => path.startsWith("/people")).length;
+
+    await user.press(screen.getByRole("button", { name: "Try again" }));
+
+    await waitFor(() =>
+      expect(requestedPaths().filter((path) => path.startsWith("/people")).length).toBeGreaterThan(before),
+    );
+  });
+
   it("sends once on a double press", async () => {
     let finish: (value: unknown) => void = () => undefined;
     serve({ "PUT /classes/c-1": () => new Promise((resolve) => (finish = resolve)) });
@@ -484,14 +547,10 @@ describe("EditClassScreen", () => {
     });
 
     it("shows nothing for an expired session", async () => {
-      serve({
-        "GET /classes/c-1": () => {
-          throw new api.SessionExpiredError();
-        },
-      });
+      (api.apiGet as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
       await renderScreen();
 
-      await waitFor(() => expect(requestedPaths()).toContain("/classes/c-1"));
+      await waitFor(() => expect(screen.queryByTestId("edit-class-loading")).toBeNull());
       expect(screen.queryByText("Couldn't load the class.")).toBeNull();
       expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
     });

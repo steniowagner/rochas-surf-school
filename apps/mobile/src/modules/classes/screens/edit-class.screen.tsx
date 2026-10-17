@@ -126,7 +126,7 @@ export function EditClassScreen() {
                 startDate={form.date}
                 endDate={null}
                 excludedDates={[]}
-                onRangeChange={(range) => screen.selectDate(range.startDate)}
+                onRangeChange={screen.selectDate}
               />
             </FormSection>
             <FormSection label={t("editClass.time.label")}>

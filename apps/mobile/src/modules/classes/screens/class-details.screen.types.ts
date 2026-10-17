@@ -12,4 +12,4 @@ export type ClassDetailsScreenProps = {
   canEdit?: boolean;
 };
 
-export type UseClassDetailsScreenProps = ClassDetailsScreenProps;
+export type UseClassDetailsScreenProps = Required<ClassDetailsScreenProps>;

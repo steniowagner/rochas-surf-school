@@ -14,8 +14,8 @@ export const useTimeRangePicker = ({
   added,
   selected,
   nowMinutes,
-  single = false,
-  ownRange = null,
+  single,
+  ownRange,
   onToggle,
 }: UseTimeRangePickerProps) => {
   const isPast = (range: UseTimeRangePickerProps["selected"][number]) =>

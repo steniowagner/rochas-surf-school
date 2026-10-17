@@ -18,8 +18,8 @@ import type {
 } from "./class-details.screen.types";
 
 export const useClassDetailsScreen = ({
-  canEdit = false,
-}: UseClassDetailsScreenProps = {}) => {
+  canEdit,
+}: UseClassDetailsScreenProps) => {
   const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useSession();

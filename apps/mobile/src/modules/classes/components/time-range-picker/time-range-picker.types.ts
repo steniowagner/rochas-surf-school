@@ -22,5 +22,6 @@ export type TimeRangePickerProps = {
 
 export type UseTimeRangePickerProps = Pick<
   TimeRangePickerProps,
-  "suggestions" | "added" | "selected" | "nowMinutes" | "single" | "ownRange" | "onToggle"
->;
+  "suggestions" | "added" | "selected" | "nowMinutes" | "onToggle"
+> &
+  Required<Pick<TimeRangePickerProps, "single" | "ownRange">>;

@@ -319,6 +319,7 @@ const messages: Messages = {
     loadError: "Não foi possível carregar a aula.",
     notFound: "Esta aula não existe mais.",
     retry: "Tentar novamente",
+    edit: "Editar aula",
   },
   editProfile: {
     title: "Editar perfil",
@@ -452,6 +453,28 @@ const messages: Messages = {
       past: "Um dos horários já passou. Revise as datas e os horários.",
       instructors: "Um dos instrutores não pode mais dar aulas.",
       location: "O local escolhido não existe mais.",
+    },
+  },
+  editClass: {
+    title: "Editar aula",
+    day: {
+      label: "Dia",
+      hint: "Qualquer dia a partir de hoje",
+    },
+    time: {
+      label: "Início e fim",
+    },
+    started: {
+      title: "A aula já começou",
+      description: "Só dá para trocar os instrutores.",
+    },
+    note: "Ao salvar, avisamos os instrutores da aula.",
+    submit: "Salvar e notificar",
+    saved: "Alterações salvas",
+    errors: {
+      started: "A aula já começou: só dá para trocar os instrutores.",
+      finished: "Esta aula já terminou e não pode mais ser alterada.",
+      seatsTaken: "A lotação não pode ficar abaixo das {{count}} vagas ocupadas.",
     },
   },
   timeRangeSheet: {

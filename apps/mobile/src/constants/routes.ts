@@ -81,5 +81,9 @@ export const routes = {
       pathname: "/admin/class/[id]",
       params: { id },
     }),
+    editClass: (id: string): Href => ({
+      pathname: "/admin/edit-class/[id]",
+      params: { id },
+    }),
   },
 } as const;

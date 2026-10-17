@@ -319,6 +319,7 @@ const messages = {
     loadError: "Couldn't load the class.",
     notFound: "This class no longer exists.",
     retry: "Try again",
+    edit: "Edit class",
   },
   editProfile: {
     title: "Edit profile",
@@ -452,6 +453,28 @@ const messages = {
       past: "One of the times has already passed. Check the dates and times.",
       instructors: "One of the instructors can no longer teach.",
       location: "The chosen location no longer exists.",
+    },
+  },
+  editClass: {
+    title: "Edit class",
+    day: {
+      label: "Day",
+      hint: "Any day from today",
+    },
+    time: {
+      label: "Start and end",
+    },
+    started: {
+      title: "The class has started",
+      description: "Only the instructors can be changed.",
+    },
+    note: "When you save, the class's instructors are notified.",
+    submit: "Save and notify",
+    saved: "Changes saved",
+    errors: {
+      started: "The class has started: only the instructors can be changed.",
+      finished: "This class has finished and can't be changed.",
+      seatsTaken: "Capacity can't go below the {{count}} seats taken.",
     },
   },
   timeRangeSheet: {

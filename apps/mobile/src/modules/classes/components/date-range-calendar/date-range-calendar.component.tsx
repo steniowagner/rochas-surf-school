@@ -84,12 +84,14 @@ export function DateRangeCalendar(props: DateRangeCalendarProps) {
           </View>
         ))}
       </View>
-      <DateRangeSummary
-        startDate={props.startDate}
-        endDate={props.endDate}
-        excludedDates={props.excludedDates}
-        onClear={clear}
-      />
+      {props.single ? null : (
+        <DateRangeSummary
+          startDate={props.startDate}
+          endDate={props.endDate}
+          excludedDates={props.excludedDates}
+          onClear={clear}
+        />
+      )}
     </View>
   );
 }

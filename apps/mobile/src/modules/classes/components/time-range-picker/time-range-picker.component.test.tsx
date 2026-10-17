@@ -70,4 +70,58 @@ describe("TimeRangePicker", () => {
 
     expect(onToggle).toHaveBeenCalledWith(morning);
   });
+
+  describe("single", () => {
+    it("selects the pressed range and keeps the selected one when it is pressed again", async () => {
+      const onToggle = jest.fn();
+      const user = userEvent.setup();
+      await render(<TimeRangePicker {...props} single selected={[morning]} onToggle={onToggle} />);
+
+      await user.press(screen.getByRole("button", { name: "08:00 – 09:00" }));
+      expect(onToggle).not.toHaveBeenCalled();
+
+      await user.press(screen.getByRole("button", { name: "16:00 – 17:00" }));
+      expect(onToggle).toHaveBeenCalledWith(afternoon);
+    });
+
+    it("does not block an overlapping range and shows no overlap or past hint", async () => {
+      const added = { start: "08:30", end: "09:30" };
+      await render(
+        <TimeRangePicker {...props} single added={[added]} selected={[morning]} nowMinutes={null} />,
+      );
+
+      expect(screen.getByRole("button", { name: "08:30 – 09:30" })).toBeEnabled();
+      expect(screen.queryByText("Overlapping times can't go in the same batch.")).toBeNull();
+      expect(screen.getByText("Suggested from last week's classes.")).toBeTruthy();
+    });
+
+    it("blocks the ranges that started today, except the selected one and the class's own", async () => {
+      const early = { start: "06:00", end: "07:00" };
+      await render(
+        <TimeRangePicker
+          {...props}
+          single
+          suggestions={[early, morning, afternoon]}
+          selected={[afternoon]}
+          ownRange={morning}
+          nowMinutes={10 * 60}
+        />,
+      );
+
+      expect(screen.getByRole("button", { name: "06:00 – 07:00" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "08:00 – 09:00" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "16:00 – 17:00" })).toBeEnabled();
+      expect(screen.queryByText("Times that already passed today have no class today.")).toBeNull();
+    });
+
+    it("blocks a started range when there is no own range, and nothing on another day", async () => {
+      const { rerender } = await render(
+        <TimeRangePicker {...props} single selected={[afternoon]} nowMinutes={10 * 60} />,
+      );
+      expect(screen.getByRole("button", { name: "08:00 – 09:00" })).toBeDisabled();
+
+      await rerender(<TimeRangePicker {...props} single selected={[afternoon]} nowMinutes={null} />);
+      expect(screen.getByRole("button", { name: "08:00 – 09:00" })).toBeEnabled();
+    });
+  });
 });

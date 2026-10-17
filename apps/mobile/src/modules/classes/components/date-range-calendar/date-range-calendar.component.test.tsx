@@ -16,15 +16,18 @@ const band = (date: string) => screen.getByTestId(`calendar-day-band-${date}`).p
 function Harness({
   initial = EMPTY_RANGE,
   onRange = jest.fn(),
+  single = false,
 }: {
   initial?: DateRange;
   onRange?: (range: DateRange) => void;
+  single?: boolean;
 }) {
   const [range, setRange] = useState(initial);
 
   return (
     <DateRangeCalendar
       today={TODAY}
+      single={single}
       {...range}
       onRangeChange={(next) => {
         setRange(next);
@@ -289,5 +292,32 @@ describe("DateRangeCalendar", () => {
 
     expect(screen.getByText("Dezembro 2026")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Mês anterior" })).toBeEnabled();
+  });
+
+  describe("single", () => {
+    it("selects only the pressed day, replaces it on the next press and never makes a range", async () => {
+      const onRange = jest.fn();
+      const user = userEvent.setup();
+      await render(<Harness single onRange={onRange} initial={{ startDate: "2026-10-15", endDate: null, excludedDates: [] }} />);
+
+      await user.press(day("2026-10-20"));
+      await user.press(day("2026-10-22"));
+      await user.press(day("2026-10-22"));
+
+      expect(onRange.mock.calls.map(([range]) => range)).toEqual([
+        { startDate: "2026-10-20", endDate: null, excludedDates: [] },
+        { startDate: "2026-10-22", endDate: null, excludedDates: [] },
+        { startDate: "2026-10-22", endDate: null, excludedDates: [] },
+      ]);
+    });
+
+    it("shows no summary or clear button, and keeps the days before today disabled", async () => {
+      await render(<Harness single initial={{ startDate: "2026-10-20", endDate: null, excludedDates: [] }} />);
+
+      expect(screen.queryByText("Clear")).toBeNull();
+      expect(screen.queryByText("Tap a day to start")).toBeNull();
+      expect(day("2026-10-13")).toBeDisabled();
+      expect(day("2026-10-20")).toBeEnabled();
+    });
   });
 });

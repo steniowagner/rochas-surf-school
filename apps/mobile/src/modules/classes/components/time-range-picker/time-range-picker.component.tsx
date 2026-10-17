@@ -18,11 +18,21 @@ export function TimeRangePicker({
   nowMinutes,
   onToggle,
   onAddPress,
+  single = false,
+  ownRange = null,
 }: TimeRangePickerProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { chips, showSuggestionsHint, showPastHint, showOverlapHint } =
-    useTimeRangePicker({ suggestions, added, selected, nowMinutes });
+  const { chips, pressChip, showSuggestionsHint, showPastHint, showOverlapHint } =
+    useTimeRangePicker({
+      suggestions,
+      added,
+      selected,
+      nowMinutes,
+      single,
+      ownRange,
+      onToggle,
+    });
 
   return (
     <View className="gap-3">
@@ -35,7 +45,7 @@ export function TimeRangePicker({
             accessibilityState={{ selected: isSelected, disabled: blocked }}
             disabled={blocked}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
-            onPress={() => onToggle(range)}
+            onPress={() => pressChip(range, isSelected)}
             className={`min-h-11 justify-center rounded-full border px-4 ${
               isSelected ? "border-grape bg-grape" : "border-line bg-surface"
             } ${blocked ? "opacity-50" : ""}`}

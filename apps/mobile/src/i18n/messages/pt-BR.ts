@@ -456,6 +456,19 @@ const messages: Messages = {
       location: "O local escolhido não existe mais.",
     },
   },
+  cancelClass: {
+    title: "Cancelar esta aula?",
+    description: "Avisamos os instrutores da aula. Ela continua na agenda, marcada como cancelada.",
+    messageLabel: "Mensagem (opcional)",
+    messagePlaceholder: "Ex.: Mar muito grande. Remarcamos para sábado no mesmo horário.",
+    confirm: "Cancelar e avisar",
+    keep: "Manter aula",
+    done: "Aula cancelada",
+    errors: {
+      cancelled: "Esta aula já foi cancelada.",
+      finished: "Esta aula já terminou e não pode mais ser cancelada.",
+    },
+  },
   editClass: {
     title: "Editar aula",
     day: {
@@ -471,10 +484,12 @@ const messages: Messages = {
     },
     note: "Ao salvar, avisamos os instrutores da aula.",
     submit: "Salvar e notificar",
+    cancel: "Cancelar aula",
     saved: "Alterações salvas",
     errors: {
       started: "A aula já começou: só dá para trocar os instrutores.",
       finished: "Esta aula já terminou e não pode mais ser alterada.",
+      cancelled: "Esta aula foi cancelada e não pode mais ser alterada.",
       seatsTaken: "A lotação não pode ficar abaixo das {{count}} vagas ocupadas.",
     },
   },

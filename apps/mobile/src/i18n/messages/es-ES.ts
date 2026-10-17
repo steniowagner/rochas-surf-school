@@ -463,6 +463,19 @@ const messages: Messages = {
       location: "El lugar elegido ya no existe.",
     },
   },
+  cancelClass: {
+    title: "¿Cancelar esta clase?",
+    description: "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada.",
+    messageLabel: "Mensaje (opcional)",
+    messagePlaceholder: "Ej.: Mar muy grande. La pasamos al sábado a la misma hora.",
+    confirm: "Cancelar y avisar",
+    keep: "Mantener clase",
+    done: "Clase cancelada",
+    errors: {
+      cancelled: "Esta clase ya fue cancelada.",
+      finished: "Esta clase ya terminó y no se puede cancelar.",
+    },
+  },
   editClass: {
     title: "Editar clase",
     day: {
@@ -478,10 +491,12 @@ const messages: Messages = {
     },
     note: "Al guardar, avisamos a los instructores de la clase.",
     submit: "Guardar y notificar",
+    cancel: "Cancelar clase",
     saved: "Cambios guardados",
     errors: {
       started: "La clase ya empezó: solo se pueden cambiar los instructores.",
       finished: "Esta clase ya terminó y no se puede cambiar.",
+      cancelled: "Esta clase fue cancelada y no se puede cambiar.",
       seatsTaken: "La capacidad no puede quedar por debajo de las {{count}} plazas ocupadas.",
     },
   },

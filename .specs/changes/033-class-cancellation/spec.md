@@ -366,11 +366,12 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   `apps/mobile`.
   > ✅ 2026-10-17 00:42 — ClassDetailsScreen computes the state with the cancellation, shows the 'Aula cancelada' banner (bad-tint, close-circle-outline in bad) instead of the started/finished ones, a 'Mensagem da equipe' card when there is a message, and hides the pencil for a cancelled class; copy classDetails.cancelled.* and classDetails.message in the three locales; files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `class-details.screen.hook.ts`, `class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/screens/class-details` (28 passed), `npx tsc --noEmit`; deviations: none
 
-- [ ] **T-13** — Add `CancelClassSheet` (`src/modules/classes/components/cancel-class-sheet/`: component, hook, types,
+- [x] **T-13** — Add `CancelClassSheet` (`src/modules/classes/components/cancel-class-sheet/`: component, hook, types,
   index; D-11) with the `cancelClass` copy, and its component test (message, counter, confirm with the trimmed
   message, blank omitted, keep, loading).
   Covers: ER-09, ER-10 · Done when: `npx jest src/modules/classes/components/cancel-class-sheet` passes from
   `apps/mobile`.
+  > ✅ 2026-10-17 00:43 — Added CancelClassSheet (BottomModal with title, description, TextArea limited to 300 with counter, danger 'Cancelar e avisar' with loading, ghost 'Manter aula'; confirms with the trimmed message or undefined when blank; clears on close) and the cancelClass copy in the three locales; the editClass.cancel and editClass.errors.cancelled copy of T-14 was added here too, in the same locale files; files: `apps/mobile/src/modules/classes/components/cancel-class-sheet/{index.ts,cancel-class-sheet.component.tsx,cancel-class-sheet.hook.ts,cancel-class-sheet.types.ts,cancel-class-sheet.component.test.tsx}`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/components/cancel-class-sheet src/i18n` (16 passed), `npx tsc --noEmit`; deviations: none
 
 - [ ] **T-14** — Wire "Cancelar aula" and `CancelClassSheet` into `EditClassScreen`
   (`src/modules/classes/screens/edit-class.screen.tsx` and its hook: the button in both modes, the request, the

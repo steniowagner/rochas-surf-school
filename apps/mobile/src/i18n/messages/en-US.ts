@@ -456,6 +456,19 @@ const messages = {
       location: "The chosen location no longer exists.",
     },
   },
+  cancelClass: {
+    title: "Cancel this class?",
+    description: "We'll notify the class's instructors. It stays on the schedule, marked as cancelled.",
+    messageLabel: "Message (optional)",
+    messagePlaceholder: "E.g.: Waves too big. Moved to Saturday, same time.",
+    confirm: "Cancel and notify",
+    keep: "Keep class",
+    done: "Class cancelled",
+    errors: {
+      cancelled: "This class was already cancelled.",
+      finished: "This class has finished and can't be cancelled.",
+    },
+  },
   editClass: {
     title: "Edit class",
     day: {
@@ -471,10 +484,12 @@ const messages = {
     },
     note: "When you save, the class's instructors are notified.",
     submit: "Save and notify",
+    cancel: "Cancel class",
     saved: "Changes saved",
     errors: {
       started: "The class has started: only the instructors can be changed.",
       finished: "This class has finished and can't be changed.",
+      cancelled: "This class was cancelled and can't be changed.",
       seatsTaken: "Capacity can't go below the {{count}} seats taken.",
     },
   },

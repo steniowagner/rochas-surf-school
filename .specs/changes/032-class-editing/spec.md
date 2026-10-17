@@ -304,12 +304,13 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-04** — Add the D-09 catalog entries for `class.edited` and `class.unassigned` to
+- [x] **T-04** — Add the D-09 catalog entries for `class.edited` and `class.unassigned` to
   `src/modules/notifications/push-messages.ts` (with the Fortaleza `dd/MM` / `MM/dd` and `HH:mm` formatting) and
   D-10's `classId` to the push `data` in `src/modules/notifications/expo.push.ts`, with cases in `push-messages.spec.ts`
   and `expo.push.spec.ts`.
   Covers: ER-08 · Done when: `npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/expo.push.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-16 22:48 — added the `class.edited` / `class.unassigned` catalog entries in pt-BR, es and en, with the start formatted by hand in Fortaleza (fixed UTC-3, no Intl; `dd/MM` or `MM/dd`, `HH:mm`), and `classId` in the push data when the params carry a string; files: `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/expo.push.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`, `apps/backend/src/modules/notifications/expo.push.spec.ts`; verified: `npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/expo.push.spec.ts` (29 passed), tsc and eslint clean; deviations: none
 
 - [ ] **T-05** — Add `classUnassigned` to `NotificationsClassAssignmentNotifier` and the new
   `NotificationsClassChangeNotifier` (`src/modules/notifications/notifications.class-change-notifier.ts`), both

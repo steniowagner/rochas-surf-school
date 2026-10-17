@@ -59,7 +59,11 @@ export class ExpoPushProvider implements PushProvider {
       to: message.token,
       title,
       body,
-      data: { type: message.type, notificationId: message.notificationId },
+      data: {
+        type: message.type,
+        notificationId: message.notificationId,
+        ...(typeof message.params.classId === 'string' ? { classId: message.params.classId } : {}),
+      },
       sound: 'default',
       priority: 'high',
       channelId: 'default',

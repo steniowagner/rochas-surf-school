@@ -68,8 +68,9 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 - `POST /classes/:id/cancel` for approved admins, with an optional message; the stored cancellation; the
   `cancelled` state everywhere the state is computed; editing a cancelled class refused.
 - The `class.cancelled` notification type and its push text in pt-BR, es and en.
-- In the app: "Cancelar aula" and its sheet in "Editar aula", the cancelled look of the card and of the details
-  (banner, message card, no pencil), the edit screen on a cancelled class, and the `class.cancelled` push.
+- In the app: the admin's class tools on the details (a tools button, its sheet, and "Cancelar aula" with its
+  confirmation sheet), the cancelled look of the card and of the details (banner, message card, no tools button),
+  the edit screen on a cancelled class, and the `class.cancelled` push.
 
 ### Out of scope
 
@@ -80,7 +81,8 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 - Reminders (none exist yet; a cancelled class will get none when they do).
 - Storing who cancelled the class (product.md keeps no history of admin decisions), restoring a cancelled class,
   and editing its message.
-- A cancel button on the details screen: the design puts it only in the editor.
+- What the tools sheet's "Avisar alunos e instrutores" row does: the row is drawn and has no action; sending a
+  message to a class's people comes with its own spec.
 - The design sheet's counts of enrolled students and pending requests.
 
 ## Decisions
@@ -97,13 +99,14 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 | D-08 | `ClassChangeNotifier` gains `classCancelled`, implemented by `NotificationsClassChangeNotifier.classCancelled` (`apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`) running `Notify` with type `class.cancelled`, logging and swallowing every error. | The port spec 032 created for class changes; spec 034 adds `classDeleted` to it. |
 | D-09 | Push text (`push-messages.ts`), the start formatted as in spec 032 (Fortaleza, `dd/MM` and `HH:mm`; en `MM/dd`), `{discipline}` "Surf" / "Skate": title "Aula cancelada" / "Clase cancelada" / "Class cancelled"; body without a message — pt-BR "A aula de {discipline} de {dd/MM} às {HH:mm} foi cancelada.", es "La clase de {discipline} del {dd/MM} a las {HH:mm} fue cancelada.", en "Your {discipline} class on {MM/dd} at {HH:mm} was cancelled."; with a message — pt-BR "{discipline}, {dd/MM} às {HH:mm}: {message}", es "{discipline}, {dd/MM} a las {HH:mm}: {message}", en "{discipline}, {MM/dd} at {HH:mm}: {message}" (the message trimmed, as written). The push `data` carries `classId` (spec 032's rule). | The push always says which class; the message is the reason the admin wanted heard. |
 | D-10 | Mobile: `ClassItem` in `classes.types.ts` gains `cancelledAt` and `cancellationMessage`; `useCancelClass` (`hooks/use-cancel-class.hook.ts`: `apiPost` to `/classes/{id}/cancel`, no retry, invalidating `["classes"]` on success); `getCancelClassErrorKey` in `utils/class-error.ts` (D-12), and `getEditClassErrorKey` maps 409 `class.cancelled` to `editClass.errors.cancelled`. | Same pattern as `useEditClass`; `["classes"]` covers the weeks and the details. |
-| D-11 | The action: `EditClassScreen` shows, below its sections and above the footer, an outline `Button` "Cancelar aula" with the `close-circle-outline` icon, for a class that hasn't started (full form) and for a started one (instructors only). It opens `CancelClassSheet` (`components/cancel-class-sheet/`: `BottomModal` with the title, the description, the `TextArea` "Mensagem (opcional)" with `maxLength` 300 and its counter, a danger `Button` "Cancelar e avisar" with `loading`, and a ghost `Button` "Manter aula" that closes it; the text clears when the sheet closes). Confirming sends the trimmed message (omitted when blank) once (a double press sends once); on 200: toast "Aula cancelada", the sheet closes and `router.back()` returns to the details. | The design's editor button and `cancelarAula` sheet. |
-| D-12 | Sheet errors (`getCancelClassErrorKey`): 409 `class.cancelled` → toast `cancelClass.errors.cancelled`, the sheet closes and the class is refetched; 409 `class.finished` → toast `cancelClass.errors.finished`, the sheet closes and the class is refetched; 404 `class.notFound` → toast `classDetails.notFound` and `router.back()`; 422 `class.cancellationMessage.max.length` → the generic toast (the field can't exceed 300); `NetworkError` → no connection; `SessionExpiredError` → nothing; anything else → generic. The buttons are usable again after any failure. | The class reloads into its real state; the same toasts as the other class screens. |
+| D-11 | The action: for an admin (`canEdit`), `ClassDetailsScreen` shows a round 44×44 tools button (`construct-outline`, in the place of the pencil) that opens `ClassToolsSheet` (D-18); its "Cancelar aula" row closes the tools sheet and opens `CancelClassSheet` (`components/cancel-class-sheet/`: `BottomModal` with the title, the description, the `TextArea` "Mensagem (opcional)" with `maxLength` 300 and its counter, a danger `Button` "Cancelar e avisar" with `loading`, and a ghost `Button` "Manter aula" that closes it; the text clears when the sheet closes). Confirming sends the trimmed message (omitted when blank) once (a double press sends once); on 200: toast "Aula cancelada", the sheet closes and the details stay on screen, reloaded by the invalidation of `["classes"]`. "Editar aula" has no cancel button. | One entry point for the class's tools, as the admin asked; the sheet is the design's `cancelarAula`. Amended from "Cancelar aula" in the editor. |
+| D-12 | Sheet errors (`getCancelClassErrorKey`): 409 `class.cancelled` → toast `cancelClass.errors.cancelled`, the sheet closes and the class is refetched; 409 `class.finished` → toast `cancelClass.errors.finished`, the sheet closes and the class is refetched; 404 `class.notFound` → toast `classDetails.notFound` and `router.back()` (leaving the details of a class that is gone); 422 `class.cancellationMessage.max.length` → the generic toast (the field can't exceed 300); `NetworkError` → no connection; `SessionExpiredError` → nothing; anything else → generic. The buttons are usable again after any failure. | The class reloads into its real state; the same toasts as the other class screens. |
 | D-13 | Edit screen on a cancelled class: when the loaded class has `cancelledAt`, the screen shows `editClass.errors.cancelled` ("Esta aula foi cancelada e não pode mais ser alterada.") instead of the form, without the footer or "Cancelar aula"; a save refused with `class.cancelled` shows the same text as a toast and goes back (D-10). | Like the finished-on-load state of spec 032. |
 | D-14 | Card (`ClassCard`): with `cancelledAt`, the right chip is "Cancelada" (`Chip` on `bad-tint`, text `bad`, icon `close-circle-outline`) instead of "Em andamento" / "Finalizada"; the time range is struck through (`line-through`) in `ink-2`; the card has no `sun` border and isn't faded, whatever the clock. The calendar keeps the day's dot (a cancelled class is still a class of that day). | The design's `aulaCard`; the dot rule of spec 031 is "at least one class". |
-| D-15 | Details (`ClassDetailsScreen`, every role): with `cancelledAt`, the banner is "Aula cancelada" / "Esta aula não vai acontecer." on `bad-tint` with the `close-circle-outline` icon in `bad` (instead of the started or finished banner), followed, when `cancellationMessage` isn't `null`, by a card titled "Mensagem da equipe" with the message exactly as stored; the pencil is hidden even with `canEdit`. | The design's banner, with copy that suits students too; the message card mirrors the Denied screen's. |
-| D-16 | Copy (pt-BR / es-ES / en-US): `editClass.cancel` "Cancelar aula" / "Cancelar clase" / "Cancel class"; `cancelClass.title` "Cancelar esta aula?" / "¿Cancelar esta clase?" / "Cancel this class?"; `cancelClass.description` "Avisamos os instrutores da aula. Ela continua na agenda, marcada como cancelada." / "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada." / "We'll notify the class's instructors. It stays on the schedule, marked as cancelled."; `cancelClass.messageLabel` "Mensagem (opcional)" / "Mensaje (opcional)" / "Message (optional)"; `cancelClass.messagePlaceholder` "Ex.: Mar muito grande. Remarcamos para sábado no mesmo horário." / "Ej.: Mar muy grande. La pasamos al sábado a la misma hora." / "E.g.: Waves too big. Moved to Saturday, same time."; `cancelClass.confirm` "Cancelar e avisar" / "Cancelar y avisar" / "Cancel and notify"; `cancelClass.keep` "Manter aula" / "Mantener clase" / "Keep class"; `cancelClass.done` "Aula cancelada" / "Clase cancelada" / "Class cancelled"; `cancelClass.errors.cancelled` "Esta aula já foi cancelada." / "Esta clase ya fue cancelada." / "This class was already cancelled."; `cancelClass.errors.finished` "Esta aula já terminou e não pode mais ser cancelada." / "Esta clase ya terminó y no se puede cancelar." / "This class has finished and can't be cancelled."; `editClass.errors.cancelled` "Esta aula foi cancelada e não pode mais ser alterada." / "Esta clase fue cancelada y no se puede cambiar." / "This class was cancelled and can't be changed."; `classesWeek.cancelled` "Cancelada" / "Cancelada" / "Cancelled"; `classDetails.cancelled.title` "Aula cancelada" / "Clase cancelada" / "Class cancelled", `classDetails.cancelled.description` "Esta aula não vai acontecer." / "Esta clase no se realizará." / "This class won't take place."; `classDetails.message` "Mensagem da equipe" / "Mensaje del equipo" / "Message from the team". | The design's copy adapted to Brazilian Portuguese and to a product without enrolment yet. |
+| D-15 | Details (`ClassDetailsScreen`, every role): with `cancelledAt`, the banner is "Aula cancelada" / "Esta aula não vai acontecer." on `bad-tint` with the `close-circle-outline` icon in `bad` (instead of the started or finished banner), followed, when `cancellationMessage` isn't `null`, by a card titled "Mensagem da equipe" with the message exactly as stored; the tools button (D-11) is hidden even with `canEdit`, and for a finished class. | The design's banner, with copy that suits students too; the message card mirrors the Denied screen's. |
+| D-16 | Copy (pt-BR / es-ES / en-US): `editClass.cancel` "Cancelar aula" / "Cancelar clase" / "Cancel class"; `cancelClass.title` "Cancelar esta aula?" / "¿Cancelar esta clase?" / "Cancel this class?"; `cancelClass.description` "Avisamos os instrutores da aula. Ela continua na agenda, marcada como cancelada." / "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada." / "We'll notify the class's instructors. It stays on the schedule, marked as cancelled."; `cancelClass.messageLabel` "Mensagem (opcional)" / "Mensaje (opcional)" / "Message (optional)"; `cancelClass.messagePlaceholder` "Ex.: Mar muito grande. Remarcamos para sábado no mesmo horário." / "Ej.: Mar muy grande. La pasamos al sábado a la misma hora." / "E.g.: Waves too big. Moved to Saturday, same time."; `cancelClass.confirm` "Cancelar e avisar" / "Cancelar y avisar" / "Cancel and notify"; `cancelClass.keep` "Manter aula" / "Mantener clase" / "Keep class"; `cancelClass.done` "Aula cancelada" / "Clase cancelada" / "Class cancelled"; `cancelClass.errors.cancelled` "Esta aula já foi cancelada." / "Esta clase ya fue cancelada." / "This class was already cancelled."; `cancelClass.errors.finished` "Esta aula já terminou e não pode mais ser cancelada." / "Esta clase ya terminó y no se puede cancelar." / "This class has finished and can't be cancelled."; `editClass.errors.cancelled` "Esta aula foi cancelada e não pode mais ser alterada." / "Esta clase fue cancelada y no se puede cambiar." / "This class was cancelled and can't be changed."; `classesWeek.cancelled` "Cancelada" / "Cancelada" / "Cancelled"; `classDetails.cancelled.title` "Aula cancelada" / "Clase cancelada" / "Class cancelled", `classDetails.cancelled.description` "Esta aula não vai acontecer." / "Esta clase no se realizará." / "This class won't take place."; `classDetails.message` "Mensagem da equipe" / "Mensaje del equipo" / "Message from the team"; `classDetails.tools` "Ferramentas da aula" / "Herramientas de la clase" / "Class tools" (the button's accessibility label); `classTools.title` the same three texts; `classTools.edit` "Editar aula" / "Editar clase" / "Edit class"; `classTools.notify` "Avisar alunos e instrutores" / "Avisar a alumnos e instructores" / "Notify students and instructors"; `classTools.cancel` "Cancelar aula" / "Cancelar clase" / "Cancel class". `editClass.cancel` and `classDetails.edit` are no longer used and go away. | The design's copy adapted to Brazilian Portuguese and to a product without enrolment yet. |
 | D-17 | Pushes in the app: tapping a `class.cancelled` push with a `classId` refreshes the account, then opens `routes.instructor.classDetail(classId)` / `routes.admin.classDetail(classId)` when the account resolves to the `instructor` / `admin` flow, else `routes.home`; received with the app open, it invalidates `["classes"]`. | The same handling as `class.edited` (spec 032). |
+| D-18 | `ClassToolsSheet` (`components/class-tools-sheet/`): a `BottomModal` titled "Ferramentas da aula" with three rows, each 44 pt tall at least with its icon and label: "Editar aula" (`pencil-outline`; closes the sheet and opens `routes.admin.editClass(id)`), "Avisar alunos e instrutores" (`megaphone-outline`; no action: pressing it does nothing, not even closing the sheet) and "Cancelar aula" (`close-circle-outline`, in `bad`; closes the sheet and opens `CancelClassSheet`). Only `canEdit` (admin) details show the tools button, for a class that is neither finished nor cancelled (a started class included); a student or an instructor never sees it. | The admin's tools for one class in one place; the notify row is a placeholder until the messaging spec. |
 
 ## Expected Results
 
@@ -202,27 +205,27 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 - **Verify by:** `npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.class-change-notifier.spec.ts`
   from `apps/backend`; `npx jest test/notification/model/notification.entity.test.ts` from `modules/notifications`.
 
-### ER-09 — An admin cancels a class from "Editar aula"
+### ER-09 — An admin cancels a class from the class tools
 
 - **Front:** mobile
-- **Behavior:** Given an admin on "Editar aula" for a class that hasn't started (or has started), then "Cancelar
-  aula" shows below the form; pressing it opens the sheet "Cancelar esta aula?" with its description, "Mensagem
-  (opcional)", "Cancelar e avisar" and "Manter aula"; when they type a message and press "Cancelar e avisar", then
-  `POST /classes/:id/cancel` is sent once with the trimmed message, the toast "Aula cancelada" shows, the app goes
-  back to the details and `["classes"]` is invalidated.
+- **Behavior:** Given an admin on the details of a class that hasn't finished and isn't cancelled (not started or
+  started), when they press the tools button and then "Cancelar aula", then the sheet "Cancelar esta aula?" opens
+  with its description, "Mensagem (opcional)", "Cancelar e avisar" and "Manter aula"; when they type a message and
+  press "Cancelar e avisar", then `POST /classes/:id/cancel` is sent once with the trimmed message, the toast
+  "Aula cancelada" shows, the sheet closes, the details stay and `["classes"]` is invalidated.
 - **Edge and error cases:** a blank message is omitted from the body; "Manter aula" closes the sheet without a
-  request; the message stops at 300 characters with its counter.
-- **Verify by:** `npx jest src/modules/classes/components/cancel-class-sheet src/modules/classes/screens/edit-class.screen.test.tsx -t "cancel"`
+  request; the message stops at 300 characters with its counter; "Editar aula" has no "Cancelar aula" button.
+- **Verify by:** `npx jest src/modules/classes/components/cancel-class-sheet src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/screens/edit-class.screen.test.tsx -t "cancel"`
   from `apps/mobile`; the "Cancel a class" journey of the Verification Plan.
 
 ### ER-10 — Cancel errors are shown and handled
 
 - **Front:** mobile
 - **Behavior:** Given a cancel that fails, then the app shows D-12's toast for each case: `class.cancelled` and
-  `class.finished` (the sheet closes and the class is refetched), 404 (and back), no connection, generic; an expired
+  `class.finished` (the sheet closes and the class is refetched), 404 (and back from the details), no connection, generic; an expired
   session shows nothing.
 - **Edge and error cases:** the sheet's buttons are usable again after any failure.
-- **Verify by:** `npx jest src/modules/classes/utils/class-error.test.ts src/modules/classes/hooks/use-cancel-class.hook.test.tsx src/modules/classes/screens/edit-class.screen.test.tsx -t "cancel"`
+- **Verify by:** `npx jest src/modules/classes/utils/class-error.test.ts src/modules/classes/hooks/use-cancel-class.hook.test.tsx src/modules/classes/screens/class-details.screen.test.tsx -t "cancel"`
   from `apps/mobile`.
 
 ### ER-11 — A cancelled card is marked
@@ -239,7 +242,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 - **Front:** mobile
 - **Behavior:** Given a cancelled class with the message "Mar muito grande.", when any role opens its details, then
   the banner "Aula cancelada" / "Esta aula não vai acontecer." shows instead of the started or finished banner,
-  followed by the card "Mensagem da equipe" with "Mar muito grande."; an admin sees no pencil.
+  followed by the card "Mensagem da equipe" with "Mar muito grande."; an admin sees no tools button.
 - **Edge and error cases:** without a message there is no message card; a class that isn't cancelled shows neither.
 - **Verify by:** `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "cancelled"` from
   `apps/mobile`.
@@ -248,7 +251,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 
 - **Front:** mobile
 - **Behavior:** Given an admin who opens "Editar aula" for a class with `cancelledAt`, then the screen shows "Esta
-  aula foi cancelada e não pode mais ser alterada." and no form, footer or "Cancelar aula"; given a save refused
+  aula foi cancelada e não pode mais ser alterada." and no form or footer; given a save refused
   with 409 `class.cancelled`, then the same text shows as a toast and the app goes back.
 - **Edge and error cases:** none beyond spec 032's states.
 - **Verify by:** `npx jest src/modules/classes/screens/edit-class.screen.test.tsx -t "cancelled"` from `apps/mobile`.
@@ -263,6 +266,20 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   `classId`, goes to `/`.
 - **Verify by:** `npx jest src/modules/notifications/hooks/use-notification-response.hook.test.tsx src/modules/notifications/hooks/use-notification-received.hook.test.tsx -t "class.cancelled"`
   from `apps/mobile`.
+
+### ER-15 — The admin's class tools
+
+- **Front:** mobile
+- **Behavior:** Given an admin on the details of a class that hasn't finished and isn't cancelled, when the screen
+  loads, then a tools button (accessibility label "Ferramentas da aula") shows where the pencil used to be, and
+  pressing it opens the sheet "Ferramentas da aula" with three rows: "Editar aula", "Avisar alunos e instrutores"
+  and "Cancelar aula"; pressing "Editar aula" closes the sheet and opens `/admin/edit-class/<id>`; pressing
+  "Avisar alunos e instrutores" does nothing.
+- **Edge and error cases:** a student or an instructor sees no tools button; neither does an admin on a finished or
+  a cancelled class, while loading or when the class is missing; an admin on a started class sees it; there is no
+  pencil.
+- **Verify by:** `npx jest src/modules/classes/components/class-tools-sheet src/modules/classes/screens/class-details.screen.test.tsx -t "tools"`
+  from `apps/mobile`; the "Cancel a class" journey of the Verification Plan.
 
 ## Tasks
 
@@ -387,6 +404,30 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   Covers: ER-14 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
   > ✅ 2026-10-17 01:09 — useNotificationResponse opens the class details of the resolved instructor/admin flow for a class.cancelled push with a classId (else home); useNotificationReceived invalidates ["classes"] for it; files: `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `use-notification-received.hook.ts`, `use-notification-response.hook.test.tsx`, `use-notification-received.hook.test.tsx`; verified: `npx jest src/modules/notifications/hooks` (59 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
+- [ ] **T-17** (added by amendment) — Take "Cancelar aula" and `CancelClassSheet` out of `EditClassScreen`
+  (`src/modules/classes/screens/edit-class.screen.tsx`, `edit-class.screen.hook.ts`: the button, the sheet, the
+  cancel request and its error handling), keeping the cancelled state and the `class.cancelled` save toast (D-13);
+  update the "cancel" cases of `edit-class.screen.test.tsx` (they move to T-19) and remove the unused
+  `editClass.cancel` copy from `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`. It undoes the editor wiring of T-14.
+  Covers: ER-09, ER-13 · Done when: `npx jest src/modules/classes/screens/edit-class.screen.test.tsx` passes with a
+  case proving "Editar aula" has no "Cancelar aula" button, and `npx tsc --noEmit` passes from `apps/mobile`.
+
+- [ ] **T-18** (added by amendment) — Add `ClassToolsSheet` (`src/modules/classes/components/class-tools-sheet/`:
+  component, hook, types, index; D-18) with the `classTools.*` copy in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`,
+  and its component test (title, the three rows, each callback, the notify row doing nothing).
+  Covers: ER-15 · Done when: `npx jest src/modules/classes/components/class-tools-sheet` passes from `apps/mobile`.
+
+- [ ] **T-19** (added by amendment) — Wire the tools into `ClassDetailsScreen`
+  (`src/modules/classes/screens/class-details.screen.tsx` and its hook, D-11, D-12, D-15, D-18): the tools button
+  replaces the pencil (same place and look with the `construct-outline` icon, label `classDetails.tools`, hidden
+  for a finished or cancelled class, while loading, for a missing class and without `canEdit`); it opens
+  `ClassToolsSheet`; "Editar aula" opens `routes.admin.editClass(id)`; "Cancelar aula" opens `CancelClassSheet`,
+  confirming sends once through `useCancelClass`, shows the toast and closes the sheet while the details stay, and
+  the D-12 errors; remove the unused `classDetails.edit` copy. This replaces the pencil of T-12. Update the pencil
+  cases of `class-details.screen.test.tsx` and add the "cancel", "cancelled" and "tools" cases.
+  Covers: ER-09, ER-10, ER-12, ER-15 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx`
+  passes from `apps/mobile`, with every changed line covered.
+
 ### Verification
 
 - [ ] **T-16** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
@@ -410,13 +451,16 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   - `npx turbo run build --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/notifications --filter=@rochas-surf-school/backend`
     — builds.
 - User journeys (iOS simulator, local backend):
-  - Cancel a class: as an approved admin, open a class of tomorrow, press the pencil, then "Cancelar aula": the sheet
-    "Cancelar esta aula?" opens. Type "Mar muito grande." and press "Cancelar e avisar": "Aula cancelada", back on the
-    details with the "Aula cancelada" banner, the "Mensagem da equipe" card and no pencil. Back on the classes
+  - Class tools: as an admin, the details of a class show the tools button (no pencil); it opens "Ferramentas da aula"
+    with "Editar aula" (opens the editor), "Avisar alunos e instrutores" (does nothing) and "Cancelar aula". A student and an
+    instructor see no tools button.
+  - Cancel a class: as an approved admin, open a class of tomorrow, press the tools button, then "Cancelar aula": the sheet
+    "Cancelar esta aula?" opens. Type "Mar muito grande." and press "Cancelar e avisar": "Aula cancelada", still on the
+    details with the "Aula cancelada" banner, the "Mensagem da equipe" card and no tools button. Back on the classes
     screen, the card shows "Cancelada" with its time struck through, and the day keeps its dot.
   - Other roles and a started class: sign in as a student: the same card and details (banner and message), no
-    pencil. As the admin, create a class starting a minute from now; once it shows "Em andamento", open "Editar
-    aula" (instructors only) and cancel it without a message: the details show the banner without a message card.
+    tools button. As the admin, create a class starting a minute from now; once it shows "Em andamento", open the tools, then "Editar
+    aula" (instructors only, and no "Cancelar aula" button there); go back and cancel it from the tools without a message: the details show the banner without a message card.
 
 ## Memory Impact
 
@@ -428,10 +472,10 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   other state still computed from the clock. Classes: `POST /classes/:id/cancel` (body, D-02's order, 200
   `ClassItem`), `CancelClass`, `ClassItem.cancelledAt` / `cancellationMessage`, `getClassState`'s `cancelledAt`,
   `SchoolClassRepository.cancel` and `update` returning `false` (conditional writes on `cancelled_at IS NULL`);
-  mobile `useCancelClass`, `getCancelClassErrorKey`, `CancelClassSheet`, the card's and the details' cancelled look.
+  mobile `useCancelClass`, `getCancelClassErrorKey`, `ClassToolsSheet` (the admin's tools button on the details, in the place of the pencil: edit, an inert notify row, cancel), `CancelClassSheet` (opened from the tools), the card's and the details' cancelled look.
   Push notifications: `classCancelled` on `ClassChangeNotifier` / `NotificationsClassChangeNotifier`. Persistence:
   the `classes-add-cancellation` migration.
-- `memory/structure.md` — the `cancel-class-sheet` component of the classes module.
+- `memory/structure.md` — the `cancel-class-sheet` and `class-tools-sheet` components of the classes module.
 - `memory/modules/classes.md` — the `cancelled` state (stored, final, wins over the clock), the cancel rules and
   keys (`class.cancellationMessage.max.length`, `class.cancelled`, `class.finished`), exactly one winner, editing a
   cancelled class refused, who can cancel (approved admins) and who is told; the spec history entry.
@@ -453,5 +497,11 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-17 — /spec-plan --amend — D-11 changed: "Cancelar aula" and its sheet move from "Editar aula" to a tools sheet opened from the details; the success stays on the details instead of going back. Reason: the admin asked for one entry point for class tools. Approved by the user.
+- 2026-10-17 — /spec-plan --amend — D-12 changed: the 404 case now leaves the details. D-15 changed: the pencil becomes the tools button, also hidden for a finished class. D-16 changed: copy `classTools.*` and `classDetails.tools` added, `editClass.cancel` and `classDetails.edit` dropped. Reason: follows D-11. Approved by the user.
+- 2026-10-17 — /spec-plan --amend — D-18 added: `ClassToolsSheet` with edit, notify (no action) and cancel rows, admins only. Scope: the notify action is out of scope. Reason: the admin's request. Approved by the user.
+- 2026-10-17 — /spec-plan --amend — ER-09, ER-10, ER-12, ER-13 changed (entry point, details instead of editor, tools button instead of pencil, no "Cancelar aula" in the editor); ER-15 added (the admin's class tools). Reason: follows D-11 and D-18. Approved by the user.
+- 2026-10-17 — /spec-plan --amend — T-17, T-18, T-19 added: remove the cancel button from the editor (undoing T-14's editor wiring), add `ClassToolsSheet`, wire the tools and the cancel flow into the details (replacing T-12's pencil). T-12, T-13 and T-14 stay as committed. Verification Plan journeys and Memory Impact updated. Approved by the user.
 
 ## Review

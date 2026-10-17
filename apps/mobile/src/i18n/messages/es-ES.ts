@@ -297,6 +297,7 @@ const messages: Messages = {
       started: "En curso",
       finished: "Finalizada",
     },
+    cancelled: "Cancelada",
   },
   classDetails: {
     title: "Detalle",

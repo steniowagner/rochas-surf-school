@@ -15,7 +15,12 @@ export const useClassCard = ({
   const shown = names.slice(0, SHOWN_INSTRUCTORS).join(" · ");
 
   return {
-    state: getClassState(new Date(item.startsAt), new Date(item.endsAt), now),
+    state: getClassState(
+      new Date(item.startsAt),
+      new Date(item.endsAt),
+      now,
+      item.cancelledAt ? new Date(item.cancelledAt) : null,
+    ),
     timeRange: `${schoolTimeOf(item.startsAt)} – ${schoolTimeOf(item.endsAt)}`,
     instructors: hidden > 0 ? `${shown} +${hidden}` : shown,
   };

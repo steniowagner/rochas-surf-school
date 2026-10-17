@@ -290,6 +290,7 @@ const messages: Messages = {
       started: "Em andamento",
       finished: "Finalizada",
     },
+    cancelled: "Cancelada",
   },
   classDetails: {
     title: "Detalhe",

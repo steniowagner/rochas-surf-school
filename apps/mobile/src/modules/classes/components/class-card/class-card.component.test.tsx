@@ -78,6 +78,45 @@ describe("ClassCard", () => {
     expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
   });
 
+  describe("cancelled", () => {
+    const cancelled = (overrides: Partial<ClassItem> = {}) =>
+      item({ cancelledAt: "2026-10-13T10:00:00.000Z", cancellationMessage: "Mar grande", ...overrides });
+
+    it.each([
+      ["before", BEFORE],
+      ["during", DURING],
+      ["after", AFTER],
+    ])("shows only the Cancelled chip %s its time", async (_label, now) => {
+      await render(<ClassCard item={cancelled()} now={now} onPress={jest.fn()} />);
+
+      expect(screen.getByText("Cancelled")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("close-circle-outline"))).toBeOnTheScreen();
+      expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Finished")).not.toBeOnTheScreen();
+      expect(screen.queryByText(glyph("time-outline"))).not.toBeOnTheScreen();
+    });
+
+    it("strikes the time range through in the secondary ink, with no sun border or fading", async () => {
+      await render(<ClassCard item={cancelled()} now={DURING} onPress={jest.fn()} />);
+
+      const time = screen.getByText("10:00 – 11:30");
+      expect(time.props.className).toContain("line-through");
+      expect(time.props.className).toContain("text-ink-2");
+      const card = screen.getByRole("button");
+      expect(card.props.className).toContain("border-line");
+      expect(card.props.className).not.toContain("border-sun");
+      expect(card.props.className).not.toContain("opacity-60");
+    });
+
+    it("keeps the look of a class that was never cancelled", async () => {
+      await render(<ClassCard item={item()} now={AFTER} onPress={jest.fn()} />);
+
+      expect(screen.queryByText("Cancelled")).not.toBeOnTheScreen();
+      expect(screen.getByText("10:00 – 11:30").props.className).not.toContain("line-through");
+      expect(screen.getByRole("button").props.className).toContain("opacity-60");
+    });
+  });
+
   it("joins two instructors and counts the rest", async () => {
     const instructors = ["Ana", "Bruno", "Carla"].map((name, index) => ({
       id: `i-${index}`,

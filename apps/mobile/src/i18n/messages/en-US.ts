@@ -290,6 +290,7 @@ const messages = {
       started: "In progress",
       finished: "Finished",
     },
+    cancelled: "Cancelled",
   },
   classDetails: {
     title: "Details",

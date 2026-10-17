@@ -40,8 +40,15 @@ export function ClassCard({ item, now, onPress }: ClassCardProps) {
           {state === "finished" ? (
             <Chip tone="muted">{t("classesWeek.state.finished")}</Chip>
           ) : null}
+          {state === "cancelled" ? (
+            <Chip tone="bad" icon="close-circle-outline">{t("classesWeek.cancelled")}</Chip>
+          ) : null}
         </View>
-        <Text className="ds-text-lesson-time text-ink">{timeRange}</Text>
+        <Text
+          className={`ds-text-lesson-time ${state === "cancelled" ? "text-ink-2 line-through" : "text-ink"}`}
+        >
+          {timeRange}
+        </Text>
         <View className="flex-row items-center gap-1 self-start rounded-full bg-dim px-2.5 py-1">
           <Ionicons name="location-outline" size={14} color={theme.ink2} />
           <Text className="ds-text-chip text-ink-2">{item.location.name}</Text>

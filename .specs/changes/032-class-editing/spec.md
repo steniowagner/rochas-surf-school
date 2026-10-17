@@ -339,13 +339,14 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-08** — Add the `EditClassRequest` type (`src/modules/classes/classes.types.ts`), the `useEditClass`
+- [x] **T-08** — Add the `EditClassRequest` type (`src/modules/classes/classes.types.ts`), the `useEditClass`
   mutation (`src/modules/classes/hooks/use-edit-class.hook.ts`: `apiPut` without retry, invalidating
   `["classes", "week"]` and `["classes", "detail", id]` on success) and `getEditClassErrorKey` with
   `isClassStartedError` / `isClassFinishedError` in `src/modules/classes/utils/class-error.ts` (D-14), with
   `use-edit-class.hook.test.tsx` and `class-error.test.ts`.
   Covers: ER-12 · Done when: `npx jest src/modules/classes/hooks/use-edit-class.hook.test.tsx src/modules/classes/utils/class-error.test.ts`
   passes from `apps/mobile`.
+  > ✅ 2026-10-16 22:54 — added `EditClassRequest`, `useEditClass` (`apiPut`, no retry, invalidates the weeks and the class's details) and, in `class-error.ts`, `isClassStartedError` / `isClassFinishedError` / `isClassNotFoundError`, `getSeatsTaken` (reads `details.seatsTaken`) and `getEditClassErrorKey` (D-14; the screen passes `count` to `editClass.errors.seatsTaken`); files: `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/hooks/use-edit-class.hook.ts`, `apps/mobile/src/modules/classes/hooks/use-edit-class.hook.test.tsx`, `apps/mobile/src/modules/classes/utils/class-error.ts`, `apps/mobile/src/modules/classes/utils/class-error.test.ts`; verified: `npx jest src/modules/classes/hooks/use-edit-class.hook.test.tsx src/modules/classes/utils/class-error.test.ts` from apps/mobile (passed, run together with T-09's suites: 54 passed), `tsc --noEmit` clean; deviations: `getEditClassErrorKey` returns only the key; the seats count comes from the extra `getSeatsTaken` helper, and `isClassNotFoundError` was added for the 404 branch
 
 - [ ] **T-09** — Add the `single` mode to `DateRangeCalendar` (`components/date-range-calendar/`) and to
   `TimeRangePicker` (`components/time-range-picker/`), as D-12 describes, with their component tests.

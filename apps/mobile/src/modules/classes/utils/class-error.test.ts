@@ -2,6 +2,11 @@ import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 
 import {
   getClassErrorKey,
+  getEditClassErrorKey,
+  getSeatsTaken,
+  isClassFinishedError,
+  isClassNotFoundError,
+  isClassStartedError,
   isDuplicateLocationError,
   isInstructorsInvalidError,
   isLocationNotFoundError,
@@ -42,5 +47,54 @@ describe("error predicates", () => {
     expect(isLocationNotFoundError(new Error("x"))).toBe(false);
     expect(isInstructorsInvalidError(api(422, "class.instructors.invalid"))).toBe(true);
     expect(isInstructorsInvalidError(api(422, "other"))).toBe(false);
+  });
+});
+
+describe("getEditClassErrorKey", () => {
+  it.each([
+    [409, "class.started", "editClass.errors.started"],
+    [409, "class.finished", "editClass.errors.finished"],
+    [404, "class.notFound", "classDetails.notFound"],
+    [422, "class.startsAt.past", "newClass.errors.past"],
+    [422, "class.instructors.invalid", "newClass.errors.instructors"],
+    [422, "class.location.notFound", "newClass.errors.location"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps %s %s to %s", (status, key, expected) => {
+    expect(getEditClassErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("maps a capacity below the seats taken to its own copy", () => {
+    const error = new ApiError(422, ["class.capacity.belowSeatsTaken"], { seatsTaken: 8 });
+
+    expect(getEditClassErrorKey(error)).toBe("editClass.errors.seatsTaken");
+    expect(getSeatsTaken(error)).toBe(8);
+  });
+
+  it("maps no answer to the no-connection copy and an expired session to nothing", () => {
+    expect(getEditClassErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getEditClassErrorKey(new SessionExpiredError())).toBeNull();
+  });
+
+  it("falls back to the generic copy for anything else", () => {
+    expect(getEditClassErrorKey(new Error("boom"))).toBe("createAccount.errors.generic");
+  });
+});
+
+describe("edit error predicates", () => {
+  it("recognise only their own status and key", () => {
+    expect(isClassStartedError(api(409, "class.started"))).toBe(true);
+    expect(isClassStartedError(api(422, "class.started"))).toBe(false);
+    expect(isClassFinishedError(api(409, "class.finished"))).toBe(true);
+    expect(isClassFinishedError(new Error("x"))).toBe(false);
+    expect(isClassNotFoundError(api(404, "class.notFound"))).toBe(true);
+    expect(isClassNotFoundError(api(404, "other"))).toBe(false);
+  });
+
+  it("reads the seats taken only from their own error and only as a number", () => {
+    expect(getSeatsTaken(api(422, "class.capacity.belowSeatsTaken"))).toBeNull();
+    expect(
+      getSeatsTaken(new ApiError(422, ["class.capacity.belowSeatsTaken"], { seatsTaken: "8" })),
+    ).toBeNull();
+    expect(getSeatsTaken(api(422, "class.startsAt.past"))).toBeNull();
   });
 });

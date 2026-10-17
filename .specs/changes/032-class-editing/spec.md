@@ -370,10 +370,11 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   `apps/mobile`.
   > ✅ 2026-10-16 23:07 — added `canEdit` to `ClassDetailsScreen` (hook returns `showEdit` — admin, class loaded and not finished — and `edit`, which pushes `routes.admin.editClass(id)`): a round 44×44 `TouchableOpacity` pencil (`bg-surface`, `shadowStyle('iconButton')`) at the right of the header, labelled "Editar aula"; `admin/class/[id].tsx` passes `canEdit`; files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `.../class-details.screen.hook.ts`, `.../class-details.screen.types.ts`, `.../class-details.screen.test.tsx`, `apps/mobile/src/app/(private)/admin/class/[id].tsx`; verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` (22 passed, the 6 "pencil" cases included); deviations: none (the `classDetails.edit` copy came with T-10's copy)
 
-- [ ] **T-12** — Handle `class.edited` and `class.unassigned` in `useNotificationResponse` (open the class details
+- [x] **T-12** — Handle `class.edited` and `class.unassigned` in `useNotificationResponse` (open the class details
   of the resolved flow, D-17) and `useNotificationReceived` (invalidate `["classes"]`) in
   `src/modules/notifications/hooks/`, with cases in their tests.
   Covers: ER-13 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
+  > ✅ 2026-10-16 23:07 — `useNotificationResponse` opens the class details of the resolved flow (`/instructor/class/<id>`, `/admin/class/<id>`) for a `class.edited` / `class.unassigned` push with a string `classId`, else falls through to `routes.home`; `useNotificationReceived` invalidates `["classes"]` for both; files: `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `.../use-notification-response.hook.test.tsx`, `.../use-notification-received.hook.ts`, `.../use-notification-received.hook.test.tsx`; verified: `npx jest src/modules/notifications/hooks` from apps/mobile (all suites passed); deviations: none
 
 ### Verification
 

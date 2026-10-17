@@ -53,6 +53,8 @@ function TestRootLayout() {
   );
 }
 
+const ClassStub = () => null;
+
 const routeTree = {
   _layout: TestRootLayout,
   index: Index,
@@ -73,6 +75,8 @@ const routeTree = {
   "(private)/instructor/_layout": InstructorLayout,
   "(private)/instructor/(tabs)/index": InstructorRoute,
   "(private)/instructor/(tabs)/classes": InstructorClassesRoute,
+  "(private)/instructor/class/[id]": ClassStub,
+  "(private)/admin/class/[id]": ClassStub,
 };
 
 const account = (
@@ -94,12 +98,12 @@ const account = (
   reactivationStatus: null,
 });
 
-const response = (type: string | undefined, id = "n1") =>
+const response = (type: string | undefined, id = "n1", classId?: string) =>
   ({
     notification: {
       request: {
         identifier: `request-${id}`,
-        content: { data: { type, notificationId: id } },
+        content: { data: { type, notificationId: id, classId } },
       },
     },
   }) as unknown as Notifications.NotificationResponse;
@@ -193,6 +197,50 @@ describe("useNotificationResponse", () => {
     await tap(response("class.assigned"));
 
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
+  it.each(["class.edited", "class.unassigned"])(
+    "opens the class details of an instructor who taps a %s push",
+    async (type) => {
+      answerMe(account("approved", "instructor", true));
+      await openApp(account("approved", "instructor", true));
+
+      await tap(response(type, "n1", "c-1"));
+
+      await waitFor(() => expect(app.getPathname()).toBe("/instructor/class/c-1"));
+      expect(meCalls()).toHaveLength(1);
+    },
+  );
+
+  it.each(["class.edited", "class.unassigned"])(
+    "opens the class details of an admin who taps a %s push",
+    async (type) => {
+      answerMe(account("approved", "admin", true));
+      await openApp(account("approved", "admin", true));
+
+      await tap(response(type, "n1", "c-1"));
+
+      await waitFor(() => expect(app.getPathname()).toBe("/admin/class/c-1"));
+    },
+  );
+
+  it("goes to the resolved flow when a class.edited push is tapped by someone who is now a student", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "instructor", true));
+
+    await tap(response("class.edited", "n1", "c-1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
+  it("goes home when a class.unassigned push has no class id", async () => {
+    answerMe(account("approved", "instructor", true));
+    await openApp(account("approved", "instructor", true));
+
+    await tap(response("class.unassigned"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
+    expect(app.getPathname()).not.toContain("class/");
   });
 
   it("opens the onboarding WhatsApp step when a pending person taps the approval push", async () => {

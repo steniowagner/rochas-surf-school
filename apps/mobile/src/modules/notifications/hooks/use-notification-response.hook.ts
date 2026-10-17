@@ -46,6 +46,23 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
+  // An edited or unassigned class opens that class, in the details of the flow the account resolves to.
+  const classId = typeof data?.classId === "string" ? data.classId : null;
+  const isClassChange =
+    data?.type === "class.edited" || data?.type === "class.unassigned";
+
+  if (isClassChange && classId !== null && flow === "instructor") {
+    router.push(routes.instructor.classDetail(classId));
+
+    return;
+  }
+
+  if (isClassChange && classId !== null && flow === "admin") {
+    router.push(routes.admin.classDetail(classId));
+
+    return;
+  }
+
   // Access is decided only by resolveFlow: `index` redirects to the flow of the (refreshed) account.
   router.replace(routes.home);
 };

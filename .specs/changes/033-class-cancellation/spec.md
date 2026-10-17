@@ -2,7 +2,7 @@
 id: "033"
 slug: class-cancellation
 title: "Cancelling a class"
-status: in-progress
+status: in-review
 started: 2026-10-17
 base_commit: e08a9739ca92401665a9bfd829d3fcc9b5abf84a
 created: 2026-10-17
@@ -456,12 +456,11 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 
 ### Verification
 
-- [ ] **T-16** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
+- [x] **T-16** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
   pass. Record the output summary as evidence.
   Covers: all · Done when: every automated command passes (`COVERAGE OK`, `E2E PASSED`) and both journeys show what
   they describe.
-  > ⛔ 2026-10-17 01:12 — automated part done, the two user journeys are not: they need a signed-in admin and student on the iOS simulator (email-code/Google sign-in), which this session cannot do. Passed: `node .specs/scripts/run-related-tests.mjs 033` (RELATED TESTS PASSED: backend, mobile, classes, notifications), `node .specs/scripts/check-coverage.mjs 033` (COVERAGE OK, 27 files), `node .specs/scripts/run-e2e.mjs 033` (E2E PASSED, 75 tests in classes.e2e-spec), `npm run prisma:migrate:deploy --workspace apps/backend` (no pending migrations), `npx turbo run lint check-types` for classes, notifications, backend and mobile (16 tasks ok), `npx turbo run build` for classes, notifications and backend (7 tasks ok). Unblocks: run "Cancel a class" and "Other roles and a started class" from the Verification Plan and confirm what they describe.
-  > ⛔ 2026-10-17 15:46 — rerun after the amendment (T-17–T-19): related tests passed (backend, mobile, classes, notifications), COVERAGE OK in 29 files, E2E PASSED, lint and check-types ok (16 tasks), build ok (7 tasks). Still pending: the three journeys of the Verification Plan ("Class tools", "Cancel a class", "Other roles and a started class"), which need the iOS simulator with a signed-in admin and student.
+  > ✅ 2026-10-17 16:22 — every automated command passes: `node .specs/scripts/run-related-tests.mjs 033` (RELATED TESTS PASSED: backend, mobile, classes, notifications), `node .specs/scripts/check-coverage.mjs 033` (COVERAGE OK, 29 files), `node .specs/scripts/run-e2e.mjs 033` (E2E PASSED), `npm run prisma:migrate:deploy --workspace apps/backend` (no pending migrations), `npx turbo run lint check-types` for classes, notifications, backend and mobile (ok), `npx turbo run build` for classes, notifications and backend (7 tasks ok). The user journeys (class tools, cancel a class, other roles and a started class) were run by the user on the simulator, who reported that everything works; the cancelled banner was then changed to carry the reason (T-22) at their request, and its look was confirmed from their screenshot; deviations: the journeys were not driven by this session
 
 ## Verification Plan
 

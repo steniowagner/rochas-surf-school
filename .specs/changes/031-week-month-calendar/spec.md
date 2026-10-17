@@ -2,7 +2,7 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: in-review
+status: changes-requested
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
@@ -584,3 +584,43 @@ title"; Memory Impact (`product.md`) notes the removal. Task T-11 added. Logged 
 
 - The test "shows another day's cards and count" (`classes-week.screen.test.tsx`) still says "count" although T-11 removed the count; rename it when touching the file.
 - `useVisibleWeeksClasses` mounts cached weeks refetching in the background (no `staleTime` in the app's `QueryClient`), as T-05 notes; it's the spec 030 behavior and D-04 accepts it.
+
+### Round 2 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8 tasks) · design-tokens `check-types` ✅ (`tokens.css` not stale)
+- related tests ✅ 715 passed, 57 suites (apps/mobile) + apps/web whole suite — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` — 15 files; no coverage-ignore, `console.log`, TODO or `eslint-disable` in the diff
+- e2e ✅ `E2E PASSED` (backend skipped, web Playwright 16 passed; no suite applies to the mobile app)
+- ER-12 grep ✅ prints nothing · working tree clean (only the untracked, unrelated `.expo/`)
+- each Expected Result's `Verify by` run alone: every filter selects and passes its tests, except ER-03's month-grid filter (F-01)
+- simulator (iPhone 18 Pro, iOS 27, dev client, local backend), run by the reviewer as the student, light theme, en-US: month view of Oct 2026 (5 rows, Monday-first initials, adjacent days muted, today's 16 in `sun`, one dot per day with classes, selected 20 in a grape circle) → pill → week 19–25 Oct with 20 still selected (grape card, white dot, outlined pill with down chevron) → previous arrow → 13 Oct selected, week 12–18 Oct → pill → month with 13 selected → tap the muted 1 (Nov) → November 2026, 6 rows, 1 Nov selected, still the month view → pill → "26 OCT – 1 NOV" with Sun 1 selected → select 31 Oct, month view, next arrow → 30 Nov (day capped). Not re-run by the reviewer: the admin role and the dark theme (recorded by the executor under round 1's F-03).
+
+**Expected Results**
+
+- ER-01 ✅ — screen test and week-row test; seen on the simulator
+- ER-02 ✅ — `weekCaption` tests (one month, two months, two years, trailing dot); "26 OCT – 1 NOV" seen on the simulator
+- ER-03 ✅ in behavior — week row, month grid (adjacent days included) and screen show one dot per day with classes, `on-color` on the selected week-row day; but its month-grid `Verify by` runs no test (F-01)
+- ER-04 ✅ — pill switches views, caption, label, `expanded`, arrow labels follow the view
+- ER-05 ✅ — selecting a day keeps the view in both views; the list shows that day's cards; re-tapping changes nothing
+- ER-06 ✅ — selection carries across views (23 Oct → 19–25 Oct; 1 Nov → November), also seen on the simulator
+- ER-07 ✅ — 4, 5 and 6 row grids, initials Monday first, adjacent days `ink-3`
+- ER-08 ✅ — 2026-11-01 and 2026-09-28 move the grid without leaving the month view; seen on the simulator
+- ER-09 ✅ — arrows by view; day capped (unit tests and 31 Oct → 30 Nov on the simulator)
+- ER-10 — removed by amendment 1; no "Today" chip or subtitle left in the code, and tests assert their absence
+- ER-11 ✅ — month requests exactly the four other Mondays, not 2026-10-12 again; a failing visible week shows no message; pull refetches every visible week; the selected week's error keeps "Try again"
+- ER-12 ✅ — no imports from `src/modules/`; the range is reported on mount and on change (week and month)
+
+Round 1's findings: F-01 ✅ (Amendment 3 logged, ER-05 and Memory Impact updated), F-02 ✅ (`rounded-card` on the selected week-row day, seen on the simulator), F-03 ✅ (journey recorded by the executor; partly repeated by the reviewer above).
+
+**Findings**
+
+- [ ] **F-01** (tests, ER-03) — ER-03's `Verify by` `npx jest src/components/calendar-month-grid -t "one dot"` selects no test (`Tests: 9 skipped, 9 total`): the month grid's test is named "shows one lagoon dot for a day with classes, including adjacent days", which "one dot" doesn't match. Reproduce: run that command from `apps/mobile`. Expected: it runs and passes the month grid's dot test — rename the test so its name contains "one dot" (e.g. "shows one dot, lagoon, for a day with classes, including adjacent days").
+- [ ] **F-02** (convention) — `useCalendarWeekRow` (`calendar-week-row.hook.ts`) and `useCalendarMonthGrid` (`calendar-month-grid.hook.ts`) type their parameter with an inline `Pick<CalendarWeekRowProps, …>` / `Pick<CalendarMonthGridProps, …>` in the hook file; `.claude/rules/react.md` §1 puts the hook's props (`UseCalendarWeekRowProps`, `UseCalendarMonthGridProps`) in the component's `.types.ts`, as `WeekMonthCalendar` does with `UseWeekMonthCalendarProps` and the other 26 component hooks of the app do. Expected: declare both types in their `.types.ts` and use them in the hooks.
+
+**Notes**
+
+- In "shows no message when another visible week fails" (`classes-week.screen.test.tsx`), the assertion that 2026-10-20 has no dot would hold even if the week loaded, since the served data has no class that day; the hook test "leaves the items of the other weeks when one fails" carries that behavior. Optional: drop or reword the assertion.
+- On the simulator, a "next month" tap sent right after the pill tap (with no pause) was not applied; tapped again, it worked. Injected taps in quick succession, not reproduced by hand — not a finding.
+- `check-spec.mjs` warns that T-04 and T-06 still list the removed ER-10 under Covers; harmless.

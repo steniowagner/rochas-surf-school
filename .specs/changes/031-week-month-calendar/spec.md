@@ -2,7 +2,7 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: in-progress
+status: in-review
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab

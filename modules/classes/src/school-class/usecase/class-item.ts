@@ -8,6 +8,8 @@ export interface ClassItem {
   endsAt: string;
   capacity: number;
   notes: string | null;
+  cancelledAt: string | null;
+  cancellationMessage: string | null;
   location: ClassView["location"];
   instructors: ClassView["instructors"];
 }
@@ -24,6 +26,8 @@ export function toClassItem(view: ClassView): ClassItem {
     endsAt: view.endsAt.toISOString(),
     capacity: view.capacity,
     notes: view.notes,
+    cancelledAt: view.cancelledAt ? view.cancelledAt.toISOString() : null,
+    cancellationMessage: view.cancellationMessage,
     location: { ...view.location },
     instructors: view.instructors
       .map((instructor) => ({ ...instructor }))

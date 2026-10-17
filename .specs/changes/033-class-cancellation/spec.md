@@ -268,13 +268,14 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add `cancelledAt` and `cancellationMessage` to `SchoolClass` (`src/school-class/model/school-class.entity.ts`,
+- [x] **T-01** — Add `cancelledAt` and `cancellationMessage` to `SchoolClass` (`src/school-class/model/school-class.entity.ts`,
   validated with `CLASS_CANCELLATION_MESSAGE_MAX` in `class-limits.ts`), the `cancelled` state and the
   `cancelledAt` parameter to `getClassState` (`class-state.ts`, D-05), and the two fields to `ClassView`
   (`provider/class-view-reader.provider.ts`) and `ClassItem` / `toClassItem` (`usecase/class-item.ts`), with tests in
   `test/school-class/model/` and `test/school-class/usecase/` (the item mapping), and the factories in `test/mock/`.
   Covers: ER-06 · Done when: `npm test --workspace @rochas-surf-school/classes` and
   `npm run check-types --workspace @rochas-surf-school/classes` pass.
+  > ✅ 2026-10-17 00:32 — Added cancelledAt/cancellationMessage to SchoolClass (validated, max 300), the cancelled state and cancelledAt param of getClassState, and the two fields to ClassView and ClassItem/toClassItem; files: `modules/classes/src/school-class/model/class-limits.ts`, `class-state.ts`, `school-class.entity.ts`, `modules/classes/src/school-class/provider/class-view-reader.provider.ts`, `modules/classes/src/school-class/usecase/class-item.ts`, `modules/classes/test/mock/school-class.factory.ts`, `modules/classes/test/school-class/model/class-state.test.ts`, `school-class.entity.test.ts`, `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npm test` in modules/classes (248 passed) and `npm run check-types`; deviations: none
 
 - [ ] **T-02** — Add `SchoolClassRepository.cancel(id, at, message): Promise<boolean>`, change `update` to return
   `Promise<boolean>` (D-04, D-06), add `ClassChangeNotifier.classCancelled` (`provider/class-change-notifier.provider.ts`,

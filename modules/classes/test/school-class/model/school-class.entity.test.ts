@@ -31,6 +31,21 @@ describe("SchoolClass", () => {
     expect(buildClass({ notes: null }).notes).toBeNull();
   });
 
+  it("has no cancellation by default and does not share its cancelledAt", () => {
+    expect(buildClass().cancelledAt).toBeNull();
+    expect(buildClass().cancellationMessage).toBeNull();
+
+    const cancelled = buildClass({
+      cancelledAt: new Date("2026-10-14T10:00:00.000Z"),
+      cancellationMessage: "Mar muito grande.",
+    });
+    cancelled.cancelledAt!.setFullYear(1999);
+
+    expect(cancelled.cancelledAt!.toISOString()).toBe("2026-10-14T10:00:00.000Z");
+    expect(cancelled.cancellationMessage).toBe("Mar muito grande.");
+    expect(() => cancelled.validate()).not.toThrow();
+  });
+
   it("does not share its dates or instructors with the caller", () => {
     const item = buildClass();
 
@@ -48,6 +63,7 @@ describe("SchoolClass", () => {
     [{ capacity: 21 }, ["class.capacity.range.value"]],
     [{ capacity: 2.5 }, ["class.capacity.integer"]],
     [{ notes: "n".repeat(301) }, ["class.notes.max.length"]],
+    [{ cancellationMessage: "m".repeat(301) }, ["class.cancellationMessage.max.length"]],
     [{ instructorIds: [] }, ["class.instructors.required"]],
     [{ instructorIds: ["not-a-uuid"] }, ["class.instructors.uuid"]],
     [{ locationId: "not-a-uuid" }, ["class.location.uuid"]],

@@ -275,7 +275,7 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add the ports: `SchoolClassRepository.findById` / `update` (D-05), `SeatCounter`
+- [x] **T-01** — Add the ports: `SchoolClassRepository.findById` / `update` (D-05), `SeatCounter`
   (`src/school-class/provider/seat-counter.provider.ts`, D-06), `ClassAssignmentNotifier.classUnassigned` and
   `ClassChangeNotifier` (`src/school-class/provider/class-change-notifier.provider.ts`, D-08), exported from the
   provider barrel; extend the fakes in `test/mock/` (`fake-school-class.repository.ts`,
@@ -283,6 +283,7 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   barrel) with tests of the repository fake's new methods in `test/school-class/provider/`.
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/classes` and
   `npm run check-types --workspace @rochas-surf-school/classes` pass.
+  > ✅ 2026-10-16 22:46 — added `SchoolClassRepository.findById`/`update`, `SeatCounter`, `ClassChangeNotifier` (`classEdited`), `ClassAssignmentNotifier.classUnassigned`, exported from the provider barrel; fakes extended (`FakeSchoolClassRepository` with `updateCalls`, `FakeClassAssignmentNotifier.unassignedEvents`, new `FakeClassChangeNotifier`, `FakeSeatCounter`); files: `modules/classes/src/school-class/provider/{school-class.repository,class-assignment-notifier.provider,seat-counter.provider,class-change-notifier.provider,index}.ts`, `modules/classes/test/mock/{fake-school-class.repository,fake-class-assignment.notifier,fake-seat.counter,fake-class-change.notifier,index}.ts`, `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`; verified: `npm test` in modules/classes (182 passed), `npm run check-types` clean; deviations: none (the new fakes for the seat counter and change notifier are exercised by T-02's tests)
 
 - [ ] **T-02** — Add `EditClass` (`src/school-class/usecase/edit-class.usecase.ts`, exported from the usecase
   barrel): D-01–D-04 and D-06–D-07 — access, 404, shape, finished, started, location, added instructors, past start,

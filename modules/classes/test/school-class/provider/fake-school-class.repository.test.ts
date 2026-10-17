@@ -36,4 +36,25 @@ describe("FakeSchoolClassRepository", () => {
     await repository.createMany([buildClass()]);
     expect(repository.all).toHaveLength(1);
   });
+
+  it("finds a class by id, or null", async () => {
+    const stored = buildClass();
+    const repository = new FakeSchoolClassRepository([stored]);
+
+    expect(await repository.findById(stored.id)).toBe(stored);
+    expect(await repository.findById("11111111-1111-4111-8111-111111111111")).toBeNull();
+  });
+
+  it("replaces the stored class on update and records the call", async () => {
+    const stored = buildClass();
+    const other = buildClass();
+    const repository = new FakeSchoolClassRepository([stored, other]);
+    const edited = stored.clone({ capacity: 5 });
+
+    await repository.update(edited);
+
+    expect(repository.updateCalls).toEqual([edited]);
+    expect((await repository.findById(stored.id))?.capacity).toBe(5);
+    expect(await repository.findById(other.id)).toBe(other);
+  });
 });

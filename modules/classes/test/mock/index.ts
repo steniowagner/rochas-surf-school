@@ -6,3 +6,5 @@ export * from "./fake-class-assignment.notifier";
 export * from "./fake-clock.provider";
 export * from "./school-class.factory";
 export * from "./fake-class-view.reader";
+export * from "./fake-class-change.notifier";
+export * from "./fake-seat.counter";

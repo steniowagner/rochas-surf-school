@@ -6,6 +6,14 @@ export interface ClassAssigned {
   discipline: ClassDiscipline;
 }
 
+export interface ClassUnassigned {
+  instructorIds: string[];
+  classId: string;
+  discipline: ClassDiscipline;
+  startsAt: Date;
+}
+
 export interface ClassAssignmentNotifier {
   classAssigned(event: ClassAssigned): Promise<void>;
+  classUnassigned(event: ClassUnassigned): Promise<void>;
 }

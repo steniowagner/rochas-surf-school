@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type {
   ClassAssigned,
   ClassAssignmentNotifier,
+  ClassUnassigned,
 } from '@rochas-surf-school/classes';
 import { Notify } from '@rochas-surf-school/notifications';
 import { ExpoPushProvider } from './expo.push.js';
@@ -45,6 +46,26 @@ export class NotificationsClassAssignmentNotifier implements ClassAssignmentNoti
     } catch (error) {
       this.logger.error(
         `Could not notify class.assigned to ${instructorIds.length} instructor(s)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async classUnassigned({
+    instructorIds,
+    classId,
+    discipline,
+    startsAt,
+  }: ClassUnassigned): Promise<void> {
+    try {
+      await this.notify.execute({
+        userIds: instructorIds,
+        type: 'class.unassigned',
+        params: { classId, discipline, startsAt: startsAt.toISOString() },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify class.unassigned to ${instructorIds.length} instructor(s)`,
         error instanceof Error ? error.stack : String(error),
       );
     }

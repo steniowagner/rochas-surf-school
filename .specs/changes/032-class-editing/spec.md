@@ -312,12 +312,13 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
   passes from `apps/backend`.
   > ✅ 2026-10-16 22:48 — added the `class.edited` / `class.unassigned` catalog entries in pt-BR, es and en, with the start formatted by hand in Fortaleza (fixed UTC-3, no Intl; `dd/MM` or `MM/dd`, `HH:mm`), and `classId` in the push data when the params carry a string; files: `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/expo.push.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`, `apps/backend/src/modules/notifications/expo.push.spec.ts`; verified: `npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/expo.push.spec.ts` (29 passed), tsc and eslint clean; deviations: none
 
-- [ ] **T-05** — Add `classUnassigned` to `NotificationsClassAssignmentNotifier` and the new
+- [x] **T-05** — Add `classUnassigned` to `NotificationsClassAssignmentNotifier` and the new
   `NotificationsClassChangeNotifier` (`src/modules/notifications/notifications.class-change-notifier.ts`), both
   logging and swallowing errors (D-08), provided and exported by `notifications.module.ts`, with their specs.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-07 · Done when: `npx vitest run src/modules/notifications/notifications.class-assignment-notifier.spec.ts src/modules/notifications/notifications.class-change-notifier.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-16 22:48 — added `classUnassigned` to `NotificationsClassAssignmentNotifier` and the new `NotificationsClassChangeNotifier` (both run `Notify`, send `startsAt` as ISO text, log and swallow every error), provided and exported by `NotificationsModule`; files: `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-assignment-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.module.ts`; verified: `npx vitest run src/modules/notifications` from apps/backend (14 files, 70 passed), no tsc errors in notifications; deviations: none
 
 - [ ] **T-06** — Implement `findById` and `update` (one `$transaction`: the class row, then its `class_instructors`
   replaced) in `src/modules/classes/school-class.prisma.ts`, and add `NoEnrolmentSeatCounter`

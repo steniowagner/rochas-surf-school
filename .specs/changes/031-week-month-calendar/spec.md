@@ -2,10 +2,11 @@
 id: "031"
 slug: week-month-calendar
 title: Week and month calendar on the classes screen
-status: in-review
+status: accepted
 created: 2026-10-16
 started: 2026-10-16
 base_commit: 8b546cef26995f5b746fef96a41b02b3cf6a41ab
+reviewed_commit: 3eb7201ad181b8e4ee6c0335138b35c5122ef6b6
 fronts: [mobile]
 depends_on: []
 ---
@@ -626,3 +627,41 @@ Round 1's findings: F-01 ✅ (Amendment 3 logged, ER-05 and Memory Impact update
 - In "shows no message when another visible week fails" (`classes-week.screen.test.tsx`), the assertion that 2026-10-20 has no dot would hold even if the week loaded, since the served data has no class that day; the hook test "leaves the items of the other weeks when one fails" carries that behavior. Optional: drop or reword the assertion.
 - On the simulator, a "next month" tap sent right after the pill tap (with no pause) was not applied; tapped again, it worked. Injected taps in quick succession, not reproduced by hand — not a finding.
 - `check-spec.mjs` warns that T-04 and T-06 still list the removed ER-10 under Covers; harmless.
+
+### Round 3 — 2026-10-16 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8 tasks) · design-tokens `check-types` ✅ (`tokens.css` not stale)
+- related tests ✅ 715 passed, 57 suites (apps/mobile) + apps/web whole suite (22 passed) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` — 15 files; no coverage-ignore, `console.log`, TODO or `eslint-disable` in the diff
+- e2e ✅ `E2E PASSED` (backend skipped, web Playwright 16 passed; no suite applies to the mobile app)
+- ER-12 grep ✅ prints nothing · working tree clean (only the untracked, unrelated `.expo/`)
+- each Expected Result's `Verify by` run alone from `apps/mobile`: all 18 filters select at least one test and pass (ER-03's month-grid filter now runs 1 test)
+- simulator: not repeated. Since round 2, whose reviewer ran the student journey on the iOS simulator (and the executor the admin journey, light and dark), the code changed only by a test rename and two hook prop types moved to `.types.ts` (`git diff f194a21..HEAD -- apps/`): nothing that runs in the app changed
+
+**Expected Results**
+
+- ER-01 ✅ — "opens on the week view" (screen) and "only the selected day has a background" (week row); seen on the simulator in round 2
+- ER-02 ✅ — `weekCaption`: one month, two months, two years, pt-BR, the trailing dot dropped
+- ER-03 ✅ — one dot per day with classes in the week row, the month grid (adjacent days included, `lagoon`) and the screen; `on-color` on the selected week-row day
+- ER-04 ✅ — the pill switches views, caption, label, `expanded`, the arrows' labels follow the view
+- ER-05 ✅ — selecting a day keeps the view in both views, re-tapping changes nothing, the list shows that day's cards
+- ER-06 ✅ — 23 Oct → week 19–25 Oct; 1 Nov from "26 OCT – 1 NOV" → November; a day picked with the arrows carries across
+- ER-07 ✅ — 4, 5 and 6 row grids, initials Monday first, adjacent days `ink-3`, month days `ink`
+- ER-08 ✅ — 2026-11-01 and 2026-09-28 move the grid without leaving the month view
+- ER-09 ✅ — the arrows by view; the day capped (31 Jan → 28 Feb, 31 Mar → 30 Apr, 2027-03-31 → 28 Feb)
+- ER-10 — removed by amendment 1; no "Today" chip or subtitle left in the code, tests assert their absence
+- ER-11 ✅ — the month requests the four other Mondays and not 2026-10-12 again; a failing visible week shows no message; pull refetches every visible week; the selected week's error keeps "Try again"; the hook test covers the failed week, the cache and `refetch`
+- ER-12 ✅ — no imports from `src/modules/`; tests render the components with props only; the range reported on mount and on change
+
+Round 2's findings: F-01 ✅ (`-t "one dot"` on the month grid runs and passes its dot test), F-02 ✅ (`UseCalendarWeekRowProps` / `UseCalendarMonthGridProps` in the `.types.ts` files, used by the hooks).
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Memory Impact (for `spec-finish`): besides the sections it names, `technical-context.md` → Applications → `apps/mobile` → Dates still says weeks are `src/modules/classes/utils/week.ts` with "the relative week, the week caption, weekday names", and that `calendar.ts` holds the calendar helpers. After this spec the general helpers (week arithmetic, captions, weekday names and initials, month grids) are in `src/utils/calendar-dates.ts`, the relative week is gone, and only the Fortaleza and class helpers stay in the classes module — update that bullet too.
+- Round 2's optional note on "shows no message when another visible week fails" (the 2026-10-20 dot assertion holds even if that week loaded) still stands.

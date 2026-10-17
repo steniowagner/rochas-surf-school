@@ -67,6 +67,20 @@ describe("Notification", () => {
     },
   );
 
+  it("accepts a class.cancelled notification with the class, its start and the message", () => {
+    const params = {
+      classId: "9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47",
+      discipline: "surf",
+      startsAt: "2026-10-18T11:00:00.000Z",
+      message: "Mar muito grande.",
+    };
+    const notification = build({ type: "class.cancelled", params });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe("class.cancelled");
+    expect(notification.params).toEqual(params);
+  });
+
   it("rejects a missing or invalid user id", () => {
     expect(messagesOf(() => build({ userId: "" }).validate())).toContain(
       "notification.userId.required",

@@ -302,9 +302,10 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-05** — Add `class.cancelled` to `NOTIFICATION_TYPES` (`src/notification/model/notification.entity.ts`)
+- [x] **T-05** — Add `class.cancelled` to `NOTIFICATION_TYPES` (`src/notification/model/notification.entity.ts`)
   with a case in `test/notification/model/notification.entity.test.ts`.
   Covers: ER-07, ER-08 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes.
+  > ✅ 2026-10-17 00:34 — Added class.cancelled to NOTIFICATION_TYPES with an entity test; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npm test --workspace @rochas-surf-school/notifications` (94 passed), check-types; deviations: none
 
 ### Backend (`apps/backend`)
 

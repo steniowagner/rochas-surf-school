@@ -16,6 +16,7 @@ export const NOTIFICATION_TYPES = [
   "class.assigned",
   "class.edited",
   "class.unassigned",
+  "class.cancelled",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

@@ -2,7 +2,7 @@
 id: "032"
 slug: class-editing
 title: "Editing a class"
-status: in-progress
+status: in-review
 created: 2026-10-16
 started: 2026-10-16
 base_commit: eddd36f3a935ddb68e819c1a65d0f4a17ffe6197
@@ -378,10 +378,11 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
 
 ### Verification
 
-- [ ] **T-13** — Run every command in the Verification Plan from the repo root and follow its user journey; all
+- [x] **T-13** — Run every command in the Verification Plan from the repo root and follow its user journey; all
   pass. Record the output summary as evidence.
   Covers: all · Done when: every automated command passes (`COVERAGE OK`, `E2E PASSED`) and both journeys show what
   they describe.
+  > ✅ 2026-10-16 23:16 — ran the Verification Plan from the repo root: `node .specs/scripts/check-coverage.mjs 032` → COVERAGE OK (26 files; the first run flagged 4 mobile files, fixed by commit 'cover every changed line…' with extra tests and by dropping unreachable default parameters); `node .specs/scripts/run-e2e.mjs 032` → E2E PASSED (backend: 15 files, 405 tests); `npx turbo run lint check-types --filter=classes --filter=notifications --filter=backend --filter=mobile` → 16 tasks successful; `npx turbo run build` for classes, notifications and backend → 7 tasks successful; `node .specs/scripts/run-related-tests.mjs 032` → backend, modules/classes (243) and modules/notifications (92) pass; apps/mobile 856 passed and 7 failed, all in the three existing tab-navigation suites (`admin-tabs`, `instructor-tabs`, `student-tabs`.navigation.test.tsx), which build a class that starts one hour from the wall clock — they fail when the run is after 23:00 in Fortaleza (the class falls on the next day, outside the day the week view shows) and pass 16/16 with the clock fixed at midday (checked with temporary copies, since deleted); they were not touched by this spec. ⚠ user journeys (iOS simulator) NOT driven by me: they need the backend and an admin account signed in on a fresh native build. What to do and see — (1) as an approved admin open Aulas, then a class of tomorrow: the pencil shows in the header; press it: "Editar aula" opens with the class's values, its time chip selected and "Salvar e notificar" disabled; pick the day after and another time chip: the button enables; press it: "Alterações salvas", back on the details with the new day and time, and on Aulas the class is on the new day; a finished class shows no pencil; as an instructor no class shows a pencil. (2) create a class today starting a minute from now; when it shows "Em andamento" press the pencil: the "A aula já começou" banner and only the instructors show; add an instructor and save: "Alterações salvas" and the details list both. The same behaviors are covered by the screen tests and the e2e suite; deviations: journeys left to the user
 
 ## Verification Plan
 

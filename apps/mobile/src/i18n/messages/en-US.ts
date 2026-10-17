@@ -469,6 +469,12 @@ const messages = {
       finished: "This class has finished and can't be cancelled.",
     },
   },
+  classTools: {
+    title: "Class tools",
+    edit: "Edit class",
+    notify: "Notify students and instructors",
+    cancel: "Cancel class",
+  },
   editClass: {
     title: "Edit class",
     day: {

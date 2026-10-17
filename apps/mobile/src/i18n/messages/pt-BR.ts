@@ -469,6 +469,12 @@ const messages: Messages = {
       finished: "Esta aula já terminou e não pode mais ser cancelada.",
     },
   },
+  classTools: {
+    title: "Ferramentas da aula",
+    edit: "Editar aula",
+    notify: "Avisar alunos e instrutores",
+    cancel: "Cancelar aula",
+  },
   editClass: {
     title: "Editar aula",
     day: {

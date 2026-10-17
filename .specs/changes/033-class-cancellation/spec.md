@@ -413,10 +413,11 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   case proving "Editar aula" has no "Cancelar aula" button, and `npx tsc --noEmit` passes from `apps/mobile`.
   > ✅ 2026-10-17 15:40 — Removed the 'Cancelar aula' button, CancelClassSheet and the cancel request/error handling from EditClassScreen and its hook, kept the cancelled state and the class.cancelled save toast, dropped the editClass.cancel copy, moved the cancel test cases out (they return in T-19) and added a case proving the editor has no Cancel class button; files: `apps/mobile/src/modules/classes/screens/edit-class.screen.tsx`, `edit-class.screen.hook.ts`, `edit-class.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/screens/edit-class` (43 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
-- [ ] **T-18** (added by amendment) — Add `ClassToolsSheet` (`src/modules/classes/components/class-tools-sheet/`:
+- [x] **T-18** (added by amendment) — Add `ClassToolsSheet` (`src/modules/classes/components/class-tools-sheet/`:
   component, hook, types, index; D-18) with the `classTools.*` copy in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`,
   and its component test (title, the three rows, each callback, the notify row doing nothing).
   Covers: ER-15 · Done when: `npx jest src/modules/classes/components/class-tools-sheet` passes from `apps/mobile`.
+  > ✅ 2026-10-17 15:41 — Added ClassToolsSheet (BottomModal 'Ferramentas da aula' with the edit, notify and cancel rows; edit and cancel close the sheet first, the notify row has no action) and the classTools.* copy in the three locales; files: `apps/mobile/src/modules/classes/components/class-tools-sheet/{index.ts,class-tools-sheet.component.tsx,class-tools-sheet.hook.ts,class-tools-sheet.types.ts,class-tools-sheet.component.test.tsx}`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/components/class-tools-sheet src/i18n` (11 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
 - [ ] **T-19** (added by amendment) — Wire the tools into `ClassDetailsScreen`
   (`src/modules/classes/screens/class-details.screen.tsx` and its hook, D-11, D-12, D-15, D-18): the tools button

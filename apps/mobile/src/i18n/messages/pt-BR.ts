@@ -320,7 +320,7 @@ const messages: Messages = {
     loadError: "Não foi possível carregar a aula.",
     notFound: "Esta aula não existe mais.",
     retry: "Tentar novamente",
-    edit: "Editar aula",
+    tools: "Ferramentas da aula",
   },
   editProfile: {
     title: "Editar perfil",

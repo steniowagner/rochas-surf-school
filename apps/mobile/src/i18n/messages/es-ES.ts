@@ -327,7 +327,7 @@ const messages: Messages = {
     loadError: "No se pudo cargar la clase.",
     notFound: "Esta clase ya no existe.",
     retry: "Intentar de nuevo",
-    edit: "Editar clase",
+    tools: "Herramientas de la clase",
   },
   editProfile: {
     title: "Editar perfil",

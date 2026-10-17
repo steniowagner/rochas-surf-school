@@ -419,7 +419,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   Covers: ER-15 · Done when: `npx jest src/modules/classes/components/class-tools-sheet` passes from `apps/mobile`.
   > ✅ 2026-10-17 15:41 — Added ClassToolsSheet (BottomModal 'Ferramentas da aula' with the edit, notify and cancel rows; edit and cancel close the sheet first, the notify row has no action) and the classTools.* copy in the three locales; files: `apps/mobile/src/modules/classes/components/class-tools-sheet/{index.ts,class-tools-sheet.component.tsx,class-tools-sheet.hook.ts,class-tools-sheet.types.ts,class-tools-sheet.component.test.tsx}`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/components/class-tools-sheet src/i18n` (11 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
-- [ ] **T-19** (added by amendment) — Wire the tools into `ClassDetailsScreen`
+- [x] **T-19** (added by amendment) — Wire the tools into `ClassDetailsScreen`
   (`src/modules/classes/screens/class-details.screen.tsx` and its hook, D-11, D-12, D-15, D-18): the tools button
   replaces the pencil (same place and look with the `construct-outline` icon, label `classDetails.tools`, hidden
   for a finished or cancelled class, while loading, for a missing class and without `canEdit`); it opens
@@ -429,6 +429,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   cases of `class-details.screen.test.tsx` and add the "cancel", "cancelled" and "tools" cases.
   Covers: ER-09, ER-10, ER-12, ER-15 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx`
   passes from `apps/mobile`, with every changed line covered.
+  > ✅ 2026-10-17 15:44 — ClassDetailsScreen: the tools button (construct-outline, label classDetails.tools) replaces the pencil, shown for an admin on a class that is not finished/cancelled (started included) and hidden while loading, for a missing class and for non-admins; it opens ClassToolsSheet (Edit class opens routes.admin.editClass, Notify does nothing, Cancel class opens CancelClassSheet); confirming sends once via useCancelClass, toast, sheet closes and the details stay; D-12 errors (cancelled/finished close the sheet and refetch, 404 toast and back, others toast, session expired nothing); removed the classDetails.edit copy and added classDetails.tools; files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx` (prettier reindented it for the new fragment root), `class-details.screen.hook.ts`, `class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `es-ES.ts`, `en-US.ts`; verified: `npx jest src/modules/classes/screens/class-details` (42 passed), `npx tsc --noEmit`, eslint clean; deviations: none
 
 ### Verification
 

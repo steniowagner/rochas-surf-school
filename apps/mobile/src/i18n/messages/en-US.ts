@@ -320,7 +320,7 @@ const messages = {
     loadError: "Couldn't load the class.",
     notFound: "This class no longer exists.",
     retry: "Try again",
-    edit: "Edit class",
+    tools: "Class tools",
   },
   editProfile: {
     title: "Edit profile",

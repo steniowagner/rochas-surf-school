@@ -2,7 +2,7 @@
 id: "032"
 slug: class-editing
 title: "Editing a class"
-status: in-review
+status: changes-requested
 created: 2026-10-16
 started: 2026-10-16
 base_commit: eddd36f3a935ddb68e819c1a65d0f4a17ffe6197
@@ -446,3 +446,75 @@ that let admins manage classes; cancelling, deleting and the "no instructor" fla
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-16 — changes-requested
+
+**Checks**
+
+- lint ✅ (1 warning, F-03) · type check ✅ · build ✅ (classes, notifications, backend, mobile; build for the first three)
+- related tests ❌ — backend 121 passed, modules/classes 243 passed, modules/notifications 92 passed; apps/mobile 856
+  passed, 7 failed (F-01); rerun red again
+- coverage of the changed lines ✅ `COVERAGE OK` (26 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (15 files, 405 tests) · mobile: both Verification Plan journeys driven in the iOS
+  simulator (a second simulator, signed in as the admin review account, local backend) ✅
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "edits a class that hasn't started", "stores blank notes as none…", "answers 200 and leaves updatedAt
+  untouched…"; use case "edits every field"
+- ER-02 ✅ — e2e "refuses a start in the past", "accepts a start one minute after now"; use case "past" (3)
+- ER-03 ✅ — e2e "on a started class changes only the instructors", "…counts a class starting exactly now as started";
+  use case "started" (13)
+- ER-04 ✅ — e2e "refuses a finished class, also when nothing differs"; use case "finished" (2)
+- ER-05 ✅ — use case "seats taken" (8 refused with `details.seatsTaken`, 8 accepted); `NoEnrolmentSeatCounter` answers 0
+- ER-06 ✅ — e2e access (401/403 both keys), 404 (unknown and non-UUID), every shape key together, `endBeforeStart`,
+  location and added-instructor refusals, kept instructor who is now a student
+- ER-07 ✅ — use case "notifies" (6) and e2e "notifies" (4): stored notifications and fake Expo messages; nothing for the
+  editor, nothing on a no-change save, 200 kept when the push provider fails
+- ER-08 ✅ — push text of D-09 in the three locales, `data.classId` only for the new types; entity accepts both types
+- ER-09 ✅ — simulator: pencil on tomorrow's class and on a started class, none on a finished class, none for a student;
+  tests "pencil" (6) pass, but the command doesn't exit — F-02
+- ER-10 ✅ — simulator: "Edit class" prefilled, own time selected, button disabled; picked Sun 18 and a new 14:00–15:00
+  time, saved: "Changes saved", back on the details with the new day and time, Saturday 3 → 2 classes, Sunday 2 → 3;
+  `edit-class.screen.test.tsx` 39 passed
+- ER-11 ✅ — simulator: the open editor switched to "The class has started" with only the instructors once 23:44 passed;
+  button disabled with the same instructors; added Dev Instructor, saved, the details list both; tests "started" (7)
+- ER-12 ✅ — `class-error.test.ts` + screen "error" tests (34): every D-14 key, refetches, back, button usable again
+- ER-13 ✅ — hook tests "class." (12): instructor and admin open their class details, a student or a push without
+  `classId` goes to `/`, both types invalidate `["classes"]`
+
+**Findings**
+
+- [ ] **F-01** (tests) — the related tests are red: `admin-tabs`, `instructor-tabs` and `student-tabs`
+  `.navigation.test.tsx` (7 tests) build a class starting `Date.now() + 1h`, which from 23:00 in Fortaleza falls on the
+  next day, outside the day the week view shows. The spec didn't touch them, but `run-related-tests.mjs` runs them and
+  the Verification Plan needs `RELATED TESTS PASSED` (T-13's evidence records them failing). Reproduce: run
+  `node .specs/scripts/run-related-tests.mjs 032` between 23:00 and 24:00 America/Fortaleza (or shift the clock: they pass
+  16/16 at 12:00). Expected: green at any hour — fix their clock as `edit-class.screen.test.tsx` does
+  (`jest.useFakeTimers({ now, doNotFake: [...] })`) or build the class within today.
+- [ ] **F-02** (tests) — `class-details.screen.test.tsx` no longer exits when run on its own: ER-09's `Verify by`
+  (`npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "pencil"`) prints 6 passed, then "Jest did not
+  exit one second after the test run has completed" and hangs. The new "pencil › does not show while loading or for a
+  missing class" causes it (alone it hangs; every other test of the file exits; the file at `base_commit` exits, 16
+  passed). Expected: the command exits — clean up what that test leaves running (the never-resolving fetch and its
+  `QueryClient` in `renderWithUnmount`).
+- [ ] **F-03** (convention) — `modules/classes/src/school-class/usecase/edit-class.usecase.ts:19` imports `SchoolClass`
+  without using it: `npm run lint --workspace @rochas-surf-school/classes` reports `no-unused-vars`, the module's only
+  warning. Expected: no warning.
+
+**Notes**
+
+- D-12's own-range exception: moving tomorrow's class to today keeps its own range selectable and selected even when it
+  has already started today, so the button is disabled with no hint (the test "does not allow saving today with a time
+  that has started" encodes it). It follows D-12 to the letter; worth a later look (block the chip, or show the past
+  hint).
+- Copy seen in the simulator: "Suggested from last week's classes" shows when the only chip is the class's own range,
+  and the "New time" sheet says "It's for this batch only" on the edit screen (both reused from Nova aula).
+- "Changes saved" uses the app's single alert style (red, "!"), as Nova aula's "Class created" already does.
+- `edit-class.screen.test.tsx` also doesn't exit when run alone, but `new-class.screen.test.tsx` behaves the same, so it
+  is an existing pattern, not this spec's.
+- The "no connection" screen test only checks that the toast isn't "Changes saved"; the `NetworkError` key itself is
+  covered by `class-error.test.ts`.
+- The journeys changed the local dev database: "Surf 12:00–13:00" of Sat 17 moved to Sun 18 14:00–15:00, and a class
+  "Surf 23:44–23:59" of Fri 16 was created (Dev Admin, then Dev Instructor added).
+- `## Memory Impact` matches what was built.

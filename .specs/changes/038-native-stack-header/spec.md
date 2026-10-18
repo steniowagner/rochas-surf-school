@@ -122,9 +122,10 @@ Expo Router, which stays fixed at the top while only the content scrolls.
   with the tools button only when `showTools`; drop the top inset padding; update the three screens' tests.
   Covers: ER-02 · Done when: `npx jest src/modules/classes/screens` passes with the cases of ER-02.
   > ✅ 2026-10-18 — class details, new class and edit class give `Stack.Screen` their title (`t(...).toLocaleUpperCase()`, since `headerTitleStyle` can't uppercase) and class details its tools button as `headerRight` only when `showTools`; the in-content back/title rows and the top inset padding are gone (edit class's loading/error/cancelled view keeps `pt-3` spacing); tests mock `Stack.Screen`, render its `headerRight`, and assert the title and `headerRight` in the loading, cancelled and no-tools cases; files: `apps/mobile/src/modules/classes/screens/{class-details,new-class,edit-class}.screen.tsx` and their `.test.tsx`; verified: `npx jest src/modules/classes/screens` (4 suites, 200 passed), `tsc --noEmit` and eslint clean; deviations: none
-- [ ] **T-05** — Delete `src/components/ui/back-button` (component, types, index, test) and update the `BackButton`
+- [x] **T-05** — Delete `src/components/ui/back-button` (component, types, index, test) and update the `BackButton`
   rule in `CLAUDE.md` → Rules for apps/mobile as D-01 says.
   Covers: enabling · Done when: `grep -r "back-button" apps/mobile/src` finds nothing and `check-types` passes.
+  > ✅ 2026-10-18 — deleted `BackButton` and rewrote the CLAUDE.md rule; files: `apps/mobile/src/components/ui/back-button/{back-button.component.tsx,back-button.component.test.tsx,back-button.types.ts,index.ts}` (deleted), `CLAUDE.md`; verified: `grep -r back-button apps/mobile/src` empty, `npx tsc --noEmit` clean; deviations: none (`.specs/memory` still mentions it; spec-finish updates it per Memory Impact)
 
 ### Verification
 

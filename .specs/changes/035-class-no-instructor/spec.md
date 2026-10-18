@@ -236,12 +236,25 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   > `PrismaSchoolClassRepository` doesn't implement the two methods until T-06, so the backend type check fails
   > between T-02 and T-06.
 
-- [ ] **T-03** — Add `ReleaseUpcomingClasses` (`src/school-class/usecase/release-upcoming-classes.usecase.ts`,
+- [x] **T-03** — Add `ReleaseUpcomingClasses` (`src/school-class/usecase/release-upcoming-classes.usecase.ts`,
   exported from the usecase barrel; D-01, D-02), with
   `test/school-class/usecase/release-upcoming-classes.usecase.test.ts` (tests named "releases", plus the cases of
   ER-02). Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npx jest test/school-class/usecase/release-upcoming-classes.usecase.test.ts --coverage`
   passes from `modules/classes` with every line of the use case covered.
+  > ✅ 2026-10-18 — following the `module-use-case` skill's pattern (In/Out interfaces, constructor
+  > dependencies, concrete fakes): `ReleaseUpcomingClasses({ userId })` reads `findUpcomingTaughtBy(userId, now)`,
+  > returns `{ 0, 0 }` with no write when empty, else one `removeInstructor` with every id, then one
+  > `classesWithoutInstructor` with the count and the earliest class left with nobody (the repository's order: start,
+  > then id) and `excludeUserIds: [userId]`, swallowing a throwing notifier; a failed write propagates and tells
+  > nobody. The tests were written first and failed (7 failed). Two tests are named "releases" (ER-01's filter):
+  > the ER-02 scenario and the started / finished / starting-now / cancelled classes keeping the person. files:
+  > `modules/classes/src/school-class/usecase/release-upcoming-classes.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`,
+  > `modules/classes/test/school-class/usecase/release-upcoming-classes.usecase.test.ts`; verified:
+  > `npx jest test/school-class/usecase/release-upcoming-classes.usecase.test.ts --coverage` (7 passed, use case
+  > 100% statements / branches / functions / lines), `-t "releases"` (2 passed), `npx tsc --noEmit` (no errors);
+  > deviations: none
 
 ### Notifications module (`modules/notifications`)
 

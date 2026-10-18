@@ -262,6 +262,15 @@ const messages = {
     signOut: "Sign out",
     comingSoon: "Coming soon.",
   },
+  cancellationRules: {
+    sheet: {
+      title: "Cancellation rules",
+      empty: "The school hasn't written this rule yet.",
+      loadError: "Couldn't load the rules.",
+      retry: "Try again",
+      close: "Close",
+    },
+  },
   tabs: {
     agenda: "Schedule",
     myClasses: "My classes",

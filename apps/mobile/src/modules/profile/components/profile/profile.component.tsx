@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LanguageSheet } from "@/components/language-sheet";
 import { ThemeSheet } from "@/components/theme-sheet";
 import { useTheme } from "@/hooks/use-theme";
+import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
 
 import { AboutSheet } from "../about-sheet";
 import { DeleteAccountSheet } from "../delete-account-sheet";
@@ -33,7 +34,6 @@ export function Profile() {
     openSchoolRules,
     openPrivacyPolicy,
     openTermsOfUse,
-    showComingSoon,
     sheet,
     openSheet,
     closeSheet,
@@ -111,7 +111,7 @@ export function Profile() {
           <ProfileRow
             icon="document-text-outline"
             label={t("profile.cancellationRules")}
-            onPress={showComingSoon}
+            onPress={() => openSheet("cancellationRules")}
           />
           <ProfileRow
             icon="information-circle-outline"
@@ -156,6 +156,10 @@ export function Profile() {
 
       <ThemeSheet visible={sheet === "theme"} onClose={closeSheet} />
       <LanguageSheet visible={sheet === "language"} onClose={closeSheet} />
+      <CancellationRulesSheet
+        visible={sheet === "cancellationRules"}
+        onClose={closeSheet}
+      />
       <AboutSheet visible={sheet === "about"} onClose={closeSheet} />
       <DeleteAccountSheet
         visible={sheet === "deleteAccount"}

@@ -436,7 +436,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-09** — Add the `cancellation-rules` module and the Profile sheet (D-13a, D-14): `src/modules/cancellation-rules/hooks/`
+- [x] **T-09** — Add the `cancellation-rules` module and the Profile sheet (D-13a, D-14): `src/modules/cancellation-rules/hooks/`
   (`useCancellationRules` — `["cancellation-rules"]`, `GET /cancellation-rules`, optional `enabled`;
   `useSaveCancellationRule` — `apiPut`, no retry, writes the answer to the cache) with tests,
   `components/cancellation-rules-sheet/` (component, hook, types, index, test), the `cancellationRules` copy in
@@ -445,6 +445,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-12 · Done when: `npx jest src/modules/cancellation-rules src/modules/profile` passes from `apps/mobile`.
+  > ✅ 2026-10-18 02:58 — added the mobile cancellation-rules module (types, useCancellationRules, useSaveCancellationRule, test utils), the CancellationRulesSheet and the Profile row opening it; files: `apps/mobile/src/modules/cancellation-rules/{cancellation-rules.types.ts,cancellation-rules.test-utils.tsx}`, `.../hooks/{use-cancellation-rules,use-save-cancellation-rule}.hook.ts` (+ tests), `.../components/cancellation-rules-sheet/{index.ts,*.component.tsx,*.hook.ts,*.types.ts,*.component.test.tsx}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts` (cancellationRules.sheet), `apps/mobile/src/modules/profile/components/profile/{profile.component.tsx,profile.hook.ts,profile.types.ts}`, `apps/mobile/src/modules/profile/screens/profile.screen.test.tsx`; verified: `npx jest src/modules/cancellation-rules src/modules/profile` (10 suites, 74 tests passed), `npm run check-types` and eslint clean from apps/mobile; deviations: the sheet's card shows the discipline name from the existing `newClass.discipline.*` keys; the Profile's 'coming soon' toast for this row (and its `showComingSoon`) is gone, `profile.comingSoon` stays for the edit-profile photo
 
 - [ ] **T-10** — Add the admin's rules screen (D-13b, D-14): `src/modules/cancellation-rules/screens/cancellation-rules.screen.tsx`
   (+ its hook and test), the route `src/app/(private)/admin/cancellation-rules.tsx`, `routes.admin.cancellationRules`

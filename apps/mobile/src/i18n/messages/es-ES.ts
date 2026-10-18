@@ -269,6 +269,15 @@ const messages: Messages = {
     signOut: "Cerrar sesión",
     comingSoon: "Próximamente.",
   },
+  cancellationRules: {
+    sheet: {
+      title: "Reglas de cancelación",
+      empty: "La escuela aún no ha escrito esta regla.",
+      loadError: "No se pudieron cargar las reglas.",
+      retry: "Intentar de nuevo",
+      close: "Cerrar",
+    },
+  },
   tabs: {
     agenda: "Agenda",
     myClasses: "Mis clases",

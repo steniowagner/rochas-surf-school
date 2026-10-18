@@ -159,16 +159,34 @@ describe("ProfileScreen", () => {
     expect(router.push).toHaveBeenNthCalledWith(3, paths.schoolRules);
   });
 
-  it("says coming soon for the cancellation rules and stays on the profile", async () => {
-    const user = await open();
+  it.each(["student", "instructor", "admin"] as const)(
+    "shows both cancellation rules in a sheet to a %s and closes it",
+    async (role) => {
+      jest.mocked(api.apiGet).mockResolvedValue({
+        surf: "Até 12 horas antes do início.",
+        skate: null,
+      });
+      const user = await open({ role });
 
-    await user.press(
-      screen.getByRole("button", { name: "Cancellation rules" }),
-    );
+      await user.press(
+        screen.getByRole("button", { name: "Cancellation rules" }),
+      );
 
-    expect(await screen.findByText("Coming soon.")).toBeOnTheScreen();
-    expect(router.push).not.toHaveBeenCalled();
-  });
+      expect(
+        await screen.findByText("Até 12 horas antes do início."),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText("The school hasn't written this rule yet."),
+      ).toBeOnTheScreen();
+      expect(api.apiGet).toHaveBeenCalledWith("/cancellation-rules", {
+        authenticated: true,
+      });
+      expect(screen.queryByText("Coming soon.")).toBeNull();
+      expect(router.push).not.toHaveBeenCalled();
+
+      await user.press(screen.getAllByRole("button", { name: "Close" })[0]);
+    },
+  );
 
   describe("about and web pages", () => {
     it("opens the About sheet with the mocked content and no legal links", async () => {

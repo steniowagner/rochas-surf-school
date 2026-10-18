@@ -543,8 +543,9 @@ hidden while the site's address isn't configured), "Sair" (a confirmation sheet,
 sign-in shows the Account deleted screen). Theme, language and pushes are kept on the phone and survive signing
 out. Turning pushes off removes the phone from the account's pushes at once (retried at the next launch or
 sign-in if it fails); turning them on registers it again, and a refused OS permission keeps the switch off with a
-message. Deleting the account doesn't yet refuse the only admin, nor cancel seats, enrolments or class
-assignments (none exist yet). All copy is in pt-BR, es-ES and en-US.
+message. Deleting the account takes the person off their classes that haven't started (spec 035, below); it
+doesn't yet refuse the only admin, nor cancel seats or enrolments (none exist yet). All copy is in pt-BR, es-ES
+and en-US.
 
 **People directory** (spec `027-people-directory`) — every approved member can now see the school's other
 approved members on one "Pessoas" screen, the same for the three roles: a student opens it from the Escola tab; an
@@ -669,6 +670,19 @@ deletes; tapping the push opens the Aulas tab, and one received with the app ope
 Notifications sent earlier about the class stay; opening one shows "Esta aula não existe mais.". All copy is in
 pt-BR, es-ES and en-US.
 
+**Classes left without an instructor** (spec `035-class-no-instructor`) — when an instructor or an admin deletes
+their account, they are first taken off every class of theirs that hasn't started and isn't cancelled; classes
+under way, finished or cancelled keep them, and the deletion fails as a whole (the account stays approved) if
+that step fails. A class left with nobody stays scheduled and is flagged "Sem instrutor" for admins while it
+hasn't started: a warn chip on its card in the admin's Aulas tab, and on its details a "Sem instrutor" / "Atribua
+um instrutor antes da aula." banner that opens "Editar aula" — assigning an instructor there clears the flag. For
+every role, a card with no instructor says "Sem instrutor" in its footer and the details say "Sem instrutor
+atribuído". Every other approved admin is told once per deletion ("Aula sem instrutor", or "N aulas ficaram sem
+instrutor. A próxima: …" for several), naming the earliest such class; tapping the push opens that class's
+details, and one received with the app open reloads the classes. The person who leaves and the instructors who
+stay on a class aren't told. Reactivating the account doesn't restore the assignments. All copy is in pt-BR,
+es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -706,8 +720,8 @@ Active specs: none.
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, the cancellation rules screen ("coming soon"), real data in the
   About sheet (mocked), keeping the theme, language and push preferences on the account or syncing them across
-  phones, and, when a person deletes their account, refusing the only admin and cancelling their seats,
-  enrolments and class assignments.
+  phones, and, when a person deletes their account, refusing the only admin and cancelling their seats and
+  pending enrolments (with enrolment).
 - On the People directory (spec 027): profile photos (initials only), class counts and the "Acesso total" /
   "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", promoting, demoting or
   removing someone from their sheet, searching by email, the real count on the home rows (a fixed "9 na
@@ -716,12 +730,11 @@ Active specs: none.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - After creating classes (spec 028): the map, address suggestions, editing and archiving of locations and the
-  location-change notification (the class-locations spec); the "no instructor" flag (spec 035); the instructors' "Surf" / "Skate" subtitles and photos
+  location-change notification (the class-locations spec); the instructors' "Surf" / "Skate" subtitles and photos
   in the picker; a real count on the "Criar aulas" row; and "My classes" for admins who teach.
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
   class highlighted, and a marker on the cards of one's own classes; seats taken, the occupancy bar, "Sem vagas" /
-  "Turma cheia", the list of students and the request / waiting-list button (with enrolment); the "Sem instrutor"
-  flag; the cancellation-rule and school-rules rows, the map, "Direções"
+  "Turma cheia", the list of students and the request / waiting-list button (with enrolment); the cancellation-rule and school-rules rows, the map, "Direções"
   and the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's sport filter and
   notifications bell; opening a person's sheet from the details, and profile photos (initials only).
 - On editing a class (spec 032): telling its students and the people with pending requests, and warning the
@@ -735,6 +748,9 @@ Active specs: none.
 - On deleting a class (spec 034): counting real seats and pending requests, and guests (with enrolment — until
   then a class is always empty); the seat and pending-request counts on the confirmation sheet; deleting several
   classes at once; restoring a deleted class or keeping any record of it.
+- On classes left without an instructor (spec 035): releasing the classes when an instructor is demoted to
+  student or an account is removed (their specs reuse the same step); telling the students of a class that lost
+  its instructor (with enrolment); a list or filter of the classes without an instructor.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.

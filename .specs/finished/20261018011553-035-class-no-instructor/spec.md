@@ -2,13 +2,14 @@
 id: "035"
 slug: class-no-instructor
 title: "Classes left without an instructor"
-status: accepted
+status: finished
 created: 2026-10-17
 started: 2026-10-18
 base_commit: 5e736309fb305a7219c912592dd78af63b0f0e32
 reviewed_commit: cc15a4e442dc7ed25f15be8f2fecd14badfbecd5
 fronts: [classes, notifications, auth, backend, mobile]
 depends_on: []
+finished: 2026-10-18
 ---
 
 # 035 — Classes left without an instructor

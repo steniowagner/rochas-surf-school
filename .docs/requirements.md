@@ -234,6 +234,8 @@ After their registration is approved, and before using the rest of the app, user
 
 #### Deleting an account
 
+_Implemented in spec 035-class-no-instructor (cancelling the user's class assignments in classes that haven't started)._
+
 Users SHALL be able to delete their account after a confirmation step. Deleting SHALL close the account immediately and cancel the user's upcoming class seats, pending requests and class assignments.
 
 - _Confirmed deletion:_ When a user confirms they want to delete their account, then their account is closed and they are signed out, and their upcoming seats, pending requests and class assignments are cancelled.
@@ -740,6 +742,8 @@ Admins SHALL be able to assign instructors and admins to teach a class, and remo
 - _Instructor removed:_ When an admin removes an instructor from a class, then the instructor is notified.
 
 #### Class without an instructor
+
+_Implemented in spec 035-class-no-instructor (when the instructor deletes their account; demotion and removal come with their specs)._
 
 When a class that hasn't started loses its only instructor, because that instructor was demoted or removed or deleted their account, the class SHALL stay scheduled and be flagged as having no instructor, and admins SHALL be notified.
 

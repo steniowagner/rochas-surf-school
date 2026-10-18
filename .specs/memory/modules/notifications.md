@@ -31,6 +31,9 @@ What the person is told, and how it reaches them.
     start and the admin's message (`message`, as written after trimming) when there is one.
   - `class.deleted` — a class the person taught was deleted; details: its discipline and its start (no class id:
     the class no longer exists).
+  - `class.noInstructor` — an account deletion left classes that haven't started with no instructor; details:
+    how many (`count`) and the earliest of them — its id, its discipline and its start (`startsAt`, ISO UTC). One
+    per approved admin and deletion.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -43,6 +46,7 @@ What the person is told, and how it reaches them.
   | `class.unassigned` | Removed from a class | You're no longer teaching the {discipline} class on {MM/dd} at {HH:mm}. |
   | `class.cancelled` | Class cancelled | Your {discipline} class on {MM/dd} at {HH:mm} was cancelled. / with a message: {discipline}, {MM/dd} at {HH:mm}: {message} |
   | `class.deleted` | Class deleted | Your {discipline} class on {MM/dd} at {HH:mm} was deleted. |
+  | `class.noInstructor` | Class without an instructor / Classes without an instructor | The {discipline} class on {MM/dd} at {HH:mm} has no instructor now. / {count} classes have no instructor now. The next one: {discipline}, {MM/dd} at {HH:mm}. |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
@@ -57,13 +61,20 @@ What the person is told, and how it reaches them.
   with a message, "{discipline}, {dd/MM} às {HH:mm}: {message}", es "Clase cancelada" / "La clase de {discipline}
   del {dd/MM} a las {HH:mm} fue cancelada." or "{discipline}, {dd/MM} a las {HH:mm}: {message}" (a blank message
   counts as none); `class.deleted`: pt-BR "Aula excluída" / "A aula de {discipline} de {dd/MM} às {HH:mm} foi
-  excluída.", es "Clase eliminada" / "La clase de {discipline} del {dd/MM} a las {HH:mm} fue eliminada.". The start is written in America/Fortaleza time, the same on every machine.
+  excluída.", es "Clase eliminada" / "La clase de {discipline} del {dd/MM} a las {HH:mm} fue eliminada.";
+  `class.noInstructor`: pt-BR "Aula sem instrutor" / "A aula de {discipline} de {dd/MM} às {HH:mm} ficou sem
+  instrutor." or "Aulas sem instrutor" / "{count} aulas ficaram sem instrutor. A próxima: {discipline}, {dd/MM} às
+  {HH:mm}.", es "Clase sin instructor" / "La clase de {discipline} del {dd/MM} a las {HH:mm} se quedó sin
+  instructor." or "Clases sin instructor" / "{count} clases se quedaron sin instructor. La próxima: {discipline},
+  {dd/MM} a las {HH:mm}." (a missing count counts as one). The start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
   with the app open reloads the classes of the weeks it shows (a `class.deleted` one, every class shown). Tapping a `class.edited`, `class.unassigned` or
   `class.cancelled` push
   reloads the account and opens that class's details as an instructor or an admin (else the home, also when the
-  push carries no class); one received with the app open reloads every class shown (weeks and details).
+  push carries no class); one received with the app open reloads every class shown (weeks and details). Tapping a
+  `class.noInstructor` push reloads the account and opens that class's details when it is still an admin (else
+  its home, also when the push carries no class); one received with the app open reloads every class shown.
 
 Rules:
 
@@ -75,6 +86,9 @@ Rules:
 - **Who hears about a registration**: every account with role admin **and** status approved (onboarding finished
   or not) — a pending, denied, deleted or removed admin is a registration or a closed account, not an admin. With
   no approved admin nothing is stored or sent. The result of a registration goes to the person only.
+- **Who hears about classes left without an instructor**: the same approved admins, minus the ones the event
+  excludes (the person whose account deletion caused it, still approved while it runs); none left → nothing
+  stored or sent.
 - **Nothing is retried**: a push that fails is not sent again; the notification stays stored.
 
 ## Devices
@@ -121,6 +135,8 @@ Rules:
 - **An instructor or admin of a cancelled class** — receives `class.cancelled`, with the message, unless they
   cancelled it.
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
+- **Approved admins** — receive one `class.noInstructor` when an account deletion leaves classes with nobody,
+  unless the deleted account is theirs.
 
 ## Boundaries
 
@@ -129,14 +145,14 @@ It knows people only by their ids and the phones they registered, and it doesn't
 it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
 backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
-and removed) and class changes (edits, cancellations, deletions); a failure there is logged and never changes the
-class creation, edit, cancellation or deletion. It doesn't decide when an event happens — the
+and removed), class changes (edits, cancellations, deletions) and classes left without an instructor; a failure
+there is logged and never changes the class creation, edit, cancellation, deletion or release. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
-with their specs, as do the notifications of every other event (reactivation requests, role changes, the "no
-instructor" flag and reminders, enrolments, broadcasts) and those of an edit or a cancellation to the class's
+with their specs, as do the notifications of every other event (reactivation requests, role changes, reminders,
+enrolments, broadcasts) and those of an edit or a cancellation to the class's
 students and pending requests.
 
 ## Spec history
@@ -160,3 +176,6 @@ students and pending requests.
   received with the app open reloads the classes.
 - `034-class-deletion` — the `class.deleted` type (`{ discipline, startsAt }`, no class id) and its push copy; in
   the app, tapping one opens the Aulas tab and one received with the app open reloads the classes.
+- `035-class-no-instructor` — the `class.noInstructor` type (`{ count, classId, discipline, startsAt }`) and its
+  push copy for one and many classes; the approved admins minus the excluded ones as recipients; in the app,
+  tapping one opens the class's details for an admin and one received with the app open reloads the classes.

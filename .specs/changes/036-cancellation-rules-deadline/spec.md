@@ -2,10 +2,11 @@
 id: "036"
 slug: cancellation-rules-deadline
 title: "Cancellation rules and the cancellation deadline"
-status: in-review
+status: accepted
 created: 2026-10-18
 started: 2026-10-18
 base_commit: a53294555754d3f32d8cfe11763786ce1d7b9aea
+reviewed_commit: f9dc8f55b24025a116064632adb17bd2d44712af
 fronts: [classes, backend, mobile, web]
 depends_on: []
 ---
@@ -678,3 +679,72 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   reads `updatedBy` back, but the entity requiring an author it can't always have is worth revisiting.
 - Memory Impact: also record under Automated validation that the two new e2e suites fix the clock in 2037 (so the job
   never meets real classes) and snapshot and restore the stored rules.
+
+### Round 2 — 2026-10-18 — accepted
+
+**Checks**
+
+- lint ✅ (backend: the same 2 warnings on unchanged lines of `test/classes.e2e-spec.ts`) · type check ✅ · build ✅
+  (classes, backend, mobile, web: 18 + 9 turbo tasks)
+- related tests ✅ backend 126 · mobile 911 · classes 381 · web passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (35 files); no coverage-ignore comments, TODOs or debug leftovers in
+  the diff
+- e2e ✅ backend 17 files / 471 tests · web Playwright 19 (`E2E PASSED`); migrations up to date
+- every `Verify by` with its `-t` filter rerun: classes (list 5, `test/cancellation-rule` 22, save 13, deadline 6,
+  flags 6, work-out 17 — "sends only" 1, "no rule" 2, "stale" 3 — edit-class "deadline" 9), backend (adapter, job and
+  Prisma specs 43), mobile (ER-12 8 · ER-13 11 · ER-14 11 · ER-15 5)
+- the real SDK (0.135.0) with a stubbed `fetch`: `beta.messages.parse` posts to `/v1/messages?beta=true` with
+  `anthropic-beta: server-side-fallback-2026-07-01,structured-outputs-2025-12-15`, `fallbacks: "default"`, effort
+  `low` and a strict JSON schema (all four fields required, `additionalProperties: false`), and parses the answer
+- Verification Plan journey 3, run for the first time, with a real `ANTHROPIC_API_KEY` (local backend, iOS simulator
+  iPhone 18 Pro, admin review account, surf rule "Students can cancel up to 12 hours before the class starts"):
+  - a first key Anthropic rejected (`invalid x-api-key`, also on a plain `/v1/models` call) made every call fail with
+    401: the job logged `0 worked out, 6 failed`, the adapter logged only `API error 401`, and each class got
+    attempt 5 with its next attempt 16 minutes later (D-03, D-07)
+  - with a valid key, the job's next run logged `6 worked out, 0 failed`: every upcoming surf class got a deadline
+    exactly 12 hours before its start, with the attempts reset; Monday's 12:00 class showed "Cancelamento até seg,
+    19 out · 00:00" and no banner (ER-15 seen live)
+  - editing its start to 14:00 – 15:00 answered "Alterações salvas"; the details at once showed the "Sem prazo de
+    cancelamento" banner ("… Confira a regra de surf.") and no deadline line, with the deadline null and the revision
+    25 → 26 in the database; the next tick logged `1 worked out` and the details showed "Cancelamento até seg, 19 out
+    · 02:00"
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "GET /cancellation-rules" and the list use case test, rerun
+- ER-02 ✅ — e2e "PUT /cancellation-rules" and `test/cancellation-rule`, rerun
+- ER-03 ✅ — e2e "clears the deadlines" and the save use case test; `save` clears in the same `$transaction`
+- ER-04 ✅ — e2e "works out the deadline"; seen live with Claude (journey 3)
+- ER-05 ✅ — `cancellation-deadline.test.ts`; the live deadlines match its `minutesBefore` arithmetic
+- ER-06 ✅ — use case "sends only" and adapter "request"; the real SDK builds the same request (stubbed `fetch`)
+- ER-07 ✅ — use case backoff, job spec, e2e "retries"; live: 401s counted as failures with the backoff applied
+- ER-08 ✅ — use case "no rule" and e2e "without a rule"
+- ER-09 ✅ — e2e "edit" and edit-class "deadline"; live: the start change cleared and recomputed the deadline
+- ER-10 ✅ — use case "stale" and the Prisma "deadline" cases; every write is conditional on `{ id, revision,
+  cancelledAt: null }`
+- ER-11 ✅ — adapter "API key": throws in production, warns once naming the variable otherwise (F-04 fixed)
+- ER-12 ✅ — Jest, rerun; seen in the simulator in round 1, and the runtime code hasn't changed since
+- ER-13 ✅ — Jest, rerun; seen in the simulator in round 1
+- ER-14 ✅ — Jest, rerun; card chip and banner seen in the simulator (journey 3)
+- ER-15 ✅ — Jest, rerun; seen live in pt-BR (journey 3)
+- ER-16 ✅ — Playwright "privacy policy names Anthropic in …", rerun
+
+**Findings**
+
+None. Round 1's F-01 to F-04 are fixed: the sheet hook takes `UseCancellationRulesSheetProps`, `Drafts` lives in the
+screen's types file, D-13e is amended and logged, and the adapter spec asserts the missing-key warning.
+
+**Notes**
+
+- Journey 3 left the dev database changed: Monday 19's surf class (`e79f9f59…`) now runs 14:00 – 15:00 instead of
+  12:00 – 13:00, and the edit notified its instructor (Dev Instructor). The six upcoming surf classes have real
+  deadlines. The simulator is now signed in as the admin review account, not the student one.
+- The installed SDK's `zodOutputFormat` turns the `kind` enum into a plain string, with the allowed values moved into
+  its description, so the API doesn't constrain `kind`. Harmless, since a value outside the four kinds fails the zod
+  parse and counts as `unclear`, but `z.literal` alternatives or a newer SDK might keep the constraint.
+- After a deadline is worked out, the admin's week list keeps showing "Sem prazo" from its cache until it refetches;
+  the details refetch and are right. This comes with computing the deadline in the background, and no Expected Result
+  covers it.
+- Round 1's notes still apply: the success toasts use the error style, the surf rule in the dev database is in English,
+  the nil-like author id in `PrismaCancellationRuleRepository.toDomain`, and Memory Impact should mention the 2037
+  clock and the rule snapshot in the two new e2e suites.

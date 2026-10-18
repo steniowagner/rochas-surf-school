@@ -171,8 +171,14 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
       throw new DomainError("class.started", 409);
     }
 
-    if (!isUuid(locationId) || !(await this.locationRepository.findById(locationId))) {
+    const location = isUuid(locationId) ? await this.locationRepository.findById(locationId) : null;
+    if (!location) {
       throw refusal("class.location.notFound");
+    }
+
+    // A class may keep a location that was removed since, but can't be moved to one.
+    if (location.isArchived && locationId !== stored.locationId) {
+      throw refusal("class.location.archived");
     }
 
     const before = stored.instructorIds;

@@ -27,15 +27,17 @@ interface Options {
   stored?: Parameters<typeof buildClass>[0];
   seatsTaken?: number;
   failNotifiers?: boolean;
+  storedAtArchived?: boolean;
 }
 
 function setup(options: Options = {}) {
   const location = buildLocation("Praia do Futuro");
   const other = buildLocation("Cumbuco");
+  const archived = buildLocation("Mucuripe", "Rua M", { archivedAt: new Date("2026-10-01T10:00:00.000Z") });
   const stored = buildClass({
     // Tomorrow, 08:00-09:00 in Fortaleza.
     instructorIds: [A, B, ADMIN.id],
-    locationId: location.id,
+    locationId: options.storedAtArchived ? archived.id : location.id,
     notes: "Bring a hat",
     ...options.stored,
   });
@@ -54,7 +56,7 @@ function setup(options: Options = {}) {
 
   const useCase = new EditClass(
     classes,
-    new FakeLocationRepository([location, other]),
+    new FakeLocationRepository([location, other, archived]),
     new FakeTeacherLookup([
       { id: A, role: "instructor", status: "approved" },
       { id: B, role: "instructor", status: "approved" },
@@ -76,13 +78,13 @@ function setup(options: Options = {}) {
     date: "2026-10-15",
     start: "08:00",
     end: "09:00",
-    locationId: location.id,
+    locationId: stored.locationId,
     instructorIds: [A, B, ADMIN.id],
     capacity: 8,
     notes: "Bring a hat",
   };
 
-  return { useCase, input, classes, stored, location, other, assignments, changes };
+  return { useCase, input, classes, stored, location, other, archived, assignments, changes };
 }
 
 async function errorOf(promise: Promise<unknown>): Promise<DomainError> {
@@ -472,6 +474,33 @@ describe("EditClass", () => {
         );
       }
       expect(classes.updateCalls).toHaveLength(0);
+    });
+
+    it("refuses to move a class to an archived location (archived location)", async () => {
+      const { useCase, input, classes, archived } = setup();
+
+      const error = await errorOf(useCase.execute({ ...input, locationId: archived.id }));
+
+      expect(error.message).toBe("class.location.archived");
+      expect(error.statusCode).toBe(422);
+      expect(classes.updateCalls).toHaveLength(0);
+    });
+
+    it("answers class.location.notFound before class.location.archived", async () => {
+      const { useCase, input } = setup();
+
+      expect((await errorOf(useCase.execute({ ...input, locationId: MISSING }))).message).toBe(
+        "class.location.notFound",
+      );
+    });
+
+    it("accepts an edit that keeps a class at a location archived since (archived location)", async () => {
+      const { useCase, input, classes, archived } = setup({ storedAtArchived: true });
+
+      await useCase.execute({ ...input, notes: "New notes" });
+
+      expect(classes.updateCalls[0].locationId).toBe(archived.id);
+      expect(classes.updateCalls[0].notes).toBe("New notes");
     });
 
     it.each([

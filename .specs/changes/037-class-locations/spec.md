@@ -444,11 +444,20 @@ es.
   > Verified: cd modules/classes && npx jest test/location/usecase -t 'suggest|place' --coverage (24 passed, both
   > use cases and the rules file 100%); tsc and oxlint clean. Deviations: none.
 
-- [ ] **T-05** — Classes and archived locations: `CreateClassBatch` and `EditClass` refuse an archived location with
+- [x] **T-05** — Classes and archived locations: `CreateClassBatch` and `EditClass` refuse an archived location with
   `class.location.archived` (D-10; an unchanged location on an edit is accepted); `ClassViewLocation` and
   `toClassItem` carry `latitude` / `longitude` (D-12); tests in `test/school-class/usecase/`.
   Covers: ER-06, ER-07 · Done when: `cd modules/classes && npx jest test/school-class --coverage` passes with every
   changed line covered.
+  > ✅ 2026-10-18 14:45 — CreateClassBatch refuses an archived location with class.location.archived right after
+  > class.location.notFound; EditClass refuses moving a class to an archived location but accepts an edit that
+  > keeps its current one; ClassViewLocation gained latitude/longitude (toClassItem passes them through by
+  > spreading, covered by the get/list tests). Files: modules/classes/src/school-class/provider/class-view-
+  > reader.provider.ts, modules/classes/src/school-class/usecase/create-class-batch.usecase.ts,
+  > modules/classes/src/school-class/usecase/edit-class.usecase.ts, modules/classes/test/mock/school-
+  > class.factory.ts, modules/classes/test/school-class/usecase/{create-class-batch,edit-class,get-class,list-
+  > week-classes}.usecase.test.ts. Verified: cd modules/classes && npx jest test/school-class --coverage (334
+  > passed); full module jest 457 passed; tsc and oxlint clean. Deviations: none.
 
 ### Notifications (`modules/notifications`)
 

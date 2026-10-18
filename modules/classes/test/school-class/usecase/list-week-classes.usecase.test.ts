@@ -80,7 +80,7 @@ describe("ListWeekClasses", () => {
       cancelledAt: null,
       cancellationMessage: null,
       cancellationDeadline: null,
-      location: { id: expect.any(String), name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+      location: { id: expect.any(String), name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000", latitude: -3.7442, longitude: -38.4617 },
       instructors: [
         { id: "i-3", name: "Álvaro" },
         { id: "i-1", name: "ana" },

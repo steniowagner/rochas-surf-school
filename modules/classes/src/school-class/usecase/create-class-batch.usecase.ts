@@ -175,8 +175,13 @@ export class CreateClassBatch
     }
 
     const locationId = input.locationId as string;
-    if (!isUuid(locationId) || !(await this.locationRepository.findById(locationId))) {
+    const location = isUuid(locationId) ? await this.locationRepository.findById(locationId) : null;
+    if (!location) {
       throw refusal("class.location.notFound");
+    }
+
+    if (location.isArchived) {
+      throw refusal("class.location.archived");
     }
 
     const instructorIds = [...new Set(input.instructorIds as unknown[])];

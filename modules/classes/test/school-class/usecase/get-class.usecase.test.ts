@@ -20,6 +20,19 @@ function setup() {
 }
 
 describe("GetClass", () => {
+  it("carries a missing point as null (location point)", async () => {
+    const reader = new FakeClassViewReader([
+      buildClassView({
+        id: ID,
+        location: { id: "l-1", name: "Antigo", address: "Rua A", latitude: null, longitude: null },
+      }),
+    ]);
+
+    const out = await new GetClass(reader).execute({ actor: STUDENT, id: ID });
+
+    expect(out.location).toEqual({ id: "l-1", name: "Antigo", address: "Rua A", latitude: null, longitude: null });
+  });
+
   it("answers one class with its location and sorted instructors", async () => {
     const out = await setup().useCase.execute({ actor: STUDENT, id: ID });
 
@@ -27,7 +40,7 @@ describe("GetClass", () => {
       id: ID,
       startsAt: "2026-10-15T11:00:00.000Z",
       notes: "Ponto de encontro",
-      location: { name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+      location: { name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000", latitude: -3.7442, longitude: -38.4617 },
       instructors: [
         { id: "i-1", name: "ana" },
         { id: "i-2", name: "Bruno" },

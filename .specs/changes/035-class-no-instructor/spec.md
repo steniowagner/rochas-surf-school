@@ -258,11 +258,24 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-04** — Add `class.noInstructor` to `NOTIFICATION_TYPES` and the `NotifyClassesWithoutInstructor` use case
+- [x] **T-04** — Add `class.noInstructor` to `NOTIFICATION_TYPES` and the `NotifyClassesWithoutInstructor` use case
   (`src/notification/usecase/notify-classes-without-instructor.usecase.ts`, exported; D-05), with
   `test/notification/usecase/notify-classes-without-instructor.usecase.test.ts` and a case in
   `test/notification/model/notification.entity.test.ts`. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-03, ER-05 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes.
+  > ✅ 2026-10-18 — following the `module-use-case` skill's pattern (as `NotifyApprovedAdmins`): `class.noInstructor`
+  > added to `NOTIFICATION_TYPES`; `NotifyClassesWithoutInstructor({ count, classId, discipline, startsAt,
+  > excludeUserIds })` takes `findApprovedAdminIds()` minus the excluded ids and runs `Notify` with
+  > `class.noInstructor` and `{ count, classId, discipline, startsAt }` (`startsAt` ISO UTC); none left → nothing
+  > stored or sent. Tests written first and failed (4 failed). The recipients' status filter (pending, denied,
+  > deleted, removed admins) is `RecipientsProvider`'s, proven by the e2e test of T-08. files:
+  > `modules/notifications/src/notification/model/notification.entity.ts`,
+  > `modules/notifications/src/notification/usecase/notify-classes-without-instructor.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/index.ts`,
+  > `modules/notifications/test/notification/usecase/notify-classes-without-instructor.usecase.test.ts`,
+  > `modules/notifications/test/notification/model/notification.entity.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/notifications` (12 suites, 101 passed; the use case and the entity
+  > 100%), `npx tsc --noEmit` (no errors); deviations: none
 
 ### Auth module (`modules/auth`)
 

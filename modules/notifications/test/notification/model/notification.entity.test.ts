@@ -90,6 +90,20 @@ describe("Notification", () => {
     expect(notification.params).toEqual(params);
   });
 
+  it("accepts a class.noInstructor notification with the count and the earliest class", () => {
+    const params = {
+      count: 2,
+      classId: "c-1",
+      discipline: "surf",
+      startsAt: "2026-10-18T11:00:00.000Z",
+    };
+    const notification = build({ type: "class.noInstructor", params });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe("class.noInstructor");
+    expect(notification.params).toEqual(params);
+  });
+
   it("rejects a missing or invalid user id", () => {
     expect(messagesOf(() => build({ userId: "" }).validate())).toContain(
       "notification.userId.required",

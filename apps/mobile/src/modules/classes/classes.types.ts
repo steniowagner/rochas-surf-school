@@ -4,6 +4,12 @@ import type {
   TimeRange,
 } from "@rochas-surf-school/classes";
 
+/** A point on the map. */
+export type MapPoint = {
+  latitude: number;
+  longitude: number;
+};
+
 /** The location of a class, as `GET /classes` answers it; the point is `null` for a location saved without one. */
 export type ClassItemLocation = {
   id: string;

@@ -631,12 +631,27 @@ es.
   > picker/location-sheet files and edit-class.screen.hook.ts that T-16/T-17 fix (they consume the new
   > ClassLocation).
 
-- [ ] **T-15** — Components `location-map-picker` (the sheet's map: marker, tap to set, hint, Fortaleza default) and
+- [x] **T-15** — Components `location-map-picker` (the sheet's map: marker, tap to set, hint, Fortaleza default) and
   `address-search-field` (the Endereço field with its suggestion rows), with tests.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-10 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/location-map-picker src/modules/classes/components/address-search-field --coverage`
   passes.
+  > ✅ 2026-10-18 15:00 — location-map-picker (label, a 170 pt rounded MapView with a Marker, tap to set the point,
+  > controlled region that opens on the point or on Fortaleza 0.2 degrees and recentres only when the point moves
+  > from outside, hint 'Toque no mapa...' / 'Toque para mover o ponto') and address-search-field (the Endereço
+  > field with a search icon and up to the given suggestion rows while focused); utils/map.ts (Fortaleza,
+  > regionAround, getMapProvider: Google on Android, Apple Maps on iOS, toMapPoint); MapPoint type. Files:
+  > apps/mobile/src/modules/classes/components/location-map-picker/{index.ts,location-map-
+  > picker.component.tsx,location-map-picker.hook.ts,location-map-picker.types.ts,location-map-
+  > picker.component.test.tsx}, apps/mobile/src/modules/classes/components/address-search-field/{index.ts,address-
+  > search-field.component.tsx,address-search-field.types.ts,address-search-field.component.test.tsx},
+  > apps/mobile/src/modules/classes/utils/map.ts, apps/mobile/src/modules/classes/utils/map.test.ts,
+  > apps/mobile/src/modules/classes/classes.types.ts. Verified: cd apps/mobile && npx jest
+  > src/modules/classes/components/location-map-picker src/modules/classes/components/address-search-field
+  > src/modules/classes/utils/map --coverage (components, hook and map.ts 100%); eslint on the classes module
+  > clean. Deviations: the suggestion rows hide on blur, so the sheet (T-16) must keep the field focused while a
+  > row is pressed; the 170 pt height is a spec-given size written as the h-[170px] class.
 
 - [ ] **T-16** — `LocationSheet` in its two modes (D-14: create and edit, the suggestions and the place, the point, the
   notify checkbox, "Salvar local" / "Salvar", "Remover local", `contentPanningEnabled={false}`, the D-16 errors) and

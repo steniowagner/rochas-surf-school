@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 
 import * as api from "@/services/api";
 
@@ -42,6 +42,12 @@ jest.mock("@/services/api", () => {
 });
 
 jest.mock("expo-router", () => ({
+  Stack: {
+    // Renders the header's right side, so the tests can reach what the screen puts there.
+    Screen: jest.fn(({ options }: { options: { headerRight?: () => unknown } }) =>
+      options.headerRight?.() ?? null,
+    ),
+  },
   router: { back: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({ id: "c-1" })),
 }));
@@ -176,12 +182,24 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+/** The options the screen gave the Stack header on its latest render. */
+const headerOptions = () => {
+  const calls = jest.mocked(Stack.Screen).mock.calls;
+
+  return (
+    calls[calls.length - 1][0] as {
+      options: { headerTitle?: string; headerRight?: unknown };
+    }
+  ).options;
+};
+
 describe("EditClassScreen", () => {
   it("starts from the class: its values, its own time selected, and nothing to save", async () => {
     await renderScreen();
     await loaded();
 
-    expect(screen.getByRole("header", { name: "Edit class" })).toBeOnTheScreen();
+    expect(headerOptions().headerTitle).toBe("EDIT CLASS");
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(day("2026-10-15")).toBeSelected();
     expect(screen.getByText("October 2026")).toBeOnTheScreen();
@@ -588,6 +606,7 @@ describe("EditClassScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+      expect(headerOptions().headerTitle).toBe("EDIT CLASS");
       expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
       expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
       expect(screen.queryByRole("checkbox", { name: "Ana Souza" })).toBeNull();

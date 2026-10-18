@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 
 import * as api from "@/services/api";
 
@@ -38,6 +38,12 @@ jest.mock("@/services/api", () => {
 });
 
 jest.mock("expo-router", () => ({
+  Stack: {
+    // Renders the header's right side, so the tests can reach what the screen puts there.
+    Screen: jest.fn(({ options }: { options: { headerRight?: () => unknown } }) =>
+      options.headerRight?.() ?? null,
+    ),
+  },
   router: { back: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
 }));
@@ -158,6 +164,17 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+/** The options the screen gave the Stack header on its latest render. */
+const headerOptions = () => {
+  const calls = jest.mocked(Stack.Screen).mock.calls;
+
+  return (
+    calls[calls.length - 1][0] as {
+      options: { headerTitle?: string; headerRight?: unknown };
+    }
+  ).options;
+};
+
 describe("NewClassScreen", () => {
   describe("day from the week", () => {
     const openWith = async (date: string) => {
@@ -193,11 +210,10 @@ describe("NewClassScreen", () => {
   it("shows the form in the design's order with its defaults", async () => {
     await renderScreen();
 
-    expect(screen.getByRole("header", { name: "New class" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
+    expect(headerOptions().headerTitle).toBe("NEW CLASS");
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     const headers = screen.getAllByRole("header").map((item) => item.props.children);
     expect(headers).toEqual([
-      "New class",
       "Discipline",
       "Level",
       "Days",

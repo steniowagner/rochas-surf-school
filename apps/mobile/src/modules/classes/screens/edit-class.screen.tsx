@@ -1,8 +1,8 @@
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
@@ -37,23 +37,14 @@ export function EditClassScreen() {
   ];
 
   const header = (
-    <View className="flex-row items-center gap-4">
-      <BackButton />
-      <Text
-        accessibilityRole="header"
-        className="ds-text-screen-title-with-back flex-1 text-ink"
-      >
-        {t("editClass.title")}
-      </Text>
-    </View>
+    <Stack.Screen
+      options={{ headerTitle: t("editClass.title").toLocaleUpperCase() }}
+    />
   );
 
   if (form === null || screen.isFinished || screen.isCancelled) {
     return (
-      <View
-        className="flex-1 gap-6 bg-page px-screen"
-        style={{ paddingTop: insets.top + 12 }}
-      >
+      <View className="flex-1 gap-6 bg-page px-screen pt-3">
         {header}
         {screen.isLoading ? (
           <ActivityIndicator testID="edit-class-loading" color={theme.grape} />
@@ -89,7 +80,6 @@ export function EditClassScreen() {
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="gap-6 px-screen pb-6"
-        contentContainerStyle={{ paddingTop: insets.top + 12 }}
       >
         {header}
         {screen.isStarted ? (

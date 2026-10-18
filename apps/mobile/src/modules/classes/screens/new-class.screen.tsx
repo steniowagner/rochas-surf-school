@@ -1,8 +1,8 @@
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
@@ -35,21 +35,14 @@ export function NewClassScreen() {
 
   return (
     <View className="flex-1 bg-page">
+      <Stack.Screen
+        options={{ headerTitle: t("newClass.title").toLocaleUpperCase() }}
+      />
       <ScrollView
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="gap-6 px-screen pb-6"
-        contentContainerStyle={{ paddingTop: insets.top + 12 }}
       >
-        <View className="flex-row items-center gap-4">
-          <BackButton />
-          <Text
-            accessibilityRole="header"
-            className="ds-text-screen-title-with-back flex-1 text-ink"
-          >
-            {t("newClass.title")}
-          </Text>
-        </View>
         <FormSection label={t("newClass.discipline.label")}>
           <SegmentedControl
             options={disciplineOptions}

@@ -7,7 +7,7 @@ import {
   userEvent,
   waitFor,
 } from "@testing-library/react-native";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -44,6 +44,12 @@ jest.mock("@/components/ui/bottom-modal", () => {
 });
 
 jest.mock("expo-router", () => ({
+  Stack: {
+    // Renders the header's right side, so the tests can reach what the screen puts there.
+    Screen: jest.fn(({ options }: { options: { headerRight?: () => unknown } }) =>
+      options.headerRight?.() ?? null,
+    ),
+  },
   router: { back: jest.fn(), push: jest.fn() },
   useLocalSearchParams: () => ({ id: "c-1" }),
 }));
@@ -133,13 +139,25 @@ beforeEach(() => {
 
 afterEach(() => jest.useRealTimers());
 
+/** The options the screen gave the Stack header on its latest render. */
+const headerOptions = () => {
+  const calls = jest.mocked(Stack.Screen).mock.calls;
+
+  return (
+    calls[calls.length - 1][0] as {
+      options: { headerTitle?: string; headerRight?: unknown };
+    }
+  ).options;
+};
+
 describe("ClassDetailsScreen", () => {
   it("shows the class", async () => {
     serve(makeClass());
     await renderScreen();
 
     expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "Details" })).toBeOnTheScreen();
+    expect(headerOptions().headerTitle).toBe("DETAILS");
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(screen.getByText("Beginner")).toBeOnTheScreen();
     expect(screen.getByText("Today · 14 Oct")).toBeOnTheScreen();
@@ -155,7 +173,6 @@ describe("ClassDetailsScreen", () => {
     expect(screen.getByText("Location")).toBeOnTheScreen();
     expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
     expect(screen.getByText("Av. Zezé Diogo, 1000")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
     expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
     expect(screen.queryByText("Class finished")).not.toBeOnTheScreen();
   });
@@ -538,6 +555,8 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
+    expect(headerOptions().headerTitle).toBe("DETAILS");
+    expect(headerOptions().headerRight).toBeUndefined();
   });
 
   it("shows the error and retries", async () => {
@@ -630,6 +649,7 @@ describe("ClassDetailsScreen", () => {
         await screen.findByRole("button", { name: "Class tools" }),
       ).toBeOnTheScreen();
       expect(screen.getByText(glyph("construct-outline"))).toBeOnTheScreen();
+      expect(headerOptions().headerRight).toEqual(expect.any(Function));
       expect(screen.queryByRole("button", { name: "Edit class" })).toBeNull();
       expect(screen.queryByText(glyph("pencil"))).toBeNull();
     });
@@ -699,6 +719,7 @@ describe("ClassDetailsScreen", () => {
 
       expect(await screen.findByText("Class finished")).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
+      expect(headerOptions().headerRight).toBeUndefined();
     });
 
     it("does not show for anyone but an admin", async () => {
@@ -707,6 +728,7 @@ describe("ClassDetailsScreen", () => {
 
       expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
+      expect(headerOptions().headerRight).toBeUndefined();
     });
 
     it("does not show while loading", async () => {
@@ -716,6 +738,7 @@ describe("ClassDetailsScreen", () => {
 
       expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
+      expect(headerOptions().headerRight).toBeUndefined();
 
       await act(async () => finish(ok(makeClass())));
     });
@@ -728,6 +751,7 @@ describe("ClassDetailsScreen", () => {
         await screen.findByText("This class no longer exists."),
       ).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
+      expect(headerOptions().headerRight).toBeUndefined();
     });
   });
 

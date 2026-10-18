@@ -612,7 +612,13 @@ describe('Classes (e2e)', () => {
         cancelledAt: null,
         cancellationMessage: null,
         cancellationDeadline: null,
-        location: { id: locationId, name: expect.stringContaining(MARK), address: 'Av. Beira Mar' },
+        location: {
+          id: locationId,
+          name: expect.stringContaining(MARK),
+          address: 'Av. Beira Mar',
+          latitude: null,
+          longitude: null,
+        },
         instructors: [
           { id: ana.id, name: 'ana' },
           { id: bruno.id, name: 'Bruno' },
@@ -711,6 +717,176 @@ describe('Classes (e2e)', () => {
       expect(ok.body).toEqual({ items: [] });
       expect(refused.status).toBe(403);
       expect(refused.body.errors).toEqual(['user.role.notAdmin']);
+    });
+  });
+
+  describe('archived location', () => {
+    async function archivedLocation() {
+      return (
+        await prisma.location.create({
+          data: {
+            id: randomUUID(),
+            name: `${MARK} ${randomUUID().slice(0, 8)}`,
+            nameKey: null,
+            address: 'Av. Removida',
+            archivedAt: new Date('2026-10-01T10:00:00.000Z'),
+          },
+        })
+      ).id;
+    }
+
+    async function makeClassAt(creatorId: string, instructorId: string, atLocationId: string) {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date('2026-10-15T11:00:00.000Z'),
+          endsAt: new Date('2026-10-15T12:00:00.000Z'),
+          locationId: atLocationId,
+          capacity: 8,
+          notes: 'Bring a hat',
+          createdBy: creatorId,
+          instructors: { create: [{ userId: instructorId }] },
+        },
+      });
+      return id;
+    }
+
+    const sameBody = (instructorId: string, atLocationId: string, overrides: Record<string, unknown> = {}) => ({
+      discipline: 'surf',
+      level: 'beginner',
+      date: '2026-10-15',
+      start: '08:00',
+      end: '09:00',
+      locationId: atLocationId,
+      instructorIds: [instructorId],
+      capacity: 8,
+      notes: 'Bring a hat',
+      ...overrides,
+    });
+
+    it('refuses to create classes at an archived location and stores nothing', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const archived = await archivedLocation();
+
+      const response = await batch(admin.accessToken, validBody([instructor.id], { locationId: archived }));
+
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(['class.location.archived']);
+      expect(await countClasses(admin.id)).toBe(0);
+    });
+
+    it('answers class.location.notFound, not archived, for an unknown location', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+
+      const response = await batch(admin.accessToken, validBody([instructor.id], { locationId: randomUUID() }));
+
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(['class.location.notFound']);
+    });
+
+    it('refuses to move a class to an archived location, but keeps one that was archived later', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const archived = await archivedLocation();
+      const moving = await makeClassAt(admin.id, instructor.id, locationId);
+      const staying = await makeClassAt(admin.id, instructor.id, archived);
+
+      const refused = await as(admin.accessToken, http().put(`/classes/${moving}`)).send(
+        sameBody(instructor.id, archived),
+      );
+      const kept = await as(admin.accessToken, http().put(`/classes/${staying}`)).send(
+        sameBody(instructor.id, archived, { notes: 'New notes' }),
+      );
+
+      expect(refused.status).toBe(422);
+      expect(refused.body.errors).toEqual(['class.location.archived']);
+      expect((await prisma.schoolClass.findUnique({ where: { id: moving } }))!.locationId).toBe(locationId);
+      expect(kept.status).toBe(200);
+      expect(await prisma.schoolClass.findUnique({ where: { id: staying } })).toMatchObject({
+        locationId: archived,
+        notes: 'New notes',
+      });
+    });
+  });
+
+  describe('location point', () => {
+    async function makeClassAt(creatorId: string, atLocationId: string) {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date('2026-10-15T11:00:00.000Z'),
+          endsAt: new Date('2026-10-15T12:00:00.000Z'),
+          locationId: atLocationId,
+          capacity: 8,
+          createdBy: creatorId,
+        },
+      });
+      return id;
+    }
+
+    async function placeWith(data: { latitude?: number; longitude?: number; archivedAt?: Date }) {
+      return (
+        await prisma.location.create({
+          data: {
+            id: randomUUID(),
+            name: `${MARK} ${randomUUID().slice(0, 8)}`,
+            nameKey: data.archivedAt ? null : `${MARK} ${randomUUID()}`,
+            address: 'Av. Beira Mar',
+            ...data,
+          },
+        })
+      ).id;
+    }
+
+    it('carries the point of the location in one class and in the week', async () => {
+      const admin = await account();
+      const student = await account('student');
+      const withPoint = await placeWith({ latitude: -3.7442, longitude: -38.4617 });
+      const id = await makeClassAt(admin.id, withPoint);
+
+      const one = await as(student.accessToken, http().get(`/classes/${id}`));
+      const week = await as(student.accessToken, http().get('/classes?date=2026-10-15'));
+
+      expect(one.status).toBe(200);
+      expect(one.body.location).toEqual({
+        id: withPoint,
+        name: expect.any(String),
+        address: 'Av. Beira Mar',
+        latitude: -3.7442,
+        longitude: -38.4617,
+      });
+      expect(week.body.items.find((item: { id: string }) => item.id === id).location).toEqual(one.body.location);
+    });
+
+    it('answers a null point for a location that has none', async () => {
+      const admin = await account();
+      const id = await makeClassAt(admin.id, locationId);
+
+      const one = await as(admin.accessToken, http().get(`/classes/${id}`));
+
+      expect(one.body.location).toMatchObject({ id: locationId, latitude: null, longitude: null });
+    });
+
+    it('reads an archived location the same way', async () => {
+      const admin = await account();
+      const archived = await placeWith({
+        latitude: -3.8,
+        longitude: -38.6,
+        archivedAt: new Date('2026-10-01T10:00:00.000Z'),
+      });
+      const id = await makeClassAt(admin.id, archived);
+
+      const one = await as(admin.accessToken, http().get(`/classes/${id}`));
+
+      expect(one.body.location).toMatchObject({ id: archived, latitude: -3.8, longitude: -38.6 });
     });
   });
 

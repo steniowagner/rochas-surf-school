@@ -559,10 +559,16 @@ es.
   > passed, against the local Postgres with the migration) and the controller spec (21 passed); tsc --noEmit and
   > oxlint clean. Deviations: none.
 
-- [ ] **T-11** — `apps/backend/test/classes.e2e-spec.ts`: the `archived location` cases of ER-06 (batch and edit) and
+- [x] **T-11** — `apps/backend/test/classes.e2e-spec.ts`: the `archived location` cases of ER-06 (batch and edit) and
   the `location point` cases of ER-07 (one class and the week, with and without a point, archived).
   Covers: ER-06, ER-07 · Done when: `cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/classes.e2e-spec.ts`
   passes.
+  > ✅ 2026-10-18 14:52 — classes.e2e-spec.ts: archived location cases (batch refused with class.location.archived
+  > and nothing stored, unknown location still class.location.notFound, moving a class to an archived location
+  > refused, editing a class that keeps an archived location accepted) and location point cases (one class and the
+  > week with and without a point, archived location read the same); the existing week assertion now expects the
+  > null point. Files: apps/backend/test/classes.e2e-spec.ts. Verified: cd apps/backend && npx vitest run --config
+  > vitest.config.e2e.ts test/classes.e2e-spec.ts (88 passed); no e2e rows left behind. Deviations: none.
 
 ### Web (`apps/web`)
 

@@ -2,10 +2,11 @@
 id: "035"
 slug: class-no-instructor
 title: "Classes left without an instructor"
-status: in-review
+status: accepted
 created: 2026-10-17
 started: 2026-10-18
 base_commit: 5e736309fb305a7219c912592dd78af63b0f0e32
+reviewed_commit: cc15a4e442dc7ed25f15be8f2fecd14badfbecd5
 fronts: [classes, notifications, auth, backend, mobile]
 depends_on: []
 ---
@@ -526,3 +527,62 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-18 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (16 tasks; 0 errors — the backend's 2 warnings are in the untouched
+  `test/classes.e2e-spec.ts`) · build ✅ (7 tasks: classes, notifications, auth, backend)
+- related tests ✅ RELATED TESTS PASSED — backend 168, mobile 615, auth 283, classes 320, notifications 101,
+  school-rules 113 (dependent)
+- coverage of the changed lines ✅ COVERAGE OK — 20 files measured, every changed line covered; no coverage-ignore
+  comments in the diff
+- e2e: backend suite ✅ E2E PASSED (15 files, 431 tests; migrations up to date) · mobile: the "Class without an
+  instructor" journey followed in the iOS simulator ✅
+- every changed file is explained by a task; nothing from Out of scope was built; no debug leftovers
+
+**Expected Results**
+
+- ER-01 ✅ — `-t "DELETE /auth/me releases"` (3 passed) and the use case's `-t "releases"` (2 passed): the
+  instructor keeps only the under-way, finished and cancelled classes, the co-taught class keeps its co-instructor,
+  an admin who teaches is released, a student changes nothing. In the journey, the review instructor's deletion
+  released their 6 upcoming classes while the finished and cancelled ones still list them.
+- ER-02 ✅ — `release-upcoming-classes.usecase.test.ts` (7 passed): `{ released: 3, withoutInstructor: 2 }`, one
+  notifier call for the earliest Surf class with `excludeUserIds: [userId]`; no call when every class keeps
+  someone; nothing written with no upcoming class; a throwing notifier changes neither the result nor the write.
+- ER-03 ✅ — `notify-classes-without-instructor.usecase.test.ts` (3 passed) and `-t "DELETE /auth/me notifies"`
+  (1 passed): approved admins A and B stored, the leaving admin and pending / denied / deleted / removed admins
+  nothing, one push with `classId`. In the journey every approved admin got one `class.noInstructor` with
+  `count: 6` and the earliest class.
+- ER-04 ✅ — `delete-account.usecase.test.ts` (10 passed): released while still approved for each role, a failed
+  release keeps the account approved, nothing released for an unknown (`auth.token.invalid`) or non-approved
+  (`user.status.notApproved`) account.
+- ER-05 ✅ — `push-messages.spec.ts` + `notifications.no-instructor-notifier.spec.ts` (39 passed): the D-06 copy in
+  pt-BR / es / en for 1 and 3 classes; `notification.entity.test.ts` (21 passed) accepts `class.noInstructor`.
+- ER-06 ✅ — `class-flags.test.ts` (3 passed): true only for 0 instructors and `not-started`.
+- ER-07 ✅ — card `-t "no instructor"` (4 passed) and week screen (2 passed). Simulator: the admin's Aulas on Mon 19
+  shows the "SEM INSTRUTOR" chip and "Sem instrutor" in both footers; after assigning, the 08:00 card shows only
+  "Davi Reis"; the student sees "Sem instrutor" in the footer with no chip; today's cancelled classes keep
+  "Cancelada" and "Dev Instructor".
+- ER-08 ✅ — details `-t "no instructor"` (4 passed). Simulator: the admin's details show the "Sem instrutor" /
+  "Atribua um instrutor antes da aula." banner and "Sem instrutor atribuído"; pressing the banner opened "Editar
+  aula" with no instructor checked and "Salvar e notificar" disabled; checking Davi Reis and saving returned to the
+  details with no banner and Davi Reis listed; the student's details show "Sem instrutor atribuído" and no banner.
+- ER-09 ✅ — the two hooks' tests `-t "class.noInstructor"` (4 passed): an admin's tap refreshes the account once
+  and opens `/admin/class/c-1`; a former admin now instructor, or a push without `classId`, goes to the flow's
+  entry; a received push invalidates `["classes"]`.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `push-messages.ts` now lets a catalog entry's `title` be a function of the params (the no-instructor title
+  depends on the count). `## Memory Impact` doesn't mention it; `spec-finish` may add one line to the technical
+  context's Push notifications section.
+- The journey ran against the local dev database (a Skate class inserted for Mon 19 08:00, taught only by the
+  instructor review account); afterwards the account was set back to approved, its 5 released classes reassigned,
+  the journey class and its `class.noInstructor` / `class.assigned` rows deleted — the instructor's assignments
+  match the snapshot taken before.

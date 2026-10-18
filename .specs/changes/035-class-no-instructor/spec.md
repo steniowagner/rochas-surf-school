@@ -420,10 +420,23 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   > `npx jest src/modules/classes/screens/class-details.screen.test.tsx --coverage` (60 passed; screen and hook 100%),
   > `npx tsc --noEmit` in `apps/mobile` (no errors); deviations: none
 
-- [ ] **T-11** — Handle `class.noInstructor` in `useNotificationResponse` (open the admin's class details) and
+- [x] **T-11** — Handle `class.noInstructor` in `useNotificationResponse` (open the admin's class details) and
   `useNotificationReceived` (invalidate `["classes"]`) in `src/modules/notifications/hooks/` (D-10), with cases in
   their tests.
   Covers: ER-09 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
+  > ✅ 2026-10-18 — `useNotificationResponse`: after the account refresh, a `class.noInstructor` tap with a string
+  > `classId` opens `routes.admin.classDetail(classId)` when the account resolves to `admin`; anything else falls
+  > through to `routes.home` (so an account that is now an instructor, or a push without a `classId`, goes to its
+  > flow's entry). `useNotificationReceived` adds `class.noInstructor` to the types that invalidate `["classes"]`.
+  > Tests written first (2 of the 4 new cases failed; the two fallbacks already passed through the existing
+  > `routes.home` path): the admin's tap (one `/auth/me` call), a former admin now instructor, no `classId`, and the
+  > received push invalidating `["classes"]`. files:
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`; verified:
+  > `npx jest src/modules/notifications/hooks --coverage` (67 passed; both hooks 100%), `-t "class.noInstructor"`
+  > (4 passed), `npx tsc --noEmit` (no errors); deviations: none
 
 ### Verification
 

@@ -9,6 +9,7 @@ import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import ProfileRoute from "@/app/(private)/admin/(tabs)/profile";
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminClassRoute from "@/app/(private)/admin/class/[id]";
+import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rules";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
@@ -86,6 +87,7 @@ const routeTree = {
   "(private)/admin/(tabs)/index": AdminRoute,
   "(private)/admin/(tabs)/classes": ClassesRoute,
   "(private)/admin/(tabs)/profile": ProfileRoute,
+  "(private)/admin/cancellation-rules": AdminCancellationRulesRoute,
   "(private)/admin/new-class": AdminNewClassRoute,
   "(private)/admin/people": AdminPeopleRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
@@ -188,6 +190,30 @@ describe("admin tabs", () => {
 
     expect(app.getPathname()).toBe("/admin/new-class");
     expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(app.getPathname()).toBe("/admin");
+    expect(selectedTabLabel()).toBe("Home");
+    expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+  });
+
+  it("opens the cancellation rules above the tabs, and back returns to Home with the tab bar (cancellation rules)", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/cancellation-rules")
+          ? { surf: null, skate: null }
+          : { items: [] },
+    }));
+    const app = await open();
+
+    await user.press(screen.getByText("One for surf, one for skate"));
+
+    expect(app.getPathname()).toBe("/admin/cancellation-rules");
+    expect(await screen.findByText("No rule for surf yet")).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Back" }));
 

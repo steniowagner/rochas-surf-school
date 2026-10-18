@@ -2,7 +2,7 @@
 id: "037"
 slug: class-locations
 title: "Class locations: map point, address suggestions, editing and removing"
-status: in-progress
+status: in-review
 started: 2026-10-18
 base_commit: 29cd101247835876d1f4ce62e22f67b603b55d72
 created: 2026-10-18

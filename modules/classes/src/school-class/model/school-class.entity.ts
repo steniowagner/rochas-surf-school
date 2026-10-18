@@ -113,11 +113,13 @@ export class SchoolClass extends Entity<SchoolClassState> {
   }
 
   get deadlineRevision(): number {
-    return this.props.deadlineRevision ?? 0;
+    // The constructor defaults it to 0.
+    return this.props.deadlineRevision!;
   }
 
   get deadlineAttempts(): number {
-    return this.props.deadlineAttempts ?? 0;
+    // The constructor defaults it to 0.
+    return this.props.deadlineAttempts!;
   }
 
   get deadlineNextAttemptAt(): Date | null {

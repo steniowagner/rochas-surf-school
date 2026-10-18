@@ -115,6 +115,12 @@ describe('AnthropicDeadlineDescriber', () => {
       expect(await describer().describe(REQUEST)).toEqual({ kind: 'unclear' });
     });
 
+    it('answers unclear when there is no answer and no stop reason', async () => {
+      sdk.parse.mockResolvedValue({ stop_reason: null, parsed_output: null });
+
+      expect(await describer().describe(REQUEST)).toEqual({ kind: 'unclear' });
+    });
+
     it('answers unclear on an API error and on a network error', async () => {
       const { default: Anthropic } = await import('@anthropic-ai/sdk');
       sdk.parse.mockRejectedValueOnce(new Anthropic.APIError(529 as never, undefined, undefined, undefined as never));

@@ -275,13 +275,17 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   > verified: `npx vitest run src/modules/notifications/notifications.class-change-notifier.spec.ts` (part of the 87 passed above);
   > deviations: none
 
-- [ ] **T-07** — Expose `DELETE /classes/:id` (204) in `src/modules/classes/classes.controller.ts` (running
+- [x] **T-07** — Expose `DELETE /classes/:id` (204) in `src/modules/classes/classes.controller.ts` (running
   `DeleteClass` with the repository, both counters, the change notifier and the clock), register
   `NoEnrolmentPendingRequestCounter` in `classes.module.ts`, add cases to `classes.controller.spec.ts`, the scenarios
   to `classes.integration.http`, and the e2e tests of ER-01, ER-02, ER-04 and ER-05 to `test/classes.e2e-spec.ts`
   (named as their `Verify by`). Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-04, ER-05 · Done when: `npx vitest run src/modules/classes/classes.controller.spec.ts` and
   `npm run test:e2e --workspace apps/backend -- test/classes.e2e-spec.ts` pass.
+  > ✅ 2026-10-18 00:02 — exposed `DELETE /classes/:id` (204, handler `remove`) running DeleteClass with the repository, both no-enrolment counters, the change notifier and the clock; registered NoEnrolmentPendingRequestCounter in the module; added controller unit cases, the .http scenarios and the e2e tests (deletes / refuses / checks / notifies);
+  > files: `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.integration.http`, `apps/backend/test/classes.e2e-spec.ts`;
+  > verified: `npx vitest run src/modules/classes/classes.controller.spec.ts` (30 passed), `npm run test:e2e -- test/classes.e2e-spec.ts` (82 passed), `npx tsc --noEmit` clean;
+  > deviations: the handler is named `remove` (a method called `delete` reads badly in the controller); the notEmpty refusal has no e2e test because the no-enrolment counters always answer 0 (covered by the use case unit tests and documented in the .http file)
 
 ### Mobile (`apps/mobile`)
 

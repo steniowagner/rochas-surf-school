@@ -1,10 +1,22 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import {
   CancelClass,
   ClassActor,
   CreateClassBatch,
   CreateClassBatchIn,
   CreateClassBatchOut,
+  DeleteClass,
   EditClass,
   EditClassIn,
   GetClass,
@@ -20,6 +32,7 @@ import { NotificationsClassAssignmentNotifier } from '../notifications/notificat
 import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { PrismaLocationRepository } from './location.prisma.js';
+import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
@@ -44,6 +57,7 @@ export class ClassesController {
     private readonly classViewReader: PrismaClassViewReader,
     private readonly classChangeNotifier: NotificationsClassChangeNotifier,
     private readonly seatCounter: NoEnrolmentSeatCounter,
+    private readonly pendingRequestCounter: NoEnrolmentPendingRequestCounter,
   ) {}
 
   @Post('batch')
@@ -150,5 +164,17 @@ export class ClassesController {
     });
 
     return new GetClass(this.classViewReader).execute({ actor, id });
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<void> {
+    await new DeleteClass(
+      this.schoolClassRepository,
+      this.seatCounter,
+      this.pendingRequestCounter,
+      this.classChangeNotifier,
+      this.clock,
+    ).execute({ actor: actorOf(user), id });
   }
 }

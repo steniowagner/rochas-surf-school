@@ -12,6 +12,7 @@ import { NotificationsClassChangeNotifier } from '../notifications/notifications
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
+import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
@@ -43,6 +44,7 @@ function setup() {
       return true;
     }),
     cancel: vi.fn(async () => true),
+    delete: vi.fn(async () => true),
   };
   const locationRepository = { findById: vi.fn(async () => location) };
   const teacherLookup = {
@@ -55,6 +57,7 @@ function setup() {
   const changeNotifier = {
     classEdited: vi.fn(async () => undefined),
     classCancelled: vi.fn(async () => undefined),
+    classDeleted: vi.fn(async () => undefined),
   };
   const classViewReader = {
     findStartingBetween: vi.fn(async () => []),
@@ -69,6 +72,7 @@ function setup() {
     classViewReader as unknown as PrismaClassViewReader,
     changeNotifier as unknown as NotificationsClassChangeNotifier,
     new NoEnrolmentSeatCounter(),
+    new NoEnrolmentPendingRequestCounter(),
   );
   const body = {
     discipline: 'surf',
@@ -93,6 +97,7 @@ describe('ClassesController', () => {
     ['one', ':id', RequestMethod.GET, HttpStatus.OK],
     ['edit', ':id', RequestMethod.PUT, HttpStatus.OK],
     ['cancel', ':id/cancel', RequestMethod.POST, HttpStatus.OK],
+    ['remove', ':id', RequestMethod.DELETE, HttpStatus.NO_CONTENT],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
     const handler = handlerOf(name);
 
@@ -416,6 +421,77 @@ describe('ClassesController', () => {
         statusCode: 422,
         errors: [expect.objectContaining({ message: 'class.cancellationMessage.max.length' })],
       });
+    });
+  });
+
+  describe('remove', () => {
+    const DELETED_ID = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+    const OTHER_INSTRUCTOR_ID = '3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f';
+
+    function withStoredClass() {
+      const context = setup();
+      context.stored.push(
+        new SchoolClass({
+          id: DELETED_ID,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date('2026-10-15T11:00:00.000Z'),
+          endsAt: new Date('2026-10-15T12:00:00.000Z'),
+          locationId: context.location.id,
+          instructorIds: [INSTRUCTOR_ID, ADMIN_ID, OTHER_INSTRUCTOR_ID],
+          capacity: 8,
+          createdBy: ADMIN_ID,
+        }),
+      );
+      return context;
+    }
+
+    it('deletes the class and answers nothing', async () => {
+      const { controller, classRepository } = withStoredClass();
+
+      expect(await controller.remove(userOf('admin'), DELETED_ID)).toBeUndefined();
+
+      expect(classRepository.delete).toHaveBeenCalledWith(DELETED_ID, NOW);
+    });
+
+    it('notifies the other instructors through the change notifier, never the caller', async () => {
+      const { controller, changeNotifier } = withStoredClass();
+
+      await controller.remove(userOf('admin'), DELETED_ID);
+
+      expect(changeNotifier.classDeleted).toHaveBeenCalledWith({
+        instructorIds: [INSTRUCTOR_ID, OTHER_INSTRUCTOR_ID],
+        discipline: 'surf',
+        startsAt: new Date('2026-10-15T11:00:00.000Z'),
+      });
+    });
+
+    it('answers 404 class.notFound when the delete loses the race to another delete', async () => {
+      const { controller, classRepository, stored, changeNotifier } = withStoredClass();
+      classRepository.delete.mockImplementationOnce(async () => {
+        stored.splice(0, stored.length);
+        return false;
+      });
+
+      await expect(controller.remove(userOf('admin'), DELETED_ID)).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'class.notFound',
+      });
+      expect(changeNotifier.classDeleted).not.toHaveBeenCalled();
+    });
+
+    it('answers 403 for an instructor and 404 for an unknown class', async () => {
+      const { controller, classRepository } = withStoredClass();
+
+      await expect(controller.remove(userOf('instructor'), DELETED_ID)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.role.notAdmin',
+      });
+      await expect(controller.remove(userOf('admin'), INSTRUCTOR_ID)).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'class.notFound',
+      });
+      expect(classRepository.delete).not.toHaveBeenCalled();
     });
   });
 });

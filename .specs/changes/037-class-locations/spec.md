@@ -399,11 +399,22 @@ es.
   > test/location --coverage (48 passed, 100% on src/location); full module jest 403 passed; tsc --noEmit and
   > oxlint clean. Deviations: none (the skills were followed by hand: patterns of the existing location files).
 
-- [ ] **T-02** — `EditLocation` (D-05, D-08, D-09) with the `LocationChangeNotifier` port and its fake: the checks in
+- [x] **T-02** — `EditLocation` (D-05, D-08, D-09) with the `LocationChangeNotifier` port and its fake: the checks in
   order, the unchanged save, the deadline clearing for name or address changes, the per-instructor counts without the
   editor, a swallowed notifier failure; tests in `test/location/usecase/edit-location.usecase.test.ts`. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02, ER-03, ER-04 · Done when: that test file passes with the use case fully covered.
+  > ✅ 2026-10-18 14:43 — EditLocation (access, id/404, shape with every key incl. location.notify.invalid,
+  > location.archived 409, duplicate 409 against other active locations, unchanged save writes nothing, deadlines
+  > cleared from now only when name/address change, one notification per instructor excluding the editor with
+  > failures swallowed) and the LocationChangeNotifier port plus its fake. Files:
+  > modules/classes/src/location/usecase/edit-location.usecase.ts, modules/classes/src/location/usecase/index.ts,
+  > modules/classes/src/location/provider/location-change-notifier.provider.ts,
+  > modules/classes/src/location/provider/index.ts, modules/classes/test/mock/fake-location-change.notifier.ts,
+  > modules/classes/test/mock/index.ts, modules/classes/test/location/usecase/edit-location.usecase.test.ts.
+  > Verified: cd modules/classes && npx jest test/location --coverage (66 passed, edit-location.usecase.ts 100%
+  > statements/branches/functions/lines); tsc and oxlint clean. Deviations: the use case reads upcomingClasses for
+  > its answer through findActive(now) since the port has no single-location count.
 
 - [ ] **T-03** — `ArchiveLocation` (D-06, D-07): access, 404, 409, the conditional archive; tests in
   `test/location/usecase/archive-location.usecase.test.ts`. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).

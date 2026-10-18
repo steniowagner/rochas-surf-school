@@ -24,8 +24,12 @@ export function LocationSheet(props: LocationSheetProps) {
 
   return (
     <>
-      {/* The map takes the drags, so the sheet is dragged by its handle only. */}
-      <BottomModal visible={props.visible} onClose={sheet.close} contentPanningEnabled={false}>
+      {/* The map takes the drags, so the sheet is dragged by its handle only. It steps aside for the removal's one. */}
+      <BottomModal
+        visible={props.visible && !sheet.archiveVisible}
+        onClose={sheet.dismiss}
+        contentPanningEnabled={false}
+      >
         <View className="gap-4">
           <View className="gap-1">
             <Text className="ds-text-sheet-title text-ink">

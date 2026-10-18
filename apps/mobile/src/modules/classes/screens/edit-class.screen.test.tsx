@@ -425,7 +425,7 @@ describe("EditClassScreen", () => {
       await user.press(screen.getByRole("button", { name: "Manage" }));
       await user.press(screen.getByRole("radio", { name }));
       await user.press(screen.getByRole("button", { name: "Remove location" }));
-      await user.press(screen.getAllByRole("button", { name: "Remove location" })[1]);
+      await user.press(screen.getAllByRole("button", { name: "Remove location" }).at(-1)!);
     };
 
     it("clears the selection when the class's own location is removed, and Save stays off", async () => {

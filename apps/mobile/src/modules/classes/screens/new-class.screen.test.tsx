@@ -597,7 +597,7 @@ describe("NewClassScreen", () => {
       await user.press(screen.getByRole("button", { name: "Remove location" }));
     };
     const confirmRemoval = (user: ReturnType<typeof userEvent.setup>) =>
-      user.press(screen.getAllByRole("button", { name: "Remove location" })[1]);
+      user.press(screen.getAllByRole("button", { name: "Remove location" }).at(-1)!);
 
     it("removes the selected location: toast, out of the list, nothing selected, button off", async () => {
       serve({ "POST /locations/l-1/archive": () => ({ ok: true, status: 204, json: async () => undefined }) });

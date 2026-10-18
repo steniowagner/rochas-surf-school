@@ -21,6 +21,21 @@ jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
 }));
 
+// Keeps every sheet's content mounted, as the library's mock does, and the props the sheet was given.
+jest.mock("@/components/ui/bottom-modal", () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { View } = require("react-native");
+  /* eslint-enable @typescript-eslint/no-require-imports */
+
+  return {
+    BottomModal: ({ visible, onClose, children }: any) => (
+      <View testID="bottom-modal" visible={visible} onClose={onClose}>
+        {children}
+      </View>
+    ),
+  };
+});
+
 jest.mock("@/services/api", () => {
   const actual = jest.requireActual("@/services/api");
 
@@ -487,6 +502,26 @@ describe("LocationSheet (edit)", () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: LOCATIONS_QUERY_KEY });
     expect(onClose).toHaveBeenCalled();
     expect(onRemoved).toHaveBeenCalledWith("l-1");
+  });
+
+  it("steps the edit sheet aside for the confirmation and ignores that dismissal, which is not the admin closing it", async () => {
+    const onClose = jest.fn();
+    await open({ location: stored, locations: [stored], onClose });
+    const editSheet = () => screen.getAllByTestId("bottom-modal")[0];
+
+    expect(editSheet().props.visible).toBe(true);
+
+    await userEvent.setup().press(screen.getAllByRole("button", { name: "Remove location" })[0]);
+
+    expect(editSheet().props.visible).toBe(false);
+    await act(async () => editSheet().props.onClose());
+    expect(onClose).not.toHaveBeenCalled();
+
+    await userEvent.setup().press(screen.getByRole("button", { name: "Keep" }));
+
+    expect(editSheet().props.visible).toBe(true);
+    await act(async () => editSheet().props.onClose());
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it("asks to confirm the removal and sends nothing when the admin keeps the location", async () => {

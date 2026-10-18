@@ -681,6 +681,13 @@ es.
   > process open; same before this spec); the session token is a UUID v4 from Math.random (no crypto polyfill in
   > the app); the screens' wiring and the remaining type errors in location-picker.component.test.tsx and edit-
   > class.screen.hook.ts are T-17.
+  > Follow-up found in the simulator journey (T-20): on the native sheet library the confirmation opens over the
+  > edit sheet and dismisses it, which used to reset the whole sheet, so "Remover local?" vanished. The edit sheet
+  > now steps aside while the confirmation is open (`visible={props.visible && !archiveVisible}`) and ignores that
+  > dismissal; "Manter" brings it back. Files: apps/mobile/src/modules/classes/components/location-sheet/location-sheet.component.tsx,
+  > apps/mobile/src/modules/classes/components/location-sheet/location-sheet.hook.ts, location-sheet.component.test.tsx,
+  > and the `.at(-1)` confirm taps of new-class/edit-class.screen.test.tsx. Verified: location-sheet, new-class and
+  > edit-class jest suites (128 passed; sheet files 100%).
 
 - [x] **T-17** — The "Gerir" / "Concluir" mode of `LocationPicker` and its wiring in `NewClassScreen` and
   `EditClassScreen` (D-15: edit from a row, the selection kept on edit and cleared on removal, the "Removido" row of a

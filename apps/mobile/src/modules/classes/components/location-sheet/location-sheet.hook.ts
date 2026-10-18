@@ -199,5 +199,12 @@ export const useLocationSheet = ({
     closeArchive: () => setArchiveVisible(false),
     confirmArchive,
     close: onClose,
+    // A native sheet that opens over another dismisses it: the edit sheet going away for the confirmation isn't the
+    // admin closing it, and it comes back when the confirmation is.
+    dismiss: () => {
+      if (!archiveVisible) {
+        onClose();
+      }
+    },
   };
 };

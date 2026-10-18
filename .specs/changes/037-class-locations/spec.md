@@ -2,9 +2,10 @@
 id: "037"
 slug: class-locations
 title: "Class locations: map point, address suggestions, editing and removing"
-status: in-review
+status: accepted
 started: 2026-10-18
 base_commit: 29cd101247835876d1f4ce62e22f67b603b55d72
+reviewed_commit: 1af3c03a9409236c8bf11cf3a558bb057ac25aa4
 created: 2026-10-18
 fronts: [classes, notifications, backend, web, mobile]
 depends_on: []
@@ -931,3 +932,60 @@ es.
   (`location.changed`). The location "Review R2 Beach" and its classes were already there and were not touched.
 - Memory Impact matches what was built; `spec-finish` may also mention `FormSection`'s `action` prop and
   `useDebouncedValue`.
+
+### Round 2 — 2026-10-18 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (classes, notifications, backend, web, mobile: 27 tasks; the 2 backend lint
+  warnings are the ones in `classes.e2e-spec.ts` that predate this spec)
+- related tests ✅ `RELATED TESTS PASSED`: modules/classes 457, modules/notifications 103, apps/backend 212,
+  apps/mobile 932, apps/web
+- coverage of the changed lines ✅ `COVERAGE OK` (50 files measured); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED`: backend 17 files / 508 tests (incl. `locations.e2e-spec.ts`, `classes.e2e-spec.ts`), web
+  Playwright 22 passed (incl. "names the map providers")
+- since round 1 only `use-edit-location.hook.ts` and its test changed (F-01); no debug leftovers, TODOs or stray
+  files in the whole diff
+- iOS simulator (iPhone 18 Pro, backend built from this branch, signed in as the dev admin): F-01's steps, below
+
+**Expected Results**
+
+- ER-01 ✅ — e2e `point` cases and domain tests (code unchanged since round 1; suites green again).
+- ER-02 ✅ — e2e `edit` cases; the app side of "every class follows" now holds (F-01).
+- ER-03 ✅ — e2e and Prisma spec `deadline` cases; in the simulator, the address edit cleared the deadline shown on
+  the details of the class tomorrow ("Cancelamento até seg, 19 out · 02:00" → "Sem prazo de cancelamento").
+- ER-04 ✅ — e2e `notifies` cases, push-message and notifier specs.
+- ER-05 ✅ — e2e `archive` cases.
+- ER-06 ✅ — classes e2e `archived location` cases and domain tests.
+- ER-07 ✅ — classes e2e `location point` cases.
+- ER-08 ✅ — e2e `suggestions` cases and the Google adapter spec.
+- ER-09 ✅ — Playwright "names the map providers" in the three languages; web type check passes.
+- ER-10 ✅ — Jest (location-sheet, address-search-field, location-map-picker).
+- ER-11 ✅ — Jest; simulator on Editar aula: Gerir → pencil row, "Novo local" hidden, "Concluir"; "Editar local"
+  filled with the point and "6 aulas futuras usam este local."; notify unticked, address changed, "Salvar" → the row
+  shows the new address and the selection is kept.
+- ER-12 ✅ — Jest (archive-location-sheet, new-class and edit-class screens `-t "remov"`).
+- ER-13 ✅ — Jest; simulator: the details show the 96 pt map with the marker and "Direções".
+- ER-14 ✅ — `src/modules/notifications/hooks -t "location.changed"`.
+
+**Findings**
+
+- [x] **F-01** (round 1) — verified fixed. `useEditLocation` invalidates `["classes"]` on a 200 (weeks, details and
+  the time-range suggestions); the new hook test fails without the line. Simulator: details of the class tomorrow at
+  "Review R2 Beach" → tools → Editar aula → (level changed to Avançado, unsaved) → Gerir → the row → address + " R2",
+  notify unticked → Salvar → back: the details show "As. Review, 2 - Fortaleza F01 R2" and "Sem prazo de
+  cancelamento". Before going back, Editar aula still showed "Avançado": the reload doesn't drop the admin's unsaved
+  class changes (the form is the class's values plus the edits).
+
+No new findings.
+
+**Notes**
+
+- Round 1's notes still stand (the sheet's map re-centres on a tap on iOS; the suggestion rows push the rest of the
+  sheet off-screen; `PrismaLocationRepository.update` isn't conditional on `archived_at IS NULL`; Google's 400 for a
+  malformed place id maps to 502). None breaks an Expected Result.
+- The week list showed "Sem prazo" for the class while its details showed a recomputed deadline: the week query was
+  cached from before the job ran (the app doesn't refetch on the job's write). Not introduced by this spec.
+- Data changed by this review in the shared dev database: the address of "Review R2 Beach" is now
+  "As. Review, 2 - Fortaleza F01 R2" (its upcoming deadlines were cleared and the job works them out again). No
+  instructor was notified; nothing was created or deleted.

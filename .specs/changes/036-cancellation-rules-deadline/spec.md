@@ -353,7 +353,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   `modules/classes`.
   > ✅ 2026-10-18 02:24 — added the cancellation-rule aggregate (entity, repository port, ListCancellationRules, SaveCancellationRule, out type, barrels, fake repository + factory, tests); files: `modules/classes/src/cancellation-rule/**` (index, model/cancellation-rule.entity.ts, provider/cancellation-rule.repository.ts, usecase/{cancellation-rules.out,list-cancellation-rules.usecase,save-cancellation-rule.usecase}.ts), `modules/classes/src/index.ts`, `modules/classes/test/mock/{fake-cancellation-rule.repository,cancellation-rule.factory,index}.ts`, `modules/classes/test/cancellation-rule/**` (3 test files); verified: `npx jest test/cancellation-rule` (22 passed), `npm run check-types` and `npm run lint` clean (from modules/classes); deviations: none (the use case reads the clock through `ClockProvider` to stamp `updatedAt`/`now`)
 
-- [ ] **T-02** — Add the deadline model (D-02, D-12): `src/school-class/model/cancellation-deadline.ts`
+- [x] **T-02** — Add the deadline model (D-02, D-12): `src/school-class/model/cancellation-deadline.ts`
   (`CancellationDeadlineDescription` union, `computeCancellationDeadline(description, startsAt)`, the ranges and the
   cap), `isWithoutDeadline` in `model/class-flags.ts`; the deadline fields on `SchoolClass` (`cancellationDeadline`,
   `deadlineRevision`, `deadlineAttempts`, `deadlineNextAttemptAt`, all empty / 0 for a new class) and
@@ -362,6 +362,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   class-item test.
   Covers: ER-05, ER-14 · Done when: `npx jest test/school-class/model test/school-class/usecase` passes from
   `modules/classes`.
+  > ✅ 2026-10-18 02:41 — added the deadline model and fields; files: `modules/classes/src/school-class/model/{cancellation-deadline,class-flags,school-class.entity,index}.ts`, `modules/classes/src/school-class/provider/class-view-reader.provider.ts`, `modules/classes/src/school-class/usecase/class-item.ts`, `modules/classes/test/mock/school-class.factory.ts`, tests `test/school-class/model/{cancellation-deadline,class-flags,school-class.entity}.test.ts`, `test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npx jest test/school-class/model test/school-class/usecase` (282 passed), check-types and lint clean from modules/classes; deviations: none
 
 - [ ] **T-03** — `EditClass` clears the deadline when a class field differs and keeps it when only the instructors
   change (D-05): `SchoolClassRepository.update` receives whether to clear it (same atomic write; the fake applies it),

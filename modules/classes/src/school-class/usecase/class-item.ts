@@ -10,6 +10,8 @@ export interface ClassItem {
   notes: string | null;
   cancelledAt: string | null;
   cancellationMessage: string | null;
+  /** ISO UTC, or null while it can't be worked out. */
+  cancellationDeadline: string | null;
   location: ClassView["location"];
   instructors: ClassView["instructors"];
 }
@@ -28,6 +30,7 @@ export function toClassItem(view: ClassView): ClassItem {
     notes: view.notes,
     cancelledAt: view.cancelledAt ? view.cancelledAt.toISOString() : null,
     cancellationMessage: view.cancellationMessage,
+    cancellationDeadline: view.cancellationDeadline ? view.cancellationDeadline.toISOString() : null,
     location: { ...view.location },
     instructors: view.instructors
       .map((instructor) => ({ ...instructor }))

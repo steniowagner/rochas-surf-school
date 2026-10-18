@@ -34,6 +34,13 @@ export interface SchoolClassState extends EntityState {
   createdBy: string;
   cancelledAt?: Date | null;
   cancellationMessage?: string | null;
+  cancellationDeadline?: Date | null;
+  /** Bumped every time the deadline is cleared; a result is stored only for the revision it was worked out for. */
+  deadlineRevision?: number;
+  /** Consecutive failed attempts to work the deadline out. */
+  deadlineAttempts?: number;
+  /** When the next attempt is due; none means due now. */
+  deadlineNextAttemptAt?: Date | null;
 }
 
 export class SchoolClass extends Entity<SchoolClassState> {
@@ -44,6 +51,14 @@ export class SchoolClass extends Entity<SchoolClassState> {
       endsAt: new Date(props.endsAt.getTime()),
       instructorIds: [...props.instructorIds],
       cancelledAt: props.cancelledAt ? new Date(props.cancelledAt.getTime()) : null,
+      cancellationDeadline: props.cancellationDeadline
+        ? new Date(props.cancellationDeadline.getTime())
+        : null,
+      deadlineRevision: props.deadlineRevision ?? 0,
+      deadlineAttempts: props.deadlineAttempts ?? 0,
+      deadlineNextAttemptAt: props.deadlineNextAttemptAt
+        ? new Date(props.deadlineNextAttemptAt.getTime())
+        : null,
     });
   }
 
@@ -89,6 +104,26 @@ export class SchoolClass extends Entity<SchoolClassState> {
 
   get cancellationMessage(): string | null {
     return this.props.cancellationMessage ?? null;
+  }
+
+  get cancellationDeadline(): Date | null {
+    return this.props.cancellationDeadline
+      ? new Date(this.props.cancellationDeadline.getTime())
+      : null;
+  }
+
+  get deadlineRevision(): number {
+    return this.props.deadlineRevision ?? 0;
+  }
+
+  get deadlineAttempts(): number {
+    return this.props.deadlineAttempts ?? 0;
+  }
+
+  get deadlineNextAttemptAt(): Date | null {
+    return this.props.deadlineNextAttemptAt
+      ? new Date(this.props.deadlineNextAttemptAt.getTime())
+      : null;
   }
 
   public validate(): void {

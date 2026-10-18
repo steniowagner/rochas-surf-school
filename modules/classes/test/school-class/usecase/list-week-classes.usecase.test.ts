@@ -79,6 +79,7 @@ describe("ListWeekClasses", () => {
       notes: null,
       cancelledAt: null,
       cancellationMessage: null,
+      cancellationDeadline: null,
       location: { id: expect.any(String), name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
       instructors: [
         { id: "i-3", name: "Álvaro" },
@@ -100,6 +101,16 @@ describe("ListWeekClasses", () => {
       cancelledAt: "2026-10-13T15:30:00.000Z",
       cancellationMessage: "Mar muito grande.",
     });
+  });
+
+  it("shapes the cancellation deadline as an ISO date", async () => {
+    const out = await useCase([
+      view("x", "2026-10-14T11:00:00.000Z", "2026-10-14T12:00:00.000Z", {
+        cancellationDeadline: new Date("2026-10-13T23:00:00.000Z"),
+      }),
+    ]).execute({ actor: STUDENT, date: "2026-10-14" });
+
+    expect(out.items[0].cancellationDeadline).toBe("2026-10-13T23:00:00.000Z");
   });
 
   it("orders the same start by end and then id, and the same name by id", async () => {

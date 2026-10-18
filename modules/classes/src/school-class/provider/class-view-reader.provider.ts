@@ -22,6 +22,7 @@ export interface ClassView {
   notes: string | null;
   cancelledAt: Date | null;
   cancellationMessage: string | null;
+  cancellationDeadline: Date | null;
   location: ClassViewLocation;
   instructors: ClassViewInstructor[];
 }

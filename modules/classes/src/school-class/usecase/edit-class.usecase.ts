@@ -209,7 +209,7 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     });
     edited.validate();
 
-    if (!(await this.schoolClassRepository.update(edited))) {
+    if (!(await this.schoolClassRepository.update(edited, classChanged))) {
       throw new DomainError("class.cancelled", 409);
     }
 

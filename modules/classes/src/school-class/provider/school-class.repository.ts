@@ -8,10 +8,11 @@ export interface SchoolClassRepository {
   /** The class with its instructor ids, or null when there is none. */
   findById(id: string): Promise<SchoolClass | null>;
   /**
-   * Writes the class and replaces its instructors in one atomic write. Returns `false`, writing nothing,
-   * when the stored class is cancelled.
+   * Writes the class and replaces its instructors in one atomic write. With `clearDeadline`, the same write
+   * clears the cancellation deadline (no deadline, no attempts, due now) and bumps its revision. Returns
+   * `false`, writing nothing, when the stored class is cancelled.
    */
-  update(schoolClass: SchoolClass): Promise<boolean>;
+  update(schoolClass: SchoolClass, clearDeadline: boolean): Promise<boolean>;
   /**
    * Marks the class as cancelled at `at`, with the message (or none). Returns `true` when it cancelled the
    * class and `false` when it was already cancelled (or is gone): of two simultaneous cancels exactly one wins.

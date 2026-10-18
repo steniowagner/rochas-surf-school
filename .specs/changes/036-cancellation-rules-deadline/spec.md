@@ -364,12 +364,13 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   `modules/classes`.
   > ✅ 2026-10-18 02:41 — added the deadline model and fields; files: `modules/classes/src/school-class/model/{cancellation-deadline,class-flags,school-class.entity,index}.ts`, `modules/classes/src/school-class/provider/class-view-reader.provider.ts`, `modules/classes/src/school-class/usecase/class-item.ts`, `modules/classes/test/mock/school-class.factory.ts`, tests `test/school-class/model/{cancellation-deadline,class-flags,school-class.entity}.test.ts`, `test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npx jest test/school-class/model test/school-class/usecase` (282 passed), check-types and lint clean from modules/classes; deviations: none
 
-- [ ] **T-03** — `EditClass` clears the deadline when a class field differs and keeps it when only the instructors
+- [x] **T-03** — `EditClass` clears the deadline when a class field differs and keeps it when only the instructors
   change (D-05): `SchoolClassRepository.update` receives whether to clear it (same atomic write; the fake applies it),
   in `src/school-class/usecase/edit-class.usecase.ts` and `provider/school-class.repository.ts`; cases named
   "deadline" in `test/school-class/usecase/edit-class.usecase.test.ts`.
   Covers: ER-09 · Done when: `npx jest test/school-class/usecase/edit-class.usecase.test.ts` passes from
   `modules/classes`.
+  > ✅ 2026-10-18 02:41 — EditClass clears the deadline when a class field differs; `SchoolClassRepository.update(schoolClass, clearDeadline)`; files: `modules/classes/src/school-class/provider/school-class.repository.ts`, `modules/classes/src/school-class/usecase/edit-class.usecase.ts`, `modules/classes/test/mock/fake-school-class.repository.ts`, tests `test/school-class/usecase/edit-class.usecase.test.ts`, `test/school-class/provider/fake-school-class.repository.test.ts`; verified: `npx jest test/school-class/usecase/edit-class.usecase.test.ts test/school-class/provider` (95 passed), check-types and lint clean; deviations: none
 
 - [ ] **T-04** — Add `WorkOutCancellationDeadlines` (D-04, D-06, D-07, D-08): the `CancellationDeadlineDescriber` port
   (`src/school-class/provider/cancellation-deadline-describer.provider.ts`, input `CancellationDeadlineRequest`, output

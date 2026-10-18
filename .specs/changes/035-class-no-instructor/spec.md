@@ -316,12 +316,29 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   > policy); deviations: none. The backend type check still fails on `push-messages.ts` and `auth.controller.ts`
   > until T-07 and T-08.
 
-- [ ] **T-07** — Add the D-06 catalog entry for `class.noInstructor` to `src/modules/notifications/push-messages.ts`
+- [x] **T-07** — Add the D-06 catalog entry for `class.noInstructor` to `src/modules/notifications/push-messages.ts`
   and `NotificationsNoInstructorNotifier` (`src/modules/notifications/notifications.no-instructor-notifier.ts`, D-05),
   provided and exported by `notifications.module.ts`, with cases in `push-messages.spec.ts` and the adapter's spec.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-03, ER-05 · Done when: `npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.no-instructor-notifier.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-18 — `push-messages.ts`: a catalog entry's `title` may now be a function of the params (the
+  > no-instructor title depends on the count), resolved in `renderPush`; `class.noInstructor` has the D-06 copy in
+  > pt-BR / es / en for one and many classes (a missing count is one, as `class.assigned`). The adapter
+  > `NotificationsNoInstructorNotifier` (following the skill: `@Injectable()` concrete class, injected directly, the
+  > contract only) runs `NotifyClassesWithoutInstructor` with `PrismaRecipientsProvider` and a `Notify`, logging and
+  > swallowing every error; provided and exported by `NotificationsModule`. Specs written first (5 failed): copy in
+  > each locale for 1 and 3 classes, the missing count, the stored notifications for the admins minus the excluded
+  > one, store failure and a non-`Error` thrown value logged and swallowed. files:
+  > `apps/backend/src/modules/notifications/push-messages.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.no-instructor-notifier.ts`,
+  > `apps/backend/src/modules/notifications/notifications.no-instructor-notifier.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.module.ts`; verified: the `Done when` command with
+  > `--coverage` (39 passed; both files: no uncovered statement, branch or function); deviations: the skill's
+  > default places an adapter in the port's module (`classes`), but D-05 puts it in `notifications`, like the other
+  > class notifiers. The push `data` (`{ type, notificationId, classId }`) comes from `ExpoPushProvider`'s existing
+  > `classId` rule; T-08's e2e test checks it.
 
 - [ ] **T-08** — Add `ClassesTeachingReleaser` (`src/modules/classes/classes.teaching-releaser.ts`, D-03) running
   `ReleaseUpcomingClasses` with the repository, the no-instructor notifier and the clock, provided and exported by

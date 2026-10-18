@@ -10,7 +10,7 @@ export interface PushText {
 }
 
 interface PushCopy {
-  title: string;
+  title: string | ((params: NotificationParams) => string);
   body: (params: NotificationParams) => string;
 }
 
@@ -213,6 +213,36 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       },
     },
   },
+  'class.noInstructor': {
+    'pt-BR': {
+      title: ({ count }) => (classCount(count) === 1 ? 'Aula sem instrutor' : 'Aulas sem instrutor'),
+      body: ({ count, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return classCount(count) === 1
+          ? `A aula de ${disciplineName(discipline)} de ${day} às ${time} ficou sem instrutor.`
+          : `${classCount(count)} aulas ficaram sem instrutor. A próxima: ${disciplineName(discipline)}, ${day} às ${time}.`;
+      },
+    },
+    es: {
+      title: ({ count }) => (classCount(count) === 1 ? 'Clase sin instructor' : 'Clases sin instructor'),
+      body: ({ count, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return classCount(count) === 1
+          ? `La clase de ${disciplineName(discipline)} del ${day} a las ${time} se quedó sin instructor.`
+          : `${classCount(count)} clases se quedaron sin instructor. La próxima: ${disciplineName(discipline)}, ${day} a las ${time}.`;
+      },
+    },
+    en: {
+      title: ({ count }) =>
+        classCount(count) === 1 ? 'Class without an instructor' : 'Classes without an instructor',
+      body: ({ count, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return classCount(count) === 1
+          ? `The ${disciplineName(discipline)} class on ${day} at ${time} has no instructor now.`
+          : `${classCount(count)} classes have no instructor now. The next one: ${disciplineName(discipline)}, ${day} at ${time}.`;
+      },
+    },
+  },
 };
 
 export function renderPush(
@@ -221,5 +251,6 @@ export function renderPush(
   locale: PushLocale,
 ): PushText {
   const copy = CATALOG[type][locale];
-  return { title: copy.title, body: copy.body(params) };
+  const title = typeof copy.title === 'function' ? copy.title(params) : copy.title;
+  return { title, body: copy.body(params) };
 }

@@ -7,9 +7,7 @@ import type { CancellationDiscipline } from "../cancellation-rules.types";
 import { useCancellationRules } from "../hooks/use-cancellation-rules.hook";
 import { useSaveCancellationRule } from "../hooks/use-save-cancellation-rule.hook";
 
-import type { UseCancellationRulesScreenResult } from "./cancellation-rules.screen.types";
-
-type Drafts = Partial<Record<CancellationDiscipline, string>>;
+import type { Drafts, UseCancellationRulesScreenResult } from "./cancellation-rules.screen.types";
 
 export const useCancellationRulesScreen = (): UseCancellationRulesScreenResult => {
   const { t } = useTranslation();

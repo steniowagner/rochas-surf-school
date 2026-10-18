@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CancellationDeadlineRequest } from '@rochas-surf-school/classes';
 import {
@@ -139,7 +140,12 @@ describe('AnthropicDeadlineDescriber', () => {
     });
 
     it('is built outside production without it and answers unclear without calling the SDK', async () => {
+      const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       const describer = new AnthropicDeadlineDescriber(config({}));
+
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(String(warn.mock.calls[0][0])).toContain('ANTHROPIC_API_KEY');
+      warn.mockRestore();
 
       expect(await describer.describe(REQUEST)).toEqual({ kind: 'unclear' });
       expect(sdk.constructed).toHaveLength(0);

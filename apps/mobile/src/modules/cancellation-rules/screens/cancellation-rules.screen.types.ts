@@ -1,5 +1,7 @@
 import type { CancellationDiscipline } from "../cancellation-rules.types";
 
+export type Drafts = Partial<Record<CancellationDiscipline, string>>;
+
 export type CancellationRulesNote = "unsaved" | "inForce" | "none";
 
 export type UseCancellationRulesScreenResult = {

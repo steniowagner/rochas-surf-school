@@ -2,7 +2,7 @@
 id: "036"
 slug: cancellation-rules-deadline
 title: "Cancellation rules and the cancellation deadline"
-status: changes-requested
+status: in-progress
 created: 2026-10-18
 started: 2026-10-18
 base_commit: a53294555754d3f32d8cfe11763786ce1d7b9aea
@@ -627,23 +627,34 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
 
 **Findings**
 
-- [ ] **F-01** (convention) — `apps/mobile/src/modules/cancellation-rules/components/cancellation-rules-sheet/cancellation-rules-sheet.hook.ts:4`
+- [x] **F-01** (convention) — `apps/mobile/src/modules/cancellation-rules/components/cancellation-rules-sheet/cancellation-rules-sheet.hook.ts:4`
   types its props inline (`({ visible }: { visible: boolean })`), while `UseCancellationRulesSheetProps` in
   `cancellation-rules-sheet.types.ts` is declared and never used. `.claude/rules/react.md` §1: the hook's props type
   lives in the `.types.ts` file, never in the hook. Expected: the hook takes `UseCancellationRulesSheetProps`.
-- [ ] **F-02** (convention) — `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen.hook.ts:12`
+  > ✅ 2026-10-18 — the hook now takes `UseCancellationRulesSheetProps`; files:
+  > `apps/mobile/src/modules/cancellation-rules/components/cancellation-rules-sheet/cancellation-rules-sheet.hook.ts`;
+  > verified: `npx jest src/modules/cancellation-rules` (21 passed), `npx tsc --noEmit` clean; deviations: none
+- [x] **F-02** (convention) — `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen.hook.ts:12`
   declares `type Drafts` in the hook file (the only mobile hook that declares a type). `.claude/rules/react.md` §1:
   types never go in `.hook.ts`. Expected: move it to `cancellation-rules.screen.types.ts`.
+  > ✅ 2026-10-18 — `Drafts` moved to the screen's types file and imported by the hook; files:
+  > `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen.hook.ts`,
+  > `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen.types.ts`; verified: `npx jest
+  > src/modules/cancellation-rules` (21 passed), `npx tsc --noEmit` and eslint clean; deviations: none
 - [ ] **F-03** (D-13) — D-13e says the deadline line uses date-fns `EEE, d MMM`; `formatDeadline`
   (`apps/mobile/src/modules/classes/utils/week.ts:22`) uses the first three letters of `EEEE`, because in pt-BR `EEE`
   gives "segunda" and ER-15 requires "seg" (reproduced: `format(…, "EEE, d MMM", { locale: ptBR })` → "segunda, 19
   out"). The change is right, but it changes a Decision and is recorded only in T-12's evidence. `how-to-execute.md`
   rule 10: a change to a Decision needs the user's approval and an entry under `## Amendments`. Expected: with the
   user's approval, amend D-13e (before → after, reason) and log it.
-- [ ] **F-04** (tests) — ER-11's edge case "a warning naming the variable is logged" has no assertion:
+- [x] **F-04** (tests) — ER-11's edge case "a warning naming the variable is logged" has no assertion:
   `anthropic.deadline-describer.spec.ts` "is built outside production without it…" checks the `unclear` answer and that
   the SDK isn't called, but would still pass with the `logger.warn` call removed. Expected: spy on `Logger.prototype.warn`
   and assert one call whose message contains `ANTHROPIC_API_KEY` (and nothing from the request).
+  > ✅ 2026-10-18 — the test spies on `Logger.prototype.warn` and asserts one call whose message contains
+  > `ANTHROPIC_API_KEY` (the message is a constant, nothing from the request); files:
+  > `apps/backend/src/modules/classes/anthropic.deadline-describer.spec.ts`; verified: `npx vitest run
+  > src/modules/classes/anthropic.deadline-describer.spec.ts` (15 passed); deviations: none
 
 **Notes**
 

@@ -387,7 +387,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Persist rules and deadlines: in `prisma/models/classes.model.prisma` add the `CancellationRule` model
+- [x] **T-05** — Persist rules and deadlines: in `prisma/models/classes.model.prisma` add the `CancellationRule` model
   (`cancellation_rules`, key `discipline`, `text`, `updated_by` `ON DELETE SET NULL`, `updated_at`) and the class
   columns `cancellation_deadline`, `deadline_revision` (default 0), `deadline_attempts` (default 0),
   `deadline_next_attempt_at`, with an index for the job's query; generate the migration
@@ -400,6 +400,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-03, ER-04, ER-09, ER-10 · Done when: `npm run prisma:migrate:dev --workspace apps/backend` applies the
   migration and `npx vitest run src/modules/classes` passes from `apps/backend`.
+  > ✅ 2026-10-18 02:44 — persisted rules and deadlines; migration `classes_add_cancellation_deadlines` (named `20261018054313_classes_add_cancellation_deadlines`) generated and applied with `npx prisma migrate dev`; files: `apps/backend/prisma/models/{classes,auth}.model.prisma`, `apps/backend/prisma/migrations/20261018054313_classes_add_cancellation_deadlines/migration.sql`, `apps/backend/src/modules/classes/{cancellation-rule.prisma,cancellation-rule.prisma.spec,school-class.prisma,school-class.prisma.spec,class-view-reader.prisma,class-view-reader.prisma.spec,classes.module}.ts`; verified: `npx vitest run` from apps/backend (all passed), `npm run check-types`, `npm run lint`; deviations: migration folder uses underscores (Prisma's naming); an author deleted from users (ON DELETE SET NULL) is read back as the nil UUID so the entity keeps a valid shape; the 'never-tried first' order is two queries because Prisma can't order by attempts == 0
 
 - [ ] **T-06** — Expose the rules: `CancellationRulesController` (`src/modules/classes/cancellation-rules.controller.ts`,
   protected `GET /cancellation-rules` and `PUT /cancellation-rules/:discipline`, D-10) with its spec,

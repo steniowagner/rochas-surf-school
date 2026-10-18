@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SchoolClass, SchoolClassRepository } from '@rochas-surf-school/classes';
+import { ClassDiscipline, SchoolClass, SchoolClassRepository } from '@rochas-surf-school/classes';
 import { PrismaService } from '../../db/prisma.service.js';
 import type {
   ClassInstructor as ClassInstructorRecord,
@@ -55,7 +55,7 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     return record ? this.toDomain(record) : null;
   }
 
-  async update(schoolClass: SchoolClass): Promise<boolean> {
+  async update(schoolClass: SchoolClass, clearDeadline: boolean): Promise<boolean> {
     return this.prisma.$transaction(async (tx) => {
       // The check sits on the write itself: an edit that read the class before a cancel writes nothing.
       const { count } = await tx.schoolClass.updateMany({
@@ -69,6 +69,15 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
           capacity: schoolClass.capacity,
           notes: schoolClass.notes,
           updatedAt: schoolClass.updatedAt,
+          // The edit and the clearing are one write: a deadline never outlives the details it was worked out from.
+          ...(clearDeadline
+            ? {
+                cancellationDeadline: null,
+                deadlineAttempts: 0,
+                deadlineNextAttemptAt: null,
+                deadlineRevision: { increment: 1 },
+              }
+            : {}),
         },
       });
       if (count === 0) {
@@ -126,6 +135,58 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     });
   }
 
+  async findNeedingDeadline(query: {
+    now: Date;
+    disciplines: ClassDiscipline[];
+    limit: number;
+  }): Promise<SchoolClass[]> {
+    const { now, disciplines, limit } = query;
+    const due = {
+      discipline: { in: disciplines },
+      startsAt: { gt: now },
+      cancelledAt: null,
+      cancellationDeadline: null,
+      OR: [{ deadlineNextAttemptAt: null }, { deadlineNextAttemptAt: { lte: now } }],
+    };
+    const find = (attempts: { equals: 0 } | { gt: 0 }, take: number) =>
+      this.prisma.schoolClass.findMany({
+        where: { ...due, deadlineAttempts: attempts },
+        include: { instructors: { select: { userId: true } } },
+        orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+        take,
+      });
+
+    // The never-tried classes come first, so a few unreadable ones can't starve the new ones.
+    const neverTried = await find({ equals: 0 }, limit);
+    const retried = neverTried.length < limit ? await find({ gt: 0 }, limit - neverTried.length) : [];
+
+    return [...neverTried, ...retried].map((record) => this.toDomain(record));
+  }
+
+  async saveDeadline(id: string, revision: number, deadline: Date): Promise<boolean> {
+    // The revision sits on the write itself: an edit or a rule change during the call wins.
+    const { count } = await this.prisma.schoolClass.updateMany({
+      where: { id, deadlineRevision: revision, cancelledAt: null },
+      data: { cancellationDeadline: deadline, deadlineAttempts: 0, deadlineNextAttemptAt: null },
+    });
+
+    return count === 1;
+  }
+
+  async recordDeadlineFailure(
+    id: string,
+    revision: number,
+    attempts: number,
+    nextAttemptAt: Date,
+  ): Promise<boolean> {
+    const { count } = await this.prisma.schoolClass.updateMany({
+      where: { id, deadlineRevision: revision, cancelledAt: null },
+      data: { deadlineAttempts: attempts, deadlineNextAttemptAt: nextAttemptAt },
+    });
+
+    return count === 1;
+  }
+
   private toDomain(record: SchoolClassWithInstructors): SchoolClass {
     return new SchoolClass({
       id: record.id,
@@ -139,6 +200,10 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
       notes: record.notes,
       cancelledAt: record.cancelledAt,
       cancellationMessage: record.cancellationMessage,
+      cancellationDeadline: record.cancellationDeadline,
+      deadlineRevision: record.deadlineRevision,
+      deadlineAttempts: record.deadlineAttempts,
+      deadlineNextAttemptAt: record.deadlineNextAttemptAt,
       createdBy: record.createdBy,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,

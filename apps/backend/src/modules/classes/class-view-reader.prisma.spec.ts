@@ -15,6 +15,7 @@ function record(notes: string | null = 'Bring sunscreen') {
     notes,
     cancelledAt: null,
     cancellationMessage: null,
+    cancellationDeadline: new Date('2026-10-14T23:00:00.000Z'),
     location: { id: 'loc-1', name: 'Praia do Futuro', address: 'Av. Zezé Diogo, 1000' },
     instructors: [{ user: { id: 'u-1', name: 'Ana' } }, { user: { id: 'u-2', name: 'Bruno' } }],
   };
@@ -36,6 +37,7 @@ const VIEW = {
   notes: 'Bring sunscreen',
   cancelledAt: null,
   cancellationMessage: null,
+  cancellationDeadline: new Date('2026-10-14T23:00:00.000Z'),
   location: { id: 'loc-1', name: 'Praia do Futuro', address: 'Av. Zezé Diogo, 1000' },
   instructors: [
     { id: 'u-1', name: 'Ana' },

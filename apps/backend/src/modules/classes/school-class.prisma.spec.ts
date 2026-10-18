@@ -179,7 +179,7 @@ describe('PrismaSchoolClassRepository', () => {
       updatedAt: NOW,
     });
 
-    expect(await repository.update(edited)).toBe(true);
+    expect(await repository.update(edited, false)).toBe(true);
 
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(calls).toEqual(['class', 'unassign', 'instructors']);
@@ -202,11 +202,150 @@ describe('PrismaSchoolClassRepository', () => {
     });
   });
 
+  it('clears the deadline in the same write when told to (deadline)', async () => {
+    const { schoolClass, repository } = setup();
+
+    expect(await repository.update(domain(), true)).toBe(true);
+
+    expect(schoolClass.updateMany).toHaveBeenCalledWith({
+      where: { id: ID, cancelledAt: null },
+      data: expect.objectContaining({
+        cancellationDeadline: null,
+        deadlineAttempts: 0,
+        deadlineNextAttemptAt: null,
+        deadlineRevision: { increment: 1 },
+      }),
+    });
+  });
+
+  it('leaves the deadline columns out of an update that keeps it (deadline)', async () => {
+    const { schoolClass, repository } = setup();
+
+    await repository.update(domain(), false);
+
+    const [{ data }] = schoolClass.updateMany.mock.calls[0] as unknown as [{ data: object }];
+    expect(Object.keys(data)).not.toContain('cancellationDeadline');
+    expect(Object.keys(data)).not.toContain('deadlineRevision');
+  });
+
+  it('reads the deadline fields of a class (deadline)', async () => {
+    const { schoolClass, repository } = setup();
+    const deadline = new Date('2026-10-14T23:00:00.000Z');
+    const next = new Date('2026-10-14T12:05:00.000Z');
+    schoolClass.findUnique.mockResolvedValueOnce({
+      id: ID,
+      discipline: 'surf',
+      level: 'beginner',
+      startsAt: STARTS_AT,
+      endsAt: ENDS_AT,
+      locationId: LOCATION_ID,
+      capacity: 8,
+      notes: null,
+      cancelledAt: null,
+      cancellationMessage: null,
+      cancellationDeadline: deadline,
+      deadlineRevision: 2,
+      deadlineAttempts: 3,
+      deadlineNextAttemptAt: next,
+      createdBy: ADMIN_ID,
+      createdAt: NOW,
+      updatedAt: NOW,
+      instructors: [{ userId: INSTRUCTOR_ID }],
+    });
+
+    expect(await repository.findById(ID)).toMatchObject({
+      cancellationDeadline: deadline,
+      deadlineRevision: 2,
+      deadlineAttempts: 3,
+      deadlineNextAttemptAt: next,
+    });
+  });
+
+  it('finds the classes needing a deadline, never-tried first (deadline)', async () => {
+    const { schoolClass, repository } = setup();
+    const row = (id: string) => ({
+      id,
+      discipline: 'surf',
+      level: 'beginner',
+      startsAt: STARTS_AT,
+      endsAt: ENDS_AT,
+      locationId: LOCATION_ID,
+      capacity: 8,
+      notes: null,
+      createdBy: ADMIN_ID,
+      createdAt: NOW,
+      updatedAt: NOW,
+      instructors: [],
+    });
+    schoolClass.findMany
+      .mockResolvedValueOnce([row(ID)])
+      .mockResolvedValueOnce([row(OTHER_ID)]);
+
+    const found = await repository.findNeedingDeadline({ now: NOW, disciplines: ['surf'], limit: 20 });
+
+    expect(found.map((item) => item.id)).toEqual([ID, OTHER_ID]);
+    const due = {
+      discipline: { in: ['surf'] },
+      startsAt: { gt: NOW },
+      cancelledAt: null,
+      cancellationDeadline: null,
+      OR: [{ deadlineNextAttemptAt: null }, { deadlineNextAttemptAt: { lte: NOW } }],
+    };
+    expect(schoolClass.findMany).toHaveBeenNthCalledWith(1, {
+      where: { ...due, deadlineAttempts: { equals: 0 } },
+      include: { instructors: { select: { userId: true } } },
+      orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+      take: 20,
+    });
+    expect(schoolClass.findMany).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ where: { ...due, deadlineAttempts: { gt: 0 } }, take: 19 }),
+    );
+  });
+
+  it('skips the retried classes when the never-tried ones fill the limit (deadline)', async () => {
+    const { schoolClass, repository } = setup();
+    schoolClass.findMany.mockResolvedValueOnce([
+      { id: ID, discipline: 'surf', level: 'beginner', startsAt: STARTS_AT, endsAt: ENDS_AT, locationId: LOCATION_ID, capacity: 8, createdBy: ADMIN_ID, createdAt: NOW, updatedAt: NOW, instructors: [] },
+    ]);
+
+    expect(await repository.findNeedingDeadline({ now: NOW, disciplines: ['surf'], limit: 1 })).toHaveLength(1);
+    expect(schoolClass.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('stores a deadline only for the revision it was worked out for (deadline)', async () => {
+    const { schoolClass, repository } = setup();
+    const deadline = new Date('2026-10-14T23:00:00.000Z');
+    schoolClass.updateMany.mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 0 });
+
+    expect(await repository.saveDeadline(ID, 2, deadline)).toBe(true);
+    expect(await repository.saveDeadline(ID, 1, deadline)).toBe(false);
+
+    expect(schoolClass.updateMany).toHaveBeenNthCalledWith(1, {
+      where: { id: ID, deadlineRevision: 2, cancelledAt: null },
+      data: { cancellationDeadline: deadline, deadlineAttempts: 0, deadlineNextAttemptAt: null },
+    });
+  });
+
+  it('records a failed attempt only for the revision it was made for (deadline)', async () => {
+    const { schoolClass, repository } = setup();
+    const next = new Date('2026-10-14T12:01:00.000Z');
+    schoolClass.updateMany.mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 0 });
+
+    expect(await repository.recordDeadlineFailure(ID, 2, 1, next)).toBe(true);
+    expect(await repository.recordDeadlineFailure(ID, 3, 1, next)).toBe(false);
+
+    expect(schoolClass.updateMany).toHaveBeenNthCalledWith(1, {
+      where: { id: ID, deadlineRevision: 2, cancelledAt: null },
+      data: { deadlineAttempts: 1, deadlineNextAttemptAt: next },
+    });
+  });
+
   it('writes nothing, not even the instructors, when the stored class is cancelled', async () => {
     const { schoolClass, classInstructor, calls, repository } = setup();
     schoolClass.updateMany.mockResolvedValueOnce({ count: 0 });
 
-    expect(await repository.update(domain())).toBe(false);
+    expect(await repository.update(domain(), false)).toBe(false);
 
     expect(calls).toEqual([]);
     expect(classInstructor.deleteMany).not.toHaveBeenCalled();
@@ -266,7 +405,7 @@ describe('PrismaSchoolClassRepository', () => {
     const { classInstructor, repository } = setup();
     classInstructor.createMany.mockRejectedValue(new Error('down'));
 
-    await expect(repository.update(domain())).rejects.toThrow('down');
+    await expect(repository.update(domain(), false)).rejects.toThrow('down');
   });
 
   it('delete removes the class only while it is not cancelled and starts after now', async () => {

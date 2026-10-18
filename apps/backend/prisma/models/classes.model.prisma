@@ -31,20 +31,26 @@ model Location {
 }
 
 model SchoolClass {
-  id                  String          @id @db.Uuid
-  discipline          ClassDiscipline
-  level               ClassLevel
-  startsAt            DateTime        @map("starts_at")
-  endsAt              DateTime        @map("ends_at")
-  locationId          String          @map("location_id") @db.Uuid
-  capacity            Int
-  notes               String?
+  id                    String          @id @db.Uuid
+  discipline            ClassDiscipline
+  level                 ClassLevel
+  startsAt              DateTime        @map("starts_at")
+  endsAt                DateTime        @map("ends_at")
+  locationId            String          @map("location_id") @db.Uuid
+  capacity              Int
+  notes                 String?
   // Set once, by an admin: a cancelled class is final and the only state stored instead of computed.
-  cancelledAt         DateTime?       @map("cancelled_at")
-  cancellationMessage String?         @map("cancellation_message")
-  createdBy           String          @map("created_by") @db.Uuid
-  createdAt           DateTime        @default(now()) @map("created_at")
-  updatedAt           DateTime        @updatedAt @map("updated_at")
+  cancelledAt           DateTime?       @map("cancelled_at")
+  cancellationMessage   String?         @map("cancellation_message")
+  // Worked out in the background from the rule of the discipline; null while it can't be.
+  cancellationDeadline  DateTime?       @map("cancellation_deadline")
+  // Bumped whenever the deadline is cleared: a result is stored only for the revision it was worked out for.
+  deadlineRevision      Int             @default(0) @map("deadline_revision")
+  deadlineAttempts      Int             @default(0) @map("deadline_attempts")
+  deadlineNextAttemptAt DateTime?       @map("deadline_next_attempt_at")
+  createdBy             String          @map("created_by") @db.Uuid
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
 
   location    Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
   creator     User              @relation(fields: [createdBy], references: [id], onDelete: Restrict)
@@ -52,6 +58,7 @@ model SchoolClass {
 
   @@index([startsAt])
   @@index([locationId])
+  @@index([cancellationDeadline, startsAt, deadlineNextAttemptAt])
   @@map("classes")
 }
 
@@ -65,4 +72,15 @@ model ClassInstructor {
   @@id([classId, userId])
   @@index([userId])
   @@map("class_instructors")
+}
+
+model CancellationRule {
+  discipline ClassDiscipline @id
+  text       String
+  updatedBy  String?         @map("updated_by") @db.Uuid
+  updatedAt  DateTime        @default(now()) @map("updated_at")
+
+  author User? @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@map("cancellation_rules")
 }

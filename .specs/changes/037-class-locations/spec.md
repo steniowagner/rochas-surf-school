@@ -572,10 +572,16 @@ es.
 
 ### Web (`apps/web`)
 
-- [ ] **T-12** — The privacy policy's Google and Apple lines in `src/i18n/dictionaries/{pt-br,es,en}.ts` (Copy), and a
+- [x] **T-12** — The privacy policy's Google and Apple lines in `src/i18n/dictionaries/{pt-br,es,en}.ts` (Copy), and a
   test `privacy policy names the map providers in <lang>` in `apps/web/e2e/pages.e2e.ts` for the three languages.
   Covers: ER-09 · Done when: `npm run test:e2e --workspace apps/web -- -g "names the map providers"` passes and the web
   type check passes.
+  > ✅ 2026-10-18 14:52 — The Google and Apple lines of privacyPolicy.services.items now name the address
+  > suggestions and Apple Maps in pt-BR, es and en (Copy words); Playwright tests 'privacy policy names the map
+  > providers in <lang>' for the three languages. Files: apps/web/src/i18n/dictionaries/pt-br.ts,
+  > apps/web/src/i18n/dictionaries/es.ts, apps/web/src/i18n/dictionaries/en.ts, apps/web/e2e/pages.e2e.ts.
+  > Verified: cd apps/web && npm run test:e2e -- -g 'names the map providers' (3 passed); npx turbo run check-
+  > types --filter=@rochas-surf-school/web (successful). Deviations: none.
 
 ### Mobile (`apps/mobile`)
 

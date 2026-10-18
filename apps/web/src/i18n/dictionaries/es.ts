@@ -77,8 +77,8 @@ export const es = {
       title: "Quién trata los datos",
       intro: "Usamos estos servicios para que la app funcione:",
       items: [
-        "Google: inicio de sesión con una cuenta de Google y Google Maps para mostrar los lugares de las clases.",
-        "Apple: inicio de sesión con una cuenta de Apple.",
+        "Google: inicio de sesión con una cuenta de Google, Google Maps para mostrar los lugares de las clases y sugerencias de dirección cuando los administradores guardan un lugar (recibe el texto de la búsqueda).",
+        "Apple: inicio de sesión con una cuenta de Apple y Apple Maps para mostrar los lugares de las clases en iPhone.",
         "Resend: envía el correo con el código de acceso (recibe tu correo y el código).",
         "Expo: entrega las notificaciones push (recibe el token del dispositivo y el texto de la notificación).",
         "Un servicio de alojamiento en la nube, donde funcionan la app y su base de datos.",

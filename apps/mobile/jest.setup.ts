@@ -70,6 +70,24 @@ jest.mock("@expo/ui/community/datetime-picker", () => {
   return { __esModule: true, default: DateTimePicker, DateTimePicker };
 });
 
+// The native map isn't available under Jest: host views that keep their props (`onPress`, `region`, `coordinate`,
+// `scrollEnabled`…), so tests read them and drive a tap with `fireEvent.press(map, { nativeEvent: { coordinate } })`.
+jest.mock("react-native-maps", () => {
+  const MapView = (props: Record<string, unknown>) =>
+    require("react").createElement("MapView", props);
+  const Marker = (props: Record<string, unknown>) =>
+    require("react").createElement("Marker", props);
+
+  return {
+    __esModule: true,
+    default: MapView,
+    MapView,
+    Marker,
+    PROVIDER_GOOGLE: "google",
+    PROVIDER_DEFAULT: null,
+  };
+});
+
 jest.mock("expo-device", () => ({ isDevice: true }));
 
 jest.mock("expo-constants", () => ({

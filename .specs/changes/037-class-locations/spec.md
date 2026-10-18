@@ -585,7 +585,7 @@ es.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-13** — Maps setup: `npx expo install react-native-maps`; `apps/mobile/app.config.ts` appending the
+- [x] **T-13** — Maps setup: `npx expo install react-native-maps`; `apps/mobile/app.config.ts` appending the
   `react-native-maps` plugin with `androidGoogleMapsApiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY` to the config
   from `app.json` (D-03); `GOOGLE_MAPS_ANDROID_API_KEY` in `apps/mobile/.env.example`; the `react-native-maps` mock in
   `jest.setup.ts`; a test that the config adds the plugin with the key and keeps the other plugins
@@ -593,6 +593,15 @@ es.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `cd apps/mobile && npx expo config --type public` lists the `react-native-maps`
   plugin, `npx jest app.config` passes, and `tsc --noEmit` and eslint pass.
+  > ✅ 2026-10-18 14:54 — Installed react-native-maps 1.27.2 with npx expo install; apps/mobile/app.config.ts takes
+  > the app.json config and appends the react-native-maps plugin with androidGoogleMapsApiKey from
+  > GOOGLE_MAPS_ANDROID_API_KEY; the key is documented (empty) in .env.example; jest.setup.ts mocks react-native-
+  > maps (MapView and Marker as host views keeping their props, PROVIDER_GOOGLE); jest.config.js testMatch also
+  > covers app.config.test.ts; test app.config.test.ts. Files: apps/mobile/package.json, package-lock.json,
+  > apps/mobile/app.config.ts, apps/mobile/app.config.test.ts, apps/mobile/.env.example,
+  > apps/mobile/jest.setup.ts, apps/mobile/jest.config.js. Verified: cd apps/mobile && npx expo config --type
+  > public lists the react-native-maps plugin; npx jest app.config (4 passed); tsc --noEmit and eslint clean.
+  > Deviations: none (the Android key is not set locally, so the plugin entry has an undefined key).
 
 - [ ] **T-14** — Data layer: `ClassLocation` gains `latitude`, `longitude`, `upcomingClasses`; the class item's
   location gains the point; hooks `useEditLocation`, `useArchiveLocation` (both update the `["locations"]` cache),

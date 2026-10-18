@@ -102,6 +102,14 @@ export function ClassDetailsScreen({
               <Text className="ds-text-list-subtitle text-ink-2">
                 {screen.dateLine}
               </Text>
+              {screen.cancellationDeadline ? (
+                <View className="flex-row items-center gap-2">
+                  <Ionicons name="calendar-clear-outline" size={16} color={theme.ink2} />
+                  <Text className="ds-text-list-subtitle text-ink-2">
+                    {t("classDetails.cancellationDeadline", { when: screen.cancellationDeadline })}
+                  </Text>
+                </View>
+              ) : null}
             </View>
             {screen.showNoInstructor ? (
               <Pressable

@@ -24,7 +24,7 @@ import {
   isClassNotFoundError,
   isClassStartedError,
 } from "../utils/class-error";
-import { formatDateLine, schoolDayOf, schoolTimeOf } from "../utils/week";
+import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../utils/week";
 
 import type {
   ClassDetailsInstructor,
@@ -161,9 +161,16 @@ export const useClassDetailsScreen = ({
       )
     : "";
 
+  // Students (and everyone) see until when the class can be cancelled, unless it was cancelled itself.
+  const cancellationDeadline =
+    item?.cancellationDeadline && state !== "cancelled"
+      ? formatDeadline(item.cancellationDeadline, getDateLocale(i18n.language))
+      : null;
+
   return {
     item,
     instructors,
+    cancellationDeadline,
     timeRange: `${start} – ${end}`,
     start,
     end,

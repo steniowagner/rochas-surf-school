@@ -354,6 +354,7 @@ const messages: Messages = {
       description: "Atribua um instrutor antes da aula.",
     },
     noInstructorAssigned: "Sem instrutor atribuído",
+    cancellationDeadline: "Cancelamento até {{when}}",
     noDeadline: {
       title: "Sem prazo de cancelamento",
       description: "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",

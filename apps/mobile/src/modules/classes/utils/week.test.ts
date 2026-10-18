@@ -1,7 +1,8 @@
-import { enUS } from "date-fns/locale";
+import { enUS, ptBR } from "date-fns/locale";
 
 import {
   formatDateLine,
+  formatDeadline,
   schoolDayOf,
   schoolTimeOf,
 } from "./week";
@@ -28,5 +29,16 @@ describe("formatDateLine", () => {
 
   it("adds the year when it isn't the current one", () => {
     expect(formatDateLine("2027-01-05", "2026-12-31", enUS, LABELS)).toBe("Tuesday · 5 Jan 2027");
+  });
+});
+
+describe("formatDeadline", () => {
+  it("writes the weekday, day, month and time in America/Fortaleza, in the locale", () => {
+    expect(formatDeadline("2026-10-19T23:00:00.000Z", ptBR)).toBe("seg, 19 out · 20:00");
+    expect(formatDeadline("2026-10-19T23:00:00.000Z", enUS)).toBe("Mon, 19 Oct · 20:00");
+  });
+
+  it("keeps Fortaleza's day when the UTC day is the next one", () => {
+    expect(formatDeadline("2026-10-20T02:30:00.000Z", enUS)).toBe("Mon, 19 Oct · 23:30");
   });
 });

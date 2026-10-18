@@ -354,6 +354,7 @@ const messages = {
       description: "Assign an instructor before the class.",
     },
     noInstructorAssigned: "No instructor assigned",
+    cancellationDeadline: "Cancel until {{when}}",
     noDeadline: {
       title: "No cancellation deadline",
       description: "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",

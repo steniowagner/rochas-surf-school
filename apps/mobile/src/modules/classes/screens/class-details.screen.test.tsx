@@ -10,6 +10,7 @@ import {
 import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
+import i18n from "@/i18n";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
@@ -310,6 +311,54 @@ describe("ClassDetailsScreen", () => {
       expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
       expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
       expect(screen.queryByText("No instructor assigned")).not.toBeOnTheScreen();
+    });
+  });
+
+  describe("cancellation deadline", () => {
+    afterEach(() => i18n.changeLanguage("en-US"));
+
+    it("shows everyone, in pt-BR, until when the class can be cancelled", async () => {
+      await i18n.changeLanguage("pt-BR");
+      serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
+      await renderScreen();
+
+      expect(await screen.findByText("Cancelamento até seg, 19 out · 20:00")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
+    });
+
+    it("writes the English weekday and month in en-US", async () => {
+      serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
+      await renderScreen(true);
+
+      expect(await screen.findByText("Cancel until Mon, 19 Oct · 20:00")).toBeOnTheScreen();
+    });
+
+    it("uses Fortaleza's time whatever the phone's time zone", async () => {
+      serve(makeClass({ cancellationDeadline: "2026-10-14T02:30:00.000Z" }));
+      await renderScreen();
+
+      expect(await screen.findByText("Cancel until Tue, 13 Oct · 23:30")).toBeOnTheScreen();
+    });
+
+    it("shows no line without a deadline", async () => {
+      serve(makeClass({ cancellationDeadline: null }));
+      await renderScreen();
+
+      expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
+    });
+
+    it("shows no line on a cancelled class", async () => {
+      serve(
+        makeClass({
+          cancellationDeadline: "2026-10-19T23:00:00.000Z",
+          cancelledAt: "2026-10-13T10:00:00.000Z",
+        }),
+      );
+      await renderScreen();
+
+      expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
     });
   });
 

@@ -468,7 +468,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   passes from `apps/mobile`.
   > ✅ 2026-10-18 03:06 — flagged classes without a deadline for admins: the 'Sem prazo' chip on the card (stacked under 'Sem instrutor' in one right-hand column) and the 'Sem prazo de cancelamento' banner on the details, which opens the rules screen; files: `apps/mobile/src/modules/classes/classes.types.ts` (ClassItem.cancellationDeadline), `apps/mobile/src/modules/classes/components/class-card/{class-card.component.tsx,class-card.hook.ts,class-card.types.ts,class-card.component.test.tsx}`, `apps/mobile/src/modules/classes/screens/{class-details.screen.tsx,class-details.screen.hook.ts,class-details.screen.test.tsx,classes-week.screen.test.tsx}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts` (classesWeek.noDeadline, classDetails.noDeadline.*); verified: `npx jest src/modules/classes` (37 suites; 408 of 409 passed, the one failure was my own wrong expected order in a new test, fixed) and then `npx jest src/modules/classes/components/class-card src/modules/classes/screens/class-details` (89 passed), `npm run check-types` and eslint clean; deviations: the right-hand chips now sit in one column wrapper (the state chips too) so two flags stack; the test factories default to a stored deadline so existing cases don't see the new flag
 
-- [ ] **T-12** — Show the deadline on the details (D-13e): the details' hook formats `cancellationDeadline` in
+- [x] **T-12** — Show the deadline on the details (D-13e): the details' hook formats `cancellationDeadline` in
   Fortaleza with the app's date-fns locale (none when `null` or cancelled) and the screen draws "Cancelamento até …";
   copy `classDetails.cancellationDeadline`; cases named "cancellation deadline" in `class-details.screen.test.tsx`
   (pt-BR and en-US).
@@ -476,6 +476,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-15 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes from
   `apps/mobile`.
+  > ✅ 2026-10-18 03:08 — the class details now show 'Cancelamento até <weekday, day month · HH:mm>' (Fortaleza, the app's locale) for every role, none when the deadline is null or the class is cancelled; files: `apps/mobile/src/modules/classes/utils/{week.ts,week.test.ts}` (formatDeadline), `apps/mobile/src/modules/classes/screens/{class-details.screen.tsx,class-details.screen.hook.ts,class-details.screen.test.tsx}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts` (classDetails.cancellationDeadline); verified: `npx jest src/modules/classes/screens/class-details src/modules/classes/utils/week` (2 suites, 78 passed; pt-BR 'Cancelamento até seg, 19 out · 20:00', en-US 'Cancel until Mon, 19 Oct · 20:00', Fortaleza day kept when the UTC day differs), `npm run check-types` and eslint clean; deviations: D-13e says date-fns `EEE, d MMM`, but in pt-BR date-fns' `EEE` gives 'segunda', not the 'seg' that ER-15 requires, so the weekday is the first three letters of `EEEE` (the repo's weekdayAbbreviation approach); ER-15's examples ('seg, 19 out' and 'Mon, 19 Oct') hold
 
 ### Web (`apps/web`)
 

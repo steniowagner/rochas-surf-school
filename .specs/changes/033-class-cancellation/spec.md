@@ -2,9 +2,10 @@
 id: "033"
 slug: class-cancellation
 title: "Cancelling a class"
-status: in-review
+status: accepted
 started: 2026-10-17
 base_commit: e08a9739ca92401665a9bfd829d3fcc9b5abf84a
+reviewed_commit: 83b812b2444faed520ac56819dbd51056b42672f
 created: 2026-10-17
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
@@ -589,3 +590,45 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 - Test data left in the local dev database by this review: class `b5e9c84b…` (an existing class, now cancelled with
   "Mar Muir grande"), and two classes added for the reproduction, `9048413c…` (cancelled) and `7828269d…` (edited to
   advanced), with their instructor notifications.
+
+### Round 2 — 2026-10-17 — accepted
+
+**Checks**
+
+- lint ✅ (0 errors; the same 1 oxlint warning as round 1) · type check ✅ · build ✅ (classes, notifications, backend, mobile)
+- related tests ✅ backend 145 · mobile 782 · classes 281 · notifications 94 passed
+- coverage of the changed lines ✅ COVERAGE OK, 30 files; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (15 files, 420 tests)
+- `prisma:migrate:deploy` ✅ no pending migrations
+- mobile `Verify by` filters ✅ (ER-09 31, ER-10 29, ER-11 5, ER-12 6, ER-13 3, ER-14 5, ER-15 14 passed; `classes-week.screen.test.tsx` 25 passed)
+- iOS simulator (local backend, admin account, app relaunched on the current bundle): "Cancel a class" journey ✅ end to end, including the step F-01 broke; "Class tools" ✅ (tools sheet, three tools). The student sign-in of "Other roles" was not driven (ER-12 for other roles rests on its component tests, its `Verify by`)
+
+**Expected Results**
+
+- ER-01 ✅ — e2e and unit; in the simulator "  R2 swell check.  " was stored as `R2 swell check.`
+- ER-02 ✅ — e2e and unit
+- ER-03 ✅ — e2e (finished, again, two concurrent, cancelled after its end) and the Prisma spec
+- ER-04 ✅ — e2e and unit
+- ER-05 ✅ — e2e, unit and the Prisma `update` spec
+- ER-06 ✅ — `getClassState` and `SchoolClass` tests
+- ER-07 ✅ — unit and e2e; in the simulator the instructor got one `class.cancelled` row with `classId`, `discipline`, `startsAt` and the trimmed message
+- ER-08 ✅ — push catalog, notifier and entity tests
+- ER-09 ✅ — tests; in the simulator: tools → "Cancel class" → the sheet with its copy and 19/300 counter → "Cancel and notify": details stay with the banner and the message, no tools button; back on the classes screen the card shows "Cancelled" with the time struck through at once, and Sunday keeps its dot (F-01 fixed)
+- ER-10 ✅ — error-key, hook and details tests
+- ER-11 ✅ — card tests; seen in the simulator
+- ER-12 ✅ — details tests; banner with the message seen in the simulator
+- ER-13 ✅ — edit screen tests
+- ER-14 ✅ — notification hook tests
+- ER-15 ✅ — tests; tools button and sheet seen in the simulator
+
+**Findings**
+
+- none. F-01 (round 1) is fixed: `useClassesWeekScreen` refetches the invalidated weeks on focus; the new week-screen test fails without it and passes with it, and the simulator journey now shows the cancelled card on return.
+
+**Notes**
+
+- `## Memory Impact` doesn't mention the F-01 fix: `spec-finish` should record in the technical context (mobile classes) that the classes screen refetches every invalidated `["classes", "week"]` query when it is focused again, which also fixes spec 032's stale card after an edit.
+- The focus refetch covers every invalidated week in the cache, not only the visible ones, so returning after a cancel may fetch weeks that are off screen; harmless at today's sizes.
+- In this simulator, typing while the text field isn't focused sends the keystrokes to the dev menu ("r" reloads the app); a tooling quirk, not the app.
+- Round 1's notes on the oxlint warning, the red success toast and the keyboard-dismissing first tap still apply.
+- Test data added to the local dev database by this round: class `7828269d…` (tomorrow 19:00) is now cancelled with "R2 swell check.", with its instructor's notification.

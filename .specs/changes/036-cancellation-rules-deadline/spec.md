@@ -412,7 +412,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   and `npm run test:e2e --workspace apps/backend -- test/cancellation-rules.e2e-spec.ts` pass.
   > ✅ 2026-10-18 02:45 — exposed GET/PUT /cancellation-rules; files: `apps/backend/src/modules/classes/{cancellation-rules.controller,cancellation-rules.controller.spec,classes.module}.ts`, `apps/backend/src/modules/classes/cancellation-rules.integration.http`, `apps/backend/test/cancellation-rules.e2e-spec.ts`; verified: `npx vitest run src/modules/classes/cancellation-rules.controller.spec.ts` (6 passed), `npm run test:e2e -- test/cancellation-rules.e2e-spec.ts` (26 passed, Postgres up), `npm run check-types`; deviations: the e2e suite snapshots the rules the database had and puts them back afterwards, instead of only deleting them, so a developer's real rules survive a test run
 
-- [ ] **T-07** — Implement `AnthropicDeadlineDescriber` (`src/modules/classes/anthropic.deadline-describer.ts`, D-01,
+- [x] **T-07** — Implement `AnthropicDeadlineDescriber` (`src/modules/classes/anthropic.deadline-describer.ts`, D-01,
   D-02, D-03, D-04, D-11): add `@anthropic-ai/sdk` and `zod` to `apps/backend`, `ANTHROPIC_API_KEY=` to
   `.env.example`; the fixed system prompt, the one JSON user message, the flat schema mapped to the domain union with
   the ranges checked, the refusal fallback, every failure mapped to `unclear`, and the key handling; register it in
@@ -422,6 +422,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-06, ER-11 · Done when: `npx vitest run src/modules/classes/anthropic.deadline-describer.spec.ts` passes
   and `npm run check-types --workspace apps/backend` exits 0.
+  > ✅ 2026-10-18 02:46 — implemented AnthropicDeadlineDescriber (claude-opus-5-5, effort low, structured outputs via beta.messages.parse + zodOutputFormat, fallbacks 'default' with beta server-side-fallback-2026-07-01, 30 s timeout, maxRetries 0, every failure -> unclear, key required only in production) and registered it in the module; files: `apps/backend/src/modules/classes/{anthropic.deadline-describer,anthropic.deadline-describer.spec,classes.module}.ts`, `apps/backend/.env.example`, `apps/backend/package.json`, `package-lock.json` (@anthropic-ai/sdk ^0.135.0, zod ^4.6.7); verified: `npx vitest run src/modules/classes/anthropic.deadline-describer.spec.ts` (14 passed), `npm run check-types --workspace apps/backend` exit 0, lint clean; deviations: the SDK is mocked with `vi.mock`, so the real structured-output call was not exercised against Anthropic here (the journeys in T-14 do that with a real key)
 
 - [ ] **T-08** — Add `CancellationDeadlineJob` (`src/modules/classes/cancellation-deadline.job.ts`, D-06: every
   minute, `waitForCompletion`, runs `WorkOutCancellationDeadlines` with the Prisma repositories, the describer and

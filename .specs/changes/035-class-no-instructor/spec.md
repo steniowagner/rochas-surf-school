@@ -214,12 +214,27 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   > verified: `npx jest test/school-class/model/class-flags.test.ts --coverage` (3 passed, class-flags.ts 100%);
   > deviations: none
 
-- [ ] **T-02** — Add `SchoolClassRepository.findUpcomingTaughtBy` / `removeInstructor` (D-12) and the
+- [x] **T-02** — Add `SchoolClassRepository.findUpcomingTaughtBy` / `removeInstructor` (D-12) and the
   `NoInstructorNotifier` port (`src/school-class/provider/no-instructor-notifier.provider.ts`, D-02), exported from
   the provider barrel; extend `test/mock/fake-school-class.repository.ts` and add `fake-no-instructor.notifier.ts`
   (and the mock barrel), with their tests in `test/school-class/provider/`.
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/classes` and
   `npm run check-types --workspace @rochas-surf-school/classes` pass.
+  > ✅ 2026-10-18 — added `findUpcomingTaughtBy(userId, now)` (taught by the person, `startsAt > now`, not
+  > cancelled, by `startsAt` then `id`) and `removeInstructor(userId, classIds)` (empty list writes nothing) to the
+  > port; the `NoInstructorNotifier` port with `ClassesWithoutInstructor { count, classId, discipline, startsAt,
+  > excludeUserIds }`; the fake repository implements both (recording `removeInstructorCalls`) and
+  > `FakeNoInstructorNotifier` records events and can fail once (`failNext`). files:
+  > `modules/classes/src/school-class/provider/school-class.repository.ts`,
+  > `modules/classes/src/school-class/provider/no-instructor-notifier.provider.ts`,
+  > `modules/classes/src/school-class/provider/index.ts`, `modules/classes/test/mock/fake-school-class.repository.ts`,
+  > `modules/classes/test/mock/fake-no-instructor.notifier.ts`, `modules/classes/test/mock/index.ts`,
+  > `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`,
+  > `modules/classes/test/school-class/provider/fake-no-instructor.notifier.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/classes` (23 suites, 313 passed; both fakes 100%) and
+  > `npm run check-types --workspace @rochas-surf-school/classes` (no errors); deviations: none. The backend's
+  > `PrismaSchoolClassRepository` doesn't implement the two methods until T-06, so the backend type check fails
+  > between T-02 and T-06.
 
 - [ ] **T-03** — Add `ReleaseUpcomingClasses` (`src/school-class/usecase/release-upcoming-classes.usecase.ts`,
   exported from the usecase barrel; D-01, D-02), with

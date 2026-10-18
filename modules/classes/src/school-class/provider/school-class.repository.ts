@@ -23,4 +23,14 @@ export interface SchoolClassRepository {
    * simultaneous deletes exactly one wins.
    */
   delete(id: string, now: Date): Promise<boolean>;
+  /**
+   * The classes with `userId` among their instructors that start after `now` and aren't cancelled, sorted by
+   * `startsAt` then `id`.
+   */
+  findUpcomingTaughtBy(userId: string, now: Date): Promise<SchoolClass[]>;
+  /**
+   * Takes `userId` off the instructors of those classes in one atomic write, leaving the other instructors.
+   * An empty list writes nothing.
+   */
+  removeInstructor(userId: string, classIds: string[]): Promise<void>;
 }

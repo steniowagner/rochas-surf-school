@@ -2,7 +2,7 @@
 id: "033"
 slug: class-cancellation
 title: "Cancelling a class"
-status: in-progress
+status: in-review
 started: 2026-10-17
 base_commit: e08a9739ca92401665a9bfd829d3fcc9b5abf84a
 created: 2026-10-17

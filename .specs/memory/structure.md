@@ -111,10 +111,15 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
   access helper:
   - `access/class-actor.ts` — `ClassActor`, `assertCanReadClasses` (approved) and `assertCanManageClasses`
     (approved admin; status first).
-  - `location/` — `model/location.entity.ts` (`Location`, `LOCATION_NAME_MAX` / `LOCATION_ADDRESS_MAX`),
-    `model/location-name.ts` (`normalizeLocationName`: NFD, accents removed, lower case — the stored `nameKey`),
-    `provider/location.repository.ts` (`findAll`, `findById`, `existsByNameKey`, `create` — a duplicate is a
-    `ConflictError`), `usecase/{list-locations,create-location}.usecase.ts`, `usecase/location.out.ts`.
+  - `location/` — `model/location.entity.ts` (`Location`: name, address, the point and `archivedAt`;
+    `LOCATION_NAME_MAX` / `LOCATION_ADDRESS_MAX`; the point rule), `model/location-name.ts` (`normalizeLocationName`:
+    NFD, accents removed, lower case — the stored `nameKey`), `provider/location.repository.ts` (`findActive(now)`
+    with the upcoming counts, `findById`, `existsByNameKey`, `create` — a duplicate is a `ConflictError` —,
+    `update(location, { clearDeadlinesFrom })` atomic, `archive(id)` conditional, `findUpcomingInstructorCounts`),
+    `provider/location-change-notifier.provider.ts` (`LocationChangeNotifier.locationChanged`),
+    `provider/address-suggestion.provider.ts` (`AddressSuggestionProvider.suggest` / `findPlace`; spec 037),
+    `usecase/{list-locations,create-location,edit-location,archive-location,suggest-addresses,find-address-place}.usecase.ts`,
+    `usecase/address-suggestion.rules.ts` (the query, session-token and language checks), `usecase/location.out.ts`.
   - `cancellation-rule/` (spec 036) — `model/cancellation-rule.entity.ts` (`CancellationRule`,
     `CANCELLATION_RULE_TEXT_MAX`), `provider/cancellation-rule.repository.ts` (`findAll`, `save(rule, now)`: the
     rule and the clearing of its discipline's upcoming deadlines in one write),
@@ -153,7 +158,8 @@ prisma/
   migrations/                   # <timestamp>_<module>[_<change>]/migration.sql
   models/school-settings.model.prisma  # school_settings (at most one row, created by the first save)
   models/notifications.model.prisma    # notifications, push_tokens (→ users, cascade), push_tickets (no foreign key)
-  models/classes.model.prisma   # locations (unique name_key), classes (starts_at indexed; cancelled_at and
+  models/classes.model.prisma   # locations (unique nullable name_key — null once archived —, nullable latitude,
+                                # longitude and archived_at), classes (starts_at indexed; cancelled_at and
                                 # cancellation_message nullable; cancellation_deadline, deadline_revision,
                                 # deadline_attempts, deadline_next_attempt_at, indexed for the job; location_id →
                                 # locations, created_by → users, both RESTRICT), class_instructors (class_id +
@@ -229,12 +235,19 @@ src/
                                 # class.cancelled / class.deleted; logs and swallows every error)
     notifications.no-instructor-notifier.ts  # NoInstructorNotifier adapter of classes
                                 # (NotifyClassesWithoutInstructor; logs and swallows every error)
+    notifications.location-change-notifier.ts  # LocationChangeNotifier adapter of classes (one Notify
+                                # location.changed per recipient; logs and swallows every error)
     push-receipt-check.job.ts   # every-minute cron running CheckPushReceipts
     system.clock.ts             # SystemClockProvider
   modules/classes/
-    classes.module.ts           # wiring (DbModule; imports NotificationsModule for the class-assignment and
-                                # class-change notifiers); provides and exports ClassesTeachingReleaser
-    locations.controller.ts     # GET /locations (200), POST /locations (201) — protected
+    classes.module.ts           # wiring (DbModule; imports NotificationsModule for the class-assignment,
+                                # class-change and location-change notifiers); provides the Google Places provider;
+                                # provides and exports ClassesTeachingReleaser
+    locations.controller.ts     # GET /locations (200), POST /locations (201), GET /locations/address-suggestions
+                                # and /address-suggestions/:placeId (200), PUT /locations/:id (200), POST
+                                # /locations/:id/archive (204), in that order — protected
+    google-places.address-suggestions.ts  # GooglePlacesAddressSuggestionProvider: the AddressSuggestionProvider
+                                # adapter (Places API (New) with fetch; GOOGLE_MAPS_API_KEY required in production)
     classes.controller.ts       # POST /classes/batch (201 { count }), GET /classes/time-range-suggestions (200),
                                 # GET /classes?date= (200, one week), GET /classes/:id (200), in that order, and
                                 # PUT /classes/:id (200 ClassItem), POST /classes/:id/cancel (200 ClassItem),
@@ -247,7 +260,9 @@ src/
                                 # structured outputs; ANTHROPIC_API_KEY required in production)
     cancellation-deadline.job.ts  # CancellationDeadlineJob (every minute, cron cancellation-deadline): runs
                                 # WorkOutCancellationDeadlines, logs counts only, never throws
-    {location,school-class}.prisma.ts  # Prisma repositories (P2002 on name_key → location.name.duplicate;
+    {location,school-class}.prisma.ts  # Prisma repositories (P2002 on name_key → location.name.duplicate; a
+                                # location's update and the clearing of its upcoming deadlines in one $transaction,
+                                # archive only an active one and null its name_key;
                                 # createMany and update write classes and instructors in one $transaction;
                                 # update and cancel write only a class that isn't cancelled; delete only one
                                 # that isn't cancelled and hasn't started)
@@ -276,7 +291,9 @@ test/
                                 # notifications (ExpoPushProvider replaced by a recording fake)
   account-erasure.e2e-spec.ts   # e2e suite of AccountErasureJob (accounts through Prisma; signing up again by
                                 # email code and Google)
-  locations.e2e-spec.ts         # e2e suite of /locations (order, duplicates, concurrency, validation, access)
+  locations.e2e-spec.ts         # e2e suite of /locations (order, duplicates, concurrency, validation, access, the
+                                # point, editing, deadlines, notifying, archiving, suggestions; ExpoPushProvider,
+                                # the Google provider and the clock replaced by fakes)
   classes.e2e-spec.ts           # e2e suite of /classes (batches, refusals, past, suggestions, week, class, access,
                                 # notifications; the clock and ExpoPushProvider replaced by fakes)
   cancellation-rules.e2e-spec.ts  # e2e suite of /cancellation-rules (access, validation, the clearing of the
@@ -393,16 +410,24 @@ src/
     screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
                                 # changes, single day and time, started mode, states — a cancelled class shows
                                 # only a message —, submit and its errors)
-    classes.types.ts            # ClassLocation, Teacher, NewClassForm, BatchRequest, EditClassRequest, ClassItem,
+    classes.types.ts            # ClassLocation (with the point and upcomingClasses), MapPoint, Teacher, NewClassForm, BatchRequest, EditClassRequest, ClassItem,
                                 # WeekClasses and the answers (mirror the API)
     components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
                                 # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
                                 # time-range-sheet (two @expo/ui DateTimePickers in time mode),
-                                # location-picker, location-sheet, capacity-stepper, instructor-picker, class-card,
+                                # location-picker (with the "Gerir" mode), location-sheet ("Novo local" / "Editar
+                                # local"), address-search-field (Endereço and its suggestions), location-map-picker
+                                # (the sheet's map), archive-location-sheet ("Remover local?"), location-map-preview
+                                # (the details' map and "Direções"), capacity-stepper, instructor-picker, class-card,
                                 # class-tools-sheet (the admin's edit / notify / cancel / delete tools of one
                                 # class), cancel-class-sheet (the cancel confirmation with its optional message),
                                 # delete-class-sheet (the delete confirmation and its "can't delete" variant)
     hooks/                      # use-locations (["locations"]), use-create-location (adds to that cache),
+                                # use-edit-location (PUT /locations/:id; replaces the row, reloads ["classes"]),
+                                # use-archive-location (POST /locations/:id/archive; drops the row),
+                                # use-address-suggestions (["locations", "suggestions", token, query], debounced),
+                                # use-address-place, use-debounced-value, use-location-management (the "Gerir" mode
+                                # and the open sheet, shared by Nova aula and Editar aula),
                                 # use-time-range-suggestions (["classes", "time-range-suggestions"]), use-teachers
                                 # (["people", "teachers"], every page of GET /people?role=instructor,admin&perPage=50),
                                 # use-create-classes (POST /classes/batch, no retry; invalidates ["classes", "week"]),
@@ -419,14 +444,16 @@ src/
                                 # time-ranges.ts (incl. startsByNow),
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
                                 # key, for Nova aula, Editar aula, the cancel and the delete sheets),
-                                # locations-cache.ts
+                                # locations-cache.ts (add, replace, remove), map.ts (Fortaleza, regions, the
+                                # provider per platform, directions URL), session-token.ts (UUID v4 per sheet)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
                                 # use-notification-response (a tapped push → refresh → "Join the school", the
-                                # Aulas tab for class.assigned, or "/"), use-notification-received (a push with the
-                                # app open → refresh, or invalidate ["registrations"] / ["classes", "week"])
+                                # Aulas tab for class.assigned / location.changed, or "/"), use-notification-received
+                                # (a push with the app open → refresh, or invalidate ["registrations"] / ["classes",
+                                # "week"], and ["classes"] + ["locations"] for location.changed)
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
     utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored
   modules/offboarding/
@@ -538,8 +565,12 @@ src/
                                 # (--ds-* per scheme), fonts
   hooks/                        # useTheme, color scheme
 plugins/with-ios-scene-lifecycle.js    # config plugin (UIScene life cycle for iOS 27)
+app.json                        # the Expo config
+app.config.ts                   # takes app.json's config and appends the react-native-maps plugin with
+                                # GOOGLE_MAPS_ANDROID_API_KEY (spec 037); app.config.test.ts next to it
 jest.config.js, jest.setup.ts   # jest-expo + RNTL; mocks localization, reanimated, safe-area, bottom sheet,
-                                # expo-notifications, expo-device, expo-constants, @expo/ui's DateTimePicker
+                                # expo-notifications, expo-device, expo-constants, @expo/ui's DateTimePicker,
+                                # react-native-maps
 ```
 
 Components follow one folder per component (`*.component.tsx`, `*.hook.ts`, `*.types.ts`, `index.ts`), with

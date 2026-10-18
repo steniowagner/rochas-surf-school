@@ -120,9 +120,14 @@ Listed in the order people meet them.
   Relationship: a class has one location; a location has many classes. Lifecycle: `active` → `archived`
   ("removing" it archives it: no longer offered, kept by the classes that used it). Editing it changes every
   class that uses it, past ones included; if upcoming classes use it, the admin chooses whether to notify
-  their students and instructors. As built (spec 028), a location has only a name (1–40 characters, unique
-  ignoring case and accents) and an address (free text, 1–200 characters); admins create it, every approved
-  account lists it, and the map position, editing and archiving don't exist yet.
+  their students and instructors. As built (specs 028, 037), a location has a name (1–40 characters, unique
+  among active locations ignoring case and accents), an address (free text, 1–200 characters) and a point on the
+  map (latitude and longitude), required whenever it is created or edited; locations saved before spec 037 have
+  no point until edited, can still be picked, and show no map. Approved admins create, edit and remove
+  locations; every approved account lists the active ones. A change to the name or the address sends the
+  deadlines of the location's upcoming classes to be worked out again. Only instructors can be told about a
+  change for now (students, with enrolment). A removed (archived) location frees its name, can't be given to a
+  class, and can't be restored.
 - **Class** (`class`): one surf or skate session at one date and time. Key fields: discipline (`surf` |
   `skate`), level (`beginner` | `advanced` | `expert` — a label only), date, start and end time, location,
   instructors (at least one; instructors or admins), capacity, notes (optional, max 300 characters, visible to
@@ -710,6 +715,23 @@ nobody is notified. Every role sees "Cancelamento até seg, 19 out · 20:00" on 
 deadline and isn't cancelled. The site's privacy policy names Anthropic as the service that works out the
 deadline. All copy is in pt-BR, es-ES and en-US.
 
+**Class locations** (spec `037-class-locations`) — a location now has a point on the map, and admins edit and
+remove locations. The "Novo local" sheet on Nova aula and Editar aula has Nome, Endereço with up to 5 address
+suggestions from Google Maps as the admin types (picking one fills the address, moves the point and fills an
+empty Nome), and "Ponto no mapa", a small map where a tap places the point; "Salvar local" needs a name, an address
+and a point. The "Local" section shows "Gerir" while a location exists: in that mode each row has a pencil that
+opens "Editar local" (the same sheet, plus "As alterações valem também para as aulas que já usam este local."), and
+"Concluir" leaves it. An edit applies to every class at the location, past ones included, and the classes on
+screen reload; when upcoming classes use it, a ticked "Avisar os instrutores das próximas aulas?" box tells their
+instructors once each ("Local de aula alterado", with their count; never the admin who edits; tapping it opens the
+Aulas tab). A new name or address makes the upcoming classes' deadlines be worked out again. "Remover local" asks
+"Remover local?" (with how many classes keep it) and archives the location: it leaves the list, its name can be
+used again, it can't be given to a class, the classes that used it keep showing it, and when it was the form's
+choice another must be picked; on Editar aula a class whose location was removed shows it with "Removido" and can
+keep it. The last location can be removed. Every role sees, on the details of a class whose location has a point,
+a small fixed map with a pin and "Direções", which opens Apple Maps on iPhone and Google Maps on Android. The
+site's privacy policy names Google's address suggestions and Apple Maps. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -756,13 +778,16 @@ Active specs: none.
   bell, metrics and every other row).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
-- After creating classes (spec 028): the map, address suggestions, editing and archiving of locations and the
-  location-change notification (the class-locations spec); the instructors' "Surf" / "Skate" subtitles and photos
-  in the picker; a real count on the "Criar aulas" row; and "My classes" for admins who teach.
+- After creating classes (spec 028): the instructors' "Surf" / "Skate" subtitles and photos in the picker; a real
+  count on the "Criar aulas" row; and "My classes" for admins who teach.
+- On class locations (spec 037): telling students and people with pending requests about a location change
+  (with enrolment); restoring an archived location, listing archived locations, and a locations screen outside
+  the class form; filling the address from a tapped point, "near me" from the phone's own location, and an
+  interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
   class highlighted, and a marker on the cards of one's own classes; seats taken, the occupancy bar, "Sem vagas" /
-  "Turma cheia", the list of students and the request / waiting-list button (with enrolment); the cancellation-rule and school-rules rows, the map, "Direções"
-  and the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's sport filter and
+  "Turma cheia", the list of students and the request / waiting-list button (with enrolment); the cancellation-rule and school-rules rows and
+  the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's sport filter and
   notifications bell; opening a person's sheet from the details, and profile photos (initials only).
 - On editing a class (spec 032): telling its students and the people with pending requests, and warning the
   admin about guests (with enrolment); editing several classes at once; the seat and pending-request counts in the editor's
@@ -781,7 +806,7 @@ Active specs: none.
   requests a seat, cancelling a seat until the deadline, and telling a student without a deadline to contact the
   school (with enrolment); notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
   showing who saved a rule; a list or filter of the classes without a deadline, and admins setting a deadline by
-  hand; recomputing deadlines when a location's name or address changes (locations can't be edited yet).
+  hand.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.

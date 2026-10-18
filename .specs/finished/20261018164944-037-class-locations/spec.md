@@ -2,13 +2,14 @@
 id: "037"
 slug: class-locations
 title: "Class locations: map point, address suggestions, editing and removing"
-status: accepted
+status: finished
 started: 2026-10-18
 base_commit: 29cd101247835876d1f4ce62e22f67b603b55d72
 reviewed_commit: 1af3c03a9409236c8bf11cf3a558bb057ac25aa4
 created: 2026-10-18
 fronts: [classes, notifications, backend, web, mobile]
 depends_on: []
+finished: 2026-10-18
 ---
 
 # 037 — Class locations: map point, address suggestions, editing and removing

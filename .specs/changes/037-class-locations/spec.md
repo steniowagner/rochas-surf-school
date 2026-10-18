@@ -2,7 +2,7 @@
 id: "037"
 slug: class-locations
 title: "Class locations: map point, address suggestions, editing and removing"
-status: changes-requested
+status: in-progress
 started: 2026-10-18
 base_commit: 29cd101247835876d1f4ce62e22f67b603b55d72
 created: 2026-10-18
@@ -884,7 +884,7 @@ es.
 
 **Findings**
 
-- [ ] **F-01** (requirement) — after an admin edits a location in the app, the classes already loaded keep showing
+- [x] **F-01** (requirement) — after an admin edits a location in the app, the classes already loaded keep showing
   the old values: `useEditLocation` only replaces the row in `["locations"]`, and nothing invalidates `["classes"]`
   (D-18 does it for a received push, but the editing admin gets no push). Requirements → Editing a location says the
   edit applies to every class that uses it, and the editor sees the opposite. Reproduce (simulator): open the details
@@ -894,6 +894,22 @@ es.
   showed the old address too. Expected: on a 200 from `PUT /locations/:id` the app reloads the cached classes (week
   lists and details), so they show the new name, address, point and the cleared deadline; covered by a hook or
   screen test.
+  > ✅ 2026-10-18 16:24 — `useEditLocation`'s `onSuccess` now also invalidates `["classes"]` (week lists and
+  > details; not awaited, so the toast and the sheet don't wait for the refetch); a new hook test seeds a week and a
+  > detail query and checks both are invalidated after a 200, and the failure test checks a detail query stays valid
+  > (written first and watched fail: `isInvalidated` false on the week query). Files:
+  > `apps/mobile/src/modules/classes/hooks/use-edit-location.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-edit-location.hook.test.tsx`; verified: `cd apps/mobile && npx jest
+  > src/modules/classes/hooks/use-edit-location.hook.test.tsx src/modules/classes/components/location-sheet
+  > src/modules/classes/screens/edit-class.screen.test.tsx src/modules/classes/screens/new-class.screen.test.tsx
+  > --coverage` (4 suites, 131 passed; `use-edit-location.hook.ts` 100 % statements/branches/functions/lines; the 6
+  > "overlapping act()" console warnings are the same count without the change). Simulator (iPhone 18 Pro, backend
+  > from this branch, signed in as the dev admin), the reviewer's steps: details of tomorrow 14:00 at "Review R2
+  > Beach" ("As. Review, 2 - Fortaleza", "Cancelamento até seg, 19 out · 02:00", no map) → tools → Editar aula →
+  > Gerir → the row → tap the map, notify unticked, address + " F01" → Salvar ("Local atualizado", the row shows
+  > the new address) → back: the details show "As. Review, 2 - Fortaleza F01", "Sem prazo de cancelamento", the
+  > 96 pt map with the marker and "Direções"; the week list's card shows "Sem prazo". Postgres: the location row
+  > has the new address and point. Deviations: none.
 
 **Notes**
 

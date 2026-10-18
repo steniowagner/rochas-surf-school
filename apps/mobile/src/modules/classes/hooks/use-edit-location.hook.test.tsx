@@ -54,8 +54,24 @@ describe("useEditLocation", () => {
     ).toEqual(["Beta", "Zeta"]);
   });
 
+  it("reloads the cached classes, so their weeks and details show the edited location", async () => {
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(["classes", "week", "2026-10-19"], { items: [] });
+    queryClient.setQueryData(["classes", "detail", "c-1"], { id: "c-1" });
+    fetchMock.mockResolvedValue(ok(buildLocation({ id: "l-1", name: "Zeta" })));
+    const { result } = await renderHook(() => useEditLocation(), { wrapper: createWrapper(queryClient) });
+
+    await act(async () => {
+      await result.current.mutateAsync(variables);
+    });
+
+    expect(queryClient.getQueryState(["classes", "week", "2026-10-19"])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated).toBe(true);
+  });
+
   it("leaves the cache alone, and does not retry, on a failure", async () => {
     const queryClient = createQueryClient();
+    queryClient.setQueryData(["classes", "detail", "c-1"], { id: "c-1" });
     fetchMock.mockResolvedValue(failure(500));
     const { result } = await renderHook(() => useEditLocation(), { wrapper: createWrapper(queryClient) });
 
@@ -65,5 +81,6 @@ describe("useEditLocation", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(queryClient.getQueryData(LOCATIONS_QUERY_KEY)).toBeUndefined();
+    expect(queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated).toBe(false);
   });
 });

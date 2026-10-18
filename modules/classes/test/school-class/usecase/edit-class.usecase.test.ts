@@ -165,6 +165,58 @@ describe("EditClass", () => {
     expect(changes.editedEvents).toEqual([]);
   });
 
+  describe("deadline", () => {
+    const DEADLINE = new Date("2026-10-14T20:00:00.000Z");
+    const withDeadline = { cancellationDeadline: DEADLINE, deadlineRevision: 3, deadlineAttempts: 1 };
+
+    it.each([
+      ["discipline", { discipline: "skate" }],
+      ["level", { level: "expert" }],
+      ["start", { start: "08:30" }],
+      ["end", { end: "09:30" }],
+      ["capacity", { capacity: 9 }],
+      ["notes", { notes: "Other" }],
+    ])("clears the deadline when the %s changes", async (_field, change) => {
+      const { useCase, input, classes, stored } = setup({ stored: withDeadline });
+
+      await useCase.execute({ ...input, ...change });
+
+      const saved = (await classes.findById(stored.id))!;
+      expect(saved.cancellationDeadline).toBeNull();
+      expect(saved.deadlineAttempts).toBe(0);
+      expect(saved.deadlineRevision).toBe(4);
+      expect(classes.clearDeadlineCalls).toEqual([true]);
+    });
+
+    it("clears the deadline when the location changes", async () => {
+      const { useCase, input, classes, stored, other } = setup({ stored: withDeadline });
+
+      await useCase.execute({ ...input, locationId: other.id });
+
+      expect((await classes.findById(stored.id))!.cancellationDeadline).toBeNull();
+    });
+
+    it("keeps the deadline when only the instructors change", async () => {
+      const { useCase, input, classes, stored } = setup({ stored: withDeadline });
+
+      await useCase.execute({ ...input, instructorIds: [A, C] });
+
+      const saved = (await classes.findById(stored.id))!;
+      expect(saved.cancellationDeadline).toEqual(DEADLINE);
+      expect(saved.deadlineRevision).toBe(3);
+      expect(classes.clearDeadlineCalls).toEqual([false]);
+    });
+
+    it("keeps the deadline when nothing is saved", async () => {
+      const { useCase, input, classes, stored } = setup({ stored: withDeadline });
+
+      await useCase.execute(input);
+
+      expect((await classes.findById(stored.id))!.cancellationDeadline).toEqual(DEADLINE);
+      expect(classes.updateCalls).toHaveLength(0);
+    });
+  });
+
   describe("access and lookup", () => {
     it("refuses a student and an instructor", async () => {
       const { useCase, input, classes } = setup();

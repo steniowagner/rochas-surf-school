@@ -14,6 +14,7 @@ import { useRegistrations } from "../hooks/use-registrations.hook";
 const openRegistrations = () => router.push(routes.admin.registrations);
 const openPeople = () => router.push(routes.admin.people);
 const openNewClass = () => router.push(routes.admin.newClass());
+const openCancellationRules = () => router.push(routes.admin.cancellationRules);
 
 export function AdminScreen() {
   const { t } = useTranslation();
@@ -71,6 +72,22 @@ export function AdminScreen() {
             <Text className="ds-text-list-title flex-1 text-ink">
               {t("admin.home.newClassRow")}
             </Text>
+            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("admin.home.cancellationRulesRow")}
+            onPress={openCancellationRules}
+            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
+          >
+            <View className="flex-1">
+              <Text className="ds-text-list-title text-ink">
+                {t("admin.home.cancellationRulesRow")}
+              </Text>
+              <Text className="ds-text-list-subtitle text-ink-2">
+                {t("admin.home.cancellationRulesSubtitle")}
+              </Text>
+            </View>
             <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
           </Pressable>
         </View>

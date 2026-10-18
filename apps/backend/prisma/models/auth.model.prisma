@@ -52,14 +52,15 @@ model User {
   updatedAt               DateTime                @updatedAt @map("updated_at")
   deletedAt               DateTime?               @map("deleted_at")
 
-  rulesAcceptances UserRulesAcceptance[]
-  identities       Identity[]
-  refreshTokens    RefreshToken[]
-  schoolRules      SchoolRule[]
-  notifications    Notification[]
-  pushTokens       PushToken[]
-  createdClasses   SchoolClass[]
-  classInstructors ClassInstructor[]
+  rulesAcceptances  UserRulesAcceptance[]
+  identities        Identity[]
+  refreshTokens     RefreshToken[]
+  schoolRules       SchoolRule[]
+  notifications     Notification[]
+  pushTokens        PushToken[]
+  createdClasses    SchoolClass[]
+  classInstructors  ClassInstructor[]
+  cancellationRules CancellationRule[]
 
   @@map("users")
 }

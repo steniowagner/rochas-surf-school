@@ -82,7 +82,7 @@ export const es = {
         "Resend: envía el correo con el código de acceso (recibe tu correo y el código).",
         "Expo: entrega las notificaciones push (recibe el token del dispositivo y el texto de la notificación).",
         "Un servicio de alojamiento en la nube, donde funcionan la app y su base de datos.",
-        "Un servicio de modelo de lenguaje (IA), que recibe solo los detalles de la clase y el texto de la regla de cancelación, nunca datos personales.",
+        "Anthropic (Claude): calcula el plazo de cancelación de cada clase; recibe solo los detalles de la clase y el texto de la regla de cancelación, nunca datos personales.",
         "Un servicio de almacenamiento de fotos compatible con S3, donde se guardan las fotos de las clases.",
       ],
     },

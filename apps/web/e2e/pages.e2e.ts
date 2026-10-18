@@ -18,3 +18,19 @@ for (const { path, lang } of locales) {
     });
   }
 }
+
+const providerLines = {
+  "pt-br": /Anthropic \(Claude\): calcula o prazo de cancelamento de cada aula; recebe apenas os detalhes da aula e o texto da regra de cancelamento, nunca dados pessoais\./,
+  es: /Anthropic \(Claude\): calcula el plazo de cancelación de cada clase; recibe solo los detalles de la clase y el texto de la regla de cancelación, nunca datos personales\./,
+  en: /Anthropic \(Claude\): works out each class's cancellation deadline; receives only the class details and the text of the cancellation rule, never personal data\./,
+};
+const genericWording = /modelo de linguagem \(IA\)|modelo de lenguaje \(IA\)|language model \(AI\)/;
+
+for (const { path, lang } of locales) {
+  test(`privacy policy names Anthropic in ${lang}`, async ({ page }) => {
+    await page.goto(`/${path}/privacy-policy`);
+
+    await expect(page.getByText(providerLines[path as keyof typeof providerLines])).toBeVisible();
+    await expect(page.getByText(genericWording)).toHaveCount(0);
+  });
+}

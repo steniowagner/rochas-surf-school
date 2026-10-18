@@ -189,6 +189,8 @@ const messages: Messages = {
       title: "Ferramentas da escola",
       registrationsRow: "Entrar na escola",
       newClassRow: "Criar aulas",
+      cancellationRulesRow: "Regras de cancelamento",
+      cancellationRulesSubtitle: "Uma para surf, outra para skate",
       waiting: "{{count}} esperando",
     },
   },
@@ -262,6 +264,32 @@ const messages: Messages = {
     signOut: "Sair",
     comingSoon: "Em breve.",
   },
+  cancellationRules: {
+    sheet: {
+      title: "Regras de cancelamento",
+      empty: "A escola ainda não escreveu esta regra.",
+      loadError: "Não foi possível carregar as regras.",
+      retry: "Tentar novamente",
+      close: "Fechar",
+    },
+    screen: {
+      title: "Regras de cancelamento",
+      intro: "Há uma regra para cada modalidade. O app lê a regra com os dados da aula — nunca os dos alunos — e calcula até quando cada aula pode ser cancelada.",
+      tipTime: "Indique prazos exatos em horas antes do início da aula — nada de \"em cima da hora\".",
+      tipAmbiguity: "Evite ambiguidade: se uma pessoa hesitar ao ler, o app também vai hesitar.",
+      placeholder: "Ex.: O aluno pode cancelar sem penalidade até 12 horas antes do início da aula…",
+      note: {
+        unsaved: "Alterações não salvas",
+        inForce: "Regra de {{discipline}} em vigor",
+        none: "Ainda não há regra de {{discipline}}",
+      },
+      save: "Salvar regra de {{discipline}}",
+      saved: "Regra de {{discipline}} salva",
+      loadError: "Não foi possível carregar as regras.",
+      retry: "Tentar novamente",
+      discipline: { surf: "surf", skate: "skate" },
+    },
+  },
   tabs: {
     agenda: "Agenda",
     myClasses: "Minhas aulas",
@@ -292,6 +320,7 @@ const messages: Messages = {
     },
     cancelled: "Cancelada",
     noInstructor: "Sem instrutor",
+    noDeadline: "Sem prazo",
   },
   classDetails: {
     title: "Detalhe",
@@ -325,6 +354,11 @@ const messages: Messages = {
       description: "Atribua um instrutor antes da aula.",
     },
     noInstructorAssigned: "Sem instrutor atribuído",
+    cancellationDeadline: "Cancelamento até {{when}}",
+    noDeadline: {
+      title: "Sem prazo de cancelamento",
+      description: "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",
+    },
     tools: "Ferramentas da aula",
   },
   editProfile: {

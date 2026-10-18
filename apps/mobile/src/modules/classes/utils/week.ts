@@ -15,6 +15,17 @@ export const schoolDayOf = (instant: string): string =>
 export const schoolTimeOf = (instant: string): string =>
   format(new Date(instant), "HH:mm", { in: tz(SCHOOL_TIME_ZONE) });
 
+/**
+ * "Mon, 19 Oct · 20:00": the instant in America/Fortaleza, with the weekday and month of the locale. The weekday is the
+ * first three letters of its full name ("seg", "lun", "Mon"): date-fns' own "EEE" spells out "segunda" in pt-BR.
+ */
+export const formatDeadline = (instant: string, locale: Locale): string => {
+  const options = { in: tz(SCHOOL_TIME_ZONE), locale };
+  const weekday = format(new Date(instant), "EEEE", options).slice(0, 3);
+
+  return `${weekday}, ${format(new Date(instant), "d MMM", options)} · ${schoolTimeOf(instant)}`;
+};
+
 export type DateLineLabels = {
   today: string;
   tomorrow: string;

@@ -5,6 +5,7 @@ import { renderRouter } from "expo-router/testing-library";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
+import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rules";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
@@ -66,6 +67,7 @@ async function openAdminHome() {
       ),
       "(private)/admin/_layout": AdminLayout,
       "(private)/admin/(tabs)/index": AdminRoute,
+      "(private)/admin/cancellation-rules": AdminCancellationRulesRoute,
       "(private)/admin/new-class": AdminNewClassRoute,
       "(private)/admin/people": AdminPeopleRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
@@ -147,6 +149,30 @@ describe("AdminScreen", () => {
 
     expect(app.getPathname()).toBe("/admin/new-class");
     expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(app.getPathname()).toBe(routes.admin.home);
+  });
+
+  it("opens the cancellation rules screen from its row (cancellation rules)", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/cancellation-rules")
+          ? { surf: "Surf rule.", skate: null }
+          : { items: [] },
+    }));
+    const app = await openAdminHome();
+
+    expect(screen.getByText("One for surf, one for skate")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Cancellation rules" }));
+
+    expect(app.getPathname()).toBe(routes.admin.cancellationRules);
+    expect(await screen.findByDisplayValue("Surf rule.")).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Back" }));
 

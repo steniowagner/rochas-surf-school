@@ -29,6 +29,7 @@ export function buildClassView(overrides: Partial<ClassView> = {}): ClassView {
     notes: null,
     cancelledAt: null,
     cancellationMessage: null,
+    cancellationDeadline: null,
     location: { id: LOCATION_ID, name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
     instructors: [{ id: INSTRUCTOR_ID, name: "Ana" }],
     ...overrides,

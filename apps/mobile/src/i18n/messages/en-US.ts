@@ -189,6 +189,8 @@ const messages = {
       title: "School tools",
       registrationsRow: "Join the school",
       newClassRow: "Create classes",
+      cancellationRulesRow: "Cancellation rules",
+      cancellationRulesSubtitle: "One for surf, one for skate",
       waiting: "{{count}} waiting",
     },
   },
@@ -262,6 +264,32 @@ const messages = {
     signOut: "Sign out",
     comingSoon: "Coming soon.",
   },
+  cancellationRules: {
+    sheet: {
+      title: "Cancellation rules",
+      empty: "The school hasn't written this rule yet.",
+      loadError: "Couldn't load the rules.",
+      retry: "Try again",
+      close: "Close",
+    },
+    screen: {
+      title: "Cancellation rules",
+      intro: "There's one rule for each discipline. The app reads the rule with the class details — never the students' — and works out until when each class can be cancelled.",
+      tipTime: "Give exact deadlines in hours before the class starts — nothing like \"at the last minute\".",
+      tipAmbiguity: "Avoid ambiguity: if a person would hesitate reading it, the app will too.",
+      placeholder: "E.g.: Students can cancel without penalty up to 12 hours before the class starts…",
+      note: {
+        unsaved: "Unsaved changes",
+        inForce: "Current rule for {{discipline}}",
+        none: "No rule for {{discipline}} yet",
+      },
+      save: "Save rule for {{discipline}}",
+      saved: "Rule for {{discipline}} saved",
+      loadError: "Couldn't load the rules.",
+      retry: "Try again",
+      discipline: { surf: "surf", skate: "skate" },
+    },
+  },
   tabs: {
     agenda: "Schedule",
     myClasses: "My classes",
@@ -292,6 +320,7 @@ const messages = {
     },
     cancelled: "Cancelled",
     noInstructor: "No instructor",
+    noDeadline: "No deadline",
   },
   classDetails: {
     title: "Details",
@@ -325,6 +354,11 @@ const messages = {
       description: "Assign an instructor before the class.",
     },
     noInstructorAssigned: "No instructor assigned",
+    cancellationDeadline: "Cancel until {{when}}",
+    noDeadline: {
+      title: "No cancellation deadline",
+      description: "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",
+    },
     tools: "Class tools",
   },
   editProfile: {

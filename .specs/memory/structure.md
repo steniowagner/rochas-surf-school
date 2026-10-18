@@ -107,7 +107,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     (`RemovePushToken` on sign-out; `UnregisterPushToken` when a phone turns pushes off). Fakes of every port and
     entity factories are in `test/mock/`.
 - **`modules/classes`** (`@rochas-surf-school/classes`; depends on `@rochas-surf-school/auth` for `UserRole` /
-  `UserStatus` only, and on `date-fns` + `@date-fns/tz`; also imported by `apps/mobile`) — 2 aggregates and an
+  `UserStatus` only, and on `date-fns` + `@date-fns/tz`; also imported by `apps/mobile`) — 3 aggregates and an
   access helper:
   - `access/class-actor.ts` — `ClassActor`, `assertCanReadClasses` (approved) and `assertCanManageClasses`
     (approved admin; status first).
@@ -115,21 +115,30 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/location-name.ts` (`normalizeLocationName`: NFD, accents removed, lower case — the stored `nameKey`),
     `provider/location.repository.ts` (`findAll`, `findById`, `existsByNameKey`, `create` — a duplicate is a
     `ConflictError`), `usecase/{list-locations,create-location}.usecase.ts`, `usecase/location.out.ts`.
+  - `cancellation-rule/` (spec 036) — `model/cancellation-rule.entity.ts` (`CancellationRule`,
+    `CANCELLATION_RULE_TEXT_MAX`), `provider/cancellation-rule.repository.ts` (`findAll`, `save(rule, now)`: the
+    rule and the clearing of its discipline's upcoming deadlines in one write),
+    `usecase/{list-cancellation-rules,save-cancellation-rule}.usecase.ts`, `usecase/cancellation-rules.out.ts`
+    (`{ surf, skate }`).
   - `school-class/` — `model/class-limits.ts` (disciplines, levels, capacity / notes / batch limits,
     `CLASS_TIME_ZONE`), `model/time-range.ts` (`HH:mm` parsing, end after start, overlap),
     `model/class-batch.ts` (date, weekday and excluded-date checks, `listBatchDates`, `listBatchClasses`: the batch expanded
     to UTC instants from America/Fortaleza, with an optional `max` that stops early),
     `model/school-class.entity.ts` (`SchoolClass`), `model/class-state.ts` (`ClassState`, `getClassState`: the
     state by the clock, or `cancelled` when the class has `cancelledAt`; also used by the app),
-    `model/class-flags.ts` (`isWithoutInstructor`: the computed "no instructor" flag; also used by the app),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider}.ts`
-    (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional, `cancel` and `delete`
-    conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic;
+    `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
+    cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
+    (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider}.ts`
+    (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
+    when asked), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
+    `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
+    `CancellationDeadlineDescriber.describe` (the language-model port);
     `TeacherLookup.findTeachers`; `ClassAssignmentNotifier.classAssigned` / `classUnassigned`;
     `ClassChangeNotifier.classEdited` / `classCancelled` / `classDeleted`;
     `NoInstructorNotifier.classesWithoutInstructor`; `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model
     with the location and the instructors' names),
-    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes}.usecase.ts`, and
+    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines}.usecase.ts`, and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share). Fakes of every port and entity
     factories are in `test/mock/`.
 
@@ -145,9 +154,11 @@ prisma/
   models/school-settings.model.prisma  # school_settings (at most one row, created by the first save)
   models/notifications.model.prisma    # notifications, push_tokens (→ users, cascade), push_tickets (no foreign key)
   models/classes.model.prisma   # locations (unique name_key), classes (starts_at indexed; cancelled_at and
-                                # cancellation_message nullable; location_id → locations,
-                                # created_by → users, both RESTRICT), class_instructors (class_id + user_id key;
-                                # → classes and → users, cascade); enums class_discipline, class_level
+                                # cancellation_message nullable; cancellation_deadline, deadline_revision,
+                                # deadline_attempts, deadline_next_attempt_at, indexed for the job; location_id →
+                                # locations, created_by → users, both RESTRICT), class_instructors (class_id +
+                                # user_id key; → classes and → users, cascade), cancellation_rules (keyed by
+                                # discipline; updated_by → users, SET NULL); enums class_discipline, class_level
   seed/main.ts                  # seed runner, one task per module
   seed/review-accounts.seed.ts  # upserts the REVIEW_ACCOUNTS users and their email identities
 src/
@@ -228,6 +239,14 @@ src/
                                 # GET /classes?date= (200, one week), GET /classes/:id (200), in that order, and
                                 # PUT /classes/:id (200 ClassItem), POST /classes/:id/cancel (200 ClassItem),
                                 # DELETE /classes/:id (204) — protected
+    cancellation-rules.controller.ts  # GET /cancellation-rules (200), PUT /cancellation-rules/:discipline (200)
+                                # — protected
+    cancellation-rule.prisma.ts # PrismaCancellationRuleRepository (save: the upsert and the clearing in one
+                                # $transaction)
+    anthropic.deadline-describer.ts  # AnthropicDeadlineDescriber: the CancellationDeadlineDescriber adapter (Claude,
+                                # structured outputs; ANTHROPIC_API_KEY required in production)
+    cancellation-deadline.job.ts  # CancellationDeadlineJob (every minute, cron cancellation-deadline): runs
+                                # WorkOutCancellationDeadlines, logs counts only, never throws
     {location,school-class}.prisma.ts  # Prisma repositories (P2002 on name_key → location.name.duplicate;
                                 # createMany and update write classes and instructors in one $transaction;
                                 # update and cancel write only a class that isn't cancelled; delete only one
@@ -240,7 +259,7 @@ src/
     teacher-lookup.prisma.ts    # PrismaTeacherLookup (id, role and status of the given users)
     class-view-reader.prisma.ts # PrismaClassViewReader (one query per read, with the location and instructors' names)
     system.clock.ts             # SystemClockProvider of the module (the e2e suite overrides it)
-    {locations,classes}.integration.http  # manual REST Client requests
+    {locations,classes,cancellation-rules}.integration.http  # manual REST Client requests
 test/
   auth-email.e2e-spec.ts        # e2e suite of the email sign-in routes (Resend replaced by a capturing fake)
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
@@ -260,6 +279,10 @@ test/
   locations.e2e-spec.ts         # e2e suite of /locations (order, duplicates, concurrency, validation, access)
   classes.e2e-spec.ts           # e2e suite of /classes (batches, refusals, past, suggestions, week, class, access,
                                 # notifications; the clock and ExpoPushProvider replaced by fakes)
+  cancellation-rules.e2e-spec.ts  # e2e suite of /cancellation-rules (access, validation, the clearing of the
+                                # deadlines; clock in 2037, stored rules snapshotted and restored)
+  cancellation-deadlines.e2e-spec.ts  # e2e suite of CancellationDeadlineJob (AnthropicDeadlineDescriber replaced by
+                                # a configurable fake; works out, retries, without a rule, edits, stale results)
 Dockerfile, docker-compose.yml  # backend + Postgres
 ```
 
@@ -300,6 +323,8 @@ src/
     (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations), above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
     (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
+    (private)/admin/cancellation-rules.tsx           # "Regras de cancelamento" (/admin/cancellation-rules), above
+                                                     # the tab bar
     (private)/{student,instructor,admin}/class/[id].tsx  # class details (/<role>/class/<id>), above the tab bar
     (private)/{admin,instructor}/people.tsx          # the People screen with a back button (/admin/people,
                                                      # /instructor/people), above the tab bar; the student's
@@ -318,7 +343,8 @@ src/
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
     screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
-                                # pending count and the "Criar aulas" row, "School" with the People row
+                                # pending count, the "Criar aulas" row and the "Regras de cancelamento" row,
+                                # "School" with the People row
     screens/registrations.screen.tsx  # "Join the school": DecisionCards (pull-to-refresh, loading, empty,
                                 # error + retry), DecidedList, one DenySheet
     registrations.types.ts      # Registration, RegistrationsResponse, RegistrationDecision (mirror the API)
@@ -340,6 +366,17 @@ src/
                                 # homes' "People · N on the platform" row)
     utils/                      # people-query.ts (buildPeoplePagePath), group-by-initial.ts, format-since.ts
                                 # ("MMM yyyy"), format-whatsapp-number.ts, role-chip.ts (role → chip tone and label)
+  modules/cancellation-rules/   # the cancellation rules (spec 036): reading them (every role) and editing them
+                                # (admins)
+    screens/cancellation-rules.screen.tsx  # CancellationRulesScreen + hook + types (the Surf / Skate drafts, the
+                                # note, the save button)
+    components/cancellation-rules-sheet/  # CancellationRulesSheet: both rules, opened from the Profile
+    hooks/                      # use-cancellation-rules (["cancellation-rules"]), use-save-cancellation-rule
+                                # (PUT /cancellation-rules/:discipline, no retry; writes the answer to the cache)
+    cancellation-rules.types.ts # CancellationRules, CancellationDiscipline (mirror the API)
+    cancellation-rules.constants.ts  # CANCELLATION_RULE_TEXT_MAX (2000)
+    cancellation-rules.test-utils.tsx  # shared test helpers of the module
+
   modules/classes/              # the week of classes and their details (every role), creating, editing,
                                 # cancelling and deleting classes (admins);
                                 # imports @rochas-surf-school/classes for the batch expansion, time-range checks,
@@ -377,7 +414,8 @@ src/
                                 # use-visible-weeks-classes (useQueries over every week a calendar draws, same key),
                                 # use-class (["classes", "detail", id]), use-now (the clock, every 60 s)
     utils/                      # calendar.ts (Fortaleza today and minutes, pressDay: ranges and their removed
-                                # days, initialRange), week.ts (an instant's Fortaleza day and time, the date line),
+                                # days, initialRange), week.ts (an instant's Fortaleza day and time, the date line,
+                                # formatDeadline for "Cancelamento até …"),
                                 # time-ranges.ts (incl. startsByNow),
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
                                 # key, for Nova aula, Editar aula, the cancel and the delete sheets),

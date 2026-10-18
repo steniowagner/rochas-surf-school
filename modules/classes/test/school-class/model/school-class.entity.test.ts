@@ -46,6 +46,29 @@ describe("SchoolClass", () => {
     expect(() => cancelled.validate()).not.toThrow();
   });
 
+  it("has no deadline state by default and does not share its dates", () => {
+    const item = buildClass();
+
+    expect(item.cancellationDeadline).toBeNull();
+    expect(item.deadlineRevision).toBe(0);
+    expect(item.deadlineAttempts).toBe(0);
+    expect(item.deadlineNextAttemptAt).toBeNull();
+
+    const worked = buildClass({
+      cancellationDeadline: new Date("2026-10-14T10:00:00.000Z"),
+      deadlineRevision: 2,
+      deadlineAttempts: 3,
+      deadlineNextAttemptAt: new Date("2026-10-14T09:00:00.000Z"),
+    });
+    worked.cancellationDeadline!.setFullYear(1999);
+    worked.deadlineNextAttemptAt!.setFullYear(1999);
+
+    expect(worked.cancellationDeadline!.toISOString()).toBe("2026-10-14T10:00:00.000Z");
+    expect(worked.deadlineNextAttemptAt!.toISOString()).toBe("2026-10-14T09:00:00.000Z");
+    expect(worked.deadlineRevision).toBe(2);
+    expect(worked.deadlineAttempts).toBe(3);
+  });
+
   it("does not share its dates or instructors with the caller", () => {
     const item = buildClass();
 

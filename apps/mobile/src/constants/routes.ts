@@ -69,6 +69,7 @@ export const routes = {
     classes: "/admin/classes",
     profile: "/admin/profile",
     registrations: "/admin/registrations",
+    cancellationRules: "/admin/cancellation-rules",
     people: "/admin/people",
     newClass: (params?: { date?: string }): Href => ({
       pathname: "/admin/new-class",

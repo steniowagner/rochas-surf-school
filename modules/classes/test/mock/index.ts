@@ -10,3 +10,6 @@ export * from "./fake-class-change.notifier";
 export * from "./fake-seat.counter";
 export * from "./fake-pending-request.counter";
 export * from "./fake-no-instructor.notifier";
+export * from "./fake-cancellation-rule.repository";
+export * from "./cancellation-rule.factory";
+export * from "./fake-cancellation-deadline.describer";

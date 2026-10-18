@@ -109,6 +109,8 @@ export type ClassItem = {
   cancelledAt: string | null;
   /** The admin's message, as written, or `null`. */
   cancellationMessage: string | null;
+  /** Until when students can cancel (ISO 8601 UTC), or `null` while it can't be worked out. */
+  cancellationDeadline: string | null;
   location: ClassLocation;
   instructors: ClassInstructor[];
 };

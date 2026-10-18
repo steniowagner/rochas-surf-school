@@ -981,11 +981,15 @@ Lets admins write the cancellation rules in plain text and decides, for each cla
 
 #### Surf and skate rules
 
+_Implemented in spec 036-cancellation-rules-deadline._
+
 Admins SHALL write and edit two cancellation rules as free text: one for surf classes and one for skate classes. Each class SHALL use the rule for its discipline.
 
 - _Skate class:_ When a student looks at a skate class's cancellation rule, then they see the skate rule.
 
 #### Reading and accepting the rules
+
+_Implemented in spec 036-cancellation-rules-deadline (reading both rules at any time; showing and accepting the rule when requesting a seat comes with enrolment)._
 
 Users SHALL be able to read both cancellation rules at any time. When requesting a seat, a student SHALL be shown the rule for the class's discipline and SHALL accept it.
 
@@ -993,12 +997,16 @@ Users SHALL be able to read both cancellation rules at any time. When requesting
 
 #### One deadline per class
 
-Each class SHALL have one cancellation deadline, the same for all its students. The deadline SHALL be worked out from the rule for the class's discipline and the class's details when the class is created, and again whenever the class is edited or that rule changes.
+_Implemented in spec 036-cancellation-rules-deadline._
 
-- _Rule changed:_ When an admin changes the surf rule, then the deadlines of all surf classes that haven't started are worked out again.
+Each class SHALL have one cancellation deadline, the same for all its students. The deadline SHALL be worked out from the rule for the class's discipline and the class's details when the class is created, and again whenever an edit changes one of those details or that rule's text changes. Changing only a class's instructors SHALL keep its deadline.
+
+- _Rule changed:_ When an admin changes the surf rule, then the deadlines of all surf classes that haven't started and aren't cancelled are worked out again.
 - _Class edited:_ When an admin changes a class's date, then that class's deadline is worked out again.
 
 #### Working out the deadline
+
+_Implemented in spec 036-cancellation-rules-deadline._
 
 The system SHALL use a language model to read the rule text and the class's details (discipline, level, date, start and end time, location, capacity and notes) and describe the deadline. The system SHALL calculate the exact date and time from that description itself, and SHALL retry when the description can't be used.
 
@@ -1007,11 +1015,15 @@ The system SHALL use a language model to read the rule text and the class's deta
 
 #### Data sent to the language model
 
+_Implemented in spec 036-cancellation-rules-deadline._
+
 Only the rule text and the class's details SHALL be sent to the language model. Nothing written by students and no personal data, including student and instructor names, SHALL be sent to it.
 
 - _Deadline worked out:_ When a class's deadline is worked out, then no student or instructor names are sent to the language model.
 
 #### Deadline never after the start
+
+_Implemented in spec 036-cancellation-rules-deadline._
 
 A class's cancellation deadline SHALL NOT be later than the class's start time.
 
@@ -1025,6 +1037,8 @@ A student SHALL be able to cancel their seat until the class's deadline, and SHA
 - _After the deadline:_ When a student tries to cancel their seat after the class's deadline, then the seat is not cancelled.
 
 #### No deadline available
+
+_Implemented in spec 036-cancellation-rules-deadline (retrying and the admins' flag; telling a student to contact the school comes with enrolment)._
 
 While a class has no deadline because it couldn't be worked out, students who try to cancel a seat in it SHALL be told to contact the school, and the system SHALL keep trying to work the deadline out. Admins SHALL see the class flagged as having no cancellation deadline; nobody SHALL be notified.
 

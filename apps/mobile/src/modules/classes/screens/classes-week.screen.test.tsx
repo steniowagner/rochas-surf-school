@@ -51,6 +51,7 @@ const makeClass = (
   notes: null,
   cancelledAt: null,
   cancellationMessage: null,
+  cancellationDeadline: "2026-10-13T20:00:00.000Z",
   location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
   instructors: [{ id: "i-1", name: "Ana" }],
   ...overrides,

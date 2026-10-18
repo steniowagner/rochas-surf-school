@@ -1,4 +1,4 @@
-import { SchoolClass } from "../model";
+import { ClassDiscipline, SchoolClass } from "../model";
 
 export interface SchoolClassRepository {
   /** Stores every class with its instructors in one atomic write. */
@@ -8,10 +8,11 @@ export interface SchoolClassRepository {
   /** The class with its instructor ids, or null when there is none. */
   findById(id: string): Promise<SchoolClass | null>;
   /**
-   * Writes the class and replaces its instructors in one atomic write. Returns `false`, writing nothing,
-   * when the stored class is cancelled.
+   * Writes the class and replaces its instructors in one atomic write. With `clearDeadline`, the same write
+   * clears the cancellation deadline (no deadline, no attempts, due now) and bumps its revision. Returns
+   * `false`, writing nothing, when the stored class is cancelled.
    */
-  update(schoolClass: SchoolClass): Promise<boolean>;
+  update(schoolClass: SchoolClass, clearDeadline: boolean): Promise<boolean>;
   /**
    * Marks the class as cancelled at `at`, with the message (or none). Returns `true` when it cancelled the
    * class and `false` when it was already cancelled (or is gone): of two simultaneous cancels exactly one wins.
@@ -33,4 +34,29 @@ export interface SchoolClassRepository {
    * An empty list writes nothing.
    */
   removeInstructor(userId: string, classIds: string[]): Promise<void>;
+  /**
+   * At most `limit` classes of those `disciplines` that start after `now`, aren't cancelled, have no deadline
+   * and whose next attempt is due (none, or at or before `now`): the never-tried ones first, then by `startsAt`,
+   * then `id`.
+   */
+  findNeedingDeadline(query: {
+    now: Date;
+    disciplines: ClassDiscipline[];
+    limit: number;
+  }): Promise<SchoolClass[]>;
+  /**
+   * Stores the worked-out deadline (and resets the attempts) only if the class is still at `revision` and not
+   * cancelled. Returns whether it wrote.
+   */
+  saveDeadline(id: string, revision: number, deadline: Date): Promise<boolean>;
+  /**
+   * Records a failed attempt (the attempt count and when the next one is due) under the same conditions as
+   * `saveDeadline`. Returns whether it wrote.
+   */
+  recordDeadlineFailure(
+    id: string,
+    revision: number,
+    attempts: number,
+    nextAttemptAt: Date,
+  ): Promise<boolean>;
 }

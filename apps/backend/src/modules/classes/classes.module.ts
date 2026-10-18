@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
 import { DbModule } from '../../db/db.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
+import { AnthropicDeadlineDescriber } from './anthropic.deadline-describer.js';
+import { PrismaCancellationRuleRepository } from './cancellation-rule.prisma.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
+import { CancellationDeadlineJob } from './cancellation-deadline.job.js';
+import { CancellationRulesController } from './cancellation-rules.controller.js';
 import { ClassesController } from './classes.controller.js';
 import { ClassesTeachingReleaser } from './classes.teaching-releaser.js';
 import { PrismaLocationRepository } from './location.prisma.js';
@@ -14,11 +18,14 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
 
 @Module({
   imports: [DbModule, NotificationsModule],
-  controllers: [ClassesController, LocationsController],
+  controllers: [CancellationRulesController, ClassesController, LocationsController],
   providers: [
+    AnthropicDeadlineDescriber,
+    CancellationDeadlineJob,
     ClassesTeachingReleaser,
     NoEnrolmentPendingRequestCounter,
     NoEnrolmentSeatCounter,
+    PrismaCancellationRuleRepository,
     PrismaClassViewReader,
     PrismaLocationRepository,
     PrismaSchoolClassRepository,

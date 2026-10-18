@@ -51,20 +51,50 @@ describe("FakeSchoolClassRepository", () => {
     const repository = new FakeSchoolClassRepository([stored, other]);
     const edited = stored.clone({ capacity: 5 });
 
-    expect(await repository.update(edited)).toBe(true);
+    expect(await repository.update(edited, false)).toBe(true);
 
     expect(repository.updateCalls).toEqual([edited]);
     expect((await repository.findById(stored.id))?.capacity).toBe(5);
     expect(await repository.findById(other.id)).toBe(other);
   });
 
+  it("clears the deadline in the same write and bumps its revision", async () => {
+    const stored = buildClass({
+      cancellationDeadline: new Date("2026-10-14T10:00:00.000Z"),
+      deadlineRevision: 1,
+      deadlineAttempts: 2,
+      deadlineNextAttemptAt: new Date("2026-10-14T09:00:00.000Z"),
+    });
+    const repository = new FakeSchoolClassRepository([stored]);
+
+    expect(await repository.update(stored.clone({ capacity: 5 }), true)).toBe(true);
+
+    const saved = (await repository.findById(stored.id))!;
+    expect(saved.capacity).toBe(5);
+    expect(saved.cancellationDeadline).toBeNull();
+    expect(saved.deadlineAttempts).toBe(0);
+    expect(saved.deadlineNextAttemptAt).toBeNull();
+    expect(saved.deadlineRevision).toBe(2);
+    expect(repository.clearDeadlineCalls).toEqual([true]);
+  });
+
+  it("keeps the deadline when not told to clear it", async () => {
+    const deadline = new Date("2026-10-14T10:00:00.000Z");
+    const stored = buildClass({ cancellationDeadline: deadline });
+    const repository = new FakeSchoolClassRepository([stored]);
+
+    await repository.update(stored.clone({ capacity: 5 }), false);
+
+    expect((await repository.findById(stored.id))!.cancellationDeadline).toEqual(deadline);
+  });
+
   it("refuses to update a cancelled class and a missing one", async () => {
     const stored = buildClass({ cancelledAt: new Date("2026-10-14T10:00:00.000Z") });
     const repository = new FakeSchoolClassRepository([stored]);
 
-    expect(await repository.update(stored.clone({ capacity: 5 }))).toBe(false);
+    expect(await repository.update(stored.clone({ capacity: 5 }), false)).toBe(false);
     expect((await repository.findById(stored.id))?.capacity).toBe(8);
-    expect(await repository.update(buildClass())).toBe(false);
+    expect(await repository.update(buildClass(), false)).toBe(false);
   });
 
   it("cancels a class once, keeping the first cancellation", async () => {

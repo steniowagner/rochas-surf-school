@@ -15,6 +15,7 @@ const item = (overrides: Partial<ClassItem> = {}): ClassItem => ({
   notes: null,
   cancelledAt: null,
   cancellationMessage: null,
+  cancellationDeadline: "2026-10-13T20:00:00.000Z",
   location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
   instructors: [{ id: "i-1", name: "Ana" }],
   ...overrides,
@@ -176,6 +177,54 @@ describe("ClassCard", () => {
 
       expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
       expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
+    });
+  });
+
+  describe("no deadline", () => {
+    const unset = (overrides: Partial<ClassItem> = {}) =>
+      item({ cancellationDeadline: null, ...overrides });
+
+    it("shows the warn chip to admins (showFlags) on a class that hasn't started", async () => {
+      await render(<ClassCard item={unset()} now={BEFORE} onPress={jest.fn()} showFlags />);
+
+      expect(screen.getByText("No deadline")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
+    });
+
+    it("shows nobody else the chip", async () => {
+      await render(<ClassCard item={unset()} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.queryByText("No deadline")).not.toBeOnTheScreen();
+    });
+
+    it("shows no chip once the class has a deadline, has started or is cancelled", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} showFlags />);
+      expect(screen.queryByText("No deadline")).not.toBeOnTheScreen();
+
+      await render(<ClassCard item={unset()} now={DURING} onPress={jest.fn()} showFlags />);
+      expect(screen.queryByText("No deadline")).not.toBeOnTheScreen();
+
+      await render(
+        <ClassCard
+          item={unset({ cancelledAt: "2026-10-13T10:00:00.000Z" })}
+          now={BEFORE}
+          onPress={jest.fn()}
+          showFlags
+        />,
+      );
+      expect(screen.queryByText("No deadline")).not.toBeOnTheScreen();
+    });
+
+    it("stacks it under No instructor when both apply", async () => {
+      await render(
+        <ClassCard item={unset({ instructors: [] })} now={BEFORE} onPress={jest.fn()} showFlags />,
+      );
+
+      // The two chips, one above the other, then the footer's own "No instructor".
+      const chips = screen
+        .getAllByText(/^(No instructor|No deadline)$/)
+        .map((node) => node.props.children);
+      expect(chips).toEqual(["No instructor", "No deadline", "No instructor"]);
     });
   });
 

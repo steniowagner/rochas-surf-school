@@ -10,6 +10,7 @@ import {
 import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
+import i18n from "@/i18n";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
@@ -71,6 +72,7 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
   notes: "Ponto de encontro na barraca 3.",
   cancelledAt: null,
   cancellationMessage: null,
+  cancellationDeadline: "2026-10-13T20:00:00.000Z",
   location: {
     id: "l-1",
     name: "Praia do Futuro",
@@ -309,6 +311,124 @@ describe("ClassDetailsScreen", () => {
       expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
       expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
       expect(screen.queryByText("No instructor assigned")).not.toBeOnTheScreen();
+    });
+  });
+
+  describe("cancellation deadline", () => {
+    afterEach(() => i18n.changeLanguage("en-US"));
+
+    it("shows everyone, in pt-BR, until when the class can be cancelled", async () => {
+      await i18n.changeLanguage("pt-BR");
+      serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
+      await renderScreen();
+
+      expect(await screen.findByText("Cancelamento até seg, 19 out · 20:00")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
+    });
+
+    it("writes the English weekday and month in en-US", async () => {
+      serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
+      await renderScreen(true);
+
+      expect(await screen.findByText("Cancel until Mon, 19 Oct · 20:00")).toBeOnTheScreen();
+    });
+
+    it("uses Fortaleza's time whatever the phone's time zone", async () => {
+      serve(makeClass({ cancellationDeadline: "2026-10-14T02:30:00.000Z" }));
+      await renderScreen();
+
+      expect(await screen.findByText("Cancel until Tue, 13 Oct · 23:30")).toBeOnTheScreen();
+    });
+
+    it("shows no line without a deadline", async () => {
+      serve(makeClass({ cancellationDeadline: null }));
+      await renderScreen();
+
+      expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
+    });
+
+    it("shows no line on a cancelled class", async () => {
+      serve(
+        makeClass({
+          cancellationDeadline: "2026-10-19T23:00:00.000Z",
+          cancelledAt: "2026-10-13T10:00:00.000Z",
+        }),
+      );
+      await renderScreen();
+
+      expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe("no deadline", () => {
+    const unset = (overrides: Partial<ClassItem> = {}) =>
+      makeClass({ cancellationDeadline: null, ...overrides });
+
+    it("shows an admin the banner naming the discipline, which opens the rules screen", async () => {
+      (router.push as jest.Mock).mockReset();
+      const user = userEvent.setup();
+      serve(unset());
+      await renderScreen(true);
+
+      expect(await screen.findByText("No cancellation deadline")).toBeOnTheScreen();
+      expect(
+        screen.getByText("We couldn't work out yet until when students can cancel. Check the surf rule."),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /No cancellation deadline/ }));
+
+      expect(router.push).toHaveBeenCalledWith(routes.admin.cancellationRules);
+    });
+
+    it("names skate for a skate class", async () => {
+      serve(unset({ discipline: "skate" }));
+      await renderScreen(true);
+
+      expect(await screen.findByText(/Check the skate rule\./)).toBeOnTheScreen();
+    });
+
+    it("puts it after the No instructor banner when both apply", async () => {
+      serve(unset({ instructors: [] }));
+      await renderScreen(true);
+
+      const titles = (await screen.findAllByText(/^(No instructor|No cancellation deadline)$/)).map(
+        (node) => node.props.children,
+      );
+      expect(titles).toEqual(["No instructor", "No cancellation deadline"]);
+    });
+
+    it("shows a student or an instructor no banner", async () => {
+      serve(unset());
+      await renderScreen();
+
+      expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.queryByText("No cancellation deadline")).not.toBeOnTheScreen();
+    });
+
+    it("shows no banner on a class that has a deadline", async () => {
+      serve(makeClass());
+      await renderScreen(true);
+      expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.queryByText("No cancellation deadline")).not.toBeOnTheScreen();
+    });
+
+    it("shows no banner on a started class", async () => {
+      serve(unset({ startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T14:00:00.000Z" }));
+      await renderScreen(true);
+
+      expect(await screen.findByText("In progress")).toBeOnTheScreen();
+      expect(screen.queryByText("No cancellation deadline")).not.toBeOnTheScreen();
+    });
+
+    it("shows no banner on a cancelled class", async () => {
+      serve(unset({ cancelledAt: "2026-10-13T10:00:00.000Z" }));
+      await renderScreen(true);
+
+      expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+      expect(screen.queryByText("No cancellation deadline")).not.toBeOnTheScreen();
     });
   });
 

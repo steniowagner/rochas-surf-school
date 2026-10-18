@@ -6,8 +6,10 @@ It schedules the school's classes, as [Product](../product.md) describes **Class
 (`location`): admins create classes one at a time or in a batch, at a saved location, with the instructors who
 teach them, and the instructors are told; every approved account then browses the classes by week or by month and
 reads each one; admins edit one class at a time, within what its state allows, cancel a class until it
-finishes, and delete one created by mistake before it starts. It is the base that enrolment, ratings and photos
-build on. It brings together two business areas: **Locations** and **Classes**.
+finishes, and delete one created by mistake before it starts. It also keeps the school's **Cancellation rule**
+(`cancellation-rule`) of each discipline and gives every upcoming class its **Cancellation deadline**. It is the
+base that enrolment, ratings and photos build on. It brings together three business areas: **Locations**,
+**Classes** and **Cancellation rules and deadlines**.
 
 ## Locations
 
@@ -180,17 +182,64 @@ Releasing a person's upcoming classes (when their account is deleted):
 - **The "no instructor" flag is computed, never stored**: a class with no instructor that hasn't started. It
   disappears once the class starts, is cancelled, or gets an instructor (an edit always needs one).
 
+## Cancellation rules and deadlines
+
+What a student may cancel, and until when.
+
+- **Cancellation rule** (`cancellation-rule`): the free text of one discipline (`surf` or `skate`), as an admin
+  wrote it. Key fields: discipline, text, who saved it last and when. At most one per discipline; only the
+  current text is kept. Limit: 1 to 2000 characters after removing the spaces at either end.
+- **Cancellation deadline** (part of a class): the moment until which a seat in that class can be cancelled — one
+  per class, never after its start. Each class also keeps how many attempts to work it out have failed in a row,
+  when the next one is due, and a revision that changes every time the deadline is cleared.
+- **Deadline description** (not stored): what the language model understood from a rule for one class — a number
+  of minutes before the start (0 to 43200), a number of days before (0 to 30) at a time of day (`HH:mm`), the
+  start itself, or "unclear".
+
+Rules:
+
+- **A rule is saved trimmed and otherwise as written**, with no check of its wording. Refusals, in order, after
+  access: a discipline other than surf or skate (`cancellationRule.discipline.invalid`), a missing, non-text or
+  blank text (`cancellationRule.text.required`), over 2000 characters (`cancellationRule.text.max.length`), all
+  422; a refused save stores and clears nothing. The last save wins.
+- **A changed rule clears the deadlines of its discipline's upcoming classes**: every class of that discipline
+  that starts after now and isn't cancelled loses its deadline, in the same all-or-nothing write as the rule.
+  Saving the same text (after trimming) writes nothing and clears nothing; the first rule clears the same way.
+- **An edit clears the deadline when a detail the model reads changes** — discipline, level, start, end,
+  location, capacity or notes — in the same write as the edit; changing only the instructors keeps it. A new
+  class starts without one.
+- **Only the rule and the class's details are sent to the model**: the rule text, the discipline, level, date,
+  weekday, start and end times (Fortaleza), location name and address, capacity and notes. Never an id, an
+  instructor, the creator or anything about a person.
+- **The model describes, the module computes**: the instant comes from the description and the class's start, in
+  Fortaleza time, and is capped at the start (a rule allowing cancelling any time gives the start). An "unclear"
+  description, a missing field or a value out of range gives no deadline; a deadline already past when it is
+  computed is kept as it is.
+- **Deadlines are worked out in the background**, every minute: at most 20 classes per run, those that start
+  after now, aren't cancelled, have no deadline, whose discipline has a rule and whose next attempt is due —
+  never-tried first, then by start. A discipline without a rule is never sent; its classes stay without a
+  deadline until the rule is saved.
+- **A failed attempt waits longer each time**: after the n-th failure in a row the next attempt is 1, 2, 4, 8, 16,
+  32, then 60 minutes later; any failure (unclear, unreadable, refused, unreachable) counts the same, and nobody is
+  notified. A worked-out deadline resets the count.
+- **A stale result is never stored**: a deadline or a failure is written only if the class is still at the
+  revision it was read at and isn't cancelled, so an edit or a rule change during the model's answer wins and the
+  class is worked out again from the new details.
+- **The "no cancellation deadline" flag is computed, never stored**: a class without a deadline that hasn't
+  started. It disappears once the class starts, is cancelled, or gets its deadline.
+
 ## Who can do what
 
 The account's status is checked before its role (`user.status.notApproved`, then `user.role.notAdmin`, both
 403); an unknown account is refused as signed out.
 
 - **An approved account of any role** — lists the locations, lists the classes of any week, past or future,
-  and reads any class with its notes.
+  reads any class with its notes and its cancellation deadline, and reads both cancellation rules.
 - **An approved admin** — creates locations and batches of classes, reads the time-range suggestions, edits a
   class that hasn't finished and isn't cancelled, cancels a class that hasn't finished, and deletes a class that
   hasn't started, isn't cancelled and has nobody in it; sees the "no instructor" flag on a class's card and
-  details, and is told when an account deletion leaves classes with nobody.
+  details, and is told when an account deletion leaves classes with nobody; saves the cancellation rule of each
+  discipline and sees the "no cancellation deadline" flag.
 - **An assigned instructor or admin** — receives one notification per batch they were assigned to (unless
   they created it), and one when a class they teach is edited, when they are added to one or removed from one
   (unless they made the edit), when it is cancelled (unless they cancelled it), and when it is deleted (unless
@@ -206,7 +255,9 @@ edits, cancellations and deletions), plus a third for the classes left without a
 reaches the release through its own contract, which the backend fulfils with this module's use case — this module
 depends on Authentication, never the reverse.
 It doesn't read the clock directly either, and it learns the seats taken and the pending requests through its own
-contracts, which answer 0 until enrolment replaces them. In the app,
+contracts, which answer 0 until enrolment replaces them. The language model that describes the deadlines sits
+behind its own contract too, which the backend fulfils with Anthropic's Claude; the module never sees the
+provider. In the app,
 admins create classes on the "Nova aula" screen, which uses the module's own batch expansion and limits so its
 count matches what the backend creates: it removes single days of a range and, when today is among the dates,
 leaves out today's classes of the times that have already started and sends `skipPast`. Every role sees the
@@ -220,7 +271,11 @@ and "Cancelar aula" (a confirmation with the optional message), plus "Excluir au
 started (a confirmation; when the class turns out not to be empty, a "Não dá para excluir" variant that offers
 "Cancelar aula" instead). A class with no instructor says "Sem instrutor" in its card's footer and "Sem instrutor
 atribuído" on its details for everyone; while it hasn't started, admins also see a "Sem instrutor" chip on the
-card and a banner on the details that opens "Editar aula". "My classes", the map, suggestions, editing and archiving of locations, enrolment, ratings
+card and a banner on the details that opens "Editar aula". Admins edit the cancellation rules from a screen
+reached from their home; everyone reads them in a sheet from the Profile. A class without a deadline shows
+admins a "Sem prazo" chip on its card and a "Sem prazo de cancelamento" banner on its details that opens the rules
+screen; a class with one shows everyone "Cancelamento até …" on its details. Accepting the rule and cancelling a
+seat until the deadline come with enrolment. "My classes", the map, suggestions, editing and archiving of locations, enrolment, ratings
 and photos come with their specs. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
@@ -258,3 +313,10 @@ which stops that account from being erased while the link exists — a decision 
   are told once with the count and the earliest one (`class.noInstructor`, not the person who left); the computed
   "no instructor" flag; the app's "Sem instrutor" chip (admins), footer and "Sem instrutor atribuído" (everyone),
   and the admin's banner that opens "Editar aula".
+- `036-cancellation-rules-deadline` — the `cancellation-rule` aggregate: approved admins save the surf and skate
+  rules (trimmed, 1–2000 characters), every approved account reads both; a changed rule clears the deadlines of
+  its discipline's upcoming classes in the same write. Each class gets a cancellation deadline, worked out every
+  minute through a language-model contract (only the rule and the class's details sent; the module computes the
+  instant, capped at the start), retried with backoff, never stored from stale inputs; an edit of a detail the
+  model reads clears it; the computed "no cancellation deadline" flag; the app's rules screen and sheet, the "Sem
+  prazo" chip and banner (admins) and the "Cancelamento até …" line (everyone).

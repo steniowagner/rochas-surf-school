@@ -6,7 +6,6 @@ import { useColorScheme } from "react-native";
 import { routes } from "@/constants/routes";
 import { localeNames, type AppLocale } from "@/i18n/locales";
 import { usePushPreference } from "@/modules/notifications/hooks/use-push-preference.hook";
-import { useAlertMessage } from "@/providers/alert-message";
 import { useSession } from "@/providers/session";
 import { useThemePreference } from "@/services/preferences/theme-preference";
 
@@ -20,7 +19,6 @@ export const useProfile = () => {
   const { theme } = useThemePreference();
   const colorScheme = useColorScheme();
   const { user } = useSession();
-  const alertMessage = useAlertMessage();
   const push = usePushPreference();
   const openUrl = useOpenUrl();
   const [sheet, setSheet] = useState<ProfileSheet | null>(null);
@@ -50,7 +48,6 @@ export const useProfile = () => {
       ? () => void openUrl(privacyPolicyUrl)
       : null,
     openTermsOfUse: termsOfUseUrl ? () => void openUrl(termsOfUseUrl) : null,
-    showComingSoon: () => alertMessage.show(t("profile.comingSoon")),
     sheet,
     openSheet: setSheet,
     closeSheet: () => setSheet(null),

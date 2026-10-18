@@ -1,8 +1,9 @@
-import { SchoolClass, SchoolClassRepository } from "../../src";
+import { ClassDiscipline, SchoolClass, SchoolClassRepository, SchoolClassState } from "../../src";
 
 export class FakeSchoolClassRepository implements SchoolClassRepository {
   readonly createManyCalls: SchoolClass[][] = [];
   readonly updateCalls: SchoolClass[] = [];
+  readonly clearDeadlineCalls: boolean[] = [];
   readonly cancelCalls: { id: string; at: Date; message: string | null }[] = [];
   readonly deleteCalls: { id: string; now: Date }[] = [];
   readonly removeInstructorCalls: { userId: string; classIds: string[] }[] = [];
@@ -39,15 +40,24 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
     return this.classes.find((item) => item.id === id) ?? null;
   }
 
-  async update(schoolClass: SchoolClass): Promise<boolean> {
+  async update(schoolClass: SchoolClass, clearDeadline: boolean): Promise<boolean> {
     this.updateCalls.push(schoolClass);
+    this.clearDeadlineCalls.push(clearDeadline);
 
     const stored = this.classes.find((item) => item.id === schoolClass.id);
     if (!stored || stored.cancelledAt) return false;
 
-    this.classes = this.classes.map((item) =>
-      item.id === schoolClass.id ? schoolClass : item,
-    );
+    const written = clearDeadline
+      ? schoolClass.clone({
+          cancellationDeadline: null,
+          deadlineAttempts: 0,
+          deadlineNextAttemptAt: null,
+          deadlineRevision: stored.deadlineRevision + 1,
+          updatedAt: schoolClass.updatedAt,
+        })
+      : schoolClass;
+
+    this.classes = this.classes.map((item) => (item.id === schoolClass.id ? written : item));
 
     return true;
   }
@@ -99,5 +109,66 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
         ? item.clone({ instructorIds: item.instructorIds.filter((id) => id !== userId) })
         : item,
     );
+  }
+
+  async findNeedingDeadline(query: {
+    now: Date;
+    disciplines: ClassDiscipline[];
+    limit: number;
+  }): Promise<SchoolClass[]> {
+    const { now, disciplines, limit } = query;
+
+    return this.classes
+      .filter(
+        (item) =>
+          disciplines.includes(item.discipline) &&
+          item.startsAt.getTime() > now.getTime() &&
+          !item.cancelledAt &&
+          !item.cancellationDeadline &&
+          (!item.deadlineNextAttemptAt || item.deadlineNextAttemptAt.getTime() <= now.getTime()),
+      )
+      .sort(
+        (a, b) =>
+          Number(a.deadlineAttempts > 0) - Number(b.deadlineAttempts > 0) ||
+          a.startsAt.getTime() - b.startsAt.getTime() ||
+          a.id.localeCompare(b.id),
+      )
+      .slice(0, limit);
+  }
+
+  async saveDeadline(id: string, revision: number, deadline: Date): Promise<boolean> {
+    return this.writeDeadline(id, revision, {
+      cancellationDeadline: deadline,
+      deadlineAttempts: 0,
+      deadlineNextAttemptAt: null,
+    });
+  }
+
+  async recordDeadlineFailure(
+    id: string,
+    revision: number,
+    attempts: number,
+    nextAttemptAt: Date,
+  ): Promise<boolean> {
+    return this.writeDeadline(id, revision, {
+      deadlineAttempts: attempts,
+      deadlineNextAttemptAt: nextAttemptAt,
+    });
+  }
+
+  private writeDeadline(
+    id: string,
+    revision: number,
+    changes: Partial<SchoolClassState>,
+  ): boolean {
+    const stored = this.classes.find((item) => item.id === id);
+
+    if (!stored || stored.cancelledAt || stored.deadlineRevision !== revision) return false;
+
+    this.classes = this.classes.map((item) =>
+      item.id === id ? item.clone({ ...changes, updatedAt: item.updatedAt }) : item,
+    );
+
+    return true;
   }
 }

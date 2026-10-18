@@ -722,6 +722,8 @@ A finished class SHALL NOT be cancelled, and a cancelled class SHALL NOT be rest
 
 #### Deleting a class
 
+_Implemented in spec 034-class-deletion._
+
 Admins SHALL be able to delete a class, after a confirmation step, only if it hasn't started, has no pending requests and has nobody enrolled. Its instructors SHALL be notified.
 
 - _Class created by mistake:_ When an admin deletes an upcoming class that nobody has requested or joined, then the class is removed once the admin confirms, and its instructors are notified.

@@ -91,14 +91,15 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     launch response once the session is restored, then the listener; deduplicated by `notificationId`: refreshes
     the account with `refreshAccount()`, then `router.push(routes.admin.registrations)` for a
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
-    / `router.push(routes.admin.classes)` for a `class.assigned` push when it resolves to the `instructor` / `admin`
-    flow (spec 030), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
+    / `router.push(routes.admin.classes)` for a `class.assigned` or `class.deleted` push when it resolves to the
+    `instructor` / `admin` flow (specs 030, 034), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
     for a `class.edited` / `class.unassigned` / `class.cancelled` push with a string `data.classId` (specs 032,
     033), else
     `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
-    `class.edited` / `class.unassigned` / `class.cancelled` invalidate `["classes"]` (weeks and details); no
+    `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` invalidate `["classes"]` (weeks and
+    details); no
     navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
@@ -241,7 +242,10 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   **conditional** instead of locked (spec 033): one `updateMany` whose `where` holds the condition, reading the
   count — `PrismaSchoolClassRepository.cancel` (`where: { id, cancelledAt: null }`, `true` when one row matched, so
   of two simultaneous cancels exactly one wins) and `update` (the class row written the same way inside the
-  transaction, the instructors replaced only when it matched; `false` for a cancelled class). `classes.created_by` and `classes.location_id` are `ON DELETE
+  transaction, the instructors replaced only when it matched; `false` for a cancelled class), and deleting the same
+  way with `deleteMany` (spec 034): `PrismaSchoolClassRepository.delete` (`where: { id, cancelledAt: null,
+  startsAt: { gt: now } }`, the `class_instructors` rows going with it by their `ON DELETE CASCADE`, `true` when
+  one row matched). `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
   classes before it can delete the row.
 - Seeds (`apps/backend/prisma/seed/main.ts`, one task per module) hold only technical data and the three App
@@ -773,6 +777,19 @@ guard's 401 `auth.token.invalid`.
   instructors except the caller (skipped when none is left; swallowed when it throws). Stored as
   `classes.cancelled_at` / `classes.cancellation_message` (migration `classes-add-cancellation`); `SchoolClass` and
   `ClassView` carry `cancelledAt` / `cancellationMessage`. Nobody stores who cancelled.
+- `DELETE /classes/:id` (admins; spec 034, `DeleteClass` in `usecase/delete-class.usecase.ts`, handler `remove`), no
+  body → 204 with no content. Order: access; a non-UUID id (no lookup) or no class → 404 `class.notFound`; 409
+  `class.cancelled` (whatever the clock); 409 `class.started` (now ≥ `startsAt`, so a finished class too); 409
+  `class.delete.notEmpty` with `details: { seatsTaken, pendingRequests }` when either count is above 0 — seats
+  from `SeatCounter`, pending requests from the `PendingRequestCounter` port
+  (`provider/pending-request-counter.provider.ts`, `countPendingRequests(classId)`), implemented by
+  `NoEnrolmentPendingRequestCounter` (`apps/backend/src/modules/classes/no-enrolment.pending-request-counter.ts`,
+  always 0) until enrolment replaces both counters, so the API can't answer it yet. Then
+  `SchoolClassRepository.delete(id, now)`, the conditional delete of Persistence; on `false` the class is read
+  again: gone → 404 `class.notFound` (a concurrent delete won), cancelled → 409 `class.cancelled`, else 409
+  `class.started`. Then `ClassChangeNotifier.classDeleted({ instructorIds, discipline, startsAt })` (the values
+  read before deleting) to the class's instructors except the caller (skipped when none is left; swallowed when it
+  throws). Nothing of the class is kept; notifications already sent about it stay.
 - The clock is the module's `ClockProvider` port, implemented by a `SystemClockProvider` local to
   `ClassesModule`, so the e2e suite fakes the time without touching auth's clock.
 - Mobile (`src/modules/classes`): queries `["locations"]` (`useLocations`), `["classes", "time-range-suggestions"]`
@@ -851,6 +868,21 @@ guard's 401 `auth.token.invalid`.
   border and no fading; on the details, one `bad-tint` banner `classDetails.cancelled.title` with the
   `cancellationMessage` under it as stored, or `classDetails.cancelled.description`. Copy lives under
   `classTools`, `cancelClass`, `classDetails.cancelled` and `classDetails.tools`.
+- Mobile deleting (spec 034): `ClassToolsSheet` takes `onDelete` and `canDelete`; the details pass `canDelete`
+  only while the class is `not-started`, and the sheet then shows a `subtle` "Excluir aula" (`classTools.delete`)
+  below "Cancelar aula" (closing the sheet first). It opens `DeleteClassSheet` (`components/delete-class-sheet/`:
+  component, types and index, no hook — the variant is a prop the details control): a `BottomModal` with the
+  title, the class line (`{discipline} {level} · {dateLine}, {timeRange} · {location}`) and the description, then
+  in the `confirm` variant a `danger` "Excluir aula" with `loading`, in the `notEmpty` variant a `danger` "Cancelar
+  aula" (`onCancelInstead`), and in both a `ghost` "Manter aula"; it always opens in `confirm`. The details' hook
+  sends it once (a ref guards a double press) through `useDeleteClass` (`hooks/use-delete-class.hook.ts`:
+  `apiDelete` to `/classes/{id}`, no retry; on success it removes `["classes", "detail", id]` from the cache and
+  invalidates `["classes", "week"]`); on 204 toast `deleteClass.done`, the sheet closes and `router.back()`.
+  Errors: `isClassNotEmptyError` (409 `class.delete.notEmpty`) switches the sheet to `notEmpty` with no toast, and
+  its "Cancelar aula" closes it and opens `CancelClassSheet`; the toasts map with `getDeleteClassErrorKey`
+  (`utils/class-error.ts`): `class.started` / `class.cancelled` → their toast, the sheet closes and the class is
+  refetched; 404 → `classDetails.notFound` and `router.back()`; `NetworkError` → no connection;
+  `SessionExpiredError` → nothing; else generic. Copy lives under `deleteClass` (and `classTools.delete`).
 
 ## Error handling
 
@@ -887,7 +919,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `sendPushNotificationsAsync`, messages with `sound: "default"`, `priority: "high"`, `channelId: "default"` and
   `data: { type, notificationId, classId? }` (`classId` copied from the notification's params when it is a
   string; spec 032), title and body from `renderPush` in the device's locale (dates in the copy, such as the class
-  start of `class.edited` / `class.unassigned` / `class.cancelled`, are formatted by hand in Fortaleza time — fixed UTC-3, no
+  start of `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted`, are formatted by hand in Fortaleza time — fixed UTC-3, no
   `Intl` — so the text is the same on every machine). A chunk that throws
   doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
   logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
@@ -913,7 +945,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   spec 028; `classUnassigned` → `class.unassigned` with `{ classId, discipline, startsAt }`, spec 032) and
   `ClassChangeNotifier` (classes, `NotificationsClassChangeNotifier`: `classEdited` → `class.edited` with
   `{ classId, discipline, startsAt }`, `startsAt` as ISO text, spec 032; `classCancelled` → `class.cancelled` with
-  `{ classId, discipline, startsAt, message? }`, `message` only when there is one, spec 033; deleting extends it).
+  `{ classId, discipline, startsAt, message? }`, `message` only when there is one, spec 033; `classDeleted` →
+  `class.deleted` with `{ discipline, startsAt }`, no `classId` since the class is gone, spec 034).
   `NotificationsModule` exports them; a push type without a catalog entry in `push-messages.ts` fails the backend's
   type check.
 

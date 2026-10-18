@@ -5,8 +5,9 @@
 It schedules the school's classes, as [Product](../product.md) describes **Class** (`class`) and **Location**
 (`location`): admins create classes one at a time or in a batch, at a saved location, with the instructors who
 teach them, and the instructors are told; every approved account then browses the classes by week or by month and
-reads each one; admins edit one class at a time, within what its state allows, and cancel a class until it
-finishes. It is the base that deleting, enrolment, ratings and photos build on. It brings together two business areas: **Locations** and **Classes**.
+reads each one; admins edit one class at a time, within what its state allows, cancel a class until it
+finishes, and delete one created by mistake before it starts. It is the base that enrolment, ratings and photos
+build on. It brings together two business areas: **Locations** and **Classes**.
 
 ## Locations
 
@@ -36,7 +37,8 @@ The classes themselves, and how a batch becomes classes.
   ends, location, instructors (one or more instructors or admins), capacity, notes (optional), who created it, and
   — once cancelled — when it was cancelled and the cancellation message (optional). Lifecycle: created, then
   edited (every field before it starts, only its instructors once started, nothing once finished or cancelled),
-  and cancelled at most once, any time before it finishes; its state follows the clock — `not-started` before its
+  and cancelled at most once, any time before it finishes, or deleted — removed for good, with nothing kept —
+  while it hasn't started, isn't cancelled and is empty; its state follows the clock — `not-started` before its
   start, `started` from its start, `finished` from its end — computed, never stored, except `cancelled`, which is
   stored and wins over the clock. Limits: capacity 1 to 20; notes and the cancellation message up to 300
   characters after trimming (blank ones are stored as none).
@@ -49,6 +51,8 @@ The classes themselves, and how a batch becomes classes.
   end (`HH:mm`, the class ends on its start day), location, instructors, capacity, notes — compared field by field
   with the stored class.
 - **Seats taken** (not stored): how many seats of a class are held; always 0 until enrolment exists.
+- **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer; always 0
+  until enrolment exists.
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
 - **Class view** (not stored): a class as people read it — its fields, its location's name and address, and
   its instructors' ids and names.
@@ -146,6 +150,23 @@ Cancelling one class:
   by that admin tells nobody. A notification that fails never changes the answer or the stored cancellation.
   Students and people with pending requests will be told when enrolment exists.
 
+Deleting one class:
+
+- **Deleting is for mistakes**: a class with anybody in it, or one that has started, is cancelled instead.
+- **Checked in this order**: access; the id (not a UUID, or no class → `class.notFound`, 404); then, against the
+  stored class and the server's now, `class.cancelled` (409, whatever time it is), `class.started` (409, a class
+  whose start is exactly now included, and a finished one too), and `class.delete.notEmpty` (409, with the seats
+  taken and the pending requests in the details) when anybody holds a seat or has a pending request — never yet,
+  since both counts are 0 until enrolment exists.
+- **Deleting is final and leaves nothing**: the class and its instructors are removed; it can't be restored, and
+  notifications already sent about it stay.
+- **Exactly one delete wins**: the checks sit on the delete itself. Two admins deleting the same class at the
+  same moment — one succeeds, the other gets `class.notFound`; a delete that lost to a cancel gets
+  `class.cancelled`, and one that lost to the clock `class.started`.
+- **Who is told, after the class is deleted, never the admin who deletes** (even when teaching it): every
+  instructor of the class gets `class.deleted` with its discipline and start (no class to open). A class taught
+  only by that admin tells nobody. A notification that fails never changes the answer or the deletion.
+
 ## Who can do what
 
 The account's status is checked before its role (`user.status.notApproved`, then `user.role.notAdmin`, both
@@ -154,10 +175,12 @@ The account's status is checked before its role (`user.status.notApproved`, then
 - **An approved account of any role** — lists the locations, lists the classes of any week, past or future,
   and reads any class with its notes.
 - **An approved admin** — creates locations and batches of classes, reads the time-range suggestions, edits a
-  class that hasn't finished and isn't cancelled, and cancels a class that hasn't finished.
+  class that hasn't finished and isn't cancelled, cancels a class that hasn't finished, and deletes a class that
+  hasn't started, isn't cancelled and has nobody in it.
 - **An assigned instructor or admin** — receives one notification per batch they were assigned to (unless
   they created it), and one when a class they teach is edited, when they are added to one or removed from one
-  (unless they made the edit), and when it is cancelled (unless they cancelled it).
+  (unless they made the edit), when it is cancelled (unless they cancelled it), and when it is deleted (unless
+  they deleted it).
 
 ## Boundaries
 
@@ -165,9 +188,9 @@ It knows people only by their ids: whether an id is an approved instructor or ad
 class, come through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
 status names. It doesn't send notifications itself: it hands the instructors and the class's details to two
 contracts that [Notifications](notifications.md) fulfils (assignments — added and removed — and class changes:
-edits and cancellations).
-It doesn't read the clock directly either, and it learns the seats taken through its own contract, which answers
-0 until enrolment replaces it. In the app,
+edits, cancellations and deletions).
+It doesn't read the clock directly either, and it learns the seats taken and the pending requests through its own
+contracts, which answer 0 until enrolment replaces them. In the app,
 admins create classes on the "Nova aula" screen, which uses the module's own batch expansion and limits so its
 count matches what the backend creates: it removes single days of a range and, when today is among the dates,
 leaves out today's classes of the times that have already started and sends `skipPast`. Every role sees the
@@ -177,7 +200,9 @@ aren't marked. A cancelled class shows "Cancelada" with its time struck through 
 cancelada" banner with its message on its details. Admins reach a class's tools from a round button on its
 details (hidden once it has finished or is cancelled): "Editar aula" (one day, one time range, the other Nova
 aula sections; only the instructors once it has started), "Avisar alunos e instrutores" (not doing anything yet)
-and "Cancelar aula" (a confirmation with the optional message). Deleting classes, the "no instructor" flag, "My classes", the map, suggestions, editing and archiving of locations, enrolment, ratings
+and "Cancelar aula" (a confirmation with the optional message), plus "Excluir aula" while the class hasn't
+started (a confirmation; when the class turns out not to be empty, a "Não dá para excluir" variant that offers
+"Cancelar aula" instead). The "no instructor" flag, "My classes", the map, suggestions, editing and archiving of locations, enrolment, ratings
 and photos come with their specs. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
@@ -204,3 +229,9 @@ which stops that account from being erased while the link exists — a decision 
   class can't be edited or cancelled again (`class.cancelled`), even by an edit or a cancel racing it; its
   instructors are told (`class.cancelled`), never the admin who cancels; the app's class tools on the details
   (replacing the pencil), the cancel sheet, and the cancelled card and details.
+- `034-class-deletion` — approved admins delete a class that hasn't started, isn't cancelled and has nobody in it
+  (`class.cancelled`, `class.started`, `class.delete.notEmpty` with the seats taken and the pending requests, the
+  latter counted through a new contract answering 0 until enrolment); the delete is conditional, so a racing
+  delete gets `class.notFound` and a racing cancel `class.cancelled`; the class and its instructors leave for good;
+  its instructors are told (`class.deleted`), never the admin who deletes; the app's "Excluir aula" tool, its
+  confirmation and its "Não dá para excluir" variant.

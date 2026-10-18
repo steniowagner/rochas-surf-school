@@ -2,13 +2,14 @@
 id: "034"
 slug: class-deletion
 title: "Deleting a class"
-status: accepted
+status: finished
 created: 2026-10-17
 started: 2026-10-17
 base_commit: 7ee63d036b5044adb89d4174ff5e664453ed4c7c
 reviewed_commit: 6692227422e3ff64db387c5d91b22ca45425198e
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
+finished: 2026-10-18
 ---
 
 # 034 — Deleting a class

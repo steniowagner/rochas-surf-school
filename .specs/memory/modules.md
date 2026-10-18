@@ -54,9 +54,9 @@ denied or removed account can still contact the school. The waiting-list switch 
 The product's only way to reach people outside the app: it keeps every notification for the person it is for,
 then pushes it to each phone they are signed in on, in that phone's language. It knows the people only by their
 ids and the phones they registered; who must be told what, and when, is decided by the module where the event
-happens (Authentication for registrations, Classes for class assignments, edits and cancellations), which reaches it through
+happens (Authentication for registrations, Classes for class assignments, edits, cancellations and deletions), which reaches it through
 abstract contracts. Today it carries the three registration notifications and the class ones (assigned, edited,
-unassigned, cancelled); nothing shows the stored notifications yet.
+unassigned, cancelled, deleted); nothing shows the stored notifications yet.
 
 - Where it physically lives: `modules/notifications`
 - Business details: [modules/notifications.md](modules/notifications.md)
@@ -72,8 +72,9 @@ suggested from last week's classes. Every approved person browses the classes by
 Fortaleza) or by month and reads each one; a class is not started, started or finished by the clock, unless an
 admin cancelled it. Admins edit one class at a time — anything before it starts, only its instructors once started,
 nothing once finished or cancelled — and cancel a class until it finishes, with an optional message; it stays on
-the schedule marked as cancelled, for good. Its instructors are told of edits and cancellations. Deleting,
-enrolment, ratings and photos will build on its classes.
+the schedule marked as cancelled, for good. A class created by mistake is deleted instead — only before it
+starts, never a cancelled one, and only with nobody in it — and leaves the schedule for good. Its instructors are
+told of edits, cancellations and deletions. Enrolment, ratings and photos will build on its classes.
 
 - Where it physically lives: `modules/classes`
 - Business details: [modules/classes.md](modules/classes.md)

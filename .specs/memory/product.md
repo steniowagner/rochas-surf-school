@@ -579,8 +579,8 @@ instructors and admins of the school, none preselected. The screen shows "N dias
 toast ("N aulas criadas") and back to the home. The backend creates the whole batch or nothing — refusing past
 classes (unless asked to skip them, spec 029), unknown locations, instructors who can't teach, more than 200 classes and every invalid field — and
 pushes one "Novas aulas na sua escala" notification per assigned instructor (not the creator). Spec 030 shows the
-classes (see below), spec 032 lets admins edit them one at a time and spec 033 cancel them (see below); they
-can't be deleted yet. All copy is in pt-BR, es-ES and en-US.
+classes (see below), spec 032 lets admins edit them one at a time, spec 033 cancel them and spec 034 delete them
+(see below). All copy is in pt-BR, es-ES and en-US.
 
 **Batches without single days and without the past** (spec `029-batch-excluded-dates-skip-past`) — a batch can
 leave out single dates of its range, whatever their weekday, and can skip the classes that have already started
@@ -655,6 +655,20 @@ message. Its instructors are told with the message ("Aula cancelada"), never the
 opens the class's details, and one received with the app open reloads the classes. Back on the classes screen,
 the cards already show a class just cancelled or edited. All copy is in pt-BR, es-ES and en-US.
 
+**Deleting a class** (spec `034-class-deletion`) — an approved admin deletes a class created by mistake, from
+"Excluir aula" in the class tools, below "Cancelar aula" — offered only while the class hasn't started (a started
+class can only be cancelled; finished and cancelled classes show no tools). It opens "Excluir esta aula?" with the
+class in one line ("Surf Iniciante · Amanhã · 19 out, 08:00 – 09:00 · <local>"), "Os instrutores são avisados e a
+aula sai da agenda. Não dá para desfazer.", "Excluir aula" and "Manter aula". On success "Aula excluída", the app
+leaves the details, and the class is gone from the schedule for good, for every role — nothing of it is kept.
+Deleting is refused once the class has started (finished included), for a cancelled class, and when anybody holds
+a seat or has a pending request in it — then the sheet turns into "Não dá para excluir", whose "Cancelar aula"
+opens the cancel sheet instead. Until enrolment exists nobody can be in a class, so that refusal never happens
+yet. Its instructors are told ("Aula excluída", with the class's discipline, day and time), never the admin who
+deletes; tapping the push opens the Aulas tab, and one received with the app open reloads the classes.
+Notifications sent earlier about the class stay; opening one shows "Esta aula não existe mais.". All copy is in
+pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -702,8 +716,7 @@ Active specs: none.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - After creating classes (spec 028): the map, address suggestions, editing and archiving of locations and the
-  location-change notification (the class-locations spec); deleting classes (spec 034)
-  and the "no instructor" flag (spec 035); the instructors' "Surf" / "Skate" subtitles and photos
+  location-change notification (the class-locations spec); the "no instructor" flag (spec 035); the instructors' "Surf" / "Skate" subtitles and photos
   in the picker; a real count on the "Criar aulas" row; and "My classes" for admins who teach.
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
   class highlighted, and a marker on the cards of one's own classes; seats taken, the occupancy bar, "Sem vagas" /
@@ -719,6 +732,9 @@ Active specs: none.
   enrolments as `class cancelled`, and warning the admin about guests (with enrolment); storing who cancelled it,
   restoring a cancelled class and editing its message; what "Avisar alunos e instrutores" in the class tools does
   (a message to a class's people, its own spec); the enrolled and pending counts on the cancel sheet.
+- On deleting a class (spec 034): counting real seats and pending requests, and guests (with enrolment — until
+  then a class is always empty); the seat and pending-request counts on the confirmation sheet; deleting several
+  classes at once; restoring a deleted class or keeping any record of it.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.

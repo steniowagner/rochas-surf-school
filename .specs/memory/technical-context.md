@@ -149,8 +149,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   JSON bodies; dates travel as ISO 8601 strings in UTC. `@nestjs/config` is global; CORS is on. Libraries by
   concern: Prisma 7 (persistence), `@nestjs/jwt` + `passport-jwt` (auth, see Authentication),
   `@nestjs/schedule` 12 (scheduled work), `@nestjs/throttler` 6 (rate limits, see Authentication), the
-  providers' SDKs behind domain ports (`resend` 6 for email, `expo-server-sdk` 7 for pushes; see External
-  integrations).
+  providers' SDKs behind domain ports (`resend` 6 for email, `expo-server-sdk` 7 for pushes, `@anthropic-ai/sdk`
+  0.135 with `zod` 4 for the language model; see External integrations).
   Build with `nest build` (`prebuild`, `precheck-types`, `pretest` and `pretest:e2e` run `prisma generate`). Lint with `oxlint --type-aware`. Tests with
   **Vitest 4** — unit tests `src/**/*.spec.ts`, e2e tests `test/**/*.e2e-spec.ts` with supertest.
   Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
@@ -249,6 +249,14 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   one row matched). Releasing a person from their upcoming classes (spec 035) is one `$transaction` running
   `classInstructor.deleteMany({ userId, classId: { in } })` (`PrismaSchoolClassRepository.removeInstructor`; an
   empty list writes nothing); a concurrent edit adding the person back isn't prevented, the last write wins.
+  Cancellation deadlines (spec 036) use both: saving a rule is one `$transaction` (`PrismaCancellationRuleRepository.save`:
+  the `cancellation_rules` upsert, then one `updateMany` clearing the discipline's classes with `startsAt > now`
+  and `cancelledAt` null), `update` clears the deadline in the same write when asked, and the job stores a result
+  or a failure only with `updateMany({ where: { id, deadlineRevision, cancelledAt: null } })`, so an edit or a rule
+  change during a model call wins (the write matches nothing and is dropped). Every clearing sets
+  `cancellation_deadline` and `deadline_next_attempt_at` to null, `deadline_attempts` to 0 and bumps
+  `deadline_revision`. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
+  → `users.id` `ON DELETE SET NULL`.
   `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
   classes before it can delete the row.
@@ -744,8 +752,9 @@ guard's 401 `auth.token.invalid`.
   ClassItem[] }`: the classes starting from the Monday 00:00 of the date's week (inclusive) to the next Monday
   00:00 (exclusive), Fortaleza, sorted by `startsAt`, `endsAt`, `id`. `ClassItem` is `{ id, discipline, level,
   startsAt, endsAt, capacity, notes, location: { id, name, address }, instructors: [{ id, name }], cancelledAt,
-  cancellationMessage }` (ISO UTC dates, `notes` `null` when none, `cancelledAt` / `cancellationMessage` `null` for
-  a class never cancelled (spec 033), instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
+  cancellationMessage, cancellationDeadline }` (ISO UTC dates, `notes` `null` when none, `cancelledAt` /
+  `cancellationMessage` `null` for a class never cancelled (spec 033), `cancellationDeadline` `null` while it can't
+  be worked out (spec 036), instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
   `id`; `toClassItem` in `usecase/class-item.ts`). Access first, then a `date` that is missing, not a string,
   malformed or impossible → 422 `ValidationException` `class.date.invalid`. `GET /classes/:id` (any approved
   account; `GetClass`) → 200 one `ClassItem`; a non-UUID id (no lookup) or no class → 404 `class.notFound`. It is
@@ -767,7 +776,9 @@ guard's 401 `auth.token.invalid`.
   `class.capacity.belowSeatsTaken` (`details: { seatsTaken }`). "Differs" compares discipline, level, `startsAt`,
   `endsAt`, location id, capacity and trimmed notes (`null` for none), and the instructors as a set; nothing
   differing → 200 with no write (not even `updatedAt`) and no notification. Otherwise
-  `SchoolClassRepository.update` (one `$transaction`, see Persistence; last save wins; it returns `false` when the
+  `SchoolClassRepository.update(schoolClass, clearDeadline)` (one `$transaction`, see Persistence; `clearDeadline`
+  is true when a class field differs — exactly the details the language model reads — so the deadline is cleared
+  in the same write, and kept when only the instructors change, spec 036; last save wins; it returns `false` when the
   class was cancelled after it was read, which `EditClass` turns into 409 `class.cancelled` with nobody
   notified), then, all except the
   caller and each swallowed when it throws: `ClassChangeNotifier.classEdited({ instructorIds, classId,
@@ -813,6 +824,32 @@ guard's 401 `auth.token.invalid`.
   finished and cancelled classes keep the person. The "no instructor" flag is computed, never stored:
   `isWithoutInstructor(instructorCount, state)` (`model/class-flags.ts`) is true only for 0 instructors and
   `not-started`.
+- Cancellation rules and deadlines (spec 036). `GET /cancellation-rules` (any approved account;
+  `ListCancellationRules`) → 200 `{ surf: string | null, skate: string | null }`. `PUT
+  /cancellation-rules/:discipline` (admins; `SaveCancellationRule`) `{ text }` → 200 the same shape; order: access,
+  a discipline other than `surf` / `skate` → 422 `cancellationRule.discipline.invalid`, a missing, non-string or
+  blank text → 422 `cancellationRule.text.required`, over 2000 characters after trimming → 422
+  `cancellationRule.text.max.length`; the text is stored trimmed, and the same trimmed text writes nothing. The
+  `cancellation-rule` aggregate (`modules/classes/src/cancellation-rule/`: `CancellationRule` with `discipline`,
+  `text`, `updatedBy`, `updatedAt`; `CancellationRuleRepository` with `findAll()` and `save(rule, now)`) lives in
+  the classes module because a rule change clears classes; `CancellationRulesController` and
+  `PrismaCancellationRuleRepository` sit in `apps/backend/src/modules/classes/`. The deadline: the
+  `CancellationDeadlineDescriber` port (`provider/cancellation-deadline-describer.provider.ts`) takes a
+  `CancellationDeadlineRequest` — `{ rule, class: { discipline, level, date, weekday, start, end, locationName,
+  locationAddress, capacity, notes } }`, Fortaleza `YYYY-MM-DD` / English weekday / `HH:mm`, never an id or a person
+  — and answers a `CancellationDeadlineDescription` (`{ kind: "minutesBefore", minutes }` 0–43200 | `{ kind:
+  "daysBeforeAt", days, time }` 0–30 days, `HH:mm` | `{ kind: "classStart" }` | `{ kind: "unclear" }`);
+  `computeCancellationDeadline(description, startsAt)` (`model/cancellation-deadline.ts`) turns it into an instant
+  in Fortaleza, capped at the start, or `null` when unusable. `WorkOutCancellationDeadlines`
+  (`usecase/work-out-cancellation-deadlines.usecase.ts`, no actor, output `{ workedOut, failed }`) reads the
+  rules, asks `SchoolClassRepository.findNeedingDeadline({ now, disciplines, limit: 20 })` (disciplines with a
+  rule; `startsAt > now`, not cancelled, no deadline, next attempt null or due; never-tried first, then `startsAt`,
+  `id` — two queries in Prisma), describes 5 at a time, and writes through `saveDeadline(id, revision, deadline)`
+  (attempts reset) or `recordDeadlineFailure(id, revision, attempts, nextAttemptAt)` with the wait
+  `deadlineBackoffMinutes(n) = min(2^(n−1), 60)`; a describer that throws, a missing location or an unusable answer
+  is a failure, and a dropped write counts as neither. A discipline without a rule is never sent. The "no
+  cancellation deadline" flag is computed, never stored: `isWithoutDeadline(cancellationDeadline, state)` (in
+  `model/class-flags.ts`) is true only for a `null` deadline and `not-started`.
 - The clock is the module's `ClockProvider` port, implemented by a `SystemClockProvider` local to
   `ClassesModule`, so the e2e suite fakes the time without touching auth's clock.
 - Mobile (`src/modules/classes`): queries `["locations"]` (`useLocations`), `["classes", "time-range-suggestions"]`
@@ -915,6 +952,24 @@ guard's 401 `auth.token.invalid`.
   the state banners: a `Pressable` row (role `button`, `min-h-11`) on `bg-warn-tint` with `person-remove-outline`
   and `classDetails.noInstructor.title` / `.description`, opening `routes.admin.editClass(id)`. The instructors
   section shows `classDetails.noInstructorAssigned` in `text-ink-2` when the list is empty, for every role.
+- Mobile cancellation rules and deadlines (spec 036). The `src/modules/cancellation-rules/` module: queries
+  `["cancellation-rules"]` (`useCancellationRules`, `GET /cancellation-rules`, optional `enabled`) and the mutation
+  `useSaveCancellationRule` (`apiPut` to `/cancellation-rules/{discipline}`, no retry, writes the answer to the
+  cache; errors toast no-connection or generic, an expired session nothing). `CancellationRulesSheet`
+  (`components/cancellation-rules-sheet/`, loads only while visible) is opened by the Profile's "Regras de
+  cancelamento" row for every role. `CancellationRulesScreen` (`screens/`, route
+  `src/app/(private)/admin/cancellation-rules.tsx`, `routes.admin.cancellationRules`) is opened by the admin
+  home's row after "Criar aulas": a `SegmentedControl` with one draft per discipline, the tips card, a `TextArea`
+  with `maxLength` 2000 (`CANCELLATION_RULE_TEXT_MAX`), the status note and the primary save `Button`, enabled while
+  the trimmed draft is non-blank and differs from the saved text. `ClassCard`'s hook also returns
+  `withoutDeadline` (`isWithoutDeadline`); with `showFlags` the right-hand chips stack in one column (state chips,
+  then "Sem instrutor", then the `warn` `Chip` `classesWeek.noDeadline` with `calendar-clear-outline`). The
+  details' hook returns `showNoDeadline` (`canEdit` and the flag) — a `bg-warn-tint` banner after the no-instructor
+  one, opening `routes.admin.cancellationRules` — and `cancellationDeadline`, formatted for every role unless the
+  class is cancelled by `formatDeadline` (`utils/week.ts`: the first three letters of date-fns `EEEE`, then `d MMM`
+  and `HH:mm`, Fortaleza, the app's locale, because pt-BR `EEE` spells out "segunda"), drawn as
+  `classDetails.cancellationDeadline` under the date line. Copy under `cancellationRules`, `admin.home`,
+  `classesWeek.noDeadline` and `classDetails.noDeadline` / `.cancellationDeadline`.
 
 ## Error handling
 
@@ -935,8 +990,8 @@ guard's 401 `auth.token.invalid`.
 Every provider sits behind a port in the domain (`*.provider.ts`); its implementation lives in the backend
 module that uses it. Variable names are added to `apps/backend/.env.example` by the spec that introduces the
 provider; real keys are never committed. The privacy policy page (`apps/web`, spec 022) names the providers
-already chosen (Google, Apple, Resend, Expo) and describes the others by category, so a spec that chooses a
-provider (hosting, language model, photo storage), changes a retention period or adds a kind of data also
+already chosen (Google, Apple, Resend, Expo, Anthropic) and describes the others by category, so a spec that
+chooses a provider (hosting, photo storage), changes a retention period or adds a kind of data also
 updates the policy's legal bases and retention list (spec 023) in the three web dictionaries.
 
 ### Push notifications
@@ -1009,9 +1064,24 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 ### Language model (cancellation deadlines)
 
-- Provider and model **chosen by the cancellation-rule spec**, behind a domain port. Fixed by the product:
-  only the rule text and the class's details are sent, never personal data; the model describes the
-  deadline and the backend computes the exact date itself, retrying when the answer can't be used.
+- **Anthropic** (spec 036), behind the `CancellationDeadlineDescriber` port in `modules/classes`, implemented by
+  `AnthropicDeadlineDescriber` (`apps/backend/src/modules/classes/anthropic.deadline-describer.ts`) with
+  `@anthropic-ai/sdk`: model `claude-opus-5-5` (a constant, not configuration), `output_config.effort: "low"`,
+  adaptive thinking left at its default, `max_tokens` 4096, structured outputs through `client.beta.messages.parse`
+  with `zodOutputFormat` (a flat `{ kind, minutes, days, time }` object mapped to the domain union), and the
+  server-side refusal fallback (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`). The client has a
+  30 s timeout and `maxRetries: 0`: the job is the retry. One fixed English system prompt (`DEADLINE_SYSTEM_PROMPT`)
+  and one user message holding the `CancellationDeadlineRequest` as JSON — only the rule and the class's details,
+  never personal data. A refusal, an answer that doesn't parse, an API or network error and a missing key all
+  answer `unclear`; the logs carry only the stop reason or the HTTP status, never the rule or the class.
+- Variable `ANTHROPIC_API_KEY` (in `apps/backend/.env.example`, empty): without it the adapter warns once
+  naming the variable and answers every request `unclear` (classes stay flagged), except with
+  `NODE_ENV=production`, where its constructor throws so the backend refuses to start — the same pattern as
+  `ResendEmailProvider`. Tests never call Anthropic: the unit spec mocks the SDK with `vi.mock`, and the e2e
+  suite overrides `AnthropicDeadlineDescriber` with a fake.
+- The installed SDK's `zodOutputFormat` sends the `kind` enum as a plain string (the allowed values moved into its
+  description), so the API doesn't constrain it; a value outside the four kinds fails the zod parse and counts as
+  `unclear`.
 
 ### Photo storage
 
@@ -1025,9 +1095,12 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 ### Scheduled work
 
-- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today three jobs,
-  `SignInCodeCleanupJob`, `PushReceiptCheckJob` (spec 020) and `AccountErasureJob` (spec 021, cron
-  `account-erasure`, erases denied registrations; the deleted/removed erasures are to be added to it)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
+- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today four jobs,
+  `SignInCodeCleanupJob`, `PushReceiptCheckJob` (spec 020), `AccountErasureJob` (spec 021, cron
+  `account-erasure`, erases denied registrations; the deleted/removed erasures are to be added to it) and
+  `CancellationDeadlineJob` (spec 036, cron `cancellation-deadline`, `waitForCompletion`: runs
+  `WorkOutCancellationDeadlines`, at most 20 classes per tick and 5 model calls at a time, idempotent by the
+  stored deadline, attempts and next attempt, and logs only the counts)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
   class start, 30-minute reminders, rating prompts, 30-day erasures of denied/deleted/removed accounts, guest
   data erasure, cancellation-deadline retries), each running every minute and **idempotent** — it records in
   the database what it already did, so a restart or a late tick never sends twice.
@@ -1086,7 +1159,11 @@ Maestro suite for mobile would be a spec of its own.
   `notifications.e2e-spec.ts` overrides `ExpoPushProvider` with a fake that records the messages and returns
   configurable tickets (`overrideProvider`); `classes.e2e-spec.ts` overrides it the same way and the classes
   module's `SystemClockProvider` with a fixed clock, and each test deletes the classes, locations and users it
-  created. Mobile tests that open a sheet can't assert a closed sheet is
+  created. `cancellation-rules.e2e-spec.ts` and `cancellation-deadlines.e2e-spec.ts` (spec 036) fix the classes
+  clock in 2037, so the job only meets the test's own classes and never writes fake deadlines to real ones in a
+  shared dev database, snapshot the stored cancellation rules before and put them back after, and the second
+  overrides `AnthropicDeadlineDescriber` with a configurable fake and runs the job through
+  `app.get(CancellationDeadlineJob).run()`. Mobile tests that open a sheet can't assert a closed sheet is
   hidden: the bottom-sheet mock keeps its content mounted. `expo-web-browser` is mocked per test.
 
 ```e2e

@@ -111,7 +111,11 @@ Listed in the order people meet them.
   number (used by every contact-the-school button) and the waiting list (on by default).
 - **Cancellation rule** (`cancellation-rule`): free text written by admins, one for surf and one for skate,
   saying until when a student may cancel a seat. Readable by everyone at any time; a student accepts the rule
-  of the class's discipline when requesting a seat. Saved as written, with no check of its wording.
+  of the class's discipline when requesting a seat. Saved as written, with no check of its wording. As built
+  (spec 036): approved admins save each rule (trimmed, 1–2000 characters) from the admin home's "Regras de
+  cancelamento" screen; every approved account reads both from the Profile. Only the current text is kept (with
+  the last editor and when), and saving a different text clears the deadlines of the discipline's upcoming,
+  not-cancelled classes so they are worked out again; saving the same text changes nothing.
 - **Location** (`location`): a saved place where classes happen. Key fields: name, address, position on a map.
   Relationship: a class has one location; a location has many classes. Lifecycle: `active` → `archived`
   ("removing" it archives it: no longer offered, kept by the classes that used it). Editing it changes every
@@ -147,7 +151,14 @@ Listed in the order people meet them.
   model from the discipline's cancellation rule and the class's details (never personal data or anything
   students wrote) when the class is created, and again when the class is edited or the rule changes. While it
   can't be worked out, the system keeps trying, the class is flagged, and students who try to cancel are told
-  to contact the school.
+  to contact the school. As built (spec 036): Claude (Anthropic) describes the deadline from the rule and the
+  class's discipline, level, date, weekday, start and end times, location name and address, capacity and notes;
+  the backend computes the exact instant (in Fortaleza time) and caps it at the start. A background job works
+  out the classes without one every minute, retrying a failed class after 1, 2, 4… up to 60 minutes; an edit
+  that changes a detail the model reads (not only the instructors) clears it, and so does a rule change. A
+  discipline without a rule gets no deadline and nothing is sent. Every role sees "Cancelamento até <dia, data
+  · hora>" on a class's details; admins see the "Sem prazo" flag. Cancelling a seat until the deadline arrives
+  with enrolment.
 - **Enrolment** (`enrolment`): a student's place, or attempt at a place, in one class. A student **requests**
   a seat in a class that hasn't started (accepting the discipline's cancellation rule), which creates a
   pending enrolment; admins and the class's instructors are notified. Key fields: student, class, status, when
@@ -244,9 +255,9 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   the school's number, and an admin carries out the request by removing the account, which is then erased like
   any removed account. The site's number is a copy of the school setting made when the site is built, so
   changing the number in the app needs the site rebuilt.
-- **The privacy policy names only the providers already chosen**: Google, Apple, Resend and Expo by name; the
-  hosting, the language model and the photo storage by category until a spec chooses them — that spec updates
-  the policy.
+- **The privacy policy names only the providers already chosen**: Google, Apple, Resend, Expo and Anthropic
+  (the language model, spec 036) by name; the hosting and the photo storage by category until a spec chooses
+  them — that spec updates the policy.
 - **The site has terms of use next to the school rules**: the terms govern the app (adults only, accounts approved
   by the school, admins' decisions final, forbidden content removed by admins who can also remove the account,
   reports sent to the school on WhatsApp because the app has no report button, no payments, not a liability
@@ -536,7 +547,7 @@ name, with the email read-only and the photo "coming soon"), WhatsApp ("Visível
 country and the share switch), Tema (same as the phone, light or dark, applied at once), Idioma (pt-BR, es-ES or
 en-US, applied at once; the sign-in screen's picker keeps its choice too), "Notificações push" with a switch and a
 note that notifications always stay in the app, "Regras da escola" (the rules, read-only), "Regras de
-cancelamento" ("coming soon"), "Sobre o app" (a sheet with mocked content: version, description, creator and
+cancelamento" (a sheet with both rules, spec 036), "Sobre o app" (a sheet with mocked content: version, description, creator and
 links), the privacy policy and the terms of use (the site's pages in the app's language, in the in-app browser;
 hidden while the site's address isn't configured), "Sair" (a confirmation sheet, then the sign-in screen) and
 "Remover a conta" (a confirmation sheet; the account becomes deleted at once and the phone signs out, so the next
@@ -683,6 +694,22 @@ details, and one received with the app open reloads the classes. The person who 
 stay on a class aren't told. Reactivating the account doesn't restore the assignments. All copy is in pt-BR,
 es-ES and en-US.
 
+**Cancellation rules and deadlines** (spec `036-cancellation-rules-deadline`) — admins write two free-text
+cancellation rules, one for surf and one for skate, on the "Regras de cancelamento" screen opened from a new row
+on the admin home ("Uma para surf, outra para skate"): a Surf / Skate switch that keeps each draft, two writing
+tips, the text (up to 2000 characters, with a counter), a note ("Alterações não salvas", "Regra de surf em vigor"
+or "Ainda não há regra de surf") and "Salvar regra de surf", on only when the text changed and isn't blank; saving
+shows "Regra de surf salva" and stays on the screen. Every approved person reads both rules from Perfil →
+"Regras de cancelamento", a sheet with one card per discipline ("A escola ainda não escreveu esta regra." for a
+missing one). Each upcoming class gets one cancellation deadline, worked out in the background by Claude from
+its discipline's rule and its details, never anything about a person; it is redone after an edit that changes
+a detail the model reads and after the rule changes, and retried with growing waits while it can't be worked out.
+Until it exists, admins see a "Sem prazo" chip on the class's card (under "Sem instrutor" when both apply) and a
+"Sem prazo de cancelamento" banner on its details ("… Confira a regra de surf."), which opens the rules screen;
+nobody is notified. Every role sees "Cancelamento até seg, 19 out · 20:00" on the details of a class that has a
+deadline and isn't cancelled. The site's privacy policy names Anthropic as the service that works out the
+deadline. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -696,7 +723,7 @@ Active specs: none.
   lasts only for the admin's visit to the tool (spec 019); and searching, filtering or paging the registrations.
 - Reporting comments or photos.
 - Translating text written by admins.
-- Checking a cancellation rule's wording when it's saved.
+- Checking a cancellation rule's wording when it's saved, and previewing the deadline a rule would give.
 - An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list); each class
   already shows its seats taken and ratings.
 - Keeping the text of past versions of the school rules (spec 010 keeps only the current text; an acceptance
@@ -718,7 +745,7 @@ Active specs: none.
   legal (LGPD) review of the pages' copy, and a light/dark
   switch on the site (it follows the system theme).
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
-  splitting the name into first and last name, the cancellation rules screen ("coming soon"), real data in the
+  splitting the name into first and last name, real data in the
   About sheet (mocked), keeping the theme, language and push preferences on the account or syncing them across
   phones, and, when a person deletes their account, refusing the only admin and cancelling their seats and
   pending enrolments (with enrolment).
@@ -738,8 +765,7 @@ Active specs: none.
   and the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's sport filter and
   notifications bell; opening a person's sheet from the details, and profile photos (initials only).
 - On editing a class (spec 032): telling its students and the people with pending requests, and warning the
-  admin about guests (with enrolment); recomputing the cancellation deadline after an edit (the
-  cancellation-rule spec); editing several classes at once; the seat and pending-request counts in the editor's
+  admin about guests (with enrolment); editing several classes at once; the seat and pending-request counts in the editor's
   footer note, and its "gerir" links to manage time ranges and locations.
 - On cancelling a class (spec 033): telling its students and the people with pending requests, ending their
   enrolments as `class cancelled`, and warning the admin about guests (with enrolment); storing who cancelled it,
@@ -751,6 +777,11 @@ Active specs: none.
 - On classes left without an instructor (spec 035): releasing the classes when an instructor is demoted to
   student or an account is removed (their specs reuse the same step); telling the students of a class that lost
   its instructor (with enrolment); a list or filter of the classes without an instructor.
+- On cancellation rules and deadlines (spec 036): showing the rule and requiring its acceptance when a student
+  requests a seat, cancelling a seat until the deadline, and telling a student without a deadline to contact the
+  school (with enrolment); notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
+  showing who saved a rule; a list or filter of the classes without a deadline, and admins setting a deadline by
+  hand; recomputing deadlines when a location's name or address changes (locations can't be edited yet).
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.

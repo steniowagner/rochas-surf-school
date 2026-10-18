@@ -2,13 +2,14 @@
 id: "036"
 slug: cancellation-rules-deadline
 title: "Cancellation rules and the cancellation deadline"
-status: accepted
+status: finished
 created: 2026-10-18
 started: 2026-10-18
 base_commit: a53294555754d3f32d8cfe11763786ce1d7b9aea
 reviewed_commit: f9dc8f55b24025a116064632adb17bd2d44712af
 fronts: [classes, backend, mobile, web]
 depends_on: []
+finished: 2026-10-18
 ---
 
 # 036 — Cancellation rules and the cancellation deadline

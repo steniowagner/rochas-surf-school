@@ -77,7 +77,10 @@ the schedule marked as cancelled, for good. A class created by mistake is delete
 starts, never a cancelled one, and only with nobody in it — and leaves the schedule for good. Its instructors are
 told of edits, cancellations and deletions. When a person's account is deleted, it takes them off every class
 that hasn't started; a class left with nobody stays scheduled, is flagged "no instructor" for admins until someone
-is assigned, and the admins are told. Enrolment, ratings and photos will build on its classes.
+is assigned, and the admins are told. It also keeps the two cancellation rules admins write (one for surf, one
+for skate, read by everyone) and gives every upcoming class one cancellation deadline, worked out in the
+background by a language model from its discipline's rule and its details; while a class has none, admins see it
+flagged "no cancellation deadline". Enrolment, ratings and photos will build on its classes.
 
 - Where it physically lives: `modules/classes`
 - Business details: [modules/classes.md](modules/classes.md)

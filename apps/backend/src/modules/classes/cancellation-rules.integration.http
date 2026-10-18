@@ -1,0 +1,72 @@
+# Manual REST Client requests for GET and PUT /cancellation-rules (VS Code REST Client).
+# Sign in with an approved review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
+# Codes are read from the backend log when RESEND_API_KEY is unset.
+
+@baseUrl = http://localhost:4000
+@email = admin@example.com
+@code = 345678
+
+### Request a sign-in code (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Sign in (expects 200 with accessToken)
+# @name session
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+###
+### Read both rules (expects 200 with { surf, skate }, each text or null; any approved account)
+GET {{baseUrl}}/cancellation-rules
+Authorization: Bearer {{token}}
+
+### Save the surf rule (expects 200 with both rules, the text trimmed; admins only). Saving a different text clears the deadlines of the upcoming surf classes
+PUT {{baseUrl}}/cancellation-rules/surf
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "O aluno pode cancelar até 12 horas antes do início da aula."
+}
+
+### Unknown discipline (expects 422 cancellationRule.discipline.invalid)
+PUT {{baseUrl}}/cancellation-rules/kitesurf
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "x"
+}
+
+### Blank text (expects 422 cancellationRule.text.required)
+PUT {{baseUrl}}/cancellation-rules/skate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "   "
+}
+
+### More than 2000 characters (expects 422 cancellationRule.text.max.length): repeat a long text
+
+### Without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/cancellation-rules
+
+### As a student or instructor (expects 403 user.role.notAdmin on PUT): use that account's token
+PUT {{baseUrl}}/cancellation-rules/surf
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "x"
+}

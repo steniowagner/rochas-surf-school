@@ -402,7 +402,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   migration and `npx vitest run src/modules/classes` passes from `apps/backend`.
   > ✅ 2026-10-18 02:44 — persisted rules and deadlines; migration `classes_add_cancellation_deadlines` (named `20261018054313_classes_add_cancellation_deadlines`) generated and applied with `npx prisma migrate dev`; files: `apps/backend/prisma/models/{classes,auth}.model.prisma`, `apps/backend/prisma/migrations/20261018054313_classes_add_cancellation_deadlines/migration.sql`, `apps/backend/src/modules/classes/{cancellation-rule.prisma,cancellation-rule.prisma.spec,school-class.prisma,school-class.prisma.spec,class-view-reader.prisma,class-view-reader.prisma.spec,classes.module}.ts`; verified: `npx vitest run` from apps/backend (all passed), `npm run check-types`, `npm run lint`; deviations: migration folder uses underscores (Prisma's naming); an author deleted from users (ON DELETE SET NULL) is read back as the nil UUID so the entity keeps a valid shape; the 'never-tried first' order is two queries because Prisma can't order by attempts == 0
 
-- [ ] **T-06** — Expose the rules: `CancellationRulesController` (`src/modules/classes/cancellation-rules.controller.ts`,
+- [x] **T-06** — Expose the rules: `CancellationRulesController` (`src/modules/classes/cancellation-rules.controller.ts`,
   protected `GET /cancellation-rules` and `PUT /cancellation-rules/:discipline`, D-10) with its spec,
   `cancellation-rules.integration.http`, registration in `classes.module.ts`, and `test/cancellation-rules.e2e-spec.ts`
   ("GET /cancellation-rules", "PUT /cancellation-rules", "clears the deadlines"; it deletes the rules, classes,
@@ -410,6 +410,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx vitest run src/modules/classes/cancellation-rules.controller.spec.ts`
   and `npm run test:e2e --workspace apps/backend -- test/cancellation-rules.e2e-spec.ts` pass.
+  > ✅ 2026-10-18 02:45 — exposed GET/PUT /cancellation-rules; files: `apps/backend/src/modules/classes/{cancellation-rules.controller,cancellation-rules.controller.spec,classes.module}.ts`, `apps/backend/src/modules/classes/cancellation-rules.integration.http`, `apps/backend/test/cancellation-rules.e2e-spec.ts`; verified: `npx vitest run src/modules/classes/cancellation-rules.controller.spec.ts` (6 passed), `npm run test:e2e -- test/cancellation-rules.e2e-spec.ts` (26 passed, Postgres up), `npm run check-types`; deviations: the e2e suite snapshots the rules the database had and puts them back afterwards, instead of only deleting them, so a developer's real rules survive a test run
 
 - [ ] **T-07** — Implement `AnthropicDeadlineDescriber` (`src/modules/classes/anthropic.deadline-describer.ts`, D-01,
   D-02, D-03, D-04, D-11): add `@anthropic-ai/sdk` and `zod` to `apps/backend`, `ANTHROPIC_API_KEY=` to

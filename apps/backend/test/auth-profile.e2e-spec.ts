@@ -262,6 +262,7 @@ describe('DELETE /auth/me', () => {
   let push: FakePushProvider;
   let locationId: string;
   let creatorId: string;
+  let classIds: string[];
 
   beforeEach(async () => {
     push = new FakePushProvider();
@@ -287,11 +288,19 @@ describe('DELETE /auth/me', () => {
         },
       })
     ).id;
+    classIds = [];
     creatorId = (await account('admin', 'approved', 'Carla Lima')).id;
   });
 
   afterEach(async () => {
     // Classes go first (their location and creator are restricted); instructors cascade with the users.
+    // The approved admins already in the database were told too: their notifications go with the test's classes.
+    await prisma.notification.deleteMany({
+      where: {
+        type: 'class.noInstructor',
+        OR: classIds.map((id) => ({ params: { path: ['classId'], equals: id } })),
+      },
+    });
     await prisma.schoolClass.deleteMany({ where: { creator: { email: { endsWith: `@${DOMAIN}` } } } });
     await prisma.location.deleteMany({ where: { name: { startsWith: MARK } } });
     await prisma.user.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
@@ -332,6 +341,7 @@ describe('DELETE /auth/me', () => {
         instructors: { create: instructorIds.map((userId) => ({ userId })) },
       },
     });
+    classIds.push(created.id);
     return created.id;
   }
 

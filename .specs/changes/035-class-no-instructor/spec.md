@@ -368,6 +368,10 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   > passed; both files with no uncovered statement, branch or function), `npm run test:e2e -- test/auth-profile.e2e-spec.ts`
   > (22 passed), `-t "DELETE /auth/me releases"` (3 passed), `-t "DELETE /auth/me notifies"` (1 passed),
   > `npx tsc --noEmit` in `apps/backend` (no errors, after rebuilding the three modules); deviations: none.
+  > Fix (found during T-12's journey): the "notifies" test also notified the approved admins already in the shared
+  > database, and its cleanup left their `class.noInstructor` rows behind; the suite now records the classes it
+  > creates and deletes the `class.noInstructor` notifications pointing at them in `afterEach`. Verified: the e2e
+  > file (22 passed) leaves the database's `class.noInstructor` count unchanged (36 before and after a run).
 
 ### Mobile (`apps/mobile`)
 

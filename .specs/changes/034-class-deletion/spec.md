@@ -318,12 +318,16 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   > verified: `npx jest src/modules/classes/components/class-tools-sheet` from apps/mobile (7 passed);
   > deviations: none (the `classTools.delete` copy was added with T-09)
 
-- [ ] **T-11** — Wire deleting into `ClassDetailsScreen` (`src/modules/classes/screens/class-details.screen.tsx` and
+- [x] **T-11** — Wire deleting into `ClassDetailsScreen` (`src/modules/classes/screens/class-details.screen.tsx` and
   its hook: `canDelete` for a class that hasn't started, the tools → delete sheet, the request, D-10's success and
   D-11's errors, including "Cancelar aula" opening `CancelClassSheet`), with cases named "delete" in
   `class-details.screen.test.tsx`.
   Covers: ER-07, ER-08, ER-09 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx`
   passes from `apps/mobile`.
+  > ✅ 2026-10-18 00:10 — wired deleting into ClassDetailsScreen: `canDelete` (state not-started), the tools -> DeleteClassSheet, one request per press, success toast + router.back(), D-11 errors (notEmpty switches the variant and "Cancelar aula" opens CancelClassSheet; started/cancelled toast + close + refetch; 404 toast + back; network/generic/expired), with 14 "delete" screen tests;
+  > files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `class-details.screen.hook.ts`, `class-details.screen.types.ts`, `class-details.screen.test.tsx`;
+  > verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` from apps/mobile (56 passed), `npx tsc --noEmit` and `npx eslint src/modules/classes src/i18n` clean;
+  > deviations: none
 
 - [ ] **T-12** — Handle `class.deleted` in `useNotificationResponse` (open the Aulas tab of the resolved flow) and
   `useNotificationReceived` (invalidate `["classes"]`) in `src/modules/notifications/hooks/` (D-12), with cases in

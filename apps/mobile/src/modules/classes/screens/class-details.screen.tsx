@@ -18,6 +18,7 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
+import { DeleteClassSheet } from "../components/delete-class-sheet";
 
 import { useClassDetailsScreen } from "./class-details.screen.hook";
 import type { ClassDetailsScreenProps } from "./class-details.screen.types";
@@ -203,6 +204,17 @@ export function ClassDetailsScreen({
         onClose={screen.closeTools}
         onEdit={screen.edit}
         onCancel={screen.openCancel}
+        onDelete={screen.openDelete}
+        canDelete={screen.canDelete}
+      />
+      <DeleteClassSheet
+        visible={screen.deleteVisible}
+        variant={screen.deleteVariant}
+        classLine={screen.classLine}
+        loading={screen.deleting}
+        onConfirm={screen.remove}
+        onCancelInstead={screen.cancelInstead}
+        onClose={screen.closeDelete}
       />
       <CancelClassSheet
         visible={screen.cancelVisible}

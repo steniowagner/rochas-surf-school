@@ -14,3 +14,4 @@ export * from "./fake-cancellation-rule.repository";
 export * from "./cancellation-rule.factory";
 export * from "./fake-cancellation-deadline.describer";
 export * from "./fake-location-change.notifier";
+export * from "./fake-address-suggestion.provider";

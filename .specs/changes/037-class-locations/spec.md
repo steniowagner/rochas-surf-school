@@ -426,12 +426,23 @@ es.
   > jest test/location/usecase/archive-location.usecase.test.ts --coverage (7 passed, use case 100%); tsc and
   > oxlint clean. Deviations: none.
 
-- [ ] **T-04** — Address suggestions: the `AddressSuggestionProvider` port and its fake, `SuggestAddresses` and
+- [x] **T-04** — Address suggestions: the `AddressSuggestionProvider` port and its fake, `SuggestAddresses` and
   `FindAddressPlace` (admin access, the D-13 checks, the provider's `null` → `location.place.notFound`, a provider
   error → `BadGatewayError('location.suggestions.unavailable')`); tests in `test/location/usecase/`. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-08 · Done when: `cd modules/classes && npx jest test/location/usecase -t "suggest|place"` passes with both
   use cases fully covered.
+  > ✅ 2026-10-18 14:44 — AddressSuggestionProvider port (+ types), SuggestAddresses and FindAddressPlace (admin
+  > access, D-13 checks with both keys collected, language fallback to pt-BR, at most 5 results, provider failure
+  > -> BadGatewayError location.suggestions.unavailable, null place -> location.place.notFound), fake provider.
+  > Files: modules/classes/src/location/provider/address-suggestion.provider.ts,
+  > modules/classes/src/location/provider/index.ts, modules/classes/src/location/usecase/address-
+  > suggestion.rules.ts, modules/classes/src/location/usecase/suggest-addresses.usecase.ts,
+  > modules/classes/src/location/usecase/find-address-place.usecase.ts,
+  > modules/classes/src/location/usecase/index.ts, modules/classes/test/mock/fake-address-suggestion.provider.ts,
+  > modules/classes/test/mock/index.ts, modules/classes/test/location/usecase/address-suggestions.usecase.test.ts.
+  > Verified: cd modules/classes && npx jest test/location/usecase -t 'suggest|place' --coverage (24 passed, both
+  > use cases and the rules file 100%); tsc and oxlint clean. Deviations: none.
 
 - [ ] **T-05** — Classes and archived locations: `CreateClassBatch` and `EditClass` refuse an archived location with
   `class.location.archived` (D-10; an unchanged location on an edit is accepted); `ClassViewLocation` and

@@ -309,10 +309,14 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   > verified: `npx jest src/modules/classes/components/delete-class-sheet` from apps/mobile (6 passed);
   > deviations: no `delete-class-sheet.hook.ts` — the sheet has no state or logic of its own (react.md: create the hook only when needed); the variant is a prop the screen controls
 
-- [ ] **T-10** — Add `onDelete` / `canDelete` and the "Excluir aula" button to `ClassToolsSheet`
+- [x] **T-10** — Add `onDelete` / `canDelete` and the "Excluir aula" button to `ClassToolsSheet`
   (`src/modules/classes/components/class-tools-sheet/`, D-09) with the `classTools.delete` copy, and cases named
   "delete" in its test.
   Covers: ER-07 · Done when: `npx jest src/modules/classes/components/class-tools-sheet` passes from `apps/mobile`.
+  > ✅ 2026-10-18 00:08 — added `onDelete` / `canDelete` and the subtle "Excluir aula" button below "Cancelar aula" to ClassToolsSheet (closes the sheet first), with three "delete" tests;
+  > files: `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.{component.tsx,hook.ts,types.ts,component.test.tsx}`;
+  > verified: `npx jest src/modules/classes/components/class-tools-sheet` from apps/mobile (7 passed);
+  > deviations: none (the `classTools.delete` copy was added with T-09)
 
 - [ ] **T-11** — Wire deleting into `ClassDetailsScreen` (`src/modules/classes/screens/class-details.screen.tsx` and
   its hook: `canDelete` for a class that hasn't started, the tools → delete sheet, the request, D-10's success and

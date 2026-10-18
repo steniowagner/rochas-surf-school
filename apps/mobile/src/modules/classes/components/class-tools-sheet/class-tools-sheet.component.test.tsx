@@ -15,6 +15,8 @@ function props(
     onClose: jest.fn(),
     onEdit: jest.fn(),
     onCancel: jest.fn(),
+    onDelete: jest.fn(),
+    canDelete: false,
     ...overrides,
   };
 }
@@ -75,5 +77,35 @@ describe("ClassToolsSheet", () => {
     expect(sheet.onEdit).not.toHaveBeenCalled();
     expect(sheet.onCancel).not.toHaveBeenCalled();
     expect(screen.getByText("Class tools")).toBeOnTheScreen();
+  });
+
+  it("shows no delete tool unless the class can be deleted", async () => {
+    await render(<ClassToolsSheet {...props()} />);
+
+    expect(screen.queryByRole("button", { name: "Delete class" })).toBeNull();
+  });
+
+  it("shows the delete tool below cancel when the class can be deleted", async () => {
+    await render(<ClassToolsSheet {...props({ canDelete: true })} />);
+
+    expect(screen.getAllByRole("button")).toHaveLength(4);
+    expect(screen.getAllByText(/class$/i).map((node) => node.props.children)).toEqual([
+      "Edit class",
+      "Cancel class",
+      "Delete class",
+    ]);
+  });
+
+  it("closes the sheet, then deletes", async () => {
+    const user = userEvent.setup();
+    const sheet = props({ canDelete: true });
+    await render(<ClassToolsSheet {...sheet} />);
+
+    await user.press(screen.getByRole("button", { name: "Delete class" }));
+
+    expect(sheet.onClose).toHaveBeenCalledTimes(1);
+    expect(sheet.onDelete).toHaveBeenCalledTimes(1);
+    expect(sheet.onEdit).not.toHaveBeenCalled();
+    expect(sheet.onCancel).not.toHaveBeenCalled();
   });
 });

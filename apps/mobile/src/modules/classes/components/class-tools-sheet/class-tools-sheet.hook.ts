@@ -4,6 +4,7 @@ export const useClassToolsSheet = ({
   onClose,
   onEdit,
   onCancel,
+  onDelete,
 }: UseClassToolsSheetProps) => {
   const edit = () => {
     onClose();
@@ -15,5 +16,10 @@ export const useClassToolsSheet = ({
     onCancel();
   };
 
-  return { edit, cancel };
+  const remove = () => {
+    onClose();
+    onDelete();
+  };
+
+  return { edit, cancel, remove };
 };

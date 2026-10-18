@@ -235,9 +235,13 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-03** — Add `class.deleted` to `NOTIFICATION_TYPES` (`src/notification/model/notification.entity.ts`) with
+- [x] **T-03** — Add `class.deleted` to `NOTIFICATION_TYPES` (`src/notification/model/notification.entity.ts`) with
   a case in `test/notification/model/notification.entity.test.ts`.
   Covers: ER-05, ER-06 · Done when: `npm test --workspace @rochas-surf-school/notifications` passes.
+  > ✅ 2026-10-18 00:00 — added `class.deleted` to NOTIFICATION_TYPES and a test accepting it without a class id;
+  > files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`;
+  > verified: `npm test` in modules/notifications (96 passed), `npm run check-types` clean;
+  > deviations: none
 
 ### Backend (`apps/backend`)
 

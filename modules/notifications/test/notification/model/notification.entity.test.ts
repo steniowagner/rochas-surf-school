@@ -81,6 +81,15 @@ describe("Notification", () => {
     expect(notification.params).toEqual(params);
   });
 
+  it("accepts a class.deleted notification with its discipline and start, and no class id", () => {
+    const params = { discipline: "surf", startsAt: "2026-10-18T11:00:00.000Z" };
+    const notification = build({ type: "class.deleted", params });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe("class.deleted");
+    expect(notification.params).toEqual(params);
+  });
+
   it("rejects a missing or invalid user id", () => {
     expect(messagesOf(() => build({ userId: "" }).validate())).toContain(
       "notification.userId.required",

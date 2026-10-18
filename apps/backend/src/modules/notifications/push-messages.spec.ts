@@ -141,6 +141,33 @@ describe('renderPush', () => {
     });
   });
 
+  it.each([
+    [
+      'pt-BR',
+      'Local de aula alterado',
+      'O local Praia do Futuro mudou. Confira sua próxima aula lá.',
+      'O local Praia do Futuro mudou. Confira suas 3 próximas aulas lá.',
+    ],
+    [
+      'es',
+      'Lugar de clase modificado',
+      'El lugar Praia do Futuro cambió. Revisa tu próxima clase allí.',
+      'El lugar Praia do Futuro cambió. Revisa tus 3 próximas clases allí.',
+    ],
+    [
+      'en',
+      'Class location changed',
+      'Praia do Futuro changed. Check your next class there.',
+      'Praia do Futuro changed. Check your 3 upcoming classes there.',
+    ],
+  ] as const)('writes the changed location in %s, singular and plural', (locale, title, one, many) => {
+    const params = { locationName: ' Praia do Futuro ' };
+
+    expect(renderPush('location.changed', { ...params, count: 1 }, locale)).toEqual({ title, body: one });
+    expect(renderPush('location.changed', { ...params, count: 3 }, locale)).toEqual({ title, body: many });
+    expect(renderPush('location.changed', params, locale).body).toBe(one);
+  });
+
   it('shows the start in Fortaleza even when it falls on the previous or next UTC day', () => {
     expect(renderPush('class.edited', { discipline: 'surf', startsAt: '2026-10-19T01:30:00.000Z' }, 'pt-BR').body).toBe(
       'A aula de Surf de 18/10 às 22:30 foi alterada. Abra o app para ver.',

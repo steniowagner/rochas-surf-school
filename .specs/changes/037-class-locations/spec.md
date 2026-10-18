@@ -517,12 +517,23 @@ es.
   > --coverage (10 passed, 100% lines/functions/statements; only the decorator-metadata branch is uncovered).
   > Deviations: none; registered in the module in T-10.
 
-- [ ] **T-09** — The `location.changed` push copy in `push-messages.ts` (Copy table) and
+- [x] **T-09** — The `location.changed` push copy in `push-messages.ts` (Copy table) and
   `NotificationsLocationChangeNotifier` (`notifications.location-change-notifier.ts`: one `Notify` per recipient with
   `{ count, locationName }`, `data` without a class id, every error logged and swallowed), registered and exported by
   `NotificationsModule`; specs. Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-04 · Done when: `cd apps/backend && npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.location-change-notifier.spec.ts --coverage`
   passes.
+  > ✅ 2026-10-18 14:48 — Push copy of location.changed in pt-BR/es/en (singular and plural by count, locationName
+  > as stored; no class id in the push data) and NotificationsLocationChangeNotifier (one Notify per recipient
+  > with { count, locationName }; each error logged and swallowed without stopping the next recipient), registered
+  > and exported by NotificationsModule. Files: apps/backend/src/modules/notifications/push-messages.ts,
+  > apps/backend/src/modules/notifications/push-messages.spec.ts,
+  > apps/backend/src/modules/notifications/notifications.location-change-notifier.ts,
+  > apps/backend/src/modules/notifications/notifications.location-change-notifier.spec.ts,
+  > apps/backend/src/modules/notifications/notifications.module.ts. Verified: cd apps/backend && npx vitest run
+  > src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.location-change-
+  > notifier.spec.ts --coverage (see the run: passes, files fully covered); the whole notifications folder passes
+  > (101 tests). Deviations: none.
 
 - [ ] **T-10** — `LocationsController`: `PUT /locations/:id`, `POST /locations/:id/archive` (204), the two
   address-suggestion routes (D-04, D-13; the suggestion routes declared before `:id` routes), the point on `GET` and

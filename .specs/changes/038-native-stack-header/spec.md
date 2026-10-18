@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -161,3 +161,52 @@ Expo Router, which stays fixed at the top while only the content scrolls.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 563 passed in 31 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK`, 5 files measured; no coverage-ignore comments in the diff
+- e2e: no suite applies (mobile has none) · iOS simulator (iPhone 18 Pro, iOS 27, signed in as the admin):
+  class details (title `DETALHE` and the tools button in the header), swipe-back from class details back to the
+  Classes tab with its tab bar, Edit profile, WhatsApp, School rules (Profile tab) and `/admin/cancellation-rules`
+  each have the fixed native header with the back button only; the header stays in place while Cancellation rules
+  scrolls; the header's back button and swipe-back return to Profile ✅
+
+**Expected Results**
+
+- ER-01 ❌ — header options, hidden `index` / `(tabs)`, no in-content back button and `router.back()` hold in the
+  tests and in the simulator for the admin screens above; the keyboard handling regressed, see F-01
+- ER-02 ✅ — `class-details`, `new-class` and `edit-class` tests assert the header title (also while loading,
+  cancelled, not found) and `headerRight` only with `showTools`; class details checked in the simulator
+
+**Findings**
+
+- [ ] **F-01** (ER-01) — the six screens that wrap their content in a `KeyboardAvoidingView` and now sit below the
+  header (`modules/auth/components/{email-sign-in,create-account,confirm-code,google-name}` and
+  `modules/profile/components/{edit-profile,profile-whatsapp}`) pass no `keyboardVerticalOffset`. React Native's
+  `KeyboardAvoidingView` computes its padding from its `onLayout` frame, which is relative to its parent (y = 0),
+  against the keyboard's window-absolute `screenY`; before this spec the view started at the top of the window, so
+  that was exact, but now the screen starts below the header, so the padding falls short by the header's height
+  (status bar + navigation bar, about 116pt on an iPhone 18 Pro). The bottom of the screen — the primary button
+  ("Enviar código", "Salvar", "Criar conta"…) and any field there — stays under the keyboard. Found by reading the
+  code (`node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js`,
+  `_relativeKeyboardHeight`); the review session couldn't show the software keyboard (no Simulator.app, hardware
+  keyboard attached). Reproduce: in Simulator.app, I/O → Keyboard → Toggle Software Keyboard (⌘K); open Profile →
+  Editar perfil and tap Nome: "Salvar" stays behind the keyboard. Expected: it sits just above the keyboard, as
+  before the spec — e.g. `keyboardVerticalOffset={useHeaderHeight()}` (`useHeaderHeight` from `expo-router/react-navigation`; `@react-navigation/elements` is not a direct dependency) on these
+  views, with a test asserting the offset.
+
+**Notes**
+
+- Not seen in the simulator yet, so they must be walked when F-01 is fixed: the signed-out auth screens (header,
+  back and swipe-back, `/auth` without a header, the keyboard), and as a student a class's details (title, no tools
+  button) and the School tab (no header, title and count). The review session didn't sign out to keep the admin
+  session.
+- The navigation tests (`*-tabs.navigation.test.tsx`, `email-auth.navigation.test.tsx`) go back with `router.back()`
+  but don't assert the header options; the options are proven by `stack-header.layouts.test.tsx` (the shared
+  options and the only hidden screen per layout), which together cover ER-01's `Verify by`.
+- On the first tap after a push animation the simulator sometimes ignored the native back button; a slightly
+  longer press worked every time. It looks like a touch-injection artifact, not an app bug.

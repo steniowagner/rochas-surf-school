@@ -95,13 +95,14 @@ Expo Router, which stays fixed at the top while only the content scrolls.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add the shared header options in `src/navigation/stack-header/` (a hook returning the D-03
+- [x] **T-01** — Add the shared header options in `src/navigation/stack-header/` (a hook returning the D-03
   options from `useTheme()`, with its types and `index.ts`, by `.claude/rules/react.md`) and use it in
   `src/app/(public)/auth/_layout.tsx` and `src/app/(private)/{student,instructor,admin}/_layout.tsx`, keeping
   `index` (auth) and `(tabs)` at `headerShown: false`; tests for the hook and for each layout's options, like
   `src/navigation/rules-update-layout.test.tsx`. Load `vercel-react-native-skills` and
   `vercel-react-best-practices` first.
   Covers: ER-01 · Done when: the layouts' tests pass and the header options match D-03.
+  > ✅ 2026-10-18 — added `useStackHeader` (D-03 options; title empty by default, screens set their own) and used it in the 4 layouts, with `index` / `(tabs)` hidden through `Stack.Screen`; files: `apps/mobile/src/navigation/stack-header/{index.ts,stack-header.hook.ts,stack-header.types.ts,stack-header.hook.test.ts,stack-header.layouts.test.tsx}`, `apps/mobile/src/app/(public)/auth/_layout.tsx`, `apps/mobile/src/app/(private)/{student,instructor,admin}/_layout.tsx`; verified: `npx jest src/navigation` (156 passed), `npx tsc --noEmit` clean; deviations: uppercase can't be set in `headerTitleStyle`, so titles must be passed uppercase by the screens (T-04)
 - [ ] **T-02** — Remove `BackButton` and the `insets.top + 12` top padding from the auth screens
   `src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}`; update their
   component tests and `src/modules/auth/email-auth.navigation.test.tsx` (header options, `router.back()`).

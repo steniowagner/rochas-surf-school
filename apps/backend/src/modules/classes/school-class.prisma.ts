@@ -102,6 +102,30 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     return count === 1;
   }
 
+  async findUpcomingTaughtBy(userId: string, now: Date): Promise<SchoolClass[]> {
+    const records = await this.prisma.schoolClass.findMany({
+      where: {
+        instructors: { some: { userId } },
+        startsAt: { gt: now },
+        cancelledAt: null,
+      },
+      include: { instructors: { select: { userId: true } } },
+      orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+    });
+    return records.map((record) => this.toDomain(record));
+  }
+
+  async removeInstructor(userId: string, classIds: string[]): Promise<void> {
+    if (classIds.length === 0) {
+      return;
+    }
+
+    // Only that person's rows: the classes and their other instructors stay.
+    await this.prisma.$transaction(async (tx) => {
+      await tx.classInstructor.deleteMany({ where: { userId, classId: { in: classIds } } });
+    });
+  }
+
   private toDomain(record: SchoolClassWithInstructors): SchoolClass {
     return new SchoolClass({
       id: record.id,

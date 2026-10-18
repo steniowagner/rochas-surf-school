@@ -1,4 +1,4 @@
-import { getClassState } from "@rochas-surf-school/classes";
+import { getClassState, isWithoutInstructor } from "@rochas-surf-school/classes";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -177,6 +177,9 @@ export const useClassDetailsScreen = ({
       state !== "cancelled",
     // A class can be deleted only before it starts; a started one can only be cancelled.
     canDelete: state === "not-started",
+    // Admins only: the class hasn't started and nobody teaches it; the banner opens the editor.
+    showNoInstructor:
+      canEdit && state !== null && isWithoutInstructor(instructors.length, state),
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),

@@ -54,9 +54,10 @@ denied or removed account can still contact the school. The waiting-list switch 
 The product's only way to reach people outside the app: it keeps every notification for the person it is for,
 then pushes it to each phone they are signed in on, in that phone's language. It knows the people only by their
 ids and the phones they registered; who must be told what, and when, is decided by the module where the event
-happens (Authentication for registrations, Classes for class assignments, edits, cancellations and deletions), which reaches it through
-abstract contracts. Today it carries the three registration notifications and the class ones (assigned, edited,
-unassigned, cancelled, deleted); nothing shows the stored notifications yet.
+happens (Authentication for registrations, Classes for class assignments, edits, cancellations, deletions and
+classes left without an instructor), which reaches it through abstract contracts. Today it carries the three
+registration notifications and the class ones (assigned, edited, unassigned, cancelled, deleted, no instructor);
+nothing shows the stored notifications yet.
 
 - Where it physically lives: `modules/notifications`
 - Business details: [modules/notifications.md](modules/notifications.md)
@@ -74,7 +75,9 @@ admin cancelled it. Admins edit one class at a time — anything before it start
 nothing once finished or cancelled — and cancel a class until it finishes, with an optional message; it stays on
 the schedule marked as cancelled, for good. A class created by mistake is deleted instead — only before it
 starts, never a cancelled one, and only with nobody in it — and leaves the schedule for good. Its instructors are
-told of edits, cancellations and deletions. Enrolment, ratings and photos will build on its classes.
+told of edits, cancellations and deletions. When a person's account is deleted, it takes them off every class
+that hasn't started; a class left with nobody stays scheduled, is flagged "no instructor" for admins until someone
+is assigned, and the admins are told. Enrolment, ratings and photos will build on its classes.
 
 - Where it physically lives: `modules/classes`
 - Business details: [modules/classes.md](modules/classes.md)

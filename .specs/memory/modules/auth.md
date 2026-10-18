@@ -26,8 +26,11 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   the email never does. Any other status is refused with `user.status.notApproved`.
 - **Deleting one's account**: an approved account closes itself after a confirmation in the app; it becomes
   `deleted` with the moment of the deletion, and can then send its reactivation request. Any other status is
-  refused with `user.status.notApproved`. Not built yet: refusing the only admin, cancelling the account's
-  seats, enrolments and class assignments (none exist yet), and erasing it 30 days later.
+  refused with `user.status.notApproved`. After those checks and before the account is marked deleted, its
+  upcoming class assignments are released (every role; a student has none): if releasing fails, the deletion
+  fails as a whole and the account stays approved, and since releasing twice changes nothing more, trying again
+  is safe. A reactivation doesn't bring the assignments back. Not built yet: refusing the only admin, cancelling
+  the account's seats and enrolments (none exist yet), and erasing it 30 days later.
 - **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
   country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
@@ -266,8 +269,10 @@ its result told, but doesn't store or push notifications: it calls two abstract 
 about registrations and one that removes a phone's push token on sign-out — provided by the backend with
 [Notifications](notifications.md), which doesn't depend on this module (spec 020). It decides **when** a denied
 registration is erased, and asks a third contract, provided the same way, to delete the admins' "new
-registration" notifications about it (spec 021). Deleting one's own account is built (spec 026) without its
-side effects; removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
+registration" notifications about it (spec 021). Deleting one's own account is built (spec 026); it releases the
+account's upcoming classes through a fourth contract of its own, fulfilled by the backend with
+[Classes](classes.md)' release (spec 035) — this module never depends on Classes. The role-change and removal
+rules are meant to use the same contract. Removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
 requests, and deciding reactivation requests are rules of the account lifecycle still to be specified.
 
 ## Spec history
@@ -334,3 +339,6 @@ requests, and deciding reactivation requests are rules of the account lifecycle 
   A–Z ignoring case and accents, paged, searched by name ignoring accents, filtered by any of several roles), with
   a WhatsApp number only when its owner shares it or the viewer is an admin; the app's People screen for every
   role (student's Escola tab, admin's and instructor's home rows) and its person sheet with the WhatsApp chat.
+- `035-class-no-instructor` — deleting one's own account first releases its upcoming class assignments through
+  the `TeachingReleaser` contract, while the account is still approved; a failed release fails the deletion and
+  keeps the account approved.

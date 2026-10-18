@@ -105,6 +105,42 @@ describe('renderPush', () => {
     );
   });
 
+  it.each([
+    [
+      'pt-BR',
+      'Aula sem instrutor',
+      'A aula de Surf de 18/10 às 08:00 ficou sem instrutor.',
+      'Aulas sem instrutor',
+      '3 aulas ficaram sem instrutor. A próxima: Surf, 18/10 às 08:00.',
+    ],
+    [
+      'es',
+      'Clase sin instructor',
+      'La clase de Surf del 18/10 a las 08:00 se quedó sin instructor.',
+      'Clases sin instructor',
+      '3 clases se quedaron sin instructor. La próxima: Surf, 18/10 a las 08:00.',
+    ],
+    [
+      'en',
+      'Class without an instructor',
+      'The Surf class on 10/18 at 08:00 has no instructor now.',
+      'Classes without an instructor',
+      '3 classes have no instructor now. The next one: Surf, 10/18 at 08:00.',
+    ],
+  ] as const)('writes the classes left without an instructor in %s, one and many', (locale, oneTitle, one, manyTitle, many) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('class.noInstructor', { ...params, count: 1 }, locale)).toEqual({ title: oneTitle, body: one });
+    expect(renderPush('class.noInstructor', { ...params, count: 3 }, locale)).toEqual({ title: manyTitle, body: many });
+  });
+
+  it('counts a missing no-instructor count as one class', () => {
+    expect(renderPush('class.noInstructor', { discipline: 'skate', startsAt: STARTS_AT }, 'pt-BR')).toEqual({
+      title: 'Aula sem instrutor',
+      body: 'A aula de Skate de 18/10 às 08:00 ficou sem instrutor.',
+    });
+  });
+
   it('shows the start in Fortaleza even when it falls on the previous or next UTC day', () => {
     expect(renderPush('class.edited', { discipline: 'surf', startsAt: '2026-10-19T01:30:00.000Z' }, 'pt-BR').body).toBe(
       'A aula de Surf de 18/10 às 22:30 foi alterada. Abra o app para ver.',

@@ -69,6 +69,13 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
+  // Only admins hear about a class left without an instructor: it opens the earliest one, where to assign someone.
+  if (data?.type === "class.noInstructor" && classId !== null && flow === "admin") {
+    router.push(routes.admin.classDetail(classId));
+
+    return;
+  }
+
   // Access is decided only by resolveFlow: `index` redirects to the flow of the (refreshed) account.
   router.replace(routes.home);
 };

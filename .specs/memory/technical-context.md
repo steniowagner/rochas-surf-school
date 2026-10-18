@@ -94,12 +94,13 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     / `router.push(routes.admin.classes)` for a `class.assigned` or `class.deleted` push when it resolves to the
     `instructor` / `admin` flow (specs 030, 034), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
     for a `class.edited` / `class.unassigned` / `class.cancelled` push with a string `data.classId` (specs 032,
-    033), else
+    033), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
+    `data.classId` when it resolves to the `admin` flow (spec 035), else
     `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
-    `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` invalidate `["classes"]` (weeks and
-    details); no
+    `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
+    `["classes"]` (weeks and details); no
     navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
@@ -245,7 +246,10 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   transaction, the instructors replaced only when it matched; `false` for a cancelled class), and deleting the same
   way with `deleteMany` (spec 034): `PrismaSchoolClassRepository.delete` (`where: { id, cancelledAt: null,
   startsAt: { gt: now } }`, the `class_instructors` rows going with it by their `ON DELETE CASCADE`, `true` when
-  one row matched). `classes.created_by` and `classes.location_id` are `ON DELETE
+  one row matched). Releasing a person from their upcoming classes (spec 035) is one `$transaction` running
+  `classInstructor.deleteMany({ userId, classId: { in } })` (`PrismaSchoolClassRepository.removeInstructor`; an
+  empty list writes nothing); a concurrent edit adding the person back isn't prevented, the last write wins.
+  `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
   classes before it can delete the row.
 - Seeds (`apps/backend/prisma/seed/main.ts`, one task per module) hold only technical data and the three App
@@ -554,9 +558,16 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   the entity). Only the name changes.
 - Closing one's own account: `DELETE /auth/me` (`DeleteAccount`, protected, no body, 204). Unknown user → 401
   `auth.token.invalid`; not `approved` → 403 `user.status.notApproved`; otherwise status `deleted` and
-  `deletedAt` from the clock. It doesn't end the account's sessions: the app signs out right after (`useSignOut`),
-  and other devices move to the reactivation flow at their next account read. It doesn't yet refuse the only admin
-  or cancel seats, enrolments and class assignments (none of those exist yet).
+  `deletedAt` from the clock. Between the checks and the update it awaits the auth port `TeachingReleaser`
+  (`modules/auth/src/user/provider/teaching-releaser.provider.ts`, `releaseUpcomingClasses(userId)`; spec 035), for
+  every role, while the account is still approved: an error from it propagates, so the request fails and the
+  account stays approved (releasing is idempotent, so a retry is safe). It is implemented by
+  `ClassesTeachingReleaser` (`apps/backend/src/modules/classes/classes.teaching-releaser.ts`, running
+  `ReleaseUpcomingClasses`, see Classes), provided and exported by `ClassesModule`, which `AuthModule` imports
+  (classes imports only `DbModule` and `NotificationsModule`, so there is no cycle); the role-change and removal
+  use cases are meant to take the same port. It doesn't end the account's sessions: the app signs out right after
+  (`useSignOut`), and other devices move to the reactivation flow at their next account read. It doesn't yet
+  refuse the only admin or cancel seats and enrolments (none of those exist yet).
 - Reactivation request: `POST /auth/me/reactivation-request` (`RequestReactivation`, protected, no body)
   answers 200 with the account shape. It checks, in this order: the account exists (401 `auth.token.invalid`),
   its status is `deleted` (403 `user.status.notDeleted`), its request wasn't denied (409
@@ -790,6 +801,18 @@ guard's 401 `auth.token.invalid`.
   `class.started`. Then `ClassChangeNotifier.classDeleted({ instructorIds, discipline, startsAt })` (the values
   read before deleting) to the class's instructors except the caller (skipped when none is left; swallowed when it
   throws). Nothing of the class is kept; notifications already sent about it stay.
+- Releasing a person's upcoming classes (spec 035): `ReleaseUpcomingClasses`
+  (`usecase/release-upcoming-classes.usecase.ts`, input `{ userId }`, output `{ released, withoutInstructor }`)
+  has no actor — it runs for an account event, never through HTTP. It reads
+  `SchoolClassRepository.findUpcomingTaughtBy(userId, now)` (the person among the instructors, `startsAt > now`,
+  `cancelledAt` null, sorted by `startsAt` then `id`), returns zeros with no write when there is none, else takes
+  the person off all of them in one `removeInstructor(userId, classIds)`. The classes whose instructors were only
+  that person are counted, and when there is at least one, `NoInstructorNotifier.classesWithoutInstructor({ count,
+  classId, discipline, startsAt, excludeUserIds: [userId] })` (`provider/no-instructor-notifier.provider.ts`) runs
+  once with the earliest of them, swallowed when it throws; a failed write propagates and tells nobody. Started,
+  finished and cancelled classes keep the person. The "no instructor" flag is computed, never stored:
+  `isWithoutInstructor(instructorCount, state)` (`model/class-flags.ts`) is true only for 0 instructors and
+  `not-started`.
 - The clock is the module's `ClockProvider` port, implemented by a `SystemClockProvider` local to
   `ClassesModule`, so the e2e suite fakes the time without touching auth's clock.
 - Mobile (`src/modules/classes`): queries `["locations"]` (`useLocations`), `["classes", "time-range-suggestions"]`
@@ -883,6 +906,15 @@ guard's 401 `auth.token.invalid`.
   (`utils/class-error.ts`): `class.started` / `class.cancelled` → their toast, the sheet closes and the class is
   refetched; 404 → `classDetails.notFound` and `router.back()`; `NetworkError` → no connection;
   `SessionExpiredError` → nothing; else generic. Copy lives under `deleteClass` (and `classTools.delete`).
+- Mobile "no instructor" flag (spec 035): `ClassCard` takes `showFlags` (default `false`) and its hook returns
+  `withoutInstructor` (`isWithoutInstructor` with the state it computes); with `showFlags`, a flagged class shows
+  the `warn` `Chip` `classesWeek.noInstructor` (`person-remove-outline`) in the right chip slot. The instructors
+  footer is always drawn, with `classesWeek.noInstructor` in `text-ink-2` when the list is empty, for every role.
+  `ClassesWeekScreen` takes `showFlags` and passes it to each card; only the admin's Aulas route sets it. The
+  details' hook returns `showNoInstructor` (`canEdit` and `isWithoutInstructor`); the screen draws it first among
+  the state banners: a `Pressable` row (role `button`, `min-h-11`) on `bg-warn-tint` with `person-remove-outline`
+  and `classDetails.noInstructor.title` / `.description`, opening `routes.admin.editClass(id)`. The instructors
+  section shows `classDetails.noInstructorAssigned` in `text-ink-2` when the list is empty, for every role.
 
 ## Error handling
 
@@ -919,7 +951,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `sendPushNotificationsAsync`, messages with `sound: "default"`, `priority: "high"`, `channelId: "default"` and
   `data: { type, notificationId, classId? }` (`classId` copied from the notification's params when it is a
   string; spec 032), title and body from `renderPush` in the device's locale (dates in the copy, such as the class
-  start of `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted`, are formatted by hand in Fortaleza time — fixed UTC-3, no
+  start of `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor`, are formatted by hand in Fortaleza time — fixed UTC-3, no
   `Intl` — so the text is the same on every machine). A chunk that throws
   doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
   logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
@@ -946,7 +978,13 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `ClassChangeNotifier` (classes, `NotificationsClassChangeNotifier`: `classEdited` → `class.edited` with
   `{ classId, discipline, startsAt }`, `startsAt` as ISO text, spec 032; `classCancelled` → `class.cancelled` with
   `{ classId, discipline, startsAt, message? }`, `message` only when there is one, spec 033; `classDeleted` →
-  `class.deleted` with `{ discipline, startsAt }`, no `classId` since the class is gone, spec 034).
+  `class.deleted` with `{ discipline, startsAt }`, no `classId` since the class is gone, spec 034) and
+  `NoInstructorNotifier` (classes, `NotificationsNoInstructorNotifier`: `classesWithoutInstructor` runs the
+  notifications use case `NotifyClassesWithoutInstructor` — `RecipientsProvider.findApprovedAdminIds()` minus
+  `excludeUserIds`, nothing stored or sent when none is left — which notifies `class.noInstructor` with
+  `{ count, classId, discipline, startsAt }` for the earliest class; spec 035). A catalog entry's `title` in
+  `push-messages.ts` is a string or a function of the params (`class.noInstructor`'s depends on the count; a
+  missing count counts as one).
   `NotificationsModule` exports them; a push type without a catalog entry in `push-messages.ts` fails the backend's
   type check.
 

@@ -271,6 +271,34 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
+  it("opens the class details of an admin who taps a class.noInstructor push, after refreshing the account", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("class.noInstructor", "n1", "c-1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe("/admin/class/c-1"));
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it("goes to the resolved flow when a class.noInstructor push is tapped by someone who is no longer an admin", async () => {
+    answerMe(account("approved", "instructor", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("class.noInstructor", "n1", "c-1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
+  });
+
+  it("goes home when a class.noInstructor push has no class id", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("class.noInstructor"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.home));
+  });
+
   it("goes home when a class.cancelled push has no class id", async () => {
     answerMe(account("approved", "admin", true));
     await openApp(account("approved", "admin", true));

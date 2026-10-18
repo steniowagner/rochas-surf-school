@@ -1,4 +1,4 @@
-import { buildClass, FakeSchoolClassRepository } from "../../mock";
+import { buildClass, FakeSchoolClassRepository, INSTRUCTOR_ID } from "../../mock";
 
 describe("FakeSchoolClassRepository", () => {
   it("stores classes and finds those starting in [from, to)", async () => {
@@ -111,5 +111,59 @@ describe("FakeSchoolClassRepository", () => {
     expect(await repository.delete(stored.id, new Date("2026-10-15T11:30:00.000Z"))).toBe(false);
     expect(await repository.delete(cancelled.id, new Date("2026-10-14T13:00:00.000Z"))).toBe(false);
     expect(repository.all).toHaveLength(2);
+  });
+
+  it("finds the upcoming, not cancelled classes a person teaches, by start then id", async () => {
+    const now = new Date("2026-10-14T13:00:00.000Z");
+    const other = "2b8d4e61-7a3c-4f95-9e02-5c1d7b3a8f40";
+    const later = buildClass({
+      startsAt: new Date("2026-10-16T11:00:00.000Z"),
+      endsAt: new Date("2026-10-16T12:00:00.000Z"),
+    });
+    const sameStartA = buildClass({ id: "00000000-0000-4000-8000-00000000000a" });
+    const sameStartB = buildClass({ id: "00000000-0000-4000-8000-00000000000b" });
+    const startingNow = buildClass({ startsAt: now, endsAt: new Date("2026-10-14T14:00:00.000Z") });
+    const cancelled = buildClass({ cancelledAt: new Date("2026-10-14T10:00:00.000Z") });
+    const notTheirs = buildClass({ instructorIds: [other] });
+    const repository = new FakeSchoolClassRepository([
+      later,
+      sameStartB,
+      startingNow,
+      cancelled,
+      notTheirs,
+      sameStartA,
+    ]);
+
+    expect(await repository.findUpcomingTaughtBy(INSTRUCTOR_ID, now)).toEqual([
+      sameStartA,
+      sameStartB,
+      later,
+    ]);
+  });
+
+  it("takes only that person off only the given classes", async () => {
+    const other = "2b8d4e61-7a3c-4f95-9e02-5c1d7b3a8f40";
+    const shared = buildClass({ instructorIds: [INSTRUCTOR_ID, other] });
+    const alone = buildClass();
+    const untouched = buildClass();
+    const repository = new FakeSchoolClassRepository([shared, alone, untouched]);
+
+    await repository.removeInstructor(INSTRUCTOR_ID, [shared.id, alone.id]);
+
+    expect((await repository.findById(shared.id))?.instructorIds).toEqual([other]);
+    expect((await repository.findById(alone.id))?.instructorIds).toEqual([]);
+    expect((await repository.findById(untouched.id))?.instructorIds).toEqual([INSTRUCTOR_ID]);
+    expect(repository.removeInstructorCalls).toEqual([
+      { userId: INSTRUCTOR_ID, classIds: [shared.id, alone.id] },
+    ]);
+  });
+
+  it("writes nothing when asked to remove from no class", async () => {
+    const repository = new FakeSchoolClassRepository([buildClass()]);
+
+    await repository.removeInstructor(INSTRUCTOR_ID, []);
+
+    expect(repository.removeInstructorCalls).toEqual([]);
+    expect(repository.all[0].instructorIds).toEqual([INSTRUCTOR_ID]);
   });
 });

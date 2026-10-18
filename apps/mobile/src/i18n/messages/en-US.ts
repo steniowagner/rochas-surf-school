@@ -291,6 +291,7 @@ const messages = {
       finished: "Finished",
     },
     cancelled: "Cancelled",
+    noInstructor: "No instructor",
   },
   classDetails: {
     title: "Details",
@@ -319,6 +320,11 @@ const messages = {
     loadError: "Couldn't load the class.",
     notFound: "This class no longer exists.",
     retry: "Try again",
+    noInstructor: {
+      title: "No instructor",
+      description: "Assign an instructor before the class.",
+    },
+    noInstructorAssigned: "No instructor assigned",
     tools: "Class tools",
   },
   editProfile: {

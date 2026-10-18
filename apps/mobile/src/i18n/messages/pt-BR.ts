@@ -291,6 +291,7 @@ const messages: Messages = {
       finished: "Finalizada",
     },
     cancelled: "Cancelada",
+    noInstructor: "Sem instrutor",
   },
   classDetails: {
     title: "Detalhe",
@@ -319,6 +320,11 @@ const messages: Messages = {
     loadError: "Não foi possível carregar a aula.",
     notFound: "Esta aula não existe mais.",
     retry: "Tentar novamente",
+    noInstructor: {
+      title: "Sem instrutor",
+      description: "Atribua um instrutor antes da aula.",
+    },
+    noInstructorAssigned: "Sem instrutor atribuído",
     tools: "Ferramentas da aula",
   },
   editProfile: {

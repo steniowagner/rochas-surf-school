@@ -3,6 +3,7 @@ import { DbModule } from '../../db/db.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
+import { ClassesTeachingReleaser } from './classes.teaching-releaser.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
@@ -15,6 +16,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
   imports: [DbModule, NotificationsModule],
   controllers: [ClassesController, LocationsController],
   providers: [
+    ClassesTeachingReleaser,
     NoEnrolmentPendingRequestCounter,
     NoEnrolmentSeatCounter,
     PrismaClassViewReader,
@@ -23,5 +25,6 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
     PrismaTeacherLookup,
     SystemClockProvider,
   ],
+  exports: [ClassesTeachingReleaser],
 })
 export class ClassesModule {}

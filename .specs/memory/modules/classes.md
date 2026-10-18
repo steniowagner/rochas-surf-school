@@ -167,6 +167,19 @@ Deleting one class:
   instructor of the class gets `class.deleted` with its discipline and start (no class to open). A class taught
   only by that admin tells nobody. A notification that fails never changes the answer or the deletion.
 
+Releasing a person's upcoming classes (when their account is deleted):
+
+- **No actor**: it runs for an account event, never on a request; nobody's role or status is checked here.
+- **Only classes that haven't started and aren't cancelled** lose the person — every one of them, in one write;
+  classes under way, finished or cancelled keep them as history. No such class → nothing written or sent.
+- **A class left with nobody stays scheduled**: it isn't cancelled or deleted, and it is flagged.
+- **Admins are told once per event**, after the write, only when at least one class was left with nobody: the
+  count and the earliest such class (by start, then id), never the person who left. Classes that keep another
+  instructor tell nobody. A notification that fails never changes the result or the write; a failed write tells
+  nobody.
+- **The "no instructor" flag is computed, never stored**: a class with no instructor that hasn't started. It
+  disappears once the class starts, is cancelled, or gets an instructor (an edit always needs one).
+
 ## Who can do what
 
 The account's status is checked before its role (`user.status.notApproved`, then `user.role.notAdmin`, both
@@ -176,7 +189,8 @@ The account's status is checked before its role (`user.status.notApproved`, then
   and reads any class with its notes.
 - **An approved admin** — creates locations and batches of classes, reads the time-range suggestions, edits a
   class that hasn't finished and isn't cancelled, cancels a class that hasn't finished, and deletes a class that
-  hasn't started, isn't cancelled and has nobody in it.
+  hasn't started, isn't cancelled and has nobody in it; sees the "no instructor" flag on a class's card and
+  details, and is told when an account deletion leaves classes with nobody.
 - **An assigned instructor or admin** — receives one notification per batch they were assigned to (unless
   they created it), and one when a class they teach is edited, when they are added to one or removed from one
   (unless they made the edit), when it is cancelled (unless they cancelled it), and when it is deleted (unless
@@ -188,7 +202,9 @@ It knows people only by their ids: whether an id is an approved instructor or ad
 class, come through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
 status names. It doesn't send notifications itself: it hands the instructors and the class's details to two
 contracts that [Notifications](notifications.md) fulfils (assignments — added and removed — and class changes:
-edits, cancellations and deletions).
+edits, cancellations and deletions), plus a third for the classes left without an instructor. Authentication
+reaches the release through its own contract, which the backend fulfils with this module's use case — this module
+depends on Authentication, never the reverse.
 It doesn't read the clock directly either, and it learns the seats taken and the pending requests through its own
 contracts, which answer 0 until enrolment replaces them. In the app,
 admins create classes on the "Nova aula" screen, which uses the module's own batch expansion and limits so its
@@ -202,7 +218,9 @@ details (hidden once it has finished or is cancelled): "Editar aula" (one day, o
 aula sections; only the instructors once it has started), "Avisar alunos e instrutores" (not doing anything yet)
 and "Cancelar aula" (a confirmation with the optional message), plus "Excluir aula" while the class hasn't
 started (a confirmation; when the class turns out not to be empty, a "Não dá para excluir" variant that offers
-"Cancelar aula" instead). The "no instructor" flag, "My classes", the map, suggestions, editing and archiving of locations, enrolment, ratings
+"Cancelar aula" instead). A class with no instructor says "Sem instrutor" in its card's footer and "Sem instrutor
+atribuído" on its details for everyone; while it hasn't started, admins also see a "Sem instrutor" chip on the
+card and a banner on the details that opens "Editar aula". "My classes", the map, suggestions, editing and archiving of locations, enrolment, ratings
 and photos come with their specs. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
@@ -235,3 +253,8 @@ which stops that account from being erased while the link exists — a decision 
   delete gets `class.notFound` and a racing cancel `class.cancelled`; the class and its instructors leave for good;
   its instructors are told (`class.deleted`), never the admin who deletes; the app's "Excluir aula" tool, its
   confirmation and its "Não dá para excluir" variant.
+- `035-class-no-instructor` — releasing a person from every class that hasn't started and isn't cancelled, in one
+  write, for an account deletion (no actor); the classes left with nobody stay scheduled and the approved admins
+  are told once with the count and the earliest one (`class.noInstructor`, not the person who left); the computed
+  "no instructor" flag; the app's "Sem instrutor" chip (admins), footer and "Sem instrutor atribuído" (everyone),
+  and the admin's banner that opens "Editar aula".

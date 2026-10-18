@@ -5,6 +5,7 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
   readonly updateCalls: SchoolClass[] = [];
   readonly cancelCalls: { id: string; at: Date; message: string | null }[] = [];
   readonly deleteCalls: { id: string; now: Date }[] = [];
+  readonly removeInstructorCalls: { userId: string; classIds: string[] }[] = [];
   failNextCreate = false;
   private classes: SchoolClass[];
 
@@ -73,5 +74,30 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
     this.classes = this.classes.filter((item) => item.id !== id);
 
     return true;
+  }
+
+  async findUpcomingTaughtBy(userId: string, now: Date): Promise<SchoolClass[]> {
+    return this.classes
+      .filter(
+        (item) =>
+          item.instructorIds.includes(userId) &&
+          !item.cancelledAt &&
+          item.startsAt.getTime() > now.getTime(),
+      )
+      .sort(
+        (a, b) =>
+          a.startsAt.getTime() - b.startsAt.getTime() || a.id.localeCompare(b.id),
+      );
+  }
+
+  async removeInstructor(userId: string, classIds: string[]): Promise<void> {
+    if (classIds.length === 0) return;
+
+    this.removeInstructorCalls.push({ userId, classIds });
+    this.classes = this.classes.map((item) =>
+      classIds.includes(item.id)
+        ? item.clone({ instructorIds: item.instructorIds.filter((id) => id !== userId) })
+        : item,
+    );
   }
 }

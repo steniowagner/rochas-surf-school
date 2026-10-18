@@ -58,8 +58,11 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `provider/rules-version.provider.ts` (`RulesVersionProvider`: the current school rules version, read
     without depending on `school-rules`), `provider/registration-notifier.provider.ts` (`RegistrationNotifier`:
     tells admins and the person about a registration, without depending on `notifications`),
+    `provider/teaching-releaser.provider.ts` (`TeachingReleaser`: takes a person off their upcoming classes,
+    without depending on `classes`),
     `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,set-name,delete-account,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
-    (`SetName`: an approved account renames itself; `DeleteAccount`: an approved account closes itself → `deleted`)
+    (`SetName`: an approved account renames itself; `DeleteAccount`: an approved account releases its upcoming
+    classes, then closes itself → `deleted`)
     and `usecase/account.out.ts` (`AccountOut` / `toAccountOut`: the account shape every answer carries, with
     `rulesAccepted`, `denialReason` and `reactivationStatus`);
     `usecase/{list-registrations,approve-registration,deny-registration}.usecase.ts` with
@@ -95,7 +98,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
   - `notification/` — `model/notification.entity.ts` (`Notification` and `NOTIFICATION_TYPES`: `type` + `params`,
     no text), `provider/{notification.repository,push.provider,recipients.provider,clock.provider}.ts`
     (`PushProvider`: `send` → tickets, `getReceipts`; `RecipientsProvider.findApprovedAdminIds()`),
-    `usecase/{notify,notify-approved-admins}.usecase.ts` (store every notification, then push to each device).
+    `usecase/{notify,notify-approved-admins,notify-classes-without-instructor}.usecase.ts` (store every
+    notification, then push to each device; the last one tells the approved admins minus the excluded ones).
   - `push-token/` — `model/push-token.entity.ts` (`PushToken`, `PUSH_TOKEN_PATTERN`, `PUSH_LOCALES`),
     `model/push-ticket.ts` (a plain interface: its id is Expo's ticket id),
     `provider/{push-token.repository,push-ticket.repository}.ts`,
@@ -117,14 +121,15 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     to UTC instants from America/Fortaleza, with an optional `max` that stops early),
     `model/school-class.entity.ts` (`SchoolClass`), `model/class-state.ts` (`ClassState`, `getClassState`: the
     state by the clock, or `cancelled` when the class has `cancelledAt`; also used by the app),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider}.ts`
+    `model/class-flags.ts` (`isWithoutInstructor`: the computed "no instructor" flag; also used by the app),
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional, `cancel` and `delete`
-    conditional;
+    conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic;
     `TeacherLookup.findTeachers`; `ClassAssignmentNotifier.classAssigned` / `classUnassigned`;
     `ClassChangeNotifier.classEdited` / `classCancelled` / `classDeleted`;
-    `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model
+    `NoInstructorNotifier.classesWithoutInstructor`; `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model
     with the location and the instructors' names),
-    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class}.usecase.ts`, and
+    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes}.usecase.ts`, and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share). Fakes of every port and entity
     factories are in `test/mock/`.
 
@@ -159,7 +164,8 @@ src/
     types/                      # JwtPayload, CurrentUser, AuthenticatedRequest
   modules/auth/
     auth.module.ts              # wiring; ThrottlerModule for the auth routes; imports NotificationsModule (the
-                                # RegistrationNotifier and PushTokenRemover adapters)
+                                # RegistrationNotifier and PushTokenRemover adapters) and ClassesModule (the
+                                # TeachingReleaser adapter)
     auth.controller.ts          # POST /auth/email/code (202), POST /auth/email/verify (200), POST /auth/refresh (200),
                                 # POST /auth/google (200), POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
                                 # PUT /auth/me/whatsapp, PUT /auth/me/name and POST /auth/me/reactivation-request
@@ -210,11 +216,13 @@ src/
                                 # class.assigned / class.unassigned; logs and swallows every error)
     notifications.class-change-notifier.ts  # ClassChangeNotifier adapter of classes (Notify class.edited /
                                 # class.cancelled / class.deleted; logs and swallows every error)
+    notifications.no-instructor-notifier.ts  # NoInstructorNotifier adapter of classes
+                                # (NotifyClassesWithoutInstructor; logs and swallows every error)
     push-receipt-check.job.ts   # every-minute cron running CheckPushReceipts
     system.clock.ts             # SystemClockProvider
   modules/classes/
     classes.module.ts           # wiring (DbModule; imports NotificationsModule for the class-assignment and
-                                # class-change notifiers)
+                                # class-change notifiers); provides and exports ClassesTeachingReleaser
     locations.controller.ts     # GET /locations (200), POST /locations (201) — protected
     classes.controller.ts       # POST /classes/batch (201 { count }), GET /classes/time-range-suggestions (200),
                                 # GET /classes?date= (200, one week), GET /classes/:id (200), in that order, and
@@ -224,6 +232,8 @@ src/
                                 # createMany and update write classes and instructors in one $transaction;
                                 # update and cancel write only a class that isn't cancelled; delete only one
                                 # that isn't cancelled and hasn't started)
+    classes.teaching-releaser.ts  # ClassesTeachingReleaser: auth's TeachingReleaser, running
+                                # ReleaseUpcomingClasses (errors propagate)
     no-enrolment.seat-counter.ts  # NoEnrolmentSeatCounter (SeatCounter answering 0 until enrolment)
     no-enrolment.pending-request-counter.ts  # NoEnrolmentPendingRequestCounter (PendingRequestCounter answering 0
                                 # until enrolment)

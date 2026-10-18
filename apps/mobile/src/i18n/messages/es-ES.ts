@@ -298,6 +298,7 @@ const messages: Messages = {
       finished: "Finalizada",
     },
     cancelled: "Cancelada",
+    noInstructor: "Sin instructor",
   },
   classDetails: {
     title: "Detalle",
@@ -326,6 +327,11 @@ const messages: Messages = {
     loadError: "No se pudo cargar la clase.",
     notFound: "Esta clase ya no existe.",
     retry: "Intentar de nuevo",
+    noInstructor: {
+      title: "Sin instructor",
+      description: "Asigna un instructor antes de la clase.",
+    },
+    noInstructorAssigned: "Sin instructor asignado",
     tools: "Herramientas de la clase",
   },
   editProfile: {

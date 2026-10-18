@@ -2,10 +2,15 @@ import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { EmailProvider, SendSignInCodeIn } from '@rochas-surf-school/auth';
+import type { PushMessage, PushReceipt, PushSendTicket } from '@rochas-surf-school/notifications';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { PrismaService } from '../src/db/prisma.service.js';
+import { JwtTokenProvider } from '../src/modules/auth/jwt.token.js';
 import { ResendEmailProvider } from '../src/modules/auth/resend.email.js';
+import { SystemClockProvider as ClassesClockProvider } from '../src/modules/classes/system.clock.js';
+import { ExpoPushProvider } from '../src/modules/notifications/expo.push.js';
+import { renderPush } from '../src/modules/notifications/push-messages.js';
 
 // Secrets the backend refuses to start without; CI has no .env.
 process.env.AUTH_CODE_PEPPER ??= 'e2e-pepper';
@@ -227,5 +232,208 @@ describe('DELETE /auth/me (e2e)', () => {
     const response = await http().delete('/auth/me');
 
     expect(response.status).toBe(401);
+  });
+});
+
+/** Records the pushes instead of calling Expo. */
+class FakePushProvider {
+  readonly sent: PushMessage[] = [];
+
+  async send(messages: PushMessage[]): Promise<PushSendTicket[]> {
+    this.sent.push(...messages);
+    return messages.map(() => ({ status: 'ok', id: `ticket-${randomUUID()}` }));
+  }
+
+  async getReceipts(): Promise<Record<string, PushReceipt>> {
+    return {};
+  }
+}
+
+// The name the -t filters of spec 035 use: "DELETE /auth/me releases" and "DELETE /auth/me notifies".
+describe('DELETE /auth/me', () => {
+  // Wednesday 2026-10-14, 10:00 in Fortaleza: the classes module's clock.
+  const NOW = new Date('2026-10-14T13:00:00.000Z');
+  const HOUR = 60 * 60 * 1000;
+  const MARK = 'e2erelease';
+
+  let app: INestApplication<App>;
+  let prisma: PrismaService;
+  let tokens: JwtTokenProvider;
+  let push: FakePushProvider;
+  let locationId: string;
+  let creatorId: string;
+  let classIds: string[];
+
+  beforeEach(async () => {
+    push = new FakePushProvider();
+    const moduleRef = await Test.createTestingModule({
+      imports: [(await import('../src/app.module.js')).AppModule],
+    })
+      .overrideProvider(ExpoPushProvider)
+      .useValue(push)
+      .overrideProvider(ClassesClockProvider)
+      .useValue({ now: () => new Date(NOW.getTime()) })
+      .compile();
+    app = moduleRef.createNestApplication<INestApplication<App>>();
+    await app.init();
+    prisma = app.get(PrismaService);
+    tokens = app.get(JwtTokenProvider, { strict: false });
+    locationId = (
+      await prisma.location.create({
+        data: {
+          id: randomUUID(),
+          name: `${MARK} ${randomUUID().slice(0, 8)}`,
+          nameKey: `${MARK} ${randomUUID()}`,
+          address: 'Av. Beira Mar',
+        },
+      })
+    ).id;
+    classIds = [];
+    creatorId = (await account('admin', 'approved', 'Carla Lima')).id;
+  });
+
+  afterEach(async () => {
+    // Classes go first (their location and creator are restricted); instructors cascade with the users.
+    // The approved admins already in the database were told too: their notifications go with the test's classes.
+    await prisma.notification.deleteMany({
+      where: {
+        type: 'class.noInstructor',
+        OR: classIds.map((id) => ({ params: { path: ['classId'], equals: id } })),
+      },
+    });
+    await prisma.schoolClass.deleteMany({ where: { creator: { email: { endsWith: `@${DOMAIN}` } } } });
+    await prisma.location.deleteMany({ where: { name: { startsWith: MARK } } });
+    await prisma.user.deleteMany({ where: { email: { endsWith: `@${DOMAIN}` } } });
+    await app.close();
+  });
+
+  const http = () => request(app.getHttpServer());
+
+  async function account(
+    role: 'student' | 'instructor' | 'admin' = 'instructor',
+    status: Status = 'approved',
+    name = 'Ana Rocha',
+  ) {
+    const user = await prisma.user.create({
+      data: { id: randomUUID(), name, email: uniqueEmail(MARK), role, status },
+    });
+    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+  }
+
+  /** A class starting `fromNowHours` after the clock, one hour long. */
+  async function classWith(
+    instructorIds: string[],
+    fromNowHours: number,
+    extra: { discipline?: 'surf' | 'skate'; cancelledAt?: Date } = {},
+  ) {
+    const startsAt = new Date(NOW.getTime() + fromNowHours * HOUR);
+    const created = await prisma.schoolClass.create({
+      data: {
+        id: randomUUID(),
+        discipline: extra.discipline ?? 'surf',
+        level: 'beginner',
+        startsAt,
+        endsAt: new Date(startsAt.getTime() + HOUR),
+        locationId,
+        capacity: 8,
+        createdBy: creatorId,
+        cancelledAt: extra.cancelledAt ?? null,
+        instructors: { create: instructorIds.map((userId) => ({ userId })) },
+      },
+    });
+    classIds.push(created.id);
+    return created.id;
+  }
+
+  const deleteMe = (accessToken: string) =>
+    http().delete('/auth/me').set('Authorization', `Bearer ${accessToken}`);
+
+  async function instructorsOf(classId: string, accessToken: string): Promise<string[]> {
+    const response = await http().get(`/classes/${classId}`).set('Authorization', `Bearer ${accessToken}`);
+    expect(response.status).toBe(200);
+    return (response.body.instructors as { id: string }[]).map((item) => item.id);
+  }
+
+  it('releases an instructor from the upcoming classes only, keeping the started, finished and cancelled ones', async () => {
+    const viewer = await account('admin');
+    const leaving = await account('instructor');
+    const coInstructor = await account('instructor');
+    const tomorrow = await classWith([leaving.id, coInstructor.id], 22);
+    const underWay = await classWith([leaving.id], -0.5);
+    const finished = await classWith([leaving.id], -24);
+    const cancelled = await classWith([leaving.id], 30, { cancelledAt: new Date(NOW.getTime() - HOUR) });
+
+    const response = await deleteMe(leaving.accessToken);
+
+    expect(response.status).toBe(204);
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: leaving.id } })).status).toBe('deleted');
+    expect(await instructorsOf(tomorrow, viewer.accessToken)).toEqual([coInstructor.id]);
+    expect(await instructorsOf(underWay, viewer.accessToken)).toEqual([leaving.id]);
+    expect(await instructorsOf(finished, viewer.accessToken)).toEqual([leaving.id]);
+    expect(await instructorsOf(cancelled, viewer.accessToken)).toEqual([leaving.id]);
+    expect(push.sent).toEqual([]);
+  });
+
+  it('releases an admin who teaches the same way, leaving the class scheduled with no instructor', async () => {
+    const viewer = await account('admin');
+    const leaving = await account('admin');
+    const alone = await classWith([leaving.id], 22);
+
+    expect((await deleteMe(leaving.accessToken)).status).toBe(204);
+
+    expect(await instructorsOf(alone, viewer.accessToken)).toEqual([]);
+    expect(await prisma.schoolClass.count({ where: { id: alone } })).toBe(1);
+  });
+
+  it("releases nothing for a student's deletion", async () => {
+    const instructor = await account('instructor');
+    const student = await account('student');
+    await classWith([instructor.id], 22);
+    const before = await prisma.classInstructor.count({ where: { schoolClass: { locationId } } });
+
+    expect((await deleteMe(student.accessToken)).status).toBe(204);
+
+    expect(await prisma.classInstructor.count({ where: { schoolClass: { locationId } } })).toBe(before);
+    expect(push.sent).toEqual([]);
+  });
+
+  it('notifies the approved admins once about the classes left with nobody, not the admin who left', async () => {
+    const adminA = await account('admin', 'approved', 'Bruno Alves');
+    const adminB = await account('admin', 'approved', 'Davi Melo');
+    const notApproved = await Promise.all(
+      (['pending', 'denied', 'deleted', 'removed'] as const).map((status) => account('admin', status)),
+    );
+    const leaving = await account('admin', 'approved', 'Eva Costa');
+    const coInstructor = await account('instructor');
+    const later = await classWith([leaving.id], 46, { discipline: 'skate' });
+    const earliest = await classWith([leaving.id], 22, { discipline: 'surf' });
+    await classWith([leaving.id, coInstructor.id], 10);
+    await prisma.pushToken.create({
+      data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId: adminA.id, locale: 'pt-BR' },
+    });
+
+    expect((await deleteMe(leaving.accessToken)).status).toBe(204);
+
+    const params = {
+      count: 2,
+      classId: earliest,
+      discipline: 'surf',
+      startsAt: new Date(NOW.getTime() + 22 * HOUR).toISOString(),
+    };
+    const stored = await prisma.notification.findMany({
+      where: { type: 'class.noInstructor', userId: { in: [adminA.id, adminB.id, leaving.id, ...notApproved.map((item) => item.id)] } },
+      orderBy: { userId: 'asc' },
+    });
+    expect(stored.map((item) => [item.userId, item.params])).toEqual(
+      [adminA.id, adminB.id].sort().map((userId) => [userId, params]),
+    );
+    expect(later).not.toBe(earliest);
+    const toAdminA = push.sent.filter((message) => message.type === 'class.noInstructor' && message.token.includes(MARK));
+    expect(toAdminA).toHaveLength(1);
+    expect(toAdminA[0]).toMatchObject({ locale: 'pt-BR', params });
+    expect(renderPush('class.noInstructor', toAdminA[0]!.params, 'pt-BR')).toEqual({
+      title: 'Aulas sem instrutor',
+      body: '2 aulas ficaram sem instrutor. A próxima: Surf, 15/10 às 08:00.',
+    });
   });
 });

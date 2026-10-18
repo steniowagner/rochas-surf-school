@@ -40,6 +40,7 @@ import { ResendEmailProvider } from './resend.email.js';
 import { PrismaRulesVersionProvider } from './rules-version.prisma.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
+import { ClassesTeachingReleaser } from '../classes/classes.teaching-releaser.js';
 import { NotificationsPushTokenRemover } from '../notifications/notifications.push-token-remover.js';
 import { NotificationsRegistrationNotifier } from '../notifications/notifications.registration-notifier.js';
 import { PrismaUserRepository } from './user.prisma.js';
@@ -60,6 +61,7 @@ export class AuthController {
     private readonly googleIdTokenProvider: GoogleAuthIdTokenProvider,
     private readonly registrationNotifier: NotificationsRegistrationNotifier,
     private readonly pushTokenRemover: NotificationsPushTokenRemover,
+    private readonly teachingReleaser: ClassesTeachingReleaser,
   ) {}
 
   @Public()
@@ -138,7 +140,9 @@ export class AuthController {
   @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteAccount(@CurrentUser('id') id: string): Promise<void> {
-    return new DeleteAccount(this.userRepository, this.clock).execute({ userId: id });
+    return new DeleteAccount(this.userRepository, this.clock, this.teachingReleaser).execute({
+      userId: id,
+    });
   }
 
   @Put('me/name')

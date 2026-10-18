@@ -8,10 +8,10 @@ import { useTheme } from "@/hooks/use-theme";
 import { useClassCard } from "./class-card.hook";
 import type { ClassCardProps } from "./class-card.types";
 
-export function ClassCard({ item, now, onPress }: ClassCardProps) {
+export function ClassCard({ item, now, onPress, showFlags = false }: ClassCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { state, timeRange, instructors } = useClassCard({ item, now });
+  const { state, timeRange, instructors, withoutInstructor } = useClassCard({ item, now });
 
   const border = state === "started" ? "border-sun" : "border-line";
   const opacity = state === "finished" ? "opacity-60" : "";
@@ -43,6 +43,9 @@ export function ClassCard({ item, now, onPress }: ClassCardProps) {
           {state === "cancelled" ? (
             <Chip tone="bad" icon="close-circle-outline">{t("classesWeek.cancelled")}</Chip>
           ) : null}
+          {showFlags && withoutInstructor ? (
+            <Chip tone="warn" icon="person-remove-outline">{t("classesWeek.noInstructor")}</Chip>
+          ) : null}
         </View>
         <Text
           className={`ds-text-lesson-time ${state === "cancelled" ? "text-ink-2 line-through" : "text-ink"}`}
@@ -54,11 +57,11 @@ export function ClassCard({ item, now, onPress }: ClassCardProps) {
           <Text className="ds-text-chip text-ink-2">{item.location.name}</Text>
         </View>
       </View>
-      {instructors.length > 0 ? (
-        <View className="bg-dim px-4 py-2">
-          <Text className="ds-text-list-subtitle text-ink-2">{instructors}</Text>
-        </View>
-      ) : null}
+      <View className="bg-dim px-4 py-2">
+        <Text className="ds-text-list-subtitle text-ink-2">
+          {instructors.length > 0 ? instructors : t("classesWeek.noInstructor")}
+        </Text>
+      </View>
     </Pressable>
   );
 }

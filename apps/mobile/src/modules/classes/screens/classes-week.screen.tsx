@@ -24,6 +24,7 @@ export function ClassesWeekScreen({
   titleKey,
   classRoute,
   canCreate = false,
+  showFlags = false,
 }: ClassesWeekScreenProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -111,6 +112,7 @@ export function ClassesWeekScreen({
                   item={item}
                   now={screen.now}
                   onPress={screen.openClass}
+                  showFlags={showFlags}
                 />
               ))}
               {screen.canCreateOnDay ? (

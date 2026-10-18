@@ -285,4 +285,67 @@ describe('PrismaSchoolClassRepository', () => {
 
     expect(await repository.delete(ID, NOW)).toBe(false);
   });
+
+  it('finds the upcoming, not cancelled classes a person teaches, by start then id', async () => {
+    const { schoolClass, repository } = setup();
+    schoolClass.findMany.mockResolvedValue([
+      {
+        id: ID,
+        discipline: 'surf',
+        level: 'beginner',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        locationId: LOCATION_ID,
+        capacity: 8,
+        notes: null,
+        cancelledAt: null,
+        cancellationMessage: null,
+        createdBy: ADMIN_ID,
+        createdAt: NOW,
+        updatedAt: NOW,
+        instructors: [{ userId: INSTRUCTOR_ID }, { userId: ADMIN_ID }],
+      },
+    ]);
+
+    const classes = await repository.findUpcomingTaughtBy(INSTRUCTOR_ID, NOW);
+
+    expect(schoolClass.findMany).toHaveBeenCalledWith({
+      where: {
+        instructors: { some: { userId: INSTRUCTOR_ID } },
+        startsAt: { gt: NOW },
+        cancelledAt: null,
+      },
+      include: { instructors: { select: { userId: true } } },
+      orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+    });
+    expect(classes).toHaveLength(1);
+    expect(classes[0]).toMatchObject({ id: ID, instructorIds: [INSTRUCTOR_ID, ADMIN_ID] });
+  });
+
+  it('removeInstructor deletes only that person\'s rows of those classes in one transaction', async () => {
+    const { classInstructor, prisma, repository } = setup();
+
+    await repository.removeInstructor(INSTRUCTOR_ID, [ID, OTHER_ID]);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(classInstructor.deleteMany).toHaveBeenCalledWith({
+      where: { userId: INSTRUCTOR_ID, classId: { in: [ID, OTHER_ID] } },
+    });
+  });
+
+  it('removeInstructor writes nothing for no class', async () => {
+    const { classInstructor, prisma, repository } = setup();
+
+    await repository.removeInstructor(INSTRUCTOR_ID, []);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(classInstructor.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('removeInstructor propagates a failure so the transaction rolls back', async () => {
+    const { classInstructor, repository } = setup();
+    classInstructor.deleteMany.mockRejectedValueOnce(new Error('db down'));
+
+    await expect(repository.removeInstructor(INSTRUCTOR_ID, [ID])).rejects.toThrow('db down');
+  });
 });

@@ -298,11 +298,23 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-06** — Implement `findUpcomingTaughtBy` and `removeInstructor` (D-12) in
+- [x] **T-06** — Implement `findUpcomingTaughtBy` and `removeInstructor` (D-12) in
   `src/modules/classes/school-class.prisma.ts`, with cases in `school-class.prisma.spec.ts`.
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01 · Done when: `npx vitest run src/modules/classes/school-class.prisma.spec.ts` passes from
   `apps/backend`.
+  > ✅ 2026-10-18 — added the two methods to the existing `PrismaSchoolClassRepository` (already registered, so the
+  > skill's wiring steps had nothing to do): `findUpcomingTaughtBy` is one `findMany` (`instructors: { some: {
+  > userId } }`, `startsAt > now`, `cancelledAt: null`, ordered by `startsAt`, `id`, with the instructors);
+  > `removeInstructor` returns early for an empty list, else one `$transaction` running
+  > `classInstructor.deleteMany({ userId, classId: { in } })`. Spec cases written first (4 failed): the query, the
+  > deletion in one transaction, nothing for no class, a failure propagating. files:
+  > `apps/backend/src/modules/classes/school-class.prisma.ts`,
+  > `apps/backend/src/modules/classes/school-class.prisma.spec.ts`; verified:
+  > `npx vitest run src/modules/classes/school-class.prisma.spec.ts --coverage` (16 passed; 100% statements, lines,
+  > functions; the one uncovered branch is the class decorator's metadata on line 13, skipped by the coverage
+  > policy); deviations: none. The backend type check still fails on `push-messages.ts` and `auth.controller.ts`
+  > until T-07 and T-08.
 
 - [ ] **T-07** — Add the D-06 catalog entry for `class.noInstructor` to `src/modules/notifications/push-messages.ts`
   and `NotificationsNoInstructorNotifier` (`src/modules/notifications/notifications.no-instructor-notifier.ts`, D-05),

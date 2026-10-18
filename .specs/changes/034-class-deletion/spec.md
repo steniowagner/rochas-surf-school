@@ -2,10 +2,11 @@
 id: "034"
 slug: class-deletion
 title: "Deleting a class"
-status: in-review
+status: accepted
 created: 2026-10-17
 started: 2026-10-17
 base_commit: 7ee63d036b5044adb89d4174ff5e664453ed4c7c
+reviewed_commit: 6692227422e3ff64db387c5d91b22ca45425198e
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
 ---
@@ -407,3 +408,59 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-18 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (classes, notifications, backend, mobile) · build ✅ (classes, notifications, backend)
+- related tests ✅ backend 155 · mobile 721 · modules/classes 305 · modules/notifications 96 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` — 19 files measured, every changed line covered; no coverage-ignore comments
+- e2e: backend suite ✅ 427 passed (`E2E PASSED`); each `DELETE /classes/:id` filter of the Verify by selects and passes its tests
+  (deletes 1 · refuses 1 · checks 1 · notifies 3)
+- mobile journeys (iOS simulator, iPhone 18 Pro, local backend, approved admin, app in en-US) ✅ — see ER-07 and ER-08
+
+**Expected Results**
+
+- ER-01 ✅ — e2e: 204 with no body, `GET /classes/:id` 404 `class.notFound`, gone from the week, `class_instructors` rows
+  gone, the sibling class untouched; one minute ahead is deleted. Use case "deletes" 8 passed.
+- ER-02 ✅ — e2e: started, at its exact start and finished → 409 `class.started`; cancelled and cancelled-and-finished →
+  409 `class.cancelled`; all five kept with their instructor rows, nothing notified. Use case "refuses" 9 passed.
+- ER-03 ✅ — use case "not empty" (2/0, 0/1, 3/4) → 409 `class.delete.notEmpty` with `details`, `delete` never called;
+  `NoEnrolmentPendingRequestCounter` answers 0.
+- ER-04 ✅ — e2e: student/instructor 403 `user.role.notAdmin`, non-approved admins 403 `user.status.notApproved`, 401
+  without a token, unknown and non-UUID ids 404; two simultaneous deletes → one 204 and one 404, one notification.
+  Use case "race" (lost to a delete → 404, to a cancel → `class.cancelled`, to the clock → `class.started`); Prisma
+  `deleteMany` with `{ id, cancelledAt: null, startsAt: { gt: now } }`.
+- ER-05 ✅ — e2e: the instructor gets `class.deleted` `{ discipline, startsAt }`, the deleting admin nothing; an admin
+  teaching alone notifies nobody; a failing push keeps the 204 and the deletion. Use case "notifies" 3 passed.
+- ER-06 ✅ — push text in pt-BR, es and en as written (Fortaleza time, en `MM/dd`); the push data adds `classId` only
+  when the params carry one (`expo.push.ts`), and `class.deleted` params carry none; the entity accepts the type.
+- ER-07 ✅ — component and screen tests; in the simulator a class for tomorrow showed "Delete class" below "Cancel
+  class", and a class in progress showed only "Edit class", "Notify students and instructors" and "Cancel class".
+- ER-08 ✅ — component, hook and screen tests; in the simulator "Delete this class?" showed "Skate Advanced · Tomorrow ·
+  19 Oct, 10:00 – 11:00 · Review R2 Beach", the description and both buttons; "Keep class" closed it and the class
+  stayed in Postgres; "Delete class" showed "Class deleted", left the details, Mon 19 listed only the other class, the
+  class and its `class_instructors` rows were gone, and only Dev Instructor got `class.deleted`.
+- ER-09 ✅ — `class-error.test.ts` maps every key; screen tests: `notEmpty` switches the sheet and "Cancel class" opens
+  "Cancel this class?", started/cancelled toast + close + refetch, 404 toast + back, generic and no-connection toasts
+  with the button enabled again, expired session silent.
+- ER-10 ✅ — a tapped `class.deleted` refreshes the account and opens `/instructor/classes` or `/admin/classes`, a
+  student goes to their flow; received in the foreground it invalidates `["classes"]`.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The screen's no-connection test (as spec 033's cancel one) only asserts that a toast other than "Class deleted"
+  showed; the exact copy is proven by `class-error.test.ts`. Asserting "No connection…" there would make it stricter.
+- `DeleteSheetVariant` in `class-details.screen.types.ts` repeats `DeleteClassSheetVariant` from the sheet's types; the
+  screen could import the component's type.
+- D-08 listed a `delete-class-sheet.hook.ts`; none was created because the sheet has no state or logic, which
+  `.claude/rules/react.md` asks for — recorded as a T-09 deviation. The controller handler is `remove` (T-07 deviation).
+- The success toast uses the app's only alert style (red with a warning icon), the same as "Class cancelled"; a
+  success style would be a design change of its own.
+- Journey data: the two test classes were inserted with SQL; the review removed the cancelled one and the two
+  notifications it caused afterwards.

@@ -13,3 +13,5 @@ export type ClassDetailsScreenProps = {
 };
 
 export type UseClassDetailsScreenProps = Required<ClassDetailsScreenProps>;
+
+export type DeleteSheetVariant = "confirm" | "notEmpty";

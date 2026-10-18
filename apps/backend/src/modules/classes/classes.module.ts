@@ -4,6 +4,7 @@ import { NotificationsModule } from '../notifications/notifications.module.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
+import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { LocationsController } from './locations.controller.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
@@ -14,6 +15,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
   imports: [DbModule, NotificationsModule],
   controllers: [ClassesController, LocationsController],
   providers: [
+    NoEnrolmentPendingRequestCounter,
     NoEnrolmentSeatCounter,
     PrismaClassViewReader,
     PrismaLocationRepository,

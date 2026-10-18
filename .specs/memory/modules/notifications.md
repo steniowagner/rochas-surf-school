@@ -29,6 +29,8 @@ What the person is told, and how it reaches them.
     and its start.
   - `class.cancelled` — a class the person teaches was cancelled; details: the class's id, its discipline, its
     start and the admin's message (`message`, as written after trimming) when there is one.
+  - `class.deleted` — a class the person taught was deleted; details: its discipline and its start (no class id:
+    the class no longer exists).
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -40,6 +42,7 @@ What the person is told, and how it reaches them.
   | `class.edited` | Class changed | Your {discipline} class on {MM/dd} at {HH:mm} was changed. Open the app to see it. |
   | `class.unassigned` | Removed from a class | You're no longer teaching the {discipline} class on {MM/dd} at {HH:mm}. |
   | `class.cancelled` | Class cancelled | Your {discipline} class on {MM/dd} at {HH:mm} was cancelled. / with a message: {discipline}, {MM/dd} at {HH:mm}: {message} |
+  | `class.deleted` | Class deleted | Your {discipline} class on {MM/dd} at {HH:mm} was deleted. |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
@@ -53,10 +56,11 @@ What the person is told, and how it reaches them.
   `class.cancelled`: pt-BR "Aula cancelada" / "A aula de {discipline} de {dd/MM} às {HH:mm} foi cancelada." or,
   with a message, "{discipline}, {dd/MM} às {HH:mm}: {message}", es "Clase cancelada" / "La clase de {discipline}
   del {dd/MM} a las {HH:mm} fue cancelada." or "{discipline}, {dd/MM} a las {HH:mm}: {message}" (a blank message
-  counts as none). The start is written in America/Fortaleza time, the same on every machine.
-  `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` push reloads the account and
+  counts as none); `class.deleted`: pt-BR "Aula excluída" / "A aula de {discipline} de {dd/MM} às {HH:mm} foi
+  excluída.", es "Clase eliminada" / "La clase de {discipline} del {dd/MM} a las {HH:mm} fue eliminada.". The start is written in America/Fortaleza time, the same on every machine.
+  `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
-  with the app open reloads the classes of the weeks it shows. Tapping a `class.edited`, `class.unassigned` or
+  with the app open reloads the classes of the weeks it shows (a `class.deleted` one, every class shown). Tapping a `class.edited`, `class.unassigned` or
   `class.cancelled` push
   reloads the account and opens that class's details as an instructor or an admin (else the home, also when the
   push carries no class); one received with the app open reloads every class shown (weeks and details).
@@ -116,6 +120,7 @@ Rules:
   `class.assigned` (added) or `class.unassigned` (removed), unless they made the edit.
 - **An instructor or admin of a cancelled class** — receives `class.cancelled`, with the message, unless they
   cancelled it.
+- **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
 
 ## Boundaries
 
@@ -124,15 +129,15 @@ It knows people only by their ids and the phones they registered, and it doesn't
 it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
 backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
-and removed) and class changes (edits, cancellations); a failure there is logged and never changes the class
-creation, edit or cancellation. It doesn't decide when an event happens — the
+and removed) and class changes (edits, cancellations, deletions); a failure there is logged and never changes the
+class creation, edit, cancellation or deletion. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
-with their specs, as do the notifications of every other event (reactivation requests, role changes, class
-deletions, the "no instructor" flag and reminders, enrolments, broadcasts) and those of an edit or a cancellation
-to the class's students and pending requests.
+with their specs, as do the notifications of every other event (reactivation requests, role changes, the "no
+instructor" flag and reminders, enrolments, broadcasts) and those of an edit or a cancellation to the class's
+students and pending requests.
 
 ## Spec history
 
@@ -153,3 +158,5 @@ to the class's students and pending requests.
 - `033-class-cancellation` — the `class.cancelled` type (`{ classId, discipline, startsAt, message? }`) and its
   push copy, with or without the admin's message; in the app, tapping one opens the class's details and one
   received with the app open reloads the classes.
+- `034-class-deletion` — the `class.deleted` type (`{ discipline, startsAt }`, no class id) and its push copy; in
+  the app, tapping one opens the Aulas tab and one received with the app open reloads the classes.

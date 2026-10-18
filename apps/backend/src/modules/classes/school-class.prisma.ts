@@ -93,6 +93,15 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     return count === 1;
   }
 
+  async delete(id: string, now: Date): Promise<boolean> {
+    // The checks sit on the write itself; the class_instructors rows go with it (ON DELETE CASCADE).
+    const { count } = await this.prisma.schoolClass.deleteMany({
+      where: { id, cancelledAt: null, startsAt: { gt: now } },
+    });
+
+    return count === 1;
+  }
+
   private toDomain(record: SchoolClassWithInstructors): SchoolClass {
     return new SchoolClass({
       id: record.id,

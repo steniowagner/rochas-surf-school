@@ -54,6 +54,7 @@ jest.mock("@/services/api", () => {
     ...actual,
     apiGet: jest.fn(actual.apiGet),
     apiPost: jest.fn(actual.apiPost),
+    apiDelete: jest.fn(actual.apiDelete),
   };
 });
 
@@ -711,6 +712,246 @@ describe("ClassDetailsScreen", () => {
       await user.press(confirmButton());
 
       await waitFor(() => expect(api.apiPost).toHaveBeenCalled());
+      expect(mockShow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("delete", () => {
+    const deletes = () =>
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE") as [
+        string,
+        unknown,
+      ][];
+    const loads = () =>
+      fetchMock.mock.calls.filter(([, init]) => init?.method !== "DELETE")
+        .length;
+    const confirmButton = () =>
+      screen.getByRole("button", { name: "Delete class" });
+    const noContent = () => ({
+      ok: true,
+      status: 204,
+      json: async () => undefined,
+    });
+
+    // The class is served for every GET; the deletion answers as the test says.
+    const serveDelete = (
+      answer: () => unknown = noContent,
+      item: ClassItem = makeClass(),
+    ) =>
+      fetchMock.mockImplementation(
+        async (_url: string, init?: { method?: string }) =>
+          init?.method === "DELETE" ? answer() : ok(item),
+      );
+
+    async function openTools() {
+      const user = userEvent.setup();
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      return user;
+    }
+
+    async function openSheet() {
+      const user = await openTools();
+      await user.press(screen.getByRole("button", { name: "Delete class" }));
+
+      return user;
+    }
+
+    beforeEach(() => {
+      (router.back as jest.Mock).mockClear();
+      mockShow.mockClear();
+      serveDelete();
+    });
+
+    it("offers Delete class below Cancel class on a class that hasn't started", async () => {
+      await openTools();
+
+      const labels = screen
+        .getAllByRole("button")
+        .map((button) => button.props.accessibilityLabel)
+        .filter((label) => ["Cancel class", "Delete class"].includes(label));
+
+      expect(screen.getByRole("button", { name: "Delete class" })).toBeOnTheScreen();
+      expect(labels).toEqual(["Cancel class", "Delete class"]);
+    });
+
+    it("offers no Delete class on a class that has started", async () => {
+      serveDelete(
+        noContent,
+        makeClass({
+          startsAt: "2026-10-14T12:00:00.000Z",
+          endsAt: "2026-10-14T14:00:00.000Z",
+        }),
+      );
+      await openTools();
+
+      expect(screen.getByRole("button", { name: "Cancel class" })).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "Delete class" })).toBeNull();
+    });
+
+    it("closes the tools and opens the confirmation sheet with the class line, sending nothing", async () => {
+      await openSheet();
+
+      expect(screen.getByText("Delete this class?")).toBeOnTheScreen();
+      expect(
+        screen.getByText("Surf Beginner · Today · 14 Oct, 16:00 – 17:30 · Praia do Futuro"),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: "Notify students and instructors" }),
+      ).toBeNull();
+      expect(deletes()).toHaveLength(0);
+    });
+
+    it("keeps the class: Keep class closes the sheet without a request", async () => {
+      const user = await openSheet();
+
+      await user.press(screen.getByRole("button", { name: "Keep class" }));
+
+      expect(screen.queryByText("Delete this class?")).toBeNull();
+      expect(deletes()).toHaveLength(0);
+    });
+
+    it("deletes once, shows the toast and leaves the details", async () => {
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Class deleted"));
+      expect(deletes()).toHaveLength(1);
+      expect(deletes()[0]![0]).toBe("http://api.test/classes/c-1");
+      expect(screen.queryByText("Delete this class?")).toBeNull();
+      expect(router.back).toHaveBeenCalledTimes(1);
+    });
+
+    it("sends once on a double press", async () => {
+      let finish: (value: unknown) => void = () => undefined;
+      fetchMock.mockImplementation(
+        async (_url: string, init?: { method?: string }) =>
+          init?.method === "DELETE"
+            ? new Promise((resolve) => (finish = resolve))
+            : ok(makeClass()),
+      );
+      const user = userEvent.setup();
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+      await user.press(screen.getByRole("button", { name: "Delete class" }));
+      const button = confirmButton();
+
+      await act(async () => {
+        void fireEvent.press(button);
+        void fireEvent.press(button);
+      });
+
+      await waitFor(() => expect(deletes()).toHaveLength(1));
+      await act(async () => finish(noContent()));
+      await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+      expect(deletes()).toHaveLength(1);
+    });
+
+    it("on a class with people switches to Can't delete and offers to cancel it instead", async () => {
+      serveDelete(() => refused(409, "class.delete.notEmpty"));
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      expect(await screen.findByText("Can't delete")).toBeOnTheScreen();
+      expect(mockShow).not.toHaveBeenCalled();
+      expect(router.back).not.toHaveBeenCalled();
+      expect(screen.queryByRole("button", { name: "Delete class" })).toBeNull();
+
+      await user.press(screen.getByRole("button", { name: "Cancel class" }));
+
+      expect(screen.queryByText("Can't delete")).toBeNull();
+      expect(screen.getByText("Cancel this class?")).toBeOnTheScreen();
+    });
+
+    it("opens in the confirmation variant again after a Can't delete", async () => {
+      serveDelete(() => refused(409, "class.delete.notEmpty"));
+      const user = await openSheet();
+      await user.press(confirmButton());
+      await user.press(await screen.findByRole("button", { name: "Keep class" }));
+
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+      await user.press(screen.getByRole("button", { name: "Delete class" }));
+
+      expect(screen.getByText("Delete this class?")).toBeOnTheScreen();
+    });
+
+    it.each([
+      ["class.started", "The class has started and can't be deleted."],
+      ["class.cancelled", "This class was cancelled and can't be deleted."],
+    ])(
+      "on %s shows its toast, closes the sheet and reloads the class",
+      async (key, message) => {
+        serveDelete(() => refused(409, key));
+        const user = await openSheet();
+        const before = loads();
+
+        await user.press(confirmButton());
+
+        await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+        expect(screen.queryByText("Delete this class?")).toBeNull();
+        await waitFor(() => expect(loads()).toBeGreaterThan(before));
+        expect(router.back).not.toHaveBeenCalled();
+      },
+    );
+
+    it("on a missing class shows its toast and goes back", async () => {
+      serveDelete(() => refused(404, "class.notFound"));
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith("This class no longer exists."),
+      );
+      expect(router.back).toHaveBeenCalledTimes(1);
+    });
+
+    it("on a server error shows the generic toast and keeps the sheet usable", async () => {
+      serveDelete(() => refused(500, "INTERNAL_SERVER_ERROR"));
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith(
+          "Something went wrong. Please try again.",
+        ),
+      );
+      expect(screen.getByText("Delete this class?")).toBeOnTheScreen();
+      expect(confirmButton()).toBeEnabled();
+    });
+
+    it("shows the no-connection toast when there is no answer", async () => {
+      serveDelete(() => {
+        throw new TypeError("Network request failed");
+      });
+      const user = await openSheet();
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+      expect(mockShow.mock.calls[0]![0]).not.toBe("Class deleted");
+      expect(confirmButton()).toBeEnabled();
+    });
+
+    it("shows nothing when the session expired", async () => {
+      const user = await openSheet();
+      (api.apiDelete as jest.Mock).mockRejectedValueOnce(
+        new api.SessionExpiredError(),
+      );
+
+      await user.press(confirmButton());
+
+      await waitFor(() => expect(api.apiDelete).toHaveBeenCalled());
       expect(mockShow).not.toHaveBeenCalled();
     });
   });

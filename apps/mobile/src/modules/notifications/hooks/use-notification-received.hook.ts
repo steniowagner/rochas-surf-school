@@ -40,7 +40,8 @@ export const useNotificationReceived = () => {
         if (
           type === "class.edited" ||
           type === "class.unassigned" ||
-          type === "class.cancelled"
+          type === "class.cancelled" ||
+          type === "class.deleted"
         ) {
           void queryClient.invalidateQueries({ queryKey: ["classes"] });
 

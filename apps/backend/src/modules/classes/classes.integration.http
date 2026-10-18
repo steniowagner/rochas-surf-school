@@ -285,3 +285,22 @@ POST {{baseUrl}}/classes/{{classId}}/cancel
 Content-Type: application/json
 
 {}
+
+### Delete a class (expects 204 with no body; admins only; only before it starts, never a cancelled one, and only with nobody in it)
+DELETE {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+
+### A class that has started or finished (expects 409 class.started) or a cancelled one (expects 409 class.cancelled)
+DELETE {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+
+### A class with seats or pending requests (expects 409 class.delete.notEmpty with details { seatsTaken, pendingRequests }; cannot happen until enrolment exists)
+DELETE {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+
+### An unknown, malformed or already deleted id (expects 404 class.notFound)
+DELETE {{baseUrl}}/classes/not-a-uuid
+Authorization: Bearer {{token}}
+
+### As a student or instructor (expects 403 user.role.notAdmin) or without a token (expects 401)
+DELETE {{baseUrl}}/classes/{{classId}}

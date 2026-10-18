@@ -12,9 +12,16 @@ export function ClassToolsSheet({
   onClose,
   onEdit,
   onCancel,
+  onDelete,
+  canDelete,
 }: ClassToolsSheetProps) {
   const { t } = useTranslation();
-  const { edit, cancel } = useClassToolsSheet({ onClose, onEdit, onCancel });
+  const { edit, cancel, remove } = useClassToolsSheet({
+    onClose,
+    onEdit,
+    onCancel,
+    onDelete,
+  });
 
   return (
     <BottomModal visible={visible} onClose={onClose}>
@@ -31,6 +38,11 @@ export function ClassToolsSheet({
           <Button variant="danger" onPress={cancel}>
             {t("classTools.cancel")}
           </Button>
+          {canDelete ? (
+            <Button variant="subtle" onPress={remove}>
+              {t("classTools.delete")}
+            </Button>
+          ) : null}
         </View>
       </View>
     </BottomModal>

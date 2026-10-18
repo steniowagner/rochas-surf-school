@@ -189,6 +189,30 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       },
     },
   },
+  // The class is gone, so the push carries no class to open: it only says which one was removed.
+  'class.deleted': {
+    'pt-BR': {
+      title: 'Aula excluída',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `A aula de ${disciplineName(discipline)} de ${day} às ${time} foi excluída.`;
+      },
+    },
+    es: {
+      title: 'Clase eliminada',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `La clase de ${disciplineName(discipline)} del ${day} a las ${time} fue eliminada.`;
+      },
+    },
+    en: {
+      title: 'Class deleted',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return `Your ${disciplineName(discipline)} class on ${day} at ${time} was deleted.`;
+      },
+    },
+  },
 };
 
 export function renderPush(

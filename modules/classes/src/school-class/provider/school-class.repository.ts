@@ -17,4 +17,10 @@ export interface SchoolClassRepository {
    * class and `false` when it was already cancelled (or is gone): of two simultaneous cancels exactly one wins.
    */
   cancel(id: string, at: Date, message: string | null): Promise<boolean>;
+  /**
+   * Deletes the class (its instructor rows go with it) only while it isn't cancelled and starts after `now`.
+   * Returns `true` when it deleted the class and `false` otherwise (cancelled, started or gone): of two
+   * simultaneous deletes exactly one wins.
+   */
+  delete(id: string, now: Date): Promise<boolean>;
 }

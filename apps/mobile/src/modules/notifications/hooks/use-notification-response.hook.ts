@@ -33,14 +33,18 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
-  // A batch has many classes and the push names none: the Aulas tab is where the new ones are.
-  if (data?.type === "class.assigned" && flow === "instructor") {
+  // A batch has many classes and the push names none, and a deleted class is gone: the Aulas tab is where the
+  // schedule shows what changed.
+  const opensClasses =
+    data?.type === "class.assigned" || data?.type === "class.deleted";
+
+  if (opensClasses && flow === "instructor") {
     router.push(routes.instructor.classes);
 
     return;
   }
 
-  if (data?.type === "class.assigned" && flow === "admin") {
+  if (opensClasses && flow === "admin") {
     router.push(routes.admin.classes);
 
     return;

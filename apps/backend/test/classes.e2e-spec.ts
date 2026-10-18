@@ -1548,4 +1548,211 @@ describe('Classes (e2e)', () => {
       });
     });
   });
+
+  describe('DELETE /classes/:id', () => {
+    const remove = (token: string | undefined, id: string) => as(token, http().delete(`/classes/${id}`));
+
+    // Tomorrow (2026-10-15) 08:00-09:00 in Fortaleza, unless the test moves it.
+    async function makeClass(
+      creatorId: string,
+      instructorIds: string[],
+      overrides: { startsAt?: string; endsAt?: string; cancelledAt?: Date } = {},
+    ) {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date(overrides.startsAt ?? '2026-10-15T11:00:00.000Z'),
+          endsAt: new Date(overrides.endsAt ?? '2026-10-15T12:00:00.000Z'),
+          locationId,
+          capacity: 8,
+          createdBy: creatorId,
+          cancelledAt: overrides.cancelledAt ?? null,
+          instructors: { create: instructorIds.map((userId) => ({ userId })) },
+        },
+      });
+      return id;
+    }
+
+    const exists = async (id: string) => (await prisma.schoolClass.findUnique({ where: { id } })) !== null;
+    const instructorRows = (classId: string) => prisma.classInstructor.count({ where: { classId } });
+
+    async function withPhone(userId: string, locale = 'pt-BR') {
+      await prisma.pushToken.create({
+        data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId, locale },
+      });
+    }
+
+    const notificationsOf = (userId: string) =>
+      prisma.notification.findMany({ where: { userId, type: 'class.deleted' } });
+
+    it("deletes a class that hasn't started and takes it off the schedule", async () => {
+      const admin = await account();
+      const student = await account('student');
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      const sibling = await makeClass(admin.id, [instructor.id]);
+
+      const response = await remove(admin.accessToken, id);
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+      const read = await as(student.accessToken, http().get(`/classes/${id}`));
+      expect(read.status).toBe(404);
+      expect(read.body.errors).toEqual(['class.notFound']);
+      const week = await as(student.accessToken, http().get('/classes?date=2026-10-15'));
+      const ids = (week.body.items as { id: string }[]).map((item) => item.id);
+      expect(ids).not.toContain(id);
+      expect(ids).toContain(sibling);
+      expect(await instructorRows(id)).toBe(0);
+      expect(await exists(sibling)).toBe(true);
+      expect(await instructorRows(sibling)).toBe(1);
+    });
+
+    it('deletes a class starting one minute after now', async () => {
+      const admin = await account();
+      const id = await makeClass(admin.id, [admin.id], {
+        startsAt: new Date(NOW.getTime() + 60_000).toISOString(),
+        endsAt: new Date(NOW.getTime() + 3_660_000).toISOString(),
+      });
+
+      expect((await remove(admin.accessToken, id)).status).toBe(204);
+      expect(await exists(id)).toBe(false);
+    });
+
+    it('refuses a started class, one starting exactly now and a cancelled one, deleting nothing', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      await withPhone(instructor.id);
+      const started = await makeClass(admin.id, [instructor.id], {
+        startsAt: new Date(NOW.getTime() - 30 * 60_000).toISOString(),
+        endsAt: new Date(NOW.getTime() + 30 * 60_000).toISOString(),
+      });
+      const atStart = await makeClass(admin.id, [instructor.id], {
+        startsAt: NOW.toISOString(),
+        endsAt: new Date(NOW.getTime() + 3_600_000).toISOString(),
+      });
+      const finished = await makeClass(admin.id, [instructor.id], {
+        startsAt: '2026-10-13T11:00:00.000Z',
+        endsAt: '2026-10-13T12:00:00.000Z',
+      });
+      const cancelled = await makeClass(admin.id, [instructor.id], { cancelledAt: new Date('2026-10-14T10:00:00.000Z') });
+      const cancelledAndStarted = await makeClass(admin.id, [instructor.id], {
+        startsAt: '2026-10-13T11:00:00.000Z',
+        endsAt: '2026-10-13T12:00:00.000Z',
+        cancelledAt: new Date('2026-10-12T10:00:00.000Z'),
+      });
+
+      for (const id of [started, atStart, finished]) {
+        const response = await remove(admin.accessToken, id);
+
+        expect(response.status).toBe(409);
+        expect(response.body.errors).toEqual(['class.started']);
+      }
+      for (const id of [cancelled, cancelledAndStarted]) {
+        const response = await remove(admin.accessToken, id);
+
+        expect(response.status).toBe(409);
+        expect(response.body.errors).toEqual(['class.cancelled']);
+      }
+
+      for (const id of [started, atStart, finished, cancelled, cancelledAndStarted]) {
+        expect(await exists(id)).toBe(true);
+        expect(await instructorRows(id)).toBe(1);
+      }
+      expect(await notificationsOf(instructor.id)).toHaveLength(0);
+      expect(push.sent).toHaveLength(0);
+    });
+
+    it('checks who may delete, the id and a second simultaneous delete, notifying nobody on a refusal', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const student = await account('student');
+      await withPhone(instructor.id);
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      for (const person of [student, instructor]) {
+        const response = await remove(person.accessToken, id);
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['user.role.notAdmin']);
+      }
+      for (const status of NOT_APPROVED) {
+        const person = await account('admin', status);
+
+        const response = await remove(person.accessToken, id);
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['user.status.notApproved']);
+      }
+      expect((await remove(undefined, id)).status).toBe(401);
+      for (const unknown of [randomUUID(), 'not-a-uuid']) {
+        const response = await remove(admin.accessToken, unknown);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toEqual(['class.notFound']);
+      }
+      expect(await exists(id)).toBe(true);
+      expect(push.sent).toHaveLength(0);
+      expect(await notificationsOf(instructor.id)).toHaveLength(0);
+
+      const results = await Promise.all([remove(admin.accessToken, id), remove(admin.accessToken, id)]);
+
+      expect(results.map((result) => result.status).sort()).toEqual([204, 404]);
+      expect(results.find((result) => result.status === 404)!.body.errors).toEqual(['class.notFound']);
+      expect(await exists(id)).toBe(false);
+      expect(await notificationsOf(instructor.id)).toHaveLength(1);
+    });
+
+    describe('notifies', () => {
+      it('tells the instructors which class went away and never the admin who deletes', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        await withPhone(instructor.id, 'pt-BR');
+        await withPhone(admin.id);
+        const id = await makeClass(admin.id, [instructor.id, admin.id]);
+
+        const response = await remove(admin.accessToken, id);
+
+        expect(response.status).toBe(204);
+        const [notification] = await notificationsOf(instructor.id);
+        expect(notification!.params).toEqual({ discipline: 'surf', startsAt: '2026-10-15T11:00:00.000Z' });
+        expect(await notificationsOf(admin.id)).toHaveLength(0);
+        expect(push.sent).toHaveLength(1);
+        expect(push.sent[0]).toMatchObject({ type: 'class.deleted', locale: 'pt-BR' });
+        expect(renderPush('class.deleted', push.sent[0]!.params, 'pt-BR')).toEqual({
+          title: 'Aula excluída',
+          body: 'A aula de Surf de 15/10 às 08:00 foi excluída.',
+        });
+      });
+
+      it('tells nobody when the admin teaches the class alone', async () => {
+        const admin = await account();
+        await withPhone(admin.id);
+        const id = await makeClass(admin.id, [admin.id]);
+
+        const response = await remove(admin.accessToken, id);
+
+        expect(response.status).toBe(204);
+        expect(await notificationsOf(admin.id)).toHaveLength(0);
+        expect(push.sent).toHaveLength(0);
+      });
+
+      it('keeps the 204 and the deletion when the push provider fails', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        await withPhone(instructor.id);
+        const id = await makeClass(admin.id, [instructor.id]);
+        push.failing = true;
+
+        const response = await remove(admin.accessToken, id);
+
+        expect(response.status).toBe(204);
+        expect(await exists(id)).toBe(false);
+        expect(await notificationsOf(instructor.id)).toHaveLength(1);
+      });
+    });
+  });
 });

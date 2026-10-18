@@ -3,10 +3,12 @@ import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 import {
   getClassErrorKey,
   getCancelClassErrorKey,
+  getDeleteClassErrorKey,
   getEditClassErrorKey,
   getSeatsTaken,
   isClassCancelledError,
   isClassFinishedError,
+  isClassNotEmptyError,
   isClassNotFoundError,
   isClassStartedError,
   isDuplicateLocationError,
@@ -126,5 +128,32 @@ describe("getCancelClassErrorKey", () => {
     expect(isClassCancelledError(api(409, "class.cancelled"))).toBe(true);
     expect(isClassCancelledError(api(404, "class.cancelled"))).toBe(false);
     expect(isClassCancelledError(new Error("x"))).toBe(false);
+  });
+});
+
+describe("getDeleteClassErrorKey", () => {
+  it.each([
+    [409, "class.started", "deleteClass.errors.started"],
+    [409, "class.cancelled", "deleteClass.errors.cancelled"],
+    [404, "class.notFound", "classDetails.notFound"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps %s %s to %s", (status, key, expected) => {
+    expect(getDeleteClassErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("shows no toast for a class that is not empty or an expired session", () => {
+    expect(getDeleteClassErrorKey(api(409, "class.delete.notEmpty"))).toBeNull();
+    expect(getDeleteClassErrorKey(new SessionExpiredError())).toBeNull();
+  });
+
+  it("maps no answer to the no-connection copy and anything else to the generic copy", () => {
+    expect(getDeleteClassErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getDeleteClassErrorKey(new Error("boom"))).toBe("createAccount.errors.generic");
+  });
+
+  it("recognises a class that is not empty only by its own status and key", () => {
+    expect(isClassNotEmptyError(api(409, "class.delete.notEmpty"))).toBe(true);
+    expect(isClassNotEmptyError(api(422, "class.delete.notEmpty"))).toBe(false);
+    expect(isClassNotEmptyError(new Error("x"))).toBe(false);
   });
 });

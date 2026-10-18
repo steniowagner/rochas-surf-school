@@ -468,11 +468,26 @@ const messages: Messages = {
       finished: "Esta aula já terminou e não pode mais ser cancelada.",
     },
   },
+  deleteClass: {
+    title: "Excluir esta aula?",
+    description: "Os instrutores são avisados e a aula sai da agenda. Não dá para desfazer.",
+    confirm: "Excluir aula",
+    notEmpty: {
+      title: "Não dá para excluir",
+      description: "Alguém já pediu vaga ou está inscrito nesta aula. Só dá para excluir aulas sem ninguém — cancele-a em vez disso.",
+    },
+    done: "Aula excluída",
+    errors: {
+      started: "A aula já começou e não pode mais ser excluída.",
+      cancelled: "Esta aula foi cancelada e não pode ser excluída.",
+    },
+  },
   classTools: {
     title: "Ferramentas da aula",
     edit: "Editar aula",
     notify: "Avisar alunos e instrutores",
     cancel: "Cancelar aula",
+    delete: "Excluir aula",
   },
   editClass: {
     title: "Editar aula",

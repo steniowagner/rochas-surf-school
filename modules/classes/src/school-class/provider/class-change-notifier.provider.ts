@@ -16,7 +16,14 @@ export interface ClassCancelled {
   message?: string;
 }
 
+export interface ClassDeleted {
+  instructorIds: string[];
+  discipline: ClassDiscipline;
+  startsAt: Date;
+}
+
 export interface ClassChangeNotifier {
   classEdited(event: ClassEdited): Promise<void>;
   classCancelled(event: ClassCancelled): Promise<void>;
+  classDeleted(event: ClassDeleted): Promise<void>;
 }

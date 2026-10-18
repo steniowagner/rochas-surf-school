@@ -468,11 +468,26 @@ const messages = {
       finished: "This class has finished and can't be cancelled.",
     },
   },
+  deleteClass: {
+    title: "Delete this class?",
+    description: "The instructors are notified and the class leaves the schedule. This can't be undone.",
+    confirm: "Delete class",
+    notEmpty: {
+      title: "Can't delete",
+      description: "Someone has already asked for a seat or holds one in this class. Only classes with nobody can be deleted — cancel it instead.",
+    },
+    done: "Class deleted",
+    errors: {
+      started: "The class has started and can't be deleted.",
+      cancelled: "This class was cancelled and can't be deleted.",
+    },
+  },
   classTools: {
     title: "Class tools",
     edit: "Edit class",
     notify: "Notify students and instructors",
     cancel: "Cancel class",
+    delete: "Delete class",
   },
   editClass: {
     title: "Edit class",

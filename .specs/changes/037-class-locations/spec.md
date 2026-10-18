@@ -2,7 +2,7 @@
 id: "037"
 slug: class-locations
 title: "Class locations: map point, address suggestions, editing and removing"
-status: in-review
+status: changes-requested
 started: 2026-10-18
 base_commit: 29cd101247835876d1f4ce62e22f67b603b55d72
 created: 2026-10-18
@@ -837,3 +837,81 @@ es.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (classes, notifications, backend, web, mobile: 27 tasks; the 2 backend lint
+  warnings are in `classes.e2e-spec.ts` lines 1601/1880, which predate this spec)
+- related tests ✅ `RELATED TESTS PASSED` (modules/classes, modules/notifications, apps/backend, apps/web, apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` (50 files measured); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED`: backend 17 files / 508 tests (incl. `locations.e2e-spec.ts`, `classes.e2e-spec.ts`), web
+  Playwright 22 passed (incl. "names the map providers")
+- `npx expo config --type public` lists the `react-native-maps` plugin (from T-13 evidence and `app.config.test.ts`)
+- iOS simulator (iPhone 18 Pro, backend from this branch **with** `GOOGLE_MAPS_API_KEY`, signed in as the dev admin):
+  live suggestions, create, class details map and "Direções", Gerir on Editar aula, edit, notify, remove — see
+  below. Rows checked in Postgres after each step.
+
+**Expected Results**
+
+- ER-01 ✅ — e2e `point` cases (required / invalid / collected keys, null point for old rows, `upcomingClasses`) and
+  the domain tests; in the app the created location was stored with its point.
+- ER-02 ✅ — e2e `edit` cases (every class follows, duplicate rules, 404/409, one 422 with every key, unchanged save
+  writes nothing, access order); the backend side holds. See F-01 for the app side of "every class follows".
+- ER-03 ✅ — e2e and Prisma spec `deadline` cases; in the simulator, changing the address of a location cleared the
+  deadline of its class tomorrow and bumped `deadline_revision` 0 → 1.
+- ER-04 ✅ — e2e `notifies` cases and push-message/notifier specs; in the simulator, with the box ticked, Dev
+  Instructor got exactly one `location.changed` `{ count: 1, locationName }` and the editing admin none.
+- ER-05 ✅ — e2e `archive` cases (204, 409 again, concurrent archives, last location, name reusable); in the
+  simulator the archived row has `archived_at` set, `name_key` NULL, and its class still shows it.
+- ER-06 ✅ — classes e2e `archived location` cases and domain tests.
+- ER-07 ✅ — classes e2e `location point` cases.
+- ER-08 ✅ — e2e `suggestions` cases and the Google adapter spec; live in the simulator with a real key: "praia do
+  fut" → 5 Google suggestions; picking one set the address, the point and the empty Nome.
+- ER-09 ✅ — Playwright "names the map providers" in the three languages; web type check passes.
+- ER-10 ✅ — Jest; simulator: rows from 3 characters, pick fills Nome/address/point, tap moves the marker and the
+  hint reads "Toque para mover o ponto", "Salvar local" adds and selects the location.
+- ER-11 ✅ — Jest; simulator on **Editar aula**: Gerir → pencils, "Novo local" hidden, Concluir; a location without
+  a point opens on Fortaleza with "Salvar" off; the notify box ticked with "1 aula futura usa este local." /
+  "6 aulas futuras…"; "Salvar" → "Local atualizado", row updated, selection kept.
+- ER-12 ✅ — Jest; simulator on Editar aula: "Remover local?" with the one-class line, "Manter" returns to the edit
+  sheet and sends nothing, confirm → "Praia do Futuro removido", the selection cleared and Save off, the row kept
+  with "Removido" and re-selectable.
+- ER-13 ✅ — Jest; simulator: the details show the 96 pt map with the marker and "Direções", which opened Apple Maps
+  with directions to the stored point.
+- ER-14 ✅ — `src/modules/notifications/hooks -t "location.changed"` (no push token in the simulator).
+
+**Findings**
+
+- [ ] **F-01** (requirement) — after an admin edits a location in the app, the classes already loaded keep showing
+  the old values: `useEditLocation` only replaces the row in `["locations"]`, and nothing invalidates `["classes"]`
+  (D-18 does it for a received push, but the editing admin gets no push). Requirements → Editing a location says the
+  edit applies to every class that uses it, and the editor sees the opposite. Reproduce (simulator): open the details
+  of a class at location L (which shows L's cancellation deadline) → tools → Editar aula → Gerir → L → change the
+  address → Salvar ("Local atualizado") → back. The details still show the old address and the old "Cancelamento
+  até…" line, while `GET /classes/<id>` answers the new address and no deadline; the "Removido" row on Editar aula
+  showed the old address too. Expected: on a 200 from `PUT /locations/:id` the app reloads the cached classes (week
+  lists and details), so they show the new name, address, point and the cleared deadline; covered by a hook or
+  screen test.
+
+**Notes**
+
+- The sheet's map re-centres on every tap on iOS (the marker lands in the middle), although
+  `location-map-picker.hook.ts` intends a tap not to re-centre and its test says so — the Jest mock can't show it.
+  D-14 doesn't forbid it, so it isn't a finding; worth a look with the native component.
+- While Endereço is focused with 5 suggestion rows, the rest of the sheet (map, "Salvar") is pushed off-screen and
+  the sheet can't scroll (`contentPanningEnabled={false}`); Return or picking a row brings it back. The rows also
+  arrive 300 ms later and shift the layout under a finger already moving to the map.
+- `PrismaLocationRepository.update` isn't conditional on `archived_at IS NULL`: an edit racing an archive could write
+  `name_key` back on an archived row and bind its name again. Not covered by any ER; an `updateMany` with the
+  condition (409 `location.archived` on 0 rows) would close it.
+- Google Places (New) usually answers 400, not 404, for a malformed place id, which the adapter maps to 502
+  `location.suggestions.unavailable` rather than 404 `location.place.notFound`. Only reachable with a forged id.
+- Data left in the shared dev database by this review (delete was not done without the user's go-ahead): class
+  `dd19ecc0-0423-48d8-bc75-3afb0b1bf805` (tomorrow 12:00, Dev Instructor), archived location
+  `1d100137-f5c7-4643-812b-dc7053b40a7d` ("Praia do Futuro"), notifications
+  `b9e4edb5-e08b-4031-9aa8-8a7a0bc4a174` (`class.assigned`) and `344a08ca-d3a0-4775-b74a-d86d6c33133b`
+  (`location.changed`). The location "Review R2 Beach" and its classes were already there and were not touched.
+- Memory Impact matches what was built; `spec-finish` may also mention `FormSection`'s `action` prop and
+  `useDebouncedValue`.

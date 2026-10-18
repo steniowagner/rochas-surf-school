@@ -245,12 +245,16 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-04** — Implement `delete` (D-04) in `src/modules/classes/school-class.prisma.ts` and add
+- [x] **T-04** — Implement `delete` (D-04) in `src/modules/classes/school-class.prisma.ts` and add
   `NoEnrolmentPendingRequestCounter` (`src/modules/classes/no-enrolment.pending-request-counter.ts`, answers 0), with
   cases named "delete" in `school-class.prisma.spec.ts` and `no-enrolment.pending-request-counter.spec.ts`.
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-03, ER-04 · Done when: `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/no-enrolment.pending-request-counter.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-18 00:00 — implemented PrismaSchoolClassRepository.delete (one deleteMany on id, cancelledAt null, startsAt > now; instructor rows go by ON DELETE CASCADE) and NoEnrolmentPendingRequestCounter, with specs;
+  > files: `apps/backend/src/modules/classes/school-class.prisma.ts`, `apps/backend/src/modules/classes/school-class.prisma.spec.ts`, `apps/backend/src/modules/classes/no-enrolment.pending-request-counter.ts`, `apps/backend/src/modules/classes/no-enrolment.pending-request-counter.spec.ts`;
+  > verified: `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/no-enrolment.pending-request-counter.spec.ts` from apps/backend (13 passed);
+  > deviations: none (extended the existing repository file by hand, as the skill's pattern is already in place)
 
 - [ ] **T-05** — Add the D-06 catalog entry for `class.deleted` to `src/modules/notifications/push-messages.ts`,
   with cases in `push-messages.spec.ts` (three locales).

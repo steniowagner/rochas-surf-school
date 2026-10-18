@@ -38,6 +38,7 @@ function setup() {
       calls.push('class');
       return { count: 1 };
     }),
+    deleteMany: vi.fn(async () => ({ count: 1 })),
   };
   const classInstructor = {
     createMany: vi.fn(async () => calls.push('instructors')),
@@ -266,5 +267,22 @@ describe('PrismaSchoolClassRepository', () => {
     classInstructor.createMany.mockRejectedValue(new Error('down'));
 
     await expect(repository.update(domain())).rejects.toThrow('down');
+  });
+
+  it('delete removes the class only while it is not cancelled and starts after now', async () => {
+    const { schoolClass, repository } = setup();
+
+    expect(await repository.delete(ID, NOW)).toBe(true);
+
+    expect(schoolClass.deleteMany).toHaveBeenCalledWith({
+      where: { id: ID, cancelledAt: null, startsAt: { gt: NOW } },
+    });
+  });
+
+  it('delete answers false when no row matched: cancelled, started or already gone', async () => {
+    const { schoolClass, repository } = setup();
+    schoolClass.deleteMany.mockResolvedValueOnce({ count: 0 });
+
+    expect(await repository.delete(ID, NOW)).toBe(false);
   });
 });

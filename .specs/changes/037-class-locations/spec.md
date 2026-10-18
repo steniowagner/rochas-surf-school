@@ -729,9 +729,16 @@ es.
   > details.screen.test.tsx src/modules/classes/utils/map --forceExit --coverage (85 passed, touched files 100%);
   > tsc and eslint clean. Deviations: none.
 
-- [ ] **T-19** — `location.changed` in `useNotificationResponse` (the classes tab by flow) and `useNotificationReceived`
+- [x] **T-19** — `location.changed` in `useNotificationResponse` (the classes tab by flow) and `useNotificationReceived`
   (invalidate `["classes"]` and `["locations"]`), with tests named `location.changed`.
   Covers: ER-14 · Done when: `cd apps/mobile && npx jest src/modules/notifications/hooks --coverage` passes.
+  > ✅ 2026-10-18 15:21 — useNotificationResponse opens the classes tab of an instructor or an admin for a
+  > location.changed tap (like class.assigned); useNotificationReceived reloads [classes] and [locations] for a
+  > location.changed push received with the app open, without navigating; tests named location.changed. Files:
+  > apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts,
+  > apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts and their .test.tsx. Verified:
+  > cd apps/mobile && npx jest src/modules/notifications/hooks --forceExit --coverage (70 passed, both hooks
+  > 100%); tsc and eslint clean. Deviations: none.
 
 ### Verification
 

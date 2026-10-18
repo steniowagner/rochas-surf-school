@@ -201,6 +201,26 @@ describe("useNotificationResponse", () => {
     expect(meCalls()).toHaveLength(1);
   });
 
+  it("opens the Aulas tab of an instructor who taps a location.changed push", async () => {
+    answerMe(account("approved", "instructor", true));
+    await openApp(account("approved", "instructor", true));
+    expect(app.getPathname()).toBe(routes.instructor.home);
+
+    await tap(response("location.changed"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.classes));
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it("opens the admin's Aulas tab for a location.changed push", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("location.changed"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.classes));
+  });
+
   it("opens the admin's Aulas tab for a class.deleted push", async () => {
     answerMe(account("approved", "admin", true));
     await openApp(account("approved", "admin", true));

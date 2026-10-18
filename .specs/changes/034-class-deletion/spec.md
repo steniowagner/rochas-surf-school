@@ -2,7 +2,7 @@
 id: "034"
 slug: class-deletion
 title: "Deleting a class"
-status: in-progress
+status: in-review
 created: 2026-10-17
 started: 2026-10-17
 base_commit: 7ee63d036b5044adb89d4174ff5e664453ed4c7c
@@ -340,12 +340,14 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
 
 ### Verification
 
-- [ ] **T-13** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
+- [x] **T-13** — Run every command in the Verification Plan from the repo root and follow its user journeys; all
   pass. Record the output summary as evidence.
   Covers: all · Done when: every automated command passes (`COVERAGE OK`, `E2E PASSED`) and both journeys show what
   they describe.
-  > ⛔ 2026-10-18 00:12 — automated part done, user journeys not driven. Passed: `node .specs/scripts/run-related-tests.mjs 034` (RELATED TESTS PASSED: backend, mobile, classes, notifications), `node .specs/scripts/check-coverage.mjs 034` (COVERAGE OK, 19 files), `node .specs/scripts/run-e2e.mjs 034` (E2E PASSED), `npx turbo run lint check-types` (16 tasks ok) and `npx turbo run build` (7 tasks ok) for classes, notifications, backend and mobile.
-  > Still to do on the iOS simulator against a local backend: (1) as an approved admin create a class for tomorrow, open its tools, check "Excluir aula" sits below "Cancelar aula", "Manter aula" keeps the class, "Excluir aula" shows "Aula excluída", leaves the details and the class is gone from tomorrow; (2) create a class starting in a minute and, once "Em andamento", check the tools show only "Editar aula", the notify placeholder and "Cancelar aula"; cancel it and check the tools disappear.
+  > ✅ 2026-10-18 00:18 — ran every Verification Plan command and both user journeys; files: none changed;
+  > verified: `node .specs/scripts/run-related-tests.mjs 034` (RELATED TESTS PASSED: backend, mobile, classes, notifications), `node .specs/scripts/check-coverage.mjs 034` (COVERAGE OK, 19 files), `node .specs/scripts/run-e2e.mjs 034` (E2E PASSED), `npx turbo run lint check-types` (16 tasks ok), `npx turbo run build` (7 tasks ok);
+  > journeys on the iOS simulator (iPhone 18 Pro, local backend, dev admin account): (1) a class for tomorrow 08:00 -> tools show "Delete class" below "Cancel class"; "Delete this class?" with the line "Surf Beginner · Tomorrow · 19 Oct, 08:00 – 09:00 · Review R2 Beach"; "Keep class" closed the sheet and the class stayed in the database; "Delete class" showed the toast "Class deleted", left the details, the class was gone from Mon 19 (the 12:00 class stayed), the class and its class_instructors rows were gone from Postgres and the instructor got a `class.deleted` notification with `{discipline, startsAt}`; (2) a class starting in about a minute -> once "In progress" the tools showed only Edit class, Notify and Cancel class; cancelling it showed the toast "Class cancelled" and the tools button disappeared;
+  > deviations: the two test classes were inserted with SQL (the create flow is not what this spec changes) and the app ran in English (OS language), so the copy was checked in en-US; the second test class was removed afterwards
 
 ## Verification Plan
 

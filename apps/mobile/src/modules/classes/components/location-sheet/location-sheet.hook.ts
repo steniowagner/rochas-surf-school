@@ -5,90 +5,199 @@ import { useTranslation } from "react-i18next";
 
 import { useAlertMessage } from "@/providers/alert-message";
 
+import { AddressSuggestion, ClassLocation } from "../../classes.types";
+import { useAddressPlace } from "../../hooks/use-address-place.hook";
+import { SUGGESTIONS_MIN_LENGTH, useAddressSuggestions } from "../../hooks/use-address-suggestions.hook";
+import { useArchiveLocation } from "../../hooks/use-archive-location.hook";
 import { useCreateLocation } from "../../hooks/use-create-location.hook";
-import { getClassErrorKey, isDuplicateLocationError } from "../../utils/class-error";
+import { useEditLocation } from "../../hooks/use-edit-location.hook";
+import {
+  getLocationErrorKey,
+  isDuplicateLocationError,
+  isLocationGoneError,
+} from "../../utils/class-error";
 import { LOCATIONS_QUERY_KEY } from "../../utils/locations-cache";
+import { toMapPoint } from "../../utils/map";
+import { newSessionToken } from "../../utils/session-token";
 
-import { UseLocationSheetProps } from "./location-sheet.types";
+import { LocationSheetFields, UseLocationSheetProps } from "./location-sheet.types";
+
+const fieldsOf = (location: ClassLocation | null | undefined): LocationSheetFields => ({
+  name: location?.name ?? "",
+  address: location?.address ?? "",
+  point: location ? toMapPoint(location) : null,
+  notify: true,
+});
 
 export const useLocationSheet = ({
   visible,
   locations,
+  location,
   onClose,
   onCreated,
+  onRemoved,
 }: UseLocationSheetProps) => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
   const queryClient = useQueryClient();
   const createLocation = useCreateLocation();
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
+  const editLocation = useEditLocation();
+  const archiveLocation = useArchiveLocation();
+  const [fields, setFields] = useState(() => fieldsOf(location));
+  // What the suggestions are asked for: what the admin typed, and nothing after a suggestion was picked.
+  const [searchText, setSearchText] = useState("");
+  const [sessionToken, setSessionToken] = useState(newSessionToken);
   // The backend found the name taken, which the loaded list didn't show.
   const [duplicatedByServer, setDuplicatedByServer] = useState(false);
+  const [archiveVisible, setArchiveVisible] = useState(false);
   const [wasVisible, setWasVisible] = useState(visible);
+  const suggestionsQuery = useAddressSuggestions(searchText, sessionToken);
+  const addressPlace = useAddressPlace(sessionToken);
 
-  const reset = () => {
-    setName("");
-    setAddress("");
-    setDuplicatedByServer(false);
-  };
-
-  // The text never outlives the sheet: whatever closes it, it opens empty.
+  // Whatever closes the sheet, it opens again with the location's values (or empty) and a new suggestion session.
   if (wasVisible !== visible) {
     setWasVisible(visible);
-    if (!visible) {
-      reset();
+    setFields(fieldsOf(visible ? location : null));
+    setSearchText("");
+    setDuplicatedByServer(false);
+    setArchiveVisible(false);
+
+    if (visible) {
+      setSessionToken(newSessionToken());
     }
   }
 
-  const key = normalizeLocationName(name);
+  const editing = Boolean(location);
+  const key = normalizeLocationName(fields.name);
   const duplicate =
     duplicatedByServer ||
     (key !== "" &&
-      locations.some((item) => normalizeLocationName(item.name) === key));
-  const canSubmit = name.trim() !== "" && address.trim() !== "" && !duplicate;
+      locations.some(
+        (item) => item.id !== location?.id && normalizeLocationName(item.name) === key,
+      ));
+  const canSubmit =
+    fields.name.trim() !== "" && fields.address.trim() !== "" && fields.point !== null && !duplicate;
+  const upcomingClasses = location?.upcomingClasses ?? 0;
+  const searching = searchText.trim().length >= SUGGESTIONS_MIN_LENGTH;
 
-  const changeName = (text: string) => {
-    setName(text);
+  const changeName = (name: string) => {
+    setFields((current) => ({ ...current, name }));
     setDuplicatedByServer(false);
   };
 
-  const submit = async () => {
-    // The button is off while the name is repeated or a field is empty, and ignores presses while sending.
-    try {
-      const location = await createLocation.mutateAsync({
-        name: name.trim(),
-        address: address.trim(),
-      });
+  const changeAddress = (address: string) => {
+    setFields((current) => ({ ...current, address }));
+    setSearchText(address);
+  };
 
-      onCreated(location);
+  const changeNotify = (notify: boolean) => setFields((current) => ({ ...current, notify }));
+
+  const changePoint = (point: NonNullable<typeof fields.point>) =>
+    setFields((current) => ({ ...current, point }));
+
+  const pickSuggestion = async (suggestion: AddressSuggestion) => {
+    setSearchText("");
+
+    try {
+      const place = await addressPlace.mutateAsync(suggestion.placeId);
+
+      setFields((current) => ({
+        ...current,
+        address: place.address.slice(0, LOCATION_ADDRESS_MAX),
+        point: { latitude: place.latitude, longitude: place.longitude },
+        // The place's name only fills an empty Nome: what the admin typed stays.
+        name: current.name.trim() === "" ? place.name.slice(0, LOCATION_NAME_MAX) : current.name,
+      }));
+    } catch {
+      // No toast: the admin can still type the address and tap the map.
+    }
+  };
+
+  const handleSaveError = async (error: unknown) => {
+    if (isDuplicateLocationError(error)) {
+      setDuplicatedByServer(true);
+      await queryClient.invalidateQueries({ queryKey: LOCATIONS_QUERY_KEY });
+      return;
+    }
+
+    const messageKey = getLocationErrorKey(error);
+
+    if (messageKey !== null) {
+      alertMessage.show(t(messageKey));
+    }
+
+    if (isLocationGoneError(error)) {
+      await queryClient.invalidateQueries({ queryKey: LOCATIONS_QUERY_KEY });
+      onClose();
+      // The row is gone for good: a selected one must leave the form too.
+      onRemoved?.(location!.id);
+    }
+  };
+
+  const submit = async () => {
+    // The button is off while a field is empty, the point is missing or the name is repeated, and ignores presses
+    // while sending.
+    const body = {
+      name: fields.name.trim(),
+      address: fields.address.trim(),
+      latitude: fields.point!.latitude,
+      longitude: fields.point!.longitude,
+    };
+
+    try {
+      if (location) {
+        await editLocation.mutateAsync({
+          id: location.id,
+          ...body,
+          ...(upcomingClasses > 0 ? { notify: fields.notify } : {}),
+        });
+        alertMessage.show(t("locationSheet.updated"));
+      } else {
+        onCreated(await createLocation.mutateAsync(body));
+      }
+
       onClose();
     } catch (error) {
-      if (isDuplicateLocationError(error)) {
-        setDuplicatedByServer(true);
-        await queryClient.invalidateQueries({ queryKey: LOCATIONS_QUERY_KEY });
-        return;
-      }
+      await handleSaveError(error);
+    }
+  };
 
-      const messageKey = getClassErrorKey(error);
-
-      if (messageKey !== null) {
-        alertMessage.show(t(messageKey));
-      }
+  const confirmArchive = async () => {
+    try {
+      await archiveLocation.mutateAsync(location!.id);
+      alertMessage.show(t("archiveLocation.removed", { name: location!.name }));
+      setArchiveVisible(false);
+      onClose();
+      onRemoved?.(location!.id);
+    } catch (error) {
+      setArchiveVisible(false);
+      await handleSaveError(error);
     }
   };
 
   return {
-    name,
-    address,
+    editing,
+    fields,
     nameMaxLength: LOCATION_NAME_MAX,
     addressMaxLength: LOCATION_ADDRESS_MAX,
+    // The query lags the text by the debounce: rows of an older text never show for a text too short to search.
+    suggestions: searching ? (suggestionsQuery.data?.items ?? []) : [],
+    showNotify: editing && upcomingClasses > 0,
+    upcomingClasses,
     duplicate,
     canSubmit,
-    loading: createLocation.isPending,
+    loading: createLocation.isPending || editLocation.isPending,
+    archiving: archiveLocation.isPending,
+    archiveVisible,
     changeName,
-    changeAddress: setAddress,
+    changeAddress,
+    changeNotify,
+    changePoint,
+    pickSuggestion,
     submit,
+    openArchive: () => setArchiveVisible(true),
+    closeArchive: () => setArchiveVisible(false),
+    confirmArchive,
     close: onClose,
   };
 };

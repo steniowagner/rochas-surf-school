@@ -653,13 +653,34 @@ es.
   > clean. Deviations: the suggestion rows hide on blur, so the sheet (T-16) must keep the field focused while a
   > row is pressed; the 170 pt height is a spec-given size written as the h-[170px] class.
 
-- [ ] **T-16** — `LocationSheet` in its two modes (D-14: create and edit, the suggestions and the place, the point, the
+- [x] **T-16** — `LocationSheet` in its two modes (D-14: create and edit, the suggestions and the place, the point, the
   notify checkbox, "Salvar local" / "Salvar", "Remover local", `contentPanningEnabled={false}`, the D-16 errors) and
   `archive-location-sheet` (the confirmation), with tests.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-10, ER-11, ER-12 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/location-sheet src/modules/classes/components/archive-location-sheet --coverage`
   passes.
+  > ✅ 2026-10-18 15:12 — LocationSheet now has two modes (Novo local / Editar local): Nome with the inline
+  > duplicate message (ignoring the edited location), Endereço through AddressSearchField (suggestions 300 ms
+  > after the last keystroke from 3 characters; picking one sets the address and the point, fills Nome only when
+  > empty, hides the rows; failures of suggestions or place show nothing), Ponto no mapa through
+  > LocationMapPicker, the notify Checkbox only when editing a location with upcoming classes (ticked by default,
+  > sent as notify), Salvar local / Salvar, Remover local (outline, editing only) and Cancelar,
+  > contentPanningEnabled={false}, a new suggestion session token each time it opens, the D-16 errors (duplicate
+  > inline, gone -> toast + reload + close + onRemoved, others by getLocationErrorKey); ArchiveLocationSheet
+  > ('Remover local?': name, address, the 'stay as they are' line only when upcomingClasses > 0, Remover local /
+  > Manter) driven by the sheet's hook (archive -> toast '<nome> removido', close, onRemoved). Files:
+  > apps/mobile/src/modules/classes/components/location-sheet/{location-sheet.component.tsx,location-
+  > sheet.hook.ts,location-sheet.types.ts,location-sheet.component.test.tsx},
+  > apps/mobile/src/modules/classes/components/archive-location-sheet/{index.ts,archive-location-
+  > sheet.component.tsx,archive-location-sheet.types.ts,archive-location-sheet.component.test.tsx},
+  > apps/mobile/src/modules/classes/utils/session-token.ts, apps/mobile/src/modules/classes/utils/session-
+  > token.test.ts. Verified: cd apps/mobile && npx jest src/modules/classes/components/location-sheet
+  > src/modules/classes/components/archive-location-sheet --forceExit --coverage (34 passed; component and hook
+  > files 100%). Deviations: single-file Jest runs here need --forceExit (react-query mutation GC timers keep the
+  > process open; same before this spec); the session token is a UUID v4 from Math.random (no crypto polyfill in
+  > the app); the screens' wiring and the remaining type errors in location-picker.component.test.tsx and edit-
+  > class.screen.hook.ts are T-17.
 
 - [ ] **T-17** — The "Gerir" / "Concluir" mode of `LocationPicker` and its wiring in `NewClassScreen` and
   `EditClassScreen` (D-15: edit from a row, the selection kept on edit and cleared on removal, the "Removido" row of a

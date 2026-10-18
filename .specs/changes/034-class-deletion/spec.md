@@ -299,11 +299,15 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   > verified: `npx jest src/modules/classes/hooks/use-delete-class.hook.test.tsx src/modules/classes/utils/class-error.test.ts` from apps/mobile (41 passed);
   > deviations: none
 
-- [ ] **T-09** — Add `DeleteClassSheet` (`src/modules/classes/components/delete-class-sheet/`: component, hook, types,
+- [x] **T-09** — Add `DeleteClassSheet` (`src/modules/classes/components/delete-class-sheet/`: component, hook, types,
   index; D-08) with the `deleteClass` copy (D-13) in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, and its component
   test (both variants, the class line, confirm, keep, cancel instead, loading).
   Covers: ER-08, ER-09 · Done when: `npx jest src/modules/classes/components/delete-class-sheet` passes from
   `apps/mobile`.
+  > ✅ 2026-10-18 00:08 — added DeleteClassSheet (confirm / notEmpty variants, class line, danger + ghost buttons) and the `deleteClass` copy plus `classTools.delete` in the three locales;
+  > files: `apps/mobile/src/modules/classes/components/delete-class-sheet/{delete-class-sheet.component.tsx,delete-class-sheet.types.ts,index.ts,delete-class-sheet.component.test.tsx}`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`;
+  > verified: `npx jest src/modules/classes/components/delete-class-sheet` from apps/mobile (6 passed);
+  > deviations: no `delete-class-sheet.hook.ts` — the sheet has no state or logic of its own (react.md: create the hook only when needed); the variant is a prop the screen controls
 
 - [ ] **T-10** — Add `onDelete` / `canDelete` and the "Excluir aula" button to `ClassToolsSheet`
   (`src/modules/classes/components/class-tools-sheet/`, D-09) with the `classTools.delete` copy, and cases named

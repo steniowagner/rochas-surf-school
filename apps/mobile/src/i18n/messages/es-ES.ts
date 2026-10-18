@@ -475,11 +475,26 @@ const messages: Messages = {
       finished: "Esta clase ya terminó y no se puede cancelar.",
     },
   },
+  deleteClass: {
+    title: "¿Eliminar esta clase?",
+    description: "Avisamos a los instructores y la clase sale de la agenda. No se puede deshacer.",
+    confirm: "Eliminar clase",
+    notEmpty: {
+      title: "No se puede eliminar",
+      description: "Alguien ya pidió plaza o está inscrito en esta clase. Solo se pueden eliminar clases sin nadie: cancélala en su lugar.",
+    },
+    done: "Clase eliminada",
+    errors: {
+      started: "La clase ya empezó y no se puede eliminar.",
+      cancelled: "Esta clase fue cancelada y no se puede eliminar.",
+    },
+  },
   classTools: {
     title: "Herramientas de la clase",
     edit: "Editar clase",
     notify: "Avisar a alumnos e instructores",
     cancel: "Cancelar clase",
+    delete: "Eliminar clase",
   },
   editClass: {
     title: "Editar clase",

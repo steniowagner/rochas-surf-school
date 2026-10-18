@@ -9,6 +9,7 @@ import { OtpInput } from "@/components/ui/otp-input";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { useTheme } from "@/hooks/use-theme";
+import { useKeyboardOffset } from "@/navigation/stack-header";
 
 import { CODE_LENGTH, useConfirmCode } from "./confirm-code.hook";
 import { ConfirmCodeProps } from "./confirm-code.types";
@@ -17,6 +18,7 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const {
     code,
     isCountingDown,
@@ -33,6 +35,7 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View

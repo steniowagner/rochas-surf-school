@@ -8,6 +8,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { useKeyboardOffset } from "@/navigation/stack-header";
 
 import { useEmailSignIn } from "./email-sign-in.hook";
 import { EmailSignInProps } from "./email-sign-in.types";
@@ -19,12 +20,14 @@ export function EmailSignIn({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const { emailField, canSubmit, isSending, submit, createAccount } =
     useEmailSignIn({ onCodeRequested, onCreateAccountPress });
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View

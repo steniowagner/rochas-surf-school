@@ -10,6 +10,7 @@ import { ReactElement } from "react";
 import { Platform } from "react-native";
 
 import i18n from "@/i18n";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { EmailSignIn } from "./email-sign-in.component";
@@ -79,6 +80,12 @@ describe("EmailSignIn", () => {
     expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: cta })).toBeOnTheScreen();
     expect(screen.getByPlaceholderText(placeholder)).toBeOnTheScreen();
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() => renderScreen(<EmailSignIn />));
+
+    expect(offset).toBe(64);
   });
 
   it("renders on Android, where the keyboard does not add padding", async () => {

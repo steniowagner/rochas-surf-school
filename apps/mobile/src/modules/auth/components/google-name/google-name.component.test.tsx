@@ -12,6 +12,7 @@ import { Keyboard, Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { GoogleName } from "./google-name.component";
@@ -64,6 +65,14 @@ describe("GoogleName", () => {
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toHaveDisplayValue(
       "Maria",
     );
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() =>
+      renderScreen(<GoogleName idToken="token" />),
+    );
+
+    expect(offset).toBe(64);
   });
 
   it("renders the form on Android, where the keyboard does not add padding", async () => {

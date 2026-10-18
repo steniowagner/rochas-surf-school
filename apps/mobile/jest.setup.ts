@@ -9,6 +9,11 @@ jest.mock("expo-localization", () => ({
   getLocales: jest.fn(() => [{ languageCode: "en" }]),
 }));
 
+// There is no navigator (so no header) around a component rendered alone: a fixed header height in its place.
+jest.mock("@/navigation/stack-header/keyboard-offset.hook", () => ({
+  useKeyboardOffset: jest.fn(() => 64),
+}));
+
 jest.mock("react-native-reanimated", () =>
   require("react-native-reanimated/mock"),
 );
@@ -52,7 +57,9 @@ jest.mock("expo-notifications", () => ({
     .fn()
     .mockResolvedValue({ data: "ExponentPushToken[test]" }),
   getLastNotificationResponse: jest.fn(() => null),
-  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  addNotificationResponseReceivedListener: jest.fn(() => ({
+    remove: jest.fn(),
+  })),
   addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 
@@ -65,7 +72,12 @@ jest.mock("@expo/ui/community/datetime-picker", () => {
     style,
     testID,
   }: Record<string, unknown>) =>
-    require("react").createElement("View", { testID, value, onValueChange, style });
+    require("react").createElement("View", {
+      testID,
+      value,
+      onValueChange,
+      style,
+    });
 
   return { __esModule: true, default: DateTimePicker, DateTimePicker };
 });

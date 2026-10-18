@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: changes-requested
+status: in-progress
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -184,7 +184,7 @@ Expo Router, which stays fixed at the top while only the content scrolls.
 
 **Findings**
 
-- [ ] **F-01** (ER-01) — the six screens that wrap their content in a `KeyboardAvoidingView` and now sit below the
+- [x] **F-01** (ER-01) — the six screens that wrap their content in a `KeyboardAvoidingView` and now sit below the
   header (`modules/auth/components/{email-sign-in,create-account,confirm-code,google-name}` and
   `modules/profile/components/{edit-profile,profile-whatsapp}`) pass no `keyboardVerticalOffset`. React Native's
   `KeyboardAvoidingView` computes its padding from its `onLayout` frame, which is relative to its parent (y = 0),
@@ -198,6 +198,7 @@ Expo Router, which stays fixed at the top while only the content scrolls.
   Editar perfil and tap Nome: "Salvar" stays behind the keyboard. Expected: it sits just above the keyboard, as
   before the spec — e.g. `keyboardVerticalOffset={useHeaderHeight()}` (`useHeaderHeight` from `expo-router/react-navigation`; `@react-navigation/elements` is not a direct dependency) on these
   views, with a test asserting the offset.
+  > ✅ 2026-10-18 — added `useKeyboardOffset` (wraps `useHeaderHeight` from `expo-router/react-navigation`) and passed it as `keyboardVerticalOffset` on the six views; `jest.setup.ts` mocks it to 64 for components rendered without a navigator, the hook has its own test with the real context, and each of the six screens asserts the offset (the edit-profile test fails when the prop is removed); files: `apps/mobile/src/navigation/stack-header/{index.ts,keyboard-offset.hook.ts,keyboard-offset.hook.test.tsx,keyboard-offset.test-utils.ts}`, `apps/mobile/jest.setup.ts`, `apps/mobile/src/modules/auth/components/{email-sign-in,create-account,confirm-code,google-name}/*.component.tsx` and their tests, `apps/mobile/src/modules/profile/components/{edit-profile,profile-whatsapp}/*.component.tsx`, `apps/mobile/src/modules/profile/screens/{edit-profile,profile-whatsapp}.screen.test.tsx`; verified: `node .specs/scripts/run-related-tests.mjs 038` (570 passed), `check-coverage.mjs 038` COVERAGE OK, `npx turbo run lint check-types build --filter=@rochas-surf-school/mobile` ✅; not verified: the software keyboard in the simulator; deviations: none
 
 **Notes**
 

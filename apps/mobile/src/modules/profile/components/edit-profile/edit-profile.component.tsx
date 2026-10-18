@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { useKeyboardOffset } from "@/navigation/stack-header";
 
 import { ProfileAvatar } from "../profile-avatar";
 
@@ -21,6 +22,7 @@ export function EditProfile() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const {
     currentName,
     email,
@@ -34,6 +36,7 @@ export function EditProfile() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View

@@ -15,6 +15,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { useKeyboardOffset } from "@/navigation/stack-header";
 
 import { useCreateAccount } from "./create-account.hook";
 import { CreateAccountProps } from "./create-account.types";
@@ -26,6 +27,7 @@ export function CreateAccount({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const emailInputRef = useRef<NativeTextInput>(null);
   const { nameField, emailField, canSubmit, isSending, submit } =
     useCreateAccount({
@@ -36,6 +38,7 @@ export function CreateAccount({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View

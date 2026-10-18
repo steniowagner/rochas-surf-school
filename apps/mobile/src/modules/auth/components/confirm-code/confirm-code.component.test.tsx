@@ -13,6 +13,7 @@ import { Platform, TextInput as NativeTextInput } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { ConfirmCode } from "./confirm-code.component";
@@ -166,6 +167,14 @@ describe("ConfirmCode", () => {
     await user.press(screen.getByRole("link", { name: "change the email" }));
 
     expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() =>
+      renderScreen(<ConfirmCode email={EMAIL} name={NAME} />),
+    );
+
+    expect(offset).toBe(64);
   });
 
   it("renders on Android, where the keyboard does not add padding", async () => {

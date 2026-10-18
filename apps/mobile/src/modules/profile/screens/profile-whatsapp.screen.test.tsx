@@ -7,6 +7,7 @@ import {
 import { router } from "expo-router";
 import { Platform, Text } from "react-native";
 
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { useSession } from "@/providers/session";
 import { NetworkError } from "@/services/api";
 
@@ -87,6 +88,12 @@ describe("ProfileWhatsappScreen", () => {
       whatsappVisible: true,
     });
     expect(screen.getByText("visible: true")).toBeOnTheScreen();
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() => open());
+
+    expect(offset).toBe(64);
   });
 
   it("renders on Android, where the keyboard resizes the window", async () => {

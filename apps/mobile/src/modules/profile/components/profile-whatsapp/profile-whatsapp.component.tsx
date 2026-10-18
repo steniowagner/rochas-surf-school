@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { WhatsappNumberForm } from "@/components/whatsapp-number-form";
 import { useTheme } from "@/hooks/use-theme";
+import { useKeyboardOffset } from "@/navigation/stack-header";
 
 import { useProfileWhatsapp } from "./profile-whatsapp.hook";
 
@@ -13,12 +14,14 @@ export function ProfileWhatsapp() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const { whatsappNumber, whatsappVisible, isSaving, submit } =
     useProfileWhatsapp();
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View

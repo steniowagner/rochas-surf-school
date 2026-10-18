@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { useKeyboardOffset } from "@/navigation/stack-header";
 
 import { useGoogleName } from "./google-name.hook";
 import { GoogleNameProps } from "./google-name.types";
@@ -19,6 +20,7 @@ export function GoogleName({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const { nameField, canSubmit, isSending, submit } = useGoogleName({
     idToken,
     initialName,
@@ -28,6 +30,7 @@ export function GoogleName({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View

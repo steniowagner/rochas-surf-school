@@ -15,6 +15,7 @@ import {
   TOAST_VISIBLE_DURATION,
 } from "@/components/ui/toast/toast.hook";
 import i18n from "@/i18n";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { CreateAccount } from "./create-account.component";
@@ -86,6 +87,14 @@ describe("CreateAccount", () => {
       expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
       expect(screen.getByRole("button", { name: cta })).toBeOnTheScreen();
     });
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() =>
+      renderScreen(<CreateAccount />),
+    );
+
+    expect(offset).toBe(64);
   });
 
   it("renders the form on Android, where the keyboard does not add padding", async () => {

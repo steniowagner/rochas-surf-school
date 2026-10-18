@@ -2,7 +2,7 @@
 id: "035"
 slug: class-no-instructor
 title: "Classes left without an instructor"
-status: in-progress
+status: in-review
 created: 2026-10-17
 started: 2026-10-18
 base_commit: 5e736309fb305a7219c912592dd78af63b0f0e32

@@ -535,7 +535,7 @@ es.
   > notifier.spec.ts --coverage (see the run: passes, files fully covered); the whole notifications folder passes
   > (101 tests). Deviations: none.
 
-- [ ] **T-10** — `LocationsController`: `PUT /locations/:id`, `POST /locations/:id/archive` (204), the two
+- [x] **T-10** — `LocationsController`: `PUT /locations/:id`, `POST /locations/:id/archive` (204), the two
   address-suggestion routes (D-04, D-13; the suggestion routes declared before `:id` routes), the point on `GET` and
   `POST`; `ClassesModule` wiring (the notifier, the Google provider); `locations.integration.http`; the controller spec;
   `apps/backend/test/locations.e2e-spec.ts` extended with the `point`, `edit`, `deadline`, `notifies`, `archive` and
@@ -543,6 +543,21 @@ es.
   creates). Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-08 · Done when: `cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/locations.e2e-spec.ts`
   and the controller spec pass.
+  > ✅ 2026-10-18 14:51 — LocationsController: PUT /locations/:id (EditLocation with the location-change notifier
+  > and the clock), POST /locations/:id/archive (204), GET /locations/address-suggestions and /address-
+  > suggestions/:placeId (declared before the :id routes), the point on GET/POST (ListLocations with the clock);
+  > ClassesModule registers GooglePlacesAddressSuggestionProvider (NotificationsLocationChangeNotifier comes from
+  > NotificationsModule); locations.integration.http documents the new calls; the controller spec was rewritten;
+  > test/locations.e2e-spec.ts now overrides ExpoPushProvider, the Google provider and the classes clock (fixed in
+  > 2037 so the deadline job never meets its classes) and has the point, edit, deadline, notifies, archive and
+  > suggestions cases (each test deletes what it creates). Files:
+  > apps/backend/src/modules/classes/locations.controller.ts,
+  > apps/backend/src/modules/classes/locations.controller.spec.ts,
+  > apps/backend/src/modules/classes/classes.module.ts,
+  > apps/backend/src/modules/classes/locations.integration.http, apps/backend/test/locations.e2e-spec.ts.
+  > Verified: cd apps/backend && npx vitest run --config vitest.config.e2e.ts test/locations.e2e-spec.ts (43
+  > passed, against the local Postgres with the migration) and the controller spec (21 passed); tsc --noEmit and
+  > oxlint clean. Deviations: none.
 
 - [ ] **T-11** — `apps/backend/test/classes.e2e-spec.ts`: the `archived location` cases of ER-06 (batch and edit) and
   the `location point` cases of ER-07 (one class and the week, with and without a point, archived).

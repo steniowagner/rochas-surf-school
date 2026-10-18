@@ -1,4 +1,4 @@
-# Manual REST Client requests for GET and POST /locations (VS Code REST Client).
+# Manual REST Client requests for /locations (VS Code REST Client).
 # Sign in with an approved review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
 # Codes are read from the backend log when RESEND_API_KEY is unset.
 
@@ -28,19 +28,25 @@ Content-Type: application/json
 ###
 @token = {{session.response.body.accessToken}}
 
-### List every location, sorted by name ignoring case and accents (expects 200 with { items: [{ id, name, address }] }; any approved account)
+### List the active locations, sorted by name ignoring case and accents (expects 200 with { items: [{ id, name, address, latitude, longitude, upcomingClasses }] }; any approved account)
 GET {{baseUrl}}/locations
 Authorization: Bearer {{token}}
 
-### Create a location (expects 201 with { id, name, address }; admins only)
+### Create a location (expects 201 with { id, name, address, latitude, longitude, upcomingClasses: 0 }; admins only)
+# @name created
 POST {{baseUrl}}/locations
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
   "name": "Praia do Futuro",
-  "address": "Av. Zezé Diogo, 5000 – Fortaleza"
+  "address": "Av. Zezé Diogo, 5000 – Fortaleza",
+  "latitude": -3.7442,
+  "longitude": -38.4617
 }
+
+###
+@locationId = {{created.response.body.id}}
 
 ### The same name ignoring case and accents (expects 409 location.name.duplicate)
 POST {{baseUrl}}/locations
@@ -49,10 +55,12 @@ Content-Type: application/json
 
 {
   "name": "práia do futuro",
-  "address": "Outro endereço"
+  "address": "Outro endereço",
+  "latitude": -3.7,
+  "longitude": -38.5
 }
 
-### Empty name and address (expects 422 with errors location.name.required and location.address.required)
+### Empty name and address, no point (expects 422 with errors location.name.required, location.address.required and location.point.required)
 POST {{baseUrl}}/locations
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -72,5 +80,44 @@ Content-Type: application/json
 
 {
   "name": "Outro local",
-  "address": "Rua A"
+  "address": "Rua A",
+  "latitude": -3.7,
+  "longitude": -38.5
 }
+
+### A point out of range (expects 422 location.point.invalid)
+POST {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Fora do mapa",
+  "address": "Rua A",
+  "latitude": 91,
+  "longitude": -38.5
+}
+
+### Edit a location; it applies to every class that uses it. notify: true tells the instructors of its upcoming classes (expects 200 with the location; admins only)
+PUT {{baseUrl}}/locations/{{locationId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Praia do Futuro",
+  "address": "Av. Zezé Diogo, 5100 – Fortaleza",
+  "latitude": -3.7445,
+  "longitude": -38.4615,
+  "notify": true
+}
+
+### Remove (archive) a location: it leaves the list, its name is freed, its classes keep it (expects 204; again: 409 location.archived)
+POST {{baseUrl}}/locations/{{locationId}}/archive
+Authorization: Bearer {{token}}
+
+### Address suggestions from Google Places (expects 200 with { items: [{ placeId, title, description }] }, empty without GOOGLE_MAPS_API_KEY; admins only)
+GET {{baseUrl}}/locations/address-suggestions?q=praia%20do%20fut&sessionToken=abc123&language=pt-BR
+Authorization: Bearer {{token}}
+
+### The place behind a suggestion (expects 200 with { address, latitude, longitude, name }; 404 location.place.notFound when unknown)
+GET {{baseUrl}}/locations/address-suggestions/PLACE_ID?sessionToken=abc123&language=pt-BR
+Authorization: Bearer {{token}}

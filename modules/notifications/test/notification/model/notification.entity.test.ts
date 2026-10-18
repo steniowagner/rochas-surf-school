@@ -51,6 +51,17 @@ describe("Notification", () => {
     expect(notification.params).toEqual({ count: 4, discipline: "surf" });
   });
 
+  it("accepts a location.changed notification with its count and the new location name", () => {
+    const notification = build({
+      type: "location.changed",
+      params: { count: 2, locationName: "Praia do Futuro" },
+    });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe("location.changed");
+    expect(notification.params).toEqual({ count: 2, locationName: "Praia do Futuro" });
+  });
+
   it.each(["class.edited", "class.unassigned"] as const)(
     "accepts a %s notification with its class id, discipline and start",
     (type) => {

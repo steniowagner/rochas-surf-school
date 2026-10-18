@@ -461,9 +461,14 @@ es.
 
 ### Notifications (`modules/notifications`)
 
-- [ ] **T-06** — Add `location.changed` to `NOTIFICATION_TYPES`, with a test that a notification of that type with
+- [x] **T-06** — Add `location.changed` to `NOTIFICATION_TYPES`, with a test that a notification of that type with
   `{ count, locationName }` is valid.
   Covers: ER-04 · Done when: `cd modules/notifications && npx jest --coverage` passes.
+  > ✅ 2026-10-18 14:45 — Added location.changed to NOTIFICATION_TYPES plus a test that a notification of that type
+  > with { count, locationName } is valid (the it.each over every type also covers it). Files:
+  > modules/notifications/src/notification/model/notification.entity.ts,
+  > modules/notifications/test/notification/model/notification.entity.test.ts. Verified: cd modules/notifications
+  > && npx jest --coverage (103 passed, 100%); tsc and oxlint clean. Deviations: none.
 
 ### Backend (`apps/backend`)
 

@@ -399,12 +399,26 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   > command with `--coverage` (45 passed; the card component and hook and the week screen 100%), `-t "no instructor"`
   > on each file, `npx tsc --noEmit` in `apps/mobile` (no errors); deviations: none
 
-- [ ] **T-10** — Add the admin's "Sem instrutor" banner (opening the editor) and "Sem instrutor atribuído" to
+- [x] **T-10** — Add the admin's "Sem instrutor" banner (opening the editor) and "Sem instrutor atribuído" to
   `ClassDetailsScreen` (`src/modules/classes/screens/class-details.screen.tsx` and its hook, D-09), with the
   `classDetails.noInstructor` / `noInstructorAssigned` copy and cases named "no instructor" in
   `class-details.screen.test.tsx`.
   Covers: ER-08 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes from
   `apps/mobile`.
+  > ✅ 2026-10-18 — the details' hook returns `showNoInstructor` (`canEdit` and `isWithoutInstructor(instructors,
+  > state)`); the screen draws it first among the state banners: a `Pressable` row (role `button`, `min-h-11` = 44 pt)
+  > on `bg-warn-tint` with `person-remove-outline` (`theme.ink`, as the `warn` chip draws its icon), the title and
+  > description, opening `routes.admin.editClass(id)` (the hook's existing `edit`). The instructors section shows
+  > `classDetails.noInstructorAssigned` (`text-ink-2`) when the list is empty, for every role. Copy
+  > `classDetails.noInstructor.title` / `.description` and `classDetails.noInstructorAssigned` in the three locales.
+  > Tests written first (4 failed): the admin's banner opening the editor plus "No instructor assigned"; no banner
+  > for a student or an instructor; a started class with the started banner and "No instructor assigned"; nothing on
+  > a class with an instructor. files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`; verified:
+  > `npx jest src/modules/classes/screens/class-details.screen.test.tsx --coverage` (60 passed; screen and hook 100%),
+  > `npx tsc --noEmit` in `apps/mobile` (no errors); deviations: none
 
 - [ ] **T-11** — Handle `class.noInstructor` in `useNotificationResponse` (open the admin's class details) and
   `useNotificationReceived` (invalidate `["classes"]`) in `src/modules/notifications/hooks/` (D-10), with cases in

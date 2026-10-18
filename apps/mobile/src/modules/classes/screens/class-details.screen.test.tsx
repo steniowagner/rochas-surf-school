@@ -259,6 +259,59 @@ describe("ClassDetailsScreen", () => {
     expect(screen.getByText("In progress")).toBeOnTheScreen();
   });
 
+  describe("no instructor", () => {
+    const alone = (overrides: Partial<ClassItem> = {}) =>
+      makeClass({ instructors: [], ...overrides });
+
+    it("shows an admin the banner, which opens the editor, and No instructor assigned", async () => {
+      (router.push as jest.Mock).mockReset();
+      const user = userEvent.setup();
+      serve(alone());
+      await renderScreen(true);
+
+      expect(await screen.findByText("No instructor")).toBeOnTheScreen();
+      expect(screen.getByText("Assign an instructor before the class.")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("person-remove-outline"))).toBeOnTheScreen();
+      expect(screen.getByText("No instructor assigned")).toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /No instructor/ }));
+
+      expect(router.push).toHaveBeenCalledWith(routes.admin.editClass("c-1"));
+    });
+
+    it("shows a student or an instructor no banner, only No instructor assigned", async () => {
+      serve(alone());
+      await renderScreen();
+
+      expect(await screen.findByText("No instructor assigned")).toBeOnTheScreen();
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Assign an instructor before the class.")).not.toBeOnTheScreen();
+    });
+
+    it("shows the started banner instead on a started class, keeping No instructor assigned", async () => {
+      serve(
+        alone({
+          startsAt: "2026-10-14T12:00:00.000Z",
+          endsAt: "2026-10-14T14:00:00.000Z",
+        }),
+      );
+      await renderScreen(true);
+
+      expect(await screen.findByText("In progress")).toBeOnTheScreen();
+      expect(screen.getByText("No instructor assigned")).toBeOnTheScreen();
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
+    });
+
+    it("shows no banner on a class with an instructor", async () => {
+      serve(makeClass());
+      await renderScreen(true);
+
+      expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
+      expect(screen.queryByText("No instructor assigned")).not.toBeOnTheScreen();
+    });
+  });
+
   describe("cancelled", () => {
     const CANCELLED = { cancelledAt: "2026-10-13T10:00:00.000Z" };
 

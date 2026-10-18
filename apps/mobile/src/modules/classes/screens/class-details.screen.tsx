@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -102,6 +103,27 @@ export function ClassDetailsScreen({
                 {screen.dateLine}
               </Text>
             </View>
+            {screen.showNoInstructor ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={screen.edit}
+                className="min-h-11 flex-row items-center gap-3 rounded-card bg-warn-tint p-4"
+              >
+                <Ionicons
+                  name="person-remove-outline"
+                  size={24}
+                  color={theme.ink}
+                />
+                <View className="flex-1 gap-1">
+                  <Text className="ds-text-list-title text-ink">
+                    {t("classDetails.noInstructor.title")}
+                  </Text>
+                  <Text className="ds-text-list-subtitle text-ink-2">
+                    {t("classDetails.noInstructor.description")}
+                  </Text>
+                </View>
+              </Pressable>
+            ) : null}
             {screen.state === "started" ? (
               <View className="gap-1 rounded-card bg-sun p-4">
                 <Text className="ds-text-list-title text-on-color">
@@ -149,6 +171,11 @@ export function ClassDetailsScreen({
                   count: screen.instructors.length,
                 })}
               </Text>
+              {screen.instructors.length === 0 ? (
+                <Text className="ds-text-body text-ink-2">
+                  {t("classDetails.noInstructorAssigned")}
+                </Text>
+              ) : null}
               <View className="flex-row flex-wrap gap-2">
                 {screen.instructors.map((instructor) => (
                   <View

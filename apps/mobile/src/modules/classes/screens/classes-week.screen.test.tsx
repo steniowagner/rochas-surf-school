@@ -8,6 +8,7 @@ import * as api from "@/services/api";
 import type { ClassItem } from "../classes.types";
 import {
   fetchMock,
+  glyph,
   ok,
   requestedPaths,
   setupSignedInUser,
@@ -479,5 +480,27 @@ describe("ClassesWeekScreen admin entry points", () => {
     await act(async () => focusEffect());
 
     expect(fetchMock.mock.calls.length).toBe(calls);
+  });
+});
+
+describe("ClassesWeekScreen no instructor", () => {
+  const ALONE = makeClass("c-4", "2026-10-14T19:00:00.000Z", "2026-10-14T20:00:00.000Z", {
+    instructors: [],
+  });
+
+  it("shows the no instructor chip and footer to admins (showFlags)", async () => {
+    serveWeeks({ [THIS_MONDAY]: [ALONE] });
+    await renderScreen({ showFlags: true });
+
+    expect(await screen.findAllByText("No instructor")).toHaveLength(2);
+    expect(screen.getByText(glyph("person-remove-outline"))).toBeOnTheScreen();
+  });
+
+  it("shows only the footer text without showFlags", async () => {
+    serveWeeks({ [THIS_MONDAY]: [ALONE] });
+    await renderScreen();
+
+    expect(await screen.findAllByText("No instructor")).toHaveLength(1);
+    expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
   });
 });

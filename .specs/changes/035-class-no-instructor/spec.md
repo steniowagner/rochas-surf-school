@@ -371,13 +371,33 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-09** — Add `showFlags` and the "Sem instrutor" chip and footer to `ClassCard`
+- [x] **T-09** — Add `showFlags` and the "Sem instrutor" chip and footer to `ClassCard`
   (`src/modules/classes/components/class-card/`, D-08), pass `showFlags` from `ClassesWeekScreen` (new prop, set only
   in `src/app/(private)/admin/(tabs)/classes.tsx`), with the `classesWeek.noInstructor` copy in
   `src/i18n/messages/{pt-BR,es-ES,en-US}.ts` and cases named "no instructor" in the card's and the week screen's
   tests.
   Covers: ER-07 · Done when: `npx jest src/modules/classes/components/class-card src/modules/classes/screens/classes-week.screen.test.tsx`
   passes from `apps/mobile`.
+  > ✅ 2026-10-18 — `ClassCard` takes `showFlags` (default `false`); its hook returns `withoutInstructor`
+  > (`isWithoutInstructor(instructors, state)` with the state it already computes); with `showFlags`, a flagged class
+  > shows the `warn` `Chip` "Sem instrutor" (`person-remove-outline`) in the right chip slot; the instructors footer is
+  > now always drawn, with `classesWeek.noInstructor` in `text-ink-2` when the list is empty (it was hidden before).
+  > `ClassesWeekScreen` takes `showFlags` and passes it to each card; only the admin's Aulas route sets it. Copy
+  > `classesWeek.noInstructor` in the three locales. Tests written first (card: 3 failed; week screen: 1 failed): the
+  > footer for every role, the chip with `showFlags`, no chip once started ("In progress") or cancelled, neither with
+  > an instructor; the week screen with and without `showFlags`. The old "shows no footer without instructors" test
+  > became the footer test, since D-08 replaces the empty footer. files:
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`,
+  > `apps/mobile/src/app/(private)/admin/(tabs)/classes.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`; verified: the `Done when`
+  > command with `--coverage` (45 passed; the card component and hook and the week screen 100%), `-t "no instructor"`
+  > on each file, `npx tsc --noEmit` in `apps/mobile` (no errors); deviations: none
 
 - [ ] **T-10** — Add the admin's "Sem instrutor" banner (opening the editor) and "Sem instrutor atribuído" to
   `ClassDetailsScreen` (`src/modules/classes/screens/class-details.screen.tsx` and its hook, D-09), with the

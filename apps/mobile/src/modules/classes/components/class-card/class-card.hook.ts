@@ -1,4 +1,4 @@
-import { getClassState } from "@rochas-surf-school/classes";
+import { getClassState, isWithoutInstructor } from "@rochas-surf-school/classes";
 
 import { schoolTimeOf } from "../../utils/week";
 
@@ -14,14 +14,17 @@ export const useClassCard = ({
   const hidden = names.length - SHOWN_INSTRUCTORS;
   const shown = names.slice(0, SHOWN_INSTRUCTORS).join(" · ");
 
+  const state = getClassState(
+    new Date(item.startsAt),
+    new Date(item.endsAt),
+    now,
+    item.cancelledAt ? new Date(item.cancelledAt) : null,
+  );
+
   return {
-    state: getClassState(
-      new Date(item.startsAt),
-      new Date(item.endsAt),
-      now,
-      item.cancelledAt ? new Date(item.cancelledAt) : null,
-    ),
+    state,
     timeRange: `${schoolTimeOf(item.startsAt)} – ${schoolTimeOf(item.endsAt)}`,
     instructors: hidden > 0 ? `${shown} +${hidden}` : shown,
+    withoutInstructor: isWithoutInstructor(names.length, state),
   };
 };

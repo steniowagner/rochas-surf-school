@@ -7,6 +7,8 @@ export type ClassesWeekScreenProps = {
   classRoute: (id: string) => Href;
   /** Admins only: the "+", "Criar aula" and "Criar aula neste dia" entry points. */
   canCreate?: boolean;
+  /** Admins only: the cards' flags (the "no instructor" chip). */
+  showFlags?: boolean;
 };
 
 export type UseClassesWeekScreenProps = Pick<

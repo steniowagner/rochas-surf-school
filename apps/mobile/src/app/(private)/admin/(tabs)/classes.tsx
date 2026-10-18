@@ -7,6 +7,7 @@ export default function ClassesRoute() {
       titleKey="tabs.classes"
       classRoute={routes.admin.classDetail}
       canCreate
+      showFlags
     />
   );
 }

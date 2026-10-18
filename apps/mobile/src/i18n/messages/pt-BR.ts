@@ -291,6 +291,7 @@ const messages: Messages = {
       finished: "Finalizada",
     },
     cancelled: "Cancelada",
+    noInstructor: "Sem instrutor",
   },
   classDetails: {
     title: "Detalhe",

@@ -291,6 +291,7 @@ const messages = {
       finished: "Finished",
     },
     cancelled: "Cancelled",
+    noInstructor: "No instructor",
   },
   classDetails: {
     title: "Details",

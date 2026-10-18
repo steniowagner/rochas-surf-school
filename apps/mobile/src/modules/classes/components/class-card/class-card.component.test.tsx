@@ -134,12 +134,49 @@ describe("ClassCard", () => {
     expect(screen.getByText("Ana · Bruno")).toBeOnTheScreen();
   });
 
-  it("shows no footer without instructors", async () => {
-    await render(
-      <ClassCard item={item({ instructors: [] })} now={BEFORE} onPress={jest.fn()} />,
-    );
+  describe("no instructor", () => {
+    const alone = (overrides: Partial<ClassItem> = {}) => item({ instructors: [], ...overrides });
 
-    expect(screen.queryByText("Ana")).not.toBeOnTheScreen();
+    it("shows No instructor in the footer, in the secondary ink, for every role", async () => {
+      await render(<ClassCard item={alone()} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.queryByText("Ana")).not.toBeOnTheScreen();
+      expect(screen.getAllByText("No instructor")).toHaveLength(1);
+      expect(screen.getByText("No instructor").props.className).toContain("text-ink-2");
+      expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
+    });
+
+    it("adds the warn chip for admins (showFlags) on a class that hasn't started", async () => {
+      await render(<ClassCard item={alone()} now={BEFORE} onPress={jest.fn()} showFlags />);
+
+      expect(screen.getAllByText("No instructor")).toHaveLength(2);
+      expect(screen.getByText(glyph("person-remove-outline"))).toBeOnTheScreen();
+    });
+
+    it("drops the chip once the class has started or is cancelled", async () => {
+      await render(<ClassCard item={alone()} now={DURING} onPress={jest.fn()} showFlags />);
+      expect(screen.getByText("In progress")).toBeOnTheScreen();
+      expect(screen.getAllByText("No instructor")).toHaveLength(1);
+
+      await render(
+        <ClassCard
+          item={alone({ cancelledAt: "2026-10-13T10:00:00.000Z" })}
+          now={BEFORE}
+          onPress={jest.fn()}
+          showFlags
+        />,
+      );
+      expect(screen.getByText("Cancelled")).toBeOnTheScreen();
+      expect(screen.getAllByText("No instructor")).toHaveLength(1);
+      expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
+    });
+
+    it("shows neither for a class with an instructor", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} showFlags />);
+
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
+      expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
+    });
   });
 
   it("opens the class when pressed", async () => {

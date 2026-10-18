@@ -344,6 +344,8 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   pass. Record the output summary as evidence.
   Covers: all · Done when: every automated command passes (`COVERAGE OK`, `E2E PASSED`) and both journeys show what
   they describe.
+  > ⛔ 2026-10-18 00:12 — automated part done, user journeys not driven. Passed: `node .specs/scripts/run-related-tests.mjs 034` (RELATED TESTS PASSED: backend, mobile, classes, notifications), `node .specs/scripts/check-coverage.mjs 034` (COVERAGE OK, 19 files), `node .specs/scripts/run-e2e.mjs 034` (E2E PASSED), `npx turbo run lint check-types` (16 tasks ok) and `npx turbo run build` (7 tasks ok) for classes, notifications, backend and mobile.
+  > Still to do on the iOS simulator against a local backend: (1) as an approved admin create a class for tomorrow, open its tools, check "Excluir aula" sits below "Cancelar aula", "Manter aula" keeps the class, "Excluir aula" shows "Aula excluída", leaves the details and the class is gone from tomorrow; (2) create a class starting in a minute and, once "Em andamento", check the tools show only "Editar aula", the notify placeholder and "Cancelar aula"; cancel it and check the tools disappear.
 
 ## Verification Plan
 

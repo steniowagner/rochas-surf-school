@@ -499,13 +499,23 @@ es.
   > the migration name to classes_location_point_archive (underscores, as the existing migrations); the backend
   > does not type-check until T-09/T-10 (controller and push-messages) land.
 
-- [ ] **T-08** — `GooglePlacesAddressSuggestionProvider` (`google-places.address-suggestions.ts`, D-02, using `fetch`):
+- [x] **T-08** — `GooglePlacesAddressSuggestionProvider` (`google-places.address-suggestions.ts`, D-02, using `fetch`):
   the autocomplete and place requests, the mapping of Google's answers, a non-2xx or a network error rethrown for the use
   case, `null` for a 404 place, no key outside production → empty answers (logged once), in production a missing key
   stops the backend; `GOOGLE_MAPS_API_KEY` in `apps/backend/.env.example`; a spec with `fetch` mocked. Skill:
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-08 · Done when: `cd apps/backend && npx vitest run src/modules/classes/google-places.address-suggestions.spec.ts --coverage`
   passes.
+  > ✅ 2026-10-18 14:47 — GooglePlacesAddressSuggestionProvider (fetch): autocomplete POST with X-Goog-Api-Key,
+  > session token, languageCode and a 50 km Fortaleza circle bias; place GET with the field mask
+  > formattedAddress,location,displayName; Google's answers mapped, non-2xx and network errors rejected, 404 or an
+  > incomplete place -> null; no key outside production -> empty answers and one warning, in production the
+  > constructor throws; GOOGLE_MAPS_API_KEY documented in .env.example. Files:
+  > apps/backend/src/modules/classes/google-places.address-suggestions.ts,
+  > apps/backend/src/modules/classes/google-places.address-suggestions.spec.ts, apps/backend/.env.example.
+  > Verified: cd apps/backend && npx vitest run src/modules/classes/google-places.address-suggestions.spec.ts
+  > --coverage (10 passed, 100% lines/functions/statements; only the decorator-metadata branch is uncovered).
+  > Deviations: none; registered in the module in T-10.
 
 - [ ] **T-09** — The `location.changed` push copy in `push-messages.ts` (Copy table) and
   `NotificationsLocationChangeNotifier` (`notifications.location-change-notifier.ts`: one `Notify` per recipient with

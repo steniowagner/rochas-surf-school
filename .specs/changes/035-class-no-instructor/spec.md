@@ -444,10 +444,30 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
 
 ### Verification
 
-- [ ] **T-12** — Run every command in the Verification Plan from the repo root and follow its user journey; all pass.
+- [x] **T-12** — Run every command in the Verification Plan from the repo root and follow its user journey; all pass.
   Record the output summary as evidence.
   Covers: all · Done when: every automated command passes (`COVERAGE OK`, `E2E PASSED`) and the journey shows what it
   describes.
+  > ✅ 2026-10-18 — `node .specs/scripts/run-related-tests.mjs 035`: RELATED TESTS PASSED (backend 12 files / 168
+  > tests, mobile 615, auth 283, classes 320, notifications 101, school-rules 113 as a dependent);
+  > `node .specs/scripts/check-coverage.mjs 035`: COVERAGE OK (every changed line covered in 20 files);
+  > `node .specs/scripts/run-e2e.mjs 035` (local Postgres up, migrations applied): E2E PASSED (15 files, 431 tests),
+  > and `test/auth-profile.e2e-spec.ts` again after T-08's cleanup fix (22 passed); `npx turbo run lint check-types`
+  > on the five workspaces: 16 tasks successful, 0 errors (the backend's 2 warnings are in `test/classes.e2e-spec.ts`,
+  > untouched); `npx turbo run build` on the four: 7 tasks successful. Journey (iOS simulator, iPhone 18 Pro, local
+  > backend and Metro, app in Portuguese, review accounts): two classes for tomorrow (Surf 08:00, Skate 16:00) taught
+  > only by Dev Instructor were inserted in the dev database instead of being created through Nova aula (the
+  > creation flow isn't part of this spec); signed in as `instructor@example.com`, Perfil → "Remover a conta" → the
+  > account became `deleted`, both classes (and 5 more dev classes Dev Instructor taught alone) lost their instructor,
+  > and every approved admin got one `class.noInstructor` with `count: 7` and the 08:00 Surf class; signed in as
+  > `admin@example.com`: today's cancelled classes still list Dev Instructor; on Mon 19 the cards show the "SEM
+  > INSTRUTOR" chip and "Sem instrutor" in the footer; the 08:00 details show the "Sem instrutor" / "Atribua um
+  > instrutor antes da aula." banner and "Sem instrutor atribuído"; pressing the banner opened "Editar aula" with no
+  > instructor checked and "Salvar e notificar" disabled; checking Davi Reis enabled it, saving returned to the
+  > details with no banner and Davi Reis listed; signed in as `dev@example.com` (student): the 12:00 class shows only
+  > "Sem instrutor" in the footer, no chip, and the 08:00 class shows Davi Reis. The journey surfaced the e2e
+  > cleanup gap fixed under T-08. Afterwards the dev database was restored (instructor review account approved, its
+  > 5 classes reassigned, the journey classes and the test `class.noInstructor` rows removed).
 
 ## Verification Plan
 

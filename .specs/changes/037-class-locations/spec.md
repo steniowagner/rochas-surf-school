@@ -416,9 +416,15 @@ es.
   > statements/branches/functions/lines); tsc and oxlint clean. Deviations: the use case reads upcomingClasses for
   > its answer through findActive(now) since the port has no single-location count.
 
-- [ ] **T-03** — `ArchiveLocation` (D-06, D-07): access, 404, 409, the conditional archive; tests in
+- [x] **T-03** — `ArchiveLocation` (D-06, D-07): access, 404, 409, the conditional archive; tests in
   `test/location/usecase/archive-location.usecase.test.ts`. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-05 · Done when: that test file passes with the use case fully covered.
+  > ✅ 2026-10-18 14:43 — ArchiveLocation: access, 404 for a bad or unknown id, 409 location.archived when already
+  > archived or when the conditional archive loses a race. Files: modules/classes/src/location/usecase/archive-
+  > location.usecase.ts, modules/classes/src/location/usecase/index.ts,
+  > modules/classes/test/location/usecase/archive-location.usecase.test.ts. Verified: cd modules/classes && npx
+  > jest test/location/usecase/archive-location.usecase.test.ts --coverage (7 passed, use case 100%); tsc and
+  > oxlint clean. Deviations: none.
 
 - [ ] **T-04** — Address suggestions: the `AddressSuggestionProvider` port and its fake, `SuggestAddresses` and
   `FindAddressPlace` (admin access, the D-13 checks, the provider's `null` → `location.place.notFound`, a provider

@@ -529,7 +529,7 @@ describe("LocationSheet (edit)", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
 
     mockShow.mockClear();
-    onRemoved.mockClear();
+    (onRemoved as jest.Mock).mockClear();
     fetchMock.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ errors: [] }) });
     await user.press(screen.getAllByRole("button", { name: "Remove location" })[0]);
     await user.press(screen.getAllByRole("button", { name: "Remove location" })[1]);

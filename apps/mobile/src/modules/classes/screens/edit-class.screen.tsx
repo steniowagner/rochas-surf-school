@@ -145,11 +145,25 @@ export function EditClassScreen() {
                 onAddPress={screen.openTimeSheet}
               />
             </FormSection>
-            <FormSection label={t("newClass.location.label")}>
+            <FormSection
+              label={t("newClass.location.label")}
+              action={
+                screen.canManageLocations
+                  ? {
+                      label: screen.managingLocations
+                        ? t("locationPicker.done")
+                        : t("locationPicker.manage"),
+                      onPress: screen.toggleManagingLocations,
+                    }
+                  : undefined
+              }
+            >
               <LocationPicker
                 locations={screen.locations}
                 selectedId={form.locationId}
+                managing={screen.managingLocations}
                 onSelect={screen.setLocationId}
+                onEditPress={screen.openLocationEdit}
                 onAddPress={screen.openLocationSheet}
               />
             </FormSection>
@@ -216,9 +230,11 @@ export function EditClassScreen() {
       />
       <LocationSheet
         visible={screen.locationSheetVisible}
-        locations={screen.locations}
+        locations={screen.activeLocations}
+        location={screen.editingLocation}
         onClose={screen.closeLocationSheet}
         onCreated={screen.selectLocation}
+        onRemoved={screen.unselectLocation}
       />
     </View>
   );

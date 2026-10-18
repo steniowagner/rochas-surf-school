@@ -7,11 +7,16 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { LocationPickerProps } from "./location-picker.types";
 
-/** The saved locations as rows (name and address), one chosen, and "Novo local" to save another in place. */
+/**
+ * The saved locations as rows (name and address), one chosen, and "Novo local" to save another in place. While
+ * managing, a row opens its edit sheet instead of being chosen, and "Novo local" is hidden.
+ */
 export function LocationPicker({
   locations,
   selectedId,
+  managing,
   onSelect,
+  onEditPress,
   onAddPress,
 }: LocationPickerProps) {
   const { t } = useTranslation();
@@ -28,7 +33,8 @@ export function LocationPicker({
             accessibilityRole="radio"
             accessibilityLabel={location.name}
             accessibilityState={{ checked: selected }}
-            onPress={() => onSelect(location.id)}
+            disabled={managing && location.archived}
+            onPress={() => (managing ? onEditPress(location) : onSelect(location.id))}
             className={`min-h-11 flex-row items-center gap-3 rounded-card border px-4 py-3 ${
               selected
                 ? "border-grape bg-grape-tint"
@@ -48,24 +54,34 @@ export function LocationPicker({
                 {location.address}
               </Text>
             </View>
-            {selected ? (
+            {location.archived ? (
+              <Text className="ds-text-chip rounded-full bg-dim px-2.5 py-1 text-ink-2">
+                {t("locationPicker.archived")}
+              </Text>
+            ) : null}
+            {managing && !location.archived ? (
+              <Ionicons name="create-outline" size={22} color={theme.ink2} />
+            ) : null}
+            {!managing && selected ? (
               <Ionicons name="checkmark" size={22} color={theme.grape} />
             ) : null}
           </Pressable>
         );
       })}
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={t("newClass.location.add")}
-        activeOpacity={BUTTON_ACTIVE_OPACITY}
-        onPress={onAddPress}
-        className="min-h-11 flex-row items-center justify-center gap-1.5 self-start rounded-full border border-dashed border-input-line px-4"
-      >
-        <Ionicons name="add" size={16} color={theme.grape} />
-        <Text className="ds-text-chip text-grape">
-          {t("newClass.location.add")}
-        </Text>
-      </TouchableOpacity>
+      {managing ? null : (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t("newClass.location.add")}
+          activeOpacity={BUTTON_ACTIVE_OPACITY}
+          onPress={onAddPress}
+          className="min-h-11 flex-row items-center justify-center gap-1.5 self-start rounded-full border border-dashed border-input-line px-4"
+        >
+          <Ionicons name="add" size={16} color={theme.grape} />
+          <Text className="ds-text-chip text-grape">
+            {t("newClass.location.add")}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

@@ -682,7 +682,7 @@ es.
   > the app); the screens' wiring and the remaining type errors in location-picker.component.test.tsx and edit-
   > class.screen.hook.ts are T-17.
 
-- [ ] **T-17** — The "Gerir" / "Concluir" mode of `LocationPicker` and its wiring in `NewClassScreen` and
+- [x] **T-17** — The "Gerir" / "Concluir" mode of `LocationPicker` and its wiring in `NewClassScreen` and
   `EditClassScreen` (D-15: edit from a row, the selection kept on edit and cleared on removal, the "Removido" row of a
   class's archived location on Editar aula, `class.location.archived` on submit), with screen tests (`-t "manage"` and
   `-t "remov"`).
@@ -690,6 +690,22 @@ es.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-11, ER-12 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/location-picker src/modules/classes/screens/new-class.screen.test.tsx src/modules/classes/screens/edit-class.screen.test.tsx --coverage`
   passes.
+  > ✅ 2026-10-18 15:19 — FormSection gained an action link; LocationPicker gained the managing mode (pencil rows
+  > open the edit sheet, 'Novo local' hidden) and the 'Removido' chip for a class's removed location;
+  > useLocationManagement (Gerir/Concluir state, sheet new/edit) shared by both screens; NewClassScreen and
+  > EditClassScreen: Gerir/Concluir link while a location is active, LocationSheet with the edited row, a removed
+  > selected location clears the selection (new: locationId null; edit: locationId empty so Save stays off),
+  > class.location.archived on submit -> toast + locations reloaded + selection cleared, and on Editar aula the
+  > class's location missing from the loaded list stays as its selected row, marked archived, and can be kept.
+  > Files: apps/mobile/src/modules/classes/components/form-section/{form-section.component.tsx,form-
+  > section.types.ts,form-section.component.test.tsx}, apps/mobile/src/modules/classes/components/location-
+  > picker/{location-picker.component.tsx,location-picker.types.ts,location-picker.component.test.tsx},
+  > apps/mobile/src/modules/classes/hooks/use-location-management.hook.ts and test,
+  > apps/mobile/src/modules/classes/screens/{new-class,edit-class}.screen.hook.ts, {new-class,edit-
+  > class}.screen.tsx and {new-class,edit-class}.screen.test.tsx. Verified: cd apps/mobile && npx jest
+  > src/modules/classes/components/location-picker src/modules/classes/screens/new-class.screen.test.tsx
+  > src/modules/classes/screens/edit-class.screen.test.tsx --forceExit --coverage (screens, hooks, picker and
+  > form-section files 100%); -t manage and -t remov cases included; tsc and eslint clean. Deviations: none.
 
 - [ ] **T-18** — `location-map-preview` (D-17: the fixed map, the marker, "Direções" with the per-platform URL and the
   failure toast) on the location card of `ClassDetailsScreen`, with tests (`-t "map"`).

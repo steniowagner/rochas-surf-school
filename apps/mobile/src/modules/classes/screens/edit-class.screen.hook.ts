@@ -14,8 +14,10 @@ import { useAlertMessage } from "@/providers/alert-message";
 import { ApiError, SessionExpiredError } from "@/services/api";
 
 import { ClassItem, ClassLocation, EditClassRequest, Teacher } from "../classes.types";
+import type { PickerLocation } from "../components/location-picker/location-picker.types";
 import { useClass } from "../hooks/use-class.hook";
 import { useEditClass } from "../hooks/use-edit-class.hook";
+import { useLocationManagement } from "../hooks/use-location-management.hook";
 import { useLocations } from "../hooks/use-locations.hook";
 import { useNow } from "../hooks/use-now.hook";
 import { useTeachers } from "../hooks/use-teachers.hook";
@@ -28,6 +30,7 @@ import {
   isClassFinishedError,
   isClassNotFoundError,
   isClassStartedError,
+  isClassLocationArchivedError,
   isInstructorsInvalidError,
   isLocationNotFoundError,
 } from "../utils/class-error";
@@ -71,7 +74,6 @@ export const useEditClassScreen = () => {
   // The server judged the class started before this phone's clock did.
   const [startedByServer, setStartedByServer] = useState(false);
   const [timeSheetVisible, setTimeSheetVisible] = useState(false);
-  const [locationSheetVisible, setLocationSheetVisible] = useState(false);
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
   const sending = useRef(false);
 
@@ -91,11 +93,13 @@ export const useEditClassScreen = () => {
 
   const stored = item?.location;
   const queriedLocations = locationsQuery.data?.items ?? [];
-  // The class's own location is always listed, even before (or without) the list of locations.
-  const locations: ClassLocation[] =
+  // The class's own location is always listed, even before (or without) the list of locations. Once the list is
+  // loaded, one that is missing from it was removed: it stays as the class's row, marked, and can be kept.
+  const locations: PickerLocation[] =
     stored && !queriedLocations.some((location) => location.id === stored.id)
-      ? [stored, ...queriedLocations]
+      ? [{ ...stored, upcomingClasses: 0, archived: locationsQuery.isSuccess }, ...queriedLocations]
       : queriedLocations;
+  const management = useLocationManagement(queriedLocations.length > 0);
   // The teachers, plus the class's instructors who no longer are one, so they can be removed.
   const queriedTeachers = teachersQuery.data ?? [];
   const keptTeachers: Teacher[] = (item?.instructors ?? [])
@@ -123,6 +127,7 @@ export const useEditClassScreen = () => {
       form.notes.trim() !== initial.notes.trim());
   const isValid =
     form !== null &&
+    form.locationId !== "" &&
     form.instructorIds.length > 0 &&
     (isStarted ||
       (form.date >= today &&
@@ -149,6 +154,13 @@ export const useEditClassScreen = () => {
   };
 
   const selectLocation = (created: ClassLocation) => change({ locationId: created.id });
+
+  // A removed location that was chosen leaves the selection, so Save stays off until another is picked.
+  const unselectLocation = (removedId: string) => {
+    if (form!.locationId === removedId) {
+      change({ locationId: "" });
+    }
+  };
 
   const toggleInstructor = (instructorId: string) => {
     // The instructors are only listed once the class is loaded.
@@ -186,6 +198,12 @@ export const useEditClassScreen = () => {
 
     if (isLocationNotFoundError(error)) {
       void queryClient.invalidateQueries({ queryKey: LOCATIONS_QUERY_KEY });
+    }
+
+    // The chosen location was removed meanwhile: another one must be picked.
+    if (isClassLocationArchivedError(error)) {
+      void queryClient.invalidateQueries({ queryKey: LOCATIONS_QUERY_KEY });
+      change({ locationId: "" });
     }
 
     const messageKey = getEditClassErrorKey(error);
@@ -246,6 +264,8 @@ export const useEditClassScreen = () => {
     suggestions,
     addedRanges,
     locations,
+    activeLocations: queriedLocations,
+    canManageLocations: queriedLocations.length > 0,
     teachers,
     teachersLoading: teachersQuery.isPending,
     teachersError: teachersQuery.isError,
@@ -260,9 +280,14 @@ export const useEditClassScreen = () => {
     closeTimeSheet: () => setTimeSheetVisible(false),
     setLocationId: (locationId: string) => change({ locationId }),
     selectLocation,
-    locationSheetVisible,
-    openLocationSheet: () => setLocationSheetVisible(true),
-    closeLocationSheet: () => setLocationSheetVisible(false),
+    unselectLocation,
+    managingLocations: management.managing,
+    toggleManagingLocations: management.toggleManaging,
+    locationSheetVisible: management.sheetVisible,
+    editingLocation: management.editing,
+    openLocationSheet: management.openNew,
+    openLocationEdit: management.openEdit,
+    closeLocationSheet: management.closeSheet,
     changeCapacity,
     setNotes: (notes: string) => change({ notes }),
     notesMaxLength: CLASS_NOTES_MAX,

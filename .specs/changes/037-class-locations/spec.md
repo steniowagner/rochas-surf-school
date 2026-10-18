@@ -603,13 +603,33 @@ es.
   > public lists the react-native-maps plugin; npx jest app.config (4 passed); tsc --noEmit and eslint clean.
   > Deviations: none (the Android key is not set locally, so the plugin entry has an undefined key).
 
-- [ ] **T-14** — Data layer: `ClassLocation` gains `latitude`, `longitude`, `upcomingClasses`; the class item's
+- [x] **T-14** — Data layer: `ClassLocation` gains `latitude`, `longitude`, `upcomingClasses`; the class item's
   location gains the point; hooks `useEditLocation`, `useArchiveLocation` (both update the `["locations"]` cache),
   `useAddressSuggestions` (debounced 300 ms, 3+ characters, no retry, `["locations", "suggestions", sessionToken,
   query]`) and `useAddressPlace`; `useCreateLocation` sends the point; `utils/class-error.ts` and
   `utils/locations-cache.ts` gain the D-16 keys and helpers; the Copy keys in the three message files; tests for each.
   Covers: ER-10, ER-11, ER-12 · Done when: `cd apps/mobile && npx jest src/modules/classes/hooks src/modules/classes/utils --coverage`
   passes with every changed line covered.
+  > ✅ 2026-10-18 14:58 — ClassLocation gained latitude, longitude and upcomingClasses; the class item's location
+  > (ClassItemLocation) gained the point; types for the edit variables, suggestions and place; hooks
+  > useEditLocation (PUT, replaces the cached row), useArchiveLocation (POST archive, drops the row),
+  > useAddressSuggestions (debounced 300 ms via useDebouncedValue, 3+ characters, no retry, key [locations,
+  > suggestions, sessionToken, query], app language in backend words) and useAddressPlace; locations-cache gained
+  > replaceLocation/removeLocation; class-error gained isLocationArchivedError, isLocationGoneError,
+  > isClassLocationArchivedError, getLocationErrorKey and the class.location.archived key; the Copy keys of the
+  > three message files (locationSheet, locationPicker, archiveLocation, newClass.errors.locationArchived,
+  > classDetails.directions*); buildLocation test fixture. Files:
+  > apps/mobile/src/modules/classes/classes.types.ts, apps/mobile/src/modules/classes/classes.test-utils.tsx,
+  > apps/mobile/src/modules/classes/hooks/{use-edit-location,use-archive-location,use-address-suggestions,use-
+  > address-place,use-debounced-value}.hook.ts and their .test.tsx, apps/mobile/src/modules/classes/hooks/{use-
+  > create-location,use-locations}.hook.test.tsx, apps/mobile/src/modules/classes/utils/{locations-cache,class-
+  > error}.ts and tests, apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts, fixture updates in class-
+  > card.component.test.tsx, classes-week.screen.test.tsx, class-details.screen.test.tsx and location-
+  > sheet.component.test.tsx (new description text). Verified: cd apps/mobile && npx jest
+  > src/modules/classes/hooks src/modules/classes/utils --coverage (131 passed, 100% on the hooks and utils
+  > files); whole classes module jest passes. Deviations: tsc still reports type errors in location-
+  > picker/location-sheet files and edit-class.screen.hook.ts that T-16/T-17 fix (they consume the new
+  > ClassLocation).
 
 - [ ] **T-15** — Components `location-map-picker` (the sheet's map: marker, tap to set, hint, Fortaleza default) and
   `address-search-field` (the Endereço field with its suggestion rows), with tests.

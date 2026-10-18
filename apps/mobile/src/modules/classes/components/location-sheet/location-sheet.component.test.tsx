@@ -78,7 +78,7 @@ describe("LocationSheet", () => {
     await open();
 
     expect(screen.getByText("New location")).toBeTruthy();
-    expect(screen.getByText("Students see the name and the address.")).toBeTruthy();
+    expect(screen.getByText("Students see the name and the address, and get directions to the point on the map.")).toBeTruthy();
     expect(submit()).toBeDisabled();
 
     await fill("Praia de Iracema", "");

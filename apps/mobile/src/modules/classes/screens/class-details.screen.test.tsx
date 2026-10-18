@@ -77,6 +77,8 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
     id: "l-1",
     name: "Praia do Futuro",
     address: "Av. Zezé Diogo, 1000",
+    latitude: -3.7442,
+    longitude: -38.4617,
   },
   instructors: [
     { id: "u-1", name: "Ana Souza" },

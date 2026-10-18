@@ -11,8 +11,12 @@ import {
   isClassNotEmptyError,
   isClassNotFoundError,
   isClassStartedError,
+  getLocationErrorKey,
+  isClassLocationArchivedError,
   isDuplicateLocationError,
   isInstructorsInvalidError,
+  isLocationArchivedError,
+  isLocationGoneError,
   isLocationNotFoundError,
 } from "./class-error";
 
@@ -23,6 +27,7 @@ describe("getClassErrorKey", () => {
     [422, "class.startsAt.past", "newClass.errors.past"],
     [422, "class.instructors.invalid", "newClass.errors.instructors"],
     [422, "class.location.notFound", "newClass.errors.location"],
+    [422, "class.location.archived", "newClass.errors.locationArchived"],
     [409, "location.name.duplicate", "locationSheet.duplicate"],
     [422, "class.batch.tooLarge", "createAccount.errors.generic"],
     [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
@@ -155,5 +160,29 @@ describe("getDeleteClassErrorKey", () => {
     expect(isClassNotEmptyError(api(409, "class.delete.notEmpty"))).toBe(true);
     expect(isClassNotEmptyError(api(422, "class.delete.notEmpty"))).toBe(false);
     expect(isClassNotEmptyError(new Error("x"))).toBe(false);
+  });
+});
+
+describe("getLocationErrorKey", () => {
+  it.each([
+    [409, "location.archived"],
+    [404, "location.notFound"],
+  ])("maps %s %s to the gone copy", (status, key) => {
+    expect(getLocationErrorKey(api(status, key))).toBe("locationSheet.errors.gone");
+  });
+
+  it("falls back to the class error mapping", () => {
+    expect(getLocationErrorKey(new SessionExpiredError())).toBeNull();
+    expect(getLocationErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getLocationErrorKey(api(500, "x"))).toBe("createAccount.errors.generic");
+  });
+
+  it("recognises the removed-location errors only by their own status and key", () => {
+    expect(isLocationArchivedError(api(409, "location.archived"))).toBe(true);
+    expect(isLocationArchivedError(api(422, "location.archived"))).toBe(false);
+    expect(isLocationGoneError(api(404, "location.notFound"))).toBe(true);
+    expect(isLocationGoneError(api(409, "location.name.duplicate"))).toBe(false);
+    expect(isClassLocationArchivedError(api(422, "class.location.archived"))).toBe(true);
+    expect(isClassLocationArchivedError(api(409, "class.location.archived"))).toBe(false);
   });
 });

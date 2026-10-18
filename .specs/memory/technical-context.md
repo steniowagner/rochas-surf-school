@@ -93,11 +93,13 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
     / `router.push(routes.admin.classes)` for a `class.assigned` push when it resolves to the `instructor` / `admin`
     flow (spec 030), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
-    for a `class.edited` / `class.unassigned` push with a string `data.classId` (spec 032), else
+    for a `class.edited` / `class.unassigned` / `class.cancelled` push with a string `data.classId` (specs 032,
+    033), else
     `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
-    `class.edited` / `class.unassigned` invalidate `["classes"]` (weeks and details); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    `class.edited` / `class.unassigned` / `class.cancelled` invalidate `["classes"]` (weeks and details); no
+    navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -235,7 +237,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   creations leave one row.
 - Writes that must be all or nothing go through one `$transaction` in the repository (`PrismaSchoolClassRepository.createMany`:
   the classes, then their `class_instructors`; `PrismaSchoolClassRepository.update`: the class row, then its
-  `class_instructors` deleted and recreated). `classes.created_by` and `classes.location_id` are `ON DELETE
+  `class_instructors` deleted and recreated). A write that must not happen after a concurrent one is
+  **conditional** instead of locked (spec 033): one `updateMany` whose `where` holds the condition, reading the
+  count — `PrismaSchoolClassRepository.cancel` (`where: { id, cancelledAt: null }`, `true` when one row matched, so
+  of two simultaneous cancels exactly one wins) and `update` (the class row written the same way inside the
+  transaction, the instructors replaced only when it matched; `false` for a cancelled class). `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
   classes before it can delete the row.
 - Seeds (`apps/backend/prisma/seed/main.ts`, one task per module) hold only technical data and the three App
@@ -275,7 +281,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 - **Web** lives in `apps/web/src/app/` — static public pages. **Must not** call the API or import business
   modules.
 - **Time**: a class's state (not started, started, finished) is **computed from the clock** and its times,
-  never stored, so it can't go stale. Side effects due at a given time run as scheduled jobs (see Scheduled
+  never stored, so it can't go stale. The one exception is `cancelled` (spec 033): set by an admin, stored as
+  `classes.cancelled_at`, and winning over the clock — `getClassState(startsAt, endsAt, now, cancelledAt?)` returns
+  `"cancelled"` whenever it is set. Side effects due at a given time run as scheduled jobs (see Scheduled
   work).
 
 ## Fixed conventions
@@ -720,8 +728,9 @@ guard's 401 `auth.token.invalid`.
 - `GET /classes?date=YYYY-MM-DD` (any approved account; spec 030, `ListWeekClasses`) → 200 `{ weekStart, items:
   ClassItem[] }`: the classes starting from the Monday 00:00 of the date's week (inclusive) to the next Monday
   00:00 (exclusive), Fortaleza, sorted by `startsAt`, `endsAt`, `id`. `ClassItem` is `{ id, discipline, level,
-  startsAt, endsAt, capacity, notes, location: { id, name, address }, instructors: [{ id, name }] }` (ISO UTC
-  dates, `notes` `null` when none, instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
+  startsAt, endsAt, capacity, notes, location: { id, name, address }, instructors: [{ id, name }], cancelledAt,
+  cancellationMessage }` (ISO UTC dates, `notes` `null` when none, `cancelledAt` / `cancellationMessage` `null` for
+  a class never cancelled (spec 033), instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
   `id`; `toClassItem` in `usecase/class-item.ts`). Access first, then a `date` that is missing, not a string,
   malformed or impossible → 422 `ValidationException` `class.date.invalid`. `GET /classes/:id` (any approved
   account; `GetClass`) → 200 one `ClassItem`; a non-UUID id (no lookup) or no class → 404 `class.notFound`. It is
@@ -729,26 +738,41 @@ guard's 401 `auth.token.invalid`.
   `ClassViewReader` port (`findStartingBetween(from, to)`, `findById(id)` → `ClassView`, `ClassItem` with
   `Date`s), implemented by `PrismaClassViewReader` (`class-view-reader.prisma.ts`): one `findMany` / `findUnique`
   with the location and the instructors' `user` id and name. The API never returns a state: `getClassState(startsAt,
-  endsAt, now)` (`model/class-state.ts`, `not-started` / `started` / `finished`) is computed by the caller.
+  endsAt, now, cancelledAt?)` (`model/class-state.ts`, `not-started` / `started` / `finished`, or `cancelled`
+  whenever `cancelledAt` is set — spec 033) is computed by the caller, which always passes the cancellation.
 - `PUT /classes/:id` (admins; spec 032, `EditClass` in `usecase/edit-class.usecase.ts`) `{ discipline, level, date,
   start, end, locationId, instructorIds, capacity, notes? }` (`date` `YYYY-MM-DD`, `start` / `end` `HH:mm`,
   Fortaleza, turned into `startsAt` / `endsAt` with `toInstant` from `model/class-batch.ts`; the whole class every
   time) → 200 the updated `ClassItem` (the controller runs `EditClass`, which returns `{ id }`, then `GetClass`).
   Order: access; a non-UUID id (no lookup) or no class (`SchoolClassRepository.findById`) → 404 `class.notFound`;
   shape errors in one 422 `ValidationException` (keys in [modules/classes.md](modules/classes.md)); then, alone and
-  in order, 409 `class.finished` (now ≥ `endsAt`), 409 `class.started` (now ≥ `startsAt` and a class field
+  in order, 409 `class.cancelled` (spec 033, whatever the clock), 409 `class.finished` (now ≥ `endsAt`), 409 `class.started` (now ≥ `startsAt` and a class field
   differs), 422 `class.location.notFound`, 422 `class.instructors.invalid` (only the ids not already on the class
   go through `TeacherLookup`), 422 `class.startsAt.past` (not started and the new start ≤ now), 422
   `class.capacity.belowSeatsTaken` (`details: { seatsTaken }`). "Differs" compares discipline, level, `startsAt`,
   `endsAt`, location id, capacity and trimmed notes (`null` for none), and the instructors as a set; nothing
   differing → 200 with no write (not even `updatedAt`) and no notification. Otherwise
-  `SchoolClassRepository.update` (one `$transaction`, see Persistence; last save wins), then, all except the
+  `SchoolClassRepository.update` (one `$transaction`, see Persistence; last save wins; it returns `false` when the
+  class was cancelled after it was read, which `EditClass` turns into 409 `class.cancelled` with nobody
+  notified), then, all except the
   caller and each swallowed when it throws: `ClassChangeNotifier.classEdited({ instructorIds, classId,
   discipline, startsAt })` to the kept instructors when a class field differs, `ClassAssignmentNotifier.classAssigned({
   count: 1, … })` to the added ones and `classUnassigned({ instructorIds, classId, discipline, startsAt })` to the
   removed ones. Seats taken come from the `SeatCounter` port (`provider/seat-counter.provider.ts`,
   `countSeatsTaken(classId)`), implemented by `NoEnrolmentSeatCounter`
   (`apps/backend/src/modules/classes/no-enrolment.seat-counter.ts`, always 0) until enrolment replaces it.
+- `POST /classes/:id/cancel` (admins; spec 033, `CancelClass` in `usecase/cancel-class.usecase.ts`) `{ message? }`
+  → 200 the cancelled `ClassItem` (the controller runs `CancelClass`, then `GetClass`). Order: access; a non-UUID
+  id (no lookup) or no class → 404 `class.notFound`; a `message` that is present, not `null` and not a string, or
+  longer than 300 characters after trimming (`CLASS_CANCELLATION_MESSAGE_MAX` in `model/class-limits.ts`) → 422
+  `ValidationException` `class.cancellationMessage.max.length`; then 409 `class.cancelled` (already cancelled,
+  whatever the clock), then 409 `class.finished` (now ≥ `endsAt`); a started class is cancelled. The message is
+  trimmed, blank or absent stored as `null`. `SchoolClassRepository.cancel(id, now, message)` is the conditional
+  write of Persistence; `false` (a concurrent cancel won) → 409 `class.cancelled`. Then
+  `ClassChangeNotifier.classCancelled({ instructorIds, classId, discipline, startsAt, message })` to the class's
+  instructors except the caller (skipped when none is left; swallowed when it throws). Stored as
+  `classes.cancelled_at` / `classes.cancellation_message` (migration `classes-add-cancellation`); `SchoolClass` and
+  `ClassView` carry `cancelledAt` / `cancellationMessage`. Nobody stores who cancelled.
 - The clock is the module's `ClockProvider` port, implemented by a `SystemClockProvider` local to
   `ClassesModule`, so the e2e suite fakes the time without touching auth's clock.
 - Mobile (`src/modules/classes`): queries `["locations"]` (`useLocations`), `["classes", "time-range-suggestions"]`
@@ -780,16 +804,17 @@ guard's 401 `auth.token.invalid`.
   the month share the cache; a failed week just contributes no items. `markedDates` is the Fortaleza days with a
   class, `markedLabel` `classesWeek.hasClasses`. Pull-to-refresh refetches every visible week; its spinner is local
   state around that refetch, not the queries' `isRefetching` (a month mounting cached weeks refetches them in the
-  background and must not show it). The cards are `ClassCard` (`components/class-card/`). `ClassDetailsScreen`
+  background and must not show it). Whenever the screen is focused again (`useFocusEffect`), it refetches every
+  `["classes", "week"]` query that is invalidated (spec 033): a class cancelled or edited on a screen above it
+  invalidated its week while its observers weren't refetching, so without this the card stayed stale. The cards are `ClassCard` (`components/class-card/`). `ClassDetailsScreen`
   (`screens/class-details.screen.tsx`, route `/<role>/class/[id]`) loads `useClass(id)` (`["classes", "detail",
   id]`, no retry on a 404 or a `SessionExpiredError`) and names the session's user "Você". Both compute the state
   with `getClassState` from `@rochas-surf-school/classes` and `useNow()` (`hooks/use-now.hook.ts`, the phone's
   clock re-read every 60 s while mounted). Loading is a `grape` `ActivityIndicator`; a failed load shows the
   error with "Tentar novamente", a 404 on the details "Esta aula não existe mais." without retry, and a
   `SessionExpiredError` nothing. Copy lives under `classesWeek` and `classDetails`.
-- Mobile editing (spec 032): `ClassDetailsScreen` takes `canEdit` (set only by `admin/class/[id].tsx`); with it, a
-  loaded class that isn't finished shows a round 44×44 pencil (`bg-surface`, `shadowStyle`) at the right of the
-  header, opening `routes.admin.editClass(id)`. `EditClassScreen` (`screens/edit-class.screen.tsx` + hook, route
+- Mobile editing (spec 032): `ClassDetailsScreen` takes `canEdit` (set only by `admin/class/[id].tsx`); "Editar
+  aula" in its class tools (spec 033, below) opens `routes.admin.editClass(id)`. `EditClassScreen` (`screens/edit-class.screen.tsx` + hook, route
   `/admin/edit-class/[id]`) loads `useClass(id)`, `useLocations`, `useTimeRangeSuggestions` and `useTeachers`, and
   keeps only the admin's changes over the class's values. The day is `DateRangeCalendar` with `single` (a press
   selects only that day, no summary) and the time `TimeRangePicker` with `single` (a press selects only that chip,
@@ -802,9 +827,30 @@ guard's 401 `auth.token.invalid`.
   (`apiPut`, no retry; invalidates `["classes", "week"]` and `["classes", "detail", id]` on success); then toast
   `editClass.saved` and `router.back()`. Errors map with `getEditClassErrorKey` (`utils/class-error.ts`, with
   `isClassStartedError`, `isClassFinishedError`, `isClassNotFoundError` and `getSeatsTaken`): `class.started` →
-  its toast and the class refetched; `class.finished` and 404 → their toast and back; seats taken →
-  `editClass.errors.seatsTaken` with `count`; the rest as Nova aula's `getClassErrorKey` (with the same
-  refetches). Copy lives under `editClass` (plus `classDetails.edit`).
+  its toast and the class refetched; `class.finished` and 404 → their toast and back; `class.cancelled` (spec 033) →
+  `editClass.errors.cancelled`, `["classes"]` invalidated and back; seats taken → `editClass.errors.seatsTaken`
+  with `count`; the rest as Nova aula's `getClassErrorKey` (with the same refetches). A loaded class with
+  `cancelledAt` shows `editClass.errors.cancelled` instead of the form and its footer. Copy lives under
+  `editClass`.
+- Mobile class tools and cancelling (spec 033): with `canEdit`, a loaded class that is neither finished nor
+  cancelled (a started one included) shows a round 44×44 tools button (`construct-outline`, `bg-surface`,
+  `shadowStyle`, label `classDetails.tools`) at the right of the details' header, opening `ClassToolsSheet`
+  (`components/class-tools-sheet/`: a `BottomModal` titled `classTools.title` with three shared `Button`s, no
+  icons — "Editar aula" and "Avisar alunos e instrutores" `subtle`, "Cancelar aula" `danger`; edit and cancel close
+  the sheet first, notify has no action). "Cancelar aula" opens `CancelClassSheet` (`components/cancel-class-sheet/`:
+  `BottomModal` with the description, a `TextArea` with `maxLength` 300 and its counter, a `danger` confirm with
+  `loading` and a `ghost` "Manter aula"; the text clears on close; it confirms with the trimmed message, or none
+  when blank). The details' hook sends it once (a ref guards a double press) through `useCancelClass`
+  (`hooks/use-cancel-class.hook.ts`: `apiPost` to `/classes/{id}/cancel`, no retry, invalidating `["classes"]` on
+  success); on 200 toast `cancelClass.done`, the sheet closes and the details stay. Errors map with
+  `getCancelClassErrorKey` (`utils/class-error.ts`, with `isClassCancelledError`): `class.cancelled` /
+  `class.finished` → their toast, the sheet closes and the class is refetched; 404 → `classDetails.notFound` and
+  `router.back()`; `NetworkError` → no connection; `SessionExpiredError` → nothing; else generic. A cancelled class
+  (`ClassItem.cancelledAt`) draws, on `ClassCard`, the `Chip` `classesWeek.cancelled` on `bad-tint` (text `bad`,
+  `close-circle-outline`) instead of the clock chips, the time range `line-through` in `ink-2`, with no `sun`
+  border and no fading; on the details, one `bad-tint` banner `classDetails.cancelled.title` with the
+  `cancellationMessage` under it as stored, or `classDetails.cancelled.description`. Copy lives under
+  `classTools`, `cancelClass`, `classDetails.cancelled` and `classDetails.tools`.
 
 ## Error handling
 
@@ -841,7 +887,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `sendPushNotificationsAsync`, messages with `sound: "default"`, `priority: "high"`, `channelId: "default"` and
   `data: { type, notificationId, classId? }` (`classId` copied from the notification's params when it is a
   string; spec 032), title and body from `renderPush` in the device's locale (dates in the copy, such as the class
-  start of `class.edited` / `class.unassigned`, are formatted by hand in Fortaleza time — fixed UTC-3, no
+  start of `class.edited` / `class.unassigned` / `class.cancelled`, are formatted by hand in Fortaleza time — fixed UTC-3, no
   `Intl` — so the text is the same on every machine). A chunk that throws
   doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
   logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
@@ -866,7 +912,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   (classes, `NotificationsClassAssignmentNotifier`: `classAssigned` → `class.assigned` with `{ count, discipline }`,
   spec 028; `classUnassigned` → `class.unassigned` with `{ classId, discipline, startsAt }`, spec 032) and
   `ClassChangeNotifier` (classes, `NotificationsClassChangeNotifier`: `classEdited` → `class.edited` with
-  `{ classId, discipline, startsAt }`, `startsAt` as ISO text; spec 032, the port cancelling and deleting extend).
+  `{ classId, discipline, startsAt }`, `startsAt` as ISO text, spec 032; `classCancelled` → `class.cancelled` with
+  `{ classId, discipline, startsAt, message? }`, `message` only when there is one, spec 033; deleting extends it).
   `NotificationsModule` exports them; a push type without a catalog entry in `push-messages.ts` fails the backend's
   type check.
 

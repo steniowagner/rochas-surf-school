@@ -2,13 +2,14 @@
 id: "033"
 slug: class-cancellation
 title: "Cancelling a class"
-status: accepted
+status: finished
 started: 2026-10-17
 base_commit: e08a9739ca92401665a9bfd829d3fcc9b5abf84a
 reviewed_commit: 83b812b2444faed520ac56819dbd51056b42672f
 created: 2026-10-17
 fronts: [classes, notifications, backend, mobile]
 depends_on: []
+finished: 2026-10-17
 ---
 
 # 033 — Cancelling a class

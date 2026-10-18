@@ -2,8 +2,10 @@ import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 
 import {
   getClassErrorKey,
+  getCancelClassErrorKey,
   getEditClassErrorKey,
   getSeatsTaken,
+  isClassCancelledError,
   isClassFinishedError,
   isClassNotFoundError,
   isClassStartedError,
@@ -54,6 +56,7 @@ describe("getEditClassErrorKey", () => {
   it.each([
     [409, "class.started", "editClass.errors.started"],
     [409, "class.finished", "editClass.errors.finished"],
+    [409, "class.cancelled", "editClass.errors.cancelled"],
     [404, "class.notFound", "classDetails.notFound"],
     [422, "class.startsAt.past", "newClass.errors.past"],
     [422, "class.instructors.invalid", "newClass.errors.instructors"],
@@ -96,5 +99,32 @@ describe("edit error predicates", () => {
       getSeatsTaken(new ApiError(422, ["class.capacity.belowSeatsTaken"], { seatsTaken: "8" })),
     ).toBeNull();
     expect(getSeatsTaken(api(422, "class.startsAt.past"))).toBeNull();
+  });
+});
+
+describe("getCancelClassErrorKey", () => {
+  it.each([
+    [409, "class.cancelled", "cancelClass.errors.cancelled"],
+    [409, "class.finished", "cancelClass.errors.finished"],
+    [404, "class.notFound", "classDetails.notFound"],
+    [422, "class.cancellationMessage.max.length", "createAccount.errors.generic"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps %s %s to %s", (status, key, expected) => {
+    expect(getCancelClassErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("maps no answer to the no-connection copy and an expired session to nothing", () => {
+    expect(getCancelClassErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getCancelClassErrorKey(new SessionExpiredError())).toBeNull();
+  });
+
+  it("falls back to the generic copy for anything else", () => {
+    expect(getCancelClassErrorKey(new Error("boom"))).toBe("createAccount.errors.generic");
+  });
+
+  it("recognises a cancelled class only by its own status and key", () => {
+    expect(isClassCancelledError(api(409, "class.cancelled"))).toBe(true);
+    expect(isClassCancelledError(api(404, "class.cancelled"))).toBe(false);
+    expect(isClassCancelledError(new Error("x"))).toBe(false);
   });
 });

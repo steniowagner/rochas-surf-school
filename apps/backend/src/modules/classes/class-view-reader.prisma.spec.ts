@@ -13,6 +13,8 @@ function record(notes: string | null = 'Bring sunscreen') {
     endsAt: ENDS_AT,
     capacity: 8,
     notes,
+    cancelledAt: null,
+    cancellationMessage: null,
     location: { id: 'loc-1', name: 'Praia do Futuro', address: 'Av. Zezé Diogo, 1000' },
     instructors: [{ user: { id: 'u-1', name: 'Ana' } }, { user: { id: 'u-2', name: 'Bruno' } }],
   };
@@ -32,6 +34,8 @@ const VIEW = {
   endsAt: ENDS_AT,
   capacity: 8,
   notes: 'Bring sunscreen',
+  cancelledAt: null,
+  cancellationMessage: null,
   location: { id: 'loc-1', name: 'Praia do Futuro', address: 'Av. Zezé Diogo, 1000' },
   instructors: [
     { id: 'u-1', name: 'Ana' },
@@ -75,5 +79,20 @@ describe('PrismaClassViewReader', () => {
     schoolClass.findUnique.mockResolvedValue(null);
 
     expect(await reader.findById('nope')).toBeNull();
+  });
+
+  it('maps the cancellation of a cancelled class', async () => {
+    const { schoolClass, reader } = setup();
+    const cancelledAt = new Date('2026-10-14T13:00:00.000Z');
+    schoolClass.findUnique.mockResolvedValue({
+      ...record(),
+      cancelledAt,
+      cancellationMessage: 'Mar muito grande.',
+    });
+
+    expect(await reader.findById('class-1')).toMatchObject({
+      cancelledAt,
+      cancellationMessage: 'Mar muito grande.',
+    });
   });
 });

@@ -240,3 +240,48 @@ PUT {{baseUrl}}/classes/{{classId}}
 Content-Type: application/json
 
 {}
+
+### Cancel a class (expects 200 with the class and its cancelledAt / cancellationMessage; admins only; final; the message is optional, up to 300 characters)
+POST {{baseUrl}}/classes/{{classId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "message": "Mar muito grande. Remarcamos para sábado no mesmo horário."
+}
+
+### Without a message (expects 200 with cancellationMessage null)
+POST {{baseUrl}}/classes/{{classId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### An already cancelled class (expects 409 class.cancelled) or a finished one (expects 409 class.finished)
+POST {{baseUrl}}/classes/{{classId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### A message over 300 characters or not a string (expects 422 class.cancellationMessage.max.length)
+POST {{baseUrl}}/classes/{{classId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "message": 42
+}
+
+### An unknown or malformed id (expects 404 class.notFound)
+POST {{baseUrl}}/classes/not-a-uuid/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### As a student or instructor (expects 403 user.role.notAdmin) or without a token (expects 401)
+POST {{baseUrl}}/classes/{{classId}}/cancel
+Content-Type: application/json
+
+{}

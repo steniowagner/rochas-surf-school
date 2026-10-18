@@ -13,6 +13,7 @@ import {
 } from "@rochas-surf-school/shared";
 import {
   CLASS_CAPACITY_MAX,
+  CLASS_CANCELLATION_MESSAGE_MAX,
   CLASS_CAPACITY_MIN,
   CLASS_DISCIPLINES,
   CLASS_LEVELS,
@@ -31,6 +32,8 @@ export interface SchoolClassState extends EntityState {
   capacity: number;
   notes?: string | null;
   createdBy: string;
+  cancelledAt?: Date | null;
+  cancellationMessage?: string | null;
 }
 
 export class SchoolClass extends Entity<SchoolClassState> {
@@ -40,6 +43,7 @@ export class SchoolClass extends Entity<SchoolClassState> {
       startsAt: new Date(props.startsAt.getTime()),
       endsAt: new Date(props.endsAt.getTime()),
       instructorIds: [...props.instructorIds],
+      cancelledAt: props.cancelledAt ? new Date(props.cancelledAt.getTime()) : null,
     });
   }
 
@@ -77,6 +81,14 @@ export class SchoolClass extends Entity<SchoolClassState> {
 
   get createdBy(): string {
     return this.props.createdBy;
+  }
+
+  get cancelledAt(): Date | null {
+    return this.props.cancelledAt ? new Date(this.props.cancelledAt.getTime()) : null;
+  }
+
+  get cancellationMessage(): string | null {
+    return this.props.cancellationMessage ?? null;
   }
 
   public validate(): void {
@@ -133,6 +145,11 @@ export class SchoolClass extends Entity<SchoolClassState> {
         code: "class.notes",
         value: this.notes,
         rules: [new MaxLengthRule(CLASS_NOTES_MAX)],
+      },
+      {
+        code: "class.cancellationMessage",
+        value: this.cancellationMessage,
+        rules: [new MaxLengthRule(CLASS_CANCELLATION_MESSAGE_MAX)],
       },
       {
         code: "class.createdBy",

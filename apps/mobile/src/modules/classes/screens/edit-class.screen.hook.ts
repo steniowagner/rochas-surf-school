@@ -24,6 +24,7 @@ import { DateRange, minutesInSchoolZone, todayInSchoolZone } from "../utils/cale
 import {
   getEditClassErrorKey,
   getSeatsTaken,
+  isClassCancelledError,
   isClassFinishedError,
   isClassNotFoundError,
   isClassStartedError,
@@ -77,7 +78,12 @@ export const useEditClassScreen = () => {
   const initial = item ? formOf(item) : null;
   const form = initial ? { ...initial, ...changes } : null;
   const state = item
-    ? getClassState(new Date(item.startsAt), new Date(item.endsAt), now)
+    ? getClassState(
+        new Date(item.startsAt),
+        new Date(item.endsAt),
+        now,
+        item.cancelledAt ? new Date(item.cancelledAt) : null,
+      )
     : null;
   const isStarted = state === "started" || (startedByServer && state !== "finished");
   const nowMinutes =
@@ -168,6 +174,12 @@ export const useEditClassScreen = () => {
       router.back();
     }
 
+    // Back on the details, which must show the cancellation.
+    if (isClassCancelledError(error)) {
+      void queryClient.invalidateQueries({ queryKey: ["classes"] });
+      router.back();
+    }
+
     if (isInstructorsInvalidError(error)) {
       void queryClient.invalidateQueries({ queryKey: ["people", "teachers"] });
     }
@@ -225,6 +237,7 @@ export const useEditClassScreen = () => {
     isError: classQuery.isError && !isNotFound && !(classQuery.error instanceof SessionExpiredError),
     retry: () => void classQuery.refetch(),
     isFinished: state === "finished",
+    isCancelled: state === "cancelled",
     isStarted,
     form,
     today,

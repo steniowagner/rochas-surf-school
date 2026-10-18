@@ -48,7 +48,7 @@ export function EditClassScreen() {
     </View>
   );
 
-  if (form === null || screen.isFinished) {
+  if (form === null || screen.isFinished || screen.isCancelled) {
     return (
       <View
         className="flex-1 gap-6 bg-page px-screen"
@@ -70,6 +70,10 @@ export function EditClassScreen() {
               {t("classDetails.retry")}
             </Button>
           </View>
+        ) : screen.isCancelled ? (
+          <Text className="ds-text-body text-center text-ink-2">
+            {t("editClass.errors.cancelled")}
+          </Text>
         ) : screen.isFinished ? (
           <Text className="ds-text-body text-center text-ink-2">
             {t("editClass.errors.finished")}

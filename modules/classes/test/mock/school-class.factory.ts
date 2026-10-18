@@ -27,6 +27,8 @@ export function buildClassView(overrides: Partial<ClassView> = {}): ClassView {
     endsAt: new Date("2026-10-15T12:00:00.000Z"),
     capacity: 8,
     notes: null,
+    cancelledAt: null,
+    cancellationMessage: null,
     location: { id: LOCATION_ID, name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
     instructors: [{ id: INSTRUCTOR_ID, name: "Ana" }],
     ...overrides,

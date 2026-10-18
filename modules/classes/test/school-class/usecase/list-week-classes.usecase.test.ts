@@ -77,12 +77,28 @@ describe("ListWeekClasses", () => {
       endsAt: "2026-10-14T12:00:00.000Z",
       capacity: 8,
       notes: null,
+      cancelledAt: null,
+      cancellationMessage: null,
       location: { id: expect.any(String), name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
       instructors: [
         { id: "i-3", name: "Álvaro" },
         { id: "i-1", name: "ana" },
         { id: "i-2", name: "Bruno" },
       ],
+    });
+  });
+
+  it("shapes a cancelled class with its ISO cancellation and message", async () => {
+    const out = await useCase([
+      view("x", "2026-10-14T11:00:00.000Z", "2026-10-14T12:00:00.000Z", {
+        cancelledAt: new Date("2026-10-13T15:30:00.000Z"),
+        cancellationMessage: "Mar muito grande.",
+      }),
+    ]).execute({ actor: STUDENT, date: "2026-10-14" });
+
+    expect(out.items[0]).toMatchObject({
+      cancelledAt: "2026-10-13T15:30:00.000Z",
+      cancellationMessage: "Mar muito grande.",
     });
   });
 

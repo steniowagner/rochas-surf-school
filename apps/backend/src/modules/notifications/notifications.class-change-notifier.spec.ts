@@ -92,4 +92,67 @@ describe('NotificationsClassChangeNotifier', () => {
 
     expect(error).toHaveBeenCalledWith(expect.stringContaining('class.edited'), 'boom');
   });
+
+  describe('classCancelled', () => {
+    const storedParams = (createMany: { mock: { calls: unknown[][] } }) =>
+      (createMany.mock.calls[0]![0] as { userId: string; type: string; params: unknown }[]).map((notification) => ({
+        userId: notification.userId,
+        type: notification.type,
+        params: notification.params,
+      }));
+
+    it('stores one class.cancelled notification per instructor with the message', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classCancelled({ ...event, message: 'Mar muito grande.' });
+
+      const params = {
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: '2026-10-18T11:00:00.000Z',
+        message: 'Mar muito grande.',
+      };
+      expect(storedParams(notificationRepository.createMany)).toEqual([
+        { userId: INSTRUCTOR_ID, type: 'class.cancelled', params },
+        { userId: OTHER_ID, type: 'class.cancelled', params },
+      ]);
+    });
+
+    it('leaves the message out of the details when there is none', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classCancelled(event);
+
+      expect(storedParams(notificationRepository.createMany)[0]!.params).toEqual({
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: '2026-10-18T11:00:00.000Z',
+      });
+    });
+
+    it('pushes the cancellation to the instructor in the locale the phone registered', async () => {
+      const { pushTokenRepository, pushProvider, notifier } = setup();
+      pushTokenRepository.findByUserIds.mockResolvedValue([
+        { token: 'ExpoPushToken[a]', userId: INSTRUCTOR_ID, locale: 'es' },
+      ]);
+
+      await notifier.classCancelled({ ...event, instructorIds: [INSTRUCTOR_ID], message: 'Mar grande' });
+
+      expect(pushProvider.send.mock.calls[0]![0]).toEqual([
+        expect.objectContaining({ token: 'ExpoPushToken[a]', locale: 'es', type: 'class.cancelled' }),
+      ]);
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.classCancelled(event)).resolves.toBeUndefined();
+      await expect(notifier.classCancelled(event)).resolves.toBeUndefined();
+
+      expect(error).toHaveBeenCalledTimes(2);
+      expect(error.mock.calls[0]![0]).toContain('class.cancelled');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('class.cancelled'), 'boom');
+    });
+  });
 });

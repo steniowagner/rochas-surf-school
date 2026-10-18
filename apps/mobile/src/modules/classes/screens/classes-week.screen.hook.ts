@@ -1,5 +1,6 @@
-import { router } from "expo-router";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
 import { routes } from "@/constants/routes";
@@ -38,6 +39,21 @@ export const useClassesWeekScreen = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const query = useWeekClasses(weekStart);
   const visibleWeeks = useVisibleWeeksClasses(visibleRange);
+  const queryClient = useQueryClient();
+
+  // A class changed on a screen above this one (cancelled, edited) invalidated its week while this screen was not
+  // looking: when it is focused again, the invalidated weeks are fetched, so the cards show the result at once.
+  useFocusEffect(
+    useCallback(() => {
+      void queryClient.refetchQueries(
+        {
+          queryKey: ["classes", "week"],
+          predicate: (query) => query.state.isInvalidated,
+        },
+        { cancelRefetch: false },
+      );
+    }, [queryClient]),
+  );
 
   const items = query.data?.items ?? NO_ITEMS;
   const dayItems = items.filter(

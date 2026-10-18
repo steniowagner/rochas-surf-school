@@ -77,6 +77,26 @@ describe('renderPush', () => {
     });
   });
 
+  it.each([
+    ['pt-BR', 'Aula cancelada', 'A aula de Surf de 18/10 às 08:00 foi cancelada.', 'Surf, 18/10 às 08:00: Mar muito grande.'],
+    ['es', 'Clase cancelada', 'La clase de Surf del 18/10 a las 08:00 fue cancelada.', 'Surf, 18/10 a las 08:00: Mar muito grande.'],
+    ['en', 'Class cancelled', 'Your Surf class on 10/18 at 08:00 was cancelled.', 'Surf, 10/18 at 08:00: Mar muito grande.'],
+  ] as const)('writes the cancelled class in %s, with and without the message', (locale, title, plain, withMessage) => {
+    const params = { discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('class.cancelled', params, locale)).toEqual({ title, body: plain });
+    expect(renderPush('class.cancelled', { ...params, message: '  Mar muito grande.  ' }, locale)).toEqual({
+      title,
+      body: withMessage,
+    });
+  });
+
+  it.each([[undefined], [''], ['   '], [42]])('counts %j as no cancellation message', (message) => {
+    expect(renderPush('class.cancelled', { discipline: 'skate', startsAt: STARTS_AT, message }, 'pt-BR').body).toBe(
+      'A aula de Skate de 18/10 às 08:00 foi cancelada.',
+    );
+  });
+
   it('shows the start in Fortaleza even when it falls on the previous or next UTC day', () => {
     expect(renderPush('class.edited', { discipline: 'surf', startsAt: '2026-10-19T01:30:00.000Z' }, 'pt-BR').body).toBe(
       'A aula de Surf de 18/10 às 22:30 foi alterada. Abra o app para ver.',

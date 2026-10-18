@@ -10,6 +10,7 @@ const ADMIN_ID = '0b4d1c6e-3f7a-4c58-9a21-7d5e8f1a2b34';
 const NOW = new Date('2026-10-14T12:00:00.000Z');
 const STARTS_AT = new Date('2026-10-15T11:00:00.000Z');
 const ENDS_AT = new Date('2026-10-15T12:00:00.000Z');
+const CANCELLED_AT = new Date('2026-10-14T13:00:00.000Z');
 
 function domain(id = ID, notes: string | null = 'Bring sunscreen') {
   return new SchoolClass({
@@ -33,7 +34,10 @@ function setup() {
     createMany: vi.fn(async () => calls.push('classes')),
     findMany: vi.fn(),
     findUnique: vi.fn(),
-    update: vi.fn(async () => calls.push('class')),
+    updateMany: vi.fn(async () => {
+      calls.push('class');
+      return { count: 1 };
+    }),
   };
   const classInstructor = {
     createMany: vi.fn(async () => calls.push('instructors')),
@@ -106,6 +110,8 @@ describe('PrismaSchoolClassRepository', () => {
         locationId: LOCATION_ID,
         capacity: 5,
         notes: null,
+        cancelledAt: CANCELLED_AT,
+        cancellationMessage: 'Mar muito grande.',
         createdBy: ADMIN_ID,
         createdAt: NOW,
         updatedAt: NOW,
@@ -128,6 +134,8 @@ describe('PrismaSchoolClassRepository', () => {
       instructorIds: [INSTRUCTOR_ID],
       capacity: 5,
       notes: null,
+      cancelledAt: CANCELLED_AT,
+      cancellationMessage: 'Mar muito grande.',
     });
     expect(classes[0].startsAt).toEqual(STARTS_AT);
   });
@@ -170,12 +178,12 @@ describe('PrismaSchoolClassRepository', () => {
       updatedAt: NOW,
     });
 
-    await repository.update(edited);
+    expect(await repository.update(edited)).toBe(true);
 
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(calls).toEqual(['class', 'unassign', 'instructors']);
-    expect(schoolClass.update).toHaveBeenCalledWith({
-      where: { id: ID },
+    expect(schoolClass.updateMany).toHaveBeenCalledWith({
+      where: { id: ID, cancelledAt: null },
       data: {
         discipline: 'surf',
         level: 'beginner',
@@ -191,6 +199,66 @@ describe('PrismaSchoolClassRepository', () => {
     expect(classInstructor.createMany).toHaveBeenCalledWith({
       data: [{ classId: ID, userId: ADMIN_ID }],
     });
+  });
+
+  it('writes nothing, not even the instructors, when the stored class is cancelled', async () => {
+    const { schoolClass, classInstructor, calls, repository } = setup();
+    schoolClass.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    expect(await repository.update(domain())).toBe(false);
+
+    expect(calls).toEqual([]);
+    expect(classInstructor.deleteMany).not.toHaveBeenCalled();
+    expect(classInstructor.createMany).not.toHaveBeenCalled();
+  });
+
+  it('reads a class that was never cancelled with no cancellation', async () => {
+    const { schoolClass, repository } = setup();
+    schoolClass.findUnique.mockResolvedValueOnce({
+      id: ID,
+      discipline: 'surf',
+      level: 'beginner',
+      startsAt: STARTS_AT,
+      endsAt: ENDS_AT,
+      locationId: LOCATION_ID,
+      capacity: 8,
+      notes: null,
+      cancelledAt: null,
+      cancellationMessage: null,
+      createdBy: ADMIN_ID,
+      createdAt: NOW,
+      updatedAt: NOW,
+      instructors: [{ userId: INSTRUCTOR_ID }],
+    });
+
+    expect(await repository.findById(ID)).toMatchObject({
+      cancelledAt: null,
+      cancellationMessage: null,
+    });
+  });
+
+  it('cancels with one conditional write and tells whether it won', async () => {
+    const { schoolClass, repository } = setup();
+    schoolClass.updateMany.mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 0 });
+
+    expect(await repository.cancel(ID, CANCELLED_AT, 'Mar muito grande.')).toBe(true);
+    expect(await repository.cancel(ID, CANCELLED_AT, null)).toBe(false);
+
+    expect(schoolClass.updateMany).toHaveBeenNthCalledWith(1, {
+      where: { id: ID, cancelledAt: null },
+      data: { cancelledAt: CANCELLED_AT, cancellationMessage: 'Mar muito grande.' },
+    });
+    expect(schoolClass.updateMany).toHaveBeenNthCalledWith(2, {
+      where: { id: ID, cancelledAt: null },
+      data: { cancelledAt: CANCELLED_AT, cancellationMessage: null },
+    });
+  });
+
+  it('propagates a cancel failure', async () => {
+    const { schoolClass, repository } = setup();
+    schoolClass.updateMany.mockRejectedValueOnce(new Error('down'));
+
+    await expect(repository.cancel(ID, CANCELLED_AT, null)).rejects.toThrow('down');
   });
 
   it('propagates an update failure so the transaction rolls back', async () => {

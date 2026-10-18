@@ -34,7 +34,11 @@ jest.mock("@/components/ui/bottom-modal", () => {
 jest.mock("@/services/api", () => {
   const actual = jest.requireActual("@/services/api");
 
-  return { ...actual, apiGet: jest.fn(actual.apiGet), apiPut: jest.fn(actual.apiPut) };
+  return {
+    ...actual,
+    apiGet: jest.fn(actual.apiGet),
+    apiPut: jest.fn(actual.apiPut),
+  };
 });
 
 jest.mock("expo-router", () => ({
@@ -66,6 +70,8 @@ const classItem = {
   endsAt: "2026-10-15T12:00:00.000Z",
   capacity: 8,
   notes: "Bring a hat",
+  cancelledAt: null,
+  cancellationMessage: null,
   location: futuro,
   instructors: [
     { id: "t-1", name: "Ana Souza" },
@@ -460,6 +466,51 @@ describe("EditClassScreen", () => {
     await act(async () => finish(ok(classItem)));
     await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
     expect(puts()).toHaveLength(1);
+  });
+
+  it("has no Cancel class button: cancelling is done from the class tools", async () => {
+    await renderScreen();
+    await loaded();
+
+    expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
+    expect(saveButton()).toBeOnTheScreen();
+  });
+
+  describe("cancelled class", () => {
+    const cancelledItem = { ...classItem, cancelledAt: "2026-10-13T10:00:00.000Z", cancellationMessage: "Big waves." };
+
+    it("says the class was cancelled, with no form, footer or Cancel class", async () => {
+      serve({ "GET /classes/c-1": () => ok(cancelledItem) });
+      await renderScreen();
+
+      expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
+      expect(screen.queryByRole("checkbox", { name: "Ana Souza" })).toBeNull();
+    });
+
+    it("says it for a cancelled class that has started too", async () => {
+      jest.setSystemTime(STARTED_NOW);
+      serve({ "GET /classes/c-1": () => ok(cancelledItem) });
+      await renderScreen();
+
+      expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+    });
+
+    it("shows the toast and goes back when a save is refused with class.cancelled", async () => {
+      serve({ "PUT /classes/c-1": failure(409, "class.cancelled") });
+      const user = userEvent.setup();
+      await renderScreen();
+      await loaded();
+      await user.press(screen.getByRole("button", { name: AFTERNOON }));
+
+      await user.press(saveButton());
+
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith("This class was cancelled and can't be changed."),
+      );
+      expect(router.back).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("started class", () => {

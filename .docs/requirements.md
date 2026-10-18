@@ -685,6 +685,7 @@ When a class is edited, its students, anyone with a pending request for it, and 
 #### Class states
 
 _Implemented in spec 030-classes-week-view (not started, started and finished, computed from the clock; cancelled comes with its spec)._
+_Implemented in spec 033-class-cancellation (cancelled, set by an admin and stored; it wins over the clock)._
 
 A class SHALL be not started until its start time, started from its start time until its end time, and finished after its end time. These changes SHALL happen on their own at those times. A class SHALL become cancelled only when an admin cancels it.
 
@@ -694,6 +695,7 @@ A class SHALL be not started until its start time, started from its start time u
 #### Changes after a class starts
 
 _Implemented in spec 032-class-editing (changing instructors, and refusing other edits; cancelling comes with its spec)._
+_Implemented in spec 033-class-cancellation (cancelling a started class)._
 
 Once a class has started, admins SHALL only be able to cancel it or change its instructors. Once it has finished, the class itself SHALL NOT change, and only ratings, comments and photos SHALL be added to it.
 
@@ -703,11 +705,15 @@ Once a class has started, admins SHALL only be able to cancel it or change its i
 
 #### Cancelling a class
 
+_Implemented in spec 033-class-cancellation (its instructors are notified with the message, never the admin who cancels; its students and the people with pending requests come with enrolment)._
+
 Admins SHALL be able to cancel a class until it finishes, with an optional message. Its students, anyone with a pending request for it, and its instructors SHALL be notified, with the message.
 
 - _Cancelled during the class:_ When an admin cancels a class that has started because of bad weather and writes a message, then the class is cancelled, and its students, the people with pending requests for it and its instructors are notified with the message.
 
 #### Finished and cancelled classes are final
+
+_Implemented in spec 033-class-cancellation._
 
 A finished class SHALL NOT be cancelled, and a cancelled class SHALL NOT be restored.
 

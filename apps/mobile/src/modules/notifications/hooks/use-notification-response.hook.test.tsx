@@ -199,7 +199,7 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
-  it.each(["class.edited", "class.unassigned"])(
+  it.each(["class.edited", "class.unassigned", "class.cancelled"])(
     "opens the class details of an instructor who taps a %s push",
     async (type) => {
       answerMe(account("approved", "instructor", true));
@@ -212,7 +212,7 @@ describe("useNotificationResponse", () => {
     },
   );
 
-  it.each(["class.edited", "class.unassigned"])(
+  it.each(["class.edited", "class.unassigned", "class.cancelled"])(
     "opens the class details of an admin who taps a %s push",
     async (type) => {
       answerMe(account("approved", "admin", true));
@@ -231,6 +231,25 @@ describe("useNotificationResponse", () => {
     await tap(response("class.edited", "n1", "c-1"));
 
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
+  it("goes to the resolved flow when a class.cancelled push is tapped by someone who is now a student", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "instructor", true));
+
+    await tap(response("class.cancelled", "n1", "c-1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
+  it("goes home when a class.cancelled push has no class id", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("class.cancelled"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.home));
+    expect(app.getPathname()).not.toContain("class/");
   });
 
   it("goes home when a class.unassigned push has no class id", async () => {

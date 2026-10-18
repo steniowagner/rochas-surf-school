@@ -609,6 +609,8 @@ describe('Classes (e2e)', () => {
         endsAt: '2026-10-14T12:00:00.000Z',
         capacity: 8,
         notes: 'Bring sunscreen',
+        cancelledAt: null,
+        cancellationMessage: null,
         location: { id: locationId, name: expect.stringContaining(MARK), address: 'Av. Beira Mar' },
         instructors: [
           { id: ana.id, name: 'ana' },
@@ -850,6 +852,12 @@ describe('Classes (e2e)', () => {
     const edit = (token: string | undefined, id: string, body: Record<string, unknown>) =>
       as(token, http().put(`/classes/${id}`)).send(body);
 
+    async function withPhone(userId: string, locale = 'pt-BR') {
+      await prisma.pushToken.create({
+        data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId, locale },
+      });
+    }
+
     // Tomorrow (2026-10-15) 08:00-09:00 in Fortaleza, unless the test moves it.
     async function makeClass(
       creatorId: string,
@@ -1048,6 +1056,29 @@ describe('Classes (e2e)', () => {
       expect((await stored(id)).capacity).toBe(8);
     });
 
+    it('refuses a cancelled class, before the clock, and changes nothing', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      await withPhone(instructor.id);
+      const id = await makeClass(admin.id, [instructor.id]);
+      await prisma.schoolClass.update({ where: { id }, data: { cancelledAt: NOW, cancellationMessage: 'Mar grande' } });
+
+      const response = await edit(admin.accessToken, id, sameBody([instructor.id], { capacity: 9 }));
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors).toEqual(['class.cancelled']);
+      expect((await stored(id)).capacity).toBe(8);
+      expect(await prisma.notification.count({ where: { userId: instructor.id } })).toBe(0);
+      expect(push.sent).toHaveLength(0);
+
+      now = new Date('2026-10-16T00:00:00.000Z');
+      const finished = await edit(admin.accessToken, id, sameBody([instructor.id]));
+      expect(finished.body.errors).toEqual(['class.cancelled']);
+
+      const malformed = await edit(admin.accessToken, id, sameBody([instructor.id], { capacity: 0 }));
+      expect(malformed.status).toBe(422);
+    });
+
     it('refuses a malformed body with every shape key, before the class state', async () => {
       const admin = await account();
       const instructor = await account('instructor');
@@ -1156,12 +1187,6 @@ describe('Classes (e2e)', () => {
     });
 
     describe('notifies', () => {
-      async function withPhone(userId: string, locale = 'pt-BR') {
-        await prisma.pushToken.create({
-          data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId, locale },
-        });
-      }
-
       const notificationsOf = (userId: string) =>
         prisma.notification.findMany({
           where: { userId, type: { in: ['class.edited', 'class.assigned', 'class.unassigned'] } },
@@ -1242,6 +1267,283 @@ describe('Classes (e2e)', () => {
 
         expect(response.status).toBe(200);
         expect((await stored(id)).capacity).toBe(9);
+        expect(await notificationsOf(instructor.id)).toHaveLength(1);
+      });
+    });
+  });
+
+  describe('POST /classes/:id/cancel', () => {
+    const cancel = (token: string | undefined, id: string, body?: Record<string, unknown>) =>
+      as(token, http().post(`/classes/${id}/cancel`)).send(body ?? {});
+
+    // Tomorrow (2026-10-15) 08:00-09:00 in Fortaleza, unless the test moves it.
+    async function makeClass(
+      creatorId: string,
+      instructorIds: string[],
+      overrides: { startsAt?: string; endsAt?: string } = {},
+    ) {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date(overrides.startsAt ?? '2026-10-15T11:00:00.000Z'),
+          endsAt: new Date(overrides.endsAt ?? '2026-10-15T12:00:00.000Z'),
+          locationId,
+          capacity: 8,
+          createdBy: creatorId,
+          instructors: { create: instructorIds.map((userId) => ({ userId })) },
+        },
+      });
+      return id;
+    }
+
+    const stored = (id: string) => prisma.schoolClass.findUniqueOrThrow({ where: { id } });
+
+    async function withPhone(userId: string, locale = 'pt-BR') {
+      await prisma.pushToken.create({
+        data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId, locale },
+      });
+    }
+
+    const notificationsOf = (userId: string) =>
+      prisma.notification.findMany({ where: { userId, type: 'class.cancelled' } });
+
+    it("cancels a class that hasn't started and reads the cancellation back everywhere", async () => {
+      const admin = await account();
+      const student = await account('student');
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+      const sibling = await makeClass(admin.id, [instructor.id], {
+        startsAt: '2026-10-16T11:00:00.000Z',
+        endsAt: '2026-10-16T12:00:00.000Z',
+      });
+
+      const response = await cancel(admin.accessToken, id, { message: '  Mar muito grande.  ' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        id,
+        cancelledAt: NOW.toISOString(),
+        cancellationMessage: 'Mar muito grande.',
+      });
+      const read = await as(student.accessToken, http().get(`/classes/${id}`));
+      expect(read.body).toEqual(response.body);
+      const week = await as(student.accessToken, http().get('/classes?date=2026-10-15'));
+      const items = week.body.items as { id: string; cancelledAt: string | null; cancellationMessage: string | null }[];
+      expect(items.find((item) => item.id === id)).toMatchObject({
+        cancelledAt: NOW.toISOString(),
+        cancellationMessage: 'Mar muito grande.',
+      });
+      expect(items.find((item) => item.id === sibling)).toMatchObject({
+        cancelledAt: null,
+        cancellationMessage: null,
+      });
+      expect((await stored(sibling)).cancelledAt).toBeNull();
+    });
+
+    it.each([[undefined], [null], [''], ['   ']])('cancels with no message for %j', async (message) => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      const response = await cancel(admin.accessToken, id, message === undefined ? {} : { message });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ cancelledAt: NOW.toISOString(), cancellationMessage: null });
+    });
+
+    it('cancels with an empty request body', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      const response = await as(admin.accessToken, http().post(`/classes/${id}/cancel`));
+
+      expect(response.status).toBe(200);
+      expect(response.body.cancellationMessage).toBeNull();
+    });
+
+    it('reads a class that was never cancelled with no cancellation', async () => {
+      const admin = await account();
+      const id = await makeClass(admin.id, []);
+
+      const read = await as(admin.accessToken, http().get(`/classes/${id}`));
+
+      expect(read.body).toMatchObject({ cancelledAt: null, cancellationMessage: null });
+    });
+
+    it('cancels a started class, also exactly at its start', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      now = new Date('2026-10-15T11:00:00.000Z');
+      const atStart = await cancel(admin.accessToken, id);
+      expect(atStart.status).toBe(200);
+      expect(atStart.body.cancelledAt).toBe('2026-10-15T11:00:00.000Z');
+
+      const other = await makeClass(admin.id, [instructor.id]);
+      now = new Date('2026-10-15T11:30:00.000Z');
+      const during = await cancel(admin.accessToken, other, { message: 'Trovoada' });
+      expect(during.status).toBe(200);
+      expect(during.body.cancellationMessage).toBe('Trovoada');
+    });
+
+    it('refuses a finished class, a cancelled one and a second simultaneous cancel', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const finished = await makeClass(admin.id, [instructor.id]);
+      now = new Date('2026-10-15T12:00:00.000Z');
+
+      const late = await cancel(admin.accessToken, finished, { message: 'Tarde demais' });
+      expect(late.status).toBe(409);
+      expect(late.body.errors).toEqual(['class.finished']);
+      expect((await stored(finished)).cancelledAt).toBeNull();
+
+      now = NOW;
+      const id = await makeClass(admin.id, [instructor.id]);
+      const first = await cancel(admin.accessToken, id, { message: 'Primeira' });
+      const second = await cancel(admin.accessToken, id, { message: 'Segunda' });
+      expect(first.status).toBe(200);
+      expect(second.status).toBe(409);
+      expect(second.body.errors).toEqual(['class.cancelled']);
+      expect(await stored(id)).toMatchObject({ cancelledAt: NOW, cancellationMessage: 'Primeira' });
+
+      now = new Date('2026-10-16T00:00:00.000Z');
+      const afterEnd = await cancel(admin.accessToken, id);
+      expect(afterEnd.body.errors).toEqual(['class.cancelled']);
+
+      now = NOW;
+      const raced = await makeClass(admin.id, [instructor.id]);
+      const results = await Promise.all([
+        cancel(admin.accessToken, raced, { message: 'A' }),
+        cancel(admin.accessToken, raced, { message: 'B' }),
+      ]);
+      expect(results.map((result) => result.status).sort()).toEqual([200, 409]);
+      const loser = results.find((result) => result.status === 409)!;
+      expect(loser.body.errors).toEqual(['class.cancelled']);
+      const winner = results.find((result) => result.status === 200)!;
+      expect((await stored(raced)).cancellationMessage).toBe(winner.body.cancellationMessage);
+    });
+
+    it('checks the message, the id and who may cancel, storing and sending nothing on a refusal', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const student = await account('student');
+      await withPhone(instructor.id);
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      const exact = await cancel(admin.accessToken, id, { message: ` ${'m'.repeat(300)} ` });
+      expect(exact.status).toBe(200);
+      expect(exact.body.cancellationMessage).toBe('m'.repeat(300));
+
+      const other = await makeClass(admin.id, [instructor.id]);
+      for (const message of ['m'.repeat(301), 42, ['x']]) {
+        const response = await cancel(admin.accessToken, other, { message } as never);
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(['class.cancellationMessage.max.length']);
+      }
+
+      for (const unknown of [randomUUID(), 'not-a-uuid']) {
+        const response = await cancel(admin.accessToken, unknown);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toEqual(['class.notFound']);
+      }
+
+      for (const person of [student, instructor]) {
+        const response = await cancel(person.accessToken, other);
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['user.role.notAdmin']);
+      }
+      for (const status of NOT_APPROVED) {
+        const person = await account('admin', status);
+
+        const response = await cancel(person.accessToken, other);
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['user.status.notApproved']);
+      }
+      expect((await cancel(undefined, other)).status).toBe(401);
+
+      expect((await stored(other)).cancelledAt).toBeNull();
+      expect(await notificationsOf(instructor.id)).toHaveLength(1);
+      expect(push.sent).toHaveLength(1);
+    });
+
+    describe('notifies', () => {
+      it('tells the instructors, with the message, and never the admin who cancels', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        await withPhone(instructor.id, 'pt-BR');
+        await withPhone(admin.id);
+        const id = await makeClass(admin.id, [instructor.id, admin.id]);
+
+        const response = await cancel(admin.accessToken, id, { message: 'Mar muito grande.' });
+
+        expect(response.status).toBe(200);
+        const [notification] = await notificationsOf(instructor.id);
+        expect(notification!.params).toEqual({
+          classId: id,
+          discipline: 'surf',
+          startsAt: '2026-10-15T11:00:00.000Z',
+          message: 'Mar muito grande.',
+        });
+        expect(await notificationsOf(admin.id)).toHaveLength(0);
+        expect(push.sent).toHaveLength(1);
+        expect(push.sent[0]).toMatchObject({ type: 'class.cancelled', locale: 'pt-BR' });
+        expect(renderPush('class.cancelled', push.sent[0]!.params, 'pt-BR')).toEqual({
+          title: 'Aula cancelada',
+          body: 'Surf, 15/10 às 08:00: Mar muito grande.',
+        });
+      });
+
+      it('leaves the message out of the details when there is none', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        await withPhone(instructor.id, 'en');
+        const id = await makeClass(admin.id, [instructor.id]);
+
+        await cancel(admin.accessToken, id);
+
+        const [notification] = await notificationsOf(instructor.id);
+        expect(notification!.params).toEqual({
+          classId: id,
+          discipline: 'surf',
+          startsAt: '2026-10-15T11:00:00.000Z',
+        });
+        expect(renderPush('class.cancelled', push.sent[0]!.params, 'en').body).toBe(
+          'Your Surf class on 10/15 at 08:00 was cancelled.',
+        );
+      });
+
+      it('tells nobody when the admin teaches the class alone', async () => {
+        const admin = await account();
+        await withPhone(admin.id);
+        const id = await makeClass(admin.id, [admin.id]);
+
+        const response = await cancel(admin.accessToken, id);
+
+        expect(response.status).toBe(200);
+        expect(await notificationsOf(admin.id)).toHaveLength(0);
+        expect(push.sent).toHaveLength(0);
+      });
+
+      it('keeps the 200 and the cancellation when the push provider fails', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        await withPhone(instructor.id);
+        const id = await makeClass(admin.id, [instructor.id]);
+        push.failing = true;
+
+        const response = await cancel(admin.accessToken, id, { message: 'Trovoada' });
+
+        expect(response.status).toBe(200);
+        expect(await stored(id)).toMatchObject({ cancelledAt: NOW, cancellationMessage: 'Trovoada' });
         expect(await notificationsOf(instructor.id)).toHaveLength(1);
       });
     });

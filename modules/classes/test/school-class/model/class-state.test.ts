@@ -24,6 +24,19 @@ describe("getClassState", () => {
     expect(getClassState(STARTS_AT, ENDS_AT, ENDS_AT)).toBe("finished");
   });
 
+  it("is cancelled whenever it has a cancellation, before, during and after its time", () => {
+    const cancelledAt = new Date("2026-10-13T10:00:00.000Z");
+
+    expect(getClassState(STARTS_AT, ENDS_AT, at(STARTS_AT, -1), cancelledAt)).toBe("cancelled");
+    expect(getClassState(STARTS_AT, ENDS_AT, STARTS_AT, cancelledAt)).toBe("cancelled");
+    expect(getClassState(STARTS_AT, ENDS_AT, ENDS_AT, cancelledAt)).toBe("cancelled");
+  });
+
+  it("follows the clock with a null or absent cancellation", () => {
+    expect(getClassState(STARTS_AT, ENDS_AT, STARTS_AT, null)).toBe("started");
+    expect(getClassState(STARTS_AT, ENDS_AT, ENDS_AT, undefined)).toBe("finished");
+  });
+
   it("is not started days before and finished days after", () => {
     const day = 24 * 60 * 60 * 1000;
 

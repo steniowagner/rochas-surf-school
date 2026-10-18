@@ -291,6 +291,58 @@ describe("EditClass", () => {
     });
   });
 
+  describe("cancelled", () => {
+    const CANCELLED = { cancelledAt: new Date("2026-10-13T10:00:00.000Z") };
+
+    it("refuses a cancelled class, nothing written or sent", async () => {
+      const { useCase, input, classes, changes, assignments } = setup({ stored: CANCELLED });
+
+      const error = await errorOf(useCase.execute({ ...input, capacity: 9 }));
+
+      expect(error.message).toBe("class.cancelled");
+      expect(error.statusCode).toBe(409);
+      expect(classes.updateCalls).toHaveLength(0);
+      expect(changes.editedEvents).toHaveLength(0);
+      expect(assignments.events).toHaveLength(0);
+    });
+
+    it("answers class.cancelled for a cancelled and finished class", async () => {
+      const { useCase, input } = setup({
+        stored: CANCELLED,
+        now: new Date("2026-10-16T00:00:00.000Z"),
+      });
+
+      expect((await errorOf(useCase.execute(input))).message).toBe("class.cancelled");
+    });
+
+    it("answers a malformed body with its shape errors before the cancellation", async () => {
+      const { useCase, input } = setup({ stored: CANCELLED });
+
+      expect(await keysOf(useCase.execute({ ...input, capacity: 0 }))).toEqual([
+        "class.capacity.invalid",
+      ]);
+    });
+
+    it("answers class.cancelled, notifying nobody, when the class is cancelled after it was read", async () => {
+      const { useCase, input, classes, changes, assignments, stored } = setup();
+      const realFindById = classes.findById.bind(classes);
+      classes.findById = async (id) => {
+        const found = await realFindById(id);
+        await classes.cancel(stored.id, NOW, null);
+        return found;
+      };
+
+      const error = await errorOf(useCase.execute({ ...input, capacity: 9 }));
+
+      expect(error.message).toBe("class.cancelled");
+      expect(error.statusCode).toBe(409);
+      expect(classes.updateCalls).toHaveLength(1);
+      expect((await realFindById(stored.id))!.capacity).toBe(8);
+      expect(changes.editedEvents).toHaveLength(0);
+      expect(assignments.events).toHaveLength(0);
+    });
+  });
+
   describe("started", () => {
     const STARTED = new Date("2026-10-15T11:30:00.000Z");
 

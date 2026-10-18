@@ -37,6 +37,8 @@ export class PrismaClassViewReader implements ClassViewReader {
       endsAt: record.endsAt,
       capacity: record.capacity,
       notes: record.notes,
+      cancelledAt: record.cancelledAt,
+      cancellationMessage: record.cancellationMessage,
       location: record.location,
       instructors: record.instructors.map((item) => item.user),
     };

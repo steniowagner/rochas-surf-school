@@ -159,6 +159,36 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       },
     },
   },
+  // The admin's message is shown as written (trimmed), never translated; without one the body only says which class.
+  'class.cancelled': {
+    'pt-BR': {
+      title: 'Aula cancelada',
+      body: ({ discipline, startsAt, message }) => {
+        const { day, time } = startParts(startsAt);
+        return text(message)
+          ? `${disciplineName(discipline)}, ${day} às ${time}: ${text(message)}`
+          : `A aula de ${disciplineName(discipline)} de ${day} às ${time} foi cancelada.`;
+      },
+    },
+    es: {
+      title: 'Clase cancelada',
+      body: ({ discipline, startsAt, message }) => {
+        const { day, time } = startParts(startsAt);
+        return text(message)
+          ? `${disciplineName(discipline)}, ${day} a las ${time}: ${text(message)}`
+          : `La clase de ${disciplineName(discipline)} del ${day} a las ${time} fue cancelada.`;
+      },
+    },
+    en: {
+      title: 'Class cancelled',
+      body: ({ discipline, startsAt, message }) => {
+        const { day, time } = startParts(startsAt, true);
+        return text(message)
+          ? `${disciplineName(discipline)}, ${day} at ${time}: ${text(message)}`
+          : `Your ${disciplineName(discipline)} class on ${day} at ${time} was cancelled.`;
+      },
+    },
+  },
 };
 
 export function renderPush(

@@ -10,7 +10,7 @@ import { refreshAccount } from "../utils/refresh-account";
 /**
  * A push that arrives with the app open (shown as a banner by the push service) also updates what is on screen
  * (spec 020, D-16): a decision refreshes the account, so the flow guards move the app on by themselves, and a
- * new registration refreshes the admin's list, and a class assignment reloads the cached weeks, and an edited or unassigned class reloads every cached class. No navigation.
+ * new registration refreshes the admin's list, and a class assignment reloads the cached weeks, and an edited, unassigned or cancelled class reloads every cached class. No navigation.
  */
 export const useNotificationReceived = () => {
   const queryClient = useQueryClient();
@@ -37,7 +37,11 @@ export const useNotificationReceived = () => {
         }
 
         // The weeks and the details of the class that changed.
-        if (type === "class.edited" || type === "class.unassigned") {
+        if (
+          type === "class.edited" ||
+          type === "class.unassigned" ||
+          type === "class.cancelled"
+        ) {
           void queryClient.invalidateQueries({ queryKey: ["classes"] });
 
           return;

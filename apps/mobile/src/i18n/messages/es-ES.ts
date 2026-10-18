@@ -297,6 +297,7 @@ const messages: Messages = {
       started: "En curso",
       finished: "Finalizada",
     },
+    cancelled: "Cancelada",
   },
   classDetails: {
     title: "Detalle",
@@ -311,6 +312,10 @@ const messages: Messages = {
       title: "Clase finalizada",
       description: "Terminó a las {{end}}.",
     },
+    cancelled: {
+      title: "Clase cancelada",
+      description: "Esta clase no se realizará.",
+    },
     instructor_one: "Instructor",
     instructor_other: "Instructores",
     you: "Tú",
@@ -321,7 +326,7 @@ const messages: Messages = {
     loadError: "No se pudo cargar la clase.",
     notFound: "Esta clase ya no existe.",
     retry: "Intentar de nuevo",
-    edit: "Editar clase",
+    tools: "Herramientas de la clase",
   },
   editProfile: {
     title: "Editar perfil",
@@ -457,6 +462,25 @@ const messages: Messages = {
       location: "El lugar elegido ya no existe.",
     },
   },
+  cancelClass: {
+    title: "¿Cancelar esta clase?",
+    description: "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada.",
+    messageLabel: "Mensaje (opcional)",
+    messagePlaceholder: "Ej.: Mar muy grande. La pasamos al sábado a la misma hora.",
+    confirm: "Cancelar y avisar",
+    keep: "Mantener clase",
+    done: "Clase cancelada",
+    errors: {
+      cancelled: "Esta clase ya fue cancelada.",
+      finished: "Esta clase ya terminó y no se puede cancelar.",
+    },
+  },
+  classTools: {
+    title: "Herramientas de la clase",
+    edit: "Editar clase",
+    notify: "Avisar a alumnos e instructores",
+    cancel: "Cancelar clase",
+  },
   editClass: {
     title: "Editar clase",
     day: {
@@ -476,6 +500,7 @@ const messages: Messages = {
     errors: {
       started: "La clase ya empezó: solo se pueden cambiar los instructores.",
       finished: "Esta clase ya terminó y no se puede cambiar.",
+      cancelled: "Esta clase fue cancelada y no se puede cambiar.",
       seatsTaken: "La capacidad no puede quedar por debajo de las {{count}} plazas ocupadas.",
     },
   },

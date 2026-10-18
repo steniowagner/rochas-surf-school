@@ -155,4 +155,48 @@ describe('NotificationsClassChangeNotifier', () => {
       expect(error).toHaveBeenLastCalledWith(expect.stringContaining('class.cancelled'), 'boom');
     });
   });
+
+  describe('classDeleted', () => {
+    const deleted = { instructorIds: event.instructorIds, discipline: event.discipline, startsAt: event.startsAt };
+
+    it('stores one class.deleted notification per instructor, without a class id', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classDeleted(deleted);
+
+      const params = { discipline: 'surf', startsAt: '2026-10-18T11:00:00.000Z' };
+      const stored = (notificationRepository.createMany.mock.calls[0]![0] as { userId: string; type: string; params: unknown }[]).map(
+        (notification) => ({ userId: notification.userId, type: notification.type, params: notification.params }),
+      );
+      expect(stored).toEqual([
+        { userId: INSTRUCTOR_ID, type: 'class.deleted', params },
+        { userId: OTHER_ID, type: 'class.deleted', params },
+      ]);
+    });
+
+    it('pushes the deletion to the instructor in the locale the phone registered', async () => {
+      const { pushTokenRepository, pushProvider, notifier } = setup();
+      pushTokenRepository.findByUserIds.mockResolvedValue([
+        { token: 'ExpoPushToken[a]', userId: INSTRUCTOR_ID, locale: 'en' },
+      ]);
+
+      await notifier.classDeleted({ ...deleted, instructorIds: [INSTRUCTOR_ID] });
+
+      expect(pushProvider.send.mock.calls[0]![0]).toEqual([
+        expect.objectContaining({ token: 'ExpoPushToken[a]', locale: 'en', type: 'class.deleted' }),
+      ]);
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.classDeleted(deleted)).resolves.toBeUndefined();
+      await expect(notifier.classDeleted(deleted)).resolves.toBeUndefined();
+
+      expect(error).toHaveBeenCalledTimes(2);
+      expect(error.mock.calls[0]![0]).toContain('class.deleted');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('class.deleted'), 'boom');
+    });
+  });
 });

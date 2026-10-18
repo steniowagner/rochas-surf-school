@@ -91,6 +91,14 @@ describe('renderPush', () => {
     });
   });
 
+  it.each([
+    ['pt-BR', 'Aula excluída', 'A aula de Surf de 18/10 às 08:00 foi excluída.'],
+    ['es', 'Clase eliminada', 'La clase de Surf del 18/10 a las 08:00 fue eliminada.'],
+    ['en', 'Class deleted', 'Your Surf class on 10/18 at 08:00 was deleted.'],
+  ] as const)('writes the deleted class in %s', (locale, title, body) => {
+    expect(renderPush('class.deleted', { discipline: 'surf', startsAt: STARTS_AT }, locale)).toEqual({ title, body });
+  });
+
   it.each([[undefined], [''], ['   '], [42]])('counts %j as no cancellation message', (message) => {
     expect(renderPush('class.cancelled', { discipline: 'skate', startsAt: STARTS_AT, message }, 'pt-BR').body).toBe(
       'A aula de Skate de 18/10 às 08:00 foi cancelada.',

@@ -256,16 +256,24 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   > verified: `npx vitest run src/modules/classes/school-class.prisma.spec.ts src/modules/classes/no-enrolment.pending-request-counter.spec.ts` from apps/backend (13 passed);
   > deviations: none (extended the existing repository file by hand, as the skill's pattern is already in place)
 
-- [ ] **T-05** — Add the D-06 catalog entry for `class.deleted` to `src/modules/notifications/push-messages.ts`,
+- [x] **T-05** — Add the D-06 catalog entry for `class.deleted` to `src/modules/notifications/push-messages.ts`,
   with cases in `push-messages.spec.ts` (three locales).
   Covers: ER-06 · Done when: `npx vitest run src/modules/notifications/push-messages.spec.ts` passes from
   `apps/backend`.
+  > ✅ 2026-10-18 00:01 — added the `class.deleted` entry (pt-BR, es, en) to the push catalog and a case per locale;
+  > files: `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`;
+  > verified: `npx vitest run src/modules/notifications` from apps/backend (87 passed, after rebuilding the modules' dist);
+  > deviations: none
 
-- [ ] **T-06** — Add `classDeleted` to `NotificationsClassChangeNotifier`
+- [x] **T-06** — Add `classDeleted` to `NotificationsClassChangeNotifier`
   (`src/modules/notifications/notifications.class-change-notifier.ts`, D-05), with cases in its spec.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-05 · Done when: `npx vitest run src/modules/notifications/notifications.class-change-notifier.spec.ts`
   passes from `apps/backend`.
+  > ✅ 2026-10-18 00:01 — added `classDeleted` to NotificationsClassChangeNotifier (Notify with `{ discipline, startsAt }`, no class id; errors logged and swallowed) with three cases;
+  > files: `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`, `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts`;
+  > verified: `npx vitest run src/modules/notifications/notifications.class-change-notifier.spec.ts` (part of the 87 passed above);
+  > deviations: none
 
 - [ ] **T-07** — Expose `DELETE /classes/:id` (204) in `src/modules/classes/classes.controller.ts` (running
   `DeleteClass` with the repository, both counters, the change notifier and the clock), register

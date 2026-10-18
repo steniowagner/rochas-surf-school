@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ClassCancelled, ClassChangeNotifier, ClassEdited } from '@rochas-surf-school/classes';
+import type {
+  ClassCancelled,
+  ClassChangeNotifier,
+  ClassDeleted,
+  ClassEdited,
+} from '@rochas-surf-school/classes';
 import { Notify } from '@rochas-surf-school/notifications';
 import { ExpoPushProvider } from './expo.push.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
@@ -68,6 +73,21 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
     } catch (error) {
       this.logger.error(
         `Could not notify class.cancelled to ${instructorIds.length} instructor(s)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async classDeleted({ instructorIds, discipline, startsAt }: ClassDeleted): Promise<void> {
+    try {
+      await this.notify.execute({
+        userIds: instructorIds,
+        type: 'class.deleted',
+        params: { discipline, startsAt: startsAt.toISOString() },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify class.deleted to ${instructorIds.length} instructor(s)`,
         error instanceof Error ? error.stack : String(error),
       );
     }

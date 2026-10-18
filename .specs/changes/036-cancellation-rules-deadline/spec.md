@@ -372,7 +372,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   `modules/classes`.
   > ✅ 2026-10-18 02:41 — EditClass clears the deadline when a class field differs; `SchoolClassRepository.update(schoolClass, clearDeadline)`; files: `modules/classes/src/school-class/provider/school-class.repository.ts`, `modules/classes/src/school-class/usecase/edit-class.usecase.ts`, `modules/classes/test/mock/fake-school-class.repository.ts`, tests `test/school-class/usecase/edit-class.usecase.test.ts`, `test/school-class/provider/fake-school-class.repository.test.ts`; verified: `npx jest test/school-class/usecase/edit-class.usecase.test.ts test/school-class/provider` (95 passed), check-types and lint clean; deviations: none
 
-- [ ] **T-04** — Add `WorkOutCancellationDeadlines` (D-04, D-06, D-07, D-08): the `CancellationDeadlineDescriber` port
+- [x] **T-04** — Add `WorkOutCancellationDeadlines` (D-04, D-06, D-07, D-08): the `CancellationDeadlineDescriber` port
   (`src/school-class/provider/cancellation-deadline-describer.provider.ts`, input `CancellationDeadlineRequest`, output
   a `CancellationDeadlineDescription`), `SchoolClassRepository.findNeedingDeadline({ now, disciplines, limit })`,
   `saveDeadline(id, revision, deadline)` and `recordDeadlineFailure(id, revision, attempts, nextAttemptAt)` (both
@@ -383,6 +383,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   "stale", the backoff sequence and the 20-class limit.
   Covers: ER-04, ER-06, ER-07, ER-08, ER-10 · Done when: `npm test` and `npm run check-types` pass from
   `modules/classes`.
+  > ✅ 2026-10-18 02:42 — added the CancellationDeadlineDescriber port, the repository methods findNeedingDeadline/saveDeadline/recordDeadlineFailure and the WorkOutCancellationDeadlines use case (20 per run, 5 at a time, backoff, revision-conditional writes); files: `modules/classes/src/school-class/provider/{cancellation-deadline-describer.provider,school-class.repository,index}.ts`, `modules/classes/src/school-class/usecase/{work-out-cancellation-deadlines.usecase,index}.ts`, `modules/classes/test/mock/{fake-cancellation-deadline.describer,fake-school-class.repository,index}.ts`, `modules/classes/test/school-class/usecase/work-out-cancellation-deadlines.usecase.test.ts`; verified: `npm test` (381 passed, new files 100% covered), `npm run check-types`, `npm run lint`, `npm run build` from modules/classes; deviations: constructor also takes `LocationRepository` (the request needs the location's name and address)
 
 ### Backend (`apps/backend`)
 

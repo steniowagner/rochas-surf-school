@@ -1,4 +1,4 @@
-import { SchoolClass } from "../model";
+import { ClassDiscipline, SchoolClass } from "../model";
 
 export interface SchoolClassRepository {
   /** Stores every class with its instructors in one atomic write. */
@@ -34,4 +34,29 @@ export interface SchoolClassRepository {
    * An empty list writes nothing.
    */
   removeInstructor(userId: string, classIds: string[]): Promise<void>;
+  /**
+   * At most `limit` classes of those `disciplines` that start after `now`, aren't cancelled, have no deadline
+   * and whose next attempt is due (none, or at or before `now`): the never-tried ones first, then by `startsAt`,
+   * then `id`.
+   */
+  findNeedingDeadline(query: {
+    now: Date;
+    disciplines: ClassDiscipline[];
+    limit: number;
+  }): Promise<SchoolClass[]>;
+  /**
+   * Stores the worked-out deadline (and resets the attempts) only if the class is still at `revision` and not
+   * cancelled. Returns whether it wrote.
+   */
+  saveDeadline(id: string, revision: number, deadline: Date): Promise<boolean>;
+  /**
+   * Records a failed attempt (the attempt count and when the next one is due) under the same conditions as
+   * `saveDeadline`. Returns whether it wrote.
+   */
+  recordDeadlineFailure(
+    id: string,
+    revision: number,
+    attempts: number,
+    nextAttemptAt: Date,
+  ): Promise<boolean>;
 }

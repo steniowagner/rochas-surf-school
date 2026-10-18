@@ -707,12 +707,27 @@ es.
   > src/modules/classes/screens/edit-class.screen.test.tsx --forceExit --coverage (screens, hooks, picker and
   > form-section files 100%); -t manage and -t remov cases included; tsc and eslint clean. Deviations: none.
 
-- [ ] **T-18** — `location-map-preview` (D-17: the fixed map, the marker, "Direções" with the per-platform URL and the
+- [x] **T-18** — `location-map-preview` (D-17: the fixed map, the marker, "Direções" with the per-platform URL and the
   failure toast) on the location card of `ClassDetailsScreen`, with tests (`-t "map"`).
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-13 · Done when: `cd apps/mobile && npx jest src/modules/classes/components/location-map-preview src/modules/classes/screens/class-details.screen.test.tsx --coverage`
   passes.
+  > ✅ 2026-10-18 15:21 — location-map-preview (a fixed 96 pt MapView, scroll/zoom/rotate/pitch off, marker,
+  > initial region 0.01 degrees around the point) with a 'Direções' outline button that opens
+  > https://maps.apple.com/?daddr=lat,lng on iOS and https://www.google.com/maps/dir/?api=1&destination=lat,lng on
+  > Android with Linking.openURL (toast classDetails.directionsUnavailable on failure); ClassDetailsScreen shows
+  > it inside the location card only when the location has a point, for every role and for cancelled classes;
+  > utils/map gained getDirectionsUrl, PREVIEW_DELTA and the delta argument of regionAround. Files:
+  > apps/mobile/src/modules/classes/components/location-map-preview/{index.ts,location-map-
+  > preview.component.tsx,location-map-preview.hook.ts,location-map-preview.types.ts,location-map-
+  > preview.component.test.tsx}, apps/mobile/src/modules/classes/screens/class-details.screen.tsx,
+  > apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts,
+  > apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx,
+  > apps/mobile/src/modules/classes/utils/map.ts, apps/mobile/src/modules/classes/utils/map.test.ts. Verified: cd
+  > apps/mobile && npx jest src/modules/classes/components/location-map-preview src/modules/classes/screens/class-
+  > details.screen.test.tsx src/modules/classes/utils/map --forceExit --coverage (85 passed, touched files 100%);
+  > tsc and eslint clean. Deviations: none.
 
 - [ ] **T-19** — `location.changed` in `useNotificationResponse` (the classes tab by flow) and `useNotificationReceived`
   (invalidate `["classes"]` and `["locations"]`), with tests named `location.changed`.

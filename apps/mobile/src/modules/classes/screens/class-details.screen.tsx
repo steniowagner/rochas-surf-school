@@ -20,6 +20,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
 import { DeleteClassSheet } from "../components/delete-class-sheet";
+import { LocationMapPreview } from "../components/location-map-preview";
 
 import { useClassDetailsScreen } from "./class-details.screen.hook";
 import type { ClassDetailsScreenProps } from "./class-details.screen.types";
@@ -254,6 +255,11 @@ export function ClassDetailsScreen({
                 <Text className="ds-text-list-subtitle text-ink-2">
                   {item.location.address}
                 </Text>
+                {screen.locationPoint ? (
+                  <View className="pt-2">
+                    <LocationMapPreview point={screen.locationPoint} />
+                  </View>
+                ) : null}
               </View>
             </View>
           </>

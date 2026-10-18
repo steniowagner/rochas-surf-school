@@ -1,4 +1,4 @@
-import { getClassState, isWithoutInstructor } from "@rochas-surf-school/classes";
+import { getClassState, isWithoutDeadline, isWithoutInstructor } from "@rochas-surf-school/classes";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -180,6 +180,13 @@ export const useClassDetailsScreen = ({
     // Admins only: the class hasn't started and nobody teaches it; the banner opens the editor.
     showNoInstructor:
       canEdit && state !== null && isWithoutInstructor(instructors.length, state),
+    // Admins only: the class hasn't started and its deadline couldn't be worked out; the banner opens the rules.
+    showNoDeadline:
+      canEdit &&
+      item !== undefined &&
+      state !== null &&
+      isWithoutDeadline(item.cancellationDeadline, state),
+    openCancellationRules: () => router.push(routes.admin.cancellationRules),
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),

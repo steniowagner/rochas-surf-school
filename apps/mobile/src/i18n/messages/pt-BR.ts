@@ -320,6 +320,7 @@ const messages: Messages = {
     },
     cancelled: "Cancelada",
     noInstructor: "Sem instrutor",
+    noDeadline: "Sem prazo",
   },
   classDetails: {
     title: "Detalhe",
@@ -353,6 +354,10 @@ const messages: Messages = {
       description: "Atribua um instrutor antes da aula.",
     },
     noInstructorAssigned: "Sem instrutor atribuído",
+    noDeadline: {
+      title: "Sem prazo de cancelamento",
+      description: "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",
+    },
     tools: "Ferramentas da aula",
   },
   editProfile: {

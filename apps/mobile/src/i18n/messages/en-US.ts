@@ -320,6 +320,7 @@ const messages = {
     },
     cancelled: "Cancelled",
     noInstructor: "No instructor",
+    noDeadline: "No deadline",
   },
   classDetails: {
     title: "Details",
@@ -353,6 +354,10 @@ const messages = {
       description: "Assign an instructor before the class.",
     },
     noInstructorAssigned: "No instructor assigned",
+    noDeadline: {
+      title: "No cancellation deadline",
+      description: "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",
+    },
     tools: "Class tools",
   },
   editProfile: {

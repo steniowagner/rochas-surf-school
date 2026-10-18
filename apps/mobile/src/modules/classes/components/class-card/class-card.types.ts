@@ -7,7 +7,7 @@ export type ClassCardProps = {
   /** The clock the state is computed with. */
   now: Date;
   onPress: (id: string) => void;
-  /** Shows the admins' flags (the "no instructor" chip). */
+  /** Shows the admins' flags (the "no instructor" and "no deadline" chips). */
   showFlags?: boolean;
 };
 
@@ -21,4 +21,6 @@ export type UseClassCardResult = {
   instructors: string;
   /** No instructor and not started yet (`isWithoutInstructor`). */
   withoutInstructor: boolean;
+  /** No cancellation deadline and not started yet (`isWithoutDeadline`). */
+  withoutDeadline: boolean;
 };

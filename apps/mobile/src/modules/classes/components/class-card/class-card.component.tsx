@@ -11,7 +11,10 @@ import type { ClassCardProps } from "./class-card.types";
 export function ClassCard({ item, now, onPress, showFlags = false }: ClassCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { state, timeRange, instructors, withoutInstructor } = useClassCard({ item, now });
+  const { state, timeRange, instructors, withoutInstructor, withoutDeadline } = useClassCard({
+    item,
+    now,
+  });
 
   const border = state === "started" ? "border-sun" : "border-line";
   const opacity = state === "finished" ? "opacity-60" : "";
@@ -34,18 +37,23 @@ export function ClassCard({ item, now, onPress, showFlags = false }: ClassCardPr
             </Chip>
             <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>
           </View>
-          {state === "started" ? (
-            <Chip tone="sun" icon="time-outline">{t("classesWeek.state.started")}</Chip>
-          ) : null}
-          {state === "finished" ? (
-            <Chip tone="muted">{t("classesWeek.state.finished")}</Chip>
-          ) : null}
-          {state === "cancelled" ? (
-            <Chip tone="bad" icon="close-circle-outline">{t("classesWeek.cancelled")}</Chip>
-          ) : null}
-          {showFlags && withoutInstructor ? (
-            <Chip tone="warn" icon="person-remove-outline">{t("classesWeek.noInstructor")}</Chip>
-          ) : null}
+          <View className="items-end gap-2">
+            {state === "started" ? (
+              <Chip tone="sun" icon="time-outline">{t("classesWeek.state.started")}</Chip>
+            ) : null}
+            {state === "finished" ? (
+              <Chip tone="muted">{t("classesWeek.state.finished")}</Chip>
+            ) : null}
+            {state === "cancelled" ? (
+              <Chip tone="bad" icon="close-circle-outline">{t("classesWeek.cancelled")}</Chip>
+            ) : null}
+            {showFlags && withoutInstructor ? (
+              <Chip tone="warn" icon="person-remove-outline">{t("classesWeek.noInstructor")}</Chip>
+            ) : null}
+            {showFlags && withoutDeadline ? (
+              <Chip tone="warn" icon="calendar-clear-outline">{t("classesWeek.noDeadline")}</Chip>
+            ) : null}
+          </View>
         </View>
         <Text
           className={`ds-text-lesson-time ${state === "cancelled" ? "text-ink-2 line-through" : "text-ink"}`}

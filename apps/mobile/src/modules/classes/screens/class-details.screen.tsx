@@ -124,6 +124,31 @@ export function ClassDetailsScreen({
                 </View>
               </Pressable>
             ) : null}
+            {screen.showNoDeadline ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={screen.openCancellationRules}
+                className="min-h-11 flex-row items-center gap-3 rounded-card bg-warn-tint p-4"
+              >
+                <Ionicons
+                  name="calendar-clear-outline"
+                  size={24}
+                  color={theme.ink}
+                />
+                <View className="flex-1 gap-1">
+                  <Text className="ds-text-list-title text-ink">
+                    {t("classDetails.noDeadline.title")}
+                  </Text>
+                  <Text className="ds-text-list-subtitle text-ink-2">
+                    {t("classDetails.noDeadline.description", {
+                      discipline: t(
+                        `cancellationRules.screen.discipline.${item.discipline}`,
+                      ),
+                    })}
+                  </Text>
+                </View>
+              </Pressable>
+            ) : null}
             {screen.state === "started" ? (
               <View className="gap-1 rounded-card bg-sun p-4">
                 <Text className="ds-text-list-title text-on-color">

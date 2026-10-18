@@ -327,6 +327,7 @@ const messages: Messages = {
     },
     cancelled: "Cancelada",
     noInstructor: "Sin instructor",
+    noDeadline: "Sin plazo",
   },
   classDetails: {
     title: "Detalle",
@@ -360,6 +361,10 @@ const messages: Messages = {
       description: "Asigna un instructor antes de la clase.",
     },
     noInstructorAssigned: "Sin instructor asignado",
+    noDeadline: {
+      title: "Sin plazo de cancelación",
+      description: "Todavía no hemos podido calcular hasta cuándo pueden cancelar los alumnos. Revisa la regla de {{discipline}}.",
+    },
     tools: "Herramientas de la clase",
   },
   editProfile: {

@@ -2,7 +2,7 @@
 id: "033"
 slug: class-cancellation
 title: "Cancelling a class"
-status: changes-requested
+status: in-progress
 started: 2026-10-17
 base_commit: e08a9739ca92401665a9bfd829d3fcc9b5abf84a
 created: 2026-10-17
@@ -567,7 +567,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
 
 **Findings**
 
-- [ ] **F-01** (ER-09) — after a successful cancel, going back from the details to the classes screen still shows the
+- [x] **F-01** (ER-09) — after a successful cancel, going back from the details to the classes screen still shows the
   class's card as not cancelled (no "Cancelada" chip, time not struck through); it only updates after the week is
   fetched again (e.g. next week and back). The API is right and `["classes"]` is invalidated, but the visible week
   doesn't show the result, so the "Cancel a class" journey (ER-09's `Verify by`) fails at "Back on the classes screen,
@@ -576,6 +576,7 @@ is the second of the four class-management specs (032 editing, 034 deleting, 035
   "Beginner" on the card), so the gap is in how the week screen picks up invalidations made while another screen is on
   top, not in `useCancelClass`. Expected: the card shows "Cancelada" with its time struck through as soon as the
   admin is back on the classes screen (and a test that proves the week refreshes after the cancel).
+  > ✅ 2026-10-17 23:19 — the classes screen now fetches the invalidated weeks whenever it is focused again: `useClassesWeekScreen` calls `useFocusEffect` with a `refetchQueries` over `["classes", "week"]` filtered by `isInvalidated` (no refetch when nothing is invalidated), so the card shows "Cancelada" (and an edit's changes) as soon as the admin is back, even when the week's observers weren't active while the details was on top. Added two cases to the week screen test: the first invalidates with `refetchType: "none"` (as an unobserved week would be), serves the class as cancelled, focuses the screen and expects the "Cancelled" chip (it fails without the focus call, checked by removing it), the second proves nothing is fetched when focused with nothing invalidated; files: `apps/mobile/src/modules/classes/screens/classes-week.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`; verified: `npx jest src/modules/classes` (356 passed), `npx tsc --noEmit`, eslint clean, related tests, coverage (COVERAGE OK) and lint/type check rerun; deviations: not confirmed on the simulator: a stuck toast over the sheet intercepted the tap on "Cancelar aula" while I tried to reproduce, so the cause (the week's observers not refetching) was inferred from the review's description, and the journey step "back on the classes screen" needs a second look in the review
 
 **Notes**
 

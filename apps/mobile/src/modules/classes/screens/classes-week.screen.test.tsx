@@ -15,8 +15,14 @@ import {
 
 import { ClassesWeekScreen } from "./classes-week.screen";
 
+// The callback the screen gave `useFocusEffect`, run by a test when the screen is focused again.
+let focusEffect: () => void = () => undefined;
+
 jest.mock("expo-router", () => ({
   router: { push: jest.fn(), back: jest.fn() },
+  useFocusEffect: (effect: () => void) => {
+    focusEffect = effect;
+  },
 }));
 
 jest.mock("@/services/api", () => {
@@ -441,5 +447,37 @@ describe("ClassesWeekScreen admin entry points", () => {
 
     expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Create class on this day" })).not.toBeOnTheScreen();
+  });
+
+  it("fetches an invalidated week when the screen is focused again, so a cancelled class shows at once", async () => {
+    const { queryClient } = await renderScreen();
+    expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
+    expect(screen.queryByText("Cancelled")).not.toBeOnTheScreen();
+
+    // Another screen cancelled the class: its week is invalidated, but nothing here refetched it (refetchType none).
+    serveWeeks({
+      [THIS_MONDAY]: [
+        FINISHED,
+        STARTED,
+        { ...LATER, cancelledAt: "2026-10-14T13:00:00.000Z", cancellationMessage: null },
+      ],
+    });
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ["classes"], refetchType: "none" });
+    });
+    await act(async () => focusEffect());
+
+    expect(await screen.findByText("Cancelled")).toBeOnTheScreen();
+  });
+
+  it("does not fetch anything when focused with nothing invalidated", async () => {
+    await renderScreen();
+    expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const calls = fetchMock.mock.calls.length;
+
+    await act(async () => focusEffect());
+
+    expect(fetchMock.mock.calls.length).toBe(calls);
   });
 });

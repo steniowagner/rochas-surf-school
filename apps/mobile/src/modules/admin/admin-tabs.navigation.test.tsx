@@ -189,7 +189,7 @@ describe("admin tabs", () => {
     await user.press(screen.getByText("Create classes"));
 
     expect(app.getPathname()).toBe("/admin/new-class");
-    expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Discipline" })).toBeOnTheScreen();
 
     await act(async () => router.back());
 

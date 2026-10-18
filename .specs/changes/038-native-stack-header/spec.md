@@ -132,6 +132,7 @@ Expo Router, which stays fixed at the top while only the content scrolls.
 - [ ] **T-06** — Run every command in the Verification Plan from the repo root and walk the user journey; all pass.
   Record the output summary and the journey's result as evidence. Covers: all · Done when: every command exits 0
   and every journey step behaves as described.
+  > ⛔ 2026-10-18 — automated part done: `node .specs/scripts/run-related-tests.mjs 038` (31 suites, 563 tests passed), `check-coverage.mjs 038` (COVERAGE OK, 5 files), `npx turbo run lint check-types build --filter=@rochas-surf-school/mobile` (12 tasks successful). Not done: the iOS-simulator user journey (needs `npx expo run:ios` with the backend running) — fixed-while-scrolling header, native back / swipe-back, keyboard on the auth forms, class-details tools button, pull-to-refresh, the School tab without a header. Also unverified there: that the opaque header looks right on iOS 26 and that the uppercase title fits. Unblocks when the user (or the reviewer) walks the Verification Plan journey. Side fix in this commit: the two admin tests that looked for the "New class" header now look for the form's "Discipline" header (`apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`).
 
 ## Verification Plan
 

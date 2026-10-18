@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -27,13 +26,9 @@ export function CancellationRulesScreen() {
       keyboardShouldPersistTaps="handled"
       contentContainerClassName="gap-6 px-screen"
       contentContainerStyle={{
-        paddingTop: insets.top + 12,
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >
-      <View className="flex-row">
-        <BackButton />
-      </View>
       <ScreenIntro
         icon={<Ionicons name="document-text-outline" size={30} color={theme.grape} />}
         title={t("cancellationRules.screen.title")}

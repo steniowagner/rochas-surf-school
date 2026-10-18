@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -17,9 +16,6 @@ export function SchoolRulesReader() {
 
   return (
     <View className="flex-1 bg-page">
-      <View className="px-[22px]" style={{ paddingTop: insets.top + 12 }}>
-        <BackButton />
-      </View>
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-6 px-[22px] pt-6"

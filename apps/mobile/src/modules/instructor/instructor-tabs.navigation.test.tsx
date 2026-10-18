@@ -152,7 +152,7 @@ describe("instructor tabs", () => {
     expect(app.getPathname()).toBe("/instructor/class/c-1");
     expect(await screen.findByText("Max. 8 students")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/instructor/classes");
     expect(selectedTabLabel()).toBe("Classes");
@@ -165,7 +165,6 @@ describe("instructor tabs", () => {
 
     expect(app.getPathname()).toBe("/instructor/people");
     expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
     expect(await screen.findByText("No one found")).toBeOnTheScreen();
   });
 

@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
@@ -40,12 +39,9 @@ export function EditProfile() {
       <View
         className="flex-1 px-[22px]"
         style={{
-          paddingTop: insets.top + 12,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <BackButton />
-
         <ScrollView
           className="flex-1"
           contentContainerClassName="gap-5 pb-6 pt-6"

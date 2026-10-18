@@ -3,14 +3,12 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
-  Platform,
   RefreshControl,
   Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
@@ -21,9 +19,7 @@ import { RoleFilters } from "../components/role-filters";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
 import { groupByInitial } from "../utils/group-by-initial";
 
-import { PeopleScreenProps } from "./people.screen.types";
-
-export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
+export function PeopleScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -91,15 +87,11 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
         data={groupByInitial(people)}
         keyExtractor={(item) => item.key}
         keyboardShouldPersistTaps="handled"
-        // On iOS the safe areas and the floating tab bar of a tab root are added by the scroll view.
-        contentInsetAdjustmentBehavior={showBackButton ? "never" : "automatic"}
+        // On iOS the safe areas, the header and the floating tab bar are added by the scroll view.
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="px-screen"
         contentContainerStyle={{
-          paddingTop: showBackButton
-            ? insets.top + 12
-            : Platform.OS === "android"
-              ? insets.top + 24
-              : 24,
+          paddingTop: 24,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
         refreshControl={
@@ -107,11 +99,6 @@ export function PeopleScreen({ showBackButton }: PeopleScreenProps) {
         }
         ListHeaderComponent={
           <View className="mb-3 gap-4">
-            {showBackButton ? (
-              <View className="items-start">
-                <BackButton />
-              </View>
-            ) : null}
             <View className="gap-1">
               {count !== undefined ? (
                 <Text className="ds-text-section-label text-ink-2">

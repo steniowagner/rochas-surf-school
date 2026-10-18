@@ -49,16 +49,6 @@ describe("SchoolRulesReadScreen", () => {
     expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/school-rules");
   });
 
-  it("goes back with the back button", async () => {
-    const user = userEvent.setup();
-    fetchMock.mockResolvedValue(jsonResponse(200, { version: 1, rules: [] }));
-    await open();
-
-    await user.press(screen.getByRole("button", { name: "Back" }));
-
-    expect(router.back).toHaveBeenCalledTimes(1);
-  });
-
   it("shows a loading state while the rules load", async () => {
     fetchMock.mockReturnValue(new Promise(() => {}));
     await open();

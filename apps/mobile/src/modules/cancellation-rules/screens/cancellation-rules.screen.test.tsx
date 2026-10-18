@@ -140,12 +140,4 @@ describe("CancellationRulesScreen", () => {
 
     expect(await screen.findByDisplayValue(SURF)).toBeOnTheScreen();
   });
-
-  it("goes back with the back button (cancellation rules)", async () => {
-    const user = await open();
-
-    await user.press(screen.getByRole("button", { name: "Back" }));
-
-    expect(router.back).toHaveBeenCalledTimes(1);
-  });
 });

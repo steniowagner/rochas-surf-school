@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { screen, userEvent, waitFor } from "@testing-library/react-native";
-import { Slot } from "expo-router";
+import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
+import { router, Slot } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
@@ -133,7 +133,7 @@ describe("AdminScreen", () => {
     expect(app.getPathname()).toBe(routes.admin.people);
     expect(await screen.findByText("No one found")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe(routes.admin.home);
   });
@@ -150,7 +150,7 @@ describe("AdminScreen", () => {
     expect(app.getPathname()).toBe("/admin/new-class");
     expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe(routes.admin.home);
   });
@@ -174,7 +174,7 @@ describe("AdminScreen", () => {
     expect(app.getPathname()).toBe(routes.admin.cancellationRules);
     expect(await screen.findByDisplayValue("Surf rule.")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe(routes.admin.home);
   });
@@ -218,7 +218,7 @@ describe("AdminScreen", () => {
     expect(app.getPathname()).toBe(routes.admin.registrations);
     expect(await screen.findByText("Person a")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe(routes.admin.home);
     expect(await screen.findByText("1 waiting")).toBeOnTheScreen();
@@ -250,7 +250,7 @@ describe("AdminScreen", () => {
     await screen.findByText("Person a");
     await user.press(screen.getAllByRole("button", { name: "Approve" })[0]);
     await screen.findByText("Approved");
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(await screen.findByText("1 waiting")).toBeOnTheScreen();
   });

@@ -168,7 +168,7 @@ describe("admin tabs", () => {
     await user.press(screen.getByText("Join the school"));
     expect(app.getPathname()).toBe("/admin/registrations");
 
-    await user.press(await screen.findByRole("button", { name: "Back" }));
+    await act(async () => router.back());
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Home");
     expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
@@ -191,7 +191,7 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin/new-class");
     expect(screen.getByRole("header", { name: "New class" })).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Home");
@@ -215,7 +215,7 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin/cancellation-rules");
     expect(await screen.findByText("No rule for surf yet")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Home");
@@ -232,7 +232,7 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin/class/c-1");
     expect(await screen.findByText("Max. 8 students")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/admin/classes");
     expect(selectedTabLabel()).toBe("Classes");
@@ -256,7 +256,6 @@ describe("admin tabs", () => {
 
     expect(app.getPathname()).toBe("/admin/people");
     expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
 
     await act(async () => router.back());
     expect(app.getPathname()).toBe("/admin");

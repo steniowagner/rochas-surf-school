@@ -65,7 +65,7 @@ describe("ProfileWhatsappScreen", () => {
     expect(numberInput().props.value).toBe("(85) 99999-0000");
     expect(hideSwitch().props.value).toBe(true);
     expect(save()).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
   });
 
   it("saves the new visibility, updates the session and goes back", async () => {

@@ -222,12 +222,16 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   > verified: `npm test` in modules/classes (284 passed) and `npm run check-types` (clean);
   > deviations: none
 
-- [ ] **T-02** — Add `DeleteClass` (`src/school-class/usecase/delete-class.usecase.ts`, exported from the usecase
+- [x] **T-02** — Add `DeleteClass` (`src/school-class/usecase/delete-class.usecase.ts`, exported from the usecase
   barrel): D-02, D-04 and D-05, with `test/school-class/usecase/delete-class.usecase.test.ts` (tests named "deletes",
   "refuses", "not empty", "race", "notifies", and one per check of D-02).
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npx jest test/school-class/usecase/delete-class.usecase.test.ts --coverage`
   passes from `modules/classes` with every line of the use case covered.
+  > ✅ 2026-10-18 00:00 — added the DeleteClass use case (D-02 order of checks, D-04 conditional delete with the re-read on a lost race, D-05 notification without the actor, swallowed errors) and its 21 tests;
+  > files: `modules/classes/src/school-class/usecase/delete-class.usecase.ts`, `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/test/school-class/usecase/delete-class.usecase.test.ts`;
+  > verified: `npx jest test/school-class/usecase/delete-class.usecase.test.ts --coverage` from modules/classes (21 passed, use case 100% statements/branches/functions/lines) and `npm run check-types` (clean);
+  > deviations: followed the sibling `CancelClass` use case as the pattern instead of the generic module-use-case template (same structure, no CRUD scaffolding needed)
 
 ### Notifications module (`modules/notifications`)
 

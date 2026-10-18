@@ -204,9 +204,15 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add `isWithoutInstructor` (`src/school-class/model/class-flags.ts`, D-07), exported from the model
+- [x] **T-01** — Add `isWithoutInstructor` (`src/school-class/model/class-flags.ts`, D-07), exported from the model
   barrel, with `test/school-class/model/class-flags.test.ts`.
   Covers: ER-06 · Done when: `npx jest test/school-class/model/class-flags.test.ts` passes from `modules/classes`.
+  > ✅ 2026-10-18 — added `isWithoutInstructor(instructorCount, state)` (true only for 0 instructors and
+  > `not-started`), exported from the model barrel; the test was written first and failed (3 failed) before the
+  > function existed. files: `modules/classes/src/school-class/model/class-flags.ts`,
+  > `modules/classes/src/school-class/model/index.ts`, `modules/classes/test/school-class/model/class-flags.test.ts`;
+  > verified: `npx jest test/school-class/model/class-flags.test.ts --coverage` (3 passed, class-flags.ts 100%);
+  > deviations: none
 
 - [ ] **T-02** — Add `SchoolClassRepository.findUpcomingTaughtBy` / `removeInstructor` (D-12) and the
   `NoInstructorNotifier` port (`src/school-class/provider/no-instructor-notifier.provider.ts`, D-02), exported from

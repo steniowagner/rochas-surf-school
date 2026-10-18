@@ -3,6 +3,7 @@ import { CreateLocation } from "../../../src";
 import { ADMIN, buildLocation, FakeLocationRepository, INSTRUCTOR, STUDENT } from "../../mock";
 
 const ADDRESS = "Av. Zezé Diogo, 5000 – Fortaleza";
+const POINT = { latitude: -3.7442, longitude: -38.4617 };
 
 async function errorsOf(promise: Promise<unknown>): Promise<string[]> {
   const error = (await promise.catch((e) => e)) as ValidationException;
@@ -19,12 +20,15 @@ describe("CreateLocation", () => {
       actor: ADMIN,
       name: " Praia do Futuro ",
       address: ADDRESS,
+      ...POINT,
     });
 
     expect(out).toEqual({
       id: expect.any(String),
       name: "Praia do Futuro",
       address: ADDRESS,
+      ...POINT,
+      upcomingClasses: 0,
     });
     expect(await repository.findById(out.id)).not.toBeNull();
   });
@@ -35,13 +39,13 @@ describe("CreateLocation", () => {
 
     for (const name of ["praia do futuro", "Práia do Futuro"]) {
       const error = await useCase
-        .execute({ actor: ADMIN, name, address: ADDRESS })
+        .execute({ actor: ADMIN, name, address: ADDRESS, ...POINT })
         .catch((e) => e);
 
       expect(error).toBeInstanceOf(ConflictError);
       expect(error.message).toBe("location.name.duplicate");
     }
-    expect(await repository.findAll()).toHaveLength(1);
+    expect(await repository.findActive(new Date())).toHaveLength(1);
   });
 
   it.each([
@@ -57,14 +61,36 @@ describe("CreateLocation", () => {
     const repository = new FakeLocationRepository();
     const useCase = new CreateLocation(repository);
 
-    expect(await errorsOf(useCase.execute({ actor: ADMIN, ...body }))).toEqual(keys);
-    expect(await repository.findAll()).toHaveLength(0);
+    expect(await errorsOf(useCase.execute({ actor: ADMIN, ...POINT, ...body }))).toEqual(keys);
+    expect(await repository.findActive(new Date())).toHaveLength(0);
+  });
+
+  it.each([
+    [{}, ["location.point.required"]],
+    [{ latitude: null, longitude: null }, ["location.point.required"]],
+    [{ latitude: -3.7 }, ["location.point.required"]],
+    [{ latitude: "a", longitude: -38.5 }, ["location.point.invalid"]],
+    [{ latitude: Number.NaN, longitude: -38.5 }, ["location.point.invalid"]],
+    [{ latitude: 91, longitude: -38.5 }, ["location.point.invalid"]],
+    [{ latitude: -3.7, longitude: -181 }, ["location.point.invalid"]],
+    [
+      { name: "", address: "", latitude: 91, longitude: 0 },
+      ["location.name.required", "location.address.required", "location.point.invalid"],
+    ],
+  ])("refuses the point %j (point) and stores nothing", async (body, keys) => {
+    const repository = new FakeLocationRepository();
+    const useCase = new CreateLocation(repository);
+
+    expect(
+      await errorsOf(useCase.execute({ actor: ADMIN, name: "x", address: ADDRESS, latitude: undefined, longitude: undefined, ...body })),
+    ).toEqual(keys);
+    expect(await repository.findActive(new Date())).toHaveLength(0);
   });
 
   it("refuses accounts that are not approved admins", async () => {
     const repository = new FakeLocationRepository();
     const useCase = new CreateLocation(repository);
-    const input = { name: "Praia", address: ADDRESS };
+    const input = { name: "Praia", address: ADDRESS, ...POINT };
 
     const pending = await useCase
       .execute({ actor: { ...ADMIN, status: "pending" }, ...input })
@@ -78,6 +104,6 @@ describe("CreateLocation", () => {
     expect(pending.message).toBe("user.status.notApproved");
     expect(student.message).toBe("user.role.notAdmin");
     expect(instructor.message).toBe("user.role.notAdmin");
-    expect(await repository.findAll()).toHaveLength(0);
+    expect(await repository.findActive(new Date())).toHaveLength(0);
   });
 });

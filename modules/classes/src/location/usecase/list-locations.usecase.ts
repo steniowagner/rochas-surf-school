@@ -1,5 +1,6 @@
 import { UseCase } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanReadClasses } from "../../access";
+import { ClockProvider } from "../../school-class/provider/clock.provider";
 import { LocationRepository } from "../provider";
 import { LocationOut, toLocationOut } from "./location.out";
 
@@ -14,13 +15,18 @@ export interface ListLocationsOut {
 export class ListLocations
   implements UseCase<ListLocationsIn, ListLocationsOut>
 {
-  constructor(private readonly locationRepository: LocationRepository) {}
+  constructor(
+    private readonly locationRepository: LocationRepository,
+    private readonly clock: ClockProvider,
+  ) {}
 
   async execute(input: ListLocationsIn): Promise<ListLocationsOut> {
     assertCanReadClasses(input.actor);
 
-    const locations = await this.locationRepository.findAll();
+    const locations = await this.locationRepository.findActive(this.clock.now());
 
-    return { items: locations.map(toLocationOut) };
+    return {
+      items: locations.map((item) => toLocationOut(item.location, item.upcomingClasses)),
+    };
   }
 }

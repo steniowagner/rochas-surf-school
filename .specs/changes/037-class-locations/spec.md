@@ -372,7 +372,7 @@ es.
 
 ### Classes (`modules/classes`)
 
-- [ ] **T-01** — The location's point and archive state: `Location` gains `latitude`, `longitude` (validated per D-01
+- [x] **T-01** — The location's point and archive state: `Location` gains `latitude`, `longitude` (validated per D-01
   with keys `location.point.required` / `location.point.invalid`, collected with the name and address keys) and
   `archivedAt`; `LocationRepository` gains `findActive(now)` (active only, sorted, with `upcomingClasses`),
   `update(location, { clearDeadlinesFrom })`, `archive(id)` and `findUpcomingInstructorCounts(locationId, now)`, with
@@ -383,6 +383,21 @@ es.
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01 · Done when: `cd modules/classes && npx jest test/location --coverage` passes with every changed line
   covered.
+  > ✅ 2026-10-18 14:42 — Location gained latitude, longitude, archivedAt (isArchived) and a PointRule
+  > (location.point.required/invalid, collected with name and address keys); LocationRepository now has
+  > findActive(now), update(location, {clearDeadlinesFrom}), archive(id), findUpcomingInstructorCounts and no
+  > findAll (replaced by findActive; the Prisma adapter follows in T-07); CreateLocation takes latitude/longitude
+  > (non-numbers become NaN so they read as invalid); ListLocations takes a ClockProvider and answers active
+  > locations with upcomingClasses; LocationOut has the point and upcomingClasses; the fake repository holds
+  > classes for counts and deadline clearing; buildLocation defaults to a point. Files:
+  > modules/classes/src/location/model/location.entity.ts,
+  > modules/classes/src/location/provider/location.repository.ts, modules/classes/src/location/usecase/{create-
+  > location,list-locations}.usecase.ts, modules/classes/src/location/usecase/location.out.ts,
+  > modules/classes/test/mock/{fake-location.repository,location.factory}.ts,
+  > modules/classes/test/location/{model/location.entity,provider/fake-location.repository,usecase/create-
+  > location.usecase,usecase/list-locations.usecase}.test.ts. Verified: cd modules/classes && npx jest
+  > test/location --coverage (48 passed, 100% on src/location); full module jest 403 passed; tsc --noEmit and
+  > oxlint clean. Deviations: none (the skills were followed by hand: patterns of the existing location files).
 
 - [ ] **T-02** — `EditLocation` (D-05, D-08, D-09) with the `LocationChangeNotifier` port and its fake: the checks in
   order, the unchanged save, the deadline clearing for name or address changes, the per-instructor counts without the

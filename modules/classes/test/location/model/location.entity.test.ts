@@ -21,6 +21,8 @@ describe("Location", () => {
     const location = new Location({
       name: "  Praia do Futuro ",
       address: " Av. Zezé Diogo, 5000 ",
+      latitude: -3.7442,
+      longitude: -38.4617,
     });
 
     expect(location.name).toBe("Praia do Futuro");
@@ -33,6 +35,8 @@ describe("Location", () => {
     const location = new Location({
       name: "a".repeat(LOCATION_NAME_MAX),
       address: "b".repeat(LOCATION_ADDRESS_MAX),
+      latitude: 90,
+      longitude: -180,
     });
 
     expect(() => location.validate()).not.toThrow();
@@ -49,7 +53,51 @@ describe("Location", () => {
       ["location.name.required", "location.address.required"],
     ],
   ])("refuses %j", (state, keys) => {
-    expect(errorsOf(() => new Location(state).validate())).toEqual(keys);
+    const point = { latitude: -3.7, longitude: -38.5 };
+
+    expect(errorsOf(() => new Location({ ...point, ...state }).validate())).toEqual(keys);
+  });
+
+  it("reads the point and the archive state", () => {
+    const archivedAt = new Date("2026-10-01T10:00:00.000Z");
+    const location = new Location({ name: "x", address: "y", latitude: 1, longitude: 2, archivedAt });
+
+    expect([location.latitude, location.longitude]).toEqual([1, 2]);
+    expect(location.isArchived).toBe(true);
+    expect(location.archivedAt).toEqual(archivedAt);
+    expect(location.archivedAt).not.toBe(archivedAt);
+
+    const active = new Location({ name: "x", address: "y" });
+    expect([active.latitude, active.longitude, active.archivedAt, active.isArchived]).toEqual([
+      null,
+      null,
+      null,
+      false,
+    ]);
+  });
+
+  it.each([
+    [{}, "point.required"],
+    [{ latitude: -3.7 }, "point.required"],
+    [{ longitude: -38.5 }, "point.required"],
+    [{ latitude: null, longitude: null }, "point.required"],
+    [{ latitude: "a" as unknown as number, longitude: -38.5 }, "point.invalid"],
+    [{ latitude: Number.NaN, longitude: -38.5 }, "point.invalid"],
+    [{ latitude: Infinity, longitude: -38.5 }, "point.invalid"],
+    [{ latitude: 91, longitude: -38.5 }, "point.invalid"],
+    [{ latitude: -3.7, longitude: -181 }, "point.invalid"],
+  ])("refuses the point %j (point)", (point, key) => {
+    expect(errorsOf(() => new Location({ name: "x", address: "y", ...point }).validate())).toEqual([
+      `location.${key}`,
+    ]);
+  });
+
+  it("collects the point key with the name and address keys", () => {
+    expect(errorsOf(() => new Location({ name: "", address: "" }).validate())).toEqual([
+      "location.name.required",
+      "location.address.required",
+      "location.point.required",
+    ]);
   });
 });
 

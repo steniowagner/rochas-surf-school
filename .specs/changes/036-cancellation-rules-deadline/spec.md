@@ -338,7 +338,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add the `cancellation-rule` aggregate (D-09, D-10, D-05): `src/cancellation-rule/model/cancellation-rule.entity.ts`
+- [x] **T-01** — Add the `cancellation-rule` aggregate (D-09, D-10, D-05): `src/cancellation-rule/model/cancellation-rule.entity.ts`
   (discipline, text trimmed 1–2000 with the `cancellationRule.text.*` keys, `updatedBy`, `updatedAt`),
   `provider/cancellation-rule.repository.ts` (`findAll()`, `save(rule, now)` — the rule and the clearing of D-05 as one
   write), `usecase/list-cancellation-rules.usecase.ts` (`assertCanReadClasses`, answers `{ surf, skate }`) and
@@ -351,6 +351,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest test/cancellation-rule` and `npm run check-types` pass from
   `modules/classes`.
+  > ✅ 2026-10-18 02:24 — added the cancellation-rule aggregate (entity, repository port, ListCancellationRules, SaveCancellationRule, out type, barrels, fake repository + factory, tests); files: `modules/classes/src/cancellation-rule/**` (index, model/cancellation-rule.entity.ts, provider/cancellation-rule.repository.ts, usecase/{cancellation-rules.out,list-cancellation-rules.usecase,save-cancellation-rule.usecase}.ts), `modules/classes/src/index.ts`, `modules/classes/test/mock/{fake-cancellation-rule.repository,cancellation-rule.factory,index}.ts`, `modules/classes/test/cancellation-rule/**` (3 test files); verified: `npx jest test/cancellation-rule` (22 passed), `npm run check-types` and `npm run lint` clean (from modules/classes); deviations: none (the use case reads the clock through `ClockProvider` to stamp `updatedAt`/`now`)
 
 - [ ] **T-02** — Add the deadline model (D-02, D-12): `src/school-class/model/cancellation-deadline.ts`
   (`CancellationDeadlineDescription` union, `computeCancellationDeadline(description, startsAt)`, the ranges and the

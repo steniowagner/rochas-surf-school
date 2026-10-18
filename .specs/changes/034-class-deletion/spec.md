@@ -289,11 +289,15 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-08** — Add `useDeleteClass` (`src/modules/classes/hooks/use-delete-class.hook.ts`, D-07) and
+- [x] **T-08** — Add `useDeleteClass` (`src/modules/classes/hooks/use-delete-class.hook.ts`, D-07) and
   `getDeleteClassErrorKey` / `isClassNotEmptyError` in `src/modules/classes/utils/class-error.ts` (D-11), with
   `use-delete-class.hook.test.tsx` and `class-error.test.ts`.
   Covers: ER-08, ER-09 · Done when: `npx jest src/modules/classes/hooks/use-delete-class.hook.test.tsx src/modules/classes/utils/class-error.test.ts`
   passes from `apps/mobile`.
+  > ✅ 2026-10-18 00:07 — added useDeleteClass (DELETE /classes/{id}, no retry, removes the details entry and invalidates the weeks) and isClassNotEmptyError / getDeleteClassErrorKey, with tests;
+  > files: `apps/mobile/src/modules/classes/hooks/use-delete-class.hook.ts`, `apps/mobile/src/modules/classes/hooks/use-delete-class.hook.test.tsx`, `apps/mobile/src/modules/classes/utils/class-error.ts`, `apps/mobile/src/modules/classes/utils/class-error.test.ts`;
+  > verified: `npx jest src/modules/classes/hooks/use-delete-class.hook.test.tsx src/modules/classes/utils/class-error.test.ts` from apps/mobile (41 passed);
+  > deviations: none
 
 - [ ] **T-09** — Add `DeleteClassSheet` (`src/modules/classes/components/delete-class-sheet/`: component, hook, types,
   index; D-08) with the `deleteClass` copy (D-13) in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, and its component

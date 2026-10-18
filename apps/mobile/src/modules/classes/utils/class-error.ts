@@ -29,6 +29,10 @@ export const isClassFinishedError = (error: unknown): boolean =>
 export const isClassCancelledError = (error: unknown): boolean =>
   hasKey(error, 409, "class.cancelled");
 
+/** The class has seats or pending requests, so it can only be cancelled (409). */
+export const isClassNotEmptyError = (error: unknown): boolean =>
+  hasKey(error, 409, "class.delete.notEmpty");
+
 /** The class is gone (404). */
 export const isClassNotFoundError = (error: unknown): boolean =>
   hasKey(error, 404, "class.notFound");
@@ -118,6 +122,34 @@ export const getCancelClassErrorKey = (error: unknown): string | null => {
 
   if (isClassFinishedError(error)) {
     return "cancelClass.errors.finished";
+  }
+
+  if (isClassNotFoundError(error)) {
+    return "classDetails.notFound";
+  }
+
+  if (error instanceof NetworkError) {
+    return "createAccount.errors.noConnection";
+  }
+
+  return "createAccount.errors.generic";
+};
+
+/**
+ * The translation key of the toast for a failed deletion, or `null` when nothing should be shown. A class that is
+ * not empty has no toast (the sheet switches to its "can't delete" variant: see `isClassNotEmptyError`).
+ */
+export const getDeleteClassErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError || isClassNotEmptyError(error)) {
+    return null;
+  }
+
+  if (isClassStartedError(error)) {
+    return "deleteClass.errors.started";
+  }
+
+  if (isClassCancelledError(error)) {
+    return "deleteClass.errors.cancelled";
   }
 
   if (isClassNotFoundError(error)) {

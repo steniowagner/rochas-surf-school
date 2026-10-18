@@ -1,4 +1,4 @@
-import { ClassActor, Location } from "../../src";
+import { ClassActor, Location, LocationState } from "../../src";
 
 export const ADMIN: ClassActor = {
   id: "0b4d1c6e-3f7a-4c58-9a21-7d5e8f1a2b34",
@@ -18,6 +18,10 @@ export const STUDENT: ClassActor = {
   status: "approved",
 };
 
-export function buildLocation(name: string, address = "Av. Beira Mar, 1"): Location {
-  return new Location({ name, address });
+export function buildLocation(
+  name: string,
+  address = "Av. Beira Mar, 1",
+  overrides: Partial<LocationState> = {},
+): Location {
+  return new Location({ name, address, latitude: -3.7319, longitude: -38.5267, ...overrides });
 }

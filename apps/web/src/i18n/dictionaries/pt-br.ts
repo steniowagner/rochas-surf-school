@@ -77,8 +77,8 @@ export const ptBr = {
       title: "Quem trata os dados",
       intro: "Usamos estes serviços para o app funcionar:",
       items: [
-        "Google: login com conta Google e Google Maps para mostrar os locais das aulas.",
-        "Apple: login com conta Apple.",
+        "Google: login com conta Google, Google Maps para mostrar os locais das aulas e sugestões de endereço quando administradores salvam um local (recebe o texto da busca).",
+        "Apple: login com conta Apple e Apple Maps para mostrar os locais das aulas no iPhone.",
         "Resend: envia o e-mail com o código de acesso (recebe o seu e-mail e o código).",
         "Expo: entrega as notificações push (recebe o token do aparelho e o texto da notificação).",
         "Um serviço de hospedagem na nuvem, onde rodam o app e o banco de dados.",

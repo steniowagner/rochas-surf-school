@@ -34,6 +34,9 @@ What the person is told, and how it reaches them.
   - `class.noInstructor` — an account deletion left classes that haven't started with no instructor; details:
     how many (`count`) and the earliest of them — its id, its discipline and its start (`startsAt`, ISO UTC). One
     per approved admin and deletion.
+  - `location.changed` — an admin edited a location of classes the person teaches and chose to tell the
+    instructors; details: how many of the person's upcoming classes are at that location (`count`) and its new
+    name (`locationName`, as stored). One per instructor and edit (no class id: it concerns several classes).
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -47,6 +50,7 @@ What the person is told, and how it reaches them.
   | `class.cancelled` | Class cancelled | Your {discipline} class on {MM/dd} at {HH:mm} was cancelled. / with a message: {discipline}, {MM/dd} at {HH:mm}: {message} |
   | `class.deleted` | Class deleted | Your {discipline} class on {MM/dd} at {HH:mm} was deleted. |
   | `class.noInstructor` | Class without an instructor / Classes without an instructor | The {discipline} class on {MM/dd} at {HH:mm} has no instructor now. / {count} classes have no instructor now. The next one: {discipline}, {MM/dd} at {HH:mm}. |
+  | `location.changed` | Class location changed | {locationName} changed. Check your next class there. / {locationName} changed. Check your {count} upcoming classes there. |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
@@ -66,7 +70,10 @@ What the person is told, and how it reaches them.
   instrutor." or "Aulas sem instrutor" / "{count} aulas ficaram sem instrutor. A próxima: {discipline}, {dd/MM} às
   {HH:mm}.", es "Clase sin instructor" / "La clase de {discipline} del {dd/MM} a las {HH:mm} se quedó sin
   instructor." or "Clases sin instructor" / "{count} clases se quedaron sin instructor. La próxima: {discipline},
-  {dd/MM} a las {HH:mm}." (a missing count counts as one). The start is written in America/Fortaleza time, the same on every machine.
+  {dd/MM} a las {HH:mm}." (a missing count counts as one); `location.changed`: pt-BR "Local de aula alterado" /
+  "O local {locationName} mudou. Confira sua próxima aula lá." or "… Confira suas {count} próximas aulas lá.", es
+  "Lugar de clase modificado" / "El lugar {locationName} cambió. Revisa tu próxima clase allí." or "… Revisa tus
+  {count} próximas clases allí.". The start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
   with the app open reloads the classes of the weeks it shows (a `class.deleted` one, every class shown). Tapping a `class.edited`, `class.unassigned` or
@@ -75,6 +82,8 @@ What the person is told, and how it reaches them.
   push carries no class); one received with the app open reloads every class shown (weeks and details). Tapping a
   `class.noInstructor` push reloads the account and opens that class's details when it is still an admin (else
   its home, also when the push carries no class); one received with the app open reloads every class shown.
+  Tapping a `location.changed` push reloads the account and opens its Aulas tab when it is still an instructor or
+  an admin (else its home); one received with the app open reloads every class shown and the locations.
 
 Rules:
 
@@ -137,6 +146,8 @@ Rules:
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
 - **Approved admins** — receive one `class.noInstructor` when an account deletion leaves classes with nobody,
   unless the deleted account is theirs.
+- **An instructor or admin of a location's upcoming classes** — receives one `location.changed` when an admin edits
+  that location and chooses to tell the instructors, unless they made the edit.
 
 ## Boundaries
 
@@ -145,14 +156,15 @@ It knows people only by their ids and the phones they registered, and it doesn't
 it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
 backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
-and removed), class changes (edits, cancellations, deletions) and classes left without an instructor; a failure
-there is logged and never changes the class creation, edit, cancellation, deletion or release. It doesn't decide when an event happens — the
+and removed), class changes (edits, cancellations, deletions), classes left without an instructor and location
+changes; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
+location edit. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
 with their specs, as do the notifications of every other event (reactivation requests, role changes, reminders,
-enrolments, broadcasts) and those of an edit or a cancellation to the class's
+enrolments, broadcasts) and those of an edit, a cancellation or a location change to the classes'
 students and pending requests.
 
 ## Spec history
@@ -179,3 +191,7 @@ students and pending requests.
 - `035-class-no-instructor` — the `class.noInstructor` type (`{ count, classId, discipline, startsAt }`) and its
   push copy for one and many classes; the approved admins minus the excluded ones as recipients; in the app,
   tapping one opens the class's details for an admin and one received with the app open reloads the classes.
+- `037-class-locations` — the `location.changed` type (`{ count, locationName }`, no class id) and its push copy
+  for one and many classes, sent once per instructor through the Classes module's location-change contract; in
+  the app, tapping one opens the Aulas tab and one received with the app open reloads the classes and the
+  locations.

@@ -171,6 +171,19 @@ describe("useNotificationReceived", () => {
     },
   );
 
+  it("reloads the classes and the locations when a location.changed push arrives, without navigating", async () => {
+    answerMe(account("approved", "instructor"));
+    await openApp(account("approved", "instructor"));
+    const pathname = app.getPathname();
+
+    await receive(push("location.changed"));
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["classes"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["locations"] });
+    expect(app.getPathname()).toBe(pathname);
+    expect(meCalls()).toHaveLength(0);
+  });
+
   it.each([undefined, "something.else"])(
     "shows nothing more for the type %s",
     async (type) => {

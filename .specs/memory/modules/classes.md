@@ -5,7 +5,8 @@
 It schedules the school's classes, as [Product](../product.md) describes **Class** (`class`) and **Location**
 (`location`): admins create classes one at a time or in a batch, at a saved location, with the instructors who
 teach them, and the instructors are told; every approved account then browses the classes by week or by month and
-reads each one; admins edit one class at a time, within what its state allows, cancel a class until it
+reads each one; admins edit and remove (archive) locations, and every class at a location follows its edits;
+admins edit one class at a time, within what its state allows, cancel a class until it
 finishes, and delete one created by mistake before it starts. It also keeps the school's **Cancellation rule**
 (`cancellation-rule`) of each discipline and gives every upcoming class its **Cancellation deadline**. It is the
 base that enrolment, ratings and photos build on. It brings together three business areas: **Locations**,
@@ -15,20 +16,63 @@ base that enrolment, ratings and photos build on. It brings together three busin
 
 The places where classes happen.
 
-- **Location** (`location`): a saved place. Key fields: name, address, when it was created. Relationships: a
-  class has one location; a location has any number of classes. Lifecycle: created by an admin and kept; it
-  can't yet be edited or archived. Limits: name 1 to 40 characters and address 1 to 200 (free text), both
-  after removing the spaces at either end. It has no map position yet.
+- **Location** (`location`): a saved place. Key fields: name, address, a point on the map (latitude and
+  longitude), when it was created and, once removed, when it was archived. Relationships: a class has one
+  location; a location has any number of classes. Lifecycle: `active` → `archived` (an admin "removes" it;
+  nothing restores it). Limits: name 1 to 40 characters and address 1 to 200 (free text), both after removing the
+  spaces at either end; latitude −90 to 90 and longitude −180 to 180. Locations saved before spec 037 have no
+  point until they are edited.
+- **Upcoming classes of a location** (not stored): its classes that start after now and aren't cancelled; the
+  list shows their count.
+- **Address suggestion** (not stored): a place an external maps service proposes for what the admin typed — an id,
+  a title and a description — and the place behind it: its address, point and name.
 
 Rules:
 
-- **A name is unique ignoring case and accents**: "Praia do Futuro", "praia do futuro" and "Práia do Futuro" are
-  the same place. A second one is refused with `location.name.duplicate` (409), also when two admins create it
-  at the same moment — exactly one of them wins.
-- **Invalid text is refused with its keys, all together**: `location.name.required`,
-  `location.name.max.length`, `location.address.required`, `location.address.max.length` (422); a value that
-  isn't text counts as missing.
-- **The list is every location, sorted by name ignoring case and accents**, not paged.
+- **A name is unique among active locations, ignoring case and accents**: "Praia do Futuro", "praia do futuro"
+  and "Práia do Futuro" are the same place. A second one is refused with `location.name.duplicate` (409), also
+  when two admins create it at the same moment — exactly one of them wins. An archived location frees its name.
+- **Invalid values are refused with their keys, all together** (422): `location.name.required`,
+  `location.name.max.length`, `location.address.required`, `location.address.max.length` (a value that isn't text
+  counts as missing), `location.point.required` (latitude or longitude missing or empty) and
+  `location.point.invalid` (not a finite number, or out of range). Creating and editing both require the point.
+- **The list is the active locations, sorted by name ignoring case and accents, then id**, not paged, each with its
+  point (none for an old location) and its number of upcoming classes. Archived locations are never listed.
+
+Editing a location:
+
+- **Checked in this order**: access; the id (not a UUID, or no location → `location.notFound`, 404); the values,
+  every problem together (422) — the keys above plus `location.notify.invalid` when the notify choice is present
+  and isn't yes/no; `location.archived` (409, an archived location can't be edited); `location.name.duplicate`
+  (409, another active location; its own name in another case or with other accents is fine).
+- **An edit applies to every class at the location**, past ones included: a class refers to its location, it
+  doesn't copy it. A save where the name, address and point are all the same (after trimming) writes nothing and
+  tells nobody.
+- **A new name or address clears the deadlines of the location's upcoming classes** in the same write, so they
+  are worked out again (the model reads the name and the address); moving only the point keeps them, and started,
+  finished and cancelled classes keep theirs.
+- **The admin chooses whether to tell the instructors**: with the choice on and something changed, every
+  instructor of the location's upcoming classes except the admin who edits gets one `location.changed` with how
+  many of their upcoming classes are there and the new name, through [Notifications](notifications.md). A
+  notification that fails never changes the answer or the edit. Students and people with pending requests will be
+  told when enrolment exists.
+
+Removing (archiving) a location:
+
+- **Checked in this order**: access; the id (`location.notFound`, 404); `location.archived` (409, already
+  archived). Of two admins removing it at the same moment, one succeeds and the other gets `location.archived`.
+- **An archived location is kept, not deleted**: the classes that use it keep showing its name, address and point;
+  it can't be edited, listed or given to a class. The last active location can be removed.
+
+Address suggestions (admins):
+
+- **The search text is trimmed and must have 3 to 100 characters** (`location.suggestions.query.invalid`), and the
+  session token, which groups one search for billing, 1 to 64 letters, digits, `_` or `-`
+  (`location.suggestions.sessionToken.invalid`), both reported together (422); the language is `pt-BR`, `es` or
+  `en`, anything else counts as `pt-BR`. At most 5 suggestions.
+- **The service failing is `location.suggestions.unavailable` (502)**; a place it doesn't know is
+  `location.place.notFound` (404). Without the service's key outside production, there are no suggestions and no
+  places.
 
 ## Classes
 
@@ -56,8 +100,8 @@ The classes themselves, and how a batch becomes classes.
 - **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer; always 0
   until enrolment exists.
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
-- **Class view** (not stored): a class as people read it — its fields, its location's name and address, and
-  its instructors' ids and names.
+- **Class view** (not stored): a class as people read it — its fields, its location's name, address and point
+  (none when the location has none; an archived location reads the same), and its instructors' ids and names.
 
 Rules:
 
@@ -78,7 +122,8 @@ Rules:
   `class.timeRanges.endBeforeStart`, `class.timeRanges.overlap` (touching ranges such as 08:00–09:00 and
   09:00–10:00 don't overlap), `class.capacity.invalid`, `class.notes.max.length` (also for notes that aren't
   text), `class.instructors.required`, `class.location.required`.
-- **Then, one at a time and in this order** (422): `class.location.notFound`; `class.instructors.invalid` (an id
+- **Then, one at a time and in this order** (422): `class.location.notFound`; `class.location.archived` (an
+  archived location can't be given to a class); `class.instructors.invalid` (an id
   that isn't an approved instructor or admin — a student or a pending instructor is refused; repeated ids count
   once); `class.batch.empty` (no class left: the weekdays and the excluded dates leave out every date or, with
   `skipPast`, every class has started); `class.batch.tooLarge` (more than 200 classes, with the maximum in the
@@ -111,6 +156,7 @@ Editing one class:
   `class.capacity.invalid`, `class.notes.max.length`, `class.instructors.required` (an edit can never leave a
   class without an instructor), `class.location.required`; then, one at a time, against the stored class and the
   server's now: `class.cancelled` (409), `class.finished` (409), `class.started` (409), `class.location.notFound`,
+  `class.location.archived` (only when the location changes: a class keeps its archived location),
   `class.instructors.invalid`, `class.startsAt.past`, `class.capacity.belowSeatsTaken` (422, with the seats taken
   in the details).
 - **A cancelled class doesn't change**: any edit is refused with `class.cancelled`, even one that changes nothing
@@ -233,9 +279,10 @@ Rules:
 The account's status is checked before its role (`user.status.notApproved`, then `user.role.notAdmin`, both
 403); an unknown account is refused as signed out.
 
-- **An approved account of any role** — lists the locations, lists the classes of any week, past or future,
+- **An approved account of any role** — lists the active locations, lists the classes of any week, past or future,
   reads any class with its notes and its cancellation deadline, and reads both cancellation rules.
-- **An approved admin** — creates locations and batches of classes, reads the time-range suggestions, edits a
+- **An approved admin** — creates, edits and removes locations, gets address suggestions, creates batches of
+  classes, reads the time-range suggestions, edits a
   class that hasn't finished and isn't cancelled, cancels a class that hasn't finished, and deletes a class that
   hasn't started, isn't cancelled and has nobody in it; sees the "no instructor" flag on a class's card and
   details, and is told when an account deletion leaves classes with nobody; saves the cancellation rule of each
@@ -243,7 +290,8 @@ The account's status is checked before its role (`user.status.notApproved`, then
 - **An assigned instructor or admin** — receives one notification per batch they were assigned to (unless
   they created it), and one when a class they teach is edited, when they are added to one or removed from one
   (unless they made the edit), when it is cancelled (unless they cancelled it), and when it is deleted (unless
-  they deleted it).
+  they deleted it), and one when a location of their upcoming classes changes, if the admin who edits it chooses
+  to tell them (unless they made the edit).
 
 ## Boundaries
 
@@ -251,7 +299,10 @@ It knows people only by their ids: whether an id is an approved instructor or ad
 class, come through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
 status names. It doesn't send notifications itself: it hands the instructors and the class's details to two
 contracts that [Notifications](notifications.md) fulfils (assignments — added and removed — and class changes:
-edits, cancellations and deletions), plus a third for the classes left without an instructor. Authentication
+edits, cancellations and deletions), plus a third for the classes left without an instructor and a fourth for
+location changes (each instructor with their count, and the location's new name). The address suggestions come
+through their own contract, which the backend fulfils with Google's Places service; the module never sees the
+provider. Authentication
 reaches the release through its own contract, which the backend fulfils with this module's use case — this module
 depends on Authentication, never the reverse.
 It doesn't read the clock directly either, and it learns the seats taken and the pending requests through its own
@@ -275,8 +326,12 @@ card and a banner on the details that opens "Editar aula". Admins edit the cance
 reached from their home; everyone reads them in a sheet from the Profile. A class without a deadline shows
 admins a "Sem prazo" chip on its card and a "Sem prazo de cancelamento" banner on its details that opens the rules
 screen; a class with one shows everyone "Cancelamento até …" on its details. Accepting the rule and cancelling a
-seat until the deadline come with enrolment. "My classes", the map, suggestions, editing and archiving of locations, enrolment, ratings
-and photos come with their specs. A class keeps a link to the admin who created it,
+seat until the deadline come with enrolment. On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
+mode opens a location to edit it; the location sheet searches addresses as the admin types, places the point on a
+small map, offers to tell the instructors when upcoming classes use it, and removes it after a confirmation; a
+class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
+has a point shows everyone a small map with "Direções" on its details. "My classes", enrolment, ratings and photos
+come with their specs. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
 ## Spec history
@@ -320,3 +375,11 @@ which stops that account from being erased while the link exists — a decision 
   instant, capped at the start), retried with backoff, never stored from stale inputs; an edit of a detail the
   model reads clears it; the computed "no cancellation deadline" flag; the app's rules screen and sheet, the "Sem
   prazo" chip and banner (admins) and the "Cancelamento até …" line (everyone).
+- `037-class-locations` — a location's point on the map (required when created or edited; old ones keep working
+  without one), its archive state (`location.archived`; the name freed) and the upcoming-class count in the list;
+  approved admins edit a location (every class follows, past ones included; a new name or address clears the
+  upcoming deadlines; an unchanged save does nothing; `location.changed` to the instructors of its upcoming classes
+  when the admin chooses, never the editor) and remove (archive) it; an archived location can't be given to a class
+  (`class.location.archived`) but its classes keep it; address suggestions and their places through a new
+  contract; the point in the class view; the app's "Gerir" mode, the location sheet with suggestions and the map,
+  the removal confirmation, and the map with "Direções" on the details.

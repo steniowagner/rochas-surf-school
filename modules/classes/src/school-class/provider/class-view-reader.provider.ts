@@ -4,6 +4,8 @@ export interface ClassViewLocation {
   id: string;
   name: string;
   address: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface ClassViewInstructor {

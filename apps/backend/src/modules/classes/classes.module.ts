@@ -8,6 +8,7 @@ import { CancellationDeadlineJob } from './cancellation-deadline.job.js';
 import { CancellationRulesController } from './cancellation-rules.controller.js';
 import { ClassesController } from './classes.controller.js';
 import { ClassesTeachingReleaser } from './classes.teaching-releaser.js';
+import { GooglePlacesAddressSuggestionProvider } from './google-places.address-suggestions.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
@@ -23,6 +24,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
     AnthropicDeadlineDescriber,
     CancellationDeadlineJob,
     ClassesTeachingReleaser,
+    GooglePlacesAddressSuggestionProvider,
     NoEnrolmentPendingRequestCounter,
     NoEnrolmentSeatCounter,
     PrismaCancellationRuleRepository,

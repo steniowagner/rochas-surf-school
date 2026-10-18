@@ -77,8 +77,8 @@ export const en = {
       title: "Who handles the data",
       intro: "We use these services to make the app work:",
       items: [
-        "Google: sign-in with a Google account, and Google Maps to show class locations.",
-        "Apple: sign-in with an Apple account.",
+        "Google: sign-in with a Google account, Google Maps to show class locations, and address suggestions when admins save a location (receives the search text).",
+        "Apple: sign-in with an Apple account, and Apple Maps to show class locations on iPhone.",
         "Resend: sends the sign-in code email (receives your email and the code).",
         "Expo: delivers push notifications (receives the device token and the notification text).",
         "A cloud hosting service, where the app and its database run.",

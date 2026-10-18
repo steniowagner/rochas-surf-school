@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react-native";
 
 import {
+  buildLocation,
   createQueryClient,
   createWrapper,
   failure,
@@ -19,24 +20,25 @@ describe("useCreateLocation", () => {
     const queryClient = createQueryClient();
     queryClient.setQueryData(LOCATIONS_QUERY_KEY, {
       items: [
-        { id: "l-1", name: "Água", address: "A" },
-        { id: "l-2", name: "Zeta", address: "Z" },
+        buildLocation({ id: "l-1", name: "Água" }),
+        buildLocation({ id: "l-2", name: "Zeta" }),
       ],
     });
-    const created = { id: "l-3", name: "Beta", address: "B" };
+    const created = buildLocation({ id: "l-3", name: "Beta", address: "B" });
+    const point = { latitude: created.latitude as number, longitude: created.longitude as number };
     fetchMock.mockResolvedValue({ ...ok(created), status: 201 });
     const { result } = await renderHook(() => useCreateLocation(), {
       wrapper: createWrapper(queryClient),
     });
 
     await act(async () => {
-      await result.current.mutateAsync({ name: "Beta", address: "B" });
+      await result.current.mutateAsync({ name: "Beta", address: "B", ...point });
     });
 
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/locations", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer at-1" },
-      body: JSON.stringify({ name: "Beta", address: "B" }),
+      body: JSON.stringify({ name: "Beta", address: "B", ...point }),
     });
     expect(
       queryClient.getQueryData<{ items: { name: string }[] }>(LOCATIONS_QUERY_KEY)?.items.map((i) => i.name),
@@ -45,17 +47,17 @@ describe("useCreateLocation", () => {
 
   it("starts the list when none was loaded, and keeps equal names in id order", async () => {
     const queryClient = createQueryClient();
-    fetchMock.mockResolvedValue({ ...ok({ id: "l-1", name: "Praia", address: "P" }), status: 201 });
+    fetchMock.mockResolvedValue({ ...ok(buildLocation({ name: "Praia", address: "P" })), status: 201 });
     const { result } = await renderHook(() => useCreateLocation(), {
       wrapper: createWrapper(queryClient),
     });
 
     await act(async () => {
-      await result.current.mutateAsync({ name: "Praia", address: "P" });
+      await result.current.mutateAsync({ name: "Praia", address: "P", latitude: 1, longitude: 2 });
     });
 
     expect(queryClient.getQueryData(LOCATIONS_QUERY_KEY)).toEqual({
-      items: [{ id: "l-1", name: "Praia", address: "P" }],
+      items: [buildLocation({ name: "Praia", address: "P" })],
     });
   });
 
@@ -67,7 +69,7 @@ describe("useCreateLocation", () => {
     });
 
     await act(async () => {
-      await expect(result.current.mutateAsync({ name: "x", address: "y" })).rejects.toBeDefined();
+      await expect(result.current.mutateAsync({ name: "x", address: "y", latitude: 1, longitude: 2 })).rejects.toBeDefined();
     });
 
     expect(queryClient.getQueryData(LOCATIONS_QUERY_KEY)).toBeUndefined();

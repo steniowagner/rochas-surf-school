@@ -18,6 +18,7 @@ import { useAlertMessage } from "@/providers/alert-message";
 
 import { ClassLocation } from "../classes.types";
 import { useCreateClasses } from "../hooks/use-create-classes.hook";
+import { useLocationManagement } from "../hooks/use-location-management.hook";
 import { useLocations } from "../hooks/use-locations.hook";
 import { useTeachers } from "../hooks/use-teachers.hook";
 import { useTimeRangeSuggestions } from "../hooks/use-time-range-suggestions.hook";
@@ -30,6 +31,7 @@ import {
 } from "../utils/calendar";
 import {
   getClassErrorKey,
+  isClassLocationArchivedError,
   isInstructorsInvalidError,
   isLocationNotFoundError,
 } from "../utils/class-error";
@@ -67,7 +69,6 @@ export const useNewClassScreen = () => {
   const [notes, setNotes] = useState("");
   const [instructorIds, setInstructorIds] = useState<string[]>([]);
   const [timeSheetVisible, setTimeSheetVisible] = useState(false);
-  const [locationSheetVisible, setLocationSheetVisible] = useState(false);
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
   const sending = useRef(false);
 
@@ -76,6 +77,7 @@ export const useNewClassScreen = () => {
   const endDate = range.endDate ?? startDate;
   const locations = locationsQuery.data?.items ?? [];
   const location = locations.find((item) => item.id === locationId);
+  const management = useLocationManagement(locations.length > 0);
 
   const dates =
     startDate === null || endDate === null
@@ -132,6 +134,10 @@ export const useNewClassScreen = () => {
 
   const selectLocation = (created: ClassLocation) => setLocationId(created.id);
 
+  // A removed location that was chosen leaves the selection, so the button stays off until another is picked.
+  const unselectLocation = (id: string) =>
+    setLocationId((current) => (current === id ? null : current));
+
   const toggleInstructor = (id: string) =>
     setInstructorIds((current) =>
       current.includes(id)
@@ -177,6 +183,12 @@ export const useNewClassScreen = () => {
         void queryClient.invalidateQueries({ queryKey: LOCATIONS_QUERY_KEY });
       }
 
+      // The chosen location was removed meanwhile: another one must be picked.
+      if (isClassLocationArchivedError(error)) {
+        void queryClient.invalidateQueries({ queryKey: LOCATIONS_QUERY_KEY });
+        setLocationId(null);
+      }
+
       const messageKey = getClassErrorKey(error);
 
       if (messageKey !== null) {
@@ -206,13 +218,19 @@ export const useNewClassScreen = () => {
     openTimeSheet: () => setTimeSheetVisible(true),
     closeTimeSheet: () => setTimeSheetVisible(false),
     locations,
+    canManageLocations: locations.length > 0,
     location,
     locationId,
     setLocationId,
     selectLocation,
-    locationSheetVisible,
-    openLocationSheet: () => setLocationSheetVisible(true),
-    closeLocationSheet: () => setLocationSheetVisible(false),
+    unselectLocation,
+    managingLocations: management.managing,
+    toggleManagingLocations: management.toggleManaging,
+    locationSheetVisible: management.sheetVisible,
+    editingLocation: management.editing,
+    openLocationSheet: management.openNew,
+    openLocationEdit: management.openEdit,
+    closeLocationSheet: management.closeSheet,
     capacity,
     changeCapacity,
     notes,

@@ -77,6 +77,8 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
     id: "l-1",
     name: "Praia do Futuro",
     address: "Av. Zezé Diogo, 1000",
+    latitude: -3.7442,
+    longitude: -38.4617,
   },
   instructors: [
     { id: "u-1", name: "Ana Souza" },
@@ -259,6 +261,38 @@ describe("ClassDetailsScreen", () => {
     });
 
     expect(screen.getByText("In progress")).toBeOnTheScreen();
+  });
+
+  describe("map", () => {
+    it("shows the location with a small map, its marker and Directions when it has a point", async () => {
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText("Av. Zezé Diogo, 1000")).toBeOnTheScreen();
+      expect(screen.getByTestId("location-map-preview").props.initialRegion).toMatchObject({
+        latitude: -3.7442,
+        longitude: -38.4617,
+      });
+      expect(screen.getByRole("button", { name: "Directions" })).toBeOnTheScreen();
+    });
+
+    it("shows only the name and the address when the location has no point", async () => {
+      const item = makeClass();
+      serve({ ...item, location: { ...item.location, latitude: null, longitude: null } });
+      await renderScreen();
+
+      expect(await screen.findByText("Av. Zezé Diogo, 1000")).toBeOnTheScreen();
+      expect(screen.queryByTestId("location-map-preview")).toBeNull();
+      expect(screen.queryByRole("button", { name: "Directions" })).toBeNull();
+    });
+
+    it("shows the same card on a cancelled class", async () => {
+      serve(makeClass({ cancelledAt: "2026-10-13T12:00:00.000Z" }));
+      await renderScreen();
+
+      expect(await screen.findByTestId("location-map-preview")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Directions" })).toBeOnTheScreen();
+    });
   });
 
   describe("no instructor", () => {

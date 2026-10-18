@@ -243,6 +243,30 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       },
     },
   },
+  // The location's name is shown as stored; the push concerns several classes, so it carries no class to open.
+  'location.changed': {
+    'pt-BR': {
+      title: 'Local de aula alterado',
+      body: ({ count, locationName }) =>
+        classCount(count) === 1
+          ? `O local ${text(locationName)} mudou. Confira sua próxima aula lá.`
+          : `O local ${text(locationName)} mudou. Confira suas ${classCount(count)} próximas aulas lá.`,
+    },
+    es: {
+      title: 'Lugar de clase modificado',
+      body: ({ count, locationName }) =>
+        classCount(count) === 1
+          ? `El lugar ${text(locationName)} cambió. Revisa tu próxima clase allí.`
+          : `El lugar ${text(locationName)} cambió. Revisa tus ${classCount(count)} próximas clases allí.`,
+    },
+    en: {
+      title: 'Class location changed',
+      body: ({ count, locationName }) =>
+        classCount(count) === 1
+          ? `${text(locationName)} changed. Check your next class there.`
+          : `${text(locationName)} changed. Check your ${classCount(count)} upcoming classes there.`,
+    },
+  },
 };
 
 export function renderPush(

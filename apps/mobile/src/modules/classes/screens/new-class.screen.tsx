@@ -107,11 +107,23 @@ export function NewClassScreen() {
               ? t("newClass.location.pickOne")
               : undefined
           }
+          action={
+            screen.canManageLocations
+              ? {
+                  label: screen.managingLocations
+                    ? t("locationPicker.done")
+                    : t("locationPicker.manage"),
+                  onPress: screen.toggleManagingLocations,
+                }
+              : undefined
+          }
         >
           <LocationPicker
             locations={screen.locations}
             selectedId={screen.locationId}
+            managing={screen.managingLocations}
             onSelect={screen.setLocationId}
+            onEditPress={screen.openLocationEdit}
             onAddPress={screen.openLocationSheet}
           />
         </FormSection>
@@ -190,8 +202,10 @@ export function NewClassScreen() {
       <LocationSheet
         visible={screen.locationSheetVisible}
         locations={screen.locations}
+        location={screen.editingLocation}
         onClose={screen.closeLocationSheet}
         onCreated={screen.selectLocation}
+        onRemoved={screen.unselectLocation}
       />
     </View>
   );

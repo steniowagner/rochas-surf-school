@@ -9,6 +9,18 @@ const hasKey = (error: unknown, status: number, key: string): boolean =>
 export const isDuplicateLocationError = (error: unknown): boolean =>
   hasKey(error, 409, "location.name.duplicate");
 
+/** The location was removed meanwhile (409), so it can't be edited or removed again. */
+export const isLocationArchivedError = (error: unknown): boolean =>
+  hasKey(error, 409, "location.archived");
+
+/** The location to edit or remove is gone, removed or unknown (409 or 404), so the list is stale. */
+export const isLocationGoneError = (error: unknown): boolean =>
+  isLocationArchivedError(error) || hasKey(error, 404, "location.notFound");
+
+/** A class can't be given a removed location (422), so the list is stale and the selection must go. */
+export const isClassLocationArchivedError = (error: unknown): boolean =>
+  hasKey(error, 422, "class.location.archived");
+
 /** The chosen location is gone (422), so the list is stale. */
 export const isLocationNotFoundError = (error: unknown): boolean =>
   hasKey(error, 422, "class.location.notFound");
@@ -68,6 +80,10 @@ export const getClassErrorKey = (error: unknown): string | null => {
     return "newClass.errors.location";
   }
 
+  if (isClassLocationArchivedError(error)) {
+    return "newClass.errors.locationArchived";
+  }
+
   if (isDuplicateLocationError(error)) {
     return "locationSheet.duplicate";
   }
@@ -77,6 +93,19 @@ export const getClassErrorKey = (error: unknown): string | null => {
   }
 
   return "createAccount.errors.generic";
+};
+
+/**
+ * The translation key of the toast for a failed edit or removal of a location, or `null` when nothing should be
+ * shown. A repeated name (409) shows inline instead (see `isDuplicateLocationError`), but the generic mapping still
+ * answers it.
+ */
+export const getLocationErrorKey = (error: unknown): string | null => {
+  if (isLocationGoneError(error)) {
+    return "locationSheet.errors.gone";
+  }
+
+  return getClassErrorKey(error);
 };
 
 /**

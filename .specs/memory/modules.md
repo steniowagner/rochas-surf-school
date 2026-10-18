@@ -54,9 +54,10 @@ denied or removed account can still contact the school. The waiting-list switch 
 The product's only way to reach people outside the app: it keeps every notification for the person it is for,
 then pushes it to each phone they are signed in on, in that phone's language. It knows the people only by their
 ids and the phones they registered; who must be told what, and when, is decided by the module where the event
-happens (Authentication for registrations, Classes for class assignments, edits, cancellations, deletions and
-classes left without an instructor), which reaches it through abstract contracts. Today it carries the three
-registration notifications and the class ones (assigned, edited, unassigned, cancelled, deleted, no instructor);
+happens (Authentication for registrations, Classes for class assignments, edits, cancellations, deletions,
+classes left without an instructor and location changes), which reaches it through abstract contracts. Today it
+carries the three registration notifications, the class ones (assigned, edited, unassigned, cancelled, deleted, no
+instructor) and the location change;
 nothing shows the stored notifications yet.
 
 - Where it physically lives: `modules/notifications`
@@ -66,8 +67,11 @@ nothing shows the stored notifications yet.
 
 ## Classes
 
-Schedules the school's classes and keeps the places where they happen. Admins save locations (a name and an
-address) and create classes one at a time or in a batch — one class per chosen day and time range, all or
+Schedules the school's classes and keeps the places where they happen. Admins save locations (a name, an
+address and a point on the map, helped by address suggestions from an external maps service), edit them — the
+change applies to every class there, and they may tell the instructors of its upcoming classes — and remove them,
+which archives them: no longer offered for new classes, still shown by the classes that used them. They create
+classes one at a time or in a batch — one class per chosen day and time range, all or
 nothing, never in the past — with the instructors who teach them, who are told once per batch. Time ranges are
 suggested from last week's classes. Every approved person browses the classes by week (Monday to Sunday,
 Fortaleza) or by month and reads each one; a class is not started, started or finished by the clock, unless an

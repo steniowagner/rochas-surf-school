@@ -24,6 +24,7 @@ import {
   isClassNotFoundError,
   isClassStartedError,
 } from "../utils/class-error";
+import { toMapPoint } from "../utils/map";
 import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../utils/week";
 
 import type {
@@ -169,6 +170,8 @@ export const useClassDetailsScreen = ({
 
   return {
     item,
+    // The point of the class's location, or none for a location saved before the map.
+    locationPoint: item ? toMapPoint(item.location) : null,
     instructors,
     cancellationDeadline,
     timeRange: `${start} – ${end}`,

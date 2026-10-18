@@ -58,8 +58,9 @@ const teachers = [
   { id: "t-1", name: "Ana Souza", role: "instructor" },
   { id: "t-2", name: "Bruno Lima", role: "admin" },
 ];
-const futuro = { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 5000" };
-const cumbuco = { id: "l-2", name: "Cumbuco", address: "Rua do Mar, 10" };
+const POINT = { latitude: -3.7442, longitude: -38.4617 };
+const futuro = { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 5000", ...POINT, upcomingClasses: 1 };
+const cumbuco = { id: "l-2", name: "Cumbuco", address: "Rua do Mar, 10", ...POINT, upcomingClasses: 0 };
 
 // Tomorrow, 08:00-09:00 in Fortaleza, taught by Ana and by Carla, who is no longer a teacher.
 const classItem = {
@@ -377,7 +378,7 @@ describe("EditClassScreen", () => {
   });
 
   it("saves a new location in place and selects it", async () => {
-    const iracema = { id: "l-3", name: "Praia de Iracema", address: "Rua dos Tabajaras, 1" };
+    const iracema = { id: "l-3", name: "Praia de Iracema", address: "Rua dos Tabajaras, 1", ...POINT, upcomingClasses: 0 };
     serve({ "POST /locations": () => ({ ...ok(iracema), status: 201 }) });
     const user = userEvent.setup();
     await renderScreen();
@@ -386,12 +387,115 @@ describe("EditClassScreen", () => {
     await user.press(screen.getByRole("button", { name: "New location" }));
     await user.type(screen.getByLabelText("Name"), "Praia de Iracema");
     await user.type(screen.getByLabelText("Address"), "Rua dos Tabajaras, 1");
+    await fireEvent(screen.getByTestId("location-map-picker"), "press", {
+      nativeEvent: { coordinate: POINT },
+    });
     await user.press(screen.getByRole("button", { name: "Save location" }));
 
     await waitFor(() =>
       expect(screen.getByRole("radio", { name: "Praia de Iracema" })).toBeChecked(),
     );
     expect(saveButton()).toBeEnabled();
+  });
+
+  describe("manage locations", () => {
+    it("(manage) edits a location from its row and keeps the class's selection", async () => {
+      const edited = { ...cumbuco, name: "Cumbuco Norte" };
+      serve({ "PUT /locations/l-2": () => ok(edited) });
+      const user = userEvent.setup();
+      await renderScreen();
+      await loaded();
+
+      await user.press(screen.getByRole("button", { name: "Manage" }));
+      expect(screen.queryByRole("button", { name: "New location" })).toBeNull();
+      await user.press(screen.getByRole("radio", { name: "Cumbuco" }));
+      await fireEvent.changeText(screen.getByLabelText("Name"), "Cumbuco Norte");
+      await user.press(screen.getByRole("button", { name: "Save" }));
+
+      await waitFor(() => expect(screen.getByRole("radio", { name: "Cumbuco Norte" })).toBeTruthy());
+      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+      expect(mockShow).toHaveBeenCalledWith("Location updated");
+      await user.press(screen.getByRole("button", { name: "Done" }));
+      expect(screen.getByRole("button", { name: "New location" })).toBeTruthy();
+    });
+  });
+
+  describe("remove location", () => {
+    const removeFromSheet = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+      await user.press(screen.getByRole("button", { name: "Manage" }));
+      await user.press(screen.getByRole("radio", { name }));
+      await user.press(screen.getByRole("button", { name: "Remove location" }));
+      await user.press(screen.getAllByRole("button", { name: "Remove location" }).at(-1)!);
+    };
+
+    it("clears the selection when the class's own location is removed, and Save stays off", async () => {
+      serve({ "POST /locations/l-1/archive": () => ({ ok: true, status: 204, json: async () => undefined }) });
+      const user = userEvent.setup();
+      await renderScreen();
+      await loaded();
+
+      await removeFromSheet(user, "Praia do Futuro");
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Praia do Futuro removed"));
+      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).not.toBeChecked();
+      expect(saveButton()).toBeDisabled();
+    });
+
+    it("keeps the selection when another location is removed", async () => {
+      serve({ "POST /locations/l-2/archive": () => ({ ok: true, status: 204, json: async () => undefined }) });
+      const user = userEvent.setup();
+      await renderScreen();
+      await loaded();
+
+      await removeFromSheet(user, "Cumbuco");
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Cumbuco removed"));
+      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+    });
+
+    it("offers no Manage button when no active location is left", async () => {
+      serve({ "GET /locations": () => ok({ items: [] }) });
+      await renderScreen();
+      await loaded();
+
+      await waitFor(() => expect(screen.getByText("Removed")).toBeTruthy());
+      expect(screen.queryByRole("button", { name: "Manage" })).toBeNull();
+    });
+
+    it("shows the class's removed location as its selected row, with the chip, and saves without changing it", async () => {
+      serve({ "GET /locations": () => ok({ items: [cumbuco] }) });
+      const user = userEvent.setup();
+      await renderScreen();
+      await loaded();
+
+      await waitFor(() => expect(screen.getByText("Removed")).toBeTruthy());
+      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+
+      await fireEvent.changeText(screen.getByLabelText("Notes"), "New notes");
+      await user.press(saveButton());
+
+      await waitFor(() => expect(puts()).toHaveLength(1));
+      expect(JSON.parse(puts()[0][1].body)).toMatchObject({ locationId: "l-1", notes: "New notes" });
+    });
+
+    it("tells that the chosen location was removed when the save is refused, and clears it", async () => {
+      serve({ "PUT /classes/c-1": failure(422, "class.location.archived") });
+      const user = userEvent.setup();
+      await renderScreen();
+      await loaded();
+      await user.press(screen.getByRole("radio", { name: "Cumbuco" }));
+      const before = requestedPaths().filter((path) => path === "/locations").length;
+
+      await user.press(saveButton());
+
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith("The chosen location was removed. Pick another one."),
+      );
+      await waitFor(() =>
+        expect(requestedPaths().filter((path) => path === "/locations")).toHaveLength(before + 1),
+      );
+      expect(screen.getByRole("radio", { name: "Cumbuco" })).not.toBeChecked();
+    });
   });
 
   it("keeps a time added twice as a single chip", async () => {

@@ -4,11 +4,25 @@ import type {
   TimeRange,
 } from "@rochas-surf-school/classes";
 
-/** A saved location, as `GET /locations` answers it. */
-export type ClassLocation = {
+/** A point on the map. */
+export type MapPoint = {
+  latitude: number;
+  longitude: number;
+};
+
+/** The location of a class, as `GET /classes` answers it; the point is `null` for a location saved without one. */
+export type ClassItemLocation = {
   id: string;
   name: string;
   address: string;
+  latitude: number | null;
+  longitude: number | null;
+};
+
+/** A saved, active location, as `GET /locations` answers it. */
+export type ClassLocation = ClassItemLocation & {
+  /** Classes at the location that start later and aren't cancelled. */
+  upcomingClasses: number;
 };
 
 export type LocationsResponse = {
@@ -18,6 +32,34 @@ export type LocationsResponse = {
 export type NewLocationVariables = {
   name: string;
   address: string;
+  latitude: number;
+  longitude: number;
+};
+
+/** The body of `PUT /locations/:id`: the whole location every time. */
+export type EditLocationVariables = NewLocationVariables & {
+  id: string;
+  /** Tells the instructors of the upcoming classes; only sent when the location has some. */
+  notify?: boolean;
+};
+
+/** A suggestion of `GET /locations/address-suggestions`. */
+export type AddressSuggestion = {
+  placeId: string;
+  title: string;
+  description: string;
+};
+
+export type AddressSuggestionsResponse = {
+  items: AddressSuggestion[];
+};
+
+/** The place behind a suggestion. */
+export type AddressPlace = {
+  address: string;
+  latitude: number;
+  longitude: number;
+  name: string;
 };
 
 export type TimeRangeSuggestionsResponse = {
@@ -111,7 +153,7 @@ export type ClassItem = {
   cancellationMessage: string | null;
   /** Until when students can cancel (ISO 8601 UTC), or `null` while it can't be worked out. */
   cancellationDeadline: string | null;
-  location: ClassLocation;
+  location: ClassItemLocation;
   instructors: ClassInstructor[];
 };
 

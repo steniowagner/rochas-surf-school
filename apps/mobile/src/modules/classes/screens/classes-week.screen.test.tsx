@@ -52,7 +52,13 @@ const makeClass = (
   cancelledAt: null,
   cancellationMessage: null,
   cancellationDeadline: "2026-10-13T20:00:00.000Z",
-  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+  location: {
+    id: "l-1",
+    name: "Praia do Futuro",
+    address: "Av. Zezé Diogo, 1000",
+    latitude: -3.7442,
+    longitude: -38.4617,
+  },
   instructors: [{ id: "i-1", name: "Ana" }],
   ...overrides,
 });

@@ -91,8 +91,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     launch response once the session is restored, then the listener; deduplicated by `notificationId`: refreshes
     the account with `refreshAccount()`, then `router.push(routes.admin.registrations)` for a
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
-    / `router.push(routes.admin.classes)` for a `class.assigned` or `class.deleted` push when it resolves to the
-    `instructor` / `admin` flow (specs 030, 034), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
+    / `router.push(routes.admin.classes)` for a `class.assigned`, `class.deleted` or `location.changed` push when it
+    resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
     for a `class.edited` / `class.unassigned` / `class.cancelled` push with a string `data.classId` (specs 032,
     033), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
     `data.classId` when it resolves to the `admin` flow (spec 035), else
@@ -100,8 +100,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
     `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
-    `["classes"]` (weeks and details); no
-    navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037);
+    no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -132,6 +132,14 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   - Time pickers: **`@expo/ui`** 57's `DateTimePicker` (`@expo/ui/community/datetime-picker`, native wheels in
     time mode; spec 028's "Novo horário" sheet). No other native picker is installed. Inside a `BottomModal`,
     a picker needs `contentPanningEnabled={false}` so the sheet's content pan doesn't take the drag.
+  - Maps (spec 037): **`react-native-maps`** 1.27 — Apple Maps on iOS (no key), Google Maps on Android
+    (`PROVIDER_GOOGLE`, `getMapProvider()` in `src/modules/classes/utils/map.ts`). Its config plugin is added by
+    `apps/mobile/app.config.ts`, which takes the `app.json` config Expo passes in (still the source of everything
+    else) and appends `["react-native-maps", { androidGoogleMapsApiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY }]`
+    (`apps/mobile/.env`, empty in `.env.example`); `app.config.test.ts` checks it, and `jest.config.js`'s
+    `testMatch` also covers that root file. A map inside a `BottomModal` needs `contentPanningEnabled={false}`,
+    like a picker. Directions open the phone's maps app with `Linking.openURL` (`getDirectionsUrl`: Apple Maps on
+    iOS, Google Maps on Android), no extra library.
   - Business rules from a module: the app depends on **`@rochas-surf-school/classes`** (spec 028) and imports
     its batch expansion (`listBatchClasses` / `listBatchDates`), time-range checks, limits and `getClassState`
     (spec 030), so the "Criar N aulas" count is exactly what the backend creates and a class's state has the same
@@ -236,7 +244,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
 - Accent- and case-insensitive **uniqueness** is a stored key instead (spec 028): `locations.name_key` holds the
   name in NFD without accents, lower case and trimmed (`normalizeLocationName` in `modules/classes`) under a unique
   index; the use case checks it first and the repository maps Prisma's `P2002` to the same 409, so concurrent
-  creations leave one row.
+  creations leave one row. Since spec 037 the column is nullable: archiving a location sets `archived_at` and
+  `name_key` to `NULL` in the same write, so the unique index (kept as it is; Postgres treats NULLs as distinct)
+  binds only active locations and an archived location's name can be taken again — no partial index.
 - Writes that must be all or nothing go through one `$transaction` in the repository (`PrismaSchoolClassRepository.createMany`:
   the classes, then their `class_instructors`; `PrismaSchoolClassRepository.update`: the class row, then its
   `class_instructors` deleted and recreated). A write that must not happen after a concurrent one is
@@ -255,7 +265,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   or a failure only with `updateMany({ where: { id, deadlineRevision, cancelledAt: null } })`, so an edit or a rule
   change during a model call wins (the write matches nothing and is dropped). Every clearing sets
   `cancellation_deadline` and `deadline_next_attempt_at` to null, `deadline_attempts` to 0 and bumps
-  `deadline_revision`. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
+  `deadline_revision`. Locations (spec 037) follow the same patterns: `PrismaLocationRepository.update` writes the
+  location and, when asked (`clearDeadlinesFrom`), clears the deadlines of its classes with `startsAt` after that
+  instant and `cancelledAt` null, in one `$transaction`; `archive(id)` is one `updateMany({ where: { id,
+  archivedAt: null } })`, `true` when a row matched, so of two concurrent archives one wins. `update` isn't
+  conditional on `archived_at`: an edit racing an archive can write `name_key` back on the archived row. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
   → `users.id` `ON DELETE SET NULL`.
   `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
@@ -725,10 +739,37 @@ Routes of `apps/backend/src/modules/classes/` (spec 028), all protected. Access 
 `user.status.notApproved` first, then a role other than `admin` → 403 `user.role.notAdmin`; an unknown user is the
 guard's 401 `auth.token.invalid`.
 
-- `GET /locations` (any approved account) → 200 `{ items: [{ id, name, address }] }`, every location sorted by
-  `nameKey` then `id`, unpaginated. `POST /locations` (admins) `{ name, address }` → 201 `{ id, name, address }`
-  (both trimmed); 422 with `location.name.required` / `.max.length` (40) and `location.address.required` /
-  `.max.length` (200) collected (a non-string counts as missing); 409 `location.name.duplicate`.
+- Locations (specs 028, 037; `LocationsController`, use cases in `modules/classes/src/location/usecase/`). The
+  item is `{ id, name, address, latitude, longitude, upcomingClasses }` (`toLocationOut`; the point `null` for a
+  location saved before spec 037; `upcomingClasses` counts its classes with `startsAt` after now and not
+  cancelled). `GET /locations` (any approved account; `ListLocations`) → 200 `{ items }`, only **active**
+  locations, sorted by `nameKey` then `id`, unpaginated (`LocationRepository.findActive(now)`). `POST /locations`
+  (admins; `CreateLocation`) `{ name, address, latitude, longitude }` → 201 the item (`upcomingClasses` 0; name
+  and address trimmed); 422 with `location.name.required` / `.max.length` (40), `location.address.required` /
+  `.max.length` (200) and `location.point.required` (latitude or longitude absent or `null`) /
+  `location.point.invalid` (not a finite number, latitude outside −90..90 or longitude outside −180..180)
+  collected (a non-string name or address counts as missing); 409 `location.name.duplicate`. `PUT /locations/:id`
+  (admins; `EditLocation`) `{ name, address, latitude, longitude, notify? }` → 200 the item. Order: access; a
+  non-UUID id (no lookup) or no location → 404 `location.notFound`; the shape keys plus `location.notify.invalid`
+  (present and not a boolean) in one 422; 409 `location.archived`; 409 `location.name.duplicate` (another active
+  location with the same `nameKey`; its own name in another case is fine). Nothing differing (name, address,
+  latitude, longitude after trimming) → 200 with no write and nobody told. Otherwise `LocationRepository.update(location,
+  { clearDeadlinesFrom })` — `now` when the name or the address changed (the details the language model reads),
+  else `null`, so a moved point keeps the deadlines — then, with `notify: true`,
+  `findUpcomingInstructorCounts(locationId, now)` minus the caller goes to
+  `LocationChangeNotifier.locationChanged({ recipients: [{ instructorId, count }], locationName })`
+  (`provider/location-change-notifier.provider.ts`; skipped when nobody is left; any error swallowed in the use
+  case). `POST /locations/:id/archive` (admins; `ArchiveLocation`) → 204; order: access, 404 `location.notFound`,
+  409 `location.archived` (already archived, or the conditional `archive(id)` lost a race). The last active
+  location can be archived; nothing restores one. Address suggestions (admins): `GET
+  /locations/address-suggestions?q=&sessionToken=&language=` (`SuggestAddresses`) → 200 `{ items: [{ placeId,
+  title, description }] }` (at most 5) and `GET /locations/address-suggestions/:placeId?sessionToken=&language=`
+  (`FindAddressPlace`) → 200 `{ address, latitude, longitude, name }`, both declared before the `:id` routes.
+  `q` trimmed 3–100 characters, else `location.suggestions.query.invalid`, and `sessionToken` matching
+  `^[A-Za-z0-9_-]{1,64}$`, else `location.suggestions.sessionToken.invalid` (one 422); `language` `pt-BR` / `es` /
+  `en`, anything else `pt-BR`; the provider throwing → 502 `BadGatewayError` `location.suggestions.unavailable`; no
+  place (or a blank `placeId`) → 404 `location.place.notFound`. They go through the `AddressSuggestionProvider` port
+  (see External integrations → Maps and address suggestions).
 - `POST /classes/batch` (admins) `{ discipline, level, startDate, endDate, weekdays, excludedDates?, skipPast?,
   timeRanges, locationId, instructorIds, capacity, notes? }` → 201 `{ count }`. Dates `YYYY-MM-DD` and times
   `HH:mm` are America/Fortaleza; `CreateClassBatch` expands them (`listBatchClasses`) and stores `startsAt` /
@@ -738,7 +779,7 @@ guard's 401 `auth.token.invalid`.
   timeRanges.length` (so only today's classes can have started, one per range), then drops the classes starting
   at or before now. Shape errors are one 422 `ValidationException` (keys in
   [modules/classes.md](modules/classes.md)); then, alone and in order, `class.location.notFound`,
-  `class.instructors.invalid`, `class.batch.empty`, `class.batch.tooLarge` (`details: { max: 200 }`, judged after
+  `class.location.archived` (spec 037), `class.instructors.invalid`, `class.batch.empty`, `class.batch.tooLarge` (`details: { max: 200 }`, judged after
   the skip) and `class.startsAt.past` (only without `skipPast`), each a 422 `DomainError`. A location or instructor id that
   isn't a UUID is refused as not found / invalid without a lookup. Instructors are checked through the
   `TeacherLookup` port (`PrismaTeacherLookup`: id, role, status). The batch is written by
@@ -751,8 +792,9 @@ guard's 401 `auth.token.invalid`.
 - `GET /classes?date=YYYY-MM-DD` (any approved account; spec 030, `ListWeekClasses`) → 200 `{ weekStart, items:
   ClassItem[] }`: the classes starting from the Monday 00:00 of the date's week (inclusive) to the next Monday
   00:00 (exclusive), Fortaleza, sorted by `startsAt`, `endsAt`, `id`. `ClassItem` is `{ id, discipline, level,
-  startsAt, endsAt, capacity, notes, location: { id, name, address }, instructors: [{ id, name }], cancelledAt,
-  cancellationMessage, cancellationDeadline }` (ISO UTC dates, `notes` `null` when none, `cancelledAt` /
+  startsAt, endsAt, capacity, notes, location: { id, name, address, latitude, longitude }, instructors: [{ id,
+  name }], cancelledAt, cancellationMessage, cancellationDeadline }` (ISO UTC dates, the location's point `null`
+  when it has none and an archived location read like an active one (spec 037), `notes` `null` when none, `cancelledAt` /
   `cancellationMessage` `null` for a class never cancelled (spec 033), `cancellationDeadline` `null` while it can't
   be worked out (spec 036), instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
   `id`; `toClassItem` in `usecase/class-item.ts`). Access first, then a `date` that is missing, not a string,
@@ -771,7 +813,8 @@ guard's 401 `auth.token.invalid`.
   Order: access; a non-UUID id (no lookup) or no class (`SchoolClassRepository.findById`) → 404 `class.notFound`;
   shape errors in one 422 `ValidationException` (keys in [modules/classes.md](modules/classes.md)); then, alone and
   in order, 409 `class.cancelled` (spec 033, whatever the clock), 409 `class.finished` (now ≥ `endsAt`), 409 `class.started` (now ≥ `startsAt` and a class field
-  differs), 422 `class.location.notFound`, 422 `class.instructors.invalid` (only the ids not already on the class
+  differs), 422 `class.location.notFound`, 422 `class.location.archived` (spec 037: only when the location changes;
+  keeping a class's archived location is accepted), 422 `class.instructors.invalid` (only the ids not already on the class
   go through `TeacherLookup`), 422 `class.startsAt.past` (not started and the new start ≤ now), 422
   `class.capacity.belowSeatsTaken` (`details: { seatsTaken }`). "Differs" compares discipline, level, `startsAt`,
   `endsAt`, location id, capacity and trimmed notes (`null` for none), and the instructors as a set; nothing
@@ -862,7 +905,9 @@ guard's 401 `auth.token.invalid`.
   omitted when blank),
   guards a double press with a ref, and maps errors with `getClassErrorKey` (`utils/class-error.ts`):
   `class.startsAt.past` → `newClass.errors.past`; `class.instructors.invalid` → its toast and the teachers query
-  refetched; `class.location.notFound` → its toast and the locations refetched; 409 `location.name.duplicate` →
+  refetched; `class.location.notFound` → its toast and the locations refetched; `class.location.archived` (spec
+  037, Nova aula and Editar aula) → `newClass.errors.locationArchived`, the locations refetched and the selection
+  cleared; 409 `location.name.duplicate` →
   `locationSheet.duplicate` inline in the sheet (the list refetched); `NetworkError` → no connection;
   `SessionExpiredError` → nothing; else generic. On 201: toast `newClass.created` and `router.back()`;
   `useCreateClasses` invalidates `["classes", "week"]` on success only. Nova aula reads an optional `date` route
@@ -970,6 +1015,39 @@ guard's 401 `auth.token.invalid`.
   and `HH:mm`, Fortaleza, the app's locale, because pt-BR `EEE` spells out "segunda"), drawn as
   `classDetails.cancellationDeadline` under the date line. Copy under `cancellationRules`, `admin.home`,
   `classesWeek.noDeadline` and `classDetails.noDeadline` / `.cancellationDeadline`.
+- Mobile locations (spec 037). `ClassLocation` carries `latitude`, `longitude` and `upcomingClasses`, and the class
+  item's location the point (`MapPoint`, `toMapPoint`). Hooks (`hooks/`, no retry): `useCreateLocation` sends the
+  point; `useEditLocation` (`apiPut` to `/locations/{id}`; on 200 replaces the row in `["locations"]` with
+  `replaceLocation` and invalidates `["classes"]` without awaiting, since the edit applies to every class and may
+  clear their deadlines); `useArchiveLocation` (`apiPost` to `/locations/{id}/archive`; on 204 drops the row with
+  `removeLocation`); `useAddressSuggestions(text, sessionToken)` (a query keyed `["locations", "suggestions",
+  sessionToken, query]`, the trimmed text debounced 300 ms by `useDebouncedValue`, enabled from 3 characters,
+  `staleTime: Infinity`, the app language through `toBackendLocale`) and `useAddressPlace(sessionToken)` (a mutation
+  that GETs the place). `newSessionToken()` (`utils/session-token.ts`) makes a UUID v4 from `Math.random` (no crypto
+  polyfill) each time the sheet opens. `LocationSheet` (`components/location-sheet/`) has two modes, new and edit
+  (`location` prop): Nome with the inline duplicate message against the loaded list ignoring the edited location;
+  `AddressSearchField` (`components/address-search-field/`: the Endereço `TextInput` with a search icon and up to 5
+  suggestion rows while focused — picking one sets the address and the point, fills an empty Nome and hides the
+  rows; failed suggestions or place show nothing); `LocationMapPicker` (`components/location-map-picker/`: a 170 pt
+  rounded `MapView` with a `Marker`, a tap sets the point, opening on the point or on `FORTALEZA` with `MAP_DELTA`
+  0.2°, and the hint `locationSheet.pointHintEmpty` / `.pointHintSet`); the notify `Checkbox` only when editing a
+  location with `upcomingClasses` > 0 (on by default); the primary `Button` enabled with a name, an address, a
+  point and no duplicate; "Remover local" (outline, editing only); `contentPanningEnabled={false}`. It opens
+  `ArchiveLocationSheet` (`components/archive-location-sheet/`) for "Remover local?": the edit sheet steps aside
+  while the confirmation is open (`visible={props.visible && !archiveVisible}`) and ignores that dismissal, because
+  the native sheet library dismisses the sheet below; "Manter" brings it back. Errors: duplicate inline (list
+  refetched); `location.archived` / `location.notFound` (`isLocationGoneError`) → toast `locationSheet.errors.gone`,
+  list refetched, sheet closed and `onRemoved`; else `getLocationErrorKey`. `LocationPicker` gains the managing
+  mode (pencil rows that open the edit sheet, "Novo local" hidden) and the `locationPicker.archived` chip;
+  `FormSection` takes an `action` link ("Gerir" / "Concluir"); `useLocationManagement` (`hooks/`) holds that mode and
+  which sheet is open, shared by Nova aula and Editar aula. A removed location that was selected clears the selection
+  (Nova aula `locationId: null`; Editar aula `""`, so Save turns off). On Editar aula a class whose location isn't in
+  the loaded list keeps it as its selected row, marked archived once the list has loaded. On the details,
+  `LocationMapPreview` (`components/location-map-preview/`) shows, only for a location with a point, a fixed 96 pt
+  `MapView` (scroll, zoom, rotate and pitch off, `PREVIEW_DELTA` 0.01°) with a `Marker` and a "Direções" outline
+  button (`Linking.openURL(getDirectionsUrl(point))`, toast `classDetails.directionsUnavailable` on failure), for
+  every role and for cancelled classes. Copy under `locationSheet`, `locationPicker`, `archiveLocation`,
+  `newClass.errors.locationArchived` and `classDetails.directions*`.
 
 ## Error handling
 
@@ -990,7 +1068,8 @@ guard's 401 `auth.token.invalid`.
 Every provider sits behind a port in the domain (`*.provider.ts`); its implementation lives in the backend
 module that uses it. Variable names are added to `apps/backend/.env.example` by the spec that introduces the
 provider; real keys are never committed. The privacy policy page (`apps/web`, spec 022) names the providers
-already chosen (Google, Apple, Resend, Expo, Anthropic) and describes the others by category, so a spec that
+already chosen (Google — sign-in, maps and address suggestions —, Apple — sign-in and Apple Maps —, Resend, Expo,
+Anthropic) and describes the others by category, so a spec that
 chooses a provider (hosting, photo storage), changes a retention period or adds a kind of data also
 updates the policy's legal bases and retention list (spec 023) in the three web dictionaries.
 
@@ -1037,7 +1116,10 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `NoInstructorNotifier` (classes, `NotificationsNoInstructorNotifier`: `classesWithoutInstructor` runs the
   notifications use case `NotifyClassesWithoutInstructor` — `RecipientsProvider.findApprovedAdminIds()` minus
   `excludeUserIds`, nothing stored or sent when none is left — which notifies `class.noInstructor` with
-  `{ count, classId, discipline, startsAt }` for the earliest class; spec 035). A catalog entry's `title` in
+  `{ count, classId, discipline, startsAt }` for the earliest class; spec 035) and `LocationChangeNotifier` (classes,
+  `NotificationsLocationChangeNotifier`: `locationChanged({ recipients, locationName })` → one `location.changed`
+  per recipient with `{ count, locationName }`, no `classId` since it concerns several classes; one failure doesn't
+  stop the next recipient; spec 037). A catalog entry's `title` in
   `push-messages.ts` is a string or a function of the params (`class.noInstructor`'s depends on the count; a
   missing count counts as one).
   `NotificationsModule` exports them; a push type without a catalog entry in `push-messages.ts` fails the backend's
@@ -1090,8 +1172,24 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 ### Maps and address suggestions
 
-- **Google Maps Platform** (Places Autocomplete; `react-native-maps` on the phone). Keys and setup **decided
-  by the class-locations spec**.
+- **Google Places API (New)** for address suggestions (spec 037), called only by the backend so the key stays on
+  the server, behind the `AddressSuggestionProvider` port (`modules/classes/src/location/provider/address-suggestion.provider.ts`:
+  `suggest({ query, sessionToken, language })` → `{ placeId, title, description }[]`, `findPlace({ placeId,
+  sessionToken, language })` → `{ address, latitude, longitude, name }` or `null`), implemented with `fetch` by
+  `GooglePlacesAddressSuggestionProvider` (`apps/backend/src/modules/classes/google-places.address-suggestions.ts`):
+  `POST https://places.googleapis.com/v1/places:autocomplete` with a location bias (a 50 km circle around
+  Fortaleza, −3.7319, −38.5267) and `GET https://places.googleapis.com/v1/places/{placeId}` with the field mask
+  `formattedAddress,location,displayName`, both with the `X-Goog-Api-Key` header, the `sessionToken` (Google bills
+  autocomplete by session) and `languageCode`. A non-2xx or network error rejects (the use cases answer 502); a 404
+  or an incomplete place answers `null`. Google answers 400, not 404, for a malformed place id, so a forged id gets
+  the 502. Variable `GOOGLE_MAPS_API_KEY` (backend, empty in `.env.example`): without it outside production the
+  provider warns once and answers no suggestions and no place; with `NODE_ENV=production` its constructor throws so
+  the backend refuses to start — the Resend and Anthropic pattern.
+- **Maps on the phone**: `react-native-maps` (see Applications) — Apple Maps on iOS needs no key; Google Maps on
+  Android needs `GOOGLE_MAPS_ANDROID_API_KEY` (Maps SDK for Android) at prebuild, through `app.config.ts`. Android
+  maps were never checked on an emulator (no key set yet).
+- Tests never call Google: the e2e suite overrides `GooglePlacesAddressSuggestionProvider` with a fake, its unit
+  spec mocks `fetch`, and the mobile tests mock `react-native-maps` in `jest.setup.ts`.
 
 ### Scheduled work
 
@@ -1142,7 +1240,10 @@ Maestro suite for mobile would be a spec of its own.
   `getLastNotificationResponse` as `jest.fn`s), `expo-device` (`isDevice: true`) and `expo-constants` (an EAS
   `projectId`), so tests drive push behavior through those mocks. `@expo/ui/community/datetime-picker` is a host
   `View` that keeps `value` and `onValueChange` (default and named export), so tests change a time by calling
-  `onValueChange`; the native wheels can't be moved by the simulator's injected touches either. Tests that need a signed-in app seed the real store
+  `onValueChange`; the native wheels can't be moved by the simulator's injected touches either.
+  `react-native-maps` (spec 037) is `MapView` and `Marker` as host elements that keep their props (default and named
+  exports, `PROVIDER_GOOGLE` `"google"`), so tests fire `onPress` with a coordinate and read the marker's
+  `coordinate`. Tests that need a signed-in app seed the real store
   (`hydrateSession`) with an access token far in the future, since one close to expiry triggers a refresh;
   `fetch` is mocked per test.
 - End-to-end, per app: the suite below. It needs a Postgres reachable through `DATABASE_*` with the
@@ -1159,7 +1260,8 @@ Maestro suite for mobile would be a spec of its own.
   `notifications.e2e-spec.ts` overrides `ExpoPushProvider` with a fake that records the messages and returns
   configurable tickets (`overrideProvider`); `classes.e2e-spec.ts` overrides it the same way and the classes
   module's `SystemClockProvider` with a fixed clock, and each test deletes the classes, locations and users it
-  created. `cancellation-rules.e2e-spec.ts` and `cancellation-deadlines.e2e-spec.ts` (spec 036) fix the classes
+  created. `locations.e2e-spec.ts` (spec 037) overrides `ExpoPushProvider`, `GooglePlacesAddressSuggestionProvider`
+  and the classes clock (fixed in 2037, like the deadline suites) the same way. `cancellation-rules.e2e-spec.ts` and `cancellation-deadlines.e2e-spec.ts` (spec 036) fix the classes
   clock in 2037, so the job only meets the test's own classes and never writes fake deadlines to real ones in a
   shared dev database, snapshot the stored cancellation rules before and put them back after, and the second
   overrides `AnthropicDeadlineDescriber` with a configurable fake and runs the job through

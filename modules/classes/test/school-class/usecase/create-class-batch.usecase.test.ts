@@ -18,6 +18,7 @@ const OTHER_ID = "9b8c7d6e-5f4a-4321-8abc-0d1e2f3a4b5c";
 
 function setup(overrides: { failNotifier?: boolean } = {}) {
   const location = buildLocation("Praia do Futuro");
+  const archived = buildLocation("Cumbuco", "Rua X", { archivedAt: new Date("2026-10-01T10:00:00.000Z") });
   const classes = new FakeSchoolClassRepository();
   const notifier = new FakeClassAssignmentNotifier();
   if (overrides.failNotifier) {
@@ -27,7 +28,7 @@ function setup(overrides: { failNotifier?: boolean } = {}) {
   }
   const useCase = new CreateClassBatch(
     classes,
-    new FakeLocationRepository([location]),
+    new FakeLocationRepository([location, archived]),
     new FakeTeacherLookup([
       { id: INSTRUCTOR_ID, role: "instructor", status: "approved" },
       { id: ADMIN.id, role: "admin", status: "approved" },
@@ -55,7 +56,7 @@ function setup(overrides: { failNotifier?: boolean } = {}) {
     notes: "  Bring sunscreen  ",
   };
 
-  return { useCase, input, classes, notifier, location };
+  return { useCase, input, classes, notifier, location, archived };
 }
 
 async function errorOf(promise: Promise<unknown>): Promise<DomainError> {
@@ -339,6 +340,16 @@ describe("CreateClassBatch", () => {
         expect(error.message).toBe("class.location.notFound");
         expect(error.statusCode).toBe(422);
       }
+      expect(classes.all).toHaveLength(0);
+    });
+
+    it("refuses an archived location (archived location) and stores nothing", async () => {
+      const { useCase, input, classes, archived } = setup();
+
+      const error = await errorOf(useCase.execute({ ...input, locationId: archived.id }));
+
+      expect(error.message).toBe("class.location.archived");
+      expect(error.statusCode).toBe(422);
       expect(classes.all).toHaveLength(0);
     });
 

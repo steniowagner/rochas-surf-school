@@ -790,6 +790,7 @@ Lets admins keep a list of saved locations for classes and controls how changes 
 #### Saved locations
 
 _Implemented in spec 028-create-classes (a name and an address, without suggestions or a map)._
+_Implemented in spec 037-class-locations (address suggestions and a point on the map)._
 
 Admins SHALL be able to save locations with an address, helped by address suggestions and a map, and SHALL pick one saved location for each class.
 
@@ -797,11 +798,15 @@ Admins SHALL be able to save locations with an address, helped by address sugges
 
 #### Editing a location
 
+_Implemented in spec 037-class-locations._
+
 Admins SHALL be able to edit a saved location. The change SHALL apply to every class that uses it, including past classes.
 
 - _Location renamed:_ When an admin changes a location's name, then every class at that location, past and upcoming, shows the new name.
 
 #### Notifying about a location change
+
+_Implemented in spec 037-class-locations (instructors only; students are told once enrolment exists)._
 
 When an edited location is used by classes that haven't started, the admin SHALL choose whether to notify those classes' students and instructors.
 
@@ -810,11 +815,15 @@ When an edited location is used by classes that haven't started, the admin SHALL
 
 #### Archiving instead of deleting
 
+_Implemented in spec 037-class-locations._
+
 Removing a saved location SHALL archive it: it SHALL no longer be offered for new classes, and classes that use it SHALL keep showing it.
 
 - _Location removed:_ When an admin removes a location used by past classes, then it is no longer offered when creating classes, and those past classes still show it.
 
 #### Removing the selected location while creating classes
+
+_Implemented in spec 037-class-locations._
 
 If an admin removes the location currently selected while creating classes, the selection SHALL be cleared, and the admin SHALL pick a location again before the classes can be created.
 
@@ -1007,6 +1016,7 @@ Each class SHALL have one cancellation deadline, the same for all its students. 
 #### Working out the deadline
 
 _Implemented in spec 036-cancellation-rules-deadline._
+_Implemented in spec 037-class-locations (a changed location name or address sends its upcoming classes' deadlines to be worked out again)._
 
 The system SHALL use a language model to read the rule text and the class's details (discipline, level, date, start and end time, location, capacity and notes) and describe the deadline. The system SHALL calculate the exact date and time from that description itself, and SHALL retry when the description can't be used.
 

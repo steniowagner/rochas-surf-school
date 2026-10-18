@@ -424,7 +424,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   and `npm run check-types --workspace apps/backend` exits 0.
   > ✅ 2026-10-18 02:46 — implemented AnthropicDeadlineDescriber (claude-opus-5-5, effort low, structured outputs via beta.messages.parse + zodOutputFormat, fallbacks 'default' with beta server-side-fallback-2026-07-01, 30 s timeout, maxRetries 0, every failure -> unclear, key required only in production) and registered it in the module; files: `apps/backend/src/modules/classes/{anthropic.deadline-describer,anthropic.deadline-describer.spec,classes.module}.ts`, `apps/backend/.env.example`, `apps/backend/package.json`, `package-lock.json` (@anthropic-ai/sdk ^0.135.0, zod ^4.6.7); verified: `npx vitest run src/modules/classes/anthropic.deadline-describer.spec.ts` (14 passed), `npm run check-types --workspace apps/backend` exit 0, lint clean; deviations: the SDK is mocked with `vi.mock`, so the real structured-output call was not exercised against Anthropic here (the journeys in T-14 do that with a real key)
 
-- [ ] **T-08** — Add `CancellationDeadlineJob` (`src/modules/classes/cancellation-deadline.job.ts`, D-06: every
+- [x] **T-08** — Add `CancellationDeadlineJob` (`src/modules/classes/cancellation-deadline.job.ts`, D-06: every
   minute, `waitForCompletion`, runs `WorkOutCancellationDeadlines` with the Prisma repositories, the describer and
   `SystemClockProvider`, logs counts only, catches every error) with `cancellation-deadline.job.spec.ts`; register it
   in `classes.module.ts`; add `test/cancellation-deadlines.e2e-spec.ts` (the describer overridden with a configurable
@@ -432,6 +432,7 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
   "retries", "without a rule", "edit", and no notification row created.
   Covers: ER-04, ER-07, ER-08, ER-09, ER-10 · Done when: `npx vitest run src/modules/classes/cancellation-deadline.job.spec.ts`
   and `npm run test:e2e --workspace apps/backend -- test/cancellation-deadlines.e2e-spec.ts` pass.
+  > ✅ 2026-10-18 02:48 — added CancellationDeadlineJob (every minute, waitForCompletion, counts-only logs, catches everything) registered in the classes module, plus the deadlines e2e suite; files: `apps/backend/src/modules/classes/{cancellation-deadline.job,cancellation-deadline.job.spec,classes.module}.ts`, `apps/backend/test/cancellation-deadlines.e2e-spec.ts`, `apps/backend/test/cancellation-rules.e2e-spec.ts` (clock moved to 2037); verified: `npx vitest run src/modules/classes/cancellation-deadline.job.spec.ts` (5 passed), `npm run test:e2e -- test/cancellation-deadlines.e2e-spec.ts` (14 passed: works out the deadline, retries with backoff and no notification, without a rule, edit, stale results, cancelled during the call), rules + deadlines + classes e2e suites pass, full `npx vitest run` (418 passed), check-types and lint clean; deviations: the e2e suites fix the clock in 2037 so the job only meets the test's own classes and never writes fake deadlines to real classes in a shared dev database; added stale/cancelled-during-call e2e cases for ER-10
 
 ### Mobile (`apps/mobile`)
 

@@ -14,8 +14,8 @@ process.env.JWT_EXPIRES_IN = '15m';
 
 const DOMAIN = 'cancellation-rules.e2e.example.com';
 const MARK = 'e2erule';
-// Sunday 2026-10-18, 09:00 in Fortaleza.
-const NOW = new Date('2026-10-18T12:00:00.000Z');
+// Sunday 2037-10-18 (a year no real class is in, so the job only meets the classes of the test), 09:00 in Fortaleza.
+const NOW = new Date('2037-10-18T12:00:00.000Z');
 const RULE = 'O aluno pode cancelar até 12 horas antes do início da aula.';
 
 type Role = 'student' | 'instructor' | 'admin';
@@ -218,14 +218,14 @@ describe('Cancellation rules (e2e)', () => {
   });
 
   describe('clears the deadlines', () => {
-    const tomorrow = new Date('2026-10-19T11:00:00.000Z');
-    const yesterday = new Date('2026-10-17T11:00:00.000Z');
+    const tomorrow = new Date('2037-10-19T11:00:00.000Z');
+    const yesterday = new Date('2037-10-17T11:00:00.000Z');
 
     async function seed(admin: { id: string }) {
       return {
         upcoming: await classAt(admin.id, 'surf', tomorrow),
         started: await classAt(admin.id, 'surf', yesterday),
-        cancelled: await classAt(admin.id, 'surf', tomorrow, { cancelledAt: new Date('2026-10-18T10:00:00.000Z') }),
+        cancelled: await classAt(admin.id, 'surf', tomorrow, { cancelledAt: new Date('2037-10-18T10:00:00.000Z') }),
         skate: await classAt(admin.id, 'skate', tomorrow),
       };
     }

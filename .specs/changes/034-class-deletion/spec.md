@@ -210,13 +210,17 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add `SchoolClassRepository.delete(id, now): Promise<boolean>` (D-04), the `PendingRequestCounter`
+- [x] **T-01** — Add `SchoolClassRepository.delete(id, now): Promise<boolean>` (D-04), the `PendingRequestCounter`
   port (`src/school-class/provider/pending-request-counter.provider.ts`, D-03) and `ClassChangeNotifier.classDeleted`
   (event `ClassDeleted`, D-05), exported from the provider barrel; extend the fakes in `test/mock/`
   (`fake-school-class.repository.ts` with D-04's conditions, new `fake-pending-request.counter.ts`,
   `fake-class-change.notifier.ts`, the mock barrel) with their tests in `test/school-class/provider/`.
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/classes` and
   `npm run check-types --workspace @rochas-surf-school/classes` pass.
+  > ✅ 2026-10-17 23:59 — added delete(id, now) to SchoolClassRepository, the PendingRequestCounter port and ClassChangeNotifier.classDeleted (ClassDeleted event), plus fakes and tests;
+  > files: `modules/classes/src/school-class/provider/school-class.repository.ts`, `.../class-change-notifier.provider.ts`, `.../pending-request-counter.provider.ts`, `.../index.ts`, `modules/classes/test/mock/fake-school-class.repository.ts`, `fake-class-change.notifier.ts`, `fake-pending-request.counter.ts`, `index.ts`, `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`, `fake-class-change.notifier.test.ts`, `fake-pending-request.counter.test.ts`;
+  > verified: `npm test` in modules/classes (284 passed) and `npm run check-types` (clean);
+  > deviations: none
 
 - [ ] **T-02** — Add `DeleteClass` (`src/school-class/usecase/delete-class.usecase.ts`, exported from the usecase
   barrel): D-02, D-04 and D-05, with `test/school-class/usecase/delete-class.usecase.test.ts` (tests named "deletes",

@@ -8,3 +8,4 @@ export * from "./school-class.factory";
 export * from "./fake-class-view.reader";
 export * from "./fake-class-change.notifier";
 export * from "./fake-seat.counter";
+export * from "./fake-pending-request.counter";

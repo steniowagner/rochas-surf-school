@@ -88,4 +88,28 @@ describe("FakeSchoolClassRepository", () => {
       await new FakeSchoolClassRepository().cancel("11111111-1111-4111-8111-111111111111", new Date(), null),
     ).toBe(false);
   });
+
+  it("deletes a class that is neither cancelled nor started, and only that one", async () => {
+    const stored = buildClass();
+    const other = buildClass();
+    const repository = new FakeSchoolClassRepository([stored, other]);
+    const now = new Date("2026-10-14T13:00:00.000Z");
+
+    expect(await repository.delete(stored.id, now)).toBe(true);
+    expect(await repository.delete(stored.id, now)).toBe(false);
+    expect(await repository.findById(stored.id)).toBeNull();
+    expect(await repository.findById(other.id)).toBe(other);
+    expect(repository.deleteCalls).toHaveLength(2);
+  });
+
+  it("refuses to delete a started class, one starting exactly now and a cancelled one", async () => {
+    const stored = buildClass();
+    const cancelled = buildClass({ cancelledAt: new Date("2026-10-14T10:00:00.000Z") });
+    const repository = new FakeSchoolClassRepository([stored, cancelled]);
+
+    expect(await repository.delete(stored.id, stored.startsAt)).toBe(false);
+    expect(await repository.delete(stored.id, new Date("2026-10-15T11:30:00.000Z"))).toBe(false);
+    expect(await repository.delete(cancelled.id, new Date("2026-10-14T13:00:00.000Z"))).toBe(false);
+    expect(repository.all).toHaveLength(2);
+  });
 });

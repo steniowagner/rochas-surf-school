@@ -21,6 +21,7 @@ import { ResendEmailProvider } from './resend.email.js';
 import { PrismaRulesVersionProvider } from './rules-version.prisma.js';
 import { PrismaSignInCodeRepository } from './sign-in-code.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
+import { ClassesTeachingReleaser } from '../classes/classes.teaching-releaser.js';
 import { NotificationsPushTokenRemover } from '../notifications/notifications.push-token-remover.js';
 import { NotificationsRegistrationNotifier } from '../notifications/notifications.registration-notifier.js';
 import { PrismaUserRepository } from './user.prisma.js';
@@ -109,6 +110,7 @@ function setup(
   };
   const registrationNotifier = { registrationPending: vi.fn().mockResolvedValue(undefined) };
   const pushTokenRemover = { remove: vi.fn().mockResolvedValue(undefined) };
+  const teachingReleaser = { releaseUpcomingClasses: vi.fn().mockResolvedValue(undefined) };
   const controller = new AuthController(
     { reviewCodes, refreshTokenTtlDays: 30 } as AuthConfig,
     signInCodeRepository as unknown as PrismaSignInCodeRepository,
@@ -123,11 +125,13 @@ function setup(
     googleIdTokenProvider as unknown as GoogleAuthIdTokenProvider,
     registrationNotifier as unknown as NotificationsRegistrationNotifier,
     pushTokenRemover as unknown as NotificationsPushTokenRemover,
+    teachingReleaser as unknown as ClassesTeachingReleaser,
   );
   return {
     controller,
     registrationNotifier,
     pushTokenRemover,
+    teachingReleaser,
     codes,
     emailProvider,
     identities,
@@ -403,6 +407,28 @@ describe('AuthController', () => {
 
       await expect(controller.deleteAccount(ana.id)).resolves.toBeUndefined();
 
+      expect(users[0]!.status).toBe('deleted');
+    });
+
+    it('releases the upcoming classes of the signed-in user before closing the account', async () => {
+      const ana = new User({
+        name: 'Ana Souza',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'instructor',
+        status: 'approved',
+      });
+      const users = [ana];
+      const { controller, teachingReleaser } = setup({}, users);
+      let statusWhenReleased: string | undefined;
+      teachingReleaser.releaseUpcomingClasses.mockImplementation(async () => {
+        statusWhenReleased = users[0]!.status;
+      });
+
+      await controller.deleteAccount(ana.id);
+
+      expect(teachingReleaser.releaseUpcomingClasses).toHaveBeenCalledWith(ana.id);
+      expect(statusWhenReleased).toBe('approved');
       expect(users[0]!.status).toBe('deleted');
     });
   });

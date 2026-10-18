@@ -340,7 +340,7 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   > class notifiers. The push `data` (`{ type, notificationId, classId }`) comes from `ExpoPushProvider`'s existing
   > `classId` rule; T-08's e2e test checks it.
 
-- [ ] **T-08** — Add `ClassesTeachingReleaser` (`src/modules/classes/classes.teaching-releaser.ts`, D-03) running
+- [x] **T-08** — Add `ClassesTeachingReleaser` (`src/modules/classes/classes.teaching-releaser.ts`, D-03) running
   `ReleaseUpcomingClasses` with the repository, the no-instructor notifier and the clock, provided and exported by
   `classes.module.ts`; import `ClassesModule` in `auth.module.ts` and pass the releaser to `DeleteAccount` in
   `auth.controller.ts`; add its spec, a case to `auth.controller.spec.ts`, and the e2e tests of ER-01 and ER-03 to
@@ -348,6 +348,26 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01, ER-03 · Done when: `npx vitest run src/modules/classes/classes.teaching-releaser.spec.ts src/modules/auth/auth.controller.spec.ts`
   and `npm run test:e2e --workspace apps/backend -- test/auth-profile.e2e-spec.ts` pass.
+  > ✅ 2026-10-18 — `ClassesTeachingReleaser` (following the skill: `@Injectable()` concrete class implementing auth's
+  > `TeachingReleaser`, injected directly) runs `ReleaseUpcomingClasses` with `PrismaSchoolClassRepository`,
+  > `NotificationsNoInstructorNotifier` and the classes module's `SystemClockProvider`, letting errors propagate;
+  > `ClassesModule` provides and exports it, `AuthModule` imports `ClassesModule` (no cycle: classes imports only
+  > `DbModule` and `NotificationsModule`), and `AuthController.deleteAccount` passes it to `DeleteAccount`. Specs
+  > written first (2 failed): the releaser's spec (release + notify, a failed write propagating) and a controller
+  > case (released while still approved, then deleted). A new e2e `describe('DELETE /auth/me')` (fake Expo, the
+  > classes clock fixed at 2026-10-14 13:00Z) with three "releases" tests (ER-01: an instructor keeps only the
+  > under-way, finished and cancelled classes and the co-taught class keeps its co-instructor; an admin who teaches
+  > leaves a scheduled class with no instructor; a student changes no class) and one "notifies" test (ER-03: approved
+  > admins A and B get `class.noInstructor` `{ count: 2, classId, discipline: "surf", startsAt }` for the earliest
+  > class, the leaving admin and pending / denied / deleted / removed admins get nothing; one push to A's phone with
+  > `classId` in its params and the pt-BR text). files: `apps/backend/src/modules/classes/classes.teaching-releaser.ts`,
+  > `apps/backend/src/modules/classes/classes.teaching-releaser.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/auth/auth.module.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/test/auth-profile.e2e-spec.ts`; verified: the `Done when` vitest command with `--coverage` (40
+  > passed; both files with no uncovered statement, branch or function), `npm run test:e2e -- test/auth-profile.e2e-spec.ts`
+  > (22 passed), `-t "DELETE /auth/me releases"` (3 passed), `-t "DELETE /auth/me notifies"` (1 passed),
+  > `npx tsc --noEmit` in `apps/backend` (no errors, after rebuilding the three modules); deviations: none.
 
 ### Mobile (`apps/mobile`)
 

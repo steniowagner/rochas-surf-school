@@ -190,6 +190,35 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.admin.classes));
   });
 
+  it("opens the Aulas tab of an instructor who taps a class.deleted push, which names no class", async () => {
+    answerMe(account("approved", "instructor", true));
+    await openApp(account("approved", "instructor", true));
+    expect(app.getPathname()).toBe(routes.instructor.home);
+
+    await tap(response("class.deleted"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.classes));
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it("opens the admin's Aulas tab for a class.deleted push", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("class.deleted"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.classes));
+  });
+
+  it("goes to the resolved flow when a class.deleted push is tapped by someone who is now a student", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "instructor", true));
+
+    await tap(response("class.deleted"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
   it("goes to the resolved flow when a class assignment is tapped by someone who is now a student", async () => {
     answerMe(account("approved", "student", true));
     await openApp(account("approved", "instructor", true));

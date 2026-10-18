@@ -329,10 +329,14 @@ specs (032 editing, 033 cancelling, 035 the "no instructor" flag).
   > verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` from apps/mobile (56 passed), `npx tsc --noEmit` and `npx eslint src/modules/classes src/i18n` clean;
   > deviations: none
 
-- [ ] **T-12** — Handle `class.deleted` in `useNotificationResponse` (open the Aulas tab of the resolved flow) and
+- [x] **T-12** — Handle `class.deleted` in `useNotificationResponse` (open the Aulas tab of the resolved flow) and
   `useNotificationReceived` (invalidate `["classes"]`) in `src/modules/notifications/hooks/` (D-12), with cases in
   their tests.
   Covers: ER-10 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
+  > ✅ 2026-10-18 00:11 — handled `class.deleted`: a tap opens the Aulas tab of the resolved instructor/admin flow (else home), and a push received with the app open invalidates ["classes"]; tests for both;
+  > files: `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `use-notification-received.hook.ts`, `use-notification-response.hook.test.tsx`, `use-notification-received.hook.test.tsx`;
+  > verified: `npx jest src/modules/notifications/hooks` from apps/mobile (63 passed), `npx tsc --noEmit` clean;
+  > deviations: none
 
 ### Verification
 

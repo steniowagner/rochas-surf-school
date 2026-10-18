@@ -611,6 +611,7 @@ describe('Classes (e2e)', () => {
         notes: 'Bring sunscreen',
         cancelledAt: null,
         cancellationMessage: null,
+        cancellationDeadline: null,
         location: { id: locationId, name: expect.stringContaining(MARK), address: 'Av. Beira Mar' },
         instructors: [
           { id: ana.id, name: 'ana' },

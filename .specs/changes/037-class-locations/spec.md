@@ -749,9 +749,38 @@ es.
 
 ### Verification
 
-- [ ] **T-20** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
+- [x] **T-20** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
   evidence, and follow the user journeys in the iOS simulator.
   Covers: all · Done when: every automated command exits 0 and the journeys are recorded.
+  > ✅ 2026-10-18 15:38 — Ran the Verification Plan from the repo root. node .specs/scripts/run-related-tests.mjs
+  > 037 -> RELATED TESTS PASSED (apps/backend, apps/mobile, apps/web, modules/classes, modules/notifications);
+  > node .specs/scripts/check-coverage.mjs 037 -> COVERAGE OK (every changed line covered in 50 files); node
+  > .specs/scripts/run-e2e.mjs 037 -> E2E PASSED (backend suite incl. locations.e2e-spec.ts and
+  > classes.e2e-spec.ts against the local Postgres with the migration applied; web Playwright 22 passed incl.
+  > 'names the map providers'); npx turbo run lint check-types build for classes, notifications, backend, web and
+  > mobile -> 27 tasks successful; cd apps/mobile && npx expo config --type public lists the react-native-maps
+  > plugin. User journey in the iOS simulator (iPhone 18 Pro, after npx expo prebuild --platform ios with
+  > LANG/LC_ALL=en_US.UTF-8 for CocoaPods and npx expo run:ios, Metro and the backend running without
+  > GOOGLE_MAPS_API_KEY, signed in as the admin review account). DONE and seen: Nova aula -> Novo local: typed a
+  > name and an address, tapped the map (the injected touch moved the marker), 'Salvar local' -> the location
+  > appeared selected; created a class for tomorrow at it; its details show the small map with the marker and
+  > 'Direcoes', and tapping 'Direcoes' opened Apple Maps with a directions screen to -3.661656,-38.347740 (the
+  > point that was saved; Location Services off); 'Gerir' -> pencil rows, 'Novo local' hidden, 'Concluir'; tapping
+  > the location -> 'Editar local' filled, map on the point, 'Tap to move the point', 'Avisar os instrutores das
+  > proximas aulas?' ticked with '1 aula futura usa este local.'; moved the point and 'Salvar' -> toast 'Local
+  > atualizado' and the new point was kept when the sheet was reopened; 'Remover local' -> 'Remover local?' (name,
+  > address, 'A aula que ja usa este local continua como esta.') -> confirm -> the location left the list, the
+  > other selected location stayed selected; database check: the location has archived_at set, name_key NULL, and
+  > the class still references it. A bug the Jest sheet mock could not show was found and fixed on the way (the
+  > confirmation vanished because the native sheet dismissed the edit sheet and reset it: commit 9ac19ff and a
+  > ref-based follow-up in this commit). NOT checked in the simulator: address suggestions (no
+  > GOOGLE_MAPS_API_KEY, so they are empty; covered by the Jest sheet tests, the provider spec with fetch mocked
+  > and the e2e suite with a fake provider), the clearing of the selection when the selected location itself is
+  > removed (covered by the new-class and edit-class screen tests), the 'Removido' chip on Editar aula (screen
+  > tests), the location.changed push (hook tests; no push token in the simulator), the Android build and Google
+  > Maps on Android. The two test locations and the class I created were deleted afterwards; no existing data was
+  > touched. Files: apps/mobile/src/modules/classes/components/location-sheet/location-sheet.hook.ts (ref-based
+  > dismiss guard). Deviations: none beyond the follow-up fix recorded under T-16.
 
 ## Verification Plan
 

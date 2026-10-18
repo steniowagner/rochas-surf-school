@@ -1,6 +1,6 @@
 import { LOCATION_ADDRESS_MAX, LOCATION_NAME_MAX, normalizeLocationName } from "@rochas-surf-school/classes";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAlertMessage } from "@/providers/alert-message";
@@ -50,6 +50,13 @@ export const useLocationSheet = ({
   // The backend found the name taken, which the loaded list didn't show.
   const [duplicatedByServer, setDuplicatedByServer] = useState(false);
   const [archiveVisible, setArchiveVisible] = useState(false);
+  // The native sheet reports its dismissal later, through a callback it may have kept from an older render: the
+  // ref always holds the current answer.
+  const archiveOpen = useRef(false);
+
+  useEffect(() => {
+    archiveOpen.current = archiveVisible;
+  }, [archiveVisible]);
   const [wasVisible, setWasVisible] = useState(visible);
   const suggestionsQuery = useAddressSuggestions(searchText, sessionToken);
   const addressPlace = useAddressPlace(sessionToken);
@@ -202,7 +209,7 @@ export const useLocationSheet = ({
     // A native sheet that opens over another dismisses it: the edit sheet going away for the confirmation isn't the
     // admin closing it, and it comes back when the confirmation is.
     dismiss: () => {
-      if (!archiveVisible) {
+      if (!archiveOpen.current) {
         onClose();
       }
     },

@@ -279,11 +279,22 @@ reuse it. This is the last of the four class-management specs (032 editing, 033 
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-05** — Add the `TeachingReleaser` port (`src/user/provider/teaching-releaser.provider.ts`, exported; D-03)
+- [x] **T-05** — Add the `TeachingReleaser` port (`src/user/provider/teaching-releaser.provider.ts`, exported; D-03)
   and call it in `DeleteAccount` after its checks and before marking the account deleted (D-04), with a fake in the
   module's test mocks and cases in `test/user/usecase/delete-account.usecase.test.ts`.
   Covers: ER-04 · Done when: `npx jest test/user/usecase/delete-account.usecase.test.ts` passes from `modules/auth`
   and `npm run check-types --workspace @rochas-surf-school/auth` passes.
+  > ✅ 2026-10-18 — added the `TeachingReleaser` port (`releaseUpcomingClasses(userId)`); `DeleteAccount` takes it as
+  > its third constructor argument (after the clock) and awaits it after the unknown / not-approved checks and before
+  > the update, so a throwing releaser propagates and leaves the account approved. `FakeTeachingReleaser` records
+  > the ids and fails with `failWith`. Tests: release for each role while the account is still approved, a failed
+  > release keeping it approved with no `deletedAt`, and nothing released for an unknown or non-approved account
+  > (with their keys); written first, 4 failed before the change. files:
+  > `modules/auth/src/user/provider/teaching-releaser.provider.ts`, `modules/auth/src/user/provider/index.ts`,
+  > `modules/auth/src/user/usecase/delete-account.usecase.ts`, `modules/auth/test/mock/fake-teaching-releaser.provider.ts`,
+  > `modules/auth/test/mock/index.ts`, `modules/auth/test/user/usecase/delete-account.usecase.test.ts`; verified:
+  > `npx jest test/user/usecase/delete-account.usecase.test.ts --coverage` (10 passed, use case 100%) and
+  > `npm run check-types --workspace @rochas-surf-school/auth` (no errors); deviations: none
 
 ### Backend (`apps/backend`)
 

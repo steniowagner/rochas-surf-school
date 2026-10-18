@@ -82,7 +82,7 @@ export const ptBr = {
         "Resend: envia o e-mail com o código de acesso (recebe o seu e-mail e o código).",
         "Expo: entrega as notificações push (recebe o token do aparelho e o texto da notificação).",
         "Um serviço de hospedagem na nuvem, onde rodam o app e o banco de dados.",
-        "Um serviço de modelo de linguagem (IA), que recebe apenas os detalhes da aula e o texto da regra de cancelamento, nunca dados pessoais.",
+        "Anthropic (Claude): calcula o prazo de cancelamento de cada aula; recebe apenas os detalhes da aula e o texto da regra de cancelamento, nunca dados pessoais.",
         "Um serviço de armazenamento de fotos compatível com S3, onde ficam as fotos das aulas.",
       ],
     },

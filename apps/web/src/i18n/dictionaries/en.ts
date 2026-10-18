@@ -82,7 +82,7 @@ export const en = {
         "Resend: sends the sign-in code email (receives your email and the code).",
         "Expo: delivers push notifications (receives the device token and the notification text).",
         "A cloud hosting service, where the app and its database run.",
-        "A language model (AI) service, which receives only the class details and the text of the cancellation rule, never personal data.",
+        "Anthropic (Claude): works out each class's cancellation deadline; receives only the class details and the text of the cancellation rule, never personal data.",
         "An S3-compatible photo storage service, where class photos are kept.",
       ],
     },

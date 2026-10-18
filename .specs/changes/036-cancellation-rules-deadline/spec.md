@@ -480,11 +480,12 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
 
 ### Web (`apps/web`)
 
-- [ ] **T-13** — Name Anthropic in the privacy policy (D-15): the language-model item of `privacyPolicy.services` in
+- [x] **T-13** — Name Anthropic in the privacy policy (D-15): the language-model item of `privacyPolicy.services` in
   `src/i18n/dictionaries/{pt-br,es,en}.ts`, and a test named "privacy policy names Anthropic" in `e2e/pages.e2e.ts`
   for the three languages.
   Covers: ER-16 · Done when: `npm run test:e2e --workspace apps/web -- e2e/pages.e2e.ts` passes and
   `npm run check-types --workspace apps/web` exits 0.
+  > ✅ 2026-10-18 03:09 — the privacy policy now names Anthropic (Claude) as the service that works out each class's cancellation deadline, in pt-BR, es and en, and no longer uses the generic 'language model (AI) service' wording; files: `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`, `apps/web/e2e/pages.e2e.ts` (three tests 'privacy policy names Anthropic in <lang>', which also check the generic wording is gone); verified: `npm run test:e2e --workspace apps/web -- e2e/pages.e2e.ts` (15 passed) and `npm run check-types --workspace apps/web` (no errors); deviations: none
 
 ### Verification
 

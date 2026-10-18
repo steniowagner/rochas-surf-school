@@ -16,7 +16,13 @@ function record(notes: string | null = 'Bring sunscreen') {
     cancelledAt: null,
     cancellationMessage: null,
     cancellationDeadline: new Date('2026-10-14T23:00:00.000Z'),
-    location: { id: 'loc-1', name: 'Praia do Futuro', address: 'Av. Zezé Diogo, 1000' },
+    location: {
+      id: 'loc-1',
+      name: 'Praia do Futuro',
+      address: 'Av. Zezé Diogo, 1000',
+      latitude: -3.7442,
+      longitude: -38.4617,
+    },
     instructors: [{ user: { id: 'u-1', name: 'Ana' } }, { user: { id: 'u-2', name: 'Bruno' } }],
   };
 }
@@ -38,7 +44,13 @@ const VIEW = {
   cancelledAt: null,
   cancellationMessage: null,
   cancellationDeadline: new Date('2026-10-14T23:00:00.000Z'),
-  location: { id: 'loc-1', name: 'Praia do Futuro', address: 'Av. Zezé Diogo, 1000' },
+  location: {
+      id: 'loc-1',
+      name: 'Praia do Futuro',
+      address: 'Av. Zezé Diogo, 1000',
+      latitude: -3.7442,
+      longitude: -38.4617,
+    },
   instructors: [
     { id: 'u-1', name: 'Ana' },
     { id: 'u-2', name: 'Bruno' },
@@ -81,6 +93,33 @@ describe('PrismaClassViewReader', () => {
     schoolClass.findUnique.mockResolvedValue(null);
 
     expect(await reader.findById('nope')).toBeNull();
+  });
+
+  it('selects the location point and passes a missing one through as null', async () => {
+    const { schoolClass, reader } = setup();
+    schoolClass.findUnique.mockResolvedValue({
+      ...record(),
+      location: { id: 'loc-1', name: 'Antigo', address: 'Rua A', latitude: null, longitude: null },
+    });
+
+    const item = await reader.findById('class-1');
+
+    expect(schoolClass.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: expect.objectContaining({
+          location: {
+            select: { id: true, name: true, address: true, latitude: true, longitude: true },
+          },
+        }),
+      }),
+    );
+    expect(item?.location).toEqual({
+      id: 'loc-1',
+      name: 'Antigo',
+      address: 'Rua A',
+      latitude: null,
+      longitude: null,
+    });
   });
 
   it('maps the cancellation of a cancelled class', async () => {

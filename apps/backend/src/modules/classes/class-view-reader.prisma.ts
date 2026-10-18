@@ -4,7 +4,7 @@ import { PrismaService } from '../../db/prisma.service.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 
 const INCLUDE = {
-  location: { select: { id: true, name: true, address: true } },
+  location: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
   instructors: { select: { user: { select: { id: true, name: true } } } },
 } satisfies Prisma.SchoolClassInclude;
 

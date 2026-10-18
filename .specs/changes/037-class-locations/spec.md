@@ -472,7 +472,7 @@ es.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-07** — Persistence: `classes.model.prisma` gives `Location` nullable `latitude` / `longitude` (`Float`) and
+- [x] **T-07** — Persistence: `classes.model.prisma` gives `Location` nullable `latitude` / `longitude` (`Float`) and
   `archived_at`, and makes `name_key` nullable (unique kept, D-06); the migration `classes-location-point-archive`;
   `PrismaLocationRepository` implements the new port methods (`update` clears deadlines and bumps their revision in one
   `$transaction` like `PrismaCancellationRuleRepository.save`; `archive` is conditional on `archived_at IS NULL` and
@@ -482,6 +482,22 @@ es.
   Covers: ER-01, ER-02, ER-03, ER-05, ER-07 · Done when: the migration applies on the local database and
   `cd apps/backend && npx vitest run src/modules/classes/location.prisma.spec.ts src/modules/classes/class-view-reader.prisma.spec.ts --coverage`
   passes.
+  > ✅ 2026-10-18 14:46 — Location got nullable latitude/longitude (Float) and archived_at and name_key became
+  > nullable (unique kept); migration 20261018174552_classes_location_point_archive applied to the local database
+  > (prisma migrate deploy: all migrations applied). PrismaLocationRepository: findActive (archived_at null,
+  > sorted, filtered _count of upcoming uncancelled classes), update in one $transaction clearing and bumping the
+  > revision of upcoming deadlines when asked, conditional archive (updateMany where archived_at is null, name_key
+  > set to null), findUpcomingInstructorCounts (groupBy over the class instructors), P2002 ->
+  > location.name.duplicate; PrismaClassViewReader selects the point. Files:
+  > apps/backend/prisma/models/classes.model.prisma,
+  > apps/backend/prisma/migrations/20261018174552_classes_location_point_archive/migration.sql,
+  > apps/backend/src/modules/classes/location.prisma.ts, apps/backend/src/modules/classes/location.prisma.spec.ts,
+  > apps/backend/src/modules/classes/class-view-reader.prisma.ts, apps/backend/src/modules/classes/class-view-
+  > reader.prisma.spec.ts. Verified: cd apps/backend && npx vitest run src/modules/classes/location.prisma.spec.ts
+  > src/modules/classes/class-view-reader.prisma.spec.ts --coverage (17 passed, 100% statements/lines/functions;
+  > the only uncovered branches are the decorator-metadata ones on the class lines). Deviations: Prisma sanitized
+  > the migration name to classes_location_point_archive (underscores, as the existing migrations); the backend
+  > does not type-check until T-09/T-10 (controller and push-messages) land.
 
 - [ ] **T-08** — `GooglePlacesAddressSuggestionProvider` (`google-places.address-suggestions.ts`, D-02, using `fetch`):
   the autocomplete and place requests, the mapping of Google's answers, a non-2xx or a network error rethrown for the use

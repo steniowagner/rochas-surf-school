@@ -17,13 +17,19 @@ enum ClassLevel {
 }
 
 model Location {
-  id        String   @id @db.Uuid
-  name      String
-  // The name without accents, in lower case: unique among all locations.
-  nameKey   String   @unique @map("name_key")
-  address   String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String    @id @db.Uuid
+  name       String
+  // The name without accents, in lower case: unique among the active locations. Archiving sets it to
+  // null (Postgres treats nulls as distinct), which frees the name.
+  nameKey    String?   @unique @map("name_key")
+  address    String
+  // The point on the map; null for the locations saved before the map existed, until they are edited.
+  latitude   Float?
+  longitude  Float?
+  // Set when an admin removes the location: it is no longer offered for new classes, its classes keep it.
+  archivedAt DateTime? @map("archived_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
 
   classes SchoolClass[]
 

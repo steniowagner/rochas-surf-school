@@ -98,10 +98,10 @@ describe("CreateAccount", () => {
     Platform.OS = original;
   });
 
-  it("renders the back button, the fields and the terms line", async () => {
+  it("renders the fields and the terms line", async () => {
     await renderScreen(<CreateAccount />);
 
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toBeOnTheScreen();
     expect(screen.getByPlaceholderText(EMAIL_PLACEHOLDER)).toBeOnTheScreen();
     expect(

@@ -37,7 +37,7 @@ describe("EmailChoice", () => {
     expect(
       screen.getByRole("link", { name: "Terms of Use" }),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
   });
 
   it.each([
@@ -79,6 +79,6 @@ describe("EmailChoice", () => {
     await user.press(screen.getByRole("button", { name: "I have an account" }));
     await user.press(screen.getByRole("button", { name: "I'm new here" }));
 
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
   });
 });

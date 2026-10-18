@@ -65,7 +65,7 @@ describe("EmailSignIn", () => {
     expect(
       screen.getByRole("link", { name: "Terms of Use" }),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
   });
 
   it.each([

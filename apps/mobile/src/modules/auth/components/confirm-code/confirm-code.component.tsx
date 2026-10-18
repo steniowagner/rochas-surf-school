@@ -4,7 +4,6 @@ import { Trans, useTranslation } from "react-i18next";
 import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { OtpInput } from "@/components/ui/otp-input";
 import { ScreenIntro } from "@/components/ui/screen-intro";
@@ -39,12 +38,9 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
       <View
         className="flex-1 px-[22px]"
         style={{
-          paddingTop: insets.top + 12,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <BackButton />
-
         <View className="mt-6 gap-4">
           <ScreenIntro
             icon={

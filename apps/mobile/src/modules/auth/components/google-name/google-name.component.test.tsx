@@ -51,7 +51,7 @@ beforeEach(() => {
 });
 
 describe("GoogleName", () => {
-  it("renders the intro, the back button and Google's name in the field", async () => {
+  it("renders the intro and Google's name in the field", async () => {
     await renderScreen(<GoogleName idToken="token" initialName="Maria" />);
 
     expect(
@@ -60,7 +60,7 @@ describe("GoogleName", () => {
     expect(
       screen.getByText("Enter your full name so the school knows who you are."),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toHaveDisplayValue(
       "Maria",
     );

@@ -103,10 +103,11 @@ Expo Router, which stays fixed at the top while only the content scrolls.
   `vercel-react-best-practices` first.
   Covers: ER-01 · Done when: the layouts' tests pass and the header options match D-03.
   > ✅ 2026-10-18 — added `useStackHeader` (D-03 options; title empty by default, screens set their own) and used it in the 4 layouts, with `index` / `(tabs)` hidden through `Stack.Screen`; files: `apps/mobile/src/navigation/stack-header/{index.ts,stack-header.hook.ts,stack-header.types.ts,stack-header.hook.test.ts,stack-header.layouts.test.tsx}`, `apps/mobile/src/app/(public)/auth/_layout.tsx`, `apps/mobile/src/app/(private)/{student,instructor,admin}/_layout.tsx`; verified: `npx jest src/navigation` (156 passed), `npx tsc --noEmit` clean; deviations: uppercase can't be set in `headerTitleStyle`, so titles must be passed uppercase by the screens (T-04)
-- [ ] **T-02** — Remove `BackButton` and the `insets.top + 12` top padding from the auth screens
+- [x] **T-02** — Remove `BackButton` and the `insets.top + 12` top padding from the auth screens
   `src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}`; update their
   component tests and `src/modules/auth/email-auth.navigation.test.tsx` (header options, `router.back()`).
   Covers: ER-01 · Done when: `npx jest src/modules/auth` passes and no auth screen imports `BackButton`.
+  > ✅ 2026-10-18 — removed `BackButton` and the `insets.top + 12` padding from the five auth components (bottom inset kept); tests assert no in-content Back button, and the navigation test goes back with `router.back()`; files: `apps/mobile/src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}/*.component.tsx` and their `*.component.test.tsx`, `apps/mobile/src/modules/auth/email-auth.navigation.test.tsx`; verified: `npx jest src/modules/auth` (23 suites, 245 passed), grep finds no `back-button` import there; deviations: none
 - [ ] **T-03** — Remove `BackButton` and the top inset padding from `src/modules/admin/screens/registrations.screen.tsx`,
   `src/modules/people/screens/people.screen.tsx` (drop `showBackButton` from its props and from
   `src/app/(private)/{admin,instructor}/people.tsx` and `src/app/(private)/student/(tabs)/school.tsx`, keeping the

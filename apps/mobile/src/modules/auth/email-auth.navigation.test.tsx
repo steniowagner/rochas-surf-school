@@ -1,6 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, userEvent, waitFor } from "@testing-library/react-native";
-import { Stack } from "expo-router";
+import {
+  act,
+  fireEvent,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
+import { router, Stack } from "expo-router";
 import { renderRouter, screen } from "expo-router/testing-library";
 
 import AuthLayout from "@/app/(public)/auth/_layout";
@@ -48,6 +53,13 @@ const press = async (name: string) => {
   await user.press(screen.getByRole("button", { name }));
 };
 
+// The native header's back button is not a JS element: going back is router.back(), what it calls.
+const goBack = async () => {
+  await act(async () => {
+    router.back();
+  });
+};
+
 // The sign-in screen's buttons carry no accessibility role, so they are found by their text.
 const pressText = async (text: string) => {
   const user = userEvent.setup();
@@ -71,7 +83,7 @@ describe("email authentication navigation", () => {
     await openApp("/auth");
     await pressText("Continue with email");
 
-    await press("Back");
+    await goBack();
 
     expect(app.getPathname()).toBe("/auth");
   });
@@ -94,7 +106,7 @@ describe("email authentication navigation", () => {
     expect(app.getPathname()).toBe("/auth/create-account");
     expect(screen.getByPlaceholderText("you@email.com")).toHaveDisplayValue("");
 
-    await press("Back");
+    await goBack();
 
     expect(app.getPathname()).toBe("/auth/email");
   });
@@ -103,7 +115,7 @@ describe("email authentication navigation", () => {
     await openApp("/auth/email");
     await press("I have an account");
 
-    await press("Back");
+    await goBack();
 
     expect(app.getPathname()).toBe("/auth/email");
   });
@@ -127,7 +139,7 @@ describe("email authentication navigation", () => {
       screen.getByPlaceholderText("First and last name"),
     ).toHaveDisplayValue("");
 
-    await press("Back");
+    await goBack();
 
     expect(app.getPathname()).toBe("/auth/email");
   });
@@ -204,7 +216,7 @@ describe("email authentication navigation", () => {
         expect(app.getPathname()).toBe("/auth/create-account"),
       );
 
-      await press("Back");
+      await goBack();
 
       expect(app.getPathname()).toBe("/auth/email");
     });

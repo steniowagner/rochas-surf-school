@@ -3,7 +3,6 @@ import { Trans, useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { useTheme } from "@/hooks/use-theme";
@@ -23,12 +22,9 @@ export function EmailChoice({
     <View
       className="flex-1 bg-page px-[22px]"
       style={{
-        paddingTop: insets.top + 12,
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >
-      <BackButton />
-
       <View className="mt-6 gap-6">
         <ScreenIntro
           icon={<Ionicons name="mail-outline" size={28} color={theme.grape} />}

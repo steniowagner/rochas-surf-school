@@ -2,7 +2,7 @@
 id: "036"
 slug: cancellation-rules-deadline
 title: "Cancellation rules and the cancellation deadline"
-status: in-review
+status: changes-requested
 created: 2026-10-18
 started: 2026-10-18
 base_commit: a53294555754d3f32d8cfe11763786ce1d7b9aea
@@ -563,3 +563,100 @@ requesting a seat, cancelling a seat until the deadline) will use what this spec
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ (2 warnings, both on unchanged lines of `test/classes.e2e-spec.ts`) · type check ✅ · build ✅ (classes,
+  backend, mobile, web: 18 + 9 turbo tasks)
+- related tests ✅ backend 126 · mobile 911 · classes 381 · web passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (35 files); no coverage-ignore comments in the diff
+- e2e ✅ backend 17 files / 471 tests · web Playwright 19 (`E2E PASSED`); the two new backend files rerun alone (40
+  passed) leave the real dev classes' `deadline_revision` and the stored rules unchanged
+- every mobile `Verify by` command run with its `-t` filter: ER-12 8 · ER-13 11 · ER-14 11 · ER-15 5 tests passed
+- iOS simulator (iPhone 18 Pro, local backend without `ANTHROPIC_API_KEY`), Verification Plan journeys 1 and 2 driven:
+  admin home row → rules screen opens on Surf with "Ainda não há regra de surf", the placeholder, `0/2000` and the
+  button off; typing → "Alterações não salvas" and the button on; Surf → Skate ("Ainda não há regra de skate") → Surf
+  keeps the draft; save → toast "Regra de surf salva", "Regra de surf em vigor", button off, screen stays; leaving
+  with a draft asks nothing. Student Perfil → sheet shows the saved surf rule as written and "A escola ainda não
+  escreveu esta regra." for skate; "Fechar" closes it. Admin Aulas: tomorrow's surf class shows "Sem prazo"
+  (cancelled classes don't); its details show the banner "Sem prazo de cancelamento … Confira a regra de surf." and
+  no "Cancelamento até" line; the banner opens the rules screen. Student: same class, no banner. Live job: one
+  minute after the save every upcoming surf class had `deadline_attempts` 1 and its next attempt one minute later.
+  The rule was typed in English ("Students can cancel up to 12 hours before the class starts"): the simulator's
+  keyboard autocorrects Portuguese.
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "GET /cancellation-rules": every approved role, `{ surf: null, skate: null }`, each non-approved
+  status 403 `user.status.notApproved`, no token 401
+- ER-02 ✅ — e2e "PUT /cancellation-rules": trimmed save, last save wins, 2000 accepted, student/instructor 403
+  `user.role.notAdmin`, non-approved admin 403, `kitesurf` / missing / `null` / number / blank / 2001 → 422 with the
+  right key and nothing stored
+- ER-03 ✅ — e2e "clears the deadlines": only the upcoming, not-cancelled surf class is cleared (revision 1); same
+  text keeps everything; first rule clears; a refused save clears nothing
+- ER-04 ✅ — e2e "works out the deadline" (dates shifted to 2037, same arithmetic): `null` after creation, then
+  Monday 20:00 Fortaleza on `GET /classes/:id` and the week list; a second run doesn't call the describer
+- ER-05 ✅ — `cancellation-deadline.test.ts`: the three kinds, 0 minutes, the cap, `unclear` and every out-of-range
+  value; `EEE`/time checks reproduced with date-fns
+- ER-06 ✅ — use case "sends only": exact JSON, no class/instructor/creator ids, `notes: null`; adapter "request":
+  model `claude-opus-5-5`, effort `low`, `json_schema` format, fallback beta, the fixed system prompt and the JSON as
+  the one user message. The installed SDK (0.135.0) types `fallbacks` and the beta, and type check passes
+- ER-07 ✅ — use case backoff 1, 2, 4, 8, 16, 32, 60 then success with attempts reset; throw / out-of-range /
+  malformed count as failures; 20 per run, never-tried first; job spec; e2e "retries" with no notification row; live
+  run above
+- ER-08 ✅ — use case "no rule" and e2e "without a rule" (no call, no attempt; works out once the rule is saved)
+- ER-09 ✅ — e2e "edit": start change clears and the next run recomputes; level, location, capacity, notes, end and
+  discipline each clear; instructors-only and unchanged saves keep it
+- ER-10 ✅ — use case "stale" (edit, failure, cancel during the call all dropped, counted as neither) and e2e stale
+  results (edit and rule change during the call, cancelled class)
+- ER-11 ✅ — production without the key throws naming it; outside production `describe` answers `unclear` without
+  constructing the SDK; with a key it calls the SDK. The warning is logged in the constructor (code read), but no test
+  checks it — see F-04
+- ER-12 ✅ — Jest (rules, spinner, error + retry, closed sheet doesn't load, close) and the simulator (above); the
+  "coming soon" toast is gone for this row
+- ER-13 ✅ — Jest (blank / equal-after-trim disabled, failed save keeps the draft with the generic toast, `maxLength`
+  2000, load error + retry, back) and the simulator (above)
+- ER-14 ✅ — Jest (chip, both chips stacked "Sem instrutor" first, both banners in order, none when started /
+  cancelled / with a deadline, none for student or instructor) and the simulator (above)
+- ER-15 ✅ — Jest "cancellation deadline": pt-BR "Cancelamento até seg, 19 out · 20:00", en-US "Mon, 19 Oct · 20:00",
+  Fortaleza day kept when the UTC day differs, no line when `null` or cancelled. Not seen in the simulator: no class
+  has a deadline without a real key (see Notes)
+- ER-16 ✅ — Playwright "privacy policy names Anthropic in …" for pt-br, es and en, generic wording absent
+
+**Findings**
+
+- [ ] **F-01** (convention) — `apps/mobile/src/modules/cancellation-rules/components/cancellation-rules-sheet/cancellation-rules-sheet.hook.ts:4`
+  types its props inline (`({ visible }: { visible: boolean })`), while `UseCancellationRulesSheetProps` in
+  `cancellation-rules-sheet.types.ts` is declared and never used. `.claude/rules/react.md` §1: the hook's props type
+  lives in the `.types.ts` file, never in the hook. Expected: the hook takes `UseCancellationRulesSheetProps`.
+- [ ] **F-02** (convention) — `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen.hook.ts:12`
+  declares `type Drafts` in the hook file (the only mobile hook that declares a type). `.claude/rules/react.md` §1:
+  types never go in `.hook.ts`. Expected: move it to `cancellation-rules.screen.types.ts`.
+- [ ] **F-03** (D-13) — D-13e says the deadline line uses date-fns `EEE, d MMM`; `formatDeadline`
+  (`apps/mobile/src/modules/classes/utils/week.ts:22`) uses the first three letters of `EEEE`, because in pt-BR `EEE`
+  gives "segunda" and ER-15 requires "seg" (reproduced: `format(…, "EEE, d MMM", { locale: ptBR })` → "segunda, 19
+  out"). The change is right, but it changes a Decision and is recorded only in T-12's evidence. `how-to-execute.md`
+  rule 10: a change to a Decision needs the user's approval and an entry under `## Amendments`. Expected: with the
+  user's approval, amend D-13e (before → after, reason) and log it.
+- [ ] **F-04** (tests) — ER-11's edge case "a warning naming the variable is logged" has no assertion:
+  `anthropic.deadline-describer.spec.ts` "is built outside production without it…" checks the `unclear` answer and that
+  the SDK isn't called, but would still pass with the `logger.warn` call removed. Expected: spy on `Logger.prototype.warn`
+  and assert one call whose message contains `ANTHROPIC_API_KEY` (and nothing from the request).
+
+**Notes**
+
+- ER-15 and journey 3 (a real deadline) need a real `ANTHROPIC_API_KEY`; nobody has seen the real Anthropic call
+  (structured output, fallback) run. Steps for whoever has a key: put it in `apps/backend/.env`, restart the backend,
+  wait about a minute, open tomorrow's surf class as admin → "Cancelamento até …" 12 hours before its start and no flag;
+  edit its start time → the flag returns, then a new deadline about a minute later.
+- Every toast, success ones included ("Regra de surf salva", "Alterações salvas"), uses the alert provider's red error
+  style. That predates this spec; a success variant would be a separate change.
+- The rule saved during the review stays in the dev database (surf: "Students can cancel up to 12 hours before the
+  class starts"); replace it from the app with the Portuguese text when convenient.
+- `PrismaCancellationRuleRepository.toDomain` maps a deleted author (`updated_by` NULL) to
+  `00000000-0000-4000-8000-000000000000`, a valid v4-shaped id rather than the nil UUID; harmless today since nothing
+  reads `updatedBy` back, but the entity requiring an author it can't always have is worth revisiting.
+- Memory Impact: also record under Automated validation that the two new e2e suites fix the clock in 2037 (so the job
+  never meets real classes) and snapshot and restore the stored rules.

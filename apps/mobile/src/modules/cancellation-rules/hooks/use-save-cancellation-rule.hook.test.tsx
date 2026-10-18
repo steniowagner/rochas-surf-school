@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react-native";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import {
   createQueryClient,
@@ -64,7 +64,7 @@ describe("useSaveCancellationRule", () => {
 
     const result = await save(queryClient);
 
-    expect(result.current.isError).toBe(true);
+    await waitFor(() => expect(result.current.isError).toBe(true));
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again.");
     expect(queryClient.getQueryData(CANCELLATION_RULES_QUERY_KEY)).toEqual({ surf: null, skate: null });

@@ -48,7 +48,7 @@ export function EditProfile() {
         <ScrollView
           className="flex-1"
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerClassName="gap-5 pb-6 pt-6"
+          contentContainerClassName="gap-3 pb-6 pt-6"
           keyboardShouldPersistTaps="handled"
         >
           <View className="items-center">
@@ -71,7 +71,7 @@ export function EditProfile() {
             />
           </View>
 
-          <View className="gap-1.5">
+          <View className="gap-1.5 pb-4">
             <Text className="ds-text-section-label text-ink-2">
               {t("editProfile.emailLabel")}
             </Text>

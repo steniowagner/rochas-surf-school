@@ -429,9 +429,10 @@ cancelling a seat come in specs 042 and 043.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
   > ✅ 2026-10-19 16:22 — replaced the scaffold controller with `EnrolmentController`: `POST /classes/:id/enrolments` (201) and `POST /enrolments/:id/withdraw` (200), both answering `EnrolmentOut`, thin over `RequestSeat` and `WithdrawRequest`; added its spec and the REST Client file; files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` from `apps/backend` (all passed; the whole folder is 10 files, 37 passed), `tsc --noEmit` and oxlint clean; deviations: none
 
-- [ ] **T-16** — Add `src/modules/enrolment/enrolment-expiry.job.ts` (D-14, cron `enrolment-expiry`) with its spec,
+- [x] **T-16** — Add `src/modules/enrolment/enrolment-expiry.job.ts` (D-14, cron `enrolment-expiry`) with its spec,
   registered in `EnrolmentModule`.
   Covers: ER-05 · Done when: `npx vitest run src/modules/enrolment/enrolment-expiry.job.spec.ts` passes.
+  > ✅ 2026-10-19 16:22 — added `EnrolmentExpiryJob` (cron `enrolment-expiry` every minute, `waitForCompletion`; runs `ExpirePendingEnrolments`; logs only the count; never throws) with its spec and registered it in `EnrolmentModule`; files: `apps/backend/src/modules/enrolment/enrolment-expiry.job.ts`, `apps/backend/src/modules/enrolment/enrolment-expiry.job.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`; verified: `npx vitest run src/modules/enrolment/enrolment-expiry.job.spec.ts` from `apps/backend` (5 passed), `tsc --noEmit` and oxlint clean; deviations: none
 
 - [ ] **T-17** — Add `test/enrolment.e2e-spec.ts` (fixed classes clock, faked `ExpoPushProvider`, cleanup of its
   users, classes and enrolments) with the request, refusal, again, concurrent, withdraw, expiry (through

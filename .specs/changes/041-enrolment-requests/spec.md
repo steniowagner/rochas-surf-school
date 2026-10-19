@@ -444,13 +444,14 @@ cancelling a seat come in specs 042 and 043.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-18** — Add `myEnrolment` to the class types (`src/modules/classes/classes.types.ts`), and in
+- [x] **T-18** — Add `myEnrolment` to the class types (`src/modules/classes/classes.types.ts`), and in
   `src/modules/enrolment/`: `enrolment.types.ts`, `hooks/use-request-seat.hook.ts` and
   `hooks/use-withdraw-request.hook.ts` (`apiPost`, no retry, invalidating `["classes"]` on success) and
   `utils/enrolment-error.ts` (the keys of ER-11 and ER-12 to translation keys), with tests. Skills:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-11, ER-12 · Done when: `npx jest src/modules/enrolment/hooks src/modules/enrolment/utils` passes.
+  > ✅ 2026-10-19 16:28 — added `myEnrolment` to `ClassItem` (`classes.types.ts`; the three test builders carry `myEnrolment: null`) and, in `apps/mobile/src/modules/enrolment/`, `enrolment.types.ts`, `hooks/use-request-seat.hook.ts` and `hooks/use-withdraw-request.hook.ts` (`apiPost`, no retry, invalidating `["classes"]` on success) and `utils/enrolment-error.ts` (the keys of ER-11 and ER-12 to translation keys under `enrolment.errors.*`, plus the predicates the sheets use to reload the class or the rules), with tests; files: `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/components/class-card/class-card.component.test.tsx`, `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`, `apps/mobile/src/modules/enrolment/enrolment.types.ts`, `apps/mobile/src/modules/enrolment/hooks/use-request-seat.hook.ts` and `.test.tsx`, `apps/mobile/src/modules/enrolment/hooks/use-withdraw-request.hook.ts` and `.test.tsx`, `apps/mobile/src/modules/enrolment/utils/enrolment-error.ts` and `.test.ts`; verified: `npx jest src/modules/enrolment/hooks src/modules/enrolment/utils` from `apps/mobile` (all passed; with `src/modules/classes` 590 passed), `tsc --noEmit` clean; deviations: the `enrolment.errors.*` copy is added with the sheets in T-20/T-21
 
 - [ ] **T-19** — Add `src/modules/enrolment/utils/enrolment-status.ts` (the display status: `waitingList` for
   pending on a full class, D-07; banner and chip tone, icon and keys per status) with tests, and the

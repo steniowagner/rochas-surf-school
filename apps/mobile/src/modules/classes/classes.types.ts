@@ -4,6 +4,8 @@ import type {
   TimeRange,
 } from "@rochas-surf-school/classes";
 
+import type { MyEnrolment } from "../enrolment/enrolment.types";
+
 /** A point on the map. */
 export type MapPoint = {
   latitude: number;
@@ -167,6 +169,8 @@ export type ClassItem = {
   seatsTaken: number;
   /** The approved students: the first 4 in the week list, all of them in the class itself. */
   students: ClassStudent[];
+  /** The caller's latest enrolment in the class, or `null`; always `null` for instructors and admins. */
+  myEnrolment: MyEnrolment | null;
 };
 
 /** The answer of `GET /classes?date=`: `weekStart` is the Monday, `YYYY-MM-DD`. */

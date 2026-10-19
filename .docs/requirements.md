@@ -173,6 +173,7 @@ Every new account SHALL have a name before it waits for approval. The system SHA
 #### Admins decide registrations
 
 _Implemented in spec 019-admin-registration-decisions._
+_Implemented in spec 039-join-school-design._
 
 Admins SHALL approve or deny each pending registration. When denying, the admin SHALL be able to write a reason, which is sent to the person. A decision SHALL be final in the app.
 

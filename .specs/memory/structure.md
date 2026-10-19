@@ -367,12 +367,13 @@ src/
     screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
                                 # pending count, the "Criar aulas" row and the "Regras de cancelamento" row,
                                 # "School" with the People row
-    screens/registrations.screen.tsx  # "Join the school": DecisionCards (pull-to-refresh, loading, empty,
-                                # error + retry), DecidedList, one DenySheet
+    screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
+                                # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
+                                # the People PersonSheet (with the email) for a pressed card
     registrations.types.ts      # Registration, RegistrationsResponse, RegistrationDecision (mirror the API)
     hooks/                      # use-registrations (query ["registrations"]), use-approve-registration,
                                 # use-deny-registration (mutations), use-registrations-screen (the screen's logic:
-                                # decisions, "Decided just now", the sheet, toasts)
+                                # decisions, the deny sheet, the detail sheet, toasts)
     utils/                      # registration-error.ts (API error → translation key), registrations-cache.ts
                                 # (removeRegistration: drop a decided item from the cache and invalidate)
   modules/people/               # the people directory, the same for every role
@@ -527,8 +528,9 @@ src/
                                 # chip, bottom-modal (optional contentPanningEnabled, off in the time sheet so the
                                 # wheels can be dragged), otp-input, text-button, screen-intro,
                                 # text-input, text-area, toast, checkbox, segmented-control
-  components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard), decided-list
-                                # ("Decided just now"), deny-sheet (DenySheet: optional reason in a bottom sheet)
+  components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard: avatar, optional
+                                # pressable upper row, Deny / Approve), deny-sheet (DenySheet: optional reason in a
+                                # bottom sheet, confirm and back)
   utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the
                                 # date), get-initials.ts, countries.ts (country options with localized names and
                                 # dial codes, filter, default BR), brazilian-phone.ts (toBrazilianDigits,

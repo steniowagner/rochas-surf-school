@@ -3,13 +3,14 @@ id: "039"
 slug: join-school-design
 title: Align "Entrar na escola" with the PAINEL-03 and PAINEL-03A designs
 template: quick
-status: accepted
+status: finished
 started: 2026-10-18
 base_commit: 2303207495e4113910c18c365929b4170cbdea98
 reviewed_commit: f3bbc39e606d2d2dcd0db46c43e02ba1a3b20a18
 created: 2026-10-18
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-19
 ---
 
 # 039 — Align "Entrar na escola" with the PAINEL-03 and PAINEL-03A designs

@@ -344,10 +344,11 @@ cancelling a seat come in specs 042 and 043.
   passes from `modules/enrolment`.
   > ✅ 2026-10-19 16:14 — added `RequestSeat` (checks in the D-12 order, `ruleAcceptedAt` per D-04, notification swallowed when the student name or the notifier fails) and the `EnrolmentOut` contract; files: `modules/enrolment/src/enrolment/usecase/request-seat.usecase.ts`, `modules/enrolment/src/enrolment/usecase/enrolment.out.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/src/enrolment/index.ts`, `modules/enrolment/test/enrolment/usecase/request-seat.usecase.test.ts`; verified: `npx jest test/enrolment/usecase/request-seat.usecase.test.ts` from `modules/enrolment` (25 passed, use case 100% covered), tsc and oxlint clean; deviations: none
 
-- [ ] **T-05** — Add `WithdrawRequest` in `src/enrolment/usecase/withdraw-request.usecase.ts` (D-12; the
+- [x] **T-05** — Add `WithdrawRequest` in `src/enrolment/usecase/withdraw-request.usecase.ts` (D-12; the
   conditional write losing → `enrolment.notPending`), with tests for success and each refusal. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04 · Done when: `npx jest test/enrolment/usecase/withdraw-request.usecase.test.ts` passes.
+  > ✅ 2026-10-19 16:15 — added `WithdrawRequest` (status 403, then `enrolment.notFound` for a non-UUID, unknown or another person's enrolment, `enrolment.notPending`, `class.started`; the conditional write losing answers `enrolment.notPending`); files: `modules/enrolment/src/enrolment/usecase/withdraw-request.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/test/enrolment/usecase/withdraw-request.usecase.test.ts`; verified: `npx jest test/enrolment/usecase/withdraw-request.usecase.test.ts` from `modules/enrolment` (17 passed, use case 100% covered), tsc and oxlint clean; deviations: an enrolment whose class is gone also answers `enrolment.notFound`
 
 - [ ] **T-06** — Add `ExpirePendingEnrolments` in `src/enrolment/usecase/expire-pending-enrolments.usecase.ts`
   (no actor; output `{ expired }`; pushes only the rows that changed; a failing notifier swallowed), with tests

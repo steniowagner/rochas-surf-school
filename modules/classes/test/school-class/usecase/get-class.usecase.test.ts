@@ -1,9 +1,11 @@
 import { ForbiddenError, NotFoundError } from "@rochas-surf-school/shared";
 import { GetClass } from "../../../src";
 import {
+  ADMIN,
   buildClassView,
   FakeClassRosterReader,
   FakeClassViewReader,
+  FakeViewerEnrolmentReader,
   STUDENT,
 } from "../../mock";
 
@@ -28,7 +30,7 @@ function setup() {
 
   const rosterReader = new FakeClassRosterReader({ [ID]: { students: SEVEN } });
 
-  return { reader, rosterReader, useCase: new GetClass(reader, rosterReader) };
+  return { reader, rosterReader, useCase: new GetClass(reader, rosterReader, new FakeViewerEnrolmentReader()) };
 }
 
 describe("GetClass", () => {
@@ -40,7 +42,7 @@ describe("GetClass", () => {
       }),
     ]);
 
-    const out = await new GetClass(reader, new FakeClassRosterReader()).execute({ actor: STUDENT, id: ID });
+    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader()).execute({ actor: STUDENT, id: ID });
 
     expect(out.location).toEqual({ id: "l-1", name: "Antigo", address: "Rua A", latitude: null, longitude: null });
   });
@@ -73,9 +75,29 @@ describe("GetClass", () => {
   it("answers no seats taken for a class the roster reader does not know", async () => {
     const reader = new FakeClassViewReader([buildClassView({ id: ID })]);
 
-    const out = await new GetClass(reader, new FakeClassRosterReader()).execute({ actor: STUDENT, id: ID });
+    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader()).execute({ actor: STUDENT, id: ID });
 
     expect(out).toMatchObject({ seatsTaken: 0, students: [] });
+  });
+
+  it("carries the caller's enrolment, and null when they have none", async () => {
+    const requestedAt = new Date("2026-10-14T10:00:00.000Z");
+    const reader = new FakeClassViewReader([buildClassView({ id: ID })]);
+    const viewerReader = new FakeViewerEnrolmentReader({
+      [`${STUDENT.id}:${ID}`]: { id: "e-1", status: "pending", requestedAt },
+    });
+    const useCase = new GetClass(reader, new FakeClassRosterReader(), viewerReader);
+
+    expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
+      id: "e-1",
+      status: "pending",
+      requestedAt: "2026-10-14T10:00:00.000Z",
+    });
+    expect((await useCase.execute({ actor: ADMIN, id: ID })).myEnrolment).toBeNull();
+    expect(viewerReader.calls).toEqual([
+      { viewerId: STUDENT.id, classIds: [ID] },
+      { viewerId: ADMIN.id, classIds: [ID] },
+    ]);
   });
 
   it("answers class.notFound for an unknown id", async () => {

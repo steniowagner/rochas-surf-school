@@ -5,6 +5,7 @@ import {
   buildClassView,
   FakeClassRosterReader,
   FakeClassViewReader,
+  FakeViewerEnrolmentReader,
   INSTRUCTOR,
   STUDENT,
 } from "../../mock";
@@ -41,8 +42,12 @@ const ALL = [
   MONDAY,
 ];
 
-function useCase(views = ALL, rosters = new FakeClassRosterReader()) {
-  return new ListWeekClasses(new FakeClassViewReader(views), rosters);
+function useCase(
+  views = ALL,
+  rosters = new FakeClassRosterReader(),
+  viewerEnrolments = new FakeViewerEnrolmentReader(),
+) {
+  return new ListWeekClasses(new FakeClassViewReader(views), rosters, viewerEnrolments);
 }
 
 describe("ListWeekClasses", () => {
@@ -89,6 +94,7 @@ describe("ListWeekClasses", () => {
       ],
       seatsTaken: 0,
       students: [],
+      myEnrolment: null,
     });
   });
 
@@ -111,6 +117,35 @@ describe("ListWeekClasses", () => {
     expect(byId["wed-early"]).toMatchObject({ seatsTaken: 0, students: [] });
     expect(rosters.calls).toHaveLength(1);
     expect(rosters.calls[0]!.studentsLimit).toBe(4);
+  });
+
+  it("carries the caller's latest enrolment on each class that has one and null on the rest", async () => {
+    const requestedAt = new Date("2026-10-14T10:00:00.000Z");
+    const viewerEnrolments = new FakeViewerEnrolmentReader({
+      [`${STUDENT.id}:monday`]: { id: "e-1", status: "pending", requestedAt },
+    });
+
+    const out = await useCase(ALL, new FakeClassRosterReader(), viewerEnrolments).execute({
+      actor: STUDENT,
+      date: "2026-10-15",
+    });
+    const byId = Object.fromEntries(out.items.map((item) => [item.id, item]));
+
+    expect(byId["monday"]!.myEnrolment).toEqual({
+      id: "e-1",
+      status: "pending",
+      requestedAt: "2026-10-14T10:00:00.000Z",
+    });
+    expect(byId["wed-early"]!.myEnrolment).toBeNull();
+    expect(viewerEnrolments.calls).toHaveLength(1);
+    expect(viewerEnrolments.calls[0]!.viewerId).toBe(STUDENT.id);
+    expect(new Set(viewerEnrolments.calls[0]!.classIds)).toEqual(new Set(out.items.map((item) => item.id)));
+
+    const admin = await useCase(ALL, new FakeClassRosterReader(), viewerEnrolments).execute({
+      actor: ADMIN,
+      date: "2026-10-15",
+    });
+    expect(admin.items.every((item) => item.myEnrolment === null)).toBe(true);
   });
 
   it("shapes a cancelled class with its ISO cancellation and message", async () => {

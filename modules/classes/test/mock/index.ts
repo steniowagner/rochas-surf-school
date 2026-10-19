@@ -16,3 +16,4 @@ export * from "./fake-cancellation-deadline.describer";
 export * from "./fake-location-change.notifier";
 export * from "./fake-address-suggestion.provider";
 export * from "./fake-class-roster.reader";
+export * from "./fake-viewer-enrolment.reader";

@@ -9,3 +9,4 @@ export * from "./pending-request-counter.provider";
 export * from "./no-instructor-notifier.provider";
 export * from "./cancellation-deadline-describer.provider";
 export * from "./class-roster-reader.provider";
+export * from "./viewer-enrolment-reader.provider";

@@ -365,12 +365,13 @@ cancelling a seat come in specs 042 and 043.
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-08** — Add the `ViewerEnrolmentReader` port (`src/school-class/provider/viewer-enrolment-reader.provider.ts`,
+- [x] **T-08** — Add the `ViewerEnrolmentReader` port (`src/school-class/provider/viewer-enrolment-reader.provider.ts`,
   `findLatest(viewerId, classIds) → Map<classId, ViewerEnrolment>`), `myEnrolment` on `ClassItem` and in
   `toClassItem(view, roster?, myEnrolment?)`, and make `GetClass` and `ListWeekClasses` read it for the actor;
   add a fake under `test/mock/` and update the use case tests. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-09 · Done when: `npx jest test/school-class` passes from `modules/classes` and `check-types` passes.
+  > ✅ 2026-10-19 16:16 — added the `ViewerEnrolmentReader` port (`findLatest(viewerId, classIds) → Map`), `myEnrolment` on `ClassItem` (`{ id, status, requestedAt }` as ISO) and as the third argument of `toClassItem`, made `GetClass` and `ListWeekClasses` take the reader as a third constructor argument and read it for the actor (any role), added `FakeViewerEnrolmentReader` and updated the use case tests; files: `modules/classes/src/school-class/provider/viewer-enrolment-reader.provider.ts`, `modules/classes/src/school-class/provider/index.ts`, `modules/classes/src/school-class/usecase/class-item.ts`, `modules/classes/src/school-class/usecase/get-class.usecase.ts`, `modules/classes/src/school-class/usecase/list-week-classes.usecase.ts`, `modules/classes/test/mock/fake-viewer-enrolment.reader.ts`, `modules/classes/test/mock/index.ts`, `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`, `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npx jest test/school-class` from `modules/classes` (342 passed, the three files 100% covered), `tsc --noEmit` and oxlint clean; deviations: `apps/backend` does not compile against the new constructors until T-13 wires the reader (expected)
 
 - [ ] **T-09** — Add the `ClassEnrolmentsCloser` port (`src/school-class/provider/class-enrolments-closer.provider.ts`,
   `closeOpenEnrolments(classId) → studentIds`) and make `CancelClass` call it after the conditional cancel and

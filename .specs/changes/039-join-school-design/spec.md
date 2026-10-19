@@ -135,10 +135,13 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add the `success` variant (`bg-ok` container, `text-on-color` label, no shadow) to
+- [x] **T-01** — Add the `success` variant (`bg-ok` container, `text-on-color` label, no shadow) to
   `src/components/ui/button/button.types.ts` and `button.constants.ts` (D-05), with a test in
   `button.component.test.tsx` for its classes and its disabled state.
   Covers: ER-01 · Done when: `npx jest src/components/ui/button` passes.
+  > ✅ 2026-10-18 — added the `success` variant; files: `apps/mobile/src/components/ui/button/button.types.ts`,
+  > `button.constants.ts`, `button.component.test.tsx`; verified: `npx jest src/components/ui/button` (14 passed);
+  > deviations: none
 - [ ] **T-02** — Change `src/components/decision/decision-card` (D-01, D-09): `avatar: ReactNode` replaces
   `initials`; optional `onPress` makes the upper row one `Pressable` with an Ionicons `chevron-forward` (`ink3`)
   at its end; `shadowStyle("card", theme)` on the card; Deny `outline` + Feather `x`, Approve `success` + Feather

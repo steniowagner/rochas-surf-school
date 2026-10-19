@@ -13,6 +13,7 @@ export const variantClasses: Record<
   outline: { container: "border border-input-line", label: "text-ink" },
   subtle: { container: "bg-dim", label: "text-ink-2" },
   danger: { container: "bg-bad", label: "text-on-color" },
+  success: { container: "bg-ok", label: "text-on-color" },
   // No background and no border: just the label, with the same size and shape as the others.
   ghost: { container: "", label: "text-ink" },
 };

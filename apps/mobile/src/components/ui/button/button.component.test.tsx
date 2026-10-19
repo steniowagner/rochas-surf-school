@@ -15,6 +15,7 @@ describe("Button", () => {
     "outline",
     "subtle",
     "danger",
+    "success",
     "ghost",
   ])("renders the %s variant and calls onPress", async (variant) => {
     const onPress = jest.fn();
@@ -82,6 +83,29 @@ describe("Button", () => {
     );
 
     expect(getSpinners()).toHaveLength(1);
+  });
+
+  it("draws the success variant green, with an on-color label and no shadow", async () => {
+    expect(variantClasses.success).toEqual({
+      container: "bg-ok",
+      label: "text-on-color",
+    });
+
+    await render(<Button variant="success">Go</Button>);
+
+    expect(screen.getByRole("button", { name: "Go" })).toHaveStyle({
+      shadowOpacity: undefined,
+    });
+  });
+
+  it("falls back to the disabled classes in the success variant", async () => {
+    await render(
+      <Button variant="success" disabled>
+        Go
+      </Button>,
+    );
+
+    expect(screen.getByRole("button", { name: "Go" })).toBeDisabled();
   });
 
   it("draws the icon before the label", async () => {

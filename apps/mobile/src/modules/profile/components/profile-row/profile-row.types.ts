@@ -14,4 +14,6 @@ export type ProfileRowProps = {
   destructive?: boolean;
   /** Replaces the value and the chevron (a switch). */
   trailing?: ReactNode;
+  /** Puts the value under the label instead of beside it, for a value too long to share the line. */
+  valueBelow?: boolean;
 };

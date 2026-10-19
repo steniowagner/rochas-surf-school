@@ -2,7 +2,7 @@
 id: "040"
 slug: class-seats-read-model
 title: "Class seats read model and class card and detail aligned with the designs"
-status: changes-requested
+status: in-review
 started: 2026-10-19
 base_commit: c0875ed6bcd73ba150ecc6f9cde5cedc34d792c0
 created: 2026-10-19
@@ -399,7 +399,7 @@ spec.
 
 **Findings**
 
-- [ ] **F-01** (ER-10) — the cancellation row of the "Regras" group breaks its label mid-word when the class has a
+- [x] **F-01** (ER-10) — the cancellation row of the "Regras" group breaks its label mid-word when the class has a
   deadline: in pt-BR it reads "Cancela / mento · / Surf" on three lines, because `ProfileRow` gives its value
   (`ds-text-list-subtitle`, no width limit) all the room it needs and squeezes the `flex-1` label. The en-US and
   es-ES values ("Cancel until Mon, 19 Oct · 20:00") are just as long. Reproduce: iOS simulator, iPhone 18 Pro
@@ -407,6 +407,7 @@ spec.
   "Regras". Expected: "Cancelamento · Surf" reads whole, without a word broken mid-word, and the deadline stays
   readable — for example the value under the label, or the value shrinking or truncating instead of the label.
   Check that the change doesn't affect the other `ProfileRow` screens, or keep it local to the class details.
+  > ✅ 2026-10-19 — `ProfileRow` got an opt-in `valueBelow` prop that stacks the value under the label (label and value in one `flex-1` column), and the cancellation row of the class detail uses it, so the label reads whole and the deadline stays readable; every other `ProfileRow` is unchanged (the prop defaults to off); files: `apps/mobile/src/modules/profile/components/profile-row/profile-row.component.tsx`, `apps/mobile/src/modules/profile/components/profile-row/profile-row.types.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`; verified: `npx jest src/modules/classes src/modules/profile` (631 passed), `npx tsc --noEmit` and `npx eslint src/modules/classes src/modules/profile` clean, `run-related-tests.mjs 040` passed, `check-coverage.mjs 040` COVERAGE OK; deviations: not re-driven in the simulator — layout is a plain column, worth a glance in re-review
 
 **Notes**
 

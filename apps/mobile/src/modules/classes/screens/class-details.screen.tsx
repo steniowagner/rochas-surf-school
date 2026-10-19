@@ -247,6 +247,7 @@ export function ClassDetailsScreen({
                           })
                         : t("classDetails.rules.read")
                     }
+                    valueBelow
                     onPress={screen.openRules}
                   />
                   <ProfileRow

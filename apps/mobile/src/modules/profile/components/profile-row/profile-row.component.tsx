@@ -14,6 +14,7 @@ export function ProfileRow({
   hideChevron = false,
   destructive = false,
   trailing,
+  valueBelow = false,
 }: ProfileRowProps) {
   const theme = useTheme();
 
@@ -24,13 +25,18 @@ export function ProfileRow({
         size={20}
         color={destructive ? theme.bad : theme.lagoon}
       />
-      <Text
-        className={`ds-text-list-title flex-1 ${destructive ? "text-bad" : "text-ink"}`}
-      >
-        {label}
-      </Text>
+      <View className="flex-1">
+        <Text
+          className={`ds-text-list-title ${destructive ? "text-bad" : "text-ink"}`}
+        >
+          {label}
+        </Text>
+        {valueBelow && !trailing && value ? (
+          <Text className="ds-text-list-subtitle text-ink-2">{value}</Text>
+        ) : null}
+      </View>
       {trailing}
-      {!trailing && value ? (
+      {!valueBelow && !trailing && value ? (
         <Text className="ds-text-list-subtitle text-ink-2">{value}</Text>
       ) : null}
       {!trailing && onPress && !hideChevron ? (

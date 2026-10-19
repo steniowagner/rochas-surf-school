@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -91,12 +91,26 @@ export function PeopleScreen() {
     <View className="flex-1 bg-page">
       <Stack.Screen
         options={{
-          // iOS always centers `headerTitle`, so there the title is a left item next to the back button.
+          // iOS always centers `headerTitle`, so there the title is a left item. Left items replace the native back
+          // button, so it is drawn here when the screen was pushed (admin and instructor), not on the student tab root.
           headerTitleAlign: "left",
           headerTitle: isIOS ? "" : () => <PeopleHeaderTitle count={count} />,
-          unstable_headerLeftItems: () => [
+          unstable_headerLeftItems: ({ canGoBack }) => [
+            ...(canGoBack
+              ? [
+                  {
+                    type: "button" as const,
+                    label: t("common.back"),
+                    icon: {
+                      type: "sfSymbol" as const,
+                      name: "chevron.backward" as const,
+                    },
+                    onPress: () => router.back(),
+                  },
+                ]
+              : []),
             {
-              type: "custom",
+              type: "custom" as const,
               element: <PeopleHeaderTitle count={count} />,
               hidesSharedBackground: true,
             },

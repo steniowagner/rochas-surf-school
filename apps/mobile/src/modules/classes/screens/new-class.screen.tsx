@@ -39,6 +39,7 @@ export function NewClassScreen() {
         options={{ headerTitle: t("newClass.title").toLocaleUpperCase() }}
       />
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="gap-6 px-screen pb-6"

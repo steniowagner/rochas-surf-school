@@ -2,6 +2,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 
+import {
+  insetBehaviorsOf,
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
 import * as api from "@/services/api";
 
 import {
@@ -696,6 +701,27 @@ describe("EditClassScreen", () => {
 
       expect(screen.getByTestId("edit-class-loading")).toBeOnTheScreen();
       expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+    });
+
+    it("starts its loading view below the header", async () => {
+      serve({ "GET /classes/c-1": () => new Promise(() => undefined) });
+      await renderScreen();
+
+      expect(topPaddingsOf(screen.toJSON())).toContain(0);
+    });
+
+    it("starts its loading view below the transparent header", async () => {
+      serve({ "GET /classes/c-1": () => new Promise(() => undefined) });
+      await underTransparentHeader(116, () => renderScreen());
+
+      expect(topPaddingsOf(screen.toJSON())).toContain(116);
+    });
+
+    it("insets its form's scroll view below the header", async () => {
+      await renderScreen();
+      await loaded();
+
+      expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
     });
 
     it("offers to retry a failed load", async () => {

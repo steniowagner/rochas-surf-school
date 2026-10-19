@@ -61,6 +61,7 @@ export function ClassDetailsScreen({
       />
       <ScrollView
         className="flex-1 bg-page"
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-6 px-screen"
         contentContainerStyle={{
           paddingBottom: Math.max(insets.bottom, 24),

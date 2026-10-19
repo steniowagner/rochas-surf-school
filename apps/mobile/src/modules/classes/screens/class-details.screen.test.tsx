@@ -11,6 +11,7 @@ import { router, Stack } from "expo-router";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
@@ -175,6 +176,12 @@ describe("ClassDetailsScreen", () => {
     expect(screen.getByText("Av. Zezé Diogo, 1000")).toBeOnTheScreen();
     expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
     expect(screen.queryByText("Class finished")).not.toBeOnTheScreen();
+  });
+
+  it("insets its scroll view below the header, whatever the header is", async () => {
+    await renderScreen();
+
+    expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
   });
 
   it("draws the surf icon on the discipline chip", async () => {

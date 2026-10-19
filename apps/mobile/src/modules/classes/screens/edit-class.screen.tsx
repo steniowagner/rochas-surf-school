@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
 import { useTheme } from "@/hooks/use-theme";
+import { useHeaderInset } from "@/navigation/stack-header";
 
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
@@ -23,6 +24,7 @@ export function EditClassScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const screen = useEditClassScreen();
   const { form } = screen;
 
@@ -44,32 +46,34 @@ export function EditClassScreen() {
 
   if (form === null || screen.isFinished || screen.isCancelled) {
     return (
-      <View className="flex-1 gap-6 bg-page px-screen pt-3">
-        {header}
-        {screen.isLoading ? (
-          <ActivityIndicator testID="edit-class-loading" color={theme.grape} />
-        ) : screen.isNotFound ? (
-          <Text className="ds-text-body text-center text-ink-2">
-            {t("classDetails.notFound")}
-          </Text>
-        ) : screen.isError ? (
-          <View className="items-center gap-3">
+      <View className="flex-1 bg-page" style={{ paddingTop: headerInset }}>
+        <View className="flex-1 gap-6 px-screen pt-3">
+          {header}
+          {screen.isLoading ? (
+            <ActivityIndicator testID="edit-class-loading" color={theme.grape} />
+          ) : screen.isNotFound ? (
             <Text className="ds-text-body text-center text-ink-2">
-              {t("classDetails.loadError")}
+              {t("classDetails.notFound")}
             </Text>
-            <Button variant="outline" onPress={screen.retry}>
-              {t("classDetails.retry")}
-            </Button>
-          </View>
-        ) : screen.isCancelled ? (
-          <Text className="ds-text-body text-center text-ink-2">
-            {t("editClass.errors.cancelled")}
-          </Text>
-        ) : screen.isFinished ? (
-          <Text className="ds-text-body text-center text-ink-2">
-            {t("editClass.errors.finished")}
-          </Text>
-        ) : null}
+          ) : screen.isError ? (
+            <View className="items-center gap-3">
+              <Text className="ds-text-body text-center text-ink-2">
+                {t("classDetails.loadError")}
+              </Text>
+              <Button variant="outline" onPress={screen.retry}>
+                {t("classDetails.retry")}
+              </Button>
+            </View>
+          ) : screen.isCancelled ? (
+            <Text className="ds-text-body text-center text-ink-2">
+              {t("editClass.errors.cancelled")}
+            </Text>
+          ) : screen.isFinished ? (
+            <Text className="ds-text-body text-center text-ink-2">
+              {t("editClass.errors.finished")}
+            </Text>
+          ) : null}
+        </View>
       </View>
     );
   }
@@ -77,6 +81,7 @@ export function EditClassScreen() {
   return (
     <View className="flex-1 bg-page">
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="gap-6 px-screen pb-6"

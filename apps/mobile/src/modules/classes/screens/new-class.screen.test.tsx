@@ -2,6 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 
+import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
 import * as api from "@/services/api";
 
 import {
@@ -205,6 +206,12 @@ describe("NewClassScreen", () => {
       expect(screen.getAllByText("pick at least 1").length).toBeGreaterThan(0);
       expect(screen.queryByText("1 day")).not.toBeOnTheScreen();
     });
+  });
+
+  it("insets its scroll view below the header, whatever the header is", async () => {
+    await renderScreen();
+
+    expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
   });
 
   it("shows the form in the design's order with its defaults", async () => {

@@ -190,11 +190,12 @@ stays opaque.
   profile / WhatsApp keyboard offset under both branches).
   Covers: ER-03 · Done when: the tests of those modules pass with those cases.
   > ✅ 2026-10-18 — registrations, school rules, cancellation rules and edit profile give their scroll view `contentInsetAdjustmentBehavior="automatic"` (still the first descendant); profile WhatsApp takes `paddingTop: useHeaderInset()`; tests assert the inset behavior, the WhatsApp padding (0 opaque / 116 transparent) and the edit profile / WhatsApp keyboard offset 0 under the transparent header (64 under the opaque one, existing case); files: `apps/mobile/src/modules/admin/screens/registrations.screen{.tsx,.test.tsx}`, `apps/mobile/src/modules/school-rules/components/school-rules-reader/school-rules-reader.component.tsx`, `apps/mobile/src/modules/school-rules/screens/school-rules.screen.test.tsx`, `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen{.tsx,.test.tsx}`, `apps/mobile/src/modules/profile/components/{edit-profile/edit-profile,profile-whatsapp/profile-whatsapp}.component.tsx`, `apps/mobile/src/modules/profile/screens/{edit-profile,profile-whatsapp}.screen.test.tsx`, `apps/mobile/src/navigation/stack-header/header-inset.test-utils.ts` (`insetBehaviorsOf` helper); verified: `npx jest src/modules/profile src/modules/school-rules src/modules/admin src/modules/cancellation-rules` (193 passed), `tsc --noEmit` and eslint clean; deviations: none
-- [ ] **T-10** — Add `contentInsetAdjustmentBehavior="automatic"` to the scroll views of
+- [x] **T-10** — Add `contentInsetAdjustmentBehavior="automatic"` to the scroll views of
   `src/modules/classes/screens/{class-details,new-class,edit-class}.screen.tsx`, keeping each the screen's first
   descendant, and give edit class's loading / error / cancelled view the `useHeaderInset()` top padding (D-06);
   update the three screens' tests.
   Covers: ER-02, ER-03 · Done when: `npx jest src/modules/classes/screens` passes with those cases.
+  > ✅ 2026-10-18 — class details, new class and edit class give their scroll view `contentInsetAdjustmentBehavior="automatic"` (still the first descendant); edit class's loading / error / cancelled view takes `paddingTop: useHeaderInset()` on an outer view (its `pt-3` spacing moved to an inner view); tests assert the inset behavior on the three screens and the loading view's padding (0 opaque / 116 transparent); files: `apps/mobile/src/modules/classes/screens/{class-details,new-class,edit-class}.screen.tsx` and their `.test.tsx`; verified: `npx jest src/modules/classes/screens` (205 passed), `tsc --noEmit` and eslint clean; deviations: none
 
 ### Verification
 

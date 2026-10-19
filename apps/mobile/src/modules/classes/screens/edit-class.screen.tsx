@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
 import { useTheme } from "@/hooks/use-theme";
+import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
@@ -38,7 +39,7 @@ export function EditClassScreen() {
 
   const header = (
     <Stack.Screen
-      options={{ headerTitle: t("editClass.title").toLocaleUpperCase() }}
+      options={{ headerTitle: () => <StackHeaderTitle title={t("editClass.title")} /> }}
     />
   );
 

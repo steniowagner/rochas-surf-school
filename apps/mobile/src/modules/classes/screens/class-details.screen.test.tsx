@@ -8,10 +8,12 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { router, Stack } from "expo-router";
+import type { ReactNode } from "react";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
 import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+import { headerTitleOf } from "@/navigation/stack-header/header-title.test-utils";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
@@ -146,7 +148,7 @@ const headerOptions = () => {
 
   return (
     calls[calls.length - 1][0] as {
-      options: { headerTitle?: string; headerRight?: unknown };
+      options: { headerTitle?: () => ReactNode; headerRight?: unknown };
     }
   ).options;
 };
@@ -157,7 +159,7 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
-    expect(headerOptions().headerTitle).toBe("DETAILS");
+    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Details");
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(screen.getByText("Beginner")).toBeOnTheScreen();
@@ -562,7 +564,7 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
-    expect(headerOptions().headerTitle).toBe("DETAILS");
+    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Details");
     expect(headerOptions().headerRight).toBeUndefined();
   });
 

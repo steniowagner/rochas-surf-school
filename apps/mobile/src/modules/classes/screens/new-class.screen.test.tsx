@@ -1,8 +1,10 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import type { ReactNode } from "react";
 
 import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+import { headerTitleOf } from "@/navigation/stack-header/header-title.test-utils";
 import * as api from "@/services/api";
 
 import {
@@ -171,7 +173,7 @@ const headerOptions = () => {
 
   return (
     calls[calls.length - 1][0] as {
-      options: { headerTitle?: string; headerRight?: unknown };
+      options: { headerTitle?: () => ReactNode; headerRight?: unknown };
     }
   ).options;
 };
@@ -217,7 +219,7 @@ describe("NewClassScreen", () => {
   it("shows the form in the design's order with its defaults", async () => {
     await renderScreen();
 
-    expect(headerOptions().headerTitle).toBe("NEW CLASS");
+    expect(headerTitleOf(headerOptions().headerTitle)).toBe("New class");
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     const headers = screen.getAllByRole("header").map((item) => item.props.children);
     expect(headers).toEqual([

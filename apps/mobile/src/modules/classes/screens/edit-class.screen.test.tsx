@@ -1,8 +1,10 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import type { ReactNode } from "react";
 
 import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+import { headerTitleOf } from "@/navigation/stack-header/header-title.test-utils";
 import * as api from "@/services/api";
 
 import {
@@ -189,7 +191,7 @@ const headerOptions = () => {
 
   return (
     calls[calls.length - 1][0] as {
-      options: { headerTitle?: string; headerRight?: unknown };
+      options: { headerTitle?: () => ReactNode; headerRight?: unknown };
     }
   ).options;
 };
@@ -199,7 +201,7 @@ describe("EditClassScreen", () => {
     await renderScreen();
     await loaded();
 
-    expect(headerOptions().headerTitle).toBe("EDIT CLASS");
+    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Edit class");
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(day("2026-10-15")).toBeSelected();
@@ -607,7 +609,7 @@ describe("EditClassScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
-      expect(headerOptions().headerTitle).toBe("EDIT CLASS");
+      expect(headerTitleOf(headerOptions().headerTitle)).toBe("Edit class");
       expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
       expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
       expect(screen.queryByRole("checkbox", { name: "Ana Souza" })).toBeNull();

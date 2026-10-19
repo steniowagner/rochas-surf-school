@@ -16,6 +16,7 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
@@ -38,7 +39,7 @@ export function ClassDetailsScreen({
     <>
       <Stack.Screen
         options={{
-          headerTitle: t("classDetails.title").toLocaleUpperCase(),
+          headerTitle: () => <StackHeaderTitle title={t("classDetails.title")} />,
           headerRight: screen.showTools
             ? () => (
                 <TouchableOpacity

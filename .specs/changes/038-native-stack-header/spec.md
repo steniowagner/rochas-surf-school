@@ -55,7 +55,8 @@ stays opaque.
     `modules/cancellation-rules/screens/cancellation-rules.screen.tsx`,
     `modules/classes/screens/{class-details,new-class,edit-class}.screen.tsx`.
   - Fixed screens (no scroll view): `modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}`,
-    `modules/profile/components/profile-whatsapp`, and edit class's loading / error / cancelled view.
+    `modules/profile/components/profile-whatsapp`. (Edit class's loading / error / cancelled view is a scroll view with
+    `contentInsetAdjustmentBehavior="automatic"`, F-04.)
   - `src/navigation/stack-header/keyboard-offset.hook.ts` (`useKeyboardOffset`, F-01) gives the six
     `KeyboardAvoidingView`s the header's height; `jest.setup.ts` mocks it to 64.
 - Mobile has no e2e suite ([technical-context.md → Automated validation](../../memory/technical-context.md#automated-validation)):
@@ -123,12 +124,12 @@ stays opaque.
   `keyboardVerticalOffset` of 0, so the focused field and the primary button still sit just above the keyboard.
 - **Edge and error cases:** when `isLiquidGlassAvailable()` is false (Android, iOS < 26) the header is the opaque
   `page` one, `useHeaderInset()` is 0 and `useKeyboardOffset()` is the header's height (F-01); pull-to-refresh on
-  Registrations and People shows its spinner below the header; edit class's loading / error / cancelled view starts
+  Registrations and People shows its spinner below the header; edit class's loading / error / cancelled view (a scroll view) starts
   below the header; the student's School tab still has no header and keeps its title and count.
 - **Verify by:** `npx jest` from `apps/mobile` — `src/navigation/stack-header/` tests for `useStackHeader`,
-  `useHeaderInset` and `useKeyboardOffset` with `isLiquidGlassAvailable` mocked true and false; the fixed screens'
-  tests (top padding and `keyboardVerticalOffset` in both branches) and the scrolling screens' tests
-  (`contentInsetAdjustmentBehavior="automatic"` on their scroll view); and the iOS 26+ user journey in the
+  `useHeaderInset` and `useKeyboardOffset` with `isLiquidGlassAvailable` mocked true and false; the fixed auth and WhatsApp
+  screens' tests (top padding and `keyboardVerticalOffset` in both branches) and the scrolling screens' tests
+  (`contentInsetAdjustmentBehavior="automatic"` on their scroll view, edit class's loading view included); and the iOS 26+ user journey in the
   Verification Plan.
 
 ## Tasks
@@ -512,7 +513,7 @@ stays opaque.
 
 **Findings**
 
-- [ ] **F-06** (ER-03, D-03) — after a cold launch, the screens whose header has a title still scroll under a
+- [x] **F-06** (ER-03, D-03) — after a cold launch, the screens whose header has a title still scroll under a
   frosted band with a 1px line across the screen instead of the soft fade. F-04's fix doesn't change this on Edit
   class, and New class has it too, although round 4 saw New class fade softly after F-03. Round 4 checked "the running
   dev build", so that soft fade may only have held in a session where the F-03 change came in by fast refresh. The
@@ -524,6 +525,7 @@ stays opaque.
   `rochassurfschool:///admin/cancellation-rules` scrolled the same way fades softly with no line. Expected: after a
   cold launch, class details, New class and Edit class fade softly with no line, as the untitled screens do, shown in
   the simulator after a cold launch (not only after a fast refresh).
+  > ✅ 2026-10-18 — reproduced after a cold launch (`terminate` + `launch`, deep link `rochassurfschool:///admin/new-class`, scrolled ~120pt: frosted band with a line under `NOVA AULA`). Cause: on iOS 26 a plain-string `headerTitle` makes the transparent header draw that band and line; it is not the late `setOptions`, the wrapper view or the footer — New class with no title faded softly in the same cold launch, and the same title as a function (a view) faded softly too. The three class screens now pass `headerTitle: () => <StackHeaderTitle title={t(…)} />`, a new component in `src/navigation/stack-header/stack-header-title/` (uppercase `ds-text-screen-title-with-back`, `text-ink`). Tests: `stack-header-title.component.test.tsx` (new); the three screens' tests read the title through `headerTitleOf()` (`header-title.test-utils.ts`), so they fail if the title goes back to a string. Files: `apps/mobile/src/navigation/stack-header/{index.ts,header-title.test-utils.ts,stack-header-title/*}`, `apps/mobile/src/modules/classes/screens/{new-class,edit-class,class-details}.screen.tsx` and their `.test.tsx`; the Context and ER-03 lines from the round 5 note updated; verified: `npx jest src/navigation src/modules/classes/screens` (366 passed), `tsc --noEmit` and eslint clean; simulator after a cold launch: New class fades softly with no line under `NOVA AULA`; not verified: Edit class and class details in the simulator (same header options and component, no live class id / non-admin session here), the signed-out auth screens and the student's School tab (cannot sign in); deviations: none (D-03's header options are unchanged; only how the title is drawn)
 
 **Notes**
 

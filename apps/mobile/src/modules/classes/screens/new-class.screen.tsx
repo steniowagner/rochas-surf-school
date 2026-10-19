@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
+import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
@@ -36,7 +37,7 @@ export function NewClassScreen() {
   return (
     <View className="flex-1 bg-page">
       <Stack.Screen
-        options={{ headerTitle: t("newClass.title").toLocaleUpperCase() }}
+        options={{ headerTitle: () => <StackHeaderTitle title={t("newClass.title")} /> }}
       />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"

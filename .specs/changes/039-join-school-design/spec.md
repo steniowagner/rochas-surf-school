@@ -159,6 +159,9 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   `subtle` back button that calls the same close as a swipe (text cleared). Update
   `deny-sheet.component.test.tsx` (placeholder, accessibility label, no visible label, confirm sends the text,
   back closes and clears). Covers: ER-03 · Done when: `npx jest src/components/decision/deny-sheet` passes.
+  > ✅ 2026-10-19 — DenySheet has `placeholder` and `backLabel`, `label` only as the text area's accessibility label, an `x-circle` icon on
+  > the confirm and a subtle back button that closes and clears; files: `apps/mobile/src/components/decision/deny-sheet/deny-sheet.component.tsx`,
+  > `deny-sheet.types.ts`, `deny-sheet.component.test.tsx`; verified: `npx jest src/components/decision/deny-sheet` (7 passed); deviations: none
 - [x] **T-04** — Add the optional `email` prop to `src/modules/people/components/person-sheet` (D-02): with it, an
   email row (Feather `mail` icon, `people.email` label, the email as subtitle, not pressable) replaces the WhatsApp
   row; add `people.email` ("E-mail" / "Email" / "Correo electrónico") to the three message files. Extend

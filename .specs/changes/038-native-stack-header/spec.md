@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: changes-requested
+status: in-review
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -263,6 +263,10 @@ stays opaque.
 - 2026-10-18 — /spec-plan --amend — Goal, Context, Verification Plan (iOS 26+ journey, transparent-header steps) and
   Memory Impact (`useHeaderInset`, `useKeyboardOffset`, inset rule) updated. Reason: follow the changes above and
   review round 2's note on Memory Impact. Approved by the user.
+- 2026-10-18 — D-03 changed: transparent header with no `headerStyle` background → transparent header with
+  `headerStyle` background `transparent`. Reason: without a background color iOS 26 draws an opaque, frosted band with a
+  line once the header has a title (F-03). Applied in commit `0b75de2` before this entry; approved by the user
+  afterwards (F-05).
 
 ## Review
 
@@ -449,7 +453,7 @@ stays opaque.
 
 **Findings**
 
-- [ ] **F-04** (ER-03, D-03) — on iOS 26+, Edit class still scrolls under a frosted band ending in a 1px line across
+- [x] **F-04** (ER-03, D-03) — on iOS 26+, Edit class still scrolls under a frosted band ending in a 1px line across
   the screen instead of the soft fade, after the F-03 fix. Reproduce: as the admin, open a live class's details →
   tools button → Editar aula, and scroll the form up by ~100pt: the content under `EDITAR AULA` is cut by a frosted
   band with a hard line at the header's bottom (reproduced twice). New class, with the same header options and title,
@@ -457,10 +461,12 @@ stays opaque.
   `edit-class.screen.tsx` first renders the loading view (a plain `View`) and only renders the `ScrollView` once the
   form loads, so when the header's scroll-edge effect looks for the screen's first-descendant scroll view (D-06) there
   is none. Expected: the soft fade with no line on Edit class, as on New class, with the simulator journey showing it.
-- [ ] **F-05** (convention) — commit `0b75de2` (the F-03 fix) changed D-03 in place (`no headerStyle background` →
+  > ✅ 2026-10-18 — the loading / error / cancelled view of Edit class is now a `ScrollView` with `contentInsetAdjustmentBehavior="automatic"` (no more `useHeaderInset` padding), so the screen always has a first-descendant scroll view for the scroll-edge effect, as New class does. Test: `edit-class.screen.test.tsx` "insets its loading view's scroll view…" (failed before the fix). Files: `apps/mobile/src/modules/classes/screens/{edit-class.screen.tsx,edit-class.screen.test.tsx}`; verified: `run-related-tests.mjs 038` (594 passed), `check-coverage.mjs 038`, lint / check-types ✅; not verified: Edit class scrolled in the simulator (left to the reviewer); deviations: none
+- [x] **F-05** (convention) — commit `0b75de2` (the F-03 fix) changed D-03 in place (`no headerStyle background` →
   `headerStyle background transparent …`) without the user's approval and without an entry under `## Amendments`,
   which `.specs/shared/how-to-execute.md` rule 10 requires for any change to a Decision. Expected: the change logged
   under `## Amendments` (date, before → after, reason), with the user's approval.
+  > ✅ 2026-10-18 — the change is logged under `## Amendments` with the user's approval (asked in chat). Files: `.specs/changes/038-native-stack-header/spec.md`; deviations: none
 
 **Notes**
 

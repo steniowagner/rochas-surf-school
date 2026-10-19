@@ -17,6 +17,9 @@ import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
+import { RequestSeatSheet } from "@/modules/enrolment/components/request-seat-sheet";
+import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
+import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
 import { ProfileCard } from "@/modules/profile/components/profile-card";
 import { ProfileRow } from "@/modules/profile/components/profile-row";
 import { StackHeaderTitle } from "@/navigation/stack-header";
@@ -32,11 +35,12 @@ import type { ClassDetailsScreenProps } from "./class-details.screen.types";
 
 export function ClassDetailsScreen({
   canEdit = false,
+  canEnrol = false,
 }: ClassDetailsScreenProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const screen = useClassDetailsScreen({ canEdit });
+  const screen = useClassDetailsScreen({ canEdit, canEnrol });
   const { item } = screen;
 
   return (
@@ -199,9 +203,31 @@ export function ClassDetailsScreen({
             {screen.showFullBanner ? (
               <View className="flex-row items-center gap-3 rounded-card bg-bad-tint p-4">
                 <Ionicons name="people-outline" size={24} color={theme.bad} />
-                <Text className="ds-text-list-title flex-1 text-ink">
-                  {t("classDetails.full.title")}
-                </Text>
+                <View className="flex-1 gap-1">
+                  <Text className="ds-text-list-title text-ink">
+                    {t("classDetails.full.title")}
+                  </Text>
+                  {screen.enrolment.invitesWaitingList ? (
+                    <Text className="ds-text-list-subtitle text-ink-2">
+                      {t("classDetails.full.waitingList")}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            ) : null}
+            {screen.enrolment.display ? (
+              <View
+                className={`flex-row items-center gap-3 rounded-card p-4 ${BANNER_CLASSES[screen.enrolment.display.tone]}`}
+              >
+                <Ionicons name={screen.enrolment.display.icon} size={24} color={theme.ink} />
+                <View className="flex-1 gap-1">
+                  <Text className="ds-text-list-title text-ink">
+                    {t(`enrolment.status.${screen.enrolment.display.key}.title`)}
+                  </Text>
+                  <Text className="ds-text-list-subtitle text-ink-2">
+                    {t(`enrolment.status.${screen.enrolment.display.key}.description`)}
+                  </Text>
+                </View>
               </View>
             ) : null}
             {screen.state === "finished" ? (
@@ -287,6 +313,40 @@ export function ClassDetailsScreen({
           </>
         ) : null}
       </ScrollView>
+      {screen.enrolment.cta ? (
+        <View
+          className="border-t border-line bg-page px-screen pt-3"
+          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        >
+          <Button
+            variant={screen.enrolment.cta.variant}
+            loading={screen.enrolment.ctaLoading}
+            onPress={screen.enrolment.pressCta}
+          >
+            {t(`enrolment.cta.${screen.enrolment.cta.key}`)}
+          </Button>
+        </View>
+      ) : null}
+      {item && canEnrol ? (
+        <>
+          <RequestSeatSheet
+            visible={screen.enrolment.requestVisible}
+            loading={screen.enrolment.requesting}
+            waitingList={screen.enrolment.waitingList}
+            summary={screen.requestSummary}
+            discipline={item.discipline}
+            deadline={screen.cancellationDeadline}
+            onConfirm={screen.enrolment.request}
+            onClose={screen.enrolment.closeRequest}
+          />
+          <WithdrawRequestSheet
+            visible={screen.enrolment.withdrawVisible}
+            loading={screen.enrolment.withdrawing}
+            onConfirm={screen.enrolment.withdraw}
+            onClose={screen.enrolment.closeWithdraw}
+          />
+        </>
+      ) : null}
       <ClassToolsSheet
         visible={screen.toolsVisible}
         onClose={screen.closeTools}

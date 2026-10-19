@@ -113,7 +113,7 @@ const refused = (status: number, key: string) => ({
 
 const serve = (item: ClassItem) => fetchMock.mockResolvedValue(ok(item));
 
-const renderScreen = async (canEdit?: boolean) => {
+const renderScreen = async (canEdit?: boolean, canEnrol?: boolean) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
@@ -121,7 +121,7 @@ const renderScreen = async (canEdit?: boolean) => {
   await render(
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <ClassDetailsScreen canEdit={canEdit} />
+        <ClassDetailsScreen canEdit={canEdit} canEnrol={canEnrol} />
       </SessionProvider>
     </QueryClientProvider>,
   );
@@ -1438,5 +1438,417 @@ describe("ClassDetailsScreen", () => {
       await waitFor(() => expect(api.apiDelete).toHaveBeenCalled());
       expect(mockShow).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("ClassDetailsScreen enrol", () => {
+  const FULL = { seatsTaken: 8 };
+  const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"]) => ({
+    myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z" },
+  });
+  const CREATED = { id: "e-2", classId: "c-1", status: "pending", requestedAt: NOW.toISOString() };
+  const RULE = "I read and accept the cancellation rule";
+
+  const posts = () =>
+    fetchMock.mock.calls.filter(([, init]) => init?.method === "POST") as [string, { body?: string }][];
+  const classLoads = () =>
+    fetchMock.mock.calls.filter(
+      ([url, init]) => init?.method !== "POST" && String(url).endsWith("/classes/c-1"),
+    ).length;
+  const ruleLoads = () =>
+    fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/cancellation-rules")).length;
+
+  // The class is served for every class GET, the rules for the rules GET, and the POST answers as the test says.
+  const serveEnrol = (
+    item: ClassItem,
+    answer: () => unknown = () => ok(CREATED),
+    rules: unknown = { surf: "Cancele até 1 hora antes.", skate: null },
+  ) =>
+    fetchMock.mockImplementation(async (url: string, init?: { method?: string }) => {
+      if (init?.method === "POST") return answer();
+      return String(url).endsWith("/cancellation-rules") ? ok(rules) : ok(item);
+    });
+
+  beforeEach(() => mockShow.mockClear());
+
+  async function openRequestSheet(item: ClassItem, label: string) {
+    serveEnrol(item);
+    const user = userEvent.setup();
+    await renderScreen(false, true);
+    await user.press(await screen.findByRole("button", { name: label }));
+
+    return user;
+  }
+
+  it.each([
+    [{}, "Request a seat"],
+    [FULL, "Join the waiting list"],
+    [{ ...mine("withdrawn") }, "Request again"],
+    [{ ...mine("expired"), ...FULL }, "Request again"],
+    [{ ...mine("pending") }, "Withdraw request"],
+    [{ ...mine("pending"), ...FULL }, "Leave the waiting list"],
+  ])("enrol: shows the button of the state %j: %s", async (overrides, label) => {
+    serveEnrol(makeClass(overrides));
+    await renderScreen(false, true);
+
+    expect(await screen.findByRole("button", { name: label })).toBeOnTheScreen();
+    expect(screen.getAllByRole("button").filter((button) => button.props.accessibilityLabel === label)).toHaveLength(1);
+  });
+
+  it.each([
+    ["a class that started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" }],
+    ["a class that finished", { startsAt: "2026-10-14T10:00:00.000Z", endsAt: "2026-10-14T11:00:00.000Z" }],
+    ["a cancelled class", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
+    ["a class cancelled with the student's request", { cancelledAt: "2026-10-13T10:00:00.000Z", ...mine("classCancelled") }],
+    ["an approved enrolment", mine("approved")],
+    ["a denied enrolment", mine("denied")],
+    ["a cancelled seat", mine("cancelled")],
+    ["a student taken out", mine("takenOut")],
+  ])("enrol: shows no button for %s", async (_name, overrides) => {
+    serveEnrol(makeClass(overrides));
+    await renderScreen(false, true);
+    await screen.findByText("Surf");
+
+    for (const label of ["Request a seat", "Join the waiting list", "Request again", "Withdraw request", "Leave the waiting list"]) {
+      expect(screen.queryByRole("button", { name: label })).toBeNull();
+    }
+  });
+
+  it("enrol: shows no button, sheet or banner to instructors and admins (no canEnrol)", async () => {
+    serveEnrol(makeClass(mine("pending")));
+    await renderScreen(true, false);
+    await screen.findByText("16:00 – 17:30");
+
+    expect(screen.queryByRole("button", { name: "Withdraw request" })).toBeNull();
+    expect(screen.queryByText("Request pending")).toBeNull();
+  });
+
+  it("enrol: opens the request sheet with the class line, the deadline and Send request disabled until the rule is ticked", async () => {
+    await openRequestSheet(makeClass(), "Request a seat");
+
+    expect(screen.getAllByText("Request a seat")).toHaveLength(2);
+    expect(
+      screen.getByText("Surf Beginner · Today · 14 Oct · 16:00. Your request stays pending until the school confirms."),
+    ).toBeOnTheScreen();
+    // The details line, the rules row and the sheet card.
+    expect(screen.getAllByText("Cancel until Tue, 13 Oct · 17:00")).toHaveLength(3);
+    expect(screen.getByRole("button", { name: "Send request" })).toBeDisabled();
+  });
+
+  it("enrol: sends the acceptance once the rule is ticked, closes the sheet, shows the toast and reloads the class", async () => {
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+    const loadsBefore = classLoads();
+
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+    await user.press(screen.getByRole("button", { name: "Send request" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Request sent"));
+    expect(posts()).toHaveLength(1);
+    expect(posts()[0]![0]).toBe("http://api.test/classes/c-1/enrolments");
+    expect(JSON.parse(posts()[0]![1].body!)).toEqual({ acceptCancellationRule: true });
+    expect(screen.queryByRole("button", { name: "Send request" })).toBeNull();
+    await waitFor(() => expect(classLoads()).toBeGreaterThan(loadsBefore));
+  });
+
+  it("enrol: reads the full class as the waiting list and thanks with its toast", async () => {
+    const user = await openRequestSheet(makeClass(FULL), "Join the waiting list");
+
+    expect(
+      screen.getByText(
+        "Surf Beginner · Today · 14 Oct · 16:00. The class is full: your request goes on the waiting list. If a seat opens, it goes to the school for approval.",
+      ),
+    ).toBeOnTheScreen();
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+    await user.press(screen.getAllByRole("button", { name: "Join the waiting list" }).at(-1)!);
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("You're on the waiting list"));
+  });
+
+  it("enrol: sends no checkbox and enables the button when the discipline has no rule", async () => {
+    serveEnrol(makeClass(), () => ok(CREATED), { surf: null, skate: null });
+    const user = userEvent.setup();
+    await renderScreen(false, true);
+    await user.press(await screen.findByRole("button", { name: "Request a seat" }));
+
+    expect(await screen.findByText("The school hasn't written this rule yet.")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Send request" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Request sent"));
+  });
+
+  it("enrol: sends once on a double press", async () => {
+    let finish: (value: unknown) => void = () => undefined;
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+    serveEnrol(makeClass(), () => new Promise((resolve) => (finish = resolve)) as never);
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+    const send = screen.getByRole("button", { name: "Send request" });
+
+    await act(async () => {
+      void fireEvent.press(send);
+      void fireEvent.press(send);
+    });
+
+    await waitFor(() => expect(posts()).toHaveLength(1));
+    await act(async () => finish(ok(CREATED)));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+    expect(posts()).toHaveLength(1);
+  });
+
+  it.each([
+    ["class.started", 409, "The class has already started."],
+    ["class.cancelled", 409, "This class was cancelled."],
+    ["enrolment.alreadyOpen", 409, "You already have an open request for this class."],
+  ])("enrol: on %s shows its toast, closes the sheet and reloads the class", async (key, status, message) => {
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+    serveEnrol(makeClass(), () => refused(status, key));
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+    const loadsBefore = classLoads();
+
+    await user.press(screen.getByRole("button", { name: "Send request" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+    expect(screen.queryByRole("button", { name: "Send request" })).toBeNull();
+    await waitFor(() => expect(classLoads()).toBeGreaterThan(loadsBefore));
+  });
+
+  it("enrol: on enrolment.rule.notAccepted shows its toast, keeps the sheet and reads the rules again", async () => {
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+    serveEnrol(makeClass(), () => refused(422, "enrolment.rule.notAccepted"));
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+    const rulesBefore = ruleLoads();
+
+    await user.press(screen.getByRole("button", { name: "Send request" }));
+
+    await waitFor(() =>
+      expect(mockShow).toHaveBeenCalledWith("The cancellation rule changed. Read it again and accept it."),
+    );
+    expect(screen.getByRole("button", { name: "Send request" })).toBeOnTheScreen();
+    await waitFor(() => expect(ruleLoads()).toBeGreaterThan(rulesBefore));
+  });
+
+  it("enrol: on class.notFound shows the missing-class toast and reloads the class", async () => {
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+    serveEnrol(makeClass(), () => refused(404, "class.notFound"));
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+
+    await user.press(screen.getByRole("button", { name: "Send request" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("This class no longer exists."));
+  });
+
+  it("enrol: shows the no-connection toast when there is no answer and keeps the sheet", async () => {
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+    serveEnrol(makeClass(), () => {
+      throw new TypeError("Network request failed");
+    });
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+
+    await user.press(screen.getByRole("button", { name: "Send request" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("No connection. Check your internet and try again."));
+    expect(screen.getByRole("button", { name: "Send request" })).toBeEnabled();
+  });
+
+  it("enrol: shows nothing when the session expired", async () => {
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+    (api.apiPost as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+    await user.press(await screen.findByRole("checkbox", { name: RULE }));
+
+    await user.press(screen.getByRole("button", { name: "Send request" }));
+
+    await waitFor(() => expect(api.apiPost).toHaveBeenCalled());
+    expect(mockShow).not.toHaveBeenCalled();
+  });
+
+  it("enrol: Not now closes the sheet without a request", async () => {
+    const user = await openRequestSheet(makeClass(), "Request a seat");
+
+    await user.press(screen.getByRole("button", { name: "Not now" }));
+
+    expect(screen.queryByRole("button", { name: "Send request" })).toBeNull();
+    expect(posts()).toHaveLength(0);
+  });
+});
+
+describe("ClassDetailsScreen withdraw", () => {
+  const pending = (overrides: Partial<ClassItem> = {}) =>
+    makeClass({
+      myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z" },
+      ...overrides,
+    });
+  const WITHDRAWN = { id: "e-1", classId: "c-1", status: "withdrawn", requestedAt: "2026-10-13T10:00:00.000Z" };
+
+  const posts = () =>
+    fetchMock.mock.calls.filter(([, init]) => init?.method === "POST") as [string, unknown][];
+  const classLoads = () =>
+    fetchMock.mock.calls.filter(
+      ([url, init]) => init?.method !== "POST" && String(url).endsWith("/classes/c-1"),
+    ).length;
+
+  const serveWithdraw = (item: ClassItem, answer: () => unknown = () => ok(WITHDRAWN)) =>
+    fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
+      init?.method === "POST" ? answer() : ok(item),
+    );
+
+  beforeEach(() => mockShow.mockClear());
+
+  async function openSheet(item = pending()) {
+    serveWithdraw(item);
+    const user = userEvent.setup();
+    await renderScreen(false, true);
+    await user.press(await screen.findByRole("button", { name: "Withdraw request" }));
+
+    return user;
+  }
+
+  it("withdraw: asks first, then withdraws, shows the toast and reloads the class", async () => {
+    const user = await openSheet();
+    const loadsBefore = classLoads();
+
+    expect(screen.getByText("Your request for this class stops waiting for approval.")).toBeOnTheScreen();
+    expect(posts()).toHaveLength(0);
+    await user.press(screen.getByRole("button", { name: "Yes, withdraw" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Request withdrawn"));
+    expect(posts()).toHaveLength(1);
+    expect(posts()[0]![0]).toBe("http://api.test/enrolments/e-1/withdraw");
+    expect(screen.queryByRole("button", { name: "Yes, withdraw" })).toBeNull();
+    await waitFor(() => expect(classLoads()).toBeGreaterThan(loadsBefore));
+  });
+
+  it("withdraw: Keep request closes the sheet without a request", async () => {
+    const user = await openSheet();
+
+    await user.press(screen.getByRole("button", { name: "Keep request" }));
+
+    expect(screen.queryByRole("button", { name: "Yes, withdraw" })).toBeNull();
+    expect(posts()).toHaveLength(0);
+  });
+
+  it("withdraw: leaves the waiting list at once, with its toast", async () => {
+    serveWithdraw(pending({ seatsTaken: 8 }));
+    const user = userEvent.setup();
+    await renderScreen(false, true);
+
+    await user.press(await screen.findByRole("button", { name: "Leave the waiting list" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("You left the waiting list"));
+    expect(posts()).toHaveLength(1);
+    expect(screen.queryByText("Yes, withdraw")).toBeNull();
+  });
+
+  it("withdraw: sends once on a double press", async () => {
+    let finish: (value: unknown) => void = () => undefined;
+    const user = await openSheet();
+    serveWithdraw(pending(), () => new Promise((resolve) => (finish = resolve)) as never);
+    const confirm = screen.getByRole("button", { name: "Yes, withdraw" });
+
+    await act(async () => {
+      void fireEvent.press(confirm);
+      void fireEvent.press(confirm);
+    });
+
+    await waitFor(() => expect(posts()).toHaveLength(1));
+    await act(async () => finish(ok(WITHDRAWN)));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+    expect(posts()).toHaveLength(1);
+    expect(user).toBeDefined();
+  });
+
+  it.each([
+    ["enrolment.notPending", 409, "This request is no longer pending."],
+    ["class.started", 409, "The class has already started."],
+  ])("withdraw: on %s shows its toast, closes the sheet and reloads the class", async (key, status, message) => {
+    const user = await openSheet();
+    serveWithdraw(pending(), () => refused(status, key));
+    const loadsBefore = classLoads();
+
+    await user.press(screen.getByRole("button", { name: "Yes, withdraw" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+    expect(screen.queryByRole("button", { name: "Yes, withdraw" })).toBeNull();
+    await waitFor(() => expect(classLoads()).toBeGreaterThan(loadsBefore));
+  });
+
+  it("withdraw: shows the generic toast and keeps the sheet on another failure", async () => {
+    const user = await openSheet();
+    serveWithdraw(pending(), () => refused(500, "INTERNAL_SERVER_ERROR"));
+
+    await user.press(screen.getByRole("button", { name: "Yes, withdraw" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again."));
+    expect(screen.getByRole("button", { name: "Yes, withdraw" })).toBeEnabled();
+  });
+});
+
+describe("ClassDetailsScreen enrolment status", () => {
+  const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"], overrides: Partial<ClassItem> = {}) =>
+    makeClass({
+      myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z" },
+      ...overrides,
+    });
+
+  it.each([
+    [mine("pending"), "Request pending", "Your request is waiting for the school's approval.", "bg-warn-tint"],
+    [
+      mine("pending", { seatsTaken: 8 }),
+      "You're on the waiting list",
+      "If a seat opens, your request goes to the school for approval.",
+      "bg-info-tint",
+    ],
+    [mine("withdrawn"), "Request withdrawn", "You withdrew your request for this class.", "bg-dim"],
+    [mine("expired"), "You didn't get a seat", "Your request expired without a seat opening in the class.", "bg-dim"],
+  ])("status: shows the banner of the latest enrolment: %#", async (item, title, description, tint) => {
+    fetchMock.mockResolvedValue(ok(item));
+    await renderScreen(false, true);
+
+    const banner = (await screen.findByText(title)).parent!.parent!;
+    expect(screen.getByText(description)).toBeOnTheScreen();
+    expect(banner.props.className).toContain(tint);
+    expect(screen.queryByText("Class full")).toBeNull();
+  });
+
+  it("status: keeps Class full and invites a student without an enrolment to the waiting list", async () => {
+    fetchMock.mockResolvedValue(ok(makeClass({ seatsTaken: 8 })));
+    await renderScreen(false, true);
+
+    expect(await screen.findByText("Class full")).toBeOnTheScreen();
+    expect(screen.getByText("You can join the waiting list.")).toBeOnTheScreen();
+  });
+
+  it("status: does not invite instructors and admins to the waiting list", async () => {
+    fetchMock.mockResolvedValue(ok(makeClass({ seatsTaken: 8 })));
+    await renderScreen(true, false);
+
+    expect(await screen.findByText("Class full")).toBeOnTheScreen();
+    expect(screen.queryByText("You can join the waiting list.")).toBeNull();
+  });
+
+  it("status: shows no enrolment banner on a cancelled class, only its own", async () => {
+    fetchMock.mockResolvedValue(ok(mine("pending", { cancelledAt: "2026-10-13T10:00:00.000Z" })));
+    await renderScreen(false, true);
+
+    expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
+    expect(screen.queryByText("Request pending")).toBeNull();
+  });
+
+  it.each([
+    ["started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" }],
+    ["finished", { startsAt: "2026-10-14T10:00:00.000Z", endsAt: "2026-10-14T11:00:00.000Z" }],
+  ])("status: lets the %s banner win over the pending one", async (_name, overrides) => {
+    fetchMock.mockResolvedValue(ok(mine("pending", overrides)));
+    await renderScreen(false, true);
+
+    await screen.findByText("Surf");
+    expect(screen.queryByText("Request pending")).toBeNull();
+  });
+
+  it("status: shows no banner for the statuses of the later specs", async () => {
+    fetchMock.mockResolvedValue(ok(mine("approved")));
+    await renderScreen(false, true);
+
+    await screen.findByText("16:00 – 17:30");
+    expect(screen.queryByText("Request pending")).toBeNull();
+    expect(screen.queryByText("Request withdrawn")).toBeNull();
   });
 });

@@ -8,6 +8,8 @@ export type ClassDetailsInstructor = {
 export type ClassDetailsScreenProps = {
   /** Admins only: shows the pencil that opens the class for editing (unless it has finished). */
   canEdit?: boolean;
+  /** Students only: the request button, its sheets and the banner of the viewer's own enrolment. */
+  canEnrol?: boolean;
 };
 
 export type UseClassDetailsScreenProps = Required<ClassDetailsScreenProps>;

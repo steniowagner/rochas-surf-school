@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -9,15 +8,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { DecidedList } from "@/components/decision/decided-list";
 import { DecisionCard } from "@/components/decision/decision-card";
 import { DenySheet } from "@/components/decision/deny-sheet";
 import { Button } from "@/components/ui/button";
-import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
-import type { AppLocale } from "@/i18n/locales";
-import { formatCreatedAt } from "@/utils/format-created-at";
-import { getInitials } from "@/utils/get-initials";
+import { PersonAvatar } from "@/modules/people/components/person-avatar";
+import { PersonSheet } from "@/modules/people/components/person-sheet";
 
 import { useRegistrationsScreen } from "../hooks/use-registrations-screen.hook";
 import { Registration } from "../registrations.types";
@@ -25,7 +21,7 @@ import { Registration } from "../registrations.types";
 const DENY_REASON_MAX_LENGTH = 500;
 
 export function RegistrationsScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const {
@@ -34,8 +30,11 @@ export function RegistrationsScreen() {
     isError,
     isRefreshing,
     sending,
-    decided,
     denying,
+    selected,
+    isSheetVisible,
+    openRegistration,
+    closeSheet,
     retry,
     refresh,
     approve,
@@ -44,21 +43,7 @@ export function RegistrationsScreen() {
     confirmDeny,
   } = useRegistrationsScreen();
 
-  const askedLabel = (registration: Registration) => {
-    const label = formatCreatedAt(
-      registration.createdAt,
-      new Date(),
-      i18n.language as AppLocale,
-    );
-
-    if (!label) {
-      return null;
-    }
-
-    return label.type === "now"
-      ? t("registrations.askedNow")
-      : t("registrations.asked", { time: label.text });
-  };
+  const showCount = !isLoading && !isError && registrations.length > 0;
 
   const renderEmpty = () => {
     if (isLoading) {
@@ -100,33 +85,38 @@ export function RegistrationsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-3 px-screen"
         contentContainerStyle={{
+          paddingTop: 24,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
         }
         ListHeaderComponent={
-          <View className="mb-3 items-start gap-6">
-            <ScreenIntro
-              icon={
-                <MaterialCommunityIcons
-                  name="account-check-outline"
-                  size={30}
-                  color={theme.grape}
-                />
-              }
-              title={t("registrations.title")}
-              description={t("registrations.description")}
-            />
+          <View className="mb-3 gap-2">
+            <View className="gap-1">
+              {showCount ? (
+                <Text className="ds-text-section-label text-ink-2">
+                  {t("registrations.waiting", { count: registrations.length })}
+                </Text>
+              ) : null}
+              <Text
+                accessibilityRole="header"
+                className="ds-text-screen-title text-ink"
+              >
+                {t("registrations.title")}
+              </Text>
+            </View>
+            <Text className="ds-text-body text-ink-2">
+              {t("registrations.description")}
+            </Text>
           </View>
         }
         renderItem={({ item }) => (
           <DecisionCard
             title={item.name}
-            details={[item.email, askedLabel(item)].filter(
-              (detail): detail is string => detail !== null,
-            )}
-            initials={getInitials(item.name)}
+            details={[item.email]}
+            avatar={<PersonAvatar name={item.name} />}
+            onPress={() => openRegistration(item)}
             approveLabel={t("registrations.approve")}
             denyLabel={t("registrations.deny")}
             onApprove={() => approve(item)}
@@ -136,24 +126,34 @@ export function RegistrationsScreen() {
           />
         )}
         ListEmptyComponent={<View className="py-6">{renderEmpty()}</View>}
-        ListFooterComponent={
-          <View className="mt-3">
-            <DecidedList title={t("decision.decidedJustNow")} items={decided} />
-          </View>
-        }
       />
       <DenySheet
         visible={denying !== null}
-        title={t("registrations.denySheet.title", {
-          name: denying?.name ?? "",
-        })}
-        hint={t("registrations.denySheet.hint")}
+        title={t("registrations.denySheet.title")}
+        hint={t("registrations.denySheet.hint", { name: denying?.name ?? "" })}
         label={t("registrations.denySheet.label")}
+        placeholder={t("registrations.denySheet.placeholder")}
+        backLabel={t("registrations.denySheet.back")}
         confirmLabel={t("registrations.denySheet.confirm")}
         maxLength={DENY_REASON_MAX_LENGTH}
         loading={denying !== null && denying.id in sending}
         onConfirm={confirmDeny}
         onClose={closeDeny}
+      />
+      <PersonSheet
+        // A registration is always a pending student with no WhatsApp number yet.
+        person={
+          selected && {
+            id: selected.id,
+            name: selected.name,
+            role: "student",
+            createdAt: selected.createdAt,
+            whatsappNumber: null,
+          }
+        }
+        email={selected?.email}
+        visible={isSheetVisible}
+        onClose={closeSheet}
       />
     </View>
   );

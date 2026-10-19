@@ -168,7 +168,7 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   > files: `apps/mobile/src/modules/people/components/person-sheet/person-sheet.{component.tsx,types.ts,component.test.tsx}`,
   > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/people` (56 passed);
   > deviations: none
-- [ ] **T-05** — Rework `src/modules/admin/screens/registrations.screen.tsx` and
+- [x] **T-05** — Rework `src/modules/admin/screens/registrations.screen.tsx` and
   `src/modules/admin/hooks/use-registrations-screen.hook.ts` (+ `.types.ts`) (D-02, D-06, D-07, D-08): the
   People-style list header with the `registrations.waiting` count line; `DecisionCard` with `PersonAvatar`, details
   `[email]` and `onPress` opening `PersonSheet` (selected registration kept while it slides away, as on the People
@@ -182,6 +182,13 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/admin` passes and
   `grep -rn "DecidedList\|decision\.\|registrations.asked" apps/mobile/src` finds nothing.
+  > ✅ 2026-10-19 — reworked the screen and hook (selected registration + sheet state live in the hook, per react.md),
+  > new strings in the three locales, deleted `DecidedList`; files: `apps/mobile/src/modules/admin/screens/registrations.screen.tsx`,
+  > `registrations.screen.test.tsx`, `admin.screen.test.tsx` (waits for the card to leave instead of "Approved"),
+  > `hooks/use-registrations-screen.{hook.ts,types.ts,hook.test.tsx}`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`,
+  > deleted `apps/mobile/src/components/decision/decided-list/*`; verified: `npx jest src/modules/admin` (64 passed),
+  > `npx tsc --noEmit` clean, grep finds nothing; deviations: hook gained `selected`, `isSheetVisible`, `openRegistration`,
+  > `closeSheet`; `formatCreatedAt` stays (still used by `pending`)
 
 ### Verification
 

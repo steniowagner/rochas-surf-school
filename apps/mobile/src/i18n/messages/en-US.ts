@@ -204,9 +204,9 @@ const messages = {
   },
   registrations: {
     title: "Join the school",
-    description: "People waiting for the school's approval.",
-    asked: "Asked {{time}}",
-    askedNow: "Asked just now",
+    waiting: "{{count}} waiting for approval",
+    description:
+      "New accounts can only book classes once approved. The person gets a push notification.",
     approve: "Approve",
     deny: "Deny",
     empty: "No one is waiting to join.",
@@ -214,16 +214,13 @@ const messages = {
     retry: "Try again",
     alreadyDecided: "This registration was already decided.",
     denySheet: {
-      title: "Deny {{name}}?",
-      hint: "The reason is optional and is shown to the person.",
+      title: "Deny entry?",
+      hint: "{{name}} won't join the school. You can explain why (optional) — the person gets this message.",
       label: "Reason (optional)",
-      confirm: "Deny registration",
+      placeholder: "E.g.: We have no spots for new students right now.",
+      confirm: "Deny and notify",
+      back: "Back",
     },
-  },
-  decision: {
-    decidedJustNow: "Decided just now",
-    approved: "Approved",
-    denied: "Denied",
   },
   flows: {
     onboarding: "Onboarding",
@@ -253,7 +250,8 @@ const messages = {
     theme: "Theme",
     language: "Language",
     push: "Push notifications",
-    pushNote: "Notifications always stay in the app. Here you only choose whether they also reach your phone.",
+    pushNote:
+      "Notifications always stay in the app. Here you only choose whether they also reach your phone.",
     pushDenied: "Allow notifications for the app in your phone's settings.",
     schoolRules: "School rules",
     cancellationRules: "Cancellation rules",
@@ -274,10 +272,14 @@ const messages = {
     },
     screen: {
       title: "Cancellation rules",
-      intro: "There's one rule for each discipline. The app reads the rule with the class details — never the students' — and works out until when each class can be cancelled.",
-      tipTime: "Give exact deadlines in hours before the class starts — nothing like \"at the last minute\".",
-      tipAmbiguity: "Avoid ambiguity: if a person would hesitate reading it, the app will too.",
-      placeholder: "E.g.: Students can cancel without penalty up to 12 hours before the class starts…",
+      intro:
+        "There's one rule for each discipline. The app reads the rule with the class details — never the students' — and works out until when each class can be cancelled.",
+      tipTime:
+        'Give exact deadlines in hours before the class starts — nothing like "at the last minute".',
+      tipAmbiguity:
+        "Avoid ambiguity: if a person would hesitate reading it, the app will too.",
+      placeholder:
+        "E.g.: Students can cancel without penalty up to 12 hours before the class starts…",
       note: {
         unsaved: "Unsaved changes",
         inForce: "Current rule for {{discipline}}",
@@ -359,7 +361,8 @@ const messages = {
     cancellationDeadline: "Cancel until {{when}}",
     noDeadline: {
       title: "No cancellation deadline",
-      description: "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",
+      description:
+        "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",
     },
     tools: "Class tools",
   },
@@ -373,7 +376,8 @@ const messages = {
   },
   profileWhatsapp: {
     title: "WhatsApp",
-    description: "Admins always see your number. Choose whether students and instructors can see it too.",
+    description:
+      "Admins always see your number. Choose whether students and instructors can see it too.",
     save: "Save",
   },
   schoolRulesScreen: {
@@ -388,7 +392,8 @@ const messages = {
   },
   about: {
     version: "Version {{version}}",
-    description: "A personal project to take class booking out of WhatsApp groups: the week's schedule, seat requests and notices in one place.",
+    description:
+      "A personal project to take class booking out of WhatsApp groups: the week's schedule, seat requests and notices in one place.",
     creatorRole: "Design and development",
     repository: "App repository",
     creatorGithub: "Creator's GitHub",
@@ -414,7 +419,8 @@ const messages = {
   },
   deleteAccountSheet: {
     title: "Remove your account?",
-    description: "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",
+    description:
+      "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",
     confirm: "Remove account",
     cancel: "Cancel",
   },
@@ -473,7 +479,8 @@ const messages = {
     notes: {
       label: "Notes",
       optional: "optional",
-      placeholder: "E.g. Meet in front of the lifeguard tower. Bring sunscreen.",
+      placeholder:
+        "E.g. Meet in front of the lifeguard tower. Bring sunscreen.",
     },
     instructors: {
       label: "Instructors",
@@ -501,7 +508,8 @@ const messages = {
   },
   cancelClass: {
     title: "Cancel this class?",
-    description: "We'll notify the class's instructors. It stays on the schedule, marked as cancelled.",
+    description:
+      "We'll notify the class's instructors. It stays on the schedule, marked as cancelled.",
     messageLabel: "Message (optional)",
     messagePlaceholder: "E.g.: Waves too big. Moved to Saturday, same time.",
     confirm: "Cancel and notify",
@@ -514,11 +522,13 @@ const messages = {
   },
   deleteClass: {
     title: "Delete this class?",
-    description: "The instructors are notified and the class leaves the schedule. This can't be undone.",
+    description:
+      "The instructors are notified and the class leaves the schedule. This can't be undone.",
     confirm: "Delete class",
     notEmpty: {
       title: "Can't delete",
-      description: "Someone has already asked for a seat or holds one in this class. Only classes with nobody can be deleted — cancel it instead.",
+      description:
+        "Someone has already asked for a seat or holds one in this class. Only classes with nobody can be deleted — cancel it instead.",
     },
     done: "Class deleted",
     errors: {
@@ -558,7 +568,8 @@ const messages = {
   },
   timeRangeSheet: {
     title: "New time",
-    description: "Set the start and end time. It's for this batch only — it isn't kept as a suggestion.",
+    description:
+      "Set the start and end time. It's for this batch only — it isn't kept as a suggestion.",
     start: "Start",
     end: "End",
     endBeforeStart: "The end must be after the start.",
@@ -566,7 +577,8 @@ const messages = {
   },
   locationSheet: {
     title: "New location",
-    description: "Students see the name and the address, and get directions to the point on the map.",
+    description:
+      "Students see the name and the address, and get directions to the point on the map.",
     name: "Name",
     namePlaceholder: "E.g. Praia do Futuro",
     address: "Address",
@@ -574,7 +586,8 @@ const messages = {
     duplicate: "A location with this name already exists.",
     submit: "Save location",
     editTitle: "Edit location",
-    editDescription: "Changes also apply to the classes that already use this location.",
+    editDescription:
+      "Changes also apply to the classes that already use this location.",
     addressSearchPlaceholder: "Search for an address or a beach",
     point: "Point on the map",
     pointHintEmpty: "Tap the map to mark the point",
@@ -598,7 +611,8 @@ const messages = {
     title: "Remove location?",
     description: "It no longer shows up for new classes.",
     kept_one: "The class that already uses this location stays as it is.",
-    kept_other: "The {{count}} classes that already use this location stay as they are.",
+    kept_other:
+      "The {{count}} classes that already use this location stay as they are.",
     confirm: "Remove location",
     keep: "Keep",
     removed: "{{name}} removed",

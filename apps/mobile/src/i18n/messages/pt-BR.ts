@@ -204,9 +204,9 @@ const messages: Messages = {
   },
   registrations: {
     title: "Entrar na escola",
-    description: "Pessoas esperando a aprovação da escola.",
-    asked: "Pediu {{time}}",
-    askedNow: "Pediu agora",
+    waiting: "{{count}} esperando aprovação",
+    description:
+      "Contas novas só podem marcar aulas depois de aprovadas. A pessoa recebe uma notificação push.",
     approve: "Aprovar",
     deny: "Recusar",
     empty: "Ninguém esperando para entrar.",
@@ -214,16 +214,13 @@ const messages: Messages = {
     retry: "Tentar novamente",
     alreadyDecided: "Este cadastro já foi decidido.",
     denySheet: {
-      title: "Recusar {{name}}?",
-      hint: "O motivo é opcional e será mostrado para a pessoa.",
+      title: "Recusar entrada?",
+      hint: "{{name}} não vai entrar na escola. Você pode explicar o motivo (opcional) — a pessoa recebe esta mensagem.",
       label: "Motivo (opcional)",
-      confirm: "Recusar cadastro",
+      placeholder: "Ex.: No momento não temos vagas para novos alunos.",
+      confirm: "Recusar e avisar",
+      back: "Voltar",
     },
-  },
-  decision: {
-    decidedJustNow: "Decididos agora",
-    approved: "Aprovado",
-    denied: "Recusado",
   },
   flows: {
     onboarding: "Primeiros passos",
@@ -253,7 +250,8 @@ const messages: Messages = {
     theme: "Tema",
     language: "Idioma",
     push: "Notificações push",
-    pushNote: "Os avisos ficam sempre no app. Aqui você só escolhe se eles também chegam ao seu celular.",
+    pushNote:
+      "Os avisos ficam sempre no app. Aqui você só escolhe se eles também chegam ao seu celular.",
     pushDenied: "Permita as notificações do app nos ajustes do celular.",
     schoolRules: "Regras da escola",
     cancellationRules: "Regras de cancelamento",
@@ -274,10 +272,14 @@ const messages: Messages = {
     },
     screen: {
       title: "Regras de cancelamento",
-      intro: "Há uma regra para cada modalidade. O app lê a regra com os dados da aula — nunca os dos alunos — e calcula até quando cada aula pode ser cancelada.",
-      tipTime: "Indique prazos exatos em horas antes do início da aula — nada de \"em cima da hora\".",
-      tipAmbiguity: "Evite ambiguidade: se uma pessoa hesitar ao ler, o app também vai hesitar.",
-      placeholder: "Ex.: O aluno pode cancelar sem penalidade até 12 horas antes do início da aula…",
+      intro:
+        "Há uma regra para cada modalidade. O app lê a regra com os dados da aula — nunca os dos alunos — e calcula até quando cada aula pode ser cancelada.",
+      tipTime:
+        'Indique prazos exatos em horas antes do início da aula — nada de "em cima da hora".',
+      tipAmbiguity:
+        "Evite ambiguidade: se uma pessoa hesitar ao ler, o app também vai hesitar.",
+      placeholder:
+        "Ex.: O aluno pode cancelar sem penalidade até 12 horas antes do início da aula…",
       note: {
         unsaved: "Alterações não salvas",
         inForce: "Regra de {{discipline}} em vigor",
@@ -359,7 +361,8 @@ const messages: Messages = {
     cancellationDeadline: "Cancelamento até {{when}}",
     noDeadline: {
       title: "Sem prazo de cancelamento",
-      description: "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",
+      description:
+        "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",
     },
     tools: "Ferramentas da aula",
   },
@@ -373,7 +376,8 @@ const messages: Messages = {
   },
   profileWhatsapp: {
     title: "WhatsApp",
-    description: "Os admins sempre veem seu número. Escolha se alunos e instrutores também podem ver.",
+    description:
+      "Os admins sempre veem seu número. Escolha se alunos e instrutores também podem ver.",
     save: "Salvar",
   },
   schoolRulesScreen: {
@@ -388,7 +392,8 @@ const messages: Messages = {
   },
   about: {
     version: "Versão {{version}}",
-    description: "Projeto pessoal para tirar a marcação de aulas dos grupos de WhatsApp: agenda da semana, pedidos de vaga e avisos num só lugar.",
+    description:
+      "Projeto pessoal para tirar a marcação de aulas dos grupos de WhatsApp: agenda da semana, pedidos de vaga e avisos num só lugar.",
     creatorRole: "Design e desenvolvimento",
     repository: "Repositório do app",
     creatorGithub: "GitHub do criador",
@@ -414,7 +419,8 @@ const messages: Messages = {
   },
   deleteAccountSheet: {
     title: "Remover a conta?",
-    description: "Sua conta é encerrada agora e suas vagas e pedidos futuros são cancelados. Você pode pedir a reativação em até 30 dias.",
+    description:
+      "Sua conta é encerrada agora e suas vagas e pedidos futuros são cancelados. Você pode pedir a reativação em até 30 dias.",
     confirm: "Remover a conta",
     cancel: "Cancelar",
   },
@@ -473,7 +479,8 @@ const messages: Messages = {
     notes: {
       label: "Notas",
       optional: "opcional",
-      placeholder: "Ex.: Ponto de encontro em frente à barraca do salva-vidas. Traga protetor solar.",
+      placeholder:
+        "Ex.: Ponto de encontro em frente à barraca do salva-vidas. Traga protetor solar.",
     },
     instructors: {
       label: "Instrutores",
@@ -501,9 +508,11 @@ const messages: Messages = {
   },
   cancelClass: {
     title: "Cancelar esta aula?",
-    description: "Avisamos os instrutores da aula. Ela continua na agenda, marcada como cancelada.",
+    description:
+      "Avisamos os instrutores da aula. Ela continua na agenda, marcada como cancelada.",
     messageLabel: "Mensagem (opcional)",
-    messagePlaceholder: "Ex.: Mar muito grande. Remarcamos para sábado no mesmo horário.",
+    messagePlaceholder:
+      "Ex.: Mar muito grande. Remarcamos para sábado no mesmo horário.",
     confirm: "Cancelar e avisar",
     keep: "Manter aula",
     done: "Aula cancelada",
@@ -514,11 +523,13 @@ const messages: Messages = {
   },
   deleteClass: {
     title: "Excluir esta aula?",
-    description: "Os instrutores são avisados e a aula sai da agenda. Não dá para desfazer.",
+    description:
+      "Os instrutores são avisados e a aula sai da agenda. Não dá para desfazer.",
     confirm: "Excluir aula",
     notEmpty: {
       title: "Não dá para excluir",
-      description: "Alguém já pediu vaga ou está inscrito nesta aula. Só dá para excluir aulas sem ninguém — cancele-a em vez disso.",
+      description:
+        "Alguém já pediu vaga ou está inscrito nesta aula. Só dá para excluir aulas sem ninguém — cancele-a em vez disso.",
     },
     done: "Aula excluída",
     errors: {
@@ -553,12 +564,14 @@ const messages: Messages = {
       started: "A aula já começou: só dá para trocar os instrutores.",
       finished: "Esta aula já terminou e não pode mais ser alterada.",
       cancelled: "Esta aula foi cancelada e não pode mais ser alterada.",
-      seatsTaken: "A lotação não pode ficar abaixo das {{count}} vagas ocupadas.",
+      seatsTaken:
+        "A lotação não pode ficar abaixo das {{count}} vagas ocupadas.",
     },
   },
   timeRangeSheet: {
     title: "Novo horário",
-    description: "Defina a hora de início e de fim. Vale só para este lote — não fica nas sugestões.",
+    description:
+      "Defina a hora de início e de fim. Vale só para este lote — não fica nas sugestões.",
     start: "Início",
     end: "Fim",
     endBeforeStart: "O fim precisa ser depois do início.",
@@ -566,7 +579,8 @@ const messages: Messages = {
   },
   locationSheet: {
     title: "Novo local",
-    description: "Os alunos veem o nome e o endereço e recebem direções para o ponto no mapa.",
+    description:
+      "Os alunos veem o nome e o endereço e recebem direções para o ponto no mapa.",
     name: "Nome",
     namePlaceholder: "Ex.: Praia do Futuro",
     address: "Endereço",
@@ -574,7 +588,8 @@ const messages: Messages = {
     duplicate: "Já existe um local com este nome.",
     submit: "Salvar local",
     editTitle: "Editar local",
-    editDescription: "As alterações valem também para as aulas que já usam este local.",
+    editDescription:
+      "As alterações valem também para as aulas que já usam este local.",
     addressSearchPlaceholder: "Busque um endereço ou uma praia",
     point: "Ponto no mapa",
     pointHintEmpty: "Toque no mapa para marcar o ponto",
@@ -598,7 +613,8 @@ const messages: Messages = {
     title: "Remover local?",
     description: "Ele deixa de aparecer para novas aulas.",
     kept_one: "A aula que já usa este local continua como está.",
-    kept_other: "As {{count}} aulas que já usam este local continuam como estão.",
+    kept_other:
+      "As {{count}} aulas que já usam este local continuam como estão.",
     confirm: "Remover local",
     keep: "Manter",
     removed: "{{name}} removido",

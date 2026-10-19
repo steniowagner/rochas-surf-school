@@ -118,8 +118,16 @@ async function renderScreen() {
   return { ...view, queryClient };
 }
 
-const cardOf = (name: string) =>
-  screen.getByText(name).parent!.parent!.parent!.parent!;
+// The card is the closest ancestor of the name that holds its three buttons (the row, Deny and Approve).
+const cardOf = (name: string) => {
+  let node = screen.getByText(name);
+
+  while (node.parent && within(node).queryAllByRole("button").length < 3) {
+    node = node.parent;
+  }
+
+  return node;
+};
 
 beforeEach(() => {
   jest.useFakeTimers({
@@ -157,17 +165,20 @@ afterEach(() => {
 });
 
 describe("RegistrationsScreen list", () => {
-  it("shows the title, the description and one card per registration, oldest first", async () => {
+  it("shows the count, the title, the description and one card per registration, oldest first", async () => {
     serve([BRUNO, ANA]);
     await renderScreen();
 
     await screen.findByText("Bruno Lima");
 
+    expect(screen.getByText("2 waiting for approval")).toBeOnTheScreen();
     expect(
       screen.getByRole("header", { name: "Join the school" }),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText("People waiting for the school's approval."),
+      screen.getByText(
+        "New accounts can only book classes once approved. The person gets a push notification.",
+      ),
     ).toBeOnTheScreen();
     const names = screen
       .getAllByText(/^(Ana Souza|Bruno Lima)$/)
@@ -177,29 +188,11 @@ describe("RegistrationsScreen list", () => {
     const bruno = within(cardOf("Bruno Lima"));
     expect(bruno.getByText("BL")).toBeOnTheScreen();
     expect(bruno.getByText("bruno@example.com")).toBeOnTheScreen();
-    expect(bruno.getByText("Asked 2 Oct")).toBeOnTheScreen();
     expect(bruno.getByRole("button", { name: "Deny" })).toBeOnTheScreen();
     expect(bruno.getByRole("button", { name: "Approve" })).toBeOnTheScreen();
-
-    const ana = within(cardOf("Ana Souza"));
-    expect(ana.getByText("AS")).toBeOnTheScreen();
-    expect(ana.getByText("Asked 2 hours ago")).toBeOnTheScreen();
-  });
-
-  it("shows 'Asked just now' for a registration under a minute old", async () => {
-    serve([{ ...ANA, createdAt: "2026-10-12T11:59:40.000Z" }]);
-    await renderScreen();
-
-    expect(await screen.findByText("Asked just now")).toBeOnTheScreen();
-  });
-
-  it("leaves out the 'Asked' line when the date is unreadable", async () => {
-    serve([{ ...ANA, createdAt: "not a date" }]);
-    await renderScreen();
-
-    await screen.findByText("ana@example.com");
-
     expect(screen.queryByText(/^Asked/)).toBeNull();
+
+    expect(within(cardOf("Ana Souza")).getByText("AS")).toBeOnTheScreen();
   });
 
   it("shows one initial for a one-word name", async () => {
@@ -217,6 +210,7 @@ describe("RegistrationsScreen list", () => {
 
     expect(screen.getByTestId("registrations-loading")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
+    expect(screen.queryByText(/waiting for approval/)).toBeNull();
   });
 
   it("says no one is waiting when the list is empty", async () => {
@@ -226,6 +220,7 @@ describe("RegistrationsScreen list", () => {
     expect(
       await screen.findByText("No one is waiting to join."),
     ).toBeOnTheScreen();
+    expect(screen.queryByText(/waiting for approval/)).toBeNull();
   });
 
   it("shows the error and loads again on 'Try again'", async () => {
@@ -242,6 +237,15 @@ describe("RegistrationsScreen list", () => {
 
     expect(await screen.findByText("Ana Souza")).toBeOnTheScreen();
     expect(screen.queryByText("Couldn't load the registrations.")).toBeNull();
+  });
+
+  it("hides the count on a load error", async () => {
+    fetchMock.mockResolvedValue(answer(500, { errors: [] })());
+    await renderScreen();
+
+    await screen.findByText("Couldn't load the registrations.");
+
+    expect(screen.queryByText(/waiting for approval/)).toBeNull();
   });
 
   it("insets its list below the header, whatever the header is", async () => {
@@ -272,7 +276,7 @@ describe("RegistrationsScreen list", () => {
 });
 
 describe("RegistrationsScreen approve", () => {
-  it("sends the approval, disables that card meanwhile, then moves the person to 'Decided just now'", async () => {
+  it("sends the approval, disables that card meanwhile, then removes the card and lowers the count", async () => {
     const user = userEvent.setup();
     let release!: () => void;
     const gate = new Promise<void>((resolve) => {
@@ -304,7 +308,7 @@ describe("RegistrationsScreen approve", () => {
         .disabled,
     ).toBe(true);
     await user.press(ana.getByRole("button", { name: "Deny" }));
-    expect(screen.queryByText("Deny Ana Souza?")).toBeNull();
+    expect(screen.queryByText("Deny entry?")).toBeNull();
     expect(
       within(cardOf("Bruno Lima")).getByRole("button", { name: "Approve" })
         .props.accessibilityState.disabled,
@@ -315,13 +319,12 @@ describe("RegistrationsScreen approve", () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByText("Decided just now")).toBeOnTheScreen(),
+      expect(screen.getByText("1 waiting for approval")).toBeOnTheScreen(),
     );
     expect(state.items).toEqual([BRUNO]);
     expect(posts()).toHaveLength(1);
-    expect(screen.getByText("Approved")).toBeOnTheScreen();
-    expect(within(cardOf("Bruno Lima")).queryByText("Ana Souza")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Approve" })).not.toBeNull();
+    expect(screen.queryByText("Ana Souza")).toBeNull();
+    expect(screen.queryByText("Approved")).toBeNull();
     expect(mockShow).not.toHaveBeenCalled();
   });
 
@@ -347,7 +350,6 @@ describe("RegistrationsScreen approve", () => {
       screen.getByRole("button", { name: "Approve" }).props.accessibilityState
         .disabled,
     ).toBe(false);
-    expect(screen.queryByText("Decided just now")).toBeNull();
   });
 
   it("shows the generic toast and keeps the card on any other error", async () => {
@@ -368,7 +370,6 @@ describe("RegistrationsScreen approve", () => {
       ),
     );
     expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
-    expect(screen.queryByText("Decided just now")).toBeNull();
   });
 });
 
@@ -402,12 +403,12 @@ describe("RegistrationsScreen deny", () => {
       release();
     });
 
-    await screen.findByText("Approved");
-    expect(screen.getByText("Deny Bruno Lima?")).toBeOnTheScreen();
+    await waitFor(() => expect(screen.queryByText("Ana Souza")).toBeNull());
+    expect(screen.getByText(/^Bruno Lima won't join/)).toBeOnTheScreen();
     expect(screen.getByText("3/500")).toBeOnTheScreen();
   });
 
-  it("opens the sheet, sends the typed reason and moves the person to 'Decided just now'", async () => {
+  it("opens the sheet, sends the typed reason and removes the card", async () => {
     const user = userEvent.setup();
     const state = serve([ANA]);
     await renderScreen();
@@ -415,30 +416,37 @@ describe("RegistrationsScreen deny", () => {
 
     await user.press(screen.getByRole("button", { name: "Deny" }));
 
-    expect(screen.getByText("Deny Ana Souza?")).toBeOnTheScreen();
+    expect(screen.getByText("Deny entry?")).toBeOnTheScreen();
     expect(
-      screen.getByText("The reason is optional and is shown to the person."),
+      screen.getByText(
+        "Ana Souza won't join the school. You can explain why (optional) — the person gets this message.",
+      ),
     ).toBeOnTheScreen();
-    expect(screen.getByText("Reason (optional)")).toBeOnTheScreen();
+    expect(
+      screen.getByPlaceholderText(
+        "E.g.: We have no spots for new students right now.",
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText("Reason (optional)")).toBeNull();
+    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
     expect(screen.getByText("0/500")).toBeOnTheScreen();
 
     await user.type(
       screen.getByLabelText("Reason (optional)"),
       "Não conhecemos você.",
     );
-    await user.press(screen.getByRole("button", { name: "Deny registration" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
 
-    await waitFor(() =>
-      expect(screen.queryByText("Deny Ana Souza?")).toBeNull(),
-    );
+    await waitFor(() => expect(screen.queryByText("Deny entry?")).toBeNull());
     expect(posts()[0][0]).toBe("http://api.test/registrations/ana-id/deny");
     expect(JSON.parse(posts()[0][1].body)).toEqual({
       reason: "Não conhecemos você.",
     });
     expect(state.items).toEqual([]);
-    expect(await screen.findByText("Denied")).toBeOnTheScreen();
-    expect(screen.getByText("Decided just now")).toBeOnTheScreen();
-    expect(screen.getByText("No one is waiting to join.")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("No one is waiting to join."),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText("Denied")).toBeNull();
   });
 
   it("denies with no reason when the field is empty", async () => {
@@ -448,11 +456,13 @@ describe("RegistrationsScreen deny", () => {
     await screen.findByText("Ana Souza");
 
     await user.press(screen.getByRole("button", { name: "Deny" }));
-    await user.press(screen.getByRole("button", { name: "Deny registration" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
 
     await waitFor(() => expect(posts()).toHaveLength(1));
     expect(JSON.parse(posts()[0][1].body)).toEqual({});
-    expect(await screen.findByText("Denied")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("No one is waiting to join."),
+    ).toBeOnTheScreen();
   });
 
   it("sends nothing when the sheet is closed, and opens empty the next time", async () => {
@@ -465,7 +475,25 @@ describe("RegistrationsScreen deny", () => {
     await user.type(screen.getByLabelText("Reason (optional)"), "x");
     await user.press(screen.getByLabelText("backdrop"));
 
-    expect(screen.queryByText("Deny Ana Souza?")).toBeNull();
+    expect(screen.queryByText("Deny entry?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+    expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+    expect(screen.getByText("0/500")).toBeOnTheScreen();
+  });
+
+  it("closes the sheet with 'Back', sending nothing", async () => {
+    const user = userEvent.setup();
+    serve([ANA]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+    await user.type(screen.getByLabelText("Reason (optional)"), "x");
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(screen.queryByText("Deny entry?")).toBeNull();
     expect(posts()).toHaveLength(0);
     expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
 
@@ -483,16 +511,15 @@ describe("RegistrationsScreen deny", () => {
 
     await user.press(screen.getByRole("button", { name: "Deny" }));
     await user.type(screen.getByLabelText("Reason (optional)"), "abc");
-    await user.press(screen.getByRole("button", { name: "Deny registration" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
         i18n.t("createAccount.errors.generic"),
       ),
     );
-    expect(screen.getByText("Deny Ana Souza?")).toBeOnTheScreen();
+    expect(screen.getByText("Deny entry?")).toBeOnTheScreen();
     expect(screen.getByText("3/500")).toBeOnTheScreen();
-    expect(screen.queryByText("Decided just now")).toBeNull();
   });
 
   it("shows the no-connection toast and keeps the sheet when offline", async () => {
@@ -506,19 +533,19 @@ describe("RegistrationsScreen deny", () => {
     await screen.findByText("Ana Souza");
 
     await user.press(screen.getByRole("button", { name: "Deny" }));
-    await user.press(screen.getByRole("button", { name: "Deny registration" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
         i18n.t("createAccount.errors.noConnection"),
       ),
     );
-    expect(screen.getByText("Deny Ana Souza?")).toBeOnTheScreen();
+    expect(screen.getByText("Deny entry?")).toBeOnTheScreen();
   });
 });
 
 describe("RegistrationsScreen already decided", () => {
-  it("toasts, refetches the list and adds nothing to 'Decided just now' on approve", async () => {
+  it("toasts, refetches the list and removes the card on approve", async () => {
     const user = userEvent.setup();
     const state = serve([ANA, BRUNO], {
       "POST /registrations/ana-id/approve": answer(409, {
@@ -540,7 +567,6 @@ describe("RegistrationsScreen already decided", () => {
     );
     await waitFor(() => expect(screen.queryByText("Ana Souza")).toBeNull());
     expect(screen.getByText("Bruno Lima")).toBeOnTheScreen();
-    expect(screen.queryByText("Decided just now")).toBeNull();
   });
 
   it("closes the sheet on a denial that was already decided", async () => {
@@ -555,66 +581,51 @@ describe("RegistrationsScreen already decided", () => {
     state.items = [];
 
     await user.press(screen.getByRole("button", { name: "Deny" }));
-    await user.press(screen.getByRole("button", { name: "Deny registration" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
         "This registration was already decided.",
       ),
     );
-    expect(screen.queryByText("Deny Ana Souza?")).toBeNull();
+    expect(screen.queryByText("Deny entry?")).toBeNull();
     await waitFor(() => expect(screen.queryByText("Ana Souza")).toBeNull());
-    expect(screen.queryByText("Decided just now")).toBeNull();
   });
 });
 
-describe("RegistrationsScreen decided just now", () => {
-  it("is hidden at first, lists the newest decision first and keeps its entries on refresh", async () => {
-    const user = userEvent.setup();
-    serve([BRUNO, ANA]);
-    await renderScreen();
-    await screen.findByText("Ana Souza");
-    expect(screen.queryByText("Decided just now")).toBeNull();
-
-    await user.press(
-      within(cardOf("Ana Souza")).getByRole("button", { name: "Approve" }),
-    );
-    await screen.findByText("Approved");
-    await user.press(screen.getByRole("button", { name: "Deny" }));
-    await user.press(screen.getByRole("button", { name: "Deny registration" }));
-    await screen.findByText("Denied");
-
-    expect(screen.getByText("Decided just now")).toBeOnTheScreen();
-    const decided = screen
-      .getAllByText(/^(Ana Souza|Bruno Lima)$/)
-      .map((node) => node.props.children);
-    expect(decided).toEqual(["Bruno Lima", "Ana Souza"]);
-    expect(screen.getByText("No one is waiting to join.")).toBeOnTheScreen();
-
-    await act(async () => {
-      await screen
-        .getByTestId("registrations-list")
-        .props.refreshControl.props.onRefresh();
-    });
-
-    expect(screen.getByText("Decided just now")).toBeOnTheScreen();
-    expect(screen.getByText("Approved")).toBeOnTheScreen();
-    expect(screen.getByText("Denied")).toBeOnTheScreen();
-  });
-
-  it("is empty again when the screen is opened anew", async () => {
+describe("RegistrationsScreen detail sheet", () => {
+  it("opens with the name, the Student chip and the email, no WhatsApp, and closes with Close", async () => {
     const user = userEvent.setup();
     serve([ANA]);
-    const first = await renderScreen();
-    await screen.findByText("Ana Souza");
-    await user.press(screen.getByRole("button", { name: "Approve" }));
-    await screen.findByText("Approved");
-    await first.unmount();
-
-    serve([BRUNO]);
     await renderScreen();
-    await screen.findByText("Bruno Lima");
+    await screen.findByText("Ana Souza");
 
-    expect(screen.queryByText("Decided just now")).toBeNull();
+    await user.press(screen.getByRole("button", { name: "Ana Souza" }));
+
+    expect(screen.getByText("Student")).toBeOnTheScreen();
+    // Once on the card, once in the sheet.
+    expect(screen.getAllByText("ana@example.com")).toHaveLength(2);
+    expect(screen.getByText("Email")).toBeOnTheScreen();
+    expect(screen.queryByText("Chat on WhatsApp")).toBeNull();
+    expect(screen.queryByText("Number not shared.")).toBeNull();
+
+    await user.press(screen.getByRole("button", { name: "Close" }));
+
+    expect(screen.queryByText("Student")).toBeNull();
+  });
+
+  it("is not opened by the Deny and Approve buttons", async () => {
+    const user = userEvent.setup();
+    serve([ANA]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+    expect(screen.queryByText("Student")).toBeNull();
+    await user.press(screen.getByRole("button", { name: "Back" }));
+    await user.press(screen.getByRole("button", { name: "Approve" }));
+
+    await waitFor(() => expect(posts()).toHaveLength(1));
+    expect(screen.queryByText("Student")).toBeNull();
   });
 });

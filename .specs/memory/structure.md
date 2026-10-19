@@ -134,7 +134,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
     cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
     (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider}.ts`
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
     when asked), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
@@ -142,9 +142,11 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `TeacherLookup.findTeachers`; `ClassAssignmentNotifier.classAssigned` / `classUnassigned`;
     `ClassChangeNotifier.classEdited` / `classCancelled` / `classDeleted`;
     `NoInstructorNotifier.classesWithoutInstructor`; `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model
-    with the location and the instructors' names),
+    with the location and the instructors' names; `ClassRosterReader.findRosters` → `ClassRoster` per class id, the
+    seats taken and the approved students, with `CLASS_CARD_STUDENTS_LIMIT`),
     `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines}.usecase.ts`, and
-    `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share). Fakes of every port and entity
+    `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken and
+    the students). Fakes of every port and entity
     factories are in `test/mock/`.
 
 ## `apps/backend` (NestJS — adapters)
@@ -269,6 +271,8 @@ src/
     classes.teaching-releaser.ts  # ClassesTeachingReleaser: auth's TeachingReleaser, running
                                 # ReleaseUpcomingClasses (errors propagate)
     no-enrolment.seat-counter.ts  # NoEnrolmentSeatCounter (SeatCounter answering 0 until enrolment)
+    no-enrolment.class-roster.reader.ts  # NoEnrolmentClassRosterReader (ClassRosterReader: no seats taken and no
+                                # students until enrolment)
     no-enrolment.pending-request-counter.ts  # NoEnrolmentPendingRequestCounter (PendingRequestCounter answering 0
                                 # until enrolment)
     teacher-lookup.prisma.ts    # PrismaTeacherLookup (id, role and status of the given users)
@@ -410,7 +414,9 @@ src/
                                 # states, pull-to-refresh, the admin's entry points, refetching invalidated weeks
                                 # on focus); the Agenda and Aulas tabs
     screens/class-details.screen.tsx  # ClassDetailsScreen + hook (one class by the route's id, banners — the
-                                # cancelled one with its message —, "Você", the admin's tools button with canEdit,
+                                # cancelled one with its message, "Turma cheia" —, the "A aula" group, the
+                                # instructors' read-only note, the "Regras" rows and the cancellation rules
+                                # sheet, the admin's tools button with canEdit,
                                 # the tools, cancel and delete sheets, the cancel and delete requests and their
                                 # errors)
     screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
@@ -424,7 +430,9 @@ src/
                                 # location-picker (with the "Gerir" mode), location-sheet ("Novo local" / "Editar
                                 # local"), address-search-field (Endereço and its suggestions), location-map-picker
                                 # (the sheet's map), archive-location-sheet ("Remover local?"), location-map-preview
-                                # (the details' map and "Direções"), capacity-stepper, instructor-picker, class-card,
+                                # (the details' map and "Direções"), capacity-stepper, instructor-picker, class-card
+                                # (occupancy bar, "Sem vagas", students footer), class-people (the details' "A aula":
+                                # instructors, students and the free seats), student-avatar (photo or initials),
                                 # class-tools-sheet (the admin's edit / notify / cancel / delete tools of one
                                 # class), cancel-class-sheet (the cancel confirmation with its optional message),
                                 # delete-class-sheet (the delete confirmation and its "can't delete" variant)
@@ -451,7 +459,8 @@ src/
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
                                 # key, for Nova aula, Editar aula, the cancel and the delete sheets),
                                 # locations-cache.ts (add, replace, remove), map.ts (Fortaleza, regions, the
-                                # provider per platform, directions URL), session-token.ts (UUID v4 per sheet)
+                                # provider per platform, directions URL), session-token.ts (UUID v4 per sheet),
+                                # occupancy.ts (percent, tone, full, free and hidden seats, the students label)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
@@ -495,7 +504,8 @@ src/
     screens/                    # profile.screen.tsx (rendered by every (tabs)/profile.tsx), edit-profile.screen.tsx,
                                 # profile-whatsapp.screen.tsx
     components/                 # profile (rows, sheets and their state), profile-header (avatar, name, role chip),
-                                # profile-avatar (initials; camera button on Edit profile), profile-card, profile-row,
+                                # profile-avatar (initials; camera button on Edit profile), profile-card, profile-row
+                                # (also used by the class details' "Regras"; valueBelow stacks the value),
                                 # edit-profile, profile-whatsapp, sign-out-sheet, delete-account-sheet, about-sheet
     hooks/                      # use-update-name (PUT /auth/me/name), use-delete-account (DELETE /auth/me, then
                                 # sign-out), use-open-url (in-app browser, toast on failure)

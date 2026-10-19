@@ -95,6 +95,10 @@ export const typography = {
   listSubtitle: { font: 'body', weight: 400, size: 11.5, lineHeight: 1.4, letterSpacing: 0, uppercase: false },
   sectionLabel: { font: 'body', weight: 800, size: 11, lineHeight: 1.4, letterSpacing: 0.1, uppercase: true },
   button: { font: 'display', weight: 700, size: 18, lineHeight: 1.2, letterSpacing: 0.03, uppercase: true },
+  // The location pill and the occupancy line of a class card (AGENDA-01).
+  cardMeta: { font: 'body', weight: 400, size: 12.5, lineHeight: 1.3, letterSpacing: 0, uppercase: false },
+  // The "N/M spots" line under the time of a class card.
+  occupancy: { font: 'body', weight: 800, size: 11, lineHeight: 1.4, letterSpacing: 0, uppercase: false },
   chip: { font: 'body', weight: 800, size: 10.5, lineHeight: 1.3, letterSpacing: 0.07, uppercase: true },
   // The pill that switches the week and month calendar (AGENDA-01 / 01A).
   pill: { font: 'body', weight: 800, size: 12.5, lineHeight: 1.3, letterSpacing: 0.06, uppercase: true },

@@ -16,9 +16,13 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
+import { ProfileCard } from "@/modules/profile/components/profile-card";
+import { ProfileRow } from "@/modules/profile/components/profile-row";
 import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
+import { ClassPeople } from "../components/class-people";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
 import { DeleteClassSheet } from "../components/delete-class-sheet";
 import { LocationMapPreview } from "../components/location-map-preview";
@@ -192,6 +196,14 @@ export function ClassDetailsScreen({
                 </View>
               </View>
             ) : null}
+            {screen.showFullBanner ? (
+              <View className="flex-row items-center gap-3 rounded-card bg-bad-tint p-4">
+                <Ionicons name="people-outline" size={24} color={theme.bad} />
+                <Text className="ds-text-list-title flex-1 text-ink">
+                  {t("classDetails.full.title")}
+                </Text>
+              </View>
+            ) : null}
             {screen.state === "finished" ? (
               <View className="gap-1 rounded-card bg-dim p-4">
                 <Text className="ds-text-list-title text-ink">
@@ -202,43 +214,50 @@ export function ClassDetailsScreen({
                 </Text>
               </View>
             ) : null}
-            <View className="gap-2">
-              <Text className="ds-text-section-label text-ink-2">
-                {t("classDetails.instructor", {
-                  count: screen.instructors.length,
-                })}
-              </Text>
-              {screen.instructors.length === 0 ? (
-                <Text className="ds-text-body text-ink-2">
-                  {t("classDetails.noInstructorAssigned")}
+            <ClassPeople
+              instructors={screen.instructors}
+              students={item.students}
+              seatsTaken={item.seatsTaken}
+              capacity={item.capacity}
+              state={screen.peopleState}
+            />
+            {screen.readOnlyNoteKey ? (
+              <View className="flex-row items-center gap-3 rounded-card bg-dim p-4">
+                <Ionicons name="eye-outline" size={20} color={theme.ink2} />
+                <Text className="ds-text-list-subtitle flex-1 text-ink-2">
+                  {t(screen.readOnlyNoteKey)}
                 </Text>
-              ) : null}
-              <View className="flex-row flex-wrap gap-2">
-                {screen.instructors.map((instructor) => (
-                  <View
-                    key={instructor.id}
-                    className="flex-row items-center gap-2 rounded-full border border-line bg-surface py-1.5 pl-1.5 pr-3"
-                  >
-                    <View className="h-8 w-8 items-center justify-center rounded-full bg-sand">
-                      <Text className="ds-text-chip text-ink">
-                        {instructor.initials}
-                      </Text>
-                    </View>
-                    <Text className="ds-text-list-title text-ink">
-                      {instructor.isViewer
-                        ? t("classDetails.you")
-                        : instructor.name}
-                    </Text>
-                  </View>
-                ))}
               </View>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="people-outline" size={18} color={theme.ink2} />
-              <Text className="ds-text-body text-ink">
-                {t("classDetails.capacity", { count: item.capacity })}
-              </Text>
-            </View>
+            ) : null}
+            {screen.showRules ? (
+              <View className="gap-2">
+                <Text className="ds-text-section-label text-ink-2">
+                  {t("classDetails.rules.title")}
+                </Text>
+                <ProfileCard>
+                  <ProfileRow
+                    icon="document-text-outline"
+                    label={t("classDetails.rules.cancellation", {
+                      discipline: t(`newClass.discipline.${item.discipline}`),
+                    })}
+                    value={
+                      screen.cancellationDeadline
+                        ? t("classDetails.cancellationDeadline", {
+                            when: screen.cancellationDeadline,
+                          })
+                        : t("classDetails.rules.read")
+                    }
+                    valueBelow
+                    onPress={screen.openRules}
+                  />
+                  <ProfileRow
+                    icon="shield-outline"
+                    label={t("classDetails.rules.school")}
+                    onPress={screen.openSchoolRules}
+                  />
+                </ProfileCard>
+              </View>
+            ) : null}
             {item.notes ? (
               <View className="gap-2">
                 <Text className="ds-text-section-label text-ink-2">
@@ -284,6 +303,10 @@ export function ClassDetailsScreen({
         onConfirm={screen.remove}
         onCancelInstead={screen.cancelInstead}
         onClose={screen.closeDelete}
+      />
+      <CancellationRulesSheet
+        visible={screen.rulesVisible}
+        onClose={screen.closeRules}
       />
       <CancelClassSheet
         visible={screen.cancelVisible}

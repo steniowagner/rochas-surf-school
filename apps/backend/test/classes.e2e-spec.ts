@@ -623,6 +623,8 @@ describe('Classes (e2e)', () => {
           { id: ana.id, name: 'ana' },
           { id: bruno.id, name: 'Bruno' },
         ],
+        seatsTaken: 0,
+        students: [],
       });
       expect(items[0]!.notes).toBeNull();
       expect(items[0]!.instructors).toEqual([]);
@@ -694,6 +696,8 @@ describe('Classes (e2e)', () => {
         notes: null,
         location: { id: locationId, address: 'Av. Beira Mar' },
         instructors: [{ id: instructor.id, name: 'Person instructor' }],
+        seatsTaken: 0,
+        students: [],
       });
       expect(list.body.items.filter((item: { id: string }) => item.id === id)).toEqual([response.body]);
     });
@@ -1119,6 +1123,8 @@ describe('Classes (e2e)', () => {
         notes: 'Bring water',
         location: { id: otherLocation.id },
         instructors: [{ id: instructor.id, name: 'Person instructor' }],
+        seatsTaken: 0,
+        students: [],
       });
       const read = await as(admin.accessToken, http().get(`/classes/${id}`));
       expect(read.body).toEqual(response.body);
@@ -1504,6 +1510,8 @@ describe('Classes (e2e)', () => {
         id,
         cancelledAt: NOW.toISOString(),
         cancellationMessage: 'Mar muito grande.',
+        seatsTaken: 0,
+        students: [],
       });
       const read = await as(student.accessToken, http().get(`/classes/${id}`));
       expect(read.body).toEqual(response.body);

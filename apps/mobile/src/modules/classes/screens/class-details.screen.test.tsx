@@ -24,6 +24,7 @@ import {
   glyph,
   ok,
   setupSignedInUser,
+  signInAs,
 } from "../classes.test-utils";
 
 import { ClassDetailsScreen } from "./class-details.screen";
@@ -37,12 +38,17 @@ jest.mock("@/providers/alert-message", () => ({
 // The global sheet mock always renders its content; this one renders it only while visible.
 jest.mock("@/components/ui/bottom-modal", () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
-  const { View } = require("react-native");
+  const { Pressable, View } = require("react-native");
   /* eslint-enable @typescript-eslint/no-require-imports */
 
   return {
-    BottomModal: ({ visible, children }: any) =>
-      visible ? <View>{children}</View> : null,
+    BottomModal: ({ visible, onClose, children }: any) =>
+      visible ? (
+        <View>
+          <Pressable accessibilityLabel="Dismiss sheet" onPress={onClose} />
+          {children}
+        </View>
+      ) : null,
   };
 });
 
@@ -93,6 +99,8 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
     { id: "u-1", name: "Ana Souza" },
     { id: "i-2", name: "Bruno Lima" },
   ],
+  seatsTaken: 0,
+  students: [],
   ...overrides,
 });
 
@@ -168,7 +176,7 @@ describe("ClassDetailsScreen", () => {
     expect(screen.getByText("AS")).toBeOnTheScreen();
     expect(screen.getByText("BL")).toBeOnTheScreen();
     expect(screen.getByText("Bruno Lima")).toBeOnTheScreen();
-    expect(screen.getByText("Max. 8 students")).toBeOnTheScreen();
+    expect(screen.getByText("Max. 8 students · 8 spots left")).toBeOnTheScreen();
     expect(screen.getByText("Notes")).toBeOnTheScreen();
     expect(
       screen.getByText("Ponto de encontro na barraca 3."),
@@ -222,7 +230,7 @@ describe("ClassDetailsScreen", () => {
     expect(await screen.findByText("You")).toBeOnTheScreen();
     expect(screen.queryByText("Ana Souza")).not.toBeOnTheScreen();
     expect(screen.getByText("Instructor")).toBeOnTheScreen();
-    expect(screen.getByText("Max. 1 student")).toBeOnTheScreen();
+    expect(screen.getByText("Max. 1 student · 1 spot left")).toBeOnTheScreen();
   });
 
   it("writes the date relative to today", async () => {
@@ -321,6 +329,125 @@ describe("ClassDetailsScreen", () => {
     });
   });
 
+  describe("A aula", () => {
+    const students = (count: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        id: `s-${index}`,
+        name: `Aluno ${index}`,
+        photoUrl: null,
+      }));
+
+    it("groups the instructors, the students and the free seats under The class", async () => {
+      serve(makeClass({ seatsTaken: 3, students: students(3) }));
+      await renderScreen();
+
+      expect(await screen.findByText("The class")).toBeOnTheScreen();
+      expect(screen.getByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.getByText("3 students confirmed")).toBeOnTheScreen();
+      expect(screen.getAllByLabelText(/^Aluno/)).toHaveLength(3);
+      expect(screen.getByText("Max. 8 students · 5 spots left")).toBeOnTheScreen();
+    });
+
+    it("reads No students yet and does not expand for a class without students", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByText("No students yet"));
+
+      expect(screen.getByRole("button", { name: /No students yet/ })).toBeDisabled();
+      expect(screen.queryByText(glyph("chevron-down"))).not.toBeOnTheScreen();
+    });
+
+    it("shows 5 avatars and +N, and opens the list of every student when the row is pressed", async () => {
+      const user = userEvent.setup();
+      serve(makeClass({ seatsTaken: 7, students: students(7) }));
+      await renderScreen();
+
+      expect(await screen.findByText("+2")).toBeOnTheScreen();
+      expect(screen.getAllByLabelText(/^Aluno/)).toHaveLength(5);
+      expect(screen.queryByText("Aluno 6")).not.toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /7 students confirmed/ }));
+
+      expect(screen.getByText("Aluno 6")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("chevron-up"))).toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /7 students confirmed/ }));
+
+      expect(screen.queryByText("Aluno 6")).not.toBeOnTheScreen();
+    });
+
+    it("does not mark the viewer in the list of students", async () => {
+      const user = userEvent.setup();
+      serve(
+        makeClass({
+          seatsTaken: 1,
+          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null }],
+          instructors: [{ id: "i-2", name: "Bruno Lima" }],
+        }),
+      );
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: /1 student confirmed/ }));
+
+      expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+      expect(screen.queryByText("You")).not.toBeOnTheScreen();
+    });
+
+    it("says sold out in red when the class is full, and counts one spot left in the singular", async () => {
+      serve(makeClass({ seatsTaken: 8 }));
+      await renderScreen();
+      expect(await screen.findByText("Max. 8 students · sold out")).toBeOnTheScreen();
+      expect(screen.getByText("Max. 8 students · sold out").props.className).toContain("text-bad");
+
+      serve(makeClass({ seatsTaken: 7 }));
+      await renderScreen();
+      expect(await screen.findByText("Max. 8 students · 1 spot left")).toBeOnTheScreen();
+    });
+
+    it("reads students present after the end and hides the Max. line when finished or cancelled", async () => {
+      serve(makeClass({ startsAt: "2026-10-14T10:00:00.000Z", endsAt: "2026-10-14T11:00:00.000Z", seatsTaken: 2, students: students(2) }));
+      await renderScreen();
+      expect(await screen.findByText("2 students present")).toBeOnTheScreen();
+      expect(screen.queryByText(/^Max\./)).not.toBeOnTheScreen();
+
+      serve(makeClass({ cancelledAt: "2026-10-13T10:00:00.000Z" }));
+      await renderScreen();
+      await screen.findByText("Class cancelled");
+      expect(screen.queryByText(/^Max\./)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe("full class banner", () => {
+    it("shows Class full for a class to come with every seat taken", async () => {
+      serve(makeClass({ seatsTaken: 8 }));
+      await renderScreen();
+
+      expect(await screen.findByText("Class full")).toBeOnTheScreen();
+    });
+
+    it("shows nothing for a class with a free seat", async () => {
+      serve(makeClass({ seatsTaken: 7 }));
+      await renderScreen();
+
+      await screen.findByText("The class");
+      expect(screen.queryByText("Class full")).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ["started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T14:00:00.000Z" }],
+      ["finished", { startsAt: "2026-10-14T10:00:00.000Z", endsAt: "2026-10-14T11:00:00.000Z" }],
+      ["cancelled", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
+    ])("shows nothing for a %s class", async (_label, overrides) => {
+      serve(makeClass({ seatsTaken: 8, ...overrides }));
+      await renderScreen();
+
+      await screen.findByText("The class");
+      expect(screen.queryByText("Class full")).not.toBeOnTheScreen();
+    });
+  });
+
   describe("no instructor", () => {
     const alone = (overrides: Partial<ClassItem> = {}) =>
       makeClass({ instructors: [], ...overrides });
@@ -382,7 +509,8 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen();
 
-      expect(await screen.findByText("Cancelamento até seg, 19 out · 20:00")).toBeOnTheScreen();
+      // Once under the date and once as the value of the cancellation row.
+      expect(await screen.findAllByText("Cancelamento até seg, 19 out · 20:00")).toHaveLength(2);
       expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
     });
 
@@ -390,14 +518,16 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen(true);
 
-      expect(await screen.findByText("Cancel until Mon, 19 Oct · 20:00")).toBeOnTheScreen();
+      // Once under the date and once as the value of the cancellation row.
+      expect(await screen.findAllByText("Cancel until Mon, 19 Oct · 20:00")).toHaveLength(2);
     });
 
     it("uses Fortaleza's time whatever the phone's time zone", async () => {
       serve(makeClass({ cancellationDeadline: "2026-10-14T02:30:00.000Z" }));
       await renderScreen();
 
-      expect(await screen.findByText("Cancel until Tue, 13 Oct · 23:30")).toBeOnTheScreen();
+      // Once under the date and once as the value of the cancellation row.
+      expect(await screen.findAllByText("Cancel until Tue, 13 Oct · 23:30")).toHaveLength(2);
     });
 
     it("shows no line without a deadline", async () => {
@@ -761,6 +891,119 @@ describe("ClassDetailsScreen", () => {
       ).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
       expect(headerOptions().headerRight).toBeUndefined();
+    });
+  });
+
+  describe("rules", () => {
+    beforeEach(() => (router.push as jest.Mock).mockReset());
+
+    it("shows the cancellation row with its deadline and the school rules row", async () => {
+      serve(makeClass({ cancellationDeadline: "2026-10-13T20:00:00.000Z" }));
+      await renderScreen();
+
+      expect(await screen.findByText("Rules")).toBeOnTheScreen();
+      expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
+      expect(screen.getAllByText(/^Cancel until /)).toHaveLength(2);
+      expect(screen.getByText("School rules")).toBeOnTheScreen();
+    });
+
+    it("names skate and reads Read the rule when the class has no deadline", async () => {
+      serve(makeClass({ discipline: "skate", cancellationDeadline: null }));
+      await renderScreen();
+
+      expect(await screen.findByText("Cancellation · Skate")).toBeOnTheScreen();
+      expect(screen.getByText("Read the rule")).toBeOnTheScreen();
+    });
+
+    it("opens the cancellation rules sheet from the cancellation row", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen();
+
+      expect(screen.queryByText("Cancellation rules")).not.toBeOnTheScreen();
+      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+
+      expect(await screen.findByText("Cancellation rules")).toBeOnTheScreen();
+    });
+
+    it("closes the cancellation rules sheet", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+      await screen.findByText("Cancellation rules");
+      await user.press(screen.getByLabelText("Dismiss sheet"));
+
+      expect(screen.queryByText("Cancellation rules")).not.toBeOnTheScreen();
+    });
+
+    it("opens the student school rules when the role is unknown", async () => {
+      const user = userEvent.setup();
+      signInAs(undefined as never);
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: "School rules" }));
+
+      expect(router.push).toHaveBeenCalledWith(routes.student.schoolRules);
+    });
+
+    it.each([
+      ["student", routes.student.schoolRules],
+      ["instructor", routes.instructor.schoolRules],
+      ["admin", routes.admin.schoolRules],
+    ] as const)("opens the school rules of the %s flow", async (role, route) => {
+      const user = userEvent.setup();
+      signInAs(role);
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: "School rules" }));
+
+      expect(router.push).toHaveBeenCalledWith(route);
+    });
+
+    it("is hidden for a cancelled class", async () => {
+      serve(makeClass({ cancelledAt: "2026-10-13T10:00:00.000Z" }));
+      await renderScreen();
+
+      await screen.findByText("Class cancelled");
+      expect(screen.queryByText("Rules")).not.toBeOnTheScreen();
+      expect(screen.queryByText("School rules")).not.toBeOnTheScreen();
+    });
+  });
+
+  describe("read-only note", () => {
+    const TEACHES = "Enrolments, cancellations and schedule changes are made by the school";
+    const NOT_ASSIGNED = "You aren't assigned to this class — you see everything in read-only mode";
+
+    it("tells an instructor who teaches the class that the school handles the changes", async () => {
+      signInAs("instructor", "u-1");
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(TEACHES)).toBeOnTheScreen();
+      expect(screen.queryByText(NOT_ASSIGNED)).not.toBeOnTheScreen();
+    });
+
+    it("tells an instructor who does not teach the class that they see it read-only", async () => {
+      signInAs("instructor", "someone-else");
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(NOT_ASSIGNED)).toBeOnTheScreen();
+      expect(screen.queryByText(TEACHES)).not.toBeOnTheScreen();
+    });
+
+    it.each(["student", "admin"] as const)("shows a %s no note", async (role) => {
+      signInAs(role);
+      serve(makeClass());
+      await renderScreen();
+
+      await screen.findByText("The class");
+      expect(screen.queryByText(TEACHES)).not.toBeOnTheScreen();
+      expect(screen.queryByText(NOT_ASSIGNED)).not.toBeOnTheScreen();
     });
   });
 

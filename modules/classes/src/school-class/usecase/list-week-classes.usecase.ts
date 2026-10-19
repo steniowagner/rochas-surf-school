@@ -7,7 +7,11 @@ import {
 } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanReadClasses } from "../../access";
 import { CLASS_TIME_ZONE, isValidIsoDate } from "../model";
-import { ClassViewReader } from "../provider";
+import {
+  CLASS_CARD_STUDENTS_LIMIT,
+  ClassRosterReader,
+  ClassViewReader,
+} from "../provider";
 import { ClassItem, toClassItem } from "./class-item";
 
 export interface ListWeekClassesIn {
@@ -24,7 +28,10 @@ export interface ListWeekClassesOut {
 export class ListWeekClasses
   implements UseCase<ListWeekClassesIn, ListWeekClassesOut>
 {
-  constructor(private readonly classViewReader: ClassViewReader) {}
+  constructor(
+    private readonly classViewReader: ClassViewReader,
+    private readonly classRosterReader: ClassRosterReader,
+  ) {}
 
   async execute(input: ListWeekClassesIn): Promise<ListWeekClassesOut> {
     assertCanReadClasses(input.actor);
@@ -45,6 +52,11 @@ export class ListWeekClasses
       new Date(nextMonday.getTime()),
     );
 
+    const rosters = await this.classRosterReader.findRosters(
+      views.map((view) => view.id),
+      CLASS_CARD_STUDENTS_LIMIT,
+    );
+
     return {
       weekStart: format(monday, "yyyy-MM-dd", { in: zone }),
       items: [...views]
@@ -54,7 +66,7 @@ export class ListWeekClasses
             a.endsAt.getTime() - b.endsAt.getTime() ||
             a.id.localeCompare(b.id),
         )
-        .map(toClassItem),
+        .map((view) => toClassItem(view, rosters.get(view.id))),
     };
   }
 }

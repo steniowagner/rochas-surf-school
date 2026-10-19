@@ -10,6 +10,7 @@ import { ClassesController } from './classes.controller.js';
 import { ClassesTeachingReleaser } from './classes.teaching-releaser.js';
 import { GooglePlacesAddressSuggestionProvider } from './google-places.address-suggestions.js';
 import { PrismaLocationRepository } from './location.prisma.js';
+import { NoEnrolmentClassRosterReader } from './no-enrolment.class-roster.reader.js';
 import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { LocationsController } from './locations.controller.js';
@@ -25,6 +26,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
     CancellationDeadlineJob,
     ClassesTeachingReleaser,
     GooglePlacesAddressSuggestionProvider,
+    NoEnrolmentClassRosterReader,
     NoEnrolmentPendingRequestCounter,
     NoEnrolmentSeatCounter,
     PrismaCancellationRuleRepository,

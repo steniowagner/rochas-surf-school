@@ -138,6 +138,14 @@ export type ClassInstructor = {
   name: string;
 };
 
+/** An approved student of a class. */
+export type ClassStudent = {
+  id: string;
+  name: string;
+  /** `null` until profile photos can be uploaded. */
+  photoUrl: string | null;
+};
+
 /** A class as `GET /classes` and `GET /classes/:id` answer it; dates are ISO 8601 UTC. */
 export type ClassItem = {
   id: string;
@@ -155,6 +163,10 @@ export type ClassItem = {
   cancellationDeadline: string | null;
   location: ClassItemLocation;
   instructors: ClassInstructor[];
+  /** All the seats taken: approved students plus guests. */
+  seatsTaken: number;
+  /** The approved students: the first 4 in the week list, all of them in the class itself. */
+  students: ClassStudent[];
 };
 
 /** The answer of `GET /classes?date=`: `weekStart` is the Monday, `YYYY-MM-DD`. */

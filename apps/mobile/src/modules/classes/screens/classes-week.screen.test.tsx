@@ -60,6 +60,8 @@ const makeClass = (
     longitude: -38.4617,
   },
   instructors: [{ id: "i-1", name: "Ana" }],
+  seatsTaken: 0,
+  students: [],
   ...overrides,
 });
 
@@ -495,19 +497,20 @@ describe("ClassesWeekScreen no instructor", () => {
     instructors: [],
   });
 
-  it("shows the no instructor chip and footer to admins (showFlags)", async () => {
+  it("shows the no instructor chip to admins (showFlags)", async () => {
     serveWeeks({ [THIS_MONDAY]: [ALONE] });
     await renderScreen({ showFlags: true });
 
-    expect(await screen.findAllByText("No instructor")).toHaveLength(2);
+    expect(await screen.findAllByText("No instructor")).toHaveLength(1);
     expect(screen.getByText(glyph("person-remove-outline"))).toBeOnTheScreen();
   });
 
-  it("shows only the footer text without showFlags", async () => {
+  it("shows nothing about it without showFlags", async () => {
     serveWeeks({ [THIS_MONDAY]: [ALONE] });
     await renderScreen();
 
-    expect(await screen.findAllByText("No instructor")).toHaveLength(1);
+    expect(await screen.findByText("No students yet")).toBeOnTheScreen();
+    expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
     expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
   });
 });

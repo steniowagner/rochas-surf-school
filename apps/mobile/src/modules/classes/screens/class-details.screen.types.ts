@@ -1,8 +1,6 @@
 export type ClassDetailsInstructor = {
   id: string;
   name: string;
-  /** Up to two letters, for the avatar. */
-  initials: string;
   /** The signed-in viewer teaches the class: shown as "You". */
   isViewer: boolean;
 };
@@ -15,3 +13,6 @@ export type ClassDetailsScreenProps = {
 export type UseClassDetailsScreenProps = Required<ClassDetailsScreenProps>;
 
 export type DeleteSheetVariant = "confirm" | "notEmpty";
+
+/** The flows that open a class: each has its own school rules screen. */
+export type ClassDetailsRole = "student" | "instructor" | "admin";

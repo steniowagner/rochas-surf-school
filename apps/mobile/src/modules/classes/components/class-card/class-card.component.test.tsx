@@ -24,6 +24,8 @@ const item = (overrides: Partial<ClassItem> = {}): ClassItem => ({
     longitude: -38.4617,
   },
   instructors: [{ id: "i-1", name: "Ana" }],
+  seatsTaken: 0,
+  students: [],
   ...overrides,
 });
 
@@ -33,14 +35,14 @@ const DURING = at("2026-10-14T13:15:00.000Z");
 const AFTER = at("2026-10-14T15:00:00.000Z");
 
 describe("ClassCard", () => {
-  it("shows the chips, the time range, the location and the instructor", async () => {
+  it("shows the chips, the time range and the location, but not the instructors", async () => {
     await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
 
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(screen.getByText("Beginner")).toBeOnTheScreen();
     expect(screen.getByText("10:00 – 11:30")).toBeOnTheScreen();
     expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
-    expect(screen.getByText("Ana")).toBeOnTheScreen();
+    expect(screen.queryByText("Ana")).not.toBeOnTheScreen();
   });
 
   it("shows the skate chip for skate", async () => {
@@ -112,7 +114,7 @@ describe("ClassCard", () => {
       const card = screen.getByRole("button");
       expect(card.props.className).toContain("border-line");
       expect(card.props.className).not.toContain("border-sun");
-      expect(card.props.className).not.toContain("opacity-60");
+      expect(card.props.className).not.toContain("opacity-[.55]");
     });
 
     it("keeps the look of a class that was never cancelled", async () => {
@@ -120,50 +122,71 @@ describe("ClassCard", () => {
 
       expect(screen.queryByText("Cancelled")).not.toBeOnTheScreen();
       expect(screen.getByText("10:00 – 11:30").props.className).not.toContain("line-through");
-      expect(screen.getByRole("button").props.className).toContain("opacity-60");
+      expect(screen.getByRole("button").props.className).toContain("opacity-[.55]");
     });
   });
 
-  it("joins two instructors and counts the rest", async () => {
-    const instructors = ["Ana", "Bruno", "Carla"].map((name, index) => ({
-      id: `i-${index}`,
-      name,
-    }));
-    await render(<ClassCard item={item({ instructors })} now={BEFORE} onPress={jest.fn()} />);
+  describe("look", () => {
+    it("draws the card shadow and the line border on an upcoming class", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
 
-    expect(screen.getByText("Ana · Bruno +1")).toBeOnTheScreen();
-  });
+      const card = screen.getByRole("button");
+      expect(card.props.className).toContain("border-line");
+      expect(card.props.className).not.toContain("opacity-");
+      expect(card.props.style).toEqual(expect.objectContaining({ boxShadow: expect.stringContaining("px") }));
+    });
 
-  it("shows two instructors without a counter", async () => {
-    const instructors = ["Ana", "Bruno"].map((name, index) => ({ id: `i-${index}`, name }));
-    await render(<ClassCard item={item({ instructors })} now={BEFORE} onPress={jest.fn()} />);
+    it("draws the sun border and a different shadow while in progress", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+      const upcomingShadow = screen.getByRole("button").props.style;
 
-    expect(screen.getByText("Ana · Bruno")).toBeOnTheScreen();
+      await render(<ClassCard item={item()} now={DURING} onPress={jest.fn()} />);
+
+      const card = screen.getByRole("button");
+      expect(card.props.className).toContain("border-sun");
+      expect(card.props.style).not.toEqual(upcomingShadow);
+    });
+
+    it("fades a cancelled class less than a finished one", async () => {
+      await render(
+        <ClassCard
+          item={item({ cancelledAt: "2026-10-13T10:00:00.000Z" })}
+          now={BEFORE}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByRole("button").props.className).toContain("opacity-[.78]");
+    });
+
+    it("puts the location in a pill with the card-meta type and a line border", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.getByText("Praia do Futuro").props.className).toContain("ds-text-card-meta");
+    });
   });
 
   describe("no instructor", () => {
     const alone = (overrides: Partial<ClassItem> = {}) => item({ instructors: [], ...overrides });
 
-    it("shows No instructor in the footer, in the secondary ink, for every role", async () => {
+    it("shows nothing about it to students and instructors", async () => {
       await render(<ClassCard item={alone()} now={BEFORE} onPress={jest.fn()} />);
 
-      expect(screen.queryByText("Ana")).not.toBeOnTheScreen();
-      expect(screen.getAllByText("No instructor")).toHaveLength(1);
-      expect(screen.getByText("No instructor").props.className).toContain("text-ink-2");
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
       expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
     });
 
     it("adds the warn chip for admins (showFlags) on a class that hasn't started", async () => {
       await render(<ClassCard item={alone()} now={BEFORE} onPress={jest.fn()} showFlags />);
 
-      expect(screen.getAllByText("No instructor")).toHaveLength(2);
+      expect(screen.getAllByText("No instructor")).toHaveLength(1);
       expect(screen.getByText(glyph("person-remove-outline"))).toBeOnTheScreen();
     });
 
     it("drops the chip once the class has started or is cancelled", async () => {
       await render(<ClassCard item={alone()} now={DURING} onPress={jest.fn()} showFlags />);
       expect(screen.getByText("In progress")).toBeOnTheScreen();
-      expect(screen.getAllByText("No instructor")).toHaveLength(1);
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
 
       await render(
         <ClassCard
@@ -174,11 +197,11 @@ describe("ClassCard", () => {
         />,
       );
       expect(screen.getByText("Cancelled")).toBeOnTheScreen();
-      expect(screen.getAllByText("No instructor")).toHaveLength(1);
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
       expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
     });
 
-    it("shows neither for a class with an instructor", async () => {
+    it("shows no chip for a class with an instructor", async () => {
       await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} showFlags />);
 
       expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
@@ -226,11 +249,140 @@ describe("ClassCard", () => {
         <ClassCard item={unset({ instructors: [] })} now={BEFORE} onPress={jest.fn()} showFlags />,
       );
 
-      // The two chips, one above the other, then the footer's own "No instructor".
       const chips = screen
         .getAllByText(/^(No instructor|No deadline)$/)
         .map((node) => node.props.children);
-      expect(chips).toEqual(["No instructor", "No deadline", "No instructor"]);
+      expect(chips).toEqual(["No instructor", "No deadline"]);
+    });
+  });
+
+  describe("occupancy", () => {
+    const fillOf = () => screen.getByTestId("occupancy-fill");
+
+    it("shows an empty track and 0/M spots for a class without seats taken", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.getByText("0/8 spots")).toBeOnTheScreen();
+      expect(fillOf().props.style).toEqual(expect.objectContaining({ width: "0%" }));
+    });
+
+    it("fills round(N/M) percent of the track, in the lagoon colour for surf and tan for skate", async () => {
+      await render(<ClassCard item={item({ seatsTaken: 3 })} now={BEFORE} onPress={jest.fn()} />);
+      expect(fillOf().props.style).toEqual(expect.objectContaining({ width: "38%" }));
+      expect(fillOf().props.className).toContain("bg-lagoon");
+      expect(screen.getByText("3/8 spots").props.className).toContain("text-ink-2");
+
+      await render(
+        <ClassCard item={item({ discipline: "skate", seatsTaken: 3 })} now={BEFORE} onPress={jest.fn()} />,
+      );
+      expect(fillOf().props.className).toContain("bg-tan");
+    });
+
+    it("turns the fill sun above 80 percent", async () => {
+      await render(<ClassCard item={item({ seatsTaken: 7 })} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(fillOf().props.className).toContain("bg-sun");
+      expect(screen.queryByText("Full")).not.toBeOnTheScreen();
+    });
+
+    it("turns the fill and the text bad, and adds the Full chip, for a full class", async () => {
+      await render(<ClassCard item={item({ seatsTaken: 8 })} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(fillOf().props.className).toContain("bg-bad");
+      expect(fillOf().props.style).toEqual(expect.objectContaining({ width: "100%" }));
+      expect(screen.getByText("8/8 spots").props.className).toContain("text-bad");
+      expect(screen.getByText("Full")).toBeOnTheScreen();
+    });
+
+    it("keeps the bar but lets the In progress chip win over Full", async () => {
+      await render(<ClassCard item={item({ seatsTaken: 8 })} now={DURING} onPress={jest.fn()} />);
+
+      expect(screen.getByText("In progress")).toBeOnTheScreen();
+      expect(screen.queryByText("Full")).not.toBeOnTheScreen();
+      expect(screen.getByText("8/8 spots")).toBeOnTheScreen();
+    });
+  });
+
+  describe("students footer", () => {
+    const students = (count: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        id: `s-${index}`,
+        name: `Aluno ${index}`,
+        photoUrl: null,
+      }));
+
+    it("reads No students yet, without avatars, for a class without seats taken", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.getByText("No students yet")).toBeOnTheScreen();
+      expect(screen.queryByLabelText(/^Aluno/)).not.toBeOnTheScreen();
+    });
+
+    it("reads 1 student confirmed with one avatar", async () => {
+      await render(
+        <ClassCard item={item({ seatsTaken: 1, students: students(1) })} now={BEFORE} onPress={jest.fn()} />,
+      );
+
+      expect(screen.getByText("1 student confirmed")).toBeOnTheScreen();
+      expect(screen.getByLabelText("Aluno 0")).toBeOnTheScreen();
+      expect(screen.queryByText("+0")).not.toBeOnTheScreen();
+    });
+
+    it("shows 4 avatars and +N for the other seats taken", async () => {
+      await render(
+        <ClassCard item={item({ seatsTaken: 7, students: students(4) })} now={BEFORE} onPress={jest.fn()} />,
+      );
+
+      expect(screen.getByText("7 students confirmed")).toBeOnTheScreen();
+      expect(screen.getAllByLabelText(/^Aluno/)).toHaveLength(4);
+      expect(screen.getByText("+3")).toBeOnTheScreen();
+    });
+
+    it("never draws more than 4 avatars", async () => {
+      await render(
+        <ClassCard item={item({ seatsTaken: 6, students: students(6) })} now={BEFORE} onPress={jest.fn()} />,
+      );
+
+      expect(screen.getAllByLabelText(/^Aluno/)).toHaveLength(4);
+      expect(screen.getByText("+2")).toBeOnTheScreen();
+    });
+  });
+
+  describe("finished", () => {
+    it("hides the bar and reads N students present", async () => {
+      await render(<ClassCard item={item({ seatsTaken: 5 })} now={AFTER} onPress={jest.fn()} />);
+
+      expect(screen.queryByTestId("occupancy-fill")).not.toBeOnTheScreen();
+      expect(screen.queryByText("5/8 spots")).not.toBeOnTheScreen();
+      expect(screen.getByText("5 students present")).toBeOnTheScreen();
+    });
+
+    it("reads 1 student present, and No students yet for none", async () => {
+      await render(<ClassCard item={item({ seatsTaken: 1 })} now={AFTER} onPress={jest.fn()} />);
+      expect(screen.getByText("1 student present")).toBeOnTheScreen();
+
+      await render(<ClassCard item={item()} now={AFTER} onPress={jest.fn()} />);
+      expect(screen.getByText("No students yet")).toBeOnTheScreen();
+    });
+  });
+
+  describe("cancelled", () => {
+    const gone = (overrides: Partial<ClassItem> = {}) =>
+      item({ cancelledAt: "2026-10-13T10:00:00.000Z", seatsTaken: 5, ...overrides });
+
+    it("shows neither the bar nor the footer", async () => {
+      await render(<ClassCard item={gone()} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.queryByTestId("occupancy-fill")).not.toBeOnTheScreen();
+      expect(screen.queryByText("5 students confirmed")).not.toBeOnTheScreen();
+      expect(screen.queryByText("No students yet")).not.toBeOnTheScreen();
+    });
+
+    it("counts a class past its end and cancelled as cancelled", async () => {
+      await render(<ClassCard item={gone()} now={AFTER} onPress={jest.fn()} />);
+
+      expect(screen.queryByText("5 students present")).not.toBeOnTheScreen();
+      expect(screen.getByText("Cancelled")).toBeOnTheScreen();
     });
   });
 

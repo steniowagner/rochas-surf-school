@@ -8,7 +8,6 @@ import { useAlertMessage } from "@/providers/alert-message";
 import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
 import { getDateLocale } from "@/utils/calendar-dates";
-import { getInitials } from "@/utils/get-initials";
 
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
@@ -25,10 +24,12 @@ import {
   isClassStartedError,
 } from "../utils/class-error";
 import { toMapPoint } from "../utils/map";
+import { isClassFull } from "../utils/occupancy";
 import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../utils/week";
 
 import type {
   ClassDetailsInstructor,
+  ClassDetailsRole,
   DeleteSheetVariant,
   UseClassDetailsScreenProps,
 } from "./class-details.screen.types";
@@ -53,11 +54,11 @@ export const useClassDetailsScreen = ({
   const [deleteVariant, setDeleteVariant] =
     useState<DeleteSheetVariant>("confirm");
   const deleting = useRef(false);
+  const [rulesVisible, setRulesVisible] = useState(false);
 
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
     (instructor) => ({
       ...instructor,
-      initials: getInitials(instructor.name),
       isViewer: instructor.id === user?.id,
     }),
   );
@@ -174,11 +175,16 @@ export const useClassDetailsScreen = ({
     locationPoint: item ? toMapPoint(item.location) : null,
     instructors,
     cancellationDeadline,
+    // Every seat is taken and the class is still to come; the started and cancelled banners come first.
+    showFullBanner:
+      item !== undefined && state === "not-started" && isClassFull(item.seatsTaken, item.capacity),
     timeRange: `${start} – ${end}`,
     start,
     end,
     dateLine,
     state,
+    // The state the people group draws with; nothing is drawn while the class isn't loaded.
+    peopleState: state ?? ("not-started" as const),
     // A finished or cancelled class can't change, and nothing is shown for one that isn't loaded.
     showTools:
       canEdit &&
@@ -197,6 +203,21 @@ export const useClassDetailsScreen = ({
       state !== null &&
       isWithoutDeadline(item.cancellationDeadline, state),
     openCancellationRules: () => router.push(routes.admin.cancellationRules),
+    // Instructors only read: the note says whether the class is theirs. Nobody else gets it.
+    readOnlyNoteKey:
+      user?.role !== "instructor" || item === undefined
+        ? null
+        : instructors.some((instructor) => instructor.isViewer)
+          ? ("classDetails.readOnly.teaches" as const)
+          : ("classDetails.readOnly.notAssigned" as const),
+    // A cancelled class has nothing left to cancel.
+    showRules: state !== null && state !== "cancelled",
+    rulesVisible,
+    openRules: () => setRulesVisible(true),
+    closeRules: () => setRulesVisible(false),
+    // Everyone reads the school rules in their own flow.
+    openSchoolRules: () =>
+      router.push(routes[(user?.role ?? "student") as ClassDetailsRole].schoolRules),
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),

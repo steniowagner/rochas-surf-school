@@ -1,6 +1,6 @@
 import { NotFoundError, UseCase, UuidRule } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanReadClasses } from "../../access";
-import { ClassViewReader } from "../provider";
+import { ClassRosterReader, ClassViewReader } from "../provider";
 import { ClassItem, toClassItem } from "./class-item";
 
 export interface GetClassIn {
@@ -13,7 +13,10 @@ export type GetClassOut = ClassItem;
 const uuidRule = new UuidRule();
 
 export class GetClass implements UseCase<GetClassIn, GetClassOut> {
-  constructor(private readonly classViewReader: ClassViewReader) {}
+  constructor(
+    private readonly classViewReader: ClassViewReader,
+    private readonly classRosterReader: ClassRosterReader,
+  ) {}
 
   async execute(input: GetClassIn): Promise<GetClassOut> {
     assertCanReadClasses(input.actor);
@@ -27,6 +30,8 @@ export class GetClass implements UseCase<GetClassIn, GetClassOut> {
       throw new NotFoundError("class.notFound");
     }
 
-    return toClassItem(view);
+    const rosters = await this.classRosterReader.findRosters([view.id]);
+
+    return toClassItem(view, rosters.get(view.id));
   }
 }

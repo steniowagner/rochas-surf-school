@@ -219,7 +219,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   is generated and committed (`check-types` fails when it is stale). Among the type styles, the week and month
   calendar (spec 031) uses `pill` (`ds-text-pill`, Nunito 12.5, 800, uppercase: the pill's caption),
   `calendarDay` (`ds-text-calendar-day`, Barlow Condensed 24: the week row's numbers) and `calendarMonthDay`
-  (`ds-text-calendar-month-day`, Barlow Condensed 19: the month grid's numbers). `dayNumber`
+  (`ds-text-calendar-month-day`, Barlow Condensed 19: the month grid's numbers). The class card (spec 040) uses
+  `cardMeta` (`ds-text-card-meta`, Nunito 12.5, 400: the location pill) and `occupancy` (`ds-text-occupancy`, Nunito
+  11, 800, not uppercase: the "N/M vagas" line). `dayNumber`
   (`ds-text-day-number`, 26 px; spec 030's day strip) is still defined but no screen uses it.
 
 ## Persistence
@@ -819,7 +821,8 @@ guard's 401 `auth.token.invalid`.
   ClassItem[] }`: the classes starting from the Monday 00:00 of the date's week (inclusive) to the next Monday
   00:00 (exclusive), Fortaleza, sorted by `startsAt`, `endsAt`, `id`. `ClassItem` is `{ id, discipline, level,
   startsAt, endsAt, capacity, notes, location: { id, name, address, latitude, longitude }, instructors: [{ id,
-  name }], cancelledAt, cancellationMessage, cancellationDeadline }` (ISO UTC dates, the location's point `null`
+  name }], cancelledAt, cancellationMessage, cancellationDeadline, seatsTaken, students: [{ id, name, photoUrl }]
+  }` (ISO UTC dates, the location's point `null`
   when it has none and an archived location read like an active one (spec 037), `notes` `null` when none, `cancelledAt` /
   `cancellationMessage` `null` for a class never cancelled (spec 033), `cancellationDeadline` `null` while it can't
   be worked out (spec 036), instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
@@ -829,7 +832,16 @@ guard's 401 `auth.token.invalid`.
   declared after `GET /classes/time-range-suggestions`, so that path keeps its handler. Both read through the
   `ClassViewReader` port (`findStartingBetween(from, to)`, `findById(id)` → `ClassView`, `ClassItem` with
   `Date`s), implemented by `PrismaClassViewReader` (`class-view-reader.prisma.ts`): one `findMany` / `findUnique`
-  with the location and the instructors' `user` id and name. The API never returns a state: `getClassState(startsAt,
+  with the location and the instructors' `user` id and name. `seatsTaken` (approved students plus guests, never
+  capped) and `students` (the approved students, `photoUrl` `null` while photos can't be uploaded) come from the
+  `ClassRosterReader` port (spec 040; `provider/class-roster-reader.provider.ts`, `findRosters(classIds,
+  studentsLimit?)` → `Map<classId, ClassRoster>` in one read; students in the order they were approved, then by
+  user id; a class missing from the map reads `seatsTaken: 0` and `students: []` in `toClassItem(view, roster?)`).
+  `ListWeekClasses` asks once for the whole week with `CLASS_CARD_STUDENTS_LIMIT` (4, what a card shows);
+  `GetClass` — and so the answers of `PUT /classes/:id` and `POST /classes/:id/cancel` — asks for one class with
+  every student. It is implemented by `NoEnrolmentClassRosterReader`
+  (`apps/backend/src/modules/classes/no-enrolment.class-roster.reader.ts`, an empty map, so 0 and `[]`) until
+  enrolment replaces it together with `SeatCounter`. The API never returns a state: `getClassState(startsAt,
   endsAt, now, cancelledAt?)` (`model/class-state.ts`, `not-started` / `started` / `finished`, or `cancelled`
   whenever `cancelledAt` is set — spec 033) is computed by the caller, which always passes the cancellation.
 - `PUT /classes/:id` (admins; spec 032, `EditClass` in `usecase/edit-class.usecase.ts`) `{ discipline, level, date,
@@ -1016,8 +1028,8 @@ guard's 401 `auth.token.invalid`.
   `SessionExpiredError` → nothing; else generic. Copy lives under `deleteClass` (and `classTools.delete`).
 - Mobile "no instructor" flag (spec 035): `ClassCard` takes `showFlags` (default `false`) and its hook returns
   `withoutInstructor` (`isWithoutInstructor` with the state it computes); with `showFlags`, a flagged class shows
-  the `warn` `Chip` `classesWeek.noInstructor` (`person-remove-outline`) in the right chip slot. The instructors
-  footer is always drawn, with `classesWeek.noInstructor` in `text-ink-2` when the list is empty, for every role.
+  the `warn` `Chip` `classesWeek.noInstructor` (`person-remove-outline`) in the right chip slot. (The card's
+  instructors footer of spec 035 left the card in spec 040; instructors are shown only on the details.)
   `ClassesWeekScreen` takes `showFlags` and passes it to each card; only the admin's Aulas route sets it. The
   details' hook returns `showNoInstructor` (`canEdit` and `isWithoutInstructor`); the screen draws it first among
   the state banners: a `Pressable` row (role `button`, `min-h-11`) on `bg-warn-tint` with `person-remove-outline`
@@ -1074,6 +1086,33 @@ guard's 401 `auth.token.invalid`.
   button (`Linking.openURL(getDirectionsUrl(point))`, toast `classDetails.directionsUnavailable` on failure), for
   every role and for cancelled classes. Copy under `locationSheet`, `locationPicker`, `archiveLocation`,
   `newClass.errors.locationArchived` and `classDetails.directions*`.
+- Mobile seats and students (spec 040). `ClassItem` carries `seatsTaken` and `students` (`ClassStudent`: `id`,
+  `name`, `photoUrl`). `utils/occupancy.ts`: `getOccupancyPercent` (0–100, rounded), `isClassFull` (seats taken ≥
+  capacity), `getOccupancyTone` (`bad` when full, `sun` above 80%, else `lagoon` for surf / `tan` for skate),
+  `getFreeSeats`, `getHiddenSeats` (seats taken minus the avatars shown: the "+N", so guests count) and
+  `getStudentsLabel` (`none` / `confirmed` / `present` once finished, with the count; keys under
+  `classesWeek.students`, plural `_one` / `_other`). `StudentAvatar` (`components/student-avatar/`): an `expo-image`
+  photo, or the initials (`getInitials`) on `bg-sand` when `photoUrl` is `null` or the image fails (`onError`);
+  `size` in points and an optional `ringed` 2 px `border-surface` for stacked avatars. `ClassCard` (AGENDA-01: card
+  shadow, `line` border, the location pill, opacity .55 finished / .78 cancelled, `sun` border and primary shadow
+  while started) has no instructors line; its hook returns `showOccupancy` (not started or started: a 6 px
+  `bg-sand` track with the tone's fill and `classesWeek.occupancy`, in `text-bad` when full), `showFullChip` (full
+  and not started: the `bad-tint` `Chip` `classesWeek.full` in the state chips' slot), `showFooter` (not cancelled:
+  top border `line`, `bg-dim`, up to `CLASS_CARD_AVATARS` 4 ringed 26 pt avatars overlapping by 8, the "+N" circle
+  on `sand` and the uppercase label). On the details, `ClassPeople` (`components/class-people/` + hook) is the
+  `classDetails.theClass` group: the instructors (36 pt `StudentAvatar` with initials, `classDetails.you` for the
+  viewer, `classDetails.noInstructorAssigned` when none), the students row (up to `CLASS_PEOPLE_AVATARS` 5 ringed
+  28 pt avatars, "+N", the label; a `Pressable` with `accessibilityState.expanded` that opens the list of every
+  student, disabled with none), and under the card `classDetails.capacity` · `spotsLeft` (plural) or `soldOut` in
+  `text-bad`, hidden when finished or cancelled. The details' hook adds `showFullBanner` (loaded, `not-started`,
+  full: a `bad-tint` banner `classDetails.full.title` after the cancelled / started ones), `readOnlyNoteKey`
+  (instructors only: `classDetails.readOnly.teaches` when they teach the class, `.notAssigned` otherwise; a `bg-dim`
+  note with `eye-outline` under the group), and `showRules` (loaded and not cancelled): a `classDetails.rules`
+  group in the Profile's `ProfileCard` with two `ProfileRow`s — `rules.cancellation` (`{{discipline}}`) whose value is
+  `classDetails.cancellationDeadline` or `rules.read`, stacked under the label with `ProfileRow`'s `valueBelow`
+  (default off; the label stays whole on narrow phones), opening `CancellationRulesSheet` on the details
+  (`rulesVisible`), and `rules.school`, pushing `routes[<role>].schoolRules`. The instructors' `initials` field left
+  the details' types (the avatar draws them).
 
 ## Error handling
 

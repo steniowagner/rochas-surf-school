@@ -1,4 +1,4 @@
-import { ClassView } from "../provider";
+import { ClassRoster, ClassView } from "../provider";
 
 export interface ClassItem {
   id: string;
@@ -14,12 +14,18 @@ export interface ClassItem {
   cancellationDeadline: string | null;
   location: ClassView["location"];
   instructors: ClassView["instructors"];
+  /** All the seats taken: approved students plus guests. */
+  seatsTaken: number;
+  students: ClassRoster["students"];
 }
 
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 
-/** The answer shape of a class: ISO dates and the instructors sorted A–Z by name, ignoring case and accents. */
-export function toClassItem(view: ClassView): ClassItem {
+/**
+ * The answer shape of a class: ISO dates and the instructors sorted A–Z by name, ignoring case and accents.
+ * Without a roster the class has no seats taken.
+ */
+export function toClassItem(view: ClassView, roster?: ClassRoster): ClassItem {
   return {
     id: view.id,
     discipline: view.discipline,
@@ -37,5 +43,7 @@ export function toClassItem(view: ClassView): ClassItem {
       .sort(
         (a, b) => collator.compare(a.name, b.name) || a.id.localeCompare(b.id),
       ),
+    seatsTaken: roster?.seatsTaken ?? 0,
+    students: (roster?.students ?? []).map((student) => ({ ...student })),
   };
 }

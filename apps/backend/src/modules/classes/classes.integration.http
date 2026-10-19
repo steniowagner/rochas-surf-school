@@ -152,7 +152,7 @@ GET {{baseUrl}}/classes/time-range-suggestions
 GET {{baseUrl}}/classes/time-range-suggestions
 Authorization: Bearer {{token}}
 
-### The classes of the week that holds a date, Monday to Sunday in Fortaleza (expects 200 with { weekStart, items }; any approved account)
+### The classes of the week that holds a date, Monday to Sunday in Fortaleza (expects 200 with { weekStart, items }; any approved account; every item carries seatsTaken: 0 and students: [] until enrolment exists)
 GET {{baseUrl}}/classes?date=2026-10-15
 Authorization: Bearer {{token}}
 
@@ -163,7 +163,7 @@ Authorization: Bearer {{token}}
 ### Without a token (expects 401 auth.token.invalid)
 GET {{baseUrl}}/classes?date=2026-10-15
 
-### One class by id (expects 200 with the class; set classId to an id from the week list)
+### One class by id (expects 200 with the class, including seatsTaken: 0 and students: []; set classId to an id from the week list)
 @classId = 00000000-0000-4000-8000-000000000000
 GET {{baseUrl}}/classes/{{classId}}
 Authorization: Bearer {{token}}
@@ -172,7 +172,7 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/classes/not-a-uuid
 Authorization: Bearer {{token}}
 
-### Edit a class (expects 200 with the updated class; admins only; the whole class every time; date and times in Fortaleza)
+### Edit a class (expects 200 with the updated class, including seatsTaken: 0 and students: []; admins only; the whole class every time; date and times in Fortaleza)
 PUT {{baseUrl}}/classes/{{classId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -241,7 +241,7 @@ Content-Type: application/json
 
 {}
 
-### Cancel a class (expects 200 with the class and its cancelledAt / cancellationMessage; admins only; final; the message is optional, up to 300 characters)
+### Cancel a class (expects 200 with the class and its cancelledAt / cancellationMessage, seatsTaken: 0 and students: []; admins only; final; the message is optional, up to 300 characters)
 POST {{baseUrl}}/classes/{{classId}}/cancel
 Authorization: Bearer {{token}}
 Content-Type: application/json

@@ -763,6 +763,8 @@ Admins SHALL set each class's capacity. The capacity SHALL NOT be set below the 
 
 _Implemented in spec 030-classes-week-view._
 
+_Implemented in spec 040-class-seats-read-model._
+
 Class notes SHALL be shown to everyone who can see the class.
 
 - _Student reads the notes:_ When a student opens a class that has notes, then they see the notes.
@@ -875,6 +877,8 @@ When a student requests a class, admins and the class's instructors SHALL be not
 #### Seats
 
 _Partly implemented in spec 030-classes-week-view (everyone sees a class's capacity; the seats taken come with enrolment)._
+
+_Implemented in spec 040-class-seats-read-model (everyone sees the seats taken and the approved students of a class; always 0 until enrolment exists)._
 
 A pending request SHALL NOT hold a seat. A class's seats taken SHALL count its approved students and its guests. Everyone who can see a class SHALL see its capacity and how many seats are taken.
 
@@ -1000,6 +1004,8 @@ Admins SHALL write and edit two cancellation rules as free text: one for surf cl
 #### Reading and accepting the rules
 
 _Implemented in spec 036-cancellation-rules-deadline (reading both rules at any time; showing and accepting the rule when requesting a seat comes with enrolment)._
+
+_Implemented in spec 040-class-seats-read-model (both rules are also read from a class's details)._
 
 Users SHALL be able to read both cancellation rules at any time. When requesting a seat, a student SHALL be shown the rule for the class's discipline and SHALL accept it.
 

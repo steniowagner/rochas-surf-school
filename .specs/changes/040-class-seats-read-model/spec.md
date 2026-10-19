@@ -2,7 +2,7 @@
 id: "040"
 slug: class-seats-read-model
 title: "Class seats read model and class card and detail aligned with the designs"
-status: in-progress
+status: in-review
 started: 2026-10-19
 base_commit: c0875ed6bcd73ba150ecc6f9cde5cedc34d792c0
 created: 2026-10-19
@@ -311,9 +311,10 @@ spec.
 
 ### Verification
 
-- [ ] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the manual checks are recorded.
+  > ✅ 2026-10-19 — ran the Verification Plan. Automated: `node .specs/scripts/run-related-tests.mjs 040` RELATED TESTS PASSED (backend, mobile, modules/classes, web); `node .specs/scripts/check-coverage.mjs 040` COVERAGE OK (18 files); `npx turbo run lint check-types build --filter=…classes --filter=…backend --filter=…mobile --filter=…design-tokens` 24 tasks successful; `node .specs/scripts/run-e2e.mjs 040` E2E PASSED (backend suite incl. the new seats cases, web Playwright 22 passed). The first related run failed because the student, instructor and admin tab navigation tests built class fixtures without `seatsTaken`/`students` and expected the old "Max. 8 students" text: fixed in `apps/mobile/src/modules/{student,admin,instructor}/*-tabs.navigation.test.tsx`; coverage gaps (closing the rules sheet, the unknown-role fallback, the people state in the hook) were covered by tests, and an unused `buildClassStudent` helper was removed from `classes.test-utils.tsx`. **Not run here — for the user:** (1) the requests of `classes.integration.http` against `npm run dev` (the e2e suite covers the same endpoints); (2) the iOS-simulator journeys — as a student: week cards show an empty bar, "0/M spots", "No students yet" and no instructors line, the detail shows "The class" with instructors, "No students yet", "Max. N students · N spots left", and the "Rules" rows open the sheet and the school rules; as an instructor: the read-only note for a class they teach and one they do not; as an admin: a finished class has no bar and reads "No students yet", a cancelled class has neither bar nor footer (signing in needs the user's accounts).
 
 ## Verification Plan
 

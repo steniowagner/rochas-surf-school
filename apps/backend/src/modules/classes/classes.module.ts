@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DbModule } from '../../db/db.module.js';
+import { EnrolmentModule } from '../enrolment/enrolment.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { AnthropicDeadlineDescriber } from './anthropic.deadline-describer.js';
 import { PrismaCancellationRuleRepository } from './cancellation-rule.prisma.js';
@@ -10,25 +11,19 @@ import { ClassesController } from './classes.controller.js';
 import { ClassesTeachingReleaser } from './classes.teaching-releaser.js';
 import { GooglePlacesAddressSuggestionProvider } from './google-places.address-suggestions.js';
 import { PrismaLocationRepository } from './location.prisma.js';
-import { NoEnrolmentClassRosterReader } from './no-enrolment.class-roster.reader.js';
-import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
-import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { LocationsController } from './locations.controller.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
 
 @Module({
-  imports: [DbModule, NotificationsModule],
+  imports: [DbModule, EnrolmentModule, NotificationsModule],
   controllers: [CancellationRulesController, ClassesController, LocationsController],
   providers: [
     AnthropicDeadlineDescriber,
     CancellationDeadlineJob,
     ClassesTeachingReleaser,
     GooglePlacesAddressSuggestionProvider,
-    NoEnrolmentClassRosterReader,
-    NoEnrolmentPendingRequestCounter,
-    NoEnrolmentSeatCounter,
     PrismaCancellationRuleRepository,
     PrismaClassViewReader,
     PrismaLocationRepository,

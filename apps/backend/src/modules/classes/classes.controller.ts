@@ -28,13 +28,15 @@ import {
 } from '@rochas-surf-school/classes';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import { PrismaClassRosterReader } from '../enrolment/class-roster-reader.prisma.js';
+import { EnrolmentClassEnrolmentsCloser } from '../enrolment/enrolment.class-enrolments-closer.js';
+import { PrismaPendingRequestCounter } from '../enrolment/pending-request-counter.prisma.js';
+import { PrismaSeatCounter } from '../enrolment/seat-counter.prisma.js';
+import { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-reader.prisma.js';
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { PrismaLocationRepository } from './location.prisma.js';
-import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
-import { NoEnrolmentClassRosterReader } from './no-enrolment.class-roster.reader.js';
-import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
@@ -57,9 +59,11 @@ export class ClassesController {
     private readonly clock: SystemClockProvider,
     private readonly classViewReader: PrismaClassViewReader,
     private readonly classChangeNotifier: NotificationsClassChangeNotifier,
-    private readonly seatCounter: NoEnrolmentSeatCounter,
-    private readonly pendingRequestCounter: NoEnrolmentPendingRequestCounter,
-    private readonly classRosterReader: NoEnrolmentClassRosterReader,
+    private readonly seatCounter: PrismaSeatCounter,
+    private readonly pendingRequestCounter: PrismaPendingRequestCounter,
+    private readonly classRosterReader: PrismaClassRosterReader,
+    private readonly viewerEnrolmentReader: PrismaViewerEnrolmentReader,
+    private readonly classEnrolmentsCloser: EnrolmentClassEnrolmentsCloser,
   ) {}
 
   @Post('batch')
@@ -107,13 +111,21 @@ export class ClassesController {
     @CurrentUser() user: AuthenticatedUser,
     @Query('date') date?: unknown,
   ): Promise<ListWeekClassesOut> {
-    return new ListWeekClasses(this.classViewReader, this.classRosterReader).execute({ actor: actorOf(user), date });
+    return new ListWeekClasses(
+      this.classViewReader,
+      this.classRosterReader,
+      this.viewerEnrolmentReader,
+    ).execute({ actor: actorOf(user), date });
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   one(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<GetClassOut> {
-    return new GetClass(this.classViewReader, this.classRosterReader).execute({ actor: actorOf(user), id });
+    return new GetClass(
+      this.classViewReader,
+      this.classRosterReader,
+      this.viewerEnrolmentReader,
+    ).execute({ actor: actorOf(user), id });
   }
 
   @Put(':id')
@@ -147,7 +159,11 @@ export class ClassesController {
       notes: body?.notes,
     });
 
-    return new GetClass(this.classViewReader, this.classRosterReader).execute({ actor, id });
+    return new GetClass(
+      this.classViewReader,
+      this.classRosterReader,
+      this.viewerEnrolmentReader,
+    ).execute({ actor, id });
   }
 
   @Post(':id/cancel')
@@ -159,13 +175,22 @@ export class ClassesController {
   ): Promise<GetClassOut> {
     const actor = actorOf(user);
 
-    await new CancelClass(this.schoolClassRepository, this.classChangeNotifier, this.clock).execute({
+    await new CancelClass(
+      this.schoolClassRepository,
+      this.classChangeNotifier,
+      this.classEnrolmentsCloser,
+      this.clock,
+    ).execute({
       actor,
       id,
       message: body?.message,
     });
 
-    return new GetClass(this.classViewReader, this.classRosterReader).execute({ actor, id });
+    return new GetClass(
+      this.classViewReader,
+      this.classRosterReader,
+      this.viewerEnrolmentReader,
+    ).execute({ actor, id });
   }
 
   @Delete(':id')

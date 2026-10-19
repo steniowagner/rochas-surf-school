@@ -3,9 +3,10 @@ id: "039"
 slug: join-school-design
 title: Align "Entrar na escola" with the PAINEL-03 and PAINEL-03A designs
 template: quick
-status: in-review
+status: accepted
 started: 2026-10-18
 base_commit: 2303207495e4113910c18c365929b4170cbdea98
+reviewed_commit: f3bbc39e606d2d2dcd0db46c43e02ba1a3b20a18
 created: 2026-10-18
 fronts: [mobile]
 depends_on: []
@@ -322,3 +323,50 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
 - Memory Impact: `technical-context.md` also says `formatCreatedAt` is used "by the Pending screen and the registration
   cards"; the cards no longer use it.
 - Next round: check F-01 on the simulator by typing a reason and pressing "Recusar e avisar".
+
+### Round 2 — 2026-10-19 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`)
+- related tests ✅ 84 suites, 1049 passed (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK, 11 files measured; no coverage-ignore comments in the diff
+- e2e: no suite applies (mobile only) · user journey on the iOS simulator (iPhone 18 Pro, pt-BR, light theme, the
+  running dev backend as an admin) ✅
+- `grep -rn "DecidedList\|decision\.\|registrations.asked" apps/mobile/src` finds nothing ✅
+- the diff since `base_commit` holds only the spec's changes and the F-01 fix (no formatting-only hunks) ✅
+
+**Expected Results**
+
+- ER-01 ✅ — simulator: "6 ESPERANDO APROVAÇÃO", "ENTRAR NA ESCOLA", the new description and no icon tile; each card
+  has the initials avatar, name, email, chevron, outline "Recusar" with ✕ and green "Aprovar" with ✓, no "Pediu".
+  After the deny below, the card left the list and the count went from 7 to 6, with no "Decididos agora".
+  `registrations.screen.test.tsx` covers the empty / loading / error states and the hidden count.
+- ER-02 ✅ — `registrations.screen.test.tsx` ("detail sheet") and `person-sheet.component.test.tsx` cover the
+  email row, the missing WhatsApp row, "Fechar", the buttons not opening it and the unchanged WhatsApp branches;
+  round 1 saw it on the simulator, and no code it uses changed since then.
+- ER-03 ✅ — simulator, on a throwaway pending account added to the dev database for this check ("Revisao Teste",
+  `review-039@example.test`): "Recusar" opens the PAINEL-03A sheet (title, hint with the name, placeholder, no visible
+  label, red "Recusar e avisar" with its icon, "Voltar"). Tapping the text area brings up the keyboard and the sheet
+  rises above it with the text area, "Recusar e avisar" and "Voltar" visible. Typed "Sem vagas agora - revisao 039"
+  and pressed "Recusar e avisar": the sheet closed, the card left the list, and the database row is `denied` with
+  that exact `denial_reason`. The tests cover the empty reason, "Voltar" and the backdrop sending nothing and clearing
+  the text, the accessibility label, the limit and the "already decided" path.
+
+**Findings**
+
+None. Round 1's F-01 (keyboard covers the deny sheet) and F-02 (formatting-only hunks) are verified fixed.
+
+**Notes**
+
+- The first press failed with "Algo deu errado. Tente de novo." because the test row was first named "Revisao 039",
+  and the backend's `PersonNameRule` rejects digits when it validates the denied user. That was bad test data, not a
+  bug. The sheet kept the reason open, as the "request fails" path requires. After renaming the row, the deny went
+  through.
+- Memory Impact should also list the F-01 fix for `technical-context.md` → mobile shared UI: `TextArea` takes
+  `inBottomSheet` (renders gorhom's `BottomSheetTextInput` through `cssInterop`), and `BottomModal` sets
+  `keyboardBehavior="interactive"`, `keyboardBlurBehavior="restore"` and `android_keyboardInputMode="adjustResize"`
+  for every sheet. Round 1's note on `formatCreatedAt` still applies.
+- Not re-checked on the device: the dark theme and the empty state (the shared dev database has other pending
+  accounts). The tests cover both, and the styles use token classes only.
+- The throwaway account `review-039@example.test` stays in the dev database as `denied`.

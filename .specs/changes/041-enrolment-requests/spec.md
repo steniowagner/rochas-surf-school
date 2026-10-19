@@ -335,13 +335,14 @@ cancelling a seat come in specs 042 and 043.
   Covers: enabling · Done when: `npx jest test/mock` passes from `modules/enrolment`.
   > ✅ 2026-10-19 16:14 — added the ports `EnrolmentRepository` (`create`, `findById`, `withdraw` and `expire` conditional on pending returning a boolean, `findExpirable`, `closeOpenForClass`), `EnrolmentClassReader` (D-10), `StudentNameReader`, `EnrolmentNotifier` (`seatRequested`, `requestExpired`) and `ClockProvider`, with the fakes and the factory under `test/mock/`; files: `modules/enrolment/src/enrolment/provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,enrolment-notifier.provider,clock.provider,index}.ts`, `modules/enrolment/src/enrolment/index.ts`, `modules/enrolment/test/mock/{enrolment.factory,fake-enrolment.repository,fake-enrolment-class.reader,fake-student-name.reader,fake-enrolment.notifier,fake-clock.provider,index}.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`; verified: `npx jest test/mock` from `modules/enrolment` (8 passed), `tsc --noEmit` and oxlint clean; deviations: the fake repository takes the classes in its constructor so `findExpirable` can join them (the real adapter does it in SQL)
 
-- [ ] **T-04** — Add `RequestSeat` in `src/enrolment/usecase/request-seat.usecase.ts` with the checks of D-12,
+- [x] **T-04** — Add `RequestSeat` in `src/enrolment/usecase/request-seat.usecase.ts` with the checks of D-12,
   `ruleAcceptedAt` per D-04, the notification of D-13 (recipients resolved by the notifier adapter; errors
   swallowed) and the output `EnrolmentOut` (`{ id, classId, status, requestedAt }`), with tests for every
   refusal, the full class, the class without a rule, requesting again and the notification. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-07 · Done when: `npx jest test/enrolment/usecase/request-seat.usecase.test.ts`
   passes from `modules/enrolment`.
+  > ✅ 2026-10-19 16:14 — added `RequestSeat` (checks in the D-12 order, `ruleAcceptedAt` per D-04, notification swallowed when the student name or the notifier fails) and the `EnrolmentOut` contract; files: `modules/enrolment/src/enrolment/usecase/request-seat.usecase.ts`, `modules/enrolment/src/enrolment/usecase/enrolment.out.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/src/enrolment/index.ts`, `modules/enrolment/test/enrolment/usecase/request-seat.usecase.test.ts`; verified: `npx jest test/enrolment/usecase/request-seat.usecase.test.ts` from `modules/enrolment` (25 passed, use case 100% covered), tsc and oxlint clean; deviations: none
 
 - [ ] **T-05** — Add `WithdrawRequest` in `src/enrolment/usecase/withdraw-request.usecase.ts` (D-12; the
   conditional write losing → `enrolment.notPending`), with tests for success and each refusal. Skill:

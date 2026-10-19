@@ -1,6 +1,7 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
 
 import { glyph } from "../../classes.test-utils";
+import type { MyEnrolment } from "../../../enrolment/enrolment.types";
 import type { ClassItem } from "../../classes.types";
 
 import { ClassCard } from "./class-card.component";
@@ -164,6 +165,63 @@ describe("ClassCard", () => {
       await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
 
       expect(screen.getByText("Praia do Futuro").props.className).toContain("ds-text-card-meta");
+    });
+  });
+
+  describe("enrolment", () => {
+    const mine = (status: MyEnrolment["status"], overrides: Partial<ClassItem> = {}) =>
+      item({ myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z" }, ...overrides });
+    const FULL = { seatsTaken: 8 };
+
+    it.each([
+      ["pending", {}, "Pending"],
+      ["pending", FULL, "On the waiting list"],
+      ["withdrawn", {}, "Withdrawn"],
+      ["expired", {}, "Expired"],
+    ] as const)("shows the %s chip (%j) in place of the full chip", async (status, extra, label) => {
+      await render(<ClassCard item={mine(status, extra)} now={BEFORE} onPress={jest.fn()} showEnrolment />);
+
+      expect(screen.getByText(label)).toBeOnTheScreen();
+      expect(screen.queryByText("Full")).not.toBeOnTheScreen();
+    });
+
+    it("keeps the full chip for a student without an enrolment", async () => {
+      await render(<ClassCard item={item(FULL)} now={BEFORE} onPress={jest.fn()} showEnrolment />);
+
+      expect(screen.getByText("Full")).toBeOnTheScreen();
+    });
+
+    it("shows nothing about the enrolment without showEnrolment (instructors and admins)", async () => {
+      await render(<ClassCard item={mine("pending")} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
+    });
+
+    it("draws nothing for the statuses of the later specs", async () => {
+      await render(<ClassCard item={mine("approved")} now={BEFORE} onPress={jest.fn()} showEnrolment />);
+
+      expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Approved")).not.toBeOnTheScreen();
+    });
+
+    it("lets the started, finished and cancelled chips win", async () => {
+      await render(<ClassCard item={mine("pending")} now={DURING} onPress={jest.fn()} showEnrolment />);
+      expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
+      expect(screen.getByText("In progress")).toBeOnTheScreen();
+
+      await render(<ClassCard item={mine("pending")} now={AFTER} onPress={jest.fn()} showEnrolment />);
+      expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
+
+      await render(
+        <ClassCard
+          item={mine("pending", { cancelledAt: "2026-10-13T10:00:00.000Z" })}
+          now={BEFORE}
+          onPress={jest.fn()}
+          showEnrolment
+        />,
+      );
+      expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
+      expect(screen.getByText("Cancelled")).toBeOnTheScreen();
     });
   });
 

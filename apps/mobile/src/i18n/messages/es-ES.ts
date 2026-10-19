@@ -364,6 +364,7 @@ const messages: Messages = {
     soldOut: "agotado",
     full: {
       title: "Clase llena",
+      waitingList: "Puedes entrar en la lista de espera.",
     },
     rules: {
       title: "Reglas",
@@ -393,6 +394,71 @@ const messages: Messages = {
       description: "Todavía no hemos podido calcular hasta cuándo pueden cancelar los alumnos. Revisa la regla de {{discipline}}.",
     },
     tools: "Herramientas de la clase",
+  },
+  enrolment: {
+    status: {
+      pending: {
+        chip: "Pendiente",
+        title: "Solicitud pendiente",
+        description: "Tu solicitud espera la aprobación de la escuela.",
+      },
+      waitingList: {
+        chip: "En lista de espera",
+        title: "Estás en la lista de espera",
+        description: "Si se libera una plaza, tu solicitud pasa a la aprobación de la escuela.",
+      },
+      withdrawn: {
+        chip: "Anulada",
+        title: "Solicitud anulada",
+        description: "Anulaste tu solicitud para esta clase.",
+      },
+      expired: {
+        chip: "Expirada",
+        title: "No conseguiste plaza",
+        description: "Tu solicitud expiró sin que se liberara plaza en el grupo.",
+      },
+    },
+    cta: {
+      request: "Pedir plaza",
+      joinWaitingList: "Entrar en la lista de espera",
+      withdraw: "Anular solicitud",
+      leaveWaitingList: "Salir de la lista de espera",
+      requestAgain: "Pedir de nuevo",
+    },
+    requestSheet: {
+      title: "Pedir plaza",
+      waitingListTitle: "Entrar en la lista de espera",
+      line: "{{summary}}. La solicitud queda pendiente hasta que la escuela confirme.",
+      waitingListLine:
+        "{{summary}}. El grupo está lleno: tu solicitud queda en la lista de espera. Si se libera una plaza, pasa a la aprobación de la escuela.",
+      ruleLabel: "Cancelación · {{discipline}}",
+      deadline: "Cancelación hasta {{when}}",
+      noDeadline: "Plazo aún sin definir",
+      noRule: "La escuela aún no ha escrito esta regla.",
+      accept: "He leído y acepto la regla de cancelación",
+      read: "Leer",
+      submit: "Enviar solicitud",
+      submitWaitingList: "Entrar en la lista de espera",
+      later: "Ahora no",
+      done: "Solicitud enviada",
+      doneWaitingList: "Estás en la lista de espera",
+    },
+    withdrawSheet: {
+      title: "Anular solicitud",
+      description: "Tu solicitud para esta clase deja de esperar aprobación.",
+      confirm: "Sí, anular",
+      keep: "Mantener solicitud",
+      done: "Solicitud anulada",
+      doneWaitingList: "Saliste de la lista de espera",
+    },
+    errors: {
+      started: "La clase ya empezó.",
+      cancelled: "Esta clase fue cancelada.",
+      alreadyOpen: "Ya tienes una solicitud abierta para esta clase.",
+      ruleNotAccepted: "La regla de cancelación cambió. Léela de nuevo y acéptala.",
+      notPending: "Esta solicitud ya no está pendiente.",
+      notFound: "Esta solicitud ya no existe.",
+    },
   },
   editProfile: {
     title: "Editar perfil",

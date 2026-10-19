@@ -6,6 +6,7 @@ export default function StudentRoute() {
     <ClassesWeekScreen
       titleKey="tabs.agenda"
       classRoute={routes.student.classDetail}
+      showEnrolment
     />
   );
 }

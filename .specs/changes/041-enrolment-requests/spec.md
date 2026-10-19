@@ -389,13 +389,14 @@ cancelling a seat come in specs 042 and 043.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-11** — Add `prisma/models/enrolment.model.prisma` (`Enrolment` → `enrolments`: `id`, `class_id` → `classes`
+- [x] **T-11** — Add `prisma/models/enrolment.model.prisma` (`Enrolment` → `enrolments`: `id`, `class_id` → `classes`
   `ON DELETE CASCADE`, `student_id` → `users`, `status` enum `enrolment_status`, `requested_at`,
   `rule_accepted_at`, `decided_at`, `reason`, `ended_at`, timestamps; indexes on `class_id, status` and
   `student_id`) and the migration `enrolment`, whose SQL adds the partial unique index of D-08. Skill:
   [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: enabling · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies it on a clean
   database and `npm run check-types --workspace apps/backend` passes.
+  > ✅ 2026-10-19 16:17 — added the `Enrolment` model (`enrolments`; `class_id` → `classes` ON DELETE CASCADE, `student_id` → `users` ON DELETE RESTRICT, `enrolment_status` enum with the eight statuses in D-06, indexes on `class_id, status` and `student_id`) with the inverse relations on `SchoolClass` and `User`, and the migration `20261019191737_enrolment` whose SQL adds the partial unique index `enrolments_one_open_per_student_class` (D-08); files: `apps/backend/prisma/models/enrolment.model.prisma`, `apps/backend/prisma/models/classes.model.prisma`, `apps/backend/prisma/models/auth.model.prisma`, `apps/backend/prisma/migrations/20261019191737_enrolment/migration.sql`; verified: `prisma migrate deploy` applied it on the dev database and on a freshly created empty database (index listed with `\di`, scratch database dropped), `prisma migrate diff` against the schema is empty (the partial index is invisible to it), `npm run check-types --workspace apps/backend` passes; deviations: none
 
 - [ ] **T-12** — Add `src/modules/enrolment/enrolment.prisma.ts` (`PrismaEnrolmentRepository`; P2002 on the
   partial index → 409 `enrolment.alreadyOpen`; conditional `updateMany` for withdraw and expire),

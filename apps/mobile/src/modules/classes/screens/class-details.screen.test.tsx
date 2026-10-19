@@ -946,6 +946,39 @@ describe("ClassDetailsScreen", () => {
     });
   });
 
+  describe("read-only note", () => {
+    const TEACHES = "Enrolments, cancellations and schedule changes are made by the school";
+    const NOT_ASSIGNED = "You aren't assigned to this class — you see everything in read-only mode";
+
+    it("tells an instructor who teaches the class that the school handles the changes", async () => {
+      signInAs("instructor", "u-1");
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(TEACHES)).toBeOnTheScreen();
+      expect(screen.queryByText(NOT_ASSIGNED)).not.toBeOnTheScreen();
+    });
+
+    it("tells an instructor who does not teach the class that they see it read-only", async () => {
+      signInAs("instructor", "someone-else");
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(NOT_ASSIGNED)).toBeOnTheScreen();
+      expect(screen.queryByText(TEACHES)).not.toBeOnTheScreen();
+    });
+
+    it.each(["student", "admin"] as const)("shows a %s no note", async (role) => {
+      signInAs(role);
+      serve(makeClass());
+      await renderScreen();
+
+      await screen.findByText("The class");
+      expect(screen.queryByText(TEACHES)).not.toBeOnTheScreen();
+      expect(screen.queryByText(NOT_ASSIGNED)).not.toBeOnTheScreen();
+    });
+  });
+
   describe("cancel", () => {
     const posts = () =>
       fetchMock.mock.calls.filter(([, init]) => init?.method === "POST") as [

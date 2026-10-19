@@ -201,6 +201,13 @@ export const useClassDetailsScreen = ({
       state !== null &&
       isWithoutDeadline(item.cancellationDeadline, state),
     openCancellationRules: () => router.push(routes.admin.cancellationRules),
+    // Instructors only read: the note says whether the class is theirs. Nobody else gets it.
+    readOnlyNoteKey:
+      user?.role !== "instructor" || item === undefined
+        ? null
+        : instructors.some((instructor) => instructor.isViewer)
+          ? ("classDetails.readOnly.teaches" as const)
+          : ("classDetails.readOnly.notAssigned" as const),
     // A cancelled class has nothing left to cancel.
     showRules: state !== null && state !== "cancelled",
     rulesVisible,

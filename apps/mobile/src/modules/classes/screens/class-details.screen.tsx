@@ -221,6 +221,14 @@ export function ClassDetailsScreen({
               capacity={item.capacity}
               state={screen.state ?? "not-started"}
             />
+            {screen.readOnlyNoteKey ? (
+              <View className="flex-row items-center gap-3 rounded-card bg-dim p-4">
+                <Ionicons name="eye-outline" size={20} color={theme.ink2} />
+                <Text className="ds-text-list-subtitle flex-1 text-ink-2">
+                  {t(screen.readOnlyNoteKey)}
+                </Text>
+              </View>
+            ) : null}
             {screen.showRules ? (
               <View className="gap-2">
                 <Text className="ds-text-section-label text-ink-2">

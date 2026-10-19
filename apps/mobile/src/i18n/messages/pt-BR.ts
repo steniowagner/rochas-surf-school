@@ -364,6 +364,10 @@ const messages: Messages = {
       read: "Ler a regra",
       school: "Regras da escola",
     },
+    readOnly: {
+      teaches: "Matrículas, cancelamentos e mudanças de horário são feitos pela escola",
+      notAssigned: "Você não está escalado nesta aula — você vê tudo em modo somente leitura",
+    },
     notes: "Notas",
     location: "Local",
     directions: "Direções",

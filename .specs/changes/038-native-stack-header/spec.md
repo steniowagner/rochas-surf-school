@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -483,3 +483,58 @@ stays opaque.
   no tools button) and the School tab (no header, title and count). Walk them in the next round.
 - Class details' content fits the screen here, so its fade was only seen at rest (no line); it always renders its
   `ScrollView`, as New class does.
+
+### Round 5 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 594 passed in 33 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK`, 19 files; no coverage-ignore comments, TODOs or debug leftovers in
+  the diff
+- test quality ✅ — `edit-class.screen.test.tsx` "insets its loading view's scroll view…" looks for
+  `contentInsetAdjustmentBehavior="automatic"` while the class is loading, which the old plain `View` didn't have
+- e2e: `E2E PASSED` (no suite applies; mobile has none) · iOS simulator (iPhone 18 Pro, iOS 27, Metro on `8f7c723`,
+  app cold-launched with `xcrun simctl terminate` + `launch` so it loads the current bundle, signed in as the admin):
+  Edit class (`EDITAR AULA`, form below the header) and New class (`NOVA AULA`, opened from the Classes tab's +
+  button and by deep link) both scroll under a frosted band ending in a line, see F-06; Cancellation rules, with no
+  title, fades softly with no line in the same session; the header's back button returns through the stack to the
+  Classes tab with its tab bar
+
+**Expected Results**
+
+- ER-01 ✅ — header options and hidden `index` / `(tabs)` in the layout tests (`useStackHeader` in both branches), no
+  in-content back button; native back button and back to the tab seen in the simulator
+- ER-02 ✅ — the three class screens' tests (title, `headerRight` only with `showTools`, loading / cancelled / not
+  found); `NOVA AULA` and `EDITAR AULA` in the header in the simulator
+- ER-03 ❌ — the hooks and screens are tested in both branches and the untitled scrolling screens fade softly; the
+  titled ones don't after a cold launch, see F-06
+
+**Findings**
+
+- [ ] **F-06** (ER-03, D-03) — after a cold launch, the screens whose header has a title still scroll under a
+  frosted band with a 1px line across the screen instead of the soft fade. F-04's fix doesn't change this on Edit
+  class, and New class has it too, although round 4 saw New class fade softly after F-03. Round 4 checked "the running
+  dev build", so that soft fade may only have held in a session where the F-03 change came in by fast refresh. The
+  `headerStyle: { backgroundColor: "transparent" }` from F-03 is in `stack-header.hook.ts`, so that change alone
+  doesn't produce the fade from a cold start. Reproduce: with Metro running, `xcrun simctl terminate booted
+  com.rochassurfschool.app` then `xcrun simctl launch booted com.rochassurfschool.app`; as the admin, Aulas → + (or
+  `rochassurfschool:///admin/new-class`) and scroll the form up ~100pt: a frosted band with a line under `NOVA AULA`.
+  Same on `rochassurfschool:///admin/edit-class/<a live class id>` under `EDITAR AULA`. In the same session
+  `rochassurfschool:///admin/cancellation-rules` scrolled the same way fades softly with no line. Expected: after a
+  cold launch, class details, New class and Edit class fade softly with no line, as the untitled screens do, shown in
+  the simulator after a cold launch (not only after a fast refresh).
+
+**Notes**
+
+- Context (line "Fixed screens…") still lists "edit class's loading / error / cancelled view" as a fixed screen with
+  `useHeaderInset()` padding; after F-04 it is a scroll view with `contentInsetAdjustmentBehavior="automatic"`, as
+  D-06 says for scrolling content. Update the Context and ER-03's `Verify by` ("the fixed screens' tests (top
+  padding…)") so they match. The behavior ER-03 asks for, starting below the header, still holds.
+- Still not seen by anyone under the transparent header (the review session can't enter credentials to sign back in,
+  so it kept the admin session): the signed-out e-mail / sign-in / create-account / confirm-code / Google name screens
+  (spacing under the header, back and swipe-back, the software keyboard), and as a student a class's details (title,
+  no tools button) and the School tab (no header, title and count). Walk them in the next round.
+- F-05 is closed: the D-03 change is logged under `## Amendments` with the user's approval.
+- In this simulator, taps often only register when held about 0.2–0.35 s (tab bar, + button, native back button).
+  Deep links (`rochassurfschool:///admin/...`) are a reliable way to reach each screen.

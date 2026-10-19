@@ -1,3 +1,4 @@
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -12,6 +13,10 @@ import { DecisionCard } from "@/components/decision/decision-card";
 import { DenySheet } from "@/components/decision/deny-sheet";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
+import {
+  StackHeaderTitle,
+  useLeftTitleHeader,
+} from "@/navigation/stack-header";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 
@@ -43,6 +48,16 @@ export function RegistrationsScreen() {
   } = useRegistrationsScreen();
 
   const showCount = !isLoading && !isError && registrations.length > 0;
+  const headerOptions = useLeftTitleHeader(() => (
+    <StackHeaderTitle
+      title={t("registrations.title")}
+      subtitle={
+        showCount
+          ? t("registrations.waiting", { count: registrations.length })
+          : undefined
+      }
+    />
+  ));
 
   const renderEmpty = () => {
     if (isLoading) {
@@ -77,6 +92,7 @@ export function RegistrationsScreen() {
 
   return (
     <View className="flex-1 bg-page">
+      <Stack.Screen options={headerOptions} />
       <FlatList
         testID="registrations-list"
         contentInsetAdjustmentBehavior="automatic"
@@ -91,24 +107,9 @@ export function RegistrationsScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
         }
         ListHeaderComponent={
-          <View className="mb-3 gap-2">
-            <View className="gap-1">
-              {showCount ? (
-                <Text className="ds-text-section-label text-ink-2">
-                  {t("registrations.waiting", { count: registrations.length })}
-                </Text>
-              ) : null}
-              <Text
-                accessibilityRole="header"
-                className="ds-text-screen-title text-ink"
-              >
-                {t("registrations.title")}
-              </Text>
-            </View>
-            <Text className="ds-text-body text-ink-2">
-              {t("registrations.description")}
-            </Text>
-          </View>
+          <Text className="ds-text-body mb-3 text-ink-2">
+            {t("registrations.description")}
+          </Text>
         }
         renderItem={({ item }) => (
           <DecisionCard

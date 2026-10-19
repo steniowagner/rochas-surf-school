@@ -83,6 +83,27 @@ describe("TextInput", () => {
     expect(onBlur).toHaveBeenCalled();
   });
 
+  it("clears the text with the clear button only when clearable and filled", async () => {
+    const user = userEvent.setup();
+    const onChangeText = jest.fn();
+    const { rerender } = await render(
+      <TextInput icon={icon} value="Ana" clearable onChangeText={onChangeText} />,
+    );
+
+    await user.press(screen.getByRole("button", { name: "Clear" }));
+    expect(onChangeText).toHaveBeenCalledWith("");
+
+    await rerender(
+      <TextInput icon={icon} value="" clearable onChangeText={onChangeText} />,
+    );
+    expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
+
+    await rerender(
+      <TextInput icon={icon} value="Ana" onChangeText={onChangeText} />,
+    );
+    expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
+  });
+
   it("forwards the ref so the input can be focused", async () => {
     const ref = createRef<NativeTextInput>();
     await render(<TextInput icon={icon} ref={ref} />);

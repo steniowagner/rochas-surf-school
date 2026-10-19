@@ -1,5 +1,12 @@
 import { Platform } from "react-native";
-import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 
 import * as api from "@/services/api";
 
@@ -30,7 +37,8 @@ jest.mock("@/components/ui/bottom-modal", () => {
   /* eslint-enable @typescript-eslint/no-require-imports */
 
   return {
-    BottomModal: ({ visible, children }: any) => (visible ? <View>{children}</View> : null),
+    BottomModal: ({ visible, children }: any) =>
+      visible ? <View>{children}</View> : null,
   };
 });
 
@@ -40,14 +48,24 @@ jest.mock("@/services/api", () => {
   return { ...actual, apiGet: jest.fn(actual.apiGet) };
 });
 
-jest.mock("expo-router", () => ({ router: { back: jest.fn() } }));
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  // Renders the screen's header title so the tests can see it.
+  Stack: {
+    Screen: ({ options }: any) =>
+      options.unstable_headerLeftItems?.({})[0].element ??
+      options.headerTitle(),
+  },
+}));
 
 /** Answers the unfiltered count and any list request, per the handlers given. */
 const serve = (list: (path: string) => unknown, total = 3) => {
   fetchMock.mockImplementation(async (url: string) => {
     const path = String(url).replace("http://api.test", "");
 
-    return path === "/people?perPage=1" ? ok(buildPage(1, 1, total)) : list(path);
+    return path === "/people?perPage=1"
+      ? ok(buildPage(1, 1, total))
+      : list(path);
   });
 };
 
@@ -56,14 +74,18 @@ const renderScreen = () =>
     wrapper: createWrapper(createQueryClient()),
   });
 
-const listPaths = () => requestedPaths().filter((path) => path !== "/people?perPage=1");
+const listPaths = () =>
+  requestedPaths().filter((path) => path !== "/people?perPage=1");
 
 const actualApiGet = jest.requireActual("@/services/api").apiGet;
 
 /** Fails the requests of the list (not the count) with the error. */
 const failListWith = (error: Error) =>
-  (api.apiGet as jest.Mock).mockImplementation((path: string, options: unknown) =>
-    path === "/people?perPage=1" ? actualApiGet(path, options) : Promise.reject(error),
+  (api.apiGet as jest.Mock).mockImplementation(
+    (path: string, options: unknown) =>
+      path === "/people?perPage=1"
+        ? actualApiGet(path, options)
+        : Promise.reject(error),
   );
 
 afterEach(() => {
@@ -97,10 +119,12 @@ describe("PeopleScreen", () => {
 
     expect(await screen.findByText("Ana Silva")).toBeOnTheScreen();
     expect(screen.getByText("3 on the platform")).toBeOnTheScreen();
-    expect(screen.getByText("People")).toBeOnTheScreen();
+    expect(screen.getByText("PEOPLE")).toBeOnTheScreen();
     expect(screen.getByPlaceholderText("Search people")).toBeOnTheScreen();
     for (const name of ["Students", "Instructors", "Admins"]) {
-      expect(screen.getByRole("button", { name, selected: false })).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name, selected: false }),
+      ).toBeOnTheScreen();
     }
     expect(screen.getAllByText("since Jul 2026")).toHaveLength(3);
     expect(screen.getByText("Instructor")).toBeOnTheScreen();
@@ -126,22 +150,26 @@ describe("PeopleScreen", () => {
     await renderScreen();
 
     await screen.findByText("Álvaro");
-    expect(screen
+    expect(
+      screen
         .getAllByRole("header")
         .map((header) => header.props.children)
-        .filter((text) => text.length === 1)).toEqual(["A", "B"]);
-    const names = screen.getAllByRole("button").map((button) => button.props.accessibilityLabel);
-    expect(names.filter((name) => ["Álvaro", "ana", "Bruno"].includes(name))).toEqual([
-      "Álvaro",
-      "ana",
-      "Bruno",
-    ]);
+        .filter((text) => text.length === 1),
+    ).toEqual(["A", "B"]);
+    const names = screen
+      .getAllByRole("button")
+      .map((button) => button.props.accessibilityLabel);
+    expect(
+      names.filter((name) => ["Álvaro", "ana", "Bruno"].includes(name)),
+    ).toEqual(["Álvaro", "ana", "Bruno"]);
     expect(listPaths().every((path) => !path.includes("sort"))).toBe(true);
   });
 
   it("shows no count while it loads or after it fails, and the list still works", async () => {
     fetchMock.mockImplementation(async (url: string) =>
-      String(url).endsWith("/people?perPage=1") ? failure() : ok(buildPage(1, 2, 2)),
+      String(url).endsWith("/people?perPage=1")
+        ? failure()
+        : ok(buildPage(1, 2, 2)),
     );
 
     await renderScreen();
@@ -152,22 +180,29 @@ describe("PeopleScreen", () => {
 
   it("loads the next page at the end, shows the footer spinner and stops at the last page", async () => {
     let releasePage2: (value: unknown) => void = () => {};
-    serve((path) =>
-      path.includes("page=2")
-        ? new Promise((resolve) => {
-            releasePage2 = resolve;
-          })
-        : ok(buildPage(1, 20, 25)),
-    25);
+    serve(
+      (path) =>
+        path.includes("page=2")
+          ? new Promise((resolve) => {
+              releasePage2 = resolve;
+            })
+          : ok(buildPage(1, 20, 25)),
+      25,
+    );
     await renderScreen();
     await screen.findByText("Person 0");
 
     fireEvent(screen.getByTestId("people-list"), "endReached");
 
     expect(await screen.findByTestId("people-loading-more")).toBeOnTheScreen();
-    expect(listPaths()).toEqual(["/people?page=1&perPage=20", "/people?page=2&perPage=20"]);
+    expect(listPaths()).toEqual([
+      "/people?page=1&perPage=20",
+      "/people?page=2&perPage=20",
+    ]);
     await act(async () => releasePage2(ok(buildPage(2, 5, 25))));
-    await waitFor(() => expect(screen.queryByTestId("people-loading-more")).not.toBeOnTheScreen());
+    await waitFor(() =>
+      expect(screen.queryByTestId("people-loading-more")).not.toBeOnTheScreen(),
+    );
 
     fireEvent(screen.getByTestId("people-list"), "endReached");
 
@@ -185,7 +220,11 @@ describe("PeopleScreen", () => {
     await screen.findByText("Person 0");
 
     fireEvent(screen.getByTestId("people-list"), "endReached");
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again."));
+    await waitFor(() =>
+      expect(mockShow).toHaveBeenCalledWith(
+        "Something went wrong. Please try again.",
+      ),
+    );
 
     expect(screen.getByText("Person 0")).toBeOnTheScreen();
     fireEvent(screen.getByTestId("people-list"), "endReached");
@@ -194,7 +233,14 @@ describe("PeopleScreen", () => {
 
   describe("search, filter and sort", () => {
     beforeEach(() => {
-      serve((path) => ok({ ...buildPage(1, 1, 1), items: [buildPerson(1, { name: path })] }), 1);
+      serve(
+        (path) =>
+          ok({
+            ...buildPage(1, 1, 1),
+            items: [buildPerson(1, { name: path })],
+          }),
+        1,
+      );
     });
 
     it("searches after the debounce and toggles roles on and off, keeping the search", async () => {
@@ -206,26 +252,40 @@ describe("PeopleScreen", () => {
       await user.type(screen.getByPlaceholderText("Search people"), "jo");
       expect(listPaths()).toEqual(["/people?page=1&perPage=20"]);
       await act(async () => jest.advanceTimersByTime(300));
-      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&search=jo"));
-
-      await user.press(screen.getByRole("button", { name: "Instructors" }));
       await waitFor(() =>
-        expect(listPaths()).toContain("/people?page=1&perPage=20&role=instructor&search=jo"),
-      );
-      expect(screen.getByRole("button", { name: "Instructors", selected: true })).toBeOnTheScreen();
-
-      await user.press(screen.getByRole("button", { name: "Students" }));
-      await waitFor(() =>
-        expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&role=student,instructor&search=jo"),
+        expect(listPaths()).toContain("/people?page=1&perPage=20&search=jo"),
       );
 
       await user.press(screen.getByRole("button", { name: "Instructors" }));
       await waitFor(() =>
-        expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&role=student&search=jo"),
+        expect(listPaths()).toContain(
+          "/people?page=1&perPage=20&role=instructor&search=jo",
+        ),
+      );
+      expect(
+        screen.getByRole("button", { name: "Instructors", selected: true }),
+      ).toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: "Students" }));
+      await waitFor(() =>
+        expect(listPaths().at(-1)).toBe(
+          "/people?page=1&perPage=20&role=student,instructor&search=jo",
+        ),
+      );
+
+      await user.press(screen.getByRole("button", { name: "Instructors" }));
+      await waitFor(() =>
+        expect(listPaths().at(-1)).toBe(
+          "/people?page=1&perPage=20&role=student&search=jo",
+        ),
       );
       await user.press(screen.getByRole("button", { name: "Students" }));
-      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&search=jo"));
-      expect(screen.getByRole("button", { name: "Students", selected: false })).toBeOnTheScreen();
+      await waitFor(() =>
+        expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20&search=jo"),
+      );
+      expect(
+        screen.getByRole("button", { name: "Students", selected: false }),
+      ).toBeOnTheScreen();
       jest.useRealTimers();
     });
 
@@ -239,7 +299,8 @@ describe("PeopleScreen", () => {
         act(async () => {
           fireEvent.changeText(input, text);
         });
-      const wait = (ms: number) => act(async () => jest.advanceTimersByTime(ms));
+      const wait = (ms: number) =>
+        act(async () => jest.advanceTimersByTime(ms));
 
       await type("j");
       await wait(100);
@@ -247,12 +308,18 @@ describe("PeopleScreen", () => {
       await wait(100);
       await type("joa");
       await wait(300);
-      await waitFor(() => expect(listPaths()).toContain("/people?page=1&perPage=20&search=joa"));
-      expect(listPaths().filter((path) => path.includes("search"))).toHaveLength(1);
+      await waitFor(() =>
+        expect(listPaths()).toContain("/people?page=1&perPage=20&search=joa"),
+      );
+      expect(
+        listPaths().filter((path) => path.includes("search")),
+      ).toHaveLength(1);
 
       await type("   ");
       await wait(300);
-      await waitFor(() => expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20"));
+      await waitFor(() =>
+        expect(listPaths().at(-1)).toBe("/people?page=1&perPage=20"),
+      );
       jest.useRealTimers();
     });
   });
@@ -293,7 +360,9 @@ describe("PeopleScreen", () => {
     failListWith(new api.SessionExpiredError());
     await renderScreen();
 
-    await waitFor(() => expect(screen.queryByTestId("people-loading")).not.toBeOnTheScreen());
+    await waitFor(() =>
+      expect(screen.queryByTestId("people-loading")).not.toBeOnTheScreen(),
+    );
 
     expect(screen.queryByText("Couldn't load people.")).not.toBeOnTheScreen();
     expect(screen.queryByText("No one found")).not.toBeOnTheScreen();
@@ -308,7 +377,9 @@ describe("PeopleScreen", () => {
 
     fireEvent(screen.getByTestId("people-list"), "endReached");
 
-    await waitFor(() => expect(screen.queryByTestId("people-loading-more")).not.toBeOnTheScreen());
+    await waitFor(() =>
+      expect(screen.queryByTestId("people-loading-more")).not.toBeOnTheScreen(),
+    );
     expect(mockShow).not.toHaveBeenCalled();
     expect(screen.getByText("Person 0")).toBeOnTheScreen();
   });
@@ -334,15 +405,24 @@ describe("PeopleScreen", () => {
       screen.getByTestId("people-list").props.refreshControl.props.onRefresh();
     });
 
-    await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(before + 1));
-    expect(requestedPaths().filter((path) => path === "/people?perPage=1")).toHaveLength(2);
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.length).toBeGreaterThan(before + 1),
+    );
+    expect(
+      requestedPaths().filter((path) => path === "/people?perPage=1"),
+    ).toHaveLength(2);
   });
 
   it("opens the person sheet and closes it", async () => {
     serve(
       () =>
         ok({
-          items: [buildPerson(1, { name: "Ana Silva", whatsappNumber: "+5585999998888" })],
+          items: [
+            buildPerson(1, {
+              name: "Ana Silva",
+              whatsappNumber: "+5585999998888",
+            }),
+          ],
           page: 1,
           perPage: 20,
           total: 1,

@@ -15,6 +15,16 @@ import { RegistrationsScreen } from "./registrations.screen";
 
 const mockShow = jest.fn();
 
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  // Renders the screen's header title so the tests can see it.
+  Stack: {
+    Screen: ({ options }: any) =>
+      options.unstable_headerLeftItems?.({})[0].element ??
+      options.headerTitle(),
+  },
+}));
+
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
 }));
@@ -172,9 +182,7 @@ describe("RegistrationsScreen list", () => {
     await screen.findByText("Bruno Lima");
 
     expect(screen.getByText("2 waiting for approval")).toBeOnTheScreen();
-    expect(
-      screen.getByRole("header", { name: "Join the school" }),
-    ).toBeOnTheScreen();
+    expect(screen.getByText("JOIN THE SCHOOL")).toBeOnTheScreen();
     expect(
       screen.getByText(
         "New accounts can only book classes once approved. The person gets a push notification.",

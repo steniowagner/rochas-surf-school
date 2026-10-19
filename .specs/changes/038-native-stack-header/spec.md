@@ -176,10 +176,11 @@ stays opaque.
   `vercel-react-best-practices` first.
   Covers: ER-01, ER-03 · Done when: `npx jest src/navigation` passes with both branches asserted for the three hooks.
   > ✅ 2026-10-18 — `useStackHeader` returns the transparent header with `scrollEdgeEffects: { top: "soft" }` (no `headerStyle`) when `isLiquidGlassAvailable()`, the opaque one otherwise; added `useHeaderInset` (header height under the transparent header, else 0); `useKeyboardOffset` is 0 under the transparent header, else the header height; `jest.setup.ts` mocks `useHeaderInset` (0) and `expo-glass-effect` (false by default); files: `apps/mobile/src/navigation/stack-header/{index.ts,stack-header.hook.ts,header-inset.hook.ts,keyboard-offset.hook.ts}` and tests `{stack-header.hook.test.ts,header-inset.hook.test.tsx,keyboard-offset.hook.test.tsx}`, `apps/mobile/jest.setup.ts`; verified: `npx jest src/navigation` (161 passed, both branches of the three hooks), `npx tsc --noEmit` clean; deviations: none
-- [ ] **T-08** — Give the fixed auth screens `src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}`
+- [x] **T-08** — Give the fixed auth screens `src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}`
   a top padding from `useHeaderInset()` on their outer view (D-06); update their component tests to assert the
   padding and, for the four with a `KeyboardAvoidingView`, the `keyboardVerticalOffset`, under both branches.
   Covers: ER-03 · Done when: `npx jest src/modules/auth` passes with those cases.
+  > ✅ 2026-10-18 — the five auth components take `paddingTop: useHeaderInset()` on their outer view; their tests assert the top padding (116 under the transparent header, 0 under the opaque one) and, for the four with a `KeyboardAvoidingView`, `keyboardVerticalOffset` 0 under the transparent header (64 under the opaque one, existing case); files: `apps/mobile/src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}/*.component.tsx` and `*.component.test.tsx`, `apps/mobile/src/navigation/stack-header/header-inset.test-utils.ts` (new test helper); verified: `npx jest src/modules/auth src/navigation` (420 passed), `tsc --noEmit` and eslint clean; deviations: none
 - [ ] **T-09** — Add `contentInsetAdjustmentBehavior="automatic"` to the scroll view of
   `src/modules/admin/screens/registrations.screen.tsx`, `src/modules/school-rules/components/school-rules-reader`,
   `src/modules/cancellation-rules/screens/cancellation-rules.screen.tsx` and

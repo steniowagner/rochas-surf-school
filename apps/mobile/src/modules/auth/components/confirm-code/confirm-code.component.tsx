@@ -9,7 +9,7 @@ import { OtpInput } from "@/components/ui/otp-input";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { useTheme } from "@/hooks/use-theme";
-import { useKeyboardOffset } from "@/navigation/stack-header";
+import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
 
 import { CODE_LENGTH, useConfirmCode } from "./confirm-code.hook";
 import { ConfirmCodeProps } from "./confirm-code.types";
@@ -18,6 +18,7 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const keyboardOffset = useKeyboardOffset();
   const {
     code,
@@ -41,6 +42,7 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
       <View
         className="flex-1 px-[22px]"
         style={{
+          paddingTop: headerInset,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >

@@ -1,6 +1,10 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
+import {
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
 
 import { EmailChoice } from "./email-choice.component";
 
@@ -70,6 +74,20 @@ describe("EmailChoice", () => {
 
     await user.press(screen.getByRole("button", { name: "I'm new here" }));
     expect(onNewPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts below the transparent header", async () => {
+    await underTransparentHeader(116, async () => {
+      await render(<EmailChoice />);
+    });
+
+    expect(topPaddingsOf(screen.toJSON())).toContain(116);
+  });
+
+  it("starts at the top under the opaque header", async () => {
+    await render(<EmailChoice />);
+
+    expect(topPaddingsOf(screen.toJSON())).toContain(0);
   });
 
   it("does nothing when a row is pressed without handlers", async () => {

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
-import { useKeyboardOffset } from "@/navigation/stack-header";
+import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
 
 import { useGoogleName } from "./google-name.hook";
 import { GoogleNameProps } from "./google-name.types";
@@ -20,6 +20,7 @@ export function GoogleName({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const keyboardOffset = useKeyboardOffset();
   const { nameField, canSubmit, isSending, submit } = useGoogleName({
     idToken,
@@ -36,6 +37,7 @@ export function GoogleName({
       <View
         className="flex-1 px-[22px]"
         style={{
+          paddingTop: headerInset,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >

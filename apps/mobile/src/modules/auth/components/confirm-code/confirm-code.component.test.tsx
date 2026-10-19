@@ -13,6 +13,10 @@ import { Platform, TextInput as NativeTextInput } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import {
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
 import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
@@ -167,6 +171,25 @@ describe("ConfirmCode", () => {
     await user.press(screen.getByRole("link", { name: "change the email" }));
 
     expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts at the top under the opaque header", async () => {
+    await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+    expect(topPaddingsOf(screen.toJSON())).toContain(0);
+  });
+
+  it("starts below the transparent header without offsetting the keyboard", async () => {
+    const offset = await underTransparentHeader(116, async () => {
+      const offset = await keyboardOffsetOf(() =>
+        renderScreen(<ConfirmCode email={EMAIL} name={NAME} />),
+      );
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      expect(topPaddingsOf(screen.toJSON())).toContain(116);
+      return offset;
+    });
+
+    expect(offset).toBe(0);
   });
 
   it("offsets the keyboard by the height of the header", async () => {

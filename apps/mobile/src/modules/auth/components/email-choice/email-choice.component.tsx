@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { useTheme } from "@/hooks/use-theme";
+import { useHeaderInset } from "@/navigation/stack-header";
 
 import { ChoiceRow } from "../choice-row";
 import { EmailChoiceProps } from "./email-choice.types";
@@ -17,11 +18,13 @@ export function EmailChoice({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
 
   return (
     <View
       className="flex-1 bg-page px-[22px]"
       style={{
+        paddingTop: headerInset,
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >

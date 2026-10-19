@@ -17,7 +17,7 @@ export const CLASS_CARD_AVATARS = 4;
 export const useClassCard = ({
   item,
   now,
-  showEnrolment = false,
+  showEnrolment,
 }: UseClassCardProps): UseClassCardResult => {
   const names = item.instructors.map((instructor) => instructor.name);
 

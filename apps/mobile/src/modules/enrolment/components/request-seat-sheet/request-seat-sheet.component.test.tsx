@@ -17,11 +17,13 @@ jest.useFakeTimers();
 // Shows whether the rules sheet is open: the global sheet mock draws its content even when it is closed.
 jest.mock("@/modules/cancellation-rules/components/cancellation-rules-sheet", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { Text } = require("react-native");
+  const { Pressable, Text } = require("react-native");
 
   return {
-    CancellationRulesSheet: ({ visible }: { visible: boolean }) => (
-      <Text>{visible ? "rules-open" : "rules-closed"}</Text>
+    CancellationRulesSheet: ({ visible, onClose }: { visible: boolean; onClose: () => void }) => (
+      <Pressable accessibilityLabel="close-rules" onPress={onClose}>
+        <Text>{visible ? "rules-open" : "rules-closed"}</Text>
+      </Pressable>
     ),
   };
 });
@@ -104,6 +106,10 @@ describe("RequestSeatSheet", () => {
     await user.press(screen.getByRole("link", { name: "Read" }));
 
     expect(screen.getByText("rules-open")).toBeOnTheScreen();
+
+    await user.press(screen.getByLabelText("close-rules"));
+
+    expect(screen.getByText("rules-closed")).toBeOnTheScreen();
   });
 
   it("reads the full class as the waiting list, in the title, the line and the button", async () => {

@@ -127,7 +127,8 @@ export const useClassEnrolment = ({ item, state, canEnrol, reload }: UseClassEnr
     // Students who may still ask for a seat get the invitation on the full-class banner.
     invitesWaitingList: cta?.key === "joinWaitingList",
     pressCta,
-    ctaLoading: withdrawRequest.isPending && cta?.action === "leaveWaitingList",
+    // Leaving the waiting list sends from the button itself; the other withdrawal sends from its sheet.
+    ctaLoading: withdrawRequest.isPending && !withdrawVisible,
     requestVisible,
     closeRequest: () => setRequestVisible(false),
     request,

@@ -302,11 +302,12 @@ spec.
   Covers: ER-11 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "read-only"` passes.
   > ✅ 2026-10-19 — an instructor opening a class sees a note: the school makes the changes when they teach it, "you see everything in read-only mode" when they do not; students and admins get none; strings `classDetails.readOnly.*` in en-US, es-ES and pt-BR; files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`; verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx src/i18n` (105 passed, incl. `-t "read-only"`), `npx tsc --noEmit` and `npx eslint src/modules/classes src/i18n` clean; deviations: none
 
-- [ ] **T-10** — Check the three locales have the same new keys and that nothing outside this spec changed in the
+- [x] **T-10** — Check the three locales have the same new keys and that nothing outside this spec changed in the
   card or the detail; fix any lint or type error in `apps/mobile`. Skills:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-12 · Done when: `npx jest src/i18n` passes and `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`
   exits 0.
+  > ✅ 2026-10-19 — checked that en-US, es-ES and pt-BR hold the same keys (a throwaway comparison test of the key paths, plural suffixes ignored, passed and was deleted) and that `git diff <base_commit>..HEAD` touches only the classes module, the backend classes module, the class card and detail, `i18n`, and the design tokens; no lint or type error needed fixing; files: none changed; verified: `npx jest src/i18n` (7 passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (8 tasks successful); deviations: none
 
 ### Verification
 

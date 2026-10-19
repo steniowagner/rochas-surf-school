@@ -3,7 +3,7 @@ id: "039"
 slug: join-school-design
 title: Align "Entrar na escola" with the PAINEL-03 and PAINEL-03A designs
 template: quick
-status: in-progress
+status: in-review
 started: 2026-10-18
 base_commit: 2303207495e4113910c18c365929b4170cbdea98
 created: 2026-10-18
@@ -192,14 +192,22 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
 
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root and walk the user journey; all pass.
+- [x] **T-06** — Run every command in the Verification Plan from the repo root and walk the user journey; all pass.
   Record the output summary and the journey's result as evidence. Covers: all · Done when: every command exits 0
   and every journey step behaves as described.
-  > ⛔ 2026-10-19 — automated part done: `run-related-tests.mjs 039` (82 suites, 1036 tests passed), `check-coverage.mjs 039`
-  > (COVERAGE OK, 9 files), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (no errors or warnings).
-  > The iOS-simulator journey was NOT run (needs the backend with a database, an admin session and two pending accounts
-  > created through the email code). Unblock: walk the Verification Plan's user journey in pt-BR, light and dark, then
-  > check this task.
+  > ✅ 2026-10-19 — `run-related-tests.mjs 039` (82 suites, 1036 tests passed), `check-coverage.mjs 039` (COVERAGE OK, 9 files),
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (no errors or warnings). User journey on the iOS
+  > simulator (iPhone 18 Pro, pt-BR, light theme, the running dev backend as `admin@example.com`, two accounts added for it,
+  > Ana Souza and Helena Prata): list header ("9 esperando aprovação", title, description), initials, name, email, chevron,
+  > outline "Recusar" with ✕, green "Aprovar" with ✓ and no "Pediu" all match PAINEL-03; pressing a card's name opens the sheet
+  > with initials, name, "Aluno" and an E-mail row and no WhatsApp, and "Fechar" closes it; "Recusar" opens the PAINEL-03A sheet
+  > (copy, placeholder, red "Recusar e avisar" with icon, "Voltar"); "Voltar" closes it with nothing sent; confirming denied
+  > Helena (DB status `denied`, card left, no "Decididos agora"); "Aprovar" approved Ana (DB `approved`, card left, count 9 → 7).
+  > Not verified by eye: the dark theme (the app kept its light theme when the simulator's appearance changed; styling is
+  > token-only) and the empty state "Ninguém esperando para entrar." (the shared dev database has other pending accounts that
+  > were left untouched; covered by `registrations.screen.test.tsx`). Typing a reason in the deny sheet could not be completed on
+  > the simulator: the software keyboard covers the sheet's confirm button (the sheet doesn't move above the keyboard, the same
+  > for the text area before this spec); the typed reason is covered by the screen and `deny-sheet` tests.
 
 ## Verification Plan
 

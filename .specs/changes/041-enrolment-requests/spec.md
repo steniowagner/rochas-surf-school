@@ -2,7 +2,7 @@
 id: "041"
 slug: enrolment-requests
 title: "Students request seats in classes"
-status: in-progress
+status: in-review
 created: 2026-10-19
 started: 2026-10-19
 base_commit: f4f39160297a7dcb1497ed9c64df738439b75db0

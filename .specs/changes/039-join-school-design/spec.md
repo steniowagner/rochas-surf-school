@@ -3,7 +3,7 @@ id: "039"
 slug: join-school-design
 title: Align "Entrar na escola" with the PAINEL-03 and PAINEL-03A designs
 template: quick
-status: in-review
+status: changes-requested
 started: 2026-10-18
 base_commit: 2303207495e4113910c18c365929b4170cbdea98
 created: 2026-10-18
@@ -247,3 +247,60 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-19 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`)
+- related tests ✅ 82 suites, 1036 passed (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK, 9 files measured; no coverage-ignore comments in the diff
+- e2e: no suite applies (mobile only) · user journey on the iOS simulator (iPhone 18 Pro, pt-BR, light theme, the
+  running dev backend as an admin) ✅ for ER-01 and ER-02, ❌ for ER-03 (F-01)
+- `grep -rn "DecidedList\|decision\.\|registrations.asked" apps/mobile/src` finds nothing ✅
+
+**Expected Results**
+
+- ER-01 ✅ — simulator: "6 ESPERANDO APROVAÇÃO", "ENTRAR NA ESCOLA" and the new description, no icon tile; each card
+  has the initials avatar, name, email right below it, a chevron, an outline "Recusar" with ✕ and a green "Aprovar"
+  with ✓, no "Pediu". `registrations.screen.test.tsx` asserts the count, title, description, card content, the
+  hidden count on empty / loading / error, and that an approved or denied card leaves the list with the count going
+  down and no "Approved" / "Denied" text. Not re-done on the device: approving / denying (it would change other
+  people's pending accounts in the shared dev database), the empty state and the dark theme; the tests and the
+  executor's run cover them, and the styles are token classes only.
+- ER-02 ✅ — simulator: pressing "Pending Tester" opens the sheet with the large initials, the name, "ALUNO" and an
+  "E-mail" row with the address, no WhatsApp row; "Fechar" closes it. The tests cover that Deny / Approve don't open
+  it and that `PersonSheet` without `email` keeps both WhatsApp branches.
+- ER-03 ❌ — the sheet's copy, placeholder, no visible label, red "Recusar e avisar" with its icon and "Voltar" match
+  PAINEL-03A, and "Voltar" / the backdrop close it without a request; but a reason can't be typed and sent on the
+  device — see F-01.
+
+**Findings**
+
+- [ ] **F-01** (ER-03) — with the deny sheet open, tapping the text area brings up the keyboard, which covers the text
+  area, "Recusar e avisar" and "Voltar"; the sheet doesn't move above it and nothing in the sheet dismisses it (tapping
+  the title doesn't; return adds a new line), so the only way out is the backdrop, which drops the reason. An admin
+  can't deny with a typed reason, which is ER-03's main behavior and a step of the Verification Plan's journey (the
+  executor hit the same in T-06). It predates this spec, but ER-03 requires it. Reproduce: iOS simulator → "Entrar na
+  escola" → "Recusar" on any card → tap the text area → type. Expected: while typing, the text area and "Recusar e
+  avisar" stay visible and pressable (e.g. the sheet rises above the keyboard), and pressing it denies with the typed
+  reason.
+- [ ] **F-02** (scope) — the T-05 commit reformats code that no task touches (line wrapping only, from a formatter;
+  the mobile lint has no Prettier rule, so it wasn't needed): all of `apps/mobile/src/i18n/backend-locale.test.ts` and
+  `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, the two hunks around lines 148–176 of
+  `admin.screen.test.tsx`, the existing tests of `person-sheet.component.test.tsx`, and about twenty unrelated strings
+  in the three message files (`pushNote`, `cancellationRules.screen.*`, `about.description`, `cancelClass.*`,
+  `locationSheet.*`…). Reproduce: `git diff 2303207..HEAD -- apps/mobile/src/i18n/backend-locale.test.ts
+  apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`. Expected: those formatting-only hunks are reverted, so
+  the diff holds only the spec's changes.
+
+**Notes**
+
+- `PersonSheet`'s email row is an `accessible` view whose `accessibilityLabel` is just "E-mail", so VoiceOver doesn't
+  read the address. It mirrors the WhatsApp button (whose label also leaves the number out), so it's not a finding;
+  consider a label that includes the address.
+- ER-03 says an empty reason sends `reason: ""`; the request body is `{}`, exactly as before this spec, so "as today"
+  holds.
+- Memory Impact: `technical-context.md` also says `formatCreatedAt` is used "by the Pending screen and the registration
+  cards"; the cards no longer use it.
+- Next round: check F-01 on the simulator by typing a reason and pressing "Recusar e avisar".

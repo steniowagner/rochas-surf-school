@@ -60,6 +60,8 @@ const makeClass = (
     longitude: -38.4617,
   },
   instructors: [{ id: "i-1", name: "Ana" }],
+  seatsTaken: 0,
+  students: [],
   ...overrides,
 });
 

@@ -319,6 +319,15 @@ const messages = {
     cancelled: "Cancelled",
     noInstructor: "No instructor",
     noDeadline: "No deadline",
+    occupancy: "{{taken}}/{{capacity}} spots",
+    full: "Full",
+    students: {
+      none: "No students yet",
+      confirmed_one: "{{count}} student confirmed",
+      confirmed_other: "{{count}} students confirmed",
+      present_one: "{{count}} student present",
+      present_other: "{{count}} students present",
+    },
   },
   classDetails: {
     title: "Details",

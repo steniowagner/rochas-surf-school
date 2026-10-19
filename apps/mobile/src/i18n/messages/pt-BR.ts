@@ -319,6 +319,15 @@ const messages: Messages = {
     cancelled: "Cancelada",
     noInstructor: "Sem instrutor",
     noDeadline: "Sem prazo",
+    occupancy: "{{taken}}/{{capacity}} vagas",
+    full: "Sem vagas",
+    students: {
+      none: "Ainda sem alunos",
+      confirmed_one: "{{count}} aluno confirmado",
+      confirmed_other: "{{count}} alunos confirmados",
+      present_one: "{{count}} aluno presente",
+      present_other: "{{count}} alunos presentes",
+    },
   },
   classDetails: {
     title: "Detalhe",

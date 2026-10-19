@@ -241,11 +241,12 @@ spec.
   Covers: ER-01 · Done when: `npx vitest run src/modules/classes` passes from `apps/backend`.
   > ✅ 2026-10-19 — added `NoEnrolmentClassRosterReader` (empty map, so every class reads 0 seats and no students), registered it in the module and injected it in the controller, which now passes it to every `GetClass` and `ListWeekClasses` call (week, one, post-edit, post-cancel); rebuilt `modules/classes` so the backend sees the new export (dist is gitignored); files: `apps/backend/src/modules/classes/no-enrolment.class-roster.reader.ts`, `apps/backend/src/modules/classes/no-enrolment.class-roster.reader.spec.ts`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`; verified: `npx vitest run src/modules/classes` (16 files, 137 passed), `npm run check-types` in `apps/backend` (0 errors); deviations: none
 
-- [ ] **T-03** — Extend `classes.controller.spec.ts`, `test/classes.e2e-spec.ts` and `classes.integration.http`
+- [x] **T-03** — Extend `classes.controller.spec.ts`, `test/classes.e2e-spec.ts` and `classes.integration.http`
   with `seatsTaken: 0` and `students: []` on the week, the detail and the post-edit and post-cancel answers.
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01 · Done when: `npm run test:e2e --workspace apps/backend` passes and the requests of
   `classes.integration.http` answer with the fields.
+  > ✅ 2026-10-19 — controller spec: new test for week and one with a stored view, and `seatsTaken: 0`/`students: []` asserted on the post-edit and post-cancel answers; e2e: the exact-shape week assertion and the one-class, post-edit and post-cancel assertions now carry the two fields; `classes.integration.http` comments state the fields on the week, detail, edit and cancel requests; files: `apps/backend/src/modules/classes/classes.controller.spec.ts`, `apps/backend/test/classes.e2e-spec.ts`, `apps/backend/src/modules/classes/classes.integration.http`; verified: `npx vitest run src/modules/classes` (138 passed), `npm run test:e2e --workspace apps/backend` (17 files, 508 passed), `npm run check-types` (0 errors); deviations: the `.http` requests were not run by hand against `npm run dev` here — the e2e cases exercise the same endpoints; the live run is left to T-11
 
 ### Mobile (`apps/mobile`)
 

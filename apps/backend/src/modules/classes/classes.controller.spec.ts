@@ -182,6 +182,32 @@ describe('ClassesController', () => {
     });
   });
 
+  it('carries no seat taken and no student on the classes of the week and on one class', async () => {
+    const { controller, classViewReader } = setup();
+    const view = {
+      id: '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47',
+      discipline: 'surf',
+      level: 'beginner',
+      startsAt: new Date('2026-10-15T11:00:00.000Z'),
+      endsAt: new Date('2026-10-15T12:00:00.000Z'),
+      capacity: 8,
+      notes: null,
+      cancelledAt: null,
+      cancellationMessage: null,
+      cancellationDeadline: null,
+      location: { id: 'l-1', name: 'Praia', address: 'Av.', latitude: null, longitude: null },
+      instructors: [],
+    };
+    classViewReader.findStartingBetween.mockResolvedValueOnce([view] as never);
+    classViewReader.findById.mockResolvedValueOnce(view as never);
+
+    const week = await controller.week(userOf('student'), '2026-10-15');
+    const one = await controller.one(userOf('student'), view.id);
+
+    expect(week.items[0]).toMatchObject({ seatsTaken: 0, students: [] });
+    expect(one).toMatchObject({ seatsTaken: 0, students: [] });
+  });
+
   it('lists the week of the date for any approved role', async () => {
     const { controller, classViewReader } = setup();
 
@@ -286,6 +312,8 @@ describe('ClassesController', () => {
         id: EDITED_ID,
         discipline: 'skate',
         startsAt: '2026-10-16T11:00:00.000Z',
+        seatsTaken: 0,
+        students: [],
       });
     });
 
@@ -370,6 +398,8 @@ describe('ClassesController', () => {
         id: CANCELLED_ID,
         cancelledAt: NOW.toISOString(),
         cancellationMessage: 'Mar muito grande.',
+        seatsTaken: 0,
+        students: [],
       });
     });
 

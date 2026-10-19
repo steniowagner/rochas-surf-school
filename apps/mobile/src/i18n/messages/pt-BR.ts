@@ -351,6 +351,13 @@ const messages: Messages = {
     you: "Você",
     capacity_one: "Máx. {{count}} aluno",
     capacity_other: "Máx. {{count}} alunos",
+    theClass: "A aula",
+    spotsLeft_one: "{{count}} vaga livre",
+    spotsLeft_other: "{{count}} vagas livres",
+    soldOut: "esgotado",
+    full: {
+      title: "Turma cheia",
+    },
     notes: "Notas",
     location: "Local",
     directions: "Direções",

@@ -170,7 +170,7 @@ describe("ClassDetailsScreen", () => {
     expect(screen.getByText("AS")).toBeOnTheScreen();
     expect(screen.getByText("BL")).toBeOnTheScreen();
     expect(screen.getByText("Bruno Lima")).toBeOnTheScreen();
-    expect(screen.getByText("Max. 8 students")).toBeOnTheScreen();
+    expect(screen.getByText("Max. 8 students · 8 spots left")).toBeOnTheScreen();
     expect(screen.getByText("Notes")).toBeOnTheScreen();
     expect(
       screen.getByText("Ponto de encontro na barraca 3."),
@@ -224,7 +224,7 @@ describe("ClassDetailsScreen", () => {
     expect(await screen.findByText("You")).toBeOnTheScreen();
     expect(screen.queryByText("Ana Souza")).not.toBeOnTheScreen();
     expect(screen.getByText("Instructor")).toBeOnTheScreen();
-    expect(screen.getByText("Max. 1 student")).toBeOnTheScreen();
+    expect(screen.getByText("Max. 1 student · 1 spot left")).toBeOnTheScreen();
   });
 
   it("writes the date relative to today", async () => {
@@ -320,6 +320,125 @@ describe("ClassDetailsScreen", () => {
 
       expect(await screen.findByTestId("location-map-preview")).toBeOnTheScreen();
       expect(screen.getByRole("button", { name: "Directions" })).toBeOnTheScreen();
+    });
+  });
+
+  describe("A aula", () => {
+    const students = (count: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        id: `s-${index}`,
+        name: `Aluno ${index}`,
+        photoUrl: null,
+      }));
+
+    it("groups the instructors, the students and the free seats under The class", async () => {
+      serve(makeClass({ seatsTaken: 3, students: students(3) }));
+      await renderScreen();
+
+      expect(await screen.findByText("The class")).toBeOnTheScreen();
+      expect(screen.getByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.getByText("3 students confirmed")).toBeOnTheScreen();
+      expect(screen.getAllByLabelText(/^Aluno/)).toHaveLength(3);
+      expect(screen.getByText("Max. 8 students · 5 spots left")).toBeOnTheScreen();
+    });
+
+    it("reads No students yet and does not expand for a class without students", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByText("No students yet"));
+
+      expect(screen.getByRole("button", { name: /No students yet/ })).toBeDisabled();
+      expect(screen.queryByText(glyph("chevron-down"))).not.toBeOnTheScreen();
+    });
+
+    it("shows 5 avatars and +N, and opens the list of every student when the row is pressed", async () => {
+      const user = userEvent.setup();
+      serve(makeClass({ seatsTaken: 7, students: students(7) }));
+      await renderScreen();
+
+      expect(await screen.findByText("+2")).toBeOnTheScreen();
+      expect(screen.getAllByLabelText(/^Aluno/)).toHaveLength(5);
+      expect(screen.queryByText("Aluno 6")).not.toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /7 students confirmed/ }));
+
+      expect(screen.getByText("Aluno 6")).toBeOnTheScreen();
+      expect(screen.getByText(glyph("chevron-up"))).toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /7 students confirmed/ }));
+
+      expect(screen.queryByText("Aluno 6")).not.toBeOnTheScreen();
+    });
+
+    it("does not mark the viewer in the list of students", async () => {
+      const user = userEvent.setup();
+      serve(
+        makeClass({
+          seatsTaken: 1,
+          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null }],
+          instructors: [{ id: "i-2", name: "Bruno Lima" }],
+        }),
+      );
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: /1 student confirmed/ }));
+
+      expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+      expect(screen.queryByText("You")).not.toBeOnTheScreen();
+    });
+
+    it("says sold out in red when the class is full, and counts one spot left in the singular", async () => {
+      serve(makeClass({ seatsTaken: 8 }));
+      await renderScreen();
+      expect(await screen.findByText("Max. 8 students · sold out")).toBeOnTheScreen();
+      expect(screen.getByText("Max. 8 students · sold out").props.className).toContain("text-bad");
+
+      serve(makeClass({ seatsTaken: 7 }));
+      await renderScreen();
+      expect(await screen.findByText("Max. 8 students · 1 spot left")).toBeOnTheScreen();
+    });
+
+    it("reads students present after the end and hides the Max. line when finished or cancelled", async () => {
+      serve(makeClass({ startsAt: "2026-10-14T10:00:00.000Z", endsAt: "2026-10-14T11:00:00.000Z", seatsTaken: 2, students: students(2) }));
+      await renderScreen();
+      expect(await screen.findByText("2 students present")).toBeOnTheScreen();
+      expect(screen.queryByText(/^Max\./)).not.toBeOnTheScreen();
+
+      serve(makeClass({ cancelledAt: "2026-10-13T10:00:00.000Z" }));
+      await renderScreen();
+      await screen.findByText("Class cancelled");
+      expect(screen.queryByText(/^Max\./)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe("full class banner", () => {
+    it("shows Class full for a class to come with every seat taken", async () => {
+      serve(makeClass({ seatsTaken: 8 }));
+      await renderScreen();
+
+      expect(await screen.findByText("Class full")).toBeOnTheScreen();
+    });
+
+    it("shows nothing for a class with a free seat", async () => {
+      serve(makeClass({ seatsTaken: 7 }));
+      await renderScreen();
+
+      await screen.findByText("The class");
+      expect(screen.queryByText("Class full")).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ["started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T14:00:00.000Z" }],
+      ["finished", { startsAt: "2026-10-14T10:00:00.000Z", endsAt: "2026-10-14T11:00:00.000Z" }],
+      ["cancelled", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
+    ])("shows nothing for a %s class", async (_label, overrides) => {
+      serve(makeClass({ seatsTaken: 8, ...overrides }));
+      await renderScreen();
+
+      await screen.findByText("The class");
+      expect(screen.queryByText("Class full")).not.toBeOnTheScreen();
     });
   });
 

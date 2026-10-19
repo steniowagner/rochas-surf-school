@@ -351,6 +351,13 @@ const messages = {
     you: "You",
     capacity_one: "Max. {{count}} student",
     capacity_other: "Max. {{count}} students",
+    theClass: "The class",
+    spotsLeft_one: "{{count}} spot left",
+    spotsLeft_other: "{{count}} spots left",
+    soldOut: "sold out",
+    full: {
+      title: "Class full",
+    },
     notes: "Notes",
     location: "Location",
     directions: "Directions",

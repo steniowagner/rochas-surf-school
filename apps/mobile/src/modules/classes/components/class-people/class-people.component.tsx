@@ -1,0 +1,128 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { Pressable, Text, View } from "react-native";
+
+import { useTheme } from "@/hooks/use-theme";
+
+import { StudentAvatar } from "../student-avatar";
+
+import { useClassPeople } from "./class-people.hook";
+import type { ClassPeopleProps } from "./class-people.types";
+
+const INSTRUCTOR_AVATAR_SIZE = 36;
+const STUDENT_AVATAR_SIZE = 28;
+
+/** The "A aula" group of the class details: who teaches, who is enrolled, and how many seats are left. */
+export function ClassPeople({
+  instructors,
+  students,
+  seatsTaken,
+  capacity,
+  state,
+}: ClassPeopleProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const people = useClassPeople({ students, seatsTaken, capacity, state });
+
+  const label = t(`classesWeek.students.${people.studentsLabel.key}`, {
+    count: people.studentsLabel.count,
+  });
+
+  return (
+    <View className="gap-2">
+      <Text className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</Text>
+      <View className="overflow-hidden rounded-card border border-line bg-surface">
+        <View className="gap-3 p-4">
+          <Text className="ds-text-section-label text-ink-2">
+            {t("classDetails.instructor", { count: instructors.length })}
+          </Text>
+          {instructors.length === 0 ? (
+            <Text className="ds-text-body text-ink-2">{t("classDetails.noInstructorAssigned")}</Text>
+          ) : null}
+          {instructors.map((instructor) => (
+            <View key={instructor.id} className="flex-row items-center gap-3">
+              <StudentAvatar
+                name={instructor.name}
+                photoUrl={null}
+                size={INSTRUCTOR_AVATAR_SIZE}
+              />
+              <Text className="ds-text-list-title text-ink">
+                {instructor.isViewer ? t("classDetails.you") : instructor.name}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <View className="border-t border-line">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !people.canExpand, expanded: people.expanded }}
+            disabled={!people.canExpand}
+            onPress={people.toggle}
+            className="min-h-11 flex-row items-center gap-3 px-4 py-3"
+          >
+            {people.shown.length > 0 || people.hiddenSeats > 0 ? (
+              <View className="flex-row items-center">
+                {people.shown.map((student, index) => (
+                  <View key={student.id} className={index === 0 ? "" : "-ml-2"}>
+                    <StudentAvatar
+                      name={student.name}
+                      photoUrl={student.photoUrl}
+                      size={STUDENT_AVATAR_SIZE}
+                      ringed
+                    />
+                  </View>
+                ))}
+                {people.hiddenSeats > 0 ? (
+                  <View
+                    style={{
+                      width: STUDENT_AVATAR_SIZE,
+                      height: STUDENT_AVATAR_SIZE,
+                      borderRadius: STUDENT_AVATAR_SIZE / 2,
+                    }}
+                    className="-ml-2 items-center justify-center border-2 border-surface bg-sand"
+                  >
+                    <Text className="ds-text-chip text-ink">{`+${people.hiddenSeats}`}</Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+            <Text className="ds-text-section-label flex-1 text-ink-2">{label}</Text>
+            {people.canExpand ? (
+              <Ionicons
+                name={people.expanded ? "chevron-up" : "chevron-down"}
+                size={18}
+                color={theme.ink2}
+              />
+            ) : null}
+          </Pressable>
+          {people.expanded
+            ? students.map((student) => (
+                <View
+                  key={student.id}
+                  className="flex-row items-center gap-3 border-t border-line px-4 py-2"
+                >
+                  <StudentAvatar
+                    name={student.name}
+                    photoUrl={student.photoUrl}
+                    size={STUDENT_AVATAR_SIZE}
+                  />
+                  <Text className="ds-text-list-title flex-1 text-ink">{student.name}</Text>
+                </View>
+              ))
+            : null}
+        </View>
+      </View>
+      {people.showCapacityLine ? (
+        <Text
+          className={`ds-text-list-subtitle ${people.full ? "text-bad" : "text-ink-2"}`}
+        >
+          {`${t("classDetails.capacity", { count: capacity })} · ${
+            people.full
+              ? t("classDetails.soldOut")
+              : t("classDetails.spotsLeft", { count: people.freeSeats })
+          }`}
+        </Text>
+      ) : null}
+    </View>
+  );
+}

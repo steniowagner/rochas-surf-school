@@ -8,7 +8,6 @@ import { useAlertMessage } from "@/providers/alert-message";
 import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
 import { getDateLocale } from "@/utils/calendar-dates";
-import { getInitials } from "@/utils/get-initials";
 
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
@@ -25,6 +24,7 @@ import {
   isClassStartedError,
 } from "../utils/class-error";
 import { toMapPoint } from "../utils/map";
+import { isClassFull } from "../utils/occupancy";
 import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../utils/week";
 
 import type {
@@ -57,7 +57,6 @@ export const useClassDetailsScreen = ({
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
     (instructor) => ({
       ...instructor,
-      initials: getInitials(instructor.name),
       isViewer: instructor.id === user?.id,
     }),
   );
@@ -174,6 +173,9 @@ export const useClassDetailsScreen = ({
     locationPoint: item ? toMapPoint(item.location) : null,
     instructors,
     cancellationDeadline,
+    // Every seat is taken and the class is still to come; the started and cancelled banners come first.
+    showFullBanner:
+      item !== undefined && state === "not-started" && isClassFull(item.seatsTaken, item.capacity),
     timeRange: `${start} – ${end}`,
     start,
     end,

@@ -2,7 +2,7 @@
 id: "040"
 slug: class-seats-read-model
 title: "Class seats read model and class card and detail aligned with the designs"
-status: in-review
+status: changes-requested
 started: 2026-10-19
 base_commit: c0875ed6bcd73ba150ecc6f9cde5cedc34d792c0
 created: 2026-10-19
@@ -362,3 +362,64 @@ spec.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-19 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/classes`, backend, mobile, design-tokens — 24 tasks)
+- related tests ✅ RELATED TESTS PASSED (apps/backend, apps/mobile, modules/classes 463 passed, apps/web)
+- coverage of the changed lines ✅ COVERAGE OK (18 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 17 files, 508 passed · web Playwright ✅ 22 passed
+- HTTP (built backend on port 4100 against the dev database, local test token for an approved student):
+  `GET /classes?date=2026-10-15` → 200, 11 items, all `seatsTaken: 0` and `students: []`;
+  `GET /classes/:id` → 200 with both fields; unknown id → 404 `class.notFound`; no token → 401
+  `auth.token.invalid`; a user who isn't approved → 403 `user.status.notApproved`. `PUT` and cancel weren't sent
+  so the dev data stays as it was; the e2e cases assert both fields on those answers.
+- iOS simulator (iPhone 18 Pro, iOS 27, signed in as admin, pt-BR, dark): week card with an empty bar, "0/8 vagas",
+  "AINDA SEM ALUNOS" and no instructors line; detail "A AULA" with the instructor, "Ainda sem alunos",
+  "Máx. 8 alunos · 8 vagas livres"; the "Regras" rows open the rules sheet and the school rules; finished cards with
+  no bar and "Ainda sem alunos"; a cancelled card with neither bar nor footer, and its detail with no "Regras" and no
+  "Máx." line. Problem found in the rules row (F-01).
+
+**Expected Results**
+
+- ER-01 ✅ — controller and reader specs, e2e cases and the live reads above
+- ER-02 ✅ — use-case and fake tests: cap of 4 on the week, all 7 by id, a class without a roster reads 0 and `[]`
+- ER-03 ✅ — `look` tests; design-tokens `check-types` passes
+- ER-04 ✅ — `occupancy` tests and `occupancy.test.ts`; seen in the simulator (empty track, "0/8 vagas")
+- ER-05 ✅ — `students footer` tests; seen in the simulator
+- ER-06 ✅ — `finished` and `cancelled` tests; seen in the simulator
+- ER-07 ✅ — `A aula` tests; seen in the simulator
+- ER-08 ✅ — `full class banner` tests
+- ER-09 ✅ — `StudentAvatar` tests (photo, initials on `sand`, fallback on error)
+- ER-10 ❌ — see F-01
+- ER-11 ✅ — `read-only note` tests
+- ER-12 ✅ — `npx jest src/i18n`; the locales are typed `Messages`, so a key missing from one fails the type check
+
+**Findings**
+
+- [ ] **F-01** (ER-10) — the cancellation row of the "Regras" group breaks its label mid-word when the class has a
+  deadline: in pt-BR it reads "Cancela / mento · / Surf" on three lines, because `ProfileRow` gives its value
+  (`ds-text-list-subtitle`, no width limit) all the room it needs and squeezes the `flex-1` label. The en-US and
+  es-ES values ("Cancel until Mon, 19 Oct · 20:00") are just as long. Reproduce: iOS simulator, iPhone 18 Pro
+  (402 pt wide), pt-BR, open a class that has a cancellation deadline (e.g. today's 14:00 surf class), scroll to
+  "Regras". Expected: "Cancelamento · Surf" reads whole, without a word broken mid-word, and the deadline stays
+  readable — for example the value under the label, or the value shrinking or truncating instead of the label.
+  Check that the change doesn't affect the other `ProfileRow` screens, or keep it local to the class details.
+
+**Notes**
+
+- The simulator's Metro was started on 2026-10-18, before the `occupancy` token, so its card showed "0/8 vagas"
+  without the 11px / 800 style. The mobile Tailwind config generates `.ds-text-occupancy` (Nunito ExtraBold, 11px)
+  and `.ds-text-card-meta` correctly. Restart Metro with `--clear` to see them.
+- The "Cancel until …" line now shows twice on a class with a deadline: under the date and as the value of the
+  rules row (raised in T-08). D-09 asks for it in the row and nothing asks to remove the other one, so it isn't a
+  finding. If the design has only one, dropping the line under the date is a product call, and it would also
+  solve F-01's crowding if the row kept the line.
+- The student and instructor journeys of the Verification Plan weren't driven in the simulator: the simulator was
+  signed in as the user's admin account, and switching accounts needs sign-in codes. Their role-specific behavior
+  (the school-rules route per role, the read-only notes) is covered by the Jest tests named in ER-10 and ER-11.
+- The turbo lint, type-check and build tasks were all cache hits for this commit.
+- `useClassPeople` returns an inline type while `useClassCard` declares `UseClassCardResult` in its types file.
+  `react.md` doesn't require a declared result type, so this isn't a finding.

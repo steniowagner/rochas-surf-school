@@ -38,12 +38,17 @@ jest.mock("@/providers/alert-message", () => ({
 // The global sheet mock always renders its content; this one renders it only while visible.
 jest.mock("@/components/ui/bottom-modal", () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
-  const { View } = require("react-native");
+  const { Pressable, View } = require("react-native");
   /* eslint-enable @typescript-eslint/no-require-imports */
 
   return {
-    BottomModal: ({ visible, children }: any) =>
-      visible ? <View>{children}</View> : null,
+    BottomModal: ({ visible, onClose, children }: any) =>
+      visible ? (
+        <View>
+          <Pressable accessibilityLabel="Dismiss sheet" onPress={onClose} />
+          {children}
+        </View>
+      ) : null,
   };
 });
 
@@ -919,6 +924,29 @@ describe("ClassDetailsScreen", () => {
       await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
 
       expect(await screen.findByText("Cancellation rules")).toBeOnTheScreen();
+    });
+
+    it("closes the cancellation rules sheet", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+      await screen.findByText("Cancellation rules");
+      await user.press(screen.getByLabelText("Dismiss sheet"));
+
+      expect(screen.queryByText("Cancellation rules")).not.toBeOnTheScreen();
+    });
+
+    it("opens the student school rules when the role is unknown", async () => {
+      const user = userEvent.setup();
+      signInAs(undefined as never);
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: "School rules" }));
+
+      expect(router.push).toHaveBeenCalledWith(routes.student.schoolRules);
     });
 
     it.each([

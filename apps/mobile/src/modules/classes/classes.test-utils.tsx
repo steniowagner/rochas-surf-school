@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { hydrateSession } from "@/services/session/session.store";
 
-import type { ClassLocation, ClassStudent } from "./classes.types";
+import type { ClassLocation } from "./classes.types";
 
 export {
   createQueryClient,
@@ -26,14 +26,6 @@ export const buildLocation = (overrides: Partial<ClassLocation> = {}): ClassLoca
   latitude: -3.7442,
   longitude: -38.4617,
   upcomingClasses: 0,
-  ...overrides,
-});
-
-/** An approved student with no photo. */
-export const buildClassStudent = (overrides: Partial<ClassStudent> = {}): ClassStudent => ({
-  id: "s-1",
-  name: "Marina Costa",
-  photoUrl: null,
   ...overrides,
 });
 

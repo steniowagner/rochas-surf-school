@@ -183,6 +183,8 @@ export const useClassDetailsScreen = ({
     end,
     dateLine,
     state,
+    // The state the people group draws with; nothing is drawn while the class isn't loaded.
+    peopleState: state ?? ("not-started" as const),
     // A finished or cancelled class can't change, and nothing is shown for one that isn't loaded.
     showTools:
       canEdit &&

@@ -219,7 +219,7 @@ export function ClassDetailsScreen({
               students={item.students}
               seatsTaken={item.seatsTaken}
               capacity={item.capacity}
-              state={screen.state ?? "not-started"}
+              state={screen.peopleState}
             />
             {screen.readOnlyNoteKey ? (
               <View className="flex-row items-center gap-3 rounded-card bg-dim p-4">

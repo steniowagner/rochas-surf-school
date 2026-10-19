@@ -112,7 +112,7 @@ describe("ClassCard", () => {
       const card = screen.getByRole("button");
       expect(card.props.className).toContain("border-line");
       expect(card.props.className).not.toContain("border-sun");
-      expect(card.props.className).not.toContain("opacity-60");
+      expect(card.props.className).not.toContain("opacity-[.55]");
     });
 
     it("keeps the look of a class that was never cancelled", async () => {
@@ -120,7 +120,47 @@ describe("ClassCard", () => {
 
       expect(screen.queryByText("Cancelled")).not.toBeOnTheScreen();
       expect(screen.getByText("10:00 – 11:30").props.className).not.toContain("line-through");
-      expect(screen.getByRole("button").props.className).toContain("opacity-60");
+      expect(screen.getByRole("button").props.className).toContain("opacity-[.55]");
+    });
+  });
+
+  describe("look", () => {
+    it("draws the card shadow and the line border on an upcoming class", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+
+      const card = screen.getByRole("button");
+      expect(card.props.className).toContain("border-line");
+      expect(card.props.className).not.toContain("opacity-");
+      expect(card.props.style).toEqual(expect.objectContaining({ boxShadow: expect.stringContaining("px") }));
+    });
+
+    it("draws the sun border and a different shadow while in progress", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+      const upcomingShadow = screen.getByRole("button").props.style;
+
+      await render(<ClassCard item={item()} now={DURING} onPress={jest.fn()} />);
+
+      const card = screen.getByRole("button");
+      expect(card.props.className).toContain("border-sun");
+      expect(card.props.style).not.toEqual(upcomingShadow);
+    });
+
+    it("fades a cancelled class less than a finished one", async () => {
+      await render(
+        <ClassCard
+          item={item({ cancelledAt: "2026-10-13T10:00:00.000Z" })}
+          now={BEFORE}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByRole("button").props.className).toContain("opacity-[.78]");
+    });
+
+    it("puts the location in a pill with the card-meta type and a line border", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+
+      expect(screen.getByText("Praia do Futuro").props.className).toContain("ds-text-card-meta");
     });
   });
 

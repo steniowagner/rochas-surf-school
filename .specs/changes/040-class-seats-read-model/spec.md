@@ -250,13 +250,14 @@ spec.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Commit the card's visual alignment already in the working tree (`class-card.component.tsx`,
+- [x] **T-04** — Commit the card's visual alignment already in the working tree (`class-card.component.tsx`,
   its test, and the `cardMeta` token in `packages/design-tokens/src/tokens.ts` and the regenerated `tokens.css`),
   adjusting the tests only where the commit needs it. Skills:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03 · Done when: `npx jest src/modules/classes/components/class-card` passes and
   `npm run check-types -w @rochas-surf-school/design-tokens` passes.
+  > ✅ 2026-10-19 — committed the card's visual alignment (shadow, `line` border, location pill with the `cardMeta` type, opacity .55 finished / .78 cancelled, `sun` border and primary shadow while in progress, finished chip icon) and the `cardMeta` token with its regenerated CSS; added a `look` test group (card shadow and border, in-progress border and shadow, cancelled opacity, location pill type) and the earlier opacity assertions; files: `apps/mobile/src/modules/classes/components/class-card/class-card.component.tsx`, `apps/mobile/src/modules/classes/components/class-card/class-card.component.test.tsx`, `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`; verified: `npx jest src/modules/classes/components/class-card` (26 passed), `npm run check-types -w @rochas-surf-school/design-tokens` exit 0; deviations: none
 
 - [ ] **T-05** — Add `seatsTaken` and `students` (`ClassStudent`: id, name, `photoUrl`) to `ClassItem` in
   `src/modules/classes/classes.types.ts` and to the test factory in `classes.test-utils.tsx`; add the

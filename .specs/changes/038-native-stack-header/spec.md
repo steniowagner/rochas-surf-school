@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -419,3 +419,61 @@ stays opaque.
   Cancellation rules). People had the same pattern before this spec; cosmetic, not a finding.
 - `jest.setup.ts` also reformats two unrelated mocks (`expo-notifications`, the date-time picker); harmless.
 - `## Memory Impact` now covers `useHeaderInset` and `useKeyboardOffset` (round 2 note addressed).
+
+### Round 4 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 595 passed in 33 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK`, 19 files; no coverage-ignore comments, TODOs or debug leftovers in
+  the diff
+- test quality ✅ — `stack-header.hook.test.ts` asserts `headerStyle: { backgroundColor: "transparent" }` in the
+  transparent branch, so it fails without the F-03 fix
+- e2e: `E2E PASSED` (no suite applies; mobile has none) · iOS simulator (iPhone 18 Pro, iOS 27, the running dev
+  build, signed in as the admin): New class scrolled under `NOVA AULA` fades softly with no line (F-03 fixed there);
+  class details of a live class shows `DETALHE` and the tools button, which opens the tools sheet; Edit class shows
+  `EDITAR AULA` and its form starts below the header, but scrolls under a hard edge with a line, see F-04; the
+  header's back button and the iOS swipe-back return to the previous screen, and back from New class returns to the
+  Classes tab with its tab bar; Edit profile with the software keyboard keeps the Nome field and **Salvar** above the
+  keyboard (offset 0); WhatsApp starts below the header
+
+**Expected Results**
+
+- ER-01 ✅ — header options and hidden `index` / `(tabs)` in the layout tests (`useStackHeader` in both branches), no
+  in-content back button; native back button, swipe-back and back to the tab seen in the simulator
+- ER-02 ✅ — the three class screens' tests (title, `headerRight` only with `showTools`, loading / cancelled / not
+  found); `NOVA AULA`, `DETALHE` with the tools button, and `EDITAR AULA` in the header in the simulator
+- ER-03 ❌ — the hooks and screens are tested in both branches; New class, Registrations and Cancellation rules fade
+  softly; Edit class doesn't, see F-04
+
+**Findings**
+
+- [ ] **F-04** (ER-03, D-03) — on iOS 26+, Edit class still scrolls under a frosted band ending in a 1px line across
+  the screen instead of the soft fade, after the F-03 fix. Reproduce: as the admin, open a live class's details →
+  tools button → Editar aula, and scroll the form up by ~100pt: the content under `EDITAR AULA` is cut by a frosted
+  band with a hard line at the header's bottom (reproduced twice). New class, with the same header options and title,
+  fades softly. The likely cause: class details and New class always render their `ScrollView`, but
+  `edit-class.screen.tsx` first renders the loading view (a plain `View`) and only renders the `ScrollView` once the
+  form loads, so when the header's scroll-edge effect looks for the screen's first-descendant scroll view (D-06) there
+  is none. Expected: the soft fade with no line on Edit class, as on New class, with the simulator journey showing it.
+- [ ] **F-05** (convention) — commit `0b75de2` (the F-03 fix) changed D-03 in place (`no headerStyle background` →
+  `headerStyle background transparent …`) without the user's approval and without an entry under `## Amendments`,
+  which `.specs/shared/how-to-execute.md` rule 10 requires for any change to a Decision. Expected: the change logged
+  under `## Amendments` (date, before → after, reason), with the user's approval.
+
+**Notes**
+
+- Long-pressing the native back button opens iOS's back-history menu, and its only entry has no label (the previous
+  screen, the `(tabs)` group, has no title). Cosmetic and outside the Expected Results; a `title` on the `(tabs)`
+  screen of each role layout would label it.
+- WhatsApp: with the number pad up, the phone field stays visible but the pad covers **Salvar** (~100pt short). The
+  column starts where it did before this spec (116pt of header against the old `insets.top + 12` + 44pt back button,
+  ~118pt), so it isn't caused by this spec; it is the same fixed-column overflow as Confirm code and Create account
+  (round 2 notes), which D-06 leaves to the follow-up that makes the fixed screens scroll.
+- Still not seen by anyone under the transparent header (the review session can't enter credentials to sign back in,
+  so it kept the admin session): the signed-out e-mail / sign-in / create-account / confirm-code / Google name screens
+  (spacing under the header, back and swipe-back, the software keyboard), and as a student a class's details (title,
+  no tools button) and the School tab (no header, title and count). Walk them in the next round.
+- Class details' content fits the screen here, so its fade was only seen at rest (no line); it always renders its
+  `ScrollView`, as New class does.

@@ -309,13 +309,14 @@ cancelling a seat come in specs 042 and 043.
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-01** — Scaffold the module with `config-new-module --module enrolment --skip-web --skip-mobile`
+- [x] **T-01** — Scaffold the module with `config-new-module --module enrolment --skip-web --skip-mobile`
   (the app's enrolment UI lives under `apps/mobile/src/modules/enrolment` without a route of its own), declare
   `@rochas-surf-school/shared`, `@rochas-surf-school/auth` and `@rochas-surf-school/classes` in its
   `package.json`, and add `.oxlintrc.json` and a `check-types` script like `modules/classes`. Skill:
   [`config-new-module`](../../../.claude/skills/config-new-module).
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/enrolment` and `npm run check-types
   --workspace @rochas-surf-school/enrolment` pass and the backend builds with the new dependency.
+  > ✅ 2026-10-19 16:12 — scaffolded `modules/enrolment` with `config-new-module --module enrolment --skip-web --skip-mobile` (placeholder backend module/controller registered in AppModule, replaced in T-15); declared the shared, auth and classes dependencies, added `.oxlintrc.json`, `check-types` and `lint` scripts like `modules/classes`; files: `modules/enrolment/package.json`, `modules/enrolment/tsconfig.json`, `modules/enrolment/jest.config.ts`, `modules/enrolment/.oxlintrc.json`, `modules/enrolment/src/index.ts`, `modules/enrolment/test/index.test.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/app.module.ts`, `apps/backend/package.json`, `package-lock.json`; verified: `npm test --workspace @rochas-surf-school/enrolment` (1 passed), `npm run check-types --workspace @rochas-surf-school/enrolment` (clean), `npm run build --workspace @rochas-surf-school/backend` (clean); deviations: none
 
 - [ ] **T-02** — Add the `Enrolment` entity in `src/enrolment/model/enrolment.entity.ts` with `ENROLMENT_STATUSES`
   (D-06), `OPEN_ENROLMENT_STATUSES`, the fields `classId`, `studentId`, `status`, `requestedAt`,

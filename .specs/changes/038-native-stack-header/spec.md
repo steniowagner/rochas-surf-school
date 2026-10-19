@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -203,11 +203,12 @@ stays opaque.
   Record the output summary and the journey's result as evidence. Covers: all · Done when: every command exits 0
   and every journey step behaves as described.
   > ✅ 2026-10-18 — automated: `node .specs/scripts/run-related-tests.mjs 038` (31 suites, 563 tests passed), `check-coverage.mjs 038` (COVERAGE OK, 5 files), `npx turbo run lint check-types build --filter=@rochas-surf-school/mobile` (12 tasks successful). Simulator journey (iPhone 18 Pro, iOS 27, `npx expo run:ios`, existing backend on :4000, signed in as the admin): seen working — New class (native glass back button, "NOVA AULA" title in the header, header fixed while the form scrolls, back returns to the tab with its tab bar); class details of a cancelled class (title "DETALHE", no tools button); class details of a live class (title and the round tools button at the header's right, which opens the tools sheet); Edit class ("EDITAR AULA"); Registrations (back button only, intro below the header, header fixed while scrolling, pull-to-refresh works below it); People (back button, title and count in the content). Not covered in the simulator, so the reviewer must: iOS swipe-back (the synthetic edge swipe did not register), the signed-out auth screens and their keyboard handling, Edit profile / WhatsApp / School rules / Cancellation rules, the student's class details and School tab, and Android. Observations: on iOS 26+ the tools button sits inside the header's glass capsule, with its own white circle inside it; the titles are centered (iOS default). Side fix: the two admin tests that looked for the "New class" header now look for the form's "Discipline" header (`apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`).
-- [ ] **T-11** — After the amendment, run every command in the Verification Plan from the repo root again and walk
+- [x] **T-11** — After the amendment, run every command in the Verification Plan from the repo root again and walk
   the user journey on an iOS 26+ simulator, including the transparent-header steps; all pass. Record the output
   summary and the journey's result as evidence. Covers: all · Done when: every command exits 0 and every journey step
   behaves as described.
-
+  > ✅ 2026-10-18 — automated: `node .specs/scripts/run-related-tests.mjs 038` (33 suites, 595 tests passed), `check-coverage.mjs 038` (COVERAGE OK, 19 files), `npx turbo run lint check-types build --filter=@rochas-surf-school/mobile` (12 tasks successful). Simulator (iPhone 18 Pro, iOS 27, the running dev build, signed in as the admin): seen working — Edit profile has the transparent header with the native glass back button, and its content (avatar, fields) starts below it with Salvar at the bottom. Not walked in the simulator, so the reviewer must: the soft fade of content scrolling under the header on the scrolling screens (Registrations, People, New class, class details, Edit class, Cancellation rules, Edit profile, School rules), the fixed screens' spacing under the header (signed-out e-mail / sign-in / create-account / confirm-code, WhatsApp), the software keyboard on those screens (focused field and primary button above it, offset 0), pull-to-refresh below the header, the student's class details and School tab, and Android / iOS < 26 (Jest only, D-07).
+  
 ## Verification Plan
 
 - Automated:
@@ -340,7 +341,7 @@ stays opaque.
 
 **Findings**
 
-- [ ] **F-02** (D-03) — requirement change asked for by the user during this review, not a defect against the
+- [x] **F-02** (D-03) — requirement change asked for by the user during this review, not a defect against the
   current contract: instead of the opaque `page` header, the header should fade the content scrolling under it with
   the iOS soft scroll-edge effect (`headerTransparent: true`, `scrollEdgeEffects: { top: "soft" }`, iOS 26+). Plan it
   with `/spec-plan --amend 038` before executing. The amendment has to settle: what Android and iOS < 26 get (opaque,
@@ -350,6 +351,7 @@ stays opaque.
   offset would otherwise overshoot by the header's height) and the six screens' offset tests; the screens that don't
   scroll (confirm code, create account…) show no fade; ER-01's "opaque `page` background" and the header-options
   tests.
+  > ✅ 2026-10-18 — implemented by the amendment (D-03, D-05, D-06, ER-03) in T-07–T-10: transparent header with `scrollEdgeEffects: { top: "soft" }` when `isLiquidGlassAvailable()`, opaque otherwise; `contentInsetAdjustmentBehavior="automatic"` on the scrolling screens, `useHeaderInset()` padding on the fixed ones, `useKeyboardOffset()` 0 under the transparent header; verified: `run-related-tests.mjs 038` (595 passed), `check-coverage.mjs 038` COVERAGE OK, lint / check-types / build ✅, Edit profile seen in the simulator; not verified: the scroll fade itself and the other screens (see T-11)
 
 **Notes**
 

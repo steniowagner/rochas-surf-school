@@ -343,9 +343,9 @@ src/
     (private)/admin/cancellation-rules.tsx           # "Regras de cancelamento" (/admin/cancellation-rules), above
                                                      # the tab bar
     (private)/{student,instructor,admin}/class/[id].tsx  # class details (/<role>/class/<id>), above the tab bar
-    (private)/{admin,instructor}/people.tsx          # the People screen with a back button (/admin/people,
+    (private)/{admin,instructor}/people.tsx          # the People screen under the native header (/admin/people,
                                                      # /instructor/people), above the tab bar; the student's
-                                                     # (tabs)/school.tsx renders it without one
+                                                     # (tabs)/school.tsx renders it as a tab with no header
   navigation/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
                                 # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
@@ -355,6 +355,11 @@ src/
     splash-gate/                # SplashGate: keeps the native splash screen until the fonts are ready and the
                                 # stored session was restored, then renders its children (StatusBar, RootNavigator)
     rules-update-layout.test.tsx  # layout test of the rules-update group (a test under src/app would be a route)
+    stack-header/               # the native Stack header of the screens that go back (spec 038): useStackHeader
+                                # (the layouts' screenOptions: transparent + soft scroll edge on Liquid Glass,
+                                # opaque page elsewhere), useHeaderInset (fixed screens' top padding),
+                                # useKeyboardOffset (keyboardVerticalOffset), StackHeaderTitle (a screen's
+                                # headerTitle), test utils; stack-header.layouts.test.tsx tests the four layouts
   modules/instructor/screens/instructor.screen.tsx  # the instructor's Início: "Painel" with the Escola section
                                 # and the People row
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
@@ -371,7 +376,7 @@ src/
     utils/                      # registration-error.ts (API error → translation key), registrations-cache.ts
                                 # (removeRegistration: drop a decided item from the cache and invalidate)
   modules/people/               # the people directory, the same for every role
-    screens/people.screen.tsx   # PeopleScreen (showBackButton): count eyebrow, title, search, RoleFilters, FlatList
+    screens/people.screen.tsx   # PeopleScreen: count eyebrow, title, search, RoleFilters, FlatList
                                 # grouped by first letter (end-reached paging, footer spinner, empty, loading,
                                 # error + retry, pull-to-refresh), PersonSheet
     people.types.ts             # Person, PeoplePage, PeopleRole, PeopleFilters (mirror the API)
@@ -483,7 +488,7 @@ src/
                                 # school-rule-row (number, title, description), school-rules-acceptance
                                 # (SchoolRulesAcceptance: icon, eyebrow/title/description/submitLabel props,
                                 # SchoolRulesList, fixed footer with the Checkbox and the CTA), school-rules-reader
-                                # (read-only: BackButton, shield ScreenIntro, SchoolRulesList)
+                                # (read-only: shield ScreenIntro, SchoolRulesList)
     screens/school-rules.screen.tsx  # the rules read from the Profile (/<role>/school-rules)
   modules/profile/              # the Profile tab, the same for every role
     screens/                    # profile.screen.tsx (rendered by every (tabs)/profile.tsx), edit-profile.screen.tsx,
@@ -520,7 +525,7 @@ src/
                                 # google-sign-in-error.ts (Google / API error → translation key, or null to ignore)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal (optional contentPanningEnabled, off in the time sheet so the
-                                # wheels can be dragged), otp-input, text-button, back-button, screen-intro,
+                                # wheels can be dragged), otp-input, text-button, screen-intro,
                                 # text-input, text-area, toast, checkbox, segmented-control
   components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard), decided-list
                                 # ("Decided just now"), deny-sheet (DenySheet: optional reason in a bottom sheet)

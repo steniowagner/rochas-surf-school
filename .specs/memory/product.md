@@ -732,6 +732,14 @@ keep it. The last location can be removed. Every role sees, on the details of a 
 a small fixed map with a pin and "Direções", which opens Apple Maps on iPhone and Google Maps on Android. The
 site's privacy policy names Google's address suggestions and Apple Maps. All copy is in pt-BR, es-ES and en-US.
 
+**Fixed header on the screens that go back** (spec `038-native-stack-header`) — every app screen that can go
+back (the e-mail sign-in and sign-up screens, and above the tab bar Registrations, People, Nova aula, a class's
+details, Editar aula, Regras de cancelamento, Editar perfil, WhatsApp and the school rules) now has the phone's own
+navigation header, which stays at the top while only the content scrolls, with the system back button, the iPhone
+swipe-back and Android's back. On iPhones with Liquid Glass (iOS 26+) the header is see-through and the content
+fades softly as it scrolls under it; elsewhere it has the page's color. A class's details, Nova aula and Editar
+aula show their title in the header, and a class's details its tools button at the header's right.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)

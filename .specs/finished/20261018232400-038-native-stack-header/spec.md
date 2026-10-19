@@ -3,13 +3,14 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: accepted
+status: finished
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
 reviewed_commit: bb8dc3f8f4d91a7b8f83873eaf4bd400157e9b11
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-18
 ---
 
 # 038 — Fixed native header on the screens that go back

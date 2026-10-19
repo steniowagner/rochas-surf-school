@@ -16,7 +16,6 @@ import { PersonAvatar } from "@/modules/people/components/person-avatar";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 
 import { useRegistrationsScreen } from "../hooks/use-registrations-screen.hook";
-import { Registration } from "../registrations.types";
 
 const DENY_REASON_MAX_LENGTH = 500;
 

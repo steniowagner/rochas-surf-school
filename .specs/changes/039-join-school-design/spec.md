@@ -195,6 +195,11 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
 - [ ] **T-06** — Run every command in the Verification Plan from the repo root and walk the user journey; all pass.
   Record the output summary and the journey's result as evidence. Covers: all · Done when: every command exits 0
   and every journey step behaves as described.
+  > ⛔ 2026-10-19 — automated part done: `run-related-tests.mjs 039` (82 suites, 1036 tests passed), `check-coverage.mjs 039`
+  > (COVERAGE OK, 9 files), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (no errors or warnings).
+  > The iOS-simulator journey was NOT run (needs the backend with a database, an admin session and two pending accounts
+  > created through the email code). Unblock: walk the Verification Plan's user journey in pt-BR, light and dark, then
+  > check this task.
 
 ## Verification Plan
 

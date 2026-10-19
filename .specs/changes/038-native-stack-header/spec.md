@@ -239,7 +239,9 @@ stays opaque.
   scroll-edge effect when `isLiquidGlassAvailable()` is true and opaque `page` otherwise (D-03, D-05); a scrolling
   screen below it gives its first-descendant `ScrollView` / `FlatList` `contentInsetAdjustmentBehavior="automatic"`,
   a fixed screen adds `useHeaderInset()` as top padding, and a `KeyboardAvoidingView` below it passes
-  `useKeyboardOffset()` as `keyboardVerticalOffset` (D-06).
+  `useKeyboardOffset()` as `keyboardVerticalOffset` (D-06). A screen gives the header its title as
+  `headerTitle: () => <StackHeaderTitle title={…} />` (`src/navigation/stack-header/`), never a plain string: on iOS
+  26+ a string title makes the transparent header draw a frosted band with a line instead of the soft fade (F-06).
 
 ## Amendments
 
@@ -583,11 +585,12 @@ stays opaque.
   `keyboard-offset.hook.ts` import `expo-router/react-navigation` before `expo-glass-effect`; `.claude/rules/react.md`
   sorts the imports of a group alphabetically by module path. Expected: `expo-glass-effect` first in both files.
   > ✅ 2026-10-18 — `expo-glass-effect` now comes before `expo-router/react-navigation` in both hooks; files: `apps/mobile/src/navigation/stack-header/{header-inset,keyboard-offset}.hook.ts`; verified: `npx jest src/navigation` (162 passed), eslint and `tsc --noEmit` clean; deviations: none
-- [ ] **F-08** (convention) — `## Memory Impact` doesn't record the rule F-06 introduced: a screen gives the native
+- [x] **F-08** (convention) — `## Memory Impact` doesn't record the rule F-06 introduced: a screen gives the native
   header its title as `headerTitle: () => <StackHeaderTitle title={…} />` (`src/navigation/stack-header/`), never a plain
   string, because on iOS 26+ a string title makes the transparent header draw a frosted band with a line instead of the
   soft fade. `spec-finish` writes the memory from that section, so the next screen with a title would reintroduce F-06.
   Expected: Memory Impact's "Mobile shared UI" entry says so.
+  > ✅ 2026-10-18 — Memory Impact's `technical-context.md` → "Mobile shared UI" entry now says a screen gives the header its title as `headerTitle: () => <StackHeaderTitle title={…} />`, never a plain string, and why (F-06); files: `.specs/changes/038-native-stack-header/spec.md`; verified: `node .specs/scripts/check-spec.mjs 038` (CHECK OK); deviations: none
 
 **Notes**
 

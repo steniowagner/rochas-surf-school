@@ -73,6 +73,8 @@ const aClass = {
   notes: null,
   location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
   instructors: [{ id: "i-1", name: "Bruno Lima" }],
+  seatsTaken: 0,
+  students: [],
 };
 
 const respond = (url: string) => {
@@ -150,7 +152,7 @@ describe("instructor tabs", () => {
     await user.press(await screen.findByText("Praia do Futuro"));
 
     expect(app.getPathname()).toBe("/instructor/class/c-1");
-    expect(await screen.findByText("Max. 8 students")).toBeOnTheScreen();
+    expect(await screen.findByText("Max. 8 students · 8 spots left")).toBeOnTheScreen();
 
     await act(async () => router.back());
 

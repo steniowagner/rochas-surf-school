@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -211,3 +211,55 @@ Expo Router, which stays fixed at the top while only the content scrolls.
   options and the only hidden screen per layout), which together cover ER-01's `Verify by`.
 - On the first tap after a push animation the simulator sometimes ignored the native back button; a slightly
   longer press worked every time. It looks like a touch-injection artifact, not an app bug.
+
+### Round 2 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 570 passed in 32 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK`, 13 files; no coverage-ignore comments, TODOs or debug leftovers in
+  the diff
+- e2e: no suite applies (mobile has none) · iOS simulator (iPhone 18 Pro, iOS 27, app reloaded on `7675e61`): the
+  reviewer saw Edit profile and Cancellation rules with the fixed native header and back button only; the user walked
+  the rest of the journey with the software keyboard on and reported it: Edit profile and WhatsApp keep **Salvar**
+  above the keyboard; signed out, `/auth` has no header and the e-mail, sign-in, create-account and confirm-code
+  screens have the native header with back and swipe-back; as a student, class details shows `DETALHE` with no tools
+  button and the School tab has no header, with its title and count ✅
+
+**Expected Results**
+
+- ER-01 ✅ — header options and hidden `index` / `(tabs)` in the layout tests, no in-content back button, back and
+  swipe-back in the simulator; F-01 is fixed: `useKeyboardOffset()` (`useHeaderHeight()`) is the
+  `keyboardVerticalOffset` of the six `KeyboardAvoidingView`s, each screen's test fails without it, and the focused
+  field and primary button stay above the keyboard
+- ER-02 ✅ — unchanged since round 1; the student's class details checked in the simulator (title, no tools button)
+
+**Findings**
+
+- [ ] **F-02** (D-03) — requirement change asked for by the user during this review, not a defect against the
+  current contract: instead of the opaque `page` header, the header should fade the content scrolling under it with
+  the iOS soft scroll-edge effect (`headerTransparent: true`, `scrollEdgeEffects: { top: "soft" }`, iOS 26+). Plan it
+  with `/spec-plan --amend 038` before executing. The amendment has to settle: what Android and iOS < 26 get (opaque,
+  or a gradient `headerBackground`, which needs a new dependency); content insets now that screens start at y = 0
+  (`contentInsetAdjustmentBehavior="automatic"` on scroll views and lists, header-height top padding on the fixed
+  screens; pull-to-refresh still below the header); `useKeyboardOffset` back to 0 under a transparent header (F-01's
+  offset would otherwise overshoot by the header's height) and the six screens' offset tests; the screens that don't
+  scroll (confirm code, create account…) show no fade; ER-01's "opaque `page` background" and the header-options
+  tests.
+
+**Notes**
+
+- Already there before this spec (the content now starts at about the same height as under the old back-button row:
+  ~116pt of header against the old `insets.top + 12` + 44pt), so not findings here; the user saw them with the
+  software keyboard on:
+  - Edit profile: the scroll area is `flex-1`, so with the keyboard up it is clipped flush against **Salvar** (its
+    `pb-6` scrolls out of view) while `Math.max(insets.bottom, 24)` still keeps ~34pt between the button and the
+    keyboard.
+  - Confirm code and Create account don't scroll: their fixed column (intro, field, `flex-1` spacer, button, then the
+    help card / the terms line) is about 40pt taller than the space left above the keyboard, so the bottom element
+    slides under it.
+  A follow-up session waits for this spec to merge to fix them; if the amendment makes these screens scroll, the
+  same change can fix them here.
+- `## Memory Impact` doesn't mention `useKeyboardOffset` (`src/navigation/stack-header/`): a `KeyboardAvoidingView`
+  below the native header passes it as `keyboardVerticalOffset`. Add it (or its replacement after the amendment).

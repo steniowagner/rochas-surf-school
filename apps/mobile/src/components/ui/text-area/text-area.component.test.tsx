@@ -57,4 +57,23 @@ describe("TextArea", () => {
 
     expect(ref.current).not.toBeNull();
   });
+
+  it("works as the input of a bottom sheet", async () => {
+    const user = userEvent.setup();
+    const onChangeText = jest.fn();
+
+    await render(
+      <TextArea
+        inBottomSheet
+        value=""
+        maxLength={500}
+        placeholder="Reason"
+        onChangeText={onChangeText}
+      />,
+    );
+    await user.type(screen.getByPlaceholderText("Reason"), "H");
+
+    expect(onChangeText).toHaveBeenLastCalledWith("H");
+    expect(screen.getByPlaceholderText("Reason").props.multiline).toBe(true);
+  });
 });

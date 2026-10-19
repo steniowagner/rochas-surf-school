@@ -1,4 +1,5 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
+import { Text } from "react-native";
 
 import { DecisionCard } from "./decision-card.component";
 import { DecisionCardProps } from "./decision-card.types";
@@ -9,7 +10,7 @@ async function setup(overrides: Partial<DecisionCardProps> = {}) {
   const props: DecisionCardProps = {
     title: "Ana Souza",
     details: ["ana@example.com", "Asked 2 hours ago"],
-    initials: "AS",
+    avatar: <Text>AS</Text>,
     approveLabel: "Approve",
     denyLabel: "Deny",
     onApprove: jest.fn(),
@@ -24,7 +25,7 @@ async function setup(overrides: Partial<DecisionCardProps> = {}) {
 }
 
 describe("DecisionCard", () => {
-  it("shows the initials, the title and every detail", async () => {
+  it("shows the avatar, the title and every detail", async () => {
     await setup({ subtitle: "Student" });
 
     expect(screen.getByText("AS")).toBeOnTheScreen();
@@ -32,6 +33,24 @@ describe("DecisionCard", () => {
     expect(screen.getByText("Student")).toBeOnTheScreen();
     expect(screen.getByText("ana@example.com")).toBeOnTheScreen();
     expect(screen.getByText("Asked 2 hours ago")).toBeOnTheScreen();
+  });
+
+  it("makes the upper row pressable when onPress is given", async () => {
+    const user = userEvent.setup();
+    const { props } = await setup({ onPress: jest.fn() });
+
+    await user.press(screen.getByRole("button", { name: "Ana Souza" }));
+
+    expect(props.onPress).toHaveBeenCalledTimes(1);
+    expect(props.onApprove).not.toHaveBeenCalled();
+    expect(props.onDeny).not.toHaveBeenCalled();
+  });
+
+  it("has no pressable row and no chevron without onPress", async () => {
+    await setup();
+
+    expect(screen.queryByRole("button", { name: "Ana Souza" })).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(2);
   });
 
   it("omits the subtitle when there is none", async () => {
@@ -42,11 +61,12 @@ describe("DecisionCard", () => {
 
   it("calls the callbacks of the pressed button", async () => {
     const user = userEvent.setup();
-    const { props } = await setup();
+    const { props } = await setup({ onPress: jest.fn() });
 
     await user.press(screen.getByRole("button", { name: "Approve" }));
     expect(props.onApprove).toHaveBeenCalledTimes(1);
     expect(props.onDeny).not.toHaveBeenCalled();
+    expect(props.onPress).not.toHaveBeenCalled();
 
     await user.press(screen.getByRole("button", { name: "Deny" }));
     expect(props.onDeny).toHaveBeenCalledTimes(1);

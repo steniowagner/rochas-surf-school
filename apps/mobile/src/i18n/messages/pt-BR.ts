@@ -204,9 +204,9 @@ const messages: Messages = {
   },
   registrations: {
     title: "Entrar na escola",
-    description: "Pessoas esperando a aprovação da escola.",
-    asked: "Pediu {{time}}",
-    askedNow: "Pediu agora",
+    waiting: "{{count}} esperando aprovação",
+    description:
+      "Contas novas só podem marcar aulas depois de aprovadas. A pessoa recebe uma notificação push.",
     approve: "Aprovar",
     deny: "Recusar",
     empty: "Ninguém esperando para entrar.",
@@ -214,16 +214,13 @@ const messages: Messages = {
     retry: "Tentar novamente",
     alreadyDecided: "Este cadastro já foi decidido.",
     denySheet: {
-      title: "Recusar {{name}}?",
-      hint: "O motivo é opcional e será mostrado para a pessoa.",
+      title: "Recusar entrada?",
+      hint: "{{name}} não vai entrar na escola. Você pode explicar o motivo (opcional) — a pessoa recebe esta mensagem.",
       label: "Motivo (opcional)",
-      confirm: "Recusar cadastro",
+      placeholder: "Ex.: No momento não temos vagas para novos alunos.",
+      confirm: "Recusar e avisar",
+      back: "Voltar",
     },
-  },
-  decision: {
-    decidedJustNow: "Decididos agora",
-    approved: "Aprovado",
-    denied: "Recusado",
   },
   flows: {
     onboarding: "Primeiros passos",
@@ -409,6 +406,7 @@ const messages: Messages = {
     loadError: "Não foi possível carregar as pessoas.",
     whatsapp: "Conversar por WhatsApp",
     whatsappNotShared: "Número não compartilhado.",
+    email: "E-mail",
     whatsappUnavailable: "Não foi possível abrir o WhatsApp.",
   },
   deleteAccountSheet: {

@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DecidedItem } from "@/components/decision/decided-list/decided-list.types";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { Registration } from "../registrations.types";
@@ -28,8 +27,10 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
   const [sending, setSending] = useState<Record<string, RegistrationAction>>(
     {},
   );
-  const [decided, setDecided] = useState<DecidedItem[]>([]);
   const [denying, setDenying] = useState<Registration | null>(null);
+  // Kept while the detail sheet slides away, so its content doesn't vanish before it is gone.
+  const [selected, setSelected] = useState<Registration | null>(null);
+  const [isSheetVisible, setIsSheetVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   // A second tap in the same frame must not send twice, before `sending` has re-rendered.
   const inFlight = useRef(new Set<string>());
@@ -52,17 +53,6 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
 
     try {
       await send();
-      setDecided((current) => [
-        {
-          id: registration.id,
-          title: registration.name,
-          tag: t(
-            action === "approve" ? "decision.approved" : "decision.denied",
-          ),
-          tone: action === "approve" ? "ok" : "bad",
-        },
-        ...current,
-      ]);
       closeDenyOf(registration);
     } catch (error) {
       const key = getRegistrationErrorKey(error);
@@ -109,8 +99,14 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
     isError: query.isError,
     isRefreshing,
     sending,
-    decided,
     denying,
+    selected,
+    isSheetVisible,
+    openRegistration: (registration: Registration) => {
+      setSelected(registration);
+      setIsSheetVisible(true);
+    },
+    closeSheet: () => setIsSheetVisible(false),
     retry: () => query.refetch(),
     refresh,
     approve,

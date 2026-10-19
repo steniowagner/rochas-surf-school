@@ -101,12 +101,13 @@ Each combination of date and time range creates its own class. All the classes i
 ### Approve or deny
 
 _Implemented in spec 019-admin-registration-decisions._
+_Implemented in spec 039-join-school-design._
 
 - New registrations to the platform, in the Join the school tool.
 - Student requests to enrol in classes, in the Class enrolments tool.
 - Reactivation requests from users whose accounts were deleted, in the Reactivate accounts tool. Each request shows the person's name, email, the date the account was deleted and the number of classes they took.
 
-All three tools share the same pattern: a card for each pending request with Deny and Approve buttons, and a "Decided just now" list underneath. Denying opens a sheet where the admin can write a reason, which is sent to the person. Decisions are final in the app; mistakes go to the system administrators.
+All three tools share the same pattern: a card for each pending request with Deny and Approve buttons; a decided card leaves the list. Denying opens a sheet where the admin can write a reason, which is sent to the person. Decisions are final in the app; mistakes go to the system administrators.
 
 ### Enrolment and the waiting list
 

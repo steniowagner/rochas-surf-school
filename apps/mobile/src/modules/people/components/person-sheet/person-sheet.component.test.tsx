@@ -38,6 +38,22 @@ describe("PersonSheet", () => {
     expect(screen.getByRole("button", { name: "Close" })).toBeOnTheScreen();
   });
 
+  it("shows an email row instead of the WhatsApp row when an email is given", async () => {
+    await render(
+      <PersonSheet
+        person={{ ...shared, role: "student", whatsappNumber: null }}
+        email="ana@example.com"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Email")).toBeOnTheScreen();
+    expect(screen.getByText("ana@example.com")).toBeOnTheScreen();
+    expect(screen.queryByText("Chat on WhatsApp")).toBeNull();
+    expect(screen.queryByText("Number not shared.")).toBeNull();
+  });
+
   it("opens the chat on WhatsApp", async () => {
     const user = userEvent.setup();
     await render(<PersonSheet person={shared} visible onClose={jest.fn()} />);

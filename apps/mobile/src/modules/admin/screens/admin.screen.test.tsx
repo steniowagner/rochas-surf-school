@@ -249,7 +249,7 @@ describe("AdminScreen", () => {
     await user.press(screen.getByRole("button", { name: /Join the school/ }));
     await screen.findByText("Person a");
     await user.press(screen.getAllByRole("button", { name: "Approve" })[0]);
-    await screen.findByText("Approved");
+    await waitFor(() => expect(screen.queryByText("Person a")).toBeNull());
     await act(async () => router.back());
 
     expect(await screen.findByText("1 waiting")).toBeOnTheScreen();

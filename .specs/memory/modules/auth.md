@@ -237,13 +237,15 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   says so and signs out; an expired session is handled as everywhere in the app.
 - **In the app**, an approved admin who finished onboarding opens "School tools", whose "Join the school" row
   shows how many registrations are waiting (no count while loading or after an error). The tool shows a card per
-  registration, oldest first — initials, name, email, "Asked …" — with Deny and Approve, and pull-to-refresh.
-  Approve acts at once; Deny opens a sheet with an optional reason (counter up to 500) and "Deny registration";
-  closing the sheet sends nothing and empties the reason. While a card's decision is sent, its two buttons are
-  disabled; other cards stay usable. A decided card leaves the list and goes on top of "Decided just now"
-  ("Approved" / "Denied"), which lasts only for the visit. An already decided registration shows "This
-  registration was already decided.", reloads the list and isn't added to "Decided just now"; other failures show
-  their toast and keep the card (and the sheet with its reason).
+  registration, oldest first — initials, name and email — with Deny and Approve, under "N waiting for approval",
+  the title and a description, and pull-to-refresh. Tapping a card's upper part opens the person's sheet (initials,
+  name, "Student" and their email; no WhatsApp, which a registration doesn't have yet). Approve acts at once; Deny
+  opens "Deny entry?" with an optional reason (counter up to 500), "Deny and notify" and "Back"; closing the sheet
+  ("Back", a swipe or the backdrop) sends nothing and empties the reason, and the sheet rises above the keyboard
+  while the reason is typed. While a card's decision is sent, its two buttons are disabled; other cards stay
+  usable. A decided card just leaves the list and the count goes down. An already decided registration shows
+  "This registration was already decided." and reloads the list; other failures show their toast and keep the
+  card (and the sheet with its reason).
 - **In the app**, every approved role opens the People screen — a student from the Escola tab, an admin from the
   "Pessoas" row under "Escola" on the home (below "Ferramentas" and "Entrar na escola"), an instructor from the
   "Pessoas" row of the "Painel" (Início); both rows read a fixed "9 na plataforma" for now. The screen shows the
@@ -342,3 +344,6 @@ requests, and deciding reactivation requests are rules of the account lifecycle 
 - `035-class-no-instructor` — deleting one's own account first releases its upcoming class assignments through
   the `TeachingReleaser` contract, while the account is still approved; a failed release fails the deletion and
   keeps the account approved.
+- `039-join-school-design` — no business change: the app's "Join the school" tool follows its designs (count,
+  description, cards with email and icon buttons, the person's sheet with the email, the new deny sheet copy with
+  "Back"), and a decided card just leaves the list, without "Decided just now".

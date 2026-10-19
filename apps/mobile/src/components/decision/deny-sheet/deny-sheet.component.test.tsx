@@ -25,6 +25,8 @@ const baseProps: DenySheetProps = {
   title: "Deny Ana Souza?",
   hint: "The reason is optional.",
   label: "Reason (optional)",
+  placeholder: "E.g.: No spots left.",
+  backLabel: "Back",
   confirmLabel: "Deny registration",
   maxLength: 500,
   loading: false,
@@ -47,7 +49,12 @@ describe("DenySheet", () => {
 
     expect(screen.getByText("Deny Ana Souza?")).toBeOnTheScreen();
     expect(screen.getByText("The reason is optional.")).toBeOnTheScreen();
-    expect(screen.getByText("Reason (optional)")).toBeOnTheScreen();
+    expect(screen.queryByText("Reason (optional)")).toBeNull();
+    expect(screen.getByLabelText("Reason (optional)")).toBeOnTheScreen();
+    expect(
+      screen.getByPlaceholderText("E.g.: No spots left."),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
     expect(screen.getByText("0/500")).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: "Deny registration" }),
@@ -97,6 +104,19 @@ describe("DenySheet", () => {
     await user.press(screen.getByLabelText("backdrop"));
 
     expect(sheet.onClose).toHaveBeenCalled();
+    expect(screen.getByText("0/500")).toBeOnTheScreen();
+  });
+
+  it("closes and clears the reason when Back is pressed, without confirming", async () => {
+    const user = userEvent.setup();
+    const sheet = props();
+    await render(<DenySheet {...sheet} />);
+    await user.type(screen.getByLabelText("Reason (optional)"), "Unknown");
+
+    await user.press(screen.getByRole("button", { name: "Back" }));
+
+    expect(sheet.onClose).toHaveBeenCalledTimes(1);
+    expect(sheet.onConfirm).not.toHaveBeenCalled();
     expect(screen.getByText("0/500")).toBeOnTheScreen();
   });
 

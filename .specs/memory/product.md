@@ -321,8 +321,8 @@ The source documents use some words loosely; in specs and code use the concept n
   **unassigning**; taking a student out of a class is **taking out**; "removing" a location archives it.
 - **Comment** — the optional text of a rating, or an instructor comment; "delete any comment" covers both.
 - **Admin tools** — "Join the school" (registrations), "Class enrolments" (enrolments), "Reactivate accounts"
-  (reactivation requests): each shows a card per pending item with Deny and Approve, a "Decided just now" list,
-  and a sheet for the denial reason.
+  (reactivation requests): each shows a card per pending item with Deny and Approve (a decided card just leaves
+  the list), and a sheet for the denial reason; on "Join the school" a tap on the card opens the person's sheet.
 
 ## Current state
 
@@ -477,15 +477,14 @@ app.
 
 **Admins decide registrations** (spec `019-admin-registration-decisions`) — an approved admin who finished
 onboarding opens the admin home, "School tools", with one tool so far: "Join the school", which shows how many
-registrations are waiting. The tool lists a card per pending account, oldest first, with initials, name, email
-and when the person asked ("Asked just now", a relative time, then the date after a week), and Deny and Approve.
+registrations are waiting. The tool lists a card per pending account, oldest first, with initials, name and email,
+and Deny and Approve (spec 039 changed its look and removed the request time).
 Approve acts at once; Deny opens a sheet with an optional reason of up to 500 characters, shown to the person on
-the Denied screen exactly as written (trimmed; a blank reason counts as none). A decided card leaves the list and
-the person appears under "Decided just now" with "Approved" or "Denied" — newest first, only for the current
-visit to the tool. Every decision is final: a registration already decided, by another admin or at the same
+the Denied screen exactly as written (trimmed; a blank reason counts as none). A decided card leaves the list
+(spec 039 removed the "Decided just now" list). Every decision is final: a registration already decided, by another admin or at the same
 moment, is refused, and the app says "This registration was already decided." and reloads the list. Only an
 approved admin may list or decide registrations; a pending account of any role is one. The person is told of the
-decision by a push (spec 020), and otherwise sees it at the next launch, sign-in or session renewal. The card, the "Decided just now" list and the
+decision by a push (spec 020), and otherwise sees it at the next launch, sign-in or session renewal. The card and the
 deny sheet are built to be reused by "Reactivate accounts" and "Class enrolments". All copy is in pt-BR, es-ES and
 en-US.
 
@@ -740,6 +739,17 @@ swipe-back and Android's back. On iPhones with Liquid Glass (iOS 26+) the header
 fades softly as it scrolls under it; elsewhere it has the page's color. A class's details, Nova aula and Editar
 aula show their title in the header, and a class's details its tools button at the header's right.
 
+**"Join the school" follows its designs** (spec `039-join-school-design`) — the admin's "Join the school" screen
+opens with "N waiting for approval" (hidden while loading, on an error and when no one is waiting), the title and
+"New accounts can only book classes once approved. The person gets a push notification." Each card shows the
+person's initials, name and email (no request time), a chevron, an outline "Deny" with ✕ and a green "Approve"
+with ✓. Tapping the card's upper part opens the person's sheet: initials, name, the "Student" chip and their email
+(a registration has no WhatsApp number yet), with "Close". "Deny" opens "Deny entry?", "<name> won't join the
+school. You can explain why (optional) — the person gets this message.", a reason field with an example as its
+placeholder, "Deny and notify" and "Back", which closes the sheet and clears the reason; the sheet rises above the
+keyboard while the reason is typed. A decided card just leaves the list: the "Decided just now" list is gone. All
+copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -749,8 +759,9 @@ Active specs: none.
 - WhatsApp messages sent by the app, and email notifications.
 - Saved lists of time ranges.
 - Undoing admin decisions.
-- A stored history of registration decisions (who decided, when an account was approved): "Decided just now"
-  lasts only for the admin's visit to the tool (spec 019); and searching, filtering or paging the registrations.
+- A stored history of registration decisions (who decided, when an account was approved), shown anywhere in the
+  app (spec 039 removed the per-visit "Decided just now" list); and searching, filtering or paging the
+  registrations.
 - Reporting comments or photos.
 - Translating text written by admins.
 - Checking a cancellation rule's wording when it's saved, and previewing the deadline a rule would give.

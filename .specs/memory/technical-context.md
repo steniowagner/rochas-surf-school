@@ -370,7 +370,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   unless `eyebrowClassName` passes another)
   and use the shared `TextInput` (leading icon, `neutral` / `error` border, error message below), `OtpInput`
   (digit boxes over a hidden native input that keeps only digits, so paste and one-time-code autofill work) and
-  `Button` (variants, including `ghost`, plus `loading` and `disabled` states, and an optional `icon` — a glyph
+  `Button` (variants, including `ghost` and, on mobile only, a green `success` — `bg-ok`, `text-on-color`, no
+  shadow; spec 039 — plus `loading` and `disabled` states, and an optional `icon` — a glyph
   drawn before the label; the web `Button` takes the same `icon`). Every closed-account state (denied, deleted,
   removed) is drawn by `AccountStatus` (`src/components/account-status`): a `ScreenIntro` whose icon tile follows
   `tone` (`bad` → `bg-bad-tint`/`text-bad`, `dim` → `bg-dim`/`text-ink-2`, `sand` → `bg-sand`/`text-grape`), an
@@ -383,13 +384,17 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `Pressable` row with role `checkbox`, so the box and its label toggle it, at least 44 pt tall. Multi-line text is
   the shared `TextArea` (`src/components/ui/text-area`: controlled `value` / `onChangeText`, required `maxLength`
   enforced by the native input, a "{length}/{maxLength}" counter under it, optional `label` also used as the
-  accessibility label, no icon, the `TextInput` border tokens); a `TextInput` with `editable={false}` takes the
+  accessibility label, no icon, the `TextInput` border tokens; `inBottomSheet` renders gorhom's
+  `BottomSheetTextInput`, wrapped in NativeWind's `cssInterop` so `className` still styles it, because a sheet only
+  rises above the keyboard for its own input — set it whenever a `TextArea` sits in a `BottomModal`); a `TextInput` with `editable={false}` takes the
   disabled look (`bg-dim`, `border-line`, secondary ink). `BottomModal` is a `BottomSheetModal` presented by the
   root layout's `BottomSheetModalProvider`, so it opens above the screens and above a native tab bar (a plain sheet
   sat under the floating tab bar); it presents on `visible` and only dismisses a sheet it presented, its scrim is
   the light palette's ink at 45% so it is dark in both themes, it takes only the room its content needs plus the
   home-indicator inset, and it passes `onClose` to the sheet library too, so dragging the sheet down reaches the
-  caller (a backdrop tap may call it twice; callers must tolerate that); a sheet dragged or tapped away counts as
+  caller (a backdrop tap may call it twice; callers must tolerate that); it sets `keyboardBehavior="interactive"`,
+  `keyboardBlurBehavior="restore"` and `android_keyboardInputMode="adjustResize"`, so a sheet with a focused
+  `inBottomSheet` field rises above the keyboard and goes back down when it closes (spec 039); a sheet dragged or tapped away counts as
   no longer presented, so the caller's next `visible` opens it again. A switcher between a few options is the
   shared `SegmentedControl` (`src/components/ui/segmented-control`: generic `options: { value, label }[]`, `value`,
   `onChange(value)`; equal-width `TouchableOpacity` segments with role `tab` and `accessibilityState.selected`, at
@@ -401,11 +406,13 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `ThemeSheet` (the three choices with a check on the current one), `WhatsappNumberForm` (country picker,
   Brazilian mask, share switch, validation and submit button; header slot, `initialNumber` / `initialVisible`,
   `requireChange`, `onSubmit` — used by onboarding and the Profile's WhatsApp screen), `CountryPicker` and
-  `RoleTabs`. The admin tools share `src/components/decision/` — `DecisionCard` (initials avatar on
-  `bg-sand`/`text-grape`, title, optional subtitle, detail lines, ghost Deny and primary Approve; `disabled` and
-  `loading: "approve" | "deny"`), `DecidedList` ("Decided just now": rows with a `Chip` tag, tone `ok` / `bad`;
-  renders nothing when empty) and `DenySheet` (`BottomModal` + `TextArea` + `Button`; clears its text when it
-  closes) — with generic props and no registration fields, so "Reactivate accounts" and "Class enrolments" plug in
+  `RoleTabs`. The admin tools share `src/components/decision/` — `DecisionCard` (an `avatar` node, title, optional
+  subtitle, detail lines and `shadowStyle("card")`; an optional `onPress` makes the upper row — avatar, text and an
+  Ionicons `chevron-forward` — one `Pressable` with role `button` labelled by the title, and without it there is no
+  chevron; an `outline` Deny with a Feather `x` and a `success` Approve with a Feather `check`; `disabled` and
+  `loading: "approve" | "deny"`) and `DenySheet` (`BottomModal` + an `inBottomSheet` `TextArea` with a
+  `placeholder` and `label` used only as its accessibility label, a `danger` confirm with a Feather `x-circle` and a
+  `subtle` back button (`backLabel`) that closes like a swipe; clears its text when it closes) — with generic props and no registration fields, so "Reactivate accounts" and "Class enrolments" plug in
   their own data and copy. A week or a month to pick a day from is the shared `WeekMonthCalendar`
   (`src/components/week-month-calendar`, spec 031), drawn with `CalendarWeekRow` and `CalendarMonthGrid` in sibling
   folders; none of them imports from `src/modules/`. It is controlled for the selection and owns only the view
@@ -418,7 +425,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `calendar-day-<date>` (dot `calendar-day-<date>-dot`); the pill has `accessibilityState.expanded` on the month;
   the 36 pt arrows and the pill reach 44 pt through `hitSlop`. Copy under `weekMonthCalendar`. App-wide helpers
   live in `src/utils/`: `formatCreatedAt` ("now", relative up to 7 days, then the date in America/Fortaleza; used
-  by the Pending screen and the registration cards), `getInitials` (first letter of the first and of the last
+  by the Pending screen), `getInitials` (first letter of the first and of the last
   word, uppercase) and the date helpers of `calendar-dates.ts` (see Dates). API errors are shown in a toast
   through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides by itself after 3 s).
   One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
@@ -727,9 +734,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   once and invalidates the query, and a 409 `registration.status.notPending` invalidates it too. The mutations
   show nothing: the screen's hook (`useRegistrationsScreen`) calls `mutateAsync` and maps errors with
   `getRegistrationErrorKey` (`utils/registration-error.ts`: the 409 → `registrations.alreadyDecided`,
-  `NetworkError` → no connection, `SessionExpiredError` → nothing, else generic), because it also keeps
-  "Decided just now" in screen state (only for the visit; nothing on a 409), guards double taps per card with a
-  ref, and closes the deny sheet only for the registration that was decided or found already decided — a
+  `NetworkError` → no connection, `SessionExpiredError` → nothing, else generic), because it also guards double
+  taps per card with a ref, keeps the registration whose detail sheet is open (`selected`, kept while the sheet
+  slides away, and `isSheetVisible`), and closes the deny sheet only for the registration that was decided or found already decided — a
   failure keeps the sheet and its reason.
 - Mobile people calls (`modules/people`, spec 027): `usePeople({ roles, search })` is the infinite query
   `["people", { roles, search }]` (authenticated `GET /people?page=&perPage=20`, `role` as a comma list in the fixed
@@ -739,7 +746,10 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   failed next page to a toast with `getRegistrationErrorKey` (nothing for `SessionExpiredError`). The list keeps the
   backend's order and only groups it by first letter (`groupByInitial`: NFD without accents, "#" for a non-letter).
   The sheet shows the number with `libphonenumber-js` `formatInternational()` (as sent when unparsable) and opens
-  `https://wa.me/<digits>` with `Linking.openURL`, toast `people.whatsappUnavailable` on a rejection. The home rows'
+  `https://wa.me/<digits>` with `Linking.openURL`, toast `people.whatsappUnavailable` on a rejection. `PersonSheet`
+  also takes an optional `email`: with it, a non-pressable email row (Feather `mail`, `people.email`) replaces the
+  WhatsApp row — the "Join the school" screen opens it for a registration as a `student` with no number (spec 039).
+  The home rows'
   "N na plataforma" is the constant `PEOPLE_COUNT_PLACEHOLDER = 9` (`constants/people.ts`) until a backend route
   gives the count.
 - Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.

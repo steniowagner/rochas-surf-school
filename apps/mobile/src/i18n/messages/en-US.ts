@@ -204,9 +204,9 @@ const messages = {
   },
   registrations: {
     title: "Join the school",
-    description: "People waiting for the school's approval.",
-    asked: "Asked {{time}}",
-    askedNow: "Asked just now",
+    waiting: "{{count}} waiting for approval",
+    description:
+      "New accounts can only book classes once approved. The person gets a push notification.",
     approve: "Approve",
     deny: "Deny",
     empty: "No one is waiting to join.",
@@ -214,16 +214,13 @@ const messages = {
     retry: "Try again",
     alreadyDecided: "This registration was already decided.",
     denySheet: {
-      title: "Deny {{name}}?",
-      hint: "The reason is optional and is shown to the person.",
+      title: "Deny entry?",
+      hint: "{{name}} won't join the school. You can explain why (optional) — the person gets this message.",
       label: "Reason (optional)",
-      confirm: "Deny registration",
+      placeholder: "E.g.: We have no spots for new students right now.",
+      confirm: "Deny and notify",
+      back: "Back",
     },
-  },
-  decision: {
-    decidedJustNow: "Decided just now",
-    approved: "Approved",
-    denied: "Denied",
   },
   flows: {
     onboarding: "Onboarding",
@@ -409,6 +406,7 @@ const messages = {
     loadError: "Couldn't load people.",
     whatsapp: "Chat on WhatsApp",
     whatsappNotShared: "Number not shared.",
+    email: "Email",
     whatsappUnavailable: "Couldn't open WhatsApp.",
   },
   deleteAccountSheet: {

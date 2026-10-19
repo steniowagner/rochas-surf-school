@@ -53,8 +53,20 @@ describe("useRegistrationsScreen", () => {
       hook.result.current.approve(ANA);
     });
 
-    await waitFor(() => expect(hook.result.current.decided).toHaveLength(1));
+    await waitFor(() => expect(posts()).toHaveLength(1));
     expect(posts()).toHaveLength(1);
+  });
+
+  it("keeps the selected registration while the detail sheet closes", async () => {
+    const hook = await setup();
+
+    await act(async () => hook.result.current.openRegistration(ANA));
+    expect(hook.result.current.selected).toEqual(ANA);
+    expect(hook.result.current.isSheetVisible).toBe(true);
+
+    await act(async () => hook.result.current.closeSheet());
+    expect(hook.result.current.selected).toEqual(ANA);
+    expect(hook.result.current.isSheetVisible).toBe(false);
   });
 
   it("sends nothing when a denial is confirmed with no sheet open", async () => {
@@ -81,6 +93,5 @@ describe("useRegistrationsScreen", () => {
 
     expect(apiPost).toHaveBeenCalled();
     expect(mockShow).not.toHaveBeenCalled();
-    expect(hook.result.current.decided).toEqual([]);
   });
 });

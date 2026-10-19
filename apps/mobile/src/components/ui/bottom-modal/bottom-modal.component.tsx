@@ -68,6 +68,11 @@ export function BottomModal({
       ref={bottomSheetRef}
       backdropComponent={renderBackdrop}
       enableContentPanningGesture={contentPanningEnabled}
+      // The sheet rises above the keyboard while a field is focused (so a text area and the buttons below it stay
+      // reachable) and goes back down when the keyboard closes.
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustResize"
       backgroundStyle={{
         backgroundColor: theme.page,
         borderTopLeftRadius: radii.sheet,

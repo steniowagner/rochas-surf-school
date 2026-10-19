@@ -350,11 +350,12 @@ cancelling a seat come in specs 042 and 043.
   Covers: ER-04 · Done when: `npx jest test/enrolment/usecase/withdraw-request.usecase.test.ts` passes.
   > ✅ 2026-10-19 16:15 — added `WithdrawRequest` (status 403, then `enrolment.notFound` for a non-UUID, unknown or another person's enrolment, `enrolment.notPending`, `class.started`; the conditional write losing answers `enrolment.notPending`); files: `modules/enrolment/src/enrolment/usecase/withdraw-request.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/test/enrolment/usecase/withdraw-request.usecase.test.ts`; verified: `npx jest test/enrolment/usecase/withdraw-request.usecase.test.ts` from `modules/enrolment` (17 passed, use case 100% covered), tsc and oxlint clean; deviations: an enrolment whose class is gone also answers `enrolment.notFound`
 
-- [ ] **T-06** — Add `ExpirePendingEnrolments` in `src/enrolment/usecase/expire-pending-enrolments.usecase.ts`
+- [x] **T-06** — Add `ExpirePendingEnrolments` in `src/enrolment/usecase/expire-pending-enrolments.usecase.ts`
   (no actor; output `{ expired }`; pushes only the rows that changed; a failing notifier swallowed), with tests
   for expiry, idempotency, untouched future and cancelled classes, and a failing notifier. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-05 · Done when: `npx jest test/enrolment/usecase/expire-pending-enrolments.usecase.test.ts` passes.
+  > ✅ 2026-10-19 16:15 — added `ExpirePendingEnrolments` (no actor; reads the expirable enrolments, writes each conditionally and pushes only the rows that changed; notifier failures swallowed; output `{ expired }`); files: `modules/enrolment/src/enrolment/usecase/expire-pending-enrolments.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/test/enrolment/usecase/expire-pending-enrolments.usecase.test.ts`; verified: `npx jest test/enrolment/usecase/expire-pending-enrolments.usecase.test.ts` from `modules/enrolment` (5 passed, use case 100% covered), tsc and oxlint clean; deviations: none
 
 - [ ] **T-07** — Add `CloseClassEnrolments` in `src/enrolment/usecase/close-class-enrolments.usecase.ts` (no
   actor; input `{ classId }`; ends the open enrolments as `classCancelled` and returns their student ids), with

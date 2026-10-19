@@ -13,6 +13,7 @@ import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
+import { NoEnrolmentClassRosterReader } from './no-enrolment.class-roster.reader.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
@@ -73,6 +74,7 @@ function setup() {
     changeNotifier as unknown as NotificationsClassChangeNotifier,
     new NoEnrolmentSeatCounter(),
     new NoEnrolmentPendingRequestCounter(),
+    new NoEnrolmentClassRosterReader(),
   );
   const body = {
     discipline: 'surf',

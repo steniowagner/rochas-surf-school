@@ -233,12 +233,13 @@ spec.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Add `NoEnrolmentClassRosterReader` in `src/modules/classes/no-enrolment.class-roster.reader.ts`
+- [x] **T-02** — Add `NoEnrolmentClassRosterReader` in `src/modules/classes/no-enrolment.class-roster.reader.ts`
   (answers 0 and `[]` for every id) with its spec, register it in `classes.module.ts`, and pass it to every
   `GetClass` and `ListWeekClasses` call in `classes.controller.ts`, including the ones after create, edit and cancel.
   Skills: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation),
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01 · Done when: `npx vitest run src/modules/classes` passes from `apps/backend`.
+  > ✅ 2026-10-19 — added `NoEnrolmentClassRosterReader` (empty map, so every class reads 0 seats and no students), registered it in the module and injected it in the controller, which now passes it to every `GetClass` and `ListWeekClasses` call (week, one, post-edit, post-cancel); rebuilt `modules/classes` so the backend sees the new export (dist is gitignored); files: `apps/backend/src/modules/classes/no-enrolment.class-roster.reader.ts`, `apps/backend/src/modules/classes/no-enrolment.class-roster.reader.spec.ts`, `apps/backend/src/modules/classes/classes.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`; verified: `npx vitest run src/modules/classes` (16 files, 137 passed), `npm run check-types` in `apps/backend` (0 errors); deviations: none
 
 - [ ] **T-03** — Extend `classes.controller.spec.ts`, `test/classes.e2e-spec.ts` and `classes.integration.http`
   with `seatsTaken: 0` and `students: []` on the week, the detail and the post-edit and post-cancel answers.

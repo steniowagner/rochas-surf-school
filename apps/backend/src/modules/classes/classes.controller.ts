@@ -33,6 +33,7 @@ import { NotificationsClassChangeNotifier } from '../notifications/notifications
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
+import { NoEnrolmentClassRosterReader } from './no-enrolment.class-roster.reader.js';
 import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
@@ -58,6 +59,7 @@ export class ClassesController {
     private readonly classChangeNotifier: NotificationsClassChangeNotifier,
     private readonly seatCounter: NoEnrolmentSeatCounter,
     private readonly pendingRequestCounter: NoEnrolmentPendingRequestCounter,
+    private readonly classRosterReader: NoEnrolmentClassRosterReader,
   ) {}
 
   @Post('batch')
@@ -105,13 +107,13 @@ export class ClassesController {
     @CurrentUser() user: AuthenticatedUser,
     @Query('date') date?: unknown,
   ): Promise<ListWeekClassesOut> {
-    return new ListWeekClasses(this.classViewReader).execute({ actor: actorOf(user), date });
+    return new ListWeekClasses(this.classViewReader, this.classRosterReader).execute({ actor: actorOf(user), date });
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   one(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<GetClassOut> {
-    return new GetClass(this.classViewReader).execute({ actor: actorOf(user), id });
+    return new GetClass(this.classViewReader, this.classRosterReader).execute({ actor: actorOf(user), id });
   }
 
   @Put(':id')
@@ -145,7 +147,7 @@ export class ClassesController {
       notes: body?.notes,
     });
 
-    return new GetClass(this.classViewReader).execute({ actor, id });
+    return new GetClass(this.classViewReader, this.classRosterReader).execute({ actor, id });
   }
 
   @Post(':id/cancel')
@@ -163,7 +165,7 @@ export class ClassesController {
       message: body?.message,
     });
 
-    return new GetClass(this.classViewReader).execute({ actor, id });
+    return new GetClass(this.classViewReader, this.classRosterReader).execute({ actor, id });
   }
 
   @Delete(':id')

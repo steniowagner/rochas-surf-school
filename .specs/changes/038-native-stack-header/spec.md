@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -368,3 +368,53 @@ stays opaque.
   same change can fix them here.
 - `## Memory Impact` doesn't mention `useKeyboardOffset` (`src/navigation/stack-header/`): a `KeyboardAvoidingView`
   below the native header passes it as `keyboardVerticalOffset`. Add it (or its replacement after the amendment).
+
+### Round 3 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 595 passed in 33 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK`, 19 files; no coverage-ignore comments, TODOs or debug leftovers in
+  the diff
+- test quality ✅ — removing `contentInsetAdjustmentBehavior` from class details, edit profile and the school rules
+  reader, or the `useHeaderInset()` padding from email choice, fails the 5 matching tests
+- e2e: `E2E PASSED` (no suite applies; mobile has none) · iOS simulator (iPhone 18 Pro, iOS 27, Metro on `22e6e12`,
+  signed in as the admin): Cancellation rules and Registrations scroll under the transparent header with the soft
+  fade and no line; Registrations and People show the pull-to-refresh spinner just below the header; School rules,
+  WhatsApp and class details (cancelled class: `DETALHE`, no tools button) start below the header with no overlap;
+  New class shows `NOVA AULA` but scrolls under a hard edge with a dividing line, see F-03
+
+**Expected Results**
+
+- ER-01 ✅ — header options and hidden `index` / `(tabs)` in the layout tests (`useStackHeader` asserted in both
+  branches), no in-content back button; the transparent header and its back button seen on every admin screen above
+- ER-02 ✅ — the three class screens' tests (title, `headerRight` only with `showTools`, loading / cancelled / not
+  found); `NOVA AULA` and `DETALHE` in the header in the simulator
+- ER-03 ❌ — the hooks and screens are tested in both branches, and the untitled scrolling screens fade as described;
+  the titled ones don't, see F-03
+
+**Findings**
+
+- [ ] **F-03** (ER-03, D-03) — on iOS 26+, a header with a title draws a hard scroll edge with a dividing line
+  instead of the soft fade. Reproduce: as the admin, open New class (`rochassurfschool:///admin/new-class`) and
+  scroll the form up by ~100pt: the content under `NOVA AULA` is cut by a frosted band ending in a 1px line across the
+  screen. Cancellation rules and Registrations, which have no title, fade softly with no line. Removing only the
+  `headerTitle` from `new-class.screen.tsx` (a temporary experiment, reverted) gives New class the soft fade too, so
+  the title is what changes it. Expected (ER-03, D-03 "no shadow or hairline"): the soft fade with no line on class
+  details, New class and Edit class as on the untitled screens, with a test or the simulator journey showing it.
+  Class details and Edit class weren't scrolled here (the cancelled class fits the screen); check them too.
+
+**Notes**
+
+- Still not seen by anyone under the transparent header, so they must be walked in the next round (the review
+  session's simulator has a hardware keyboard and the admin session was kept): the software keyboard on email
+  sign-in, create account, confirm code, Google name, Edit profile and WhatsApp (offset 0, focused field and primary
+  button above the keyboard); the signed-out e-mail / sign-in / create-account / confirm-code screens' spacing under
+  the header; Edit class (form and its loading / error / cancelled view); as a student, a class's details and the
+  School tab.
+- With `contentInsetAdjustmentBehavior="automatic"`, iOS also adds the bottom safe area, so the scrolling screens
+  that keep `paddingBottom: Math.max(insets.bottom, 24)` end with ~68pt below their last element (seen on
+  Cancellation rules). People had the same pattern before this spec; cosmetic, not a finding.
+- `jest.setup.ts` also reformats two unrelated mocks (`expo-notifications`, the date-time picker); harmless.
+- `## Memory Impact` now covers `useHeaderInset` and `useKeyboardOffset` (round 2 note addressed).

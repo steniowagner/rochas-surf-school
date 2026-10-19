@@ -221,7 +221,7 @@ spec.
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add the `ClassRosterReader` contract with `ClassStudent` and `ClassRoster`
+- [x] **T-01** — Add the `ClassRosterReader` contract with `ClassStudent` and `ClassRoster`
   (`src/school-class/provider/class-roster-reader.provider.ts`, exported from the provider barrel), with the order
   documented; add `CLASS_CARD_STUDENTS_LIMIT = 4`; add `seatsTaken` and `students` to `ClassItem`
   (`usecase/class-item.ts`); make `GetClass` and `ListWeekClasses` take the reader and fill the fields (all
@@ -229,6 +229,7 @@ spec.
   update the use case tests. Skills: [`module-use-case`](../../../.claude/skills/module-use-case),
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: ER-02 · Done when: `npx jest test/school-class` passes from `modules/classes` and `check-types` passes.
+  > ✅ 2026-10-19 — added `ClassRosterReader` (`findRosters(classIds, studentsLimit?) → Map<id, ClassRoster>`, order documented), `ClassStudent`, `ClassRoster`, `CLASS_CARD_STUDENTS_LIMIT = 4`; `ClassItem` carries `seatsTaken`/`students`; `GetClass` (all students) and `ListWeekClasses` (cap 4, one batched read) take the reader; files: `modules/classes/src/school-class/provider/class-roster-reader.provider.ts`, `modules/classes/src/school-class/provider/index.ts`, `modules/classes/src/school-class/usecase/class-item.ts`, `modules/classes/src/school-class/usecase/get-class.usecase.ts`, `modules/classes/src/school-class/usecase/list-week-classes.usecase.ts`, `modules/classes/test/mock/fake-class-roster.reader.ts`, `modules/classes/test/mock/index.ts`, `modules/classes/test/school-class/provider/fake-class-roster.reader.test.ts`, `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`, `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npx jest test/school-class` (340 passed, 21 suites), `npm run check-types` exit 0; deviations: none
 
 ### Backend (`apps/backend`)
 

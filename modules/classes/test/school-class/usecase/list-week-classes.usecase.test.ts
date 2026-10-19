@@ -3,6 +3,7 @@ import { ListWeekClasses } from "../../../src";
 import {
   ADMIN,
   buildClassView,
+  FakeClassRosterReader,
   FakeClassViewReader,
   INSTRUCTOR,
   STUDENT,
@@ -40,8 +41,8 @@ const ALL = [
   MONDAY,
 ];
 
-function useCase(views = ALL) {
-  return new ListWeekClasses(new FakeClassViewReader(views));
+function useCase(views = ALL, rosters = new FakeClassRosterReader()) {
+  return new ListWeekClasses(new FakeClassViewReader(views), rosters);
 }
 
 describe("ListWeekClasses", () => {
@@ -86,7 +87,30 @@ describe("ListWeekClasses", () => {
         { id: "i-1", name: "ana" },
         { id: "i-2", name: "Bruno" },
       ],
+      seatsTaken: 0,
+      students: [],
     });
+  });
+
+  it("carries the seats taken and the first 4 students of each class, in the order given", async () => {
+    const seven = Array.from({ length: 7 }, (_, index) => ({
+      id: `s-${index}`,
+      name: `Aluno ${index}`,
+      photoUrl: null,
+    }));
+    const rosters = new FakeClassRosterReader({
+      monday: { students: seven },
+      "wed-late": { students: seven.slice(0, 2) },
+    });
+
+    const out = await useCase(ALL, rosters).execute({ actor: STUDENT, date: "2026-10-15" });
+    const byId = Object.fromEntries(out.items.map((item) => [item.id, item]));
+
+    expect(byId["monday"]).toMatchObject({ seatsTaken: 7, students: seven.slice(0, 4) });
+    expect(byId["wed-late"]).toMatchObject({ seatsTaken: 2, students: seven.slice(0, 2) });
+    expect(byId["wed-early"]).toMatchObject({ seatsTaken: 0, students: [] });
+    expect(rosters.calls).toHaveLength(1);
+    expect(rosters.calls[0]!.studentsLimit).toBe(4);
   });
 
   it("shapes a cancelled class with its ISO cancellation and message", async () => {

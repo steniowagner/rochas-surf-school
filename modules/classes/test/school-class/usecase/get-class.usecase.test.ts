@@ -1,8 +1,18 @@
 import { ForbiddenError, NotFoundError } from "@rochas-surf-school/shared";
 import { GetClass } from "../../../src";
-import { buildClassView, FakeClassViewReader, STUDENT } from "../../mock";
+import {
+  buildClassView,
+  FakeClassRosterReader,
+  FakeClassViewReader,
+  STUDENT,
+} from "../../mock";
 
 const ID = "9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47";
+const SEVEN = Array.from({ length: 7 }, (_, index) => ({
+  id: `s-${index}`,
+  name: `Aluno ${index}`,
+  photoUrl: null,
+}));
 
 function setup() {
   const reader = new FakeClassViewReader([
@@ -16,7 +26,9 @@ function setup() {
     }),
   ]);
 
-  return { reader, useCase: new GetClass(reader) };
+  const rosterReader = new FakeClassRosterReader({ [ID]: { students: SEVEN } });
+
+  return { reader, rosterReader, useCase: new GetClass(reader, rosterReader) };
 }
 
 describe("GetClass", () => {
@@ -28,7 +40,7 @@ describe("GetClass", () => {
       }),
     ]);
 
-    const out = await new GetClass(reader).execute({ actor: STUDENT, id: ID });
+    const out = await new GetClass(reader, new FakeClassRosterReader()).execute({ actor: STUDENT, id: ID });
 
     expect(out.location).toEqual({ id: "l-1", name: "Antigo", address: "Rua A", latitude: null, longitude: null });
   });
@@ -46,6 +58,24 @@ describe("GetClass", () => {
         { id: "i-2", name: "Bruno" },
       ],
     });
+  });
+
+  it("answers all the students of the class and its seats taken", async () => {
+    const { rosterReader, useCase } = setup();
+
+    const out = await useCase.execute({ actor: STUDENT, id: ID });
+
+    expect(out.seatsTaken).toBe(7);
+    expect(out.students).toEqual(SEVEN);
+    expect(rosterReader.calls).toEqual([{ classIds: [ID], studentsLimit: undefined }]);
+  });
+
+  it("answers no seats taken for a class the roster reader does not know", async () => {
+    const reader = new FakeClassViewReader([buildClassView({ id: ID })]);
+
+    const out = await new GetClass(reader, new FakeClassRosterReader()).execute({ actor: STUDENT, id: ID });
+
+    expect(out).toMatchObject({ seatsTaken: 0, students: [] });
   });
 
   it("answers class.notFound for an unknown id", async () => {

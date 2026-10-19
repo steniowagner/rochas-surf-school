@@ -382,9 +382,10 @@ cancelling a seat come in specs 042 and 043.
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-10** — Add `enrolment.requested` and `enrolment.expired` to `NOTIFICATION_TYPES` in
+- [x] **T-10** — Add `enrolment.requested` and `enrolment.expired` to `NOTIFICATION_TYPES` in
   `src/notification/model/notification.entity.ts`, with the entity tests updated.
   Covers: ER-05, ER-07 · Done when: `npx jest test/notification` passes from `modules/notifications`.
+  > ✅ 2026-10-19 16:17 — added `enrolment.requested` and `enrolment.expired` to `NOTIFICATION_TYPES` and a test of both with their params; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest test/notification` from `modules/notifications` (all passed; the `it.each(NOTIFICATION_TYPES)` case covers the two new types too), tsc and oxlint clean; deviations: none
 
 ### Backend (`apps/backend`)
 

@@ -51,6 +51,17 @@ describe("Notification", () => {
     expect(notification.params).toEqual({ count: 4, discipline: "surf" });
   });
 
+  it.each([
+    ["enrolment.requested", { classId: "c-1", studentName: "Ana Souza", discipline: "surf", startsAt: "2026-10-19T11:00:00.000Z" }],
+    ["enrolment.expired", { classId: "c-1", discipline: "surf", startsAt: "2026-10-19T11:00:00.000Z" }],
+  ] as const)("accepts a %s notification with its class and start", (type, params) => {
+    const notification = build({ type, params });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe(type);
+    expect(notification.params).toEqual(params);
+  });
+
   it("accepts a location.changed notification with its count and the new location name", () => {
     const notification = build({
       type: "location.changed",

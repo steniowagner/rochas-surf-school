@@ -8,7 +8,12 @@ import {
 } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanManageClasses } from "../../access";
 import { CLASS_CANCELLATION_MESSAGE_MAX, getClassState } from "../model";
-import { ClassChangeNotifier, ClockProvider, SchoolClassRepository } from "../provider";
+import {
+  ClassChangeNotifier,
+  ClassEnrolmentsCloser,
+  ClockProvider,
+  SchoolClassRepository,
+} from "../provider";
 
 export interface CancelClassIn {
   actor: ClassActor;
@@ -31,6 +36,7 @@ export class CancelClass implements UseCase<CancelClassIn, CancelClassOut> {
   constructor(
     private readonly schoolClassRepository: SchoolClassRepository,
     private readonly classChangeNotifier: ClassChangeNotifier,
+    private readonly classEnrolmentsCloser: ClassEnrolmentsCloser,
     private readonly clockProvider: ClockProvider,
   ) {}
 
@@ -62,10 +68,12 @@ export class CancelClass implements UseCase<CancelClassIn, CancelClassOut> {
     }
 
     const instructorIds = stored.instructorIds.filter((id) => id !== input.actor.id);
+    const studentIds = (await this.closeEnrolments(stored.id)).filter((id) => id !== input.actor.id);
 
-    await this.notify(instructorIds, () =>
+    await this.notify([...instructorIds, ...studentIds], () =>
       this.classChangeNotifier.classCancelled({
         instructorIds,
+        ...(studentIds.length === 0 ? {} : { studentIds }),
         classId: stored.id,
         discipline: stored.discipline,
         startsAt: stored.startsAt,
@@ -87,9 +95,18 @@ export class CancelClass implements UseCase<CancelClassIn, CancelClassOut> {
     return message.trim() === "" ? null : message.trim();
   }
 
+  /** A failing closer never changes the cancellation: the class is cancelled and nobody is told. */
+  private async closeEnrolments(classId: string): Promise<string[]> {
+    try {
+      return await this.classEnrolmentsCloser.closeOpenEnrolments(classId);
+    } catch {
+      return [];
+    }
+  }
+
   /** A failed notification never changes the answer; the adapter logs it. */
-  private async notify(instructorIds: string[], send: () => Promise<void>): Promise<void> {
-    if (instructorIds.length === 0) return;
+  private async notify(recipientIds: string[], send: () => Promise<void>): Promise<void> {
+    if (recipientIds.length === 0) return;
 
     try {
       await send();

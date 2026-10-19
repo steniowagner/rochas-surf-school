@@ -9,6 +9,8 @@ export interface ClassEdited {
 
 export interface ClassCancelled {
   instructorIds: string[];
+  /** The students whose open enrolment ended with the cancellation; absent when there are none. */
+  studentIds?: string[];
   classId: string;
   discipline: ClassDiscipline;
   startsAt: Date;

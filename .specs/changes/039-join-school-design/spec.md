@@ -159,11 +159,15 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   `subtle` back button that calls the same close as a swipe (text cleared). Update
   `deny-sheet.component.test.tsx` (placeholder, accessibility label, no visible label, confirm sends the text,
   back closes and clears). Covers: ER-03 · Done when: `npx jest src/components/decision/deny-sheet` passes.
-- [ ] **T-04** — Add the optional `email` prop to `src/modules/people/components/person-sheet` (D-02): with it, an
+- [x] **T-04** — Add the optional `email` prop to `src/modules/people/components/person-sheet` (D-02): with it, an
   email row (Feather `mail` icon, `people.email` label, the email as subtitle, not pressable) replaces the WhatsApp
   row; add `people.email` ("E-mail" / "Email" / "Correo electrónico") to the three message files. Extend
   `person-sheet.component.test.tsx` for the email branch (and that the WhatsApp branches are unchanged).
   Covers: ER-02 · Done when: `npx jest src/modules/people/components/person-sheet` passes.
+  > ✅ 2026-10-19 — PersonSheet takes optional `email` (mail row replaces the WhatsApp row); `people.email` added;
+  > files: `apps/mobile/src/modules/people/components/person-sheet/person-sheet.{component.tsx,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/people` (56 passed);
+  > deviations: none
 - [ ] **T-05** — Rework `src/modules/admin/screens/registrations.screen.tsx` and
   `src/modules/admin/hooks/use-registrations-screen.hook.ts` (+ `.types.ts`) (D-02, D-06, D-07, D-08): the
   People-style list header with the `registrations.waiting` count line; `DecisionCard` with `PersonAvatar`, details

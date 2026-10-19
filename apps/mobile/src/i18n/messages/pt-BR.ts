@@ -409,6 +409,7 @@ const messages: Messages = {
     loadError: "Não foi possível carregar as pessoas.",
     whatsapp: "Conversar por WhatsApp",
     whatsappNotShared: "Número não compartilhado.",
+    email: "E-mail",
     whatsappUnavailable: "Não foi possível abrir o WhatsApp.",
   },
   deleteAccountSheet: {

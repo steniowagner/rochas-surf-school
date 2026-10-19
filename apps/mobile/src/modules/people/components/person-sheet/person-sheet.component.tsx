@@ -13,7 +13,12 @@ import { PersonAvatar } from "../person-avatar";
 import { usePersonSheet } from "./person-sheet.hook";
 import { PersonSheetProps } from "./person-sheet.types";
 
-export function PersonSheet({ person, visible, onClose }: PersonSheetProps) {
+export function PersonSheet({
+  person,
+  email,
+  visible,
+  onClose,
+}: PersonSheetProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const { formattedNumber, openChat } = usePersonSheet({ person });
@@ -34,7 +39,23 @@ export function PersonSheet({ person, visible, onClose }: PersonSheetProps) {
             </View>
           </View>
           <View className="h-px bg-line" />
-          {formattedNumber ? (
+          {email ? (
+            <View
+              accessible
+              accessibilityLabel={t("people.email")}
+              className="min-h-12 flex-row items-center gap-3"
+            >
+              <Feather name="mail" size={20} color={theme.ink3} />
+              <View className="flex-1">
+                <Text className="ds-text-list-title text-ink">
+                  {t("people.email")}
+                </Text>
+                <Text className="ds-text-list-subtitle text-ink-2">
+                  {email}
+                </Text>
+              </View>
+            </View>
+          ) : formattedNumber ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t("people.whatsapp")}

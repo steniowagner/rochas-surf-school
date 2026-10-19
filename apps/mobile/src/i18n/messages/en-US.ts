@@ -409,6 +409,7 @@ const messages = {
     loadError: "Couldn't load people.",
     whatsapp: "Chat on WhatsApp",
     whatsappNotShared: "Number not shared.",
+    email: "Email",
     whatsappUnavailable: "Couldn't open WhatsApp.",
   },
   deleteAccountSheet: {

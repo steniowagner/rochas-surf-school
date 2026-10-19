@@ -416,6 +416,7 @@ const messages: Messages = {
     loadError: "No se pudo cargar a las personas.",
     whatsapp: "Chatear por WhatsApp",
     whatsappNotShared: "Número no compartido.",
+    email: "Correo electrónico",
     whatsappUnavailable: "No se pudo abrir WhatsApp.",
   },
   deleteAccountSheet: {

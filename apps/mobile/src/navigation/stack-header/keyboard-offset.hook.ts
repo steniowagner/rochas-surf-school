@@ -1,5 +1,5 @@
-import { useHeaderHeight } from "expo-router/react-navigation";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 /**
  * `keyboardVerticalOffset` for a `KeyboardAvoidingView` below the native header. Under the opaque header the view

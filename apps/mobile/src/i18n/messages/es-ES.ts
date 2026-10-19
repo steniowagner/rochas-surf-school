@@ -257,10 +257,8 @@ const messages: Messages = {
     theme: "Tema",
     language: "Idioma",
     push: "Notificaciones push",
-    pushNote:
-      "Los avisos siempre quedan en la app. Aquí solo eliges si también llegan a tu teléfono.",
-    pushDenied:
-      "Permite las notificaciones de la app en los ajustes del teléfono.",
+    pushNote: "Los avisos siempre quedan en la app. Aquí solo eliges si también llegan a tu teléfono.",
+    pushDenied: "Permite las notificaciones de la app en los ajustes del teléfono.",
     schoolRules: "Reglas de la escuela",
     cancellationRules: "Reglas de cancelación",
     about: "Acerca de la app",
@@ -280,14 +278,10 @@ const messages: Messages = {
     },
     screen: {
       title: "Reglas de cancelación",
-      intro:
-        "Hay una regla para cada modalidad. La app lee la regla con los datos de la clase — nunca los de los alumnos — y calcula hasta cuándo se puede cancelar cada clase.",
-      tipTime:
-        'Indica plazos exactos en horas antes del inicio de la clase — nada de "a última hora".',
-      tipAmbiguity:
-        "Evita la ambigüedad: si una persona duda al leerla, la app también dudará.",
-      placeholder:
-        "Ej.: El alumno puede cancelar sin penalización hasta 12 horas antes del inicio de la clase…",
+      intro: "Hay una regla para cada modalidad. La app lee la regla con los datos de la clase — nunca los de los alumnos — y calcula hasta cuándo se puede cancelar cada clase.",
+      tipTime: "Indica plazos exactos en horas antes del inicio de la clase — nada de \"a última hora\".",
+      tipAmbiguity: "Evita la ambigüedad: si una persona duda al leerla, la app también dudará.",
+      placeholder: "Ej.: El alumno puede cancelar sin penalización hasta 12 horas antes del inicio de la clase…",
       note: {
         unsaved: "Cambios sin guardar",
         inForce: "Regla de {{discipline}} vigente",
@@ -369,8 +363,7 @@ const messages: Messages = {
     cancellationDeadline: "Cancelación hasta {{when}}",
     noDeadline: {
       title: "Sin plazo de cancelación",
-      description:
-        "Todavía no hemos podido calcular hasta cuándo pueden cancelar los alumnos. Revisa la regla de {{discipline}}.",
+      description: "Todavía no hemos podido calcular hasta cuándo pueden cancelar los alumnos. Revisa la regla de {{discipline}}.",
     },
     tools: "Herramientas de la clase",
   },
@@ -384,26 +377,22 @@ const messages: Messages = {
   },
   profileWhatsapp: {
     title: "WhatsApp",
-    description:
-      "Los admins siempre ven tu número. Elige si alumnos e instructores también pueden verlo.",
+    description: "Los admins siempre ven tu número. Elige si alumnos e instructores también pueden verlo.",
     save: "Guardar",
   },
   schoolRulesScreen: {
     title: "Reglas de la escuela",
-    description:
-      "Pocas y sencillas, para que las clases salgan bien para todos.",
+    description: "Pocas y sencillas, para que las clases salgan bien para todos.",
   },
   signOutSheet: {
     title: "¿Cerrar sesión?",
-    description:
-      "Para volver, solo inicia sesión otra vez con la misma cuenta.",
+    description: "Para volver, solo inicia sesión otra vez con la misma cuenta.",
     confirm: "Cerrar sesión",
     cancel: "Cancelar",
   },
   about: {
     version: "Versión {{version}}",
-    description:
-      "Proyecto personal para sacar la reserva de clases de los grupos de WhatsApp: agenda de la semana, solicitudes de plaza y avisos en un solo lugar.",
+    description: "Proyecto personal para sacar la reserva de clases de los grupos de WhatsApp: agenda de la semana, solicitudes de plaza y avisos en un solo lugar.",
     creatorRole: "Diseño y desarrollo",
     repository: "Repositorio de la app",
     creatorGithub: "GitHub del creador",
@@ -429,8 +418,7 @@ const messages: Messages = {
   },
   deleteAccountSheet: {
     title: "¿Eliminar tu cuenta?",
-    description:
-      "Tu cuenta se cierra ahora y se cancelan tus plazas y solicitudes futuras. Puedes pedir la reactivación en un plazo de 30 días.",
+    description: "Tu cuenta se cierra ahora y se cancelan tus plazas y solicitudes futuras. Puedes pedir la reactivación en un plazo de 30 días.",
     confirm: "Eliminar cuenta",
     cancel: "Cancelar",
   },
@@ -489,8 +477,7 @@ const messages: Messages = {
     notes: {
       label: "Notas",
       optional: "opcional",
-      placeholder:
-        "Ej.: Punto de encuentro frente a la caseta del socorrista. Trae protector solar.",
+      placeholder: "Ej.: Punto de encuentro frente a la caseta del socorrista. Trae protector solar.",
     },
     instructors: {
       label: "Instructores",
@@ -518,11 +505,9 @@ const messages: Messages = {
   },
   cancelClass: {
     title: "¿Cancelar esta clase?",
-    description:
-      "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada.",
+    description: "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada.",
     messageLabel: "Mensaje (opcional)",
-    messagePlaceholder:
-      "Ej.: Mar muy grande. La pasamos al sábado a la misma hora.",
+    messagePlaceholder: "Ej.: Mar muy grande. La pasamos al sábado a la misma hora.",
     confirm: "Cancelar y avisar",
     keep: "Mantener clase",
     done: "Clase cancelada",
@@ -533,13 +518,11 @@ const messages: Messages = {
   },
   deleteClass: {
     title: "¿Eliminar esta clase?",
-    description:
-      "Avisamos a los instructores y la clase sale de la agenda. No se puede deshacer.",
+    description: "Avisamos a los instructores y la clase sale de la agenda. No se puede deshacer.",
     confirm: "Eliminar clase",
     notEmpty: {
       title: "No se puede eliminar",
-      description:
-        "Alguien ya pidió plaza o está inscrito en esta clase. Solo se pueden eliminar clases sin nadie: cancélala en su lugar.",
+      description: "Alguien ya pidió plaza o está inscrito en esta clase. Solo se pueden eliminar clases sin nadie: cancélala en su lugar.",
     },
     done: "Clase eliminada",
     errors: {
@@ -574,14 +557,12 @@ const messages: Messages = {
       started: "La clase ya empezó: solo se pueden cambiar los instructores.",
       finished: "Esta clase ya terminó y no se puede cambiar.",
       cancelled: "Esta clase fue cancelada y no se puede cambiar.",
-      seatsTaken:
-        "La capacidad no puede quedar por debajo de las {{count}} plazas ocupadas.",
+      seatsTaken: "La capacidad no puede quedar por debajo de las {{count}} plazas ocupadas.",
     },
   },
   timeRangeSheet: {
     title: "Nuevo horario",
-    description:
-      "Define la hora de inicio y de fin. Vale solo para este lote: no queda en las sugerencias.",
+    description: "Define la hora de inicio y de fin. Vale solo para este lote: no queda en las sugerencias.",
     start: "Inicio",
     end: "Fin",
     endBeforeStart: "El fin debe ser después del inicio.",
@@ -589,8 +570,7 @@ const messages: Messages = {
   },
   locationSheet: {
     title: "Nuevo lugar",
-    description:
-      "Los alumnos ven el nombre y la dirección, y reciben indicaciones hasta el punto del mapa.",
+    description: "Los alumnos ven el nombre y la dirección, y reciben indicaciones hasta el punto del mapa.",
     name: "Nombre",
     namePlaceholder: "Ej.: Praia do Futuro",
     address: "Dirección",
@@ -598,8 +578,7 @@ const messages: Messages = {
     duplicate: "Ya existe un lugar con este nombre.",
     submit: "Guardar lugar",
     editTitle: "Editar lugar",
-    editDescription:
-      "Los cambios también se aplican a las clases que ya usan este lugar.",
+    editDescription: "Los cambios también se aplican a las clases que ya usan este lugar.",
     addressSearchPlaceholder: "Busca una dirección o una playa",
     point: "Punto en el mapa",
     pointHintEmpty: "Toca el mapa para marcar el punto",
@@ -623,8 +602,7 @@ const messages: Messages = {
     title: "¿Eliminar lugar?",
     description: "Deja de aparecer para nuevas clases.",
     kept_one: "La clase que ya usa este lugar sigue como está.",
-    kept_other:
-      "Las {{count}} clases que ya usan este lugar siguen como están.",
+    kept_other: "Las {{count}} clases que ya usan este lugar siguen como están.",
     confirm: "Eliminar lugar",
     keep: "Mantener",
     removed: "{{name}} eliminado",

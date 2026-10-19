@@ -11,10 +11,6 @@ describe("toBackendLocale", () => {
   });
 
   it("covers every supported locale", () => {
-    expect(supportedLocales.map(toBackendLocale)).toEqual([
-      "en",
-      "es",
-      "pt-BR",
-    ]);
+    expect(supportedLocales.map(toBackendLocale)).toEqual(["en", "es", "pt-BR"]);
   });
 });

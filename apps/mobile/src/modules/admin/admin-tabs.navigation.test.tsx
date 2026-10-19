@@ -46,6 +46,7 @@ jest.useFakeTimers({
 
 afterAll(() => jest.useRealTimers());
 
+
 const fetchMock = jest.fn();
 
 const person = (id: string) => ({
@@ -63,11 +64,7 @@ const aClass = {
   endsAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
   capacity: 8,
   notes: null,
-  location: {
-    id: "l-1",
-    name: "Praia do Futuro",
-    address: "Av. Zezé Diogo, 1000",
-  },
+  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
   instructors: [{ id: "i-1", name: "Bruno Lima" }],
 };
 
@@ -192,9 +189,7 @@ describe("admin tabs", () => {
     await user.press(screen.getByText("Create classes"));
 
     expect(app.getPathname()).toBe("/admin/new-class");
-    expect(
-      screen.getByRole("header", { name: "Discipline" }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Discipline" })).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -249,9 +244,7 @@ describe("admin tabs", () => {
     await act(async () => router.navigate(routes.admin.classes));
     await screen.findByText("Praia do Futuro");
 
-    await user.press(
-      screen.getByRole("button", { name: "Create class on this day" }),
-    );
+    await user.press(screen.getByRole("button", { name: "Create class on this day" }));
 
     expect(app.getPathname()).toBe("/admin/new-class");
   });

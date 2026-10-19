@@ -3,7 +3,7 @@ id: "039"
 slug: join-school-design
 title: Align "Entrar na escola" with the PAINEL-03 and PAINEL-03A designs
 template: quick
-status: changes-requested
+status: in-review
 started: 2026-10-18
 base_commit: 2303207495e4113910c18c365929b4170cbdea98
 created: 2026-10-18
@@ -277,7 +277,7 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
 
 **Findings**
 
-- [ ] **F-01** (ER-03) — with the deny sheet open, tapping the text area brings up the keyboard, which covers the text
+- [x] **F-01** (ER-03) — with the deny sheet open, tapping the text area brings up the keyboard, which covers the text
   area, "Recusar e avisar" and "Voltar"; the sheet doesn't move above it and nothing in the sheet dismisses it (tapping
   the title doesn't; return adds a new line), so the only way out is the backdrop, which drops the reason. An admin
   can't deny with a typed reason, which is ER-03's main behavior and a step of the Verification Plan's journey (the
@@ -285,7 +285,20 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   escola" → "Recusar" on any card → tap the text area → type. Expected: while typing, the text area and "Recusar e
   avisar" stay visible and pressable (e.g. the sheet rises above the keyboard), and pressing it denies with the typed
   reason.
-- [ ] **F-02** (scope) — the T-05 commit reformats code that no task touches (line wrapping only, from a formatter;
+
+  - Evidence (F-01): a gorhom sheet only rises above the keyboard for its own input (`BottomSheetTextInput`), so
+    `TextArea` got an `inBottomSheet` prop that renders it (wrapped in NativeWind's `cssInterop`, so `className`
+    still styles it), `DenySheet` sets it, and `BottomModal` now sets `keyboardBehavior="interactive"`,
+    `keyboardBlurBehavior="restore"` and `android_keyboardInputMode="adjustResize"`. Files:
+    `apps/mobile/src/components/ui/bottom-modal/bottom-modal.component.tsx`,
+    `apps/mobile/src/components/ui/text-area/text-area.{component.tsx,types.ts,component.test.tsx}`,
+    `apps/mobile/src/components/decision/deny-sheet/deny-sheet.component.tsx`. Simulator (iPhone 18 Pro, pt-BR):
+    "Recusar" → tap the text area → type "Sem vagas": the sheet rises above the keyboard with the text area,
+    "Recusar e avisar" and "Voltar" visible; "Voltar" closes it with the keyboard up. Not pressed: "Recusar e avisar"
+    (it would deny a real pending account in the shared dev database); it is visible and unobstructed, and
+    the reason is sent by the unchanged, tested `useDenySheet` / `registrations.screen` path. Added a test for the
+    `inBottomSheet` input. The change also applies to the other sheets using `BottomModal` with a field.
+- [x] **F-02** (scope) — the T-05 commit reformats code that no task touches (line wrapping only, from a formatter;
   the mobile lint has no Prettier rule, so it wasn't needed): all of `apps/mobile/src/i18n/backend-locale.test.ts` and
   `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, the two hunks around lines 148–176 of
   `admin.screen.test.tsx`, the existing tests of `person-sheet.component.test.tsx`, and about twenty unrelated strings
@@ -293,6 +306,11 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   `locationSheet.*`…). Reproduce: `git diff 2303207..HEAD -- apps/mobile/src/i18n/backend-locale.test.ts
   apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`. Expected: those formatting-only hunks are reverted, so
   the diff holds only the spec's changes.
+
+  - Evidence (F-02): reverted the formatting-only hunks with `git checkout 2303207 --` for `backend-locale.test.ts` and
+    `admin-tabs.navigation.test.tsx`, and by reverse-applying them in `admin.screen.test.tsx`, `person-sheet.component.test.tsx` and the three message
+    files, keeping the semantic changes. `git diff 2303207 --stat -- apps` is now 25 files with no formatting-only
+    hunks left. Related tests ✅ 1049 passed, `check-coverage.mjs 039` ✅ COVERAGE OK, lint + check-types ✅.
 
 **Notes**
 

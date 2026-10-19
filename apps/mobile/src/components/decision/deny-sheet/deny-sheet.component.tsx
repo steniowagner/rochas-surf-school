@@ -37,6 +37,7 @@ export function DenySheet({
           <Text className="ds-text-body text-ink-2">{hint}</Text>
         </View>
         <TextArea
+          inBottomSheet
           accessibilityLabel={label}
           placeholder={placeholder}
           value={reason}

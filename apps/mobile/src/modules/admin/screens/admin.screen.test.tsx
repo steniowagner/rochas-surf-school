@@ -148,9 +148,7 @@ describe("AdminScreen", () => {
     await user.press(screen.getByRole("button", { name: /Create classes/ }));
 
     expect(app.getPathname()).toBe("/admin/new-class");
-    expect(
-      screen.getByRole("header", { name: "Discipline" }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Discipline" })).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -171,9 +169,7 @@ describe("AdminScreen", () => {
 
     expect(screen.getByText("One for surf, one for skate")).toBeOnTheScreen();
 
-    await user.press(
-      screen.getByRole("button", { name: "Cancellation rules" }),
-    );
+    await user.press(screen.getByRole("button", { name: "Cancellation rules" }));
 
     expect(app.getPathname()).toBe(routes.admin.cancellationRules);
     expect(await screen.findByDisplayValue("Surf rule.")).toBeOnTheScreen();

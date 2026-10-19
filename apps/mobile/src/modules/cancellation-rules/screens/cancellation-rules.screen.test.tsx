@@ -1,6 +1,8 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
 
+import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+
 import {
   account,
   jsonResponse,
@@ -45,6 +47,12 @@ describe("CancellationRulesScreen", () => {
     expect(screen.getByText("Current rule for surf")).toBeOnTheScreen();
     expect(screen.getByText(`${SURF.length}/2000`)).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
+  });
+
+  it("insets its content below the header, whatever the header is", async () => {
+    await open();
+
+    expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
   });
 
   it("marks unsaved changes and turns the button on, off again when back to the saved text (cancellation rules)", async () => {
@@ -139,13 +147,5 @@ describe("CancellationRulesScreen", () => {
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByDisplayValue(SURF)).toBeOnTheScreen();
-  });
-
-  it("goes back with the back button (cancellation rules)", async () => {
-    const user = await open();
-
-    await user.press(screen.getByRole("button", { name: "Back" }));
-
-    expect(router.back).toHaveBeenCalledTimes(1);
   });
 });

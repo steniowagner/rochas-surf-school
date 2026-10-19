@@ -10,12 +10,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
 
 import { useCreateAccount } from "./create-account.hook";
 import { CreateAccountProps } from "./create-account.types";
@@ -27,6 +27,8 @@ export function CreateAccount({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
+  const keyboardOffset = useKeyboardOffset();
   const emailInputRef = useRef<NativeTextInput>(null);
   const { nameField, emailField, canSubmit, isSending, submit } =
     useCreateAccount({
@@ -37,17 +39,16 @@ export function CreateAccount({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View
         className="flex-1 px-[22px]"
         style={{
-          paddingTop: insets.top + 12,
+          paddingTop: headerInset,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <BackButton />
-
         <View className="mt-6 gap-4">
           <ScreenIntro
             icon={

@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DecidedList } from "@/components/decision/decided-list";
 import { DecisionCard } from "@/components/decision/decision-card";
 import { DenySheet } from "@/components/decision/deny-sheet";
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
@@ -96,11 +95,11 @@ export function RegistrationsScreen() {
     <View className="flex-1 bg-page">
       <FlatList
         testID="registrations-list"
+        contentInsetAdjustmentBehavior="automatic"
         data={registrations}
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-3 px-screen"
         contentContainerStyle={{
-          paddingTop: insets.top + 12,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
         refreshControl={
@@ -108,7 +107,6 @@ export function RegistrationsScreen() {
         }
         ListHeaderComponent={
           <View className="mb-3 items-start gap-6">
-            <BackButton />
             <ScreenIntro
               icon={
                 <MaterialCommunityIcons

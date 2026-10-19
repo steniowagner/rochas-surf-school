@@ -13,6 +13,11 @@ import { Platform, TextInput as NativeTextInput } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import {
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { ConfirmCode } from "./confirm-code.component";
@@ -91,7 +96,7 @@ describe("ConfirmCode", () => {
     const focus = jest.spyOn(NativeTextInput.prototype, "focus");
     await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
 
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(
       screen.getByRole("header", { name: "Confirm your email" }),
     ).toBeOnTheScreen();
@@ -159,14 +164,40 @@ describe("ConfirmCode", () => {
     expect(getConfirm()).toBeDisabled();
   });
 
-  it("goes back from change the email and from the back button", async () => {
+  it("goes back from change the email", async () => {
     const user = userEvent.setup();
     await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
 
     await user.press(screen.getByRole("link", { name: "change the email" }));
-    await user.press(screen.getByRole("button", { name: "Back" }));
 
-    expect(router.back).toHaveBeenCalledTimes(2);
+    expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts at the top under the opaque header", async () => {
+    await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+
+    expect(topPaddingsOf(screen.toJSON())).toContain(0);
+  });
+
+  it("starts below the transparent header without offsetting the keyboard", async () => {
+    const offset = await underTransparentHeader(116, async () => {
+      const offset = await keyboardOffsetOf(() =>
+        renderScreen(<ConfirmCode email={EMAIL} name={NAME} />),
+      );
+      await renderScreen(<ConfirmCode email={EMAIL} name={NAME} />);
+      expect(topPaddingsOf(screen.toJSON())).toContain(116);
+      return offset;
+    });
+
+    expect(offset).toBe(0);
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() =>
+      renderScreen(<ConfirmCode email={EMAIL} name={NAME} />),
+    );
+
+    expect(offset).toBe(64);
   });
 
   it("renders on Android, where the keyboard does not add padding", async () => {

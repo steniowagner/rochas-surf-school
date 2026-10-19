@@ -51,8 +51,8 @@ const serve = (list: (path: string) => unknown, total = 3) => {
   });
 };
 
-const renderScreen = (showBackButton = false) =>
-  render(<PeopleScreen showBackButton={showBackButton} />, {
+const renderScreen = () =>
+  render(<PeopleScreen />, {
     wrapper: createWrapper(createQueryClient()),
   });
 
@@ -105,7 +105,6 @@ describe("PeopleScreen", () => {
     expect(screen.getAllByText("since Jul 2026")).toHaveLength(3);
     expect(screen.getByText("Instructor")).toBeOnTheScreen();
     expect(screen.getByText("Admin")).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Back" })).not.toBeOnTheScreen();
   });
 
   it("groups the people by first letter, keeping the order the backend answers, without a sort parameter", async () => {
@@ -138,14 +137,6 @@ describe("PeopleScreen", () => {
       "Bruno",
     ]);
     expect(listPaths().every((path) => !path.includes("sort"))).toBe(true);
-  });
-
-  it("shows the back button when asked", async () => {
-    serve(() => ok(buildPage(1, 1, 1)), 1);
-
-    await renderScreen(true);
-
-    expect(await screen.findByRole("button", { name: "Back" })).toBeOnTheScreen();
   });
 
   it("shows no count while it loads or after it fails, and the list still works", async () => {

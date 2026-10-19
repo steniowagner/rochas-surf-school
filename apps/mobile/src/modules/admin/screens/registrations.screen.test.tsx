@@ -244,6 +244,17 @@ describe("RegistrationsScreen list", () => {
     expect(screen.queryByText("Couldn't load the registrations.")).toBeNull();
   });
 
+  it("insets its list below the header, whatever the header is", async () => {
+    serve([ANA]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    expect(
+      screen.getByTestId("registrations-list").props
+        .contentInsetAdjustmentBehavior,
+    ).toBe("automatic");
+  });
+
   it("refetches when the list is pulled down", async () => {
     const state = serve([ANA]);
     await renderScreen();

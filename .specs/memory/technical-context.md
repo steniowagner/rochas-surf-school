@@ -349,8 +349,23 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   backend builds (e.g. `User.validate()`'s name and email rules), imported from `@rochas-surf-school/shared` —
   no regex or rule is re-implemented in the app, so what the app accepts the backend accepts. The backend
   still decides.
-- **Mobile shared UI**: every screen that can go back uses `BackButton` (`src/components/ui/back-button`,
-  44×44, `router.back()` by default); inner screens open with `ScreenIntro` (icon tile, optional eyebrow, title, description; the tile's
+- **Mobile shared UI**: screens that can go back get the native Stack header (spec 038): the auth layout and the
+  three role layouts pass `useStackHeader()` (`src/navigation/stack-header/`) as `screenOptions`, with `index`
+  (auth) and `(tabs)` (roles) at `headerShown: false`. It draws the platform back button (no label, tinted `ink`,
+  no shadow); screens never build one (`BackButton` no longer exists). Where `isLiquidGlassAvailable()`
+  (`expo-glass-effect`) is true (iOS 26+) the header is transparent (`headerTransparent`, `headerStyle` background
+  `transparent`, so iOS doesn't draw an opaque band) with `scrollEdgeEffects: { top: "soft" }`, so content
+  scrolling under it fades; elsewhere (Android, iOS < 26) it is opaque `page`. A screen sets its title and
+  `headerRight` with `<Stack.Screen options>`, giving the title as `headerTitle: () => <StackHeaderTitle
+  title={…} />` (uppercase `ds-text-screen-title-with-back`), never a plain string: on iOS 26+ a string title makes
+  the transparent header draw a frosted band with a line instead of the soft fade. Content under the header: a
+  scrolling screen's `ScrollView` / `FlatList` is the screen's first descendant (the scroll-edge effect only finds
+  that one) with `contentInsetAdjustmentBehavior="automatic"`; a fixed screen adds `useHeaderInset()` as top
+  padding (the header's height under the transparent header, 0 under the opaque one); a `KeyboardAvoidingView`
+  below the header passes `useKeyboardOffset()` as `keyboardVerticalOffset` (0 under the transparent header, the
+  header's height under the opaque one). `jest.setup.ts` mocks `isLiquidGlassAvailable` (false),
+  `useHeaderInset` (0) and `useKeyboardOffset` (64) for components rendered without a navigator. Inner screens
+  open with `ScreenIntro` (icon tile, optional eyebrow, title, description; the tile's
   background is `bg-sand` unless `iconTileClassName` passes another token class, and the eyebrow is `text-ink-2`
   unless `eyebrowClassName` passes another)
   and use the shared `TextInput` (leading icon, `neutral` / `error` border, error message below), `OtpInput`
@@ -417,7 +432,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   (`/admin/registrations`, `/admin/people`, `/admin/new-class`, `/admin/edit-class/[id]` —
   `routes.admin.editClass(id)` —, `/instructor/people`, `/<role>/edit-profile`,
   `/<role>/whatsapp`, `/<role>/school-rules`, `/<role>/class/[id]` — `routes.<role>.classDetail(id)`) are routes of the
-  role's `Stack`, outside `(tabs)`, so they open above the tab bar, without it, and go back with `BackButton`.
+  role's `Stack`, outside `(tabs)`, so they open above the tab bar, without it, and go back with the native header's back button (and the iOS
+  swipe-back / Android back); navigation tests go back with `router.back()`, since that button is a native view.
   Route tests that render a role live in `src/modules/<role>/*-tabs.navigation.test.tsx`, never under `src/app/`
   (Expo Router would read a test file there as a route).
 - **Mobile flows**: each account state has one flow — `auth`, `pending`, `onboarding`, `rules-update`, `reactivation`,

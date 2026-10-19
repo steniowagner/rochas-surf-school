@@ -169,7 +169,7 @@ describe("student tabs", () => {
     expect(app.getPathname()).toBe("/student/class/c-1");
     expect(await screen.findByText("Max. 8 students")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Back" }));
+    await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/student");
     expect(selectedTabLabel()).toBe("Schedule");

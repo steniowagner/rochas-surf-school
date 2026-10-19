@@ -12,6 +12,11 @@ import { Keyboard, Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import {
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { GoogleName } from "./google-name.component";
@@ -51,7 +56,7 @@ beforeEach(() => {
 });
 
 describe("GoogleName", () => {
-  it("renders the intro, the back button and Google's name in the field", async () => {
+  it("renders the intro and Google's name in the field", async () => {
     await renderScreen(<GoogleName idToken="token" initialName="Maria" />);
 
     expect(
@@ -60,10 +65,37 @@ describe("GoogleName", () => {
     expect(
       screen.getByText("Enter your full name so the school knows who you are."),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toHaveDisplayValue(
       "Maria",
     );
+  });
+
+  it("starts at the top under the opaque header", async () => {
+    await renderScreen(<GoogleName idToken="token" />);
+
+    expect(topPaddingsOf(screen.toJSON())).toContain(0);
+  });
+
+  it("starts below the transparent header without offsetting the keyboard", async () => {
+    const offset = await underTransparentHeader(116, async () => {
+      const offset = await keyboardOffsetOf(() =>
+        renderScreen(<GoogleName idToken="token" />),
+      );
+      await renderScreen(<GoogleName idToken="token" />);
+      expect(topPaddingsOf(screen.toJSON())).toContain(116);
+      return offset;
+    });
+
+    expect(offset).toBe(0);
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() =>
+      renderScreen(<GoogleName idToken="token" />),
+    );
+
+    expect(offset).toBe(64);
   });
 
   it("renders the form on Android, where the keyboard does not add padding", async () => {

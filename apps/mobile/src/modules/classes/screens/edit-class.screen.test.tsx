@@ -1,7 +1,10 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import type { ReactNode } from "react";
 
+import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+import { headerTitleOf } from "@/navigation/stack-header/header-title.test-utils";
 import * as api from "@/services/api";
 
 import {
@@ -42,6 +45,12 @@ jest.mock("@/services/api", () => {
 });
 
 jest.mock("expo-router", () => ({
+  Stack: {
+    // Renders the header's right side, so the tests can reach what the screen puts there.
+    Screen: jest.fn(({ options }: { options: { headerRight?: () => unknown } }) =>
+      options.headerRight?.() ?? null,
+    ),
+  },
   router: { back: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({ id: "c-1" })),
 }));
@@ -176,12 +185,24 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+/** The options the screen gave the Stack header on its latest render. */
+const headerOptions = () => {
+  const calls = jest.mocked(Stack.Screen).mock.calls;
+
+  return (
+    calls[calls.length - 1][0] as {
+      options: { headerTitle?: () => ReactNode; headerRight?: unknown };
+    }
+  ).options;
+};
+
 describe("EditClassScreen", () => {
   it("starts from the class: its values, its own time selected, and nothing to save", async () => {
     await renderScreen();
     await loaded();
 
-    expect(screen.getByRole("header", { name: "Edit class" })).toBeOnTheScreen();
+    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Edit class");
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(day("2026-10-15")).toBeSelected();
     expect(screen.getByText("October 2026")).toBeOnTheScreen();
@@ -588,6 +609,7 @@ describe("EditClassScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+      expect(headerTitleOf(headerOptions().headerTitle)).toBe("Edit class");
       expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
       expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
       expect(screen.queryByRole("checkbox", { name: "Ana Souza" })).toBeNull();
@@ -677,6 +699,20 @@ describe("EditClassScreen", () => {
 
       expect(screen.getByTestId("edit-class-loading")).toBeOnTheScreen();
       expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+    });
+
+    it("insets its loading view's scroll view below the header, so the header's scroll edge finds one", async () => {
+      serve({ "GET /classes/c-1": () => new Promise(() => undefined) });
+      await renderScreen();
+
+      expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
+    });
+
+    it("insets its form's scroll view below the header", async () => {
+      await renderScreen();
+      await loaded();
+
+      expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
     });
 
     it("offers to retry a failed load", async () => {

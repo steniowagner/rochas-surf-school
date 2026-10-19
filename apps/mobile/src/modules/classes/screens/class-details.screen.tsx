@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -10,12 +11,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
@@ -36,35 +37,37 @@ export function ClassDetailsScreen({
 
   return (
     <>
+      <Stack.Screen
+        options={{
+          headerTitle: () => <StackHeaderTitle title={t("classDetails.title")} />,
+          headerRight: screen.showTools
+            ? () => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t("classDetails.tools")}
+                  activeOpacity={BUTTON_ACTIVE_OPACITY}
+                  onPress={screen.openTools}
+                  style={shadowStyle("iconButton", theme)}
+                  className="h-11 w-11 items-center justify-center rounded-full bg-surface"
+                >
+                  <Ionicons
+                    name="construct-outline"
+                    size={20}
+                    color={theme.ink}
+                  />
+                </TouchableOpacity>
+              )
+            : undefined,
+        }}
+      />
       <ScrollView
         className="flex-1 bg-page"
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-6 px-screen"
         contentContainerStyle={{
-          paddingTop: insets.top + 12,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <View className="flex-row items-center gap-4">
-          <BackButton />
-          <Text
-            accessibilityRole="header"
-            className="ds-text-screen-title-with-back flex-1 text-ink"
-          >
-            {t("classDetails.title")}
-          </Text>
-          {screen.showTools ? (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel={t("classDetails.tools")}
-              activeOpacity={BUTTON_ACTIVE_OPACITY}
-              onPress={screen.openTools}
-              style={shadowStyle("iconButton", theme)}
-              className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-            >
-              <Ionicons name="construct-outline" size={20} color={theme.ink} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
         {screen.isLoading ? (
           <ActivityIndicator
             testID="class-details-loading"

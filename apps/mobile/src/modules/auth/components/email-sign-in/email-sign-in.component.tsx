@@ -3,12 +3,12 @@ import { Trans, useTranslation } from "react-i18next";
 import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
 
 import { useEmailSignIn } from "./email-sign-in.hook";
 import { EmailSignInProps } from "./email-sign-in.types";
@@ -20,23 +20,24 @@ export function EmailSignIn({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
+  const keyboardOffset = useKeyboardOffset();
   const { emailField, canSubmit, isSending, submit, createAccount } =
     useEmailSignIn({ onCodeRequested, onCreateAccountPress });
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
       className="flex-1 bg-page"
     >
       <View
         className="flex-1 px-[22px]"
         style={{
-          paddingTop: insets.top + 12,
+          paddingTop: headerInset,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <BackButton />
-
         <View className="mt-6 gap-4">
           <ScreenIntro
             icon={

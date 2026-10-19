@@ -1,7 +1,10 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import type { ReactNode } from "react";
 
+import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+import { headerTitleOf } from "@/navigation/stack-header/header-title.test-utils";
 import * as api from "@/services/api";
 
 import {
@@ -38,6 +41,12 @@ jest.mock("@/services/api", () => {
 });
 
 jest.mock("expo-router", () => ({
+  Stack: {
+    // Renders the header's right side, so the tests can reach what the screen puts there.
+    Screen: jest.fn(({ options }: { options: { headerRight?: () => unknown } }) =>
+      options.headerRight?.() ?? null,
+    ),
+  },
   router: { back: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
 }));
@@ -158,6 +167,17 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+/** The options the screen gave the Stack header on its latest render. */
+const headerOptions = () => {
+  const calls = jest.mocked(Stack.Screen).mock.calls;
+
+  return (
+    calls[calls.length - 1][0] as {
+      options: { headerTitle?: () => ReactNode; headerRight?: unknown };
+    }
+  ).options;
+};
+
 describe("NewClassScreen", () => {
   describe("day from the week", () => {
     const openWith = async (date: string) => {
@@ -190,14 +210,19 @@ describe("NewClassScreen", () => {
     });
   });
 
+  it("insets its scroll view below the header, whatever the header is", async () => {
+    await renderScreen();
+
+    expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
+  });
+
   it("shows the form in the design's order with its defaults", async () => {
     await renderScreen();
 
-    expect(screen.getByRole("header", { name: "New class" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
+    expect(headerTitleOf(headerOptions().headerTitle)).toBe("New class");
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     const headers = screen.getAllByRole("header").map((item) => item.props.children);
     expect(headers).toEqual([
-      "New class",
       "Discipline",
       "Level",
       "Days",

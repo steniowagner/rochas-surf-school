@@ -72,6 +72,5 @@ describe("InstructorScreen", () => {
 
     expect(app.getPathname()).toBe(routes.instructor.people);
     expect(await screen.findByText("No one found")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
   });
 });

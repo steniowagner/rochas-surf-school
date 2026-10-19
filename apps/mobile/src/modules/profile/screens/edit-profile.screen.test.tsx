@@ -7,6 +7,11 @@ import {
 import { router } from "expo-router";
 import { Platform, Text } from "react-native";
 
+import {
+  insetBehaviorsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { useSession } from "@/providers/session";
 
 import { NetworkError } from "@/services/api";
@@ -157,6 +162,24 @@ describe("EditProfileScreen", () => {
     expect(
       await screen.findByText("Something went wrong. Please try again."),
     ).toBeOnTheScreen();
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() => open());
+
+    expect(offset).toBe(64);
+  });
+
+  it("insets its scroll view below the header and does not offset the keyboard under the transparent one", async () => {
+    await open();
+
+    expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
+
+    const offset = await underTransparentHeader(116, () =>
+      keyboardOffsetOf(() => open()),
+    );
+
+    expect(offset).toBe(0);
   });
 
   it("renders on Android, where the keyboard resizes the window", async () => {

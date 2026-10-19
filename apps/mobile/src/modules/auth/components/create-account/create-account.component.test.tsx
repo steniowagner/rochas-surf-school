@@ -15,6 +15,11 @@ import {
   TOAST_VISIBLE_DURATION,
 } from "@/components/ui/toast/toast.hook";
 import i18n from "@/i18n";
+import {
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
+import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { CreateAccount } from "./create-account.component";
@@ -88,6 +93,33 @@ describe("CreateAccount", () => {
     });
   });
 
+  it("starts at the top under the opaque header", async () => {
+    await renderScreen(<CreateAccount />);
+
+    expect(topPaddingsOf(screen.toJSON())).toContain(0);
+  });
+
+  it("starts below the transparent header without offsetting the keyboard", async () => {
+    const offset = await underTransparentHeader(116, async () => {
+      const offset = await keyboardOffsetOf(() =>
+        renderScreen(<CreateAccount />),
+      );
+      await renderScreen(<CreateAccount />);
+      expect(topPaddingsOf(screen.toJSON())).toContain(116);
+      return offset;
+    });
+
+    expect(offset).toBe(0);
+  });
+
+  it("offsets the keyboard by the height of the header", async () => {
+    const offset = await keyboardOffsetOf(() =>
+      renderScreen(<CreateAccount />),
+    );
+
+    expect(offset).toBe(64);
+  });
+
   it("renders the form on Android, where the keyboard does not add padding", async () => {
     const original = Platform.OS;
     Platform.OS = "android";
@@ -98,10 +130,10 @@ describe("CreateAccount", () => {
     Platform.OS = original;
   });
 
-  it("renders the back button, the fields and the terms line", async () => {
+  it("renders the fields and the terms line", async () => {
     await renderScreen(<CreateAccount />);
 
-    expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toBeOnTheScreen();
     expect(screen.getByPlaceholderText(EMAIL_PLACEHOLDER)).toBeOnTheScreen();
     expect(

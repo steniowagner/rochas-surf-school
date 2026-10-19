@@ -18,6 +18,7 @@ export function SchoolRulesReader() {
     <View className="flex-1 bg-page">
       <ScrollView
         className="flex-1"
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-6 px-[22px] pt-6"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >

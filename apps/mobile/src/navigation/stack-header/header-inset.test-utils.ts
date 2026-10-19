@@ -4,7 +4,7 @@ import { useHeaderInset } from "./header-inset.hook";
 import { useKeyboardOffset } from "./keyboard-offset.hook";
 
 type Node = {
-  props?: { style?: unknown };
+  props?: { style?: unknown; contentInsetAdjustmentBehavior?: string };
   children?: (Node | string)[] | null;
 } | null;
 
@@ -24,6 +24,22 @@ export const topPaddingsOf = (tree: unknown): number[] => {
       ...(typeof paddingTop === "number" ? [paddingTop] : []),
       ...walk(node.children as Node[]),
     ];
+  };
+
+  return walk(tree as Node);
+};
+
+/** Every `contentInsetAdjustmentBehavior` set in a rendered tree (`screen.toJSON()`): the scroll views' behavior. */
+export const insetBehaviorsOf = (tree: unknown): string[] => {
+  const walk = (node: Node | Node[] | string | null): string[] => {
+    if (!node || typeof node === "string") {
+      return [];
+    }
+    if (Array.isArray(node)) {
+      return node.flatMap(walk);
+    }
+    const behavior = node.props?.contentInsetAdjustmentBehavior;
+    return [...(behavior ? [behavior] : []), ...walk(node.children as Node[])];
   };
 
   return walk(tree as Node);

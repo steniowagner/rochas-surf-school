@@ -181,7 +181,7 @@ stays opaque.
   padding and, for the four with a `KeyboardAvoidingView`, the `keyboardVerticalOffset`, under both branches.
   Covers: ER-03 · Done when: `npx jest src/modules/auth` passes with those cases.
   > ✅ 2026-10-18 — the five auth components take `paddingTop: useHeaderInset()` on their outer view; their tests assert the top padding (116 under the transparent header, 0 under the opaque one) and, for the four with a `KeyboardAvoidingView`, `keyboardVerticalOffset` 0 under the transparent header (64 under the opaque one, existing case); files: `apps/mobile/src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}/*.component.tsx` and `*.component.test.tsx`, `apps/mobile/src/navigation/stack-header/header-inset.test-utils.ts` (new test helper); verified: `npx jest src/modules/auth src/navigation` (420 passed), `tsc --noEmit` and eslint clean; deviations: none
-- [ ] **T-09** — Add `contentInsetAdjustmentBehavior="automatic"` to the scroll view of
+- [x] **T-09** — Add `contentInsetAdjustmentBehavior="automatic"` to the scroll view of
   `src/modules/admin/screens/registrations.screen.tsx`, `src/modules/school-rules/components/school-rules-reader`,
   `src/modules/cancellation-rules/screens/cancellation-rules.screen.tsx` and
   `src/modules/profile/components/edit-profile` (its `ScrollView` inside the `KeyboardAvoidingView`), keeping each
@@ -189,6 +189,7 @@ stays opaque.
   `useHeaderInset()` top padding (D-06); update their tests (inset behavior, the WhatsApp padding, and the edit
   profile / WhatsApp keyboard offset under both branches).
   Covers: ER-03 · Done when: the tests of those modules pass with those cases.
+  > ✅ 2026-10-18 — registrations, school rules, cancellation rules and edit profile give their scroll view `contentInsetAdjustmentBehavior="automatic"` (still the first descendant); profile WhatsApp takes `paddingTop: useHeaderInset()`; tests assert the inset behavior, the WhatsApp padding (0 opaque / 116 transparent) and the edit profile / WhatsApp keyboard offset 0 under the transparent header (64 under the opaque one, existing case); files: `apps/mobile/src/modules/admin/screens/registrations.screen{.tsx,.test.tsx}`, `apps/mobile/src/modules/school-rules/components/school-rules-reader/school-rules-reader.component.tsx`, `apps/mobile/src/modules/school-rules/screens/school-rules.screen.test.tsx`, `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen{.tsx,.test.tsx}`, `apps/mobile/src/modules/profile/components/{edit-profile/edit-profile,profile-whatsapp/profile-whatsapp}.component.tsx`, `apps/mobile/src/modules/profile/screens/{edit-profile,profile-whatsapp}.screen.test.tsx`, `apps/mobile/src/navigation/stack-header/header-inset.test-utils.ts` (`insetBehaviorsOf` helper); verified: `npx jest src/modules/profile src/modules/school-rules src/modules/admin src/modules/cancellation-rules` (193 passed), `tsc --noEmit` and eslint clean; deviations: none
 - [ ] **T-10** — Add `contentInsetAdjustmentBehavior="automatic"` to the scroll views of
   `src/modules/classes/screens/{class-details,new-class,edit-class}.screen.tsx`, keeping each the screen's first
   descendant, and give edit class's loading / error / cancelled view the `useHeaderInset()` top padding (D-06);

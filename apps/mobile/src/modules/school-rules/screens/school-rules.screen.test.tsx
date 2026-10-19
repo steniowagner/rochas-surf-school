@@ -1,6 +1,7 @@
 import { screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
 
+import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
 import {
   jsonResponse,
   renderWithProviders,
@@ -47,6 +48,15 @@ describe("SchoolRulesReadScreen", () => {
     expect(screen.queryByRole("checkbox")).toBeNull();
     expect(screen.queryByRole("button", { name: /accept|enter/i })).toBeNull();
     expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/school-rules");
+  });
+
+  it("insets its content below the header, whatever the header is", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { version: 3, rules: [ruleOf(1)] }),
+    );
+    await open();
+
+    expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
   });
 
   it("shows a loading state while the rules load", async () => {

@@ -95,6 +95,7 @@ export function RegistrationsScreen() {
     <View className="flex-1 bg-page">
       <FlatList
         testID="registrations-list"
+        contentInsetAdjustmentBehavior="automatic"
         data={registrations}
         keyExtractor={(item) => item.id}
         contentContainerClassName="gap-3 px-screen"

@@ -24,6 +24,7 @@ export function CancellationRulesScreen() {
     <ScrollView
       className="flex-1 bg-page"
       keyboardShouldPersistTaps="handled"
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerClassName="gap-6 px-screen"
       contentContainerStyle={{
         paddingBottom: Math.max(insets.bottom, 24),

@@ -7,6 +7,10 @@ import {
 import { router } from "expo-router";
 import { Platform, Text } from "react-native";
 
+import {
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
 import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { useSession } from "@/providers/session";
 import { NetworkError } from "@/services/api";
@@ -94,6 +98,23 @@ describe("ProfileWhatsappScreen", () => {
     const offset = await keyboardOffsetOf(() => open());
 
     expect(offset).toBe(64);
+  });
+
+  it("starts at the top under the opaque header", async () => {
+    await open();
+
+    expect(topPaddingsOf(screen.toJSON())).toContain(0);
+  });
+
+  it("starts below the transparent header without offsetting the keyboard", async () => {
+    const offset = await underTransparentHeader(116, async () => {
+      const offset = await keyboardOffsetOf(() => open());
+      await open();
+      expect(topPaddingsOf(screen.toJSON())).toContain(116);
+      return offset;
+    });
+
+    expect(offset).toBe(0);
   });
 
   it("renders on Android, where the keyboard resizes the window", async () => {

@@ -47,6 +47,7 @@ export function EditProfile() {
       >
         <ScrollView
           className="flex-1"
+          contentInsetAdjustmentBehavior="automatic"
           contentContainerClassName="gap-5 pb-6 pt-6"
           keyboardShouldPersistTaps="handled"
         >

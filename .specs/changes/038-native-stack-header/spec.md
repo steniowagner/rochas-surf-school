@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -268,6 +268,11 @@ stays opaque.
   `headerStyle` background `transparent`. Reason: without a background color iOS 26 draws an opaque, frosted band with a
   line once the header has a title (F-03). Applied in commit `0b75de2` before this entry; approved by the user
   afterwards (F-05).
+- 2026-10-18 — ER-03 changed: edge case "edit class's loading / error / cancelled view starts below the header" → "… (a
+  scroll view) starts below the header"; `Verify by` "the fixed screens' tests (top padding and `keyboardVerticalOffset` in
+  both branches) and the scrolling screens' tests" → "the fixed auth and WhatsApp screens' tests (…) and the scrolling
+  screens' tests (…, edit class's loading view included)". Reason: after F-04 that view is a scroll view (review round 5
+  note). Applied in commit `d16cc10`; approved by the user during review round 6.
 
 ## Review
 
@@ -540,3 +545,54 @@ stays opaque.
 - F-05 is closed: the D-03 change is logged under `## Amendments` with the user's approval.
 - In this simulator, taps often only register when held about 0.2–0.35 s (tab bar, + button, native back button).
   Deep links (`rochassurfschool:///admin/...`) are a reliable way to reach each screen.
+
+### Round 6 — 2026-10-18 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 595 passed in 34 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK`, 21 files; no coverage-ignore comments, TODOs or debug leftovers in
+  the diff
+- test quality ✅ — the three class screens' tests read the title through `headerTitleOf()`, which calls `headerTitle`,
+  so they fail if a screen goes back to a plain-string title; `stack-header-title.component.test.tsx` asserts the
+  uppercase text
+- e2e: `E2E PASSED` (no suite applies; mobile has none) · iOS simulator (iPhone 18 Pro, iOS 27, Metro running, app
+  cold-launched with `xcrun simctl terminate` + `launch`, signed in as the admin): New class (`NOVA AULA`) and Edit class
+  of a live class (`EDITAR AULA`) scrolled up ~100pt fade softly under the header with no band or line; class details of
+  a live class shows `DETALHE` and the tools button, which opens the tools sheet, and at rest has no line; the header's
+  back button returns from New class to the tab with its tab bar. The user walked the rest on the same simulator with the
+  software keyboard on and reported it fine: signed out, `/auth` without a header; e-mail, sign-in, create account,
+  confirm code and Google name with the transparent header, content below it, the focused field above the keyboard,
+  back and swipe-back; as a student, class details with `DETALHE` and no tools button, and the School tab with no
+  header, its title and count
+
+**Expected Results**
+
+- ER-01 ✅ — header options and hidden `index` / `(tabs)` in the layout tests (`useStackHeader` in both branches), no
+  in-content back button; native back button, swipe-back and back to the tab seen in the simulator (signed-out screens
+  reported by the user)
+- ER-02 ✅ — the three class screens' tests (title through `StackHeaderTitle`, `headerRight` only with `showTools`,
+  loading / cancelled / not found); `NOVA AULA`, `EDITAR AULA`, `DETALHE` with the tools button in the simulator
+- ER-03 ✅ — the hooks and screens are tested in both branches; after a cold launch the titled screens fade softly with
+  no line (F-06 fixed), the fixed screens start below the header (reported by the user)
+
+**Findings**
+
+- [ ] **F-07** (convention) — `apps/mobile/src/navigation/stack-header/header-inset.hook.ts` and
+  `keyboard-offset.hook.ts` import `expo-router/react-navigation` before `expo-glass-effect`; `.claude/rules/react.md`
+  sorts the imports of a group alphabetically by module path. Expected: `expo-glass-effect` first in both files.
+- [ ] **F-08** (convention) — `## Memory Impact` doesn't record the rule F-06 introduced: a screen gives the native
+  header its title as `headerTitle: () => <StackHeaderTitle title={…} />` (`src/navigation/stack-header/`), never a plain
+  string, because on iOS 26+ a string title makes the transparent header draw a frosted band with a line instead of the
+  soft fade. `spec-finish` writes the memory from that section, so the next screen with a title would reintroduce F-06.
+  Expected: Memory Impact's "Mobile shared UI" entry says so.
+
+**Notes**
+
+- F-06 is closed: fixed and seen after a cold launch on New class and Edit class; class details uses the same component.
+- The ER-03 rewording from round 5's note (commit `d16cc10`) is now logged under `## Amendments` with the user's
+  approval, given in this review.
+- Class details' content fits the screen for this class, so its fade was only seen at rest; it always renders its
+  `ScrollView` and shares the header options and title component with New class.
+

@@ -184,7 +184,8 @@ Listed in the order people meet them.
   - Students are notified when an enrolment is approved, denied (with the reason), expires, is created
     directly, or is taken out (with the reason), and when its class is edited or cancelled.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
-  shown with the capacity to everyone who sees the class.
+  shown with the capacity to everyone who sees the class, together with the class's approved students (name and
+  photo, or initials while there is no photo); guests count in the seats taken but aren't listed.
 - **Guest** (`guest`): someone without an account trying surf or skate, put into one class by an admin. Key
   fields: name, WhatsApp number. Takes a seat; only in a class that hasn't started and has a free seat. Gets
   nothing from the app; admins are warned of that when they edit or cancel a class with guests. Shown as
@@ -691,8 +692,8 @@ under way, finished or cancelled keep them, and the deletion fails as a whole (t
 that step fails. A class left with nobody stays scheduled and is flagged "Sem instrutor" for admins while it
 hasn't started: a warn chip on its card in the admin's Aulas tab, and on its details a "Sem instrutor" / "Atribua
 um instrutor antes da aula." banner that opens "Editar aula" — assigning an instructor there clears the flag. For
-every role, a card with no instructor says "Sem instrutor" in its footer and the details say "Sem instrutor
-atribuído". Every other approved admin is told once per deletion ("Aula sem instrutor", or "N aulas ficaram sem
+every role, the details of a class with no instructor say "Sem instrutor
+atribuído" (since spec 040 the card shows no instructors). Every other approved admin is told once per deletion ("Aula sem instrutor", or "N aulas ficaram sem
 instrutor. A próxima: …" for several), naming the earliest such class; tapping the push opens that class's
 details, and one received with the app open reloads the classes. The person who leaves and the instructors who
 stay on a class aren't told. Reactivating the account doesn't restore the assignments. All copy is in pt-BR,
@@ -750,6 +751,22 @@ placeholder, "Deny and notify" and "Back", which closes the sheet and clears the
 keyboard while the reason is typed. A decided card just leaves the list: the "Decided just now" list is gone. All
 copy is in pt-BR, es-ES and en-US.
 
+**Seats and students on the class card and details** (spec `040-class-seats-read-model`) — every class read now
+carries its seats taken and its approved students, which everyone who sees the class sees (always 0 and nobody until
+enrolment exists). The week cards follow the AGENDA-01 design: no instructors line any more; an occupancy bar with
+"N/M vagas" (red when full, sun above 80%, otherwise the discipline's colour) and a "Sem vagas" chip on a full class
+that hasn't started; a footer with up to 4 student avatars, "+N" for the other seats taken and "Ainda sem alunos",
+"1 aluno confirmado" / "N alunos confirmados", or "N alunos presentes" once finished. A finished card has no bar, a
+cancelled one neither bar nor footer. A class's details show "A aula": the instructors with their avatars ("Você" for
+the viewer, "Sem instrutor atribuído" when none), the students row with up to 5 avatars and the same label, which
+opens the list of every student, and under it "Máx. N alunos · X vagas livres" (or "· esgotado", in red), hidden for
+finished and cancelled classes; a "Turma cheia" banner on a full class that hasn't started; and, except for a
+cancelled class, "Regras": "Cancelamento · Surf" (or Skate) with the "Cancelamento até …" line or "Ler a regra",
+opening the cancellation rules sheet, and "Regras da escola", opening the role's school rules. Instructors also see
+a note: the school makes enrolments, cancellations and schedule changes on a class they teach, and they see a class
+they don't teach in read-only mode. A person without a photo shows their initials on a `sand` circle. All copy is
+in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -804,10 +821,13 @@ Active specs: none.
   the class form; filling the address from a tapped point, "near me" from the phone's own location, and an
   interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
-  class highlighted, and a marker on the cards of one's own classes; seats taken, the occupancy bar, "Sem vagas" /
-  "Turma cheia", the list of students and the request / waiting-list button (with enrolment); the cancellation-rule and school-rules rows and
-  the weather on the details; "Depois da aula" (photos and ratings); the student Agenda's sport filter and
-  notifications bell; opening a person's sheet from the details, and profile photos (initials only).
+  class highlighted, and a marker on the cards of one's own classes; the request / waiting-list button (with
+  enrolment); "Depois da aula" (photos and ratings); the student Agenda's sport filter and notifications bell.
+- On seats and students (spec 040): real seats taken and students (with enrolment — until then every class reads 0
+  and nobody), guests' "Trial" rows, "inclui N trial", the "1ª vez" badge, "Retirar" and the request-status banners
+  on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
+  about to start; opening a person's sheet (WhatsApp) from an instructor or a student on the details; and profile
+  photos (initials until photos can be uploaded).
 - On editing a class (spec 032): telling its students and the people with pending requests, and warning the
   admin about guests (with enrolment); editing several classes at once; the seat and pending-request counts in the editor's
   footer note, and its "gerir" links to manage time ranges and locations.
@@ -829,8 +849,7 @@ Active specs: none.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- Items shown in the designs but not specified, to be decided by the spec that takes them up: weather and sea
-  conditions on class details; class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
+- Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
   admin.
 

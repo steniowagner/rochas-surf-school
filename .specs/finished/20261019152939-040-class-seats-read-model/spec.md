@@ -2,13 +2,14 @@
 id: "040"
 slug: class-seats-read-model
 title: "Class seats read model and class card and detail aligned with the designs"
-status: accepted
+status: finished
 started: 2026-10-19
 base_commit: c0875ed6bcd73ba150ecc6f9cde5cedc34d792c0
 reviewed_commit: df034d448c693f15c543177d648831d3e30b9a6f
 created: 2026-10-19
 fronts: [classes, backend, mobile]
 depends_on: []
+finished: 2026-10-19
 ---
 
 # 040 — Class seats read model and class card and detail aligned with the designs

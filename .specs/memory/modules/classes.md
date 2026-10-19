@@ -96,12 +96,16 @@ The classes themselves, and how a batch becomes classes.
 - **Edit** (not stored): the whole class sent again — discipline, level, one day (`YYYY-MM-DD`), a start and an
   end (`HH:mm`, the class ends on its start day), location, instructors, capacity, notes — compared field by field
   with the stored class.
-- **Seats taken** (not stored): how many seats of a class are held; always 0 until enrolment exists.
+- **Seats taken** (not stored): how many seats of a class are held — its approved students plus its guests; always
+  0 until enrolment exists.
+- **Class roster** (not stored): the seats taken and the approved students (id, name, photo or none) of a class,
+  read for many classes at once; always 0 and nobody until enrolment exists.
 - **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer; always 0
   until enrolment exists.
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
 - **Class view** (not stored): a class as people read it — its fields, its location's name, address and point
-  (none when the location has none; an archived location reads the same), and its instructors' ids and names.
+  (none when the location has none; an archived location reads the same), its instructors' ids and names, and its
+  roster.
 
 Rules:
 
@@ -280,7 +284,8 @@ The account's status is checked before its role (`user.status.notApproved`, then
 403); an unknown account is refused as signed out.
 
 - **An approved account of any role** — lists the active locations, lists the classes of any week, past or future,
-  reads any class with its notes and its cancellation deadline, and reads both cancellation rules.
+  reads any class with its notes, its cancellation deadline, its seats taken and its approved students, and reads
+  both cancellation rules.
 - **An approved admin** — creates, edits and removes locations, gets address suggestions, creates batches of
   classes, reads the time-range suggestions, edits a
   class that hasn't finished and isn't cancelled, cancels a class that hasn't finished, and deletes a class that
@@ -305,22 +310,32 @@ through their own contract, which the backend fulfils with Google's Places servi
 provider. Authentication
 reaches the release through its own contract, which the backend fulfils with this module's use case — this module
 depends on Authentication, never the reverse.
-It doesn't read the clock directly either, and it learns the seats taken and the pending requests through its own
-contracts, which answer 0 until enrolment replaces them. The language model that describes the deadlines sits
+It doesn't read the clock directly either, and it learns the seats taken, the pending requests and the rosters
+(seats taken and approved students) through its own contracts, which answer 0 and nobody until enrolment replaces
+them; the roster keeps the students in the order they were approved, then by id, and the week list carries at
+most 4 students per class (a single class all of them) while its seats taken are never capped. The language model that describes the deadlines sits
 behind its own contract too, which the backend fulfils with Anthropic's Claude; the module never sees the
 provider. In the app,
 admins create classes on the "Nova aula" screen, which uses the module's own batch expansion and limits so its
 count matches what the backend creates: it removes single days of a range and, when today is among the dates,
 leaves out today's classes of the times that have already started and sends `skipPast`. Every role sees the
 classes on its week screen (the student's Agenda, the Aulas tab of instructors and admins) and their details,
-built from the module's state rule; seats are not shown yet (capacity only), and the classes a person teaches
-aren't marked. A cancelled class shows "Cancelada" with its time struck through on its card and one "Aula
+built from the module's state rule; the classes a person teaches aren't marked. A card shows no instructors: an
+occupancy bar with "N/M vagas" (red when full, sun above 80%, otherwise the discipline's colour) and a "Sem vagas"
+chip on a full class that hasn't started, and a footer with up to 4 student avatars, "+N" for the other seats
+taken (guests included) and "Ainda sem alunos" / "N alunos confirmados", or "N alunos presentes" once finished; a
+finished card has no bar and a cancelled one neither bar nor footer. The details show "A aula" — the instructors,
+the students row (up to 5 avatars, opening the list of every student) and "Máx. N alunos · X vagas livres" (or
+"esgotado"), hidden once finished or cancelled —, a "Turma cheia" banner on a full class that hasn't started, a
+"Regras" group (the cancellation row with "Cancelamento até …" or "Ler a regra", opening the rules sheet, and the
+school rules; not on a cancelled class) and, for instructors, a note that the school makes the changes (a class
+they teach) or that they read it only (one they don't). A person without a photo shows their initials. A cancelled class shows "Cancelada" with its time struck through on its card and one "Aula
 cancelada" banner with its message on its details. Admins reach a class's tools from a round button on its
 details (hidden once it has finished or is cancelled): "Editar aula" (one day, one time range, the other Nova
 aula sections; only the instructors once it has started), "Avisar alunos e instrutores" (not doing anything yet)
 and "Cancelar aula" (a confirmation with the optional message), plus "Excluir aula" while the class hasn't
 started (a confirmation; when the class turns out not to be empty, a "Não dá para excluir" variant that offers
-"Cancelar aula" instead). A class with no instructor says "Sem instrutor" in its card's footer and "Sem instrutor
+"Cancelar aula" instead). A class with no instructor says "Sem instrutor
 atribuído" on its details for everyone; while it hasn't started, admins also see a "Sem instrutor" chip on the
 card and a banner on the details that opens "Editar aula". Admins edit the cancellation rules from a screen
 reached from their home; everyone reads them in a sheet from the Profile. A class without a deadline shows
@@ -383,3 +398,8 @@ which stops that account from being erased while the link exists — a decision 
   (`class.location.archived`) but its classes keep it; address suggestions and their places through a new
   contract; the point in the class view; the app's "Gerir" mode, the location sheet with suggestions and the map,
   the removal confirmation, and the map with "Direções" on the details.
+- `040-class-seats-read-model` — the class roster read through a new contract (`ClassRosterReader`, one read for
+  many classes, students in approval order then by id, a cap that never changes the seats taken), answered by a
+  stub with 0 and nobody until enrolment; every class read carries its seats taken and approved students (at most 4
+  per class on the week list); the app's card (occupancy bar, "Sem vagas", students footer, no instructors line)
+  and details ("A aula", "Turma cheia", "Regras", the instructors' read-only note).

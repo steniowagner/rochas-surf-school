@@ -3,10 +3,11 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
+reviewed_commit: bb8dc3f8f4d91a7b8f83873eaf4bd400157e9b11
 fronts: [mobile]
 depends_on: []
 ---
@@ -600,3 +601,40 @@ stays opaque.
 - Class details' content fits the screen for this class, so its fade was only seen at rest; it always renders its
   `ScrollView` and shares the header options and title component with New class.
 
+### Round 7 — 2026-10-18 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 595 passed in 34 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK`; no coverage-ignore comments, TODOs or debug leftovers in the diff
+- e2e: `E2E PASSED` (no suite applies; mobile has none) · iOS simulator (iPhone 18 Pro, iOS 27, Metro running, app
+  cold-launched with `xcrun simctl terminate` + `launch`, signed out): `/auth` has no header; "Continuar com e-mail"
+  and Create account show the transparent header with the native glass back button and their content below it; the
+  header's back button returns from Create account to the e-mail screen ✅
+- since round 6 the only code change is the import order of `header-inset.hook.ts` and `keyboard-offset.hook.ts`
+  (F-07), which changes no behavior, so the signed-in journey seen in round 6 (New class, Edit class and class details
+  after a cold launch, the student's screens) still stands
+
+**Expected Results**
+
+- ER-01 ✅ — header options and hidden `index` / `(tabs)` in the layout tests (`useStackHeader` in both branches), no
+  in-content back button in any affected screen (`grep` finds no `BackButton`/`back-button` in `apps/mobile/src`);
+  native back button seen again on the signed-out screens
+- ER-02 ✅ — the three class screens' tests (title through `StackHeaderTitle`, `headerRight` only with `showTools`,
+  loading / cancelled / not found); seen in the simulator in round 6
+- ER-03 ✅ — the three hooks and the screens are tested in both branches; the fixed auth screens start below the
+  transparent header (seen again here); the titled screens' soft fade seen after a cold launch in round 6
+
+**Findings**
+
+None.
+
+**Notes**
+
+- F-07 and F-08 are closed: both hooks import `expo-glass-effect` before `expo-router/react-navigation`, and Memory
+  Impact records the `StackHeaderTitle` rule.
+- The remaining `insets.top + 12` paddings (`auth.component.tsx`, `admin.screen.tsx`, `classes-week.screen.tsx`) are on
+  screens without a header (the `/auth` root and tab roots), outside this spec's routes.
+- Still open from earlier rounds, outside this spec (D-06): the fixed Confirm code, Create account and WhatsApp
+  columns overflow above the software keyboard; a follow-up makes them scroll.

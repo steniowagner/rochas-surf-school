@@ -7,7 +7,8 @@ import StudentTabsLayout from "@/app/(private)/student/(tabs)/_layout";
 import StudentRoute from "@/app/(private)/student/(tabs)/index";
 import MyClassesRoute from "@/app/(private)/student/(tabs)/my-classes";
 import ProfileRoute from "@/app/(private)/student/(tabs)/profile";
-import SchoolRoute from "@/app/(private)/student/(tabs)/school";
+import SchoolLayout from "@/app/(private)/student/(tabs)/school/_layout";
+import SchoolRoute from "@/app/(private)/student/(tabs)/school/index";
 import StudentClassRoute from "@/app/(private)/student/class/[id]";
 import StudentLayout from "@/app/(private)/student/_layout";
 import {
@@ -58,7 +59,8 @@ const routeTree = {
   "(private)/student/(tabs)/_layout": StudentTabsLayout,
   "(private)/student/(tabs)/index": StudentRoute,
   "(private)/student/(tabs)/my-classes": MyClassesRoute,
-  "(private)/student/(tabs)/school": SchoolRoute,
+  "(private)/student/(tabs)/school/_layout": SchoolLayout,
+  "(private)/student/(tabs)/school/index": SchoolRoute,
   "(private)/student/(tabs)/profile": ProfileRoute,
   "(private)/student/class/[id]": StudentClassRoute,
 };
@@ -182,7 +184,7 @@ describe("student tabs", () => {
 
     expect(app.getPathname()).toBe("/student/school");
     expect(selectedTabLabel()).toBe("School");
-    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
+    expect(screen.getByText("PEOPLE")).toBeOnTheScreen();
     expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Back" })).not.toBeOnTheScreen();
   });

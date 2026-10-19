@@ -1,18 +1,14 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
-import { useTheme } from "@/hooks/use-theme";
 
 import { PEOPLE_ROLES } from "../../constants/people";
-
 import { RoleFiltersProps } from "./role-filters.types";
 
 /** One toggle button per role: the list shows the users that have at least one of the selected roles. */
 export function RoleFilters({ roles, onToggle }: RoleFiltersProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
 
   return (
     <View className="flex-row flex-wrap gap-2">
@@ -36,9 +32,6 @@ export function RoleFilters({ roles, onToggle }: RoleFiltersProps) {
             >
               {t(`people.filter.${role}`)}
             </Text>
-            {selected ? (
-              <Ionicons name="close" size={14} color={theme.onColor} />
-            ) : null}
           </TouchableOpacity>
         );
       })}

@@ -12,15 +12,20 @@ import { CancellationRulesSheetProps } from "./cancellation-rules-sheet.types";
 const DISCIPLINES = ["surf", "skate"] as const;
 
 /** Both cancellation rules, as the school wrote them. The same for every role. */
-export function CancellationRulesSheet({ visible, onClose }: CancellationRulesSheetProps) {
+export function CancellationRulesSheet({
+  visible,
+  onClose,
+}: CancellationRulesSheetProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const { status, rules, retry } = useCancellationRulesSheet({ visible });
 
   return (
     <BottomModal visible={visible} onClose={onClose}>
-      <View className="gap-4 px-[22px] pb-6">
-        <Text className="ds-text-screen-title text-ink">{t("cancellationRules.sheet.title")}</Text>
+      <View className="gap-4 pb-6">
+        <Text className="ds-text-screen-title text-ink">
+          {t("cancellationRules.sheet.title")}
+        </Text>
         {status === "loading" ? (
           <View className="items-center py-8">
             <ActivityIndicator color={theme.grape} />
@@ -45,7 +50,9 @@ export function CancellationRulesSheet({ visible, onClose }: CancellationRulesSh
                 <View className="flex-row">
                   <Chip
                     tone={discipline}
-                    icon={discipline === "surf" ? "water-outline" : "disc-outline"}
+                    icon={
+                      discipline === "surf" ? "water-outline" : "disc-outline"
+                    }
                   >
                     {t(`newClass.discipline.${discipline}`)}
                   </Chip>

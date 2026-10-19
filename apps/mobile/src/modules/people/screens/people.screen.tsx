@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Platform,
   Text,
   View,
 } from "react-native";
@@ -12,17 +14,22 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { useHeaderInset } from "@/navigation/stack-header";
 
+import { PeopleHeaderTitle } from "../components/people-header-title";
 import { PersonRow } from "../components/person-row";
 import { PersonSheet } from "../components/person-sheet";
 import { RoleFilters } from "../components/role-filters";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
 import { groupByInitial } from "../utils/group-by-initial";
 
+const isIOS = Platform.OS === "ios";
+
 export function PeopleScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const {
     count,
     people,
@@ -82,6 +89,37 @@ export function PeopleScreen() {
 
   return (
     <View className="flex-1 bg-page">
+      <Stack.Screen
+        options={{
+          // iOS always centers `headerTitle`, so there the title is a left item next to the back button.
+          headerTitleAlign: "left",
+          headerTitle: isIOS ? "" : () => <PeopleHeaderTitle count={count} />,
+          unstable_headerLeftItems: () => [
+            {
+              type: "custom",
+              element: <PeopleHeaderTitle count={count} />,
+              hidesSharedBackground: true,
+            },
+          ],
+        }}
+      />
+      <View
+        className="gap-4 px-screen pb-3"
+        style={{ paddingTop: 8 + headerInset }}
+      >
+        <TextInput
+          icon={<Ionicons name="search" size={20} color={theme.ink2} />}
+          value={searchText}
+          onChangeText={setSearchText}
+          placeholder={t("people.searchPlaceholder")}
+          accessibilityLabel={t("people.searchPlaceholder")}
+          clearable
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        <RoleFilters roles={roles} onToggle={toggleRole} />
+      </View>
       <FlatList
         testID="people-list"
         data={groupByInitial(people)}
@@ -91,39 +129,11 @@ export function PeopleScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="px-screen"
         contentContainerStyle={{
-          paddingTop: 24,
+          paddingTop: 8,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
-        }
-        ListHeaderComponent={
-          <View className="mb-3 gap-4">
-            <View className="gap-1">
-              {count !== undefined ? (
-                <Text className="ds-text-section-label text-ink-2">
-                  {t("people.count", { count })}
-                </Text>
-              ) : null}
-              <Text
-                accessibilityRole="header"
-                className="ds-text-screen-title text-ink"
-              >
-                {t("people.title")}
-              </Text>
-            </View>
-            <TextInput
-              icon={<Ionicons name="search" size={20} color={theme.ink2} />}
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder={t("people.searchPlaceholder")}
-              accessibilityLabel={t("people.searchPlaceholder")}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="search"
-            />
-            <RoleFilters roles={roles} onToggle={toggleRole} />
-          </View>
         }
         renderItem={({ item }) =>
           item.kind === "header" ? (

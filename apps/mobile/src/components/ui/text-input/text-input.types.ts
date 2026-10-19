@@ -7,5 +7,6 @@ export type TextInputComponentProps = TextInputProps & {
   icon: ReactNode;
   status?: TextInputStatus;
   errorMessage?: string;
+  clearable?: boolean;
   ref?: Ref<TextInput>;
 };

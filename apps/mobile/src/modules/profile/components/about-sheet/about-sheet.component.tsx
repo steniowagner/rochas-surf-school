@@ -91,7 +91,7 @@ export function AboutSheet({ visible, onClose }: AboutSheetProps) {
       ))}
 
       <View className="mt-3">
-        <Button variant="subtle" onPress={onClose}>
+        <Button variant="ghost" onPress={onClose}>
           {t("about.close")}
         </Button>
       </View>

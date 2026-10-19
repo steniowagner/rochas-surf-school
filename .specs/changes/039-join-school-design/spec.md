@@ -154,7 +154,7 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   > files: `apps/mobile/src/components/decision/decision-card/decision-card.{component.tsx,types.ts,component.test.tsx}`;
   > verified: `npx jest src/components/decision/decision-card` (8 passed); deviations: none (the registrations screen still passes
   > `initials` until T-05, so type check fails until then)
-- [ ] **T-03** — Change `src/components/decision/deny-sheet` (D-10): `placeholder` and `backLabel` props, `label`
+- [x] **T-03** — Change `src/components/decision/deny-sheet` (D-10): `placeholder` and `backLabel` props, `label`
   used as the `TextArea`'s `accessibilityLabel` only, a Feather `x-circle` icon on the `danger` confirm, and a
   `subtle` back button that calls the same close as a swipe (text cleared). Update
   `deny-sheet.component.test.tsx` (placeholder, accessibility label, no visible label, confirm sends the text,

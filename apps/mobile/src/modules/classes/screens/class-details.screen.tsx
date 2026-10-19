@@ -16,6 +16,9 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
+import { ProfileCard } from "@/modules/profile/components/profile-card";
+import { ProfileRow } from "@/modules/profile/components/profile-row";
 import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
@@ -218,6 +221,34 @@ export function ClassDetailsScreen({
               capacity={item.capacity}
               state={screen.state ?? "not-started"}
             />
+            {screen.showRules ? (
+              <View className="gap-2">
+                <Text className="ds-text-section-label text-ink-2">
+                  {t("classDetails.rules.title")}
+                </Text>
+                <ProfileCard>
+                  <ProfileRow
+                    icon="document-text-outline"
+                    label={t("classDetails.rules.cancellation", {
+                      discipline: t(`newClass.discipline.${item.discipline}`),
+                    })}
+                    value={
+                      screen.cancellationDeadline
+                        ? t("classDetails.cancellationDeadline", {
+                            when: screen.cancellationDeadline,
+                          })
+                        : t("classDetails.rules.read")
+                    }
+                    onPress={screen.openRules}
+                  />
+                  <ProfileRow
+                    icon="shield-outline"
+                    label={t("classDetails.rules.school")}
+                    onPress={screen.openSchoolRules}
+                  />
+                </ProfileCard>
+              </View>
+            ) : null}
             {item.notes ? (
               <View className="gap-2">
                 <Text className="ds-text-section-label text-ink-2">
@@ -263,6 +294,10 @@ export function ClassDetailsScreen({
         onConfirm={screen.remove}
         onCancelInstead={screen.cancelInstead}
         onClose={screen.closeDelete}
+      />
+      <CancellationRulesSheet
+        visible={screen.rulesVisible}
+        onClose={screen.closeRules}
       />
       <CancelClassSheet
         visible={screen.cancelVisible}

@@ -358,6 +358,12 @@ const messages: Messages = {
     full: {
       title: "Turma cheia",
     },
+    rules: {
+      title: "Regras",
+      cancellation: "Cancelamento · {{discipline}}",
+      read: "Ler a regra",
+      school: "Regras da escola",
+    },
     notes: "Notas",
     location: "Local",
     directions: "Direções",

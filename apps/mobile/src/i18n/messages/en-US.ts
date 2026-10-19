@@ -358,6 +358,12 @@ const messages = {
     full: {
       title: "Class full",
     },
+    rules: {
+      title: "Rules",
+      cancellation: "Cancellation · {{discipline}}",
+      read: "Read the rule",
+      school: "School rules",
+    },
     notes: "Notes",
     location: "Location",
     directions: "Directions",

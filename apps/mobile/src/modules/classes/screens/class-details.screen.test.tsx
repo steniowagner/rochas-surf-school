@@ -24,6 +24,7 @@ import {
   glyph,
   ok,
   setupSignedInUser,
+  signInAs,
 } from "../classes.test-utils";
 
 import { ClassDetailsScreen } from "./class-details.screen";
@@ -503,7 +504,8 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen();
 
-      expect(await screen.findByText("Cancelamento até seg, 19 out · 20:00")).toBeOnTheScreen();
+      // Once under the date and once as the value of the cancellation row.
+      expect(await screen.findAllByText("Cancelamento até seg, 19 out · 20:00")).toHaveLength(2);
       expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
     });
 
@@ -511,14 +513,16 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen(true);
 
-      expect(await screen.findByText("Cancel until Mon, 19 Oct · 20:00")).toBeOnTheScreen();
+      // Once under the date and once as the value of the cancellation row.
+      expect(await screen.findAllByText("Cancel until Mon, 19 Oct · 20:00")).toHaveLength(2);
     });
 
     it("uses Fortaleza's time whatever the phone's time zone", async () => {
       serve(makeClass({ cancellationDeadline: "2026-10-14T02:30:00.000Z" }));
       await renderScreen();
 
-      expect(await screen.findByText("Cancel until Tue, 13 Oct · 23:30")).toBeOnTheScreen();
+      // Once under the date and once as the value of the cancellation row.
+      expect(await screen.findAllByText("Cancel until Tue, 13 Oct · 23:30")).toHaveLength(2);
     });
 
     it("shows no line without a deadline", async () => {
@@ -882,6 +886,63 @@ describe("ClassDetailsScreen", () => {
       ).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
       expect(headerOptions().headerRight).toBeUndefined();
+    });
+  });
+
+  describe("rules", () => {
+    beforeEach(() => (router.push as jest.Mock).mockReset());
+
+    it("shows the cancellation row with its deadline and the school rules row", async () => {
+      serve(makeClass({ cancellationDeadline: "2026-10-13T20:00:00.000Z" }));
+      await renderScreen();
+
+      expect(await screen.findByText("Rules")).toBeOnTheScreen();
+      expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
+      expect(screen.getAllByText(/^Cancel until /)).toHaveLength(2);
+      expect(screen.getByText("School rules")).toBeOnTheScreen();
+    });
+
+    it("names skate and reads Read the rule when the class has no deadline", async () => {
+      serve(makeClass({ discipline: "skate", cancellationDeadline: null }));
+      await renderScreen();
+
+      expect(await screen.findByText("Cancellation · Skate")).toBeOnTheScreen();
+      expect(screen.getByText("Read the rule")).toBeOnTheScreen();
+    });
+
+    it("opens the cancellation rules sheet from the cancellation row", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen();
+
+      expect(screen.queryByText("Cancellation rules")).not.toBeOnTheScreen();
+      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+
+      expect(await screen.findByText("Cancellation rules")).toBeOnTheScreen();
+    });
+
+    it.each([
+      ["student", routes.student.schoolRules],
+      ["instructor", routes.instructor.schoolRules],
+      ["admin", routes.admin.schoolRules],
+    ] as const)("opens the school rules of the %s flow", async (role, route) => {
+      const user = userEvent.setup();
+      signInAs(role);
+      serve(makeClass());
+      await renderScreen();
+
+      await user.press(await screen.findByRole("button", { name: "School rules" }));
+
+      expect(router.push).toHaveBeenCalledWith(route);
+    });
+
+    it("is hidden for a cancelled class", async () => {
+      serve(makeClass({ cancelledAt: "2026-10-13T10:00:00.000Z" }));
+      await renderScreen();
+
+      await screen.findByText("Class cancelled");
+      expect(screen.queryByText("Rules")).not.toBeOnTheScreen();
+      expect(screen.queryByText("School rules")).not.toBeOnTheScreen();
     });
   });
 

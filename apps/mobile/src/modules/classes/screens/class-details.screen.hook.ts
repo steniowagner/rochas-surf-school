@@ -29,6 +29,7 @@ import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../ut
 
 import type {
   ClassDetailsInstructor,
+  ClassDetailsRole,
   DeleteSheetVariant,
   UseClassDetailsScreenProps,
 } from "./class-details.screen.types";
@@ -53,6 +54,7 @@ export const useClassDetailsScreen = ({
   const [deleteVariant, setDeleteVariant] =
     useState<DeleteSheetVariant>("confirm");
   const deleting = useRef(false);
+  const [rulesVisible, setRulesVisible] = useState(false);
 
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
     (instructor) => ({
@@ -199,6 +201,14 @@ export const useClassDetailsScreen = ({
       state !== null &&
       isWithoutDeadline(item.cancellationDeadline, state),
     openCancellationRules: () => router.push(routes.admin.cancellationRules),
+    // A cancelled class has nothing left to cancel.
+    showRules: state !== null && state !== "cancelled",
+    rulesVisible,
+    openRules: () => setRulesVisible(true),
+    closeRules: () => setRulesVisible(false),
+    // Everyone reads the school rules in their own flow.
+    openSchoolRules: () =>
+      router.push(routes[(user?.role ?? "student") as ClassDetailsRole].schoolRules),
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),

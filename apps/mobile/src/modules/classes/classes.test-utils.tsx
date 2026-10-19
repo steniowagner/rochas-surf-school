@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 
+import { hydrateSession } from "@/services/session/session.store";
+
 import type { ClassLocation, ClassStudent } from "./classes.types";
 
 export {
@@ -34,3 +36,15 @@ export const buildClassStudent = (overrides: Partial<ClassStudent> = {}): ClassS
   photoUrl: null,
   ...overrides,
 });
+
+/** Signs the test user in with another role, after `setupSignedInUser`. */
+export const signInAs = (role: "student" | "instructor" | "admin", id = "u-1") =>
+  hydrateSession({
+    user: { id, role, status: "approved" } as never,
+    tokens: {
+      accessToken: "at-1",
+      accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
+      refreshToken: "rt-1",
+      refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
+    },
+  });

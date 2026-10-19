@@ -13,3 +13,6 @@ export type ClassDetailsScreenProps = {
 export type UseClassDetailsScreenProps = Required<ClassDetailsScreenProps>;
 
 export type DeleteSheetVariant = "confirm" | "notEmpty";
+
+/** The flows that open a class: each has its own school rules screen. */
+export type ClassDetailsRole = "student" | "instructor" | "admin";

@@ -365,6 +365,12 @@ const messages: Messages = {
     full: {
       title: "Clase llena",
     },
+    rules: {
+      title: "Reglas",
+      cancellation: "Cancelación · {{discipline}}",
+      read: "Leer la regla",
+      school: "Reglas de la escuela",
+    },
     notes: "Notas",
     location: "Lugar",
     directions: "Cómo llegar",

@@ -326,13 +326,14 @@ cancelling a seat come in specs 042 and 043.
   Covers: ER-01, ER-04, ER-05, ER-06 · Done when: `npx jest test/enrolment/model` passes from `modules/enrolment`.
   > ✅ 2026-10-19 16:13 — added the `Enrolment` entity with `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, the fields of the task and the transitions `withdraw`, `expire` (from pending) and `closeForCancelledClass` (from pending/approved), each refusing other statuses with a 409 `DomainError` (`enrolment.notPending` / `enrolment.notOpen`); files: `modules/enrolment/src/enrolment/model/enrolment.entity.ts`, `modules/enrolment/src/enrolment/model/index.ts`, `modules/enrolment/src/enrolment/index.ts`, `modules/enrolment/src/index.ts`, `modules/enrolment/test/enrolment/model/enrolment.entity.test.ts`; verified: `npx jest test/enrolment/model` from `modules/enrolment` (33 passed, entity 100% covered), `tsc --noEmit` and oxlint clean; deviations: none
 
-- [ ] **T-03** — Add the ports in `src/enrolment/provider/`: `enrolment.repository.ts` (`create`, `findById`,
+- [x] **T-03** — Add the ports in `src/enrolment/provider/`: `enrolment.repository.ts` (`create`, `findById`,
   `withdraw` conditional on pending, `findExpirable(now)`, `expire(id, now)` conditional, `closeOpenForClass(classId,
   now)` returning the closed enrolments), `enrolment-class-reader.provider.ts` (D-10),
   `student-name-reader.provider.ts`, `enrolment-notifier.provider.ts` (`seatRequested`, `requestExpired`) and
   `clock.provider.ts`, plus in-memory/fake implementations under `test/mock/` with their tests. Skill:
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: enabling · Done when: `npx jest test/mock` passes from `modules/enrolment`.
+  > ✅ 2026-10-19 16:14 — added the ports `EnrolmentRepository` (`create`, `findById`, `withdraw` and `expire` conditional on pending returning a boolean, `findExpirable`, `closeOpenForClass`), `EnrolmentClassReader` (D-10), `StudentNameReader`, `EnrolmentNotifier` (`seatRequested`, `requestExpired`) and `ClockProvider`, with the fakes and the factory under `test/mock/`; files: `modules/enrolment/src/enrolment/provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,enrolment-notifier.provider,clock.provider,index}.ts`, `modules/enrolment/src/enrolment/index.ts`, `modules/enrolment/test/mock/{enrolment.factory,fake-enrolment.repository,fake-enrolment-class.reader,fake-student-name.reader,fake-enrolment.notifier,fake-clock.provider,index}.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`; verified: `npx jest test/mock` from `modules/enrolment` (8 passed), `tsc --noEmit` and oxlint clean; deviations: the fake repository takes the classes in its constructor so `findExpirable` can join them (the real adapter does it in SQL)
 
 - [ ] **T-04** — Add `RequestSeat` in `src/enrolment/usecase/request-seat.usecase.ts` with the checks of D-12,
   `ruleAcceptedAt` per D-04, the notification of D-13 (recipients resolved by the notifier adapter; errors

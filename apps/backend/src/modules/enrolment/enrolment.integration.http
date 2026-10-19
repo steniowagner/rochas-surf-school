@@ -1,0 +1,111 @@
+# Manual REST Client requests for POST /classes/:id/enrolments and POST /enrolments/:id/withdraw (VS Code REST Client).
+# Sign in with an approved student review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
+# Codes are read from the backend log when RESEND_API_KEY is unset. Set `classId` to a class that hasn't started
+# (GET /classes?date=YYYY-MM-DD lists them).
+
+@baseUrl = http://localhost:4000
+@email = student@example.com
+@code = 345678
+@classId = 00000000-0000-4000-8000-000000000000
+
+### Request a sign-in code (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Sign in (expects 200 with accessToken)
+# @name session
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+###
+@token = {{session.response.body.accessToken}}
+
+### Request a seat (expects 201 with { id, classId, status: "pending", requestedAt }; the flag is required only when the class's discipline has a cancellation rule; a full class is accepted too)
+# @name enrolment
+POST {{baseUrl}}/classes/{{classId}}/enrolments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "acceptCancellationRule": true
+}
+
+###
+@enrolmentId = {{enrolment.response.body.id}}
+
+### The class now carries the caller's enrolment (expects myEnrolment: { id, status: "pending", requestedAt })
+GET {{baseUrl}}/classes/{{classId}}
+Authorization: Bearer {{token}}
+
+### Requesting the same class again while the request is open (expects 409 enrolment.alreadyOpen)
+POST {{baseUrl}}/classes/{{classId}}/enrolments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "acceptCancellationRule": true
+}
+
+### Without accepting the rule of a discipline that has one (expects 422 enrolment.rule.notAccepted)
+POST {{baseUrl}}/classes/{{classId}}/enrolments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### An unknown or malformed class (expects 404 class.notFound)
+POST {{baseUrl}}/classes/not-a-uuid/enrolments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "acceptCancellationRule": true
+}
+
+### A cancelled class (expects 409 class.cancelled) or one that has started (expects 409 class.started)
+POST {{baseUrl}}/classes/{{classId}}/enrolments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "acceptCancellationRule": true
+}
+
+### As an instructor or an admin (expects 403 enrolment.role.notStudent), with an account that isn't approved (expects 403 user.status.notApproved) or without a token (expects 401)
+POST {{baseUrl}}/classes/{{classId}}/enrolments
+Content-Type: application/json
+
+{
+  "acceptCancellationRule": true
+}
+
+### Withdraw the pending request (expects 200 with { id, classId, status: "withdrawn", requestedAt })
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/withdraw
+Authorization: Bearer {{token}}
+
+### Withdrawing it again (expects 409 enrolment.notPending); a class that has started answers 409 class.started
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/withdraw
+Authorization: Bearer {{token}}
+
+### An unknown, malformed or another person's enrolment (expects 404 enrolment.notFound)
+POST {{baseUrl}}/enrolments/not-a-uuid/withdraw
+Authorization: Bearer {{token}}
+
+### Request the class again after the withdrawal (expects 201 with a new pending enrolment)
+POST {{baseUrl}}/classes/{{classId}}/enrolments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "acceptCancellationRule": true
+}

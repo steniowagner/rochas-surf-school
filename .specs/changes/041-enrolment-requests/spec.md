@@ -422,11 +422,12 @@ cancelling a seat come in specs 042 and 043.
   Covers: ER-05, ER-06, ER-07 · Done when: `npx vitest run src/modules/notifications` passes.
   > ✅ 2026-10-19 16:21 — added `NotificationsEnrolmentNotifier` (`seatRequested` to the approved admins plus the class's instructors, each person once; `requestExpired` to the student; errors logged and swallowed), registered and exported it in `NotificationsModule`, added the `enrolment.requested` and `enrolment.expired` copy to `push-messages.ts` in pt-BR, es and en, and made `NotificationsClassChangeNotifier.classCancelled` also notify the `studentIds` of the event (deduplicated with the instructors), with specs; files: `apps/backend/src/modules/notifications/notifications.enrolment-notifier.ts`, `notifications.enrolment-notifier.spec.ts`, `notifications.module.ts`, `push-messages.ts`, `push-messages.spec.ts`, `notifications.class-change-notifier.ts`, `notifications.class-change-notifier.spec.ts` (all under `apps/backend/src/modules/notifications/`); verified: `npx vitest run src/modules/notifications` from `apps/backend` (17 files, 115 passed), `tsc --noEmit` and oxlint clean; deviations: none
 
-- [ ] **T-15** — Add `src/modules/enrolment/enrolment.controller.ts` with `POST /classes/:id/enrolments` and
+- [x] **T-15** — Add `src/modules/enrolment/enrolment.controller.ts` with `POST /classes/:id/enrolments` and
   `POST /enrolments/:id/withdraw` (both 2xx bodies `EnrolmentOut`), its spec, and
   `enrolment.integration.http` with the success and refusal requests. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
+  > ✅ 2026-10-19 16:22 — replaced the scaffold controller with `EnrolmentController`: `POST /classes/:id/enrolments` (201) and `POST /enrolments/:id/withdraw` (200), both answering `EnrolmentOut`, thin over `RequestSeat` and `WithdrawRequest`; added its spec and the REST Client file; files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` from `apps/backend` (all passed; the whole folder is 10 files, 37 passed), `tsc --noEmit` and oxlint clean; deviations: none
 
 - [ ] **T-16** — Add `src/modules/enrolment/enrolment-expiry.job.ts` (D-14, cron `enrolment-expiry`) with its spec,
   registered in `EnrolmentModule`.

@@ -1,25 +1,50 @@
 import { renderHook } from "@testing-library/react-native";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 import { Colors } from "@/constants/theme";
 
 import { useStackHeader } from "./stack-header.hook";
 
+const theme = Colors.light;
+
+const common = {
+  headerShown: true,
+  headerShadowVisible: false,
+  headerBackButtonDisplayMode: "minimal",
+  headerTintColor: theme.ink,
+  headerTitleStyle: {
+    color: theme.ink,
+    fontFamily: "BarlowCondensed_700Bold",
+    fontSize: 26,
+  },
+};
+
 describe("useStackHeader", () => {
-  it("returns the fixed native header options from the theme", async () => {
+  afterEach(() => {
+    jest.mocked(isLiquidGlassAvailable).mockReturnValue(false);
+  });
+
+  it("returns the opaque page-colored header where there is no Liquid Glass", async () => {
     const { result } = await renderHook(() => useStackHeader());
-    const theme = Colors.light;
 
     expect(result.current).toMatchObject({
-      headerShown: true,
-      headerShadowVisible: false,
-      headerBackButtonDisplayMode: "minimal",
+      ...common,
       headerStyle: { backgroundColor: theme.page },
-      headerTintColor: theme.ink,
-      headerTitleStyle: {
-        color: theme.ink,
-        fontFamily: "BarlowCondensed_700Bold",
-        fontSize: 26,
-      },
     });
+    expect(result.current).not.toHaveProperty("headerTransparent");
+    expect(result.current).not.toHaveProperty("scrollEdgeEffects");
+  });
+
+  it("returns the transparent header with a soft top scroll edge on Liquid Glass", async () => {
+    jest.mocked(isLiquidGlassAvailable).mockReturnValue(true);
+
+    const { result } = await renderHook(() => useStackHeader());
+
+    expect(result.current).toMatchObject({
+      ...common,
+      headerTransparent: true,
+      scrollEdgeEffects: { top: "soft" },
+    });
+    expect(result.current).not.toHaveProperty("headerStyle");
   });
 });

@@ -3,7 +3,7 @@ id: "038"
 slug: native-stack-header
 title: Fixed native header on the screens that go back
 template: quick
-status: changes-requested
+status: in-progress
 created: 2026-10-18
 started: 2026-10-18
 base_commit: d835f59a29ba7a8f8d91d3d06b27322c8508a9de
@@ -166,7 +166,7 @@ stays opaque.
   rule in `CLAUDE.md` → Rules for apps/mobile as D-01 says.
   Covers: enabling · Done when: `grep -r "back-button" apps/mobile/src` finds nothing and `check-types` passes.
   > ✅ 2026-10-18 — deleted `BackButton` and rewrote the CLAUDE.md rule; files: `apps/mobile/src/components/ui/back-button/{back-button.component.tsx,back-button.component.test.tsx,back-button.types.ts,index.ts}` (deleted), `CLAUDE.md`; verified: `grep -r back-button apps/mobile/src` empty, `npx tsc --noEmit` clean; deviations: none (`.specs/memory` still mentions it; spec-finish updates it per Memory Impact)
-- [ ] **T-07** — In `src/navigation/stack-header/`, make `useStackHeader` return the transparent header with
+- [x] **T-07** — In `src/navigation/stack-header/`, make `useStackHeader` return the transparent header with
   `scrollEdgeEffects: { top: "soft" }` (and no `headerStyle` background) when `isLiquidGlassAvailable()` from
   `expo-glass-effect` is true, and the current opaque options otherwise (D-03, D-05); add `useHeaderInset()` (the
   header's height under the transparent header, 0 otherwise) and change `useKeyboardOffset()` to 0 under the
@@ -175,6 +175,7 @@ stays opaque.
   hooks with `isLiquidGlassAvailable` mocked true and false. Load `vercel-react-native-skills` and
   `vercel-react-best-practices` first.
   Covers: ER-01, ER-03 · Done when: `npx jest src/navigation` passes with both branches asserted for the three hooks.
+  > ✅ 2026-10-18 — `useStackHeader` returns the transparent header with `scrollEdgeEffects: { top: "soft" }` (no `headerStyle`) when `isLiquidGlassAvailable()`, the opaque one otherwise; added `useHeaderInset` (header height under the transparent header, else 0); `useKeyboardOffset` is 0 under the transparent header, else the header height; `jest.setup.ts` mocks `useHeaderInset` (0) and `expo-glass-effect` (false by default); files: `apps/mobile/src/navigation/stack-header/{index.ts,stack-header.hook.ts,header-inset.hook.ts,keyboard-offset.hook.ts}` and tests `{stack-header.hook.test.ts,header-inset.hook.test.tsx,keyboard-offset.hook.test.tsx}`, `apps/mobile/jest.setup.ts`; verified: `npx jest src/navigation` (161 passed, both branches of the three hooks), `npx tsc --noEmit` clean; deviations: none
 - [ ] **T-08** — Give the fixed auth screens `src/modules/auth/components/{email-choice,email-sign-in,create-account,confirm-code,google-name}`
   a top padding from `useHeaderInset()` on their outer view (D-06); update their component tests to assert the
   padding and, for the four with a `KeyboardAvoidingView`, the `keyboardVerticalOffset`, under both branches.

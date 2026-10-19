@@ -13,6 +13,14 @@ jest.mock("expo-localization", () => ({
 jest.mock("@/navigation/stack-header/keyboard-offset.hook", () => ({
   useKeyboardOffset: jest.fn(() => 64),
 }));
+jest.mock("@/navigation/stack-header/header-inset.hook", () => ({
+  useHeaderInset: jest.fn(() => 0),
+}));
+
+// No native module in Jest: the opaque header by default, a test turns Liquid Glass on.
+jest.mock("expo-glass-effect", () => ({
+  isLiquidGlassAvailable: jest.fn(() => false),
+}));
 
 jest.mock("react-native-reanimated", () =>
   require("react-native-reanimated/mock"),

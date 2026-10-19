@@ -318,12 +318,13 @@ cancelling a seat come in specs 042 and 043.
   --workspace @rochas-surf-school/enrolment` pass and the backend builds with the new dependency.
   > ✅ 2026-10-19 16:12 — scaffolded `modules/enrolment` with `config-new-module --module enrolment --skip-web --skip-mobile` (placeholder backend module/controller registered in AppModule, replaced in T-15); declared the shared, auth and classes dependencies, added `.oxlintrc.json`, `check-types` and `lint` scripts like `modules/classes`; files: `modules/enrolment/package.json`, `modules/enrolment/tsconfig.json`, `modules/enrolment/jest.config.ts`, `modules/enrolment/.oxlintrc.json`, `modules/enrolment/src/index.ts`, `modules/enrolment/test/index.test.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/app.module.ts`, `apps/backend/package.json`, `package-lock.json`; verified: `npm test --workspace @rochas-surf-school/enrolment` (1 passed), `npm run check-types --workspace @rochas-surf-school/enrolment` (clean), `npm run build --workspace @rochas-surf-school/backend` (clean); deviations: none
 
-- [ ] **T-02** — Add the `Enrolment` entity in `src/enrolment/model/enrolment.entity.ts` with `ENROLMENT_STATUSES`
+- [x] **T-02** — Add the `Enrolment` entity in `src/enrolment/model/enrolment.entity.ts` with `ENROLMENT_STATUSES`
   (D-06), `OPEN_ENROLMENT_STATUSES`, the fields `classId`, `studentId`, `status`, `requestedAt`,
   `ruleAcceptedAt`, `decidedAt`, `reason`, `endedAt`, and the transitions `withdraw(now)`, `expire(now)` and
   `closeForCancelledClass(now)` (each only from the statuses the product allows, else a `DomainError`), with
   unit tests for every transition and validation. Skill: [`module-entity`](../../../.claude/skills/module-entity).
   Covers: ER-01, ER-04, ER-05, ER-06 · Done when: `npx jest test/enrolment/model` passes from `modules/enrolment`.
+  > ✅ 2026-10-19 16:13 — added the `Enrolment` entity with `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, the fields of the task and the transitions `withdraw`, `expire` (from pending) and `closeForCancelledClass` (from pending/approved), each refusing other statuses with a 409 `DomainError` (`enrolment.notPending` / `enrolment.notOpen`); files: `modules/enrolment/src/enrolment/model/enrolment.entity.ts`, `modules/enrolment/src/enrolment/model/index.ts`, `modules/enrolment/src/enrolment/index.ts`, `modules/enrolment/src/index.ts`, `modules/enrolment/test/enrolment/model/enrolment.entity.test.ts`; verified: `npx jest test/enrolment/model` from `modules/enrolment` (33 passed, entity 100% covered), `tsc --noEmit` and oxlint clean; deviations: none
 
 - [ ] **T-03** — Add the ports in `src/enrolment/provider/`: `enrolment.repository.ts` (`create`, `findById`,
   `withdraw` conditional on pending, `findExpirable(now)`, `expire(id, now)` conditional, `closeOpenForClass(classId,

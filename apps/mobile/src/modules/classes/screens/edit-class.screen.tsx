@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
 import { useTheme } from "@/hooks/use-theme";
-import { useHeaderInset } from "@/navigation/stack-header";
 
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
@@ -24,7 +23,6 @@ export function EditClassScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const headerInset = useHeaderInset();
   const screen = useEditClassScreen();
   const { form } = screen;
 
@@ -46,8 +44,11 @@ export function EditClassScreen() {
 
   if (form === null || screen.isFinished || screen.isCancelled) {
     return (
-      <View className="flex-1 bg-page" style={{ paddingTop: headerInset }}>
-        <View className="flex-1 gap-6 px-screen pt-3">
+      <View className="flex-1 bg-page">
+        <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerClassName="grow gap-6 px-screen pt-3"
+        >
           {header}
           {screen.isLoading ? (
             <ActivityIndicator testID="edit-class-loading" color={theme.grape} />
@@ -73,7 +74,7 @@ export function EditClassScreen() {
               {t("editClass.errors.finished")}
             </Text>
           ) : null}
-        </View>
+        </ScrollView>
       </View>
     );
   }

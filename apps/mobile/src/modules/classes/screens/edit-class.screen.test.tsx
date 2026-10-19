@@ -2,11 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 
-import {
-  insetBehaviorsOf,
-  topPaddingsOf,
-  underTransparentHeader,
-} from "@/navigation/stack-header/header-inset.test-utils";
+import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
 import * as api from "@/services/api";
 
 import {
@@ -703,18 +699,11 @@ describe("EditClassScreen", () => {
       expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
     });
 
-    it("starts its loading view below the header", async () => {
+    it("insets its loading view's scroll view below the header, so the header's scroll edge finds one", async () => {
       serve({ "GET /classes/c-1": () => new Promise(() => undefined) });
       await renderScreen();
 
-      expect(topPaddingsOf(screen.toJSON())).toContain(0);
-    });
-
-    it("starts its loading view below the transparent header", async () => {
-      serve({ "GET /classes/c-1": () => new Promise(() => undefined) });
-      await underTransparentHeader(116, () => renderScreen());
-
-      expect(topPaddingsOf(screen.toJSON())).toContain(116);
+      expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
     });
 
     it("insets its form's scroll view below the header", async () => {

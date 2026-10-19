@@ -2,9 +2,10 @@
 id: "040"
 slug: class-seats-read-model
 title: "Class seats read model and class card and detail aligned with the designs"
-status: in-review
+status: accepted
 started: 2026-10-19
 base_commit: c0875ed6bcd73ba150ecc6f9cde5cedc34d792c0
+reviewed_commit: df034d448c693f15c543177d648831d3e30b9a6f
 created: 2026-10-19
 fronts: [classes, backend, mobile]
 depends_on: []
@@ -424,3 +425,48 @@ spec.
 - The turbo lint, type-check and build tasks were all cache hits for this commit.
 - `useClassPeople` returns an inline type while `useClassCard` declares `UseClassCardResult` in its types file.
   `react.md` doesn't require a declared result type, so this isn't a finding.
+
+### Round 2 — 2026-10-19 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/classes`, backend, mobile, design-tokens — 24 tasks); the
+  2 backend lint warnings (`require-array-sort-compare` in `test/classes.e2e-spec.ts:1609` and `:1888`) predate
+  this spec
+- related tests ✅ RELATED TESTS PASSED (apps/backend, apps/mobile 931 passed, modules/classes 463 passed,
+  apps/web 22 passed)
+- coverage of the changed lines ✅ COVERAGE OK (19 files, incl. `profile-row.component.tsx` 11/11 branches); no
+  coverage-ignore comments in the diff
+- e2e: backend suite ✅ 17 files, 508 passed · web Playwright ✅ 22 passed
+- every `-t` filter named by ER-04 to ER-11 matches real tests (5, 4, 4, 10 on the card; 6, 6, 10, 4 on the detail)
+- iOS simulator (iPhone 18 Pro, pt-BR, dark, admin): Tuesday 20 Oct's surf class — the "Regras" row reads
+  "Cancelamento · Surf" whole, with "Cancelamento até ter, 20 out · 00:00" under it; tapping it opens the
+  cancellation rules sheet. The profile screen's rows (WhatsApp, Tema, Idioma) still show their value beside the
+  label.
+
+**Expected Results**
+
+- ER-01 ✅ — controller and reader specs, e2e cases (unchanged since round 1)
+- ER-02 ✅ — use-case and fake tests
+- ER-03 ✅ — `look` tests; design-tokens `check-types` passes
+- ER-04 ✅ — `occupancy` tests and `occupancy.test.ts`
+- ER-05 ✅ — `students footer` tests
+- ER-06 ✅ — `finished` and `cancelled` tests
+- ER-07 ✅ — `A aula` tests; seen in the simulator
+- ER-08 ✅ — `full class banner` tests
+- ER-09 ✅ — `StudentAvatar` tests
+- ER-10 ✅ — `rules` tests; F-01 fixed and seen in the simulator
+- ER-11 ✅ — `read-only note` tests
+- ER-12 ✅ — `npx jest src/i18n`; lint and type check pass
+
+**Findings**
+
+None. F-01 (round 1) is fixed: `ProfileRow`'s opt-in `valueBelow` stacks the value under the label, used only by
+the cancellation row of the class details.
+
+**Notes**
+
+- No test asserts that `valueBelow` puts the value under the label; the branches run (coverage) and the layout
+  was checked in the simulator. A layout check doesn't fit Jest well, so this isn't a finding.
+- `spec-finish` may mention `ProfileRow`'s `valueBelow` prop in the memory next to the class-details rules group.
+- The "Cancelamento até …" line still shows twice on a class with a deadline (round 1's note); it is a product call.

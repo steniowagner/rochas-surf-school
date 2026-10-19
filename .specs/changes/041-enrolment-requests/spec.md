@@ -434,12 +434,13 @@ cancelling a seat come in specs 042 and 043.
   Covers: ER-05 · Done when: `npx vitest run src/modules/enrolment/enrolment-expiry.job.spec.ts` passes.
   > ✅ 2026-10-19 16:22 — added `EnrolmentExpiryJob` (cron `enrolment-expiry` every minute, `waitForCompletion`; runs `ExpirePendingEnrolments`; logs only the count; never throws) with its spec and registered it in `EnrolmentModule`; files: `apps/backend/src/modules/enrolment/enrolment-expiry.job.ts`, `apps/backend/src/modules/enrolment/enrolment-expiry.job.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`; verified: `npx vitest run src/modules/enrolment/enrolment-expiry.job.spec.ts` from `apps/backend` (5 passed), `tsc --noEmit` and oxlint clean; deviations: none
 
-- [ ] **T-17** — Add `test/enrolment.e2e-spec.ts` (fixed classes clock, faked `ExpoPushProvider`, cleanup of its
+- [x] **T-17** — Add `test/enrolment.e2e-spec.ts` (fixed classes clock, faked `ExpoPushProvider`, cleanup of its
   users, classes and enrolments) with the request, refusal, again, concurrent, withdraw, expiry (through
   `app.get(EnrolmentExpiryJob).run()`), notification, counts and `myEnrolment` cases, and the "cancel ends
   enrolments" and "delete with a pending request" cases in `test/classes.e2e-spec.ts`.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07, ER-08, ER-09 · Done when: `npm run test:e2e
   --workspace apps/backend` passes.
+  > ✅ 2026-10-19 16:25 — added `apps/backend/test/enrolment.e2e-spec.ts` (fixed clock for classes and enrolment, faked `ExpoPushProvider`, rules put back and its users, classes and notifications cleaned up) with the request, refusal, again, concurrent, withdraw, expiry (through `app.get(EnrolmentExpiryJob).run()`), notification, counts and `myEnrolment` cases, and the "cancel ends enrolments" and "delete with a pending request" cases in `test/classes.e2e-spec.ts` (plus `myEnrolment: null` in its whole-item week assertion); files: `apps/backend/test/enrolment.e2e-spec.ts`, `apps/backend/test/classes.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (18 files, 534 passed); deviations: none
 
 ### Mobile (`apps/mobile`)
 

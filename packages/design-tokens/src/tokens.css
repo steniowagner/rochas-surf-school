@@ -221,6 +221,15 @@
   text-transform: none;
 }
 
+.ds-text-occupancy {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
 .ds-text-chip {
   font-family: var(--ds-font-body), system-ui, sans-serif;
   font-weight: 800;

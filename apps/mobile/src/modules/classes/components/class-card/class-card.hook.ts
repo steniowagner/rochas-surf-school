@@ -1,18 +1,23 @@
 import { getClassState, isWithoutDeadline, isWithoutInstructor } from "@rochas-surf-school/classes";
 
+import {
+  getHiddenSeats,
+  getOccupancyPercent,
+  getOccupancyTone,
+  getStudentsLabel,
+  isClassFull,
+} from "../../utils/occupancy";
 import { schoolTimeOf } from "../../utils/week";
 
 import type { UseClassCardProps, UseClassCardResult } from "./class-card.types";
 
-const SHOWN_INSTRUCTORS = 2;
+export const CLASS_CARD_AVATARS = 4;
 
 export const useClassCard = ({
   item,
   now,
 }: UseClassCardProps): UseClassCardResult => {
   const names = item.instructors.map((instructor) => instructor.name);
-  const hidden = names.length - SHOWN_INSTRUCTORS;
-  const shown = names.slice(0, SHOWN_INSTRUCTORS).join(" · ");
 
   const state = getClassState(
     new Date(item.startsAt),
@@ -21,10 +26,21 @@ export const useClassCard = ({
     item.cancelledAt ? new Date(item.cancelledAt) : null,
   );
 
+  const avatars = item.students.slice(0, CLASS_CARD_AVATARS);
+  const full = isClassFull(item.seatsTaken, item.capacity);
+
   return {
     state,
     timeRange: `${schoolTimeOf(item.startsAt)} – ${schoolTimeOf(item.endsAt)}`,
-    instructors: hidden > 0 ? `${shown} +${hidden}` : shown,
+    showOccupancy: state === "not-started" || state === "started",
+    occupancyPercent: getOccupancyPercent(item.seatsTaken, item.capacity),
+    occupancyTone: getOccupancyTone(item.seatsTaken, item.capacity, item.discipline),
+    full,
+    showFullChip: full && state === "not-started",
+    showFooter: state !== "cancelled",
+    avatars,
+    hiddenSeats: getHiddenSeats(item.seatsTaken, avatars.length),
+    studentsLabel: getStudentsLabel(item.seatsTaken, state === "finished"),
     withoutInstructor: isWithoutInstructor(names.length, state),
     withoutDeadline: isWithoutDeadline(item.cancellationDeadline, state),
   };

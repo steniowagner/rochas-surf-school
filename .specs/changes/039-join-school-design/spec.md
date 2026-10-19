@@ -142,7 +142,7 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   > ✅ 2026-10-18 — added the `success` variant; files: `apps/mobile/src/components/ui/button/button.types.ts`,
   > `button.constants.ts`, `button.component.test.tsx`; verified: `npx jest src/components/ui/button` (14 passed);
   > deviations: none
-- [ ] **T-02** — Change `src/components/decision/decision-card` (D-01, D-09): `avatar: ReactNode` replaces
+- [x] **T-02** — Change `src/components/decision/decision-card` (D-01, D-09): `avatar: ReactNode` replaces
   `initials`; optional `onPress` makes the upper row one `Pressable` with an Ionicons `chevron-forward` (`ink3`)
   at its end; `shadowStyle("card", theme)` on the card; Deny `outline` + Feather `x`, Approve `success` + Feather
   `check` (icon colors from `useTheme()`); keep `details`, `disabled` and `loading`. Update
@@ -150,6 +150,10 @@ Pressing a card's upper content opens the person's detail sheet, and the "Decidi
   pressable row without it, buttons call their handlers and not `onPress`, disabled / loading states). Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01, ER-02 · Done when: `npx jest src/components/decision/decision-card` passes.
+  > ✅ 2026-10-18 — DecisionCard takes `avatar`, optional `onPress` row with chevron, card shadow, outline/success buttons with icons;
+  > files: `apps/mobile/src/components/decision/decision-card/decision-card.{component.tsx,types.ts,component.test.tsx}`;
+  > verified: `npx jest src/components/decision/decision-card` (8 passed); deviations: none (the registrations screen still passes
+  > `initials` until T-05, so type check fails until then)
 - [ ] **T-03** — Change `src/components/decision/deny-sheet` (D-10): `placeholder` and `backLabel` props, `label`
   used as the `TextArea`'s `accessibilityLabel` only, a Feather `x-circle` icon on the `danger` confirm, and a
   `subtle` back button that calls the same close as a swipe (text cleared). Update

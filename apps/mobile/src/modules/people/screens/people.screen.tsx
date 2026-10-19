@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
-  Platform,
   Text,
   View,
 } from "react-native";
@@ -14,16 +13,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
-import { useHeaderInset } from "@/navigation/stack-header";
+import {
+  StackHeaderTitle,
+  useHeaderInset,
+  useLeftTitleHeader,
+} from "@/navigation/stack-header";
 
-import { PeopleHeaderTitle } from "../components/people-header-title";
 import { PersonRow } from "../components/person-row";
 import { PersonSheet } from "../components/person-sheet";
 import { RoleFilters } from "../components/role-filters";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
 import { groupByInitial } from "../utils/group-by-initial";
-
-const isIOS = Platform.OS === "ios";
 
 export function PeopleScreen() {
   const { t } = useTranslation();
@@ -50,6 +50,12 @@ export function PeopleScreen() {
     openPerson,
     closeSheet,
   } = usePeopleScreen();
+  const headerOptions = useLeftTitleHeader(() => (
+    <StackHeaderTitle
+      title={t("people.title")}
+      subtitle={count !== undefined ? t("people.count", { count }) : undefined}
+    />
+  ));
 
   const renderEmpty = () => {
     if (isLoading) {
@@ -89,34 +95,7 @@ export function PeopleScreen() {
 
   return (
     <View className="flex-1 bg-page">
-      <Stack.Screen
-        options={{
-          // iOS always centers `headerTitle`, so there the title is a left item. Left items replace the native back
-          // button, so it is drawn here when the screen was pushed (admin and instructor), not on the student tab root.
-          headerTitleAlign: "left",
-          headerTitle: isIOS ? "" : () => <PeopleHeaderTitle count={count} />,
-          unstable_headerLeftItems: ({ canGoBack }) => [
-            ...(canGoBack
-              ? [
-                  {
-                    type: "button" as const,
-                    label: t("common.back"),
-                    icon: {
-                      type: "sfSymbol" as const,
-                      name: "chevron.backward" as const,
-                    },
-                    onPress: () => router.back(),
-                  },
-                ]
-              : []),
-            {
-              type: "custom" as const,
-              element: <PeopleHeaderTitle count={count} />,
-              hidesSharedBackground: true,
-            },
-          ],
-        }}
-      />
+      <Stack.Screen options={headerOptions} />
       <View
         className="gap-4 px-screen pb-3"
         style={{ paddingTop: 8 + headerInset }}

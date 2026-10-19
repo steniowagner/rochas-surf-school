@@ -97,9 +97,7 @@ export function PersonSheet({
             onPress={onClose}
             className="min-h-11 items-center justify-center"
           >
-            <Text className="ds-text-button text-lagoon">
-              {t("common.close")}
-            </Text>
+            <Text className="ds-text-button text-ink">{t("common.close")}</Text>
           </TouchableOpacity>
         </View>
       ) : null}

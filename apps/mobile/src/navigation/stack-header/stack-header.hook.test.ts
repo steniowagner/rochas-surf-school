@@ -43,8 +43,8 @@ describe("useStackHeader", () => {
     expect(result.current).toMatchObject({
       ...common,
       headerTransparent: true,
+      headerStyle: { backgroundColor: "transparent" },
       scrollEdgeEffects: { top: "soft" },
     });
-    expect(result.current).not.toHaveProperty("headerStyle");
   });
 });

@@ -27,7 +27,11 @@ export const useStackHeader = (): StackHeaderOptions => {
       fontSize: size,
     },
     ...(isLiquidGlassAvailable()
-      ? { headerTransparent: true, scrollEdgeEffects: { top: "soft" } }
+      ? {
+          headerTransparent: true,
+          headerStyle: { backgroundColor: "transparent" },
+          scrollEdgeEffects: { top: "soft" },
+        }
       : { headerStyle: { backgroundColor: theme.page } }),
   };
 };

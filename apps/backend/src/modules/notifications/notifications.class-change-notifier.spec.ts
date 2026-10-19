@@ -8,6 +8,7 @@ import { SystemClockProvider } from './system.clock.js';
 
 const INSTRUCTOR_ID = '22222222-2222-4222-8222-222222222222';
 const OTHER_ID = '33333333-3333-4333-8333-333333333333';
+const STUDENT_ID = '55555555-5555-4555-8555-555555555555';
 const CLASS_ID = '44444444-4444-4444-8444-444444444444';
 
 function setup() {
@@ -116,6 +117,26 @@ describe('NotificationsClassChangeNotifier', () => {
         { userId: INSTRUCTOR_ID, type: 'class.cancelled', params },
         { userId: OTHER_ID, type: 'class.cancelled', params },
       ]);
+    });
+
+    it('tells the students whose enrolment ended too, each person once', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classCancelled({ ...event, studentIds: [STUDENT_ID, INSTRUCTOR_ID] });
+
+      expect(storedParams(notificationRepository.createMany).map((item) => [item.userId, item.type])).toEqual([
+        [INSTRUCTOR_ID, 'class.cancelled'],
+        [OTHER_ID, 'class.cancelled'],
+        [STUDENT_ID, 'class.cancelled'],
+      ]);
+    });
+
+    it('tells students when there is no instructor to tell', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classCancelled({ ...event, instructorIds: [], studentIds: [STUDENT_ID] });
+
+      expect(storedParams(notificationRepository.createMany).map((item) => item.userId)).toEqual([STUDENT_ID]);
     });
 
     it('leaves the message out of the details when there is none', async () => {

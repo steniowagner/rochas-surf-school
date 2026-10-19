@@ -186,6 +186,26 @@ describe('renderPush', () => {
     );
   });
 
+  it.each([
+    ['pt-BR', 'Novo pedido de vaga', 'Ana Souza pediu vaga na aula de Surf de 18/10 às 08:00.'],
+    ['es', 'Nueva solicitud de plaza', 'Ana Souza pidió plaza en la clase de Surf del 18/10 a las 08:00.'],
+    ['en', 'New seat request', 'Ana Souza requested a seat in the Surf class on 10/18 at 08:00.'],
+  ] as const)('writes the new seat request in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', studentName: ' Ana Souza ', discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('enrolment.requested', params, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Você não conseguiu vaga', 'A aula de Skate de 18/10 às 08:00 começou sem vaga para o seu pedido.'],
+    ['es', 'No conseguiste plaza', 'La clase de Skate del 18/10 a las 08:00 empezó sin plaza para tu solicitud.'],
+    ['en', "You didn't get a seat", 'The Skate class on 10/18 at 08:00 started without a seat for your request.'],
+  ] as const)('writes the expired request in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', discipline: 'skate', startsAt: STARTS_AT };
+
+    expect(renderPush('enrolment.expired', params, locale)).toEqual({ title, body });
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {

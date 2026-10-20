@@ -100,4 +100,15 @@ describe("DecisionCard", () => {
       expect(props.onDeny).not.toHaveBeenCalled();
     },
   );
+
+  it("disables the approve button alone with approveDisabled", async () => {
+    const user = userEvent.setup();
+    const { props } = await setup({ approveDisabled: true });
+
+    await user.press(screen.getByRole("button", { name: "Approve" }));
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+
+    expect(props.onApprove).not.toHaveBeenCalled();
+    expect(props.onDeny).toHaveBeenCalledTimes(1);
+  });
 });

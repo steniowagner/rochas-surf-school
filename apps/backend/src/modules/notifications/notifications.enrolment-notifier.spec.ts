@@ -138,4 +138,81 @@ describe('NotificationsEnrolmentNotifier', () => {
       expect(error).toHaveBeenLastCalledWith(expect.stringContaining('enrolment.expired'), 'boom');
     });
   });
+
+  describe('requestApproved', () => {
+    const event = { studentId: STUDENT_ID, classId: CLASS_ID, discipline: 'surf' as const, startsAt: STARTS_AT };
+
+    it('stores one enrolment.approved for the student only', async () => {
+      const { notificationRepository, recipientsProvider, notifier } = setup();
+
+      await notifier.requestApproved(event);
+
+      expect(stored(notificationRepository.createMany)).toEqual([
+        {
+          userId: STUDENT_ID,
+          type: 'enrolment.approved',
+          params: { classId: CLASS_ID, discipline: 'surf', startsAt: '2026-10-19T11:00:00.000Z' },
+        },
+      ]);
+      expect(recipientsProvider.findApprovedAdminIds).not.toHaveBeenCalled();
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.requestApproved(event)).resolves.toBeUndefined();
+      await expect(notifier.requestApproved(event)).resolves.toBeUndefined();
+
+      expect(error.mock.calls[0]![0]).toContain('enrolment.approved');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('enrolment.approved'), 'boom');
+    });
+  });
+
+  describe('requestDenied', () => {
+    const event = { studentId: STUDENT_ID, classId: CLASS_ID, discipline: 'surf' as const, startsAt: STARTS_AT };
+
+    it('stores one enrolment.denied with the reason for the student only', async () => {
+      const { notificationRepository, recipientsProvider, notifier } = setup();
+
+      await notifier.requestDenied({ ...event, reason: 'Esta aula é de nível avançado.' });
+
+      expect(stored(notificationRepository.createMany)).toEqual([
+        {
+          userId: STUDENT_ID,
+          type: 'enrolment.denied',
+          params: {
+            classId: CLASS_ID,
+            discipline: 'surf',
+            startsAt: '2026-10-19T11:00:00.000Z',
+            reason: 'Esta aula é de nível avançado.',
+          },
+        },
+      ]);
+      expect(recipientsProvider.findApprovedAdminIds).not.toHaveBeenCalled();
+    });
+
+    it('leaves the reason out when there is none', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.requestDenied(event);
+
+      expect(stored(notificationRepository.createMany)[0]!.params).toEqual({
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: '2026-10-19T11:00:00.000Z',
+      });
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.requestDenied(event)).resolves.toBeUndefined();
+      await expect(notifier.requestDenied(event)).resolves.toBeUndefined();
+
+      expect(error.mock.calls[0]![0]).toContain('enrolment.denied');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('enrolment.denied'), 'boom');
+    });
+  });
 });

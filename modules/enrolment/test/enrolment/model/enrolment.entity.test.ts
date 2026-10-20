@@ -89,6 +89,43 @@ describe("Enrolment", () => {
     expect(errorsOf(() => build(state).validate())).toEqual(keys);
   });
 
+  describe("approve", () => {
+    it("approves a pending request and stamps the decision", () => {
+      const out = build().approve(NOW);
+
+      expect(out.status).toBe("approved");
+      expect(out.decidedAt).toEqual(NOW);
+      expect(out.reason).toBeNull();
+      expect(out.endedAt).toBeNull();
+    });
+
+    it.each(ENROLMENT_STATUSES.filter((status) => status !== "pending"))("refuses from %s", (status) => {
+      expect(() => build({ status }).approve(NOW)).toThrow(
+        expect.objectContaining({ message: "enrolment.notPending", statusCode: 409 }),
+      );
+    });
+  });
+
+  describe("deny", () => {
+    it("denies a pending request with the reason", () => {
+      const out = build().deny("Nível avançado", NOW);
+
+      expect(out.status).toBe("denied");
+      expect(out.reason).toBe("Nível avançado");
+      expect(out.decidedAt).toEqual(NOW);
+    });
+
+    it("denies without a reason", () => {
+      expect(build().deny(null, NOW).reason).toBeNull();
+    });
+
+    it.each(ENROLMENT_STATUSES.filter((status) => status !== "pending"))("refuses from %s", (status) => {
+      expect(() => build({ status }).deny(null, NOW)).toThrow(
+        expect.objectContaining({ message: "enrolment.notPending", statusCode: 409 }),
+      );
+    });
+  });
+
   describe("withdraw", () => {
     it("ends a pending request as withdrawn", () => {
       const out = build().withdraw(NOW);

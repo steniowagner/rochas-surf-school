@@ -1,4 +1,4 @@
-import { ClassDiscipline } from "@rochas-surf-school/classes";
+import { ClassDiscipline, ClassLevel } from "@rochas-surf-school/classes";
 import { Enrolment } from "../model";
 
 /** A pending enrolment of a class that already started, with what its notification needs. */
@@ -7,6 +7,29 @@ export interface ExpirableEnrolment {
   discipline: ClassDiscipline;
   startsAt: Date;
 }
+
+/** An upcoming class with pending requests, with what the admins' tool shows. */
+export interface PendingRequestsClass {
+  id: string;
+  discipline: ClassDiscipline;
+  level: ClassLevel;
+  startsAt: Date;
+  endsAt: Date;
+  capacity: number;
+  seatsTaken: number;
+  location: { name: string };
+  /** In the order asked: `requestedAt`, then id. */
+  requests: PendingRequest[];
+}
+
+export interface PendingRequest {
+  id: string;
+  requestedAt: Date;
+  student: { id: string; name: string; photoUrl: string | null };
+}
+
+/** What approving a request came to. */
+export type ApproveResult = "approved" | "full" | "notPending";
 
 export interface EnrolmentRepository {
   /**
@@ -30,4 +53,17 @@ export interface EnrolmentRepository {
    * closed. Ended enrolments stay as they are.
    */
   closeOpenForClass(classId: string, now: Date): Promise<Enrolment[]>;
+  /**
+   * The classes that start after `now`, aren't cancelled and have pending requests, sorted by start then id,
+   * each with its requests in the order asked.
+   */
+  findPendingByClass(now: Date): Promise<PendingRequestsClass[]>;
+  /**
+   * Approves the request at `now`. Locks the class, counts the seats taken and writes only while the enrolment is
+   * still pending: `full` when the class has no free seat, `notPending` when it was decided meanwhile or is gone.
+   * Of two simultaneous approvals for the last seat exactly one is `approved`.
+   */
+  approve(id: string, now: Date): Promise<ApproveResult>;
+  /** Denies the request with the (optional) reason at `now`, only while it is pending. Returns whether it wrote. */
+  deny(id: string, reason: string | null, now: Date): Promise<boolean>;
 }

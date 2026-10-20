@@ -1,9 +1,18 @@
 import { ConflictError } from "@rochas-surf-school/shared";
-import { Enrolment, EnrolmentRepository, EnrolmentClass, ExpirableEnrolment } from "../../src";
+import {
+  ApproveResult,
+  Enrolment,
+  EnrolmentClass,
+  EnrolmentRepository,
+  ExpirableEnrolment,
+  PendingRequestsClass,
+} from "../../src";
 
 export class FakeEnrolmentRepository implements EnrolmentRepository {
   /** Set to make the next `create` fail (a lost race, for instance). */
   createError: Error | null = null;
+  /** What `findPendingByClass` reads: the read model the database adapter builds with a join. */
+  pendingClasses: PendingRequestsClass[] = [];
   private enrolments: Enrolment[];
 
   constructor(
@@ -59,6 +68,32 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
 
   async expire(id: string, now: Date): Promise<boolean> {
     return this.change(id, (item) => item.expire(now));
+  }
+
+  async findPendingByClass(now: Date): Promise<PendingRequestsClass[]> {
+    return this.pendingClasses.filter(
+      (item) => item.startsAt.getTime() > now.getTime() && item.requests.length > 0,
+    );
+  }
+
+  async approve(id: string, now: Date): Promise<ApproveResult> {
+    const stored = this.enrolments.find((item) => item.id === id);
+    const found = stored && this.classes.find((item) => item.id === stored.classId);
+
+    if (!stored || !found || stored.status !== "pending") return "notPending";
+
+    const taken = this.enrolments.filter(
+      (item) => item.classId === stored.classId && item.status === "approved",
+    ).length;
+
+    if (taken >= found.capacity) return "full";
+
+    this.change(id, (item) => item.approve(now));
+    return "approved";
+  }
+
+  async deny(id: string, reason: string | null, now: Date): Promise<boolean> {
+    return this.change(id, (item) => item.deny(reason, now));
   }
 
   async closeOpenForClass(classId: string, now: Date): Promise<Enrolment[]> {

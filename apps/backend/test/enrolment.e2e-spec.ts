@@ -670,7 +670,7 @@ describe('Enrolment (e2e)', () => {
       const one = await as(student.accessToken, http().get(`/classes/${classId}`));
       const week = await as(student.accessToken, http().get('/classes?date=2026-10-15'));
 
-      const expected = { id: latest, status: 'pending', requestedAt: '2026-10-13T12:00:00.000Z' };
+      const expected = { id: latest, status: 'pending', requestedAt: '2026-10-13T12:00:00.000Z', reason: null };
       expect(one.body.myEnrolment).toEqual(expected);
       const byId = Object.fromEntries(
         (week.body.items as { id: string; myEnrolment: unknown }[]).map((item) => [item.id, item.myEnrolment]),

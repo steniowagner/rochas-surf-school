@@ -153,12 +153,15 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 - **`modules/enrolment`** (`@rochas-surf-school/enrolment`, spec 041; depends on `@rochas-surf-school/shared`,
   `@rochas-surf-school/auth` and `@rochas-surf-school/classes` — `ClassActor`, `assertCanReadClasses` and the
   discipline; classes never imports it) — 1 aggregate, `enrolment/`: `model/enrolment.entity.ts` (`Enrolment`,
-  `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, `ENROLMENT_REASON_MAX`; `withdraw`, `expire`,
-  `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,enrolment-notifier.provider,clock.provider}.ts`
+  `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, `ENROLMENT_REASON_MAX`; `approve`, `deny` (spec 042),
+  `withdraw`, `expire`, `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,enrolment-notifier.provider,clock.provider}.ts`
   (`create` — a second open enrolment is `enrolment.alreadyOpen` —, `findById`, `withdraw` and `expire` conditional
-  on pending, `findExpirable`, `closeOpenForClass`; the class as enrolment reads it; the student's name;
-  `seatRequested` / `requestExpired`),
-  `usecase/{request-seat,withdraw-request,expire-pending-enrolments,close-class-enrolments}.usecase.ts` and
+  on pending, `findExpirable`, `closeOpenForClass`, `findPendingByClass(now)` (the `PendingRequestsClass` read
+  model), the locked `approve` → `approved | full | notPending` and `deny` conditional on pending; the class as
+  enrolment reads it; the student's name; `seatRequested` / `requestExpired` / `requestApproved` /
+  `requestDenied`),
+  `usecase/{request-seat,withdraw-request,expire-pending-enrolments,close-class-enrolments,list-pending-requests,approve-request,deny-request}.usecase.ts`,
+  `usecase/decision.ts` (the decided enrolment and its class, or 404; the not-started check) and
   `usecase/enrolment.out.ts` (`EnrolmentOut`: `{ id, classId, status, requestedAt }`). Fakes of every port (the
   fake repository takes the classes, to join them in `findExpirable`) and an entity factory are in `test/mock/`.
 
@@ -293,10 +296,14 @@ src/
     {locations,classes,cancellation-rules}.integration.http  # manual REST Client requests
   modules/enrolment/            # spec 041; never imports ClassesModule (ClassesModule imports it)
     enrolment.module.ts         # wiring (imports NotificationsModule); provides and exports the adapters below
-    enrolment.controller.ts     # POST /classes/:id/enrolments (201), POST /enrolments/:id/withdraw (200) — protected
+    enrolment.controller.ts     # POST /classes/:id/enrolments (201), POST /enrolments/:id/withdraw (200);
+                                # GET /enrolments/pending (declared before the :id routes), POST
+                                # /enrolments/:id/approve and /deny (200; spec 042) — protected
     enrolment.prisma.ts         # PrismaEnrolmentRepository (P2002 on the partial index → enrolment.alreadyOpen;
-                                # withdraw / expire conditional on pending; closeOpenForClass in one
-                                # updateManyAndReturn; findExpirable joins the class)
+                                # withdraw / expire / deny conditional on pending; closeOpenForClass in one
+                                # updateManyAndReturn; findExpirable joins the class; findPendingByClass with one
+                                # groupBy for the seats; approve in a $transaction with SELECT … FOR UPDATE on the
+                                # class row)
     enrolment-class-reader.prisma.ts  # PrismaEnrolmentClassReader (the class, its instructors, whether its
                                 # discipline has a cancellation rule)
     student-name-reader.prisma.ts  # PrismaStudentNameReader
@@ -375,6 +382,8 @@ src/
                                                      # of classes; the admin's with canCreate), Perfil
     (private)/<role>/{edit-profile,whatsapp,school-rules}.tsx  # the Profile's inner screens, above the tab bar
     (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations), above the tab bar
+    (private)/admin/class-requests.tsx               # "Inscrições em aulas" tool (/admin/class-requests, spec 042),
+                                                     # above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
     (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
     (private)/admin/cancellation-rules.tsx           # "Regras de cancelamento" (/admin/cancellation-rules), above
@@ -403,7 +412,8 @@ src/
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
     screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
-                                # pending count, the "Criar aulas" row and the "Regras de cancelamento" row,
+                                # pending count, the "Inscrições em aulas" row and its request count (spec 042),
+                                # the "Criar aulas" row and the "Regras de cancelamento" row,
                                 # "School" with the People row
     screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
                                 # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
@@ -497,27 +507,42 @@ src/
                                 # provider per platform, directions URL), session-token.ts (UUID v4 per sheet),
                                 # occupancy.ts (percent, tone, full, free and hidden seats, the students label)
     classes.test-utils.tsx      # shared test helpers of the module
-  modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards; no
-                                # route of its own
-    enrolment.types.ts          # EnrolmentStatus, MyEnrolment, EnrolmentResponse, RequestSeatRequest (mirror the API)
+  modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, and
+                                # the admins' "Inscrições em aulas" tool (spec 042)
+    enrolment.types.ts          # EnrolmentStatus, MyEnrolment (with reason), EnrolmentResponse, RequestSeatRequest,
+                                # PendingRequestsResponse, DenyRequestVariables (mirror the API)
+    screens/class-requests.screen.tsx  # "Inscrições em aulas": header with requests · classes, one group per class,
+                                # pull-to-refresh, loading, error + retry, "Nada à espera"
+    components/class-requests-group/  # ClassRequestsGroup (the class card — day block, time, location, capacity,
+                                # free seats or "Esgotado", occupancy bar —, the waiting-list label, positions and
+                                # full-class note, one DecisionCard per request)
+    components/denial-reason-sheet/  # DenialReasonSheet (the student's "Pedido recusado": class line, "Motivo da
+                                # escola", the reason or "Sem motivo indicado.", "Fechar")
     components/request-seat-sheet/  # RequestSeatSheet + hook (AGENDA-03: the class line, the deadline, the rule to
                                 # accept with "Ler" — it steps aside for CancellationRulesSheet —, send / not now)
     components/withdraw-request-sheet/  # WithdrawRequestSheet ("Anular pedido": confirm / keep; no hook)
     hooks/                      # use-request-seat (POST /classes/:id/enrolments), use-withdraw-request (POST
                                 # /enrolments/:id/withdraw) — no retry, invalidate ["classes"] —, use-class-enrolment
-                                # (the details' CTA, banner, sheets, sends and errors)
-    utils/                      # enrolment-cta.ts (the footer button by status and fullness), enrolment-status.ts
-                                # (the banner and chip: waitingList for pending on a full class), enrolment-error.ts
-                                # (API error → translation key, and which errors reload the class)
+                                # (the details' CTA, banner, sheets, sends and errors); use-pending-requests (GET
+                                # /enrolments/pending, ["enrolments", "pending"]), use-approve-request /
+                                # use-deny-request (no retry; invalidate the pending list and ["classes"]),
+                                # use-class-requests-screen (the tool's logic: approve, deny sheet, toasts, reloads)
+    utils/                      # enrolment-cta.ts (the footer button by status and fullness; "Pedir novamente" after
+                                # a denial), enrolment-status.ts (the banner and chip: waitingList for pending on a
+                                # full class, approved, denied), enrolment-error.ts (API error → translation key,
+                                # which errors reload the class or the tool's list), class-requests.ts (the "Pediu
+                                # às …" line and the day block)
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
                                 # use-notification-response (a tapped push → refresh → "Join the school", the
                                 # Aulas tab for class.assigned / location.changed, a class's details for the class
-                                # pushes — the student's for enrolment.expired / class.cancelled, the instructor's or
-                                # admin's for enrolment.requested —, or "/"), use-notification-received
+                                # pushes — the student's for enrolment.expired / approved / denied and class.cancelled,
+                                # the instructor's for enrolment.requested —, the admin's "Inscrições em aulas" for
+                                # enrolment.requested, or "/"), use-notification-received
                                 # (a push with the app open → refresh, or invalidate ["registrations"] / ["classes",
-                                # "week"], ["classes"] for the class and enrolment pushes, and ["classes"] +
+                                # "week"], ["classes"] for the class and enrolment pushes (plus ["enrolments",
+                                # "pending"] for enrolment.requested), and ["classes"] +
                                 # ["locations"] for location.changed)
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
     utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored
@@ -589,7 +614,7 @@ src/
                                 # wheels can be dragged), otp-input, text-button, screen-intro,
                                 # text-input, text-area, toast, checkbox, segmented-control
   components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard: avatar, optional
-                                # pressable upper row, Deny / Approve), deny-sheet (DenySheet: optional reason in a
+                                # pressable upper row, Deny / Approve, approveDisabled), deny-sheet (DenySheet: optional reason in a
                                 # bottom sheet, confirm and back)
   utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the
                                 # date), get-initials.ts, countries.ts (country options with localized names and

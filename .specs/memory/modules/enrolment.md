@@ -6,9 +6,10 @@ It keeps the students' places in classes, as [Product](../product.md) describes 
 **Seat**: a student asks for a seat in a class that hasn't started, accepting the cancellation rule of its
 discipline, follows the request, and may take it back or ask again. It also ends requests on the class's behalf:
 pending ones expire when the class starts, and open ones end when the class is cancelled. It is the source of
-the seats taken, the approved students and the pending requests that [Classes](classes.md) shows. Today it covers
-the student's request side; admins' decisions, cancelling a seat, direct enrolment, taking a student out and
-guests come with their specs (042–045).
+the seats taken, the approved students and the pending requests that [Classes](classes.md) shows. It covers the
+student's request side and the admins' decisions: admins see the pending requests by class, in the order asked,
+and approve one while the class has a free seat or deny it with an optional reason. Cancelling a seat, direct
+enrolment, taking a student out and guests come with their specs (043–045).
 
 ## Main concepts
 
@@ -18,18 +19,25 @@ guests come with their specs (042–045).
   take-out) and when it ended. Relationships: a class has any number of enrolments; a student has any number,
   at most one of them open per class. Lifecycle (every status exists now; this module's actions produce the ones
   marked ✓):
-  - `pending` ✓ — a new request. It holds no seat. Ends as `withdrawn` ✓ (the student, before the class starts),
-    `expired` ✓ (still pending when the class starts), `classCancelled` ✓ (the class was cancelled), or later
-    `approved` / `denied` (admins, spec 042).
-  - `approved` — holds a seat. Ends as `classCancelled` ✓, or later `cancelled` (the student, spec 043) or
+  - `pending` ✓ — a new request. It holds no seat. Becomes `approved` ✓ or `denied` ✓ (an admin, before the class
+    starts), or ends as `withdrawn` ✓ (the student, before the class starts), `expired` ✓ (still pending when the
+    class starts) or `classCancelled` ✓ (the class was cancelled).
+  - `approved` ✓ — holds a seat; `decidedAt` is when it was approved. Ends as `classCancelled` ✓, or later `cancelled` (the student, spec 043) or
     `takenOut` (an admin, spec 044).
-  - `denied`, `withdrawn`, `expired`, `cancelled`, `takenOut`, `classCancelled` — ended: kept as history, never
+  - `denied` ✓ — refused by an admin, with the reason when one was written; `decidedAt` is when (`endedAt` stays
+    empty). The student may request again.
+  - `withdrawn`, `expired`, `cancelled`, `takenOut`, `classCancelled` — ended: kept as history, never
     changed again.
 - **Open enrolment**: a `pending` or `approved` one — the student's one live request or seat in that class.
 - **On the waiting list** (not stored): how a `pending` request reads while its class is full (seats taken ≥
   capacity). It is a label, not a status.
 - **Viewer's enrolment** (not stored): the latest enrolment of the person reading a class (by when it was
-  requested, then id), or none — what the student's card and details show.
+  requested, then id), with its reason (the denial reason here, the take-out reason in spec 044), or none — what
+  the student's card and details show.
+- **Pending requests by class** (not stored): what admins decide from — the classes that haven't started, aren't
+  cancelled and have pending requests, by start (then id), each with its capacity, seats taken, location and its
+  requests in the order asked (by when requested, then id), with each student's id, name and photo; the total
+  counts the requests.
 
 ## Relevant business rules
 
@@ -64,10 +72,24 @@ guests come with their specs (042–045).
 - **Cancelling a class ends its open enrolments**: every pending or approved enrolment of the class becomes
   `classCancelled` in one write, and the students whose enrolment ended are handed back to Classes to be told;
   ended enrolments are untouched and their students aren't told.
+- **Only approved admins decide, and only a pending request before its class starts**, checked in this order:
+  the account's status (`user.status.notApproved`, 403), its role (`user.role.notAdmin`, 403 — students and
+  instructors never decide); the enrolment (an id that isn't a UUID, no enrolment, or one whose class is gone →
+  `enrolment.notFound`, 404); for a denial, the reason; `enrolment.notPending` (409 — already decided, withdrawn,
+  expired…); `class.started` (409); for an approval, `enrolment.class.full` (409, seats taken ≥ capacity).
+- **Approving takes the last seat exactly once**: the approval locks the class's row, counts the seats taken,
+  refuses when the class is full and writes only while the request is still pending, all in one transaction, so of
+  two approvals racing for the last seat one wins and the other gets `enrolment.class.full`. The same lock is the
+  one direct enrolment (044) and guests (045) take.
+- **The deny reason is optional**: trimmed, a blank one stored as none, at most 500 characters; longer, or not a
+  string, is `enrolment.reason.max.length` (422). A full class can still be denied.
+- **The student hears of the decision, nobody else**: `enrolment.approved` (the class's discipline and start) or
+  `enrolment.denied` (also the reason, as written, when there is one), through [Notifications](notifications.md).
+  Admins, instructors and the other waiting students are not told, and nobody is told when a seat opens: admins
+  choose who gets it. A notification that fails never changes the answer or the decision.
 - **Seats taken are the approved enrolments** (guests join with spec 045); **the students** are the approved
   ones, in the order they were approved (then by id); **pending requests** are the pending ones. Withdrawn,
-  expired, class-cancelled and every other ended enrolment count nowhere. Nothing approves a request yet, so the
-  seats and the students still read 0 and nobody.
+  expired, class-cancelled, denied and every other ended enrolment count nowhere.
 - **A deleted or removed student's requests stay as they are** until spec 043 releases them.
 
 ## Who can do what
@@ -77,6 +99,8 @@ guests come with their specs (042–045).
   earlier one ended, and sees their latest enrolment on every class they read.
 - **An approved instructor or admin** — can't request; reads no enrolment of their own on any class; is told of
   every new request (admins all of them, instructors those of the classes they teach).
+- **An approved admin** — lists the pending requests by class, approves one while its class has a free seat and
+  hasn't started, and denies one, with an optional reason, before the class starts.
 - **Nobody** — expiring requests and ending them for a cancelled class happen without an actor.
 
 ## Boundaries
@@ -87,14 +111,15 @@ discipline, start, end, capacity, cancellation, instructors and whether its disc
 and a student's name through its own contracts, which the backend fulfils. It answers Classes' contracts for the
 roster, the seats taken, the pending requests, the viewer's enrolment and closing a cancelled class's
 enrolments, through adapters the backend provides; Classes still decides when a class is cancelled and who else is
-told. It doesn't send notifications itself: the new-request and expiry notices go through its own contract, which
-[Notifications](notifications.md) fulfils. It doesn't read the clock directly. Approving and denying requests,
-the admins' "Class enrolments" tool and the ordered waiting list (spec 042), cancelling a seat and its deadline
-(043), direct enrolment and taking out (044), guests (045), the waiting-list switch (046), telling students of
-class edits and location changes (047) and the student's "Minhas aulas" (048) aren't built. In the app, students
-request from a class's details (a sheet with the class, the cancellation deadline and the rule to accept), withdraw
-(with a confirmation, or at once from the waiting list), and see their status on the details and on the Agenda's
-cards.
+told. It doesn't send notifications itself: the new-request, decision and expiry notices go through its own
+contract, which [Notifications](notifications.md) fulfils. It doesn't read the clock directly. Cancelling a seat and
+its deadline (043), direct enrolment and taking out (044), guests (045), the waiting-list switch (046), telling
+students of class edits and location changes (047) and the student's "Minhas aulas" (048) aren't built, nor a
+history of who decided or undoing a decision. In the app, students request from a class's details (a sheet with
+the class, the cancellation deadline and the rule to accept), withdraw (with a confirmation, or at once from the
+waiting list), and see their status on the details and on the Agenda's cards — "Você está inscrito" once approved,
+"Pedido recusado" with a sheet showing the school's reason and "Pedir novamente" once denied. Admins decide in the
+"Inscrições em aulas" tool, reached from a row on their home with the number of requests.
 
 ## Spec history
 
@@ -104,3 +129,9 @@ cards.
   request; pending requests expire when the class starts; a cancelled class's open enrolments end as
   `classCancelled`; the roster, seats, pending requests and the viewer's enrolment read for Classes; the app's
   request and withdraw sheets, the student's button, banners and card chip, and the push taps.
+- `042-enrolment-decisions` — admins list the pending requests by class (`GET /enrolments/pending`), approve one
+  while the class has a free seat (`POST /enrolments/:id/approve`, a locked transaction so the last seat goes once)
+  and deny one with an optional reason (`POST /enrolments/:id/deny`); the student is told (`enrolment.approved` /
+  `enrolment.denied`), nobody else, and nobody when a seat opens; `reason` on the viewer's enrolment; the app's
+  "Inscrições em aulas" tool and home row, the student's approved and denied banners, chips, the reason sheet and
+  "Pedir novamente", and the decision push taps.

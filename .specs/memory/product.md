@@ -190,13 +190,17 @@ Listed in the order people meet them.
     requests at the same moment leave one). Every approved admin and every instructor of the class is told of each
     request, each person once. Pending requests expire when the class starts, and the student is told; cancelling
     a class ends its pending and approved enrolments as `class cancelled` and tells those students with the
-    instructors. The statuses `approved`, `denied`, `cancelled` and `taken out` exist but nothing produces them
-    yet (specs 042–044).
+    instructors.
+  - As built (spec 042): approved admins see the pending requests grouped by class — the classes that haven't
+    started and aren't cancelled, by start — with each class's occupancy and its requests in the order asked,
+    with the time; they approve one while the class has a free seat and hasn't started (two approvals for the
+    last seat leave exactly one) and deny one with an optional reason (up to 500 characters). Only the student is
+    told, with the reason when one was written; nobody is told when a seat opens. A denied student may request
+    again. The statuses `cancelled` and `taken out` exist but nothing produces them yet (specs 043–044).
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
-  photo, or initials while there is no photo); guests count in the seats taken but aren't listed. As built (spec
-  041) they are counted from the stored enrolments; with nothing approving a request yet, every class still reads
-  0 and nobody.
+  photo, or initials while there is no photo); guests count in the seats taken but aren't listed. As built (specs
+  041–042) they are counted from the stored enrolments, and a seat is taken when an admin approves a request.
 - **Guest** (`guest`): someone without an account trying surf or skate, put into one class by an admin. Key
   fields: name, WhatsApp number. Takes a seat; only in a class that hasn't started and has a free seat. Gets
   nothing from the app; admins are warned of that when they edit or cancel a class with guests. Shown as
@@ -796,7 +800,26 @@ conseguiu vaga" when the class starts with the request still pending, and "Aula 
 for is cancelled, each opening the class. The seats, the students and the "not empty" check of deleting a class now
 count stored enrolments. All copy is in pt-BR, es-ES and en-US.
 
-Active specs: none in progress; specs 042–048 (the rest of enrolment) are planned.
+**Admins approve and deny class requests** (spec `042-enrolment-decisions`) — while requests are pending, an admin's
+home shows the row "Inscrições em aulas" with "N pedidos" under "Ferramentas", after "Entrar na escola". The tool's
+header reads "Inscrições em aulas" with "N pedidos · M aulas", and each class with pending requests (not started, not
+cancelled, by start) gets a card: a day block (weekday, day, month), "Surf · Iniciante", the time range, the location,
+"Máx. N alunos", "X vagas livres" or "Esgotado" (red) and an occupancy bar; then one card per request with the
+student's avatar, name and "Pediu às 09:12 · 19 out", "Recusar" and "Inscrever". "Inscrever" approves at once
+("<nome> inscrito · aluno avisado"); "Recusar" opens "Recusar inscrição?" with an optional reason, and "Recusar e
+avisar" denies ("<nome> recusado · aluno avisado"); a decided card leaves. A full class shows "Lista de espera · por
+ordem de pedido", the position ("1º", "2º"…) before each name, "Inscrever" disabled and the note "Inscrever fica
+bloqueado enquanto a turma estiver cheia. Aumente a lotação ou espere abrir uma vaga."; with nothing left it shows
+"Nada à espera" / "Todas as inscrições foram decididas.". A request decided elsewhere, a class that started or one
+that filled up shows its toast and reloads the list. The student gets "Pedido aprovado" ("Sua vaga na aula de Surf de
+19/10 às 08:00 está confirmada.") or "Pedido recusado" (the reason as written, or a default line), each opening the
+class; there an approved request shows "Você está inscrito" / "Sua vaga está garantida." with no button and the
+Agenda chip "Aprovado", and a denied one shows "Pedido recusado" / "Toque para ver o motivo.", which opens a sheet
+with the class, "Motivo da escola" and the reason (or "Sem motivo indicado."), plus "Pedir novamente" until the class
+starts, and the chip "Recusado". An admin's "Novo pedido de vaga" now opens the tool. All copy is in pt-BR, es-ES and
+en-US.
+
+Active specs: none in progress; specs 043–048 (the rest of enrolment) are planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -874,14 +897,14 @@ Active specs: none in progress; specs 042–048 (the rest of enrolment) are plan
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On enrolment requests (spec 041), each planned in its own spec: admins approving and denying requests, the
-  "Class enrolments" tool and the ordered waiting list, and the "Você está inscrito" / "Pedido recusado" states
-  (042); cancelling an approved seat, the deadline checks, and releasing a deleted or removed student's requests
+- On enrolment requests (specs 041–042), each planned in its own spec: cancelling an approved seat, the deadline checks, and releasing a deleted or removed student's requests
   and seats (043 — until then they stay as they are); direct enrolment and taking a student out (044); guests
   (045); the waiting-list switch (046 — until then it is always on); telling students and people with pending
   requests about class edits and location changes (047); the student's "Minhas aulas" tab and history (048).
   Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
-  success style for toasts (every toast uses the error style).
+  success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
+  requests on the admin's class details, filtering or searching the tool, a stored history of who decided and
+  when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
   admin.

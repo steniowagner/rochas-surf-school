@@ -15,20 +15,20 @@ describe('PrismaViewerEnrolmentReader', () => {
   it('keeps the latest enrolment of each class (newest first by request, then id)', async () => {
     const { enrolment, reader } = setup();
     enrolment.findMany.mockResolvedValue([
-      { id: 'e-3', classId: 'c-1', status: 'pending', requestedAt: NEWER },
-      { id: 'e-2', classId: 'c-2', status: 'withdrawn', requestedAt: NEWER },
-      { id: 'e-1', classId: 'c-1', status: 'expired', requestedAt: OLDER },
+      { id: 'e-3', classId: 'c-1', status: 'pending', requestedAt: NEWER, reason: null },
+      { id: 'e-2', classId: 'c-2', status: 'denied', requestedAt: NEWER, reason: 'Sem vaga' },
+      { id: 'e-1', classId: 'c-1', status: 'expired', requestedAt: OLDER, reason: null },
     ]);
 
     const out = await reader.findLatest('u-1', ['c-1', 'c-2', 'c-3']);
 
     expect(enrolment.findMany).toHaveBeenCalledWith({
       where: { studentId: 'u-1', classId: { in: ['c-1', 'c-2', 'c-3'] } },
-      select: { id: true, classId: true, status: true, requestedAt: true },
+      select: { id: true, classId: true, status: true, requestedAt: true, reason: true },
       orderBy: [{ requestedAt: 'desc' }, { id: 'desc' }],
     });
-    expect(out.get('c-1')).toEqual({ id: 'e-3', status: 'pending', requestedAt: NEWER });
-    expect(out.get('c-2')).toEqual({ id: 'e-2', status: 'withdrawn', requestedAt: NEWER });
+    expect(out.get('c-1')).toEqual({ id: 'e-3', status: 'pending', requestedAt: NEWER, reason: null });
+    expect(out.get('c-2')).toEqual({ id: 'e-2', status: 'denied', requestedAt: NEWER, reason: 'Sem vaga' });
     expect(out.has('c-3')).toBe(false);
   });
 

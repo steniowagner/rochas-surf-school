@@ -97,13 +97,14 @@ The classes themselves, and how a batch becomes classes.
   end (`HH:mm`, the class ends on its start day), location, instructors, capacity, notes — compared field by field
   with the stored class.
 - **Seats taken** (not stored): how many seats of a class are held — its approved students plus its guests;
-  counted by [Enrolment](enrolment.md) from its approved enrolments (guests join with spec 045). Nothing approves a
-  request before spec 042, so it still reads 0.
+  counted by [Enrolment](enrolment.md) from its approved enrolments, which admins produce by approving requests
+  (guests join with spec 045).
 - **Class roster** (not stored): the seats taken and the approved students (id, name, photo or none) of a class,
   read for many classes at once, from Enrolment.
 - **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer, from
   Enrolment.
-- **Reader's enrolment** (not stored, `myEnrolment`): the latest enrolment (id, status, when requested) of the
+- **Reader's enrolment** (not stored, `myEnrolment`): the latest enrolment (id, status, when requested, and the
+  reason — the admin's denial reason, else none) of the
   person reading the class, by when it was requested and then id, or none; read for many classes at once, from
   Enrolment, for every role (instructors and admins never have one).
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
@@ -418,3 +419,5 @@ which stops that account from being erased while the link exists — a decision 
   a class ends its open enrolments through another new contract and tells those students `class.cancelled` with the
   instructors (each person once); the app's details take the student's request button (`canEnrol`) and the Agenda's
   cards the enrolment chip (`showEnrolment`), both only in the student's flow.
+- `042-enrolment-decisions` — the reader's enrolment carries its `reason` (`null` when none); the seats taken and
+  the roster now grow as admins approve requests in [Enrolment](enrolment.md).

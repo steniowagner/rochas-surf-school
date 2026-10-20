@@ -135,6 +135,7 @@ describe("ListWeekClasses", () => {
       id: "e-1",
       status: "pending",
       requestedAt: "2026-10-14T10:00:00.000Z",
+      reason: null,
     });
     expect(byId["wed-early"]!.myEnrolment).toBeNull();
     expect(viewerEnrolments.calls).toHaveLength(1);

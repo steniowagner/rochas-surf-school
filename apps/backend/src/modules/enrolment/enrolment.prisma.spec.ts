@@ -48,15 +48,25 @@ function knownError(code: string) {
 
 function setup() {
   const enrolment = {
+    count: vi.fn(),
+    groupBy: vi.fn(),
     create: vi.fn(),
     findUnique: vi.fn(),
     findMany: vi.fn(),
     updateMany: vi.fn(async () => ({ count: 1 })),
     updateManyAndReturn: vi.fn(),
   };
-  const repository = new PrismaEnrolmentRepository({ enrolment } as unknown as PrismaService);
+  const schoolClass = { findMany: vi.fn() };
+  const queryRaw = vi.fn();
+  const tx = { enrolment, $queryRaw: queryRaw };
+  const prisma = {
+    enrolment,
+    schoolClass,
+    $transaction: vi.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)),
+  };
+  const repository = new PrismaEnrolmentRepository(prisma as unknown as PrismaService);
 
-  return { enrolment, repository };
+  return { enrolment, schoolClass, queryRaw, prisma, repository };
 }
 
 describe('PrismaEnrolmentRepository', () => {
@@ -191,6 +201,125 @@ describe('PrismaEnrolmentRepository', () => {
         OTHER_ID,
       ]);
       expect(out.every((item) => item.status === 'classCancelled')).toBe(true);
+    });
+  });
+
+  describe('findPendingByClass', () => {
+    const pendingClass = (id: string, requests: unknown[]) => ({
+      id,
+      discipline: 'surf',
+      level: 'beginner',
+      startsAt: STARTS_AT,
+      endsAt: new Date('2026-10-19T12:00:00.000Z'),
+      capacity: 8,
+      location: { name: 'Praia do Futuro' },
+      enrolments: requests,
+    });
+    const request = {
+      id: ID,
+      requestedAt: REQUESTED_AT,
+      student: { id: STUDENT_ID, name: 'Ana Souza', photoUrl: null },
+    };
+
+    it('reads the upcoming classes with their pending requests and the seats taken', async () => {
+      const { enrolment, schoolClass, repository } = setup();
+      schoolClass.findMany.mockResolvedValue([pendingClass(CLASS_ID, [request]), pendingClass(OTHER_ID, [request])]);
+      enrolment.groupBy.mockResolvedValue([{ classId: CLASS_ID, _count: { _all: 3 } }]);
+
+      const out = await repository.findPendingByClass(NOW);
+
+      expect(schoolClass.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { startsAt: { gt: NOW }, cancelledAt: null, enrolments: { some: { status: 'pending' } } },
+          orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+        }),
+      );
+      expect(enrolment.groupBy).toHaveBeenCalledWith({
+        by: ['classId'],
+        where: { classId: { in: [CLASS_ID, OTHER_ID] }, status: 'approved' },
+        _count: { _all: true },
+      });
+      expect(out).toEqual([
+        { ...pendingClass(CLASS_ID, []), enrolments: undefined, seatsTaken: 3, requests: [request] },
+        { ...pendingClass(OTHER_ID, []), enrolments: undefined, seatsTaken: 0, requests: [request] },
+      ].map(({ enrolments: _ignored, ...item }) => item));
+    });
+
+    it('answers nothing, and counts nothing, when no class has a pending request', async () => {
+      const { enrolment, schoolClass, repository } = setup();
+      schoolClass.findMany.mockResolvedValue([]);
+
+      expect(await repository.findPendingByClass(NOW)).toEqual([]);
+      expect(enrolment.groupBy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('approve', () => {
+    function lockedClass(capacity: number, taken: number) {
+      const harness = setup();
+      harness.enrolment.findUnique.mockResolvedValue({ classId: CLASS_ID, status: 'pending' });
+      harness.queryRaw.mockResolvedValue([{ capacity }]);
+      harness.enrolment.count.mockResolvedValue(taken);
+      return harness;
+    }
+
+    it('locks the class, counts the seats and approves while the enrolment is pending', async () => {
+      const { enrolment, queryRaw, prisma, repository } = lockedClass(8, 7);
+
+      expect(await repository.approve(ID, NOW)).toBe('approved');
+      expect(prisma.$transaction).toHaveBeenCalledOnce();
+      expect(String(queryRaw.mock.calls[0][0].sql)).toContain('FOR UPDATE');
+      expect(queryRaw.mock.calls[0][0].values).toEqual([CLASS_ID]);
+      expect(enrolment.count).toHaveBeenCalledWith({ where: { classId: CLASS_ID, status: 'approved' } });
+      expect(enrolment.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: 'pending' },
+        data: { status: 'approved', decidedAt: NOW, updatedAt: NOW },
+      });
+    });
+
+    it('answers full, and writes nothing, when the seats are taken', async () => {
+      const { enrolment, repository } = lockedClass(8, 8);
+
+      expect(await repository.approve(ID, NOW)).toBe('full');
+      expect(enrolment.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('answers notPending for a missing or decided enrolment and for a class that is gone', async () => {
+      const missing = setup();
+      missing.enrolment.findUnique.mockResolvedValue(null);
+      const decided = setup();
+      decided.enrolment.findUnique.mockResolvedValue({ classId: CLASS_ID, status: 'denied' });
+      const gone = setup();
+      gone.enrolment.findUnique.mockResolvedValue({ classId: CLASS_ID, status: 'pending' });
+      gone.queryRaw.mockResolvedValue([]);
+
+      expect(await missing.repository.approve(ID, NOW)).toBe('notPending');
+      expect(await decided.repository.approve(ID, NOW)).toBe('notPending');
+      expect(await gone.repository.approve(ID, NOW)).toBe('notPending');
+      expect(missing.queryRaw).not.toHaveBeenCalled();
+      expect(decided.queryRaw).not.toHaveBeenCalled();
+    });
+
+    it('answers notPending when the conditional write loses', async () => {
+      const { enrolment, repository } = lockedClass(8, 0);
+      enrolment.updateMany.mockResolvedValue({ count: 0 });
+
+      expect(await repository.approve(ID, NOW)).toBe('notPending');
+    });
+  });
+
+  describe('deny', () => {
+    it('writes the reason only while the enrolment is pending and says it wrote', async () => {
+      const { enrolment, repository } = setup();
+
+      expect(await repository.deny(ID, 'Sem vaga', NOW)).toBe(true);
+      expect(enrolment.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: 'pending' },
+        data: { status: 'denied', reason: 'Sem vaga', decidedAt: NOW, updatedAt: NOW },
+      });
+
+      enrolment.updateMany.mockResolvedValue({ count: 0 });
+      expect(await repository.deny(ID, null, NOW)).toBe(false);
     });
   });
 });

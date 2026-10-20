@@ -15,7 +15,7 @@ export class PrismaViewerEnrolmentReader implements ViewerEnrolmentReader {
 
     const records = await this.prisma.enrolment.findMany({
       where: { studentId: viewerId, classId: { in: classIds } },
-      select: { id: true, classId: true, status: true, requestedAt: true },
+      select: { id: true, classId: true, status: true, requestedAt: true, reason: true },
       orderBy: [{ requestedAt: 'desc' }, { id: 'desc' }],
     });
 

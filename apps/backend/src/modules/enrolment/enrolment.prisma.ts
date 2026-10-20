@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ApproveResult,
   Enrolment,
   EnrolmentRepository,
   ExpirableEnrolment,
   OPEN_ENROLMENT_STATUSES,
+  PendingRequestsClass,
 } from '@rochas-surf-school/enrolment';
 import { ConflictError } from '@rochas-surf-school/shared';
 import { PrismaService } from '../../db/prisma.service.js';
@@ -89,6 +91,94 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
     return records
       .sort((a, b) => a.requestedAt.getTime() - b.requestedAt.getTime() || a.id.localeCompare(b.id))
       .map((record) => this.toDomain(record));
+  }
+
+  async findPendingByClass(now: Date): Promise<PendingRequestsClass[]> {
+    const classes = await this.prisma.schoolClass.findMany({
+      where: { startsAt: { gt: now }, cancelledAt: null, enrolments: { some: { status: 'pending' } } },
+      select: {
+        id: true,
+        discipline: true,
+        level: true,
+        startsAt: true,
+        endsAt: true,
+        capacity: true,
+        location: { select: { name: true } },
+        enrolments: {
+          where: { status: 'pending' },
+          orderBy: [{ requestedAt: 'asc' }, { id: 'asc' }],
+          select: {
+            id: true,
+            requestedAt: true,
+            student: { select: { id: true, name: true, photoUrl: true } },
+          },
+        },
+      },
+      orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+    });
+
+    if (classes.length === 0) {
+      return [];
+    }
+
+    const taken = await this.prisma.enrolment.groupBy({
+      by: ['classId'],
+      where: { classId: { in: classes.map((item) => item.id) }, status: 'approved' },
+      _count: { _all: true },
+    });
+    const seatsTaken = new Map(taken.map((item) => [item.classId, item._count._all]));
+
+    return classes.map(({ enrolments, ...item }) => ({
+      ...item,
+      seatsTaken: seatsTaken.get(item.id) ?? 0,
+      requests: enrolments,
+    }));
+  }
+
+  async approve(id: string, now: Date): Promise<ApproveResult> {
+    return this.prisma.$transaction(async (tx) => {
+      const stored = await tx.enrolment.findUnique({
+        where: { id },
+        select: { classId: true, status: true },
+      });
+
+      if (!stored || stored.status !== 'pending') {
+        return 'notPending';
+      }
+
+      // The class row is the lock every seat change takes, so two approvals for the last seat run one after the other.
+      const [locked] = await tx.$queryRaw<{ capacity: number }[]>(
+        Prisma.sql`SELECT capacity FROM classes WHERE id = ${stored.classId}::uuid FOR UPDATE`,
+      );
+
+      if (!locked) {
+        return 'notPending';
+      }
+
+      const taken = await tx.enrolment.count({
+        where: { classId: stored.classId, status: 'approved' },
+      });
+
+      if (taken >= locked.capacity) {
+        return 'full';
+      }
+
+      const { count } = await tx.enrolment.updateMany({
+        where: { id, status: 'pending' },
+        data: { status: 'approved', decidedAt: now, updatedAt: now },
+      });
+
+      return count === 1 ? 'approved' : 'notPending';
+    });
+  }
+
+  async deny(id: string, reason: string | null, now: Date): Promise<boolean> {
+    const { count } = await this.prisma.enrolment.updateMany({
+      where: { id, status: 'pending' },
+      data: { status: 'denied', reason, decidedAt: now, updatedAt: now },
+    });
+
+    return count === 1;
   }
 
   /** The check sits on the write itself, so a race leaves exactly one winner. */

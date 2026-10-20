@@ -112,6 +112,66 @@ describe("FakeEnrolmentRepository", () => {
   });
 });
 
+describe("FakeEnrolmentRepository decisions", () => {
+  const other = "8e0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b";
+
+  it("approves a pending request while the class has a free seat", async () => {
+    const pending = buildEnrolment();
+    const repository = new FakeEnrolmentRepository(
+      [pending, buildEnrolment({ studentId: other, status: "approved" })],
+      [buildEnrolmentClass({ capacity: 2 })],
+    );
+
+    expect(await repository.approve(pending.id, NOW)).toBe("approved");
+    expect((await repository.findById(pending.id))?.status).toBe("approved");
+  });
+
+  it("refuses a full class, a decided request and a missing one", async () => {
+    const pending = buildEnrolment();
+    const decided = buildEnrolment({ studentId: other, status: "denied" });
+    const repository = new FakeEnrolmentRepository(
+      [pending, decided, buildEnrolment({ studentId: "1f2e3d4c-5b6a-4978-8a9b-0c1d2e3f4a5b", status: "approved" })],
+      [buildEnrolmentClass({ capacity: 1 })],
+    );
+
+    expect(await repository.approve(pending.id, NOW)).toBe("full");
+    expect(await repository.approve(decided.id, NOW)).toBe("notPending");
+    expect(await repository.approve("missing", NOW)).toBe("notPending");
+    expect((await repository.findById(pending.id))?.status).toBe("pending");
+  });
+
+  it("denies only a pending request", async () => {
+    const pending = buildEnrolment();
+    const repository = new FakeEnrolmentRepository([pending]);
+
+    expect(await repository.deny(pending.id, "Sem vaga", NOW)).toBe(true);
+    expect((await repository.findById(pending.id))?.reason).toBe("Sem vaga");
+    expect(await repository.deny(pending.id, null, NOW)).toBe(false);
+  });
+
+  it("reads the pending classes it was given, leaving out started and empty ones", async () => {
+    const repository = new FakeEnrolmentRepository();
+    const upcoming = {
+      id: CLASS_ID,
+      discipline: "surf" as const,
+      level: "beginner" as const,
+      startsAt: TOMORROW,
+      endsAt: TOMORROW,
+      capacity: 8,
+      seatsTaken: 0,
+      location: { name: "Praia" },
+      requests: [{ id: "r1", requestedAt: NOW, student: { id: STUDENT.id, name: "Ana", photoUrl: null } }],
+    };
+    repository.pendingClasses = [
+      upcoming,
+      { ...upcoming, id: "started", startsAt: new Date(NOW.getTime() - 1) },
+      { ...upcoming, id: "empty", requests: [] },
+    ];
+
+    expect(await repository.findPendingByClass(NOW)).toEqual([upcoming]);
+  });
+});
+
 describe("the other fakes", () => {
   it("reads classes and names", async () => {
     const found = buildEnrolmentClass();
@@ -141,7 +201,15 @@ describe("the other fakes", () => {
     expect(notifier.requestedEvents).toEqual([requested]);
     expect(notifier.expiredEvents).toEqual([expired]);
 
+    const approved = { studentId: STUDENT.id, classId: CLASS_ID, discipline: "surf" as const, startsAt: TOMORROW };
+    await notifier.requestApproved(approved);
+    await notifier.requestDenied({ ...approved, reason: "Sem vaga" });
+    expect(notifier.approvedEvents).toEqual([approved]);
+    expect(notifier.deniedEvents).toEqual([{ ...approved, reason: "Sem vaga" }]);
+
     notifier.error = new Error("push down");
+    await expect(notifier.requestApproved(approved)).rejects.toThrow("push down");
+    await expect(notifier.requestDenied(approved)).rejects.toThrow("push down");
     await expect(notifier.seatRequested(requested)).rejects.toThrow("push down");
     await expect(notifier.requestExpired(expired)).rejects.toThrow("push down");
   });

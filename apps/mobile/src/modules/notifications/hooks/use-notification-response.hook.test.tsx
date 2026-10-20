@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import AdminClassesRoute from "@/app/(private)/admin/(tabs)/classes";
+import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorClassesRoute from "@/app/(private)/instructor/(tabs)/classes";
@@ -72,6 +73,7 @@ const routeTree = {
   "(private)/admin/_layout": AdminLayout,
   "(private)/admin/(tabs)/index": AdminRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
+  "(private)/admin/class-requests": AdminClassRequestsRoute,
   "(private)/admin/(tabs)/classes": AdminClassesRoute,
   "(private)/instructor/_layout": InstructorLayout,
   "(private)/instructor/(tabs)/index": InstructorRoute,
@@ -283,7 +285,7 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
-  it.each(["enrolment.expired", "class.cancelled"])(
+  it.each(["enrolment.expired", "enrolment.approved", "enrolment.denied", "class.cancelled"])(
     "opens the class details of a student who taps a %s push",
     async (type) => {
       answerMe(account("approved", "student", true));
@@ -305,19 +307,28 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
-  it.each([
-    ["instructor", "/instructor/class/c-1"],
-    ["admin", "/admin/class/c-1"],
-  ])("opens the class details of an %s who taps an enrolment.requested push", async (role, path) => {
-    answerMe(account("approved", role, true));
-    await openApp(account("approved", role, true));
+  it("opens the class details of an instructor who taps an enrolment.requested push", async () => {
+    answerMe(account("approved", "instructor", true));
+    await openApp(account("approved", "instructor", true));
 
     await tap(response("enrolment.requested", "n1", "c-1"));
 
-    await waitFor(() => expect(app.getPathname()).toBe(path));
+    await waitFor(() => expect(app.getPathname()).toBe("/instructor/class/c-1"));
   });
 
-  it.each(["enrolment.requested", "enrolment.expired"])(
+  it.each([["c-1"], [undefined]])(
+    "opens the class requests tool of an admin who taps an enrolment.requested push (class %s)",
+    async (classId) => {
+      answerMe(account("approved", "admin", true));
+      await openApp(account("approved", "admin", true));
+
+      await tap(response("enrolment.requested", "n1", classId));
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.admin.classRequests));
+    },
+  );
+
+  it.each(["enrolment.approved", "enrolment.denied", "enrolment.expired"])(
     "goes to the resolved flow when a %s push has no class id",
     async (type) => {
       answerMe(account("approved", "admin", true));

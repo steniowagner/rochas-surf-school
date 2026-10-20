@@ -1,8 +1,16 @@
-import { EnrolmentNotifier, RequestExpired, SeatRequested } from "../../src";
+import {
+  EnrolmentNotifier,
+  RequestDecided,
+  RequestDenied,
+  RequestExpired,
+  SeatRequested,
+} from "../../src";
 
 export class FakeEnrolmentNotifier implements EnrolmentNotifier {
   readonly requestedEvents: SeatRequested[] = [];
   readonly expiredEvents: RequestExpired[] = [];
+  readonly approvedEvents: RequestDecided[] = [];
+  readonly deniedEvents: RequestDenied[] = [];
   /** Set to make every notification fail. */
   error: Error | null = null;
 
@@ -14,5 +22,15 @@ export class FakeEnrolmentNotifier implements EnrolmentNotifier {
   async requestExpired(event: RequestExpired): Promise<void> {
     if (this.error) throw this.error;
     this.expiredEvents.push(event);
+  }
+
+  async requestApproved(event: RequestDecided): Promise<void> {
+    if (this.error) throw this.error;
+    this.approvedEvents.push(event);
+  }
+
+  async requestDenied(event: RequestDenied): Promise<void> {
+    if (this.error) throw this.error;
+    this.deniedEvents.push(event);
   }
 }

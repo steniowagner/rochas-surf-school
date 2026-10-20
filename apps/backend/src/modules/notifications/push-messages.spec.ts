@@ -206,6 +206,32 @@ describe('renderPush', () => {
     expect(renderPush('enrolment.expired', params, locale)).toEqual({ title, body });
   });
 
+  it.each([
+    ['pt-BR', 'Pedido aprovado', 'Sua vaga na aula de Surf de 18/10 às 08:00 está confirmada.'],
+    ['es', 'Solicitud aprobada', 'Tu plaza en la clase de Surf del 18/10 a las 08:00 está confirmada.'],
+    ['en', 'Request approved', 'Your seat in the Surf class on 10/18 at 08:00 is confirmed.'],
+  ] as const)('writes the approved request in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('enrolment.approved', params, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Pedido recusado', 'A escola recusou seu pedido para a aula de Surf de 18/10 às 08:00.'],
+    ['es', 'Solicitud rechazada', 'La escuela rechazó tu solicitud para la clase de Surf del 18/10 a las 08:00.'],
+    ['en', 'Request denied', 'The school declined your request for the Surf class on 10/18 at 08:00.'],
+  ] as const)('writes the denied request without a reason in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('enrolment.denied', params, locale)).toEqual({ title, body });
+  });
+
+  it.each(['pt-BR', 'es', 'en'] as const)('shows the denial reason as written in %s', (locale) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT, reason: ' Nível avançado. ' };
+
+    expect(renderPush('enrolment.denied', params, locale).body).toBe('Nível avançado.');
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {

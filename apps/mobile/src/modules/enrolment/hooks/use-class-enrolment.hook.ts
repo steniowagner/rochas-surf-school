@@ -39,6 +39,7 @@ export const useClassEnrolment = ({ item, state, canEnrol, reload }: UseClassEnr
   const withdrawRequest = useWithdrawRequest();
   const [requestVisible, setRequestVisible] = useState(false);
   const [withdrawVisible, setWithdrawVisible] = useState(false);
+  const [denialVisible, setDenialVisible] = useState(false);
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
   const sending = useRef(false);
 
@@ -46,7 +47,9 @@ export const useClassEnrolment = ({ item, state, canEnrol, reload }: UseClassEnr
   const open = canEnrol && item !== undefined && state === "not-started";
   const full = item ? isClassFull(item.seatsTaken, item.capacity) : false;
   const cta = open ? getEnrolmentCta(item.myEnrolment, full) : null;
-  const display = open ? getEnrolmentDisplay(item.myEnrolment, full) : null;
+  // A denial stays on the banner after the class started or was cancelled, so the student can still read the reason.
+  const denied = canEnrol && item?.myEnrolment?.status === "denied";
+  const display = open || denied ? getEnrolmentDisplay(item?.myEnrolment ?? null, full) : null;
 
   const showError = (messageKey: string | null) => {
     if (messageKey !== null) {
@@ -124,6 +127,12 @@ export const useClassEnrolment = ({ item, state, canEnrol, reload }: UseClassEnr
   return {
     cta,
     display,
+    // Only the denial banner is pressable: it opens the reason.
+    pressableDisplay: display?.key === "denied",
+    denialVisible,
+    openDenial: () => setDenialVisible(true),
+    closeDenial: () => setDenialVisible(false),
+    denialReason: item?.myEnrolment?.reason ?? null,
     // Students who may still ask for a seat get the invitation on the full-class banner.
     invitesWaitingList: cta?.key === "joinWaitingList",
     pressCta,

@@ -7,11 +7,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
 import { useTheme } from "@/hooks/use-theme";
+import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 
 import { useRegistrations } from "../hooks/use-registrations.hook";
 
 const openRegistrations = () => router.push(routes.admin.registrations);
+const openClassRequests = () => router.push(routes.admin.classRequests);
 const openPeople = () => router.push(routes.admin.people);
 const openNewClass = () => router.push(routes.admin.newClass());
 const openCancellationRules = () => router.push(routes.admin.cancellationRules);
@@ -21,9 +23,12 @@ export function AdminScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { data } = useRegistrations();
+  const { data: pendingRequests } = usePendingRequests();
 
   // The count shows once loaded (zero included); while loading or after an error the row has none.
   const count = data?.items.length;
+  // The requests' row shows its count only while some are waiting.
+  const requestsCount = pendingRequests?.total;
 
   return (
     <View
@@ -60,6 +65,21 @@ export function AdminScreen() {
             {count !== undefined ? (
               <Text className="ds-text-list-subtitle text-ink-2">
                 {t("admin.home.waiting", { count })}
+              </Text>
+            ) : null}
+            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={openClassRequests}
+            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
+          >
+            <Text className="ds-text-list-title flex-1 text-ink">
+              {t("admin.home.classRequestsRow")}
+            </Text>
+            {requestsCount ? (
+              <Text className="ds-text-list-subtitle text-ink-2">
+                {t("admin.home.classRequestsCount", { count: requestsCount })}
               </Text>
             ) : null}
             <Ionicons name="chevron-forward" size={18} color={theme.ink2} />

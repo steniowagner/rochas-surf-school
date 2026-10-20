@@ -893,6 +893,8 @@ A pending request SHALL NOT hold a seat. A class's seats taken SHALL count its a
 
 #### Approving a request
 
+_Implemented in spec 042-enrolment-decisions._
+
 Admins SHALL be able to approve a pending request only while the class has a free seat and hasn't started. The student SHALL be notified.
 
 - _Free seat:_ When an admin approves a pending request for a class with a free seat, then the student takes a seat and is notified.
@@ -900,13 +902,16 @@ Admins SHALL be able to approve a pending request only while the class has a fre
 
 #### Denying a request
 
+_Implemented in spec 042-enrolment-decisions (the reason is optional, up to 500 characters)._
+
 Admins SHALL be able to deny a pending request and give a reason. The student SHALL be notified, with the reason when one was given.
 
 - _Request denied:_ When an admin denies a request and writes a reason, then the student is notified of the denial and the reason.
 
 #### Waiting list
 
-_Partly implemented in spec 041-enrolment-requests (students see their pending request of a full class as "on the waiting list"; the admins' ordered view comes with spec 042)._
+_Partly implemented in spec 041-enrolment-requests (students see their pending request of a full class as "on the waiting list")._
+_Implemented in spec 042-enrolment-decisions (admins see a full class's requests as its waiting list, in the order asked, with the time of each; a seat frees up only once cancelling a seat or taking a student out exists, specs 043–044)._
 
 While a class has no free seat, its pending requests SHALL be shown as "on the waiting list" to their students and to admins. Admins SHALL see a class's waiting list in the order students asked, with the time each one asked.
 
@@ -915,6 +920,8 @@ While a class has no free seat, its pending requests SHALL be shown as "on the w
 - _Admin views the waiting list:_ When an admin views a full class's requests, then they are listed in the order students asked, each with the time it was made.
 
 #### No notice when a seat opens
+
+_Implemented in spec 042-enrolment-decisions._
 
 Students on the waiting list SHALL NOT be notified when a seat opens. They SHALL be notified when their request is approved, denied or expires.
 
@@ -997,7 +1004,8 @@ The system SHALL erase a guest's name and WhatsApp number 30 days after their cl
 
 #### Request statuses
 
-_Partly implemented in spec 041-enrolment-requests (every status is stored; a class's details and the student's Agenda card show pending, "on the waiting list", withdrawn and expired, and a class-cancelled request shows the class's cancelled banner; approved, denied, cancelled and taken out come with specs 042–044)._
+_Partly implemented in spec 041-enrolment-requests (every status is stored; a class's details and the student's Agenda card show pending, "on the waiting list", withdrawn and expired, and a class-cancelled request shows the class's cancelled banner)._
+_Partly implemented in spec 042-enrolment-decisions (approved and denied, on the details and the Agenda card; a denial's reason opens from its banner; cancelled and taken out come with specs 043–044)._
 
 Students SHALL be able to see the status of each of their requests: pending (shown as "on the waiting list" while the class is full), approved, denied, withdrawn, cancelled, taken out, expired, or class cancelled.
 

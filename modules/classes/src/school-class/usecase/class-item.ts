@@ -25,6 +25,7 @@ export interface ClassItemEnrolment {
   id: string;
   status: string;
   requestedAt: string;
+  reason: string | null;
 }
 
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
@@ -62,6 +63,7 @@ export function toClassItem(
           id: myEnrolment.id,
           status: myEnrolment.status,
           requestedAt: myEnrolment.requestedAt.toISOString(),
+          reason: myEnrolment.reason ?? null,
         }
       : null,
   };

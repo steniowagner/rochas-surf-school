@@ -2,13 +2,14 @@
 id: "042"
 slug: enrolment-decisions
 title: "Admins approve and deny class requests"
-status: accepted
+status: finished
 created: 2026-10-19
 started: 2026-10-20
 base_commit: d3d00e160fbd02f277a9e13759df2775533c7025
 reviewed_commit: 46350bcff7e3faf6f27430637fbaef653be4db24
 fronts: [enrolment, classes, notifications, backend, mobile]
 depends_on: ["041"]
+finished: 2026-10-20
 ---
 
 # 042 — Admins approve and deny class requests

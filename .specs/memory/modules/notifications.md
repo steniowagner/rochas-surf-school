@@ -43,6 +43,10 @@ What the person is told, and how it reaches them.
     each person once.
   - `enrolment.expired` — the person's pending request was still pending when the class started; details: the
     class's id, its discipline and start.
+  - `enrolment.approved` — an admin approved the person's request; details: the class's id, its discipline and
+    start.
+  - `enrolment.denied` — an admin denied the person's request; details: the class's id, its discipline, its start
+    and the admin's reason (`reason`, as written) when there is one.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -59,6 +63,8 @@ What the person is told, and how it reaches them.
   | `location.changed` | Class location changed | {locationName} changed. Check your next class there. / {locationName} changed. Check your {count} upcoming classes there. |
   | `enrolment.requested` | New seat request | {studentName} requested a seat in the {discipline} class on {MM/dd} at {HH:mm}. |
   | `enrolment.expired` | You didn't get a seat | The {discipline} class on {MM/dd} at {HH:mm} started without a seat for your request. |
+  | `enrolment.approved` | Request approved | Your seat in the {discipline} class on {MM/dd} at {HH:mm} is confirmed. |
+  | `enrolment.denied` | Request denied | the reason as written, or "The school declined your request for the {discipline} class on {MM/dd} at {HH:mm}." |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
@@ -85,7 +91,12 @@ What the person is told, and how it reaches them.
   aula de {discipline} de {dd/MM} às {HH:mm}.", es "Nueva solicitud de plaza" / "{studentName} pidió plaza en la
   clase de {discipline} del {dd/MM} a las {HH:mm}."; `enrolment.expired`: pt-BR "Você não conseguiu vaga" / "A aula
   de {discipline} de {dd/MM} às {HH:mm} começou sem vaga para o seu pedido.", es "No conseguiste plaza" / "La clase de
-  {discipline} del {dd/MM} a las {HH:mm} empezó sin plaza para tu solicitud.". The start is written in America/Fortaleza time, the same on every machine.
+  {discipline} del {dd/MM} a las {HH:mm} empezó sin plaza para tu solicitud."; `enrolment.approved`: pt-BR "Pedido
+  aprovado" / "Sua vaga na aula de {discipline} de {dd/MM} às {HH:mm} está confirmada.", es "Solicitud aprobada" /
+  "Tu plaza en la clase de {discipline} del {dd/MM} a las {HH:mm} está confirmada."; `enrolment.denied`: pt-BR
+  "Pedido recusado" / the reason, or "A escola recusou seu pedido para a aula de {discipline} de {dd/MM} às
+  {HH:mm}.", es "Solicitud rechazada" / the reason, or "La escuela rechazó tu solicitud para la clase de
+  {discipline} del {dd/MM} a las {HH:mm}.". The start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
   with the app open reloads the classes of the weeks it shows (a `class.deleted` one, every class shown). Tapping a `class.edited`, `class.unassigned` or
@@ -96,10 +107,12 @@ What the person is told, and how it reaches them.
   its home, also when the push carries no class); one received with the app open reloads every class shown.
   Tapping a `location.changed` push reloads the account and opens its Aulas tab when it is still an instructor or
   an admin (else its home); one received with the app open reloads every class shown and the locations.
-  Tapping an `enrolment.expired` or `class.cancelled` push as a student opens that class's details in the
-  student's flow; tapping an `enrolment.requested` push opens that class's details as an instructor or an admin (a
-  push without a class, or a person who now resolves to another flow, falls back as before). One of the two
-  enrolment pushes received with the app open reloads every class shown.
+  Tapping an `enrolment.expired`, `enrolment.approved`, `enrolment.denied` or `class.cancelled` push as a student
+  opens that class's details in the student's flow; tapping an `enrolment.requested` push opens that class's
+  details as an instructor and the "Inscrições em aulas" tool as an admin (with or without a class id; a push an
+  instructor gets without a class, or a person who now resolves to another flow, falls back as before). Any
+  enrolment push received with the app open reloads every class shown, and an `enrolment.requested` one also the
+  admin's pending requests.
 
 Rules:
 
@@ -163,6 +176,8 @@ Rules:
   receives `class.cancelled`, with the message, unless they cancelled it.
 - **Approved admins and the instructors of a class** — receive `enrolment.requested` for each new request in it.
 - **A student whose request expired** — receives `enrolment.expired`.
+- **A student whose request an admin decided** — receives `enrolment.approved` or `enrolment.denied` (with the
+  reason); nobody else is told of a decision, and nobody of a seat that opens.
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
 - **Approved admins** — receive one `class.noInstructor` when an account deletion leaves classes with nobody,
   unless the deleted account is theirs.
@@ -178,14 +193,14 @@ sign-out, one that deletes the "new registration" notifications about erased acc
 backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
 and removed), class changes (edits, cancellations, deletions), classes left without an instructor and location
 changes; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
-location edit. [Enrolment](enrolment.md) reaches it through its own contract for new requests and expired
+location edit. [Enrolment](enrolment.md) reaches it through its own contract for new, decided and expired
 requests, with the same guarantee. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
 with their specs, as do the notifications of every other event (reactivation requests, role changes, reminders,
-enrolment decisions, broadcasts) and those of an edit or a location change to the classes' students and pending
+seat cancellations, broadcasts) and those of an edit or a location change to the classes' students and pending
 requests (spec 047).
 
 ## Spec history
@@ -222,3 +237,8 @@ requests (spec 047).
   whose enrolment the cancellation ended; in the app, a student's tap on `enrolment.expired` or `class.cancelled`
   opens the class in the student's flow, an admin's or instructor's tap on `enrolment.requested` opens it in theirs,
   and either enrolment push received with the app open reloads the classes.
+- `042-enrolment-decisions` — the `enrolment.approved` (`{ classId, discipline, startsAt }`) and `enrolment.denied`
+  (`{ classId, discipline, startsAt, reason? }`) types and their push copy, to the student only, through
+  Enrolment's contract; in the app, a student's tap on either opens the class in the student's flow, an admin's
+  tap on `enrolment.requested` now opens the "Inscrições em aulas" tool, and an `enrolment.requested` push received
+  with the app open also reloads the admin's pending requests.

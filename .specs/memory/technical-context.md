@@ -95,13 +95,18 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
     for a `class.edited` / `class.unassigned` / `class.cancelled` push with a string `data.classId` (specs 032,
     033), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
-    `data.classId` when it resolves to the `admin` flow (spec 035), else
+    `data.classId` when it resolves to the `admin` flow (spec 035), `router.push(routes.student.classDetail(classId))`
+    for an `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `class.cancelled` push in the `student`
+    flow (specs 041, 042), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
+    the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
+    class id (spec 042), else
     `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
     `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
-    `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037);
-    no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037),
+    the four enrolment pushes invalidate `["classes"]` and `enrolment.requested` also `["enrolments", "pending"]`
+    (specs 041, 042); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -281,7 +286,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   Enrolments (spec 041) are conditional on their status: withdrawing and expiring are `updateMany({ where: { id,
   status: 'pending' } })` (`true` when one row matched, so a racing withdrawal or a second expiry tick changes
   nothing), and closing a cancelled class's open enrolments is one `updateManyAndReturn` over its `pending` /
-  `approved` rows. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
+  `approved` rows. Denying (spec 042) is conditional the same way. Approving is the one **locked** write (spec 042,
+  D-01): one `$transaction` reads the enrolment, takes the class row with `SELECT … FOR UPDATE` (`$queryRaw`),
+  counts the `approved` enrolments, answers `full` at capacity and otherwise writes conditional on `pending`, so two
+  approvals for the last seat run one after the other and leave exactly one; direct enrolment and guests (specs
+  044–045) take the same lock. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
   → `users.id` `ON DELETE SET NULL`.
   `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
@@ -421,8 +430,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `RoleTabs`. The admin tools share `src/components/decision/` — `DecisionCard` (an `avatar` node, title, optional
   subtitle, detail lines and `shadowStyle("card")`; an optional `onPress` makes the upper row — avatar, text and an
   Ionicons `chevron-forward` — one `Pressable` with role `button` labelled by the title, and without it there is no
-  chevron; an `outline` Deny with a Feather `x` and a `success` Approve with a Feather `check`; `disabled` and
-  `loading: "approve" | "deny"`) and `DenySheet` (`BottomModal` + an `inBottomSheet` `TextArea` with a
+  chevron; an `outline` Deny with a Feather `x` and a `success` Approve with a Feather `check`; `disabled`,
+  `approveDisabled` (the Approve alone, spec 042) and `loading: "approve" | "deny"`) and `DenySheet` (`BottomModal` + an `inBottomSheet` `TextArea` with a
   `placeholder` and `label` used only as its accessibility label, a `danger` confirm with a Feather `x-circle` and a
   `subtle` back button (`backLabel`) that closes like a swipe; clears its text when it closes) — with generic props and no registration fields, so "Reactivate accounts" and "Class enrolments" plug in
   their own data and copy. A week or a month to pick a day from is the shared `WeekMonthCalendar`
@@ -448,7 +457,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   so a moved route changes in one place. Each role's folder (`src/app/(private)/<role>/`) has a `Stack` whose
   `(tabs)` group holds the tab bar (`(tabs)/_layout.tsx` renders `RoleTabs`, one route file per tab; the first tab
   is the role's `index`, so `/student`, `/instructor` and `/admin` stay the flows' entry routes); inner screens
-  (`/admin/registrations`, `/admin/people`, `/admin/new-class`, `/admin/edit-class/[id]` —
+  (`/admin/registrations`, `/admin/class-requests` — `routes.admin.classRequests`, spec 042 —, `/admin/people`, `/admin/new-class`, `/admin/edit-class/[id]` —
   `routes.admin.editClass(id)` —, `/instructor/people`, `/<role>/edit-profile`,
   `/<role>/whatsapp`, `/<role>/school-rules`, `/<role>/class/[id]` — `routes.<role>.classDetail(id)`) are routes of the
   role's `Stack`, outside `(tabs)`, so they open above the tab bar, without it, and go back with the native header's back button (and the iOS
@@ -1136,7 +1145,7 @@ guard's 401 `auth.token.invalid`.
 
 ## Enrolment
 
-Spec 041. The domain is `modules/enrolment` (`@rochas-surf-school/enrolment`, aggregate `src/enrolment/`), which
+Specs 041 and 042. The domain is `modules/enrolment` (`@rochas-surf-school/enrolment`, aggregate `src/enrolment/`), which
 depends on `@rochas-surf-school/shared`, `@rochas-surf-school/auth` and `@rochas-surf-school/classes` (`ClassActor`,
 `assertCanReadClasses`, the discipline type); classes never imports it. The backend adapters live in
 `apps/backend/src/modules/enrolment/`: `EnrolmentModule` imports `NotificationsModule` (never `ClassesModule`),
@@ -1150,12 +1159,15 @@ import cycle.
   `approved`), `ENROLMENT_REASON_MAX` 500, the fields `classId`, `studentId`, `status`, `requestedAt`,
   `ruleAcceptedAt`, `decidedAt`, `reason`, `endedAt`, and the transitions `withdraw(now)` / `expire(now)` (from
   `pending`, else 409 `enrolment.notPending`) and `closeForCancelledClass(now)` (from an open status, else 409
-  `enrolment.notOpen`), each setting `endedAt`. Ports (`provider/`): `EnrolmentRepository` (`create`, `findById`,
-  `withdraw(id, now)` and `expire(id, now)` → `boolean`, conditional on `pending`, `findExpirable(now)`,
-  `closeOpenForClass(classId, now)` → the closed enrolments), `EnrolmentClassReader` (`findById` → `{ id,
+  `enrolment.notOpen`), each setting `endedAt`, and `approve(now)` / `deny(reason, now)` (spec 042; from `pending`,
+  else 409 `enrolment.notPending`), which set `decidedAt` (and `reason`) but not `endedAt`. Ports (`provider/`):
+  `EnrolmentRepository` (`create`, `findById`, `withdraw(id, now)` and `expire(id, now)` → `boolean`, conditional on
+  `pending`, `findExpirable(now)`, `closeOpenForClass(classId, now)` → the closed enrolments; spec 042:
+  `findPendingByClass(now)` → `PendingRequestsClass[]`, `approve(id, now)` → `"approved" | "full" | "notPending"`
+  (locked, see Persistence), `deny(id, reason, now)` → `boolean`), `EnrolmentClassReader` (`findById` → `{ id,
   discipline, startsAt, endsAt, capacity, cancelledAt, instructorIds, hasCancellationRule }`), `StudentNameReader`
-  (`findName(id)`), `EnrolmentNotifier` (`seatRequested`, `requestExpired`) and `ClockProvider`; fakes and a factory
-  under `test/mock/`.
+  (`findName(id)`), `EnrolmentNotifier` (`seatRequested`, `requestExpired`, and `requestApproved` / `requestDenied`
+  since spec 042) and `ClockProvider`; fakes and a factory under `test/mock/`.
 - Table `enrolments` (`prisma/models/enrolment.model.prisma`, migration `20261019191737_enrolment`): `id`,
   `class_id` → `classes` `ON DELETE CASCADE`, `student_id` → `users` `ON DELETE RESTRICT`, `status` (Postgres enum
   `enrolment_status`, values exactly as `ENROLMENT_STATUSES`, camelCase), `requested_at`, `rule_accepted_at`,
@@ -1172,22 +1184,40 @@ import cycle.
   `user.status.notApproved` (any role), 404 `enrolment.notFound` (non-UUID, none, another person's, or its class is
   gone), 409 `enrolment.notPending`, 409 `class.started`; the conditional write losing → 409
   `enrolment.notPending`. Nobody is notified.
+- Decisions (spec 042; admins only, `assertCanManageClasses`). `GET /enrolments/pending` (`ListPendingRequests`,
+  declared before the `:id` routes) → 200 `{ total, classes }`: the classes with `startsAt > now`, `cancelledAt`
+  null and a pending enrolment, by `startsAt` then `id`, each `{ id, discipline, level, startsAt, endsAt, capacity,
+  seatsTaken, location: { name }, requests }` (`seatsTaken` from one `groupBy` of the approved enrolments), the
+  requests by `requestedAt` then `id`, each `{ id, requestedAt, student: { id, name, photoUrl } }`; `total` counts
+  the requests. `POST /enrolments/:id/approve` (`ApproveRequest`, no body) and `POST /enrolments/:id/deny`
+  (`DenyRequest`, `{ reason? }`) → 200 `EnrolmentOut` with `approved` / `denied`. Order: 403
+  `user.status.notApproved`, 403 `user.role.notAdmin`, 404 `enrolment.notFound` (non-UUID, none, or its class is
+  gone), deny only 422 `enrolment.reason.max.length` (not a string, or over 500 after trimming; a blank one is
+  `null`), 409 `enrolment.notPending`, 409 `class.started`, approve only 409 `enrolment.class.full` (the locked
+  write answered `full`); a conditional write losing → 409 `enrolment.notPending`. Shared lookups in
+  `usecase/decision.ts`. Then `requestApproved({ studentId, classId, discipline, startsAt })` /
+  `requestDenied({ …, reason? })`, swallowed. `myEnrolment` carries `reason` (`PrismaViewerEnrolmentReader` selects
+  it; `ViewerEnrolment.reason?` is optional on the port).
 - `EnrolmentExpiryJob` (see Scheduled work) runs `ExpirePendingEnrolments` (no actor, output `{ expired }`):
   `findExpirable(now)` (pending enrolments of classes with `startsAt ≤ now` and `cancelledAt` null, joined in SQL),
   then `expire` each and `requestExpired({ studentId, classId, discipline, startsAt })` only for a row that changed;
   notifier errors swallowed. `CloseClassEnrolments` (no actor, `{ classId }` → `{ studentIds }`, each once) backs the
   classes closer.
 - REST Client requests in `enrolment.integration.http`; e2e in `apps/backend/test/enrolment.e2e-spec.ts` (fixed
-  clocks for classes and enrolment, a faked `ExpoPushProvider`, the job run through `app.get(EnrolmentExpiryJob).run()`).
-- Mobile (`apps/mobile/src/modules/enrolment/`, no route of its own): `enrolment.types.ts` (`MyEnrolment`,
-  `EnrolmentStatus`, `EnrolmentResponse`, `RequestSeatRequest`); `ClassItem.myEnrolment` in the classes types.
+  clocks for classes and enrolment, a faked `ExpoPushProvider`, the job run through `app.get(EnrolmentExpiryJob).run()`)
+  and `apps/backend/test/enrolment-decisions.e2e-spec.ts` (spec 042: the list, approve, deny, the concurrent approve
+  for the last seat, the refusals and the notifications).
+- Mobile (`apps/mobile/src/modules/enrolment/`): `enrolment.types.ts` (`MyEnrolment` with `reason`,
+  `EnrolmentStatus`, `EnrolmentResponse`, `RequestSeatRequest`, `PendingRequestsResponse`, `DenyRequestVariables`);
+  `ClassItem.myEnrolment` in the classes types.
   Mutations `useRequestSeat(classId)` and `useWithdrawRequest()` (`apiPost`, no retry — a repeat would notify the
   admins twice — invalidating `["classes"]` on success). `utils/enrolment-cta.ts` (`getEnrolmentCta(myEnrolment,
   full)`: none or `withdrawn` / `expired` → `request` / `requestAgain` (`primary`) or `joinWaitingList` /
   `requestAgain` (`dark`) when full; `pending` → `withdraw` (`outline`) or `leaveWaitingList` (`ghost`) when full;
-  any other status → none), `utils/enrolment-status.ts` (`getEnrolmentDisplay`: `pending` on a full class reads
-  `waitingList` — never stored —, with the banner and chip tone, icon and `enrolment.status.*` keys for `pending`,
-  `waitingList`, `withdrawn`, `expired`; `BANNER_CLASSES` per tone, `toChipTone`), `utils/enrolment-error.ts` (`getRequestSeatErrorKey`,
+  `denied` → `requestAgain`; `approved` and any other status → none), `utils/enrolment-status.ts`
+  (`getEnrolmentDisplay`: `pending` on a full class reads `waitingList` — never stored —, with the banner and chip
+  tone, icon and `enrolment.status.*` keys for `pending`, `waitingList`, `withdrawn`, `expired`, `approved` (`ok`)
+  and `denied` (`bad`, its banner pressable); `BANNER_CLASSES` per tone, `toChipTone`), `utils/enrolment-error.ts` (`getRequestSeatErrorKey`,
   `getWithdrawRequestErrorKey` → `enrolment.errors.*`, `classDetails.notFound` or the shared no-connection /
   generic keys, `null` for an expired session; `shouldReloadClass` for `class.started`, `class.cancelled`,
   `enrolment.alreadyOpen`, `enrolment.notPending`; `isRuleNotAcceptedError`, which refetches the rules). The
@@ -1208,7 +1238,22 @@ import cycle.
   `joinWaitingList`. `ClassesWeekScreen` and `ClassCard` take `showEnrolment` (set only by the student's
   `(tabs)/index.tsx`): the card's status chip in the right slot, in place of "Sem vagas" (the started, finished and
   cancelled chips win). Copy under `enrolment` (`cta`, `status`, `requestSheet`, `withdrawSheet`, `errors`) and
-  `classDetails.full.waitingList`.
+  `classDetails.full.waitingList`. Since spec 042 a denial's banner stays on a started or cancelled class (without
+  the CTA) and opens `DenialReasonSheet` (`components/denial-reason-sheet/`, a `BottomModal`: the class line, "Motivo
+  da escola", the reason or `noReason`, "Fechar"), while an approved banner yields to the started one.
+- Mobile tool (spec 042): `ClassRequestsScreen` (`screens/class-requests.screen.tsx`, route
+  `src/app/(private)/admin/class-requests.tsx`, `routes.admin.classRequests`) with its logic in
+  `hooks/use-class-requests-screen.hook.ts` (the admin module's pattern): `usePendingRequests()` (`GET
+  /enrolments/pending`, key `PENDING_REQUESTS_QUERY_KEY` = `["enrolments", "pending"]`), `useApproveRequest()` /
+  `useDenyRequest()` (no retry; invalidate the pending list and `["classes"]`), approve at once, one `DenySheet`
+  ("Recusar inscrição?"), a ref guarding a double press, the toasts, and `shouldReloadRequests` (`enrolment.notPending`,
+  `class.started`, `enrolment.class.full`) refetching the list; `getDecideRequestErrorKey` maps errors to
+  `classRequests.errors.*`. `ClassRequestsGroup` (`components/class-requests-group/`) draws a class: the day block
+  and the "Pediu às …" line from `utils/class-requests.ts` (`formatDayBlock`, `formatAskedAt`, Fortaleza time), the
+  occupancy bar, and on a full class the waiting-list label, the positions and the note, with `approveDisabled` on
+  each `DecisionCard` (avatars are `StudentAvatar` at 40pt, whose line height scales with the font). The admin home
+  (`admin.screen.tsx`) shows the "Inscrições em aulas" row with `total` from the same query, hidden while loading,
+  after an error and at zero. Copy under `classRequests` and `admin.home.classRequestsRow*`.
 
 ## Error handling
 
@@ -1247,7 +1292,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `data: { type, notificationId, classId? }` (`classId` copied from the notification's params when it is a
   string; spec 032), title and body from `renderPush` in the device's locale (dates in the copy, such as the class
   start of `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` /
-  `enrolment.requested` / `enrolment.expired`, are formatted by hand in Fortaleza time — fixed UTC-3, no
+  `enrolment.requested` / `enrolment.expired` / `enrolment.approved` / `enrolment.denied`, are formatted by hand in Fortaleza time — fixed UTC-3, no
   `Intl` — so the text is the same on every machine). A chunk that throws
   doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
   logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
@@ -1284,7 +1329,10 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   stop the next recipient; spec 037) and `EnrolmentNotifier` (enrolment, `NotificationsEnrolmentNotifier`, spec 041:
   `seatRequested` → `enrolment.requested` with `{ classId, studentName, discipline, startsAt }` to
   `RecipientsProvider.findApprovedAdminIds()` plus the class's instructors, deduplicated; `requestExpired` →
-  `enrolment.expired` with `{ classId, discipline, startsAt }` to the student). Since spec 041
+  `enrolment.expired` with `{ classId, discipline, startsAt }` to the student; spec 042: `requestApproved` →
+  `enrolment.approved` with `{ classId, discipline, startsAt }` and `requestDenied` → `enrolment.denied` with
+  `{ classId, discipline, startsAt, reason? }`, `reason` only when written and used as the push body, both to the
+  student only). Since spec 041
   `NotificationsClassChangeNotifier.classCancelled` notifies the union of `instructorIds` and `studentIds`. A
   catalog entry's `title` in
   `push-messages.ts` is a string or a function of the params (`class.noInstructor`'s depends on the count; a

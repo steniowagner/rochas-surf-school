@@ -2,7 +2,7 @@
 id: "041"
 slug: enrolment-requests
 title: "Students request seats in classes"
-status: in-review
+status: changes-requested
 created: 2026-10-19
 started: 2026-10-19
 base_commit: f4f39160297a7dcb1497ed9c64df738439b75db0
@@ -544,3 +544,82 @@ cancelling a seat come in specs 042 and 043.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-19 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ — `npx turbo run lint check-types build --concurrency=1` over enrolment, classes,
+  notifications, backend and mobile: 27 of 27 tasks
+- related tests ✅ `RELATED TESTS PASSED` — apps/backend 239, apps/mobile 1049 (71 suites), modules/classes 472,
+  modules/enrolment 91, modules/notifications 107
+- coverage of the changed lines ✅ `COVERAGE OK — every changed line covered in 45 file(s)`; no coverage-ignore
+  comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (18 files, 534 tests)
+- HTTP: `GET /classes?date=2026-10-20` against the running dev backend as the student answers the requested class
+  with `myEnrolment: { status: "pending" }` and `null` on the others
+- user journeys on the iOS simulator (iPhone 18 Pro, iOS 27, signed in as an approved student): journey 1 ❌ at "Ler"
+  (F-01), the rest of it ✅; journey 2 ✅ (class made full in the dev database, then restored); journey 3 not driven
+  (needs an admin session on the device): its backend half is the passing "cancel ends enrolments" e2e case and its
+  app half the "no footer on a cancelled class" screen test
+
+**Expected Results**
+
+- ER-01 ✅ — use case and e2e "requests a seat" cases; on the simulator the request stored `pending` with
+  `rule_accepted_at` set
+- ER-02 ✅ — every refusal in the D-12 order, 401 without a token, nothing stored and nobody notified (e2e
+  "refuses")
+- ER-03 ✅ — requesting again keeps the ended row; two simultaneous requests leave one (e2e and
+  `enrolment.prisma.spec.ts`); on the simulator "Pedir novamente" after a withdrawal
+- ER-04 ✅ — e2e "withdraws", including the concurrent withdraw and every refusal
+- ER-05 ✅ — e2e "expires": two expired, approved / future / cancelled-class rows untouched, a second run sends
+  nothing, a failing push keeps `expired`; pt-BR copy as specified
+- ER-06 ✅ — `cancel-class.usecase.test.ts`, `close-class-enrolments.usecase.test.ts` and the e2e "cancel ends
+  enrolments" case
+- ER-07 ✅ — e2e "notifies": approved admins and the instructor once each (also the teaching admin), pending and
+  removed admins none; pt-BR copy as specified; on the simulator one request stored five `enrolment.requested`
+- ER-08 ✅ — e2e "counts" (approval order, the week's cap of 4, `class.delete.notEmpty` details,
+  `class.capacity.belowSeatsTaken`); the `no-enrolment.*` files are gone
+- ER-09 ✅ — use case tests and e2e "myEnrolment" (latest by `requestedAt` then `id`, `null` for instructors and
+  admins, also on the edit and cancel answers); confirmed over HTTP as above
+- ER-10 ✅ — screen tests; on the simulator "Pedir para entrar" (primary), "Entrar na lista de espera" (dark),
+  "Anular pedido" (outline), "Sair da lista de espera" (ghost), "Pedir novamente" (primary / dark when full)
+- ER-11 ❌ — see F-01; the rest holds on the simulator: the title, the line, "Cancelamento · Surf", the deadline card,
+  "Enviar pedido" disabled until ticked, the toasts "Pedido enviado" and "Você está na lista de espera", the
+  waiting-list variant
+- ER-12 ✅ — on the simulator "Anular pedido" → sheet with the specified copy → "Sim, anular" → toast and banner
+  "Pedido anulado"; on a full class "Sair da lista de espera" withdraws without a sheet and shows "Você saiu da lista
+  de espera"
+- ER-13 ✅ — on the simulator the banners "Pedido pendente" (warn), "Você está na lista de espera" (info), "Pedido
+  anulado" (dim), the "Turma cheia" banner with "Você pode entrar na lista de espera.", and the card chips
+  "Pendente", "Na lista de espera" (in place of "Sem vagas") and "Anulado"
+- ER-14 ✅ — `npx jest src/modules/notifications/hooks`
+
+**Findings**
+
+- [ ] **F-01** (ER-11) — "Ler" in the request sheet doesn't let the student read the rule: the request sheet closes
+  at once, the rules sheet peeks at the bottom edge for a moment and is gone within a second, and the student is back
+  on the details with neither sheet open (seen three times, also after a fresh app launch). Reproduce: on the iOS
+  simulator, as an approved student, open an upcoming surf class with free seats → "Pedir para entrar" → wait for the
+  sheet → "Ler". Likely cause: presenting `CancellationRulesSheet` (a second `BottomSheetModal`) takes the request
+  sheet down, its `onDismiss` reaches `onClose` → `requestVisible` false → `useRequestSeatSheet` resets
+  `rulesVisible` → the rules sheet is dismissed too. Expected: "Ler" shows the rules sheet, and closing it brings the
+  student back to the request sheet. The jest test can't catch this, because the bottom-sheet mock keeps every sheet
+  mounted; cover the fix where it can be observed (for example, `onClose` of the request sheet not firing when "Ler"
+  is pressed) and check it on the simulator.
+
+**Notes**
+
+- The sheet's line reads "Surf Iniciante · Amanhã · 20 out · 12:00." where ER-11's example has "Surf Iniciante ·
+  Amanhã · 08:00.": it reuses the details' day label, which carries the date. Read as the example's format, not a
+  finding; trim it if the design's exact line matters.
+- Every toast, success ones included ("Pedido enviado", "Pedido anulado"), is drawn with the error style and icon.
+  That is the shared `AlertMessageProvider` (it has no tone, and "editClass.saved" or "cancelClass.done" look the same),
+  so not this spec's to fix; worth a spec of its own.
+- `CancelClass` swallows a failing `ClassEnrolmentsCloser`: the class is cancelled but its enrolments stay pending or
+  approved, and `EnrolmentExpiryJob` skips cancelled classes, so those rows never end. Acceptable per D-02 and ER-06,
+  but a retry (or ending them in the job too) would close the gap.
+- Journey 3 should be driven on the simulator in the next round, with an admin and a student session.
+- Testing on the dev database left two `withdrawn` enrolments of "Dev Student" (classes `d4f6f1a0…` and
+  `54cdf6e9…`) and the `enrolment.requested` notifications of the first request; the full-class setup was undone.
+- `## Memory Impact` matches what was built.

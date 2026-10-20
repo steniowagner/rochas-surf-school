@@ -1,5 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { EnrolmentNotifier, RequestExpired, SeatRequested } from '@rochas-surf-school/enrolment';
+import type {
+  EnrolmentNotifier,
+  RequestDecided,
+  RequestDenied,
+  RequestExpired,
+  SeatRequested,
+} from '@rochas-surf-school/enrolment';
 import { Notify } from '@rochas-surf-school/notifications';
 import { ExpoPushProvider } from './expo.push.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
@@ -69,6 +75,36 @@ export class NotificationsEnrolmentNotifier implements EnrolmentNotifier {
     } catch (error) {
       this.logger.error(
         `Could not notify enrolment.expired for ${classId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async requestApproved({ studentId, classId, discipline, startsAt }: RequestDecided): Promise<void> {
+    try {
+      await this.notify.execute({
+        userIds: [studentId],
+        type: 'enrolment.approved',
+        params: { classId, discipline, startsAt: startsAt.toISOString() },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify enrolment.approved for ${classId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async requestDenied({ studentId, classId, discipline, startsAt, reason }: RequestDenied): Promise<void> {
+    try {
+      await this.notify.execute({
+        userIds: [studentId],
+        type: 'enrolment.denied',
+        params: { classId, discipline, startsAt: startsAt.toISOString(), ...(reason ? { reason } : {}) },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify enrolment.denied for ${classId}`,
         error instanceof Error ? error.stack : String(error),
       );
     }

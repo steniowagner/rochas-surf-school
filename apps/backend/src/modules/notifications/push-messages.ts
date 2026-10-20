@@ -313,6 +313,61 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       },
     },
   },
+  'enrolment.approved': {
+    'pt-BR': {
+      title: 'Pedido aprovado',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `Sua vaga na aula de ${disciplineName(discipline)} de ${day} às ${time} está confirmada.`;
+      },
+    },
+    es: {
+      title: 'Solicitud aprobada',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `Tu plaza en la clase de ${disciplineName(discipline)} del ${day} a las ${time} está confirmada.`;
+      },
+    },
+    en: {
+      title: 'Request approved',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return `Your seat in the ${disciplineName(discipline)} class on ${day} at ${time} is confirmed.`;
+      },
+    },
+  },
+  'enrolment.denied': {
+    'pt-BR': {
+      title: 'Pedido recusado',
+      body: ({ reason, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return (
+          text(reason) ||
+          `A escola recusou seu pedido para a aula de ${disciplineName(discipline)} de ${day} às ${time}.`
+        );
+      },
+    },
+    es: {
+      title: 'Solicitud rechazada',
+      body: ({ reason, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return (
+          text(reason) ||
+          `La escuela rechazó tu solicitud para la clase de ${disciplineName(discipline)} del ${day} a las ${time}.`
+        );
+      },
+    },
+    en: {
+      title: 'Request denied',
+      body: ({ reason, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return (
+          text(reason) ||
+          `The school declined your request for the ${disciplineName(discipline)} class on ${day} at ${time}.`
+        );
+      },
+    },
+  },
 };
 
 export function renderPush(

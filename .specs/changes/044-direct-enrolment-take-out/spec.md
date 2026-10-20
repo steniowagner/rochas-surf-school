@@ -166,10 +166,11 @@ way and sees the result on the class.
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-01** — Add `EnrolStudent` (`src/enrolment/usecase/enrol-student.usecase.ts`, D-01–D-03, a `StudentLookup`
+- [x] **T-01** — Add `EnrolStudent` (`src/enrolment/usecase/enrol-student.usecase.ts`, D-01–D-03, a `StudentLookup`
   port for "approved student", the notifier's `studentEnrolled` / `requestApproved`) and the repository's locked
   `enrolDirectly`, with tests and the in-memory version. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npx jest test/enrolment/usecase/enrol-student.usecase.test.ts` passes.
+  > ✅ 2026-10-20 20:11 — added `EnrolStudent` (access, class, student via the new `StudentLookup` port, cancelled, started, then the locked `enrolDirectly` result: alreadyApproved / full / approved from pending / enrolled; notifies `studentEnrolled` or `requestApproved`) and `EnrolmentRepository.enrolDirectly` + `DirectEnrolResult`, `StudentEnrolled` event; fakes updated; files: `modules/enrolment/src/enrolment/usecase/enrol-student.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/src/enrolment/provider/student-lookup.provider.ts`, `modules/enrolment/src/enrolment/provider/index.ts`, `modules/enrolment/src/enrolment/provider/enrolment.repository.ts`, `modules/enrolment/src/enrolment/provider/enrolment-notifier.provider.ts`, `modules/enrolment/test/enrolment/usecase/enrol-student.usecase.test.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.ts`, `modules/enrolment/test/mock/fake-enrolment.notifier.ts`, `modules/enrolment/test/mock/fake-student-lookup.ts`, `modules/enrolment/test/mock/index.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`; verified: `npx jest test/enrolment/usecase/enrol-student.usecase.test.ts` (19 passed), full module suite 203 passed, `tsc --noEmit` clean, use case 100% covered; deviations: wrote by hand following the module-use-case patterns of the sibling use cases (use case returns `{ enrolment, created }` so the controller can answer 201 vs 200); the backend notifier adapter does not implement `studentEnrolled` yet (T-06)
 
 - [ ] **T-02** — Add `takeOut(reason, now)` to the entity and `TakeStudentOut`
   (`src/enrolment/usecase/take-student-out.usecase.ts`, D-04, the notifier's `studentTakenOut`), with tests. Skills:

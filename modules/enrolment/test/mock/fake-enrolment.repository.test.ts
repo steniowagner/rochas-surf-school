@@ -7,6 +7,7 @@ import {
   FakeEnrolmentClassReader,
   FakeEnrolmentNotifier,
   FakeEnrolmentRepository,
+  FakeStudentLookup,
   FakeStudentNameReader,
   NOW,
   STUDENT,
@@ -243,6 +244,8 @@ describe("the other fakes", () => {
     expect(await reader.findById("missing")).toBeNull();
     expect(await names.findName(STUDENT.id)).toBe("Ana Souza");
     expect(await names.findName("missing")).toBeNull();
+    expect(await new FakeStudentLookup([STUDENT.id]).isApprovedStudent(STUDENT.id)).toBe(true);
+    expect(await new FakeStudentLookup().isApprovedStudent(STUDENT.id)).toBe(false);
     expect(new FakeClockProvider(NOW).now()).toEqual(NOW);
   });
 
@@ -275,6 +278,8 @@ describe("the other fakes", () => {
     };
     await notifier.seatCancelled(cancelled);
     expect(notifier.cancelledEvents).toEqual([cancelled]);
+    await notifier.studentEnrolled(approved);
+    expect(notifier.enrolledEvents).toEqual([approved]);
     expect(notifier.approvedEvents).toEqual([approved]);
     expect(notifier.deniedEvents).toEqual([{ ...approved, reason: "Sem vaga" }]);
 
@@ -284,5 +289,16 @@ describe("the other fakes", () => {
     await expect(notifier.seatRequested(requested)).rejects.toThrow("push down");
     await expect(notifier.requestExpired(expired)).rejects.toThrow("push down");
     await expect(notifier.seatCancelled(cancelled)).rejects.toThrow("push down");
+    await expect(notifier.studentEnrolled(approved)).rejects.toThrow("push down");
+  });
+});
+
+describe("FakeEnrolmentRepository direct enrolments", () => {
+  it("refuses a class it doesn't know", async () => {
+    const repository = new FakeEnrolmentRepository();
+
+    expect(await repository.enrolDirectly(buildEnrolment({ status: "approved" }), NOW)).toEqual({
+      result: "full",
+    });
   });
 });

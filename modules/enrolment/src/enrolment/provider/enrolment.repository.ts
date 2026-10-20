@@ -31,6 +31,13 @@ export interface PendingRequest {
 /** What approving a request came to. */
 export type ApproveResult = "approved" | "full" | "notPending";
 
+/** What enrolling a student directly came to: a new approved row, a pending one approved, or a refusal. */
+export type DirectEnrolResult =
+  | { result: "enrolled"; enrolment: Enrolment }
+  | { result: "approved"; enrolment: Enrolment }
+  | { result: "alreadyApproved" }
+  | { result: "full" };
+
 export interface EnrolmentRepository {
   /**
    * Stores the enrolment. Throws a 409 `enrolment.alreadyOpen` when the student already has a pending or
@@ -64,6 +71,13 @@ export interface EnrolmentRepository {
    * Of two simultaneous approvals for the last seat exactly one is `approved`.
    */
   approve(id: string, now: Date): Promise<ApproveResult>;
+  /**
+   * Gives the student a seat at `now`. Locks the class and counts the seats taken, then: `alreadyApproved` when the
+   * student already holds a seat, `full` when none is free, `approved` when the student's pending request was
+   * approved (the stored one is returned), otherwise `enrolled` with `enrolment` stored. Of two simultaneous
+   * writes for the last seat exactly one wins.
+   */
+  enrolDirectly(enrolment: Enrolment, now: Date): Promise<DirectEnrolResult>;
   /** Denies the request with the (optional) reason at `now`, only while it is pending. Returns whether it wrote. */
   deny(id: string, reason: string | null, now: Date): Promise<boolean>;
   /** Ends the enrolment as cancelled at `now`, only while it is still approved. Returns whether it wrote. */

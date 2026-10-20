@@ -5,6 +5,7 @@ import {
   RequestExpired,
   SeatCancelled,
   SeatRequested,
+  StudentEnrolled,
 } from "../../src";
 
 export class FakeEnrolmentNotifier implements EnrolmentNotifier {
@@ -13,6 +14,7 @@ export class FakeEnrolmentNotifier implements EnrolmentNotifier {
   readonly approvedEvents: RequestDecided[] = [];
   readonly deniedEvents: RequestDenied[] = [];
   readonly cancelledEvents: SeatCancelled[] = [];
+  readonly enrolledEvents: StudentEnrolled[] = [];
   /** Set to make every notification fail. */
   error: Error | null = null;
 
@@ -39,5 +41,10 @@ export class FakeEnrolmentNotifier implements EnrolmentNotifier {
   async seatCancelled(event: SeatCancelled): Promise<void> {
     if (this.error) throw this.error;
     this.cancelledEvents.push(event);
+  }
+
+  async studentEnrolled(event: StudentEnrolled): Promise<void> {
+    if (this.error) throw this.error;
+    this.enrolledEvents.push(event);
   }
 }

@@ -56,6 +56,7 @@ describe("Notification", () => {
     ["enrolment.expired", { classId: "c-1", discipline: "surf", startsAt: "2026-10-19T11:00:00.000Z" }],
     ["enrolment.approved", { classId: "c-1", discipline: "surf", startsAt: "2026-10-19T11:00:00.000Z" }],
     ["enrolment.denied", { classId: "c-1", discipline: "surf", startsAt: "2026-10-19T11:00:00.000Z", reason: "Nível avançado" }],
+    ["enrolment.cancelled", { classId: "c-1", studentName: "Ana Souza", discipline: "surf", startsAt: "2026-10-19T11:00:00.000Z", waitingCount: 2 }],
   ] as const)("accepts a %s notification with its class and start", (type, params) => {
     const notification = build({ type, params });
 

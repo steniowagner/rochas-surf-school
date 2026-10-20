@@ -29,6 +29,7 @@ describe("getEnrolmentDisplay", () => {
   it.each([
     ["withdrawn", "withdrawn", "arrow-undo-outline"],
     ["expired", "expired", "time-outline"],
+    ["cancelled", "cancelled", "remove-circle-outline"],
   ] as const)("draws a %s request as %s, full class or not", (status, key, icon) => {
     const expected = { key, tone: "dim", icon };
 
@@ -46,7 +47,7 @@ describe("getEnrolmentDisplay", () => {
     expect(getEnrolmentDisplay(enrolment(status), true)).toEqual(expected);
   });
 
-  it.each(["cancelled", "takenOut", "classCancelled"] as const)(
+  it.each(["takenOut", "classCancelled"] as const)(
     "draws nothing for %s yet",
     (status) => {
       expect(getEnrolmentDisplay(enrolment(status), false)).toBeNull();

@@ -16,6 +16,7 @@ export class PrismaEnrolmentClassReader implements EnrolmentClassReader {
         endsAt: true,
         capacity: true,
         cancelledAt: true,
+        cancellationDeadline: true,
         instructors: { select: { userId: true } },
       },
     });
@@ -36,6 +37,7 @@ export class PrismaEnrolmentClassReader implements EnrolmentClassReader {
       endsAt: record.endsAt,
       capacity: record.capacity,
       cancelledAt: record.cancelledAt,
+      cancellationDeadline: record.cancellationDeadline,
       instructorIds: record.instructors.map((item) => item.userId),
       hasCancellationRule: rule !== null,
     };

@@ -168,6 +168,7 @@ describe("useNotificationReceived", () => {
     "enrolment.expired",
     "enrolment.approved",
     "enrolment.denied",
+    "enrolment.cancelled",
   ])(
     "reloads every cached class when a %s push arrives",
     async (type) => {
@@ -180,6 +181,18 @@ describe("useNotificationReceived", () => {
       expect(meCalls()).toHaveLength(0);
     },
   );
+
+  it("also reloads the admins' pending requests when an enrolment.cancelled push arrives, without navigating", async () => {
+    answerMe(account("approved", "admin"));
+    await openApp(account("approved", "admin"));
+    const pathname = app.getPathname();
+
+    await receive(push("enrolment.cancelled"));
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["classes"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["enrolments", "pending"] });
+    expect(app.getPathname()).toBe(pathname);
+  });
 
   it("also reloads the admins' pending requests when an enrolment.requested push arrives, and only then", async () => {
     answerMe(account("approved", "admin"));

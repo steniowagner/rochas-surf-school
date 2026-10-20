@@ -3,6 +3,7 @@ import { PrismaEnrolmentClassReader } from './enrolment-class-reader.prisma.js';
 
 const STARTS_AT = new Date('2026-10-19T11:00:00.000Z');
 const ENDS_AT = new Date('2026-10-19T12:00:00.000Z');
+const DEADLINE = new Date('2026-10-19T09:00:00.000Z');
 
 function record() {
   return {
@@ -12,6 +13,7 @@ function record() {
     endsAt: ENDS_AT,
     capacity: 8,
     cancelledAt: null,
+    cancellationDeadline: DEADLINE,
     instructors: [{ userId: 'i-1' }, { userId: 'i-2' }],
   };
 }
@@ -40,6 +42,7 @@ describe('PrismaEnrolmentClassReader', () => {
       endsAt: ENDS_AT,
       capacity: 8,
       cancelledAt: null,
+      cancellationDeadline: DEADLINE,
       instructorIds: ['i-1', 'i-2'],
       hasCancellationRule: true,
     });

@@ -467,6 +467,11 @@ const messages: Messages = {
         title: "No conseguiste plaza",
         description: "Tu solicitud expiró sin que se liberara plaza en el grupo.",
       },
+      cancelled: {
+        chip: "Cancelaste",
+        title: "Cancelaste la inscripción",
+        description: "Tu plaza quedó libre.",
+      },
     },
     cta: {
       request: "Pedir plaza",
@@ -474,6 +479,7 @@ const messages: Messages = {
       withdraw: "Anular solicitud",
       leaveWaitingList: "Salir de la lista de espera",
       requestAgain: "Pedir de nuevo",
+      cancelSeat: "Cancelar inscripción",
     },
     requestSheet: {
       title: "Pedir plaza",
@@ -507,6 +513,17 @@ const messages: Messages = {
       done: "Solicitud anulada",
       doneWaitingList: "Saliste de la lista de espera",
     },
+    cancelSeatSheet: {
+      title: "Cancelar inscripción",
+      description: "Tu plaza queda libre. Puedes cancelar hasta {{deadline}}.",
+      confirm: "Sí, cancelar",
+      keep: "Mantener inscripción",
+      done: "Inscripción cancelada",
+    },
+    cancelSeatNote: {
+      passed: "El plazo para cancelar terminó el {{deadline}}. Habla con la escuela.",
+      missing: "El plazo de cancelación de esta clase aún no se ha definido. Habla con la escuela para cancelar.",
+    },
     errors: {
       started: "La clase ya empezó.",
       cancelled: "Esta clase fue cancelada.",
@@ -514,6 +531,7 @@ const messages: Messages = {
       ruleNotAccepted: "La regla de cancelación cambió. Léela de nuevo y acéptala.",
       notPending: "Esta solicitud ya no está pendiente.",
       notFound: "Esta solicitud ya no existe.",
+      notApproved: "Esta plaza ya no está aprobada.",
     },
   },
   editProfile: {

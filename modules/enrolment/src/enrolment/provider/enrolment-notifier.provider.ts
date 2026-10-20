@@ -28,6 +28,17 @@ export interface RequestDenied extends RequestDecided {
   reason?: string;
 }
 
+export interface SeatCancelled {
+  classId: string;
+  studentName: string;
+  discipline: ClassDiscipline;
+  startsAt: Date;
+  /** The class's pending requests, counted after the cancellation. */
+  waitingCount: number;
+  /** The class's instructors; the adapter adds the approved admins and tells each person once. */
+  instructorIds: string[];
+}
+
 export interface EnrolmentNotifier {
   /** Tells the admins and the class's instructors that a student asked for a seat. */
   seatRequested(event: SeatRequested): Promise<void>;
@@ -37,4 +48,6 @@ export interface EnrolmentNotifier {
   requestApproved(event: RequestDecided): Promise<void>;
   /** Tells the student that the request was denied, with the reason when there is one. */
   requestDenied(event: RequestDenied): Promise<void>;
+  /** Tells the admins (with the waiting count) and the class's instructors that a student gave up a seat. */
+  seatCancelled(event: SeatCancelled): Promise<void>;
 }

@@ -2,11 +2,11 @@ import type { ButtonVariant } from "@/components/ui/button/button.types";
 
 import type { MyEnrolment } from "../enrolment.types";
 
-export type EnrolmentCtaAction = "request" | "withdraw" | "leaveWaitingList";
+export type EnrolmentCtaAction = "request" | "withdraw" | "leaveWaitingList" | "cancelSeat";
 
 export type EnrolmentCta = {
   /** The translation key under `enrolment.cta`. */
-  key: "request" | "joinWaitingList" | "withdraw" | "leaveWaitingList" | "requestAgain";
+  key: "request" | "joinWaitingList" | "withdraw" | "leaveWaitingList" | "requestAgain" | "cancelSeat";
   variant: ButtonVariant;
   action: EnrolmentCtaAction;
 };
@@ -17,18 +17,21 @@ const CTAS = {
   requestAgainFree: { key: "requestAgain", variant: "primary", action: "request" },
   requestAgainFull: { key: "requestAgain", variant: "dark", action: "request" },
   withdraw: { key: "withdraw", variant: "outline", action: "withdraw" },
+  cancelSeat: { key: "cancelSeat", variant: "outline", action: "cancelSeat" },
   leaveWaitingList: { key: "leaveWaitingList", variant: "ghost", action: "leaveWaitingList" },
 } as const satisfies Record<string, EnrolmentCta>;
 
 /**
  * The one button of the student's footer on a class that hasn't started, or `null` for none: no enrolment, or an
  * ended or denied one the student can ask again after, gives a request (the waiting list when the class is full); a pending
- * request gives a withdrawal. An approved enrolment, the statuses of the later specs (cancelled, taken out) and the
- * one of a cancelled class give none.
+ * request gives a withdrawal; a cancelled seat can be asked again like an ended one. An approved seat gives the
+ * cancellation only while the deadline is ahead (`canCancel`); the taken-out status and the one of a cancelled class
+ * give none.
  */
 export const getEnrolmentCta = (
   enrolment: MyEnrolment | null,
   classIsFull: boolean,
+  canCancel = false,
 ): EnrolmentCta | null => {
   switch (enrolment?.status) {
     case undefined:
@@ -38,7 +41,10 @@ export const getEnrolmentCta = (
     case "withdrawn":
     case "expired":
     case "denied":
+    case "cancelled":
       return classIsFull ? CTAS.requestAgainFull : CTAS.requestAgainFree;
+    case "approved":
+      return canCancel ? CTAS.cancelSeat : null;
     default:
       return null;
   }

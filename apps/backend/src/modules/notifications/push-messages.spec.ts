@@ -232,6 +232,28 @@ describe('renderPush', () => {
     expect(renderPush('enrolment.denied', params, locale).body).toBe('Nível avançado.');
   });
 
+  it.each([
+    ['pt-BR', 'Vaga cancelada', 'Ana Souza cancelou a vaga na aula de Surf de 18/10 às 08:00. 2 na lista de espera.'],
+    ['es', 'Plaza cancelada', 'Ana Souza canceló su plaza en la clase de Surf del 18/10 a las 08:00. 2 en lista de espera.'],
+    ['en', 'Seat cancelled', 'Ana Souza cancelled their seat in the Surf class on 10/18 at 08:00. 2 on the waiting list.'],
+  ] as const)('writes the cancelled seat with the waiting count in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', studentName: ' Ana Souza ', discipline: 'surf', startsAt: STARTS_AT, waitingCount: 2 };
+
+    expect(renderPush('enrolment.cancelled', params, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Ana Souza cancelou a vaga na aula de Surf de 18/10 às 08:00.'],
+    ['es', 'Ana Souza canceló su plaza en la clase de Surf del 18/10 a las 08:00.'],
+    ['en', 'Ana Souza cancelled their seat in the Surf class on 10/18 at 08:00.'],
+  ] as const)('ends the cancelled seat after the class when nobody waits in %s', (locale, body) => {
+    const base = { classId: 'c-1', studentName: 'Ana Souza', discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('enrolment.cancelled', { ...base, waitingCount: 0 }, locale).body).toBe(body);
+    expect(renderPush('enrolment.cancelled', base, locale).body).toBe(body);
+    expect(renderPush('enrolment.cancelled', { ...base, waitingCount: 'x' }, locale).body).toBe(body);
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {

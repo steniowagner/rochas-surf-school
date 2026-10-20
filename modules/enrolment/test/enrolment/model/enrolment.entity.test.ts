@@ -141,6 +141,21 @@ describe("Enrolment", () => {
     });
   });
 
+  describe("cancel", () => {
+    it("ends an approved seat as cancelled", () => {
+      const out = build({ status: "approved" }).cancel(NOW);
+
+      expect(out.status).toBe("cancelled");
+      expect(out.endedAt).toEqual(NOW);
+    });
+
+    it.each(ENROLMENT_STATUSES.filter((status) => status !== "approved"))("refuses from %s", (status) => {
+      expect(() => build({ status }).cancel(NOW)).toThrow(
+        expect.objectContaining({ message: "enrolment.notApproved", statusCode: 409 }),
+      );
+    });
+  });
+
   describe("expire", () => {
     it("ends a pending request as expired", () => {
       const out = build().expire(NOW);

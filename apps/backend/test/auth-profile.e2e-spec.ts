@@ -9,6 +9,7 @@ import { PrismaService } from '../src/db/prisma.service.js';
 import { JwtTokenProvider } from '../src/modules/auth/jwt.token.js';
 import { ResendEmailProvider } from '../src/modules/auth/resend.email.js';
 import { SystemClockProvider as ClassesClockProvider } from '../src/modules/classes/system.clock.js';
+import { SystemClockProvider as EnrolmentClockProvider } from '../src/modules/enrolment/system.clock.js';
 import { ExpoPushProvider } from '../src/modules/notifications/expo.push.js';
 import { renderPush } from '../src/modules/notifications/push-messages.js';
 
@@ -273,6 +274,8 @@ describe('DELETE /auth/me', () => {
       .useValue(push)
       .overrideProvider(ClassesClockProvider)
       .useValue({ now: () => new Date(NOW.getTime()) })
+      .overrideProvider(EnrolmentClockProvider)
+      .useValue({ now: () => new Date(NOW.getTime()) })
       .compile();
     app = moduleRef.createNestApplication<INestApplication<App>>();
     await app.init();
@@ -297,7 +300,7 @@ describe('DELETE /auth/me', () => {
     // The approved admins already in the database were told too: their notifications go with the test's classes.
     await prisma.notification.deleteMany({
       where: {
-        type: 'class.noInstructor',
+        type: { in: ['class.noInstructor', 'enrolment.cancelled'] },
         OR: classIds.map((id) => ({ params: { path: ['classId'], equals: id } })),
       },
     });
@@ -343,6 +346,14 @@ describe('DELETE /auth/me', () => {
     });
     classIds.push(created.id);
     return created.id;
+  }
+
+  async function seedEnrolment(classId: string, studentId: string, status: 'pending' | 'approved') {
+    const id = randomUUID();
+    await prisma.enrolment.create({
+      data: { id, classId, studentId, status, requestedAt: new Date(NOW.getTime() - 24 * HOUR) },
+    });
+    return id;
   }
 
   const deleteMe = (accessToken: string) =>
@@ -435,5 +446,44 @@ describe('DELETE /auth/me', () => {
       title: 'Aulas sem instrutor',
       body: '2 aulas ficaram sem instrutor. A próxima: Surf, 15/10 às 08:00.',
     });
+  });
+
+  it('delete releases seats: cancels the upcoming seat, withdraws the request and tells the school', async () => {
+    const student = await account('student', 'approved', 'Ana Souza');
+    const waiting = await account('student');
+    const upcoming = await classWith([], 22);
+    const another = await classWith([], 46);
+    const started = await classWith([], -0.5);
+    const seat = await seedEnrolment(upcoming, student.id, 'approved');
+    await seedEnrolment(upcoming, waiting.id, 'pending');
+    const request = await seedEnrolment(another, student.id, 'pending');
+    const underWay = await seedEnrolment(started, student.id, 'approved');
+    await prisma.pushToken.create({
+      data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId: creatorId, locale: 'pt-BR' },
+    });
+
+    expect((await deleteMe(student.accessToken)).status).toBe(204);
+
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: student.id } })).status).toBe('deleted');
+    expect(await prisma.enrolment.findUniqueOrThrow({ where: { id: seat } })).toMatchObject({ status: 'cancelled', endedAt: NOW });
+    expect(await prisma.enrolment.findUniqueOrThrow({ where: { id: request } })).toMatchObject({ status: 'withdrawn', endedAt: NOW });
+    expect((await prisma.enrolment.findUniqueOrThrow({ where: { id: underWay } })).status).toBe('approved');
+    const stored = await prisma.notification.findMany({
+      where: { type: 'enrolment.cancelled', userId: creatorId },
+    });
+    expect(stored.map((item) => item.params)).toEqual([
+      {
+        classId: upcoming,
+        studentName: 'Ana Souza',
+        discipline: 'surf',
+        startsAt: new Date(NOW.getTime() + 22 * HOUR).toISOString(),
+        waitingCount: 1,
+      },
+    ]);
+    const sent = push.sent.filter((message) => message.type === 'enrolment.cancelled' && message.token.includes(MARK));
+    expect(sent).toHaveLength(1);
+    expect(renderPush('enrolment.cancelled', sent[0]!.params, 'pt-BR').body).toBe(
+      'Ana Souza cancelou a vaga na aula de Surf de 15/10 às 08:00. 1 na lista de espera.',
+    );
   });
 });

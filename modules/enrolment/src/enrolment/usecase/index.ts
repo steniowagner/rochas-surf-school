@@ -6,3 +6,5 @@ export * from "./close-class-enrolments.usecase";
 export * from "./list-pending-requests.usecase";
 export * from "./approve-request.usecase";
 export * from "./deny-request.usecase";
+export * from "./cancel-seat.usecase";
+export * from "./release-student-enrolments.usecase";

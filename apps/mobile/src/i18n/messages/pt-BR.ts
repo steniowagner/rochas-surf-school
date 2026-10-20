@@ -460,6 +460,11 @@ const messages: Messages = {
         title: "Você não conseguiu vaga",
         description: "Seu pedido expirou sem abrir vaga na turma.",
       },
+      cancelled: {
+        chip: "Você cancelou",
+        title: "Você cancelou a inscrição",
+        description: "Sua vaga ficou livre.",
+      },
     },
     cta: {
       request: "Pedir para entrar",
@@ -467,6 +472,7 @@ const messages: Messages = {
       withdraw: "Anular pedido",
       leaveWaitingList: "Sair da lista de espera",
       requestAgain: "Pedir novamente",
+      cancelSeat: "Cancelar inscrição",
     },
     requestSheet: {
       title: "Pedir para entrar",
@@ -500,6 +506,17 @@ const messages: Messages = {
       done: "Pedido anulado",
       doneWaitingList: "Você saiu da lista de espera",
     },
+    cancelSeatSheet: {
+      title: "Cancelar inscrição",
+      description: "Sua vaga fica livre. Você pode cancelar até {{deadline}}.",
+      confirm: "Sim, cancelar",
+      keep: "Manter inscrição",
+      done: "Inscrição cancelada",
+    },
+    cancelSeatNote: {
+      passed: "O prazo para cancelar terminou em {{deadline}}. Fale com a escola.",
+      missing: "O prazo de cancelamento desta aula ainda não foi definido. Fale com a escola para cancelar.",
+    },
     errors: {
       started: "A aula já começou.",
       cancelled: "Esta aula foi cancelada.",
@@ -507,6 +524,7 @@ const messages: Messages = {
       ruleNotAccepted: "A regra de cancelamento mudou. Leia de novo e aceite.",
       notPending: "Este pedido não está mais pendente.",
       notFound: "Este pedido não existe mais.",
+      notApproved: "Esta vaga não está mais aprovada.",
     },
   },
   editProfile: {

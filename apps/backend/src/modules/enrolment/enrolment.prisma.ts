@@ -181,6 +181,44 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
     return count === 1;
   }
 
+  async cancel(id: string, now: Date): Promise<boolean> {
+    const { count } = await this.prisma.enrolment.updateMany({
+      where: { id, status: 'approved' },
+      data: { status: 'cancelled', endedAt: now, updatedAt: now },
+    });
+
+    return count === 1;
+  }
+
+  async countPendingForClass(classId: string): Promise<number> {
+    return this.prisma.enrolment.count({ where: { classId, status: 'pending' } });
+  }
+
+  async releaseForStudent(studentId: string, now: Date): Promise<Enrolment[]> {
+    // One transaction, and every write checks the status itself: an enrolment decided meanwhile is left alone.
+    const cancelled = await this.prisma.$transaction(async (tx) => {
+      const records = await tx.enrolment.updateManyAndReturn({
+        where: {
+          studentId,
+          status: 'approved',
+          schoolClass: { startsAt: { gt: now }, cancelledAt: null },
+        },
+        data: { status: 'cancelled', endedAt: now, updatedAt: now },
+      });
+
+      await tx.enrolment.updateMany({
+        where: { studentId, status: 'pending' },
+        data: { status: 'withdrawn', endedAt: now, updatedAt: now },
+      });
+
+      return records;
+    });
+
+    return cancelled
+      .sort((a, b) => a.requestedAt.getTime() - b.requestedAt.getTime() || a.id.localeCompare(b.id))
+      .map((record) => this.toDomain(record));
+  }
+
   /** The check sits on the write itself, so a race leaves exactly one winner. */
   private async endPending(id: string, status: 'withdrawn' | 'expired', now: Date): Promise<boolean> {
     const { count } = await this.prisma.enrolment.updateMany({

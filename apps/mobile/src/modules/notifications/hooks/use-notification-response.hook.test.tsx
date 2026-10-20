@@ -328,6 +328,27 @@ describe("useNotificationResponse", () => {
     },
   );
 
+  it.each([
+    ["instructor", "/instructor/class/c-1"],
+    ["admin", "/admin/class/c-1"],
+  ] as const)("opens the class details of the %s who taps an enrolment.cancelled push", async (role, path) => {
+    answerMe(account("approved", role, true));
+    await openApp(account("approved", role, true));
+
+    await tap(response("enrolment.cancelled", "n1", "c-1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(path));
+  });
+
+  it("goes to the resolved flow when an enrolment.cancelled push has no class id", async () => {
+    answerMe(account("approved", "admin", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("enrolment.cancelled"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.admin.home));
+  });
+
   it.each(["enrolment.approved", "enrolment.denied", "enrolment.expired"])(
     "goes to the resolved flow when a %s push has no class id",
     async (type) => {

@@ -22,6 +22,7 @@ export const ADMIN: ClassActor = {
 export const CLASS_ID = "3b5c7d9e-1a2b-4c3d-8e4f-5a6b7c8d9e0f";
 export const NOW = new Date("2026-10-18T12:00:00.000Z");
 export const TOMORROW = new Date("2026-10-19T11:00:00.000Z");
+export const DEADLINE = new Date("2026-10-19T09:00:00.000Z");
 
 export function buildEnrolment(overrides: Partial<EnrolmentState> = {}): Enrolment {
   return new Enrolment({
@@ -41,6 +42,7 @@ export function buildEnrolmentClass(overrides: Partial<EnrolmentClass> = {}): En
     endsAt: new Date(TOMORROW.getTime() + 60 * 60 * 1000),
     capacity: 8,
     cancelledAt: null,
+    cancellationDeadline: DEADLINE,
     instructorIds: [INSTRUCTOR.id],
     hasCancellationRule: true,
     ...overrides,

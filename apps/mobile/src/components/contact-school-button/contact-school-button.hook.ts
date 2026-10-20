@@ -1,9 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Linking } from "react-native";
 
+import { useSchoolWhatsapp } from "@/hooks/use-school-whatsapp.hook";
 import { useAlertMessage } from "@/providers/alert-message";
-
-import { useSchoolWhatsapp } from "../../hooks/use-school-whatsapp.hook";
 
 import { UseContactSchoolButtonResult } from "./contact-school-button.types";
 

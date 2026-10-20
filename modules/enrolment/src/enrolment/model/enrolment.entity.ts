@@ -106,6 +106,11 @@ export class Enrolment extends Entity<EnrolmentState> {
     return this.end("withdrawn", ["pending"], now, "enrolment.notPending");
   }
 
+  /** The student gives up an approved seat. */
+  cancel(now: Date): Enrolment {
+    return this.end("cancelled", ["approved"], now, "enrolment.notApproved");
+  }
+
   /** The class started while the request was still pending. */
   expire(now: Date): Enrolment {
     return this.end("expired", ["pending"], now, "enrolment.notPending");

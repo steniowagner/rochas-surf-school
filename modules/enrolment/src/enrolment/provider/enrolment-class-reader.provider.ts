@@ -8,6 +8,8 @@ export interface EnrolmentClass {
   endsAt: Date;
   capacity: number;
   cancelledAt: Date | null;
+  /** Until when students may cancel their seat; null while it can't be worked out. */
+  cancellationDeadline: Date | null;
   instructorIds: string[];
   /** Whether the class's discipline has a cancellation rule written. */
   hasCancellationRule: boolean;

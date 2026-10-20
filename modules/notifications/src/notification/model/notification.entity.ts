@@ -24,6 +24,7 @@ export const NOTIFICATION_TYPES = [
   "enrolment.expired",
   "enrolment.approved",
   "enrolment.denied",
+  "enrolment.cancelled",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

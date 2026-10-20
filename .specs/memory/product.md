@@ -64,7 +64,8 @@ Listed in the order people meet them.
   - `approved` → onboarding (WhatsApp number + school rules) before using the app.
   - `denied` → sees the reason and a contact-the-school button; erased 30 days after the denial.
   - `approved` → `deleted` by the user (confirmation step; not allowed for the only admin) or `removed` by an
-    admin. Both cancel the user's upcoming seats, pending enrolments and class assignments.
+    admin. Both cancel the user's upcoming seats, pending enrolments and class assignments (as built, deletion
+    does — specs 035 and 043 —; removal comes with its own spec).
   - `deleted` → back to `approved` through an approved reactivation request, or erased 30 days after the
     deletion. `removed` → back to `approved` when an admin restores it, or erased 30 days after the removal.
     A return restores the account, its history and its role — not the seats, enrolments or assignments
@@ -162,8 +163,9 @@ Listed in the order people meet them.
   out the classes without one every minute, retrying a failed class after 1, 2, 4… up to 60 minutes; an edit
   that changes a detail the model reads (not only the instructors) clears it, and so does a rule change. A
   discipline without a rule gets no deadline and nothing is sent. Every role sees "Cancelamento até <dia, data
-  · hora>" on a class's details; admins see the "Sem prazo" flag. Cancelling a seat until the deadline arrives
-  with spec 043.
+  · hora>" on a class's details; admins see the "Sem prazo" flag. As built (spec 043): a student cancels an
+  approved seat while it is still before the deadline (at the deadline it is refused); after it, or while the
+  class has none, the app tells them to contact the school and offers the school's WhatsApp.
 - **Enrolment** (`enrolment`): a student's place, or attempt at a place, in one class. A student **requests**
   a seat in a class that hasn't started (accepting the discipline's cancellation rule), which creates a
   pending enrolment; admins and the class's instructors are notified. Key fields: student, class, status, when
@@ -196,7 +198,13 @@ Listed in the order people meet them.
     with the time; they approve one while the class has a free seat and hasn't started (two approvals for the
     last seat leave exactly one) and deny one with an optional reason (up to 500 characters). Only the student is
     told, with the reason when one was written; nobody is told when a seat opens. A denied student may request
-    again. The statuses `cancelled` and `taken out` exist but nothing produces them yet (specs 043–044).
+    again.
+  - As built (spec 043): a student cancels their approved seat in a class that hasn't started while it is before
+    the class's deadline; the seat frees at once and they may request again. Every approved admin and every
+    instructor of the class is told once, with the number of pending requests left. Deleting an account cancels
+    the person's approved seats in classes that haven't started and aren't cancelled (with no deadline check and
+    the same notice) and withdraws their pending requests, telling nobody. The status `taken out` exists but
+    nothing produces it yet (spec 044).
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
   photo, or initials while there is no photo); guests count in the seats taken but aren't listed. As built (specs
@@ -574,9 +582,9 @@ hidden while the site's address isn't configured), "Sair" (a confirmation sheet,
 sign-in shows the Account deleted screen). Theme, language and pushes are kept on the phone and survive signing
 out. Turning pushes off removes the phone from the account's pushes at once (retried at the next launch or
 sign-in if it fails); turning them on registers it again, and a refused OS permission keeps the switch off with a
-message. Deleting the account takes the person off their classes that haven't started (spec 035, below); it
-doesn't yet refuse the only admin, nor cancel seats or enrolments (none exist yet). All copy is in pt-BR, es-ES
-and en-US.
+message. Deleting the account takes the person off their classes that haven't started (spec 035, below), then
+cancels their seats in classes that haven't started and withdraws their pending requests (spec 043, below); it
+doesn't yet refuse the only admin. All copy is in pt-BR, es-ES and en-US.
 
 **People directory** (spec `027-people-directory`) — every approved member can now see the school's other
 approved members on one "Pessoas" screen, the same for the three roles: a student opens it from the Escola tab; an
@@ -819,7 +827,21 @@ with the class, "Motivo da escola" and the reason (or "Sem motivo indicado."), p
 starts, and the chip "Recusado". An admin's "Novo pedido de vaga" now opens the tool. All copy is in pt-BR, es-ES and
 en-US.
 
-Active specs: none in progress; specs 043–048 (the rest of enrolment) are planned.
+**Students cancel their seat until the deadline** (spec `043-seat-cancellation`) — on the details of a class that
+hasn't started, a student with an approved seat sees "Cancelar inscrição" (outline) while it is before the class's
+cancellation deadline. It opens "Cancelar inscrição" / "Sua vaga fica livre. Você pode cancelar até seg, 19 out ·
+20:00." with "Sim, cancelar" and "Manter inscrição"; confirming shows "Inscrição cancelada", the banner "Você
+cancelou a inscrição" / "Sua vaga ficou livre.", the Agenda chip "Você cancelou" and "Pedir novamente". Once the
+deadline has passed (also while the screen is open) the footer shows "O prazo para cancelar terminou em <dia, data ·
+hora>. Fale com a escola." instead, and a class without a deadline shows "O prazo de cancelamento desta aula ainda
+não foi definido. Fale com a escola para cancelar."; both come with "Falar com a escola", which opens the school's
+WhatsApp and is hidden while the school has no number. A seat no longer approved or a class that started shows its
+toast and reloads the class. Admins and the class's instructors get "Vaga cancelada" ("Ana Souza cancelou a vaga na
+aula de Surf de 19/10 às 08:00. 2 na lista de espera.", the count only when someone waits), which opens the class.
+Deleting an account now cancels the person's upcoming seats, with the same notice, and withdraws their pending
+requests. All copy is in pt-BR, es-ES and en-US.
+
+Active specs: none in progress; specs 044–048 (the rest of enrolment) are planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -857,8 +879,7 @@ Active specs: none in progress; specs 043–048 (the rest of enrolment) are plan
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, real data in the
   About sheet (mocked), keeping the theme, language and push preferences on the account or syncing them across
-  phones, and, when a person deletes their account, refusing the only admin and cancelling their seats and
-  pending enrolments (spec 043).
+  phones, and, when a person deletes their account, refusing the only admin.
 - On the People directory (spec 027): profile photos (initials only), class counts and the "Acesso total" /
   "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", promoting, demoting or
   removing someone from their sheet, searching by email, the real count on the home rows (a fixed "9 na
@@ -890,21 +911,22 @@ Active specs: none in progress; specs 043–048 (the rest of enrolment) are plan
 - On classes left without an instructor (spec 035): releasing the classes when an instructor is demoted to
   student or an account is removed (their specs reuse the same step); telling the students of a class that lost
   its instructor; a list or filter of the classes without an instructor.
-- On cancellation rules and deadlines (spec 036): cancelling a seat until the deadline, and telling a student
-  without a deadline to contact the school (spec 043); notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
+- On cancellation rules and deadlines (spec 036): notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
   showing who saved a rule; a list or filter of the classes without a deadline, and admins setting a deadline by
   hand.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On enrolment requests (specs 041–042), each planned in its own spec: cancelling an approved seat, the deadline checks, and releasing a deleted or removed student's requests
-  and seats (043 — until then they stay as they are); direct enrolment and taking a student out (044); guests
+- On enrolment requests (specs 041–043), each planned in its own spec: direct enrolment and taking a student out (044); guests
   (045); the waiting-list switch (046 — until then it is always on); telling students and people with pending
   requests about class edits and location changes (047); the student's "Minhas aulas" tab and history (048).
   Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
   success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
   requests on the admin's class details, filtering or searching the tool, a stored history of who decided and
-  when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision.
+  when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision. On
+  cancelling a seat (spec 043): what a late cancellation costs (handled outside the app, by product decision),
+  cancelling several seats at once, undoing a cancellation (the student requests again), and releasing the seats
+  and requests of a removed account or of a student promoted to instructor (their specs reuse the same release).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
   admin.

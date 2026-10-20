@@ -215,4 +215,57 @@ describe('NotificationsEnrolmentNotifier', () => {
       expect(error).toHaveBeenLastCalledWith(expect.stringContaining('enrolment.denied'), 'boom');
     });
   });
+
+  describe('seatCancelled', () => {
+    const event = {
+      classId: CLASS_ID,
+      studentName: 'Ana Souza',
+      discipline: 'surf' as const,
+      startsAt: STARTS_AT,
+      waitingCount: 2,
+      instructorIds: [INSTRUCTOR_ID],
+    };
+    const params = {
+      classId: CLASS_ID,
+      studentName: 'Ana Souza',
+      discipline: 'surf',
+      startsAt: '2026-10-19T11:00:00.000Z',
+      waitingCount: 2,
+    };
+
+    it('stores one enrolment.cancelled per approved admin and per instructor, with the waiting count', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.seatCancelled(event);
+
+      expect(stored(notificationRepository.createMany)).toEqual([
+        { userId: ADMIN_ID, type: 'enrolment.cancelled', params },
+        { userId: OTHER_ADMIN_ID, type: 'enrolment.cancelled', params },
+        { userId: INSTRUCTOR_ID, type: 'enrolment.cancelled', params },
+      ]);
+    });
+
+    it('tells an admin who teaches the class once', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.seatCancelled({ ...event, instructorIds: [ADMIN_ID, INSTRUCTOR_ID] });
+
+      expect(stored(notificationRepository.createMany).map((item) => item.userId)).toEqual([
+        ADMIN_ID,
+        OTHER_ADMIN_ID,
+        INSTRUCTOR_ID,
+      ]);
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.seatCancelled(event)).resolves.toBeUndefined();
+      await expect(notifier.seatCancelled(event)).resolves.toBeUndefined();
+
+      expect(error.mock.calls[0]![0]).toContain('enrolment.cancelled');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('enrolment.cancelled'), 'boom');
+    });
+  });
 });

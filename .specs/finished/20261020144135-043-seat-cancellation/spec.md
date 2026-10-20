@@ -1,0 +1,357 @@
+---
+id: "043"
+slug: seat-cancellation
+title: "Students cancel their seat until the cancellation deadline"
+status: finished
+started: 2026-10-20
+base_commit: a15b0ae653b308bb2f65e2aa7d5617db49a72de8
+reviewed_commit: 6473b57d2de4f42f036917871ea83b98a833a698
+created: 2026-10-19
+fronts: [enrolment, classes, auth, notifications, backend, mobile]
+depends_on: ["042"]
+finished: 2026-10-20
+---
+
+# 043 — Students cancel their seat until the cancellation deadline
+
+## Goal
+
+A student with an approved seat can give it up from the class's details until the class's cancellation deadline;
+after it, or while the class has no deadline, the app tells them to contact the school and offers the school's
+WhatsApp. Admins are told of each cancellation with how many students are waiting, and so are the class's
+instructors. Deleting an account now also gives up the person's upcoming seats (with the same notifications) and
+withdraws their pending requests, so a deleted student never holds a seat.
+
+## Context
+
+- Product: [product.md](../../memory/product.md) — **Enrolment** (`approved` ends as `cancelled` by the student,
+  until the deadline; admins are notified with the number of waiting students, and so are the instructors),
+  **Cancellation deadline** (one per class, never after the start; while it can't be worked out students are told
+  to contact the school), and **User** (`deleted` cancels the user's upcoming seats and pending enrolments).
+- Requirements: [requirements.md → Cancelling a seat](../../../.docs/requirements.md#cancelling-a-seat) — until the
+  deadline, not after; [No deadline available](../../../.docs/requirements.md#no-deadline-available) — students are
+  told to contact the school; [Cancellation notification](../../../.docs/requirements.md#cancellation-notification)
+  — admins with the waiting count, the instructors, and the same on an account deletion;
+  [Deleting an account](../../../.docs/requirements.md#deleting-an-account) — the account's upcoming seats and
+  pending enrolments are cancelled.
+- Technical: [technical-context.md](../../memory/technical-context.md) — Authentication (`DeleteAccount` and the
+  `TeachingReleaser` port, spec 035), Classes (the deadline, `formatDeadline`), Push notifications, Mobile shared UI.
+- Depends on: spec `042` — approved seats exist and the student's approved state is shown (and spec 041's module).
+- Designs: `.docs/designs/student-app.html` MINHAS-02 ("Cancelar inscrição" on an approved class) and MINHAS-03
+  (the confirmation with the deadline), builder `detalheScreen` (`aprovado`, `canceladoEu`) and sheet `cancelar`
+  (its non-pending branch). pt-PT adapted to pt-BR, "o Rocha" → "a escola".
+- Existing code this builds on: `modules/auth/src/user/usecase/delete-account.usecase.ts`,
+  `modules/auth/src/user/provider/teaching-releaser.provider.ts`,
+  `apps/backend/src/modules/classes/classes.teaching-releaser.ts` (the adapter pattern),
+  `apps/mobile/src/modules/offboarding/components/contact-school-button/` and
+  `apps/mobile/src/modules/offboarding/hooks/use-school-whatsapp.hook.ts`, `apps/mobile/src/modules/classes/utils/week.ts`
+  (`formatDeadline`).
+
+## Scope
+
+### In scope
+
+- `CancelSeat` and `POST /enrolments/:id/cancel`, with the deadline checks.
+- `enrolment.cancelled` to admins (with the waiting count) and to the class's instructors.
+- A new `auth` port `SeatReleaser`, called by `DeleteAccount`, implemented through enrolment's
+  `ReleaseStudentEnrolments`.
+- `cancellationDeadline` in enrolment's class reader.
+- Mobile: "Cancelar inscrição" and its sheet, the "deadline passed" and "no deadline" notes with "Falar com a
+  escola", the cancelled status banner and chip, the push tap; `ContactSchoolButton` shared outside offboarding.
+
+### Out of scope
+
+- What a late cancellation costs (outside the app, by product decision).
+- An admin cancelling a student's seat (that is taking out, spec 044).
+- Removals and role changes cancelling seats (their own specs, which reuse `ReleaseStudentEnrolments`).
+- Cancelling several seats at once; undoing a cancellation (the student requests again).
+
+## Decisions
+
+| ID   | Decision | Reason |
+| ---- | -------- | ------ |
+| D-01 | The deadline is exclusive: a seat is cancellable while now < `cancellationDeadline`; at the deadline it is refused. | "Until the deadline" read as before it; the deadline is never after the start, so it also covers the start. |
+| D-02 | Checks, in order: status (403 `user.status.notApproved`); the enrolment (non-UUID, none or another person's → 404 `enrolment.notFound`); `enrolment.notApproved` (409); `class.started` (409); `enrolment.deadline.missing` (409, no deadline); `enrolment.deadline.passed` (409). The write is conditional on `status = 'approved'`. | Access, identity, state; a missing deadline is the "contact the school" case. |
+| D-03 | `enrolment.cancelled` has `{ classId, studentName, discipline, startsAt, waitingCount }`, where `waitingCount` is the class's pending requests counted after the cancel; it goes to every approved admin and every instructor of the class, each person once, with the same copy. | The requirement asks for the count for admins; one type keeps one copy. |
+| D-04 | Account deletion: `DeleteAccount` calls `SeatReleaser.releaseSeats(userId)` after `TeachingReleaser`; it turns every approved enrolment of a class that hasn't started and isn't cancelled into `cancelled` (no deadline check) with one `enrolment.cancelled` per class, and every pending one into `withdrawn` silently. A failure fails the deletion (the account stays approved). | The product cancels a deleted user's upcoming seats and pending enrolments; same failure rule as spec 035. |
+| D-05 | `ContactSchoolButton` moves to `apps/mobile/src/components/contact-school-button/` and `useSchoolWhatsapp` to `apps/mobile/src/hooks/use-school-whatsapp.hook.ts`; offboarding imports them from there. | Two flows use them now (Mobile shared UI rule). |
+| D-06 | The student's cancelled state reads "Você cancelou a inscrição" / "Sua vaga ficou livre." and the chip "Você cancelou"; the class's own "Cancelada" chip stays for a cancelled class. | Avoids two different "Cancelada" chips. |
+
+## Expected Results
+
+### ER-01 — A student cancels their seat before the deadline
+
+- **Front:** enrolment
+- **Behavior:** Given a student's approved enrolment in a class whose deadline is in the future, when they call
+  `POST /enrolments/:id/cancel`, then the API answers 200 with `status: "cancelled"`, and the class's
+  `seatsTaken` drops by one and the student leaves its `students`.
+- **Edge and error cases:** a second cancel answers `enrolment.notApproved`; the seat can be approved for another
+  student right after.
+- **Verify by:** `npx jest test/enrolment/usecase/cancel-seat.usecase.test.ts` (from `modules/enrolment`) and the
+  "cancels" cases of `apps/backend/test/seat-cancellation.e2e-spec.ts`.
+
+### ER-02 — Cancelling is refused after the deadline or without one
+
+- **Front:** enrolment
+- **Behavior:** Given each refused case, when `POST /enrolments/:id/cancel` is called, then it answers, in the order
+  of D-02: 404 `enrolment.notFound`, 409 `enrolment.notApproved` (pending, denied or any ended status), 409
+  `class.started`, 409 `enrolment.deadline.missing`, 409 `enrolment.deadline.passed` (now ≥ deadline); and the
+  enrolment is unchanged and nobody is told.
+- **Edge and error cases:** exactly at the deadline is refused (D-01); another student's enrolment answers 404;
+  a non-approved account answers 403.
+- **Verify by:** `npx jest test/enrolment/usecase/cancel-seat.usecase.test.ts -t "refuses"` (from
+  `modules/enrolment`) and the "refuses" cases of `apps/backend/test/seat-cancellation.e2e-spec.ts`.
+
+### ER-03 — Admins and instructors are told of a cancellation
+
+- **Front:** backend
+- **Behavior:** Given a class with 2 pending requests, taught by instructor I, when student "Ana Souza" cancels her
+  seat, then every approved admin and I each get one `enrolment.cancelled` with `waitingCount: 2`, pushed as "Vaga
+  cancelada" / "Ana Souza cancelou a vaga na aula de Surf de 19/10 às 08:00. 2 na lista de espera." (pt-BR; es and
+  en in the catalog).
+- **Edge and error cases:** with no pending request the body ends after the class ("… às 08:00."); an admin who
+  teaches gets one; a failing push never changes the answer.
+- **Verify by:** `npx vitest run src/modules/notifications/notifications.enrolment-notifier.spec.ts src/modules/notifications/push-messages.spec.ts`
+  (from `apps/backend`) and the "notifies" case of `apps/backend/test/seat-cancellation.e2e-spec.ts`.
+
+### ER-04 — Deleting an account releases the person's seats and requests
+
+- **Front:** auth
+- **Behavior:** Given a student with an approved seat in an upcoming class and a pending request in another, when
+  they delete their account (`DELETE /auth/me` path of spec 026), then the seat becomes `cancelled` with the
+  `enrolment.cancelled` notifications of ER-03, the request becomes `withdrawn` with nobody told, and the account is
+  `deleted`.
+- **Edge and error cases:** seats in started, finished or cancelled classes are unchanged; a seat past its deadline
+  is still cancelled (D-04); when the release fails, the call fails and the account stays approved; an account
+  without enrolments deletes as before.
+- **Verify by:** `npx jest test/user/usecase/delete-account.usecase.test.ts` (from `modules/auth`),
+  `npx jest test/enrolment/usecase/release-student-enrolments.usecase.test.ts` (from `modules/enrolment`) and the
+  "delete releases seats" case of `apps/backend/test/auth-profile.e2e-spec.ts`.
+
+### ER-05 — "Cancelar inscrição" on the details
+
+- **Front:** mobile
+- **Behavior:** Given a student with an approved seat before the deadline, when they open the class's details, then
+  the footer shows "Cancelar inscrição" (`outline`); pressing it opens a sheet "Cancelar inscrição" / "Sua vaga fica
+  livre. Você pode cancelar até seg, 19 out · 20:00." with "Sim, cancelar" and "Manter inscrição"; confirming shows
+  the toast "Inscrição cancelada", the banner "Você cancelou a inscrição" / "Sua vaga ficou livre." (`dim`), the
+  Agenda chip "Você cancelou" (`dim`), and the footer "Pedir novamente".
+- **Edge and error cases:** a double press sends once; `enrolment.notApproved` and `class.started` show their toasts
+  and reload the class; `enrolment.deadline.passed` and `enrolment.deadline.missing` close the sheet, reload the
+  class and show the note of ER-06; copy in pt-BR, es-ES and en-US.
+- **Verify by:** `npx jest src/modules/enrolment/components/cancel-seat-sheet src/modules/classes/screens/class-details.screen.test.tsx -t "cancel seat"`
+  (from `apps/mobile`).
+
+### ER-06 — After the deadline, or without one, the student contacts the school
+
+- **Front:** mobile
+- **Behavior:** Given a student with an approved seat in a class that hasn't started, when its deadline has passed,
+  then the footer shows no button and a note "O prazo para cancelar terminou em seg, 19 out · 20:00. Fale com a
+  escola." with "Falar com a escola"; when the class has no deadline, the note reads "O prazo de cancelamento desta
+  aula ainda não foi definido. Fale com a escola para cancelar." with the same button, which opens the school's
+  WhatsApp chat.
+- **Edge and error cases:** while the school's number loads, fails or is missing, the button isn't shown (the
+  note stays); the note follows the phone's clock and turns on when the deadline passes with the screen open (the
+  screen's minute clock); a started class shows neither note nor button.
+- **Verify by:** `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "deadline"` and
+  `npx jest src/components/contact-school-button src/modules/offboarding` (from `apps/mobile`).
+
+### ER-07 — A cancellation push opens the class
+
+- **Front:** mobile
+- **Behavior:** Given an admin or an instructor, when they tap an `enrolment.cancelled` push, then the app opens that
+  class's details in their flow.
+- **Edge and error cases:** received with the app open it invalidates `["classes"]` and `["enrolments", "pending"]`
+  without navigating.
+- **Verify by:** `npx jest src/modules/notifications/hooks` (from `apps/mobile`).
+
+## Tasks
+
+### Enrolment module (`modules/enrolment`)
+
+- [x] **T-01** — Add `cancellationDeadline` to the `EnrolmentClassReader` answer, `cancel(now)` to the `Enrolment`
+  entity (from approved only), and `CancelSeat` (`src/enrolment/usecase/cancel-seat.usecase.ts`, D-01, D-02, the
+  notifier's `seatCancelled` with the waiting count, errors swallowed), with tests. Skills:
+  [`module-entity`](../../../.claude/skills/module-entity), [`module-use-case`](../../../.claude/skills/module-use-case).
+  Covers: ER-01, ER-02, ER-03 · Done when: `npx jest test/enrolment` passes from `modules/enrolment`.
+  > ✅ 2026-10-20 12:58 — added `cancellationDeadline` to `EnrolmentClass`, `Enrolment.cancel`, the `SeatCancelled` notifier event, the repository methods `cancel`, `countPendingForClass` and `releaseForStudent` (the last one is used by T-02), and `CancelSeat` (D-01, D-02, errors swallowed); files: `modules/enrolment/src/enrolment/provider/enrolment-class-reader.provider.ts`, `modules/enrolment/src/enrolment/provider/enrolment-notifier.provider.ts`, `modules/enrolment/src/enrolment/provider/enrolment.repository.ts`, `modules/enrolment/src/enrolment/model/enrolment.entity.ts`, `modules/enrolment/src/enrolment/usecase/cancel-seat.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/test/enrolment/usecase/cancel-seat.usecase.test.ts`, `modules/enrolment/test/enrolment/model/enrolment.entity.test.ts`, `modules/enrolment/test/mock/enrolment.factory.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`, `modules/enrolment/test/mock/fake-enrolment.notifier.ts`; verified: `npx jest` from `modules/enrolment` (11 suites, 178 passed) and `npx tsc --noEmit` clean; deviations: the repository port also got `countPendingForClass` (the waiting count) and `releaseForStudent` (for T-02), the notifier port got `seatCancelled`
+
+- [x] **T-02** — Add `ReleaseStudentEnrolments` (`src/enrolment/usecase/release-student-enrolments.usecase.ts`, no
+  actor, input `{ studentId }`, D-04, one notification per class; a failed write propagates) and the repository
+  methods it needs, with tests. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
+  Covers: ER-04 · Done when: `npx jest test/enrolment/usecase/release-student-enrolments.usecase.test.ts` passes.
+  > ✅ 2026-10-20 12:58 — added `ReleaseStudentEnrolments` (cancels upcoming approved seats with no deadline check, withdraws pending requests silently, one `seatCancelled` per class, a failed write propagates, push errors swallowed); the repository methods were added in T-01; files: `modules/enrolment/src/enrolment/usecase/release-student-enrolments.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/test/enrolment/usecase/release-student-enrolments.usecase.test.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`; verified: `npx jest` from `modules/enrolment` (12 suites, 183 passed), `npx tsc --noEmit` clean; deviations: none
+
+### Classes module (`modules/classes`)
+
+- [x] **T-03** — Add the student's `cancelled` status to the class view's `myEnrolment` contract tests (no new
+  field), proving a cancelled enrolment is returned as the latest one.
+  Covers: ER-05 · Done when: `npx jest test/school-class/usecase/get-class.usecase.test.ts` passes from `modules/classes`.
+  > ✅ 2026-10-20 12:58 — added a `GetClass` contract test proving a `cancelled` enrolment is returned as `myEnrolment` (no code change needed: the status is already passed through); files: `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`; verified: `npx jest test/school-class/usecase/get-class.usecase.test.ts` from `modules/classes` passes; deviations: none
+
+### Auth module (`modules/auth`)
+
+- [x] **T-04** — Add the `SeatReleaser` port (`src/user/provider/seat-releaser.provider.ts`, `releaseSeats(userId)`)
+  and call it from `DeleteAccount` after `TeachingReleaser`, with tests for the order, a failing release and an
+  account without enrolments.
+  Covers: ER-04 · Done when: `npx jest test/user/usecase/delete-account.usecase.test.ts` passes from `modules/auth`.
+  > ✅ 2026-10-20 12:59 — added the `SeatReleaser` port and `DeleteAccount` calls it after `TeachingReleaser` and before marking the account deleted (a failed release fails the call, the account stays approved); files: `modules/auth/src/user/provider/seat-releaser.provider.ts`, `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/usecase/delete-account.usecase.ts`, `modules/auth/test/mock/fake-seat-releaser.provider.ts`, `modules/auth/test/mock/index.ts`, `modules/auth/test/user/usecase/delete-account.usecase.test.ts`; verified: `npx jest` from `modules/auth` (367 passed), `npx tsc --noEmit` clean; deviations: `apps/backend` constructs `DeleteAccount` and is wired in T-06
+
+### Notifications module (`modules/notifications`)
+
+- [x] **T-05** — Add `enrolment.cancelled` to `NOTIFICATION_TYPES`, with the entity tests.
+  Covers: ER-03 · Done when: `npx jest test/notification` passes from `modules/notifications`.
+  > ✅ 2026-10-20 12:59 — added `enrolment.cancelled` to `NOTIFICATION_TYPES` and its entity test; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest` from `modules/notifications` passes, `npx tsc --noEmit` clean; deviations: none
+
+### Backend (`apps/backend`)
+
+- [x] **T-06** — In `src/modules/enrolment/`: the deadline in `enrolment-class-reader.prisma.ts`, the conditional
+  `cancel` and the release queries in `enrolment.prisma.ts`, and `enrolment.seat-releaser.ts`
+  (`EnrolmentSeatReleaser`, runs `ReleaseStudentEnrolments`) exported and wired into `AuthModule`'s `DeleteAccount`,
+  with specs. Skills: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository),
+  [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
+  Covers: ER-01, ER-02, ER-04 · Done when: `npx vitest run src/modules/enrolment src/modules/auth` passes.
+  > ✅ 2026-10-20 13:01 — added the deadline to the class reader, the conditional `cancel`, `countPendingForClass` and `releaseForStudent` (one transaction: upcoming approved seats of non-cancelled classes become cancelled, pending ones withdrawn) to the Prisma repository, `EnrolmentSeatReleaser` (exported from `EnrolmentModule`) wired into `AuthModule` and `AuthController`'s `DeleteAccount`; files: `apps/backend/src/modules/enrolment/enrolment-class-reader.prisma.ts`, `apps/backend/src/modules/enrolment/enrolment-class-reader.prisma.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.prisma.ts`, `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.seat-releaser.ts`, `apps/backend/src/modules/enrolment/enrolment.seat-releaser.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`, `apps/backend/src/modules/auth/auth.module.ts`, `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`; verified: `npx vitest run src/modules/enrolment src/modules/auth` from `apps/backend` (28 files, 216 passed), `npx tsc --noEmit` clean; deviations: none
+
+- [x] **T-07** — Add `seatCancelled` to `notifications.enrolment-notifier.ts` and the `enrolment.cancelled` entry of
+  `push-messages.ts` in pt-BR, es and en (the count sentence only when above 0), with specs.
+  Covers: ER-03 · Done when: `npx vitest run src/modules/notifications` passes.
+  > ✅ 2026-10-20 13:00 — added `seatCancelled` to the notifier adapter (every approved admin and instructor once, `waitingCount` in the params) and the `enrolment.cancelled` copy in pt-BR, es and en (the count sentence only above 0); files: `apps/backend/src/modules/notifications/notifications.enrolment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.enrolment-notifier.spec.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` from `apps/backend` (17 files, 138 passed); deviations: executed before T-06 so the backend compiles against the new `EnrolmentNotifier` port (the module `dist` folders were rebuilt for that; they are not tracked)
+
+- [x] **T-08** — Add `POST /enrolments/:id/cancel` to `enrolment.controller.ts`, its spec and the requests in
+  `enrolment.integration.http`. Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
+  Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
+  > ✅ 2026-10-20 13:02 — added `POST /enrolments/:id/cancel` (200, protected) running `CancelSeat`, its controller spec cases and the cancel requests in the REST Client file; files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` from `apps/backend` (28 passed), `npx tsc --noEmit` clean; deviations: none
+
+- [x] **T-09** — Add `test/seat-cancellation.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the cancel,
+  refusal (deadline missing, passed, at the deadline) and notification cases, and the "delete releases seats" case
+  in `test/auth-profile.e2e-spec.ts`.
+  Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-20 13:03 — added the `seat-cancellation` e2e suite (cancels and frees the seat, second cancel, race, every refusal in order incl. missing/passed/at-the-deadline, notifications with waiting count, failing push) and the "delete releases seats" case in `auth-profile.e2e-spec.ts` (that suite now also fixes the enrolment clock); files: `apps/backend/test/seat-cancellation.e2e-spec.ts`, `apps/backend/test/auth-profile.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (20 files, 559 passed); deviations: none
+
+### Mobile (`apps/mobile`)
+
+- [x] **T-10** — Move `ContactSchoolButton` to `src/components/contact-school-button/` and `useSchoolWhatsapp` to
+  `src/hooks/use-school-whatsapp.hook.ts` with their tests, updating the offboarding imports (D-05).
+  Covers: ER-06 · Done when: `npx jest src/components/contact-school-button src/hooks src/modules/offboarding` passes.
+  > ✅ 2026-10-20 13:04 — moved `ContactSchoolButton` to `apps/mobile/src/components/contact-school-button/` and `useSchoolWhatsapp` (with its types and test) to `apps/mobile/src/hooks/`, updated the imports of the offboarding screens and of the button's hook (D-05); files: `apps/mobile/src/components/contact-school-button/*` (moved), `apps/mobile/src/hooks/use-school-whatsapp.hook.ts`, `apps/mobile/src/hooks/use-school-whatsapp.hook.test.tsx`, `apps/mobile/src/hooks/use-school-whatsapp.types.ts` (moved), `apps/mobile/src/modules/offboarding/screens/denied.screen.tsx`, `apps/mobile/src/modules/offboarding/screens/removed.screen.tsx`; verified: `npx jest src/components/contact-school-button src/hooks src/modules/offboarding` (4 suites, 20 passed), `npx tsc --noEmit` and `npx eslint` clean; deviations: none
+
+- [x] **T-11** — Add `hooks/use-cancel-seat.hook.ts`, the error keys, `components/cancel-seat-sheet/`, the cancelled
+  display status in `utils/enrolment-status.ts` and, in the details, the "Cancelar inscrição" footer, with tests and
+  copy in the three locales. Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
+  [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
+  Covers: ER-05 · Done when: `npx jest src/modules/enrolment src/modules/classes/screens/class-details.screen.test.tsx` passes.
+  > ✅ 2026-10-20 13:09 — added `useCancelSeat`, `getCancelSeatErrorKey`/`isDeadlineClosedError` (closed-deadline and notApproved reload the class), the `cancelled` display (dim banner + "Você cancelou" chip), `cancelSeat` CTA (outline, only while now < deadline, exclusive) and "Pedir novamente" after a cancel, `CancelSeatSheet`, the cancel flow in `useClassEnrolment` (single send guard) and the sheet in the details; copy in en-US, pt-BR and es-ES; files: `apps/mobile/src/modules/enrolment/hooks/use-cancel-seat.hook.ts`, `apps/mobile/src/modules/enrolment/hooks/use-cancel-seat.hook.test.tsx`, `apps/mobile/src/modules/enrolment/hooks/use-class-enrolment.hook.ts`, `apps/mobile/src/modules/enrolment/hooks/use-class-enrolment.hook.test.tsx`, `apps/mobile/src/modules/enrolment/components/cancel-seat-sheet/*`, `apps/mobile/src/modules/enrolment/utils/enrolment-cta.ts`, `apps/mobile/src/modules/enrolment/utils/enrolment-cta.test.ts`, `apps/mobile/src/modules/enrolment/utils/enrolment-error.ts`, `apps/mobile/src/modules/enrolment/utils/enrolment-error.test.ts`, `apps/mobile/src/modules/enrolment/utils/enrolment-status.ts`, `apps/mobile/src/modules/enrolment/utils/enrolment-status.test.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest src/modules/enrolment src/modules/classes src/components src/hooks src/modules/offboarding src/i18n` (all pass) and `npx tsc --noEmit`, `npx eslint src` clean; deviations: the English label of the action reads "Cancel enrolment" (en-US catalog wording for "Cancelar inscrição")
+
+- [x] **T-12** — Add the deadline-passed and no-deadline notes with `ContactSchoolButton` to the details' footer
+  (computed with `useNow`), with tests and copy.
+  Covers: ER-06 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "deadline"` passes.
+  > ✅ 2026-10-20 13:17 — added `deadlineNote` ("passed" / "missing") to `useClassEnrolment` for an approved seat of a not-started class whose deadline closed (follows the screen's minute clock), the note and the shared `ContactSchoolButton` in the details' footer, and copy `enrolment.cancelSeatNote` in en-US, pt-BR and es-ES; files: `apps/mobile/src/modules/enrolment/hooks/use-class-enrolment.hook.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "deadline"` (29 passed; the process then prints Jest's open-handle warning, which it already did before this task), `npx jest src/modules/enrolment src/modules/classes src/components` (90 suites, 936 passed), `npx tsc --noEmit` and `npx eslint src` clean; deviations: none
+
+- [x] **T-13** — Route `enrolment.cancelled` taps of the admin and instructor flows to the class details and
+  invalidate the queries of ER-07 on receipt, with tests.
+  Covers: ER-07 · Done when: `npx jest src/modules/notifications/hooks` passes.
+  > ✅ 2026-10-20 13:18 — a tap on an `enrolment.cancelled` push opens the class details in the instructor or admin flow; received with the app open it invalidates `["classes"]` and `["enrolments","pending"]` without navigating; files: `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`, `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`, `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`; verified: `npx jest src/modules/notifications` from `apps/mobile` (6 suites, 98 passed), `npx tsc --noEmit` and `npx eslint src` clean; deviations: none
+
+### Verification
+
+- [x] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+  summary as evidence.
+  Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-20 13:21 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs 043` → RELATED TESTS PASSED (backend, mobile, auth, classes, enrolment, notifications, school-rules); `node .specs/scripts/check-coverage.mjs 043` → COVERAGE OK (26 files; it first flagged the id tie-break branch of `releaseForStudent`, covered by a new case in `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`); `node .specs/scripts/run-e2e.mjs 043` → E2E PASSED (backend 20 files, 559 tests, with the Postgres container up); `npx turbo run lint check-types build` for enrolment, classes, auth, notifications, backend and mobile → 27 tasks successful, 0 errors (7 existing `require-array-sort-compare` warnings in e2e specs, one in the new suite, same pattern as the others). Not driven by me, for the user: (1) iOS simulator as a student with an approved seat before the deadline: "Cancelar inscrição" → the sheet shows the deadline → "Sim, cancelar" shows the toast, "Você cancelou a inscrição", the "Você cancelou" chip and "Pedir novamente"; as an admin the "Vaga cancelada" push arrives (or the stored notification exists); (2) set the class deadline in the past in the database: the "prazo terminou" note and "Falar com a escola"; with no deadline: the "ainda não foi definido" note; (3) delete the account of a student with a seat: the class's seats drop by one (covered by the backend e2e). `enrolment.integration.http` requests were added but not run by hand (the same routes are covered by the e2e suite); files: `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`; deviations: none
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 043` — the tests this spec added or changed, and the existing
+    tests related to its changes, pass (with coverage).
+  - `node .specs/scripts/check-coverage.mjs 043` — every line this spec adds or changes is covered.
+  - `npx turbo run lint check-types build --filter=@rochas-surf-school/enrolment --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/auth --filter=@rochas-surf-school/notifications --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile`
+    — no errors.
+  - `node .specs/scripts/run-e2e.mjs 043` — the backend e2e suite passes, including `seat-cancellation.e2e-spec.ts`.
+  - `enrolment.integration.http` against `npm run dev` — the cancel requests answer as ER-01 and ER-02.
+- User journeys (e2e, followed in a browser or simulator):
+  - On the iOS simulator, as a student with an approved seat before the deadline: "Cancelar inscrição" → the sheet
+    shows the deadline → "Sim, cancelar" shows the toast, "Você cancelou a inscrição", the "Você cancelou" chip and
+    "Pedir novamente"; as an admin, the push "Vaga cancelada" arrives (when pushes are set up) or the stored
+    notification exists.
+  - With the class's deadline set in the past (database), the details show the "prazo terminou" note and "Falar com
+    a escola"; with no deadline, the "ainda não foi definido" note.
+  - Delete the account of a student with a seat: the class's seats drop by one.
+
+## Memory Impact
+
+- `memory/product.md` — Current state: students cancel seats until the deadline, otherwise contact the school;
+  admins and instructors are told with the waiting count; deleting an account releases seats and requests.
+- `memory/technical-context.md` — the cancel route and its checks, `SeatReleaser` in Authentication, the push type,
+  the shared `ContactSchoolButton` / `useSchoolWhatsapp`.
+- `memory/structure.md` — `src/components/contact-school-button/`, `src/hooks/use-school-whatsapp.hook.ts`,
+  `cancel-seat-sheet`.
+- `memory/modules.md` — None.
+- `memory/modules/enrolment.md` — the cancellation and release rules.
+- `memory/modules/auth.md` — `DeleteAccount` releases seats through `SeatReleaser`.
+- `memory/modules/notifications.md` — `enrolment.cancelled`.
+
+## References
+
+- [How to execute](../../shared/how-to-execute.md)
+- [Task breakdown](../../shared/task-breakdown.md)
+- [Acceptance criteria rules](../../shared/acceptance-criteria.md)
+- [Naming rules](../../shared/naming-rules.md)
+- [Spec lifecycle](../../shared/spec-lifecycle.md)
+
+## Amendments
+
+## Review
+
+### Round 1 — 2026-10-20 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (enrolment, classes, auth, notifications, backend, mobile: 27 tasks, 0 errors;
+  7 `require-array-sort-compare` warnings in backend e2e specs, the same pattern as the existing ones)
+- related tests ✅ RELATED TESTS PASSED (backend 283, mobile 916, auth 288, classes, enrolment 183, notifications,
+  school-rules)
+- coverage of the changed lines ✅ COVERAGE OK (26 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (20 files, 559 tests, incl. `seat-cancellation.e2e-spec.ts` and "delete releases
+  seats" in `auth-profile.e2e-spec.ts`)
+- HTTP against `npm run dev` (review fixtures inserted in the dev database, then deleted) ✅: no deadline → 409
+  `enrolment.deadline.missing`; past deadline → 409 `enrolment.deadline.passed`; another person's, malformed and
+  unknown id → 404 `enrolment.notFound`; second cancel → 409 `enrolment.notApproved`
+- iOS simulator (iPhone 18 Pro, pt-BR, dev student) ✅: the journeys of the Verification Plan, see ER-05 and ER-06
+
+**Expected Results**
+
+- ER-01 ✅ — `cancel-seat.usecase.test.ts` and the e2e "cancels" cases pass; in the simulator the cancel answered and
+  the class went from 7 to 8 free seats with the student gone from the list
+- ER-02 ✅ — unit and e2e "refuses" cases pass (order of D-02, exactly at the deadline refused, nothing written or
+  sent); the HTTP refusals above answered as specified
+- ER-03 ✅ — notifier and push-message specs pass (pt-BR/es/en, no count sentence at 0, admin who teaches told once,
+  failures swallowed); after the simulator cancel, every approved admin and the instructor had exactly one stored
+  `enrolment.cancelled` with `waitingCount: 2`
+- ER-04 ✅ — `delete-account.usecase.test.ts` (order, failing release keeps the account approved, no enrolments),
+  `release-student-enrolments.usecase.test.ts` and the e2e "delete releases seats" case pass (upcoming seat
+  cancelled, request withdrawn, started class untouched, admins notified). Not repeated by hand, to keep the dev
+  review account
+- ER-05 ✅ — jest cases pass; in the simulator: outline "Cancelar inscrição" → sheet "Sua vaga fica livre. Você pode
+  cancelar até sex, 23 out · 09:00." with "Sim, cancelar" / "Manter inscrição" → dim banner "Você cancelou a
+  inscrição" / "Sua vaga ficou livre.", footer "Pedir novamente", Agenda chip "Você cancelou" (dim). The toast had
+  gone by the time of the screenshot; the jest case asserts it
+- ER-06 ✅ — jest cases pass (incl. the deadline passing with the screen open and the button's loading, failing and
+  missing states); in the simulator: past deadline → "O prazo para cancelar terminou em ter, 20 out · 09:00. Fale com
+  a escola." and no cancel button; without a school number no "Falar com a escola", with one it shows; no deadline →
+  "O prazo de cancelamento desta aula ainda não foi definido. Fale com a escola para cancelar." with the button
+- ER-07 ✅ — `npx jest src/modules/notifications/hooks` passes (tap opens the class in the instructor and admin flows;
+  receipt invalidates `["classes"]` and `["enrolments", "pending"]` without navigating). Real pushes aren't set up in
+  the simulator
+
+**Findings**
+
+None.
+
+**Notes**
+
+- No rendered test asserts the Agenda card's "Você cancelou" chip; it is covered through `getEnrolmentDisplay`
+  (`enrolment-status.test.ts`) and was seen in the simulator. A `class-card` case would pin it.
+- `enrolment.integration.http` was exercised with an equivalent script (same routes, bodies and accounts) rather
+  than the VS Code REST Client.

@@ -16,6 +16,8 @@ jest.mock("@/providers/alert-message", () => ({
 
 beforeEach(setupSignedInUser);
 
+const NOW = new Date("2026-10-14T13:00:00.000Z");
+
 const item = (myEnrolment: ClassItem["myEnrolment"]) =>
   ({ id: "c-1", seatsTaken: 0, capacity: 8, myEnrolment }) as ClassItem;
 
@@ -26,6 +28,7 @@ const setup = (props: { item: ClassItem | undefined; canEnrol?: boolean }) =>
         item: props.item,
         state: "not-started",
         canEnrol: props.canEnrol ?? true,
+        now: NOW,
         reload: jest.fn(),
       }),
     { wrapper: createWrapper(createQueryClient()) },

@@ -42,6 +42,9 @@ const startParts = (value: unknown, monthFirst = false): { day: string; time: st
   };
 };
 
+const waitingCount = (value: unknown): number =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0;
+
 const classCount = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : 1;
 
@@ -365,6 +368,32 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
           text(reason) ||
           `The school declined your request for the ${disciplineName(discipline)} class on ${day} at ${time}.`
         );
+      },
+    },
+  },
+  'enrolment.cancelled': {
+    'pt-BR': {
+      title: 'Vaga cancelada',
+      body: ({ studentName, discipline, startsAt, waitingCount: waiting }) => {
+        const { day, time } = startParts(startsAt);
+        const count = waitingCount(waiting);
+        return `${text(studentName)} cancelou a vaga na aula de ${disciplineName(discipline)} de ${day} às ${time}.${count > 0 ? ` ${count} na lista de espera.` : ''}`;
+      },
+    },
+    es: {
+      title: 'Plaza cancelada',
+      body: ({ studentName, discipline, startsAt, waitingCount: waiting }) => {
+        const { day, time } = startParts(startsAt);
+        const count = waitingCount(waiting);
+        return `${text(studentName)} canceló su plaza en la clase de ${disciplineName(discipline)} del ${day} a las ${time}.${count > 0 ? ` ${count} en lista de espera.` : ''}`;
+      },
+    },
+    en: {
+      title: 'Seat cancelled',
+      body: ({ studentName, discipline, startsAt, waitingCount: waiting }) => {
+        const { day, time } = startParts(startsAt, true);
+        const count = waitingCount(waiting);
+        return `${text(studentName)} cancelled their seat in the ${disciplineName(discipline)} class on ${day} at ${time}.${count > 0 ? ` ${count} on the waiting list.` : ''}`;
       },
     },
   },

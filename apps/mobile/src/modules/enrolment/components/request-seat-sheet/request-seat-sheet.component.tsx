@@ -22,14 +22,14 @@ export function RequestSeatSheet({
   onClose,
 }: RequestSeatSheetProps) {
   const { t } = useTranslation();
-  const sheet = useRequestSeatSheet({ visible, discipline });
+  const sheet = useRequestSeatSheet({ visible, discipline, onClose });
   const title = waitingList
     ? t("enrolment.requestSheet.waitingListTitle")
     : t("enrolment.requestSheet.title");
 
   return (
     <>
-      <BottomModal visible={visible} onClose={onClose}>
+      <BottomModal visible={sheet.sheetVisible} onClose={sheet.handleClose}>
         <View className="gap-4">
           <View className="gap-1">
             <Text className="ds-text-sheet-title text-ink">{title}</Text>

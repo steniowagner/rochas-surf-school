@@ -15,4 +15,4 @@ export type RequestSeatSheetProps = {
   onClose: () => void;
 };
 
-export type UseRequestSeatSheetProps = Pick<RequestSeatSheetProps, "visible" | "discipline">;
+export type UseRequestSeatSheetProps = Pick<RequestSeatSheetProps, "visible" | "discipline" | "onClose">;

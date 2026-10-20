@@ -2,7 +2,7 @@
 id: "041"
 slug: enrolment-requests
 title: "Students request seats in classes"
-status: changes-requested
+status: in-progress
 created: 2026-10-19
 started: 2026-10-19
 base_commit: f4f39160297a7dcb1497ed9c64df738439b75db0
@@ -597,7 +597,7 @@ cancelling a seat come in specs 042 and 043.
 
 **Findings**
 
-- [ ] **F-01** (ER-11) — "Ler" in the request sheet doesn't let the student read the rule: the request sheet closes
+- [x] **F-01** (ER-11) — "Ler" in the request sheet doesn't let the student read the rule: the request sheet closes
   at once, the rules sheet peeks at the bottom edge for a moment and is gone within a second, and the student is back
   on the details with neither sheet open (seen three times, also after a fresh app launch). Reproduce: on the iOS
   simulator, as an approved student, open an upcoming surf class with free seats → "Pedir para entrar" → wait for the
@@ -607,6 +607,18 @@ cancelling a seat come in specs 042 and 043.
   student back to the request sheet. The jest test can't catch this, because the bottom-sheet mock keeps every sheet
   mounted; cover the fix where it can be observed (for example, `onClose` of the request sheet not firing when "Ler"
   is pressed) and check it on the simulator.
+  > ✅ 2026-10-19 23:40 — reproduced as described: the cause was two stacked `BottomSheetModal`s. The request sheet's
+  > dismissal reached `onClose` (the library calls the `onDismiss` it had when the sheet was presented, so a plain
+  > state check read a stale value), which closed the sheet and its rules. `useRequestSeatSheet` now steps through
+  > `idle → leaving → open`: "Ler" hides the request sheet, the rules sheet is presented only once the request sheet
+  > has been dismissed, that dismissal is not forwarded to `onClose` (the step is read from a ref, so the stale
+  > callback sees it), and closing the rules brings the request sheet back with the box still ticked; files:
+  > `apps/mobile/src/modules/enrolment/components/request-seat-sheet/request-seat-sheet.{hook.ts,component.tsx,types.ts,component.test.tsx}`;
+  > verified: `npx jest src/modules/enrolment src/components/ui/bottom-modal` from `apps/mobile` (76 passed), the new
+  > case "steps aside for the rules without closing, and comes back when they close" uses a `BottomModal` mock that
+  > keeps calling its first `onClose` and shows whether the request sheet is visible; `tsc --noEmit` and eslint
+  > clean; on the iOS simulator (iPhone 18 Pro, student): ticked the box → "Ler" → the rules sheet opens and stays →
+  > "Fechar" → the request sheet is back with the box still ticked; deviations: none
 
 **Notes**
 

@@ -1,12 +1,22 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCancellationRules } from "@/modules/cancellation-rules/hooks/use-cancellation-rules.hook";
 
 import type { UseRequestSeatSheetProps } from "./request-seat-sheet.types";
 
-export const useRequestSeatSheet = ({ visible, discipline }: UseRequestSeatSheetProps) => {
+type RulesStep = "idle" | "leaving" | "open";
+
+export const useRequestSeatSheet = ({ visible, discipline, onClose }: UseRequestSeatSheetProps) => {
   const [accepted, setAccepted] = useState(false);
-  const [rulesVisible, setRulesVisible] = useState(false);
+  // The rules sheet replaces this one, never overlapping it: "leaving" while the request sheet slides down, "open" once
+  // it is gone (two modals presented together take each other down).
+  const [step, setStep] = useState<RulesStep>("idle");
+  // The sheet library calls the `onClose` it had when the sheet was presented, so the step is read from a ref.
+  const stepRef = useRef<RulesStep>("idle");
+
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
   const [wasVisible, setWasVisible] = useState(visible);
   const rules = useCancellationRules({ enabled: visible });
 
@@ -15,7 +25,7 @@ export const useRequestSeatSheet = ({ visible, discipline }: UseRequestSeatSheet
     setWasVisible(visible);
     if (!visible) {
       setAccepted(false);
-      setRulesVisible(false);
+      setStep("idle");
     }
   }
 
@@ -27,8 +37,17 @@ export const useRequestSeatSheet = ({ visible, discipline }: UseRequestSeatSheet
     setAccepted,
     hasRule,
     canSubmit: !hasRule || accepted,
-    rulesVisible,
-    openRules: () => setRulesVisible(true),
-    closeRules: () => setRulesVisible(false),
+    sheetVisible: visible && step === "idle",
+    // The request sheet leaving to make room for the rules is not the student closing it.
+    handleClose: () => {
+      if (stepRef.current === "leaving") {
+        setStep("open");
+      } else if (stepRef.current === "idle") {
+        onClose();
+      }
+    },
+    rulesVisible: step === "open",
+    openRules: () => setStep("leaving"),
+    closeRules: () => setStep("idle"),
   };
 };

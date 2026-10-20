@@ -28,6 +28,37 @@ jest.mock("@/modules/cancellation-rules/components/cancellation-rules-sheet", ()
   };
 });
 
+// Shows what the request sheet is told: the global sheet mock keeps every sheet mounted and never dismisses.
+jest.mock("@/components/ui/bottom-modal", () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { useRef } = require("react");
+  const { Pressable, Text, View } = require("react-native");
+  /* eslint-enable @typescript-eslint/no-require-imports */
+
+  return {
+    BottomModal: ({
+      visible,
+      onClose,
+      children,
+    }: {
+      visible: boolean;
+      onClose: () => void;
+      children: React.ReactNode;
+    }) => {
+      // Like the sheet library, it keeps calling the `onClose` it was first given.
+      const firstOnClose = useRef(onClose).current;
+
+      return (
+        <View>
+          <Text>{visible ? "request-shown" : "request-hidden"}</Text>
+          <Pressable accessibilityLabel="dismiss-request" onPress={firstOnClose} />
+          {children}
+        </View>
+      );
+    },
+  };
+});
+
 beforeEach(setupSignedInUser);
 
 function props(overrides: Partial<RequestSeatSheetProps> = {}): RequestSeatSheetProps {
@@ -104,12 +135,41 @@ describe("RequestSeatSheet", () => {
     expect(screen.getByText("rules-closed")).toBeOnTheScreen();
 
     await user.press(screen.getByRole("link", { name: "Read" }));
+    await user.press(screen.getByLabelText("dismiss-request"));
 
     expect(screen.getByText("rules-open")).toBeOnTheScreen();
 
     await user.press(screen.getByLabelText("close-rules"));
 
     expect(screen.getByText("rules-closed")).toBeOnTheScreen();
+  });
+
+  it("steps aside for the rules without closing, and comes back when they close", async () => {
+    fetchMock.mockResolvedValue(ok({ surf: "O aluno pode cancelar até 12 horas antes.", skate: null }));
+    const { sheet, user } = await renderSheet();
+    await user.press(screen.getByRole("checkbox"));
+
+    await user.press(screen.getByRole("link", { name: "Read" }));
+
+    // The rules wait for the request sheet to be gone.
+    expect(screen.getByText("request-hidden")).toBeOnTheScreen();
+    expect(screen.getByText("rules-closed")).toBeOnTheScreen();
+
+    // The request sheet's own dismissal, reaching onClose on its way out, is not the student closing it.
+    await user.press(screen.getByLabelText("dismiss-request"));
+    expect(sheet.onClose).not.toHaveBeenCalled();
+    expect(screen.getByText("rules-open")).toBeOnTheScreen();
+
+    await user.press(screen.getByLabelText("dismiss-request"));
+    expect(sheet.onClose).not.toHaveBeenCalled();
+
+    await user.press(screen.getByLabelText("close-rules"));
+
+    expect(screen.getByText("request-shown")).toBeOnTheScreen();
+    expect(screen.getByRole("checkbox")).toBeChecked();
+
+    await user.press(screen.getByLabelText("dismiss-request"));
+    expect(sheet.onClose).toHaveBeenCalledTimes(1);
   });
 
   it("reads the full class as the waiting list, in the title, the line and the button", async () => {

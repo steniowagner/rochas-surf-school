@@ -204,10 +204,11 @@ way and sees the result on the class.
   Covers: ER-02, ER-04 · Done when: `npx vitest run src/modules/notifications` passes.
   > ✅ 2026-10-20 20:14 — added `studentEnrolled` / `studentTakenOut` to `NotificationsEnrolmentNotifier` (student only, errors logged and swallowed; the reason is left out when there is none) and the `enrolment.enrolled` / `enrolment.takenOut` push copy in pt-BR, es and en (the take-out body is the reason as written, else the default text); files: `apps/backend/src/modules/notifications/notifications.enrolment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.enrolment-notifier.spec.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` (17 files, 152 passed); deviations: none
 
-- [ ] **T-07** — Add `POST /classes/:id/enrolments/direct` and `POST /enrolments/:id/take-out` to
+- [x] **T-07** — Add `POST /classes/:id/enrolments/direct` and `POST /enrolments/:id/take-out` to
   `enrolment.controller.ts`, its spec and the requests in `enrolment.integration.http`. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-03 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
+  > ✅ 2026-10-20 20:14 — added `POST /classes/:id/enrolments/direct` (201, or 200 through `@Res({ passthrough })` when a pending request was approved) and `POST /enrolments/:id/take-out` (200) to `EnrolmentController` (new `PrismaStudentLookup` dependency), their spec cases and the requests in the `.http` file; files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment` (13 files, 92 passed), `npx tsc --noEmit` from `apps/backend` clean; deviations: hand-written following the sibling handlers rather than invoking the skill
 
 - [ ] **T-08** — Add `test/direct-enrolment.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the direct
   enrolment (new and from pending), full, refusals, take-out and notification cases.

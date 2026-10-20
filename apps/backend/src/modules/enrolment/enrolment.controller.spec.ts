@@ -11,6 +11,7 @@ import type { NotificationsEnrolmentNotifier } from '../notifications/notificati
 import { EnrolmentController } from './enrolment.controller.js';
 import type { PrismaEnrolmentClassReader } from './enrolment-class-reader.prisma.js';
 import type { PrismaEnrolmentRepository } from './enrolment.prisma.js';
+import type { PrismaStudentLookup } from './student-lookup.prisma.js';
 import type { PrismaStudentNameReader } from './student-name-reader.prisma.js';
 import type { SystemClockProvider } from './system.clock.js';
 
@@ -41,6 +42,8 @@ function setup() {
     approve: vi.fn(async () => 'approved'),
     deny: vi.fn(async () => true),
     cancel: vi.fn(async () => true),
+    takeOut: vi.fn(async () => true),
+    enrolDirectly: vi.fn(async (enrolment: Enrolment) => ({ result: 'enrolled', enrolment })),
     countPendingForClass: vi.fn(async () => 2),
     findPendingByClass: vi.fn(async () => [] as unknown[]),
   };
@@ -62,22 +65,26 @@ function setup() {
     ),
   };
   const studentNameReader = { findName: vi.fn(async () => 'Ana Souza') };
+  const studentLookup = { isApprovedStudent: vi.fn(async (id: string) => id === STUDENT_ID) };
   const notifier = {
     seatRequested: vi.fn(async () => undefined),
     requestExpired: vi.fn(async () => undefined),
     requestApproved: vi.fn(async () => undefined),
     requestDenied: vi.fn(async () => undefined),
     seatCancelled: vi.fn(async () => undefined),
+    studentEnrolled: vi.fn(async () => undefined),
+    studentTakenOut: vi.fn(async () => undefined),
   };
   const controller = new EnrolmentController(
     enrolmentRepository as unknown as PrismaEnrolmentRepository,
     classReader as unknown as PrismaEnrolmentClassReader,
     studentNameReader as unknown as PrismaStudentNameReader,
+    studentLookup as unknown as PrismaStudentLookup,
     notifier as unknown as NotificationsEnrolmentNotifier,
     { now: () => NOW } as SystemClockProvider,
   );
 
-  return { controller, enrolmentRepository, notifier, stored };
+  return { controller, enrolmentRepository, notifier, stored, studentLookup };
 }
 
 describe('EnrolmentController', () => {
@@ -87,6 +94,8 @@ describe('EnrolmentController', () => {
     ['cancel', 'enrolments/:id/cancel', RequestMethod.POST, HttpStatus.OK],
     ['approve', 'enrolments/:id/approve', RequestMethod.POST, HttpStatus.OK],
     ['deny', 'enrolments/:id/deny', RequestMethod.POST, HttpStatus.OK],
+    ['enrolDirectly', 'classes/:id/enrolments/direct', RequestMethod.POST, HttpStatus.CREATED],
+    ['takeOut', 'enrolments/:id/take-out', RequestMethod.POST, HttpStatus.OK],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
     const handler = handlerOf(name);
 
@@ -387,6 +396,124 @@ describe('EnrolmentController', () => {
         statusCode: 403,
         message: 'user.status.notApproved',
       });
+    });
+  });
+
+  describe('enrolDirectly', () => {
+    const response = () => ({ status: vi.fn() });
+
+    it('stores an approved enrolment, answers 201 and tells the student', async () => {
+      const { controller, enrolmentRepository, notifier } = setup();
+      const res = response();
+
+      const out = await controller.enrolDirectly(userOf('admin', 'approved', INSTRUCTOR_ID), CLASS_ID, { studentId: STUDENT_ID }, res);
+
+      expect(out).toEqual({ id: expect.any(String), classId: CLASS_ID, status: 'approved', requestedAt: NOW });
+      expect(enrolmentRepository.enrolDirectly).toHaveBeenCalledOnce();
+      expect(res.status).not.toHaveBeenCalled();
+      expect(notifier.studentEnrolled).toHaveBeenCalledWith({
+        studentId: STUDENT_ID,
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: STARTS_AT,
+      });
+    });
+
+    it('answers 200 and tells the student it was approved when a pending request was approved', async () => {
+      const { controller, enrolmentRepository, notifier } = setup();
+      const pending = new Enrolment({
+        classId: CLASS_ID,
+        studentId: STUDENT_ID,
+        status: 'approved',
+        requestedAt: NOW,
+      });
+      enrolmentRepository.enrolDirectly.mockResolvedValue({ result: 'approved', enrolment: pending });
+      const res = response();
+
+      const out = await controller.enrolDirectly(userOf('admin'), CLASS_ID, { studentId: STUDENT_ID }, res);
+
+      expect(out.id).toBe(pending.id);
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+      expect(notifier.requestApproved).toHaveBeenCalledOnce();
+      expect(notifier.studentEnrolled).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['alreadyApproved', 'enrolment.alreadyApproved'],
+      ['full', 'enrolment.class.full'],
+    ] as const)('answers 409 %s', async (result, message) => {
+      const { controller, enrolmentRepository } = setup();
+      enrolmentRepository.enrolDirectly.mockResolvedValue({ result } as never);
+
+      await expect(
+        controller.enrolDirectly(userOf('admin'), CLASS_ID, { studentId: STUDENT_ID }, response()),
+      ).rejects.toMatchObject({ statusCode: 409, message });
+    });
+
+    it('answers 422 for a missing or unknown student, 404 for an unknown class and 403 for a non-admin', async () => {
+      const { controller } = setup();
+
+      await expect(controller.enrolDirectly(userOf('admin'), CLASS_ID, undefined, response())).rejects.toMatchObject({
+        statusCode: 422,
+        message: 'enrolment.student.invalid',
+      });
+      await expect(
+        controller.enrolDirectly(userOf('admin'), INSTRUCTOR_ID, { studentId: STUDENT_ID }, response()),
+      ).rejects.toMatchObject({ statusCode: 404, message: 'class.notFound' });
+      await expect(
+        controller.enrolDirectly(userOf('student'), CLASS_ID, { studentId: STUDENT_ID }, response()),
+      ).rejects.toMatchObject({ statusCode: 403, message: 'user.role.notAdmin' });
+    });
+  });
+
+  describe('takeOut', () => {
+    async function approved() {
+      const harness = setup();
+      const seat = new Enrolment({
+        classId: CLASS_ID,
+        studentId: STUDENT_ID,
+        status: 'approved',
+        requestedAt: NOW,
+      });
+      harness.stored.push(seat);
+      return { ...harness, id: seat.id };
+    }
+
+    it('takes the student out with the trimmed reason and tells them', async () => {
+      const { controller, id, enrolmentRepository, notifier } = await approved();
+
+      const out = await controller.takeOut(userOf('admin'), id, { reason: ' Turma avançada ' });
+
+      expect(out).toEqual({ id, classId: CLASS_ID, status: 'takenOut', requestedAt: NOW });
+      expect(enrolmentRepository.takeOut).toHaveBeenCalledWith(id, 'Turma avançada', NOW);
+      expect(notifier.studentTakenOut).toHaveBeenCalledWith({
+        studentId: STUDENT_ID,
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: STARTS_AT,
+        reason: 'Turma avançada',
+      });
+    });
+
+    it('takes out without a body, storing no reason', async () => {
+      const { controller, id, enrolmentRepository } = await approved();
+
+      await controller.takeOut(userOf('admin'), id);
+
+      expect(enrolmentRepository.takeOut).toHaveBeenCalledWith(id, null, NOW);
+    });
+
+    it('answers 422 over 300 characters, 404 for an unknown enrolment and 403 for a non-admin', async () => {
+      const { controller, id } = await approved();
+
+      await expect(controller.takeOut(userOf('admin'), id, { reason: 'a'.repeat(301) })).rejects.toMatchObject({
+        statusCode: 422,
+      });
+      await expect(controller.takeOut(userOf('admin'), 'not-a-uuid')).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'enrolment.notFound',
+      });
+      await expect(controller.takeOut(userOf('student'), id)).rejects.toMatchObject({ statusCode: 403 });
     });
   });
 });

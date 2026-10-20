@@ -199,8 +199,9 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-03** — Add `reason` to `ViewerEnrolment` and to `myEnrolment` in `toClassItem`, with the use case tests.
+- [x] **T-03** — Add `reason` to `ViewerEnrolment` and to `myEnrolment` in `toClassItem`, with the use case tests.
   Covers: ER-05 · Done when: `npx jest test/school-class` passes from `modules/classes`.
+  > ✅ 2026-10-20 — `ViewerEnrolment.reason?` (optional on the port so existing readers keep working) and `reason: string | null` on `myEnrolment` in `toClassItem` (`null` when absent); files: `modules/classes/src/school-class/provider/viewer-enrolment-reader.provider.ts`, `modules/classes/src/school-class/usecase/class-item.ts`, `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`, `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npx jest` from `modules/classes` (33 suites, 473 passed), `tsc --noEmit` and `oxlint` clean; deviations: none
 
 ### Notifications module (`modules/notifications`)
 

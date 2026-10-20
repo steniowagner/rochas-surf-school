@@ -4,6 +4,8 @@ export interface ViewerEnrolment {
   /** The enrolment status as stored, for example `pending`. */
   status: string;
   requestedAt: Date;
+  /** The denial reason (or the take-out reason), when one was written. */
+  reason?: string | null;
 }
 
 export interface ViewerEnrolmentReader {

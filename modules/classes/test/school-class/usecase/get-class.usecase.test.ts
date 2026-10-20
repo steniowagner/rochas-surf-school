@@ -92,12 +92,28 @@ describe("GetClass", () => {
       id: "e-1",
       status: "pending",
       requestedAt: "2026-10-14T10:00:00.000Z",
+      reason: null,
     });
     expect((await useCase.execute({ actor: ADMIN, id: ID })).myEnrolment).toBeNull();
     expect(viewerReader.calls).toEqual([
       { viewerId: STUDENT.id, classIds: [ID] },
       { viewerId: ADMIN.id, classIds: [ID] },
     ]);
+  });
+
+  it("carries the reason of a denied enrolment", async () => {
+    const requestedAt = new Date("2026-10-14T10:00:00.000Z");
+    const viewerReader = new FakeViewerEnrolmentReader({
+      [`${STUDENT.id}:${ID}`]: { id: "e-2", status: "denied", requestedAt, reason: "Nível avançado" },
+    });
+    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader);
+
+    expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
+      id: "e-2",
+      status: "denied",
+      requestedAt: "2026-10-14T10:00:00.000Z",
+      reason: "Nível avançado",
+    });
   });
 
   it("answers class.notFound for an unknown id", async () => {

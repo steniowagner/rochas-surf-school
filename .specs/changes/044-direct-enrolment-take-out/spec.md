@@ -180,9 +180,10 @@ way and sees the result on the class.
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-03** — Add `enrolmentId` to `ClassStudent` (`provider/class-roster-reader.provider.ts`) and to the
+- [x] **T-03** — Add `enrolmentId` to `ClassStudent` (`provider/class-roster-reader.provider.ts`) and to the
   fakes and use case tests.
   Covers: ER-05 · Done when: `npx jest test/school-class` passes from `modules/classes`.
+  > ✅ 2026-10-20 20:12 — added `enrolmentId` to `ClassStudent`; the roster still passes through the class item (`{ ...student }`), so `GET` class and the week list carry it (cap of 4 unchanged); files: `modules/classes/src/school-class/provider/class-roster-reader.provider.ts`, `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`, `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`, `modules/classes/test/school-class/provider/fake-class-roster.reader.test.ts`; verified: `npx jest test/school-class` from `modules/classes` (351 passed, includes the `toEqual` of the full student objects with `enrolmentId`), `tsc --noEmit` clean; deviations: none
 
 ### Notifications module (`modules/notifications`)
 

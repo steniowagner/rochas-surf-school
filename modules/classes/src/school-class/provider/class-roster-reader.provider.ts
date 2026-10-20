@@ -3,6 +3,8 @@ export interface ClassStudent {
   id: string;
   name: string;
   photoUrl: string | null;
+  /** The student's approved enrolment in the class, which an admin can take them out of. */
+  enrolmentId: string;
 }
 
 /** Who holds the seats of a class. */

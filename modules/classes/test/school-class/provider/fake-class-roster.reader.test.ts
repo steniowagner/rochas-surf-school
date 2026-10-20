@@ -1,6 +1,6 @@
 import { FakeClassRosterReader } from "../../mock";
 
-const STUDENTS = ["a", "b", "c"].map((id) => ({ id, name: id.toUpperCase(), photoUrl: null }));
+const STUDENTS = ["a", "b", "c"].map((id) => ({ id, name: id.toUpperCase(), photoUrl: null, enrolmentId: `e-${id}` }));
 
 describe("FakeClassRosterReader", () => {
   it("answers each known class with its seats and students in the given order", async () => {

@@ -14,6 +14,7 @@ const SEVEN = Array.from({ length: 7 }, (_, index) => ({
   id: `s-${index}`,
   name: `Aluno ${index}`,
   photoUrl: null,
+  enrolmentId: `e-${index}`,
 }));
 
 function setup() {

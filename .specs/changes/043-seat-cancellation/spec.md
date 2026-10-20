@@ -221,10 +221,11 @@ withdraws their pending requests, so a deleted student never holds a seat.
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
   > ✅ 2026-10-20 13:02 — added `POST /enrolments/:id/cancel` (200, protected) running `CancelSeat`, its controller spec cases and the cancel requests in the REST Client file; files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` from `apps/backend` (28 passed), `npx tsc --noEmit` clean; deviations: none
 
-- [ ] **T-09** — Add `test/seat-cancellation.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the cancel,
+- [x] **T-09** — Add `test/seat-cancellation.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the cancel,
   refusal (deadline missing, passed, at the deadline) and notification cases, and the "delete releases seats" case
   in `test/auth-profile.e2e-spec.ts`.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-20 13:03 — added the `seat-cancellation` e2e suite (cancels and frees the seat, second cancel, race, every refusal in order incl. missing/passed/at-the-deadline, notifications with waiting count, failing push) and the "delete releases seats" case in `auth-profile.e2e-spec.ts` (that suite now also fixes the enrolment clock); files: `apps/backend/test/seat-cancellation.e2e-spec.ts`, `apps/backend/test/auth-profile.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (20 files, 559 passed); deviations: none
 
 ### Mobile (`apps/mobile`)
 

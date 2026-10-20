@@ -25,8 +25,6 @@ import { useEnrolStudentScreen } from "./enrol-student.screen.hook";
 
 const END_REACHED_OFFSET = 80;
 
-const noop = () => {};
-
 export function EnrolStudentScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -96,7 +94,9 @@ export function EnrolStudentScreen() {
             </Pressable>
           );
         })}
-        {screen.isFetchingMoreStudents ? <ActivityIndicator color={theme.ink2} className="py-3" /> : null}
+        {screen.isFetchingMoreStudents ? (
+          <ActivityIndicator testID="enrol-student-more-loading" color={theme.ink2} className="py-3" />
+        ) : null}
       </ScrollView>
     );
   };
@@ -138,7 +138,7 @@ export function EnrolStudentScreen() {
               pointerEvents={full ? "none" : "auto"}
               className={`rounded-card border-2 ${selected ? "border-grape" : "border-transparent"} ${full ? "opacity-50" : ""}`}
             >
-              <ClassCard item={item} now={screen.now} onPress={full ? noop : screen.selectClass} />
+              <ClassCard item={item} now={screen.now} onPress={screen.selectClass} />
             </View>
           );
         })}
@@ -185,7 +185,7 @@ export function EnrolStudentScreen() {
           {renderClasses()}
         </View>
         <Button
-          disabled={!screen.canSubmit}
+          disabled={!screen.submit}
           loading={screen.isSubmitting}
           onPress={screen.submit}
         >

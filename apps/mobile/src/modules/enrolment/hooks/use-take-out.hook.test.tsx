@@ -9,9 +9,17 @@ import {
   setupSignedInUser,
 } from "@/modules/classes/classes.test-utils";
 
+import * as api from "@/services/api";
+
 import { useTakeOut } from "./use-take-out.hook";
 
 const mockShow = jest.fn();
+
+jest.mock("@/services/api", () => {
+  const actual = jest.requireActual("@/services/api");
+
+  return { ...actual, apiPost: jest.fn(actual.apiPost) };
+});
 
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
@@ -87,5 +95,16 @@ describe("useTakeOut", () => {
     expect(mockShow).toHaveBeenCalledTimes(1);
     expect(result.current.target).toEqual(TARGET);
     expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("shows nothing for an expired session, which the session flow handles", async () => {
+    const { result } = await setup();
+    await act(async () => result.current.open(TARGET));
+    jest.mocked(api.apiPost).mockRejectedValueOnce(new api.SessionExpiredError());
+
+    await act(async () => result.current.confirm(""));
+
+    expect(mockShow).not.toHaveBeenCalled();
+    expect(result.current.target).toEqual(TARGET);
   });
 });

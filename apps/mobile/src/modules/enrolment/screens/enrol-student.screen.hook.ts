@@ -64,10 +64,11 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   );
   const markedDates = [...new Set(upcoming.map((item) => schoolDayOf(item.startsAt)))];
   const selectedClass = dayItems.find((item) => item.id === selectedClassId);
-  const canSubmit =
-    selectedStudent !== null &&
-    selectedClass !== undefined &&
-    !isClassFull(selectedClass.seatsTaken, selectedClass.capacity);
+  // Both picked, and the class still has a free seat (a reload may have filled it).
+  const target =
+    selectedStudent && selectedClass && !isClassFull(selectedClass.seatsTaken, selectedClass.capacity)
+      ? { student: selectedStudent, classId: selectedClass.id }
+      : null;
 
   const loadMoreStudents = () => {
     if (people.hasNextPage && !people.isFetchingNextPage) {
@@ -75,8 +76,8 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     }
   };
 
-  const submit = async () => {
-    if (!canSubmit || !selectedStudent || !selectedClass || inFlight.current) {
+  const submit = async ({ student, classId }: NonNullable<typeof target>) => {
+    if (inFlight.current) {
       return;
     }
 
@@ -84,11 +85,8 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     setIsSubmitting(true);
 
     try {
-      await enrolMutation.mutateAsync({
-        classId: selectedClass.id,
-        studentId: selectedStudent.id,
-      });
-      alertMessage.show(t("enrolStudent.done", { name: selectedStudent.name }));
+      await enrolMutation.mutateAsync({ classId, studentId: student.id });
+      alertMessage.show(t("enrolStudent.done", { name: student.name }));
       router.back();
     } catch (error) {
       const key = getEnrolStudentErrorKey(error);
@@ -141,8 +139,8 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     retryClasses: () => void weekQuery.refetch(),
     selectedClassId,
     selectClass: setSelectedClassId,
-    canSubmit,
+    // Undefined until a student and a class with a free seat are picked.
+    submit: target ? () => submit(target) : undefined,
     isSubmitting,
-    submit,
   };
 };

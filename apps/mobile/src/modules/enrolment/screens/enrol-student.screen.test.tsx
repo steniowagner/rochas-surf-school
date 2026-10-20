@@ -261,6 +261,25 @@ describe("EnrolStudentScreen", () => {
     await waitFor(() => expect(requestedPaths()).toContain("/people?page=2&perPage=20&role=student"));
   });
 
+  it("shows a spinner under the list while the next page loads", async () => {
+    let finish: (value: unknown) => void = () => undefined;
+    const pending = new Promise((resolve) => {
+      finish = resolve;
+    });
+    serve({ total: 40, handlers: { "GET /people?page=2&perPage=20&role=student": () => pending } });
+    await renderScreen();
+    const list = await screen.findByTestId("enrol-student-students");
+
+    fireEvent.scroll(list, {
+      nativeEvent: { contentOffset: { y: 200 }, layoutMeasurement: { height: 288 }, contentSize: { height: 500 } },
+    });
+
+    expect(await screen.findByTestId("enrol-student-more-loading")).toBeOnTheScreen();
+    finish(ok({ items: [person("s-caio", "Caio Dias")], page: 2, perPage: 20, total: 40 }));
+    expect(await screen.findByRole("radio", { name: "Caio Dias" })).toBeOnTheScreen();
+    expect(screen.queryByTestId("enrol-student-more-loading")).not.toBeOnTheScreen();
+  });
+
   it("does not load more while the list is far from its end", async () => {
     serve({ total: 40 });
     await renderScreen();
@@ -275,11 +294,16 @@ describe("EnrolStudentScreen", () => {
 
   it("shows the loading states and retries both lists after a failure", async () => {
     const user = userEvent.setup();
-    fetchMock.mockImplementation(async () => failure(500));
+    let fail: (value: unknown) => void = () => undefined;
+    const failing = new Promise((resolve) => {
+      fail = resolve;
+    });
+    fetchMock.mockImplementation(() => failing);
     await renderScreen();
 
     expect(screen.getByTestId("enrol-student-students-loading")).toBeOnTheScreen();
     expect(screen.getByTestId("enrol-student-classes-loading")).toBeOnTheScreen();
+    fail(failure(500));
     const retries = await screen.findAllByRole("button", { name: "Try again" });
     expect(retries).toHaveLength(2);
 

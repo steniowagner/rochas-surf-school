@@ -27,7 +27,7 @@ export type UseEnrolStudentScreenResult = {
   retryClasses: () => void;
   selectedClassId: string | null;
   selectClass: (id: string) => void;
-  canSubmit: boolean;
   isSubmitting: boolean;
-  submit: () => void;
+  /** Sends the enrolment; undefined until a student and a class with a free seat are picked. */
+  submit: (() => Promise<void>) | undefined;
 };

@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react-native";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import type { ClassItem } from "@/modules/classes/classes.types";
 import {
@@ -59,5 +59,18 @@ describe("useClassEnrolment", () => {
     await act(async () => result.current.withdraw());
 
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows the button as loading while it leaves the waiting list, without opening a sheet", async () => {
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+    const full = { ...item({ id: "e-1", status: "pending" } as ClassItem["myEnrolment"]), seatsTaken: 8 };
+    const { result } = await setup({ item: full });
+
+    expect(result.current.ctaLoading).toBe(false);
+
+    await act(async () => result.current.pressCta());
+
+    await waitFor(() => expect(result.current.ctaLoading).toBe(true));
+    expect(result.current.withdrawVisible).toBe(false);
   });
 });

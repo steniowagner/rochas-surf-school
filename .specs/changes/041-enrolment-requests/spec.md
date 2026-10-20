@@ -2,7 +2,7 @@
 id: "041"
 slug: enrolment-requests
 title: "Students request seats in classes"
-status: in-progress
+status: in-review
 created: 2026-10-19
 started: 2026-10-19
 base_commit: f4f39160297a7dcb1497ed9c64df738439b75db0
@@ -617,7 +617,8 @@ cancelling a seat come in specs 042 and 043.
   > verified: `npx jest src/modules/enrolment src/components/ui/bottom-modal` from `apps/mobile` (76 passed), the new
   > case "steps aside for the rules without closing, and comes back when they close" uses a `BottomModal` mock that
   > keeps calling its first `onClose` and shows whether the request sheet is visible; `tsc --noEmit` and eslint
-  > clean; on the iOS simulator (iPhone 18 Pro, student): ticked the box → "Ler" → the rules sheet opens and stays →
+  > clean; the coverage gate also flickered on the `ctaLoading` branch of `use-class-enrolment.hook.ts` (only reached
+  > by a timing-dependent test), so `use-class-enrolment.hook.test.tsx` got a deterministic case for it; on the iOS simulator (iPhone 18 Pro, student): ticked the box → "Ler" → the rules sheet opens and stays →
   > "Fechar" → the request sheet is back with the box still ticked; deviations: none
 
 **Notes**

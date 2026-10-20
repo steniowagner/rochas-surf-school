@@ -2,10 +2,11 @@
 id: "042"
 slug: enrolment-decisions
 title: "Admins approve and deny class requests"
-status: in-review
+status: accepted
 created: 2026-10-19
 started: 2026-10-20
 base_commit: d3d00e160fbd02f277a9e13759df2775533c7025
+reviewed_commit: 46350bcff7e3faf6f27430637fbaef653be4db24
 fronts: [enrolment, classes, notifications, backend, mobile]
 depends_on: ["041"]
 ---
@@ -352,3 +353,37 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 - `assertNotStarted` in `decision.ts` returns `now`, but no caller uses the return value.
 - Review data left in the local dev database: class `ca72070f-2d7f-4b03-9ea1-f8cc73d6670d` (23 Oct) now has capacity 1, with one approved (Ana Silva) and two pending (Bruno Lima, Dev Student) enrolments; Dev Student is approved in `54cdf6e9-…` (21 Oct) and denied in `bf237406-…` (22 Oct).
 - The backend on port 4000 (started 10:48 from `dist/`) predates T-07 and answers 404 for the new routes; the review used its own backend on port 4001.
+
+### Round 2 — 2026-10-20 — accepted
+
+**Checks**
+
+- lint ✅ (0 errors; the same 6 non-null-assertion warnings in backend specs) · type check ✅ · build ✅ — `npx turbo run lint check-types build` for enrolment, classes, notifications, backend, mobile: 27/27 tasks
+- related tests ✅ — `RELATED TESTS PASSED`: mobile 61 suites/991, classes 33/473, enrolment 10/149, notifications 12/111, backend 19 files/260
+- coverage of the changed lines ✅ — `COVERAGE OK` (34 files); no coverage-ignore comments, debug leftovers or TODOs in the diff
+- e2e: backend suite ✅ — `E2E PASSED`, 19 files/551 tests, including `enrolment-decisions.e2e-spec.ts`
+- user journeys (iOS simulator, iPhone 17, pt-BR, the installed debug build on a Metro from this branch pointed at a backend built from this branch on port 4001, the review admin signed in): the home row "Inscrições em aulas · 2 pedidos"; the tool on the full class of 23 Oct ✅ (journey 3); journeys 1 and 2 were checked in round 1 and the only code changed since is `StudentAvatar`
+
+**Expected Results**
+
+- ER-01 ✅ — use case tests and the "lists pending" e2e cases pass
+- ER-02 ✅ — use case, Prisma (`-t "approve"`) and e2e cases pass, the concurrent approve included
+- ER-03 ✅ — use case and "denies" e2e cases pass
+- ER-04 ✅ — notifier and push-message specs and the "notifies the student" e2e cases pass
+- ER-05 ✅ — `GetClass` "reason" cases and the Prisma reader spec pass
+- ER-06 ✅ — screen and admin home tests pass; in the simulator the request cards of the full class show "1º Bruno Lima" / "2º Dev Student" with "Pediu às 09:10 · 20 out", "Inscrever" disabled and the note, and the 40pt avatars now show the whole initials "BL" and "DS", centered (F-01 closed)
+- ER-07 ✅ — class-details "decision", `denial-reason-sheet` and `enrolment-status` tests pass
+- ER-08 ✅ — `src/modules/notifications/hooks` tests pass
+
+**Findings**
+
+None.
+
+**Notes**
+
+- F-01 closed: `StudentAvatar` sets `lineHeight` to 1.3 × the font size, with a 40pt test case; the 26pt roster avatar on the classes week ("AS") still renders whole, so the change doesn't affect the smaller sizes.
+- Checked beyond round 1: approving a pending request of a cancelled class isn't possible, since `CancelClass` closes the class's open enrolments (`classCancelled`), so the approve answers `enrolment.notPending`.
+- Round 1's notes still apply (the red success toast, the e2e "nobody when a seat opens" case that can't fail, the shared `{{enrolmentId}}` in `enrolment.integration.http`, the unused return value of `assertNotStarted`).
+- `## Memory Impact` matches what was built.
+- The six untracked folders `.specs/changes/043-…` to `048-…` in the working tree are other specs' plans, not this spec's code; they were left alone.
+- After the review the simulator app is signed in as the review admin (it was signed in as the student) and is pointed back at the default Metro on port 8081; the backend on 4001 and the Metro on 8082 started for the review were stopped.

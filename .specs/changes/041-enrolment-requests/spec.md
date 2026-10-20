@@ -2,10 +2,11 @@
 id: "041"
 slug: enrolment-requests
 title: "Students request seats in classes"
-status: in-review
+status: accepted
 created: 2026-10-19
 started: 2026-10-19
 base_commit: f4f39160297a7dcb1497ed9c64df738439b75db0
+reviewed_commit: 5aff7586d6cdede0d823877a9098ae8a4f11bc60
 fronts: [enrolment, classes, notifications, backend, mobile]
 depends_on: []
 ---
@@ -636,3 +637,58 @@ cancelling a seat come in specs 042 and 043.
 - Testing on the dev database left two `withdrawn` enrolments of "Dev Student" (classes `d4f6f1a0…` and
   `54cdf6e9…`) and the `enrolment.requested` notifications of the first request; the full-class setup was undone.
 - `## Memory Impact` matches what was built.
+
+### Round 2 — 2026-10-20 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ — `npx turbo run lint check-types build --concurrency=1` over enrolment, classes,
+  notifications, backend and mobile: 27 of 27 tasks (backend lint: 0 errors, 4 `require-array-sort-compare` warnings,
+  2 of them new in `test/enrolment.e2e-spec.ts`, the same pattern as the 2 already in `test/classes.e2e-spec.ts`)
+- related tests ✅ `RELATED TESTS PASSED` — apps/backend 239, apps/mobile 1051, modules/classes 472, modules/enrolment 91,
+  modules/notifications 107
+- coverage of the changed lines ✅ `COVERAGE OK — every changed line covered in 45 file(s)` (the request sheet's hook
+  and component 100%); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (18 files, 534 tests)
+- user journeys on the iOS simulator (iPhone 18 Pro, iOS 27, Dev Student): journey 1 ✅ (with "Ler"), journey 3 ✅
+  (class cancelled through `POST /classes/:id/cancel` as Dev Admin, then read in the app as the student); journey 2
+  not driven again: the fix only touched the request sheet, and round 1 saw it pass
+
+**Expected Results**
+
+- ER-01 – ER-09 ✅ — unchanged since round 1 and covered by the passing use case, adapter and e2e suites; ER-06 also
+  checked on the dev backend: cancelling a class with a pending request stored it as `classCancelled`, sent
+  `class.cancelled` with the message to the student and the instructor and nothing to the cancelling admin, and the
+  admin reads `myEnrolment: null`
+- ER-10 ✅ — screen tests; on the simulator "Pedir para entrar", "Anular pedido" and "Pedir novamente", and no footer on
+  the cancelled class
+- ER-11 ✅ — F-01 fixed: on the simulator, ticked → "Ler" → the rules sheet opens and stays → "Fechar" brings the request
+  sheet back with the box still ticked; closing the rules from the backdrop also brings it back; closing the request
+  sheet from the backdrop after that round trip still closes it, and reopening it starts unticked; "Enviar pedido"
+  after the round trip posts once (201 in the device's network log), shows "Pedido enviado", the "Pedido pendente"
+  banner and "Anular pedido" (4 sends, 2 of them through "Ler"); the new component test covers the stale `onClose`
+  the library keeps
+- ER-12 ✅ — on the simulator "Anular pedido" → "Sim, anular" → toast and banner "Pedido anulado", then "Pedir novamente"
+- ER-13 ✅ — on the simulator the "Pedido pendente" and "Pedido anulado" banners, the card chips "Pendente" and
+  "Anulado", and a cancelled class keeping only "Cancelada" (card) and "Aula cancelada" (details)
+- ER-14 ✅ — `npx jest src/modules/notifications/hooks`
+
+**Findings**
+
+None. F-01 of round 1 is fixed (above).
+
+**Notes**
+
+- Driving the simulator, screenshots taken right after a tap sometimes showed the frame before it, which made a tick
+  look lost and a later "Enviar pedido" look like it cleared the box without sending. The device's network log shows no
+  POST for those presses (the box had been unticked by the second tap, so the button was disabled), and every attempt
+  with a short wait before the screenshot behaved as specified. Not a finding; worth knowing for the next simulator
+  review.
+- Round 1's notes still stand: success toasts use the shared error style, and a failing `ClassEnrolmentsCloser` leaves
+  a cancelled class's enrolments open.
+- The two new `require-array-sort-compare` lint warnings could take a numeric compare, as could the two older ones in
+  `classes.e2e-spec.ts`.
+- Testing on the dev database: class `68970faf…` (Review R2 Beach, 21 Oct 12:00) is now cancelled with "Mar muito
+  agitado.", and Dev Student has three `withdrawn` enrolments and one `classCancelled` enrolment in it, plus the
+  `enrolment.requested` and `class.cancelled` notifications those created.
+- `## Memory Impact` still matches what was built; the fix adds nothing to it.

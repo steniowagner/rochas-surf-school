@@ -8,9 +8,12 @@ import type { StudentAvatarProps } from "./student-avatar.types";
 
 // The initials take this share of the circle, so they fit from 26pt up.
 const INITIALS_RATIO = 0.4;
+// `ds-text-chip` fixes the line height for 10.5px type, so it scales with the font size here or a larger circle clips the glyphs.
+const LINE_HEIGHT_RATIO = 1.3;
 
 /** A person's photo, or their initials on a `sand` circle when there is none or it fails to load. */
 export function StudentAvatar({ name, photoUrl, size, ringed = false }: StudentAvatarProps) {
+  const fontSize = Math.round(size * INITIALS_RATIO);
   const [failed, setFailed] = useState(false);
   const showPhoto = photoUrl !== null && !failed;
 
@@ -29,7 +32,7 @@ export function StudentAvatar({ name, photoUrl, size, ringed = false }: StudentA
         />
       ) : (
         <Text
-          style={{ fontSize: Math.round(size * INITIALS_RATIO) }}
+          style={{ fontSize, lineHeight: Math.round(fontSize * LINE_HEIGHT_RATIO) }}
           className="ds-text-chip text-ink"
         >
           {getInitials(name)}

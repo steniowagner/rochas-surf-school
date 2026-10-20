@@ -2,7 +2,7 @@
 id: "042"
 slug: enrolment-decisions
 title: "Admins approve and deny class requests"
-status: changes-requested
+status: in-review
 created: 2026-10-19
 started: 2026-10-20
 base_commit: d3d00e160fbd02f277a9e13759df2775533c7025
@@ -339,7 +339,10 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 
 **Findings**
 
-- [ ] **F-01** (ER-06) — In "Inscrições em aulas" each request card's avatar shows the student's initials cut off at the top ("DS", "BL"): only the bottom half of the letters is visible. `ClassRequestsGroup` renders `StudentAvatar` at `size={40}` (`class-requests-group.component.tsx`, `AVATAR_SIZE = 40`). `StudentAvatar` sets `fontSize: Math.round(size * 0.4)` (16) on a `ds-text-chip` `Text`, but that class fixes the line height for 10.5px type, so at 40pt the line box is shorter than the glyphs and `overflow-hidden` on the circle clips them. The 26/28pt avatars elsewhere still fit. Reproduce: as an admin with any pending request without a photo, open the tool in the iOS simulator. Expected: the whole initials, centered in the circle, as on the registrations tool's cards (`PersonAvatar`, 40pt). Fix it in `StudentAvatar` (a line height that scales with the font size), or use an avatar that renders at 40pt, with a test that covers the 40pt size.
+- [x] **F-01** (ER-06) — In "Inscrições em aulas" each request card's avatar shows the student's initials cut off at the top ("DS", "BL"): only the bottom half of the letters is visible. `ClassRequestsGroup` renders `StudentAvatar` at `size={40}` (`class-requests-group.component.tsx`, `AVATAR_SIZE = 40`). `StudentAvatar` sets `fontSize: Math.round(size * 0.4)` (16) on a `ds-text-chip` `Text`, but that class fixes the line height for 10.5px type, so at 40pt the line box is shorter than the glyphs and `overflow-hidden` on the circle clips them. The 26/28pt avatars elsewhere still fit. Reproduce: as an admin with any pending request without a photo, open the tool in the iOS simulator. Expected: the whole initials, centered in the circle, as on the registrations tool's cards (`PersonAvatar`, 40pt). Fix it in `StudentAvatar` (a line height that scales with the font size), or use an avatar that renders at 40pt, with a test that covers the 40pt size.
+  - Fixed: `StudentAvatar` now sets `lineHeight` to 1.3 × the font size next to `fontSize`, so the line box grows with the circle and the 40pt initials are no longer clipped (the `ds-text-chip` class fixes the line height for 10.5px type).
+  - Files: `apps/mobile/src/modules/classes/components/student-avatar/student-avatar.component.tsx`, `apps/mobile/src/modules/classes/components/student-avatar/student-avatar.component.test.tsx` (new case for the 40pt size: `fontSize: 16`, `lineHeight: 21`).
+  - Verified: `npx jest src/modules/classes/components/student-avatar` ✅ 5/5; `node .specs/scripts/run-related-tests.mjs 042` ✅; `node .specs/scripts/check-coverage.mjs 042` ✅; mobile lint + check-types ✅. Not re-checked in the simulator.
 
 **Notes**
 

@@ -197,8 +197,9 @@ withdraws their pending requests, so a deleted student never holds a seat.
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-05** — Add `enrolment.cancelled` to `NOTIFICATION_TYPES`, with the entity tests.
+- [x] **T-05** — Add `enrolment.cancelled` to `NOTIFICATION_TYPES`, with the entity tests.
   Covers: ER-03 · Done when: `npx jest test/notification` passes from `modules/notifications`.
+  > ✅ 2026-10-20 12:59 — added `enrolment.cancelled` to `NOTIFICATION_TYPES` and its entity test; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest` from `modules/notifications` passes, `npx tsc --noEmit` clean; deviations: none
 
 ### Backend (`apps/backend`)
 

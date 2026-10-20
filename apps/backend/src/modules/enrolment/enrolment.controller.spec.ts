@@ -19,6 +19,7 @@ const INSTRUCTOR_ID = '7a2e9c41-5b8d-4f03-a6e1-3c9d0b7f5e12';
 const CLASS_ID = '3b5c7d9e-1a2b-4c3d-8e4f-5a6b7c8d9e0f';
 const NOW = new Date('2026-10-18T12:00:00.000Z');
 const STARTS_AT = new Date('2026-10-19T11:00:00.000Z');
+const DEADLINE = new Date('2026-10-19T09:00:00.000Z');
 
 function userOf(role: string, status = 'approved', id = STUDENT_ID): AuthenticatedUser {
   return { id, email: 's@example.com', role, status, claims: {} } as unknown as AuthenticatedUser;
@@ -39,6 +40,8 @@ function setup() {
     withdraw: vi.fn(async () => true),
     approve: vi.fn(async () => 'approved'),
     deny: vi.fn(async () => true),
+    cancel: vi.fn(async () => true),
+    countPendingForClass: vi.fn(async () => 2),
     findPendingByClass: vi.fn(async () => [] as unknown[]),
   };
   const classReader = {
@@ -51,6 +54,7 @@ function setup() {
             endsAt: new Date(STARTS_AT.getTime() + 3600_000),
             capacity: 8,
             cancelledAt: null,
+            cancellationDeadline: DEADLINE,
             instructorIds: [INSTRUCTOR_ID],
             hasCancellationRule: true,
           }
@@ -63,6 +67,7 @@ function setup() {
     requestExpired: vi.fn(async () => undefined),
     requestApproved: vi.fn(async () => undefined),
     requestDenied: vi.fn(async () => undefined),
+    seatCancelled: vi.fn(async () => undefined),
   };
   const controller = new EnrolmentController(
     enrolmentRepository as unknown as PrismaEnrolmentRepository,
@@ -79,6 +84,7 @@ describe('EnrolmentController', () => {
   it.each([
     ['request', 'classes/:id/enrolments', RequestMethod.POST, HttpStatus.CREATED],
     ['withdraw', 'enrolments/:id/withdraw', RequestMethod.POST, HttpStatus.OK],
+    ['cancel', 'enrolments/:id/cancel', RequestMethod.POST, HttpStatus.OK],
     ['approve', 'enrolments/:id/approve', RequestMethod.POST, HttpStatus.OK],
     ['deny', 'enrolments/:id/deny', RequestMethod.POST, HttpStatus.OK],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
@@ -151,6 +157,70 @@ describe('EnrolmentController', () => {
           controller.request(userOf('student'), id, { acceptCancellationRule: true }),
         ).rejects.toMatchObject({ statusCode: 404, message: 'class.notFound' });
       }
+    });
+  });
+
+  describe('cancel', () => {
+    function approvedSeat(stored: Enrolment[]): Enrolment {
+      const seat = new Enrolment({
+        classId: CLASS_ID,
+        studentId: STUDENT_ID,
+        status: 'approved',
+        requestedAt: NOW,
+      });
+      stored.push(seat);
+      return seat;
+    }
+
+    it('cancels the approved seat of the caller and tells the school with the waiting count', async () => {
+      const { controller, stored, enrolmentRepository, notifier } = setup();
+      const seat = approvedSeat(stored);
+
+      const out = await controller.cancel(userOf('student'), seat.id);
+
+      expect(out).toEqual({ id: seat.id, classId: CLASS_ID, status: 'cancelled', requestedAt: NOW });
+      expect(enrolmentRepository.cancel).toHaveBeenCalledWith(seat.id, NOW);
+      expect(notifier.seatCancelled).toHaveBeenCalledWith({
+        classId: CLASS_ID,
+        studentName: 'Ana Souza',
+        discipline: 'surf',
+        startsAt: STARTS_AT,
+        waitingCount: 2,
+        instructorIds: [INSTRUCTOR_ID],
+      });
+    });
+
+    it("answers 404 enrolment.notFound for another person's or a malformed enrolment", async () => {
+      const { controller, stored } = setup();
+      const seat = approvedSeat(stored);
+
+      await expect(
+        controller.cancel(userOf('student', 'approved', INSTRUCTOR_ID), seat.id),
+      ).rejects.toMatchObject({ statusCode: 404, message: 'enrolment.notFound' });
+      await expect(controller.cancel(userOf('student'), 'not-a-uuid')).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'enrolment.notFound',
+      });
+    });
+
+    it('answers 409 enrolment.notApproved when the conditional write loses', async () => {
+      const { controller, stored, enrolmentRepository } = setup();
+      const seat = approvedSeat(stored);
+      enrolmentRepository.cancel.mockResolvedValueOnce(false);
+
+      await expect(controller.cancel(userOf('student'), seat.id)).rejects.toMatchObject({
+        statusCode: 409,
+        message: 'enrolment.notApproved',
+      });
+    });
+
+    it('answers 403 for an account that is not approved', async () => {
+      const { controller } = setup();
+
+      await expect(controller.cancel(userOf('student', 'pending'), CLASS_ID)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.status.notApproved',
+      });
     });
   });
 

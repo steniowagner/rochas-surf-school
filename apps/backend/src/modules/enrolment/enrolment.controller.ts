@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestj
 import type { ClassActor } from '@rochas-surf-school/classes';
 import {
   ApproveRequest,
+  CancelSeat,
   DenyRequest,
   type EnrolmentOut,
   ListPendingRequests,
@@ -69,6 +70,18 @@ export class EnrolmentController {
       actor: actorOf(user),
       id,
     });
+  }
+
+  @Post('enrolments/:id/cancel')
+  @HttpCode(HttpStatus.OK)
+  cancel(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<EnrolmentOut> {
+    return new CancelSeat(
+      this.enrolmentRepository,
+      this.classReader,
+      this.studentNameReader,
+      this.enrolmentNotifier,
+      this.clock,
+    ).execute({ actor: actorOf(user), id });
   }
 
   @Post('enrolments/:id/approve')

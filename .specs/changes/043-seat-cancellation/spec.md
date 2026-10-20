@@ -216,9 +216,10 @@ withdraws their pending requests, so a deleted student never holds a seat.
   Covers: ER-03 · Done when: `npx vitest run src/modules/notifications` passes.
   > ✅ 2026-10-20 13:00 — added `seatCancelled` to the notifier adapter (every approved admin and instructor once, `waitingCount` in the params) and the `enrolment.cancelled` copy in pt-BR, es and en (the count sentence only above 0); files: `apps/backend/src/modules/notifications/notifications.enrolment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.enrolment-notifier.spec.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` from `apps/backend` (17 files, 138 passed); deviations: executed before T-06 so the backend compiles against the new `EnrolmentNotifier` port (the module `dist` folders were rebuilt for that; they are not tracked)
 
-- [ ] **T-08** — Add `POST /enrolments/:id/cancel` to `enrolment.controller.ts`, its spec and the requests in
+- [x] **T-08** — Add `POST /enrolments/:id/cancel` to `enrolment.controller.ts`, its spec and the requests in
   `enrolment.integration.http`. Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
+  > ✅ 2026-10-20 13:02 — added `POST /enrolments/:id/cancel` (200, protected) running `CancelSeat`, its controller spec cases and the cancel requests in the REST Client file; files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` from `apps/backend` (28 passed), `npx tsc --noEmit` clean; deviations: none
 
 - [ ] **T-09** — Add `test/seat-cancellation.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the cancel,
   refusal (deadline missing, passed, at the deadline) and notification cases, and the "delete releases seats" case

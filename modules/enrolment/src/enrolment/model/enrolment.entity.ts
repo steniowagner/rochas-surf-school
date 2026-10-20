@@ -91,6 +91,16 @@ export class Enrolment extends Entity<EnrolmentState> {
     return OPEN_ENROLMENT_STATUSES.includes(this.status);
   }
 
+  /** An admin approves a pending request. */
+  approve(now: Date): Enrolment {
+    return this.decide("approved", null, now);
+  }
+
+  /** An admin denies a pending request; `reason` is already trimmed, null when there is none. */
+  deny(reason: string | null, now: Date): Enrolment {
+    return this.decide("denied", reason, now);
+  }
+
   /** The student takes back a pending request. */
   withdraw(now: Date): Enrolment {
     return this.end("withdrawn", ["pending"], now, "enrolment.notPending");
@@ -129,6 +139,19 @@ export class Enrolment extends Entity<EnrolmentState> {
         rules: [new MaxLengthRule(ENROLMENT_REASON_MAX)],
       },
     ]);
+  }
+
+  private decide(status: EnrolmentStatus, reason: string | null, now: Date): Enrolment {
+    if (this.status !== "pending") {
+      throw new DomainError("enrolment.notPending", 409);
+    }
+
+    return this.clone({
+      status,
+      reason,
+      decidedAt: new Date(now.getTime()),
+      updatedAt: new Date(now.getTime()),
+    });
   }
 
   private end(

@@ -1,5 +1,6 @@
 import { ConflictError } from "@rochas-surf-school/shared";
 import {
+  ApproveResult,
   Enrolment,
   EnrolmentClass,
   EnrolmentRepository,
@@ -73,6 +74,26 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
     return this.pendingClasses.filter(
       (item) => item.startsAt.getTime() > now.getTime() && item.requests.length > 0,
     );
+  }
+
+  async approve(id: string, now: Date): Promise<ApproveResult> {
+    const stored = this.enrolments.find((item) => item.id === id);
+    const found = stored && this.classes.find((item) => item.id === stored.classId);
+
+    if (!stored || !found || stored.status !== "pending") return "notPending";
+
+    const taken = this.enrolments.filter(
+      (item) => item.classId === stored.classId && item.status === "approved",
+    ).length;
+
+    if (taken >= found.capacity) return "full";
+
+    this.change(id, (item) => item.approve(now));
+    return "approved";
+  }
+
+  async deny(id: string, reason: string | null, now: Date): Promise<boolean> {
+    return this.change(id, (item) => item.deny(reason, now));
   }
 
   async closeOpenForClass(classId: string, now: Date): Promise<Enrolment[]> {

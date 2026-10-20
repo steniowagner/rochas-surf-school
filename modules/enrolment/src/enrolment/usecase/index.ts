@@ -4,3 +4,5 @@ export * from "./withdraw-request.usecase";
 export * from "./expire-pending-enrolments.usecase";
 export * from "./close-class-enrolments.usecase";
 export * from "./list-pending-requests.usecase";
+export * from "./approve-request.usecase";
+export * from "./deny-request.usecase";

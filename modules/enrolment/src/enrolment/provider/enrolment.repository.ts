@@ -28,6 +28,9 @@ export interface PendingRequest {
   student: { id: string; name: string; photoUrl: string | null };
 }
 
+/** What approving a request came to. */
+export type ApproveResult = "approved" | "full" | "notPending";
+
 export interface EnrolmentRepository {
   /**
    * Stores the enrolment. Throws a 409 `enrolment.alreadyOpen` when the student already has a pending or
@@ -55,4 +58,12 @@ export interface EnrolmentRepository {
    * each with its requests in the order asked.
    */
   findPendingByClass(now: Date): Promise<PendingRequestsClass[]>;
+  /**
+   * Approves the request at `now`. Locks the class, counts the seats taken and writes only while the enrolment is
+   * still pending: `full` when the class has no free seat, `notPending` when it was decided meanwhile or is gone.
+   * Of two simultaneous approvals for the last seat exactly one is `approved`.
+   */
+  approve(id: string, now: Date): Promise<ApproveResult>;
+  /** Denies the request with the (optional) reason at `now`, only while it is pending. Returns whether it wrote. */
+  deny(id: string, reason: string | null, now: Date): Promise<boolean>;
 }

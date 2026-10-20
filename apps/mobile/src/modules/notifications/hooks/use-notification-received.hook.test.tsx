@@ -166,6 +166,8 @@ describe("useNotificationReceived", () => {
     "class.noInstructor",
     "enrolment.requested",
     "enrolment.expired",
+    "enrolment.approved",
+    "enrolment.denied",
   ])(
     "reloads every cached class when a %s push arrives",
     async (type) => {
@@ -178,6 +180,18 @@ describe("useNotificationReceived", () => {
       expect(meCalls()).toHaveLength(0);
     },
   );
+
+  it("also reloads the admins' pending requests when an enrolment.requested push arrives, and only then", async () => {
+    answerMe(account("approved", "admin"));
+    await openApp(account("approved", "admin"));
+
+    await receive(push("enrolment.requested"));
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["enrolments", "pending"] });
+
+    invalidate.mockClear();
+    await receive(push("enrolment.approved"));
+    expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ["enrolments", "pending"] });
+  });
 
   it("reloads the classes and the locations when a location.changed push arrives, without navigating", async () => {
     answerMe(account("approved", "instructor"));

@@ -71,8 +71,13 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
-  // A student hears that the class they asked for or held a seat in was cancelled, or started without a seat for them.
-  const isStudentClassNews = data?.type === "enrolment.expired" || data?.type === "class.cancelled";
+  // A student hears that the class they asked for or held a seat in was cancelled, or started without a seat for them,
+  // or that their request was approved or denied.
+  const isStudentClassNews =
+    data?.type === "enrolment.expired" ||
+    data?.type === "enrolment.approved" ||
+    data?.type === "enrolment.denied" ||
+    data?.type === "class.cancelled";
 
   if (isStudentClassNews && classId !== null && flow === "student") {
     router.push(routes.student.classDetail(classId));
@@ -80,15 +85,16 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
-  // Admins and the class's instructors hear that a student asked for a seat: it opens that class.
+  // The class's instructors hear that a student asked for a seat: it opens that class.
   if (data?.type === "enrolment.requested" && classId !== null && flow === "instructor") {
     router.push(routes.instructor.classDetail(classId));
 
     return;
   }
 
-  if (data?.type === "enrolment.requested" && classId !== null && flow === "admin") {
-    router.push(routes.admin.classDetail(classId));
+  // Admins act on the request: it opens the tool.
+  if (data?.type === "enrolment.requested" && flow === "admin") {
+    router.push(routes.admin.classRequests);
 
     return;
   }

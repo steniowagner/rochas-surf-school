@@ -3,13 +3,16 @@ import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 import {
   getCancelSeatErrorKey,
   getDecideRequestErrorKey,
+  getEnrolStudentErrorKey,
   getRequestSeatErrorKey,
+  getTakeOutErrorKey,
   getWithdrawRequestErrorKey,
   isAlreadyOpenError,
   isDeadlineClosedError,
   isNotPendingError,
   isRuleNotAcceptedError,
   shouldReloadClass,
+  shouldReloadEnrolClasses,
   shouldReloadRequests,
 } from "./enrolment-error";
 
@@ -124,5 +127,50 @@ describe("getDecideRequestErrorKey and shouldReloadRequests", () => {
     expect(shouldReloadRequests(api(409, "enrolment.class.full"))).toBe(true);
     expect(shouldReloadRequests(api(404, "enrolment.notFound"))).toBe(false);
     expect(shouldReloadRequests(new NetworkError())).toBe(false);
+  });
+});
+
+describe("getEnrolStudentErrorKey and shouldReloadEnrolClasses", () => {
+  it.each([
+    [409, "enrolment.alreadyApproved", "enrolStudent.errors.alreadyApproved"],
+    [409, "enrolment.class.full", "enrolStudent.errors.full"],
+    [409, "class.started", "enrolStudent.errors.started"],
+    [409, "class.cancelled", "enrolStudent.errors.cancelled"],
+    [422, "enrolment.student.invalid", "enrolStudent.errors.invalidStudent"],
+    [404, "class.notFound", "classDetails.notFound"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps %s %s to %s", (status, key, expected) => {
+    expect(getEnrolStudentErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("maps no answer to the no-connection copy and an expired session to nothing", () => {
+    expect(getEnrolStudentErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getEnrolStudentErrorKey(new SessionExpiredError())).toBeNull();
+  });
+
+  it("reloads the classes only when they turned out to be stale", () => {
+    expect(shouldReloadEnrolClasses(api(409, "enrolment.alreadyApproved"))).toBe(true);
+    expect(shouldReloadEnrolClasses(api(409, "enrolment.class.full"))).toBe(true);
+    expect(shouldReloadEnrolClasses(api(409, "class.started"))).toBe(true);
+    expect(shouldReloadEnrolClasses(api(409, "class.cancelled"))).toBe(true);
+    expect(shouldReloadEnrolClasses(api(422, "enrolment.student.invalid"))).toBe(true);
+    expect(shouldReloadEnrolClasses(api(404, "class.notFound"))).toBe(false);
+    expect(shouldReloadEnrolClasses(new NetworkError())).toBe(false);
+  });
+});
+
+describe("getTakeOutErrorKey", () => {
+  it.each([
+    [409, "enrolment.notApproved", "takeOutSheet.errors.notApproved"],
+    [409, "class.started", "takeOutSheet.errors.started"],
+    [404, "enrolment.notFound", "enrolment.errors.notFound"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps %s %s to %s", (status, key, expected) => {
+    expect(getTakeOutErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("maps no answer to the no-connection copy and an expired session to nothing", () => {
+    expect(getTakeOutErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getTakeOutErrorKey(new SessionExpiredError())).toBeNull();
   });
 });

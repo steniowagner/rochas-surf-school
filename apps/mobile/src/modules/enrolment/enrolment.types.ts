@@ -18,7 +18,7 @@ export type MyEnrolment = {
   reason: string | null;
 };
 
-/** The answer of the enrolment routes that change one (request, withdraw, approve, deny). */
+/** The answer of the enrolment routes that change one (request, withdraw, approve, deny, enrol, take out). */
 export type EnrolmentResponse = Omit<MyEnrolment, "reason"> & {
   classId: string;
 };
@@ -55,6 +55,18 @@ export type PendingRequestsResponse = {
 };
 
 export type DenyRequestVariables = {
+  id: string;
+  /** Trimmed by the backend; blank means no reason. */
+  reason: string;
+};
+
+export type EnrolStudentVariables = {
+  classId: string;
+  studentId: string;
+};
+
+export type TakeStudentOutVariables = {
+  /** The enrolment to end. */
   id: string;
   /** Trimmed by the backend; blank means no reason. */
   reason: string;

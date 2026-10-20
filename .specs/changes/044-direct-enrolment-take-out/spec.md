@@ -217,9 +217,10 @@ way and sees the result on the class.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-09** — Add `hooks/use-enrol-student.hook.ts` and `hooks/use-take-student-out.hook.ts` (no retry;
+- [x] **T-09** — Add `hooks/use-enrol-student.hook.ts` and `hooks/use-take-student-out.hook.ts` (no retry;
   invalidate `["classes"]` and `["enrolments", "pending"]`) and their error keys, with tests.
   Covers: ER-06, ER-07 · Done when: `npx jest src/modules/enrolment/hooks src/modules/enrolment/utils` passes.
+  > ✅ 2026-10-20 20:21 — added `useEnrolStudent` (`POST /classes/:id/enrolments/direct`) and `useTakeStudentOut` (`POST /enrolments/:id/take-out`, blank reason sends `{}`), both without retry and invalidating `["enrolments","pending"]` and `["classes"]` only on success; error helpers `getEnrolStudentErrorKey`, `shouldReloadEnrolClasses`, `getTakeOutErrorKey`; new variable types; files: `apps/mobile/src/modules/enrolment/enrolment.types.ts`, `apps/mobile/src/modules/enrolment/hooks/use-enrol-student.hook.ts`, `apps/mobile/src/modules/enrolment/hooks/use-take-student-out.hook.ts`, `apps/mobile/src/modules/enrolment/hooks/use-enrol-student.hook.test.tsx` (covers both hooks), `apps/mobile/src/modules/enrolment/utils/enrolment-error.ts`, `apps/mobile/src/modules/enrolment/utils/enrolment-error.test.ts`; verified: `npx jest src/modules/enrolment/hooks src/modules/enrolment/utils` from `apps/mobile` (12 suites, 109 passed); deviations: the error keys (`enrolStudent.errors.*`, `takeOutSheet.errors.*`) get their copy in T-10/T-11 with the screens that show them
 
 - [ ] **T-10** — Add `src/modules/enrolment/screens/enrol-student.screen.tsx` (+ hook, types; D-06), the route
   `src/app/(private)/admin/enrol-student.tsx`, `routes.admin.enrolStudent`, and the "Inscrever aluno" row on

@@ -2,9 +2,10 @@
 id: "043"
 slug: seat-cancellation
 title: "Students cancel their seat until the cancellation deadline"
-status: in-review
+status: accepted
 started: 2026-10-20
 base_commit: a15b0ae653b308bb2f65e2aa7d5617db49a72de8
+reviewed_commit: 6473b57d2de4f42f036917871ea83b98a833a698
 created: 2026-10-19
 fronts: [enrolment, classes, auth, notifications, backend, mobile]
 depends_on: ["042"]
@@ -301,3 +302,55 @@ withdraws their pending requests, so a deleted student never holds a seat.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-20 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (enrolment, classes, auth, notifications, backend, mobile: 27 tasks, 0 errors;
+  7 `require-array-sort-compare` warnings in backend e2e specs, the same pattern as the existing ones)
+- related tests ✅ RELATED TESTS PASSED (backend 283, mobile 916, auth 288, classes, enrolment 183, notifications,
+  school-rules)
+- coverage of the changed lines ✅ COVERAGE OK (26 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (20 files, 559 tests, incl. `seat-cancellation.e2e-spec.ts` and "delete releases
+  seats" in `auth-profile.e2e-spec.ts`)
+- HTTP against `npm run dev` (review fixtures inserted in the dev database, then deleted) ✅: no deadline → 409
+  `enrolment.deadline.missing`; past deadline → 409 `enrolment.deadline.passed`; another person's, malformed and
+  unknown id → 404 `enrolment.notFound`; second cancel → 409 `enrolment.notApproved`
+- iOS simulator (iPhone 18 Pro, pt-BR, dev student) ✅: the journeys of the Verification Plan, see ER-05 and ER-06
+
+**Expected Results**
+
+- ER-01 ✅ — `cancel-seat.usecase.test.ts` and the e2e "cancels" cases pass; in the simulator the cancel answered and
+  the class went from 7 to 8 free seats with the student gone from the list
+- ER-02 ✅ — unit and e2e "refuses" cases pass (order of D-02, exactly at the deadline refused, nothing written or
+  sent); the HTTP refusals above answered as specified
+- ER-03 ✅ — notifier and push-message specs pass (pt-BR/es/en, no count sentence at 0, admin who teaches told once,
+  failures swallowed); after the simulator cancel, every approved admin and the instructor had exactly one stored
+  `enrolment.cancelled` with `waitingCount: 2`
+- ER-04 ✅ — `delete-account.usecase.test.ts` (order, failing release keeps the account approved, no enrolments),
+  `release-student-enrolments.usecase.test.ts` and the e2e "delete releases seats" case pass (upcoming seat
+  cancelled, request withdrawn, started class untouched, admins notified). Not repeated by hand, to keep the dev
+  review account
+- ER-05 ✅ — jest cases pass; in the simulator: outline "Cancelar inscrição" → sheet "Sua vaga fica livre. Você pode
+  cancelar até sex, 23 out · 09:00." with "Sim, cancelar" / "Manter inscrição" → dim banner "Você cancelou a
+  inscrição" / "Sua vaga ficou livre.", footer "Pedir novamente", Agenda chip "Você cancelou" (dim). The toast had
+  gone by the time of the screenshot; the jest case asserts it
+- ER-06 ✅ — jest cases pass (incl. the deadline passing with the screen open and the button's loading, failing and
+  missing states); in the simulator: past deadline → "O prazo para cancelar terminou em ter, 20 out · 09:00. Fale com
+  a escola." and no cancel button; without a school number no "Falar com a escola", with one it shows; no deadline →
+  "O prazo de cancelamento desta aula ainda não foi definido. Fale com a escola para cancelar." with the button
+- ER-07 ✅ — `npx jest src/modules/notifications/hooks` passes (tap opens the class in the instructor and admin flows;
+  receipt invalidates `["classes"]` and `["enrolments", "pending"]` without navigating). Real pushes aren't set up in
+  the simulator
+
+**Findings**
+
+None.
+
+**Notes**
+
+- No rendered test asserts the Agenda card's "Você cancelou" chip; it is covered through `getEnrolmentDisplay`
+  (`enrolment-status.test.ts`) and was seen in the simulator. A `class-card` case would pin it.
+- `enrolment.integration.http` was exercised with an equivalent script (same routes, bodies and accounts) rather
+  than the VS Code REST Client.

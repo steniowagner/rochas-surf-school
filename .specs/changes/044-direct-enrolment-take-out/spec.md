@@ -187,8 +187,9 @@ way and sees the result on the class.
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-04** — Add `enrolment.enrolled` and `enrolment.takenOut` to `NOTIFICATION_TYPES`, with the entity tests.
+- [x] **T-04** — Add `enrolment.enrolled` and `enrolment.takenOut` to `NOTIFICATION_TYPES`, with the entity tests.
   Covers: ER-02, ER-04 · Done when: `npx jest test/notification` passes from `modules/notifications`.
+  > ✅ 2026-10-20 20:12 — added `enrolment.enrolled` and `enrolment.takenOut` to `NOTIFICATION_TYPES` with entity test cases; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest test/notification` from `modules/notifications` (passed), `tsc --noEmit` clean; deviations: none
 
 ### Backend (`apps/backend`)
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   ApproveResult,
+  DirectEnrolResult,
   Enrolment,
   EnrolmentRepository,
   ExpirableEnrolment,
@@ -172,6 +173,71 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
     });
   }
 
+  async enrolDirectly(enrolment: Enrolment, now: Date): Promise<DirectEnrolResult> {
+    try {
+      return await this.prisma.$transaction(async (tx): Promise<DirectEnrolResult> => {
+        // The class row is the lock every seat change takes, so this write and an approval run one after the other.
+        const [locked] = await tx.$queryRaw<{ capacity: number }[]>(
+          Prisma.sql`SELECT capacity FROM classes WHERE id = ${enrolment.classId}::uuid FOR UPDATE`,
+        );
+
+        if (!locked) {
+          return { result: 'full' };
+        }
+
+        const open = await tx.enrolment.findFirst({
+          where: { classId: enrolment.classId, studentId: enrolment.studentId, status: { in: OPEN } },
+        });
+
+        if (open?.status === 'approved') {
+          return { result: 'alreadyApproved' };
+        }
+
+        const taken = await tx.enrolment.count({
+          where: { classId: enrolment.classId, status: 'approved' },
+        });
+
+        if (taken >= locked.capacity) {
+          return { result: 'full' };
+        }
+
+        if (open) {
+          const approved = await tx.enrolment.update({
+            where: { id: open.id },
+            data: { status: 'approved', decidedAt: now, updatedAt: now },
+          });
+
+          return { result: 'approved', enrolment: this.toDomain(approved) };
+        }
+
+        const created = await tx.enrolment.create({
+          data: {
+            id: enrolment.id,
+            classId: enrolment.classId,
+            studentId: enrolment.studentId,
+            status: 'approved',
+            requestedAt: enrolment.requestedAt,
+            ruleAcceptedAt: enrolment.ruleAcceptedAt,
+            decidedAt: enrolment.decidedAt,
+            createdAt: enrolment.createdAt,
+          },
+        });
+
+        return { result: 'enrolled', enrolment: this.toDomain(created) };
+      });
+    } catch (error) {
+      // The partial unique index: the student asked for the same class between the read and the insert.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === UNIQUE_VIOLATION
+      ) {
+        throw new ConflictError('enrolment.alreadyOpen');
+      }
+
+      throw error;
+    }
+  }
+
   async deny(id: string, reason: string | null, now: Date): Promise<boolean> {
     const { count } = await this.prisma.enrolment.updateMany({
       where: { id, status: 'pending' },
@@ -185,6 +251,15 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
     const { count } = await this.prisma.enrolment.updateMany({
       where: { id, status: 'approved' },
       data: { status: 'cancelled', endedAt: now, updatedAt: now },
+    });
+
+    return count === 1;
+  }
+
+  async takeOut(id: string, reason: string | null, now: Date): Promise<boolean> {
+    const { count } = await this.prisma.enrolment.updateMany({
+      where: { id, status: 'approved' },
+      data: { status: 'takenOut', reason, endedAt: now, updatedAt: now },
     });
 
     return count === 1;

@@ -52,6 +52,8 @@ function setup() {
     groupBy: vi.fn(),
     create: vi.fn(),
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    update: vi.fn(),
     findMany: vi.fn(),
     updateMany: vi.fn(async () => ({ count: 1 })),
     updateManyAndReturn: vi.fn(),
@@ -308,6 +310,102 @@ describe('PrismaEnrolmentRepository', () => {
     });
   });
 
+  describe('enrolDirectly', () => {
+    const approvedDomain = () =>
+      domain({ status: 'approved', ruleAcceptedAt: null, decidedAt: NOW, requestedAt: NOW });
+
+    function lockedClass(capacity: number, taken: number, open: unknown = null) {
+      const harness = setup();
+      harness.queryRaw.mockResolvedValue([{ capacity }]);
+      harness.enrolment.findFirst.mockResolvedValue(open);
+      harness.enrolment.count.mockResolvedValue(taken);
+      return harness;
+    }
+
+    it('locks the class, counts the seats and stores an approved enrolment', async () => {
+      const { enrolment, queryRaw, prisma, repository } = lockedClass(8, 7);
+      enrolment.create.mockResolvedValue(
+        record({ status: 'approved', ruleAcceptedAt: null, decidedAt: NOW, requestedAt: NOW }),
+      );
+
+      const out = await repository.enrolDirectly(approvedDomain(), NOW);
+
+      expect(out).toEqual({ result: 'enrolled', enrolment: expect.objectContaining({ id: ID, status: 'approved' }) });
+      expect(prisma.$transaction).toHaveBeenCalledOnce();
+      expect(String(queryRaw.mock.calls[0][0].sql)).toContain('FOR UPDATE');
+      expect(queryRaw.mock.calls[0][0].values).toEqual([CLASS_ID]);
+      expect(enrolment.findFirst).toHaveBeenCalledWith({
+        where: { classId: CLASS_ID, studentId: STUDENT_ID, status: { in: ['pending', 'approved'] } },
+      });
+      expect(enrolment.count).toHaveBeenCalledWith({ where: { classId: CLASS_ID, status: 'approved' } });
+      expect(enrolment.create).toHaveBeenCalledWith({
+        data: {
+          id: ID,
+          classId: CLASS_ID,
+          studentId: STUDENT_ID,
+          status: 'approved',
+          requestedAt: NOW,
+          ruleAcceptedAt: null,
+          decidedAt: NOW,
+          createdAt: REQUESTED_AT,
+        },
+      });
+    });
+
+    it('approves the pending request of the student instead of storing another', async () => {
+      const { enrolment, repository } = lockedClass(8, 0, record());
+      enrolment.update.mockResolvedValue(record({ status: 'approved', decidedAt: NOW }));
+
+      const out = await repository.enrolDirectly(approvedDomain(), NOW);
+
+      expect(out).toEqual({ result: 'approved', enrolment: expect.objectContaining({ id: ID, status: 'approved' }) });
+      expect(enrolment.update).toHaveBeenCalledWith({
+        where: { id: ID },
+        data: { status: 'approved', decidedAt: NOW, updatedAt: NOW },
+      });
+      expect(enrolment.create).not.toHaveBeenCalled();
+    });
+
+    it('answers alreadyApproved, before counting, when the student holds a seat', async () => {
+      const { enrolment, repository } = lockedClass(1, 1, record({ status: 'approved' }));
+
+      expect(await repository.enrolDirectly(approvedDomain(), NOW)).toEqual({ result: 'alreadyApproved' });
+      expect(enrolment.count).not.toHaveBeenCalled();
+    });
+
+    it('answers full, and writes nothing, when the seats are taken', async () => {
+      const { enrolment, repository } = lockedClass(8, 8, record());
+
+      expect(await repository.enrolDirectly(approvedDomain(), NOW)).toEqual({ result: 'full' });
+      expect(enrolment.update).not.toHaveBeenCalled();
+      expect(enrolment.create).not.toHaveBeenCalled();
+    });
+
+    it('answers full when the class is gone', async () => {
+      const { enrolment, queryRaw, repository } = setup();
+      queryRaw.mockResolvedValue([]);
+
+      expect(await repository.enrolDirectly(approvedDomain(), NOW)).toEqual({ result: 'full' });
+      expect(enrolment.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('answers enrolment.alreadyOpen when the student asked meanwhile', async () => {
+      const { enrolment, repository } = lockedClass(8, 0);
+      enrolment.create.mockRejectedValue(knownError('P2002'));
+
+      await expect(repository.enrolDirectly(approvedDomain(), NOW)).rejects.toEqual(
+        new ConflictError('enrolment.alreadyOpen'),
+      );
+    });
+
+    it('propagates any other failure', async () => {
+      const { enrolment, repository } = lockedClass(8, 0);
+      enrolment.create.mockRejectedValue(new Error('db down'));
+
+      await expect(repository.enrolDirectly(approvedDomain(), NOW)).rejects.toThrow('db down');
+    });
+  });
+
   describe('deny', () => {
     it('writes the reason only while the enrolment is pending and says it wrote', async () => {
       const { enrolment, repository } = setup();
@@ -335,6 +433,21 @@ describe('PrismaEnrolmentRepository', () => {
 
       enrolment.updateMany.mockResolvedValue({ count: 0 });
       expect(await repository.cancel(ID, NOW)).toBe(false);
+    });
+  });
+
+  describe('takeOut', () => {
+    it('ends the seat as taken out, with the reason, only while it is approved', async () => {
+      const { enrolment, repository } = setup();
+
+      expect(await repository.takeOut(ID, 'Nível avançado', NOW)).toBe(true);
+      expect(enrolment.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: 'approved' },
+        data: { status: 'takenOut', reason: 'Nível avançado', endedAt: NOW, updatedAt: NOW },
+      });
+
+      enrolment.updateMany.mockResolvedValue({ count: 0 });
+      expect(await repository.takeOut(ID, null, NOW)).toBe(false);
     });
   });
 

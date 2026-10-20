@@ -9,6 +9,7 @@ import { PrismaEnrolmentClassReader } from './enrolment-class-reader.prisma.js';
 import { PrismaEnrolmentRepository } from './enrolment.prisma.js';
 import { PrismaPendingRequestCounter } from './pending-request-counter.prisma.js';
 import { PrismaSeatCounter } from './seat-counter.prisma.js';
+import { PrismaStudentLookup } from './student-lookup.prisma.js';
 import { PrismaStudentNameReader } from './student-name-reader.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js';
@@ -25,6 +26,7 @@ import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js
     PrismaEnrolmentRepository,
     PrismaPendingRequestCounter,
     PrismaSeatCounter,
+    PrismaStudentLookup,
     PrismaStudentNameReader,
     PrismaViewerEnrolmentReader,
     SystemClockProvider,
@@ -37,6 +39,7 @@ import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js
     PrismaEnrolmentRepository,
     PrismaPendingRequestCounter,
     PrismaSeatCounter,
+    PrismaStudentLookup,
     PrismaStudentNameReader,
     PrismaViewerEnrolmentReader,
     SystemClockProvider,

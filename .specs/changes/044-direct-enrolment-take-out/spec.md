@@ -193,10 +193,11 @@ way and sees the result on the class.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — In `src/modules/enrolment/`: `enrolDirectly` (locked) and `takeOut` (conditional) in
+- [x] **T-05** — In `src/modules/enrolment/`: `enrolDirectly` (locked) and `takeOut` (conditional) in
   `enrolment.prisma.ts`, `student-lookup.prisma.ts`, and `enrolmentId` in `class-roster-reader.prisma.ts`, with specs.
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-03, ER-05 · Done when: `npx vitest run src/modules/enrolment` passes.
+  > ✅ 2026-10-20 20:13 — added `enrolDirectly` (transaction: lock class row `FOR UPDATE`, find the open enrolment, alreadyApproved → count → full → approve the pending row or create the approved one; P2002 → `enrolment.alreadyOpen`) and `takeOut` (`updateMany` where `approved`) to `PrismaEnrolmentRepository`; new `PrismaStudentLookup` (approved account with role student) registered in `EnrolmentModule`; roster reader now selects `id` and returns `enrolmentId`; files: `apps/backend/src/modules/enrolment/enrolment.prisma.ts`, `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`, `apps/backend/src/modules/enrolment/student-lookup.prisma.ts`, `apps/backend/src/modules/enrolment/student-lookup.prisma.spec.ts`, `apps/backend/src/modules/enrolment/class-roster-reader.prisma.ts`, `apps/backend/src/modules/enrolment/class-roster-reader.prisma.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`; verified: `npx vitest run src/modules/enrolment` (13 files, 82 passed) after rebuilding the three modules with turbo; deviations: hand-written following `approve` and the sibling readers rather than invoking the skill; backend type check still fails on the notifier adapter and controller until T-06/T-07
 
 - [ ] **T-06** — Add `studentEnrolled` / `studentTakenOut` to `notifications.enrolment-notifier.ts` and the two
   catalog entries in pt-BR, es and en, with specs.

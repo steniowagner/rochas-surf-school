@@ -116,6 +116,21 @@ describe("GetClass", () => {
     });
   });
 
+  it("carries a cancelled enrolment as the caller's latest one", async () => {
+    const requestedAt = new Date("2026-10-14T10:00:00.000Z");
+    const viewerReader = new FakeViewerEnrolmentReader({
+      [`${STUDENT.id}:${ID}`]: { id: "e-3", status: "cancelled", requestedAt },
+    });
+    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader);
+
+    expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
+      id: "e-3",
+      status: "cancelled",
+      requestedAt: "2026-10-14T10:00:00.000Z",
+      reason: null,
+    });
+  });
+
   it("answers class.notFound for an unknown id", async () => {
     await expect(
       setup().useCase.execute({ actor: STUDENT, id: "5d1f0a7b-2c3e-4b6a-8f19-4a7c9e0d1b25" }),

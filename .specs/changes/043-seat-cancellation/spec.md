@@ -182,9 +182,10 @@ withdraws their pending requests, so a deleted student never holds a seat.
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-03** — Add the student's `cancelled` status to the class view's `myEnrolment` contract tests (no new
+- [x] **T-03** — Add the student's `cancelled` status to the class view's `myEnrolment` contract tests (no new
   field), proving a cancelled enrolment is returned as the latest one.
   Covers: ER-05 · Done when: `npx jest test/school-class/usecase/get-class.usecase.test.ts` passes from `modules/classes`.
+  > ✅ 2026-10-20 12:58 — added a `GetClass` contract test proving a `cancelled` enrolment is returned as `myEnrolment` (no code change needed: the status is already passed through); files: `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`; verified: `npx jest test/school-class/usecase/get-class.usecase.test.ts` from `modules/classes` passes; deviations: none
 
 ### Auth module (`modules/auth`)
 

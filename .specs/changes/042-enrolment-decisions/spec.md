@@ -2,7 +2,7 @@
 id: "042"
 slug: enrolment-decisions
 title: "Admins approve and deny class requests"
-status: in-progress
+status: in-review
 created: 2026-10-19
 started: 2026-10-20
 base_commit: d3d00e160fbd02f277a9e13759df2775533c7025
@@ -269,9 +269,10 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 
 ### Verification
 
-- [ ] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-20 — `node .specs/scripts/run-related-tests.mjs 042` → RELATED TESTS PASSED (mobile 59 suites/982, classes 473, enrolment 149, notifications 111, backend 260); `node .specs/scripts/check-coverage.mjs 042` → COVERAGE OK (33 files; a `use-class-requests-screen.hook.test.tsx` was added to cover the double-press guard, the expired-session branch and the sheet handlers); `npx turbo run lint check-types build` for enrolment, classes, notifications, backend and mobile → 27/27 tasks successful (0 lint errors; 6 pre-existing-style non-null-assertion warnings in backend specs); `node .specs/scripts/run-e2e.mjs 042` → E2E PASSED (19 backend files, 551 tests). Not run by me: the `enrolment.integration.http` requests (they need review accounts' sign-in codes) and the simulator journeys; for the reviewer/user: (1) on the iOS simulator a student requests two classes; as an admin the home shows "Inscrições em aulas · 2 pedidos"; "Inscrever" one and deny the other with a reason: each card leaves with its toast. (2) As the student: the approved class shows "Você está inscrito" and the "Aprovado" chip; the denied one shows "Pedido recusado", whose sheet shows the reason, and "Pedir novamente". (3) Fill a class to capacity: its card in the tool shows the waiting order with "1º" and "Inscrever" disabled with the note; deviations: the first `turbo` run failed once in `prisma generate` (transient), the rerun passed
 
 ## Verification Plan
 

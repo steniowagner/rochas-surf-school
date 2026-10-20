@@ -236,10 +236,11 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-09** — Add in `src/modules/enrolment/hooks/`: `use-pending-requests.hook.ts` (`["enrolments", "pending"]`),
+- [x] **T-09** — Add in `src/modules/enrolment/hooks/`: `use-pending-requests.hook.ts` (`["enrolments", "pending"]`),
   `use-approve-request.hook.ts` and `use-deny-request.hook.ts` (no retry; invalidate `["enrolments", "pending"]`
   and `["classes"]` on success), and their error keys in `utils/enrolment-error.ts`, with tests.
   Covers: ER-06 · Done when: `npx jest src/modules/enrolment/hooks src/modules/enrolment/utils` passes.
+  > ✅ 2026-10-20 — types (`reason` on `MyEnrolment`, `PendingRequestsResponse`, `DenyRequestVariables`), `usePendingRequests` (key `["enrolments","pending"]`), `useApproveRequest` / `useDenyRequest` (no retry; invalidate the pending list and `["classes"]`), and `getDecideRequestErrorKey` / `shouldReloadRequests` in `utils/enrolment-error.ts` (toast keys `classRequests.errors.*`, added with the copy in T-10); files: `apps/mobile/src/modules/enrolment/enrolment.types.ts`, `apps/mobile/src/modules/enrolment/hooks/use-pending-requests.hook.ts`, `apps/mobile/src/modules/enrolment/hooks/use-approve-request.hook.ts`, `apps/mobile/src/modules/enrolment/hooks/use-deny-request.hook.ts`, `apps/mobile/src/modules/enrolment/hooks/use-pending-requests.hook.test.tsx`, `apps/mobile/src/modules/enrolment/hooks/use-decide-request.hook.test.tsx`, `apps/mobile/src/modules/enrolment/utils/enrolment-error.ts`, `apps/mobile/src/modules/enrolment/utils/enrolment-error.test.ts`; verified: `npx jest src/modules/enrolment/hooks src/modules/enrolment/utils` (8 suites, 68 passed), `tsc --noEmit` clean; deviations: none
 
 - [ ] **T-10** — Add `src/modules/enrolment/screens/class-requests.screen.tsx` (+ hook, types; the class card
   header, `DecisionCard`s, the waiting order, the full-class note, `DenySheet`, the states of ER-06), the route

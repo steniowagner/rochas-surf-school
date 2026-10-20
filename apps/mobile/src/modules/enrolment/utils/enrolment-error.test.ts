@@ -1,12 +1,14 @@
 import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 
 import {
+  getDecideRequestErrorKey,
   getRequestSeatErrorKey,
   getWithdrawRequestErrorKey,
   isAlreadyOpenError,
   isNotPendingError,
   isRuleNotAcceptedError,
   shouldReloadClass,
+  shouldReloadRequests,
 } from "./enrolment-error";
 
 const api = (status: number, key: string) => new ApiError(status, [key]);
@@ -68,5 +70,30 @@ describe("the predicates", () => {
 
   it("does not reload for a network failure", () => {
     expect(shouldReloadClass(new NetworkError())).toBe(false);
+  });
+});
+
+describe("getDecideRequestErrorKey and shouldReloadRequests", () => {
+  it.each([
+    [409, "enrolment.notPending", "classRequests.errors.notPending"],
+    [409, "class.started", "classRequests.errors.started"],
+    [409, "enrolment.class.full", "classRequests.errors.full"],
+    [404, "enrolment.notFound", "enrolment.errors.notFound"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps %s %s to %s", (status, key, expected) => {
+    expect(getDecideRequestErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("maps no answer to the no-connection copy and an expired session to nothing", () => {
+    expect(getDecideRequestErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getDecideRequestErrorKey(new SessionExpiredError())).toBeNull();
+  });
+
+  it("reloads the list only when it turned out to be stale", () => {
+    expect(shouldReloadRequests(api(409, "enrolment.notPending"))).toBe(true);
+    expect(shouldReloadRequests(api(409, "class.started"))).toBe(true);
+    expect(shouldReloadRequests(api(409, "enrolment.class.full"))).toBe(true);
+    expect(shouldReloadRequests(api(404, "enrolment.notFound"))).toBe(false);
+    expect(shouldReloadRequests(new NetworkError())).toBe(false);
   });
 });

@@ -86,3 +86,37 @@ export const getWithdrawRequestErrorKey = (error: unknown): string | null => {
 
   return fallbackKey(error);
 };
+
+const isClassFullError = (error: unknown): boolean => hasKey(error, 409, "enrolment.class.full");
+
+/**
+ * An admin's decision found the list stale (decided meanwhile, the class started, or the last seat gone), so the
+ * list is read again.
+ */
+export const shouldReloadRequests = (error: unknown): boolean =>
+  isNotPendingError(error) || isClassStartedError(error) || isClassFullError(error);
+
+/** The translation key of the toast for a failed approval or denial, or `null` when nothing should be shown. */
+export const getDecideRequestErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError) {
+    return null;
+  }
+
+  if (isNotPendingError(error)) {
+    return "classRequests.errors.notPending";
+  }
+
+  if (isClassStartedError(error)) {
+    return "classRequests.errors.started";
+  }
+
+  if (isClassFullError(error)) {
+    return "classRequests.errors.full";
+  }
+
+  if (hasKey(error, 404, "enrolment.notFound")) {
+    return "enrolment.errors.notFound";
+  }
+
+  return fallbackKey(error);
+};

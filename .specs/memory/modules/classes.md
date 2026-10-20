@@ -9,7 +9,7 @@ reads each one; admins edit and remove (archive) locations, and every class at a
 admins edit one class at a time, within what its state allows, cancel a class until it
 finishes, and delete one created by mistake before it starts. It also keeps the school's **Cancellation rule**
 (`cancellation-rule`) of each discipline and gives every upcoming class its **Cancellation deadline**. It is the
-base that enrolment, ratings and photos build on. It brings together three business areas: **Locations**,
+base that [Enrolment](enrolment.md), ratings and photos build on. It brings together three business areas: **Locations**,
 **Classes** and **Cancellation rules and deadlines**.
 
 ## Locations
@@ -55,7 +55,7 @@ Editing a location:
   instructor of the location's upcoming classes except the admin who edits gets one `location.changed` with how
   many of their upcoming classes are there and the new name, through [Notifications](notifications.md). A
   notification that fails never changes the answer or the edit. Students and people with pending requests will be
-  told when enrolment exists.
+  told with spec 047.
 
 Removing (archiving) a location:
 
@@ -96,16 +96,20 @@ The classes themselves, and how a batch becomes classes.
 - **Edit** (not stored): the whole class sent again — discipline, level, one day (`YYYY-MM-DD`), a start and an
   end (`HH:mm`, the class ends on its start day), location, instructors, capacity, notes — compared field by field
   with the stored class.
-- **Seats taken** (not stored): how many seats of a class are held — its approved students plus its guests; always
-  0 until enrolment exists.
+- **Seats taken** (not stored): how many seats of a class are held — its approved students plus its guests;
+  counted by [Enrolment](enrolment.md) from its approved enrolments (guests join with spec 045). Nothing approves a
+  request before spec 042, so it still reads 0.
 - **Class roster** (not stored): the seats taken and the approved students (id, name, photo or none) of a class,
-  read for many classes at once; always 0 and nobody until enrolment exists.
-- **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer; always 0
-  until enrolment exists.
+  read for many classes at once, from Enrolment.
+- **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer, from
+  Enrolment.
+- **Reader's enrolment** (not stored, `myEnrolment`): the latest enrolment (id, status, when requested) of the
+  person reading the class, by when it was requested and then id, or none; read for many classes at once, from
+  Enrolment, for every role (instructors and admins never have one).
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
 - **Class view** (not stored): a class as people read it — its fields, its location's name, address and point
-  (none when the location has none; an archived location reads the same), its instructors' ids and names, and its
-  roster.
+  (none when the location has none; an archived location reads the same), its instructors' ids and names, its
+  roster and the reader's enrolment.
 
 Rules:
 
@@ -197,10 +201,14 @@ Cancelling one class:
   cancelled again, edited or restored, and who cancelled it isn't kept.
 - **Exactly one cancel wins**: two admins cancelling the same class at the same moment — one succeeds, the other
   is refused with `class.cancelled`.
+- **Cancelling ends the class's open enrolments**: after the class is stored as cancelled, its pending and
+  approved enrolments become `classCancelled` through [Enrolment](enrolment.md), which hands back their students;
+  ended enrolments are untouched. A failure there is swallowed: the class stays cancelled and its enrolments stay
+  open (the expiry skips cancelled classes, so they don't end later on their own).
 - **Who is told, after the class is stored as cancelled, never the admin who cancels** (even when teaching it):
-  every instructor of the class gets `class.cancelled`, with the message when there is one. A class taught only
-  by that admin tells nobody. A notification that fails never changes the answer or the stored cancellation.
-  Students and people with pending requests will be told when enrolment exists.
+  every instructor of the class and every student whose enrolment it just ended get one `class.cancelled`, with
+  the message when there is one — a person on both lists once. Nobody left → nothing sent. A notification that
+  fails never changes the answer or the stored cancellation.
 
 Deleting one class:
 
@@ -208,8 +216,8 @@ Deleting one class:
 - **Checked in this order**: access; the id (not a UUID, or no class → `class.notFound`, 404); then, against the
   stored class and the server's now, `class.cancelled` (409, whatever time it is), `class.started` (409, a class
   whose start is exactly now included, and a finished one too), and `class.delete.notEmpty` (409, with the seats
-  taken and the pending requests in the details) when anybody holds a seat or has a pending request — never yet,
-  since both counts are 0 until enrolment exists.
+  taken and the pending requests in the details) when anybody holds a seat or has a pending request (counted by
+  Enrolment).
 - **Deleting is final and leaves nothing**: the class and its instructors are removed; it can't be restored, and
   notifications already sent about it stay.
 - **Exactly one delete wins**: the checks sit on the delete itself. Two admins deleting the same class at the
@@ -284,8 +292,8 @@ The account's status is checked before its role (`user.status.notApproved`, then
 403); an unknown account is refused as signed out.
 
 - **An approved account of any role** — lists the active locations, lists the classes of any week, past or future,
-  reads any class with its notes, its cancellation deadline, its seats taken and its approved students, and reads
-  both cancellation rules.
+  reads any class with its notes, its cancellation deadline, its seats taken, its approved students and their own
+  latest enrolment in it, and reads both cancellation rules.
 - **An approved admin** — creates, edits and removes locations, gets address suggestions, creates batches of
   classes, reads the time-range suggestions, edits a
   class that hasn't finished and isn't cancelled, cancels a class that hasn't finished, and deletes a class that
@@ -310,9 +318,10 @@ through their own contract, which the backend fulfils with Google's Places servi
 provider. Authentication
 reaches the release through its own contract, which the backend fulfils with this module's use case — this module
 depends on Authentication, never the reverse.
-It doesn't read the clock directly either, and it learns the seats taken, the pending requests and the rosters
-(seats taken and approved students) through its own contracts, which answer 0 and nobody until enrolment replaces
-them; the roster keeps the students in the order they were approved, then by id, and the week list carries at
+It doesn't read the clock directly either, and it learns the seats taken, the pending requests, the rosters
+(seats taken and approved students) and the reader's enrolment through its own contracts, and closes a cancelled
+class's enrolments through another; [Enrolment](enrolment.md) fulfils all five through the backend, and this
+module never depends on it. The roster keeps the students in the order they were approved, then by id, and the week list carries at
 most 4 students per class (a single class all of them) while its seats taken are never capped. The language model that describes the deadlines sits
 behind its own contract too, which the backend fulfils with Anthropic's Claude; the module never sees the
 provider. In the app,
@@ -340,13 +349,14 @@ atribuído" on its details for everyone; while it hasn't started, admins also se
 card and a banner on the details that opens "Editar aula". Admins edit the cancellation rules from a screen
 reached from their home; everyone reads them in a sheet from the Profile. A class without a deadline shows
 admins a "Sem prazo" chip on its card and a "Sem prazo de cancelamento" banner on its details that opens the rules
-screen; a class with one shows everyone "Cancelamento até …" on its details. Accepting the rule and cancelling a
-seat until the deadline come with enrolment. On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
+screen; a class with one shows everyone "Cancelamento até …" on its details. The student's request button, its
+sheet and the enrolment banners and card chip are Enrolment's (on the student's details and Agenda only);
+cancelling a seat until the deadline comes with spec 043. On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
 mode opens a location to edit it; the location sheet searches addresses as the admin types, places the point on a
 small map, offers to tell the instructors when upcoming classes use it, and removes it after a confirmation; a
 class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
-has a point shows everyone a small map with "Direções" on its details. "My classes", enrolment, ratings and photos
-come with their specs. A class keeps a link to the admin who created it,
+has a point shows everyone a small map with "Direções" on its details. "My classes", ratings and photos come with
+their specs. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
 ## Spec history
@@ -403,3 +413,8 @@ which stops that account from being erased while the link exists — a decision 
   stub with 0 and nobody until enrolment; every class read carries its seats taken and approved students (at most 4
   per class on the week list); the app's card (occupancy bar, "Sem vagas", students footer, no instructors line)
   and details ("A aula", "Turma cheia", "Regras", the instructors' read-only note).
+- `041-enrolment-requests` — the three counting contracts are answered by [Enrolment](enrolment.md) (the stubs are
+  gone); every class read carries the reader's latest enrolment (`myEnrolment`, through a new contract); cancelling
+  a class ends its open enrolments through another new contract and tells those students `class.cancelled` with the
+  instructors (each person once); the app's details take the student's request button (`canEnrol`) and the Agenda's
+  cards the enrolment chip (`showEnrolment`), both only in the student's flow.

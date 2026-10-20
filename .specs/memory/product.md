@@ -126,7 +126,7 @@ Listed in the order people meet them.
   no point until edited, can still be picked, and show no map. Approved admins create, edit and remove
   locations; every approved account lists the active ones. A change to the name or the address sends the
   deadlines of the location's upcoming classes to be worked out again. Only instructors can be told about a
-  change for now (students, with enrolment). A removed (archived) location frees its name, can't be given to a
+  change for now (students with spec 047). A removed (archived) location frees its name, can't be given to a
   class, and can't be restored.
 - **Class** (`class`): one surf or skate session at one date and time. Key fields: discipline (`surf` |
   `skate`), level (`beginner` | `advanced` | `expert` — a label only), date, start and end time, location,
@@ -163,7 +163,7 @@ Listed in the order people meet them.
   that changes a detail the model reads (not only the instructors) clears it, and so does a rule change. A
   discipline without a rule gets no deadline and nothing is sent. Every role sees "Cancelamento até <dia, data
   · hora>" on a class's details; admins see the "Sem prazo" flag. Cancelling a seat until the deadline arrives
-  with enrolment.
+  with spec 043.
 - **Enrolment** (`enrolment`): a student's place, or attempt at a place, in one class. A student **requests**
   a seat in a class that hasn't started (accepting the discipline's cancellation rule), which creates a
   pending enrolment; admins and the class's instructors are notified. Key fields: student, class, status, when
@@ -183,9 +183,20 @@ Listed in the order people meet them.
     the time of each request. When a seat opens nobody is moved or told: admins choose.
   - Students are notified when an enrolment is approved, denied (with the reason), expires, is created
     directly, or is taken out (with the reason), and when its class is edited or cancelled.
+  - As built (spec 041): approved students request a seat from a class's details; the rule of the class's
+    discipline is accepted only when there is one, and the moment is kept, never the text. A full class still takes
+    requests (the waiting list is always on until spec 046). Students withdraw their pending request until the
+    class starts, request again after any ended one, and never hold more than one open enrolment per class (two
+    requests at the same moment leave one). Every approved admin and every instructor of the class is told of each
+    request, each person once. Pending requests expire when the class starts, and the student is told; cancelling
+    a class ends its pending and approved enrolments as `class cancelled` and tells those students with the
+    instructors. The statuses `approved`, `denied`, `cancelled` and `taken out` exist but nothing produces them
+    yet (specs 042–044).
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
-  photo, or initials while there is no photo); guests count in the seats taken but aren't listed.
+  photo, or initials while there is no photo); guests count in the seats taken but aren't listed. As built (spec
+  041) they are counted from the stored enrolments; with nothing approving a request yet, every class still reads
+  0 and nobody.
 - **Guest** (`guest`): someone without an account trying surf or skate, put into one class by an admin. Key
   fields: name, WhatsApp number. Takes a seat; only in a class that hasn't started and has a free seat. Gets
   nothing from the app; admins are warned of that when they edit or cancel a class with guests. Shown as
@@ -767,7 +778,25 @@ a note: the school makes enrolments, cancellations and schedule changes on a cla
 they don't teach in read-only mode. A person without a photo shows their initials on a `sand` circle. All copy is
 in pt-BR, es-ES and en-US.
 
-Active specs: none.
+**Students request seats in classes** (spec `041-enrolment-requests`) — on a class that hasn't started, a student's
+details now end in one sticky button: "Pedir para entrar", or "Entrar na lista de espera" on a full class (the "Turma
+cheia" banner adds "Você pode entrar na lista de espera."). It opens a sheet with the class line ("Surf Iniciante ·
+Amanhã · 21 out · 12:00. O pedido fica pendente até a escola confirmar.", or the waiting-list version), "Cancelamento ·
+Surf", a card with "Cancelamento até …" or "Prazo ainda não definido" and the box "Li e aceito a regra de
+cancelamento" with "Ler" (the rules sheet, which then brings the request sheet back), "Enviar pedido" (on once the
+box is ticked) and "Agora não"; with no rule for the discipline the card says "A escola ainda não escreveu esta
+regra." and there is no box. Sending shows "Pedido enviado" (or "Você está na lista de espera"). The details then
+show the request: "Pedido pendente" with "Anular pedido", which asks first ("Sim, anular" / "Manter pedido"), or, on a
+full class, "Você está na lista de espera" with "Sair da lista de espera", which withdraws at once; then "Pedido
+anulado" or "Você não conseguiu vaga" with "Pedir novamente". On the student's Agenda the card shows "Pendente", "Na
+lista de espera", "Anulado" or "Expirado" in place of "Sem vagas"; started, finished and cancelled classes keep their
+own chip and banner and offer no button, and instructors and admins never see any of it. Admins and the class's
+instructors get "Novo pedido de vaga" for every request, and tapping it opens the class; a student gets "Você não
+conseguiu vaga" when the class starts with the request still pending, and "Aula cancelada" when a class they asked
+for is cancelled, each opening the class. The seats, the students and the "not empty" check of deleting a class now
+count stored enrolments. All copy is in pt-BR, es-ES and en-US.
+
+Active specs: none in progress; specs 042–048 (the rest of enrolment) are planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -806,7 +835,7 @@ Active specs: none.
   splitting the name into first and last name, real data in the
   About sheet (mocked), keeping the theme, language and push preferences on the account or syncing them across
   phones, and, when a person deletes their account, refusing the only admin and cancelling their seats and
-  pending enrolments (with enrolment).
+  pending enrolments (spec 043).
 - On the People directory (spec 027): profile photos (initials only), class counts and the "Acesso total" /
   "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", promoting, demoting or
   removing someone from their sheet, searching by email, the real count on the home rows (a fixed "9 na
@@ -817,38 +846,42 @@ Active specs: none.
 - After creating classes (spec 028): the instructors' "Surf" / "Skate" subtitles and photos in the picker; a real
   count on the "Criar aulas" row; and "My classes" for admins who teach.
 - On class locations (spec 037): telling students and people with pending requests about a location change
-  (with enrolment); restoring an archived location, listing archived locations, and a locations screen outside
+  (spec 047); restoring an archived location, listing archived locations, and a locations screen outside
   the class form; filling the address from a tapped point, "near me" from the phone's own location, and an
   interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
-  class highlighted, and a marker on the cards of one's own classes; the request / waiting-list button (with
-  enrolment); "Depois da aula" (photos and ratings); the student Agenda's sport filter and notifications bell.
-- On seats and students (spec 040): real seats taken and students (with enrolment — until then every class reads 0
-  and nobody), guests' "Trial" rows, "inclui N trial", the "1ª vez" badge, "Retirar" and the request-status banners
-  on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
+  class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings); the
+  student Agenda's sport filter and notifications bell.
+- On seats and students (spec 040): guests' "Trial" rows, "inclui N trial", the "1ª vez" badge and "Retirar" on the
+  details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
   about to start; opening a person's sheet (WhatsApp) from an instructor or a student on the details; and profile
   photos (initials until photos can be uploaded).
 - On editing a class (spec 032): telling its students and the people with pending requests, and warning the
-  admin about guests (with enrolment); editing several classes at once; the seat and pending-request counts in the editor's
+  admin about guests (specs 047 and 045); editing several classes at once; the seat and pending-request counts in the editor's
   footer note, and its "gerir" links to manage time ranges and locations.
-- On cancelling a class (spec 033): telling its students and the people with pending requests, ending their
-  enrolments as `class cancelled`, and warning the admin about guests (with enrolment); storing who cancelled it,
+- On cancelling a class (spec 033): warning the admin about guests (with guests); storing who cancelled it,
   restoring a cancelled class and editing its message; what "Avisar alunos e instrutores" in the class tools does
   (a message to a class's people, its own spec); the enrolled and pending counts on the cancel sheet.
-- On deleting a class (spec 034): counting real seats and pending requests, and guests (with enrolment — until
-  then a class is always empty); the seat and pending-request counts on the confirmation sheet; deleting several
+- On deleting a class (spec 034): counting guests (with guests); the seat and pending-request counts on the confirmation sheet; deleting several
   classes at once; restoring a deleted class or keeping any record of it.
 - On classes left without an instructor (spec 035): releasing the classes when an instructor is demoted to
   student or an account is removed (their specs reuse the same step); telling the students of a class that lost
-  its instructor (with enrolment); a list or filter of the classes without an instructor.
-- On cancellation rules and deadlines (spec 036): showing the rule and requiring its acceptance when a student
-  requests a seat, cancelling a seat until the deadline, and telling a student without a deadline to contact the
-  school (with enrolment); notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
+  its instructor; a list or filter of the classes without an instructor.
+- On cancellation rules and deadlines (spec 036): cancelling a seat until the deadline, and telling a student
+  without a deadline to contact the school (spec 043); notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
   showing who saved a rule; a list or filter of the classes without a deadline, and admins setting a deadline by
   hand.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
+- On enrolment requests (spec 041), each planned in its own spec: admins approving and denying requests, the
+  "Class enrolments" tool and the ordered waiting list, and the "Você está inscrito" / "Pedido recusado" states
+  (042); cancelling an approved seat, the deadline checks, and releasing a deleted or removed student's requests
+  and seats (043 — until then they stay as they are); direct enrolment and taking a student out (044); guests
+  (045); the waiting-list switch (046 — until then it is always on); telling students and people with pending
+  requests about class edits and location changes (047); the student's "Minhas aulas" tab and history (048).
+  Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
+  success style for toasts (every toast uses the error style).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
   admin.

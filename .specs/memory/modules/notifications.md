@@ -27,8 +27,9 @@ What the person is told, and how it reaches them.
     (`classId`), its discipline and its new start (`startsAt`, ISO UTC).
   - `class.unassigned` — the person was removed from a class by an edit; details: the class's id, its discipline
     and its start.
-  - `class.cancelled` — a class the person teaches was cancelled; details: the class's id, its discipline, its
-    start and the admin's message (`message`, as written after trimming) when there is one.
+  - `class.cancelled` — a class the person teaches, or in which their enrolment was just ended by the
+    cancellation (spec 041), was cancelled; details: the class's id, its discipline, its start and the admin's
+    message (`message`, as written after trimming) when there is one. One per person, even one on both lists.
   - `class.deleted` — a class the person taught was deleted; details: its discipline and its start (no class id:
     the class no longer exists).
   - `class.noInstructor` — an account deletion left classes that haven't started with no instructor; details:
@@ -37,6 +38,11 @@ What the person is told, and how it reaches them.
   - `location.changed` — an admin edited a location of classes the person teaches and chose to tell the
     instructors; details: how many of the person's upcoming classes are at that location (`count`) and its new
     name (`locationName`, as stored). One per instructor and edit (no class id: it concerns several classes).
+  - `enrolment.requested` — a student asked for a seat in a class; details: the class's id, the student's name
+    (`studentName`, as stored), its discipline and start. One per approved admin and per instructor of the class,
+    each person once.
+  - `enrolment.expired` — the person's pending request was still pending when the class started; details: the
+    class's id, its discipline and start.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -51,6 +57,8 @@ What the person is told, and how it reaches them.
   | `class.deleted` | Class deleted | Your {discipline} class on {MM/dd} at {HH:mm} was deleted. |
   | `class.noInstructor` | Class without an instructor / Classes without an instructor | The {discipline} class on {MM/dd} at {HH:mm} has no instructor now. / {count} classes have no instructor now. The next one: {discipline}, {MM/dd} at {HH:mm}. |
   | `location.changed` | Class location changed | {locationName} changed. Check your next class there. / {locationName} changed. Check your {count} upcoming classes there. |
+  | `enrolment.requested` | New seat request | {studentName} requested a seat in the {discipline} class on {MM/dd} at {HH:mm}. |
+  | `enrolment.expired` | You didn't get a seat | The {discipline} class on {MM/dd} at {HH:mm} started without a seat for your request. |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
@@ -73,7 +81,11 @@ What the person is told, and how it reaches them.
   {dd/MM} a las {HH:mm}." (a missing count counts as one); `location.changed`: pt-BR "Local de aula alterado" /
   "O local {locationName} mudou. Confira sua próxima aula lá." or "… Confira suas {count} próximas aulas lá.", es
   "Lugar de clase modificado" / "El lugar {locationName} cambió. Revisa tu próxima clase allí." or "… Revisa tus
-  {count} próximas clases allí.". The start is written in America/Fortaleza time, the same on every machine.
+  {count} próximas clases allí."; `enrolment.requested`: pt-BR "Novo pedido de vaga" / "{studentName} pediu vaga na
+  aula de {discipline} de {dd/MM} às {HH:mm}.", es "Nueva solicitud de plaza" / "{studentName} pidió plaza en la
+  clase de {discipline} del {dd/MM} a las {HH:mm}."; `enrolment.expired`: pt-BR "Você não conseguiu vaga" / "A aula
+  de {discipline} de {dd/MM} às {HH:mm} começou sem vaga para o seu pedido.", es "No conseguiste plaza" / "La clase de
+  {discipline} del {dd/MM} a las {HH:mm} empezó sin plaza para tu solicitud.". The start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
   with the app open reloads the classes of the weeks it shows (a `class.deleted` one, every class shown). Tapping a `class.edited`, `class.unassigned` or
@@ -84,6 +96,10 @@ What the person is told, and how it reaches them.
   its home, also when the push carries no class); one received with the app open reloads every class shown.
   Tapping a `location.changed` push reloads the account and opens its Aulas tab when it is still an instructor or
   an admin (else its home); one received with the app open reloads every class shown and the locations.
+  Tapping an `enrolment.expired` or `class.cancelled` push as a student opens that class's details in the
+  student's flow; tapping an `enrolment.requested` push opens that class's details as an instructor or an admin (a
+  push without a class, or a person who now resolves to another flow, falls back as before). One of the two
+  enrolment pushes received with the app open reloads every class shown.
 
 Rules:
 
@@ -95,6 +111,8 @@ Rules:
 - **Who hears about a registration**: every account with role admin **and** status approved (onboarding finished
   or not) — a pending, denied, deleted or removed admin is a registration or a closed account, not an admin. With
   no approved admin nothing is stored or sent. The result of a registration goes to the person only.
+- **Who hears about a new seat request**: every approved admin plus every instructor of the class, each person
+  once; who that is, is decided here from Enrolment's list of instructors. With nobody, nothing is stored or sent.
 - **Who hears about classes left without an instructor**: the same approved admins, minus the ones the event
   excludes (the person whose account deletion caused it, still approved while it runs); none left → nothing
   stored or sent.
@@ -141,8 +159,10 @@ Rules:
   created the batch.
 - **An instructor or admin of an edited class** — receives `class.edited` (kept, when a class field changed),
   `class.assigned` (added) or `class.unassigned` (removed), unless they made the edit.
-- **An instructor or admin of a cancelled class** — receives `class.cancelled`, with the message, unless they
-  cancelled it.
+- **An instructor or admin of a cancelled class, and a student whose pending or approved enrolment it ended** —
+  receives `class.cancelled`, with the message, unless they cancelled it.
+- **Approved admins and the instructors of a class** — receive `enrolment.requested` for each new request in it.
+- **A student whose request expired** — receives `enrolment.expired`.
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
 - **Approved admins** — receive one `class.noInstructor` when an account deletion leaves classes with nobody,
   unless the deleted account is theirs.
@@ -158,14 +178,15 @@ sign-out, one that deletes the "new registration" notifications about erased acc
 backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
 and removed), class changes (edits, cancellations, deletions), classes left without an instructor and location
 changes; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
-location edit. It doesn't decide when an event happens — the
+location edit. [Enrolment](enrolment.md) reaches it through its own contract for new requests and expired
+requests, with the same guarantee. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
 with their specs, as do the notifications of every other event (reactivation requests, role changes, reminders,
-enrolments, broadcasts) and those of an edit, a cancellation or a location change to the classes'
-students and pending requests.
+enrolment decisions, broadcasts) and those of an edit or a location change to the classes' students and pending
+requests (spec 047).
 
 ## Spec history
 
@@ -195,3 +216,9 @@ students and pending requests.
   for one and many classes, sent once per instructor through the Classes module's location-change contract; in
   the app, tapping one opens the Aulas tab and one received with the app open reloads the classes and the
   locations.
+- `041-enrolment-requests` — the `enrolment.requested` (`{ classId, studentName, discipline, startsAt }`, to the
+  approved admins and the class's instructors, each once) and `enrolment.expired` (`{ classId, discipline,
+  startsAt }`) types and their push copy, through Enrolment's contract; `class.cancelled` also reaches the students
+  whose enrolment the cancellation ended; in the app, a student's tap on `enrolment.expired` or `class.cancelled`
+  opens the class in the student's flow, an admin's or instructor's tap on `enrolment.requested` opens it in theirs,
+  and either enrolment push received with the app open reloads the classes.

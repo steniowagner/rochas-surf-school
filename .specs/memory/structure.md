@@ -134,7 +134,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
     cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
     (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider}.ts`
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
     when asked), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
@@ -143,11 +143,24 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `ClassChangeNotifier.classEdited` / `classCancelled` / `classDeleted`;
     `NoInstructorNotifier.classesWithoutInstructor`; `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model
     with the location and the instructors' names; `ClassRosterReader.findRosters` → `ClassRoster` per class id, the
-    seats taken and the approved students, with `CLASS_CARD_STUDENTS_LIMIT`),
+    seats taken and the approved students, with `CLASS_CARD_STUDENTS_LIMIT`; `ViewerEnrolmentReader.findLatest` → the
+    reader's latest enrolment per class id; `ClassEnrolmentsCloser.closeOpenEnrolments` → the students whose
+    enrolment a cancellation ended — the last three answered by enrolment's adapters, spec 041),
     `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines}.usecase.ts`, and
-    `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken and
-    the students). Fakes of every port and entity
+    `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
+    the students and `myEnrolment`). Fakes of every port and entity
     factories are in `test/mock/`.
+- **`modules/enrolment`** (`@rochas-surf-school/enrolment`, spec 041; depends on `@rochas-surf-school/shared`,
+  `@rochas-surf-school/auth` and `@rochas-surf-school/classes` — `ClassActor`, `assertCanReadClasses` and the
+  discipline; classes never imports it) — 1 aggregate, `enrolment/`: `model/enrolment.entity.ts` (`Enrolment`,
+  `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, `ENROLMENT_REASON_MAX`; `withdraw`, `expire`,
+  `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,enrolment-notifier.provider,clock.provider}.ts`
+  (`create` — a second open enrolment is `enrolment.alreadyOpen` —, `findById`, `withdraw` and `expire` conditional
+  on pending, `findExpirable`, `closeOpenForClass`; the class as enrolment reads it; the student's name;
+  `seatRequested` / `requestExpired`),
+  `usecase/{request-seat,withdraw-request,expire-pending-enrolments,close-class-enrolments}.usecase.ts` and
+  `usecase/enrolment.out.ts` (`EnrolmentOut`: `{ id, classId, status, requestedAt }`). Fakes of every port (the
+  fake repository takes the classes, to join them in `findExpirable`) and an entity factory are in `test/mock/`.
 
 ## `apps/backend` (NestJS — adapters)
 
@@ -167,6 +180,9 @@ prisma/
                                 # locations, created_by → users, both RESTRICT), class_instructors (class_id +
                                 # user_id key; → classes and → users, cascade), cancellation_rules (keyed by
                                 # discipline; updated_by → users, SET NULL); enums class_discipline, class_level
+  models/enrolment.model.prisma # enrolments (class_id → classes CASCADE, student_id → users RESTRICT; indexed on
+                                # class_id + status and on student_id); enum enrolment_status. The migration adds
+                                # the partial unique index enrolments_one_open_per_student_class in SQL
   seed/main.ts                  # seed runner, one task per module
   seed/review-accounts.seed.ts  # upserts the REVIEW_ACCOUNTS users and their email identities
 src/
@@ -243,7 +259,8 @@ src/
     system.clock.ts             # SystemClockProvider
   modules/classes/
     classes.module.ts           # wiring (DbModule; imports NotificationsModule for the class-assignment,
-                                # class-change and location-change notifiers); provides the Google Places provider;
+                                # class-change and location-change notifiers, and EnrolmentModule for the roster,
+                                # seat, pending-request, viewer-enrolment and enrolments-closer adapters); provides the Google Places provider;
                                 # provides and exports ClassesTeachingReleaser
     locations.controller.ts     # GET /locations (200), POST /locations (201), GET /locations/address-suggestions
                                 # and /address-suggestions/:placeId (200), PUT /locations/:id (200), POST
@@ -270,15 +287,28 @@ src/
                                 # that isn't cancelled and hasn't started)
     classes.teaching-releaser.ts  # ClassesTeachingReleaser: auth's TeachingReleaser, running
                                 # ReleaseUpcomingClasses (errors propagate)
-    no-enrolment.seat-counter.ts  # NoEnrolmentSeatCounter (SeatCounter answering 0 until enrolment)
-    no-enrolment.class-roster.reader.ts  # NoEnrolmentClassRosterReader (ClassRosterReader: no seats taken and no
-                                # students until enrolment)
-    no-enrolment.pending-request-counter.ts  # NoEnrolmentPendingRequestCounter (PendingRequestCounter answering 0
-                                # until enrolment)
     teacher-lookup.prisma.ts    # PrismaTeacherLookup (id, role and status of the given users)
     class-view-reader.prisma.ts # PrismaClassViewReader (one query per read, with the location and instructors' names)
     system.clock.ts             # SystemClockProvider of the module (the e2e suite overrides it)
     {locations,classes,cancellation-rules}.integration.http  # manual REST Client requests
+  modules/enrolment/            # spec 041; never imports ClassesModule (ClassesModule imports it)
+    enrolment.module.ts         # wiring (imports NotificationsModule); provides and exports the adapters below
+    enrolment.controller.ts     # POST /classes/:id/enrolments (201), POST /enrolments/:id/withdraw (200) — protected
+    enrolment.prisma.ts         # PrismaEnrolmentRepository (P2002 on the partial index → enrolment.alreadyOpen;
+                                # withdraw / expire conditional on pending; closeOpenForClass in one
+                                # updateManyAndReturn; findExpirable joins the class)
+    enrolment-class-reader.prisma.ts  # PrismaEnrolmentClassReader (the class, its instructors, whether its
+                                # discipline has a cancellation rule)
+    student-name-reader.prisma.ts  # PrismaStudentNameReader
+    enrolment-expiry.job.ts     # EnrolmentExpiryJob (every minute, cron enrolment-expiry): runs
+                                # ExpirePendingEnrolments, logs the count only, never throws
+    {class-roster-reader,seat-counter,pending-request-counter,viewer-enrolment-reader}.prisma.ts  # classes' ports
+                                # read from enrolments (approved for the roster and the seats, pending for the
+                                # requests, the caller's latest for myEnrolment)
+    enrolment.class-enrolments-closer.ts  # EnrolmentClassEnrolmentsCloser: classes' ClassEnrolmentsCloser, running
+                                # CloseClassEnrolments
+    system.clock.ts             # SystemClockProvider of the module (the e2e suite overrides it)
+    enrolment.integration.http  # manual REST Client requests
 test/
   auth-email.e2e-spec.ts        # e2e suite of the email sign-in routes (Resend replaced by a capturing fake)
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
@@ -302,6 +332,9 @@ test/
                                 # notifications; the clock and ExpoPushProvider replaced by fakes)
   cancellation-rules.e2e-spec.ts  # e2e suite of /cancellation-rules (access, validation, the clearing of the
                                 # deadlines; clock in 2037, stored rules snapshotted and restored)
+  enrolment.e2e-spec.ts         # e2e suite of requesting, refusing, requesting again, concurrent requests,
+                                # withdrawing, expiring (the job run directly), notifying, the counts and myEnrolment
+                                # (the clocks and ExpoPushProvider replaced by fakes)
   cancellation-deadlines.e2e-spec.ts  # e2e suite of CancellationDeadlineJob (AnthropicDeadlineDescriber replaced by
                                 # a configurable fake; works out, retries, without a rule, edits, stale results)
 Dockerfile, docker-compose.yml  # backend + Postgres
@@ -336,7 +369,7 @@ src/
     (offboarding)/offboarding/{_layout,denied,removed}.tsx   # denied / removed screens, each guarded by its flow
     (private)/{student,instructor,admin}/_layout.tsx # the role's Stack: its (tabs) group and the inner screens
     (private)/<role>/(tabs)/_layout.tsx              # the role's native tab bar (RoleTabs)
-    (private)/student/(tabs)/{index,my-classes,school,profile}.tsx  # Agenda (/student, the week of classes),
+    (private)/student/(tabs)/{index,my-classes,school,profile}.tsx  # Agenda (/student, the week of classes, with showEnrolment),
                                                      # Minhas aulas, Escola, Perfil
     (private)/{instructor,admin}/(tabs)/{index,classes,profile}.tsx # Início (/instructor, /admin), Aulas (the week
                                                      # of classes; the admin's with canCreate), Perfil
@@ -346,7 +379,8 @@ src/
     (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
     (private)/admin/cancellation-rules.tsx           # "Regras de cancelamento" (/admin/cancellation-rules), above
                                                      # the tab bar
-    (private)/{student,instructor,admin}/class/[id].tsx  # class details (/<role>/class/<id>), above the tab bar
+    (private)/{student,instructor,admin}/class/[id].tsx  # class details (/<role>/class/<id>), above the tab bar;
+                                                     # the student's sets canEnrol
     (private)/{admin,instructor}/people.tsx          # the People screen under the native header (/admin/people,
                                                      # /instructor/people), above the tab bar; the student's
                                                      # (tabs)/school.tsx renders it as a tab with no header
@@ -416,7 +450,8 @@ src/
     screens/class-details.screen.tsx  # ClassDetailsScreen + hook (one class by the route's id, banners — the
                                 # cancelled one with its message, "Turma cheia" —, the "A aula" group, the
                                 # instructors' read-only note, the "Regras" rows and the cancellation rules
-                                # sheet, the admin's tools button with canEdit,
+                                # sheet, the student's request footer, status banner and sheets with canEnrol,
+                                # the admin's tools button with canEdit,
                                 # the tools, cancel and delete sheets, the cancel and delete requests and their
                                 # errors)
     screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
@@ -431,7 +466,7 @@ src/
                                 # local"), address-search-field (Endereço and its suggestions), location-map-picker
                                 # (the sheet's map), archive-location-sheet ("Remover local?"), location-map-preview
                                 # (the details' map and "Direções"), capacity-stepper, instructor-picker, class-card
-                                # (occupancy bar, "Sem vagas", students footer), class-people (the details' "A aula":
+                                # (occupancy bar, "Sem vagas" or the student's enrolment chip, students footer), class-people (the details' "A aula":
                                 # instructors, students and the free seats), student-avatar (photo or initials),
                                 # class-tools-sheet (the admin's edit / notify / cancel / delete tools of one
                                 # class), cancel-class-sheet (the cancel confirmation with its optional message),
@@ -462,13 +497,28 @@ src/
                                 # provider per platform, directions URL), session-token.ts (UUID v4 per sheet),
                                 # occupancy.ts (percent, tone, full, free and hidden seats, the students label)
     classes.test-utils.tsx      # shared test helpers of the module
+  modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards; no
+                                # route of its own
+    enrolment.types.ts          # EnrolmentStatus, MyEnrolment, EnrolmentResponse, RequestSeatRequest (mirror the API)
+    components/request-seat-sheet/  # RequestSeatSheet + hook (AGENDA-03: the class line, the deadline, the rule to
+                                # accept with "Ler" — it steps aside for CancellationRulesSheet —, send / not now)
+    components/withdraw-request-sheet/  # WithdrawRequestSheet ("Anular pedido": confirm / keep; no hook)
+    hooks/                      # use-request-seat (POST /classes/:id/enrolments), use-withdraw-request (POST
+                                # /enrolments/:id/withdraw) — no retry, invalidate ["classes"] —, use-class-enrolment
+                                # (the details' CTA, banner, sheets, sends and errors)
+    utils/                      # enrolment-cta.ts (the footer button by status and fullness), enrolment-status.ts
+                                # (the banner and chip: waitingList for pending on a full class), enrolment-error.ts
+                                # (API error → translation key, and which errors reload the class)
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
                                 # use-notification-response (a tapped push → refresh → "Join the school", the
-                                # Aulas tab for class.assigned / location.changed, or "/"), use-notification-received
+                                # Aulas tab for class.assigned / location.changed, a class's details for the class
+                                # pushes — the student's for enrolment.expired / class.cancelled, the instructor's or
+                                # admin's for enrolment.requested —, or "/"), use-notification-received
                                 # (a push with the app open → refresh, or invalidate ["registrations"] / ["classes",
-                                # "week"], and ["classes"] + ["locations"] for location.changed)
+                                # "week"], ["classes"] for the class and enrolment pushes, and ["classes"] +
+                                # ["locations"] for location.changed)
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
     utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored
   modules/offboarding/

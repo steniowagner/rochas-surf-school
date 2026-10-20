@@ -2,13 +2,14 @@
 id: "041"
 slug: enrolment-requests
 title: "Students request seats in classes"
-status: accepted
+status: finished
 created: 2026-10-19
 started: 2026-10-19
 base_commit: f4f39160297a7dcb1497ed9c64df738439b75db0
 reviewed_commit: 5aff7586d6cdede0d823877a9098ae8a4f11bc60
 fronts: [enrolment, classes, notifications, backend, mobile]
 depends_on: []
+finished: 2026-10-20
 ---
 
 # 041 — Students request seats in classes

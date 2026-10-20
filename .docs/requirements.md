@@ -862,6 +862,8 @@ Controls how students and guests get into classes, with admins deciding every se
 
 #### Requesting a class
 
+_Implemented in spec 041-enrolment-requests._
+
 Students SHALL be able to request a seat in any class that hasn't started. A student SHALL be able to request the same class again, as many times as they want, once an earlier request for it has ended.
 
 - _Request sent:_ When a student requests a seat in an upcoming class, then a pending request is created.
@@ -869,6 +871,8 @@ Students SHALL be able to request a seat in any class that hasn't started. A stu
 - _Class already started:_ When a student tries to request a class that has started, then no request is created.
 
 #### New request notification
+
+_Implemented in spec 041-enrolment-requests._
 
 When a student requests a class, admins and the class's instructors SHALL be notified.
 
@@ -879,6 +883,8 @@ When a student requests a class, admins and the class's instructors SHALL be not
 _Partly implemented in spec 030-classes-week-view (everyone sees a class's capacity; the seats taken come with enrolment)._
 
 _Implemented in spec 040-class-seats-read-model (everyone sees the seats taken and the approved students of a class; always 0 until enrolment exists)._
+
+_Implemented in spec 041-enrolment-requests (the seats taken and the students are counted from the approved enrolments, pending ones never; guests join with their spec)._
 
 A pending request SHALL NOT hold a seat. A class's seats taken SHALL count its approved students and its guests. Everyone who can see a class SHALL see its capacity and how many seats are taken.
 
@@ -899,6 +905,8 @@ Admins SHALL be able to deny a pending request and give a reason. The student SH
 - _Request denied:_ When an admin denies a request and writes a reason, then the student is notified of the denial and the reason.
 
 #### Waiting list
+
+_Partly implemented in spec 041-enrolment-requests (students see their pending request of a full class as "on the waiting list"; the admins' ordered view comes with spec 042)._
 
 While a class has no free seat, its pending requests SHALL be shown as "on the waiting list" to their students and to admins. Admins SHALL see a class's waiting list in the order students asked, with the time each one asked.
 
@@ -921,11 +929,15 @@ Admins SHALL be able to turn the waiting list on or off, and it SHALL be on by d
 
 #### Withdrawing a request
 
+_Implemented in spec 041-enrolment-requests._
+
 Students SHALL be able to withdraw a pending request until the class starts. Nobody SHALL be notified.
 
 - _Request withdrawn:_ When a student withdraws a pending request, then the request ends and nobody is notified.
 
 #### Expiry
+
+_Implemented in spec 041-enrolment-requests._
 
 Requests still pending when a class starts SHALL expire, and their students SHALL be notified that they didn't get a seat.
 
@@ -985,6 +997,8 @@ The system SHALL erase a guest's name and WhatsApp number 30 days after their cl
 
 #### Request statuses
 
+_Partly implemented in spec 041-enrolment-requests (every status is stored; a class's details and the student's Agenda card show pending, "on the waiting list", withdrawn and expired, and a class-cancelled request shows the class's cancelled banner; approved, denied, cancelled and taken out come with specs 042–044)._
+
 Students SHALL be able to see the status of each of their requests: pending (shown as "on the waiting list" while the class is full), approved, denied, withdrawn, cancelled, taken out, expired, or class cancelled.
 
 - _Class cancelled:_ When a class a student had a seat in is cancelled, then the student sees that request's status as class cancelled.
@@ -1007,9 +1021,11 @@ _Implemented in spec 036-cancellation-rules-deadline (reading both rules at any 
 
 _Implemented in spec 040-class-seats-read-model (both rules are also read from a class's details)._
 
-Users SHALL be able to read both cancellation rules at any time. When requesting a seat, a student SHALL be shown the rule for the class's discipline and SHALL accept it.
+_Implemented in spec 041-enrolment-requests (accepting the rule when requesting a seat)._
 
-- _Requesting a surf class:_ When a student requests a surf class, then they are shown the surf rule, and the request is sent only after they accept it.
+Users SHALL be able to read both cancellation rules at any time. When requesting a seat, a student SHALL be shown the class's cancellation deadline and be able to read the rule for the class's discipline, and SHALL accept that rule; while the discipline has no rule, there is nothing to accept.
+
+- _Requesting a surf class:_ When a student requests a surf class, then they can read the surf rule, and the request is sent only after they accept it.
 
 #### One deadline per class
 

@@ -210,9 +210,10 @@ way and sees the result on the class.
   Covers: ER-01, ER-03 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
   > ✅ 2026-10-20 20:14 — added `POST /classes/:id/enrolments/direct` (201, or 200 through `@Res({ passthrough })` when a pending request was approved) and `POST /enrolments/:id/take-out` (200) to `EnrolmentController` (new `PrismaStudentLookup` dependency), their spec cases and the requests in the `.http` file; files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment` (13 files, 92 passed), `npx tsc --noEmit` from `apps/backend` clean; deviations: hand-written following the sibling handlers rather than invoking the skill
 
-- [ ] **T-08** — Add `test/direct-enrolment.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the direct
+- [x] **T-08** — Add `test/direct-enrolment.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the direct
   enrolment (new and from pending), full, refusals, take-out and notification cases.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-20 20:17 — added `direct-enrolment.e2e-spec.ts` (fixed clock, faked pushes, cleanup by email domain/location mark): new and pending-approved enrolments, re-enrolling after an ended one, full, every refusal of D-02, 403/401, the last-seat and same-student races, the roster `enrolmentId`; take-out with trimmed/blank/over-300 reasons, refusals, race, the student's `myEnrolment`; notification and push-failure cases; also updated the roster assertion of the existing decisions e2e for the new `enrolmentId`; files: `apps/backend/test/direct-enrolment.e2e-spec.ts`, `apps/backend/test/enrolment-decisions.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (21 files, 580 passed; the new file has 21 tests); deviations: none
 
 ### Mobile (`apps/mobile`)
 

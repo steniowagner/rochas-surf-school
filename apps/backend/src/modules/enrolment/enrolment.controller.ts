@@ -1,7 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import type { ClassActor } from '@rochas-surf-school/classes';
 import {
+  ApproveRequest,
+  DenyRequest,
   type EnrolmentOut,
+  ListPendingRequests,
+  type ListPendingRequestsOut,
   RequestSeat,
   WithdrawRequest,
 } from '@rochas-surf-school/enrolment';
@@ -14,6 +18,7 @@ import { PrismaStudentNameReader } from './student-name-reader.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 
 type RequestSeatBody = { acceptCancellationRule?: unknown } | undefined;
+type DenyRequestBody = { reason?: unknown } | undefined;
 
 function actorOf(user: AuthenticatedUser): ClassActor {
   return { id: user.id, role: user.role, status: user.status };
@@ -28,6 +33,14 @@ export class EnrolmentController {
     private readonly enrolmentNotifier: NotificationsEnrolmentNotifier,
     private readonly clock: SystemClockProvider,
   ) {}
+
+  // Declared before the `:id` routes so the static path is never read as an id.
+  @Get('enrolments/pending')
+  listPending(@CurrentUser() user: AuthenticatedUser): Promise<ListPendingRequestsOut> {
+    return new ListPendingRequests(this.enrolmentRepository, this.clock).execute({
+      actor: actorOf(user),
+    });
+  }
 
   @Post('classes/:id/enrolments')
   @HttpCode(HttpStatus.CREATED)
@@ -56,5 +69,31 @@ export class EnrolmentController {
       actor: actorOf(user),
       id,
     });
+  }
+
+  @Post('enrolments/:id/approve')
+  @HttpCode(HttpStatus.OK)
+  approve(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<EnrolmentOut> {
+    return new ApproveRequest(
+      this.enrolmentRepository,
+      this.classReader,
+      this.enrolmentNotifier,
+      this.clock,
+    ).execute({ actor: actorOf(user), id });
+  }
+
+  @Post('enrolments/:id/deny')
+  @HttpCode(HttpStatus.OK)
+  deny(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body?: DenyRequestBody,
+  ): Promise<EnrolmentOut> {
+    return new DenyRequest(
+      this.enrolmentRepository,
+      this.classReader,
+      this.enrolmentNotifier,
+      this.clock,
+    ).execute({ actor: actorOf(user), id, reason: body?.reason });
   }
 }

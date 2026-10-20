@@ -37,6 +37,9 @@ function setup() {
     }),
     findById: vi.fn(async (id: string) => stored.find((item) => item.id === id) ?? null),
     withdraw: vi.fn(async () => true),
+    approve: vi.fn(async () => 'approved'),
+    deny: vi.fn(async () => true),
+    findPendingByClass: vi.fn(async () => [] as unknown[]),
   };
   const classReader = {
     findById: vi.fn(async (id: string) =>
@@ -58,6 +61,8 @@ function setup() {
   const notifier = {
     seatRequested: vi.fn(async () => undefined),
     requestExpired: vi.fn(async () => undefined),
+    requestApproved: vi.fn(async () => undefined),
+    requestDenied: vi.fn(async () => undefined),
   };
   const controller = new EnrolmentController(
     enrolmentRepository as unknown as PrismaEnrolmentRepository,
@@ -74,6 +79,8 @@ describe('EnrolmentController', () => {
   it.each([
     ['request', 'classes/:id/enrolments', RequestMethod.POST, HttpStatus.CREATED],
     ['withdraw', 'enrolments/:id/withdraw', RequestMethod.POST, HttpStatus.OK],
+    ['approve', 'enrolments/:id/approve', RequestMethod.POST, HttpStatus.OK],
+    ['deny', 'enrolments/:id/deny', RequestMethod.POST, HttpStatus.OK],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
     const handler = handlerOf(name);
 
@@ -81,6 +88,16 @@ describe('EnrolmentController', () => {
     expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(method);
     expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(status);
     expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+  });
+
+  it('lists the pending requests on a protected static GET route declared before the :id ones', () => {
+    const handler = handlerOf('listPending');
+    const order = Object.getOwnPropertyNames(EnrolmentController.prototype);
+
+    expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('enrolments/pending');
+    expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.GET);
+    expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    expect(order.indexOf('listPending')).toBeLessThan(order.indexOf('approve'));
   });
 
   describe('request', () => {
@@ -176,6 +193,127 @@ describe('EnrolmentController', () => {
       const { controller } = setup();
 
       await expect(controller.withdraw(userOf('student', 'pending'), CLASS_ID)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.status.notApproved',
+      });
+    });
+  });
+
+  describe('listPending', () => {
+    it('answers the total and the classes for an admin', async () => {
+      const { controller, enrolmentRepository } = setup();
+      enrolmentRepository.findPendingByClass.mockResolvedValue([{ id: CLASS_ID, requests: [{}, {}] }]);
+
+      expect(await controller.listPending(userOf('admin'))).toEqual({
+        total: 2,
+        classes: [{ id: CLASS_ID, requests: [{}, {}] }],
+      });
+      expect(enrolmentRepository.findPendingByClass).toHaveBeenCalledWith(NOW);
+    });
+
+    it('answers 403 for a student, an instructor and a pending account', async () => {
+      const { controller } = setup();
+
+      for (const role of ['student', 'instructor']) {
+        await expect(controller.listPending(userOf(role))).rejects.toMatchObject({
+          statusCode: 403,
+          message: 'user.role.notAdmin',
+        });
+      }
+      await expect(controller.listPending(userOf('admin', 'pending'))).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.status.notApproved',
+      });
+    });
+  });
+
+  describe('approve and deny', () => {
+    async function pending() {
+      const harness = setup();
+      await harness.controller.request(userOf('student'), CLASS_ID, { acceptCancellationRule: true });
+      return { ...harness, id: harness.stored[0]!.id };
+    }
+
+    it('approves a pending request and tells the student', async () => {
+      const { controller, id, enrolmentRepository, notifier } = await pending();
+
+      expect(await controller.approve(userOf('admin'), id)).toEqual({
+        id,
+        classId: CLASS_ID,
+        status: 'approved',
+        requestedAt: NOW,
+      });
+      expect(enrolmentRepository.approve).toHaveBeenCalledWith(id, NOW);
+      expect(notifier.requestApproved).toHaveBeenCalledWith({
+        studentId: STUDENT_ID,
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: STARTS_AT,
+      });
+    });
+
+    it('answers 409 enrolment.class.full and enrolment.notPending from the locked write', async () => {
+      const { controller, id, enrolmentRepository } = await pending();
+      enrolmentRepository.approve.mockResolvedValueOnce('full').mockResolvedValueOnce('notPending');
+
+      await expect(controller.approve(userOf('admin'), id)).rejects.toMatchObject({
+        statusCode: 409,
+        message: 'enrolment.class.full',
+      });
+      await expect(controller.approve(userOf('admin'), id)).rejects.toMatchObject({
+        statusCode: 409,
+        message: 'enrolment.notPending',
+      });
+    });
+
+    it('denies with the reason and tells the student with it', async () => {
+      const { controller, id, enrolmentRepository, notifier } = await pending();
+
+      const out = await controller.deny(userOf('admin'), id, { reason: ' Nível avançado ' });
+
+      expect(out).toEqual({ id, classId: CLASS_ID, status: 'denied', requestedAt: NOW });
+      expect(enrolmentRepository.deny).toHaveBeenCalledWith(id, 'Nível avançado', NOW);
+      expect(notifier.requestDenied).toHaveBeenCalledWith({
+        studentId: STUDENT_ID,
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: STARTS_AT,
+        reason: 'Nível avançado',
+      });
+    });
+
+    it('denies without a body, storing no reason', async () => {
+      const { controller, id, enrolmentRepository } = await pending();
+
+      await controller.deny(userOf('admin'), id);
+
+      expect(enrolmentRepository.deny).toHaveBeenCalledWith(id, null, NOW);
+    });
+
+    it('answers 422 for a reason over 500 characters and 404 for an unknown enrolment', async () => {
+      const { controller, id } = await pending();
+
+      await expect(controller.deny(userOf('admin'), id, { reason: 'a'.repeat(501) })).rejects.toMatchObject({
+        statusCode: 422,
+      });
+      await expect(controller.approve(userOf('admin'), 'not-a-uuid')).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'enrolment.notFound',
+      });
+      await expect(controller.deny(userOf('admin'), INSTRUCTOR_ID)).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'enrolment.notFound',
+      });
+    });
+
+    it('answers 403 for anyone but an approved admin', async () => {
+      const { controller, id } = await pending();
+
+      for (const role of ['student', 'instructor']) {
+        await expect(controller.approve(userOf(role), id)).rejects.toMatchObject({ statusCode: 403 });
+        await expect(controller.deny(userOf(role), id)).rejects.toMatchObject({ statusCode: 403 });
+      }
+      await expect(controller.approve(userOf('admin', 'pending'), id)).rejects.toMatchObject({
         statusCode: 403,
         message: 'user.status.notApproved',
       });

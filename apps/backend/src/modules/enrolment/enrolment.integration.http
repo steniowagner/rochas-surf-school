@@ -1,4 +1,5 @@
-# Manual REST Client requests for POST /classes/:id/enrolments and POST /enrolments/:id/withdraw (VS Code REST Client).
+# Manual REST Client requests for POST /classes/:id/enrolments, POST /enrolments/:id/withdraw, GET /enrolments/pending,
+# POST /enrolments/:id/approve and POST /enrolments/:id/deny (VS Code REST Client).
 # Sign in with an approved student review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
 # Codes are read from the backend log when RESEND_API_KEY is unset. Set `classId` to a class that hasn't started
 # (GET /classes?date=YYYY-MM-DD lists them).
@@ -109,3 +110,65 @@ Content-Type: application/json
 {
   "acceptCancellationRule": true
 }
+
+### The admin's requests below: set `adminEmail` and `adminCode` for an approved admin review account, then sign in.
+@adminEmail = admin@example.com
+@adminCode = 456789
+
+### Request an admin sign-in code (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "locale": "pt-BR"
+}
+
+### Sign in as the admin (expects 200 with accessToken)
+# @name adminSession
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "code": "{{adminCode}}"
+}
+
+###
+@adminToken = {{adminSession.response.body.accessToken}}
+
+### List the pending requests (expects 200 with { total, classes: [{ id, discipline, level, startsAt, endsAt, capacity, seatsTaken, location: { name }, requests: [{ id, requestedAt, student: { id, name, photoUrl } }] }] }, the requests in the order asked)
+GET {{baseUrl}}/enrolments/pending
+Authorization: Bearer {{adminToken}}
+
+### As a student or an instructor (expects 403 user.role.notAdmin) or without a token (expects 401)
+GET {{baseUrl}}/enrolments/pending
+Authorization: Bearer {{token}}
+
+### Approve the student's request (expects 200 with { id, classId, status: "approved", requestedAt }; the student gets enrolment.approved)
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### Approving it again (expects 409 enrolment.notPending); a class with no free seat answers 409 enrolment.class.full and one that has started 409 class.started
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### An unknown or malformed enrolment (expects 404 enrolment.notFound)
+POST {{baseUrl}}/enrolments/not-a-uuid/approve
+Authorization: Bearer {{adminToken}}
+
+### Deny another pending request with a reason (expects 200 with status "denied"; the student gets enrolment.denied with the reason)
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/deny
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "reason": "Esta aula é de nível avançado."
+}
+
+### Deny with no reason (expects 200; none is stored) or with one over 500 characters (expects 422 enrolment.reason.max.length)
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/deny
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{}

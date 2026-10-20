@@ -223,10 +223,11 @@ option to request again. Nobody is told when a seat opens; admins choose who get
   Covers: ER-04 · Done when: `npx vitest run src/modules/notifications` passes.
   > ✅ 2026-10-20 — `requestApproved` / `requestDenied` in `NotificationsEnrolmentNotifier` (student only, errors logged and swallowed; the reason travels only when written) and the `enrolment.approved` / `enrolment.denied` catalog entries in pt-BR, es and en (the denial body is the reason as written, else the fallback line); files: `apps/backend/src/modules/notifications/notifications.enrolment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.enrolment-notifier.spec.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` (17 files, 129 passed), backend `tsc --noEmit` and `oxlint` clean; deviations: none
 
-- [ ] **T-07** — Add `GET /enrolments/pending`, `POST /enrolments/:id/approve` and `POST /enrolments/:id/deny` to
+- [x] **T-07** — Add `GET /enrolments/pending`, `POST /enrolments/:id/approve` and `POST /enrolments/:id/deny` to
   `enrolment.controller.ts` (the static route before the `:id` ones), its spec and the requests in
   `enrolment.integration.http`. Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
+  > ✅ 2026-10-20 — `GET enrolments/pending` (declared first), `POST enrolments/:id/approve` and `POST enrolments/:id/deny` (200, optional `{ reason }` body) wired to `ListPendingRequests`, `ApproveRequest` and `DenyRequest`; their cases in the controller spec (route metadata and order, admin-only 403s, 404/409/422, notifications) and the requests in the REST Client file (admin sign-in, list, approve, deny, refusals); files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment` (11 files, 60 passed), backend `tsc --noEmit` and `oxlint` clean; deviations: none
 
 - [ ] **T-08** — Add `test/enrolment-decisions.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the list,
   approve, full, concurrent approve, deny, refusal and notification cases.

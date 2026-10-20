@@ -211,10 +211,11 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — In `src/modules/enrolment/`: `findPendingByClass` and the locked `approve` (D-01) and `deny` in
+- [x] **T-05** — In `src/modules/enrolment/`: `findPendingByClass` and the locked `approve` (D-01) and `deny` in
   `enrolment.prisma.ts`, and `reason` in `viewer-enrolment-reader.prisma.ts`, with specs (the concurrent approve
   included). Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-02, ER-03, ER-05 · Done when: `npx vitest run src/modules/enrolment` passes.
+  > ✅ 2026-10-20 — `PrismaEnrolmentRepository.findPendingByClass` (upcoming, uncancelled classes with pending requests, one `groupBy` for the approved seats), the locked `approve` (`$transaction`: reads the enrolment, `SELECT … FOR UPDATE` on the class row, counts approved, `full` at capacity, conditional `updateMany` on `pending`) and `deny` (conditional write with the reason); `reason` selected in `PrismaViewerEnrolmentReader`; files: `apps/backend/src/modules/enrolment/enrolment.prisma.ts`, `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`, `apps/backend/src/modules/enrolment/viewer-enrolment-reader.prisma.ts`, `apps/backend/src/modules/enrolment/viewer-enrolment-reader.prisma.spec.ts`; verified: `npx vitest run src/modules/enrolment` (11 files, 49 passed), `oxlint` clean; deviations: the unit spec exercises the transaction with a mocked client, so the real race (two approvals for the last seat) is proved in the e2e suite of T-08; backend `tsc` stays red on the notifier until T-06 (`NotificationsEnrolmentNotifier` and `push-messages.ts` lack the new entries)
 
 - [ ] **T-06** — Add `requestApproved` / `requestDenied` to `notifications.enrolment-notifier.ts` and the two
   catalog entries of `push-messages.ts` in pt-BR, es and en, with specs. Skill:

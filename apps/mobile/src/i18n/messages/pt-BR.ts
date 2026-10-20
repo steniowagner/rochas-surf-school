@@ -503,6 +503,12 @@ const messages: Messages = {
         title: "Você cancelou a inscrição",
         description: "Sua vaga ficou livre.",
       },
+      takenOut: {
+        chip: "Retirado",
+        title: "Você foi retirado da aula",
+        reason: "Motivo: “{{reason}}”",
+        noReason: "Sem motivo indicado.",
+      },
     },
     cta: {
       request: "Pedir para entrar",

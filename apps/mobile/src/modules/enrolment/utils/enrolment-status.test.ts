@@ -26,6 +26,13 @@ describe("getEnrolmentDisplay", () => {
     });
   });
 
+  it("draws a taken-out student as taken out, full class or not", () => {
+    const expected = { key: "takenOut", tone: "bad", icon: "remove-circle-outline" };
+
+    expect(getEnrolmentDisplay(enrolment("takenOut"), false)).toEqual(expected);
+    expect(getEnrolmentDisplay(enrolment("takenOut"), true)).toEqual(expected);
+  });
+
   it.each([
     ["withdrawn", "withdrawn", "arrow-undo-outline"],
     ["expired", "expired", "time-outline"],
@@ -47,12 +54,9 @@ describe("getEnrolmentDisplay", () => {
     expect(getEnrolmentDisplay(enrolment(status), true)).toEqual(expected);
   });
 
-  it.each(["takenOut", "classCancelled"] as const)(
-    "draws nothing for %s yet",
-    (status) => {
-      expect(getEnrolmentDisplay(enrolment(status), false)).toBeNull();
-    },
-  );
+  it("draws nothing for classCancelled yet", () => {
+    expect(getEnrolmentDisplay(enrolment("classCancelled"), false)).toBeNull();
+  });
 
   it("draws nothing without an enrolment", () => {
     expect(getEnrolmentDisplay(null, true)).toBeNull();

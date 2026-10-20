@@ -1489,6 +1489,7 @@ describe("ClassDetailsScreen enrol", () => {
     [{ ...mine("expired"), ...FULL }, "Request again"],
     [{ ...mine("pending") }, "Withdraw request"],
     [{ ...mine("cancelled") }, "Request again"],
+    [{ ...mine("takenOut") }, "Request again"],
     [{ ...mine("pending"), ...FULL }, "Leave the waiting list"],
   ])("enrol: shows the button of the state %j: %s", async (overrides, label) => {
     serveEnrol(makeClass(overrides));
@@ -1504,7 +1505,6 @@ describe("ClassDetailsScreen enrol", () => {
     ["a cancelled class", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
     ["a class cancelled with the student's request", { cancelledAt: "2026-10-13T10:00:00.000Z", ...mine("classCancelled") }],
     ["an approved enrolment", mine("approved")],
-    ["a student taken out", mine("takenOut")],
   ])("enrol: shows no button for %s", async (_name, overrides) => {
     serveEnrol(makeClass(overrides));
     await renderScreen(false, true);
@@ -2081,8 +2081,8 @@ describe("ClassDetailsScreen enrolment status", () => {
     expect(screen.queryByText("Request pending")).toBeNull();
   });
 
-  it("status: shows no banner for the statuses of the later specs", async () => {
-    fetchMock.mockResolvedValue(ok(mine("takenOut")));
+  it("status: shows no banner for a class cancelled with the student's request", async () => {
+    fetchMock.mockResolvedValue(ok(mine("classCancelled")));
     await renderScreen(false, true);
 
     await screen.findByText("16:00 – 17:30");
@@ -2286,5 +2286,57 @@ describe("ClassDetailsScreen enrolment status", () => {
       await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
       expect(screen.getByText("Take Ana out of the class?")).toBeOnTheScreen();
     });
+  });
+});
+
+describe("ClassDetailsScreen taken out", () => {
+  const takenOut = (reason: string | null, overrides: Partial<ClassItem> = {}) =>
+    makeClass({
+      myEnrolment: { id: "e-1", status: "takenOut", requestedAt: "2026-10-13T10:00:00.000Z", reason },
+      ...overrides,
+    });
+
+  it("taken out: shows the banner with the reason on the bad tint and offers to request again", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut("This group is advanced level.")));
+    await renderScreen(false, true);
+
+    const banner = (await screen.findByText("You were taken out of the class")).parent!.parent!;
+    expect(screen.getByText("Reason: “This group is advanced level.”")).toBeOnTheScreen();
+    expect(banner.props.className).toContain("bg-bad-tint");
+    expect(screen.getByRole("button", { name: "Request again" })).toBeOnTheScreen();
+  });
+
+  it("taken out: says no reason was given", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut(null)));
+    await renderScreen(false, true);
+
+    expect(await screen.findByText("No reason given.")).toBeOnTheScreen();
+  });
+
+  it("taken out: offers to join the waiting list again, in the dark button, when the class is full", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut(null, { seatsTaken: 8 })));
+    await renderScreen(false, true);
+
+    expect(await screen.findByRole("button", { name: "Request again" })).toBeOnTheScreen();
+  });
+
+  it.each([
+    ["started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" }],
+    ["cancelled", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
+  ])("taken out: keeps the banner on a class that %s, without Request again", async (_name, overrides) => {
+    fetchMock.mockResolvedValue(ok(takenOut("Advanced.", overrides)));
+    await renderScreen(false, true);
+
+    expect(await screen.findByText("You were taken out of the class")).toBeOnTheScreen();
+    expect(screen.getByText("Reason: “Advanced.”")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Request again" })).toBeNull();
+  });
+
+  it("taken out: shows nothing to an admin or an instructor", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut("Advanced.")));
+    await renderScreen(true, false);
+
+    await screen.findByText("The class");
+    expect(screen.queryByText("You were taken out of the class")).toBeNull();
   });
 });

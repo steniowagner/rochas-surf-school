@@ -72,11 +72,13 @@ const handle = async (response: Notifications.NotificationResponse) => {
   }
 
   // A student hears that the class they asked for or held a seat in was cancelled, or started without a seat for them,
-  // or that their request was approved or denied.
+  // or that their request was approved or denied, or that the school enrolled them in a class or took them out of one.
   const isStudentClassNews =
     data?.type === "enrolment.expired" ||
     data?.type === "enrolment.approved" ||
     data?.type === "enrolment.denied" ||
+    data?.type === "enrolment.enrolled" ||
+    data?.type === "enrolment.takenOut" ||
     data?.type === "class.cancelled";
 
   if (isStudentClassNews && classId !== null && flow === "student") {

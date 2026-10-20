@@ -503,6 +503,12 @@ const messages = {
         title: "You cancelled your enrolment",
         description: "Your seat was freed.",
       },
+      takenOut: {
+        chip: "Taken out",
+        title: "You were taken out of the class",
+        reason: "Reason: “{{reason}}”",
+        noReason: "No reason given.",
+      },
     },
     cta: {
       request: "Request a seat",

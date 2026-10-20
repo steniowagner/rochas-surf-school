@@ -200,12 +200,12 @@ describe("ClassCard", () => {
       expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
     });
 
-    it("draws nothing for the statuses of the later specs", async () => {
+    it("draws the chip of a student who was taken out", async () => {
       await render(<ClassCard item={mine("takenOut")} now={BEFORE} onPress={jest.fn()} showEnrolment />);
 
+      expect(screen.getByText("Taken out")).toBeOnTheScreen();
       expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
       expect(screen.queryByText("Approved")).not.toBeOnTheScreen();
-      expect(screen.queryByText("Denied")).not.toBeOnTheScreen();
     });
 
     it("lets the started, finished and cancelled chips win", async () => {

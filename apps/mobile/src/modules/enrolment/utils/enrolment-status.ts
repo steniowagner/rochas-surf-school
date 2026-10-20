@@ -10,7 +10,8 @@ export type EnrolmentDisplayKey =
   | "denied"
   | "withdrawn"
   | "expired"
-  | "cancelled";
+  | "cancelled"
+  | "takenOut";
 
 export type EnrolmentTone = "warn" | "info" | "dim" | "ok" | "bad";
 
@@ -30,6 +31,7 @@ const DISPLAYS: Record<EnrolmentDisplayKey, EnrolmentDisplay> = {
   withdrawn: { key: "withdrawn", tone: "dim", icon: "arrow-undo-outline" },
   expired: { key: "expired", tone: "dim", icon: "time-outline" },
   cancelled: { key: "cancelled", tone: "dim", icon: "remove-circle-outline" },
+  takenOut: { key: "takenOut", tone: "bad", icon: "remove-circle-outline" },
 };
 
 /**
@@ -54,6 +56,8 @@ export const getEnrolmentDisplay = (
       return DISPLAYS.expired;
     case "cancelled":
       return DISPLAYS.cancelled;
+    case "takenOut":
+      return DISPLAYS.takenOut;
     default:
       return null;
   }

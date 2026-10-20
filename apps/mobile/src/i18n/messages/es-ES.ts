@@ -510,6 +510,12 @@ const messages: Messages = {
         title: "Cancelaste la inscripción",
         description: "Tu plaza quedó libre.",
       },
+      takenOut: {
+        chip: "Retirado",
+        title: "Te retiraron de la clase",
+        reason: "Motivo: “{{reason}}”",
+        noReason: "Sin motivo indicado.",
+      },
     },
     cta: {
       request: "Pedir plaza",

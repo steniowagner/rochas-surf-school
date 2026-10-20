@@ -96,6 +96,35 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
     return this.change(id, (item) => item.deny(reason, now));
   }
 
+  async cancel(id: string, now: Date): Promise<boolean> {
+    return this.change(id, (item) => item.cancel(now), "approved");
+  }
+
+  async countPendingForClass(classId: string): Promise<number> {
+    return this.enrolments.filter((item) => item.classId === classId && item.status === "pending").length;
+  }
+
+  async releaseForStudent(studentId: string, now: Date): Promise<Enrolment[]> {
+    const cancelled: Enrolment[] = [];
+
+    this.enrolments = this.enrolments.map((item) => {
+      if (item.studentId !== studentId) return item;
+
+      if (item.status === "pending") return item.withdraw(now);
+
+      const found = this.classes.find((candidate) => candidate.id === item.classId);
+      const upcoming = !!found && !found.cancelledAt && found.startsAt.getTime() > now.getTime();
+
+      if (item.status !== "approved" || !upcoming) return item;
+
+      const out = item.cancel(now);
+      cancelled.push(out);
+      return out;
+    });
+
+    return cancelled;
+  }
+
   async closeOpenForClass(classId: string, now: Date): Promise<Enrolment[]> {
     const closed: Enrolment[] = [];
 
@@ -110,10 +139,14 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
     return closed;
   }
 
-  /** Applies the transition only to a pending enrolment, as the conditional writes do. */
-  private change(id: string, transition: (item: Enrolment) => Enrolment): boolean {
+  /** Applies the transition only to an enrolment in `from`, as the conditional writes do. */
+  private change(
+    id: string,
+    transition: (item: Enrolment) => Enrolment,
+    from: Enrolment["status"] = "pending",
+  ): boolean {
     const stored = this.enrolments.find((item) => item.id === id);
-    if (!stored || stored.status !== "pending") return false;
+    if (!stored || stored.status !== from) return false;
 
     this.enrolments = this.enrolments.map((item) => (item.id === id ? transition(item) : item));
     return true;

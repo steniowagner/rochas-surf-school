@@ -66,4 +66,13 @@ export interface EnrolmentRepository {
   approve(id: string, now: Date): Promise<ApproveResult>;
   /** Denies the request with the (optional) reason at `now`, only while it is pending. Returns whether it wrote. */
   deny(id: string, reason: string | null, now: Date): Promise<boolean>;
+  /** Ends the enrolment as cancelled at `now`, only while it is still approved. Returns whether it wrote. */
+  cancel(id: string, now: Date): Promise<boolean>;
+  /** How many pending requests the class has. */
+  countPendingForClass(classId: string): Promise<number>;
+  /**
+   * Gives up everything the student holds: ends as withdrawn every pending enrolment and as cancelled every
+   * approved one of a class that hasn't started at `now` and isn't cancelled. Returns the cancelled ones.
+   */
+  releaseForStudent(studentId: string, now: Date): Promise<Enrolment[]>;
 }

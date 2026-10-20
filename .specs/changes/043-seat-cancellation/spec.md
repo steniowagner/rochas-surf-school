@@ -167,11 +167,12 @@ withdraws their pending requests, so a deleted student never holds a seat.
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-01** — Add `cancellationDeadline` to the `EnrolmentClassReader` answer, `cancel(now)` to the `Enrolment`
+- [x] **T-01** — Add `cancellationDeadline` to the `EnrolmentClassReader` answer, `cancel(now)` to the `Enrolment`
   entity (from approved only), and `CancelSeat` (`src/enrolment/usecase/cancel-seat.usecase.ts`, D-01, D-02, the
   notifier's `seatCancelled` with the waiting count, errors swallowed), with tests. Skills:
   [`module-entity`](../../../.claude/skills/module-entity), [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest test/enrolment` passes from `modules/enrolment`.
+  > ✅ 2026-10-20 12:58 — added `cancellationDeadline` to `EnrolmentClass`, `Enrolment.cancel`, the `SeatCancelled` notifier event, the repository methods `cancel`, `countPendingForClass` and `releaseForStudent` (the last one is used by T-02), and `CancelSeat` (D-01, D-02, errors swallowed); files: `modules/enrolment/src/enrolment/provider/enrolment-class-reader.provider.ts`, `modules/enrolment/src/enrolment/provider/enrolment-notifier.provider.ts`, `modules/enrolment/src/enrolment/provider/enrolment.repository.ts`, `modules/enrolment/src/enrolment/model/enrolment.entity.ts`, `modules/enrolment/src/enrolment/usecase/cancel-seat.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/test/enrolment/usecase/cancel-seat.usecase.test.ts`, `modules/enrolment/test/enrolment/model/enrolment.entity.test.ts`, `modules/enrolment/test/mock/enrolment.factory.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`, `modules/enrolment/test/mock/fake-enrolment.notifier.ts`; verified: `npx jest` from `modules/enrolment` (11 suites, 178 passed) and `npx tsc --noEmit` clean; deviations: the repository port also got `countPendingForClass` (the waiting count) and `releaseForStudent` (for T-02), the notifier port got `seatCancelled`
 
 - [ ] **T-02** — Add `ReleaseStudentEnrolments` (`src/enrolment/usecase/release-student-enrolments.usecase.ts`, no
   actor, input `{ studentId }`, D-04, one notification per class; a failed write propagates) and the repository

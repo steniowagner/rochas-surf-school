@@ -172,6 +172,32 @@ describe("FakeEnrolmentRepository decisions", () => {
   });
 });
 
+describe("FakeEnrolmentRepository cancellations", () => {
+  it("cancels only an approved seat", async () => {
+    const approved = buildEnrolment({ status: "approved" });
+    const pending = buildEnrolment({ studentId: "8e0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b" });
+    const repository = new FakeEnrolmentRepository([approved, pending]);
+
+    expect(await repository.cancel(pending.id, NOW)).toBe(false);
+    expect(await repository.cancel("missing", NOW)).toBe(false);
+    expect(await repository.cancel(approved.id, NOW)).toBe(true);
+    expect((await repository.findById(approved.id))?.status).toBe("cancelled");
+    expect(await repository.cancel(approved.id, NOW)).toBe(false);
+  });
+
+  it("counts the pending requests of a class", async () => {
+    const repository = new FakeEnrolmentRepository([
+      buildEnrolment(),
+      buildEnrolment({ studentId: "8e0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b" }),
+      buildEnrolment({ studentId: "1f2e3d4c-5b6a-4978-8a9b-0c1d2e3f4a5b", status: "approved" }),
+      buildEnrolment({ classId: OTHER_CLASS }),
+    ]);
+
+    expect(await repository.countPendingForClass(CLASS_ID)).toBe(2);
+    expect(await repository.countPendingForClass("none")).toBe(0);
+  });
+});
+
 describe("the other fakes", () => {
   it("reads classes and names", async () => {
     const found = buildEnrolmentClass();
@@ -204,6 +230,16 @@ describe("the other fakes", () => {
     const approved = { studentId: STUDENT.id, classId: CLASS_ID, discipline: "surf" as const, startsAt: TOMORROW };
     await notifier.requestApproved(approved);
     await notifier.requestDenied({ ...approved, reason: "Sem vaga" });
+    const cancelled = {
+      classId: CLASS_ID,
+      studentName: "Ana Souza",
+      discipline: "surf" as const,
+      startsAt: TOMORROW,
+      waitingCount: 1,
+      instructorIds: [],
+    };
+    await notifier.seatCancelled(cancelled);
+    expect(notifier.cancelledEvents).toEqual([cancelled]);
     expect(notifier.approvedEvents).toEqual([approved]);
     expect(notifier.deniedEvents).toEqual([{ ...approved, reason: "Sem vaga" }]);
 
@@ -212,5 +248,6 @@ describe("the other fakes", () => {
     await expect(notifier.requestDenied(approved)).rejects.toThrow("push down");
     await expect(notifier.seatRequested(requested)).rejects.toThrow("push down");
     await expect(notifier.requestExpired(expired)).rejects.toThrow("push down");
+    await expect(notifier.seatCancelled(cancelled)).rejects.toThrow("push down");
   });
 });

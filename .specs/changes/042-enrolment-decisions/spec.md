@@ -205,8 +205,9 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-04** — Add `enrolment.approved` and `enrolment.denied` to `NOTIFICATION_TYPES`, with the entity tests.
+- [x] **T-04** — Add `enrolment.approved` and `enrolment.denied` to `NOTIFICATION_TYPES`, with the entity tests.
   Covers: ER-04 · Done when: `npx jest test/notification` passes from `modules/notifications`.
+  > ✅ 2026-10-20 — `enrolment.approved` and `enrolment.denied` added to `NOTIFICATION_TYPES`; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest test/notification` from `modules/notifications` (5 suites, 48 passed), `tsc --noEmit` and `oxlint` clean; deviations: none
 
 ### Backend (`apps/backend`)
 

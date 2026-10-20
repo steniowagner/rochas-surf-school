@@ -4,6 +4,7 @@ import type {
   RequestDecided,
   RequestDenied,
   RequestExpired,
+  SeatCancelled,
   SeatRequested,
 } from '@rochas-surf-school/enrolment';
 import { Notify } from '@rochas-surf-school/notifications';
@@ -105,6 +106,32 @@ export class NotificationsEnrolmentNotifier implements EnrolmentNotifier {
     } catch (error) {
       this.logger.error(
         `Could not notify enrolment.denied for ${classId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async seatCancelled({
+    classId,
+    studentName,
+    discipline,
+    startsAt,
+    waitingCount,
+    instructorIds,
+  }: SeatCancelled): Promise<void> {
+    try {
+      const adminIds = await this.recipientsProvider.findApprovedAdminIds();
+      // An admin who teaches the class is told once.
+      const userIds = [...new Set([...adminIds, ...instructorIds])];
+
+      await this.notify.execute({
+        userIds,
+        type: 'enrolment.cancelled',
+        params: { classId, studentName, discipline, startsAt: startsAt.toISOString(), waitingCount },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify enrolment.cancelled for ${classId}`,
         error instanceof Error ? error.stack : String(error),
       );
     }

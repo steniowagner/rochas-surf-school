@@ -210,9 +210,10 @@ withdraws their pending requests, so a deleted student never holds a seat.
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01, ER-02, ER-04 · Done when: `npx vitest run src/modules/enrolment src/modules/auth` passes.
 
-- [ ] **T-07** — Add `seatCancelled` to `notifications.enrolment-notifier.ts` and the `enrolment.cancelled` entry of
+- [x] **T-07** — Add `seatCancelled` to `notifications.enrolment-notifier.ts` and the `enrolment.cancelled` entry of
   `push-messages.ts` in pt-BR, es and en (the count sentence only when above 0), with specs.
   Covers: ER-03 · Done when: `npx vitest run src/modules/notifications` passes.
+  > ✅ 2026-10-20 13:00 — added `seatCancelled` to the notifier adapter (every approved admin and instructor once, `waitingCount` in the params) and the `enrolment.cancelled` copy in pt-BR, es and en (the count sentence only above 0); files: `apps/backend/src/modules/notifications/notifications.enrolment-notifier.ts`, `apps/backend/src/modules/notifications/notifications.enrolment-notifier.spec.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` from `apps/backend` (17 files, 138 passed); deviations: executed before T-06 so the backend compiles against the new `EnrolmentNotifier` port (the module `dist` folders were rebuilt for that; they are not tracked)
 
 - [ ] **T-08** — Add `POST /enrolments/:id/cancel` to `enrolment.controller.ts`, its spec and the requests in
   `enrolment.integration.http`. Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).

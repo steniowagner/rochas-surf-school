@@ -229,9 +229,10 @@ withdraws their pending requests, so a deleted student never holds a seat.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-10** — Move `ContactSchoolButton` to `src/components/contact-school-button/` and `useSchoolWhatsapp` to
+- [x] **T-10** — Move `ContactSchoolButton` to `src/components/contact-school-button/` and `useSchoolWhatsapp` to
   `src/hooks/use-school-whatsapp.hook.ts` with their tests, updating the offboarding imports (D-05).
   Covers: ER-06 · Done when: `npx jest src/components/contact-school-button src/hooks src/modules/offboarding` passes.
+  > ✅ 2026-10-20 13:04 — moved `ContactSchoolButton` to `apps/mobile/src/components/contact-school-button/` and `useSchoolWhatsapp` (with its types and test) to `apps/mobile/src/hooks/`, updated the imports of the offboarding screens and of the button's hook (D-05); files: `apps/mobile/src/components/contact-school-button/*` (moved), `apps/mobile/src/hooks/use-school-whatsapp.hook.ts`, `apps/mobile/src/hooks/use-school-whatsapp.hook.test.tsx`, `apps/mobile/src/hooks/use-school-whatsapp.types.ts` (moved), `apps/mobile/src/modules/offboarding/screens/denied.screen.tsx`, `apps/mobile/src/modules/offboarding/screens/removed.screen.tsx`; verified: `npx jest src/components/contact-school-button src/hooks src/modules/offboarding` (4 suites, 20 passed), `npx tsc --noEmit` and `npx eslint` clean; deviations: none
 
 - [ ] **T-11** — Add `hooks/use-cancel-seat.hook.ts`, the error keys, `components/cancel-seat-sheet/`, the cancelled
   display status in `utils/enrolment-status.ts` and, in the details, the "Cancelar inscrição" footer, with tests and

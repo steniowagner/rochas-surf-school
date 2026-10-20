@@ -2,10 +2,9 @@ import { Trans, useTranslation } from "react-i18next";
 import { Text } from "react-native";
 
 import { AccountStatus } from "@/components/account-status";
+import { ContactSchoolButton } from "@/components/contact-school-button";
 import { useSignOut } from "@/modules/auth/hooks/use-sign-out.hook";
 import { useSession } from "@/providers/session";
-
-import { ContactSchoolButton } from "../components/contact-school-button";
 
 export function RemovedScreen() {
   const { t } = useTranslation();

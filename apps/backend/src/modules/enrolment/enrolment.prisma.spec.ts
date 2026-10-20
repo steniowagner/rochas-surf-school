@@ -322,4 +322,65 @@ describe('PrismaEnrolmentRepository', () => {
       expect(await repository.deny(ID, null, NOW)).toBe(false);
     });
   });
+
+  describe('cancel', () => {
+    it('ends the seat only while it is approved and says it wrote', async () => {
+      const { enrolment, repository } = setup();
+
+      expect(await repository.cancel(ID, NOW)).toBe(true);
+      expect(enrolment.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: 'approved' },
+        data: { status: 'cancelled', endedAt: NOW, updatedAt: NOW },
+      });
+
+      enrolment.updateMany.mockResolvedValue({ count: 0 });
+      expect(await repository.cancel(ID, NOW)).toBe(false);
+    });
+  });
+
+  describe('countPendingForClass', () => {
+    it('counts the pending requests of the class', async () => {
+      const { enrolment, repository } = setup();
+      enrolment.count.mockResolvedValue(3);
+
+      expect(await repository.countPendingForClass(CLASS_ID)).toBe(3);
+      expect(enrolment.count).toHaveBeenCalledWith({ where: { classId: CLASS_ID, status: 'pending' } });
+    });
+  });
+
+  describe('releaseForStudent', () => {
+    it('cancels the upcoming approved seats and withdraws the pending ones in one transaction', async () => {
+      const { enrolment, prisma, repository } = setup();
+      const later = new Date('2026-10-18T13:00:00.000Z');
+      enrolment.updateManyAndReturn.mockResolvedValue([
+        record({ id: OTHER_ID, status: 'cancelled', requestedAt: later, endedAt: NOW }),
+        record({ status: 'cancelled', endedAt: NOW }),
+      ]);
+
+      const out = await repository.releaseForStudent(STUDENT_ID, NOW);
+
+      expect(prisma.$transaction).toHaveBeenCalledOnce();
+      expect(enrolment.updateManyAndReturn).toHaveBeenCalledWith({
+        where: {
+          studentId: STUDENT_ID,
+          status: 'approved',
+          schoolClass: { startsAt: { gt: NOW }, cancelledAt: null },
+        },
+        data: { status: 'cancelled', endedAt: NOW, updatedAt: NOW },
+      });
+      expect(enrolment.updateMany).toHaveBeenCalledWith({
+        where: { studentId: STUDENT_ID, status: 'pending' },
+        data: { status: 'withdrawn', endedAt: NOW, updatedAt: NOW },
+      });
+      expect(out.map((item) => item.id)).toEqual([ID, OTHER_ID]);
+      expect(out.every((item) => item.status === 'cancelled')).toBe(true);
+    });
+
+    it('answers nothing for a student without upcoming seats', async () => {
+      const { enrolment, repository } = setup();
+      enrolment.updateManyAndReturn.mockResolvedValue([]);
+
+      expect(await repository.releaseForStudent(STUDENT_ID, NOW)).toEqual([]);
+    });
+  });
 });

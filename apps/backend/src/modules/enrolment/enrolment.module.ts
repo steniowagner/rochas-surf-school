@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { EnrolmentController } from './enrolment.controller.js';
+import { EnrolmentSeatReleaser } from './enrolment.seat-releaser.js';
 import { EnrolmentExpiryJob } from './enrolment-expiry.job.js';
 import { PrismaClassRosterReader } from './class-roster-reader.prisma.js';
 import { EnrolmentClassEnrolmentsCloser } from './enrolment.class-enrolments-closer.js';
@@ -18,6 +19,7 @@ import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js
   providers: [
     EnrolmentClassEnrolmentsCloser,
     EnrolmentExpiryJob,
+    EnrolmentSeatReleaser,
     PrismaClassRosterReader,
     PrismaEnrolmentClassReader,
     PrismaEnrolmentRepository,
@@ -29,6 +31,7 @@ import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js
   ],
   exports: [
     EnrolmentClassEnrolmentsCloser,
+    EnrolmentSeatReleaser,
     PrismaClassRosterReader,
     PrismaEnrolmentClassReader,
     PrismaEnrolmentRepository,

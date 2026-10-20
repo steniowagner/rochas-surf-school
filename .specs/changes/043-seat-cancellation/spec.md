@@ -203,12 +203,13 @@ withdraws their pending requests, so a deleted student never holds a seat.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-06** — In `src/modules/enrolment/`: the deadline in `enrolment-class-reader.prisma.ts`, the conditional
+- [x] **T-06** — In `src/modules/enrolment/`: the deadline in `enrolment-class-reader.prisma.ts`, the conditional
   `cancel` and the release queries in `enrolment.prisma.ts`, and `enrolment.seat-releaser.ts`
   (`EnrolmentSeatReleaser`, runs `ReleaseStudentEnrolments`) exported and wired into `AuthModule`'s `DeleteAccount`,
   with specs. Skills: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository),
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01, ER-02, ER-04 · Done when: `npx vitest run src/modules/enrolment src/modules/auth` passes.
+  > ✅ 2026-10-20 13:01 — added the deadline to the class reader, the conditional `cancel`, `countPendingForClass` and `releaseForStudent` (one transaction: upcoming approved seats of non-cancelled classes become cancelled, pending ones withdrawn) to the Prisma repository, `EnrolmentSeatReleaser` (exported from `EnrolmentModule`) wired into `AuthModule` and `AuthController`'s `DeleteAccount`; files: `apps/backend/src/modules/enrolment/enrolment-class-reader.prisma.ts`, `apps/backend/src/modules/enrolment/enrolment-class-reader.prisma.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.prisma.ts`, `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.seat-releaser.ts`, `apps/backend/src/modules/enrolment/enrolment.seat-releaser.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`, `apps/backend/src/modules/auth/auth.module.ts`, `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`; verified: `npx vitest run src/modules/enrolment src/modules/auth` from `apps/backend` (28 files, 216 passed), `npx tsc --noEmit` clean; deviations: none
 
 - [x] **T-07** — Add `seatCancelled` to `notifications.enrolment-notifier.ts` and the `enrolment.cancelled` entry of
   `push-messages.ts` in pt-BR, es and en (the count sentence only when above 0), with specs.

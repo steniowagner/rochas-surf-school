@@ -376,6 +376,18 @@ describe('PrismaEnrolmentRepository', () => {
       expect(out.every((item) => item.status === 'cancelled')).toBe(true);
     });
 
+    it('breaks a tie of the request time by id', async () => {
+      const { enrolment, repository } = setup();
+      enrolment.updateManyAndReturn.mockResolvedValue([
+        record({ id: OTHER_ID, status: 'cancelled' }),
+        record({ status: 'cancelled' }),
+      ]);
+
+      const out = await repository.releaseForStudent(STUDENT_ID, NOW);
+
+      expect(out.map((item) => item.id)).toEqual([ID, OTHER_ID]);
+    });
+
     it('answers nothing for a student without upcoming seats', async () => {
       const { enrolment, repository } = setup();
       enrolment.updateManyAndReturn.mockResolvedValue([]);

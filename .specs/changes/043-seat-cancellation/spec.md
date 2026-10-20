@@ -253,9 +253,10 @@ withdraws their pending requests, so a deleted student never holds a seat.
 
 ### Verification
 
-- [ ] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-20 13:21 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs 043` → RELATED TESTS PASSED (backend, mobile, auth, classes, enrolment, notifications, school-rules); `node .specs/scripts/check-coverage.mjs 043` → COVERAGE OK (26 files; it first flagged the id tie-break branch of `releaseForStudent`, covered by a new case in `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`); `node .specs/scripts/run-e2e.mjs 043` → E2E PASSED (backend 20 files, 559 tests, with the Postgres container up); `npx turbo run lint check-types build` for enrolment, classes, auth, notifications, backend and mobile → 27 tasks successful, 0 errors (7 existing `require-array-sort-compare` warnings in e2e specs, one in the new suite, same pattern as the others). Not driven by me, for the user: (1) iOS simulator as a student with an approved seat before the deadline: "Cancelar inscrição" → the sheet shows the deadline → "Sim, cancelar" shows the toast, "Você cancelou a inscrição", the "Você cancelou" chip and "Pedir novamente"; as an admin the "Vaga cancelada" push arrives (or the stored notification exists); (2) set the class deadline in the past in the database: the "prazo terminou" note and "Falar com a escola"; with no deadline: the "ainda não foi definido" note; (3) delete the account of a student with a seat: the class's seats drop by one (covered by the backend e2e). `enrolment.integration.http` requests were added but not run by hand (the same routes are covered by the e2e suite); files: `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`; deviations: none
 
 ## Verification Plan
 

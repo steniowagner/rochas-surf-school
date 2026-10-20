@@ -8,6 +8,7 @@ import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rules";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
+import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
 import { hydrateSession } from "@/services/session/session.store";
@@ -71,6 +72,7 @@ async function openAdminHome() {
       "(private)/admin/new-class": AdminNewClassRoute,
       "(private)/admin/people": AdminPeopleRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
+      "(private)/admin/class-requests": AdminClassRequestsRoute,
     },
     { initialUrl: routes.admin.home },
   );
@@ -202,7 +204,7 @@ describe("AdminScreen", () => {
     });
     await openAdminHome();
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
     expect(screen.queryByText(/waiting/)).toBeNull();
   });
@@ -253,5 +255,70 @@ describe("AdminScreen", () => {
     await act(async () => router.back());
 
     expect(await screen.findByText("1 waiting")).toBeOnTheScreen();
+  });
+
+  describe("the class enrolments row", () => {
+    const pendingClass = {
+      id: "c-1",
+      discipline: "surf",
+      level: "beginner",
+      startsAt: "2026-10-21T11:00:00.000Z",
+      endsAt: "2026-10-21T12:00:00.000Z",
+      capacity: 8,
+      seatsTaken: 1,
+      location: { name: "Praia do Futuro" },
+      requests: [
+        { id: "r-1", requestedAt: "2026-10-19T12:12:00.000Z", student: { id: "s-1", name: "Ana Souza", photoUrl: null } },
+        { id: "r-2", requestedAt: "2026-10-19T13:00:00.000Z", student: { id: "s-2", name: "Bruno Lima", photoUrl: null } },
+      ],
+    };
+
+    const servePending = (body: unknown) =>
+      fetchMock.mockImplementation(async (url: string) => ({
+        ok: true,
+        status: 200,
+        json: async () => (String(url).includes("/enrolments/pending") ? body : { items: [] }),
+      }));
+
+    it("sits below Join the school, above Create classes, and shows how many requests wait", async () => {
+      servePending({ total: 2, classes: [pendingClass] });
+      await openAdminHome();
+
+      expect(await screen.findByText("2 requests")).toBeOnTheScreen();
+      const rows = screen.getAllByText(/^(Join the school|Class enrolments|Create classes)$/);
+      expect(rows.map((row) => row.props.children)).toEqual(["Join the school", "Class enrolments", "Create classes"]);
+    });
+
+    it("says one request in the singular", async () => {
+      servePending({ total: 1, classes: [{ ...pendingClass, requests: [pendingClass.requests[0]] }] });
+      await openAdminHome();
+
+      expect(await screen.findByText("1 request")).toBeOnTheScreen();
+    });
+
+    it("hides the count when nothing waits, while loading and after an error", async () => {
+      servePending({ total: 0, classes: [] });
+      await openAdminHome();
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      expect(screen.getByText("Class enrolments")).toBeOnTheScreen();
+      expect(screen.queryByText(/request/)).toBeNull();
+    });
+
+    it("opens the tool, and its back button returns to the admin home", async () => {
+      const user = userEvent.setup();
+      servePending({ total: 2, classes: [pendingClass] });
+      const app = await openAdminHome();
+      await screen.findByText("2 requests");
+
+      await user.press(screen.getByRole("button", { name: /Class enrolments/ }));
+
+      expect(app.getPathname()).toBe(routes.admin.classRequests);
+      expect(await screen.findByText("Ana Souza")).toBeOnTheScreen();
+
+      await act(async () => router.back());
+
+      expect(app.getPathname()).toBe(routes.admin.home);
+    });
   });
 });

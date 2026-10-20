@@ -2,7 +2,7 @@
 id: "042"
 slug: enrolment-decisions
 title: "Admins approve and deny class requests"
-status: in-review
+status: changes-requested
 created: 2026-10-19
 started: 2026-10-20
 base_commit: d3d00e160fbd02f277a9e13759df2775533c7025
@@ -314,3 +314,38 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-20 — changes-requested
+
+**Checks**
+
+- lint ✅ (0 errors; 6 non-null-assertion warnings in backend specs, 2 of them new in `enrolment-decisions.e2e-spec.ts`) · type check ✅ · build ✅ — `npx turbo run lint check-types build` for enrolment, classes, notifications, backend, mobile: 27/27 tasks
+- related tests ✅ — `RELATED TESTS PASSED`: mobile 60 suites/986, classes 473, enrolment 149, notifications 111, backend 19 files
+- coverage of the changed lines ✅ — `COVERAGE OK` (33 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ — `E2E PASSED`, 19 files/551 tests, including `enrolment-decisions.e2e-spec.ts`
+- HTTP: against a backend built from this branch (port 4001, local database), the review student requested two classes and `GET /enrolments/pending` as the review admin answered `{ total: 2, classes: [...] }`, sorted by start, with capacity, `seatsTaken`, location name and the requests ✅
+- user journeys (iOS simulator, iPhone 17, pt-BR, built app pointed at the branch's Metro and backend): 1 ✅ with F-01 · 2 ✅ · 3 ✅ with F-01
+
+**Expected Results**
+
+- ER-01 ✅ — use case tests and the "lists pending" e2e cases (order by start, requests in the order asked, started/cancelled/empty classes left out, 403 for student and instructor, 401); confirmed live over HTTP
+- ER-02 ✅ — approve: 200 with `approved`, `seatsTaken` +1 and the student on the roster; 404, `notPending`, `class.started` and `enrolment.class.full` in D-04 order; two approvals racing for the last seat leave exactly one (D-01, `SELECT … FOR UPDATE` in a `$transaction` with a conditional `updateMany`)
+- ER-03 ✅ — reason trimmed; missing, `null`, `""` and blank store none; 501 characters or a number → 422 `enrolment.reason.max.length`, checked after the id and before the state; a full class can be denied
+- ER-04 ✅ — only the student is notified, with `{ classId, discipline, startsAt }` (+ `reason` when written); the pt-BR bodies match; a failing push keeps the decision; pt-BR, es and en catalog entries
+- ER-05 ✅ — `myEnrolment.reason` in `GetClass` and the Prisma reader; `null` otherwise
+- ER-06 ❌ — tests pass, and in the simulator: the home row shows "Inscrições em aulas · 2 pedidos"; the header shows "N pedidos · M aulas"; the class card (day block "SEX 23 OUT", "Surf · Iniciante", time range, location, "Máx. 1 aluno", "Esgotado" in `bad`, occupancy bar); "Inscrever" approves at once with "Dev Student inscrito · aluno avisado" and the card leaves; "Recusar" opens "Recusar inscrição?", and "Recusar e avisar" shows "Dev Student recusado · aluno avisado"; no request left shows "Nada à espera / Todas as inscrições foram decididas."; on a full class (capacity 1, one seat taken, two requests) "Lista de espera · por ordem de pedido", "1º Bruno Lima" / "2º Dev Student" with "Pediu às 09:10 · 20 out", "Inscrever" disabled and the note. The avatar is broken, see F-01
+- ER-07 ✅ — tests pass, and in the simulator: the approved class shows "Você está inscrito / Sua vaga está garantida." in the `ok` tint with no footer button, and the Agenda chip reads "Aprovado"; the denied one shows "Pedido recusado / Toque para ver o motivo." in the `bad` tint, the "Recusado" chip and "Pedir novamente"; the banner opens the sheet ("Pedido recusado", "Surf · Iniciante · 12:00", "Motivo da escola", the reason as written, "Fechar")
+- ER-08 ✅ — `npx jest src/modules/notifications/hooks`: student taps of `enrolment.approved` / `enrolment.denied` open `/student/class/[id]`; an admin's `enrolment.requested` opens `/admin/class-requests` with or without a class id; instructors keep the class; on receipt the decision pushes invalidate `["classes"]` and `enrolment.requested` also invalidates `["enrolments","pending"]`
+
+**Findings**
+
+- [ ] **F-01** (ER-06) — In "Inscrições em aulas" each request card's avatar shows the student's initials cut off at the top ("DS", "BL"): only the bottom half of the letters is visible. `ClassRequestsGroup` renders `StudentAvatar` at `size={40}` (`class-requests-group.component.tsx`, `AVATAR_SIZE = 40`). `StudentAvatar` sets `fontSize: Math.round(size * 0.4)` (16) on a `ds-text-chip` `Text`, but that class fixes the line height for 10.5px type, so at 40pt the line box is shorter than the glyphs and `overflow-hidden` on the circle clips them. The 26/28pt avatars elsewhere still fit. Reproduce: as an admin with any pending request without a photo, open the tool in the iOS simulator. Expected: the whole initials, centered in the circle, as on the registrations tool's cards (`PersonAvatar`, 40pt). Fix it in `StudentAvatar` (a line height that scales with the font size), or use an avatar that renders at 40pt, with a test that covers the 40pt size.
+
+**Notes**
+
+- The success toasts ("… inscrito · aluno avisado", "… recusado · aluno avisado") use the app's only toast, which is red with an alert icon. This is not specific to this spec (spec 041's "Pedido enviado" looks the same), but success shown as an error is worth a variant of `Toast` in a later spec.
+- `enrolment-decisions.e2e-spec.ts` "tells nobody when a seat opens" changes the database directly, so no code path runs and it can't fail. The real assertion of ER-04 (a waiting student hears nothing of another's approval) is in "tells the student of the approval, nobody else".
+- `enrolment.integration.http` uses the same `{{enrolmentId}}` for approve and deny, so the deny requests answer 409 after the approval unless the variable is changed. Adding a second request id would help.
+- `assertNotStarted` in `decision.ts` returns `now`, but no caller uses the return value.
+- Review data left in the local dev database: class `ca72070f-2d7f-4b03-9ea1-f8cc73d6670d` (23 Oct) now has capacity 1, with one approved (Ana Silva) and two pending (Bruno Lima, Dev Student) enrolments; Dev Student is approved in `54cdf6e9-…` (21 Oct) and denied in `bf237406-…` (22 Oct).
+- The backend on port 4000 (started 10:48 from `dist/`) predates T-07 and answers 404 for the new routes; the review used its own backend on port 4001.

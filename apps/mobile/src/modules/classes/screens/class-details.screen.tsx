@@ -17,6 +17,7 @@ import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
+import { CancelSeatSheet } from "@/modules/enrolment/components/cancel-seat-sheet";
 import { DenialReasonSheet } from "@/modules/enrolment/components/denial-reason-sheet";
 import { RequestSeatSheet } from "@/modules/enrolment/components/request-seat-sheet";
 import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
@@ -355,6 +356,15 @@ export function ClassDetailsScreen({
             reason={screen.enrolment.denialReason}
             onClose={screen.enrolment.closeDenial}
           />
+          {screen.cancellationDeadline ? (
+            <CancelSeatSheet
+              visible={screen.enrolment.cancelVisible}
+              loading={screen.enrolment.cancelling}
+              deadline={screen.cancellationDeadline}
+              onConfirm={screen.enrolment.cancel}
+              onClose={screen.enrolment.closeCancel}
+            />
+          ) : null}
           <WithdrawRequestSheet
             visible={screen.enrolment.withdrawVisible}
             loading={screen.enrolment.withdrawing}

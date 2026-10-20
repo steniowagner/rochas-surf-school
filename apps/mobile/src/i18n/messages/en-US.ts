@@ -460,6 +460,11 @@ const messages = {
         title: "You didn't get a seat",
         description: "Your request expired without a seat opening in the class.",
       },
+      cancelled: {
+        chip: "You cancelled",
+        title: "You cancelled your enrolment",
+        description: "Your seat was freed.",
+      },
     },
     cta: {
       request: "Request a seat",
@@ -467,6 +472,7 @@ const messages = {
       withdraw: "Withdraw request",
       leaveWaitingList: "Leave the waiting list",
       requestAgain: "Request again",
+      cancelSeat: "Cancel enrolment",
     },
     requestSheet: {
       title: "Request a seat",
@@ -500,6 +506,13 @@ const messages = {
       done: "Request withdrawn",
       doneWaitingList: "You left the waiting list",
     },
+    cancelSeatSheet: {
+      title: "Cancel enrolment",
+      description: "Your seat is freed. You can cancel until {{deadline}}.",
+      confirm: "Yes, cancel",
+      keep: "Keep enrolment",
+      done: "Enrolment cancelled",
+    },
     errors: {
       started: "The class has already started.",
       cancelled: "This class was cancelled.",
@@ -507,6 +520,7 @@ const messages = {
       ruleNotAccepted: "The cancellation rule changed. Read it again and accept it.",
       notPending: "This request is no longer pending.",
       notFound: "This request no longer exists.",
+      notApproved: "This seat is no longer approved.",
     },
   },
   editProfile: {

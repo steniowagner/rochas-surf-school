@@ -80,6 +80,7 @@ export const useClassDetailsScreen = ({
     item,
     state,
     canEnrol,
+    now,
     reload: () => void query.refetch(),
   });
 

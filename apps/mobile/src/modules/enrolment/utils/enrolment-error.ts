@@ -17,6 +17,13 @@ export const isAlreadyOpenError = (error: unknown): boolean =>
 export const isNotPendingError = (error: unknown): boolean =>
   hasKey(error, 409, "enrolment.notPending");
 
+/** The seat is not approved (any more) (409). */
+const isNotApprovedError = (error: unknown): boolean => hasKey(error, 409, "enrolment.notApproved");
+
+/** The cancellation deadline passed, or the class has none: the student contacts the school instead (409). */
+export const isDeadlineClosedError = (error: unknown): boolean =>
+  hasKey(error, 409, "enrolment.deadline.passed") || hasKey(error, 409, "enrolment.deadline.missing");
+
 const isClassStartedError = (error: unknown): boolean => hasKey(error, 409, "class.started");
 
 const isClassCancelledError = (error: unknown): boolean => hasKey(error, 409, "class.cancelled");
@@ -29,7 +36,9 @@ export const shouldReloadClass = (error: unknown): boolean =>
   isClassStartedError(error) ||
   isClassCancelledError(error) ||
   isAlreadyOpenError(error) ||
-  isNotPendingError(error);
+  isNotPendingError(error) ||
+  isNotApprovedError(error) ||
+  isDeadlineClosedError(error);
 
 const fallbackKey = (error: unknown): string =>
   error instanceof NetworkError ? "createAccount.errors.noConnection" : "createAccount.errors.generic";
@@ -74,6 +83,30 @@ export const getWithdrawRequestErrorKey = (error: unknown): string | null => {
 
   if (isNotPendingError(error)) {
     return "enrolment.errors.notPending";
+  }
+
+  if (isClassStartedError(error)) {
+    return "enrolment.errors.started";
+  }
+
+  if (hasKey(error, 404, "enrolment.notFound")) {
+    return "enrolment.errors.notFound";
+  }
+
+  return fallbackKey(error);
+};
+
+/**
+ * The translation key of the toast for a failed cancellation of a seat, or `null` when nothing should be shown: an
+ * expired session is handled centrally, and a closed deadline is explained by the note the reload brings.
+ */
+export const getCancelSeatErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError || isDeadlineClosedError(error)) {
+    return null;
+  }
+
+  if (isNotApprovedError(error)) {
+    return "enrolment.errors.notApproved";
   }
 
   if (isClassStartedError(error)) {

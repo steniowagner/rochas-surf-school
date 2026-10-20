@@ -9,7 +9,8 @@ export type EnrolmentDisplayKey =
   | "approved"
   | "denied"
   | "withdrawn"
-  | "expired";
+  | "expired"
+  | "cancelled";
 
 export type EnrolmentTone = "warn" | "info" | "dim" | "ok" | "bad";
 
@@ -28,12 +29,13 @@ const DISPLAYS: Record<EnrolmentDisplayKey, EnrolmentDisplay> = {
   denied: { key: "denied", tone: "bad", icon: "close-circle-outline" },
   withdrawn: { key: "withdrawn", tone: "dim", icon: "arrow-undo-outline" },
   expired: { key: "expired", tone: "dim", icon: "time-outline" },
+  cancelled: { key: "cancelled", tone: "dim", icon: "remove-circle-outline" },
 };
 
 /**
  * What to draw for the latest enrolment. "On the waiting list" is never stored: it is a pending request of a
- * class that is full. The statuses of the later specs (cancelled, taken out) and the one of a cancelled class draw
- * nothing yet.
+ * class that is full. The student's own cancellation is drawn; the statuses of the later specs (taken out) and the one
+ * of a cancelled class draw nothing yet.
  */
 export const getEnrolmentDisplay = (
   enrolment: MyEnrolment | null,
@@ -50,6 +52,8 @@ export const getEnrolmentDisplay = (
       return DISPLAYS.withdrawn;
     case "expired":
       return DISPLAYS.expired;
+    case "cancelled":
+      return DISPLAYS.cancelled;
     default:
       return null;
   }

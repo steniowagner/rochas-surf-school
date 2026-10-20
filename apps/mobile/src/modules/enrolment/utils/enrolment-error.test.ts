@@ -1,10 +1,12 @@
 import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 
 import {
+  getCancelSeatErrorKey,
   getDecideRequestErrorKey,
   getRequestSeatErrorKey,
   getWithdrawRequestErrorKey,
   isAlreadyOpenError,
+  isDeadlineClosedError,
   isNotPendingError,
   isRuleNotAcceptedError,
   shouldReloadClass,
@@ -49,6 +51,30 @@ describe("getWithdrawRequestErrorKey", () => {
   });
 });
 
+describe("getCancelSeatErrorKey", () => {
+  it.each([
+    [409, "enrolment.notApproved", "enrolment.errors.notApproved"],
+    [409, "class.started", "enrolment.errors.started"],
+    [404, "enrolment.notFound", "enrolment.errors.notFound"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps %s %s to %s", (status, key, expected) => {
+    expect(getCancelSeatErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("shows nothing for a closed deadline: the note explains it", () => {
+    expect(getCancelSeatErrorKey(api(409, "enrolment.deadline.passed"))).toBeNull();
+    expect(getCancelSeatErrorKey(api(409, "enrolment.deadline.missing"))).toBeNull();
+    expect(isDeadlineClosedError(api(409, "enrolment.deadline.passed"))).toBe(true);
+    expect(isDeadlineClosedError(api(409, "enrolment.deadline.missing"))).toBe(true);
+    expect(isDeadlineClosedError(api(409, "class.started"))).toBe(false);
+  });
+
+  it("maps no answer to the no-connection copy and an expired session to nothing", () => {
+    expect(getCancelSeatErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getCancelSeatErrorKey(new SessionExpiredError())).toBeNull();
+  });
+});
+
 describe("the predicates", () => {
   it("tells each failure by status and key", () => {
     expect(isRuleNotAcceptedError(api(422, "enrolment.rule.notAccepted"))).toBe(true);
@@ -63,6 +89,9 @@ describe("the predicates", () => {
     ["class.cancelled", true],
     ["enrolment.alreadyOpen", true],
     ["enrolment.notPending", true],
+    ["enrolment.notApproved", true],
+    ["enrolment.deadline.passed", true],
+    ["enrolment.deadline.missing", true],
     ["enrolment.rule.notAccepted", false],
   ])("asks to reload the class for %s: %s", (key, expected) => {
     expect(shouldReloadClass(api(key === "enrolment.rule.notAccepted" ? 422 : 409, key))).toBe(expected);

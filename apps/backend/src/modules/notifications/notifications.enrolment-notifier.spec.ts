@@ -216,6 +216,83 @@ describe('NotificationsEnrolmentNotifier', () => {
     });
   });
 
+  describe('studentEnrolled', () => {
+    const event = { studentId: STUDENT_ID, classId: CLASS_ID, discipline: 'surf' as const, startsAt: STARTS_AT };
+
+    it('stores one enrolment.enrolled for the student only', async () => {
+      const { notificationRepository, recipientsProvider, notifier } = setup();
+
+      await notifier.studentEnrolled(event);
+
+      expect(stored(notificationRepository.createMany)).toEqual([
+        {
+          userId: STUDENT_ID,
+          type: 'enrolment.enrolled',
+          params: { classId: CLASS_ID, discipline: 'surf', startsAt: '2026-10-19T11:00:00.000Z' },
+        },
+      ]);
+      expect(recipientsProvider.findApprovedAdminIds).not.toHaveBeenCalled();
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.studentEnrolled(event)).resolves.toBeUndefined();
+      await expect(notifier.studentEnrolled(event)).resolves.toBeUndefined();
+
+      expect(error.mock.calls[0]![0]).toContain('enrolment.enrolled');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('enrolment.enrolled'), 'boom');
+    });
+  });
+
+  describe('studentTakenOut', () => {
+    const event = { studentId: STUDENT_ID, classId: CLASS_ID, discipline: 'surf' as const, startsAt: STARTS_AT };
+
+    it('stores one enrolment.takenOut with the reason for the student only', async () => {
+      const { notificationRepository, recipientsProvider, notifier } = setup();
+
+      await notifier.studentTakenOut({ ...event, reason: 'Turma avançada.' });
+
+      expect(stored(notificationRepository.createMany)).toEqual([
+        {
+          userId: STUDENT_ID,
+          type: 'enrolment.takenOut',
+          params: {
+            classId: CLASS_ID,
+            discipline: 'surf',
+            startsAt: '2026-10-19T11:00:00.000Z',
+            reason: 'Turma avançada.',
+          },
+        },
+      ]);
+      expect(recipientsProvider.findApprovedAdminIds).not.toHaveBeenCalled();
+    });
+
+    it('leaves the reason out when there is none', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.studentTakenOut(event);
+
+      expect(stored(notificationRepository.createMany)[0]!.params).toEqual({
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: '2026-10-19T11:00:00.000Z',
+      });
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.studentTakenOut(event)).resolves.toBeUndefined();
+      await expect(notifier.studentTakenOut(event)).resolves.toBeUndefined();
+
+      expect(error.mock.calls[0]![0]).toContain('enrolment.takenOut');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('enrolment.takenOut'), 'boom');
+    });
+  });
+
   describe('seatCancelled', () => {
     const event = {
       classId: CLASS_ID,

@@ -229,9 +229,10 @@ option to request again. Nobody is told when a seat opens; admins choose who get
   Covers: ER-01, ER-02, ER-03 · Done when: `npx vitest run src/modules/enrolment/enrolment.controller.spec.ts` passes.
   > ✅ 2026-10-20 — `GET enrolments/pending` (declared first), `POST enrolments/:id/approve` and `POST enrolments/:id/deny` (200, optional `{ reason }` body) wired to `ListPendingRequests`, `ApproveRequest` and `DenyRequest`; their cases in the controller spec (route metadata and order, admin-only 403s, 404/409/422, notifications) and the requests in the REST Client file (admin sign-in, list, approve, deny, refusals); files: `apps/backend/src/modules/enrolment/enrolment.controller.ts`, `apps/backend/src/modules/enrolment/enrolment.controller.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: `npx vitest run src/modules/enrolment` (11 files, 60 passed), backend `tsc --noEmit` and `oxlint` clean; deviations: none
 
-- [ ] **T-08** — Add `test/enrolment-decisions.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the list,
+- [x] **T-08** — Add `test/enrolment-decisions.e2e-spec.ts` (fixed clock, faked pushes, cleanup) with the list,
   approve, full, concurrent approve, deny, refusal and notification cases.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-20 — `enrolment-decisions.e2e-spec.ts` (fixed clock, faked pushes, own users/classes/location cleaned up): the list (order by start, requests in the order asked, seats taken, started/cancelled/empty classes absent, 403/401), approve (200, seats and roster, every refusal in D-04 order, two approvals racing for the last seat leave exactly one, two approvals of the same request leave one), deny (reason trimmed and shown on `myEnrolment`, blank/missing stores none, 422 for >500 or non-string, refusals) and the notifications (student only, reason as written or the fallback, push failure keeps the decision, nothing when a seat opens); the existing `myEnrolment` expectation in `enrolment.e2e-spec.ts` now includes `reason: null`; files: `apps/backend/test/enrolment-decisions.e2e-spec.ts`, `apps/backend/test/enrolment.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (19 files, 551 passed); deviations: none
 
 ### Mobile (`apps/mobile`)
 

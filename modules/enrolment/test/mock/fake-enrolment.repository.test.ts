@@ -198,6 +198,41 @@ describe("FakeEnrolmentRepository cancellations", () => {
   });
 });
 
+describe("FakeEnrolmentRepository releases", () => {
+  const other = "8e0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b";
+  const SECOND_CLASS = "1f2e3d4c-5b6a-4978-8a9b-0c1d2e3f4a5b";
+
+  it("cancels the upcoming seats, withdraws the requests and leaves the rest", async () => {
+    const upcoming = buildEnrolmentClass();
+    const started = buildEnrolmentClass({ id: OTHER_CLASS, startsAt: new Date(NOW.getTime() - 1000) });
+    const cancelledClass = buildEnrolmentClass({ id: SECOND_CLASS, cancelledAt: NOW });
+    const seat = buildEnrolment({ status: "approved" });
+    const request = buildEnrolment({ classId: OTHER_CLASS });
+    const startedSeat = buildEnrolment({ classId: OTHER_CLASS, status: "approved" });
+    const cancelledSeat = buildEnrolment({ classId: SECOND_CLASS, status: "approved" });
+    const ended = buildEnrolment({ classId: SECOND_CLASS, status: "denied" });
+    const noClassSeat = buildEnrolment({ classId: "5a6b7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c8d", status: "approved" });
+    const someoneElse = buildEnrolment({ studentId: other, status: "approved" });
+    const repository = new FakeEnrolmentRepository(
+      [seat, request, startedSeat, cancelledSeat, ended, noClassSeat, someoneElse],
+      [upcoming, started, cancelledClass],
+    );
+
+    const cancelled = await repository.releaseForStudent(STUDENT.id, NOW);
+
+    expect(cancelled.map((item) => item.id)).toEqual([seat.id]);
+    expect(repository.all.map((item) => item.status)).toEqual([
+      "cancelled",
+      "withdrawn",
+      "approved",
+      "approved",
+      "denied",
+      "approved",
+      "approved",
+    ]);
+  });
+});
+
 describe("the other fakes", () => {
   it("reads classes and names", async () => {
     const found = buildEnrolmentClass();

@@ -189,10 +189,11 @@ withdraws their pending requests, so a deleted student never holds a seat.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-04** — Add the `SeatReleaser` port (`src/user/provider/seat-releaser.provider.ts`, `releaseSeats(userId)`)
+- [x] **T-04** — Add the `SeatReleaser` port (`src/user/provider/seat-releaser.provider.ts`, `releaseSeats(userId)`)
   and call it from `DeleteAccount` after `TeachingReleaser`, with tests for the order, a failing release and an
   account without enrolments.
   Covers: ER-04 · Done when: `npx jest test/user/usecase/delete-account.usecase.test.ts` passes from `modules/auth`.
+  > ✅ 2026-10-20 12:59 — added the `SeatReleaser` port and `DeleteAccount` calls it after `TeachingReleaser` and before marking the account deleted (a failed release fails the call, the account stays approved); files: `modules/auth/src/user/provider/seat-releaser.provider.ts`, `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/usecase/delete-account.usecase.ts`, `modules/auth/test/mock/fake-seat-releaser.provider.ts`, `modules/auth/test/mock/index.ts`, `modules/auth/test/user/usecase/delete-account.usecase.test.ts`; verified: `npx jest` from `modules/auth` (367 passed), `npx tsc --noEmit` clean; deviations: `apps/backend` constructs `DeleteAccount` and is wired in T-06
 
 ### Notifications module (`modules/notifications`)
 

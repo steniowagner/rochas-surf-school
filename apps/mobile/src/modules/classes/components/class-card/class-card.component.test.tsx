@@ -372,6 +372,7 @@ describe("ClassCard", () => {
         id: `s-${index}`,
         name: `Aluno ${index}`,
         photoUrl: null,
+        enrolmentId: `e-${index}`,
       }));
 
     it("reads No students yet, without avatars, for a class without seats taken", async () => {

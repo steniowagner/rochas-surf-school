@@ -71,3 +71,9 @@ export type TakeStudentOutVariables = {
   /** Trimmed by the backend; blank means no reason. */
   reason: string;
 };
+
+/** The student an admin is taking out of a class, and the enrolment that ends. */
+export type TakeOutTarget = {
+  name: string;
+  enrolmentId: string;
+};

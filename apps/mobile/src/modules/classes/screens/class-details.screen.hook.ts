@@ -10,6 +10,7 @@ import { ApiError, SessionExpiredError } from "@/services/api";
 import { getDateLocale } from "@/utils/calendar-dates";
 
 import { useClassEnrolment } from "@/modules/enrolment/hooks/use-class-enrolment.hook";
+import { useTakeOut } from "@/modules/enrolment/hooks/use-take-out.hook";
 
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
@@ -83,6 +84,8 @@ export const useClassDetailsScreen = ({
     now,
     reload: () => void query.refetch(),
   });
+
+  const takeOut = useTakeOut(() => void query.refetch());
 
   const showCancelError = (error: unknown) => {
     if (isClassCancelledError(error) || isClassFinishedError(error)) {
@@ -219,6 +222,13 @@ export const useClassDetailsScreen = ({
       state !== null &&
       isWithoutDeadline(item.cancellationDeadline, state),
     openCancellationRules: () => router.push(routes.admin.cancellationRules),
+    // Admins only: a student of a class that hasn't started (and isn't cancelled) can be taken out of it.
+    canTakeOut: canEdit && state === "not-started",
+    takeOut,
+    // "Surf Beginner · Tomorrow, 08:00 – 09:00": the class the student leaves.
+    takeOutSummary: item
+      ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine}, ${start} – ${end}`
+      : "",
     // Instructors only read: the note says whether the class is theirs. Nobody else gets it.
     readOnlyNoteKey:
       user?.role !== "instructor" || item === undefined

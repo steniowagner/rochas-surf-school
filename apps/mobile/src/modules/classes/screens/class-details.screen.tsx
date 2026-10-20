@@ -21,6 +21,7 @@ import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/
 import { CancelSeatSheet } from "@/modules/enrolment/components/cancel-seat-sheet";
 import { DenialReasonSheet } from "@/modules/enrolment/components/denial-reason-sheet";
 import { RequestSeatSheet } from "@/modules/enrolment/components/request-seat-sheet";
+import { TakeOutSheet } from "@/modules/enrolment/components/take-out-sheet";
 import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
 import { ProfileCard } from "@/modules/profile/components/profile-card";
@@ -235,7 +236,11 @@ export function ClassDetailsScreen({
                     {t(`enrolment.status.${screen.enrolment.display.key}.title`)}
                   </Text>
                   <Text className="ds-text-list-subtitle text-ink-2">
-                    {t(`enrolment.status.${screen.enrolment.display.key}.description`)}
+                    {screen.enrolment.display.key === "takenOut"
+                      ? screen.enrolment.takenOutReason
+                        ? t("enrolment.status.takenOut.reason", { reason: screen.enrolment.takenOutReason })
+                        : t("enrolment.status.takenOut.noReason")
+                      : t(`enrolment.status.${screen.enrolment.display.key}.description`)}
                   </Text>
                 </View>
               </Pressable>
@@ -256,6 +261,15 @@ export function ClassDetailsScreen({
               seatsTaken={item.seatsTaken}
               capacity={item.capacity}
               state={screen.peopleState}
+              onTakeOut={
+                screen.canTakeOut
+                  ? (student) =>
+                      screen.takeOut.open({
+                        name: student.name,
+                        enrolmentId: student.enrolmentId,
+                      })
+                  : undefined
+              }
             />
             {screen.readOnlyNoteKey ? (
               <View className="flex-row items-center gap-3 rounded-card bg-dim p-4">
@@ -385,6 +399,16 @@ export function ClassDetailsScreen({
             onClose={screen.enrolment.closeWithdraw}
           />
         </>
+      ) : null}
+      {screen.canTakeOut ? (
+        <TakeOutSheet
+          visible={screen.takeOut.target !== null}
+          firstName={screen.takeOut.target?.name.split(" ")[0] ?? ""}
+          summary={screen.takeOutSummary}
+          loading={screen.takeOut.isPending}
+          onConfirm={screen.takeOut.confirm}
+          onClose={screen.takeOut.close}
+        />
       ) : null}
       <ClassToolsSheet
         visible={screen.toolsVisible}

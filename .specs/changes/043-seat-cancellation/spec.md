@@ -2,7 +2,7 @@
 id: "043"
 slug: seat-cancellation
 title: "Students cancel their seat until the cancellation deadline"
-status: in-progress
+status: in-review
 started: 2026-10-20
 base_commit: a15b0ae653b308bb2f65e2aa7d5617db49a72de8
 created: 2026-10-19

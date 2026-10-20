@@ -14,6 +14,7 @@ import { useRegistrations } from "../hooks/use-registrations.hook";
 
 const openRegistrations = () => router.push(routes.admin.registrations);
 const openClassRequests = () => router.push(routes.admin.classRequests);
+const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
 const openPeople = () => router.push(routes.admin.people);
 const openNewClass = () => router.push(routes.admin.newClass());
 const openCancellationRules = () => router.push(routes.admin.cancellationRules);
@@ -82,6 +83,16 @@ export function AdminScreen() {
                 {t("admin.home.classRequestsCount", { count: requestsCount })}
               </Text>
             ) : null}
+            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={openEnrolStudent}
+            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
+          >
+            <Text className="ds-text-list-title flex-1 text-ink">
+              {t("admin.home.enrolStudentRow")}
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
           </Pressable>
           <Pressable

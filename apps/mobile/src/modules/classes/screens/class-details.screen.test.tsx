@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react-native";
 import { router, Stack } from "expo-router";
 import type { ReactNode } from "react";
+import { Linking } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -1921,6 +1922,97 @@ describe("ClassDetailsScreen cancel seat", () => {
 
     await screen.findByText("You're enrolled");
     expect(screen.queryByRole("button", { name: "Cancel enrolment" })).toBeNull();
+  });
+});
+
+describe("ClassDetailsScreen deadline notes", () => {
+  const approved = (overrides: Partial<ClassItem> = {}) =>
+    makeClass({
+      myEnrolment: { id: "e-1", status: "approved", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
+      ...overrides,
+    });
+  const PASSED = "The cancellation deadline ended on Tue, 13 Oct · 17:00. Contact the school.";
+  const MISSING = "This class's cancellation deadline hasn't been set yet. Contact the school to cancel.";
+
+  const serveWithSchool = (item: ClassItem, school: () => unknown) =>
+    fetchMock.mockImplementation(async (url: string) =>
+      String(url).endsWith("/school-settings") ? school() : ok(item),
+    );
+  const withNumber = () => ok({ whatsappNumber: "+5585999998888" });
+
+  beforeEach(() => {
+    jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  });
+
+  it("deadline: tells a student past the deadline to contact the school and opens the school's chat", async () => {
+    serveWithSchool(approved(), withNumber);
+    const user = userEvent.setup();
+    await renderScreen(false, true);
+
+    expect(await screen.findByText(PASSED)).toBeOnTheScreen();
+    await user.press(await screen.findByRole("button", { name: "Contact the school" }));
+
+    expect(Linking.openURL).toHaveBeenCalledWith("https://wa.me/5585999998888");
+    expect(screen.queryByRole("button", { name: "Cancel enrolment" })).toBeNull();
+  });
+
+  it("deadline: tells a student of a class without a deadline to contact the school", async () => {
+    serveWithSchool(approved({ cancellationDeadline: null }), withNumber);
+    await renderScreen(false, true);
+
+    expect(await screen.findByText(MISSING)).toBeOnTheScreen();
+    expect(await screen.findByRole("button", { name: "Contact the school" })).toBeOnTheScreen();
+  });
+
+  it.each([
+    ["has no number", () => ok({ whatsappNumber: null })],
+    ["fails", () => refused(500, "INTERNAL_SERVER_ERROR")],
+  ])("deadline: keeps the note and hides the button when the school's number %s", async (_name, school) => {
+    serveWithSchool(approved(), school);
+    await renderScreen(false, true);
+
+    expect(await screen.findByText(PASSED)).toBeOnTheScreen();
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/school-settings"))).toBe(true));
+    expect(screen.queryByRole("button", { name: "Contact the school" })).toBeNull();
+  });
+
+  it.each([
+    ["a class that started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" }],
+    ["a cancelled class", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
+    ["a deadline still ahead", { cancellationDeadline: "2026-10-14T18:00:00.000Z" }],
+  ])("deadline: shows no note for %s", async (_name, overrides) => {
+    serveWithSchool(approved(overrides), withNumber);
+    await renderScreen(false, true);
+    await screen.findByText("Surf");
+
+    expect(screen.queryByText(PASSED)).toBeNull();
+    expect(screen.queryByText(MISSING)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Contact the school" })).toBeNull();
+  });
+
+  it("deadline: shows no note for other statuses", async () => {
+    serveWithSchool(
+      approved({ myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z", reason: null } }),
+      withNumber,
+    );
+    await renderScreen(false, true);
+    await screen.findByText("Surf");
+
+    expect(screen.queryByText(PASSED)).toBeNull();
+  });
+
+  it("deadline: turns the cancel button into the note when the deadline passes with the screen open", async () => {
+    jest.useFakeTimers({ now: new Date("2026-10-14T17:59:30.000Z") });
+    serveWithSchool(approved({ cancellationDeadline: "2026-10-14T18:00:00.000Z" }), withNumber);
+    await renderScreen(false, true);
+    expect(await screen.findByRole("button", { name: "Cancel enrolment" })).toBeOnTheScreen();
+
+    await act(async () => {
+      jest.advanceTimersByTime(60_000);
+    });
+
+    expect(screen.queryByRole("button", { name: "Cancel enrolment" })).toBeNull();
+    expect(screen.getByText("The cancellation deadline ended on Wed, 14 Oct · 15:00. Contact the school.")).toBeOnTheScreen();
   });
 });
 

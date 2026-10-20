@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ContactSchoolButton } from "@/components/contact-school-button";
 import { Button } from "@/components/ui/button";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
@@ -322,18 +323,30 @@ export function ClassDetailsScreen({
           </>
         ) : null}
       </ScrollView>
-      {screen.enrolment.cta ? (
+      {screen.enrolment.cta || screen.enrolment.deadlineNote ? (
         <View
-          className="border-t border-line bg-page px-screen pt-3"
+          className="gap-3 border-t border-line bg-page px-screen pt-3"
           style={{ paddingBottom: Math.max(insets.bottom, 16) }}
         >
-          <Button
-            variant={screen.enrolment.cta.variant}
-            loading={screen.enrolment.ctaLoading}
-            onPress={screen.enrolment.pressCta}
-          >
-            {t(`enrolment.cta.${screen.enrolment.cta.key}`)}
-          </Button>
+          {screen.enrolment.cta ? (
+            <Button
+              variant={screen.enrolment.cta.variant}
+              loading={screen.enrolment.ctaLoading}
+              onPress={screen.enrolment.pressCta}
+            >
+              {t(`enrolment.cta.${screen.enrolment.cta.key}`)}
+            </Button>
+          ) : null}
+          {screen.enrolment.deadlineNote ? (
+            <>
+              <Text className="ds-text-list-subtitle text-ink-2">
+                {t(`enrolment.cancelSeatNote.${screen.enrolment.deadlineNote}`, {
+                  deadline: screen.cancellationDeadline,
+                })}
+              </Text>
+              <ContactSchoolButton />
+            </>
+          ) : null}
         </View>
       ) : null}
       {item && canEnrol ? (

@@ -55,6 +55,13 @@ export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseCla
   // The deadline is exclusive: at it the seat is no longer cancellable (as the backend decides).
   const canCancel =
     item?.cancellationDeadline != null && now.getTime() < new Date(item.cancellationDeadline).getTime();
+  // An approved seat can no longer be cancelled in the app: the student contacts the school instead.
+  const deadlineNote =
+    open && item.myEnrolment?.status === "approved" && !canCancel
+      ? item.cancellationDeadline === null
+        ? ("missing" as const)
+        : ("passed" as const)
+      : null;
   const cta = open ? getEnrolmentCta(item.myEnrolment, full, canCancel) : null;
   // A denial stays on the banner after the class started or was cancelled, so the student can still read the reason.
   const denied = canEnrol && item?.myEnrolment?.status === "denied";
@@ -161,6 +168,7 @@ export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseCla
 
   return {
     cta,
+    deadlineNote,
     display,
     // Only the denial banner is pressable: it opens the reason.
     pressableDisplay: display?.key === "denied",

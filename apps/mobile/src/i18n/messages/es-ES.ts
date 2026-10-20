@@ -520,6 +520,10 @@ const messages: Messages = {
       keep: "Mantener inscripción",
       done: "Inscripción cancelada",
     },
+    cancelSeatNote: {
+      passed: "El plazo para cancelar terminó el {{deadline}}. Habla con la escuela.",
+      missing: "El plazo de cancelación de esta clase aún no se ha definido. Habla con la escuela para cancelar.",
+    },
     errors: {
       started: "La clase ya empezó.",
       cancelled: "Esta clase fue cancelada.",

@@ -513,6 +513,10 @@ const messages = {
       keep: "Keep enrolment",
       done: "Enrolment cancelled",
     },
+    cancelSeatNote: {
+      passed: "The cancellation deadline ended on {{deadline}}. Contact the school.",
+      missing: "This class's cancellation deadline hasn't been set yet. Contact the school to cancel.",
+    },
     errors: {
       started: "The class has already started.",
       cancelled: "This class was cancelled.",

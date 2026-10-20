@@ -6,6 +6,7 @@ const enrolment = (status: EnrolmentStatus): MyEnrolment => ({
   id: "e-1",
   status,
   requestedAt: "2026-10-14T13:00:00.000Z",
+  reason: null,
 });
 
 describe("getEnrolmentCta", () => {

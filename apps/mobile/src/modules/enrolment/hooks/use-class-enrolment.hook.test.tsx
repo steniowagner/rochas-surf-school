@@ -44,7 +44,7 @@ describe("useClassEnrolment", () => {
   });
 
   it("does nothing when the button is pressed without one", async () => {
-    const { result } = await setup({ item: item({ id: "e-1", status: "approved", requestedAt: "2026-10-13T10:00:00.000Z" }) });
+    const { result } = await setup({ item: item({ id: "e-1", status: "approved", requestedAt: "2026-10-13T10:00:00.000Z", reason: null }) });
 
     await act(async () => result.current.pressCta());
 

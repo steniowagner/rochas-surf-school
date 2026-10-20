@@ -170,7 +170,7 @@ describe("ClassCard", () => {
 
   describe("enrolment", () => {
     const mine = (status: MyEnrolment["status"], overrides: Partial<ClassItem> = {}) =>
-      item({ myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z" }, ...overrides });
+      item({ myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z", reason: null }, ...overrides });
     const FULL = { seatsTaken: 8 };
 
     it.each([

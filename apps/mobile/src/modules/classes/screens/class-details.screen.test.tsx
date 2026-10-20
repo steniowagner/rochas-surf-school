@@ -1444,7 +1444,7 @@ describe("ClassDetailsScreen", () => {
 describe("ClassDetailsScreen enrol", () => {
   const FULL = { seatsTaken: 8 };
   const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"]) => ({
-    myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z" },
+    myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
   });
   const CREATED = { id: "e-2", classId: "c-1", status: "pending", requestedAt: NOW.toISOString() };
   const RULE = "I read and accept the cancellation rule";
@@ -1673,7 +1673,7 @@ describe("ClassDetailsScreen enrol", () => {
 describe("ClassDetailsScreen withdraw", () => {
   const pending = (overrides: Partial<ClassItem> = {}) =>
     makeClass({
-      myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z" },
+      myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
     });
   const WITHDRAWN = { id: "e-1", classId: "c-1", status: "withdrawn", requestedAt: "2026-10-13T10:00:00.000Z" };
@@ -1784,7 +1784,7 @@ describe("ClassDetailsScreen withdraw", () => {
 describe("ClassDetailsScreen enrolment status", () => {
   const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"], overrides: Partial<ClassItem> = {}) =>
     makeClass({
-      myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z" },
+      myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
     });
 

@@ -14,6 +14,8 @@ export type DecisionCardProps = {
   onPress?: () => void;
   /** Disables both buttons. */
   disabled: boolean;
+  /** Disables the approve button alone (for example while a class is full). */
+  approveDisabled?: boolean;
   /** The button that shows its loading state. */
   loading?: "approve" | "deny";
 };

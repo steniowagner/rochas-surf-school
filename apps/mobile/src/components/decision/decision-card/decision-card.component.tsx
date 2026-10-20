@@ -18,6 +18,7 @@ export function DecisionCard({
   onDeny,
   onPress,
   disabled,
+  approveDisabled = false,
   loading,
 }: DecisionCardProps) {
   const theme = useTheme();
@@ -74,7 +75,7 @@ export function DecisionCard({
           variant="success"
           className="flex-1"
           icon={<Feather name="check" size={16} color={theme.onColor} />}
-          disabled={disabled && loading !== "approve"}
+          disabled={approveDisabled || (disabled && loading !== "approve")}
           loading={loading === "approve"}
           onPress={onApprove}
         >

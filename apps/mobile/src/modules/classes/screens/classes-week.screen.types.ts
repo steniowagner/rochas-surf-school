@@ -9,6 +9,8 @@ export type ClassesWeekScreenProps = {
   canCreate?: boolean;
   /** Admins only: the cards' flags (the "no instructor" chip). */
   showFlags?: boolean;
+  /** Students only: the cards' chip of the viewer's own enrolment. */
+  showEnrolment?: boolean;
 };
 
 export type UseClassesWeekScreenProps = Pick<

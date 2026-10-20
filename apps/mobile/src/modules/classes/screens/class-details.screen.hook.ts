@@ -9,6 +9,8 @@ import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
 import { getDateLocale } from "@/utils/calendar-dates";
 
+import { useClassEnrolment } from "@/modules/enrolment/hooks/use-class-enrolment.hook";
+
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
 import { useDeleteClass } from "../hooks/use-delete-class.hook";
@@ -36,6 +38,7 @@ import type {
 
 export const useClassDetailsScreen = ({
   canEdit,
+  canEnrol,
 }: UseClassDetailsScreenProps) => {
   const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -72,6 +75,13 @@ export const useClassDetailsScreen = ({
         item.cancelledAt ? new Date(item.cancelledAt) : null,
       )
     : null;
+
+  const enrolment = useClassEnrolment({
+    item,
+    state,
+    canEnrol,
+    reload: () => void query.refetch(),
+  });
 
   const showCancelError = (error: unknown) => {
     if (isClassCancelledError(error) || isClassFinishedError(error)) {
@@ -176,8 +186,13 @@ export const useClassDetailsScreen = ({
     instructors,
     cancellationDeadline,
     // Every seat is taken and the class is still to come; the started and cancelled banners come first.
+    // The banner of the viewer's own enrolment, when there is one, says it better.
     showFullBanner:
-      item !== undefined && state === "not-started" && isClassFull(item.seatsTaken, item.capacity),
+      item !== undefined &&
+      state === "not-started" &&
+      isClassFull(item.seatsTaken, item.capacity) &&
+      enrolment.display === null,
+    enrolment,
     timeRange: `${start} – ${end}`,
     start,
     end,
@@ -227,6 +242,10 @@ export const useClassDetailsScreen = ({
     closeCancel: () => setCancelVisible(false),
     deleteVisible,
     deleteVariant,
+    // "Surf Beginner · Tomorrow · 08:00": the class in the request sheet.
+    requestSummary: item
+      ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine} · ${start}`
+      : "",
     classLine: item
       ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine}, ${start} – ${end} · ${item.location.name}`
       : "",

@@ -7,14 +7,16 @@ import {
 import { Location, SchoolClass } from '@rochas-surf-school/classes';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import type { PrismaClassRosterReader } from '../enrolment/class-roster-reader.prisma.js';
+import type { EnrolmentClassEnrolmentsCloser } from '../enrolment/enrolment.class-enrolments-closer.js';
+import type { PrismaPendingRequestCounter } from '../enrolment/pending-request-counter.prisma.js';
+import type { PrismaSeatCounter } from '../enrolment/seat-counter.prisma.js';
+import type { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-reader.prisma.js';
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
-import { NoEnrolmentPendingRequestCounter } from './no-enrolment.pending-request-counter.js';
-import { NoEnrolmentClassRosterReader } from './no-enrolment.class-roster.reader.js';
-import { NoEnrolmentSeatCounter } from './no-enrolment.seat-counter.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
@@ -64,6 +66,11 @@ function setup() {
     findStartingBetween: vi.fn(async () => []),
     findById: vi.fn(async () => null),
   };
+  const seatCounter = { countSeatsTaken: vi.fn(async () => 0) };
+  const pendingRequestCounter = { countPendingRequests: vi.fn(async () => 0) };
+  const classRosterReader = { findRosters: vi.fn(async () => new Map()) };
+  const viewerEnrolmentReader = { findLatest: vi.fn(async () => new Map()) };
+  const enrolmentsCloser = { closeOpenEnrolments: vi.fn(async (): Promise<string[]> => []) };
   const controller = new ClassesController(
     classRepository as unknown as PrismaSchoolClassRepository,
     locationRepository as unknown as PrismaLocationRepository,
@@ -72,9 +79,11 @@ function setup() {
     { now: () => NOW } as SystemClockProvider,
     classViewReader as unknown as PrismaClassViewReader,
     changeNotifier as unknown as NotificationsClassChangeNotifier,
-    new NoEnrolmentSeatCounter(),
-    new NoEnrolmentPendingRequestCounter(),
-    new NoEnrolmentClassRosterReader(),
+    seatCounter as unknown as PrismaSeatCounter,
+    pendingRequestCounter as unknown as PrismaPendingRequestCounter,
+    classRosterReader as unknown as PrismaClassRosterReader,
+    viewerEnrolmentReader as unknown as PrismaViewerEnrolmentReader,
+    enrolmentsCloser as unknown as EnrolmentClassEnrolmentsCloser,
   );
   const body = {
     discipline: 'surf',
@@ -88,7 +97,19 @@ function setup() {
     capacity: 8,
     notes: 'Bring sunscreen',
   };
-  return { controller, classRepository, classViewReader, notifier, changeNotifier, stored, location, body };
+  return {
+    controller,
+    classRepository,
+    classViewReader,
+    notifier,
+    changeNotifier,
+    enrolmentsCloser,
+    viewerEnrolmentReader,
+    classRosterReader,
+    stored,
+    location,
+    body,
+  };
 }
 
 describe('ClassesController', () => {
@@ -182,7 +203,7 @@ describe('ClassesController', () => {
     });
   });
 
-  it('carries no seat taken and no student on the classes of the week and on one class', async () => {
+  it('carries no enrolment of the caller on the classes of the week and on one class that has none', async () => {
     const { controller, classViewReader } = setup();
     const view = {
       id: '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47',
@@ -204,8 +225,40 @@ describe('ClassesController', () => {
     const week = await controller.week(userOf('student'), '2026-10-15');
     const one = await controller.one(userOf('student'), view.id);
 
-    expect(week.items[0]).toMatchObject({ seatsTaken: 0, students: [] });
-    expect(one).toMatchObject({ seatsTaken: 0, students: [] });
+    expect(week.items[0]).toMatchObject({ seatsTaken: 0, students: [], myEnrolment: null });
+    expect(one).toMatchObject({ seatsTaken: 0, students: [], myEnrolment: null });
+  });
+
+  it("carries the caller's enrolment, the seats and the students read from the enrolments", async () => {
+    const { controller, classViewReader, classRosterReader, viewerEnrolmentReader } = setup();
+    const id = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+    const requestedAt = new Date('2026-10-14T10:00:00.000Z');
+    classViewReader.findById.mockResolvedValueOnce({
+      id,
+      discipline: 'surf',
+      level: 'beginner',
+      startsAt: NOW,
+      endsAt: NOW,
+      capacity: 8,
+      notes: null,
+      location: { id: 'l', name: 'Praia', address: 'Av.' },
+      instructors: [],
+    } as never);
+    classRosterReader.findRosters.mockResolvedValueOnce(
+      new Map([[id, { seatsTaken: 2, students: [{ id: 's-1', name: 'Ana', photoUrl: null }] }]]),
+    );
+    viewerEnrolmentReader.findLatest.mockResolvedValueOnce(
+      new Map([[id, { id: 'e-1', status: 'pending', requestedAt }]]),
+    );
+
+    const out = await controller.one(userOf('student'), id);
+
+    expect(out).toMatchObject({
+      seatsTaken: 2,
+      students: [{ id: 's-1', name: 'Ana', photoUrl: null }],
+      myEnrolment: { id: 'e-1', status: 'pending', requestedAt: requestedAt.toISOString() },
+    });
+    expect(viewerEnrolmentReader.findLatest).toHaveBeenCalledWith(ADMIN_ID, [id]);
   });
 
   it('lists the week of the date for any approved role', async () => {
@@ -418,6 +471,23 @@ describe('ClassesController', () => {
 
       expect(changeNotifier.classCancelled).toHaveBeenCalledWith({
         instructorIds: [INSTRUCTOR_ID, OTHER_INSTRUCTOR_ID],
+        classId: CANCELLED_ID,
+        discipline: 'surf',
+        startsAt: new Date('2026-10-15T11:00:00.000Z'),
+        message: 'Mar muito grande.',
+      });
+    });
+
+    it('closes the open enrolments and tells their students next to the instructors', async () => {
+      const { controller, changeNotifier, enrolmentsCloser } = withStoredClass();
+      enrolmentsCloser.closeOpenEnrolments.mockResolvedValueOnce(['s-1', 's-2']);
+
+      await controller.cancel(userOf('admin'), CANCELLED_ID, { message: 'Mar muito grande.' });
+
+      expect(enrolmentsCloser.closeOpenEnrolments).toHaveBeenCalledWith(CANCELLED_ID);
+      expect(changeNotifier.classCancelled).toHaveBeenCalledWith({
+        instructorIds: [INSTRUCTOR_ID, OTHER_INSTRUCTOR_ID],
+        studentIds: ['s-1', 's-2'],
         classId: CANCELLED_ID,
         discipline: 'surf',
         startsAt: new Date('2026-10-15T11:00:00.000Z'),

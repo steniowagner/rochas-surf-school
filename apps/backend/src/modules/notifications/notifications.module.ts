@@ -4,6 +4,7 @@ import { ExpoPushProvider } from './expo.push.js';
 import { NotificationsClassAssignmentNotifier } from './notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from './notifications.class-change-notifier.js';
 import { NotificationsController } from './notifications.controller.js';
+import { NotificationsEnrolmentNotifier } from './notifications.enrolment-notifier.js';
 import { NotificationsLocationChangeNotifier } from './notifications.location-change-notifier.js';
 import { NotificationsNoInstructorNotifier } from './notifications.no-instructor-notifier.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
@@ -29,6 +30,7 @@ import { SystemClockProvider } from './system.clock.js';
     NotificationsRegistrationNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,
+    NotificationsEnrolmentNotifier,
     NotificationsLocationChangeNotifier,
     NotificationsNoInstructorNotifier,
     NotificationsPushTokenRemover,
@@ -39,6 +41,7 @@ import { SystemClockProvider } from './system.clock.js';
     NotificationsRegistrationNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,
+    NotificationsEnrolmentNotifier,
     NotificationsLocationChangeNotifier,
     NotificationsNoInstructorNotifier,
     NotificationsPushTokenRemover,

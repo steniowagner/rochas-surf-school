@@ -1,6 +1,7 @@
 import type { ClassState } from "@rochas-surf-school/classes";
 
 import type { ClassItem, ClassStudent } from "../../classes.types";
+import type { EnrolmentDisplay } from "../../../enrolment/utils/enrolment-status";
 import type { OccupancyTone, StudentsLabel } from "../../utils/occupancy";
 
 export type ClassCardProps = {
@@ -10,9 +11,11 @@ export type ClassCardProps = {
   onPress: (id: string) => void;
   /** Shows the admins' flags (the "no instructor" and "no deadline" chips). */
   showFlags?: boolean;
+  /** Students only: the chip of the viewer's own enrolment (pending, on the waiting list, withdrawn, expired). */
+  showEnrolment?: boolean;
 };
 
-export type UseClassCardProps = Pick<ClassCardProps, "item" | "now">;
+export type UseClassCardProps = Pick<ClassCardProps, "item" | "now" | "showEnrolment">;
 
 export type UseClassCardResult = {
   state: ClassState;
@@ -24,8 +27,10 @@ export type UseClassCardResult = {
   occupancyPercent: number;
   occupancyTone: OccupancyTone;
   full: boolean;
-  /** The "Sem vagas" chip: a full class that hasn't started (the state chips win otherwise). */
+  /** The "Sem vagas" chip: a full class that hasn't started, with no enrolment chip (the state chips win). */
   showFullChip: boolean;
+  /** The chip of the viewer's enrolment, in the place of "Sem vagas"; the state chips win. */
+  enrolment: EnrolmentDisplay | null;
   /** The students footer is shown: everything but a cancelled class. */
   showFooter: boolean;
   /** The students whose avatars the footer shows (up to 4). */

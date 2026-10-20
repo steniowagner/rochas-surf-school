@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { toChipTone } from "@/modules/enrolment/utils/enrolment-status";
 
 import { StudentAvatar } from "../student-avatar";
 
@@ -20,10 +21,16 @@ const FILL_CLASSES = {
   tan: "bg-tan",
 } as const;
 
-export function ClassCard({ item, now, onPress, showFlags = false }: ClassCardProps) {
+export function ClassCard({
+  item,
+  now,
+  onPress,
+  showFlags = false,
+  showEnrolment = false,
+}: ClassCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const card = useClassCard({ item, now });
+  const card = useClassCard({ item, now, showEnrolment });
   const { state, timeRange } = card;
 
   const started = state === "started";
@@ -57,6 +64,11 @@ export function ClassCard({ item, now, onPress, showFlags = false }: ClassCardPr
             ) : null}
             {state === "cancelled" ? (
               <Chip tone="bad" icon="close-circle-outline">{t("classesWeek.cancelled")}</Chip>
+            ) : null}
+            {card.enrolment ? (
+              <Chip tone={toChipTone(card.enrolment.tone)} icon={card.enrolment.icon}>
+                {t(`enrolment.status.${card.enrolment.key}.chip`)}
+              </Chip>
             ) : null}
             {card.showFullChip ? (
               <Chip tone="bad">{t("classesWeek.full")}</Chip>

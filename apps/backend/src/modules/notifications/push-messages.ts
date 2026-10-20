@@ -267,6 +267,52 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
           : `${text(locationName)} changed. Check your ${classCount(count)} upcoming classes there.`,
     },
   },
+  'enrolment.requested': {
+    'pt-BR': {
+      title: 'Novo pedido de vaga',
+      body: ({ studentName, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `${text(studentName)} pediu vaga na aula de ${disciplineName(discipline)} de ${day} às ${time}.`;
+      },
+    },
+    es: {
+      title: 'Nueva solicitud de plaza',
+      body: ({ studentName, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `${text(studentName)} pidió plaza en la clase de ${disciplineName(discipline)} del ${day} a las ${time}.`;
+      },
+    },
+    en: {
+      title: 'New seat request',
+      body: ({ studentName, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return `${text(studentName)} requested a seat in the ${disciplineName(discipline)} class on ${day} at ${time}.`;
+      },
+    },
+  },
+  'enrolment.expired': {
+    'pt-BR': {
+      title: 'Você não conseguiu vaga',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `A aula de ${disciplineName(discipline)} de ${day} às ${time} começou sem vaga para o seu pedido.`;
+      },
+    },
+    es: {
+      title: 'No conseguiste plaza',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `La clase de ${disciplineName(discipline)} del ${day} a las ${time} empezó sin plaza para tu solicitud.`;
+      },
+    },
+    en: {
+      title: "You didn't get a seat",
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return `The ${disciplineName(discipline)} class on ${day} at ${time} started without a seat for your request.`;
+      },
+    },
+  },
 };
 
 export function renderPush(

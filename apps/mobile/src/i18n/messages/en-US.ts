@@ -357,6 +357,7 @@ const messages = {
     soldOut: "sold out",
     full: {
       title: "Class full",
+      waitingList: "You can join the waiting list.",
     },
     rules: {
       title: "Rules",
@@ -386,6 +387,71 @@ const messages = {
       description: "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",
     },
     tools: "Class tools",
+  },
+  enrolment: {
+    status: {
+      pending: {
+        chip: "Pending",
+        title: "Request pending",
+        description: "Your request is waiting for the school's approval.",
+      },
+      waitingList: {
+        chip: "On the waiting list",
+        title: "You're on the waiting list",
+        description: "If a seat opens, your request goes to the school for approval.",
+      },
+      withdrawn: {
+        chip: "Withdrawn",
+        title: "Request withdrawn",
+        description: "You withdrew your request for this class.",
+      },
+      expired: {
+        chip: "Expired",
+        title: "You didn't get a seat",
+        description: "Your request expired without a seat opening in the class.",
+      },
+    },
+    cta: {
+      request: "Request a seat",
+      joinWaitingList: "Join the waiting list",
+      withdraw: "Withdraw request",
+      leaveWaitingList: "Leave the waiting list",
+      requestAgain: "Request again",
+    },
+    requestSheet: {
+      title: "Request a seat",
+      waitingListTitle: "Join the waiting list",
+      line: "{{summary}}. Your request stays pending until the school confirms.",
+      waitingListLine:
+        "{{summary}}. The class is full: your request goes on the waiting list. If a seat opens, it goes to the school for approval.",
+      ruleLabel: "Cancellation · {{discipline}}",
+      deadline: "Cancel until {{when}}",
+      noDeadline: "Deadline not set yet",
+      noRule: "The school hasn't written this rule yet.",
+      accept: "I read and accept the cancellation rule",
+      read: "Read",
+      submit: "Send request",
+      submitWaitingList: "Join the waiting list",
+      later: "Not now",
+      done: "Request sent",
+      doneWaitingList: "You're on the waiting list",
+    },
+    withdrawSheet: {
+      title: "Withdraw request",
+      description: "Your request for this class stops waiting for approval.",
+      confirm: "Yes, withdraw",
+      keep: "Keep request",
+      done: "Request withdrawn",
+      doneWaitingList: "You left the waiting list",
+    },
+    errors: {
+      started: "The class has already started.",
+      cancelled: "This class was cancelled.",
+      alreadyOpen: "You already have an open request for this class.",
+      ruleNotAccepted: "The cancellation rule changed. Read it again and accept it.",
+      notPending: "This request is no longer pending.",
+      notFound: "This request no longer exists.",
+    },
   },
   editProfile: {
     title: "Edit profile",

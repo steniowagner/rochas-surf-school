@@ -625,6 +625,7 @@ describe('Classes (e2e)', () => {
         ],
         seatsTaken: 0,
         students: [],
+        myEnrolment: null,
       });
       expect(items[0]!.notes).toBeNull();
       expect(items[0]!.instructors).toEqual([]);
@@ -1718,6 +1719,47 @@ describe('Classes (e2e)', () => {
         expect(push.sent).toHaveLength(0);
       });
 
+      it('ends the pending and approved enrolments as classCancelled and tells those students', async () => {
+        const admin = await account();
+        const instructor = await account('instructor');
+        const pending = await account('student');
+        const approved = await account('student');
+        const withdrawn = await account('student');
+        await withPhone(pending.id, 'es');
+        await withPhone(withdrawn.id);
+        const id = await makeClass(admin.id, [instructor.id]);
+        const seed = (studentId: string, status: 'pending' | 'approved' | 'withdrawn') =>
+          prisma.enrolment.create({
+            data: { id: randomUUID(), classId: id, studentId, status, requestedAt: new Date('2026-10-13T12:00:00.000Z') },
+          });
+        await seed(pending.id, 'pending');
+        await seed(approved.id, 'approved');
+        await seed(withdrawn.id, 'withdrawn');
+
+        const response = await cancel(admin.accessToken, id, { message: 'Mar muito grande.' });
+
+        expect(response.status).toBe(200);
+        const statuses = await prisma.enrolment.findMany({ where: { classId: id }, orderBy: { studentId: 'asc' } });
+        expect(Object.fromEntries(statuses.map((row) => [row.studentId, row.status]))).toEqual({
+          [pending.id]: 'classCancelled',
+          [approved.id]: 'classCancelled',
+          [withdrawn.id]: 'withdrawn',
+        });
+        const params = {
+          classId: id,
+          discipline: 'surf',
+          startsAt: '2026-10-15T11:00:00.000Z',
+          message: 'Mar muito grande.',
+        };
+        expect((await notificationsOf(pending.id))[0]!.params).toEqual(params);
+        expect((await notificationsOf(approved.id))[0]!.params).toEqual(params);
+        expect(await notificationsOf(withdrawn.id)).toHaveLength(0);
+        expect(await notificationsOf(admin.id)).toHaveLength(0);
+        expect(push.sent).toHaveLength(1);
+        expect(push.sent[0]).toMatchObject({ type: 'class.cancelled', locale: 'es' });
+        expect(renderPush('class.cancelled', push.sent[0]!.params, 'es').title).toBe('Clase cancelada');
+      });
+
       it('keeps the 200 and the cancellation when the push provider fails', async () => {
         const admin = await account();
         const instructor = await account('instructor');
@@ -1805,6 +1847,22 @@ describe('Classes (e2e)', () => {
 
       expect((await remove(admin.accessToken, id)).status).toBe(204);
       expect(await exists(id)).toBe(false);
+    });
+
+    it('refuses a class with a pending request, answering how many seats and requests it has', async () => {
+      const admin = await account();
+      const student = await account('student');
+      const id = await makeClass(admin.id, [admin.id]);
+      await prisma.enrolment.create({
+        data: { id: randomUUID(), classId: id, studentId: student.id, status: 'pending', requestedAt: NOW },
+      });
+
+      const response = await remove(admin.accessToken, id);
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors).toEqual(['class.delete.notEmpty']);
+      expect(response.body.details).toEqual({ seatsTaken: 0, pendingRequests: 1 });
+      expect(await exists(id)).toBe(true);
     });
 
     it('refuses a started class, one starting exactly now and a cancelled one, deleting nothing', async () => {

@@ -71,6 +71,28 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
+  // A student hears that the class they asked for or held a seat in was cancelled, or started without a seat for them.
+  const isStudentClassNews = data?.type === "enrolment.expired" || data?.type === "class.cancelled";
+
+  if (isStudentClassNews && classId !== null && flow === "student") {
+    router.push(routes.student.classDetail(classId));
+
+    return;
+  }
+
+  // Admins and the class's instructors hear that a student asked for a seat: it opens that class.
+  if (data?.type === "enrolment.requested" && classId !== null && flow === "instructor") {
+    router.push(routes.instructor.classDetail(classId));
+
+    return;
+  }
+
+  if (data?.type === "enrolment.requested" && classId !== null && flow === "admin") {
+    router.push(routes.admin.classDetail(classId));
+
+    return;
+  }
+
   // Only admins hear about a class left without an instructor: it opens the earliest one, where to assign someone.
   if (data?.type === "class.noInstructor" && classId !== null && flow === "admin") {
     router.push(routes.admin.classDetail(classId));

@@ -11,6 +11,7 @@ import {
   CLASS_CARD_STUDENTS_LIMIT,
   ClassRosterReader,
   ClassViewReader,
+  ViewerEnrolmentReader,
 } from "../provider";
 import { ClassItem, toClassItem } from "./class-item";
 
@@ -31,6 +32,7 @@ export class ListWeekClasses
   constructor(
     private readonly classViewReader: ClassViewReader,
     private readonly classRosterReader: ClassRosterReader,
+    private readonly viewerEnrolmentReader: ViewerEnrolmentReader,
   ) {}
 
   async execute(input: ListWeekClassesIn): Promise<ListWeekClassesOut> {
@@ -52,10 +54,11 @@ export class ListWeekClasses
       new Date(nextMonday.getTime()),
     );
 
-    const rosters = await this.classRosterReader.findRosters(
-      views.map((view) => view.id),
-      CLASS_CARD_STUDENTS_LIMIT,
-    );
+    const classIds = views.map((view) => view.id);
+    const [rosters, enrolments] = await Promise.all([
+      this.classRosterReader.findRosters(classIds, CLASS_CARD_STUDENTS_LIMIT),
+      this.viewerEnrolmentReader.findLatest(input.actor.id, classIds),
+    ]);
 
     return {
       weekStart: format(monday, "yyyy-MM-dd", { in: zone }),
@@ -66,7 +69,7 @@ export class ListWeekClasses
             a.endsAt.getTime() - b.endsAt.getTime() ||
             a.id.localeCompare(b.id),
         )
-        .map((view) => toClassItem(view, rosters.get(view.id))),
+        .map((view) => toClassItem(view, rosters.get(view.id), enrolments.get(view.id))),
     };
   }
 }

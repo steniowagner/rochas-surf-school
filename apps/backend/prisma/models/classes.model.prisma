@@ -61,6 +61,7 @@ model SchoolClass {
   location    Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
   creator     User              @relation(fields: [createdBy], references: [id], onDelete: Restrict)
   instructors ClassInstructor[]
+  enrolments  Enrolment[]
 
   @@index([startsAt])
   @@index([locationId])

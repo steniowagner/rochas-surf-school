@@ -1,0 +1,42 @@
+// Models of the enrolment module (modules/enrolment).
+// Tables, columns and enums are snake_case in the database (@@map / @map).
+//
+// The migration also adds, in SQL, the partial unique index `enrolments_one_open_per_student_class` on
+// (class_id, student_id) WHERE status IN ('pending', 'approved'): a student has at most one open enrolment
+// per class, while ended ones stay as history. Prisma can't express it, so `prisma migrate dev` would try to
+// drop it; keep it in the migration and never regenerate it from this file.
+
+enum EnrolmentStatus {
+  pending
+  approved
+  denied
+  withdrawn
+  expired
+  cancelled
+  takenOut
+  classCancelled
+
+  @@map("enrolment_status")
+}
+
+model Enrolment {
+  id             String          @id @db.Uuid
+  classId        String          @map("class_id") @db.Uuid
+  studentId      String          @map("student_id") @db.Uuid
+  status         EnrolmentStatus
+  requestedAt    DateTime        @map("requested_at")
+  // When the student accepted the cancellation rule; null when the discipline had none.
+  ruleAcceptedAt DateTime?       @map("rule_accepted_at")
+  decidedAt      DateTime?       @map("decided_at")
+  reason         String?
+  endedAt        DateTime?       @map("ended_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  schoolClass SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student     User        @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  @@index([classId, status])
+  @@index([studentId])
+  @@map("enrolments")
+}

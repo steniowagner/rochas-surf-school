@@ -68,6 +68,7 @@ const routeTree = {
   "(offboarding)/offboarding/denied": DeniedRoute,
   "(private)/student/_layout": StudentLayout,
   "(private)/student/(tabs)/index": StudentRoute,
+  "(private)/student/class/[id]": ClassStub,
   "(private)/admin/_layout": AdminLayout,
   "(private)/admin/(tabs)/index": AdminRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
@@ -282,11 +283,57 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
-  it("goes to the resolved flow when a class.cancelled push is tapped by someone who is now a student", async () => {
+  it.each(["enrolment.expired", "class.cancelled"])(
+    "opens the class details of a student who taps a %s push",
+    async (type) => {
+      answerMe(account("approved", "student", true));
+      await openApp(account("approved", "student", true));
+
+      await tap(response(type, "n1", "c-1"));
+
+      await waitFor(() => expect(app.getPathname()).toBe("/student/class/c-1"));
+      expect(meCalls()).toHaveLength(1);
+    },
+  );
+
+  it("goes to the resolved flow when a class.cancelled push is tapped by someone who is now a student without the class", async () => {
     answerMe(account("approved", "student", true));
     await openApp(account("approved", "instructor", true));
 
-    await tap(response("class.cancelled", "n1", "c-1"));
+    await tap(response("class.cancelled"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
+  it.each([
+    ["instructor", "/instructor/class/c-1"],
+    ["admin", "/admin/class/c-1"],
+  ])("opens the class details of an %s who taps an enrolment.requested push", async (role, path) => {
+    answerMe(account("approved", role, true));
+    await openApp(account("approved", role, true));
+
+    await tap(response("enrolment.requested", "n1", "c-1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(path));
+  });
+
+  it.each(["enrolment.requested", "enrolment.expired"])(
+    "goes to the resolved flow when a %s push has no class id",
+    async (type) => {
+      answerMe(account("approved", "admin", true));
+      await openApp(account("approved", "admin", true));
+
+      await tap(response(type));
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.admin.home));
+    },
+  );
+
+  it("goes to the resolved flow when an enrolment.requested push is tapped by someone who is now a student", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "admin", true));
+
+    await tap(response("enrolment.requested", "n1", "c-1"));
 
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });

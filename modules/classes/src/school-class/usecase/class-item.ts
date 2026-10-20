@@ -1,4 +1,4 @@
-import { ClassRoster, ClassView } from "../provider";
+import { ClassRoster, ClassView, ViewerEnrolment } from "../provider";
 
 export interface ClassItem {
   id: string;
@@ -17,15 +17,27 @@ export interface ClassItem {
   /** All the seats taken: approved students plus guests. */
   seatsTaken: number;
   students: ClassRoster["students"];
+  /** The caller's latest enrolment in the class, or null when they have none. */
+  myEnrolment: ClassItemEnrolment | null;
+}
+
+export interface ClassItemEnrolment {
+  id: string;
+  status: string;
+  requestedAt: string;
 }
 
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 
 /**
  * The answer shape of a class: ISO dates and the instructors sorted A–Z by name, ignoring case and accents.
- * Without a roster the class has no seats taken.
+ * Without a roster the class has no seats taken; without an enrolment the caller has none.
  */
-export function toClassItem(view: ClassView, roster?: ClassRoster): ClassItem {
+export function toClassItem(
+  view: ClassView,
+  roster?: ClassRoster,
+  myEnrolment?: ViewerEnrolment,
+): ClassItem {
   return {
     id: view.id,
     discipline: view.discipline,
@@ -45,5 +57,12 @@ export function toClassItem(view: ClassView, roster?: ClassRoster): ClassItem {
       ),
     seatsTaken: roster?.seatsTaken ?? 0,
     students: (roster?.students ?? []).map((student) => ({ ...student })),
+    myEnrolment: myEnrolment
+      ? {
+          id: myEnrolment.id,
+          status: myEnrolment.status,
+          requestedAt: myEnrolment.requestedAt.toISOString(),
+        }
+      : null,
   };
 }

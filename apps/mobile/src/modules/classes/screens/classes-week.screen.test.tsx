@@ -62,6 +62,7 @@ const makeClass = (
   instructors: [{ id: "i-1", name: "Ana" }],
   seatsTaken: 0,
   students: [],
+  myEnrolment: null,
   ...overrides,
 });
 
@@ -512,5 +513,26 @@ describe("ClassesWeekScreen no instructor", () => {
     expect(await screen.findByText("No students yet")).toBeOnTheScreen();
     expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
     expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
+  });
+});
+
+describe("ClassesWeekScreen enrolment chip", () => {
+  const MINE = makeClass("c-5", "2026-10-14T19:00:00.000Z", "2026-10-14T20:00:00.000Z", {
+    myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z" },
+  });
+
+  it("shows the viewer's enrolment chip on the cards with showEnrolment", async () => {
+    serveWeeks({ [THIS_MONDAY]: [MINE] });
+    await renderScreen({ showEnrolment: true });
+
+    expect(await screen.findByText("Pending")).toBeOnTheScreen();
+  });
+
+  it("shows nothing about it without showEnrolment", async () => {
+    serveWeeks({ [THIS_MONDAY]: [MINE] });
+    await renderScreen();
+
+    expect(await screen.findByText("No students yet")).toBeOnTheScreen();
+    expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
   });
 });

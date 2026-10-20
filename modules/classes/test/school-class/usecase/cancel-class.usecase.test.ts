@@ -9,6 +9,7 @@ import {
   ADMIN,
   buildClass,
   FakeClassChangeNotifier,
+  FakeClassEnrolmentsCloser,
   FakeClockProvider,
   FakeSchoolClassRepository,
   INSTRUCTOR,
@@ -23,6 +24,8 @@ interface Options {
   now?: Date;
   stored?: Parameters<typeof buildClass>[0];
   failNotifier?: boolean;
+  failCloser?: boolean;
+  closed?: string[];
 }
 
 function setup(options: Options = {}) {
@@ -40,9 +43,17 @@ function setup(options: Options = {}) {
     };
   }
 
-  const useCase = new CancelClass(classes, changes, new FakeClockProvider(options.now ?? NOW));
+  const closer = new FakeClassEnrolmentsCloser({ [stored.id]: options.closed ?? [] });
 
-  return { useCase, classes, changes, stored, input: { actor: ADMIN, id: stored.id } };
+  if (options.failCloser) {
+    closer.closeOpenEnrolments = async () => {
+      throw new Error("closer down");
+    };
+  }
+
+  const useCase = new CancelClass(classes, changes, closer, new FakeClockProvider(options.now ?? NOW));
+
+  return { useCase, classes, changes, closer, stored, input: { actor: ADMIN, id: stored.id } };
 }
 
 async function errorOf(promise: Promise<unknown>): Promise<unknown> {
@@ -238,5 +249,75 @@ describe("CancelClass", () => {
 
     await expect(useCase.execute(input)).resolves.toEqual({ id: stored.id });
     expect((await classes.findById(stored.id))!.cancelledAt).toEqual(NOW);
+  });
+
+  describe("enrolments", () => {
+    const S1 = "5d1f0a7b-2c3e-4b6a-8f19-4a7c9e0d1b25";
+    const S2 = "8e0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b";
+
+    it("closes the open enrolments and tells those students with the message, next to the instructors", async () => {
+      const { useCase, input, changes, closer, stored } = setup({ closed: [S1, S2] });
+
+      await useCase.execute({ ...input, message: "Mar grande." });
+
+      expect(closer.calls).toEqual([stored.id]);
+      expect(changes.cancelledEvents).toEqual([
+        {
+          instructorIds: [A],
+          studentIds: [S1, S2],
+          classId: stored.id,
+          discipline: "surf",
+          startsAt: stored.startsAt,
+          message: "Mar grande.",
+        },
+      ]);
+    });
+
+    it("tells the students even when the admin is the only instructor", async () => {
+      const { useCase, input, changes } = setup({ stored: { instructorIds: [ADMIN.id] }, closed: [S1] });
+
+      await useCase.execute(input);
+
+      expect(changes.cancelledEvents).toEqual([expect.objectContaining({ instructorIds: [], studentIds: [S1] })]);
+    });
+
+    it("never tells the caller, even if they held a seat", async () => {
+      const { useCase, input, changes } = setup({ closed: [ADMIN.id, S1] });
+
+      await useCase.execute(input);
+
+      expect(changes.cancelledEvents[0]!.studentIds).toEqual([S1]);
+    });
+
+    it("has no students to tell when none held a seat", async () => {
+      const { useCase, input, changes } = setup();
+
+      await useCase.execute(input);
+
+      expect(changes.cancelledEvents[0]).not.toHaveProperty("studentIds");
+    });
+
+    it("closes nothing when the cancellation loses the race", async () => {
+      const { useCase, input, classes, closer } = setup({ closed: [S1] });
+      classes.cancel = async () => false;
+
+      await errorOf(useCase.execute(input));
+
+      expect(closer.calls).toEqual([]);
+    });
+
+    it("answers and still tells the instructors when the closer fails", async () => {
+      const { useCase, input, classes, changes, stored } = setup({ failCloser: true });
+
+      await expect(useCase.execute(input)).resolves.toEqual({ id: stored.id });
+      expect((await classes.findById(stored.id))!.cancelledAt).toEqual(NOW);
+      expect(changes.cancelledEvents).toEqual([expect.objectContaining({ instructorIds: [A] })]);
+    });
+
+    it("answers when the notifier fails with students to tell", async () => {
+      const { useCase, input, stored } = setup({ closed: [S1], failNotifier: true });
+
+      await expect(useCase.execute(input)).resolves.toEqual({ id: stored.id });
+    });
   });
 });

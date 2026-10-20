@@ -4,8 +4,8 @@ This file is the **header of the business modules** of "Rocha's Surf School": a 
 overview of what each module does and why it exists. The details of the concepts and business rules of each
 module live in their own markdown inside `modules/`.
 
-The product has **five business modules** so far: **Authentication**, **School rules**, **School settings**,
-**Notifications** and **Classes**. The other areas of the product (enrolment, ratings and photos) enter as new
+The product has **six business modules** so far: **Authentication**, **School rules**, **School settings**,
+**Notifications**, **Classes** and **Enrolment**. The other areas of the product (ratings and photos) enter as new
 modules when their specs are planned.
 Email delivery is treated as **infrastructure**, not as a business module.
 
@@ -55,9 +55,10 @@ The product's only way to reach people outside the app: it keeps every notificat
 then pushes it to each phone they are signed in on, in that phone's language. It knows the people only by their
 ids and the phones they registered; who must be told what, and when, is decided by the module where the event
 happens (Authentication for registrations, Classes for class assignments, edits, cancellations, deletions,
-classes left without an instructor and location changes), which reaches it through abstract contracts. Today it
-carries the three registration notifications, the class ones (assigned, edited, unassigned, cancelled, deleted, no
-instructor) and the location change;
+classes left without an instructor and location changes, Enrolment for seat requests and expired requests), which
+reaches it through abstract contracts. Today it carries the three registration notifications, the class ones
+(assigned, edited, unassigned, cancelled — to the instructors and to the students whose enrolment it ended —,
+deleted, no instructor), the location change, and the two enrolment ones (a new request, a request that expired);
 nothing shows the stored notifications yet.
 
 - Where it physically lives: `modules/notifications`
@@ -79,15 +80,34 @@ admin cancelled it. Admins edit one class at a time — anything before it start
 nothing once finished or cancelled — and cancel a class until it finishes, with an optional message; it stays on
 the schedule marked as cancelled, for good. A class created by mistake is deleted instead — only before it
 starts, never a cancelled one, and only with nobody in it — and leaves the schedule for good. Its instructors are
-told of edits, cancellations and deletions. When a person's account is deleted, it takes them off every class
+told of edits, cancellations and deletions; cancelling also ends the class's open enrolments and tells those
+students. When a person's account is deleted, it takes them off every class
 that hasn't started; a class left with nobody stays scheduled, is flagged "no instructor" for admins until someone
 is assigned, and the admins are told. It also keeps the two cancellation rules admins write (one for surf, one
 for skate, read by everyone) and gives every upcoming class one cancellation deadline, worked out in the
 background by a language model from its discipline's rule and its details; while a class has none, admins see it
-flagged "no cancellation deadline". Enrolment, ratings and photos will build on its classes.
+flagged "no cancellation deadline". The seats taken, the approved students, the pending requests and each
+reader's own enrolment come from Enrolment, through contracts this module owns; ratings and photos will build on
+its classes too.
 
 - Where it physically lives: `modules/classes`
 - Business details: [modules/classes.md](modules/classes.md)
+
+---
+
+## Enrolment
+
+Keeps the students' places in classes. An approved student asks for a seat in a class that hasn't started —
+accepting the cancellation rule of its discipline when there is one — and the request waits as pending, shown as
+"on the waiting list" while the class is full; admins and the class's instructors are told of each request. The
+student may take a pending request back until the class starts and ask again after any request ended, but only
+one request or seat per class is ever open. Requests still pending when the class starts expire, and the student
+is told; a cancelled class ends every open request and seat. It is where the seats taken, the approved students
+and the pending requests that Classes shows are counted. Admins' decisions, cancelling a seat, direct enrolment,
+taking students out and guests join with their specs.
+
+- Where it physically lives: `modules/enrolment`
+- Business details: [modules/enrolment.md](modules/enrolment.md)
 
 ---
 

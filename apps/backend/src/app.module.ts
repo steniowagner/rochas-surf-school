@@ -11,6 +11,7 @@ import { SchoolRulesModule } from './modules/school-rules/school-rules.module.js
 import { SchoolSettingsModule } from './modules/school-settings/school-settings.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { ClassesModule } from './modules/classes/classes.module.js';
+import { EnrolmentModule } from './modules/enrolment/enrolment.module.js';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ClassesModule } from './modules/classes/classes.module.js';
     SchoolSettingsModule,
     NotificationsModule,
     ClassesModule,
+    EnrolmentModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

@@ -249,6 +249,12 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   creations leave one row. Since spec 037 the column is nullable: archiving a location sets `archived_at` and
   `name_key` to `NULL` in the same write, so the unique index (kept as it is; Postgres treats NULLs as distinct)
   binds only active locations and an archived location's name can be taken again — no partial index.
+- A **partial** unique index, which Prisma can't express, is written by hand in the migration's SQL and documented
+  in a comment of the module's `.model.prisma` (spec 041): `enrolments_one_open_per_student_class` on `(class_id,
+  student_id) WHERE status IN ('pending', 'approved')` (migration `20261019191737_enrolment`). `prisma migrate diff`
+  doesn't see it, and `prisma migrate dev` would drop it if the migration were regenerated, so the migration is the
+  source of truth. The repository maps Prisma's `P2002` on it to 409 `enrolment.alreadyOpen`, so two concurrent
+  requests leave one row.
 - Writes that must be all or nothing go through one `$transaction` in the repository (`PrismaSchoolClassRepository.createMany`:
   the classes, then their `class_instructors`; `PrismaSchoolClassRepository.update`: the class row, then its
   `class_instructors` deleted and recreated). A write that must not happen after a concurrent one is
@@ -271,7 +277,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   location and, when asked (`clearDeadlinesFrom`), clears the deadlines of its classes with `startsAt` after that
   instant and `cancelledAt` null, in one `$transaction`; `archive(id)` is one `updateMany({ where: { id,
   archivedAt: null } })`, `true` when a row matched, so of two concurrent archives one wins. `update` isn't
-  conditional on `archived_at`: an edit racing an archive can write `name_key` back on the archived row. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
+  conditional on `archived_at`: an edit racing an archive can write `name_key` back on the archived row.
+  Enrolments (spec 041) are conditional on their status: withdrawing and expiring are `updateMany({ where: { id,
+  status: 'pending' } })` (`true` when one row matched, so a racing withdrawal or a second expiry tick changes
+  nothing), and closing a cancelled class's open enrolments is one `updateManyAndReturn` over its `pending` /
+  `approved` rows. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
   → `users.id` `ON DELETE SET NULL`.
   `classes.created_by` and `classes.location_id` are `ON DELETE
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
@@ -611,10 +621,11 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   account stays approved (releasing is idempotent, so a retry is safe). It is implemented by
   `ClassesTeachingReleaser` (`apps/backend/src/modules/classes/classes.teaching-releaser.ts`, running
   `ReleaseUpcomingClasses`, see Classes), provided and exported by `ClassesModule`, which `AuthModule` imports
-  (classes imports only `DbModule` and `NotificationsModule`, so there is no cycle); the role-change and removal
+  (classes imports `DbModule`, `EnrolmentModule` and `NotificationsModule`, none of which imports auth, so there is
+  no cycle); the role-change and removal
   use cases are meant to take the same port. It doesn't end the account's sessions: the app signs out right after
   (`useSignOut`), and other devices move to the reactivation flow at their next account read. It doesn't yet
-  refuse the only admin or cancel seats and enrolments (none of those exist yet).
+  refuse the only admin or end the account's seats and enrolments (spec 043; until then they stay as they are).
 - Reactivation request: `POST /auth/me/reactivation-request` (`RequestReactivation`, protected, no body)
   answers 200 with the account shape. It checks, in this order: the account exists (401 `auth.token.invalid`),
   its status is `deleted` (403 `user.status.notDeleted`), its request wasn't denied (409
@@ -821,8 +832,8 @@ guard's 401 `auth.token.invalid`.
   ClassItem[] }`: the classes starting from the Monday 00:00 of the date's week (inclusive) to the next Monday
   00:00 (exclusive), Fortaleza, sorted by `startsAt`, `endsAt`, `id`. `ClassItem` is `{ id, discipline, level,
   startsAt, endsAt, capacity, notes, location: { id, name, address, latitude, longitude }, instructors: [{ id,
-  name }], cancelledAt, cancellationMessage, cancellationDeadline, seatsTaken, students: [{ id, name, photoUrl }]
-  }` (ISO UTC dates, the location's point `null`
+  name }], cancelledAt, cancellationMessage, cancellationDeadline, seatsTaken, students: [{ id, name, photoUrl }],
+  myEnrolment: { id, status, requestedAt } | null }` (ISO UTC dates, the location's point `null`
   when it has none and an archived location read like an active one (spec 037), `notes` `null` when none, `cancelledAt` /
   `cancellationMessage` `null` for a class never cancelled (spec 033), `cancellationDeadline` `null` while it can't
   be worked out (spec 036), instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
@@ -839,9 +850,13 @@ guard's 401 `auth.token.invalid`.
   user id; a class missing from the map reads `seatsTaken: 0` and `students: []` in `toClassItem(view, roster?)`).
   `ListWeekClasses` asks once for the whole week with `CLASS_CARD_STUDENTS_LIMIT` (4, what a card shows);
   `GetClass` — and so the answers of `PUT /classes/:id` and `POST /classes/:id/cancel` — asks for one class with
-  every student. It is implemented by `NoEnrolmentClassRosterReader`
-  (`apps/backend/src/modules/classes/no-enrolment.class-roster.reader.ts`, an empty map, so 0 and `[]`) until
-  enrolment replaces it together with `SeatCounter`. The API never returns a state: `getClassState(startsAt,
+  every student. It is implemented by `PrismaClassRosterReader` (`apps/backend/src/modules/enrolment/`, spec 041:
+  the `approved` enrolments, students by `decidedAt` then user id, the cap applied per class while `seatsTaken`
+  counts them all). `myEnrolment` (spec 041) is the caller's latest enrolment in the class, any role, from the
+  `ViewerEnrolmentReader` port (`provider/viewer-enrolment-reader.provider.ts`, `findLatest(viewerId, classIds)` →
+  `Map<classId, ViewerEnrolment>`, one read; `toClassItem(view, roster?, myEnrolment?)`, `null` when missing),
+  implemented by `PrismaViewerEnrolmentReader` (newest by `requestedAt` desc then `id` desc); `GetClass` and
+  `ListWeekClasses` take it as their third constructor argument. The API never returns a state: `getClassState(startsAt,
   endsAt, now, cancelledAt?)` (`model/class-state.ts`, `not-started` / `started` / `finished`, or `cancelled`
   whenever `cancelledAt` is set — spec 033) is computed by the caller, which always passes the cancellation.
 - `PUT /classes/:id` (admins; spec 032, `EditClass` in `usecase/edit-class.usecase.ts`) `{ discipline, level, date,
@@ -866,8 +881,8 @@ guard's 401 `auth.token.invalid`.
   discipline, startsAt })` to the kept instructors when a class field differs, `ClassAssignmentNotifier.classAssigned({
   count: 1, … })` to the added ones and `classUnassigned({ instructorIds, classId, discipline, startsAt })` to the
   removed ones. Seats taken come from the `SeatCounter` port (`provider/seat-counter.provider.ts`,
-  `countSeatsTaken(classId)`), implemented by `NoEnrolmentSeatCounter`
-  (`apps/backend/src/modules/classes/no-enrolment.seat-counter.ts`, always 0) until enrolment replaces it.
+  `countSeatsTaken(classId)`), implemented by `PrismaSeatCounter` (`apps/backend/src/modules/enrolment/`, spec 041:
+  the class's `approved` enrolments).
 - `POST /classes/:id/cancel` (admins; spec 033, `CancelClass` in `usecase/cancel-class.usecase.ts`) `{ message? }`
   → 200 the cancelled `ClassItem` (the controller runs `CancelClass`, then `GetClass`). Order: access; a non-UUID
   id (no lookup) or no class → 404 `class.notFound`; a `message` that is present, not `null` and not a string, or
@@ -875,9 +890,14 @@ guard's 401 `auth.token.invalid`.
   `ValidationException` `class.cancellationMessage.max.length`; then 409 `class.cancelled` (already cancelled,
   whatever the clock), then 409 `class.finished` (now ≥ `endsAt`); a started class is cancelled. The message is
   trimmed, blank or absent stored as `null`. `SchoolClassRepository.cancel(id, now, message)` is the conditional
-  write of Persistence; `false` (a concurrent cancel won) → 409 `class.cancelled`. Then
-  `ClassChangeNotifier.classCancelled({ instructorIds, classId, discipline, startsAt, message })` to the class's
-  instructors except the caller (skipped when none is left; swallowed when it throws). Stored as
+  write of Persistence; `false` (a concurrent cancel won) → 409 `class.cancelled`. Then (spec 041) the
+  `ClassEnrolmentsCloser` port (`provider/class-enrolments-closer.provider.ts`, `closeOpenEnrolments(classId)` →
+  student ids; `CancelClass`'s third constructor argument), implemented by `EnrolmentClassEnrolmentsCloser`
+  (`apps/backend/src/modules/enrolment/`, running enrolment's `CloseClassEnrolments`), ends the class's open
+  enrolments as `classCancelled`; a throwing closer is swallowed (the class stays cancelled, the enrolments open).
+  Then `ClassChangeNotifier.classCancelled({ instructorIds, studentIds?, classId, discipline, startsAt, message })`
+  — the instructors except the caller, and the closed students in `studentIds` (absent when none; the adapter
+  notifies the union, each person once) — skipped when nobody is left, swallowed when it throws. Stored as
   `classes.cancelled_at` / `classes.cancellation_message` (migration `classes-add-cancellation`); `SchoolClass` and
   `ClassView` carry `cancelledAt` / `cancellationMessage`. Nobody stores who cancelled.
 - `DELETE /classes/:id` (admins; spec 034, `DeleteClass` in `usecase/delete-class.usecase.ts`, handler `remove`), no
@@ -886,8 +906,8 @@ guard's 401 `auth.token.invalid`.
   `class.delete.notEmpty` with `details: { seatsTaken, pendingRequests }` when either count is above 0 — seats
   from `SeatCounter`, pending requests from the `PendingRequestCounter` port
   (`provider/pending-request-counter.provider.ts`, `countPendingRequests(classId)`), implemented by
-  `NoEnrolmentPendingRequestCounter` (`apps/backend/src/modules/classes/no-enrolment.pending-request-counter.ts`,
-  always 0) until enrolment replaces both counters, so the API can't answer it yet. Then
+  `PrismaPendingRequestCounter` (`apps/backend/src/modules/enrolment/`, spec 041: the class's `pending`
+  enrolments). Then
   `SchoolClassRepository.delete(id, now)`, the conditional delete of Persistence; on `false` the class is read
   again: gone → 404 `class.notFound` (a concurrent delete won), cancelled → 409 `class.cancelled`, else 409
   `class.started`. Then `ClassChangeNotifier.classDeleted({ instructorIds, discipline, startsAt })` (the values
@@ -1114,6 +1134,82 @@ guard's 401 `auth.token.invalid`.
   (`rulesVisible`), and `rules.school`, pushing `routes[<role>].schoolRules`. The instructors' `initials` field left
   the details' types (the avatar draws them).
 
+## Enrolment
+
+Spec 041. The domain is `modules/enrolment` (`@rochas-surf-school/enrolment`, aggregate `src/enrolment/`), which
+depends on `@rochas-surf-school/shared`, `@rochas-surf-school/auth` and `@rochas-surf-school/classes` (`ClassActor`,
+`assertCanReadClasses`, the discipline type); classes never imports it. The backend adapters live in
+`apps/backend/src/modules/enrolment/`: `EnrolmentModule` imports `NotificationsModule` (never `ClassesModule`),
+provides the controller, `EnrolmentExpiryJob` and every adapter, and exports the adapters, including the five
+that implement classes ports (`PrismaClassRosterReader`, `PrismaSeatCounter`, `PrismaPendingRequestCounter`,
+`PrismaViewerEnrolmentReader`, `EnrolmentClassEnrolmentsCloser`); `ClassesModule` imports it, so there is no Nest
+import cycle.
+
+- Model: `Enrolment` (`model/enrolment.entity.ts`) with `ENROLMENT_STATUSES` (`pending`, `approved`, `denied`,
+  `withdrawn`, `expired`, `cancelled`, `takenOut`, `classCancelled`), `OPEN_ENROLMENT_STATUSES` (`pending`,
+  `approved`), `ENROLMENT_REASON_MAX` 500, the fields `classId`, `studentId`, `status`, `requestedAt`,
+  `ruleAcceptedAt`, `decidedAt`, `reason`, `endedAt`, and the transitions `withdraw(now)` / `expire(now)` (from
+  `pending`, else 409 `enrolment.notPending`) and `closeForCancelledClass(now)` (from an open status, else 409
+  `enrolment.notOpen`), each setting `endedAt`. Ports (`provider/`): `EnrolmentRepository` (`create`, `findById`,
+  `withdraw(id, now)` and `expire(id, now)` → `boolean`, conditional on `pending`, `findExpirable(now)`,
+  `closeOpenForClass(classId, now)` → the closed enrolments), `EnrolmentClassReader` (`findById` → `{ id,
+  discipline, startsAt, endsAt, capacity, cancelledAt, instructorIds, hasCancellationRule }`), `StudentNameReader`
+  (`findName(id)`), `EnrolmentNotifier` (`seatRequested`, `requestExpired`) and `ClockProvider`; fakes and a factory
+  under `test/mock/`.
+- Table `enrolments` (`prisma/models/enrolment.model.prisma`, migration `20261019191737_enrolment`): `id`,
+  `class_id` → `classes` `ON DELETE CASCADE`, `student_id` → `users` `ON DELETE RESTRICT`, `status` (Postgres enum
+  `enrolment_status`, values exactly as `ENROLMENT_STATUSES`, camelCase), `requested_at`, `rule_accepted_at`,
+  `decided_at`, `reason`, `ended_at`, timestamps; indexes on `(class_id, status)` and `student_id`, plus the partial
+  unique index of Persistence. `SchoolClass` and `User` carry the inverse relation.
+- `POST /classes/:id/enrolments` (`RequestSeat`) `{ acceptCancellationRule? }` → 201 `EnrolmentOut` `{ id, classId,
+  status: "pending", requestedAt }`. Order: 403 `user.status.notApproved`, 403 `enrolment.role.notStudent`, 404
+  `class.notFound` (non-UUID id without a lookup, or no class), 409 `class.cancelled`, 409 `class.started` (now ≥
+  `startsAt`), 422 `enrolment.rule.notAccepted` (the discipline has a rule — `PrismaEnrolmentClassReader` reads the
+  `cancellation_rules` row — and the flag isn't exactly `true`), 409 `enrolment.alreadyOpen` (the partial index).
+  `ruleAcceptedAt` is now when there is a rule, else `null`. Then `StudentNameReader` and
+  `EnrolmentNotifier.seatRequested({ classId, studentName, discipline, startsAt, instructorIds })`, both swallowed.
+- `POST /enrolments/:id/withdraw` (`WithdrawRequest`, no body) → 200 `EnrolmentOut` with `withdrawn`. Order: 403
+  `user.status.notApproved` (any role), 404 `enrolment.notFound` (non-UUID, none, another person's, or its class is
+  gone), 409 `enrolment.notPending`, 409 `class.started`; the conditional write losing → 409
+  `enrolment.notPending`. Nobody is notified.
+- `EnrolmentExpiryJob` (see Scheduled work) runs `ExpirePendingEnrolments` (no actor, output `{ expired }`):
+  `findExpirable(now)` (pending enrolments of classes with `startsAt ≤ now` and `cancelledAt` null, joined in SQL),
+  then `expire` each and `requestExpired({ studentId, classId, discipline, startsAt })` only for a row that changed;
+  notifier errors swallowed. `CloseClassEnrolments` (no actor, `{ classId }` → `{ studentIds }`, each once) backs the
+  classes closer.
+- REST Client requests in `enrolment.integration.http`; e2e in `apps/backend/test/enrolment.e2e-spec.ts` (fixed
+  clocks for classes and enrolment, a faked `ExpoPushProvider`, the job run through `app.get(EnrolmentExpiryJob).run()`).
+- Mobile (`apps/mobile/src/modules/enrolment/`, no route of its own): `enrolment.types.ts` (`MyEnrolment`,
+  `EnrolmentStatus`, `EnrolmentResponse`, `RequestSeatRequest`); `ClassItem.myEnrolment` in the classes types.
+  Mutations `useRequestSeat(classId)` and `useWithdrawRequest()` (`apiPost`, no retry — a repeat would notify the
+  admins twice — invalidating `["classes"]` on success). `utils/enrolment-cta.ts` (`getEnrolmentCta(myEnrolment,
+  full)`: none or `withdrawn` / `expired` → `request` / `requestAgain` (`primary`) or `joinWaitingList` /
+  `requestAgain` (`dark`) when full; `pending` → `withdraw` (`outline`) or `leaveWaitingList` (`ghost`) when full;
+  any other status → none), `utils/enrolment-status.ts` (`getEnrolmentDisplay`: `pending` on a full class reads
+  `waitingList` — never stored —, with the banner and chip tone, icon and `enrolment.status.*` keys for `pending`,
+  `waitingList`, `withdrawn`, `expired`; `BANNER_CLASSES` per tone, `toChipTone`), `utils/enrolment-error.ts` (`getRequestSeatErrorKey`,
+  `getWithdrawRequestErrorKey` → `enrolment.errors.*`, `classDetails.notFound` or the shared no-connection /
+  generic keys, `null` for an expired session; `shouldReloadClass` for `class.started`, `class.cancelled`,
+  `enrolment.alreadyOpen`, `enrolment.notPending`; `isRuleNotAcceptedError`, which refetches the rules). The
+  flow lives in `hooks/use-class-enrolment.hook.ts` (`useClassEnrolment({ item, state, canEnrol, reload })`, called
+  by the details' hook): the CTA and banner only while `canEnrol` and `not-started`, the two sheets' visibility, one
+  ref guarding a double press for both sends, the toasts and the reloads. `RequestSeatSheet`
+  (`components/request-seat-sheet/` + hook): a `BottomModal` with the rule block (the deadline card or
+  `noDeadline`, `Checkbox` and the "Ler" `TextButton` while the discipline has a rule — it loads
+  `useCancellationRules` while visible — else `noRule`), the primary / dark submit with `loading`, disabled until
+  ticked, and a `ghost` "Agora não"; it renders `CancellationRulesSheet` itself and steps aside for it (`idle →
+  leaving → open`): the rules are presented only once the request sheet has been dismissed, that dismissal isn't
+  forwarded to `onClose` (the step is read from a ref because the sheet library keeps calling the `onClose` it had
+  when presented), and closing the rules brings it back with the box as it was; closing the request sheet resets the
+  box. `WithdrawRequestSheet` (`components/withdraw-request-sheet/`, no hook): confirm (`danger`, `loading`) / keep.
+  `ClassDetailsScreen` takes `canEnrol` (set only by `src/app/(private)/student/class/[id].tsx`): a sticky footer
+  `Button` with the CTA, the status banner after the state banners (it replaces "Turma cheia"; started, finished and
+  cancelled classes show none), and `classDetails.full.waitingList` under "Turma cheia" while the CTA is
+  `joinWaitingList`. `ClassesWeekScreen` and `ClassCard` take `showEnrolment` (set only by the student's
+  `(tabs)/index.tsx`): the card's status chip in the right slot, in place of "Sem vagas" (the started, finished and
+  cancelled chips win). Copy under `enrolment` (`cta`, `status`, `requestSheet`, `withdrawSheet`, `errors`) and
+  `classDetails.full.waitingList`.
+
 ## Error handling
 
 - The domain throws `DomainError` subclasses (`ValidationException` 422 with a list of `ValidationError`s,
@@ -1150,7 +1246,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `sendPushNotificationsAsync`, messages with `sound: "default"`, `priority: "high"`, `channelId: "default"` and
   `data: { type, notificationId, classId? }` (`classId` copied from the notification's params when it is a
   string; spec 032), title and body from `renderPush` in the device's locale (dates in the copy, such as the class
-  start of `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor`, are formatted by hand in Fortaleza time — fixed UTC-3, no
+  start of `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` /
+  `enrolment.requested` / `enrolment.expired`, are formatted by hand in Fortaleza time — fixed UTC-3, no
   `Intl` — so the text is the same on every machine). A chunk that throws
   doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
   logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
@@ -1184,7 +1281,12 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `{ count, classId, discipline, startsAt }` for the earliest class; spec 035) and `LocationChangeNotifier` (classes,
   `NotificationsLocationChangeNotifier`: `locationChanged({ recipients, locationName })` → one `location.changed`
   per recipient with `{ count, locationName }`, no `classId` since it concerns several classes; one failure doesn't
-  stop the next recipient; spec 037). A catalog entry's `title` in
+  stop the next recipient; spec 037) and `EnrolmentNotifier` (enrolment, `NotificationsEnrolmentNotifier`, spec 041:
+  `seatRequested` → `enrolment.requested` with `{ classId, studentName, discipline, startsAt }` to
+  `RecipientsProvider.findApprovedAdminIds()` plus the class's instructors, deduplicated; `requestExpired` →
+  `enrolment.expired` with `{ classId, discipline, startsAt }` to the student). Since spec 041
+  `NotificationsClassChangeNotifier.classCancelled` notifies the union of `instructorIds` and `studentIds`. A
+  catalog entry's `title` in
   `push-messages.ts` is a string or a function of the params (`class.noInstructor`'s depends on the count; a
   missing count counts as one).
   `NotificationsModule` exports them; a push type without a catalog entry in `push-messages.ts` fails the backend's
@@ -1258,12 +1360,14 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 ### Scheduled work
 
-- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today four jobs,
+- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today five jobs,
   `SignInCodeCleanupJob`, `PushReceiptCheckJob` (spec 020), `AccountErasureJob` (spec 021, cron
   `account-erasure`, erases denied registrations; the deleted/removed erasures are to be added to it) and
   `CancellationDeadlineJob` (spec 036, cron `cancellation-deadline`, `waitForCompletion`: runs
   `WorkOutCancellationDeadlines`, at most 20 classes per tick and 5 model calls at a time, idempotent by the
-  stored deadline, attempts and next attempt, and logs only the counts)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
+  stored deadline, attempts and next attempt, and logs only the counts) and `EnrolmentExpiryJob` (spec 041, cron
+  `enrolment-expiry`, `waitForCompletion`: runs `ExpirePendingEnrolments`, idempotent by the stored status — a
+  request is written only while `pending` and only a changed row is pushed —, logs only the count)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
   class start, 30-minute reminders, rating prompts, 30-day erasures of denied/deleted/removed accounts, guest
   data erasure, cancellation-deadline retries), each running every minute and **idempotent** — it records in
   the database what it already did, so a restart or a late tick never sends twice.

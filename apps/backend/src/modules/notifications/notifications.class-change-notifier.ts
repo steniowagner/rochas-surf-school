@@ -54,14 +54,18 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
 
   async classCancelled({
     instructorIds,
+    studentIds = [],
     classId,
     discipline,
     startsAt,
     message,
   }: ClassCancelled): Promise<void> {
+    // The students whose enrolment ended get the same text as the instructors; a person is told once.
+    const recipientIds = [...new Set([...instructorIds, ...studentIds])];
+
     try {
       await this.notify.execute({
-        userIds: instructorIds,
+        userIds: recipientIds,
         type: 'class.cancelled',
         params: {
           classId,
@@ -72,7 +76,7 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
       });
     } catch (error) {
       this.logger.error(
-        `Could not notify class.cancelled to ${instructorIds.length} instructor(s)`,
+        `Could not notify class.cancelled to ${recipientIds.length} person(s)`,
         error instanceof Error ? error.stack : String(error),
       );
     }

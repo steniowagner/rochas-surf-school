@@ -357,6 +357,7 @@ const messages: Messages = {
     soldOut: "esgotado",
     full: {
       title: "Turma cheia",
+      waitingList: "Você pode entrar na lista de espera.",
     },
     rules: {
       title: "Regras",
@@ -386,6 +387,71 @@ const messages: Messages = {
       description: "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",
     },
     tools: "Ferramentas da aula",
+  },
+  enrolment: {
+    status: {
+      pending: {
+        chip: "Pendente",
+        title: "Pedido pendente",
+        description: "Seu pedido aguarda a aprovação da escola.",
+      },
+      waitingList: {
+        chip: "Na lista de espera",
+        title: "Você está na lista de espera",
+        description: "Se abrir uma vaga, seu pedido passa para a aprovação da escola.",
+      },
+      withdrawn: {
+        chip: "Anulado",
+        title: "Pedido anulado",
+        description: "Você anulou seu pedido para esta aula.",
+      },
+      expired: {
+        chip: "Expirado",
+        title: "Você não conseguiu vaga",
+        description: "Seu pedido expirou sem abrir vaga na turma.",
+      },
+    },
+    cta: {
+      request: "Pedir para entrar",
+      joinWaitingList: "Entrar na lista de espera",
+      withdraw: "Anular pedido",
+      leaveWaitingList: "Sair da lista de espera",
+      requestAgain: "Pedir novamente",
+    },
+    requestSheet: {
+      title: "Pedir para entrar",
+      waitingListTitle: "Entrar na lista de espera",
+      line: "{{summary}}. O pedido fica pendente até a escola confirmar.",
+      waitingListLine:
+        "{{summary}}. A turma está cheia: seu pedido fica na lista de espera. Se abrir uma vaga, ele passa para a aprovação da escola.",
+      ruleLabel: "Cancelamento · {{discipline}}",
+      deadline: "Cancelamento até {{when}}",
+      noDeadline: "Prazo ainda não definido",
+      noRule: "A escola ainda não escreveu esta regra.",
+      accept: "Li e aceito a regra de cancelamento",
+      read: "Ler",
+      submit: "Enviar pedido",
+      submitWaitingList: "Entrar na lista de espera",
+      later: "Agora não",
+      done: "Pedido enviado",
+      doneWaitingList: "Você está na lista de espera",
+    },
+    withdrawSheet: {
+      title: "Anular pedido",
+      description: "Seu pedido para esta aula deixa de esperar aprovação.",
+      confirm: "Sim, anular",
+      keep: "Manter pedido",
+      done: "Pedido anulado",
+      doneWaitingList: "Você saiu da lista de espera",
+    },
+    errors: {
+      started: "A aula já começou.",
+      cancelled: "Esta aula foi cancelada.",
+      alreadyOpen: "Você já tem um pedido aberto para esta aula.",
+      ruleNotAccepted: "A regra de cancelamento mudou. Leia de novo e aceite.",
+      notPending: "Este pedido não está mais pendente.",
+      notFound: "Este pedido não existe mais.",
+    },
   },
   editProfile: {
     title: "Editar perfil",

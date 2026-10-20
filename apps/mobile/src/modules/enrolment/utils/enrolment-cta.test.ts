@@ -19,11 +19,13 @@ describe("getEnrolmentCta", () => {
     ["withdrawn", true, "requestAgain", "dark", "request"],
     ["expired", false, "requestAgain", "primary", "request"],
     ["expired", true, "requestAgain", "dark", "request"],
+    ["denied", false, "requestAgain", "primary", "request"],
+    ["denied", true, "requestAgain", "dark", "request"],
   ] as const)("for %s on a class full=%s answers %s (%s)", (status, full, key, variant, action) => {
     expect(getEnrolmentCta(status === null ? null : enrolment(status), full)).toEqual({ key, variant, action });
   });
 
-  it.each(["approved", "denied", "cancelled", "takenOut", "classCancelled"] as const)(
+  it.each(["approved", "cancelled", "takenOut", "classCancelled"] as const)(
     "answers no button for %s",
     (status) => {
       expect(getEnrolmentCta(enrolment(status), false)).toBeNull();

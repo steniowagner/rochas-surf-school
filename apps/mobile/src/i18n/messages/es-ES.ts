@@ -447,6 +447,16 @@ const messages: Messages = {
         title: "Estás en la lista de espera",
         description: "Si se libera una plaza, tu solicitud pasa a la aprobación de la escuela.",
       },
+      approved: {
+        chip: "Aprobado",
+        title: "Estás inscrito",
+        description: "Tu plaza está asegurada.",
+      },
+      denied: {
+        chip: "Rechazado",
+        title: "Solicitud rechazada",
+        description: "Toca para ver el motivo.",
+      },
       withdrawn: {
         chip: "Anulada",
         title: "Solicitud anulada",
@@ -482,6 +492,12 @@ const messages: Messages = {
       later: "Ahora no",
       done: "Solicitud enviada",
       doneWaitingList: "Estás en la lista de espera",
+    },
+    denialSheet: {
+      title: "Solicitud rechazada",
+      label: "Motivo de la escuela",
+      noReason: "Sin motivo indicado.",
+      close: "Cerrar",
     },
     withdrawSheet: {
       title: "Anular solicitud",

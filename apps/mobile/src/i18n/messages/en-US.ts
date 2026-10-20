@@ -440,6 +440,16 @@ const messages = {
         title: "You're on the waiting list",
         description: "If a seat opens, your request goes to the school for approval.",
       },
+      approved: {
+        chip: "Approved",
+        title: "You're enrolled",
+        description: "Your seat is secured.",
+      },
+      denied: {
+        chip: "Denied",
+        title: "Request denied",
+        description: "Tap to see the reason.",
+      },
       withdrawn: {
         chip: "Withdrawn",
         title: "Request withdrawn",
@@ -475,6 +485,12 @@ const messages = {
       later: "Not now",
       done: "Request sent",
       doneWaitingList: "You're on the waiting list",
+    },
+    denialSheet: {
+      title: "Request denied",
+      label: "Reason from the school",
+      noReason: "No reason given.",
+      close: "Close",
     },
     withdrawSheet: {
       title: "Withdraw request",

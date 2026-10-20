@@ -178,6 +178,9 @@ describe("ClassCard", () => {
       ["pending", FULL, "On the waiting list"],
       ["withdrawn", {}, "Withdrawn"],
       ["expired", {}, "Expired"],
+      ["approved", {}, "Approved"],
+      ["approved", FULL, "Approved"],
+      ["denied", {}, "Denied"],
     ] as const)("shows the %s chip (%j) in place of the full chip", async (status, extra, label) => {
       await render(<ClassCard item={mine(status, extra)} now={BEFORE} onPress={jest.fn()} showEnrolment />);
 
@@ -198,10 +201,11 @@ describe("ClassCard", () => {
     });
 
     it("draws nothing for the statuses of the later specs", async () => {
-      await render(<ClassCard item={mine("approved")} now={BEFORE} onPress={jest.fn()} showEnrolment />);
+      await render(<ClassCard item={mine("takenOut")} now={BEFORE} onPress={jest.fn()} showEnrolment />);
 
       expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
       expect(screen.queryByText("Approved")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Denied")).not.toBeOnTheScreen();
     });
 
     it("lets the started, finished and cancelled chips win", async () => {

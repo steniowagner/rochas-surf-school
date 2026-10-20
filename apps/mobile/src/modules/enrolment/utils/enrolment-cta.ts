@@ -22,9 +22,9 @@ const CTAS = {
 
 /**
  * The one button of the student's footer on a class that hasn't started, or `null` for none: no enrolment, or an
- * ended one the student can ask again after, gives a request (the waiting list when the class is full); a pending
- * request gives a withdrawal. The statuses of the later specs (approved, denied, cancelled, taken out) and the one
- * of a cancelled class give none.
+ * ended or denied one the student can ask again after, gives a request (the waiting list when the class is full); a pending
+ * request gives a withdrawal. An approved enrolment, the statuses of the later specs (cancelled, taken out) and the
+ * one of a cancelled class give none.
  */
 export const getEnrolmentCta = (
   enrolment: MyEnrolment | null,
@@ -37,6 +37,7 @@ export const getEnrolmentCta = (
       return classIsFull ? CTAS.leaveWaitingList : CTAS.withdraw;
     case "withdrawn":
     case "expired":
+    case "denied":
       return classIsFull ? CTAS.requestAgainFull : CTAS.requestAgainFree;
     default:
       return null;

@@ -1501,7 +1501,6 @@ describe("ClassDetailsScreen enrol", () => {
     ["a cancelled class", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
     ["a class cancelled with the student's request", { cancelledAt: "2026-10-13T10:00:00.000Z", ...mine("classCancelled") }],
     ["an approved enrolment", mine("approved")],
-    ["a denied enrolment", mine("denied")],
     ["a cancelled seat", mine("cancelled")],
     ["a student taken out", mine("takenOut")],
   ])("enrol: shows no button for %s", async (_name, overrides) => {
@@ -1798,6 +1797,8 @@ describe("ClassDetailsScreen enrolment status", () => {
     ],
     [mine("withdrawn"), "Request withdrawn", "You withdrew your request for this class.", "bg-dim"],
     [mine("expired"), "You didn't get a seat", "Your request expired without a seat opening in the class.", "bg-dim"],
+    [mine("approved"), "You're enrolled", "Your seat is secured.", "bg-ok-tint"],
+    [mine("denied"), "Request denied", "Tap to see the reason.", "bg-bad-tint"],
   ])("status: shows the banner of the latest enrolment: %#", async (item, title, description, tint) => {
     fetchMock.mockResolvedValue(ok(item));
     await renderScreen(false, true);
@@ -1844,11 +1845,75 @@ describe("ClassDetailsScreen enrolment status", () => {
   });
 
   it("status: shows no banner for the statuses of the later specs", async () => {
-    fetchMock.mockResolvedValue(ok(mine("approved")));
+    fetchMock.mockResolvedValue(ok(mine("takenOut")));
     await renderScreen(false, true);
 
     await screen.findByText("16:00 – 17:30");
-    expect(screen.queryByText("Request pending")).toBeNull();
-    expect(screen.queryByText("Request withdrawn")).toBeNull();
+    expect(screen.queryByText("You're enrolled")).toBeNull();
+    expect(screen.queryByText("Request denied")).toBeNull();
+  });
+
+  it("decision: an approved student has no button, and the started banner wins over the approved one", async () => {
+    fetchMock.mockResolvedValue(ok(mine("approved")));
+    await renderScreen(false, true);
+
+    expect(await screen.findByText("You're enrolled")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Request again" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Withdraw request" })).toBeNull();
+  });
+
+  it("decision: an approved class that started shows the started banner and not the approved one", async () => {
+    fetchMock.mockResolvedValue(
+      ok(mine("approved", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" })),
+    );
+    await renderScreen(false, true);
+
+    await screen.findByText("Surf");
+    expect(screen.queryByText("You're enrolled")).toBeNull();
+  });
+
+  it("decision: a denied request opens the reason as written from its banner, and 'Request again' is offered", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue(
+      ok(
+        makeClass({
+          myEnrolment: {
+            id: "e-1",
+            status: "denied",
+            requestedAt: "2026-10-13T10:00:00.000Z",
+            reason: "This class is advanced level.",
+          },
+        }),
+      ),
+    );
+    await renderScreen(false, true);
+
+    await user.press(await screen.findByRole("button", { name: /Request denied/ }));
+
+    expect(screen.getByText("Reason from the school")).toBeOnTheScreen();
+    expect(screen.getByText("This class is advanced level.")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Close" }));
+    expect(screen.getByRole("button", { name: "Request again" })).toBeOnTheScreen();
+  });
+
+  it("decision: a denial without a reason says so", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue(ok(mine("denied")));
+    await renderScreen(false, true);
+
+    await user.press(await screen.findByRole("button", { name: /Request denied/ }));
+
+    expect(screen.getByText("No reason given.")).toBeOnTheScreen();
+  });
+
+  it.each([
+    ["has started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" }],
+    ["was cancelled", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
+  ])("decision: a denial stays on a class that %s, without 'Request again'", async (_name, overrides) => {
+    fetchMock.mockResolvedValue(ok(mine("denied", overrides)));
+    await renderScreen(false, true);
+
+    expect(await screen.findByRole("button", { name: /Request denied/ })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Request again" })).toBeNull();
   });
 });

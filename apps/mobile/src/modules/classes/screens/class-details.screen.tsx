@@ -17,6 +17,7 @@ import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
+import { DenialReasonSheet } from "@/modules/enrolment/components/denial-reason-sheet";
 import { RequestSeatSheet } from "@/modules/enrolment/components/request-seat-sheet";
 import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
@@ -216,10 +217,17 @@ export function ClassDetailsScreen({
               </View>
             ) : null}
             {screen.enrolment.display ? (
-              <View
+              <Pressable
+                accessibilityRole={screen.enrolment.pressableDisplay ? "button" : undefined}
+                disabled={!screen.enrolment.pressableDisplay}
+                onPress={screen.enrolment.openDenial}
                 className={`flex-row items-center gap-3 rounded-card p-4 ${BANNER_CLASSES[screen.enrolment.display.tone]}`}
               >
-                <Ionicons name={screen.enrolment.display.icon} size={24} color={theme.ink} />
+                <Ionicons
+                  name={screen.enrolment.display.icon}
+                  size={24}
+                  color={theme[screen.enrolment.display.tone === "bad" ? "bad" : screen.enrolment.display.tone === "ok" ? "ok" : "ink"]}
+                />
                 <View className="flex-1 gap-1">
                   <Text className="ds-text-list-title text-ink">
                     {t(`enrolment.status.${screen.enrolment.display.key}.title`)}
@@ -228,7 +236,7 @@ export function ClassDetailsScreen({
                     {t(`enrolment.status.${screen.enrolment.display.key}.description`)}
                   </Text>
                 </View>
-              </View>
+              </Pressable>
             ) : null}
             {screen.state === "finished" ? (
               <View className="gap-1 rounded-card bg-dim p-4">
@@ -338,6 +346,14 @@ export function ClassDetailsScreen({
             deadline={screen.cancellationDeadline}
             onConfirm={screen.enrolment.request}
             onClose={screen.enrolment.closeRequest}
+          />
+          <DenialReasonSheet
+            visible={screen.enrolment.denialVisible}
+            discipline={item.discipline}
+            level={item.level}
+            start={screen.start}
+            reason={screen.enrolment.denialReason}
+            onClose={screen.enrolment.closeDenial}
           />
           <WithdrawRequestSheet
             visible={screen.enrolment.withdrawVisible}

@@ -36,7 +36,17 @@ describe("getEnrolmentDisplay", () => {
     expect(getEnrolmentDisplay(enrolment(status), true)).toEqual(expected);
   });
 
-  it.each(["approved", "denied", "cancelled", "takenOut", "classCancelled"] as const)(
+  it.each([
+    ["approved", "ok", "checkmark-circle-outline"],
+    ["denied", "bad", "close-circle-outline"],
+  ] as const)("draws a %s request with the %s tone, full class or not", (status, tone, icon) => {
+    const expected = { key: status, tone, icon };
+
+    expect(getEnrolmentDisplay(enrolment(status), false)).toEqual(expected);
+    expect(getEnrolmentDisplay(enrolment(status), true)).toEqual(expected);
+  });
+
+  it.each(["cancelled", "takenOut", "classCancelled"] as const)(
     "draws nothing for %s yet",
     (status) => {
       expect(getEnrolmentDisplay(enrolment(status), false)).toBeNull();
@@ -50,10 +60,22 @@ describe("getEnrolmentDisplay", () => {
 
 describe("tones", () => {
   it("maps the dim tone to the muted chip and keeps the others", () => {
-    expect([toChipTone("warn"), toChipTone("info"), toChipTone("dim")]).toEqual(["warn", "info", "muted"]);
+    expect([toChipTone("warn"), toChipTone("info"), toChipTone("dim"), toChipTone("ok"), toChipTone("bad")]).toEqual([
+      "warn",
+      "info",
+      "muted",
+      "ok",
+      "bad",
+    ]);
   });
 
   it("has a banner background for each tone", () => {
-    expect(BANNER_CLASSES).toEqual({ warn: "bg-warn-tint", info: "bg-info-tint", dim: "bg-dim" });
+    expect(BANNER_CLASSES).toEqual({
+      warn: "bg-warn-tint",
+      info: "bg-info-tint",
+      dim: "bg-dim",
+      ok: "bg-ok-tint",
+      bad: "bg-bad-tint",
+    });
   });
 });

@@ -351,8 +351,8 @@ card and a banner on the details that opens "Editar aula". Admins edit the cance
 reached from their home; everyone reads them in a sheet from the Profile. A class without a deadline shows
 admins a "Sem prazo" chip on its card and a "Sem prazo de cancelamento" banner on its details that opens the rules
 screen; a class with one shows everyone "Cancelamento até …" on its details. The student's request button, its
-sheet and the enrolment banners and card chip are Enrolment's (on the student's details and Agenda only);
-cancelling a seat until the deadline comes with spec 043. On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
+sheet and the enrolment banners and card chip are Enrolment's (on the student's details and Agenda only), and so
+are the "Cancelar inscrição" button and its sheet and the deadline notes with "Falar com a escola" (spec 043). On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
 mode opens a location to edit it; the location sheet searches addresses as the admin types, places the point on a
 small map, offers to tell the instructors when upcoming classes use it, and removes it after a confirmation; a
 class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
@@ -421,3 +421,5 @@ which stops that account from being erased while the link exists — a decision 
   cards the enrolment chip (`showEnrolment`), both only in the student's flow.
 - `042-enrolment-decisions` — the reader's enrolment carries its `reason` (`null` when none); the seats taken and
   the roster now grow as admins approve requests in [Enrolment](enrolment.md).
+- `043-seat-cancellation` — no rule change here: a cancelled enrolment is returned as the reader's latest
+  enrolment like any other status; Enrolment reads the class's cancellation deadline to decide a cancel.

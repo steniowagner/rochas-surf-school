@@ -236,6 +236,7 @@ After their registration is approved, and before using the rest of the app, user
 #### Deleting an account
 
 _Implemented in spec 035-class-no-instructor (cancelling the user's class assignments in classes that haven't started)._
+_Implemented in spec 043-seat-cancellation (cancelling the user's upcoming seats and pending requests)._
 
 Users SHALL be able to delete their account after a confirmation step. Deleting SHALL close the account immediately and cancel the user's upcoming class seats, pending requests and class assignments.
 
@@ -952,6 +953,8 @@ Requests still pending when a class starts SHALL expire, and their students SHAL
 
 #### Cancellation notification
 
+_Implemented in spec 043-seat-cancellation._
+
 When a student cancels their seat, or deleting their account cancels it, admins SHALL be notified with the number of students on the class's waiting list, and the class's instructors SHALL be notified.
 
 - _Student cancels:_ When a student cancels their seat in a class with 2 waiting requests, then admins are notified of the cancellation, with 2 students waiting, and the class's instructors are notified.
@@ -1072,6 +1075,8 @@ A class's cancellation deadline SHALL NOT be later than the class's start time.
 
 #### Cancelling a seat
 
+_Implemented in spec 043-seat-cancellation._
+
 A student SHALL be able to cancel their seat until the class's deadline, and SHALL NOT be able to cancel it after the deadline.
 
 - _Before the deadline:_ When a student cancels their seat before the class's deadline, then the seat is cancelled.
@@ -1080,6 +1085,7 @@ A student SHALL be able to cancel their seat until the class's deadline, and SHA
 #### No deadline available
 
 _Implemented in spec 036-cancellation-rules-deadline (retrying and the admins' flag; telling a student to contact the school comes with enrolment)._
+_Implemented in spec 043-seat-cancellation (telling a student to contact the school)._
 
 While a class has no deadline because it couldn't be worked out, students who try to cancel a seat in it SHALL be told to contact the school, and the system SHALL keep trying to work the deadline out. Admins SHALL see the class flagged as having no cancellation deadline; nobody SHALL be notified.
 

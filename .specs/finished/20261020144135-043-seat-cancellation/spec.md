@@ -2,13 +2,14 @@
 id: "043"
 slug: seat-cancellation
 title: "Students cancel their seat until the cancellation deadline"
-status: accepted
+status: finished
 started: 2026-10-20
 base_commit: a15b0ae653b308bb2f65e2aa7d5617db49a72de8
 reviewed_commit: 6473b57d2de4f42f036917871ea83b98a833a698
 created: 2026-10-19
 fronts: [enrolment, classes, auth, notifications, backend, mobile]
 depends_on: ["042"]
+finished: 2026-10-20
 ---
 
 # 043 — Students cancel their seat until the cancellation deadline

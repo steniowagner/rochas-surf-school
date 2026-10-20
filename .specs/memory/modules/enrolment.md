@@ -8,8 +8,10 @@ discipline, follows the request, and may take it back or ask again. It also ends
 pending ones expire when the class starts, and open ones end when the class is cancelled. It is the source of
 the seats taken, the approved students and the pending requests that [Classes](classes.md) shows. It covers the
 student's request side and the admins' decisions: admins see the pending requests by class, in the order asked,
-and approve one while the class has a free seat or deny it with an optional reason. Cancelling a seat, direct
-enrolment, taking a student out and guests come with their specs (043–045).
+and approve one while the class has a free seat or deny it with an optional reason. A student gives up an
+approved seat until the class's cancellation deadline, and a deleted account's upcoming seats and pending requests
+are given up on [Authentication](auth.md)'s behalf. Direct enrolment, taking a student out and guests come with
+their specs (044–045).
 
 ## Main concepts
 
@@ -22,12 +24,13 @@ enrolment, taking a student out and guests come with their specs (043–045).
   - `pending` ✓ — a new request. It holds no seat. Becomes `approved` ✓ or `denied` ✓ (an admin, before the class
     starts), or ends as `withdrawn` ✓ (the student, before the class starts), `expired` ✓ (still pending when the
     class starts) or `classCancelled` ✓ (the class was cancelled).
-  - `approved` ✓ — holds a seat; `decidedAt` is when it was approved. Ends as `classCancelled` ✓, or later `cancelled` (the student, spec 043) or
-    `takenOut` (an admin, spec 044).
+  - `approved` ✓ — holds a seat; `decidedAt` is when it was approved. Ends as `cancelled` ✓ (the student, before
+    the deadline; or the account was deleted), `classCancelled` ✓, or later `takenOut` (an admin, spec 044).
+  - `cancelled` ✓ — the seat was given up; `endedAt` is when. The student may request again.
   - `denied` ✓ — refused by an admin, with the reason when one was written; `decidedAt` is when (`endedAt` stays
     empty). The student may request again.
   - `withdrawn`, `expired`, `cancelled`, `takenOut`, `classCancelled` — ended: kept as history, never
-    changed again.
+    changed again (a pending request also ends as `withdrawn` when its student's account is deleted).
 - **Open enrolment**: a `pending` or `approved` one — the student's one live request or seat in that class.
 - **On the waiting list** (not stored): how a `pending` request reads while its class is full (seats taken ≥
   capacity). It is a label, not a status.
@@ -90,35 +93,60 @@ enrolment, taking a student out and guests come with their specs (043–045).
 - **Seats taken are the approved enrolments** (guests join with spec 045); **the students** are the approved
   ones, in the order they were approved (then by id); **pending requests** are the pending ones. Withdrawn,
   expired, class-cancelled, denied and every other ended enrolment count nowhere.
-- **A deleted or removed student's requests stay as they are** until spec 043 releases them.
+- **A student cancels their own approved seat while it is before the deadline**, checked in this order: the
+  account's status (`user.status.notApproved`, 403); the enrolment (an id that isn't a UUID, no enrolment, another
+  person's, or one whose class is gone → `enrolment.notFound`, 404); `enrolment.notApproved` (409 — pending, denied
+  or any ended status); `class.started` (409); `enrolment.deadline.missing` (409 — the class has no deadline: the
+  app tells the student to contact the school); `enrolment.deadline.passed` (409). The deadline is exclusive: at
+  the deadline the seat is no longer cancellable. The write happens only while the seat is still approved, so of
+  two cancels racing one wins and the other gets `enrolment.notApproved`. A refused cancel changes nothing and
+  tells nobody. What a late cancellation costs is settled outside the app.
+- **Admins and the class's instructors hear of every cancelled seat**: one `enrolment.cancelled` for each approved
+  admin and each instructor of the class — an admin who teaches it hears once — with the student's name, the
+  class's discipline and start, and the number of pending requests left after the cancel, through
+  [Notifications](notifications.md). A notification that fails never changes the answer.
+- **A deleted account gives up what it holds**: when [Authentication](auth.md) closes an account, every approved
+  enrolment of the person in a class that hasn't started and isn't cancelled becomes `cancelled` — with no deadline
+  check — with one `enrolment.cancelled` per class as above, and every pending one becomes `withdrawn`, telling
+  nobody, in one transaction. A failed write fails the deletion (the account stays approved); releasing twice
+  changes nothing more. Seats in started, finished or cancelled classes are untouched. A removed account's or a
+  promoted student's seats stay as they are until their specs reuse the same release.
 
 ## Who can do what
 
 - **An approved student** — requests a seat in a class that hasn't started and isn't cancelled (accepting its
-  rule when there is one), withdraws their own pending request before the class starts, requests again after an
-  earlier one ended, and sees their latest enrolment on every class they read.
+  rule when there is one), withdraws their own pending request before the class starts, cancels their own approved
+  seat before the class's deadline, requests again after an earlier one ended, and sees their latest enrolment on
+  every class they read.
 - **An approved instructor or admin** — can't request; reads no enrolment of their own on any class; is told of
-  every new request (admins all of them, instructors those of the classes they teach).
+  every new request and every cancelled seat (admins all of them, instructors those of the classes they teach).
 - **An approved admin** — lists the pending requests by class, approves one while its class has a free seat and
   hasn't started, and denies one, with an optional reason, before the class starts.
-- **Nobody** — expiring requests and ending them for a cancelled class happen without an actor.
+- **Nobody** — expiring requests, ending them for a cancelled class and releasing a deleted account's enrolments
+  happen without an actor.
 
 ## Boundaries
 
 It depends on [Classes](classes.md) (the actor, the access check, the class state and the discipline) and on
 [Authentication](auth.md) (role and status names); Classes never depends on it. It reads a class — its
-discipline, start, end, capacity, cancellation, instructors and whether its discipline has a cancellation rule —
+discipline, start, end, capacity, cancellation, cancellation deadline, instructors and whether its discipline has
+a cancellation rule —
 and a student's name through its own contracts, which the backend fulfils. It answers Classes' contracts for the
 roster, the seats taken, the pending requests, the viewer's enrolment and closing a cancelled class's
 enrolments, through adapters the backend provides; Classes still decides when a class is cancelled and who else is
-told. It doesn't send notifications itself: the new-request, decision and expiry notices go through its own
-contract, which [Notifications](notifications.md) fulfils. It doesn't read the clock directly. Cancelling a seat and
-its deadline (043), direct enrolment and taking out (044), guests (045), the waiting-list switch (046), telling
+told. It fulfils, through a backend adapter, [Authentication](auth.md)'s contract for releasing a deleted account's
+seats and requests; Authentication decides when. It doesn't send notifications itself: the new-request, decision,
+expiry and cancelled-seat notices go through its own contract, which [Notifications](notifications.md) fulfils. It
+doesn't read the clock directly. Direct enrolment and taking out (044), guests (045), the waiting-list switch (046), telling
 students of class edits and location changes (047) and the student's "Minhas aulas" (048) aren't built, nor a
-history of who decided or undoing a decision. In the app, students request from a class's details (a sheet with
+history of who decided or undoing a decision, cancelling several seats at once or undoing a cancellation. In the
+app, students request from a class's details (a sheet with
 the class, the cancellation deadline and the rule to accept), withdraw (with a confirmation, or at once from the
 waiting list), and see their status on the details and on the Agenda's cards — "Você está inscrito" once approved,
-"Pedido recusado" with a sheet showing the school's reason and "Pedir novamente" once denied. Admins decide in the
+"Pedido recusado" with a sheet showing the school's reason and "Pedir novamente" once denied. An approved student
+cancels from the details' "Cancelar inscrição" (a sheet with the deadline) and then reads "Você cancelou a
+inscrição", the chip "Você cancelou" and "Pedir novamente"; past the deadline, or without one, the footer tells
+them to contact the school, with the school's WhatsApp. Admins decide in the
 "Inscrições em aulas" tool, reached from a row on their home with the number of requests.
 
 ## Spec history
@@ -135,3 +163,9 @@ waiting list), and see their status on the details and on the Agenda's cards —
   `enrolment.denied`), nobody else, and nobody when a seat opens; `reason` on the viewer's enrolment; the app's
   "Inscrições em aulas" tool and home row, the student's approved and denied banners, chips, the reason sheet and
   "Pedir novamente", and the decision push taps.
+- `043-seat-cancellation` — students cancel their approved seat until the class's deadline (`POST
+  /enrolments/:id/cancel`, exclusive deadline, `enrolment.deadline.missing` / `.passed`); admins and the class's
+  instructors are told (`enrolment.cancelled`, with the waiting count); a deleted account's upcoming seats are
+  cancelled and its pending requests withdrawn (`ReleaseStudentEnrolments`, behind Authentication's
+  `SeatReleaser`); the class reader carries the deadline; the app's "Cancelar inscrição" button and sheet, the
+  cancelled banner and chip, the deadline notes with "Falar com a escola", and the cancelled-seat push taps.

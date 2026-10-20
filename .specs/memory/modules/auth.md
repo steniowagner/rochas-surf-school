@@ -27,10 +27,12 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **Deleting one's account**: an approved account closes itself after a confirmation in the app; it becomes
   `deleted` with the moment of the deletion, and can then send its reactivation request. Any other status is
   refused with `user.status.notApproved`. After those checks and before the account is marked deleted, its
-  upcoming class assignments are released (every role; a student has none): if releasing fails, the deletion
-  fails as a whole and the account stays approved, and since releasing twice changes nothing more, trying again
-  is safe. A reactivation doesn't bring the assignments back. Not built yet: refusing the only admin, cancelling
-  the account's seats and enrolments (none exist yet), and erasing it 30 days later.
+  upcoming class assignments are released (every role; a student has none), then its seats in classes that
+  haven't started are cancelled and its pending requests withdrawn ([Enrolment](enrolment.md) tells admins and
+  instructors of each cancelled seat): if either release fails, the deletion fails as a whole and the account
+  stays approved, and since releasing twice changes nothing more, trying again is safe. A reactivation doesn't
+  bring the assignments, seats or requests back. Not built yet: refusing the only admin, and erasing it 30 days
+  later.
 - **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
   country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
@@ -273,8 +275,9 @@ about registrations and one that removes a phone's push token on sign-out — pr
 registration is erased, and asks a third contract, provided the same way, to delete the admins' "new
 registration" notifications about it (spec 021). Deleting one's own account is built (spec 026); it releases the
 account's upcoming classes through a fourth contract of its own, fulfilled by the backend with
-[Classes](classes.md)' release (spec 035) — this module never depends on Classes. The role-change and removal
-rules are meant to use the same contract. Removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
+[Classes](classes.md)' release (spec 035), then gives up the account's seats and requests through a fifth,
+fulfilled with [Enrolment](enrolment.md)'s release (spec 043) — this module depends on neither. The role-change
+and removal rules are meant to use the same contracts. Removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
 requests, and deciding reactivation requests are rules of the account lifecycle still to be specified.
 
 ## Spec history
@@ -347,3 +350,5 @@ requests, and deciding reactivation requests are rules of the account lifecycle 
 - `039-join-school-design` — no business change: the app's "Join the school" tool follows its designs (count,
   description, cards with email and icon buttons, the person's sheet with the email, the new deny sheet copy with
   "Back"), and a decided card just leaves the list, without "Decided just now".
+- `043-seat-cancellation` — deleting one's account also gives up the account's upcoming seats and pending
+  requests, through the new `SeatReleaser` contract called after `TeachingReleaser`, with the same failure rule.

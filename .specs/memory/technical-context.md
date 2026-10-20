@@ -99,14 +99,16 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     for an `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `class.cancelled` push in the `student`
     flow (specs 041, 042), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
     the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
-    class id (spec 042), else
+    class id (spec 042), `router.push(routes.instructor.classDetail(classId))` /
+    `router.push(routes.admin.classDetail(classId))` for an `enrolment.cancelled` push with a string `data.classId`
+    in the `instructor` / `admin` flow (spec 043), else
     `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
     `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
     `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037),
-    the four enrolment pushes invalidate `["classes"]` and `enrolment.requested` also `["enrolments", "pending"]`
-    (specs 041, 042); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    the five enrolment pushes invalidate `["classes"]` and `enrolment.requested` / `enrolment.cancelled` also
+    `["enrolments", "pending"]` (specs 041–043); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -632,9 +634,14 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `ReleaseUpcomingClasses`, see Classes), provided and exported by `ClassesModule`, which `AuthModule` imports
   (classes imports `DbModule`, `EnrolmentModule` and `NotificationsModule`, none of which imports auth, so there is
   no cycle); the role-change and removal
-  use cases are meant to take the same port. It doesn't end the account's sessions: the app signs out right after
+  use cases are meant to take the same port. Right after it, still before the update, it awaits the auth port
+  `SeatReleaser` (`modules/auth/src/user/provider/seat-releaser.provider.ts`, `releaseSeats(userId)`; spec 043),
+  with the same failure rule. It is implemented by `EnrolmentSeatReleaser`
+  (`apps/backend/src/modules/enrolment/enrolment.seat-releaser.ts`, running `ReleaseStudentEnrolments`, see
+  Enrolment), provided and exported by `EnrolmentModule`, which `AuthModule` also imports (enrolment imports only
+  `DbModule` and `NotificationsModule`). It doesn't end the account's sessions: the app signs out right after
   (`useSignOut`), and other devices move to the reactivation flow at their next account read. It doesn't yet
-  refuse the only admin or end the account's seats and enrolments (spec 043; until then they stay as they are).
+  refuse the only admin.
 - Reactivation request: `POST /auth/me/reactivation-request` (`RequestReactivation`, protected, no body)
   answers 200 with the account shape. It checks, in this order: the account exists (401 `auth.token.invalid`),
   its status is `deleted` (403 `user.status.notDeleted`), its request wasn't denied (409
@@ -741,8 +748,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   token. The name rules shared by Create account and "Your name" are `nameRules()` in
   `modules/auth/utils/field-validation.ts`, the same as `User.validate()`.
 - Mobile closed-account calls: the Denied and Access removed screens read the school's number with a query on
-  `GET /school-settings` (`useSchoolWhatsapp` in `modules/offboarding/hooks`, authenticated, no retry);
-  the "Contact the school" button renders only with a non-null number and opens `https://wa.me/<digits>` with
+  `GET /school-settings` (`useSchoolWhatsapp` in `src/hooks/use-school-whatsapp.hook.ts`, authenticated, no retry);
+  the "Contact the school" button (`ContactSchoolButton`, `src/components/contact-school-button/`, shared with the
+  class details' deadline notes since spec 043) renders only with a non-null number and opens `https://wa.me/<digits>` with
   `Linking.openURL` (a toast when it rejects) — loading, an error and `null` all hide it, because the contact is
   an extra. The Account deleted screen picks its state from the session's `reactivationStatus` (`null` → not
   requested, `"requested"`, `"denied"`); `useRequestReactivation` (`modules/reactivation/hooks`) is a mutation
@@ -1160,14 +1168,17 @@ import cycle.
   `ruleAcceptedAt`, `decidedAt`, `reason`, `endedAt`, and the transitions `withdraw(now)` / `expire(now)` (from
   `pending`, else 409 `enrolment.notPending`) and `closeForCancelledClass(now)` (from an open status, else 409
   `enrolment.notOpen`), each setting `endedAt`, and `approve(now)` / `deny(reason, now)` (spec 042; from `pending`,
-  else 409 `enrolment.notPending`), which set `decidedAt` (and `reason`) but not `endedAt`. Ports (`provider/`):
+  else 409 `enrolment.notPending`), which set `decidedAt` (and `reason`) but not `endedAt`, and `cancel(now)` (spec
+  043; from `approved`, else 409 `enrolment.notApproved`), which sets `endedAt`. Ports (`provider/`):
   `EnrolmentRepository` (`create`, `findById`, `withdraw(id, now)` and `expire(id, now)` → `boolean`, conditional on
   `pending`, `findExpirable(now)`, `closeOpenForClass(classId, now)` → the closed enrolments; spec 042:
   `findPendingByClass(now)` → `PendingRequestsClass[]`, `approve(id, now)` → `"approved" | "full" | "notPending"`
-  (locked, see Persistence), `deny(id, reason, now)` → `boolean`), `EnrolmentClassReader` (`findById` → `{ id,
-  discipline, startsAt, endsAt, capacity, cancelledAt, instructorIds, hasCancellationRule }`), `StudentNameReader`
-  (`findName(id)`), `EnrolmentNotifier` (`seatRequested`, `requestExpired`, and `requestApproved` / `requestDenied`
-  since spec 042) and `ClockProvider`; fakes and a factory under `test/mock/`.
+  (locked, see Persistence), `deny(id, reason, now)` → `boolean`; spec 043: `cancel(id, now)` → `boolean`,
+  conditional on `approved`, `countPendingForClass(classId)`, `releaseForStudent(studentId, now)` → the cancelled
+  enrolments), `EnrolmentClassReader` (`findById` → `{ id, discipline, startsAt, endsAt, capacity, cancelledAt,
+  cancellationDeadline, instructorIds, hasCancellationRule }`), `StudentNameReader`
+  (`findName(id)`), `EnrolmentNotifier` (`seatRequested`, `requestExpired`, `requestApproved` / `requestDenied`
+  since spec 042, and `seatCancelled` since spec 043) and `ClockProvider`; fakes and a factory under `test/mock/`.
 - Table `enrolments` (`prisma/models/enrolment.model.prisma`, migration `20261019191737_enrolment`): `id`,
   `class_id` → `classes` `ON DELETE CASCADE`, `student_id` → `users` `ON DELETE RESTRICT`, `status` (Postgres enum
   `enrolment_status`, values exactly as `ENROLMENT_STATUSES`, camelCase), `requested_at`, `rule_accepted_at`,
@@ -1198,6 +1209,19 @@ import cycle.
   `usecase/decision.ts`. Then `requestApproved({ studentId, classId, discipline, startsAt })` /
   `requestDenied({ …, reason? })`, swallowed. `myEnrolment` carries `reason` (`PrismaViewerEnrolmentReader` selects
   it; `ViewerEnrolment.reason?` is optional on the port).
+- Cancelling a seat (spec 043): `POST /enrolments/:id/cancel` (`CancelSeat`, no body, any approved role) → 200
+  `EnrolmentOut` with `cancelled`. Order: 403 `user.status.notApproved`, 404 `enrolment.notFound` (non-UUID, none,
+  another person's, or its class is gone), 409 `enrolment.notApproved` (`Enrolment.cancel(now)`, from `approved`
+  only), 409 `class.started`, 409 `enrolment.deadline.missing` (the class reader's `cancellationDeadline` is
+  `null`), 409 `enrolment.deadline.passed` (`now ≥ cancellationDeadline`: the deadline is exclusive); the
+  conditional write (`cancel(id, now)`, `updateMany` where `status = 'approved'`) losing → 409
+  `enrolment.notApproved`. Then `seatCancelled({ classId, studentName, discipline, startsAt, waitingCount,
+  instructorIds })`, `waitingCount` being `countPendingForClass` after the write; name lookup and notifier errors
+  swallowed. `ReleaseStudentEnrolments` (no actor, `{ studentId }` → `{ cancelled }`) backs the `SeatReleaser`
+  adapter: `releaseForStudent(studentId, now)` in one transaction — `updateManyAndReturn` of the approved
+  enrolments whose class has `startsAt > now` and `cancelledAt` null to `cancelled` (no deadline check), then the
+  pending ones to `withdrawn` — returning the cancelled ones by `requestedAt` then `id`; one `seatCancelled` per
+  cancelled class (notifier errors swallowed, a failed write propagates); withdrawals tell nobody.
 - `EnrolmentExpiryJob` (see Scheduled work) runs `ExpirePendingEnrolments` (no actor, output `{ expired }`):
   `findExpirable(now)` (pending enrolments of classes with `startsAt ≤ now` and `cancelledAt` null, joined in SQL),
   then `expire` each and `requestExpired({ studentId, classId, discipline, startsAt })` only for a row that changed;
@@ -1206,7 +1230,9 @@ import cycle.
 - REST Client requests in `enrolment.integration.http`; e2e in `apps/backend/test/enrolment.e2e-spec.ts` (fixed
   clocks for classes and enrolment, a faked `ExpoPushProvider`, the job run through `app.get(EnrolmentExpiryJob).run()`)
   and `apps/backend/test/enrolment-decisions.e2e-spec.ts` (spec 042: the list, approve, deny, the concurrent approve
-  for the last seat, the refusals and the notifications).
+  for the last seat, the refusals and the notifications) and `apps/backend/test/seat-cancellation.e2e-spec.ts`
+  (spec 043: cancel, the concurrent cancel, every refusal in order, the notifications); the account-deletion release
+  is a case of `apps/backend/test/auth-profile.e2e-spec.ts`, which also fixes the enrolment clock.
 - Mobile (`apps/mobile/src/modules/enrolment/`): `enrolment.types.ts` (`MyEnrolment` with `reason`,
   `EnrolmentStatus`, `EnrolmentResponse`, `RequestSeatRequest`, `PendingRequestsResponse`, `DenyRequestVariables`);
   `ClassItem.myEnrolment` in the classes types.
@@ -1214,16 +1240,23 @@ import cycle.
   admins twice — invalidating `["classes"]` on success). `utils/enrolment-cta.ts` (`getEnrolmentCta(myEnrolment,
   full)`: none or `withdrawn` / `expired` → `request` / `requestAgain` (`primary`) or `joinWaitingList` /
   `requestAgain` (`dark`) when full; `pending` → `withdraw` (`outline`) or `leaveWaitingList` (`ghost`) when full;
-  `denied` → `requestAgain`; `approved` and any other status → none), `utils/enrolment-status.ts`
+  `denied` and `cancelled` → `requestAgain`; `approved` → `cancelSeat` (`outline`) only with `canCancel`, the
+  third argument; any other status → none), `utils/enrolment-status.ts`
   (`getEnrolmentDisplay`: `pending` on a full class reads `waitingList` — never stored —, with the banner and chip
-  tone, icon and `enrolment.status.*` keys for `pending`, `waitingList`, `withdrawn`, `expired`, `approved` (`ok`)
-  and `denied` (`bad`, its banner pressable); `BANNER_CLASSES` per tone, `toChipTone`), `utils/enrolment-error.ts` (`getRequestSeatErrorKey`,
-  `getWithdrawRequestErrorKey` → `enrolment.errors.*`, `classDetails.notFound` or the shared no-connection /
-  generic keys, `null` for an expired session; `shouldReloadClass` for `class.started`, `class.cancelled`,
-  `enrolment.alreadyOpen`, `enrolment.notPending`; `isRuleNotAcceptedError`, which refetches the rules). The
-  flow lives in `hooks/use-class-enrolment.hook.ts` (`useClassEnrolment({ item, state, canEnrol, reload })`, called
-  by the details' hook): the CTA and banner only while `canEnrol` and `not-started`, the two sheets' visibility, one
-  ref guarding a double press for both sends, the toasts and the reloads. `RequestSeatSheet`
+  tone, icon and `enrolment.status.*` keys for `pending`, `waitingList`, `withdrawn`, `expired`, `approved` (`ok`),
+  `denied` (`bad`, its banner pressable) and `cancelled` (`dim`, chip "Você cancelou"); `BANNER_CLASSES` per tone, `toChipTone`), `utils/enrolment-error.ts` (`getRequestSeatErrorKey`,
+  `getWithdrawRequestErrorKey`, `getCancelSeatErrorKey` → `enrolment.errors.*`, `classDetails.notFound` or the shared no-connection /
+  generic keys, `null` for an expired session and, on a cancel, for a closed deadline; `shouldReloadClass` for `class.started`, `class.cancelled`,
+  `enrolment.alreadyOpen`, `enrolment.notPending`, `enrolment.notApproved` and `isDeadlineClosedError`
+  (`enrolment.deadline.passed` / `.missing`); `isRuleNotAcceptedError`, which refetches the rules). The
+  flow lives in `hooks/use-class-enrolment.hook.ts` (`useClassEnrolment({ item, state, canEnrol, now, reload })`, called
+  by the details' hook with the screen's minute clock): the CTA and banner only while `canEnrol` and `not-started`,
+  `canCancel` (`now` before `cancellationDeadline`, exclusive like the backend) and `deadlineNote` (`"passed"` /
+  `"missing"` for an approved seat that can't be cancelled), the three sheets' visibility, one
+  ref guarding a double press for every send, the toasts and the reloads. `useCancelSeat()` (`POST
+  /enrolments/:id/cancel`, no retry, invalidating `["classes"]`); `CancelSeatSheet`
+  (`components/cancel-seat-sheet/`, no hook): the deadline line, confirm (`danger`, `loading`) / keep (`ghost`). The
+  details' footer shows the CTA and/or the `enrolment.cancelSeatNote.*` note with `ContactSchoolButton`. `RequestSeatSheet`
   (`components/request-seat-sheet/` + hook): a `BottomModal` with the rule block (the deadline card or
   `noDeadline`, `Checkbox` and the "Ler" `TextButton` while the discipline has a rule — it loads
   `useCancellationRules` while visible — else `noRule`), the primary / dark submit with `loading`, disabled until
@@ -1237,7 +1270,8 @@ import cycle.
   cancelled classes show none), and `classDetails.full.waitingList` under "Turma cheia" while the CTA is
   `joinWaitingList`. `ClassesWeekScreen` and `ClassCard` take `showEnrolment` (set only by the student's
   `(tabs)/index.tsx`): the card's status chip in the right slot, in place of "Sem vagas" (the started, finished and
-  cancelled chips win). Copy under `enrolment` (`cta`, `status`, `requestSheet`, `withdrawSheet`, `errors`) and
+  cancelled chips win). Copy under `enrolment` (`cta`, `status`, `requestSheet`, `withdrawSheet`, `cancelSeatSheet`,
+  `cancelSeatNote`, `errors`) and
   `classDetails.full.waitingList`. Since spec 042 a denial's banner stays on a started or cancelled class (without
   the CTA) and opens `DenialReasonSheet` (`components/denial-reason-sheet/`, a `BottomModal`: the class line, "Motivo
   da escola", the reason or `noReason`, "Fechar"), while an approved banner yields to the started one.
@@ -1292,7 +1326,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `data: { type, notificationId, classId? }` (`classId` copied from the notification's params when it is a
   string; spec 032), title and body from `renderPush` in the device's locale (dates in the copy, such as the class
   start of `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` /
-  `enrolment.requested` / `enrolment.expired` / `enrolment.approved` / `enrolment.denied`, are formatted by hand in Fortaleza time — fixed UTC-3, no
+  `enrolment.requested` / `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `enrolment.cancelled`, are formatted by hand in Fortaleza time — fixed UTC-3, no
   `Intl` — so the text is the same on every machine). A chunk that throws
   doesn't stop the others; its error is rethrown at the end (so the caller stores no tickets for that send) and
   logged by the notifier. Variable: `EXPO_ACCESS_TOKEN` (optional; sent only when set, needed only with Expo's
@@ -1332,7 +1366,9 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `enrolment.expired` with `{ classId, discipline, startsAt }` to the student; spec 042: `requestApproved` →
   `enrolment.approved` with `{ classId, discipline, startsAt }` and `requestDenied` → `enrolment.denied` with
   `{ classId, discipline, startsAt, reason? }`, `reason` only when written and used as the push body, both to the
-  student only). Since spec 041
+  student only; spec 043: `seatCancelled` → `enrolment.cancelled` with `{ classId, studentName, discipline,
+  startsAt, waitingCount }` to the approved admins plus the class's instructors, deduplicated, the "N na lista de
+  espera." sentence only when `waitingCount` > 0). Since spec 041
   `NotificationsClassChangeNotifier.classCancelled` notifies the union of `instructorIds` and `studentIds`. A
   catalog entry's `title` in
   `push-messages.ts` is a string or a function of the params (`class.noInstructor`'s depends on the count; a

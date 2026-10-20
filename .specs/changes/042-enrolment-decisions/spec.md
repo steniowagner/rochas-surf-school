@@ -183,10 +183,11 @@ option to request again. Nobody is told when a seat opens; admins choose who get
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-01** — Add `ListPendingRequests` (`src/enrolment/usecase/list-pending-requests.usecase.ts`, admins only,
+- [x] **T-01** — Add `ListPendingRequests` (`src/enrolment/usecase/list-pending-requests.usecase.ts`, admins only,
   D-03) and the repository method `findPendingByClass(now)` with the in-memory version, with tests. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01 · Done when: `npx jest test/enrolment/usecase/list-pending-requests.usecase.test.ts` passes.
+  > ✅ 2026-10-20 — added `PendingRequestsClass` / `PendingRequest` read models and `findPendingByClass(now)` to the repository port, the `ListPendingRequests` use case (admins only, `total` = requests) and `pendingClasses` on the in-memory repository (it drops started and empty classes); files: `modules/enrolment/src/enrolment/provider/enrolment.repository.ts`, `modules/enrolment/src/enrolment/usecase/list-pending-requests.usecase.ts`, `modules/enrolment/src/enrolment/usecase/index.ts`, `modules/enrolment/test/mock/fake-enrolment.repository.ts`, `modules/enrolment/test/enrolment/usecase/list-pending-requests.usecase.test.ts`; verified: `npx jest test/enrolment/usecase/list-pending-requests.usecase.test.ts` (5 passed), `tsc --noEmit` clean; deviations: none (the Prisma adapter gets the method in T-05, so the backend doesn't type-check until then)
 
 - [ ] **T-02** — Add `approve(now)` and `deny(reason, now)` to the `Enrolment` entity (from pending only; the
   reason rule of D-02) and the use cases `ApproveRequest` and `DenyRequest` (D-04, the repository's locked

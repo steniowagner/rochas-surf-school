@@ -1,9 +1,17 @@
 import { ConflictError } from "@rochas-surf-school/shared";
-import { Enrolment, EnrolmentRepository, EnrolmentClass, ExpirableEnrolment } from "../../src";
+import {
+  Enrolment,
+  EnrolmentClass,
+  EnrolmentRepository,
+  ExpirableEnrolment,
+  PendingRequestsClass,
+} from "../../src";
 
 export class FakeEnrolmentRepository implements EnrolmentRepository {
   /** Set to make the next `create` fail (a lost race, for instance). */
   createError: Error | null = null;
+  /** What `findPendingByClass` reads: the read model the database adapter builds with a join. */
+  pendingClasses: PendingRequestsClass[] = [];
   private enrolments: Enrolment[];
 
   constructor(
@@ -59,6 +67,12 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
 
   async expire(id: string, now: Date): Promise<boolean> {
     return this.change(id, (item) => item.expire(now));
+  }
+
+  async findPendingByClass(now: Date): Promise<PendingRequestsClass[]> {
+    return this.pendingClasses.filter(
+      (item) => item.startsAt.getTime() > now.getTime() && item.requests.length > 0,
+    );
   }
 
   async closeOpenForClass(classId: string, now: Date): Promise<Enrolment[]> {

@@ -92,6 +92,19 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
+  // A cancelled seat opens its class, for the class's instructors and for the admins.
+  if (data?.type === "enrolment.cancelled" && classId !== null && flow === "instructor") {
+    router.push(routes.instructor.classDetail(classId));
+
+    return;
+  }
+
+  if (data?.type === "enrolment.cancelled" && classId !== null && flow === "admin") {
+    router.push(routes.admin.classDetail(classId));
+
+    return;
+  }
+
   // Admins act on the request: it opens the tool.
   if (data?.type === "enrolment.requested" && flow === "admin") {
     router.push(routes.admin.classRequests);

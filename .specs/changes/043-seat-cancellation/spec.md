@@ -246,9 +246,10 @@ withdraws their pending requests, so a deleted student never holds a seat.
   Covers: ER-06 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "deadline"` passes.
   > ✅ 2026-10-20 13:17 — added `deadlineNote` ("passed" / "missing") to `useClassEnrolment` for an approved seat of a not-started class whose deadline closed (follows the screen's minute clock), the note and the shared `ContactSchoolButton` in the details' footer, and copy `enrolment.cancelSeatNote` in en-US, pt-BR and es-ES; files: `apps/mobile/src/modules/enrolment/hooks/use-class-enrolment.hook.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest src/modules/classes/screens/class-details.screen.test.tsx -t "deadline"` (29 passed; the process then prints Jest's open-handle warning, which it already did before this task), `npx jest src/modules/enrolment src/modules/classes src/components` (90 suites, 936 passed), `npx tsc --noEmit` and `npx eslint src` clean; deviations: none
 
-- [ ] **T-13** — Route `enrolment.cancelled` taps of the admin and instructor flows to the class details and
+- [x] **T-13** — Route `enrolment.cancelled` taps of the admin and instructor flows to the class details and
   invalidate the queries of ER-07 on receipt, with tests.
   Covers: ER-07 · Done when: `npx jest src/modules/notifications/hooks` passes.
+  > ✅ 2026-10-20 13:18 — a tap on an `enrolment.cancelled` push opens the class details in the instructor or admin flow; received with the app open it invalidates `["classes"]` and `["enrolments","pending"]` without navigating; files: `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`, `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`, `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`; verified: `npx jest src/modules/notifications` from `apps/mobile` (6 suites, 98 passed), `npx tsc --noEmit` and `npx eslint src` clean; deviations: none
 
 ### Verification
 

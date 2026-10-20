@@ -156,6 +156,26 @@ describe("Enrolment", () => {
     });
   });
 
+  describe("takeOut", () => {
+    it("ends an approved seat as taken out, keeping the reason", () => {
+      const out = build({ status: "approved" }).takeOut("Nível avançado", NOW);
+
+      expect(out.status).toBe("takenOut");
+      expect(out.reason).toBe("Nível avançado");
+      expect(out.endedAt).toEqual(NOW);
+    });
+
+    it("keeps no reason when there is none", () => {
+      expect(build({ status: "approved" }).takeOut(null, NOW).reason).toBeNull();
+    });
+
+    it.each(ENROLMENT_STATUSES.filter((status) => status !== "approved"))("refuses from %s", (status) => {
+      expect(() => build({ status }).takeOut(null, NOW)).toThrow(
+        expect.objectContaining({ message: "enrolment.notApproved", statusCode: 409 }),
+      );
+    });
+  });
+
   describe("expire", () => {
     it("ends a pending request as expired", () => {
       const out = build().expire(NOW);

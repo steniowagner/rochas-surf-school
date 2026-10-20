@@ -41,6 +41,11 @@ export interface SeatCancelled {
 
 export interface StudentEnrolled extends RequestDecided {}
 
+export interface StudentTakenOut extends RequestDecided {
+  /** The admin's trimmed reason, when one was given. */
+  reason?: string;
+}
+
 export interface EnrolmentNotifier {
   /** Tells the admins and the class's instructors that a student asked for a seat. */
   seatRequested(event: SeatRequested): Promise<void>;
@@ -52,6 +57,8 @@ export interface EnrolmentNotifier {
   requestDenied(event: RequestDenied): Promise<void>;
   /** Tells the student that an admin enrolled them directly. */
   studentEnrolled(event: StudentEnrolled): Promise<void>;
+  /** Tells the student that an admin took them out of the class, with the reason when there is one. */
+  studentTakenOut(event: StudentTakenOut): Promise<void>;
   /** Tells the admins (with the waiting count) and the class's instructors that a student gave up a seat. */
   seatCancelled(event: SeatCancelled): Promise<void>;
 }

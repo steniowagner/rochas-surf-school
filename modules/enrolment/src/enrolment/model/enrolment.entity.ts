@@ -26,6 +26,8 @@ export type EnrolmentStatus = (typeof ENROLMENT_STATUSES)[number];
 export const OPEN_ENROLMENT_STATUSES: readonly EnrolmentStatus[] = ["pending", "approved"];
 
 export const ENROLMENT_REASON_MAX = 500;
+/** What an admin may write when taking a student out of a class. */
+export const TAKE_OUT_REASON_MAX = 300;
 
 export interface EnrolmentState extends EntityState {
   classId: string;
@@ -109,6 +111,20 @@ export class Enrolment extends Entity<EnrolmentState> {
   /** The student gives up an approved seat. */
   cancel(now: Date): Enrolment {
     return this.end("cancelled", ["approved"], now, "enrolment.notApproved");
+  }
+
+  /** An admin takes the student out of an approved seat; `reason` is already trimmed, null when there is none. */
+  takeOut(reason: string | null, now: Date): Enrolment {
+    if (this.status !== "approved") {
+      throw new DomainError("enrolment.notApproved", 409);
+    }
+
+    return this.clone({
+      status: "takenOut",
+      reason,
+      endedAt: new Date(now.getTime()),
+      updatedAt: new Date(now.getTime()),
+    });
   }
 
   /** The class started while the request was still pending. */

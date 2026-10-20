@@ -127,6 +127,10 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
     return this.change(id, (item) => item.cancel(now), "approved");
   }
 
+  async takeOut(id: string, reason: string | null, now: Date): Promise<boolean> {
+    return this.change(id, (item) => item.takeOut(reason, now), "approved");
+  }
+
   async countPendingForClass(classId: string): Promise<number> {
     return this.enrolments.filter((item) => item.classId === classId && item.status === "pending").length;
   }

@@ -9,3 +9,4 @@ export * from "./deny-request.usecase";
 export * from "./cancel-seat.usecase";
 export * from "./release-student-enrolments.usecase";
 export * from "./enrol-student.usecase";
+export * from "./take-student-out.usecase";

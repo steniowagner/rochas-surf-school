@@ -280,6 +280,8 @@ describe("the other fakes", () => {
     expect(notifier.cancelledEvents).toEqual([cancelled]);
     await notifier.studentEnrolled(approved);
     expect(notifier.enrolledEvents).toEqual([approved]);
+    await notifier.studentTakenOut({ ...approved, reason: "Nível" });
+    expect(notifier.takenOutEvents).toEqual([{ ...approved, reason: "Nível" }]);
     expect(notifier.approvedEvents).toEqual([approved]);
     expect(notifier.deniedEvents).toEqual([{ ...approved, reason: "Sem vaga" }]);
 
@@ -290,6 +292,21 @@ describe("the other fakes", () => {
     await expect(notifier.requestExpired(expired)).rejects.toThrow("push down");
     await expect(notifier.seatCancelled(cancelled)).rejects.toThrow("push down");
     await expect(notifier.studentEnrolled(approved)).rejects.toThrow("push down");
+    await expect(notifier.studentTakenOut(approved)).rejects.toThrow("push down");
+  });
+});
+
+describe("FakeEnrolmentRepository take-outs", () => {
+  it("takes out only an approved seat", async () => {
+    const approved = buildEnrolment({ status: "approved" });
+    const pending = buildEnrolment({ studentId: "8e0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b" });
+    const repository = new FakeEnrolmentRepository([approved, pending]);
+
+    expect(await repository.takeOut(pending.id, null, NOW)).toBe(false);
+    expect(await repository.takeOut("missing", null, NOW)).toBe(false);
+    expect(await repository.takeOut(approved.id, "Nível", NOW)).toBe(true);
+    expect((await repository.findById(approved.id))!.status).toBe("takenOut");
+    expect(await repository.takeOut(approved.id, null, NOW)).toBe(false);
   });
 });
 

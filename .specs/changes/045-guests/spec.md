@@ -268,9 +268,20 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > `…/enrolment.module.ts`; verified: `npx vitest run src/modules/enrolment/guest-erasure.job.spec.ts` from
   > `apps/backend` (5 passed), `tsc --noEmit` clean; deviations: none.
 
-- [ ] **T-09** — Add `test/guests.e2e-spec.ts` (fixed clock, cleanup) with the add, refusals, visibility per role,
+- [x] **T-09** — Add `test/guests.e2e-spec.ts` (fixed clock, cleanup) with the add, refusals, visibility per role,
   remove, delete-class-not-empty, capacity and erasure cases.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-20 — added `guests.e2e-spec.ts` (fixed clock, cleanup by class cascade): add (stored, seat taken,
+  > counts against the capacity with approved students), shape errors together, missing/cancelled/started/full
+  > refusals, 403/401, the last seat raced by a guest and an approval (one winner), visibility per role on the class
+  > and the week list, delete-class `class.delete.notEmpty` and `class.capacity.belowSeatsTaken` counting guests,
+  > remove (204, seat freed, 404, `class.started`, 403/401) and the 30-day erasure (ended and cancelled erased,
+  > 29 days untouched, second run none, "Trial" for admins and instructors); the existing week-list shape in
+  > `classes.e2e-spec.ts` gained `guests: []`; files: `apps/backend/test/guests.e2e-spec.ts`,
+  > `apps/backend/test/classes.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend`
+  > (22 files, 593 tests passed after the one-line `classes.e2e-spec.ts` fix; guests suite 13 passed, race case
+  > run 3 more times); deviations: the capacity refusal answers 422 `class.capacity.belowSeatsTaken` (the existing
+  > edit rule), not 409.
 
 ### Mobile (`apps/mobile`)
 

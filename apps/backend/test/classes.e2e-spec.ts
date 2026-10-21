@@ -625,6 +625,7 @@ describe('Classes (e2e)', () => {
         ],
         seatsTaken: 0,
         students: [],
+        guests: [],
         myEnrolment: null,
       });
       expect(items[0]!.notes).toBeNull();

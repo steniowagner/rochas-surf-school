@@ -2,7 +2,7 @@
 id: "046"
 slug: school-settings-screen
 title: "School settings screen: waiting list switch and WhatsApp number"
-status: changes-requested
+status: in-review
 created: 2026-10-19
 started: 2026-10-21
 base_commit: eb6839262462fba0be3e5d1a06cdb65c66d1ba06
@@ -70,7 +70,7 @@ for a seat in a full class and see that the waiting list is closed; requests alr
   `{ "enabled": false }`, then the API answers 200 with `waitingListEnabled: false`, and `GET /school-settings`
   answers the same for any signed-in account.
 - **Edge and error cases:** a fresh database answers `waitingListEnabled: true`; a missing or non-boolean `enabled`
-  answers 422 `schoolSettings.waitingList.invalid`; a student or instructor answers 403 `user.role.notAdmin`; saving
+  answers 422 `schoolSettings.waitingList.invalid`; a student or instructor answers 403 `schoolSettings.role.notAdmin`; saving
   the switch keeps the WhatsApp number and saving the number keeps the switch.
 - **Verify by:** `npx jest test/school-settings` (from `modules/school-settings`) and the "waiting list" cases of
   `apps/backend/test/school-settings.e2e-spec.ts`.
@@ -287,6 +287,10 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 
 ## Amendments
 
+- 2026-10-21 — ER-01: a student or instructor answers 403 `user.role.notAdmin` → `schoolSettings.role.notAdmin`.
+  Reason: the use case answers with the module's own code, as spec 015's number route does; approved by the user
+  while fixing review finding F-01.
+
 ## Review
 
 ### Round 1 — 2026-10-21 — changes-requested
@@ -327,16 +331,22 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 
 **Findings**
 
-- [ ] **F-01** (ER-01) — a student or instructor calling `PUT /school-settings/waiting-list` gets 403
+- [x] **F-01** (ER-01) — a student or instructor calling `PUT /school-settings/waiting-list` gets 403
   `schoolSettings.role.notAdmin`, but ER-01 says 403 `user.role.notAdmin`. T-05 records this as a deviation, kept
   for consistency with spec 015's number route, but the Expected Result was changed without the user's approval or
   an entry under `## Amendments` (how-to-execute rule 10). Reproduce: `apps/backend/test/school-settings.e2e-spec.ts`
   → "refuses an approved student with 403" asserts `['schoolSettings.role.notAdmin']`. Expected: either ER-01
   amended to `schoolSettings.role.notAdmin` with the user's approval and logged under `## Amendments` (the code and
   tests then stand), or the code answering `user.role.notAdmin`.
-- [ ] **F-02** (convention) — `apps/mobile/src/modules/school-settings/components/school-settings-form/school-settings-form.hook.ts`
+  > ✅ 2026-10-21 — the user approved amending ER-01 to `schoolSettings.role.notAdmin`; logged under `## Amendments`;
+  > files: `.specs/changes/046-school-settings-screen/spec.md`; verified: ER-01 text now matches the e2e assertion;
+  > deviations: none
+- [x] **F-02** (convention) — `apps/mobile/src/modules/school-settings/components/school-settings-form/school-settings-form.hook.ts`
   imports `react-native` before `react-i18next`; `.claude/rules/react.md` §2 sorts each group alphabetically by
   module path. Expected: `react`, `react-i18next`, `react-native`.
+  > ✅ 2026-10-21 — imports reordered to `react`, `react-i18next`, `react-native`; files:
+  > `apps/mobile/src/modules/school-settings/components/school-settings-form/school-settings-form.hook.ts`; verified:
+  > `npx eslint` clean, `npx jest src/modules/school-settings` (18 passed); deviations: none
 
 **Notes**
 

@@ -172,7 +172,9 @@ they actually took. Students can follow all their requests in one place instead 
   > a cancelled class, a class under way, an upcoming one, another student's), 422 keys together and per value, 403
   > / 401. files: `apps/backend/test/my-classes.e2e-spec.ts`; verified: `npx vitest run --config vitest.config.e2e.ts
   > test/my-classes.e2e-spec.ts` (7 passed) and `npm run test:e2e --workspace apps/backend` (23 files, 622 passed);
-  > deviations: none.
+  > deviations: none. Fix during T-07: the backend `check-types` (which covers `test/`) refused the per-value 422
+  > loop's union of query objects; it is typed `Record<string, string>[]` now (`npm run check-types` clean, the file
+  > still 7 passed).
 
 ### Mobile (`apps/mobile`)
 

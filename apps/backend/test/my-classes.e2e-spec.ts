@@ -241,7 +241,8 @@ describe('My classes (e2e)', () => {
 
       const both = await history(ana.accessToken, { page: '0', perPage: '51' });
       expect([both.status, both.body.errors]).toEqual([422, ['class.page.invalid', 'class.perPage.invalid']]);
-      for (const query of [{ page: '1.5' }, { page: 'x' }, { perPage: '0' }, { perPage: '-3' }]) {
+      const queries: Record<string, string>[] = [{ page: '1.5' }, { page: 'x' }, { perPage: '0' }, { perPage: '-3' }];
+      for (const query of queries) {
         expect((await history(ana.accessToken, query)).status).toBe(422);
       }
     });

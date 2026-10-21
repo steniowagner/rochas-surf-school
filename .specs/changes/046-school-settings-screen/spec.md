@@ -155,12 +155,22 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-03** — Add `waiting_list_enabled` to `prisma/models/school-settings.model.prisma` with the migration
+- [x] **T-03** — Add `waiting_list_enabled` to `prisma/models/school-settings.model.prisma` with the migration
   `school-settings-add-waiting-list`, the field in `school-settings.prisma.ts`, and `PUT /school-settings/waiting-list`
   in `school-settings.controller.ts` with specs and requests in its `.integration.http`. Skills:
   [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module),
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01 · Done when: `npx vitest run src/modules/school-settings` passes.
+  > ✅ 2026-10-21 — added `waiting_list_enabled` (boolean, default true) and its migration (applied with
+  > `prisma migrate deploy` on the local database), the field in the repository mapping and upsert, and
+  > `PUT /school-settings/waiting-list` with specs and `.http` requests; files:
+  > `apps/backend/prisma/models/school-settings.model.prisma`,
+  > `apps/backend/prisma/migrations/20261021120000_school_settings_add_waiting_list/migration.sql`,
+  > `apps/backend/src/modules/school-settings/school-settings.prisma.ts`, `.../school-settings.prisma.spec.ts`,
+  > `.../school-settings.controller.ts`, `.../school-settings.controller.spec.ts`,
+  > `.../school-settings.integration.http`; verified: `npx vitest run src/modules/school-settings` (16 passed);
+  > deviations: the migration SQL was written by hand (the schema diff is one `ADD COLUMN`) instead of
+  > `migrate dev`; `tsc` still reports the `RequestSeat` call in `enrolment.controller.ts` (fixed in T-04)
 
 - [ ] **T-04** — Add `src/modules/enrolment/waiting-list-setting.prisma.ts` and pass it to `RequestSeat`, with its spec.
   Covers: ER-02 · Done when: `npx vitest run src/modules/enrolment` passes.

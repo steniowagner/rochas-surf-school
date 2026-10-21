@@ -23,6 +23,7 @@ describe('PrismaSchoolSettingsRepository', () => {
     schoolSettings.findUnique.mockResolvedValue({
       id: SCHOOL_SETTINGS_ID,
       whatsappNumber: '+5585999998888',
+      waitingListEnabled: false,
       createdAt: CREATED_AT,
       updatedAt: UPDATED_AT,
     });
@@ -35,6 +36,7 @@ describe('PrismaSchoolSettingsRepository', () => {
     expect(settings).toBeInstanceOf(SchoolSettings);
     expect(settings?.id).toBe(SCHOOL_SETTINGS_ID);
     expect(settings?.whatsappNumber).toBe('+5585999998888');
+    expect(settings?.waitingListEnabled).toBe(false);
     expect(settings?.createdAt).toEqual(CREATED_AT);
     expect(settings?.updatedAt).toEqual(UPDATED_AT);
   });
@@ -44,6 +46,7 @@ describe('PrismaSchoolSettingsRepository', () => {
     schoolSettings.findUnique.mockResolvedValue({
       id: SCHOOL_SETTINGS_ID,
       whatsappNumber: null,
+      waitingListEnabled: true,
       createdAt: CREATED_AT,
       updatedAt: UPDATED_AT,
     });
@@ -72,8 +75,12 @@ describe('PrismaSchoolSettingsRepository', () => {
 
     expect(schoolSettings.upsert).toHaveBeenCalledWith({
       where: { id: SCHOOL_SETTINGS_ID },
-      create: { id: SCHOOL_SETTINGS_ID, whatsappNumber: '+351912345678' },
-      update: { whatsappNumber: '+351912345678' },
+      create: {
+        id: SCHOOL_SETTINGS_ID,
+        whatsappNumber: '+351912345678',
+        waitingListEnabled: true,
+      },
+      update: { whatsappNumber: '+351912345678', waitingListEnabled: true },
     });
   });
 
@@ -84,8 +91,34 @@ describe('PrismaSchoolSettingsRepository', () => {
 
     expect(schoolSettings.upsert).toHaveBeenCalledWith({
       where: { id: SCHOOL_SETTINGS_ID },
-      create: { id: SCHOOL_SETTINGS_ID, whatsappNumber: null },
-      update: { whatsappNumber: null },
+      create: {
+        id: SCHOOL_SETTINGS_ID,
+        whatsappNumber: null,
+        waitingListEnabled: true,
+      },
+      update: { whatsappNumber: null, waitingListEnabled: true },
+    });
+  });
+
+  it('writes the switch with the number', async () => {
+    const { schoolSettings, repository } = setup();
+
+    await repository.save(
+      new SchoolSettings({
+        id: SCHOOL_SETTINGS_ID,
+        whatsappNumber: '+351912345678',
+        waitingListEnabled: false,
+      }),
+    );
+
+    expect(schoolSettings.upsert).toHaveBeenCalledWith({
+      where: { id: SCHOOL_SETTINGS_ID },
+      create: {
+        id: SCHOOL_SETTINGS_ID,
+        whatsappNumber: '+351912345678',
+        waitingListEnabled: false,
+      },
+      update: { whatsappNumber: '+351912345678', waitingListEnabled: false },
     });
   });
 });

@@ -234,10 +234,21 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > deviations: the migration SQL is hand-written (Prisma can't express the enrolments' partial unique index and
   > would try to drop it, as the model file warns); migration folder uses underscores like its siblings.
 
-- [ ] **T-06** — Add `src/modules/enrolment/guest.prisma.ts` (the locked insert shared with approvals) and count and
+- [x] **T-06** — Add `src/modules/enrolment/guest.prisma.ts` (the locked insert shared with approvals) and count and
   list guests in `class-roster-reader.prisma.ts`, `seat-counter.prisma.ts` and the pending-list's `seatsTaken`, with
   specs. Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npx vitest run src/modules/enrolment` passes.
+  > ✅ 2026-10-20 — added `PrismaGuestRepository` (locked insert: class row `FOR UPDATE`, seats = approved students
+  > plus guests, `full` when none is free; `deleteMany`; one `updateMany` for the erasure) and the shared helpers
+  > `lockClassCapacity`/`countSeatsTaken` that approvals and direct enrolment now use too, so every seat writer
+  > counts guests; guests are listed (uncapped, oldest first) and counted in `PrismaClassRosterReader`,
+  > `PrismaSeatCounter` and the pending-list's `seatsTaken`; registration in `EnrolmentModule` comes with T-07;
+  > files: `apps/backend/src/modules/enrolment/guest.prisma.ts`, `…/guest.prisma.spec.ts`,
+  > `…/seats-taken.prisma.ts`, `…/enrolment.prisma.ts`, `…/enrolment.prisma.spec.ts`,
+  > `…/class-roster-reader.prisma.ts`, `…/class-roster-reader.prisma.spec.ts`, `…/seat-counter.prisma.ts`,
+  > `…/seat-counter.prisma.spec.ts`; verified: `npx vitest run src/modules/enrolment` from `apps/backend`
+  > (102 passed), `tsc --noEmit` clean after rebuilding the `classes` and `enrolment` modules; deviations: the lock
+  > and the count live in `seats-taken.prisma.ts` rather than inside `guest.prisma.ts`, to share them with approvals.
 
 - [ ] **T-07** — Add `src/modules/enrolment/guests.controller.ts` (`POST /classes/:id/guests`, `DELETE /guests/:id`),
   its spec and `guests.integration.http`. Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).

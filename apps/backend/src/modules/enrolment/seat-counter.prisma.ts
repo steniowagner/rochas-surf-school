@@ -6,8 +6,13 @@ import { PrismaService } from '../../db/prisma.service.js';
 export class PrismaSeatCounter implements SeatCounter {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** The approved enrolments of the class; guests join in a later spec. */
-  countSeatsTaken(classId: string): Promise<number> {
-    return this.prisma.enrolment.count({ where: { classId, status: 'approved' } });
+  /** The approved enrolments of the class plus its guests. */
+  async countSeatsTaken(classId: string): Promise<number> {
+    const [students, guests] = await Promise.all([
+      this.prisma.enrolment.count({ where: { classId, status: 'approved' } }),
+      this.prisma.guest.count({ where: { classId } }),
+    ]);
+
+    return students + guests;
   }
 }

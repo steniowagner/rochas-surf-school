@@ -12,6 +12,7 @@ import { ConflictError } from '@rochas-surf-school/shared';
 import { PrismaService } from '../../db/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import type { Enrolment as EnrolmentRecord } from '../../generated/prisma/client.js';
+import { countSeatsTaken, lockClassCapacity } from './seats-taken.prisma.js';
 
 const UNIQUE_VIOLATION = 'P2002';
 const OPEN = [...OPEN_ENROLMENT_STATUSES] as ('pending' | 'approved')[];
@@ -122,12 +123,24 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
       return [];
     }
 
-    const taken = await this.prisma.enrolment.groupBy({
-      by: ['classId'],
-      where: { classId: { in: classes.map((item) => item.id) }, status: 'approved' },
-      _count: { _all: true },
-    });
-    const seatsTaken = new Map(taken.map((item) => [item.classId, item._count._all]));
+    const classIds = classes.map((item) => item.id);
+    const [taken, guests] = await Promise.all([
+      this.prisma.enrolment.groupBy({
+        by: ['classId'],
+        where: { classId: { in: classIds }, status: 'approved' },
+        _count: { _all: true },
+      }),
+      this.prisma.guest.groupBy({
+        by: ['classId'],
+        where: { classId: { in: classIds } },
+        _count: { _all: true },
+      }),
+    ]);
+    const seatsTaken = new Map<string, number>();
+
+    for (const item of [...taken, ...guests]) {
+      seatsTaken.set(item.classId, (seatsTaken.get(item.classId) ?? 0) + item._count._all);
+    }
 
     return classes.map(({ enrolments, ...item }) => ({
       ...item,
@@ -148,19 +161,15 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
       }
 
       // The class row is the lock every seat change takes, so two approvals for the last seat run one after the other.
-      const [locked] = await tx.$queryRaw<{ capacity: number }[]>(
-        Prisma.sql`SELECT capacity FROM classes WHERE id = ${stored.classId}::uuid FOR UPDATE`,
-      );
+      const capacity = await lockClassCapacity(tx, stored.classId);
 
-      if (!locked) {
+      if (capacity === null) {
         return 'notPending';
       }
 
-      const taken = await tx.enrolment.count({
-        where: { classId: stored.classId, status: 'approved' },
-      });
+      const taken = await countSeatsTaken(tx, stored.classId);
 
-      if (taken >= locked.capacity) {
+      if (taken >= capacity) {
         return 'full';
       }
 
@@ -177,11 +186,9 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
     try {
       return await this.prisma.$transaction(async (tx): Promise<DirectEnrolResult> => {
         // The class row is the lock every seat change takes, so this write and an approval run one after the other.
-        const [locked] = await tx.$queryRaw<{ capacity: number }[]>(
-          Prisma.sql`SELECT capacity FROM classes WHERE id = ${enrolment.classId}::uuid FOR UPDATE`,
-        );
+        const capacity = await lockClassCapacity(tx, enrolment.classId);
 
-        if (!locked) {
+        if (capacity === null) {
           return { result: 'full' };
         }
 
@@ -193,11 +200,9 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
           return { result: 'alreadyApproved' };
         }
 
-        const taken = await tx.enrolment.count({
-          where: { classId: enrolment.classId, status: 'approved' },
-        });
+        const taken = await countSeatsTaken(tx, enrolment.classId);
 
-        if (taken >= locked.capacity) {
+        if (taken >= capacity) {
           return { result: 'full' };
         }
 

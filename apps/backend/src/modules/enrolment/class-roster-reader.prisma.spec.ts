@@ -15,9 +15,10 @@ function row(classId: string, index: number) {
 
 function setup() {
   const enrolment = { findMany: vi.fn() };
-  const reader = new PrismaClassRosterReader({ enrolment } as unknown as PrismaService);
+  const guest = { findMany: vi.fn(async () => [] as unknown[]) };
+  const reader = new PrismaClassRosterReader({ enrolment, guest } as unknown as PrismaService);
 
-  return { enrolment, reader };
+  return { enrolment, guest, reader };
 }
 
 describe('PrismaClassRosterReader', () => {
@@ -32,8 +33,8 @@ describe('PrismaClassRosterReader', () => {
       select: { id: true, classId: true, student: { select: { id: true, name: true, photoUrl: true } } },
       orderBy: [{ decidedAt: { sort: 'asc', nulls: 'last' } }, { studentId: 'asc' }],
     });
-    expect(out.get('c-1')).toEqual({ seatsTaken: 3, students: [1, 2, 3].map(withEnrolment) });
-    expect(out.get('c-2')).toEqual({ seatsTaken: 1, students: [withEnrolment(5)] });
+    expect(out.get('c-1')).toEqual({ seatsTaken: 3, students: [1, 2, 3].map(withEnrolment), guests: [] });
+    expect(out.get('c-2')).toEqual({ seatsTaken: 1, students: [withEnrolment(5)], guests: [] });
     expect(out.has('c-3')).toBe(false);
   });
 
@@ -46,13 +47,42 @@ describe('PrismaClassRosterReader', () => {
     expect(out.get('c-1')).toEqual({
       seatsTaken: 7,
       students: [1, 2, 3, 4].map(withEnrolment),
+      guests: [],
     });
   });
 
+  it('reads the guests in the order they were added and counts them as seats, uncapped', async () => {
+    const { enrolment, guest, reader } = setup();
+    enrolment.findMany.mockResolvedValue([row('c-1', 1)]);
+    guest.findMany.mockResolvedValue([
+      { id: 'g-1', classId: 'c-1', name: 'Carolina Reis' },
+      { id: 'g-2', classId: 'c-1', name: null },
+      { id: 'g-3', classId: 'c-2', name: 'Bia Lima' },
+    ]);
+
+    const out = await reader.findRosters(['c-1', 'c-2'], 0);
+
+    expect(guest.findMany).toHaveBeenCalledWith({
+      where: { classId: { in: ['c-1', 'c-2'] } },
+      select: { id: true, classId: true, name: true },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
+    expect(out.get('c-1')).toEqual({
+      seatsTaken: 3,
+      students: [],
+      guests: [
+        { id: 'g-1', name: 'Carolina Reis' },
+        { id: 'g-2', name: null },
+      ],
+    });
+    expect(out.get('c-2')).toEqual({ seatsTaken: 1, students: [], guests: [{ id: 'g-3', name: 'Bia Lima' }] });
+  });
+
   it('reads nothing for no classes', async () => {
-    const { enrolment, reader } = setup();
+    const { enrolment, guest, reader } = setup();
 
     expect((await reader.findRosters([])).size).toBe(0);
     expect(enrolment.findMany).not.toHaveBeenCalled();
+    expect(guest.findMany).not.toHaveBeenCalled();
   });
 });

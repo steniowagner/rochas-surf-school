@@ -2,13 +2,14 @@
 id: "048"
 slug: my-classes-tab
 title: "\"Minhas aulas\": the student's requests and class history"
-status: accepted
+status: finished
 created: 2026-10-19
 started: 2026-10-21
 base_commit: 950953d06af6ceb61f9dd148969a7d444b6b919d
 reviewed_commit: d6b7033622c0b630657ab50d5f89e9f027d5952b
 fronts: [classes, backend, mobile]
 depends_on: ["047"]
+finished: 2026-10-21
 ---
 
 # 048 — "Minhas aulas": the student's requests and class history

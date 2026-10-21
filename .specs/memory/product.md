@@ -216,6 +216,10 @@ Listed in the order people meet them.
     at once). While it is off, a student can't request a seat in a full class that hasn't started; a class with a
     free seat is requested as before. Turning it off ends nothing: requests already waiting stay pending, and admins
     can still approve them when a seat opens.
+  - As built (spec 048): a student's **classes** ("Minhas aulas") are the classes that haven't ended where they have
+    any enrolment, cancelled classes included, each shown with its latest enrolment. Their **history** (the
+    classes they **took**) is the classes that ended, aren't cancelled, and where their latest enrolment is
+    `approved`: a seat held when the class ended. Only approved students have either list.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
   photo, or initials while there is no photo) and its guests ("Trial", or the name for admins and the class's
@@ -587,8 +591,8 @@ gains its own automated tests, including checks that every page opens in each la
 **Tab bars and the Profile tab** (spec `026-profile-tab`) — an approved account that finished onboarding now
 opens the tab bar of its role: a student has Agenda, Minhas aulas, Escola and Perfil (Agenda first); an instructor
 and an admin have Início, Aulas and Perfil (Início first). Every tab except Perfil and the admin's Início ("School
-tools") was a placeholder (spec 027 then filled the student's Escola and the instructor's Início, and spec 030 the
-student's Agenda and the Aulas tab) with its name; inner screens such as "Join the school" open above the tab bar,
+tools") was a placeholder (spec 027 then filled the student's Escola and the instructor's Início, spec 030 the
+student's Agenda and the Aulas tab, and spec 048 the student's Minhas aulas) with its name; inner screens such as "Join the school" open above the tab bar,
 without it. Perfil is the same for the three roles: the person's initials, name and role, then "Editar perfil" (the
 name, with the email read-only and the photo "coming soon"), WhatsApp ("Visível" / "Oculto"; the number, its
 country and the share switch), Tema (same as the phone, light or dark, applied at once), Idioma (pt-BR, es-ES or
@@ -925,7 +929,19 @@ pedido pendente." (or "Ao salvar, avisamos os instrutores da aula." when there i
 student who taps "Aula alterada" opens that class's details, and "Local de aula alterado" opens the Agenda; one
 received with the app open reloads the classes. All copy is in pt-BR, es-ES and en-US.
 
-Active specs: none in progress; spec 048 (the student's "Minhas aulas" tab and history) is planned.
+**"Minhas aulas" and the class history** (spec `048-my-classes-tab`) — the student's "Minhas aulas" tab lists every
+class they asked for that hasn't ended (cancelled ones included), by start, as the Agenda's cards with the status
+chip of their latest request. A row of chips filters it: Todos, Pendentes (the waiting list included), Aprovados,
+Recusados, Anulados, Cancelados, Retirados, Expirados and Aula cancelada (a request ended by the class's
+cancellation, or any request in a cancelled class); the chips go back to Todos whenever the tab loses focus, a class
+or the history opened above it included. With nothing to show it reads "Nada por aqui" with "Você ainda não pediu
+vaga em nenhuma aula." (Todos) or "Você não tem pedidos com este status."; the list reloads when the tab is shown
+again and on pull-to-refresh, and a failed load offers "Tentar novamente". A card opens the class's details. The round
+history button opens "Histórico": the classes the student took (a seat held when the class ended, not cancelled),
+newest first, 20 more at the end of the list, each card reading "N alunos presentes"; with none, "Você ainda não fez
+nenhuma aula.". All copy is in pt-BR, es-ES and en-US.
+
+Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -997,9 +1013,9 @@ Active specs: none in progress; spec 048 (the student's "Minhas aulas" tab and h
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On enrolment requests (specs 041–045), each planned in its own spec: the student's "Minhas aulas" tab and history
-  (048).
-  Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
+- On "Minhas aulas" (spec 048): the history's calendar to jump to a date (the history is a paged list), and keeping
+  the chosen chip after a class or the history opened above the tab.
+- On enrolment requests (specs 041–045): reminders before a class, storing the text of the cancellation rule a student accepted, and a
   success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
   requests on the admin's class details, filtering or searching the tool, a stored history of who decided and
   when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision. On

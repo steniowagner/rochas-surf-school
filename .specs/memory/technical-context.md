@@ -475,7 +475,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   is the role's `index`, so `/student`, `/instructor` and `/admin` stay the flows' entry routes); inner screens
   (`/admin/registrations`, `/admin/class-requests` — `routes.admin.classRequests`, spec 042 —, `/admin/people`, `/admin/new-class`, `/admin/edit-class/[id]` —
   `routes.admin.editClass(id)` —, `/instructor/people`, `/<role>/edit-profile`,
-  `/<role>/whatsapp`, `/<role>/school-rules`, `/<role>/class/[id]` — `routes.<role>.classDetail(id)`) are routes of the
+  `/<role>/whatsapp`, `/<role>/school-rules`, `/<role>/class/[id]` — `routes.<role>.classDetail(id)` —, `/student/my-history` —
+  `routes.student.myHistory`, spec 048) are routes of the
   role's `Stack`, outside `(tabs)`, so they open above the tab bar, without it, and go back with the native header's back button (and the iOS
   swipe-back / Android back); navigation tests go back with `router.back()`, since that button is a native view.
   Route tests that render a role live in `src/modules/<role>/*-tabs.navigation.test.tsx`, never under `src/app/`
@@ -891,7 +892,7 @@ guard's 401 `auth.token.invalid`.
   for an admin, `null` for every other role (`GetClass`'s fourth constructor argument) — so the answers of
   `PUT /classes/:id` and `POST /classes/:id/cancel` carry it too; the week list's items have no such key. It is
   declared after `GET /classes/time-range-suggestions`, so that path keeps its handler. Both read through the
-  `ClassViewReader` port (`findStartingBetween(from, to)`, `findById(id)` → `ClassView`, `ClassItem` with
+  `ClassViewReader` port (`findStartingBetween(from, to)`, `findById(id)`, and since spec 048 `findByIds(ids)` → `ClassView`, `ClassItem` with
   `Date`s), implemented by `PrismaClassViewReader` (`class-view-reader.prisma.ts`): one `findMany` / `findUnique`
   with the location and the instructors' `user` id and name. `seatsTaken` (approved students plus guests, never
   capped) and `students` (the approved students, `{ id, name, photoUrl, enrolmentId }`: `photoUrl` `null` while
@@ -914,6 +915,25 @@ guard's 401 `auth.token.invalid`.
   `ListWeekClasses` take it as their third constructor argument. The API never returns a state: `getClassState(startsAt,
   endsAt, now, cancelledAt?)` (`model/class-state.ts`, `not-started` / `started` / `finished`, or `cancelled`
   whenever `cancelledAt` is set — spec 033) is computed by the caller, which always passes the cancellation.
+- A student's own classes (spec 048), both declared before `GET /classes/:id`: `GET /classes/mine` (`ListMyClasses`) →
+  200 `{ items: ClassItem[] }`, unpaged: the classes whose `endsAt` is after now (cancelled ones included) where the
+  caller has any enrolment, by `startsAt` then `id`, each with `myEnrolment` (the latest). `GET
+  /classes/mine/history?page=&perPage=` (`ListMyClassHistory`) → 200 `{ items, total, page, perPage }`: the classes
+  that ended (`endsAt <= now`), aren't cancelled, and where the caller's latest enrolment (by `requestedAt` desc, then
+  `id` desc) is `approved`, newest `startsAt` first, then `id` desc. `page` and `perPage` are the raw query strings:
+  digits only, `page` 1 to `Number.MAX_SAFE_INTEGER` (default 1), `perPage` 1–50 (default 20,
+  `MY_CLASS_HISTORY_DEFAULT_PER_PAGE` / `MY_CLASS_HISTORY_MAX_PER_PAGE`); anything else → 422 `class.page.invalid` /
+  `class.perPage.invalid`, collected. Both are for approved students: `assertIsStudent` (exported from
+  `list-my-classes.usecase.ts`) answers 403 `user.status.notApproved`, then `enrolment.role.notStudent` for other
+  roles, before the query is checked. The ids come from the `MyClassesReader` port
+  (`provider/my-classes-reader.provider.ts`: `findCurrentClassIds(studentId, now)` → `string[]`,
+  `findHistoryClassIds(studentId, now, page, perPage)` → `MyClassHistoryPage` `{ ids, total }`), implemented by
+  `PrismaMyClassesReader` (`apps/backend/src/modules/enrolment/my-classes-reader.prisma.ts`: one `findMany` for the
+  current ids; for the history, two raw queries sharing one `Prisma.sql` fragment, the student's latest enrolment per
+  class by `DISTINCT ON (class_id)`, `LIMIT` / `OFFSET` and the `COUNT`). The classes are then loaded with
+  `ClassViewReader.findByIds(ids)` (one `findMany`, nothing read for no ids; any order, a missing id left out) and
+  built by `toMyClassItems` as cards (`CLASS_CARD_STUDENTS_LIMIT`, the viewer's latest enrolment, guests' names
+  hidden); the history keeps the reader's order.
 - `PUT /classes/:id` (admins; spec 032, `EditClass` in `usecase/edit-class.usecase.ts`) `{ discipline, level, date,
   start, end, locationId, instructorIds, capacity, notes? }` (`date` `YYYY-MM-DD`, `start` / `end` `HH:mm`,
   Fortaleza, turned into `startsAt` / `endsAt` with `toInstant` from `model/class-batch.ts`; the whole class every
@@ -1382,7 +1402,7 @@ import cycle.
   hook reads `useSchoolSettings` (not loaded or failed counts as on: the backend decides) and, for admins
   (`canEdit`), adds `classDetails.full.newRequestsWait` or `classDetails.full.waitingListOff` under "Turma cheia";
   instructors get neither. `ClassesWeekScreen` and `ClassCard` take `showEnrolment` (set only by the student's
-  `(tabs)/index.tsx`): the card's status chip in the right slot, in place of "Sem vagas" (the started, finished and
+  `(tabs)/index.tsx`, and on `ClassCard` by `MyClassesScreen` since spec 048): the card's status chip in the right slot, in place of "Sem vagas" (the started, finished and
   cancelled chips win). Copy under `enrolment` (`cta`, `status`, `requestSheet`, `withdrawSheet`, `cancelSeatSheet`,
   `cancelSeatNote`, `errors`) and
   `classDetails.full.waitingList`. Since spec 042 a denial's banner stays on a started or cancelled class (without
@@ -1436,6 +1456,33 @@ import cycle.
   `DenySheet`'s `hideReason`). `GuestsWarning` (`classes/components/guests-warning/`, `warn` tint, plural and
   singular, nothing at zero) sits in Editar aula's footer and in `CancelClassSheet` (`guestCount`). Copy under
   `enrolStudent.trial`, `takeOutSheet.guest*`, `classDetails.trialChip` / `includesTrial` / `guestsWarning`.
+- Mobile, spec 048: `useMyClasses()` (`hooks/use-my-classes.hook.ts`, `MY_CLASSES_QUERY_KEY` = `["classes", "mine"]`,
+  `GET /classes/mine`, no retry) and `useMyClassHistory()` (`hooks/use-my-class-history.hook.ts`, `useInfiniteQuery`
+  keyed `["classes", "mine", "history"]`, `GET /classes/mine/history?page=N&perPage=20`
+  (`MY_CLASS_HISTORY_PAGE_SIZE`), a next page while `page * 20 < total`, a class repeated across pages dropped by
+  id, no retry); both sit under `["classes"]`, so every existing `["classes"]` invalidation refreshes them. Types
+  `MyClassesResponse`, `MyClassHistoryPage` and `MyClassesFilter` in `enrolment.types.ts`. `utils/my-classes-filter.ts`:
+  `MY_CLASSES_FILTERS` (the chips in order: `all`, `pending`, `approved`, `denied`, `withdrawn`, `cancelled`,
+  `takenOut`, `expired`, `classCancelled`), `getMyClassFilter(item)` (a cancelled class or a `classCancelled` request
+  → `classCancelled`, else the request's status — `pending` covers the waiting list —, `null` without a request) and
+  `filterMyClasses(items, filter)`. `MyClassesScreen` (`screens/my-classes.screen.tsx` + `.hook.ts` / `.types.ts`,
+  rendered by the student's `(tabs)/my-classes.tsx`): one `FlatList` (`my-classes-list`) whose header holds the
+  `ds-text-screen-title` "Minhas aulas", a round 44 pt history button (`h-11 w-11`, `bg-surface`,
+  `shadowStyle("iconButton")`, Ionicons `time-outline`, pushing `routes.student.myHistory`) and `MyClassesFilters`
+  (`components/my-classes-filters/`: a horizontal `ScrollView` of `min-h-11` `TouchableOpacity` chips with
+  `accessibilityState.selected`, the selected one `bg-grape` / `text-on-color`); items are `ClassCard`s with
+  `showEnrolment`, a card pushing `routes.student.classDetail(id)`. `useFocusEffect` refetches on focus
+  (`cancelRefetch: false`) and its cleanup puts the chips back on `all`, so any blur — another tab, or a screen pushed
+  above — resets them. States: grape spinner, error with "Tentar novamente" only while nothing is loaded (a failed
+  refetch keeps the list), nothing after an expired session, the empty card (`myClasses.empty.all` / `.filtered`),
+  pull-to-refresh with its own spinner. `MyClassHistoryScreen` (`screens/my-class-history.screen.tsx` + `.hook.ts` /
+  `.types.ts`, route `src/app/(private)/student/my-history.tsx`, `routes.student.myHistory` = `/student/my-history`,
+  in the student `Stack`, title through `StackHeaderTitle`): a `FlatList` (`my-history-list`,
+  `contentInsetAdjustmentBehavior="automatic"`) of `ClassCard`s, `onEndReached` loading the next page (ignored while
+  one loads or at the end) with a footer spinner; a failed next page keeps the classes and toasts through
+  `getRegistrationErrorKey` (nothing for an expired session), as People does; spinner, error with retry, the empty
+  line and pull-to-refresh. `buildClassItem(id, startsAt, endsAt, overrides)` in `classes.test-utils.tsx` builds a
+  test `ClassItem`. Copy under `myClasses` and `myHistory`.
 
 ## Error handling
 
@@ -1667,7 +1714,8 @@ Maestro suite for mobile would be a spec of its own.
   `notifications.e2e-spec.ts` overrides `ExpoPushProvider` with a fake that records the messages and returns
   configurable tickets (`overrideProvider`); `classes.e2e-spec.ts` overrides it the same way and the classes
   module's `SystemClockProvider` with a fixed clock, and each test deletes the classes, locations and users it
-  created. `locations.e2e-spec.ts` (spec 037) overrides `ExpoPushProvider`, `GooglePlacesAddressSuggestionProvider`
+  created. `my-classes.e2e-spec.ts` (spec 048) does the same, its clock fixed at 2026-10-14 10:00 Fortaleza, with the
+  classes created relative to it. `locations.e2e-spec.ts` (spec 037) overrides `ExpoPushProvider`, `GooglePlacesAddressSuggestionProvider`
   and the classes clock (fixed in 2037, like the deadline suites) the same way. `cancellation-rules.e2e-spec.ts` and `cancellation-deadlines.e2e-spec.ts` (spec 036) fix the classes
   clock in 2037, so the job only meets the test's own classes and never writes fake deadlines to real ones in a
   shared dev database, snapshot the stored cancellation rules before and put them back after, and the second

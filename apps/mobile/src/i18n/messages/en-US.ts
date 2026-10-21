@@ -421,6 +421,11 @@ const messages = {
     loadError: "We couldn't load your classes.",
     retry: "Try again",
   },
+  myHistory: {
+    title: "History",
+    empty: "You haven't taken any class yet.",
+    loadError: "We couldn't load your history.",
+  },
   tabs: {
     agenda: "Schedule",
     myClasses: "My classes",

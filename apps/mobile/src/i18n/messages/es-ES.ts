@@ -428,6 +428,11 @@ const messages: Messages = {
     loadError: "No se pudieron cargar tus clases.",
     retry: "Reintentar",
   },
+  myHistory: {
+    title: "Historial",
+    empty: "Todavía no has hecho ninguna clase.",
+    loadError: "No se pudo cargar tu historial.",
+  },
   tabs: {
     agenda: "Agenda",
     myClasses: "Mis clases",

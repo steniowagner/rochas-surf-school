@@ -231,9 +231,26 @@ they actually took. Students can follow all their requests in one place instead 
   > `tsc` (typed routes) refuses the push — fixed by T-06. The 44 pt size is a class, which Jest can't measure (checked
   > on the simulator in T-07).
 
-- [ ] **T-06** — Add `src/modules/enrolment/screens/my-class-history.screen.tsx` (+ hook, types), the route
+- [x] **T-06** — Add `src/modules/enrolment/screens/my-class-history.screen.tsx` (+ hook, types), the route
   `src/app/(private)/student/my-history.tsx` and `routes.student.myHistory`, with tests and copy.
   Covers: ER-04 · Done when: `npx jest src/modules/enrolment/screens/my-class-history.screen.test.tsx` passes.
+  > ✅ 2026-10-21 — `MyClassHistoryScreen` (+ `.hook.ts`, `.types.ts`), route `src/app/(private)/student/my-history.tsx` in
+  > the student `Stack` (native header with back; title through `StackHeaderTitle` "Histórico"): a `FlatList`
+  > (`my-history-list`, `contentInsetAdjustmentBehavior="automatic"`) of `ClassCard`s, which read "N alunos presentes"
+  > for a finished class, newest first; `onEndReached` loads the next 20 (ignored while one loads or at the end), a
+  > footer spinner while it does, a failed next page keeps the classes and toasts with `getRegistrationErrorKey`
+  > (nothing for an expired session), as on People; grape spinner, error with "Tentar novamente", "Você ainda não
+  > fez nenhuma aula.", pull-to-refresh; a card pushes `routes.student.classDetail(id)`. Copy under `myHistory` in the
+  > three locales. files: `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.tsx`,
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.hook.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.types.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.test.tsx`,
+  > `apps/mobile/src/app/(private)/student/my-history.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest
+  > --no-watchman src/modules/enrolment/screens/my-class-history.screen.test.tsx` (11 passed; screen and hook 100%
+  > covered), `tsc --noEmit` clean once Expo's gitignored typed routes were regenerated
+  > (`@expo/router-server` `regenerateDeclarations`, which `expo start` also does), ESLint clean; deviations:
+  > `routes.student.myHistory` landed in T-05 (its button needed it).
 
 ### Verification
 

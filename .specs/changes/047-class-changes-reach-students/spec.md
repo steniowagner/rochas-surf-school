@@ -2,9 +2,10 @@
 id: "047"
 slug: class-changes-reach-students
 title: "Students hear about class edits and location changes"
-status: in-review
+status: accepted
 started: 2026-10-21
 base_commit: 5ea7d04ede7e87382ab8db1a2a5ff69840b65941
+reviewed_commit: 2075ca3a6cf768a2426f7001a1cf3b675f6a7d65
 created: 2026-10-19
 fronts: [classes, backend, mobile]
 depends_on: ["046"]
@@ -339,3 +340,54 @@ students, pending requests and instructors will be told. This closes the "with e
   the only class that week.
 - Not done on the simulator: saving the edit and confirming the cancel. Both would change the shared dev
   database and notify its accounts, and the e2e cases cover the stored notifications.
+
+### Round 2 — 2026-10-21 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (classes, backend, mobile: 27 tasks; the 15 backend oxlint warnings are all
+  on test lines older than this spec)
+- related tests ✅ RELATED TESTS PASSED (apps/backend, apps/mobile, modules/classes, modules/enrolment 291)
+- coverage of the changed lines ✅ COVERAGE OK, 19 files at 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED on the rerun, 22 files, 615 passed; the first run had two 5 s timeouts
+  (`cancellation-deadlines` "never picks, and never writes to, a cancelled class" and `classes` "tells only the
+  added and removed instructors when only the instructors change"), green on the rerun
+
+**Expected Results**
+
+- ER-01 ✅ — `edit-class.usecase.test.ts` and e2e "edit tells students" (seated, pending and instructor told;
+  withdrawn, expired and denied not; instructors-only and unchanged saves tell no student; push failure keeps the 200)
+- ER-02 ✅ — `edit-location.usecase.test.ts` and e2e "location tells students" (counts 2 and 1, past and cancelled
+  classes ignored, one notification with the larger count for a student who teaches, nothing with `notify: false`)
+- ER-03 ✅ — `get-class.usecase.test.ts -t "pending"` (4 passed: admin count, `null` for student and instructor)
+  and the e2e "pendingRequests" case (absent from the week list)
+- ER-04 ✅ — cancel sheet and edit footer tests (en-US); the pt-BR strings give exactly "Avisamos 2 inscritos, 1
+  pessoa com pedido pendente e 1 instrutor. A aula fica na agenda, marcada como cancelada." and "Ao salvar,
+  avisamos os instrutores, 2 inscritos e 1 com pedido pendente.", and "Ao salvar, avisamos os instrutores da
+  aula." with nobody to name; singular and plural forms in the three locales
+- ER-05 ✅ — `location-sheet.component.test.tsx`; the copy in the three locales; no checkbox without upcoming classes
+- ER-06 ✅ — `src/modules/notifications/hooks` (student `class.edited` tap → `/student/class/[id]`, `location.changed`
+  → `/student` via `router.push`; received pushes invalidate `["classes"]` and `["locations"]`)
+
+**Round 1 findings**
+
+- F-01 ✅ — the footer lists "os instrutores" as its first item: "… os instrutores e 1 inscrito." and "… os
+  instrutores e 3 com pedido pendente." (and es-ES, en-US); the `[1, 0]` and `[0, 3]` cases assert it
+- F-02 ✅ — mutation check: with the student `location.changed` branch disabled, "opens the Agenda of a student
+  who taps a location.changed push" fails; restored, it passes
+
+**Findings**
+
+- None
+
+**Notes**
+
+- Round 1's first Note still holds: `## Memory Impact` leaves out `ClassEdited.studentIds`, the rename of
+  `LocationChanged.recipients[].instructorId` to `userId`, the new constructor arguments of `EditClass`,
+  `EditLocation` (`ClassAudienceReader`) and `GetClass` (`PendingRequestCounter`), `PrismaClassAudienceReader`
+  among the enrolment adapters, the student push taps, the cancel sheet's new props and
+  `src/modules/classes/utils/audience.ts` (`joinAudience`). `spec-finish` should record them.
+- The backend e2e suite has intermittent 5 s timeouts under parallel load, in a different test each run (also
+  seen during T-03); a longer `testTimeout` for e2e would make the gate steadier.
+- The working tree has untracked `.expo/`, `tsconfig.json` (repo root) and `.specs/changes/048-my-classes-tab/`;
+  none belongs to this spec, and no tracked file is modified.

@@ -176,10 +176,28 @@ they actually took. Students can follow all their requests in one place instead 
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Add `hooks/use-my-classes.hook.ts` (`["classes", "mine"]`) and `hooks/use-my-class-history.hook.ts`
+- [x] **T-04** — Add `hooks/use-my-classes.hook.ts` (`["classes", "mine"]`) and `hooks/use-my-class-history.hook.ts`
   (`useInfiniteQuery`, `["classes", "mine", "history"]`) in `src/modules/enrolment/`, and the filter helper in
   `utils/my-classes-filter.ts`, with tests.
   Covers: ER-03, ER-04 · Done when: `npx jest src/modules/enrolment/hooks src/modules/enrolment/utils` passes.
+  > ✅ 2026-10-21 — `useMyClasses` (`MY_CLASSES_QUERY_KEY` = `["classes", "mine"]`, `GET /classes/mine`, no retry) and
+  > `useMyClassHistory` (infinite `["classes", "mine", "history"]`, `GET /classes/mine/history?page=N&perPage=20`, next
+  > page while `page * 20 < total`, classes repeated across pages dropped by id, no retry); both under `["classes"]`, so
+  > the existing invalidations refresh them. `utils/my-classes-filter.ts`: `MY_CLASSES_FILTERS` (the D-05 chips in
+  > order), `getMyClassFilter` (a cancelled class or a `classCancelled` request → `classCancelled`, else the request's
+  > status — pending covers the waiting list; one chip per class, matching the card's chip) and `filterMyClasses`.
+  > Types `MyClassesResponse`, `MyClassHistoryPage`, `MyClassesFilter` in `enrolment.types.ts`; a shared
+  > `buildClassItem` test builder in the classes test utils. files: `apps/mobile/src/modules/enrolment/enrolment.types.ts`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-my-classes.hook.ts`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-my-classes.hook.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-my-class-history.hook.ts`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-my-class-history.hook.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/utils/my-classes-filter.ts`,
+  > `apps/mobile/src/modules/enrolment/utils/my-classes-filter.test.ts`,
+  > `apps/mobile/src/modules/classes/classes.test-utils.tsx`; verified: `npx jest --no-watchman
+  > src/modules/enrolment/hooks src/modules/enrolment/utils` (18 suites, 163 passed; the three new files 100%
+  > statements, branches, functions, lines), `tsc --noEmit` and ESLint clean; deviations: Jest hangs here with watchman,
+  > so it runs with `--no-watchman`.
 
 - [ ] **T-05** — Add `src/modules/enrolment/screens/my-classes.screen.tsx` (+ hook, types) and render it from
   `src/app/(private)/student/(tabs)/my-classes.tsx` instead of the placeholder, with tests and copy in the three

@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { hydrateSession } from "@/services/session/session.store";
 
-import type { ClassLocation } from "./classes.types";
+import type { ClassItem, ClassLocation } from "./classes.types";
 
 export {
   createQueryClient,
@@ -26,6 +26,38 @@ export const buildLocation = (overrides: Partial<ClassLocation> = {}): ClassLoca
   latitude: -3.7442,
   longitude: -38.4617,
   upcomingClasses: 0,
+  ...overrides,
+});
+
+/** A surf class for beginners at Praia do Futuro, with nobody in it and no request of the caller. */
+export const buildClassItem = (
+  id: string,
+  startsAt: string,
+  endsAt: string,
+  overrides: Partial<ClassItem> = {},
+): ClassItem => ({
+  id,
+  discipline: "surf",
+  level: "beginner",
+  startsAt,
+  endsAt,
+  capacity: 8,
+  notes: null,
+  cancelledAt: null,
+  cancellationMessage: null,
+  cancellationDeadline: null,
+  location: {
+    id: "l-1",
+    name: "Praia do Futuro",
+    address: "Av. Zezé Diogo, 1000",
+    latitude: -3.7442,
+    longitude: -38.4617,
+  },
+  instructors: [{ id: "i-1", name: "Ana" }],
+  seatsTaken: 0,
+  students: [],
+  guests: [],
+  myEnrolment: null,
   ...overrides,
 });
 

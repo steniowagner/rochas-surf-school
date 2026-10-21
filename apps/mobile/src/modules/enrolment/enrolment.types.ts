@@ -1,3 +1,5 @@
+import type { ClassItem } from "@/modules/classes/classes.types";
+
 /** The statuses an enrolment can have, as the API answers them. */
 export type EnrolmentStatus =
   | "pending"
@@ -101,3 +103,28 @@ export type RemoveGuestTarget = {
   name: string;
   guestId: string;
 };
+
+/** The answer of `GET /classes/mine`: the student's classes that haven't finished, by start. */
+export type MyClassesResponse = {
+  items: ClassItem[];
+};
+
+/** One page of `GET /classes/mine/history`: the classes the student took, newest first. */
+export type MyClassHistoryPage = {
+  items: ClassItem[];
+  total: number;
+  page: number;
+  perPage: number;
+};
+
+/** A status chip of "Minhas aulas"; `all` shows every class. */
+export type MyClassesFilter =
+  | "all"
+  | "pending"
+  | "approved"
+  | "denied"
+  | "withdrawn"
+  | "cancelled"
+  | "takenOut"
+  | "expired"
+  | "classCancelled";

@@ -161,10 +161,17 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-01** — Add the `Guest` entity (`src/guest/model/guest.entity.ts`, the name and number rules of D-02,
+- [x] **T-01** — Add the `Guest` entity (`src/guest/model/guest.entity.ts`, the name and number rules of D-02,
   `erase(now)`) with tests. Skills: [`module-aggregate`](../../../.claude/skills/module-aggregate),
   [`module-entity`](../../../.claude/skills/module-entity).
   Covers: ER-01, ER-04 · Done when: `npx jest test/guest/model` passes from `modules/enrolment`.
+  > ✅ 2026-10-20 — added the `Guest` entity (name/number rules of D-02, errors reported together, `erase(now)`);
+  > files: `modules/enrolment/src/guest/model/guest.entity.ts`, `modules/enrolment/src/guest/model/index.ts`,
+  > `modules/enrolment/src/guest/index.ts`, `modules/enrolment/src/index.ts`,
+  > `modules/enrolment/test/guest/model/guest.entity.test.ts`; verified: `npx jest test/guest/model` from
+  > `modules/enrolment` (16 passed, 100% coverage of the entity); deviations: hand-written instead of generated
+  > by the aggregate/entity scripts (they scaffold a CRUD aggregate this one doesn't use); the number reports
+  > `guest.whatsappNumber.invalid` for both a missing and a malformed number, as D-02 names it.
 
 - [ ] **T-02** — Add the `GuestRepository` port (`create` through the locked seat write, `findById`, `delete`,
   `eraseEndedBefore(cutoff)`) and its in-memory version, with tests. Skill:

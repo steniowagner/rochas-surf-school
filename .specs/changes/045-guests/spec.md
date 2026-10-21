@@ -186,9 +186,19 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > verified: `npx jest test/mock` from `modules/enrolment` (23 passed), `tsc --noEmit` clean;
   > deviations: `eraseEndedBefore(cutoff, now)` takes `now` too (the erasure date); hand-written, not generated.
 
-- [ ] **T-03** — Add `AddGuest`, `RemoveGuest` and `EraseGuestData` in `src/guest/usecase/` (D-02, D-04, D-05),
+- [x] **T-03** — Add `AddGuest`, `RemoveGuest` and `EraseGuestData` in `src/guest/usecase/` (D-02, D-04, D-05),
   with tests for every refusal and the erasure window. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-03, ER-04 · Done when: `npx jest test/guest` passes from `modules/enrolment`.
+  > ✅ 2026-10-20 — added `AddGuest` (access → class 404 → shape 422 together → cancelled/started 409 → locked seat
+  > write 409 full), `RemoveGuest` (access → 404 `guest.notFound` → `class.started` → delete) and `EraseGuestData`
+  > (30-day cutoff, returns the count); files: `modules/enrolment/src/guest/usecase/add-guest.usecase.ts`,
+  > `modules/enrolment/src/guest/usecase/remove-guest.usecase.ts`,
+  > `modules/enrolment/src/guest/usecase/erase-guest-data.usecase.ts`, `modules/enrolment/src/guest/usecase/index.ts`,
+  > `modules/enrolment/src/guest/index.ts`, `modules/enrolment/test/guest/usecase/add-guest.usecase.test.ts`,
+  > `modules/enrolment/test/guest/usecase/remove-guest.usecase.test.ts`,
+  > `modules/enrolment/test/guest/usecase/erase-guest-data.usecase.test.ts`; verified: `npx jest test/guest` from
+  > `modules/enrolment` (45 passed, 100% of `src/guest`), whole module suite, `tsc --noEmit` and oxlint clean;
+  > deviations: hand-written, not generated; `AddGuest` answers `{ id, classId, name }` as ER-01 says.
 
 ### Classes module (`modules/classes`)
 

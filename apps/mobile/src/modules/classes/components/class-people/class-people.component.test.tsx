@@ -14,6 +14,7 @@ function props(overrides: Partial<ClassPeopleProps> = {}): ClassPeopleProps {
   return {
     instructors: [],
     students,
+    guests: [],
     seatsTaken: 2,
     capacity: 8,
     state: "not-started",
@@ -42,5 +43,59 @@ describe("ClassPeople take out", () => {
 
     expect(onTakeOut).toHaveBeenCalledTimes(1);
     expect(onTakeOut).toHaveBeenCalledWith(students[1]);
+  });
+});
+
+describe("ClassPeople guests", () => {
+  const guests = [
+    { id: "g-1", name: "Carolina Reis" },
+    { id: "g-2", name: null },
+  ];
+
+  it("lists each guest with a Trial chip, the name when it is known and \"Trial\" when it is not", async () => {
+    const user = userEvent.setup();
+    await render(<ClassPeople {...props({ guests, seatsTaken: 4 })} />);
+
+    await user.press(screen.getByRole("button", { name: /4 students/ }));
+
+    expect(screen.getByText("Carolina Reis")).toBeOnTheScreen();
+    expect(screen.getAllByText("Trial")).toHaveLength(3);
+  });
+
+  it("opens a class that has only guests", async () => {
+    const user = userEvent.setup();
+    await render(<ClassPeople {...props({ students: [], guests, seatsTaken: 2 })} />);
+
+    await user.press(screen.getByRole("button", { name: /2 students/ }));
+
+    expect(screen.getByText("Carolina Reis")).toBeOnTheScreen();
+  });
+
+  it("gives each guest a Take out button only when onTakeGuestOut is set", async () => {
+    const user = userEvent.setup();
+    const onTakeGuestOut = jest.fn();
+    const view = await render(<ClassPeople {...props({ guests, seatsTaken: 4 })} />);
+    await user.press(screen.getByRole("button", { name: /4 students/ }));
+    expect(screen.queryByRole("button", { name: "Take out Carolina Reis" })).toBeNull();
+
+    await view.rerender(<ClassPeople {...props({ guests, seatsTaken: 4, onTakeGuestOut })} />);
+    await user.press(screen.getByRole("button", { name: "Take out Carolina Reis" }));
+
+    expect(onTakeGuestOut).toHaveBeenCalledWith(guests[0]);
+  });
+
+  it("ends the capacity line with how many seats are trial only when asked", async () => {
+    const view = await render(<ClassPeople {...props({ guests, seatsTaken: 4 })} />);
+    expect(screen.queryByText(/includes 2 trial/)).toBeNull();
+
+    await view.rerender(<ClassPeople {...props({ guests, seatsTaken: 4, showTrialCount: true })} />);
+
+    expect(screen.getByText("Max. 8 students · 4 spots left · includes 2 trial")).toBeOnTheScreen();
+  });
+
+  it("adds nothing to the capacity line without guests", async () => {
+    await render(<ClassPeople {...props({ showTrialCount: true })} />);
+
+    expect(screen.getByText("Max. 8 students · 6 spots left")).toBeOnTheScreen();
   });
 });

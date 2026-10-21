@@ -314,6 +314,9 @@ const messages: Messages = {
     back: "Volver",
     action: "Retirar",
     done: "{{name}} retirado · alumno avisado",
+    guestTitle: "¿Retirar a {{name}} de la clase?",
+    guestHint: "{{summary}}. La plaza queda libre. Es un alumno de prueba, sin cuenta — avísale por WhatsApp.",
+    guestDone: "{{name}} retirado",
     errors: {
       notApproved: "Esta plaza ya no está aprobada.",
       started: "La clase ya empezó.",
@@ -452,6 +455,9 @@ const messages: Messages = {
     spotsLeft_one: "{{count}} plaza libre",
     spotsLeft_other: "{{count}} plazas libres",
     soldOut: "agotado",
+    trialChip: "Trial",
+    includesTrial_one: "incluye {{count}} de prueba",
+    includesTrial_other: "incluye {{count}} de prueba",
     full: {
       title: "Clase llena",
       waitingList: "Puedes entrar en la lista de espera.",

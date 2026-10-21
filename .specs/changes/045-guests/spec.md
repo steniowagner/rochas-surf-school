@@ -320,9 +320,24 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > from `apps/mobile` (877 passed, 100% of the screen and its hook), `tsc --noEmit` and eslint clean;
   > deviations: none.
 
-- [ ] **T-12** — Add `guests` to the class types, the guest rows (and admin "Retirar" with the trial variant of the
+- [x] **T-12** — Add `guests` to the class types, the guest rows (and admin "Retirar" with the trial variant of the
   take-out sheet) in `ClassPeople`, and "inclui N trial" in the admin's capacity line, with tests and copy.
   Covers: ER-06 · Done when: `npx jest src/modules/classes/components/class-people src/modules/enrolment/components` passes.
+  > ✅ 2026-10-20 — `ClassPeople` lists the guests under the students (sand avatar, the name or "Trial", a "Trial"
+  > chip), opens for a class with only guests, gives admins "Retirar" on a guest and ends their capacity line with
+  > "· inclui N trial"; the details screen wires it with the new `useTakeGuestOut` (DELETE, toast "<name> retirado",
+  > `class.started`/`guest.notFound` toast and reload) and a trial `TakeOutSheet` ("Retirar <nome> da aula?" with the
+  > no-account hint and no reason field, via a new `hideReason` option of `DenySheet`); the seats count and the "+N"
+  > already include guests; copy in the three locales (`classDetails.trialChip/includesTrial`,
+  > `takeOutSheet.guest*`); files: `apps/mobile/src/modules/classes/components/class-people/{class-people.component.tsx,class-people.hook.ts,class-people.types.ts,class-people.component.test.tsx}`,
+  > `apps/mobile/src/modules/classes/screens/{class-details.screen.tsx,class-details.screen.hook.ts,class-details.screen.test.tsx}`,
+  > `apps/mobile/src/modules/enrolment/components/take-out-sheet/{take-out-sheet.component.tsx,take-out-sheet.types.ts,take-out-sheet.component.test.tsx}`,
+  > `apps/mobile/src/modules/enrolment/hooks/{use-take-guest-out.hook.ts,use-take-guest-out.hook.test.tsx}`,
+  > `apps/mobile/src/components/decision/deny-sheet/{deny-sheet.component.tsx,deny-sheet.types.ts,deny-sheet.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified:
+  > `npx jest src/modules/classes src/modules/enrolment src/components src/i18n` from `apps/mobile`
+  > (1064 passed), `tsc --noEmit` and eslint clean; deviations: the trial sheet reuses `TakeOutSheet` with a
+  > `trial` prop and `DenySheet` gained `hideReason`, rather than a separate sheet.
 
 - [ ] **T-13** — Add the guest warning (D-06) to `edit-class.screen.tsx` and `cancel-class-sheet`, with tests and copy.
   Covers: ER-07 · Done when: `npx jest src/modules/classes/screens/edit-class.screen.test.tsx src/modules/classes/components/cancel-class-sheet` passes.

@@ -2290,6 +2290,97 @@ describe("ClassDetailsScreen enrolment status", () => {
   });
 });
 
+describe("ClassDetailsScreen trial guests", () => {
+  const NOT_STARTED = {
+    startsAt: "2026-10-15T11:00:00.000Z", // tomorrow, 08:00
+    endsAt: "2026-10-15T12:00:00.000Z", // 09:00
+  };
+  const withGuest = (name: string | null, overrides: Partial<ClassItem> = {}) =>
+    makeClass({
+      ...NOT_STARTED,
+      seatsTaken: 2,
+      guests: [
+        { id: "g-1", name },
+        { id: "g-2", name: null },
+      ],
+      ...overrides,
+    });
+  const deletes = () => fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE");
+  const serveGuests = (item: ClassItem, answer: () => unknown = () => ok(undefined)) =>
+    fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
+      init?.method === "DELETE" ? answer() : ok(item),
+    );
+
+  async function openAsAdmin(item = withGuest("Carolina Reis")) {
+    const user = userEvent.setup();
+    serveGuests(item);
+    await renderScreen(true);
+    await user.press(await screen.findByRole("button", { name: /2 students/ }));
+
+    return user;
+  }
+
+  beforeEach(() => mockShow.mockClear());
+
+  it("shows an admin the guest's name with a Trial chip, and how many seats are trial", async () => {
+    await openAsAdmin();
+
+    expect(screen.getByText("Carolina Reis")).toBeOnTheScreen();
+    expect(screen.getAllByText("Trial").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/· includes 2 trial$/)).toBeOnTheScreen();
+  });
+
+  it("shows a student only Trial, with no Take out button and no trial count", async () => {
+    const user = userEvent.setup();
+    serveGuests(withGuest(null));
+    await renderScreen(false, true);
+
+    await user.press(await screen.findByRole("button", { name: /2 students/ }));
+
+    expect(screen.getAllByText("Trial").length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByRole("button", { name: /^Take out/ })).toBeNull();
+    expect(screen.queryByText(/includes/)).toBeNull();
+  });
+
+  it("removes the guest after a confirmation, tells the admin and closes the sheet", async () => {
+    const user = await openAsAdmin();
+
+    await user.press(screen.getByRole("button", { name: "Take out Carolina Reis" }));
+    expect(screen.getByText("Take Carolina Reis out of the class?")).toBeOnTheScreen();
+    expect(screen.queryByLabelText("Reason (optional)")).toBeNull();
+    await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Carolina Reis taken out"));
+    expect(deletes()).toHaveLength(1);
+    expect(deletes()[0][0]).toBe("http://api.test/guests/g-1");
+    expect(screen.queryByText("Take Carolina Reis out of the class?")).toBeNull();
+  });
+
+  it("names a guest whose name is unknown to the admin as Trial", async () => {
+    const user = await openAsAdmin(withGuest(null));
+
+    await user.press(screen.getAllByRole("button", { name: "Take out Trial" })[0]);
+
+    expect(screen.getByText("Take Trial out of the class?")).toBeOnTheScreen();
+  });
+
+  it("shows the toast when the guest is already gone, closes the sheet and reloads the class", async () => {
+    const item = withGuest("Carolina Reis");
+    const user = await openAsAdmin(item);
+    serveGuests(item, () => refused(404, "guest.notFound"));
+    const loads = fetchMock.mock.calls.filter(([, init]) => init?.method !== "DELETE").length;
+
+    await user.press(screen.getByRole("button", { name: "Take out Carolina Reis" }));
+    await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("This guest is no longer in the class."));
+    expect(screen.queryByText("Take Carolina Reis out of the class?")).toBeNull();
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.filter(([, init]) => init?.method !== "DELETE").length).toBeGreaterThan(loads),
+    );
+  });
+});
+
 describe("ClassDetailsScreen taken out", () => {
   const takenOut = (reason: string | null, overrides: Partial<ClassItem> = {}) =>
     makeClass({

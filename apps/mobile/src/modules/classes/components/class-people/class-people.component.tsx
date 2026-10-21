@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
+import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
 
 import { StudentAvatar } from "../student-avatar";
@@ -17,14 +18,23 @@ const STUDENT_AVATAR_SIZE = 28;
 export function ClassPeople({
   instructors,
   students,
+  guests,
+  showTrialCount = false,
   seatsTaken,
   capacity,
   state,
   onTakeOut,
+  onTakeGuestOut,
 }: ClassPeopleProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const people = useClassPeople({ students, seatsTaken, capacity, state });
+  const people = useClassPeople({
+    students,
+    guests,
+    seatsTaken,
+    capacity,
+    state,
+  });
 
   const label = t(`classesWeek.students.${people.studentsLabel.key}`, {
     count: people.studentsLabel.count,
@@ -123,6 +133,33 @@ export function ClassPeople({
                 </View>
               ))
             : null}
+          {people.expanded
+            ? guests.map((guest) => {
+                const name = guest.name ?? t("classDetails.trialChip");
+
+                return (
+                  <View
+                    key={guest.id}
+                    className="flex-row items-center gap-3 border-t border-line px-4 py-2"
+                  >
+                    <StudentAvatar name={name} photoUrl={null} size={STUDENT_AVATAR_SIZE} />
+                    <Text className="ds-text-list-title flex-1 text-ink">{name}</Text>
+                    <Chip tone="muted">{t("classDetails.trialChip")}</Chip>
+                    {onTakeGuestOut ? (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={`${t("takeOutSheet.action")} ${name}`}
+                        activeOpacity={BUTTON_ACTIVE_OPACITY}
+                        onPress={() => onTakeGuestOut(guest)}
+                        className="min-h-11 items-center justify-center rounded-full border border-line px-4"
+                      >
+                        <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                );
+              })
+            : null}
         </View>
       </View>
       {people.showCapacityLine ? (
@@ -133,6 +170,10 @@ export function ClassPeople({
             people.full
               ? t("classDetails.soldOut")
               : t("classDetails.spotsLeft", { count: people.freeSeats })
+          }${
+            showTrialCount && guests.length > 0
+              ? ` · ${t("classDetails.includesTrial", { count: guests.length })}`
+              : ""
           }`}
         </Text>
       ) : null}

@@ -15,6 +15,7 @@ export function DenySheet({
   hint,
   label,
   showLabel = false,
+  hideReason = false,
   placeholder,
   backLabel,
   confirmLabel,
@@ -37,15 +38,17 @@ export function DenySheet({
           <Text className="ds-text-sheet-title text-ink">{title}</Text>
           <Text className="ds-text-body text-ink-2">{hint}</Text>
         </View>
-        <TextArea
-          inBottomSheet
-          label={showLabel ? label : undefined}
-          accessibilityLabel={label}
-          placeholder={placeholder}
-          value={reason}
-          maxLength={maxLength}
-          onChangeText={setReason}
-        />
+        {hideReason ? null : (
+          <TextArea
+            inBottomSheet
+            label={showLabel ? label : undefined}
+            accessibilityLabel={label}
+            placeholder={placeholder}
+            value={reason}
+            maxLength={maxLength}
+            onChangeText={setReason}
+          />
+        )}
         <View className="gap-2">
           <Button
             variant="danger"

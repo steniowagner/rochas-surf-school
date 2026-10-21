@@ -57,4 +57,30 @@ describe("TakeOutSheet", () => {
     expect(sheet.onConfirm).not.toHaveBeenCalled();
     expect(screen.getByText("0/300")).toBeOnTheScreen();
   });
+
+  describe("for a trial guest", () => {
+    it("names the guest and says nobody is told, with no reason field", async () => {
+      await render(<TakeOutSheet {...props({ trial: true, firstName: "Carolina Reis" })} />);
+
+      expect(screen.getByText("Take Carolina Reis out of the class?")).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          "Surf Beginner · Tomorrow, 08:00 – 09:00. The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.queryByLabelText("Reason (optional)")).toBeNull();
+    });
+
+    it("confirms and goes back", async () => {
+      const user = userEvent.setup();
+      const sheet = props({ trial: true });
+      await render(<TakeOutSheet {...sheet} />);
+
+      await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+      await user.press(screen.getByRole("button", { name: "Back" }));
+
+      expect(sheet.onConfirm).toHaveBeenCalledTimes(1);
+      expect(sheet.onClose).toHaveBeenCalledTimes(1);
+    });
+  });
 });

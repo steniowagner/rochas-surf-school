@@ -307,6 +307,9 @@ const messages = {
     back: "Back",
     action: "Take out",
     done: "{{name}} taken out · student notified",
+    guestTitle: "Take {{name}} out of the class?",
+    guestHint: "{{summary}}. The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
+    guestDone: "{{name}} taken out",
     errors: {
       notApproved: "This spot is no longer approved.",
       started: "The class has already started.",
@@ -445,6 +448,9 @@ const messages = {
     spotsLeft_one: "{{count}} spot left",
     spotsLeft_other: "{{count}} spots left",
     soldOut: "sold out",
+    trialChip: "Trial",
+    includesTrial_one: "includes {{count}} trial",
+    includesTrial_other: "includes {{count}} trial",
     full: {
       title: "Class full",
       waitingList: "You can join the waiting list.",

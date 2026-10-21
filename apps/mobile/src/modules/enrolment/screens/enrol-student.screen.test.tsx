@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
 
 import type { ClassItem } from "@/modules/classes/classes.types";
@@ -46,6 +46,7 @@ const makeClass = (id: string, startsAt: string, endsAt: string, overrides: Part
   instructors: [{ id: "i-1", name: "Ana" }],
   seatsTaken: 0,
   students: [],
+  guests: [],
   myEnrolment: null,
   ...overrides,
 });
@@ -350,5 +351,143 @@ describe("EnrolStudentScreen", () => {
 
     await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
     expect(submitButton("Enrol Ana Souza")).toBeEnabled();
+  });
+
+  describe("trial class", () => {
+    const switchToTrial = async (user: ReturnType<typeof userEvent.setup>) => {
+      await user.press(await screen.findByRole("tab", { name: "Trial class" }));
+    };
+
+    const fillTrial = async (user: ReturnType<typeof userEvent.setup>, number = "85999990000") => {
+      await user.type(screen.getByLabelText("Name"), "Carolina Reis");
+      await user.type(screen.getByLabelText("WhatsApp"), number);
+    };
+
+    it("starts on the school student and swaps the search for the name, the WhatsApp number and the note", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+
+      expect(await screen.findByRole("tab", { name: "School student" })).toBeSelected();
+      expect(screen.queryByLabelText("Name")).not.toBeOnTheScreen();
+
+      await switchToTrial(user);
+
+      expect(screen.getByRole("tab", { name: "Trial class" })).toBeSelected();
+      expect(screen.getByPlaceholderText("E.g.: Carolina Reis")).toBeOnTheScreen();
+      expect(screen.getByText("BR +55")).toBeOnTheScreen();
+      expect(
+        screen.getByText("This class doesn't stay in the history — if the person creates an account later, they start from scratch."),
+      ).toBeOnTheScreen();
+      expect(screen.queryByLabelText("Search students")).not.toBeOnTheScreen();
+      expect(submitButton("Enrol")).toBeDisabled();
+    });
+
+    it("adds the guest with the E.164 number to the picked class, tells the admin and goes back", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await switchToTrial(user);
+      await fillTrial(user);
+      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+
+      await user.press(submitButton("Enrol Carolina Reis"));
+
+      await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
+      expect(posts()).toHaveLength(1);
+      expect(posts()[0][0]).toBe("http://api.test/classes/c-open/guests");
+      expect(posts()[0][1].body).toBe(JSON.stringify({ name: "Carolina Reis", whatsappNumber: "+5585999990000" }));
+      expect(mockShow).toHaveBeenCalledWith("Carolina Reis enrolled");
+    });
+
+    it("keeps the button off, and shows the field's error, for an invalid number", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await switchToTrial(user);
+      await fillTrial(user, "123");
+      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+      await act(async () => screen.getByLabelText("WhatsApp").props.onBlur());
+
+      expect(screen.getByText("Invalid WhatsApp number.")).toBeOnTheScreen();
+      expect(submitButton("Enrol Carolina Reis")).toBeDisabled();
+    });
+
+    it("keeps the button off, and shows the error, for a name that isn't a first and last name", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await switchToTrial(user);
+      await user.type(screen.getByLabelText("Name"), "Carolina");
+      await user.type(screen.getByLabelText("WhatsApp"), "85999990000");
+      await act(async () => screen.getByLabelText("Name").props.onBlur());
+      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+
+      expect(screen.getByText("Enter a first and last name.")).toBeOnTheScreen();
+      expect(submitButton("Enrol Carolina")).toBeDisabled();
+    });
+
+    it("keeps the button off until a class with a free seat is picked", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await switchToTrial(user);
+      await fillTrial(user);
+      await user.press(await screen.findByRole("button", { name: /15:00 – 16:00/ }));
+
+      expect(submitButton("Enrol Carolina Reis")).toBeDisabled();
+    });
+
+    it.each([
+      ["enrolment.class.full", 409, "The class just filled up."],
+      ["class.started", 409, "The class has already started."],
+      ["class.cancelled", 409, "This class was cancelled."],
+    ])("shows the toast for %s and reloads the classes", async (key, status, message) => {
+      const user = userEvent.setup();
+      serve({ handlers: { "POST /classes/c-open/guests": () => apiFailure(status, key) } });
+      await renderScreen();
+      await switchToTrial(user);
+      await fillTrial(user);
+      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+      const before = requestedPaths().filter((path) => path.startsWith("/classes?date=")).length;
+
+      await user.press(submitButton("Enrol Carolina Reis"));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+      expect(router.back).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(requestedPaths().filter((path) => path.startsWith("/classes?date=")).length).toBeGreaterThan(before),
+      );
+      expect(submitButton("Enrol Carolina Reis")).toBeDisabled();
+    });
+
+    it("shows a toast for a refused name or number and keeps the selection", async () => {
+      const user = userEvent.setup();
+      serve({ handlers: { "POST /classes/c-open/guests": () => apiFailure(422, "guest.name.person.name") } });
+      await renderScreen();
+      await switchToTrial(user);
+      await fillTrial(user);
+      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+
+      await user.press(submitButton("Enrol Carolina Reis"));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("This guest's name or number isn't valid."));
+      expect(submitButton("Enrol Carolina Reis")).toBeEnabled();
+    });
+
+    it("sends once when the button is pressed twice", async () => {
+      const user = userEvent.setup();
+      let finish: (value: unknown) => void = () => undefined;
+      const pending = new Promise((resolve) => {
+        finish = resolve;
+      });
+      serve({ handlers: { "POST /classes/c-open/guests": () => pending } });
+      await renderScreen();
+      await switchToTrial(user);
+      await fillTrial(user);
+      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+
+      await user.press(submitButton("Enrol Carolina Reis"));
+      await user.press(submitButton("Enrol Carolina Reis"));
+
+      expect(posts()).toHaveLength(1);
+      finish(ok({ id: "g-1", classId: "c-open", name: "Carolina Reis" }));
+      await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
+    });
   });
 });

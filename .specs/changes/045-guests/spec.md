@@ -304,10 +304,21 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > is controlled (props from `usePhoneNumberField`) so the form can read the E.164 value and validity; the existing
   > `WhatsappNumberForm` tests cover it as before.
 
-- [ ] **T-11** — Add the trial mode to `enrol-student.screen.tsx` (+ hook), with tests and copy in the three locales.
+- [x] **T-11** — Add the trial mode to `enrol-student.screen.tsx` (+ hook), with tests and copy in the three locales.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-05 · Done when: `npx jest src/modules/enrolment/screens` passes.
+  > ✅ 2026-10-20 — added the trial mode to "Enrol a student": a `SegmentedControl` ("Trial class" / "School
+  > student", the latter first selected), and in trial mode the name field, the `PhoneNumberField` (Brazil
+  > preselected) and the note replace step 1's search; the button enrols `<name>` once the name (user name rules),
+  > the number and a class with a free seat are valid, posts via `useAddGuest`, toasts "<name> enrolled", goes back,
+  > and the refusals toast and reload the classes; `ClassItem` gained `guests` (type + four test fixtures); copy in
+  > the three locales; files: `apps/mobile/src/modules/enrolment/screens/{enrol-student.screen.tsx,enrol-student.screen.hook.ts,enrol-student.screen.types.ts,enrol-student.screen.test.tsx}`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/{components/class-card/class-card.component.test.tsx,screens/class-details.screen.test.tsx,screens/classes-week.screen.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/enrolment src/modules/classes src/i18n`
+  > from `apps/mobile` (877 passed, 100% of the screen and its hook), `tsc --noEmit` and eslint clean;
+  > deviations: none.
 
 - [ ] **T-12** — Add `guests` to the class types, the guest rows (and admin "Retirar" with the trial variant of the
   take-out sheet) in `ClassPeople`, and "inclui N trial" in the admin's capacity line, with tests and copy.

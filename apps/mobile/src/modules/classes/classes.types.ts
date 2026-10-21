@@ -150,6 +150,12 @@ export type ClassStudent = {
   enrolmentId: string;
 };
 
+/** A trial guest of a class: `name` is `null` ("Trial") for who may not see it, and once the data was erased. */
+export type ClassGuest = {
+  id: string;
+  name: string | null;
+};
+
 /** A class as `GET /classes` and `GET /classes/:id` answer it; dates are ISO 8601 UTC. */
 export type ClassItem = {
   id: string;
@@ -171,6 +177,8 @@ export type ClassItem = {
   seatsTaken: number;
   /** The approved students: the first 4 in the week list, all of them in the class itself. */
   students: ClassStudent[];
+  /** The trial guests, all of them in both answers. */
+  guests: ClassGuest[];
   /** The caller's latest enrolment in the class, or `null`; always `null` for instructors and admins. */
   myEnrolment: MyEnrolment | null;
 };

@@ -279,6 +279,16 @@ const messages = {
     done: "{{name}} enrolled · student notified",
     loadError: "Couldn't load.",
     retry: "Try again",
+    modeTrial: "Trial class",
+    modeStudent: "School student",
+    doneTrial: "{{name}} enrolled",
+    trial: {
+      nameLabel: "Name",
+      namePlaceholder: "E.g.: Carolina Reis",
+      invalidName: "Enter a first and last name.",
+      whatsappLabel: "WhatsApp",
+      note: "This class doesn't stay in the history — if the person creates an account later, they start from scratch.",
+    },
     errors: {
       alreadyApproved: "This student is already enrolled in this class.",
       full: "The class just filled up.",

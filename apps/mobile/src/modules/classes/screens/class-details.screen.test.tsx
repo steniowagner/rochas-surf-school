@@ -102,6 +102,7 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
   ],
   seatsTaken: 0,
   students: [],
+  guests: [],
   myEnrolment: null,
   ...overrides,
 });

@@ -279,6 +279,16 @@ const messages: Messages = {
     done: "{{name}} inscrito · aluno avisado",
     loadError: "Não foi possível carregar.",
     retry: "Tentar novamente",
+    modeTrial: "Aula experimental",
+    modeStudent: "Aluno da escola",
+    doneTrial: "{{name}} inscrito",
+    trial: {
+      nameLabel: "Nome",
+      namePlaceholder: "Ex.: Carolina Reis",
+      invalidName: "Informe nome e sobrenome.",
+      whatsappLabel: "WhatsApp",
+      note: "Esta aula não fica no histórico — se a pessoa criar conta depois, começa do zero.",
+    },
     errors: {
       alreadyApproved: "Este aluno já está inscrito nesta aula.",
       full: "A turma ficou cheia.",

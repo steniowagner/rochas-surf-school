@@ -2,7 +2,7 @@
 id: "045"
 slug: guests
 title: "Trial guests in classes"
-status: in-progress
+status: in-review
 started: 2026-10-20
 base_commit: a046889b23e7859fb5a1310e4454c51a3219150b
 created: 2026-10-19
@@ -279,8 +279,8 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > 29 days untouched, second run none, "Trial" for admins and instructors); the existing week-list shape in
   > `classes.e2e-spec.ts` gained `guests: []`; files: `apps/backend/test/guests.e2e-spec.ts`,
   > `apps/backend/test/classes.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend`
-  > (22 files, 593 tests passed after the one-line `classes.e2e-spec.ts` fix; guests suite 13 passed, race case
-  > run 3 more times); deviations: the capacity refusal answers 422 `class.capacity.belowSeatsTaken` (the existing
+  > (first run: 592 of 593 passed, the one failure being the week-list shape in `classes.e2e-spec.ts`, fixed and
+  > re-run alone: 90 passed; guests suite 13 passed, race case run 3 more times; the whole suite passes again in T-14); deviations: the capacity refusal answers 422 `class.capacity.belowSeatsTaken` (the existing
   > edit rule), not 409.
 
 ### Mobile (`apps/mobile`)
@@ -352,9 +352,22 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 
 ### Verification
 
-- [ ] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-20 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs 045`
+  > → RELATED TESTS PASSED (backend, mobile, classes, enrolment); `node .specs/scripts/check-coverage.mjs 045` →
+  > COVERAGE OK (37 files); `npx turbo run lint check-types build --filter=…enrolment --filter=…classes
+  > --filter=…backend --filter=…mobile` → 27 tasks successful (only the warnings that were already there);
+  > `node .specs/scripts/run-e2e.mjs 045` → E2E PASSED. The related run first failed in the three tab navigation
+  > tests (their class fixtures had no `guests`); fixed in `apps/mobile/src/modules/{admin,instructor,student}/*-tabs.navigation.test.tsx`
+  > (commit `fix(spec-045): add guests to the tab navigation test fixtures (T-12)`) and rerun green.
+  > Not run by me: `guests.integration.http` against `npm run dev` (the e2e suite makes the same calls) and the
+  > iOS-simulator journeys. For the user: as an admin, "Inscrever aluno" → "Aula experimental" → name and number → a
+  > class → "Inscrever Carolina": the details list "Carolina Reis" with the Trial chip and "inclui 1 trial"; as a
+  > student the same class lists "Trial", as its instructor "Carolina Reis"; as the admin, Editar aula and
+  > "Cancelar aula" show the trial warning, and "Retirar" on the guest frees the seat.
+  > Files: none beyond the ones above.
 
 ## Verification Plan
 

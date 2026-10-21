@@ -202,9 +202,22 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-04** — Add `guests` to `ClassRoster` and `ClassItem`, and apply D-03's visibility in `GetClass` and
+- [x] **T-04** — Add `guests` to `ClassRoster` and `ClassItem`, and apply D-03's visibility in `GetClass` and
   `ListWeekClasses` (admin, or the actor among the class's instructors), with tests.
   Covers: ER-02 · Done when: `npx jest test/school-class` passes from `modules/classes`.
+  > ✅ 2026-10-20 — added `ClassGuest` and `guests` to `ClassRoster` and `ClassItem`; `toClassItem` now takes
+  > `showGuestNames`, set by the new `canSeeGuestNames` (an admin, or an instructor of the class) in `GetClass` and
+  > `ListWeekClasses`; others (and every erased guest) read `name: null`; files:
+  > `modules/classes/src/school-class/provider/class-roster-reader.provider.ts`,
+  > `modules/classes/src/school-class/usecase/class-item.ts`,
+  > `modules/classes/src/school-class/usecase/get-class.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/list-week-classes.usecase.ts`,
+  > `modules/classes/test/mock/fake-class-roster.reader.ts`,
+  > `modules/classes/test/school-class/provider/fake-class-roster.reader.test.ts`,
+  > `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`,
+  > `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`;
+  > verified: `npx jest` from `modules/classes` (480 passed, 100% of the changed files), `tsc --noEmit` and oxlint
+  > clean; deviations: none.
 
 ### Backend (`apps/backend`)
 

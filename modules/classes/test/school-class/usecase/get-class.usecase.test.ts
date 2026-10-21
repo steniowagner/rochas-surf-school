@@ -3,6 +3,7 @@ import { GetClass } from "../../../src";
 import {
   ADMIN,
   buildClassView,
+  INSTRUCTOR,
   FakeClassRosterReader,
   FakeClassViewReader,
   FakeViewerEnrolmentReader,
@@ -34,7 +35,52 @@ function setup() {
   return { reader, rosterReader, useCase: new GetClass(reader, rosterReader, new FakeViewerEnrolmentReader()) };
 }
 
+const GUESTS = [
+  { id: "g-1", name: "Carolina Reis" },
+  { id: "g-2", name: null },
+];
+
+function setupWithGuests(instructorId = INSTRUCTOR.id) {
+  const reader = new FakeClassViewReader([
+    buildClassView({ id: ID, instructors: [{ id: instructorId, name: "Ana" }] }),
+  ]);
+  const rosters = new FakeClassRosterReader({ [ID]: { students: SEVEN.slice(0, 2), guests: GUESTS } });
+
+  return new GetClass(reader, rosters, new FakeViewerEnrolmentReader());
+}
+
 describe("GetClass", () => {
+  describe("guests", () => {
+    it("shows the names to an admin and to the class's instructor, and counts the guests as seats", async () => {
+      for (const actor of [ADMIN, INSTRUCTOR]) {
+        const out = await setupWithGuests().execute({ actor, id: ID });
+
+        expect(out.guests).toEqual(GUESTS);
+        expect(out.seatsTaken).toBe(4);
+      }
+    });
+
+    it("hides the names from students and from another class's instructors, keeping the seats", async () => {
+      const other = { ...INSTRUCTOR, id: "0f1e2d3c-4b5a-4968-8776-5a4b3c2d1e0f" };
+
+      for (const actor of [STUDENT, other]) {
+        const out = await setupWithGuests().execute({ actor, id: ID });
+
+        expect(out.guests).toEqual([
+          { id: "g-1", name: null },
+          { id: "g-2", name: null },
+        ]);
+        expect(out.seatsTaken).toBe(4);
+      }
+    });
+
+    it("answers no guests for a class without any", async () => {
+      const { useCase } = setup();
+
+      expect((await useCase.execute({ actor: ADMIN, id: ID })).guests).toEqual([]);
+    });
+  });
+
   it("carries a missing point as null (location point)", async () => {
     const reader = new FakeClassViewReader([
       buildClassView({

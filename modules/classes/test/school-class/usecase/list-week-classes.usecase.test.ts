@@ -94,6 +94,7 @@ describe("ListWeekClasses", () => {
       ],
       seatsTaken: 0,
       students: [],
+      guests: [],
       myEnrolment: null,
     });
   });
@@ -212,5 +213,41 @@ describe("ListWeekClasses", () => {
     await expect(useCase().execute({ actor: pending, date: "nope" })).rejects.toThrow(
       ForbiddenError,
     );
+  });
+
+  describe("guests", () => {
+    const GUESTS = [
+      { id: "g-1", name: "Carolina Reis" },
+      { id: "g-2", name: null },
+    ];
+    const rosters = () =>
+      new FakeClassRosterReader({ wed: { students: [], guests: GUESTS } });
+    const wed = () =>
+      view("wed", "2026-10-14T11:00:00.000Z", "2026-10-14T12:00:00.000Z", {
+        instructors: [{ id: INSTRUCTOR.id, name: "Ana" }],
+      });
+
+    it("shows the names to an admin and to the class's instructor, uncapped, counting the seats", async () => {
+      for (const actor of [ADMIN, INSTRUCTOR]) {
+        const out = await useCase([wed(), MONDAY], rosters()).execute({ actor, date: "2026-10-15" });
+
+        expect(out.items.find((item) => item.id === "wed")).toMatchObject({ guests: GUESTS, seatsTaken: 2 });
+        expect(out.items.find((item) => item.id === "monday")?.guests).toEqual([]);
+      }
+    });
+
+    it("hides the names from students and from the instructors of other classes", async () => {
+      const other = { ...INSTRUCTOR, id: "0f1e2d3c-4b5a-4968-8776-5a4b3c2d1e0f" };
+
+      for (const actor of [STUDENT, other]) {
+        const out = await useCase([wed()], rosters()).execute({ actor, date: "2026-10-15" });
+
+        expect(out.items[0].guests).toEqual([
+          { id: "g-1", name: null },
+          { id: "g-2", name: null },
+        ]);
+        expect(out.items[0].seatsTaken).toBe(2);
+      }
+    });
   });
 });

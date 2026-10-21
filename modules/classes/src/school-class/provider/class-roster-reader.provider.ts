@@ -7,12 +7,20 @@ export interface ClassStudent {
   enrolmentId: string;
 }
 
+/** A trial guest of a class: the name is null once it was erased. */
+export interface ClassGuest {
+  id: string;
+  name: string | null;
+}
+
 /** Who holds the seats of a class. */
 export interface ClassRoster {
   /** All the seats taken: approved students plus guests. Never capped. */
   seatsTaken: number;
   /** The approved students, capped by the `studentsLimit` asked for. */
   students: ClassStudent[];
+  /** The guests, uncapped (they are few), in the order they were added, then by id. */
+  guests: ClassGuest[];
 }
 
 /** How many students the week list carries per class (the card shows 4 avatars). */

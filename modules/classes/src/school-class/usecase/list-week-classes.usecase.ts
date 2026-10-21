@@ -13,7 +13,7 @@ import {
   ClassViewReader,
   ViewerEnrolmentReader,
 } from "../provider";
-import { ClassItem, toClassItem } from "./class-item";
+import { ClassItem, canSeeGuestNames, toClassItem } from "./class-item";
 
 export interface ListWeekClassesIn {
   actor: ClassActor;
@@ -69,7 +69,14 @@ export class ListWeekClasses
             a.endsAt.getTime() - b.endsAt.getTime() ||
             a.id.localeCompare(b.id),
         )
-        .map((view) => toClassItem(view, rosters.get(view.id), enrolments.get(view.id))),
+        .map((view) =>
+          toClassItem(
+            view,
+            rosters.get(view.id),
+            enrolments.get(view.id),
+            canSeeGuestNames(input.actor, view),
+          ),
+        ),
     };
   }
 }

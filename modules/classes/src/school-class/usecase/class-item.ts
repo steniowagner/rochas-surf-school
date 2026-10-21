@@ -1,3 +1,4 @@
+import { ClassActor } from "../../access";
 import { ClassRoster, ClassView, ViewerEnrolment } from "../provider";
 
 export interface ClassItem {
@@ -17,6 +18,8 @@ export interface ClassItem {
   /** All the seats taken: approved students plus guests. */
   seatsTaken: number;
   students: ClassRoster["students"];
+  /** The trial guests; `name` is null for who may not see it and for every erased guest. */
+  guests: ClassRoster["guests"];
   /** The caller's latest enrolment in the class, or null when they have none. */
   myEnrolment: ClassItemEnrolment | null;
 }
@@ -28,16 +31,23 @@ export interface ClassItemEnrolment {
   reason: string | null;
 }
 
+/** Admins and the class's own instructors see the guests' names; everyone else sees "Trial". */
+export function canSeeGuestNames(actor: ClassActor, view: ClassView): boolean {
+  return actor.role === "admin" || view.instructors.some((instructor) => instructor.id === actor.id);
+}
+
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 
 /**
  * The answer shape of a class: ISO dates and the instructors sorted A–Z by name, ignoring case and accents.
- * Without a roster the class has no seats taken; without an enrolment the caller has none.
+ * Without a roster the class has no seats taken; without an enrolment the caller has none. The guests' names
+ * show only when `showGuestNames` (an admin, or an instructor of the class).
  */
 export function toClassItem(
   view: ClassView,
-  roster?: ClassRoster,
-  myEnrolment?: ViewerEnrolment,
+  roster: ClassRoster | undefined,
+  myEnrolment: ViewerEnrolment | undefined,
+  showGuestNames: boolean,
 ): ClassItem {
   return {
     id: view.id,
@@ -58,6 +68,10 @@ export function toClassItem(
       ),
     seatsTaken: roster?.seatsTaken ?? 0,
     students: (roster?.students ?? []).map((student) => ({ ...student })),
+    guests: (roster?.guests ?? []).map((guest) => ({
+      id: guest.id,
+      name: showGuestNames ? guest.name : null,
+    })),
     myEnrolment: myEnrolment
       ? {
           id: myEnrolment.id,

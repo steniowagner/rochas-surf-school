@@ -2,9 +2,10 @@
 id: "045"
 slug: guests
 title: "Trial guests in classes"
-status: in-review
+status: accepted
 started: 2026-10-20
 base_commit: a046889b23e7859fb5a1310e4454c51a3219150b
+reviewed_commit: c422d7d77054c9b57e3fc2e633dd6da04a1527da
 created: 2026-10-19
 fronts: [enrolment, classes, backend, mobile]
 depends_on: ["044"]
@@ -480,5 +481,56 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 - The working tree has untracked files this spec doesn't own: a root `tsconfig.json` (extends `expo/tsconfig.base`)
   and `.expo/`, both created at 23:18 by running Expo from the repo root; they should be removed or ignored, not
   committed. The other specs' folders (046–048) are unrelated.
+- `## Memory Impact` matches what was built.
+- Independence: this round ran in a fresh session, not the one that executed the spec.
+
+### Round 2 — 2026-10-21 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for enrolment, classes, backend, mobile:
+  27 tasks; the backend's 14 lint warnings sit on lines this spec didn't write)
+- related tests ✅ backend 176 · mobile 1270 · classes 480 · enrolment 286 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (37 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 593 passed, `guests.e2e-spec.ts` included (`E2E PASSED`) · mobile: the admin journey followed
+  again on the iOS simulator (iPhone 18 Pro, pt-BR) after the round-1 fixes
+- HTTP: signed in as the admin review account against the running backend: `GET /classes?date=2026-10-19` and
+  `GET /classes/:id` both answer `seatsTaken: 2` and `guests: [{ id, name: "Carolina Reis" }]` for a class with one
+  student and the guest added through the app (stored as `+5585999990000`); the guest was then removed through the app
+  (0 guests left)
+
+**Expected Results**
+
+- ER-01 ✅ — use-case tests and the "adds a guest" e2e cases (201 `{ id, classId, name }`, seat taken, 422 together,
+  404, 409 cancelled/started/full, raced last seat one winner, 403/401); added through the app as well
+- ER-02 ✅ — `GetClass` / `ListWeekClasses` tests and the "visibility" e2e cases; the API answers the name and the
+  seat count to the admin on both the class and the week list
+- ER-03 ✅ — use-case tests and the "removes a guest" e2e cases; removed through the app, seat freed
+- ER-04 ✅ — use-case, `guest-erasure.job.spec.ts` and the "erasure" e2e case
+- ER-05 ✅ — tests pass; on the simulator "Aula experimental" now shows visible "NOME" and "WHATSAPP" labels above
+  the fields (F-01), the placeholder, BR +55, the note and the PAINEL-06 description; "Inscrever Carolina Reis"
+  enrolled the guest and went back
+- ER-06 ✅ — tests pass; on the simulator the guest row shows the CR avatar, "Carolina Reis", the "Trial" chip now
+  vertically centered with the avatar, name and "Retirar" (F-02), "2 alunos confirmados" with "+1" and "Máx. 8 alunos ·
+  6 vagas livres · inclui 1 trial"; "Retirar" opens "Retirar Carolina Reis da aula?" with the no-account hint and
+  removes the guest; the week card read "2/8 vagas" with "+1" once its week was fetched (see Notes)
+- ER-07 ✅ — tests pass (`edit-class.screen.test.tsx`, `cancel-class-sheet`); unchanged since round 1, which saw both
+  notes on the simulator
+
+**Findings**
+
+None. Round 1's F-01 and F-02 are fixed (verified on the simulator and, for F-01, by the screen test asserting the
+visible text).
+
+**Notes**
+
+- The week list's cards can lag behind a seat change made from a screen above them: after adding the guest the
+  Aulas card kept "1/8 vagas" (and after "Retirar", "2/8") even after a pull-to-refresh, while the API already answered
+  the new count; switching weeks and back showed the right one. The guest hooks invalidate `["classes"]` exactly as
+  the existing seat writers do (`useEnrolStudent`, `useTakeStudentOut`, `useApproveRequest`), and the week screen's
+  refresh code (`classes-week.screen.hook.ts`) is untouched by this spec, so this is older behaviour of the week
+  screen, not a regression — worth its own look.
+- The untracked root `tsconfig.json` and `.expo/` noted in round 1 are still in the working tree; they shouldn't be
+  committed.
 - `## Memory Impact` matches what was built.
 - Independence: this round ran in a fresh session, not the one that executed the spec.

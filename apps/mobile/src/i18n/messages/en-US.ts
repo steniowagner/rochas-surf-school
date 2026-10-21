@@ -399,6 +399,33 @@ const messages = {
       discipline: { surf: "surf", skate: "skate" },
     },
   },
+  myClasses: {
+    title: "My classes",
+    history: "History",
+    filters: {
+      all: "All",
+      pending: "Pending",
+      approved: "Approved",
+      denied: "Denied",
+      withdrawn: "Withdrawn",
+      cancelled: "Cancelled",
+      takenOut: "Taken out",
+      expired: "Expired",
+      classCancelled: "Class cancelled",
+    },
+    empty: {
+      title: "Nothing here",
+      all: "You haven't asked for a seat in any class yet.",
+      filtered: "You have no requests with this status.",
+    },
+    loadError: "We couldn't load your classes.",
+    retry: "Try again",
+  },
+  myHistory: {
+    title: "History",
+    empty: "You haven't taken any class yet.",
+    loadError: "We couldn't load your history.",
+  },
   tabs: {
     agenda: "Schedule",
     myClasses: "My classes",

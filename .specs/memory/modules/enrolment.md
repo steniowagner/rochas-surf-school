@@ -163,13 +163,18 @@ told nothing, and their name and number are erased 30 days after the class.
 - **Guest data is erased 30 days after the class**: every minute, the guests whose class ended or was cancelled 30
   days ago or more, and aren't erased yet, lose their name and number in one write; running it again changes
   nothing. Only the count is logged.
+- **Which classes are a student's own** (spec 048): their current classes are the classes that haven't ended
+  where they have any enrolment, whatever its status, cancelled classes included; the classes they **took** (their
+  history) are the classes that ended, aren't cancelled, and where their latest enrolment — by request time, then
+  id — is `approved`, so a seat later withdrawn, cancelled, taken out or ended by the class's cancellation doesn't
+  count. Enrolment answers Classes' contract with the ids; Classes reads the classes and refuses other roles.
 
 ## Who can do what
 
 - **An approved student** — requests a seat in a class that hasn't started and isn't cancelled (accepting its
   rule when there is one), withdraws their own pending request before the class starts, cancels their own approved
   seat before the class's deadline, requests again after an earlier one ended, and sees their latest enrolment on
-  every class they read.
+  every class they read; lists their own current classes, filtered by status in the app, and the classes they took.
 - **An approved instructor or admin** — can't request; reads no enrolment of their own on any class; is told of
   every new request and every cancelled seat (admins all of them, instructors those of the classes they teach).
 - **An approved admin** — lists the pending requests by class, approves one while its class has a free seat and
@@ -192,13 +197,12 @@ and a student's name, whether a user is an approved student, and the school's wa
 contracts, which the backend fulfils (the switch from [School settings](school-settings.md)' stored settings, so
 enrolment never depends on that module); a request reads the seats taken through Classes' seat-count contract. It answers Classes' contracts for the
 roster (students and guests), the seats taken, the pending requests, the viewer's enrolment, the audience of a class
-or of a location's upcoming classes (approved and pending enrolments, spec 047) and closing a cancelled class's
-enrolments, through adapters the backend provides; Classes still decides when a class is cancelled and who else is
+or of a location's upcoming classes (approved and pending enrolments, spec 047), closing a cancelled class's
+enrolments and a student's own classes (current and taken, spec 048), through adapters the backend provides; Classes still decides when a class is cancelled and who else is
 told. It fulfils, through a backend adapter, [Authentication](auth.md)'s contract for releasing a deleted account's
 seats and requests; Authentication decides when. It doesn't send notifications itself: the new-request, decision,
 expiry, cancelled-seat, direct-enrolment and take-out notices go through its own contract, which [Notifications](notifications.md) fulfils. It
-doesn't read the clock directly. A waiting-list switch per class, telling
-students of class edits and location changes (047) and the student's "Minhas aulas" (048) aren't built, nor a
+doesn't read the clock directly. A waiting-list switch per class isn't built, nor a
 history of who decided or undoing a decision, cancelling several seats at once or undoing a cancellation, taking a
 student out after the class starts, moving a student between classes, or enrolling several students at once; nor
 editing a guest, listing a person's past trials or turning a guest into a student (guests are never messaged nor
@@ -216,7 +220,11 @@ classes), and take one out with "Retirar" on a student in the list of an upcomin
 optional reason). A taken-out student reads "Você foi retirado da aula" with the reason, the chip "Retirado" and
 "Pedir novamente". The same tool's "Aula experimental" mode adds a guest (name and WhatsApp number); guests show in
 an upcoming class's student list with a "Trial" chip and, for admins, "Retirar" (a confirmation reminding them to
-tell the guest on WhatsApp). With the waiting list off, a student without an open request on a full upcoming class
+tell the guest on WhatsApp). The student's "Minhas aulas" tab lists their current classes as the Agenda's cards
+with their status chip, filtered by chips (Todos, Pendentes, Aprovados, Recusados, Anulados, Cancelados, Retirados,
+Expirados, Aula cancelada — a request ended by the cancellation or any request in a cancelled class), back on Todos
+whenever the tab loses focus; its history button opens "Histórico", the classes they took, newest first, 20 at a
+time. With the waiting list off, a student without an open request on a full upcoming class
 gets no button and reads "A lista de espera está fechada para esta aula." under "Turma cheia"; admins' "Turma
 cheia" banner reads "Novos pedidos entram na lista de espera." or "A lista de espera está desligada — ninguém pode
 pedir.".
@@ -262,3 +270,6 @@ pedir.".
 - `047-class-changes-reach-students` — no rule change here: the approved and pending enrolments are read for Classes
   as the audience of a class edit or a location change (each student once, with how many of a location's upcoming,
   not cancelled classes they are in).
+- `048-my-classes-tab` — a student's own classes for Classes' new contract: the current ones (not ended, any
+  enrolment) and the ones they took (ended, not cancelled, latest enrolment approved), paged; the app's "Minhas
+  aulas" tab with its status chips and the "Histórico" screen.

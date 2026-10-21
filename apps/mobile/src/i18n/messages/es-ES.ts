@@ -406,6 +406,33 @@ const messages: Messages = {
       discipline: { surf: "surf", skate: "skate" },
     },
   },
+  myClasses: {
+    title: "Mis clases",
+    history: "Historial",
+    filters: {
+      all: "Todas",
+      pending: "Pendientes",
+      approved: "Aprobadas",
+      denied: "Rechazadas",
+      withdrawn: "Anuladas",
+      cancelled: "Canceladas",
+      takenOut: "Retiradas",
+      expired: "Expiradas",
+      classCancelled: "Clase cancelada",
+    },
+    empty: {
+      title: "Nada por aquí",
+      all: "Todavía no has pedido plaza en ninguna clase.",
+      filtered: "No tienes solicitudes con este estado.",
+    },
+    loadError: "No se pudieron cargar tus clases.",
+    retry: "Reintentar",
+  },
+  myHistory: {
+    title: "Historial",
+    empty: "Todavía no has hecho ninguna clase.",
+    loadError: "No se pudo cargar tu historial.",
+  },
   tabs: {
     agenda: "Agenda",
     myClasses: "Mis clases",

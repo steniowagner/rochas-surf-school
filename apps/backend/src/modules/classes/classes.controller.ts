@@ -21,6 +21,10 @@ import {
   EditClassIn,
   GetClass,
   GetClassOut,
+  ListMyClasses,
+  ListMyClassesOut,
+  ListMyClassHistory,
+  ListMyClassHistoryOut,
   ListWeekClasses,
   ListWeekClassesOut,
   ListTimeRangeSuggestions,
@@ -31,6 +35,7 @@ import type { AuthenticatedUser } from '../../shared/types/current-user.type.js'
 import { PrismaClassAudienceReader } from '../enrolment/class-audience-reader.prisma.js';
 import { PrismaClassRosterReader } from '../enrolment/class-roster-reader.prisma.js';
 import { EnrolmentClassEnrolmentsCloser } from '../enrolment/enrolment.class-enrolments-closer.js';
+import { PrismaMyClassesReader } from '../enrolment/my-classes-reader.prisma.js';
 import { PrismaPendingRequestCounter } from '../enrolment/pending-request-counter.prisma.js';
 import { PrismaSeatCounter } from '../enrolment/seat-counter.prisma.js';
 import { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-reader.prisma.js';
@@ -66,6 +71,7 @@ export class ClassesController {
     private readonly viewerEnrolmentReader: PrismaViewerEnrolmentReader,
     private readonly classEnrolmentsCloser: EnrolmentClassEnrolmentsCloser,
     private readonly classAudienceReader: PrismaClassAudienceReader,
+    private readonly myClassesReader: PrismaMyClassesReader,
   ) {}
 
   @Post('batch')
@@ -118,6 +124,34 @@ export class ClassesController {
       this.classRosterReader,
       this.viewerEnrolmentReader,
     ).execute({ actor: actorOf(user), date });
+  }
+
+  @Get('mine')
+  @HttpCode(HttpStatus.OK)
+  mine(@CurrentUser() user: AuthenticatedUser): Promise<ListMyClassesOut> {
+    return new ListMyClasses(
+      this.myClassesReader,
+      this.classViewReader,
+      this.classRosterReader,
+      this.viewerEnrolmentReader,
+      this.clock,
+    ).execute({ actor: actorOf(user) });
+  }
+
+  @Get('mine/history')
+  @HttpCode(HttpStatus.OK)
+  myHistory(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('page') page?: unknown,
+    @Query('perPage') perPage?: unknown,
+  ): Promise<ListMyClassHistoryOut> {
+    return new ListMyClassHistory(
+      this.myClassesReader,
+      this.classViewReader,
+      this.classRosterReader,
+      this.viewerEnrolmentReader,
+      this.clock,
+    ).execute({ actor: actorOf(user), page, perPage });
   }
 
   @Get(':id')

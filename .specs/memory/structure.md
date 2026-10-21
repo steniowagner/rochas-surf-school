@@ -135,21 +135,23 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
     cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
     (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider}.ts`
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider,my-classes-reader.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
     when asked), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
     `CancellationDeadlineDescriber.describe` (the language-model port);
     `TeacherLookup.findTeachers`; `ClassAssignmentNotifier.classAssigned` / `classUnassigned`;
     `ClassChangeNotifier.classEdited` / `classCancelled` / `classDeleted`;
-    `NoInstructorNotifier.classesWithoutInstructor`; `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` → `ClassView`, the read model
+    `NoInstructorNotifier.classesWithoutInstructor`; `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` / `findByIds` (spec 048) → `ClassView`, the read model
     with the location and the instructors' names; `ClassRosterReader.findRosters` → `ClassRoster` per class id, the
     seats taken and the approved students, with `CLASS_CARD_STUDENTS_LIMIT`; `ViewerEnrolmentReader.findLatest` → the
     reader's latest enrolment per class id; `ClassEnrolmentsCloser.closeOpenEnrolments` → the students whose
     enrolment a cancellation ended — the last three answered by enrolment's adapters, spec 041;
     `ClassAudienceReader.findClassAudience` / `findLocationAudience` → the students with a seat or a pending request,
-    of one class or of a location's upcoming classes with their counts, spec 047),
-    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines}.usecase.ts`, and
+    of one class or of a location's upcoming classes with their counts, spec 047;
+    `MyClassesReader.findCurrentClassIds` / `findHistoryClassIds` → a student's class ids, spec 048),
+    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history}.usecase.ts`
+    (`list-my-classes` also exports `assertIsStudent` and `toMyClassItems`, shared with the history), and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
     the students, the guests — names only for `canSeeGuestNames`, spec 045 — and `myEnrolment`). Fakes of every port and entity
     factories are in `test/mock/`.
@@ -283,7 +285,8 @@ src/
     google-places.address-suggestions.ts  # GooglePlacesAddressSuggestionProvider: the AddressSuggestionProvider
                                 # adapter (Places API (New) with fetch; GOOGLE_MAPS_API_KEY required in production)
     classes.controller.ts       # POST /classes/batch (201 { count }), GET /classes/time-range-suggestions (200),
-                                # GET /classes?date= (200, one week), GET /classes/:id (200), in that order, and
+                                # GET /classes?date= (200, one week), GET /classes/mine and GET
+                                # /classes/mine/history (200, students only; spec 048), GET /classes/:id (200), in that order, and
                                 # PUT /classes/:id (200 ClassItem), POST /classes/:id/cancel (200 ClassItem),
                                 # DELETE /classes/:id (204) — protected
     cancellation-rules.controller.ts  # GET /cancellation-rules (200), PUT /cancellation-rules/:discipline (200)
@@ -326,6 +329,9 @@ src/
     enrolment-class-reader.prisma.ts  # PrismaEnrolmentClassReader (the class with its cancellation deadline, its
                                 # instructors, whether its discipline has a cancellation rule)
     student-name-reader.prisma.ts  # PrismaStudentNameReader
+    my-classes-reader.prisma.ts # PrismaMyClassesReader (classes' MyClassesReader: the student's current class ids;
+                                # the history page and count in two raw queries on the latest enrolment per class;
+                                # spec 048)
     waiting-list-setting.prisma.ts  # PrismaWaitingListSetting (reads school_settings.waiting_list_enabled; on with no
                                 # row; spec 046)
     student-lookup.prisma.ts    # PrismaStudentLookup (an approved account with role student; spec 044)
@@ -412,7 +418,8 @@ src/
     (private)/{student,instructor,admin}/_layout.tsx # the role's Stack: its (tabs) group and the inner screens
     (private)/<role>/(tabs)/_layout.tsx              # the role's native tab bar (RoleTabs)
     (private)/student/(tabs)/{index,my-classes,school,profile}.tsx  # Agenda (/student, the week of classes, with showEnrolment),
-                                                     # Minhas aulas, Escola, Perfil
+                                                     # Minhas aulas (MyClassesScreen, spec 048), Escola, Perfil
+    (private)/student/my-history.tsx                 # "Histórico" (/student/my-history, spec 048), above the tab bar
     (private)/{instructor,admin}/(tabs)/{index,classes,profile}.tsx # Início (/instructor, /admin), Aulas (the week
                                                      # of classes; the admin's with canCreate), Perfil
     (private)/<role>/{edit-profile,whatsapp,school-rules}.tsx  # the Profile's inner screens, above the tab bar
@@ -553,10 +560,17 @@ src/
                                 # footer; spec 047)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, the
-                                # admins' "Inscrições em aulas" tool (spec 042), and direct enrolment and take-out
-                                # (spec 044)
+                                # admins' "Inscrições em aulas" tool (spec 042), direct enrolment and take-out
+                                # (spec 044), and the student's "Minhas aulas" and history (spec 048)
     enrolment.types.ts          # EnrolmentStatus, MyEnrolment (with reason), EnrolmentResponse, RequestSeatRequest,
-                                # PendingRequestsResponse, DenyRequestVariables (mirror the API)
+                                # PendingRequestsResponse, DenyRequestVariables, MyClassesResponse,
+                                # MyClassHistoryPage, MyClassesFilter (mirror the API)
+    screens/my-classes.screen.tsx  # "Minhas aulas" (+ .hook.ts, .types.ts; spec 048): title, round history button,
+                                # the status chips, the classes as ClassCards with their chip; refetch on focus,
+                                # chips back on "Todos" on blur, pull-to-refresh, loading, error + retry, empty
+    screens/my-class-history.screen.tsx  # "Histórico" (+ .hook.ts, .types.ts; spec 048): the classes taken, newest
+                                # first, 20 more at the end, pull-to-refresh, loading, error + retry, empty
+    components/my-classes-filters/  # MyClassesFilters (the horizontal row of status chips; spec 048)
     screens/class-requests.screen.tsx  # "Inscrições em aulas": header with requests · classes, one group per class,
                                 # pull-to-refresh, loading, error + retry, "Nada à espera"
     screens/enrol-student.screen.tsx  # "Inscrever aluno" (+ .hook.ts, .types.ts; spec 044): "1 · Quem" (search, the
@@ -587,13 +601,16 @@ src/
                                 # ["classes"] —, use-take-out (the details' take-out: target, toasts, reloads; spec 044);
                                 # use-add-guest (POST /classes/:id/guests), use-remove-guest (DELETE /guests/:id) — no
                                 # retry; invalidate ["classes"] —, use-take-guest-out (the details' guest removal;
-                                # spec 045)
+                                # spec 045); use-my-classes (GET /classes/mine, ["classes", "mine"]) and
+                                # use-my-class-history (infinite GET /classes/mine/history, ["classes", "mine",
+                                # "history"]; spec 048)
     utils/                      # enrolment-cta.ts (the footer button by status and fullness; "Pedir novamente" after
                                 # a denial, a cancel or a take-out; "Cancelar inscrição" before the deadline), enrolment-status.ts
                                 # (the banner and chip: waitingList for pending on a full class, approved, denied,
                                 # cancelled, takenOut), enrolment-error.ts (API error → translation key,
                                 # which errors reload the class or the tool's list), class-requests.ts (the "Pediu
-                                # às …" line and the day block)
+                                # às …" line and the day block), my-classes-filter.ts (the chips and which one a class
+                                # belongs to; spec 048)
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
@@ -692,7 +709,8 @@ src/
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession: the session store exposed to React
                                 # (user, tokens, isRestoring, setSession, updateUser, clearSession); starts the restore
-  components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen (also the placeholder tabs)
+  components/flow-placeholder/  # FlowPlaceholder: a flow's name on an empty screen; no route renders it since spec
+                                # 048 filled the last placeholder tab
   components/role-tabs/         # RoleTabs: a role's NativeTabs (tint sun / ink-3, background page)
   components/language-sheet/    # LanguageSheet: sign-in screen and Profile; stores the choice
   components/theme-sheet/       # ThemeSheet: same as phone / light / dark

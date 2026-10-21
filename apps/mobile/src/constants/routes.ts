@@ -41,6 +41,7 @@ export const routes = {
   student: {
     home: "/student",
     myClasses: "/student/my-classes",
+    myHistory: "/student/my-history",
     school: "/student/school",
     profile: "/student/profile",
     editProfile: "/student/edit-profile",

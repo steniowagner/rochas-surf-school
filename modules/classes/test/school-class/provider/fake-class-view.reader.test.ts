@@ -20,6 +20,10 @@ describe("FakeClassViewReader", () => {
     expect(reader.findByIdCalls).toEqual(["b", "zzz"]);
   });
 
+  it("finds the classes with the given ids, leaving out unknown ones", async () => {
+    expect(await reader.findByIds(["b", "zzz", "a"])).toEqual([inside, outside]);
+  });
+
   it("starts empty by default", async () => {
     expect(await new FakeClassViewReader().findById("a")).toBeNull();
   });

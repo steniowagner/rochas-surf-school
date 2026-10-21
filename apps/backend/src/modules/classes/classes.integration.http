@@ -1,4 +1,4 @@
-# Manual REST Client requests for POST /classes/batch and GET /classes/time-range-suggestions (VS Code REST Client).
+# Manual REST Client requests for the /classes routes (VS Code REST Client).
 # Sign in with an approved admin review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
 # Codes are read from the backend log when RESEND_API_KEY is unset.
 
@@ -162,6 +162,22 @@ Authorization: Bearer {{token}}
 
 ### Without a token (expects 401 auth.token.invalid)
 GET {{baseUrl}}/classes?date=2026-10-15
+
+### A student's current classes: not finished, cancelled ones included, where they have any enrolment, by start (expects 200 with { items }, each with myEnrolment; sign in with the student review account and use its token)
+GET {{baseUrl}}/classes/mine
+Authorization: Bearer {{token}}
+
+### As an admin or instructor (expects 403 enrolment.role.notStudent); without a token (expects 401)
+GET {{baseUrl}}/classes/mine
+Authorization: Bearer {{token}}
+
+### A student's class history: finished, not cancelled classes where they held a seat, newest first (expects 200 with { items, total, page, perPage }; default perPage 20, max 50)
+GET {{baseUrl}}/classes/mine/history?page=1&perPage=20
+Authorization: Bearer {{token}}
+
+### A page or perPage that isn't a whole number in range (expects 422 class.page.invalid and class.perPage.invalid)
+GET {{baseUrl}}/classes/mine/history?page=0&perPage=51
+Authorization: Bearer {{token}}
 
 ### One class by id (expects 200 with the class, including seatsTaken: 0 and students: []; set classId to an id from the week list)
 @classId = 00000000-0000-4000-8000-000000000000

@@ -306,6 +306,9 @@ The account's status is checked before its role (`user.status.notApproved`, then
   reads any class with its notes, its cancellation deadline, its seats taken, its approved students, its guests
   as "Trial" (names only for admins and the class's instructors) and their own
   latest enrolment in it, and reads both cancellation rules.
+- **An approved student** — lists their own classes: those that haven't ended where they have any enrolment
+  (cancelled ones included), each with their latest enrolment, and, page by page, the classes they took — ended,
+  not cancelled, with their latest enrolment approved. Other roles are refused (`enrolment.role.notStudent`).
 - **A student with a seat or a pending request** — receives one notification when the class is edited (a class
   field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
   tell them.
@@ -336,8 +339,9 @@ reaches the release through its own contract, which the backend fulfils with thi
 depends on Authentication, never the reverse.
 It doesn't read the clock directly either, and it learns the seats taken, the pending requests, the rosters
 (seats taken and approved students), the reader's enrolment and the audience of a class or a location's upcoming
-classes through its own contracts, and closes a cancelled class's enrolments through another;
-[Enrolment](enrolment.md) fulfils all six through the backend, and this
+classes through its own contracts, closes a cancelled class's enrolments through another, and learns which
+classes are a student's own (current and taken) through a seventh;
+[Enrolment](enrolment.md) fulfils all seven through the backend, and this
 module never depends on it. The roster keeps the students in the order they were approved, then by id, and the week list carries at
 most 4 students per class (a single class all of them) while its seats taken are never capped. The language model that describes the deadlines sits
 behind its own contract too, which the backend fulfils with Anthropic's Claude; the module never sees the
@@ -367,13 +371,13 @@ card and a banner on the details that opens "Editar aula". Admins edit the cance
 reached from their home; everyone reads them in a sheet from the Profile. A class without a deadline shows
 admins a "Sem prazo" chip on its card and a "Sem prazo de cancelamento" banner on its details that opens the rules
 screen; a class with one shows everyone "Cancelamento até …" on its details. The student's request button, its
-sheet and the enrolment banners and card chip are Enrolment's (on the student's details and Agenda only), and so
+sheet and the enrolment banners and card chip are Enrolment's (on the student's details, Agenda and "Minhas aulas"), and so
 are the "Cancelar inscrição" button and its sheet and the deadline notes with "Falar com a escola" (spec 043). On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
 mode opens a location to edit it; the location sheet searches addresses as the admin types, places the point on a
 small map, offers to tell the instructors when upcoming classes use it, and removes it after a confirmation; a
 class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
-has a point shows everyone a small map with "Direções" on its details. "My classes", ratings and photos come with
-their specs. A class keeps a link to the admin who created it,
+has a point shows everyone a small map with "Direções" on its details. "My classes" for instructors and admins, ratings and photos come with
+their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
 ## Spec history
@@ -455,3 +459,8 @@ which stops that account from being erased while the link exists — a decision 
   name how many students, pending requests and instructors will be told, the location sheet's checkbox reads
   "Avisar alunos e instrutores das próximas aulas?", and a student's `class.edited` and `location.changed` pushes
   open the class's details and the Agenda.
+- `048-my-classes-tab` — approved students list their own classes (not ended, any enrolment, cancelled ones
+  included, by start) and, paged by up to 50 (20 by default), the classes they took (ended, not cancelled, latest
+  enrolment approved, newest first; `class.page.invalid` / `class.perPage.invalid`); other roles get
+  `enrolment.role.notStudent`; the ids come through a new contract answered by Enrolment, and the classes are read
+  as the week's cards.

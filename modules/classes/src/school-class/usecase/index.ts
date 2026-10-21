@@ -8,3 +8,5 @@ export * from "./cancel-class.usecase";
 export * from "./delete-class.usecase";
 export * from "./release-upcoming-classes.usecase";
 export * from "./work-out-cancellation-deadlines.usecase";
+export * from "./list-my-classes.usecase";
+export * from "./list-my-class-history.usecase";

@@ -336,7 +336,7 @@ describe("AdminScreen", () => {
       await user.press(screen.getByRole("button", { name: /Enrol a student/ }));
 
       expect(app.getPathname()).toBe(routes.admin.enrolStudent);
-      expect(await screen.findByText("Enrol a school student in a class.")).toBeOnTheScreen();
+      expect(await screen.findByText("Enrol a school student, or someone without an account in a trial class.")).toBeOnTheScreen();
     });
   });
 });

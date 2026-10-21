@@ -132,25 +132,33 @@ export function EnrolStudentScreen() {
 
   const renderTrialGuest = () => (
     <View className="gap-3">
-      <TextInput
-        icon={null}
-        value={screen.guestName}
-        onChangeText={screen.setGuestName}
-        onBlur={screen.touchGuestName}
-        status={screen.guestNameStatus}
-        errorMessage={t("enrolStudent.trial.invalidName")}
-        placeholder={t("enrolStudent.trial.namePlaceholder")}
-        accessibilityLabel={t("enrolStudent.trial.nameLabel")}
-        autoCapitalize="words"
-        autoComplete="name"
-      />
-      <PhoneNumberField
-        country={screen.phone.country}
-        dialCode={screen.phone.dialCode}
-        numberInput={screen.phone.numberInput}
-        onSelectCountry={screen.phone.onSelectCountry}
-        label={t("enrolStudent.trial.whatsappLabel")}
-      />
+      <View className="gap-2">
+        <Text className="ds-text-section-label text-ink-2">{t("enrolStudent.trial.nameLabel")}</Text>
+        <TextInput
+          icon={null}
+          value={screen.guestName}
+          onChangeText={screen.setGuestName}
+          onBlur={screen.touchGuestName}
+          status={screen.guestNameStatus}
+          errorMessage={t("enrolStudent.trial.invalidName")}
+          placeholder={t("enrolStudent.trial.namePlaceholder")}
+          accessibilityLabel={t("enrolStudent.trial.nameLabel")}
+          autoCapitalize="words"
+          autoComplete="name"
+        />
+      </View>
+      <View className="gap-2">
+        <Text className="ds-text-section-label text-ink-2">
+          {t("enrolStudent.trial.whatsappLabel")}
+        </Text>
+        <PhoneNumberField
+          country={screen.phone.country}
+          dialCode={screen.phone.dialCode}
+          numberInput={screen.phone.numberInput}
+          onSelectCountry={screen.phone.onSelectCountry}
+          label={t("enrolStudent.trial.whatsappLabel")}
+        />
+      </View>
       <Text className="ds-text-list-subtitle text-ink-2">{t("enrolStudent.trial.note")}</Text>
     </View>
   );

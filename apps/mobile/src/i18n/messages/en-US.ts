@@ -266,7 +266,7 @@ const messages = {
   },
   enrolStudent: {
     title: "Enrol a student",
-    description: "Enrol a school student in a class.",
+    description: "Enrol a school student, or someone without an account in a trial class.",
     whoStep: "1 · Who",
     classStep: "2 · Class",
     searchPlaceholder: "Search students",

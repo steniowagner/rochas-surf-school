@@ -2,7 +2,7 @@
 id: "045"
 slug: guests
 title: "Trial guests in classes"
-status: changes-requested
+status: in-progress
 started: 2026-10-20
 base_commit: a046889b23e7859fb5a1310e4454c51a3219150b
 created: 2026-10-19
@@ -447,18 +447,30 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 
 **Findings**
 
-- [ ] **F-01** (ER-05) — the trial mode of "Inscrever aluno" shows no "Nome" label over the name field and no
+- [x] **F-01** (ER-05) — the trial mode of "Inscrever aluno" shows no "Nome" label over the name field and no
   "WhatsApp" label over the phone field: both exist only as `accessibilityLabel`s
   (`enrol-student.screen.tsx` `renderTrialGuest`), so the phone field is a bare box with nothing saying it is the
   WhatsApp number. ER-05 says step 1 shows "Nome" (with the placeholder) and "WhatsApp", and PAINEL-06 draws both as
   labels above the fields. Reproduce: as an admin, Início → Inscrever aluno → "Aula experimental". Expected: visible
   "Nome" and "WhatsApp" labels above the two fields (all three locales), with a test asserting the visible text, not
   only `getByLabelText`.
-- [ ] **F-02** (ER-06) — the "Trial" chip on a guest row sits at the top of the row instead of centered with the
+  > ✅ 2026-10-21 — the trial mode now draws visible "Nome" / "WhatsApp" labels above the two fields (en-US, es-ES,
+  > pt-BR share the existing keys) and the screen description reads as PAINEL-06 in all three locales; the screen test
+  > asserts the visible text; files: `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.tsx`,
+  > `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.test.tsx`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`;
+  > verified: `npx jest src/modules/enrolment src/modules/classes/components/class-people src/modules/admin/screens`
+  > (252 passed); deviations: none
+- [x] **F-02** (ER-06) — the "Trial" chip on a guest row sits at the top of the row instead of centered with the
   avatar, the name and "Retirar": `Chip` carries `self-start`, which overrides the row's `items-center`
   (`class-people.component.tsx`, guest row). Reproduce: a class with a guest → details → open the students list.
   Expected: the chip vertically centered in the row (e.g. wrap it in a centered `View`, or let the row align it),
   without changing the `Chip` component's behaviour elsewhere.
+  > ✅ 2026-10-21 — the guest row's "Trial" chip is wrapped in a centered `View`, so the row's `items-center` applies
+  > and `Chip` is untouched; also indented the two `TakeOutSheet`s (review note); files:
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`; verified: same jest run (passed), lint and
+  > check-types for mobile ✅; deviations: layout only, not assertable in RNTL
 
 **Notes**
 

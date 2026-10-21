@@ -159,7 +159,7 @@ describe("EnrolStudentScreen", () => {
     await renderScreen();
 
     expect(screen.getByText(/enrol a student/i)).toBeOnTheScreen();
-    expect(screen.getByText("Enrol a school student in a class.")).toBeOnTheScreen();
+    expect(screen.getByText("Enrol a school student, or someone without an account in a trial class.")).toBeOnTheScreen();
     expect(screen.getByText("1 · Who")).toBeOnTheScreen();
     expect(screen.getByText("2 · Class")).toBeOnTheScreen();
     expect(await screen.findByRole("radio", { name: "Ana Souza" })).toBeOnTheScreen();
@@ -373,6 +373,8 @@ describe("EnrolStudentScreen", () => {
       await switchToTrial(user);
 
       expect(screen.getByRole("tab", { name: "Trial class" })).toBeSelected();
+      expect(screen.getByText("Name")).toBeOnTheScreen();
+      expect(screen.getByText("WhatsApp")).toBeOnTheScreen();
       expect(screen.getByPlaceholderText("E.g.: Carolina Reis")).toBeOnTheScreen();
       expect(screen.getByText("BR +55")).toBeOnTheScreen();
       expect(

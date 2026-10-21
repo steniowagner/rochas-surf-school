@@ -273,7 +273,7 @@ const messages: Messages = {
   },
   enrolStudent: {
     title: "Inscribir alumno",
-    description: "Inscribe a un alumno de la escuela en una clase.",
+    description: "Inscribe a un alumno de la escuela, o a alguien sin cuenta en una clase de prueba.",
     whoStep: "1 · Quién",
     classStep: "2 · Clase",
     searchPlaceholder: "Buscar alumno",

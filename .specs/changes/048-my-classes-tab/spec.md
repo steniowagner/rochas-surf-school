@@ -2,10 +2,11 @@
 id: "048"
 slug: my-classes-tab
 title: "\"Minhas aulas\": the student's requests and class history"
-status: in-review
+status: accepted
 created: 2026-10-19
 started: 2026-10-21
 base_commit: 950953d06af6ceb61f9dd148969a7d444b6b919d
+reviewed_commit: d6b7033622c0b630657ab50d5f89e9f027d5952b
 fronts: [classes, backend, mobile]
 depends_on: ["047"]
 ---
@@ -316,3 +317,54 @@ they actually took. Students can follow all their requests in one place instead 
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-21 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`turbo run lint check-types build` for classes, backend, mobile: 27/27 tasks; the
+  backend's 10 lint warnings are in older e2e files, none in this spec's)
+- related tests ✅ apps/backend 49 · apps/mobile 1287 · modules/classes 519 · modules/enrolment 291 (whole suite)
+- coverage of the changed lines ✅ `COVERAGE OK`, 18 files measured, every changed line covered; no coverage-ignore
+  comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` 622 passed, 3 runs out of 3 with the local dev backend stopped
+- extra paging probes against Postgres (a throwaway e2e file, deleted): `page=9007199254740991&perPage=50` → 200
+  empty; `page=9007199254740992`, `page=99999999999999999999`, `page=%201`, `page=1&page=2`, `page=` → 422
+  `class.page.invalid`; `perPage=020` → 200 with `perPage: 20`; never a 500
+
+**Expected Results**
+
+- ER-01 ✅ — `list-my-classes.usecase.test.ts` (order by start then id, card roster, latest enrolment, empty, 403 roles
+  and status) and the "mine" cases of `my-classes.e2e-spec.ts` (pending after a withdrawal, under way, withdrawn,
+  cancelled not ended present; finished and another student's absent; `{ items: [] }`; 403 / 401) pass
+- ER-02 ✅ — `list-my-class-history.usecase.test.ts` and the "history" cases of `my-classes.e2e-spec.ts` (25 → 20 + 5
+  newest first with `total: 25`; cancelled / takenOut / denied / expired / withdrawn, a later withdrawal, a cancelled
+  class, under way, upcoming and another student's absent; 422 keys; 403 / 401) pass, plus the probes above
+- ER-03 ✅ — `my-classes.screen.test.tsx` (13 tests: title, history button, chips with All selected, order, status chips,
+  filtering, empty states, focus refetch, chip reset, loading / error / retry, failed refetch keeps the list, expired
+  session, pull-to-refresh, pt-BR and es-ES) passes; the 44 pt button is `h-11 w-11` and the chips `min-h-11`
+  (inlineRem 16). Journey followed by the user on the iOS simulator as the student: title, history button, chips,
+  "Pendentes" filtering, "Recusados" empty state, a card opening its details — as expected
+- ER-04 ✅ — `my-class-history.screen.test.tsx` (11 tests: header title, newest first with students present, 20 more at
+  the end and stopping at the end, footer spinner, failed next page toasts and keeps the list, expired session,
+  details, empty, loading / error / retry, pull-to-refresh, pt-BR and es-ES) passes. Journey followed by the user on the
+  simulator: "Histórico" with the native back, the past classes or the empty line, a card opening its details
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The backend e2e suite has an older flake: now and then one test that has nothing to do with this spec hangs for
+  about 5 s and hits Vitest's 5 s timeout (seen in `classes.e2e-spec.ts` cancel tests, `cancellation-deadlines`,
+  `direct-enrolment`, `enrolment-decisions`). It fails the same way at `base_commit` (1 of 3 runs). Every stall was in a
+  file that runs before `my-classes.e2e-spec.ts`, and with a 30 s timeout the full suite passes. It looks like a
+  Prisma interactive transaction (5 s default timeout) waiting on a lock. Worth a spec of its own.
+- D-05 is followed literally: pushing a class's details or the history above the tab also blurs it, so the chips are
+  back on "Todos" on the way back. If the product wants the chip kept across those pushes, reset it only when another
+  tab is selected (a follow-up decision for the user).
+- `ClassViewReader.findByIds` (added in T-01, implemented in T-02) isn't named in Memory Impact; `spec-finish` should
+  add it to `technical-context.md` → Classes with `MyClassesReader`.
+- `ListMyClassHistory` still calls the roster and viewer-enrolment readers with no ids for an empty page; both Prisma
+  adapters return at once for `[]`, so it costs nothing.

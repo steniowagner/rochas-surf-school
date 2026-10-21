@@ -2,10 +2,11 @@
 id: "046"
 slug: school-settings-screen
 title: "School settings screen: waiting list switch and WhatsApp number"
-status: in-review
+status: accepted
 created: 2026-10-19
 started: 2026-10-21
 base_commit: eb6839262462fba0be3e5d1a06cdb65c66d1ba06
+reviewed_commit: 7bfcca47419ed78217c9cd69718e074ad1760a78
 fronts: [school-settings, enrolment, backend, mobile]
 depends_on: ["045"]
 ---
@@ -440,3 +441,51 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 - Round 1's notes still hold (toast style, the two-request save, last save wins, `SeatCounter` for `spec-finish`, the
   untracked root `tsconfig.json`). The untracked `.expo/` and the folders of specs 047 and 048 are not part of this
   spec.
+
+### Round 3 — 2026-10-21 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for school-settings, enrolment, backend,
+  mobile: 27 of 27 tasks)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend, apps/mobile, modules/enrolment, modules/school-settings 82)
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files); no coverage-ignore comments, TODOs or debug leftovers in
+  the diff
+- e2e: backend suite ✅ `E2E PASSED` (22 files, 609 tests)
+- each Expected Result's `Verify by` run on its own: school-settings module 81 passed; `request-seat` `-t "waiting
+  list"` 5 passed; school-settings screens + admin home 30 passed; class-details `-t "waiting list off"` 6 passed and
+  `-t "full banner"` 3 passed; the `PUT /school-settings/waiting-list` e2e block 14 passed and the enrolment
+  "waiting list" cases 2 passed
+- user journeys: not driven again. Since round 2 (which drove the admin, student and number journeys on the iOS
+  simulator) the only code change is a `testID` on the settings screen's spinner, which nothing on screen shows;
+  everything else is tests
+- round 2: F-03 ✅ (the new case renders the screen with the settings request pending and asserts the indicator, and
+  no form, "Save" or "Try again"); F-04 ✅ (the new enrolment e2e case turns the switch off after the request waits,
+  checks it is still `pending` once the seat is freed, and approves it with 200 `approved`)
+
+**Expected Results**
+
+- ER-01 ✅ — fresh database `true`; off/on read by a student; each field kept when the other is saved; 422
+  `schoolSettings.waitingList.invalid` for a missing body, missing, null, string and number `enabled`, keeping the
+  stored switch; 403 `schoolSettings.role.notAdmin` for students and instructors (as amended), 403 for unapproved
+  admins, 401 without a token
+- ER-02 ✅ — 409 `enrolment.waitingList.closed` on a full (or over-capacity) class with the switch off, nothing stored,
+  checked after `class.started` and before `enrolment.rule.notAccepted` (D-02); a free seat and the switch on are
+  accepted; a waiting request stays pending and is approved once a seat frees (D-03)
+- ER-03 ✅ — `school-settings.screen.test.tsx` (sections, switch texts, only what changed is sent, invalid number, no
+  number, failed save keeps the edits, loading, error with "Tentar novamente", done key) and the admin home row; copy
+  in pt-BR, es-ES and en-US
+- ER-04 ✅ — no button and the closed text, a waiting student keeps "Sair da lista de espera", a free seat keeps the
+  request, a failed settings read counts as on, the 409 shows the toast and reloads
+- ER-05 ✅ — on and off texts for admins, no description for instructors
+
+**Findings**
+
+- none
+
+**Notes**
+
+- Round 2's notes still hold (the details screen reads the switch once per mount; the school-settings e2e suite wipes
+  the local `school_settings` rows), as do round 1's (toast style, the two-request save, last save wins, `SeatCounter`
+  to record in `memory/modules/enrolment.md`). The untracked root `tsconfig.json`, `.expo/` and the folders of specs
+  047 and 048 are not part of this spec.

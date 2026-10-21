@@ -256,9 +256,30 @@ they actually took. Students can follow all their requests in one place instead 
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-21 — `node .specs/scripts/run-related-tests.mjs 048` → RELATED TESTS PASSED (apps/backend 49, apps/mobile
+  > 1287, modules/classes 519, modules/enrolment 291 — the last whole, as it imports classes);
+  > `node .specs/scripts/check-coverage.mjs 048` → COVERAGE OK (18 files measured, every changed line covered);
+  > `npx turbo run lint check-types build --filter=…classes --filter=…backend --filter=…mobile` → 27/27 tasks (it first
+  > caught a typing issue in `test/my-classes.e2e-spec.ts`, fixed in its own commit under T-03; the backend's 10 lint
+  > warnings are pre-existing, none in this spec's files); `node .specs/scripts/run-e2e.mjs 048` → E2E PASSED (23
+  > files, 622 tests). `classes.integration.http` flow against the running `npm run dev` backend (student and admin
+  > review accounts): `GET /classes/mine` 200 with the class under way (approved), the pending and the withdrawn
+  > ones by start and a future cancelled one, no finished class; `GET /classes/mine/history?page=1&perPage=20` 200
+  > `{ total: 1, page: 1, perPage: 20 }` with the finished approved seat only; `page=0&perPage=51` 422
+  > `class.page.invalid` + `class.perPage.invalid`; admin 403 `enrolment.role.notStudent`; no token 401.
+  > Journeys on the iOS simulator (iPhone 18 Pro, iOS 27, student review account, pt-BR, dark; two demo classes
+  > with an approved and a withdrawn request were added to the dev database for the run and deleted after):
+  > "Minhas aulas" shows the title, the round history button and the chips with "Todos" selected, the cards by
+  > start with their chips ("Em andamento" winning on the approved class under way, "Retirado", "Na lista de
+  > espera"); "Pendentes" leaves only the pending request; "Recusados" shows "Nada por aqui" / "Você não tem pedidos
+  > com este status."; the history button opens "Histórico" (native header with back) with the class taken
+  > ("1 aluno presente"), whose card opens the past class's details; back on the tab the list refetched (the deleted
+  > demo classes were gone) and the chips were on "Todos" again. Note for review: a push above the tab (a class, the
+  > history) also blurs it, so the chips reset on the way back too — D-05's "when the tab is left" read literally.
+  > The simulator was signed back into the admin review account afterwards.
 
 ## Verification Plan
 

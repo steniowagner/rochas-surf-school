@@ -11,6 +11,7 @@ import { PrismaClassRosterReader } from './class-roster-reader.prisma.js';
 import { EnrolmentClassEnrolmentsCloser } from './enrolment.class-enrolments-closer.js';
 import { PrismaEnrolmentClassReader } from './enrolment-class-reader.prisma.js';
 import { PrismaEnrolmentRepository } from './enrolment.prisma.js';
+import { PrismaMyClassesReader } from './my-classes-reader.prisma.js';
 import { PrismaPendingRequestCounter } from './pending-request-counter.prisma.js';
 import { PrismaSeatCounter } from './seat-counter.prisma.js';
 import { PrismaStudentLookup } from './student-lookup.prisma.js';
@@ -32,6 +33,7 @@ import { PrismaWaitingListSetting } from './waiting-list-setting.prisma.js';
     PrismaEnrolmentClassReader,
     PrismaEnrolmentRepository,
     PrismaGuestRepository,
+    PrismaMyClassesReader,
     PrismaPendingRequestCounter,
     PrismaSeatCounter,
     PrismaStudentLookup,
@@ -47,6 +49,7 @@ import { PrismaWaitingListSetting } from './waiting-list-setting.prisma.js';
     PrismaClassRosterReader,
     PrismaEnrolmentClassReader,
     PrismaEnrolmentRepository,
+    PrismaMyClassesReader,
     PrismaPendingRequestCounter,
     PrismaSeatCounter,
     PrismaStudentLookup,

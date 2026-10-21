@@ -138,11 +138,27 @@ they actually took. Students can follow all their requests in one place instead 
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Add `src/modules/enrolment/my-classes-reader.prisma.ts` with its spec, export it, and add
+- [x] **T-02** — Add `src/modules/enrolment/my-classes-reader.prisma.ts` with its spec, export it, and add
   `GET /classes/mine` and `GET /classes/mine/history` to `classes.controller.ts` (before `:id`) with specs and
   requests in `classes.integration.http`. Skills: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation),
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/enrolment src/modules/classes` passes.
+  > ✅ 2026-10-21 — `PrismaMyClassesReader`: current ids with one `findMany` (`endsAt > now`, any enrolment of
+  > the student, by `startsAt` then `id`); history with two raw queries sharing one `Prisma.sql` fragment (the
+  > student's latest enrolment per class by `DISTINCT ON … requested_at DESC, id DESC` must be `approved`,
+  > `cancelled_at IS NULL`, `ends_at <= now`; `starts_at DESC, id DESC`, `LIMIT`/`OFFSET`, and the `COUNT`),
+  > provided and exported by `EnrolmentModule`. `GET /classes/mine` (`mine`) and `GET /classes/mine/history`
+  > (`myHistory`, raw `page` / `perPage` query strings) declared before `GET /classes/:id`, injecting the reader.
+  > files: `apps/backend/src/modules/enrolment/my-classes-reader.prisma.ts`,
+  > `apps/backend/src/modules/enrolment/my-classes-reader.prisma.spec.ts`,
+  > `apps/backend/src/modules/enrolment/enrolment.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts`,
+  > `apps/backend/src/modules/classes/classes.controller.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.integration.http`,
+  > `apps/backend/src/modules/classes/class-view-reader.prisma.ts`,
+  > `apps/backend/src/modules/classes/class-view-reader.prisma.spec.ts`; verified: `npx vitest run src/modules/enrolment
+  > src/modules/classes` (32 files, 270 passed), backend `tsc --noEmit` clean, `npm run lint` no new findings
+  > (pre-existing e2e warnings only); deviations: `PrismaClassViewReader.findByIds` (the T-01 port addition: one
+  > `findMany` on the ids, nothing read for none).
 
 - [ ] **T-03** — Add `test/my-classes.e2e-spec.ts` (fixed clock, cleanup) with the current, history, paging,
   exclusions and role cases.

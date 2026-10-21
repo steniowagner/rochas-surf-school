@@ -88,6 +88,23 @@ describe('PrismaClassViewReader', () => {
     expect(item).toEqual({ ...VIEW, notes: null });
   });
 
+  it('finds the classes with the given ids in one query', async () => {
+    const { schoolClass, reader } = setup();
+    schoolClass.findMany.mockResolvedValue([record()]);
+
+    expect(await reader.findByIds(['class-1', 'gone'])).toEqual([VIEW]);
+    expect(schoolClass.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: { in: ['class-1', 'gone'] } } }),
+    );
+  });
+
+  it('reads nothing for no ids', async () => {
+    const { schoolClass, reader } = setup();
+
+    expect(await reader.findByIds([])).toEqual([]);
+    expect(schoolClass.findMany).not.toHaveBeenCalled();
+  });
+
   it('answers null when there is no class with the id', async () => {
     const { schoolClass, reader } = setup();
     schoolClass.findUnique.mockResolvedValue(null);

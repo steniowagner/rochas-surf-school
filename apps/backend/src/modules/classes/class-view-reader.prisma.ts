@@ -28,6 +28,16 @@ export class PrismaClassViewReader implements ClassViewReader {
     return record ? this.toView(record) : null;
   }
 
+  async findByIds(ids: string[]): Promise<ClassView[]> {
+    if (ids.length === 0) return [];
+
+    const records = await this.prisma.schoolClass.findMany({
+      where: { id: { in: ids } },
+      include: INCLUDE,
+    });
+    return records.map((record) => this.toView(record));
+  }
+
   private toView(record: ClassRecord): ClassView {
     return {
       id: record.id,

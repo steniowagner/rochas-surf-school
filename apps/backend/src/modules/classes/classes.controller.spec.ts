@@ -9,6 +9,7 @@ import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import type { PrismaClassRosterReader } from '../enrolment/class-roster-reader.prisma.js';
 import type { EnrolmentClassEnrolmentsCloser } from '../enrolment/enrolment.class-enrolments-closer.js';
+import type { PrismaMyClassesReader } from '../enrolment/my-classes-reader.prisma.js';
 import type { PrismaClassAudienceReader } from '../enrolment/class-audience-reader.prisma.js';
 import type { PrismaPendingRequestCounter } from '../enrolment/pending-request-counter.prisma.js';
 import type { PrismaSeatCounter } from '../enrolment/seat-counter.prisma.js';
@@ -66,6 +67,11 @@ function setup() {
   const classViewReader = {
     findStartingBetween: vi.fn(async () => []),
     findById: vi.fn(async () => null),
+    findByIds: vi.fn(async () => []),
+  };
+  const myClassesReader = {
+    findCurrentClassIds: vi.fn(async (): Promise<string[]> => []),
+    findHistoryClassIds: vi.fn(async () => ({ ids: [] as string[], total: 0 })),
   };
   const seatCounter = { countSeatsTaken: vi.fn(async () => 0) };
   const pendingRequestCounter = { countPendingRequests: vi.fn(async () => 0) };
@@ -90,6 +96,7 @@ function setup() {
     viewerEnrolmentReader as unknown as PrismaViewerEnrolmentReader,
     enrolmentsCloser as unknown as EnrolmentClassEnrolmentsCloser,
     classAudienceReader as unknown as PrismaClassAudienceReader,
+    myClassesReader as unknown as PrismaMyClassesReader,
   );
   const body = {
     discipline: 'surf',
@@ -112,6 +119,7 @@ function setup() {
     enrolmentsCloser,
     viewerEnrolmentReader,
     classRosterReader,
+    myClassesReader,
     stored,
     location,
     body,
@@ -123,6 +131,8 @@ describe('ClassesController', () => {
     ['createBatch', 'batch', RequestMethod.POST, HttpStatus.CREATED],
     ['timeRangeSuggestions', 'time-range-suggestions', RequestMethod.GET, HttpStatus.OK],
     ['week', '/', RequestMethod.GET, HttpStatus.OK],
+    ['mine', 'mine', RequestMethod.GET, HttpStatus.OK],
+    ['myHistory', 'mine/history', RequestMethod.GET, HttpStatus.OK],
     ['one', ':id', RequestMethod.GET, HttpStatus.OK],
     ['edit', ':id', RequestMethod.PUT, HttpStatus.OK],
     ['cancel', ':id/cancel', RequestMethod.POST, HttpStatus.OK],
@@ -265,6 +275,46 @@ describe('ClassesController', () => {
       myEnrolment: { id: 'e-1', status: 'pending', requestedAt: requestedAt.toISOString() },
     });
     expect(viewerEnrolmentReader.findLatest).toHaveBeenCalledWith(ADMIN_ID, [id]);
+  });
+
+  it('declares the student routes before :id, so "mine" never reaches it', () => {
+    const names = Object.getOwnPropertyNames(ClassesController.prototype);
+
+    expect(names.indexOf('mine')).toBeLessThan(names.indexOf('one'));
+    expect(names.indexOf('myHistory')).toBeLessThan(names.indexOf('one'));
+  });
+
+  it("lists a student's current classes at the clock's now", async () => {
+    const { controller, myClassesReader } = setup();
+
+    expect(await controller.mine(userOf('student'))).toEqual({ items: [] });
+    expect(myClassesReader.findCurrentClassIds).toHaveBeenCalledWith(ADMIN_ID, NOW);
+  });
+
+  it("pages a student's class history with the query strings", async () => {
+    const { controller, myClassesReader } = setup();
+
+    expect(await controller.myHistory(userOf('student'), '2', '10')).toEqual({
+      items: [],
+      total: 0,
+      page: 2,
+      perPage: 10,
+    });
+    expect(myClassesReader.findHistoryClassIds).toHaveBeenCalledWith(ADMIN_ID, NOW, 2, 10);
+  });
+
+  it('refuses both student routes to other roles and a bad page with 422', async () => {
+    const { controller } = setup();
+
+    await expect(controller.mine(userOf('admin'))).rejects.toMatchObject({
+      message: 'enrolment.role.notStudent',
+    });
+    await expect(controller.myHistory(userOf('instructor'))).rejects.toMatchObject({
+      message: 'enrolment.role.notStudent',
+    });
+    await expect(controller.myHistory(userOf('student'), '0')).rejects.toMatchObject({
+      errors: [expect.objectContaining({ message: 'class.page.invalid' })],
+    });
   });
 
   it('lists the week of the date for any approved role', async () => {

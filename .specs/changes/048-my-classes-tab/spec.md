@@ -2,7 +2,7 @@
 id: "048"
 slug: my-classes-tab
 title: "\"Minhas aulas\": the student's requests and class history"
-status: in-progress
+status: in-review
 created: 2026-10-19
 started: 2026-10-21
 base_commit: 950953d06af6ceb61f9dd148969a7d444b6b919d

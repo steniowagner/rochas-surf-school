@@ -7,6 +7,7 @@ import {
 import { Location } from '@rochas-surf-school/classes';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import type { PrismaClassAudienceReader } from '../enrolment/class-audience-reader.prisma.js';
 import type { NotificationsLocationChangeNotifier } from '../notifications/notifications.location-change-notifier.js';
 import type { GooglePlacesAddressSuggestionProvider } from './google-places.address-suggestions.js';
 import { PrismaLocationRepository } from './location.prisma.js';
@@ -15,6 +16,7 @@ import type { SystemClockProvider } from './system.clock.js';
 
 const NOW = new Date('2026-10-18T12:00:00.000Z');
 const ADMIN_ID = '0b4d1c6e-3f7a-4c58-9a21-7d5e8f1a2b34';
+const STUDENT_ID = '4e8a1c73-9d2b-4f65-8b0a-6c3d7e1f9a28';
 const INSTRUCTOR_ID = '7a2e9c41-5b8d-4f03-a6e1-3c9d0b7f5e12';
 
 function userOf(role: string, status = 'approved'): AuthenticatedUser {
@@ -55,13 +57,15 @@ function setup() {
     suggest: vi.fn(async () => [{ placeId: 'p1', title: 'Praia do Futuro', description: 'Fortaleza' }]),
     findPlace: vi.fn(async () => ({ address: 'Rua A', latitude: 1, longitude: 2, name: 'Praia' })),
   };
+  const audience = { findLocationAudience: vi.fn(async () => [{ userId: STUDENT_ID, count: 2 }]) };
   const controller = new LocationsController(
     repository as unknown as PrismaLocationRepository,
     { now: () => NOW } as unknown as SystemClockProvider,
     notifier as unknown as NotificationsLocationChangeNotifier,
     provider as unknown as GooglePlacesAddressSuggestionProvider,
+    audience as unknown as PrismaClassAudienceReader,
   );
-  return { controller, repository, notifier, provider, stored: () => stored };
+  return { controller, repository, notifier, provider, audience, stored: () => stored };
 }
 
 describe('LocationsController', () => {
@@ -185,7 +189,10 @@ describe('LocationsController', () => {
       upcomingClasses: 3,
     });
     expect(notifier.locationChanged).toHaveBeenCalledWith({
-      recipients: [{ instructorId: INSTRUCTOR_ID, count: 2 }],
+      recipients: [
+        { userId: INSTRUCTOR_ID, count: 2 },
+        { userId: STUDENT_ID, count: 2 },
+      ],
       locationName: 'Praia Nova',
     });
   });

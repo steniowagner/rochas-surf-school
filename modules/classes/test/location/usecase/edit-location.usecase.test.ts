@@ -9,6 +9,7 @@ import {
   ADMIN,
   buildClass,
   buildLocation,
+  FakeClassAudienceReader,
   FakeClockProvider,
   FakeLocationChangeNotifier,
   FakeLocationRepository,
@@ -30,10 +31,15 @@ const body = {
   longitude: -38.4617,
 };
 
-function setup(location: Location, classes = [] as ReturnType<typeof buildClass>[], others: Location[] = []) {
+function setup(
+  location: Location,
+  classes = [] as ReturnType<typeof buildClass>[],
+  others: Location[] = [],
+  audience = new FakeClassAudienceReader(),
+) {
   const repository = new FakeLocationRepository([location, ...others], classes);
   const notifier = new FakeLocationChangeNotifier();
-  const useCase = new EditLocation(repository, notifier, new FakeClockProvider(NOW));
+  const useCase = new EditLocation(repository, notifier, new FakeClockProvider(NOW), audience);
 
   return { repository, notifier, useCase };
 }
@@ -249,8 +255,8 @@ describe("EditLocation", () => {
       expect(notifier.events).toEqual([
         {
           recipients: [
-            { instructorId: OTHER_INSTRUCTOR, count: 1 },
-            { instructorId: INSTRUCTOR_ID, count: 2 },
+            { userId: OTHER_INSTRUCTOR, count: 1 },
+            { userId: INSTRUCTOR_ID, count: 2 },
           ],
           locationName: "Praia do Futuro",
         },
@@ -274,6 +280,102 @@ describe("EditLocation", () => {
       await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: true });
 
       expect(notifier.events).toHaveLength(0);
+    });
+
+    describe("students", () => {
+      const STUDENT_ID = "5d6e7f80-9a1b-4c2d-8e3f-4a5b6c7d8e9f";
+
+      function setupAudience(members: { userId: string; count: number }[]) {
+        const location = buildLocation("Praia");
+        const audience = new FakeClassAudienceReader({}, { [location.id]: members });
+        const classes = [
+          buildClass({ locationId: location.id, startsAt: TOMORROW, instructorIds: [INSTRUCTOR_ID] }),
+        ];
+
+        return { location, audience, ...setup(location, classes, [], audience) };
+      }
+
+      it("tells the students of the upcoming classes with their own counts, as the instructors", async () => {
+        const { location, notifier, useCase, audience } = setupAudience([
+          { userId: STUDENT_ID, count: 2 },
+        ]);
+
+        await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: true });
+
+        expect(notifier.events).toEqual([
+          {
+            recipients: [
+              { userId: INSTRUCTOR_ID, count: 1 },
+              { userId: STUDENT_ID, count: 2 },
+            ],
+            locationName: "Praia do Futuro",
+          },
+        ]);
+        expect(audience.locationCalls).toEqual([{ locationId: location.id, now: NOW }]);
+      });
+
+      it("sends one notification with the larger count to a person who is also an instructor", async () => {
+        const { location, notifier, useCase } = setupAudience([{ userId: INSTRUCTOR_ID, count: 3 }]);
+
+        await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: true });
+
+        expect(notifier.events[0]!.recipients).toEqual([{ userId: INSTRUCTOR_ID, count: 3 }]);
+      });
+
+      it("keeps the smaller count out when the instructor count is larger", async () => {
+        const { location, notifier, useCase } = setupAudience([{ userId: INSTRUCTOR_ID, count: 0 }]);
+
+        await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: true });
+
+        expect(notifier.events[0]!.recipients).toEqual([{ userId: INSTRUCTOR_ID, count: 1 }]);
+      });
+
+      it("never tells the editing admin, even when they hold a seat", async () => {
+        const { location, notifier, useCase } = setupAudience([
+          { userId: ADMIN.id, count: 1 },
+          { userId: STUDENT_ID, count: 1 },
+        ]);
+
+        await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: true });
+
+        expect(notifier.events[0]!.recipients.map((item) => item.userId)).toEqual([
+          INSTRUCTOR_ID,
+          STUDENT_ID,
+        ]);
+      });
+
+      it("tells the students even when no instructor besides the editor is left", async () => {
+        const location = buildLocation("Praia");
+        const audience = new FakeClassAudienceReader({}, { [location.id]: [{ userId: STUDENT_ID, count: 1 }] });
+        const { notifier, useCase } = setup(
+          location,
+          [buildClass({ locationId: location.id, startsAt: TOMORROW, instructorIds: [ADMIN.id] })],
+          [],
+          audience,
+        );
+
+        await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: true });
+
+        expect(notifier.events[0]!.recipients).toEqual([{ userId: STUDENT_ID, count: 1 }]);
+      });
+
+      it("tells nobody when notify is false, without reading the students", async () => {
+        const { location, notifier, useCase, audience } = setupAudience([{ userId: STUDENT_ID, count: 1 }]);
+
+        await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: false });
+
+        expect(notifier.events).toHaveLength(0);
+        expect(audience.locationCalls).toHaveLength(0);
+      });
+
+      it("tells the instructors only when the students can't be read", async () => {
+        const { location, notifier, useCase, audience } = setupAudience([{ userId: STUDENT_ID, count: 1 }]);
+        audience.fail = true;
+
+        await useCase.execute({ actor: ADMIN, id: location.id, ...body, notify: true });
+
+        expect(notifier.events[0]!.recipients).toEqual([{ userId: INSTRUCTOR_ID, count: 1 }]);
+      });
     });
 
     it("keeps the edit and the answer when the notifier fails", async () => {

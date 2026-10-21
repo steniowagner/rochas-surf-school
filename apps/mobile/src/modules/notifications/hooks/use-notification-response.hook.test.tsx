@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
+import { router } from "expo-router";
 import { act, renderRouter, waitFor } from "expo-router/testing-library";
 import { ReactNode } from "react";
 
@@ -276,13 +277,27 @@ describe("useNotificationResponse", () => {
     },
   );
 
-  it("goes to the resolved flow when a class.edited push is tapped by someone who is now a student", async () => {
+  it("goes to the resolved flow when a class.edited push without a class is tapped by a student", async () => {
     answerMe(account("approved", "student", true));
-    await openApp(account("approved", "instructor", true));
+    await openApp(account("approved", "student", true));
 
-    await tap(response("class.edited", "n1", "c-1"));
+    await tap(response("class.edited"));
 
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
+  it("opens the Agenda of a student who taps a location.changed push", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "student", true));
+
+    const push = jest.spyOn(router, "push");
+
+    await tap(response("location.changed"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+    expect(push).toHaveBeenCalledWith(routes.student.home);
+    expect(meCalls()).toHaveLength(1);
+    push.mockRestore();
   });
 
   it.each([
@@ -292,6 +307,7 @@ describe("useNotificationResponse", () => {
     "enrolment.enrolled",
     "enrolment.takenOut",
     "class.cancelled",
+    "class.edited",
   ])(
     "opens the class details of a student who taps a %s push",
     async (type) => {

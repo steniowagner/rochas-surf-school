@@ -211,7 +211,7 @@ export function EditClassScreen() {
       >
         <GuestsWarning count={screen.guestCount} />
         <Text className="ds-text-list-subtitle text-center text-ink-2">
-          {t("editClass.note")}
+          {screen.note}
         </Text>
         <Button
           variant="primary"

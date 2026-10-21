@@ -681,7 +681,8 @@ Admins SHALL be able to edit a single class. An edit SHALL NOT move a class's st
 
 #### Edit notifications
 
-_Implemented in spec 032-class-editing (its instructors; students and pending requests come with enrolment)._
+_Implemented in spec 032-class-editing (its instructors)._
+_Implemented in spec 047-class-changes-reach-students._
 
 When a class is edited, its students, anyone with a pending request for it, and its instructors SHALL be notified. The admin who makes the edit SHALL NOT be notified, even when teaching the class, and a save that changes nothing SHALL notify nobody.
 
@@ -811,7 +812,8 @@ Admins SHALL be able to edit a saved location. The change SHALL apply to every c
 
 #### Notifying about a location change
 
-_Implemented in spec 037-class-locations (instructors only; students are told once enrolment exists)._
+_Implemented in spec 037-class-locations (instructors)._
+_Implemented in spec 047-class-changes-reach-students._
 
 When an edited location is used by classes that haven't started, the admin SHALL choose whether to notify those classes' students and instructors.
 

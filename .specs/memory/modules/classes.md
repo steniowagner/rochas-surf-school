@@ -51,11 +51,12 @@ Editing a location:
 - **A new name or address clears the deadlines of the location's upcoming classes** in the same write, so they
   are worked out again (the model reads the name and the address); moving only the point keeps them, and started,
   finished and cancelled classes keep theirs.
-- **The admin chooses whether to tell the instructors**: with the choice on and something changed, every
-  instructor of the location's upcoming classes except the admin who edits gets one `location.changed` with how
-  many of their upcoming classes are there and the new name, through [Notifications](notifications.md). A
-  notification that fails never changes the answer or the edit. Students and people with pending requests will be
-  told with spec 047.
+- **The admin chooses whether to tell the students and instructors**: with the choice on and something changed,
+  every instructor of the location's upcoming classes and every student with a seat or a pending request in them,
+  except the admin who edits, gets one `location.changed` with how many of their upcoming classes are there and the
+  new name, through [Notifications](notifications.md); a person who is both gets one, with the larger count. Past
+  and cancelled classes don't count. A notification that fails never changes the answer or the edit, and when the
+  students can't be read only the instructors are told.
 
 Removing (archiving) a location:
 
@@ -102,7 +103,11 @@ The classes themselves, and how a batch becomes classes.
   the approved enrolment, which an admin can take them out of) and the guests (id and name, the name empty once
   erased) of a class, read for many classes at once, from Enrolment.
 - **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer, from
-  Enrolment.
+  Enrolment. Reading one class gives the count to an admin and none to every other role; the week list never
+  carries it.
+- **Class audience** (not stored): the students with a seat (approved) or a pending request in a class, each once —
+  or in a location's upcoming classes, each with how many of those classes they are in — from Enrolment; the people
+  an edit or a location change reaches besides the instructors.
 - **Reader's enrolment** (not stored, `myEnrolment`): the latest enrolment (id, status, when requested, and the
   reason — the admin's denial reason, else none) of the
   person reading the class, by when it was requested and then id, or none; read for many classes at once, from
@@ -188,9 +193,11 @@ Editing one class:
 - **The class and its instructors are written together**; two admins saving the same class at once: the last
   save wins.
 - **Who is told, after the class is stored, never the admin who edits** (even when teaching it): the
-  instructors on the class before and after get `class.edited` when a class field changed; the added ones get
-  `class.assigned` (count 1, not `class.edited`); the removed ones get `class.unassigned`. Changing only the
-  instructors tells only the added and the removed. A notification that fails never changes the answer or the
+  instructors on the class before and after, and the class's audience (its students with a seat and the people
+  with a pending request, never withdrawn, expired or denied ones), get `class.edited` when a class field changed,
+  each person once; the added instructors get `class.assigned` (count 1, not `class.edited`); the removed ones get
+  `class.unassigned`. Changing only the instructors tells only the added and the removed, and no student. When the
+  audience can't be read only the instructors are told. A notification that fails never changes the answer or the
   stored class.
 
 Cancelling one class:
@@ -299,9 +306,13 @@ The account's status is checked before its role (`user.status.notApproved`, then
   reads any class with its notes, its cancellation deadline, its seats taken, its approved students, its guests
   as "Trial" (names only for admins and the class's instructors) and their own
   latest enrolment in it, and reads both cancellation rules.
+- **A student with a seat or a pending request** — receives one notification when the class is edited (a class
+  field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
+  tell them.
 - **An approved admin** — creates, edits and removes locations, gets address suggestions, creates batches of
   classes, reads the time-range suggestions, edits a
-  class that hasn't finished and isn't cancelled, cancels a class that hasn't finished, and deletes a class that
+  class that hasn't finished and isn't cancelled, reads a class's pending-request count, cancels a class that
+  hasn't finished, and deletes a class that
   hasn't started, isn't cancelled and has nobody in it; sees the "no instructor" flag on a class's card and
   details, and is told when an account deletion leaves classes with nobody; saves the cancellation rule of each
   discipline and sees the "no cancellation deadline" flag.
@@ -318,14 +329,15 @@ class, come through its own contracts, provided by the backend from [Authenticat
 status names. It doesn't send notifications itself: it hands the instructors and the class's details to two
 contracts that [Notifications](notifications.md) fulfils (assignments — added and removed — and class changes:
 edits, cancellations and deletions), plus a third for the classes left without an instructor and a fourth for
-location changes (each instructor with their count, and the location's new name). The address suggestions come
+location changes (each person — instructor or student — with their count, and the location's new name). The address suggestions come
 through their own contract, which the backend fulfils with Google's Places service; the module never sees the
 provider. Authentication
 reaches the release through its own contract, which the backend fulfils with this module's use case — this module
 depends on Authentication, never the reverse.
 It doesn't read the clock directly either, and it learns the seats taken, the pending requests, the rosters
-(seats taken and approved students) and the reader's enrolment through its own contracts, and closes a cancelled
-class's enrolments through another; [Enrolment](enrolment.md) fulfils all five through the backend, and this
+(seats taken and approved students), the reader's enrolment and the audience of a class or a location's upcoming
+classes through its own contracts, and closes a cancelled class's enrolments through another;
+[Enrolment](enrolment.md) fulfils all six through the backend, and this
 module never depends on it. The roster keeps the students in the order they were approved, then by id, and the week list carries at
 most 4 students per class (a single class all of them) while its seats taken are never capped. The language model that describes the deadlines sits
 behind its own contract too, which the backend fulfils with Anthropic's Claude; the module never sees the
@@ -436,3 +448,10 @@ which stops that account from being erased while the link exists — a decision 
   can't be deleted and its capacity can't go below them; in the app, the details' students list shows guests with
   a "Trial" chip (and an admin's "Retirar"), the admin's capacity line adds "inclui N trial", and Editar aula and
   the cancel sheet warn the admin that guests aren't told.
+- `047-class-changes-reach-students` — an edit that changes a class field and a location change the admin chooses
+  to tell reach the students with a seat and the people with a pending request (the location's with their own
+  count, one notification for a person who also teaches there), through a new contract answered by Enrolment;
+  reading one class gives admins its pending-request count; in the app, the cancel sheet and Editar aula's footer
+  name how many students, pending requests and instructors will be told, the location sheet's checkbox reads
+  "Avisar alunos e instrutores das próximas aulas?", and a student's `class.edited` and `location.changed` pushes
+  open the class's details and the Agenda.

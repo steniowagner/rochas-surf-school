@@ -9,6 +9,7 @@ import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import type { PrismaClassRosterReader } from '../enrolment/class-roster-reader.prisma.js';
 import type { EnrolmentClassEnrolmentsCloser } from '../enrolment/enrolment.class-enrolments-closer.js';
+import type { PrismaClassAudienceReader } from '../enrolment/class-audience-reader.prisma.js';
 import type { PrismaPendingRequestCounter } from '../enrolment/pending-request-counter.prisma.js';
 import type { PrismaSeatCounter } from '../enrolment/seat-counter.prisma.js';
 import type { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-reader.prisma.js';
@@ -70,6 +71,10 @@ function setup() {
   const pendingRequestCounter = { countPendingRequests: vi.fn(async () => 0) };
   const classRosterReader = { findRosters: vi.fn(async () => new Map()) };
   const viewerEnrolmentReader = { findLatest: vi.fn(async () => new Map()) };
+  const classAudienceReader = {
+    findClassAudience: vi.fn(async (): Promise<string[]> => []),
+    findLocationAudience: vi.fn(async () => []),
+  };
   const enrolmentsCloser = { closeOpenEnrolments: vi.fn(async (): Promise<string[]> => []) };
   const controller = new ClassesController(
     classRepository as unknown as PrismaSchoolClassRepository,
@@ -84,6 +89,7 @@ function setup() {
     classRosterReader as unknown as PrismaClassRosterReader,
     viewerEnrolmentReader as unknown as PrismaViewerEnrolmentReader,
     enrolmentsCloser as unknown as EnrolmentClassEnrolmentsCloser,
+    classAudienceReader as unknown as PrismaClassAudienceReader,
   );
   const body = {
     discipline: 'surf',

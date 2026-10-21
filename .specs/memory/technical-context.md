@@ -97,7 +97,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     033), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
     `data.classId` when it resolves to the `admin` flow (spec 035), `router.push(routes.student.classDetail(classId))`
     for an `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `enrolment.enrolled` /
-    `enrolment.takenOut` / `class.cancelled` push in the `student` flow (specs 041, 042, 044), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
+    `enrolment.takenOut` / `class.cancelled` / `class.edited` push in the `student` flow (specs 041, 042, 044, 047),
+    `router.push(routes.student.home)` for a `location.changed` push in the `student` flow (spec 047), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
     the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
     class id (spec 042), `router.push(routes.instructor.classDetail(classId))` /
     `router.push(routes.admin.classDetail(classId))` for an `enrolment.cancelled` push with a string `data.classId`
@@ -106,7 +107,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
     `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
-    `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037),
+    `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037; for every role, students included),
     the seven enrolment pushes invalidate `["classes"]` and `enrolment.requested` / `enrolment.cancelled` also
     `["enrolments", "pending"]` (specs 041–044); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
@@ -839,10 +840,12 @@ guard's 401 `auth.token.invalid`.
   latitude, longitude after trimming) → 200 with no write and nobody told. Otherwise `LocationRepository.update(location,
   { clearDeadlinesFrom })` — `now` when the name or the address changed (the details the language model reads),
   else `null`, so a moved point keeps the deadlines — then, with `notify: true`,
-  `findUpcomingInstructorCounts(locationId, now)` minus the caller goes to
-  `LocationChangeNotifier.locationChanged({ recipients: [{ instructorId, count }], locationName })`
-  (`provider/location-change-notifier.provider.ts`; skipped when nobody is left; any error swallowed in the use
-  case). `POST /locations/:id/archive` (admins; `ArchiveLocation`) → 204; order: access, 404 `location.notFound`,
+  `findUpcomingInstructorCounts(locationId, now)` merged with the students of spec 047 — the `ClassAudienceReader`
+  port's `findLocationAudience(locationId, now)` (`EditLocation`'s fourth constructor argument; a failed read tells
+  the instructors only) — each person once with the larger count, minus the caller, goes to
+  `LocationChangeNotifier.locationChanged({ recipients: [{ userId, count }], locationName })`
+  (`provider/location-change-notifier.provider.ts`; `userId` was `instructorId` before spec 047; skipped when nobody
+  is left; any error swallowed in the use case). `POST /locations/:id/archive` (admins; `ArchiveLocation`) → 204; order: access, 404 `location.notFound`,
   409 `location.archived` (already archived, or the conditional `archive(id)` lost a race). The last active
   location can be archived; nothing restores one. Address suggestions (admins): `GET
   /locations/address-suggestions?q=&sessionToken=&language=` (`SuggestAddresses`) → 200 `{ items: [{ placeId,
@@ -883,7 +886,10 @@ guard's 401 `auth.token.invalid`.
   be worked out (spec 036), instructors sorted by name with `Intl.Collator` `sensitivity: "base"`, then
   `id`; `toClassItem` in `usecase/class-item.ts`). Access first, then a `date` that is missing, not a string,
   malformed or impossible → 422 `ValidationException` `class.date.invalid`. `GET /classes/:id` (any approved
-  account; `GetClass`) → 200 one `ClassItem`; a non-UUID id (no lookup) or no class → 404 `class.notFound`. It is
+  account; `GetClass`) → 200 one `ClassItem`; a non-UUID id (no lookup) or no class → 404 `class.notFound`. Since
+  spec 047 `GetClassOut` is the `ClassItem` plus `pendingRequests` — `PendingRequestCounter.countPendingRequests`
+  for an admin, `null` for every other role (`GetClass`'s fourth constructor argument) — so the answers of
+  `PUT /classes/:id` and `POST /classes/:id/cancel` carry it too; the week list's items have no such key. It is
   declared after `GET /classes/time-range-suggestions`, so that path keeps its handler. Both read through the
   `ClassViewReader` port (`findStartingBetween(from, to)`, `findById(id)` → `ClassView`, `ClassItem` with
   `Date`s), implemented by `PrismaClassViewReader` (`class-view-reader.prisma.ts`): one `findMany` / `findUnique`
@@ -926,8 +932,12 @@ guard's 401 `auth.token.invalid`.
   in the same write, and kept when only the instructors change, spec 036; last save wins; it returns `false` when the
   class was cancelled after it was read, which `EditClass` turns into 409 `class.cancelled` with nobody
   notified), then, all except the
-  caller and each swallowed when it throws: `ClassChangeNotifier.classEdited({ instructorIds, classId,
-  discipline, startsAt })` to the kept instructors when a class field differs, `ClassAssignmentNotifier.classAssigned({
+  caller and each swallowed when it throws: `ClassChangeNotifier.classEdited({ instructorIds, studentIds?, classId,
+  discipline, startsAt })` when a class field differs, to the kept instructors and, since spec 047, the students of
+  the `ClassAudienceReader` port (`provider/class-audience-reader.provider.ts`, `EditClass`'s eighth constructor
+  argument: `findClassAudience(classId)` → the ids with an `approved` or `pending` enrolment, each once;
+  `findLocationAudience(locationId, now)` → `{ userId, count }[]` over the location's upcoming, not cancelled
+  classes; `studentIds` absent when none; a failed read tells the instructors only; skipped when nobody is left), `ClassAssignmentNotifier.classAssigned({
   count: 1, … })` to the added ones and `classUnassigned({ instructorIds, classId, discipline, startsAt })` to the
   removed ones. Seats taken come from the `SeatCounter` port (`provider/seat-counter.provider.ts`,
   `countSeatsTaken(classId)`), implemented by `PrismaSeatCounter` (`apps/backend/src/modules/enrolment/`, spec 041:
@@ -1061,15 +1071,21 @@ guard's 401 `auth.token.invalid`.
   its toast and the class refetched; `class.finished` and 404 → their toast and back; `class.cancelled` (spec 033) →
   `editClass.errors.cancelled`, `["classes"]` invalidated and back; seats taken → `editClass.errors.seatsTaken`
   with `count`; the rest as Nova aula's `getClassErrorKey` (with the same refetches). A loaded class with
-  `cancelledAt` shows `editClass.errors.cancelled` instead of the form and its footer. Copy lives under
-  `editClass`.
+  `cancelledAt` shows `editClass.errors.cancelled` instead of the form and its footer. Since spec 047 the footer's
+  `note` (from the hook) lists `editClass.audience.instructors`, `.students` and `.pending` (from `students.length`
+  and `pendingRequests`, only the non-zero ones) in `editClass.noteWithAudience`, joined by `joinAudience`
+  (`utils/audience.ts`: "a", "a and b", "a, b and c" with the locale's `audience.and`), or `editClass.note` when
+  there is no student and no request. Copy lives under `editClass`.
 - Mobile class tools and cancelling (spec 033): with `canEdit`, a loaded class that is neither finished nor
   cancelled (a started one included) shows a round 44×44 tools button (`construct-outline`, `bg-surface`,
   `shadowStyle`, label `classDetails.tools`) at the right of the details' header, opening `ClassToolsSheet`
   (`components/class-tools-sheet/`: a `BottomModal` titled `classTools.title` with three shared `Button`s, no
   icons — "Editar aula" and "Avisar alunos e instrutores" `subtle`, "Cancelar aula" `danger`; edit and cancel close
   the sheet first, notify has no action). "Cancelar aula" opens `CancelClassSheet` (`components/cancel-class-sheet/`:
-  `BottomModal` with the description, a `TextArea` with `maxLength` 300 and its counter, a `danger` confirm with
+  `BottomModal` with the description — since spec 047 built by its hook from the `studentCount`, `pendingCount` and
+  `instructorCount` props (the details' hook passes `students.length`, `pendingRequests` and the instructors other
+  than the viewer) as `cancelClass.descriptionWithAudience` with the non-zero `cancelClass.audience.*` parts joined
+  by `joinAudience`, or `cancelClass.description` when all are zero —, a `TextArea` with `maxLength` 300 and its counter, a `danger` confirm with
   `loading` and a `ghost` "Manter aula"; the text clears on close; it confirms with the trimmed message, or none
   when blank). The details' hook sends it once (a ref guards a double press) through `useCancelClass`
   (`hooks/use-cancel-class.hook.ts`: `apiPost` to `/classes/{id}/cancel`, no retry, invalidating `["classes"]` on
@@ -1196,9 +1212,11 @@ depends on `@rochas-surf-school/shared`, `@rochas-surf-school/auth` and `@rochas
 provides the controllers (`EnrolmentController`, `GuestsController`), `EnrolmentExpiryJob`, `GuestErasureJob` and
 every adapter (since spec 046 `PrismaWaitingListSetting`, `waiting-list-setting.prisma.ts`, which reads
 `school_settings.waiting_list_enabled` directly — on while no row exists — so enrolment never imports the
-school-settings module's code), and exports the adapters, including the five
+school-settings module's code), and exports the adapters, including the six
 that implement classes ports (`PrismaClassRosterReader`, `PrismaSeatCounter`, `PrismaPendingRequestCounter`,
-`PrismaViewerEnrolmentReader`, `EnrolmentClassEnrolmentsCloser`); `ClassesModule` imports it, so there is no Nest
+`PrismaViewerEnrolmentReader`, `EnrolmentClassEnrolmentsCloser`, and since spec 047 `PrismaClassAudienceReader`,
+`class-audience-reader.prisma.ts`: `approved` and `pending` enrolments, distinct per student, and per student and
+class for a location's classes that start after `now` and aren't cancelled); `ClassesModule` imports it, so there is no Nest
 import cycle.
 
 - Model: `Enrolment` (`model/enrolment.entity.ts`) with `ENROLMENT_STATUSES` (`pending`, `approved`, `denied`,
@@ -1490,7 +1508,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `excludeUserIds`, nothing stored or sent when none is left — which notifies `class.noInstructor` with
   `{ count, classId, discipline, startsAt }` for the earliest class; spec 035) and `LocationChangeNotifier` (classes,
   `NotificationsLocationChangeNotifier`: `locationChanged({ recipients, locationName })` → one `location.changed`
-  per recipient with `{ count, locationName }`, no `classId` since it concerns several classes; one failure doesn't
+  per recipient (`{ userId, count }`, instructor or student since spec 047) with `{ count, locationName }`, no `classId` since it concerns several classes; one failure doesn't
   stop the next recipient; spec 037) and `EnrolmentNotifier` (enrolment, `NotificationsEnrolmentNotifier`, spec 041:
   `seatRequested` → `enrolment.requested` with `{ classId, studentName, discipline, startsAt }` to
   `RecipientsProvider.findApprovedAdminIds()` plus the class's instructors, deduplicated; `requestExpired` →
@@ -1502,7 +1520,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   espera." sentence only when `waitingCount` > 0; spec 044: `studentEnrolled` → `enrolment.enrolled` with `{ classId,
   discipline, startsAt }` and `studentTakenOut` → `enrolment.takenOut` with `{ classId, discipline, startsAt,
   reason? }`, `reason` only when written and used as the push body, both to the student only). Since spec 041
-  `NotificationsClassChangeNotifier.classCancelled` notifies the union of `instructorIds` and `studentIds`. A
+  `NotificationsClassChangeNotifier.classCancelled` notifies the union of `instructorIds` and `studentIds`, and
+  since spec 047 `classEdited` does the same. A
   catalog entry's `title` in
   `push-messages.ts` is a string or a function of the params (`class.noInstructor`'s depends on the count; a
   missing count counts as one).

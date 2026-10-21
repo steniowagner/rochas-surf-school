@@ -596,7 +596,7 @@ describe("NewClassScreen", () => {
       expect(screen.getByText("Edit location")).toBeTruthy();
       expect(screen.getByLabelText("Name").props.value).toBe("Praia do Futuro");
       expect(screen.getByLabelText("Address").props.value).toBe("Av. Zezé Diogo, 5000");
-      expect(screen.getByRole("checkbox", { name: "Tell the instructors of upcoming classes?" })).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Tell the students and instructors of upcoming classes?" })).toBeChecked();
 
       await fireEvent.changeText(screen.getByLabelText("Address"), "Rua Nova, 1");
       await user.press(screen.getByRole("button", { name: "Save" }));

@@ -1063,6 +1063,28 @@ describe("ClassDetailsScreen", () => {
       ).toBeOnTheScreen();
     });
 
+    it("names who the cancellation notifies, without counting the admin (audience)", async () => {
+      fetchMock.mockImplementation(async () =>
+        ok(
+          makeClass({
+            students: [
+              { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1" },
+              { id: "s-2", name: "Aluno 2", photoUrl: null, enrolmentId: "e-2" },
+            ],
+            pendingRequests: 1,
+          }),
+        ),
+      );
+
+      await openSheet();
+
+      expect(
+        screen.getByText(
+          "We'll notify 2 enrolled students, 1 person with a pending request and 1 instructor. It stays on the schedule, marked as cancelled.",
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it("closes the tools and opens the confirmation sheet", async () => {
       await openSheet();
 

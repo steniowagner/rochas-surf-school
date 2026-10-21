@@ -191,7 +191,8 @@ a cancellation rule —
 and a student's name, whether a user is an approved student, and the school's waiting-list switch, through its own
 contracts, which the backend fulfils (the switch from [School settings](school-settings.md)' stored settings, so
 enrolment never depends on that module); a request reads the seats taken through Classes' seat-count contract. It answers Classes' contracts for the
-roster (students and guests), the seats taken, the pending requests, the viewer's enrolment and closing a cancelled class's
+roster (students and guests), the seats taken, the pending requests, the viewer's enrolment, the audience of a class
+or of a location's upcoming classes (approved and pending enrolments, spec 047) and closing a cancelled class's
 enrolments, through adapters the backend provides; Classes still decides when a class is cancelled and who else is
 told. It fulfils, through a backend adapter, [Authentication](auth.md)'s contract for releasing a deleted account's
 seats and requests; Authentication decides when. It doesn't send notifications itself: the new-request, decision,
@@ -258,3 +259,6 @@ pedir.".
   waiting list is off (a new `WaitingListSetting` contract; `RequestSeat` also counts the seats through Classes'
   `SeatCounter`, checked after `class.started` and before the rule); waiting requests stay pending and approvable;
   the app's closed state on the student's details and the admin's full-class banner texts.
+- `047-class-changes-reach-students` — no rule change here: the approved and pending enrolments are read for Classes
+  as the audience of a class edit or a location change (each student once, with how many of a location's upcoming,
+  not cancelled classes they are in).

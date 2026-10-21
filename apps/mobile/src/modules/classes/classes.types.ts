@@ -181,6 +181,8 @@ export type ClassItem = {
   guests: ClassGuest[];
   /** The caller's latest enrolment in the class, or `null`; always `null` for instructors and admins. */
   myEnrolment: MyEnrolment | null;
+  /** The enrolment requests still waiting for an answer: only in the class itself, and `null` unless the caller is an admin. */
+  pendingRequests?: number | null;
 };
 
 /** The answer of `GET /classes?date=`: `weekStart` is the Monday, `YYYY-MM-DD`. */

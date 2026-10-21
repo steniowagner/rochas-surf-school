@@ -608,6 +608,67 @@ describe('Locations (e2e)', () => {
         });
       });
 
+      describe('location tells students', () => {
+        const enrol = (classId: string, studentId: string, status: 'approved' | 'pending' | 'withdrawn') =>
+          prisma.enrolment.create({
+            data: { id: randomUUID(), classId, studentId, status, requestedAt: NOW },
+          });
+
+        it('tells the students and pending requests of the upcoming classes with their own counts', async () => {
+          const admin = await person();
+          const instructor = await person('instructor');
+          const seated = await person('student');
+          const pending = await person('student');
+          const gone = await person('student');
+          for (const who of [seated, pending]) await withPhone(who.id);
+          const place = await seed('Praia', POINT);
+          const first = await addClass(place.id, admin.id, [instructor.id]);
+          const second = await addClass(place.id, admin.id, [instructor.id]);
+          const past = await addClass(place.id, admin.id, [instructor.id], { startsAt: YESTERDAY });
+          const cancelled = await addClass(place.id, admin.id, [instructor.id], { cancelledAt: YESTERDAY });
+          await enrol(first.id, seated.id, 'approved');
+          await enrol(second.id, seated.id, 'approved');
+          await enrol(past.id, seated.id, 'approved');
+          await enrol(first.id, pending.id, 'pending');
+          await enrol(cancelled.id, pending.id, 'pending');
+          await enrol(first.id, gone.id, 'withdrawn');
+
+          const response = await edit(admin.token, place.id, {
+            name: `${tag} Praia`,
+            ...POINT,
+            address: 'Rua nova, 1',
+            notify: true,
+          });
+
+          expect(response.status).toBe(200);
+          const stored = await prisma.notification.findMany({
+            where: { type: 'location.changed', userId: { in: [seated.id, pending.id, gone.id] } },
+          });
+          const byUser = Object.fromEntries(stored.map((item) => [item.userId, item.params]));
+          expect(Object.keys(byUser).sort()).toEqual([seated.id, pending.id].sort());
+          expect(byUser[seated.id]).toEqual({ count: 2, locationName: `${tag} Praia` });
+          expect(byUser[pending.id]).toEqual({ count: 1, locationName: `${tag} Praia` });
+          expect(push.sent).toHaveLength(2);
+        });
+
+        it('tells one notification with the larger count to a student who also teaches, and nobody with notify false', async () => {
+          const admin = await person();
+          const both = await person('instructor');
+          const place = await seed('Praia', POINT);
+          const first = await addClass(place.id, admin.id, [both.id]);
+          await addClass(place.id, admin.id, [both.id]);
+          await enrol(first.id, both.id, 'approved');
+          const body = { name: `${tag} Praia`, ...POINT, address: 'Rua nova, 1' };
+
+          await edit(admin.token, place.id, { ...body, notify: false });
+          expect(await prisma.notification.count({ where: { userId: both.id, type: 'location.changed' } })).toBe(0);
+
+          await edit(admin.token, place.id, { ...body, address: 'Rua nova, 2', notify: true });
+          const stored = await prisma.notification.findMany({ where: { userId: both.id, type: 'location.changed' } });
+          expect(stored.map((item) => item.params)).toEqual([{ count: 2, locationName: `${tag} Praia` }]);
+        });
+      });
+
       it.each([[{}], [{ notify: false }]])('tells nobody with %j', async (extra) => {
         const { admin, place } = await setupClasses();
 

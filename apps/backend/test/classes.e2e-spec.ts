@@ -668,6 +668,41 @@ describe('Classes (e2e)', () => {
   describe('class', () => {
     const one = (token: string | undefined, id: string) => as(token, http().get(`/classes/${id}`));
 
+    it('answers the pendingRequests count to an admin and null to everyone else', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date('2026-10-14T19:00:00.000Z'),
+          endsAt: new Date('2026-10-14T20:30:00.000Z'),
+          locationId,
+          capacity: 5,
+          createdBy: admin.id,
+          instructors: { create: [{ userId: instructor.id }] },
+        },
+      });
+      const student = await account('student');
+      for (const status of ['pending', 'pending', 'pending', 'approved'] as const) {
+        await prisma.enrolment.create({
+          data: { id: randomUUID(), classId: id, studentId: (await account('student')).id, status, requestedAt: NOW },
+        });
+      }
+
+      const asAdmin = await one(admin.accessToken, id);
+      const asInstructor = await one(instructor.accessToken, id);
+      const asStudent = await one(student.accessToken, id);
+      const week = await as(admin.accessToken, http().get('/classes?date=2026-10-14'));
+
+      expect(asAdmin.body.pendingRequests).toBe(3);
+      expect(asInstructor.body.pendingRequests).toBeNull();
+      expect(asStudent.body.pendingRequests).toBeNull();
+      expect(week.body.items[0]).not.toHaveProperty('pendingRequests');
+    });
+
     it('answers one class with its location and instructors', async () => {
       const admin = await account();
       const instructor = await account('instructor');
@@ -701,7 +736,9 @@ describe('Classes (e2e)', () => {
         seatsTaken: 0,
         students: [],
       });
-      expect(list.body.items.filter((item: { id: string }) => item.id === id)).toEqual([response.body]);
+      expect(list.body.items.filter((item: { id: string }) => item.id === id)).toEqual([
+        { ...response.body, pendingRequests: undefined },
+      ]);
     });
 
     it('answers 404 for an unknown or malformed id', async () => {
@@ -1413,6 +1450,68 @@ describe('Classes (e2e)', () => {
         expect(renderPush('class.unassigned', unassigned.params, 'pt-BR').title).toBe('Você saiu de uma aula');
       });
 
+      describe('edit tells students', () => {
+        const enrol = (classId: string, studentId: string, status: 'approved' | 'pending' | 'withdrawn' | 'expired' | 'denied') =>
+          prisma.enrolment.create({
+            data: { id: randomUUID(), classId, studentId, status, requestedAt: NOW },
+          });
+
+        it('tells the seated student, the pending request and the instructor, but not the ended ones', async () => {
+          const admin = await account();
+          const instructor = await account('instructor');
+          const seated = await account('student');
+          const pending = await account('student');
+          const ended = await Promise.all([account('student'), account('student'), account('student')]);
+          await withPhone(seated.id);
+          const id = await makeClass(admin.id, [instructor.id]);
+          await enrol(id, seated.id, 'approved');
+          await enrol(id, pending.id, 'pending');
+          await enrol(id, ended[0]!.id, 'withdrawn');
+          await enrol(id, ended[1]!.id, 'expired');
+          await enrol(id, ended[2]!.id, 'denied');
+
+          const response = await edit(admin.accessToken, id, sameBody([instructor.id], { start: '09:00', end: '10:00' }));
+
+          expect(response.status).toBe(200);
+          const params = { classId: id, discipline: 'surf', startsAt: '2026-10-15T12:00:00.000Z' };
+          for (const person of [seated, pending, instructor]) {
+            expect((await notificationsOf(person.id)).map((item) => [item.type, item.params])).toEqual([
+              ['class.edited', params],
+            ]);
+          }
+          for (const person of ended) expect(await notificationsOf(person.id)).toHaveLength(0);
+          expect(push.sent.map((message) => message.type)).toEqual(['class.edited']);
+        });
+
+        it('tells no student when only the instructors change or nothing differs', async () => {
+          const admin = await account();
+          const kept = await account('instructor');
+          const added = await account('instructor');
+          const seated = await account('student');
+          const id = await makeClass(admin.id, [kept.id]);
+          await enrol(id, seated.id, 'approved');
+
+          await edit(admin.accessToken, id, sameBody([kept.id, added.id]));
+          await edit(admin.accessToken, id, sameBody([kept.id, added.id]));
+
+          expect(await notificationsOf(seated.id)).toHaveLength(0);
+        });
+
+        it('keeps the 200 and the change when the push provider fails', async () => {
+          const admin = await account();
+          const seated = await account('student');
+          await withPhone(seated.id);
+          const id = await makeClass(admin.id, [admin.id]);
+          await enrol(id, seated.id, 'approved');
+          push.failing = true;
+
+          const response = await edit(admin.accessToken, id, sameBody([admin.id], { capacity: 9 }));
+
+          expect(response.status).toBe(200);
+          expect((await stored(id)).capacity).toBe(9);
+        });
+      });
+
       it('tells only the added and removed instructors when only the instructors change', async () => {
         const admin = await account();
         const kept = await account('instructor');
@@ -1516,7 +1615,7 @@ describe('Classes (e2e)', () => {
         students: [],
       });
       const read = await as(student.accessToken, http().get(`/classes/${id}`));
-      expect(read.body).toEqual(response.body);
+      expect(read.body).toEqual({ ...response.body, pendingRequests: null });
       const week = await as(student.accessToken, http().get('/classes?date=2026-10-15'));
       const items = week.body.items as { id: string; cancelledAt: string | null; cancellationMessage: string | null }[];
       expect(items.find((item) => item.id === id)).toMatchObject({

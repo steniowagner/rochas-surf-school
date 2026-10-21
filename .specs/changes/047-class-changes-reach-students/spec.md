@@ -166,9 +166,18 @@ students, pending requests and instructors will be told. This closes the "with e
   > `tsc --noEmit` and `oxlint src` clean (after `npm run build -w @rochas-surf-school/classes`); `GetClass` now also
   > receives the pending-request counter in the controller; deviations: also ran the notifications specs, since the adapters changed.
 
-- [ ] **T-03** — Add the student cases to `test/classes.e2e-spec.ts` (edit, `pendingRequests`) and
+- [x] **T-03** — Add the student cases to `test/classes.e2e-spec.ts` (edit, `pendingRequests`) and
   `test/locations.e2e-spec.ts` (location change).
   Covers: ER-01, ER-02, ER-03 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-21 — e2e cases "edit tells students" (seated, pending and instructor told; withdrawn, expired and denied
+  > not; instructors-only and unchanged saves tell no student; push failure keeps the 200), "pendingRequests" (3 for
+  > the admin, `null` for instructor and student, absent from the week list) and "location tells students" (counts of
+  > 2 and 1, past and cancelled classes ignored, one notification with the larger count for a student who also
+  > teaches, nothing with `notify: false`); two existing assertions that compared the admin's and the student's
+  > class bodies now account for `pendingRequests`; files: `apps/backend/test/classes.e2e-spec.ts`,
+  > `apps/backend/test/locations.e2e-spec.ts`; verified: `npm run test:e2e` from `apps/backend` (22 files, 615 passed,
+  > twice); deviations: a first run had one 5 s timeout under parallel load in a different test each time, absent on
+  > the reruns.
 
 ### Mobile (`apps/mobile`)
 

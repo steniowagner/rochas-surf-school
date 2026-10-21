@@ -2,7 +2,7 @@
 id: "044"
 slug: direct-enrolment-take-out
 title: "Admins enrol students directly and take them out of classes"
-status: in-progress
+status: in-review
 started: 2026-10-20
 base_commit: 90b0058217d6be77961db34562be5e51bd4e82fc
 created: 2026-10-19

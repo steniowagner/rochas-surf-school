@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Override the values of apps/backend/.env, copied from .env.example below.
-      DATABASE_HOST: localhost
+      DATABASE_HOST: 127.0.0.1
       DATABASE_PORT: 5432
       DATABASE_USER: rochas
       DATABASE_PASSWORD: rochas

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
+import { router } from "expo-router";
 import { act, renderRouter, waitFor } from "expo-router/testing-library";
 import { ReactNode } from "react";
 
@@ -289,10 +290,14 @@ describe("useNotificationResponse", () => {
     answerMe(account("approved", "student", true));
     await openApp(account("approved", "student", true));
 
+    const push = jest.spyOn(router, "push");
+
     await tap(response("location.changed"));
 
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+    expect(push).toHaveBeenCalledWith(routes.student.home);
     expect(meCalls()).toHaveLength(1);
+    push.mockRestore();
   });
 
   it.each([

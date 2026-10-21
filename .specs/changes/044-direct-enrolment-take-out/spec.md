@@ -2,9 +2,10 @@
 id: "044"
 slug: direct-enrolment-take-out
 title: "Admins enrol students directly and take them out of classes"
-status: in-review
+status: accepted
 started: 2026-10-20
 base_commit: 90b0058217d6be77961db34562be5e51bd4e82fc
+reviewed_commit: d85aed47ca7710de0ad723c062f0fe4be92ef165
 created: 2026-10-19
 fronts: [enrolment, classes, notifications, backend, mobile]
 depends_on: ["043"]
@@ -361,3 +362,35 @@ way and sees the result on the class.
 - F-01 gave `DenySheet` a `showLabel` prop; `technical-context.md` still says its `label` is "used only as its accessibility label". `## Memory Impact` doesn't list that change — `spec-finish` should update that line (and `structure.md`'s deny-sheet description if it repeats it).
 - Round 1's notes still stand (success toasts in the coral `AlertMessage` style; `enrolment.alreadyOpen` from the P2002 race falls back to the generic toast; duplicated `isUuid`).
 - Review data added to the dev database this round: Dev Student enrolled into, then taken out of, the Thu 22 Oct 12:00 class at "Review R2 Beach" (reason "Revisao 2"). The simulator stays signed in as the admin review account.
+
+### Round 3 — 2026-10-20 — accepted
+
+**Checks**
+
+- lint ✅ (0 errors; backend 10 warnings, all `require-array-sort-compare`, none from this spec's code) · type check ✅ · build ✅ (`turbo run lint check-types build`, 27 tasks: enrolment, classes, notifications, backend, mobile)
+- related tests ✅ RELATED TESTS PASSED (backend 21 files / 317, mobile 90 suites / 1309, classes 474, enrolment 235, notifications 117)
+- coverage of the changed lines ✅ COVERAGE OK (31 files); no coverage-ignore comments, debug leftovers or stray TODOs in the diff
+- e2e: backend suite ✅ E2E PASSED (21 files, 580 tests, incl. `direct-enrolment.e2e-spec.ts`)
+- ER-06/07/08 `Verify by` commands ✅ (`class-details.screen.test.tsx -t "taken out"` 7 passed; enrol-student and admin screens, class-people, take-out-sheet, `enrolment/utils`, `notifications/hooks`: 15 suites, 258 passed)
+
+**Expected Results**
+
+- ER-01 ✅ — use case tests and the e2e "enrols directly" cases (D-02 refusals in order, races); HTTP and simulator in rounds 1–2, untouched since
+- ER-02 ✅ — notifier and push-messages specs, e2e "notifies on a direct enrolment"
+- ER-03 ✅ — use case tests and the e2e "takes out" cases
+- ER-04 ✅ — push-messages spec and e2e "notifies on a take-out"
+- ER-05 ✅ — `test/school-class` and `class-roster-reader.prisma.spec.ts` (in the related tests)
+- ER-06 ✅ — screen tests pass; the student rows' `selected` now comes from the hook and the test still asserts the picked radio is selected; walked on the simulator in rounds 1–2
+- ER-07 ✅ — tests pass, including "Take Ana out of the class?" with the first name now from `useClassDetailsScreen`; walked on the simulator in round 2
+- ER-08 ✅ — the banner line now comes from the hook's `enrolmentDescription`; the tests assert the reason, "No reason given." and the other statuses' descriptions; walked as the student in round 1
+
+**Findings**
+
+None.
+
+**Notes**
+
+- F-04 is fixed as recorded: `takeOutFirstName`, `enrolmentDescription` and the students' `selected` are computed in the hooks, and the screens only wire them. The change is a refactor; not re-walked on the simulator, as the tests assert the same visible text.
+- Round 2's note on Memory Impact still stands: `spec-finish` should also update the `DenySheet` description in `technical-context.md` (its `label` is no longer only an accessibility label: `showLabel` draws it).
+- Round 1's notes still stand (success toasts in the coral `AlertMessage` style; `enrolment.alreadyOpen` from the P2002 race falls back to the generic toast; duplicated `isUuid`).
+- The working tree holds untracked `.specs/changes/045…048/` folders (other planned specs), not part of this spec.

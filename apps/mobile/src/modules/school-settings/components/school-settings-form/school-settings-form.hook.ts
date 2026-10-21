@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { Keyboard } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Keyboard } from "react-native";
 
 import { usePhoneNumberField } from "@/components/phone-number-field";
 import { useAlertMessage } from "@/providers/alert-message";

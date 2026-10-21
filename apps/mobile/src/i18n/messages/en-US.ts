@@ -266,7 +266,7 @@ const messages = {
   },
   enrolStudent: {
     title: "Enrol a student",
-    description: "Enrol a school student in a class.",
+    description: "Enrol a school student, or someone without an account in a trial class.",
     whoStep: "1 · Who",
     classStep: "2 · Class",
     searchPlaceholder: "Search students",
@@ -279,12 +279,23 @@ const messages = {
     done: "{{name}} enrolled · student notified",
     loadError: "Couldn't load.",
     retry: "Try again",
+    modeTrial: "Trial class",
+    modeStudent: "School student",
+    doneTrial: "{{name}} enrolled",
+    trial: {
+      nameLabel: "Name",
+      namePlaceholder: "E.g.: Carolina Reis",
+      invalidName: "Enter a first and last name.",
+      whatsappLabel: "WhatsApp",
+      note: "This class doesn't stay in the history — if the person creates an account later, they start from scratch.",
+    },
     errors: {
       alreadyApproved: "This student is already enrolled in this class.",
       full: "The class just filled up.",
       started: "The class has already started.",
       cancelled: "This class was cancelled.",
       invalidStudent: "This student can't be enrolled.",
+      invalidGuest: "This guest's name or number isn't valid.",
     },
   },
   takeOutSheet: {
@@ -296,9 +307,13 @@ const messages = {
     back: "Back",
     action: "Take out",
     done: "{{name}} taken out · student notified",
+    guestTitle: "Take {{name}} out of the class?",
+    guestHint: "{{summary}}. The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
+    guestDone: "{{name}} taken out",
     errors: {
       notApproved: "This spot is no longer approved.",
       started: "The class has already started.",
+      guestNotFound: "This guest is no longer in the class.",
     },
   },
   flows: {
@@ -433,6 +448,11 @@ const messages = {
     spotsLeft_one: "{{count}} spot left",
     spotsLeft_other: "{{count}} spots left",
     soldOut: "sold out",
+    guestsWarning_one: "1 trial student has no account and won't get the notice — talk to them on WhatsApp.",
+    guestsWarning_other: "{{count}} trial students have no account and won't get the notice — talk to them on WhatsApp.",
+    trialChip: "Trial",
+    includesTrial_one: "includes {{count}} trial",
+    includesTrial_other: "includes {{count}} trial",
     full: {
       title: "Class full",
       waitingList: "You can join the waiting list.",

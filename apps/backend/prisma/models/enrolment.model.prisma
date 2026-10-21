@@ -40,3 +40,22 @@ model Enrolment {
   @@index([studentId])
   @@map("enrolments")
 }
+
+// A trial guest: someone without an account who takes a seat of a class. Never linked to a user; the name and the
+// number are nulled (and `erased_at` set) 30 days after the class ended or was cancelled.
+model Guest {
+  id             String    @id @db.Uuid
+  classId        String    @map("class_id") @db.Uuid
+  name           String?
+  whatsappNumber String?   @map("whatsapp_number")
+  createdBy      String?   @map("created_by") @db.Uuid
+  erasedAt       DateTime? @map("erased_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  schoolClass SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  creator     User?       @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([classId])
+  @@map("guests")
+}

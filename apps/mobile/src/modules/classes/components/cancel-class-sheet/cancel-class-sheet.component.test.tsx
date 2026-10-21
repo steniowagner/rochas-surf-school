@@ -124,4 +124,18 @@ describe("CancelClassSheet", () => {
 
     expect(sheet.onConfirm).not.toHaveBeenCalled();
   });
+
+  it("warns the admin that the trial guests get no notice", async () => {
+    await render(<CancelClassSheet {...props({ guestCount: 2 })} />);
+
+    expect(
+      screen.getByText("2 trial students have no account and won't get the notice — talk to them on WhatsApp."),
+    ).toBeOnTheScreen();
+  });
+
+  it("shows no trial warning without guests", async () => {
+    await render(<CancelClassSheet {...props()} />);
+
+    expect(screen.queryByText(/trial student/)).toBeNull();
+  });
 });

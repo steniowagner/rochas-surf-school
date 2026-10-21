@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import type { TextInputStatus } from "@/components/ui/text-input/text-input.types";
-
 export type WhatsappNumberValues = {
   /** E.164, the country code included. */
   whatsappNumber: string;
@@ -26,11 +24,3 @@ export type UseWhatsappNumberFormProps = Pick<
   WhatsappNumberFormProps,
   "initialNumber" | "initialVisible" | "requireChange" | "isSaving" | "onSubmit"
 >;
-
-export type WhatsappNumberField = {
-  value: string;
-  status: TextInputStatus;
-  errorMessage: string;
-  onChangeText: (value: string) => void;
-  onBlur: () => void;
-};

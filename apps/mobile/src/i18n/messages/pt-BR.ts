@@ -266,7 +266,7 @@ const messages: Messages = {
   },
   enrolStudent: {
     title: "Inscrever aluno",
-    description: "Inscreva um aluno da escola numa aula.",
+    description: "Inscreve um aluno da escola, ou alguém sem conta numa aula experimental.",
     whoStep: "1 · Quem",
     classStep: "2 · Aula",
     searchPlaceholder: "Procurar aluno",
@@ -279,12 +279,23 @@ const messages: Messages = {
     done: "{{name}} inscrito · aluno avisado",
     loadError: "Não foi possível carregar.",
     retry: "Tentar novamente",
+    modeTrial: "Aula experimental",
+    modeStudent: "Aluno da escola",
+    doneTrial: "{{name}} inscrito",
+    trial: {
+      nameLabel: "Nome",
+      namePlaceholder: "Ex.: Carolina Reis",
+      invalidName: "Informe nome e sobrenome.",
+      whatsappLabel: "WhatsApp",
+      note: "Esta aula não fica no histórico — se a pessoa criar conta depois, começa do zero.",
+    },
     errors: {
       alreadyApproved: "Este aluno já está inscrito nesta aula.",
       full: "A turma ficou cheia.",
       started: "A aula já começou.",
       cancelled: "Esta aula foi cancelada.",
       invalidStudent: "Este aluno não pode ser inscrito.",
+      invalidGuest: "O nome ou o número deste aluno trial não é válido.",
     },
   },
   takeOutSheet: {
@@ -296,9 +307,13 @@ const messages: Messages = {
     back: "Voltar",
     action: "Retirar",
     done: "{{name}} retirado · aluno avisado",
+    guestTitle: "Retirar {{name}} da aula?",
+    guestHint: "{{summary}}. A vaga fica livre. É um aluno trial, sem conta — avise-o por WhatsApp.",
+    guestDone: "{{name}} retirado",
     errors: {
       notApproved: "Esta vaga não está mais aprovada.",
       started: "A aula já começou.",
+      guestNotFound: "Este aluno trial não está mais na aula.",
     },
   },
   flows: {
@@ -433,6 +448,11 @@ const messages: Messages = {
     spotsLeft_one: "{{count}} vaga livre",
     spotsLeft_other: "{{count}} vagas livres",
     soldOut: "esgotado",
+    guestsWarning_one: "1 aluno trial não tem conta e não recebe o aviso — fale com ele por WhatsApp.",
+    guestsWarning_other: "{{count}} alunos trial não têm conta e não recebem o aviso — fale com eles por WhatsApp.",
+    trialChip: "Trial",
+    includesTrial_one: "inclui {{count}} trial",
+    includesTrial_other: "inclui {{count}} trial",
     full: {
       title: "Turma cheia",
       waitingList: "Você pode entrar na lista de espera.",

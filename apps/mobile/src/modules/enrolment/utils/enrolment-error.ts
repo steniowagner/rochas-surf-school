@@ -24,6 +24,8 @@ const isNotApprovedError = (error: unknown): boolean => hasKey(error, 409, "enro
 export const isDeadlineClosedError = (error: unknown): boolean =>
   hasKey(error, 409, "enrolment.deadline.passed") || hasKey(error, 409, "enrolment.deadline.missing");
 
+const isGuestNotFoundError = (error: unknown): boolean => hasKey(error, 404, "guest.notFound");
+
 const isClassStartedError = (error: unknown): boolean => hasKey(error, 409, "class.started");
 
 const isClassCancelledError = (error: unknown): boolean => hasKey(error, 409, "class.cancelled");
@@ -33,6 +35,7 @@ const isClassCancelledError = (error: unknown): boolean => hasKey(error, 409, "c
  * or is already open), so the class is read again.
  */
 export const shouldReloadClass = (error: unknown): boolean =>
+  isGuestNotFoundError(error) ||
   isClassStartedError(error) ||
   isClassCancelledError(error) ||
   isAlreadyOpenError(error) ||
@@ -218,6 +221,60 @@ export const getTakeOutErrorKey = (error: unknown): string | null => {
 
   if (hasKey(error, 404, "enrolment.notFound")) {
     return "enrolment.errors.notFound";
+  }
+
+  return fallbackKey(error);
+};
+
+/** Adding a guest found what is on screen stale (the class filled, started or was cancelled), so the classes are read again. */
+export const shouldReloadAddGuestClasses = (error: unknown): boolean =>
+  isClassFullError(error) || isClassStartedError(error) || isClassCancelledError(error);
+
+/** The guest's name or number was refused (422); the form already checks both, so this is the backend's second opinion. */
+const isInvalidGuestError = (error: unknown): boolean =>
+  error instanceof ApiError && error.status === 422 && error.errors.some((key) => key.startsWith("guest."));
+
+/** The translation key of the toast for a failed trial enrolment, or `null` when nothing should be shown. */
+export const getAddGuestErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError) {
+    return null;
+  }
+
+  if (isClassFullError(error)) {
+    return "enrolStudent.errors.full";
+  }
+
+  if (isClassStartedError(error)) {
+    return "enrolStudent.errors.started";
+  }
+
+  if (isClassCancelledError(error)) {
+    return "enrolStudent.errors.cancelled";
+  }
+
+  if (isInvalidGuestError(error)) {
+    return "enrolStudent.errors.invalidGuest";
+  }
+
+  if (hasKey(error, 404, "class.notFound")) {
+    return "classDetails.notFound";
+  }
+
+  return fallbackKey(error);
+};
+
+/** The translation key of the toast for a failed removal of a guest, or `null` when nothing should be shown. */
+export const getRemoveGuestErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError) {
+    return null;
+  }
+
+  if (isClassStartedError(error)) {
+    return "takeOutSheet.errors.started";
+  }
+
+  if (isGuestNotFoundError(error)) {
+    return "takeOutSheet.errors.guestNotFound";
   }
 
   return fallbackKey(error);

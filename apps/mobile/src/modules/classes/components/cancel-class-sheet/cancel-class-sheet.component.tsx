@@ -6,12 +6,15 @@ import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/text-area";
 
+import { GuestsWarning } from "../guests-warning";
+
 import { useCancelClassSheet } from "./cancel-class-sheet.hook";
 import type { CancelClassSheetProps } from "./cancel-class-sheet.types";
 
 export function CancelClassSheet({
   visible,
   loading,
+  guestCount = 0,
   onConfirm,
   onClose,
 }: CancelClassSheetProps) {
@@ -29,6 +32,7 @@ export function CancelClassSheet({
           <Text className="ds-text-sheet-title text-ink">{t("cancelClass.title")}</Text>
           <Text className="ds-text-body text-ink-2">{t("cancelClass.description")}</Text>
         </View>
+        <GuestsWarning count={guestCount} />
         <TextArea
           label={t("cancelClass.messageLabel")}
           placeholder={t("cancelClass.messagePlaceholder")}

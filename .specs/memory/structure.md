@@ -149,11 +149,11 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     enrolment a cancellation ended — the last three answered by enrolment's adapters, spec 041),
     `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines}.usecase.ts`, and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
-    the students and `myEnrolment`). Fakes of every port and entity
+    the students, the guests — names only for `canSeeGuestNames`, spec 045 — and `myEnrolment`). Fakes of every port and entity
     factories are in `test/mock/`.
 - **`modules/enrolment`** (`@rochas-surf-school/enrolment`, spec 041; depends on `@rochas-surf-school/shared`,
   `@rochas-surf-school/auth` and `@rochas-surf-school/classes` — `ClassActor`, `assertCanReadClasses` and the
-  discipline; classes never imports it) — 1 aggregate, `enrolment/`: `model/enrolment.entity.ts` (`Enrolment`,
+  discipline; classes never imports it) — 2 aggregates. `enrolment/`: `model/enrolment.entity.ts` (`Enrolment`,
   `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, `ENROLMENT_REASON_MAX`, `TAKE_OUT_REASON_MAX`; `approve`, `deny`
   (spec 042), `cancel` (spec 043), `takeOut` (spec 044), `withdraw`, `expire`, `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,student-lookup.provider,enrolment-notifier.provider,clock.provider}.ts`
   (`create` — a second open enrolment is `enrolment.alreadyOpen` —, `findById`, `withdraw` and `expire` conditional
@@ -167,6 +167,10 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
   `usecase/decision.ts` (the decided enrolment and its class, or 404; the not-started check) and
   `usecase/enrolment.out.ts` (`EnrolmentOut`: `{ id, classId, status, requestedAt }`). Fakes of every port (the
   fake repository takes the classes, to join them in `findExpirable`) and an entity factory are in `test/mock/`.
+  `guest/` (spec 045): `model/guest.entity.ts` (`Guest`: name and WhatsApp number rules, every error together,
+  `erase(now)`), `provider/guest.repository.ts` (`GuestRepository`: the locked `create` → `added | full`, `findById`,
+  `delete`, `eraseEndedBefore(cutoff, now)`), `usecase/{add-guest,remove-guest,erase-guest-data}.usecase.ts`;
+  `FakeGuestRepository` in `test/mock/`.
 
 ## `apps/backend` (NestJS — adapters)
 
@@ -304,6 +308,10 @@ src/
                                 # /enrolments/:id/approve and /deny (200; spec 042), POST /enrolments/:id/cancel
                                 # (200; spec 043), POST /classes/:id/enrolments/direct (201, or 200 from pending)
                                 # and POST /enrolments/:id/take-out (200; spec 044) — protected
+    guests.controller.ts        # POST /classes/:id/guests (201), DELETE /guests/:id (204; spec 045) — protected
+    guest.prisma.ts             # PrismaGuestRepository (locked create; deleteMany; one updateMany erasure; spec 045)
+    seats-taken.prisma.ts       # lockClassCapacity (SELECT … FOR UPDATE on the class row) and countSeatsTaken
+                                # (approved enrolments plus guests), shared by every seat writer (spec 045)
     enrolment.prisma.ts         # PrismaEnrolmentRepository (P2002 on the partial index → enrolment.alreadyOpen;
                                 # withdraw / expire / deny conditional on pending, cancel on approved;
                                 # releaseForStudent in one $transaction; closeOpenForClass in one
@@ -316,15 +324,17 @@ src/
     student-lookup.prisma.ts    # PrismaStudentLookup (an approved account with role student; spec 044)
     enrolment-expiry.job.ts     # EnrolmentExpiryJob (every minute, cron enrolment-expiry): runs
                                 # ExpirePendingEnrolments, logs the count only, never throws
+    guest-erasure.job.ts        # GuestErasureJob (every minute, cron guest-erasure): runs EraseGuestData,
+                                # logs the count only, never throws (spec 045)
     {class-roster-reader,seat-counter,pending-request-counter,viewer-enrolment-reader}.prisma.ts  # classes' ports
                                 # read from enrolments (approved for the roster — with each enrolmentId, spec 044
-                                # — and the seats, pending for the requests, the caller's latest for myEnrolment)
+                                # — and the seats, plus the guests since spec 045, pending for the requests, the caller's latest for myEnrolment)
     enrolment.class-enrolments-closer.ts  # EnrolmentClassEnrolmentsCloser: classes' ClassEnrolmentsCloser, running
                                 # CloseClassEnrolments
     enrolment.seat-releaser.ts  # EnrolmentSeatReleaser: auth's SeatReleaser, running ReleaseStudentEnrolments
                                 # (errors propagate; spec 043)
     system.clock.ts             # SystemClockProvider of the module (the e2e suite overrides it)
-    enrolment.integration.http  # manual REST Client requests
+    {enrolment,guests}.integration.http  # manual REST Client requests
 test/
   auth-email.e2e-spec.ts        # e2e suite of the email sign-in routes (Resend replaced by a capturing fake)
   auth-session.e2e-spec.ts      # e2e suite of GET /auth/me, POST /auth/refresh and POST /auth/sign-out
@@ -357,6 +367,8 @@ test/
                                 # (spec 043)
   direct-enrolment.e2e-spec.ts  # e2e suite of direct enrolment and take-out: new and from pending, the refusals,
                                 # the races, the roster's enrolmentId, the reasons, the notifications (spec 044)
+  guests.e2e-spec.ts            # e2e suite of trial guests (spec 045): add and its refusals, the last-seat race with
+                                # an approval, visibility per role, delete and capacity, remove, the 30-day erasure
   cancellation-deadlines.e2e-spec.ts  # e2e suite of CancellationDeadlineJob (AnthropicDeadlineDescriber replaced by
                                 # a configurable fake; works out, retries, without a rule, edits, stale results)
 Dockerfile, docker-compose.yml  # backend + Postgres
@@ -496,10 +508,12 @@ src/
                                 # (the sheet's map), archive-location-sheet ("Remover local?"), location-map-preview
                                 # (the details' map and "Direções"), capacity-stepper, instructor-picker, class-card
                                 # (occupancy bar, "Sem vagas" or the student's enrolment chip, students footer), class-people (the details' "A aula":
-                                # instructors, students and the free seats), student-avatar (photo or initials),
+                                # instructors, students, guests with "Trial", the free seats and "inclui N trial"), student-avatar (photo or initials),
                                 # class-tools-sheet (the admin's edit / notify / cancel / delete tools of one
                                 # class), cancel-class-sheet (the cancel confirmation with its optional message),
-                                # delete-class-sheet (the delete confirmation and its "can't delete" variant)
+                                # delete-class-sheet (the delete confirmation and its "can't delete" variant),
+                                # guests-warning (spec 045: the admin's "N alunos trial …" note on Editar aula and
+                                # the cancel sheet)
     hooks/                      # use-locations (["locations"]), use-create-location (adds to that cache),
                                 # use-edit-location (PUT /locations/:id; replaces the row, reloads ["classes"]),
                                 # use-archive-location (POST /locations/:id/archive; drops the row),
@@ -535,9 +549,10 @@ src/
                                 # pull-to-refresh, loading, error + retry, "Nada à espera"
     screens/enrol-student.screen.tsx  # "Inscrever aluno" (+ .hook.ts, .types.ts; spec 044): "1 · Quem" (search, the
                                 # students with radios, more on scroll) and "2 · Aula" (calendar, the day's upcoming
-                                # classes as cards), "Inscrever <nome>"
+                                # classes as cards), "Inscrever <nome>"; spec 045: the "Aula experimental" /
+                                # "Aluno da escola" switch and the trial mode (name, PhoneNumberField, note)
     components/take-out-sheet/  # TakeOutSheet ("Retirar <nome> da aula?": a DenySheet with the visible "Motivo
-                                # (opcional)" of 300; no hook; spec 044)
+                                # (opcional)" of 300; no hook; spec 044; `trial`: the guest copy, no reason)
     components/class-requests-group/  # ClassRequestsGroup (the class card — day block, time, location, capacity,
                                 # free seats or "Esgotado", occupancy bar —, the waiting-list label, positions and
                                 # full-class note, one DecisionCard per request)
@@ -557,7 +572,10 @@ src/
                                 # use-class-requests-screen (the tool's logic: approve, deny sheet, toasts, reloads);
                                 # use-enrol-student (POST /classes/:id/enrolments/direct), use-take-student-out
                                 # (POST /enrolments/:id/take-out) — no retry; invalidate the pending list and
-                                # ["classes"] —, use-take-out (the details' take-out: target, toasts, reloads; spec 044)
+                                # ["classes"] —, use-take-out (the details' take-out: target, toasts, reloads; spec 044);
+                                # use-add-guest (POST /classes/:id/guests), use-remove-guest (DELETE /guests/:id) — no
+                                # retry; invalidate ["classes"] —, use-take-guest-out (the details' guest removal;
+                                # spec 045)
     utils/                      # enrolment-cta.ts (the footer button by status and fullness; "Pedir novamente" after
                                 # a denial, a cancel or a take-out; "Cancelar inscrição" before the deadline), enrolment-status.ts
                                 # (the banner and chip: waitingList for pending on a full class, approved, denied,
@@ -659,6 +677,8 @@ src/
   components/role-tabs/         # RoleTabs: a role's NativeTabs (tint sun / ink-3, background page)
   components/language-sheet/    # LanguageSheet: sign-in screen and Profile; stores the choice
   components/theme-sheet/       # ThemeSheet: same as phone / light / dark
+  components/phone-number-field/  # PhoneNumberField + usePhoneNumberField: country button, picker, masked number,
+                                # E.164 and validity (spec 045; used by the form below and the trial mode)
   components/whatsapp-number-form/  # WhatsappNumberForm: country, number (Brazilian mask), share switch, submit
   components/country-picker/    # CountryPicker: searchable bottom sheet of countries with their dial codes
   components/account-status/    # AccountStatus: the shared layout of every closed-account state (icon tile by

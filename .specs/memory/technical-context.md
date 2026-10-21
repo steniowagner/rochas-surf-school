@@ -294,7 +294,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   approvals for the last seat run one after the other and leave exactly one. Direct enrolment (spec 044,
   `enrolDirectly`) takes the same lock: in one `$transaction` it locks the class row, reads the student's open
   enrolment (`alreadyApproved` when approved), counts the `approved` rows (`full` at capacity), then approves the
-  pending row or inserts an approved one; guests (spec 045) will take it too. Taking out (spec 044) is conditional on
+  pending row or inserts an approved one. Adding a guest (spec 045, `PrismaGuestRepository.create`) takes it too.
+  The lock and the count are shared helpers in `seats-taken.prisma.ts`: `lockClassCapacity(tx, classId)` (the
+  `FOR UPDATE` read, `null` when the class is gone) and `countSeatsTaken(tx, classId)` (the `approved` enrolments
+  plus the `guests` rows), so every seat writer counts guests. Erasing guest data is one conditional `updateMany`
+  (`erasedAt: null`). Taking out (spec 044) is conditional on
   `approved`, like cancelling. `cancellation_rules` is keyed by `discipline` (the `class_discipline` enum), with `updated_by`
   → `users.id` `ON DELETE SET NULL`.
   `classes.created_by` and `classes.location_id` are `ON DELETE
@@ -430,8 +434,12 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   wheels — the handle, the scrim and a Cancel button still close it). Shared pieces used by more than one
   module live in `src/components/`: `LanguageSheet` (sign-in screen and Profile; choosing stores the locale),
   `ThemeSheet` (the three choices with a check on the current one), `WhatsappNumberForm` (country picker,
-  Brazilian mask, share switch, validation and submit button; header slot, `initialNumber` / `initialVisible`,
-  `requireChange`, `onSubmit` — used by onboarding and the Profile's WhatsApp screen), `CountryPicker` and
+  Brazilian mask, share switch, validation and submit button, its number input being `PhoneNumberField` since spec
+  045; header slot, `initialNumber` / `initialVisible`,
+  `requireChange`, `onSubmit` — used by onboarding and the Profile's WhatsApp screen), `PhoneNumberField` (spec 045,
+  `src/components/phone-number-field/`: the controlled country button, `CountryPicker` and masked input, with
+  `usePhoneNumberField()` holding the country, the mask, the E.164 value and its validity; used by
+  `WhatsappNumberForm` and the trial mode of "Inscrever aluno"), `CountryPicker` and
   `RoleTabs`. The admin tools share `src/components/decision/` — `DecisionCard` (an `avatar` node, title, optional
   subtitle, detail lines and `shadowStyle("card")`; an optional `onPress` makes the upper row — avatar, text and an
   Ionicons `chevron-forward` — one `Pressable` with role `button` labelled by the title, and without it there is no
@@ -868,12 +876,16 @@ guard's 401 `auth.token.invalid`.
   photos can't be uploaded, `enrolmentId` the approved enrolment since spec 044) come from the
   `ClassRosterReader` port (spec 040; `provider/class-roster-reader.provider.ts`, `findRosters(classIds,
   studentsLimit?)` → `Map<classId, ClassRoster>` in one read; students in the order they were approved, then by
-  user id; a class missing from the map reads `seatsTaken: 0` and `students: []` in `toClassItem(view, roster?)`).
+  user id; a class missing from the map reads `seatsTaken: 0`, `students: []` and `guests: []` in
+  `toClassItem(view, roster, myEnrolment, showGuestNames)`). Since spec 045 the roster also carries `guests`
+  (`ClassGuest` `{ id, name }`, uncapped, in the order they were added, then by id; `name` `null` once erased), and
+  the class item answers `guests: [{ id, name }]` with the name only when `canSeeGuestNames(actor, view)` — an
+  admin, or an instructor of the class — and `null` for everyone else (visibility in the use cases, D-03).
   `ListWeekClasses` asks once for the whole week with `CLASS_CARD_STUDENTS_LIMIT` (4, what a card shows);
   `GetClass` — and so the answers of `PUT /classes/:id` and `POST /classes/:id/cancel` — asks for one class with
   every student. It is implemented by `PrismaClassRosterReader` (`apps/backend/src/modules/enrolment/`, spec 041:
   the `approved` enrolments, students by `decidedAt` then user id, the cap applied per class while `seatsTaken`
-  counts them all). `myEnrolment` (spec 041) is the caller's latest enrolment in the class, any role, from the
+  counts them all; spec 045: a second read of the classes' `guests`, counted in `seatsTaken`). `myEnrolment` (spec 041) is the caller's latest enrolment in the class, any role, from the
   `ViewerEnrolmentReader` port (`provider/viewer-enrolment-reader.provider.ts`, `findLatest(viewerId, classIds)` →
   `Map<classId, ViewerEnrolment>`, one read; `toClassItem(view, roster?, myEnrolment?)`, `null` when missing),
   implemented by `PrismaViewerEnrolmentReader` (newest by `requestedAt` desc then `id` desc); `GetClass` and
@@ -903,7 +915,9 @@ guard's 401 `auth.token.invalid`.
   count: 1, … })` to the added ones and `classUnassigned({ instructorIds, classId, discipline, startsAt })` to the
   removed ones. Seats taken come from the `SeatCounter` port (`provider/seat-counter.provider.ts`,
   `countSeatsTaken(classId)`), implemented by `PrismaSeatCounter` (`apps/backend/src/modules/enrolment/`, spec 041:
-  the class's `approved` enrolments).
+  the class's `approved` enrolments, plus its guests since spec 045), so deleting a class with a guest answers 409
+  `class.delete.notEmpty` and an edit can't lower the capacity below the seats taken including guests (422
+  `class.capacity.belowSeatsTaken`).
 - `POST /classes/:id/cancel` (admins; spec 033, `CancelClass` in `usecase/cancel-class.usecase.ts`) `{ message? }`
   → 200 the cancelled `ClassItem` (the controller runs `CancelClass`, then `GetClass`). Order: access; a non-UUID
   id (no lookup) or no class → 404 `class.notFound`; a `message` that is present, not `null` and not a string, or
@@ -1158,11 +1172,13 @@ guard's 401 `auth.token.invalid`.
 
 ## Enrolment
 
-Specs 041–044. The domain is `modules/enrolment` (`@rochas-surf-school/enrolment`, aggregate `src/enrolment/`), which
+Specs 041–045. The domain is `modules/enrolment` (`@rochas-surf-school/enrolment`, aggregates `src/enrolment/` and,
+since spec 045, `src/guest/`), which
 depends on `@rochas-surf-school/shared`, `@rochas-surf-school/auth` and `@rochas-surf-school/classes` (`ClassActor`,
 `assertCanReadClasses`, the discipline type); classes never imports it. The backend adapters live in
 `apps/backend/src/modules/enrolment/`: `EnrolmentModule` imports `NotificationsModule` (never `ClassesModule`),
-provides the controller, `EnrolmentExpiryJob` and every adapter, and exports the adapters, including the five
+provides the controllers (`EnrolmentController`, `GuestsController`), `EnrolmentExpiryJob`, `GuestErasureJob` and
+every adapter, and exports the adapters, including the five
 that implement classes ports (`PrismaClassRosterReader`, `PrismaSeatCounter`, `PrismaPendingRequestCounter`,
 `PrismaViewerEnrolmentReader`, `EnrolmentClassEnrolmentsCloser`); `ClassesModule` imports it, so there is no Nest
 import cycle.
@@ -1246,6 +1262,24 @@ import cycle.
   `null`), 409 `enrolment.notApproved`, 409 `class.started`; the conditional write losing → 409
   `enrolment.notApproved`. Then `studentTakenOut({ …, reason? })`, swallowed. Roster students carry `enrolmentId`
   (`PrismaClassRosterReader` selects the enrolment's id).
+- Trial guests (spec 045; `src/guest/`, never linked to a user). Model: `Guest` (`model/guest.entity.ts`: `classId`,
+  `name` and `whatsappNumber` (`null` once erased), `createdBy`, `erasedAt`; `validate()` reports every problem
+  together — `guest.name.*` under the user name rules (`GUEST_NAME_MIN` 3, `GUEST_NAME_MAX` 80, `PersonNameRule`)
+  and `guest.whatsappNumber.invalid` (missing or not E.164, `PhoneNumberRule`) — and checks nothing on an erased
+  guest; `erase(now)`). Port `GuestRepository` (`provider/guest.repository.ts`): `create(guest)` → `"added" |
+  "full"` (locked, see Persistence), `findById`, `delete(id)` → `boolean`, `eraseEndedBefore(cutoff, now)` → the
+  count; `FakeGuestRepository` under `test/mock/`. Table `guests` (migration `20261020120000_enrolment_add_guests`,
+  hand-written): `id`, `class_id` → `classes` `ON DELETE CASCADE` (indexed), `name`, `whatsapp_number` (both
+  nullable), `created_by` → `users` `ON DELETE SET NULL`, `erased_at`, timestamps. `POST /classes/:id/guests`
+  (`AddGuest`, `{ name, whatsappNumber }`) → 201 `{ id, classId, name }`. Order: 403 `user.status.notApproved`, 403
+  `user.role.notAdmin`, 404 `class.notFound` (non-UUID or none), 422 with every shape error together, 409
+  `class.cancelled`, 409 `class.started`, then the locked write: 409 `enrolment.class.full`. `DELETE /guests/:id`
+  (`RemoveGuest`) → 204: 403 as above, 404 `guest.notFound` (non-UUID, none, or already gone at the delete), 409
+  `class.started`. Nobody is told on either route. `EraseGuestData` (no actor, `{ erased }`;
+  `GUEST_DATA_RETENTION_DAYS` 30) runs `eraseEndedBefore(now − 30 days, now)`: nulls the name and the number and sets
+  `erased_at` on the guests not erased yet whose class's `endsAt` or `cancelledAt` is at or before the cutoff. The
+  pending list's `seatsTaken` (`findPendingByClass`) adds a `guest.groupBy`. REST Client requests in
+  `guests.integration.http`.
 - `EnrolmentExpiryJob` (see Scheduled work) runs `ExpirePendingEnrolments` (no actor, output `{ expired }`):
   `findExpirable(now)` (pending enrolments of classes with `startsAt ≤ now` and `cancelledAt` null, joined in SQL),
   then `expire` each and `requestExpired({ studentId, classId, discipline, startsAt })` only for a row that changed;
@@ -1258,7 +1292,10 @@ import cycle.
   (spec 043: cancel, the concurrent cancel, every refusal in order, the notifications) and
   `apps/backend/test/direct-enrolment.e2e-spec.ts` (spec 044: direct enrolment new and from pending, every refusal,
   the races for the last seat and of the same student, the roster's `enrolmentId`, take-out with its reasons and
-  refusals, the notifications and a failing push); the account-deletion release
+  refusals, the notifications and a failing push) and `apps/backend/test/guests.e2e-spec.ts` (spec 045: add, the
+  shape errors together, every refusal, the race of a guest and an approval for the last seat, visibility per role
+  on the class and the week list, delete and capacity counting guests, remove, and the 30-day erasure through
+  `app.get(GuestErasureJob).run()`); the account-deletion release
   is a case of `apps/backend/test/auth-profile.e2e-spec.ts`, which also fixes the enrolment clock.
 - Mobile (`apps/mobile/src/modules/enrolment/`): `enrolment.types.ts` (`MyEnrolment` with `reason`,
   `EnrolmentStatus`, `EnrolmentResponse`, `RequestSeatRequest`, `PendingRequestsResponse`, `DenyRequestVariables`,
@@ -1340,6 +1377,20 @@ import cycle.
   for students, instructors, or started, finished and cancelled classes), with `takeOutFirstName` and
   `takeOutSummary`. Copy under `enrolStudent`, `takeOutSheet`, `enrolment.status.takenOut` and
   `admin.home.enrolStudentRow`.
+- Mobile, spec 045: `useAddGuest()` (`POST /classes/:id/guests`) and `useRemoveGuest()` (`DELETE /guests/:id`), no
+  retry, invalidating `["classes"]`; error keys `getAddGuestErrorKey` / `getRemoveGuestErrorKey` and
+  `shouldReloadAddGuestClasses` in `utils/enrolment-error.ts`. `EnrolStudentScreen` has a `SegmentedControl`
+  ("Aula experimental" / "Aluno da escola", the latter first): in trial mode "1 · Quem" draws the labelled "Nome"
+  `TextInput` (user name rules) and the labelled "WhatsApp" `PhoneNumberField` (Brazil preselected) with the
+  no-history note, and the button adds the guest once (a ref guard), toasts "<nome> inscrito" and goes back.
+  `ClassItem` (`classes.types.ts`) carries `guests`. `ClassPeople` lists the guests after the students (`StudentAvatar`
+  without photo, the name or "Trial", a `muted` `Chip` "Trial" in a centered `View`), opens for a class with only
+  guests, takes `onTakeGuestOut`, and ends the admin's capacity line with "· inclui N trial" (`showTrialCount`).
+  `useTakeGuestOut(reload)` (`hooks/use-take-guest-out.hook.ts`) holds the guest target and, for `class.started` /
+  `guest.notFound`, closes and reloads; `TakeOutSheet` takes `trial` (the guest copy, no reason field, through
+  `DenySheet`'s `hideReason`). `GuestsWarning` (`classes/components/guests-warning/`, `warn` tint, plural and
+  singular, nothing at zero) sits in Editar aula's footer and in `CancelClassSheet` (`guestCount`). Copy under
+  `enrolStudent.trial`, `takeOutSheet.guest*`, `classDetails.trialChip` / `includesTrial` / `guestsWarning`.
 
 ## Error handling
 
@@ -1499,14 +1550,16 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 ### Scheduled work
 
-- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today five jobs,
+- **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today six jobs,
   `SignInCodeCleanupJob`, `PushReceiptCheckJob` (spec 020), `AccountErasureJob` (spec 021, cron
   `account-erasure`, erases denied registrations; the deleted/removed erasures are to be added to it) and
   `CancellationDeadlineJob` (spec 036, cron `cancellation-deadline`, `waitForCompletion`: runs
   `WorkOutCancellationDeadlines`, at most 20 classes per tick and 5 model calls at a time, idempotent by the
   stored deadline, attempts and next attempt, and logs only the counts) and `EnrolmentExpiryJob` (spec 041, cron
   `enrolment-expiry`, `waitForCompletion`: runs `ExpirePendingEnrolments`, idempotent by the stored status — a
-  request is written only while `pending` and only a changed row is pushed —, logs only the count)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
+  request is written only while `pending` and only a changed row is pushed —, logs only the count) and
+  `GuestErasureJob` (spec 045, cron `guest-erasure`, `waitForCompletion`: runs `EraseGuestData`, idempotent by the
+  write — it only touches guests not erased yet —, logs only the count)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
   class start, 30-minute reminders, rating prompts, 30-day erasures of denied/deleted/removed accounts, guest
   data erasure, cancellation-deadline retries), each running every minute and **idempotent** — it records in
   the database what it already did, so a restart or a late tick never sends twice.

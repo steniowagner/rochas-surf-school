@@ -1,13 +1,13 @@
-import { ClassRoster, ClassRosterReader, ClassStudent } from "../../src";
+import { ClassGuest, ClassRoster, ClassRosterReader, ClassStudent } from "../../src";
 
 export class FakeClassRosterReader implements ClassRosterReader {
   readonly calls: { classIds: string[]; studentsLimit?: number }[] = [];
 
-  /** `rosters` keeps all the students of each class; `seatsTaken` defaults to their count. */
+  /** `rosters` keeps all the students of each class; `seatsTaken` defaults to the students plus the guests. */
   constructor(
     private readonly rosters: Record<
       string,
-      { seatsTaken?: number; students: ClassStudent[] }
+      { seatsTaken?: number; students: ClassStudent[]; guests?: ClassGuest[] }
     > = {},
   ) {}
 
@@ -24,8 +24,9 @@ export class FakeClassRosterReader implements ClassRosterReader {
 
       if (roster) {
         found.set(id, {
-          seatsTaken: roster.seatsTaken ?? roster.students.length,
+          seatsTaken: roster.seatsTaken ?? roster.students.length + (roster.guests?.length ?? 0),
           students: roster.students.slice(0, studentsLimit),
+          guests: roster.guests ?? [],
         });
       }
     }

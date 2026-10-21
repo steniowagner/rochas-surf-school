@@ -77,3 +77,27 @@ export type TakeOutTarget = {
   name: string;
   enrolmentId: string;
 };
+
+/** The body of `POST /classes/:id/guests`; the number is E.164. */
+export type AddGuestVariables = {
+  classId: string;
+  name: string;
+  whatsappNumber: string;
+};
+
+/** The answer of `POST /classes/:id/guests`. */
+export type AddGuestResponse = {
+  id: string;
+  classId: string;
+  name: string;
+};
+
+export type RemoveGuestVariables = {
+  id: string;
+};
+
+/** The trial guest an admin is taking out of a class. */
+export type RemoveGuestTarget = {
+  name: string;
+  guestId: string;
+};

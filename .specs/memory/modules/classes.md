@@ -97,11 +97,10 @@ The classes themselves, and how a batch becomes classes.
   end (`HH:mm`, the class ends on its start day), location, instructors, capacity, notes — compared field by field
   with the stored class.
 - **Seats taken** (not stored): how many seats of a class are held — its approved students plus its guests;
-  counted by [Enrolment](enrolment.md) from its approved enrolments, which admins produce by approving requests
-  (guests join with spec 045).
-- **Class roster** (not stored): the seats taken and the approved students (id, name, photo or none, and the id of
-  the approved enrolment, which an admin can take them out of) of a class, read for many classes at once, from
-  Enrolment.
+  counted by [Enrolment](enrolment.md) from its approved enrolments and its guests.
+- **Class roster** (not stored): the seats taken, the approved students (id, name, photo or none, and the id of
+  the approved enrolment, which an admin can take them out of) and the guests (id and name, the name empty once
+  erased) of a class, read for many classes at once, from Enrolment.
 - **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer, from
   Enrolment.
 - **Reader's enrolment** (not stored, `myEnrolment`): the latest enrolment (id, status, when requested, and the
@@ -176,7 +175,10 @@ Editing one class:
 - **A started class only changes its instructors**: any other field that differs is refused with
   `class.started`; a class whose start is exactly now has started.
 - **The start never moves into the past**: a class that hasn't started can't get a start at or before now.
-- **The capacity never goes below the seats taken**.
+- **The capacity never goes below the seats taken** (guests included).
+- **Guests' names are shown only to admins and the class's own instructors**: every class read carries its guests,
+  with the name for an approved admin and for an instructor of that class, and without it ("Trial") for everyone
+  else; an erased guest has no name for anyone. The week list carries every guest (they are few).
 - **Only added instructors are checked**: an id not already on the class must be an approved instructor or
   admin; the ones already on it are kept whatever their role or status is now, so a substitute can be swapped
   in even when a co-instructor was demoted. Repeated ids count once.
@@ -294,7 +296,8 @@ The account's status is checked before its role (`user.status.notApproved`, then
 403); an unknown account is refused as signed out.
 
 - **An approved account of any role** — lists the active locations, lists the classes of any week, past or future,
-  reads any class with its notes, its cancellation deadline, its seats taken, its approved students and their own
+  reads any class with its notes, its cancellation deadline, its seats taken, its approved students, its guests
+  as "Trial" (names only for admins and the class's instructors) and their own
   latest enrolment in it, and reads both cancellation rules.
 - **An approved admin** — creates, edits and removes locations, gets address suggestions, creates batches of
   classes, reads the time-range suggestions, edits a
@@ -428,3 +431,8 @@ which stops that account from being erased while the link exists — a decision 
   everyone who sees the class (the week list's cap of 4 is unchanged); in the app, the class details' students list
   takes an optional "Retirar" per student, which only an admin gets on a class that hasn't started (Enrolment's
   take-out sheet).
+- `045-guests` — the roster and every class read carry the guests (`guests: [{ id, name }]`, the name only for
+  admins and the class's instructors, never once erased) and the seats taken count them, so a class with a guest
+  can't be deleted and its capacity can't go below them; in the app, the details' students list shows guests with
+  a "Trial" chip (and an admin's "Retirar"), the admin's capacity line adds "inclui N trial", and Editar aula and
+  the cancel sheet warn the admin that guests aren't told.

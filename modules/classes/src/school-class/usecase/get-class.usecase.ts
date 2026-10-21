@@ -1,7 +1,7 @@
 import { NotFoundError, UseCase, UuidRule } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanReadClasses } from "../../access";
 import { ClassRosterReader, ClassViewReader, ViewerEnrolmentReader } from "../provider";
-import { ClassItem, toClassItem } from "./class-item";
+import { ClassItem, canSeeGuestNames, toClassItem } from "./class-item";
 
 export interface GetClassIn {
   actor: ClassActor;
@@ -36,6 +36,11 @@ export class GetClass implements UseCase<GetClassIn, GetClassOut> {
       this.viewerEnrolmentReader.findLatest(input.actor.id, [view.id]),
     ]);
 
-    return toClassItem(view, rosters.get(view.id), enrolments.get(view.id));
+    return toClassItem(
+      view,
+      rosters.get(view.id),
+      enrolments.get(view.id),
+      canSeeGuestNames(input.actor, view),
+    );
   }
 }

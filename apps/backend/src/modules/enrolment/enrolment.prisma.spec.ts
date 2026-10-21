@@ -59,16 +59,18 @@ function setup() {
     updateManyAndReturn: vi.fn(),
   };
   const schoolClass = { findMany: vi.fn() };
+  const guest = { count: vi.fn(async () => 0), groupBy: vi.fn(async () => [] as unknown[]) };
   const queryRaw = vi.fn();
-  const tx = { enrolment, $queryRaw: queryRaw };
+  const tx = { enrolment, guest, $queryRaw: queryRaw };
   const prisma = {
     enrolment,
+    guest,
     schoolClass,
     $transaction: vi.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)),
   };
   const repository = new PrismaEnrolmentRepository(prisma as unknown as PrismaService);
 
-  return { enrolment, schoolClass, queryRaw, prisma, repository };
+  return { enrolment, guest, schoolClass, queryRaw, prisma, repository };
 }
 
 describe('PrismaEnrolmentRepository', () => {
@@ -224,9 +226,13 @@ describe('PrismaEnrolmentRepository', () => {
     };
 
     it('reads the upcoming classes with their pending requests and the seats taken', async () => {
-      const { enrolment, schoolClass, repository } = setup();
+      const { enrolment, guest, schoolClass, repository } = setup();
       schoolClass.findMany.mockResolvedValue([pendingClass(CLASS_ID, [request]), pendingClass(OTHER_ID, [request])]);
-      enrolment.groupBy.mockResolvedValue([{ classId: CLASS_ID, _count: { _all: 3 } }]);
+      enrolment.groupBy.mockResolvedValue([{ classId: CLASS_ID, _count: { _all: 2 } }]);
+      guest.groupBy.mockResolvedValue([
+        { classId: CLASS_ID, _count: { _all: 1 } },
+        { classId: OTHER_ID, _count: { _all: 0 } },
+      ]);
 
       const out = await repository.findPendingByClass(NOW);
 
@@ -239,6 +245,11 @@ describe('PrismaEnrolmentRepository', () => {
       expect(enrolment.groupBy).toHaveBeenCalledWith({
         by: ['classId'],
         where: { classId: { in: [CLASS_ID, OTHER_ID] }, status: 'approved' },
+        _count: { _all: true },
+      });
+      expect(guest.groupBy).toHaveBeenCalledWith({
+        by: ['classId'],
+        where: { classId: { in: [CLASS_ID, OTHER_ID] } },
         _count: { _all: true },
       });
       expect(out).toEqual([
@@ -283,6 +294,15 @@ describe('PrismaEnrolmentRepository', () => {
       const { enrolment, repository } = lockedClass(8, 8);
 
       expect(await repository.approve(ID, NOW)).toBe('full');
+      expect(enrolment.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('counts the guests as seats', async () => {
+      const { enrolment, guest, repository } = lockedClass(8, 7);
+      guest.count.mockResolvedValue(1);
+
+      expect(await repository.approve(ID, NOW)).toBe('full');
+      expect(guest.count).toHaveBeenCalledWith({ where: { classId: CLASS_ID } });
       expect(enrolment.updateMany).not.toHaveBeenCalled();
     });
 
@@ -363,6 +383,14 @@ describe('PrismaEnrolmentRepository', () => {
         where: { id: ID },
         data: { status: 'approved', decidedAt: NOW, updatedAt: NOW },
       });
+      expect(enrolment.create).not.toHaveBeenCalled();
+    });
+
+    it('counts the guests as seats', async () => {
+      const { enrolment, guest, repository } = lockedClass(8, 7);
+      guest.count.mockResolvedValue(1);
+
+      expect(await repository.enrolDirectly(approvedDomain(), NOW)).toEqual({ result: 'full' });
       expect(enrolment.create).not.toHaveBeenCalled();
     });
 

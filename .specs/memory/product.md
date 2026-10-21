@@ -214,14 +214,21 @@ Listed in the order people meet them.
     line), and they may request again.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
-  photo, or initials while there is no photo); guests count in the seats taken but aren't listed. As built (specs
-  041–042) they are counted from the stored enrolments, and a seat is taken when an admin approves a request.
+  photo, or initials while there is no photo) and its guests ("Trial", or the name for admins and the class's
+  instructors). As built (specs 041–045) they are counted from the stored approved enrolments plus the stored
+  guests; a seat is taken when an admin approves a request, enrols a student directly or adds a guest.
 - **Guest** (`guest`): someone without an account trying surf or skate, put into one class by an admin. Key
   fields: name, WhatsApp number. Takes a seat; only in a class that hasn't started and has a free seat. Gets
   nothing from the app; admins are warned of that when they edit or cancel a class with guests. Shown as
   "Trial" to everyone except admins and the class's instructors. Never linked to an account the person creates
   later. Its name and WhatsApp number are erased 30 days after the class finishes or is cancelled; the seat
   then shows "Trial" to everyone.
+  - As built (spec 045): approved admins add a guest (a name under the user name rules and a valid WhatsApp
+    number, both required) to a class that hasn't started, isn't cancelled and has a free seat — the same seat
+    check as approvals and direct enrolment, so two writes for the last seat leave exactly one. Admins take a guest
+    out of a class that hasn't started; the seat frees at once. Nobody is told either way. The WhatsApp number is
+    only stored, never shown in the app. A class with a guest can't be deleted, and its capacity can't go below the
+    seats taken, guests included.
 - **Rating** (`rating`): a student's verdict on a finished class they held a seat in: 1 to 5 stars and an
   optional comment. One per student per class; the author can edit or delete it. About the class, not its
   instructors. Visible to everyone with the author's name. Students are asked to rate 30 minutes after the
@@ -540,7 +547,8 @@ registration, the account is erased with everything it has (its sign-ins, sessio
 notifications and phones), together with the admins' "new registration" notifications that carry the person's
 name. Nothing else is kept and nobody is told. The same email address can then sign up again, by email code or
 Google, as a new registration waiting for approval; a phone still signed in to the erased account gets the
-existing "session expired" handling. Deleted and removed accounts are not erased yet, nor is guest data.
+existing "session expired" handling. Deleted and removed accounts are not erased yet; guest data is erased since
+spec 045.
 
 **Public web pages** (spec `022-public-web-pages`) — the small public site the App Store and Google Play require
 exists, in pt-BR, es and en: a home page linking the three pages, the privacy policy (what the app collects, why,
@@ -865,7 +873,23 @@ default line), each opening the class; there a taken-out student reads "Você fo
 (or "Sem motivo indicado.") on the `bad` tint — kept after the class starts or is cancelled —, the Agenda chip
 "Retirado" and "Pedir novamente" while the class hasn't started. All copy is in pt-BR, es-ES and en-US.
 
-Active specs: none in progress; specs 045–048 (the rest of enrolment) are planned.
+**Trial guests in classes** (spec `045-guests`) — "Inscrever aluno" now reads "Inscreve um aluno da escola, ou
+alguém sem conta numa aula experimental." and starts with a switch, "Aula experimental" / "Aluno da escola" (the
+latter selected). In "Aula experimental", "1 · Quem" shows "Nome" ("Ex.: Carolina Reis"), "WhatsApp" (the country
+picker, Brazil preselected, with the Brazilian mask) and "Esta aula não fica no histórico — se a pessoa criar conta
+depois, começa do zero."; "Inscrever <nome>" is on once the name, the number and a class are valid, adds the guest,
+shows "<nome> inscrito" and goes back, and a class that filled, started or was cancelled shows its toast and reloads
+the classes. On a class's details the students list ends with the guests: a `sand` avatar, the name (admins and the
+class's instructors) or "Trial" (everyone else) and a "Trial" chip; guests open no person sheet. Admins get
+"Retirar" on a guest of a class that hasn't started: "Retirar <nome> da aula?" with "É um aluno trial, sem conta —
+avise-o por WhatsApp." and no reason field; confirming shows "<nome> retirado". The students row, the card's "N/M
+vagas" and "+N" count guests, and the admin's capacity line ends with "· inclui N trial". On Editar aula's footer and
+the "Cancelar esta aula?" sheet of a class with guests, admins read "N alunos trial não têm conta e não recebem o
+aviso — fale com eles por WhatsApp." (singular for one) on the `warn` tint. Thirty days after a guest's class ended or
+was cancelled, the guest's name and number are erased and the seat shows "Trial" to everyone. All copy is in pt-BR,
+es-ES and en-US.
+
+Active specs: none in progress; specs 046–048 (the rest of enrolment) are planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -895,7 +919,7 @@ Active specs: none in progress; specs 045–048 (the rest of enrolment) are plan
   them; badges on the app icon, rich pushes, and a screen before the OS
   permission dialog (or asking again after a refusal).
 - Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
-  "Former instructor" handling), and erasing guest data: spec 021 erases only denied registrations.
+  "Former instructor" handling): spec 021 erases only denied registrations, and spec 045 guest data.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy, and a light/dark
@@ -920,17 +944,15 @@ Active specs: none in progress; specs 045–048 (the rest of enrolment) are plan
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
   class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings); the
   student Agenda's sport filter and notifications bell.
-- On seats and students (spec 040): guests' "Trial" rows, "inclui N trial", the "1ª vez" badge and a guest's
-  "Retirar" on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
+- On seats and students (spec 040): the "1ª vez" badge on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
   about to start; opening a person's sheet (WhatsApp) from an instructor or a student on the details; and profile
   photos (initials until photos can be uploaded).
-- On editing a class (spec 032): telling its students and the people with pending requests, and warning the
-  admin about guests (specs 047 and 045); editing several classes at once; the seat and pending-request counts in the editor's
+- On editing a class (spec 032): telling its students and the people with pending requests (spec 047); editing several classes at once; the seat and pending-request counts in the editor's
   footer note, and its "gerir" links to manage time ranges and locations.
-- On cancelling a class (spec 033): warning the admin about guests (with guests); storing who cancelled it,
+- On cancelling a class (spec 033): storing who cancelled it,
   restoring a cancelled class and editing its message; what "Avisar alunos e instrutores" in the class tools does
   (a message to a class's people, its own spec); the enrolled and pending counts on the cancel sheet.
-- On deleting a class (spec 034): counting guests (with guests); the seat and pending-request counts on the confirmation sheet; deleting several
+- On deleting a class (spec 034): the seat and pending-request counts on the confirmation sheet; deleting several
   classes at once; restoring a deleted class or keeping any record of it.
 - On classes left without an instructor (spec 035): releasing the classes when an instructor is demoted to
   student or an account is removed (their specs reuse the same step); telling the students of a class that lost
@@ -941,8 +963,7 @@ Active specs: none in progress; specs 045–048 (the rest of enrolment) are plan
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On enrolment requests (specs 041–044), each planned in its own spec: guests
-  (045); the waiting-list switch (046 — until then it is always on); telling students and people with pending
+- On enrolment requests (specs 041–045), each planned in its own spec: the waiting-list switch (046 — until then it is always on); telling students and people with pending
   requests about class edits and location changes (047); the student's "Minhas aulas" tab and history (048).
   Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
   success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
@@ -952,7 +973,10 @@ Active specs: none in progress; specs 045–048 (the rest of enrolment) are plan
   cancelling several seats at once, undoing a cancellation (the student requests again), and releasing the seats
   and requests of a removed account or of a student promoted to instructor (their specs reuse the same release). On
   direct enrolment and taking out (spec 044): taking a student out after the class starts, moving a student between
-  classes, enrolling several students at once, and enrolling from a class's details.
+  classes, enrolling several students at once, and enrolling from a class's details. On guests (spec 045):
+  editing a guest's name or number, listing a person's past trials, showing a guest's WhatsApp number anywhere in
+  the app, and turning a guest into a student; messaging guests and linking a guest to a later account are never
+  done, by product decision.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
   admin.

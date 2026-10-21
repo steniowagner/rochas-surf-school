@@ -254,6 +254,8 @@ export function ClassDetailsScreen({
             <ClassPeople
               instructors={screen.instructors}
               students={item.students}
+              guests={item.guests}
+              showTrialCount={canEdit}
               seatsTaken={item.seatsTaken}
               capacity={item.capacity}
               state={screen.peopleState}
@@ -263,6 +265,15 @@ export function ClassDetailsScreen({
                       screen.takeOut.open({
                         name: student.name,
                         enrolmentId: student.enrolmentId,
+                      })
+                  : undefined
+              }
+              onTakeGuestOut={
+                screen.canTakeOut
+                  ? (guest) =>
+                      screen.takeGuestOut.open({
+                        name: guest.name ?? t("classDetails.trialChip"),
+                        guestId: guest.id,
                       })
                   : undefined
               }
@@ -397,14 +408,25 @@ export function ClassDetailsScreen({
         </>
       ) : null}
       {screen.canTakeOut ? (
-        <TakeOutSheet
-          visible={screen.takeOut.target !== null}
-          firstName={screen.takeOutFirstName}
-          summary={screen.takeOutSummary}
-          loading={screen.takeOut.isPending}
-          onConfirm={screen.takeOut.confirm}
-          onClose={screen.takeOut.close}
-        />
+        <>
+          <TakeOutSheet
+            trial
+            visible={screen.takeGuestOut.target !== null}
+            firstName={screen.takeGuestOut.target?.name ?? ""}
+            summary={screen.takeOutSummary}
+            loading={screen.takeGuestOut.isPending}
+            onConfirm={screen.takeGuestOut.confirm}
+            onClose={screen.takeGuestOut.close}
+          />
+          <TakeOutSheet
+            visible={screen.takeOut.target !== null}
+            firstName={screen.takeOutFirstName}
+            summary={screen.takeOutSummary}
+            loading={screen.takeOut.isPending}
+            onConfirm={screen.takeOut.confirm}
+            onClose={screen.takeOut.close}
+          />
+        </>
       ) : null}
       <ClassToolsSheet
         visible={screen.toolsVisible}
@@ -430,6 +452,7 @@ export function ClassDetailsScreen({
       <CancelClassSheet
         visible={screen.cancelVisible}
         loading={screen.cancelling}
+        guestCount={screen.guestCount}
         onConfirm={screen.cancel}
         onClose={screen.closeCancel}
       />

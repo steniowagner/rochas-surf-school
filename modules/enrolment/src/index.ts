@@ -3,3 +3,4 @@ export function getModuleName(): string {
 }
 
 export * from "./enrolment";
+export * from "./guest";

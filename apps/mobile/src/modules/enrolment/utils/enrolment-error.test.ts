@@ -1,9 +1,11 @@
 import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 
 import {
+  getAddGuestErrorKey,
   getCancelSeatErrorKey,
   getDecideRequestErrorKey,
   getEnrolStudentErrorKey,
+  getRemoveGuestErrorKey,
   getRequestSeatErrorKey,
   getTakeOutErrorKey,
   getWithdrawRequestErrorKey,
@@ -11,6 +13,7 @@ import {
   isDeadlineClosedError,
   isNotPendingError,
   isRuleNotAcceptedError,
+  shouldReloadAddGuestClasses,
   shouldReloadClass,
   shouldReloadEnrolClasses,
   shouldReloadRequests,
@@ -172,5 +175,46 @@ describe("getTakeOutErrorKey", () => {
   it("maps no answer to the no-connection copy and an expired session to nothing", () => {
     expect(getTakeOutErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
     expect(getTakeOutErrorKey(new SessionExpiredError())).toBeNull();
+  });
+});
+
+describe("the guest errors", () => {
+  it.each([
+    [409, "enrolment.class.full", "enrolStudent.errors.full"],
+    [409, "class.started", "enrolStudent.errors.started"],
+    [409, "class.cancelled", "enrolStudent.errors.cancelled"],
+    [404, "class.notFound", "classDetails.notFound"],
+    [403, "user.role.notAdmin", "createAccount.errors.generic"],
+  ])("maps adding a guest %s %s to %s", (status, key, expected) => {
+    expect(getAddGuestErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("maps a refused name or number to its own copy, and the transport failures like the rest", () => {
+    expect(getAddGuestErrorKey(new ApiError(422, ["guest.name.required", "guest.whatsappNumber.invalid"]))).toBe(
+      "enrolStudent.errors.invalidGuest",
+    );
+    expect(getAddGuestErrorKey(new ApiError(422, ["other"]))).toBe("createAccount.errors.generic");
+    expect(getAddGuestErrorKey(new NetworkError())).toBe("createAccount.errors.noConnection");
+    expect(getAddGuestErrorKey(new SessionExpiredError())).toBeNull();
+  });
+
+  it("reloads the classes when adding a guest found them stale", () => {
+    expect(shouldReloadAddGuestClasses(api(409, "enrolment.class.full"))).toBe(true);
+    expect(shouldReloadAddGuestClasses(api(409, "class.started"))).toBe(true);
+    expect(shouldReloadAddGuestClasses(api(409, "class.cancelled"))).toBe(true);
+    expect(shouldReloadAddGuestClasses(new ApiError(422, ["guest.name.required"]))).toBe(false);
+  });
+
+  it.each([
+    [409, "class.started", "takeOutSheet.errors.started"],
+    [404, "guest.notFound", "takeOutSheet.errors.guestNotFound"],
+    [500, "INTERNAL_SERVER_ERROR", "createAccount.errors.generic"],
+  ])("maps removing a guest %s %s to %s", (status, key, expected) => {
+    expect(getRemoveGuestErrorKey(api(status, key))).toBe(expected);
+  });
+
+  it("shows nothing for an expired session when removing a guest, and reloads the class for a missing guest", () => {
+    expect(getRemoveGuestErrorKey(new SessionExpiredError())).toBeNull();
+    expect(shouldReloadClass(api(404, "guest.notFound"))).toBe(true);
   });
 });

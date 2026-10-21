@@ -8,6 +8,7 @@ export const CLASS_PEOPLE_AVATARS = 5;
 
 export const useClassPeople = ({
   students,
+  guests,
   seatsTaken,
   capacity,
   state,
@@ -20,8 +21,8 @@ export const useClassPeople = ({
     shown,
     hiddenSeats: getHiddenSeats(seatsTaken, shown.length),
     studentsLabel: getStudentsLabel(seatsTaken, state === "finished"),
-    // Only a class with students has a list to open.
-    canExpand: students.length > 0,
+    // Only a class with students or guests has a list to open.
+    canExpand: students.length > 0 || guests.length > 0,
     expanded,
     toggle: () => setExpanded((open) => !open),
     full,

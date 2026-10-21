@@ -129,4 +129,16 @@ describe("DenySheet", () => {
 
     expect(sheet.onConfirm).not.toHaveBeenCalled();
   });
+
+  it("leaves the reason field out when asked, and still confirms", async () => {
+    const user = userEvent.setup();
+    const sheet = props({ hideReason: true });
+    await render(<DenySheet {...sheet} />);
+
+    expect(screen.queryByLabelText("Reason (optional)")).toBeNull();
+    expect(screen.queryByText("0/500")).toBeNull();
+    await user.press(screen.getByRole("button", { name: "Deny registration" }));
+
+    expect(sheet.onConfirm).toHaveBeenCalledWith("");
+  });
 });

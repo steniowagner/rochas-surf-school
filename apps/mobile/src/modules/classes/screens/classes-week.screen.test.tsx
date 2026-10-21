@@ -62,6 +62,7 @@ const makeClass = (
   instructors: [{ id: "i-1", name: "Ana" }],
   seatsTaken: 0,
   students: [],
+  guests: [],
   myEnrolment: null,
   ...overrides,
 });

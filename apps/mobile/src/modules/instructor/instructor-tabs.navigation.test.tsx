@@ -75,6 +75,7 @@ const aClass = {
   instructors: [{ id: "i-1", name: "Bruno Lima" }],
   seatsTaken: 0,
   students: [],
+  guests: [],
 };
 
 const respond = (url: string) => {

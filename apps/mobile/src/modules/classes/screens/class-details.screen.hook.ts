@@ -10,6 +10,7 @@ import { ApiError, SessionExpiredError } from "@/services/api";
 import { getDateLocale } from "@/utils/calendar-dates";
 
 import { useClassEnrolment } from "@/modules/enrolment/hooks/use-class-enrolment.hook";
+import { useTakeGuestOut } from "@/modules/enrolment/hooks/use-take-guest-out.hook";
 import { useTakeOut } from "@/modules/enrolment/hooks/use-take-out.hook";
 
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
@@ -86,6 +87,7 @@ export const useClassDetailsScreen = ({
   });
 
   const takeOut = useTakeOut(() => void query.refetch());
+  const takeGuestOut = useTakeGuestOut(() => void query.refetch());
 
   const showCancelError = (error: unknown) => {
     if (isClassCancelledError(error) || isClassFinishedError(error)) {
@@ -225,6 +227,9 @@ export const useClassDetailsScreen = ({
     // Admins only: a student of a class that hasn't started (and isn't cancelled) can be taken out of it.
     canTakeOut: canEdit && state === "not-started",
     takeOut,
+    takeGuestOut,
+    // The trial guests of the class get no notice of a cancellation.
+    guestCount: item?.guests.length ?? 0,
     takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
     // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
     enrolmentDescription: !enrolment.display

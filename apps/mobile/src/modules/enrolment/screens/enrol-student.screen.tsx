@@ -10,7 +10,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PhoneNumberField } from "@/components/phone-number-field";
 import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextInput } from "@/components/ui/text-input";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
@@ -128,6 +130,39 @@ export function EnrolStudentScreen() {
     );
   };
 
+  const renderTrialGuest = () => (
+    <View className="gap-3">
+      <View className="gap-2">
+        <Text className="ds-text-section-label text-ink-2">{t("enrolStudent.trial.nameLabel")}</Text>
+        <TextInput
+          icon={null}
+          value={screen.guestName}
+          onChangeText={screen.setGuestName}
+          onBlur={screen.touchGuestName}
+          status={screen.guestNameStatus}
+          errorMessage={t("enrolStudent.trial.invalidName")}
+          placeholder={t("enrolStudent.trial.namePlaceholder")}
+          accessibilityLabel={t("enrolStudent.trial.nameLabel")}
+          autoCapitalize="words"
+          autoComplete="name"
+        />
+      </View>
+      <View className="gap-2">
+        <Text className="ds-text-section-label text-ink-2">
+          {t("enrolStudent.trial.whatsappLabel")}
+        </Text>
+        <PhoneNumberField
+          country={screen.phone.country}
+          dialCode={screen.phone.dialCode}
+          numberInput={screen.phone.numberInput}
+          onSelectCountry={screen.phone.onSelectCountry}
+          label={t("enrolStudent.trial.whatsappLabel")}
+        />
+      </View>
+      <Text className="ds-text-list-subtitle text-ink-2">{t("enrolStudent.trial.note")}</Text>
+    </View>
+  );
+
   return (
     <View className="flex-1 bg-page">
       <Stack.Screen options={headerOptions} />
@@ -139,20 +174,34 @@ export function EnrolStudentScreen() {
         contentContainerStyle={{ paddingTop: 24, paddingBottom: Math.max(insets.bottom, 24) }}
       >
         <Text className="ds-text-body text-ink-2">{t("enrolStudent.description")}</Text>
+        <SegmentedControl
+          options={[
+            { value: "trial", label: t("enrolStudent.modeTrial") },
+            { value: "student", label: t("enrolStudent.modeStudent") },
+          ]}
+          value={screen.mode}
+          onChange={screen.setMode}
+        />
         <View className="gap-3">
           <Text className="ds-text-section-label text-ink-2">{t("enrolStudent.whoStep")}</Text>
-          <TextInput
-            icon={<Ionicons name="search" size={20} color={theme.ink2} />}
-            value={screen.searchText}
-            onChangeText={screen.setSearchText}
-            placeholder={t("enrolStudent.searchPlaceholder")}
-            accessibilityLabel={t("enrolStudent.searchLabel")}
-            clearable
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-          />
-          {renderStudents()}
+          {screen.mode === "trial" ? (
+            renderTrialGuest()
+          ) : (
+            <>
+              <TextInput
+                icon={<Ionicons name="search" size={20} color={theme.ink2} />}
+                value={screen.searchText}
+                onChangeText={screen.setSearchText}
+                placeholder={t("enrolStudent.searchPlaceholder")}
+                accessibilityLabel={t("enrolStudent.searchLabel")}
+                clearable
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="search"
+              />
+              {renderStudents()}
+            </>
+          )}
         </View>
         <View className="gap-3">
           <Text className="ds-text-section-label text-ink-2">{t("enrolStudent.classStep")}</Text>
@@ -171,8 +220,8 @@ export function EnrolStudentScreen() {
           loading={screen.isSubmitting}
           onPress={screen.submit}
         >
-          {screen.selectedStudent
-            ? t("enrolStudent.submit", { name: screen.selectedStudent.name })
+          {screen.submitName
+            ? t("enrolStudent.submit", { name: screen.submitName })
             : t("enrolStudent.submitEmpty")}
         </Button>
       </ScrollView>

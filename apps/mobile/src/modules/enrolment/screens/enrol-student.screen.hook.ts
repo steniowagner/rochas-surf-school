@@ -3,7 +3,9 @@ import { useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { usePhoneNumberField } from "@/components/phone-number-field";
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
+import { getStatus, isValid, nameRules } from "@/modules/auth/utils/field-validation";
 import { useDebouncedValue } from "@/modules/classes/hooks/use-debounced-value.hook";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
 import { useVisibleWeeksClasses } from "@/modules/classes/hooks/use-visible-weeks-classes.hook";
@@ -17,13 +19,16 @@ import { useAlertMessage } from "@/providers/alert-message";
 import { SessionExpiredError } from "@/services/api";
 import { addDays, mondayOf } from "@/utils/calendar-dates";
 
+import { useAddGuest } from "../hooks/use-add-guest.hook";
 import { useEnrolStudent } from "../hooks/use-enrol-student.hook";
 import {
+  getAddGuestErrorKey,
   getEnrolStudentErrorKey,
+  shouldReloadAddGuestClasses,
   shouldReloadEnrolClasses,
 } from "../utils/enrolment-error";
 
-import type { UseEnrolStudentScreenResult } from "./enrol-student.screen.types";
+import type { EnrolMode, UseEnrolStudentScreenResult } from "./enrol-student.screen.types";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const STUDENT_ROLES: Person["role"][] = ["student"];
@@ -33,6 +38,7 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
   const enrolMutation = useEnrolStudent();
+  const addGuestMutation = useAddGuest();
   const now = useNow();
   const today = todayInSchoolZone(now);
   const currentWeek = mondayOf(today);
@@ -46,6 +52,10 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   });
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mode, setMode] = useState<EnrolMode>("student");
+  const [guestName, setGuestName] = useState("");
+  const [isGuestNameTouched, setIsGuestNameTouched] = useState(false);
+  const phone = usePhoneNumberField();
   // A second press in the same frame must not send twice, before `isSubmitting` has re-rendered.
   const inFlight = useRef(false);
 
@@ -66,10 +76,24 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   );
   const markedDates = [...new Set(upcoming.map((item) => schoolDayOf(item.startsAt)))];
   const selectedClass = dayItems.find((item) => item.id === selectedClassId);
-  // Both picked, and the class still has a free seat (a reload may have filled it).
+  // A class is picked and it still has a free seat (a reload may have filled it).
+  const freeClass =
+    selectedClass && !isClassFull(selectedClass.seatsTaken, selectedClass.capacity)
+      ? selectedClass
+      : null;
+  const trimmedGuestName = guestName.trim();
+  const isGuestNameValid = isValid(trimmedGuestName, nameRules());
   const target =
-    selectedStudent && selectedClass && !isClassFull(selectedClass.seatsTaken, selectedClass.capacity)
-      ? { student: selectedStudent, classId: selectedClass.id }
+    freeClass && mode === "student" && selectedStudent
+      ? { student: selectedStudent, classId: freeClass.id }
+      : null;
+  const guestTarget =
+    freeClass && mode === "trial" && isGuestNameValid && phone.isNumberValid
+      ? {
+          classId: freeClass.id,
+          name: trimmedGuestName,
+          whatsappNumber: phone.whatsappNumber,
+        }
       : null;
 
   const loadMoreStudents = () => {
@@ -97,7 +121,19 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     selected: selectedClassId === item.id,
   }));
 
-  const submit = async ({ student, classId }: NonNullable<typeof target>) => {
+  const send = async ({
+    request,
+    done,
+    errorKey,
+    shouldReload,
+    refetchClasses,
+  }: {
+    request: () => Promise<unknown>;
+    done: string;
+    errorKey: (error: unknown) => string | null;
+    shouldReload: (error: unknown) => boolean;
+    refetchClasses: () => void;
+  }) => {
     if (inFlight.current) {
       return;
     }
@@ -106,25 +142,51 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     setIsSubmitting(true);
 
     try {
-      await enrolMutation.mutateAsync({ classId, studentId: student.id });
-      alertMessage.show(t("enrolStudent.done", { name: student.name }));
+      await request();
+      alertMessage.show(done);
       router.back();
     } catch (error) {
-      const key = getEnrolStudentErrorKey(error);
+      const key = errorKey(error);
 
       if (key) {
         alertMessage.show(t(key));
       }
 
-      if (shouldReloadEnrolClasses(error)) {
+      if (shouldReload(error)) {
         setSelectedClassId(null);
-        void visibleWeeks.refetch();
+        refetchClasses();
       }
     } finally {
       inFlight.current = false;
       setIsSubmitting(false);
     }
   };
+
+  const submitStudent = ({ student, classId }: NonNullable<typeof target>) =>
+    send({
+      request: () => enrolMutation.mutateAsync({ classId, studentId: student.id }),
+      done: t("enrolStudent.done", { name: student.name }),
+      errorKey: getEnrolStudentErrorKey,
+      shouldReload: shouldReloadEnrolClasses,
+      refetchClasses: () => void visibleWeeks.refetch(),
+    });
+
+  const submitGuest = ({ classId, name, whatsappNumber }: NonNullable<typeof guestTarget>) =>
+    send({
+      request: () => addGuestMutation.mutateAsync({ classId, name, whatsappNumber }),
+      done: t("enrolStudent.doneTrial", { name }),
+      errorKey: getAddGuestErrorKey,
+      shouldReload: shouldReloadAddGuestClasses,
+      refetchClasses: () => void visibleWeeks.refetch(),
+    });
+
+  const submitAction = (() => {
+    if (target) {
+      return () => submitStudent(target);
+    }
+
+    return guestTarget ? () => submitGuest(guestTarget) : undefined;
+  })();
 
   return {
     searchText,
@@ -165,8 +227,16 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     retryClasses: () => void weekQuery.refetch(),
     selectedClassId,
     selectClass: setSelectedClassId,
-    // Undefined until a student and a class with a free seat are picked.
-    submit: target ? () => submit(target) : undefined,
+    // Undefined until the person (a picked student, or a valid trial name and number) and a class with a free seat are set.
+    submit: submitAction,
+    submitName: mode === "student" ? (selectedStudent?.name ?? null) : trimmedGuestName || null,
     isSubmitting,
+    mode,
+    setMode,
+    guestName,
+    setGuestName,
+    guestNameStatus: getStatus(trimmedGuestName, isGuestNameValid, isGuestNameTouched),
+    touchGuestName: () => setIsGuestNameTouched(true),
+    phone,
   };
 };

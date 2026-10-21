@@ -1,0 +1,71 @@
+# Manual REST Client requests for POST /classes/:id/guests and DELETE /guests/:id (VS Code REST Client).
+# Sign in with an approved admin review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
+# Codes are read from the backend log when RESEND_API_KEY is unset. Set `classId` to a class that hasn't started
+# and has a free seat (GET /classes?date=YYYY-MM-DD lists them).
+
+@baseUrl = http://localhost:4000
+@email = admin@example.com
+@code = 345678
+@classId = 00000000-0000-4000-8000-000000000000
+
+### Request a sign-in code (expects 202)
+POST {{baseUrl}}/auth/email/code
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "locale": "pt-BR"
+}
+
+### Sign in (expects 200 with accessToken)
+# @name session
+POST {{baseUrl}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{code}}"
+}
+
+@adminToken = {{session.response.body.accessToken}}
+
+### Add a guest (expects 201 with { id, classId, name }; the class's seatsTaken grows by one)
+# @name guest
+POST {{baseUrl}}/classes/{{classId}}/guests
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Carolina Reis",
+  "whatsappNumber": "+5585999990000"
+}
+
+@guestId = {{guest.response.body.id}}
+
+### Add with a missing name and an invalid number (expects 422 guest.name.required and guest.whatsappNumber.invalid)
+POST {{baseUrl}}/classes/{{classId}}/guests
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "whatsappNumber": "85999990000"
+}
+
+### Add to an unknown class (expects 404 class.notFound); to a cancelled or started one (409 class.cancelled, class.started);
+### to a full one (409 enrolment.class.full)
+POST {{baseUrl}}/classes/00000000-0000-4000-8000-000000000001/guests
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Carolina Reis",
+  "whatsappNumber": "+5585999990000"
+}
+
+### Remove the guest (expects 204; the seat is free and nobody is told)
+DELETE {{baseUrl}}/guests/{{guestId}}
+Authorization: Bearer {{adminToken}}
+
+### Remove it again (expects 404 guest.notFound)
+DELETE {{baseUrl}}/guests/{{guestId}}
+Authorization: Bearer {{adminToken}}

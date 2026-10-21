@@ -173,10 +173,18 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > by the aggregate/entity scripts (they scaffold a CRUD aggregate this one doesn't use); the number reports
   > `guest.whatsappNumber.invalid` for both a missing and a malformed number, as D-02 names it.
 
-- [ ] **T-02** — Add the `GuestRepository` port (`create` through the locked seat write, `findById`, `delete`,
+- [x] **T-02** — Add the `GuestRepository` port (`create` through the locked seat write, `findById`, `delete`,
   `eraseEndedBefore(cutoff)`) and its in-memory version, with tests. Skill:
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: enabling · Done when: `npx jest test/mock` passes from `modules/enrolment`.
+  > ✅ 2026-10-20 — added the `GuestRepository` port and `FakeGuestRepository` (capacity counted from guests plus
+  > the approved seats it is given; erasure by class end or cancellation); files:
+  > `modules/enrolment/src/guest/provider/guest.repository.ts`, `modules/enrolment/src/guest/provider/index.ts`,
+  > `modules/enrolment/src/guest/index.ts`, `modules/enrolment/test/mock/fake-guest.repository.ts`,
+  > `modules/enrolment/test/mock/fake-guest.repository.test.ts`, `modules/enrolment/test/mock/date.ts`,
+  > `modules/enrolment/test/mock/enrolment.factory.ts`, `modules/enrolment/test/mock/index.ts`;
+  > verified: `npx jest test/mock` from `modules/enrolment` (23 passed), `tsc --noEmit` clean;
+  > deviations: `eraseEndedBefore(cutoff, now)` takes `now` too (the erasure date); hand-written, not generated.
 
 - [ ] **T-03** — Add `AddGuest`, `RemoveGuest` and `EraseGuestData` in `src/guest/usecase/` (D-02, D-04, D-05),
   with tests for every refusal and the erasure window. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).

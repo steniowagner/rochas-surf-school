@@ -1,5 +1,5 @@
 import { ClassActor } from "@rochas-surf-school/classes";
-import { Enrolment, EnrolmentClass, EnrolmentState } from "../../src";
+import { Enrolment, EnrolmentClass, EnrolmentState, Guest, GuestState } from "../../src";
 
 export const STUDENT: ClassActor = {
   id: "5d1f0a7b-2c3e-4b6a-8f19-4a7c9e0d1b25",
@@ -47,4 +47,14 @@ export function buildEnrolmentClass(overrides: Partial<EnrolmentClass> = {}): En
     hasCancellationRule: true,
     ...overrides,
   };
+}
+
+export function buildGuest(overrides: Partial<GuestState> = {}): Guest {
+  return new Guest({
+    classId: CLASS_ID,
+    name: "Carolina Reis",
+    whatsappNumber: "+5585999990000",
+    createdBy: ADMIN.id,
+    ...overrides,
+  });
 }

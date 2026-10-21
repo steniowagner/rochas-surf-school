@@ -50,4 +50,19 @@ describe("getEnrolmentCta", () => {
     expect(getEnrolmentCta(enrolment("pending"), false, true)?.action).toBe("withdraw");
     expect(getEnrolmentCta(enrolment("takenOut"), false, true)?.action).toBe("request");
   });
+
+  it.each([null, "withdrawn", "expired", "denied", "cancelled", "takenOut"] as const)(
+    "answers no button for %s on a full class while the waiting list is closed",
+    (status) => {
+      expect(
+        getEnrolmentCta(status === null ? null : enrolment(status), true, false, false),
+      ).toBeNull();
+    },
+  );
+
+  it("keeps every button on a free class and for a pending request while the waiting list is closed", () => {
+    expect(getEnrolmentCta(null, false, false, false)?.key).toBe("request");
+    expect(getEnrolmentCta(enrolment("withdrawn"), false, false, false)?.key).toBe("requestAgain");
+    expect(getEnrolmentCta(enrolment("pending"), true, false, false)?.key).toBe("leaveWaitingList");
+  });
 });

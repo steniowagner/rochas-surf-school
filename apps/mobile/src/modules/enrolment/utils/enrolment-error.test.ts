@@ -12,6 +12,7 @@ import {
   isAlreadyOpenError,
   isDeadlineClosedError,
   isNotPendingError,
+  isWaitingListClosedError,
   isRuleNotAcceptedError,
   shouldReloadAddGuestClasses,
   shouldReloadClass,
@@ -26,6 +27,7 @@ describe("getRequestSeatErrorKey", () => {
     [409, "class.started", "enrolment.errors.started"],
     [409, "class.cancelled", "enrolment.errors.cancelled"],
     [409, "enrolment.alreadyOpen", "enrolment.errors.alreadyOpen"],
+    [409, "enrolment.waitingList.closed", "enrolment.errors.waitingListClosed"],
     [422, "enrolment.rule.notAccepted", "enrolment.errors.ruleNotAccepted"],
     [404, "class.notFound", "classDetails.notFound"],
     [403, "enrolment.role.notStudent", "createAccount.errors.generic"],
@@ -216,5 +218,14 @@ describe("the guest errors", () => {
   it("shows nothing for an expired session when removing a guest, and reloads the class for a missing guest", () => {
     expect(getRemoveGuestErrorKey(new SessionExpiredError())).toBeNull();
     expect(shouldReloadClass(api(404, "guest.notFound"))).toBe(true);
+  });
+});
+
+describe("isWaitingListClosedError", () => {
+  it("recognizes the closed waiting list, and reloads the class for it", () => {
+    expect(isWaitingListClosedError(api(409, "enrolment.waitingList.closed"))).toBe(true);
+    expect(isWaitingListClosedError(api(409, "enrolment.alreadyOpen"))).toBe(false);
+    expect(isWaitingListClosedError(new NetworkError())).toBe(false);
+    expect(shouldReloadClass(api(409, "enrolment.waitingList.closed"))).toBe(true);
   });
 });

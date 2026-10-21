@@ -474,6 +474,9 @@ const messages = {
     full: {
       title: "Class full",
       waitingList: "You can join the waiting list.",
+      waitingListClosed: "The waiting list is closed for this class.",
+      newRequestsWait: "New requests join the waiting list.",
+      waitingListOff: "The waiting list is off — nobody can ask.",
     },
     rules: {
       title: "Rules",
@@ -603,6 +606,7 @@ const messages = {
       started: "The class has already started.",
       cancelled: "This class was cancelled.",
       alreadyOpen: "You already have an open request for this class.",
+      waitingListClosed: "The waiting list is closed for this class.",
       ruleNotAccepted: "The cancellation rule changed. Read it again and accept it.",
       notPending: "This request is no longer pending.",
       notFound: "This request no longer exists.",

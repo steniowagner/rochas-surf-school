@@ -481,6 +481,9 @@ const messages: Messages = {
     full: {
       title: "Clase llena",
       waitingList: "Puedes entrar en la lista de espera.",
+      waitingListClosed: "La lista de espera está cerrada para esta clase.",
+      newRequestsWait: "Las nuevas solicitudes entran en la lista de espera.",
+      waitingListOff: "La lista de espera está desactivada — nadie puede pedir.",
     },
     rules: {
       title: "Reglas",
@@ -610,6 +613,7 @@ const messages: Messages = {
       started: "La clase ya empezó.",
       cancelled: "Esta clase fue cancelada.",
       alreadyOpen: "Ya tienes una solicitud abierta para esta clase.",
+      waitingListClosed: "La lista de espera está cerrada para esta clase.",
       ruleNotAccepted: "La regla de cancelación cambió. Léela de nuevo y acéptala.",
       notPending: "Esta solicitud ya no está pendiente.",
       notFound: "Esta solicitud ya no existe.",

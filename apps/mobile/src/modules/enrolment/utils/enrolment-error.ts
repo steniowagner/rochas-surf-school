@@ -26,6 +26,10 @@ export const isDeadlineClosedError = (error: unknown): boolean =>
 
 const isGuestNotFoundError = (error: unknown): boolean => hasKey(error, 404, "guest.notFound");
 
+/** The school turned the waiting list off, and the class is full (409). */
+export const isWaitingListClosedError = (error: unknown): boolean =>
+  hasKey(error, 409, "enrolment.waitingList.closed");
+
 const isClassStartedError = (error: unknown): boolean => hasKey(error, 409, "class.started");
 
 const isClassCancelledError = (error: unknown): boolean => hasKey(error, 409, "class.cancelled");
@@ -38,6 +42,7 @@ export const shouldReloadClass = (error: unknown): boolean =>
   isGuestNotFoundError(error) ||
   isClassStartedError(error) ||
   isClassCancelledError(error) ||
+  isWaitingListClosedError(error) ||
   isAlreadyOpenError(error) ||
   isNotPendingError(error) ||
   isNotApprovedError(error) ||
@@ -65,6 +70,10 @@ export const getRequestSeatErrorKey = (error: unknown): string | null => {
 
   if (isAlreadyOpenError(error)) {
     return "enrolment.errors.alreadyOpen";
+  }
+
+  if (isWaitingListClosedError(error)) {
+    return "enrolment.errors.waitingListClosed";
   }
 
   if (isRuleNotAcceptedError(error)) {

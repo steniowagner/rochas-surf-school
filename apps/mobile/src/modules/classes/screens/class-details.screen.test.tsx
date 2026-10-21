@@ -113,6 +113,10 @@ const refused = (status: number, key: string) => ({
   json: async () => ({ errors: [key] }),
 });
 
+// The screen also reads the school settings, for the waiting-list switch.
+const classRequestCount = () =>
+  fetchMock.mock.calls.filter(([url]) => !String(url).endsWith("/school-settings")).length;
+
 const serve = (item: ClassItem) => fetchMock.mockResolvedValue(ok(item));
 
 const renderScreen = async (canEdit?: boolean, canEnrol?: boolean) => {
@@ -755,7 +759,7 @@ describe("ClassDetailsScreen", () => {
     expect(
       screen.queryByRole("button", { name: "Try again" }),
     ).not.toBeOnTheScreen();
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(classRequestCount()).toBe(1));
   });
 
   it("tools: does not show after a failed load", async () => {
@@ -835,7 +839,7 @@ describe("ClassDetailsScreen", () => {
       expect(
         screen.getByRole("button", { name: "Cancel class" }),
       ).toBeOnTheScreen();
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(classRequestCount()).toBe(1);
     });
 
     it("shows on a class that has started", async () => {
@@ -2073,6 +2077,136 @@ describe("ClassDetailsScreen enrolment status", () => {
 
     expect(await screen.findByText("Class full")).toBeOnTheScreen();
     expect(screen.queryByText("You can join the waiting list.")).toBeNull();
+  });
+
+  describe("waiting list off", () => {
+    // Answers the school settings with the switch off and everything else with the class.
+    const serveWithSwitchOff = (item: ClassItem) =>
+      fetchMock.mockImplementation(async (url: string) =>
+        String(url).endsWith("/school-settings")
+          ? ok({ whatsappNumber: null, waitingListEnabled: false })
+          : ok(item),
+      );
+
+    it("shows no button and says the waiting list is closed for a student without an enrolment", async () => {
+      serveWithSwitchOff(makeClass({ seatsTaken: 8 }));
+      await renderScreen(false, true);
+
+      expect(await screen.findByText("Class full")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("The waiting list is closed for this class."),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText("You can join the waiting list.")).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: "Join the waiting list" }),
+      ).toBeNull();
+    });
+
+    it("shows no button on a full class after an ended enrolment", async () => {
+      serveWithSwitchOff(mine("withdrawn", { seatsTaken: 8 }));
+      await renderScreen(false, true);
+
+      await screen.findByText("16:00 – 17:30");
+      await waitFor(() =>
+        expect(screen.queryByRole("button", { name: "Request again" })).toBeNull(),
+      );
+    });
+
+    it("keeps Leave the waiting list for a student already waiting", async () => {
+      serveWithSwitchOff(mine("pending", { seatsTaken: 8 }));
+      await renderScreen(false, true);
+
+      expect(
+        await screen.findByRole("button", { name: "Leave the waiting list" }),
+      ).toBeOnTheScreen();
+    });
+
+    it("keeps the request on a class with a free seat", async () => {
+      serveWithSwitchOff(makeClass({ seatsTaken: 3 }));
+      await renderScreen(false, true);
+
+      expect(
+        await screen.findByRole("button", { name: "Request a seat" }),
+      ).toBeOnTheScreen();
+    });
+
+    it("counts a failed settings read as on", async () => {
+      fetchMock.mockImplementation(async (url: string) =>
+        String(url).endsWith("/school-settings")
+          ? failure()
+          : ok(makeClass({ seatsTaken: 8 })),
+      );
+      await renderScreen(false, true);
+
+      expect(
+        await screen.findByRole("button", { name: "Join the waiting list" }),
+      ).toBeOnTheScreen();
+    });
+
+    it("shows the closed text as a toast and reloads when the request is refused", async () => {
+      const user = userEvent.setup();
+      fetchMock.mockImplementation(async (url: string, init?: { method?: string }) => {
+        if (String(url).endsWith("/school-settings")) {
+          return ok({ whatsappNumber: null, waitingListEnabled: true });
+        }
+
+        return init?.method === "POST"
+          ? refused(409, "enrolment.waitingList.closed")
+          : ok(makeClass({ seatsTaken: 8 }));
+      });
+      await renderScreen(false, true);
+      await user.press(await screen.findByRole("button", { name: "Join the waiting list" }));
+      const classReads = () =>
+        fetchMock.mock.calls.filter(
+          ([url, init]) => String(url).endsWith("/classes/c-1") && init?.method === "GET",
+        ).length;
+      const before = classReads();
+
+      await user.press(screen.getAllByRole("button", { name: "Join the waiting list" }).at(-1)!);
+
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith("The waiting list is closed for this class."),
+      );
+      await waitFor(() => expect(classReads()).toBeGreaterThan(before));
+    });
+  });
+
+  describe("full banner", () => {
+    it("tells an admin that new requests wait while the switch is on", async () => {
+      fetchMock.mockImplementation(async (url: string) =>
+        String(url).endsWith("/school-settings")
+          ? ok({ whatsappNumber: null, waitingListEnabled: true })
+          : ok(makeClass({ seatsTaken: 8 })),
+      );
+      await renderScreen(true, false);
+
+      expect(await screen.findByText("Class full")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("New requests join the waiting list."),
+      ).toBeOnTheScreen();
+    });
+
+    it("tells an admin that the waiting list is off while it is", async () => {
+      fetchMock.mockImplementation(async (url: string) =>
+        String(url).endsWith("/school-settings")
+          ? ok({ whatsappNumber: null, waitingListEnabled: false })
+          : ok(makeClass({ seatsTaken: 8 })),
+      );
+      await renderScreen(true, false);
+
+      expect(
+        await screen.findByText("The waiting list is off — nobody can ask."),
+      ).toBeOnTheScreen();
+    });
+
+    it("keeps the banner without a description for an instructor", async () => {
+      serve(makeClass({ seatsTaken: 8 }));
+      await renderScreen(false, false);
+
+      expect(await screen.findByText("Class full")).toBeOnTheScreen();
+      expect(screen.queryByText("New requests join the waiting list.")).toBeNull();
+      expect(screen.queryByText("The waiting list is off — nobody can ask.")).toBeNull();
+    });
   });
 
   it("status: shows no enrolment banner on a cancelled class, only its own", async () => {

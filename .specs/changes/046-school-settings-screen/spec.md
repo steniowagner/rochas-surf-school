@@ -218,9 +218,22 @@ for a seat in a full class and see that the waiting list is closed; requests alr
   > own component so its state starts from the loaded settings; an emptied number field counts as "no change" (the
   > API refuses an empty number, so the number can be replaced, not cleared)
 
-- [ ] **T-07** — Use the switch on the details: the student's closed variant and the admin's banner descriptions,
+- [x] **T-07** — Use the switch on the details: the student's closed variant and the admin's banner descriptions,
   and the `enrolment.waitingList.closed` toast, with tests and copy.
   Covers: ER-04, ER-05 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx src/modules/enrolment` passes.
+  > ✅ 2026-10-21 — `getEnrolmentCta` gives no button on a full class to someone without an open request while the
+  > waiting list is closed; `useClassEnrolment` takes `waitingListEnabled` and exposes `waitingListClosed`; the details
+  > screen reads `useSchoolSettings` (unknown counts as on), shows "A lista de espera está fechada para esta aula." on
+  > the student's banner and, for admins only, "Novos pedidos entram na lista de espera." / "A lista de espera está
+  > desligada — ninguém pode pedir."; `enrolment.waitingList.closed` shows its text as a toast, reloads the class and
+  > the settings; copy in the three locales; files: `apps/mobile/src/modules/enrolment/utils/enrolment-cta.ts`,
+  > `.../enrolment-cta.test.ts`, `.../enrolment-error.ts`, `.../enrolment-error.test.ts`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-class-enrolment.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`, `.../class-details.screen.tsx`,
+  > `.../class-details.screen.test.tsx` (fetch-count assertions now ignore the settings read),
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest` on class-details, `src/modules/enrolment`,
+  > `src/hooks`, `src/modules/school-settings`, `src/modules/admin` (513 passed), `tsc --noEmit` and eslint clean;
+  > deviations: none
 
 ### Verification
 

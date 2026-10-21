@@ -135,7 +135,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
     cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
     (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider}.ts`
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
     when asked), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
@@ -146,7 +146,9 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     with the location and the instructors' names; `ClassRosterReader.findRosters` → `ClassRoster` per class id, the
     seats taken and the approved students, with `CLASS_CARD_STUDENTS_LIMIT`; `ViewerEnrolmentReader.findLatest` → the
     reader's latest enrolment per class id; `ClassEnrolmentsCloser.closeOpenEnrolments` → the students whose
-    enrolment a cancellation ended — the last three answered by enrolment's adapters, spec 041),
+    enrolment a cancellation ended — the last three answered by enrolment's adapters, spec 041;
+    `ClassAudienceReader.findClassAudience` / `findLocationAudience` → the students with a seat or a pending request,
+    of one class or of a location's upcoming classes with their counts, spec 047),
     `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines}.usecase.ts`, and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
     the students, the guests — names only for `canSeeGuestNames`, spec 045 — and `myEnrolment`). Fakes of every port and entity
@@ -331,9 +333,10 @@ src/
                                 # ExpirePendingEnrolments, logs the count only, never throws
     guest-erasure.job.ts        # GuestErasureJob (every minute, cron guest-erasure): runs EraseGuestData,
                                 # logs the count only, never throws (spec 045)
-    {class-roster-reader,seat-counter,pending-request-counter,viewer-enrolment-reader}.prisma.ts  # classes' ports
+    {class-roster-reader,seat-counter,pending-request-counter,viewer-enrolment-reader,class-audience-reader}.prisma.ts  # classes' ports
                                 # read from enrolments (approved for the roster — with each enrolmentId, spec 044
-                                # — and the seats, plus the guests since spec 045, pending for the requests, the caller's latest for myEnrolment)
+                                # — and the seats, plus the guests since spec 045, pending for the requests, the caller's latest for myEnrolment,
+                                # approved and pending for the audience of an edit or a location change, spec 047)
     enrolment.class-enrolments-closer.ts  # EnrolmentClassEnrolmentsCloser: classes' ClassEnrolmentsCloser, running
                                 # CloseClassEnrolments
     enrolment.seat-releaser.ts  # EnrolmentSeatReleaser: auth's SeatReleaser, running ReleaseStudentEnrolments
@@ -545,7 +548,9 @@ src/
                                 # key, for Nova aula, Editar aula, the cancel and the delete sheets),
                                 # locations-cache.ts (add, replace, remove), map.ts (Fortaleza, regions, the
                                 # provider per platform, directions URL), session-token.ts (UUID v4 per sheet),
-                                # occupancy.ts (percent, tone, full, free and hidden seats, the students label)
+                                # occupancy.ts (percent, tone, full, free and hidden seats, the students label),
+                                # audience.ts (joinAudience: who will be told, for the cancel sheet and Editar aula's
+                                # footer; spec 047)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, the
                                 # admins' "Inscrições em aulas" tool (spec 042), and direct enrolment and take-out
@@ -594,7 +599,8 @@ src/
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
                                 # use-notification-response (a tapped push → refresh → "Join the school", the
                                 # Aulas tab for class.assigned / location.changed, a class's details for the class
-                                # pushes — the student's for enrolment.expired / approved / denied and class.cancelled,
+                                # pushes — the student's for enrolment.expired / approved / denied, class.cancelled and
+                                # class.edited, the student's Agenda for location.changed (spec 047),
                                 # the instructor's for enrolment.requested, the instructor's or the admin's for
                                 # enrolment.cancelled —, the admin's "Inscrições em aulas" for
                                 # enrolment.requested, or "/"), use-notification-received

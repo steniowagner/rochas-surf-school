@@ -23,8 +23,9 @@ What the person is told, and how it reaches them.
   - `class.assigned` — the person was assigned to the classes of a batch an admin created; details: how many
     classes (`count`) and their discipline (`surf` | `skate`). One per instructor and batch, and one (count 1)
     for an instructor added to a class by an edit.
-  - `class.edited` — a class the person teaches (before and after the edit) was changed; details: the class's id
-    (`classId`), its discipline and its new start (`startsAt`, ISO UTC).
+  - `class.edited` — a class the person teaches (before and after the edit), or in which they hold a seat or a
+    pending request (spec 047), was changed; details: the class's id (`classId`), its discipline and its new start
+    (`startsAt`, ISO UTC). One per person, even one on both lists.
   - `class.unassigned` — the person was removed from a class by an edit; details: the class's id, its discipline
     and its start.
   - `class.cancelled` — a class the person teaches, or in which their enrolment was just ended by the
@@ -35,9 +36,10 @@ What the person is told, and how it reaches them.
   - `class.noInstructor` — an account deletion left classes that haven't started with no instructor; details:
     how many (`count`) and the earliest of them — its id, its discipline and its start (`startsAt`, ISO UTC). One
     per approved admin and deletion.
-  - `location.changed` — an admin edited a location of classes the person teaches and chose to tell the
-    instructors; details: how many of the person's upcoming classes are at that location (`count`) and its new
-    name (`locationName`, as stored). One per instructor and edit (no class id: it concerns several classes).
+  - `location.changed` — an admin edited a location of upcoming classes the person teaches, or holds a seat or a
+    pending request in (spec 047), and chose to tell them; details: how many of the person's upcoming classes are at
+    that location (`count`; the larger one for a person on both lists) and its new name (`locationName`, as
+    stored). One per person and edit (no class id: it concerns several classes).
   - `enrolment.requested` — a student asked for a seat in a class; details: the class's id, the student's name
     (`studentName`, as stored), its discipline and start. One per approved admin and per instructor of the class,
     each person once.
@@ -123,9 +125,10 @@ What the person is told, and how it reaches them.
   `class.noInstructor` push reloads the account and opens that class's details when it is still an admin (else
   its home, also when the push carries no class); one received with the app open reloads every class shown.
   Tapping a `location.changed` push reloads the account and opens its Aulas tab when it is still an instructor or
-  an admin (else its home); one received with the app open reloads every class shown and the locations.
+  an admin, and the Agenda for a student (else its home); one received with the app open reloads every class shown
+  and the locations, for every role.
   Tapping an `enrolment.expired`, `enrolment.approved`, `enrolment.denied`, `enrolment.enrolled`,
-  `enrolment.takenOut` or `class.cancelled` push as a student
+  `enrolment.takenOut`, `class.cancelled` or `class.edited` push as a student
   opens that class's details in the student's flow; tapping an `enrolment.requested` push opens that class's
   details as an instructor and the "Inscrições em aulas" tool as an admin (with or without a class id; a push an
   instructor gets without a class, or a person who now resolves to another flow, falls back as before); tapping an
@@ -191,6 +194,8 @@ Rules:
   created the batch.
 - **An instructor or admin of an edited class** — receives `class.edited` (kept, when a class field changed),
   `class.assigned` (added) or `class.unassigned` (removed), unless they made the edit.
+- **A student with a seat or a pending request in an edited class** — receives `class.edited` when a class field
+  changed, unless they made the edit.
 - **An instructor or admin of a cancelled class, and a student whose pending or approved enrolment it ended** —
   receives `class.cancelled`, with the message, unless they cancelled it.
 - **Approved admins and the instructors of a class** — receive `enrolment.requested` for each new request in it.
@@ -206,8 +211,9 @@ Rules:
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
 - **Approved admins** — receive one `class.noInstructor` when an account deletion leaves classes with nobody,
   unless the deleted account is theirs.
-- **An instructor or admin of a location's upcoming classes** — receives one `location.changed` when an admin edits
-  that location and chooses to tell the instructors, unless they made the edit.
+- **An instructor or admin of a location's upcoming classes, and a student with a seat or a pending request in
+  them** — receives one `location.changed` when an admin edits that location and chooses to tell them, unless they
+  made the edit.
 
 ## Boundaries
 
@@ -275,3 +281,7 @@ requests (spec 047).
   `enrolment.takenOut` (`{ classId, discipline, startsAt, reason? }`) types and their push copy, to the student only,
   through Enrolment's contract; in the app, a student's tap on either opens the class in the student's flow, and one
   received with the app open reloads the classes.
+- `047-class-changes-reach-students` — `class.edited` and `location.changed` also reach the students with a seat
+  and the people with a pending request, through the Classes module's contracts (one notification per person; on
+  `location.changed` each with their own count); in the app, a student's tap on `class.edited` opens the class in
+  the student's flow and on `location.changed` the Agenda.

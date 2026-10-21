@@ -2,13 +2,14 @@
 id: "047"
 slug: class-changes-reach-students
 title: "Students hear about class edits and location changes"
-status: accepted
+status: finished
 started: 2026-10-21
 base_commit: 5ea7d04ede7e87382ab8db1a2a5ff69840b65941
 reviewed_commit: 2075ca3a6cf768a2426f7001a1cf3b675f6a7d65
 created: 2026-10-19
 fronts: [classes, backend, mobile]
 depends_on: ["046"]
+finished: 2026-10-21
 ---
 
 # 047 — Students hear about class edits and location changes

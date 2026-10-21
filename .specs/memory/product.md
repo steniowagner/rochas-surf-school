@@ -126,8 +126,8 @@ Listed in the order people meet them.
   map (latitude and longitude), required whenever it is created or edited; locations saved before spec 037 have
   no point until edited, can still be picked, and show no map. Approved admins create, edit and remove
   locations; every approved account lists the active ones. A change to the name or the address sends the
-  deadlines of the location's upcoming classes to be worked out again. Only instructors can be told about a
-  change for now (students with spec 047). A removed (archived) location frees its name, can't be given to a
+  deadlines of the location's upcoming classes to be worked out again. When the admin chooses to notify, the
+  instructors and the students with a seat or a pending request in those upcoming classes are told (spec 047). A removed (archived) location frees its name, can't be given to a
   class, and can't be restored.
 - **Class** (`class`): one surf or skate session at one date and time. Key fields: discipline (`surf` |
   `skate`), level (`beginner` | `advanced` | `expert` — a label only), date, start and end time, location,
@@ -690,11 +690,12 @@ one time range ("Início e fim": the class's own, last week's suggestions and an
 today a time that has already started is blocked, except the class's own while it hasn't started); the
 instructor list also shows the class's instructors who no longer teach, so they can be removed. A started class
 shows "A aula já começou" / "Só dá para trocar os instrutores." and only the instructors. "Salvar e notificar"
-(with "Ao salvar, avisamos os instrutores da aula.") is enabled only when something changed and the form is
+(with "Ao salvar, avisamos os instrutores da aula.", which since spec 047 also names the enrolled students and
+pending requests) is enabled only when something changed and the form is
 valid; on success "Alterações salvas" and back to the details, with the week and the details reloaded; each
 refusal has its own message (started — the screen switches to the instructors only —, finished, gone, past,
 seats taken, unknown instructor or location). Saving without a change does nothing and tells nobody. The
-instructors are told, never the admin who edits: the ones who stay get "Aula alterada" when a class field
+instructors (and, since spec 047, the class's students and pending requests) are told, never the admin who edits: the ones who stay get "Aula alterada" when a class field
 changed, the new ones "Novas aulas na sua escala", the removed ones "Você saiu de uma aula"; tapping one of the
 first or last opens that class's details, and one received with the app open reloads the classes. All copy is in
 pt-BR, es-ES and en-US.
@@ -764,8 +765,8 @@ empty Nome), and "Ponto no mapa", a small map where a tap places the point; "Sal
 and a point. The "Local" section shows "Gerir" while a location exists: in that mode each row has a pencil that
 opens "Editar local" (the same sheet, plus "As alterações valem também para as aulas que já usam este local."), and
 "Concluir" leaves it. An edit applies to every class at the location, past ones included, and the classes on
-screen reload; when upcoming classes use it, a ticked "Avisar os instrutores das próximas aulas?" box tells their
-instructors once each ("Local de aula alterado", with their count; never the admin who edits; tapping it opens the
+screen reload; when upcoming classes use it, a ticked "Avisar alunos e instrutores das próximas aulas?" box (spec 047) tells their
+instructors, and their students and pending requests, once each ("Local de aula alterado", with their count; never the admin who edits; tapping it opens the
 Aulas tab). A new name or address makes the upcoming classes' deadlines be worked out again. "Remover local" asks
 "Remover local?" (with how many classes keep it) and archives the location: it leaves the list, its name can be
 used again, it can't be given to a class, the classes that used it keep showing it, and when it was the form's
@@ -909,7 +910,22 @@ full class that hasn't started, admins read "Turma cheia" with "Novos pedidos en
 lista de espera está desligada — ninguém pode pedir."; instructors see the banner alone. While the app can't read
 the settings, it treats the waiting list as on and the school decides. All copy is in pt-BR, es-ES and en-US.
 
-Active specs: none in progress; specs 047 and 048 (the rest of enrolment) are planned.
+**Class changes reach students** (spec `047-class-changes-reach-students`) — when an admin edits a class or changes a
+location, the students who hold a seat and the people with a pending request are told as well as the instructors.
+An edit that changes a class field sends "Aula alterada" to the class's approved and pending students and to the
+instructors who stay; changing only the instructors, or saving without a change, tells no student; withdrawn,
+expired and denied students are never told. A location edit with "Avisar alunos e instrutores das próximas aulas?"
+ticked (on by default) sends one "Local de aula alterado" to each person with a seat or a request in its upcoming,
+not cancelled classes, with how many of those classes they are in; a person who is also an instructor there gets
+one notification, with the larger count. The admin who edits is never told, and guests never are. Before acting,
+the admin sees who will be told: "Cancelar esta aula?" reads "Avisamos N inscritos, M pessoas com pedido pendente e
+K instrutores. A aula fica na agenda, marcada como cancelada." (only the groups with someone in them, singular for
+one; K excludes the admin), and Editar aula's footer reads "Ao salvar, avisamos os instrutores, N inscritos e M com
+pedido pendente." (or "Ao salvar, avisamos os instrutores da aula." when there is no student and no request). A
+student who taps "Aula alterada" opens that class's details, and "Local de aula alterado" opens the Agenda; one
+received with the app open reloads the classes. All copy is in pt-BR, es-ES and en-US.
+
+Active specs: none in progress; spec 048 (the student's "Minhas aulas" tab and history) is planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -957,8 +973,7 @@ Active specs: none in progress; specs 047 and 048 (the rest of enrolment) are pl
   only).
 - After creating classes (spec 028): the instructors' "Surf" / "Skate" subtitles and photos in the picker; a real
   count on the "Criar aulas" row; and "My classes" for admins who teach.
-- On class locations (spec 037): telling students and people with pending requests about a location change
-  (spec 047); restoring an archived location, listing archived locations, and a locations screen outside
+- On class locations (spec 037): restoring an archived location, listing archived locations, and a locations screen outside
   the class form; filling the address from a tapped point, "near me" from the phone's own location, and an
   interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
@@ -967,11 +982,10 @@ Active specs: none in progress; specs 047 and 048 (the rest of enrolment) are pl
 - On seats and students (spec 040): the "1ª vez" badge on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
   about to start; opening a person's sheet (WhatsApp) from an instructor or a student on the details; and profile
   photos (initials until photos can be uploaded).
-- On editing a class (spec 032): telling its students and the people with pending requests (spec 047); editing several classes at once; the seat and pending-request counts in the editor's
-  footer note, and its "gerir" links to manage time ranges and locations.
+- On editing a class (spec 032): editing several classes at once, and the editor's "gerir" links to manage time ranges and locations.
 - On cancelling a class (spec 033): storing who cancelled it,
   restoring a cancelled class and editing its message; what "Avisar alunos e instrutores" in the class tools does
-  (a message to a class's people, its own spec); the enrolled and pending counts on the cancel sheet.
+  (a message to a class's people, its own spec).
 - On deleting a class (spec 034): the seat and pending-request counts on the confirmation sheet; deleting several
   classes at once; restoring a deleted class or keeping any record of it.
 - On classes left without an instructor (spec 035): releasing the classes when an instructor is demoted to
@@ -983,8 +997,8 @@ Active specs: none in progress; specs 047 and 048 (the rest of enrolment) are pl
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On enrolment requests (specs 041–045), each planned in its own spec: telling students and people with pending
-  requests about class edits and location changes (047); the student's "Minhas aulas" tab and history (048).
+- On enrolment requests (specs 041–045), each planned in its own spec: the student's "Minhas aulas" tab and history
+  (048).
   Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
   success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
   requests on the admin's class details, filtering or searching the tool, a stored history of who decided and

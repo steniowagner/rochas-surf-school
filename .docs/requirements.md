@@ -962,12 +962,16 @@ When a student cancels their seat, or deleting their account cancels it, admins 
 
 #### Direct enrolment
 
+_Implemented in spec 044-direct-enrolment-take-out._
+
 Admins SHALL be able to enrol a student directly, without a request, in a class that hasn't started and has a free seat. If the student has a pending request for that class, it SHALL become approved. The student SHALL be notified.
 
 - _Student enrolled directly:_ When an admin enrols a student directly in a class with a free seat, then the student takes a seat and is notified.
 - _Student with a pending request:_ When an admin enrols a student who has a pending request for that class, then the pending request becomes approved.
 
 #### Taking a student out
+
+_Implemented in spec 044-direct-enrolment-take-out._
 
 Admins SHALL be able to take an approved student out of a class that hasn't started, with an optional reason. The student SHALL be notified, with the reason when one was given.
 

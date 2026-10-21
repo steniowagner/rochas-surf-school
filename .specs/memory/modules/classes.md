@@ -99,8 +99,9 @@ The classes themselves, and how a batch becomes classes.
 - **Seats taken** (not stored): how many seats of a class are held — its approved students plus its guests;
   counted by [Enrolment](enrolment.md) from its approved enrolments, which admins produce by approving requests
   (guests join with spec 045).
-- **Class roster** (not stored): the seats taken and the approved students (id, name, photo or none) of a class,
-  read for many classes at once, from Enrolment.
+- **Class roster** (not stored): the seats taken and the approved students (id, name, photo or none, and the id of
+  the approved enrolment, which an admin can take them out of) of a class, read for many classes at once, from
+  Enrolment.
 - **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer, from
   Enrolment.
 - **Reader's enrolment** (not stored, `myEnrolment`): the latest enrolment (id, status, when requested, and the
@@ -423,3 +424,7 @@ which stops that account from being erased while the link exists — a decision 
   the roster now grow as admins approve requests in [Enrolment](enrolment.md).
 - `043-seat-cancellation` — no rule change here: a cancelled enrolment is returned as the reader's latest
   enrolment like any other status; Enrolment reads the class's cancellation deadline to decide a cancel.
+- `044-direct-enrolment-take-out` — each roster student carries the id of their approved enrolment, read by
+  everyone who sees the class (the week list's cap of 4 is unchanged); in the app, the class details' students list
+  takes an optional "Retirar" per student, which only an admin gets on a class that hasn't started (Enrolment's
+  take-out sheet).

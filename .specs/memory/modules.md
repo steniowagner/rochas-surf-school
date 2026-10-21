@@ -55,12 +55,12 @@ The product's only way to reach people outside the app: it keeps every notificat
 then pushes it to each phone they are signed in on, in that phone's language. It knows the people only by their
 ids and the phones they registered; who must be told what, and when, is decided by the module where the event
 happens (Authentication for registrations, Classes for class assignments, edits, cancellations, deletions,
-classes left without an instructor and location changes, Enrolment for seat requests, decisions, expired requests
-and cancelled seats), which
+classes left without an instructor and location changes, Enrolment for seat requests, decisions, expired requests,
+cancelled seats, direct enrolments and take-outs), which
 reaches it through abstract contracts. Today it carries the three registration notifications, the class ones
 (assigned, edited, unassigned, cancelled — to the instructors and to the students whose enrolment it ended —,
 deleted, no instructor), the location change, and the enrolment ones (a new request, an approval, a denial, a
-request that expired, a cancelled seat);
+request that expired, a cancelled seat, a direct enrolment, a take-out);
 nothing shows the stored notifications yet.
 
 - Where it physically lives: `modules/notifications`
@@ -109,9 +109,11 @@ order students asked, and decide each one: approve it while the class has a free
 reason; only the student is told, and nobody when a seat opens. A student gives up an approved seat until the
 class's cancellation deadline — after it, or while there is none, they contact the school — and admins (with how
 many are waiting) and the class's instructors are told. When an account is deleted, Authentication asks it to give
-up the person's upcoming seats and withdraw their pending requests. It is where the seats taken, the approved
-students and the pending requests that Classes shows are counted. Direct enrolment, taking students out and guests
-join with their specs.
+up the person's upcoming seats and withdraw their pending requests. Admins also enrol an approved student straight
+into a class that hasn't started and has a free seat (approving the student's pending request there, if any), and
+take a student out of a class before it starts, with an optional reason; only the student is told. It is where the
+seats taken, the approved students and the pending requests that Classes shows are counted. Guests join with their
+spec.
 
 - Where it physically lives: `modules/enrolment`
 - Business details: [modules/enrolment.md](modules/enrolment.md)

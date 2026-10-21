@@ -18,3 +18,4 @@ export * from "./fake-address-suggestion.provider";
 export * from "./fake-class-roster.reader";
 export * from "./fake-viewer-enrolment.reader";
 export * from "./fake-class-enrolments.closer";
+export * from "./fake-class-audience.reader";

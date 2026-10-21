@@ -7,6 +7,7 @@ import {
   ValidationException,
 } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanManageClasses } from "../../access";
+import { ClassAudienceReader } from "../../school-class/provider/class-audience-reader.provider";
 import { ClockProvider } from "../../school-class/provider/clock.provider";
 import { Location } from "../model";
 import { LocationChangeNotifier, LocationRepository } from "../provider";
@@ -30,6 +31,7 @@ export class EditLocation implements UseCase<EditLocationIn, LocationOut> {
     private readonly locationRepository: LocationRepository,
     private readonly locationChangeNotifier: LocationChangeNotifier,
     private readonly clock: ClockProvider,
+    private readonly classAudienceReader: ClassAudienceReader,
   ) {}
 
   async execute(input: EditLocationIn): Promise<LocationOut> {
@@ -84,7 +86,7 @@ export class EditLocation implements UseCase<EditLocationIn, LocationOut> {
     });
 
     if (input.notify === true) {
-      await this.notifyInstructors(saved.id, saved.name, input.actor.id, now);
+      await this.notifyAudience(saved.id, saved.name, input.actor.id, now);
     }
 
     return this.toOut(saved.id, saved, now);
@@ -115,22 +117,50 @@ export class EditLocation implements UseCase<EditLocationIn, LocationOut> {
     return toLocationOut(location, upcoming);
   }
 
-  /** A failed notification never changes the answer; the adapter logs it. */
-  private async notifyInstructors(
+  /**
+   * The instructors and the students with a seat or a request in the upcoming classes, each person once with
+   * the larger of their counts, never the editor. A failed notification never changes the answer; the adapter
+   * logs it, and a failed read of the students tells the instructors only.
+   */
+  private async notifyAudience(
     locationId: string,
     locationName: string,
     editorId: string,
     now: Date,
   ): Promise<void> {
     try {
-      const counts = await this.locationRepository.findUpcomingInstructorCounts(locationId, now);
-      const recipients = counts.filter((item) => item.instructorId !== editorId);
+      const counts = new Map<string, number>();
+      const add = (userId: string, count: number) =>
+        counts.set(userId, Math.max(counts.get(userId) ?? 0, count));
 
-      if (recipients.length === 0) return;
+      for (const { instructorId, count } of await this.locationRepository.findUpcomingInstructorCounts(
+        locationId,
+        now,
+      )) {
+        add(instructorId, count);
+      }
+
+      for (const { userId, count } of await this.findStudents(locationId, now)) {
+        add(userId, count);
+      }
+
+      counts.delete(editorId);
+
+      if (counts.size === 0) return;
+
+      const recipients = [...counts].map(([userId, count]) => ({ userId, count }));
 
       await this.locationChangeNotifier.locationChanged({ recipients, locationName });
     } catch {
       // swallowed on purpose
+    }
+  }
+
+  private async findStudents(locationId: string, now: Date) {
+    try {
+      return await this.classAudienceReader.findLocationAudience(locationId, now);
+    } catch {
+      return [];
     }
   }
 }

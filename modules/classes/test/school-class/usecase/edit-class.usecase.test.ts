@@ -5,6 +5,7 @@ import {
   buildClass,
   buildLocation,
   FakeClassAssignmentNotifier,
+  FakeClassAudienceReader,
   FakeClassChangeNotifier,
   FakeClockProvider,
   FakeLocationRepository,
@@ -28,6 +29,8 @@ interface Options {
   seatsTaken?: number;
   failNotifiers?: boolean;
   storedAtArchived?: boolean;
+  audience?: string[];
+  failAudience?: boolean;
 }
 
 function setup(options: Options = {}) {
@@ -54,6 +57,9 @@ function setup(options: Options = {}) {
     changes.classEdited = fail;
   }
 
+  const audience = new FakeClassAudienceReader({ [stored.id]: options.audience ?? [] });
+  audience.fail = options.failAudience ?? false;
+
   const useCase = new EditClass(
     classes,
     new FakeLocationRepository([location, other, archived]),
@@ -69,6 +75,7 @@ function setup(options: Options = {}) {
     changes,
     new FakeSeatCounter(options.seatsTaken ?? 0),
     new FakeClockProvider(options.now ?? NOW),
+    audience,
   );
   const input: EditClassIn = {
     actor: ADMIN,
@@ -589,6 +596,69 @@ describe("EditClass", () => {
 
       expect(classes.updateCalls).toHaveLength(1);
       expect((await classes.findById(stored.id))!.capacity).toBe(8);
+    });
+  });
+
+  describe("notifies students", () => {
+    const S1 = "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d";
+    const S2 = "8b9c0d1e-2f3a-4b4c-9d5e-6f7a8b9c0d1e";
+    const startsAt = new Date("2026-10-15T12:00:00.000Z");
+
+    it("tells the students and pending requests together with the kept instructors", async () => {
+      const { useCase, input, stored, changes } = setup({ audience: [S1, S2] });
+
+      await useCase.execute({ ...input, start: "09:00", end: "10:00" });
+
+      expect(changes.editedEvents).toEqual([
+        {
+          instructorIds: [A, B],
+          studentIds: [S1, S2],
+          classId: stored.id,
+          discipline: "surf",
+          startsAt,
+        },
+      ]);
+    });
+
+    it("tells the students when no instructor is kept", async () => {
+      const { useCase, input, changes } = setup({ audience: [S1], stored: { instructorIds: [ADMIN.id] } });
+
+      await useCase.execute({ ...input, instructorIds: [ADMIN.id], capacity: 9 });
+
+      expect(changes.editedEvents).toEqual([expect.objectContaining({ instructorIds: [], studentIds: [S1] })]);
+    });
+
+    it("never tells the editing admin when they hold a seat", async () => {
+      const { useCase, input, changes } = setup({ audience: [ADMIN.id, S1] });
+
+      await useCase.execute({ ...input, capacity: 9 });
+
+      expect(changes.editedEvents[0]!.studentIds).toEqual([S1]);
+    });
+
+    it("tells no student when only the instructors change", async () => {
+      const { useCase, input, changes } = setup({ audience: [S1] });
+
+      await useCase.execute({ ...input, instructorIds: [A, C, ADMIN.id] });
+
+      expect(changes.editedEvents).toEqual([]);
+    });
+
+    it("tells nobody on an unchanged save", async () => {
+      const { useCase, input, changes } = setup({ audience: [S1] });
+
+      await useCase.execute(input);
+
+      expect(changes.editedEvents).toEqual([]);
+    });
+
+    it("tells the instructors only when the students can't be read", async () => {
+      const { useCase, input, changes } = setup({ audience: [S1], failAudience: true });
+
+      await useCase.execute({ ...input, capacity: 9 });
+
+      expect(changes.editedEvents).toEqual([expect.objectContaining({ instructorIds: [A, B] })]);
+      expect(changes.editedEvents[0]).not.toHaveProperty("studentIds");
     });
   });
 

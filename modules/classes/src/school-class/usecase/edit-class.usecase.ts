@@ -23,6 +23,7 @@ import {
 } from "../model";
 import {
   ClassAssignmentNotifier,
+  ClassAudienceReader,
   ClassChangeNotifier,
   ClockProvider,
   SchoolClassRepository,
@@ -121,6 +122,7 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     private readonly classChangeNotifier: ClassChangeNotifier,
     private readonly seatCounter: SeatCounter,
     private readonly clockProvider: ClockProvider,
+    private readonly classAudienceReader: ClassAudienceReader,
   ) {}
 
   async execute(input: EditClassIn): Promise<EditClassOut> {
@@ -224,14 +226,19 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     const kept = others(after.filter((id) => before.includes(id)));
 
     if (classChanged) {
-      await this.notify(kept, (instructorIds) =>
-        this.classChangeNotifier.classEdited({
-          instructorIds,
-          classId: edited.id,
-          discipline,
-          startsAt,
-        }),
-      );
+      const studentIds = others(await this.findStudents(edited.id));
+
+      if (kept.length > 0 || studentIds.length > 0) {
+        await this.send(() =>
+          this.classChangeNotifier.classEdited({
+            instructorIds: kept,
+            ...(studentIds.length > 0 ? { studentIds } : {}),
+            classId: edited.id,
+            discipline,
+            startsAt,
+          }),
+        );
+      }
     }
 
     await this.notify(others(added), (instructorIds) =>
@@ -275,6 +282,15 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     }
   }
 
+  /** Who holds a seat or a request; a failed read tells the instructors only. */
+  private async findStudents(classId: string): Promise<string[]> {
+    try {
+      return await this.classAudienceReader.findClassAudience(classId);
+    } catch {
+      return [];
+    }
+  }
+
   /** A failed notification never changes the answer; the adapter logs it. */
   private async notify(
     instructorIds: string[],
@@ -282,8 +298,12 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
   ): Promise<void> {
     if (instructorIds.length === 0) return;
 
+    await this.send(() => send(instructorIds));
+  }
+
+  private async send(send: () => Promise<void>): Promise<void> {
     try {
-      await send(instructorIds);
+      await send();
     } catch {
       // swallowed on purpose
     }

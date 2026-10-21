@@ -11,3 +11,4 @@ export * from "./cancellation-deadline-describer.provider";
 export * from "./class-roster-reader.provider";
 export * from "./viewer-enrolment-reader.provider";
 export * from "./class-enrolments-closer.provider";
+export * from "./class-audience-reader.provider";

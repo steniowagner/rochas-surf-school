@@ -1,6 +1,6 @@
 export interface LocationChanged {
-  /** One entry per instructor: how many of their upcoming classes use the location. */
-  recipients: { instructorId: string; count: number }[];
+  /** One entry per person (instructor or student): how many of their upcoming classes use the location. */
+  recipients: { userId: string; count: number }[];
   /** The location's new name. */
   locationName: string;
 }

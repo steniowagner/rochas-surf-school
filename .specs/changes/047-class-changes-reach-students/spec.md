@@ -129,10 +129,24 @@ students, pending requests and instructors will be told. This closes the "with e
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add `ClassAudienceReader` (D-01) and its fake, make `EditClass` and `EditLocation` notify the audience
+- [x] **T-01** — Add `ClassAudienceReader` (D-01) and its fake, make `EditClass` and `EditLocation` notify the audience
   (D-02), and add `pendingRequests` for admins in `GetClass` (D-03) through the existing `PendingRequestCounter`, with
   tests. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest` passes from `modules/classes`.
+  > ✅ 2026-10-21 — added the `ClassAudienceReader` port and its fake; `EditClass` tells the class audience (new
+  > optional `studentIds` on `ClassEdited`, like `ClassCancelled`) and `EditLocation` merges instructors and students,
+  > one notification per person with the larger count, never the editor; `GetClass` carries `pendingRequests`
+  > (admin: count, others: `null`); files: `modules/classes/src/school-class/provider/class-audience-reader.provider.ts`,
+  > `.../provider/index.ts`, `.../provider/class-change-notifier.provider.ts`,
+  > `modules/classes/src/location/provider/location-change-notifier.provider.ts`,
+  > `modules/classes/src/school-class/usecase/edit-class.usecase.ts`, `.../get-class.usecase.ts`,
+  > `modules/classes/src/location/usecase/edit-location.usecase.ts`,
+  > `modules/classes/test/mock/fake-class-audience.reader.ts`, `modules/classes/test/mock/index.ts`,
+  > `modules/classes/test/school-class/usecase/edit-class.usecase.test.ts`, `.../get-class.usecase.test.ts`,
+  > `modules/classes/test/location/usecase/edit-location.usecase.test.ts`; verified: `npx jest` from
+  > `modules/classes` (33 suites, 496 passed) and `tsc --noEmit`; deviations: `LocationChanged.recipients[].instructorId`
+  > renamed `userId` since it now holds students too (backend adapter follows in T-02); a failed read of the
+  > students tells the instructors only.
 
 ### Backend (`apps/backend`)
 

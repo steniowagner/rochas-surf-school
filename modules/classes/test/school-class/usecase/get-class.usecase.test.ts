@@ -6,6 +6,7 @@ import {
   INSTRUCTOR,
   FakeClassRosterReader,
   FakeClassViewReader,
+  FakePendingRequestCounter,
   FakeViewerEnrolmentReader,
   STUDENT,
 } from "../../mock";
@@ -32,7 +33,7 @@ function setup() {
 
   const rosterReader = new FakeClassRosterReader({ [ID]: { students: SEVEN } });
 
-  return { reader, rosterReader, useCase: new GetClass(reader, rosterReader, new FakeViewerEnrolmentReader()) };
+  return { reader, rosterReader, useCase: new GetClass(reader, rosterReader, new FakeViewerEnrolmentReader(), new FakePendingRequestCounter()) };
 }
 
 const GUESTS = [
@@ -46,7 +47,7 @@ function setupWithGuests(instructorId = INSTRUCTOR.id) {
   ]);
   const rosters = new FakeClassRosterReader({ [ID]: { students: SEVEN.slice(0, 2), guests: GUESTS } });
 
-  return new GetClass(reader, rosters, new FakeViewerEnrolmentReader());
+  return new GetClass(reader, rosters, new FakeViewerEnrolmentReader(), new FakePendingRequestCounter());
 }
 
 describe("GetClass", () => {
@@ -89,7 +90,7 @@ describe("GetClass", () => {
       }),
     ]);
 
-    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader()).execute({ actor: STUDENT, id: ID });
+    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader(), new FakePendingRequestCounter()).execute({ actor: STUDENT, id: ID });
 
     expect(out.location).toEqual({ id: "l-1", name: "Antigo", address: "Rua A", latitude: null, longitude: null });
   });
@@ -122,7 +123,7 @@ describe("GetClass", () => {
   it("answers no seats taken for a class the roster reader does not know", async () => {
     const reader = new FakeClassViewReader([buildClassView({ id: ID })]);
 
-    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader()).execute({ actor: STUDENT, id: ID });
+    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader(), new FakePendingRequestCounter()).execute({ actor: STUDENT, id: ID });
 
     expect(out).toMatchObject({ seatsTaken: 0, students: [] });
   });
@@ -133,7 +134,7 @@ describe("GetClass", () => {
     const viewerReader = new FakeViewerEnrolmentReader({
       [`${STUDENT.id}:${ID}`]: { id: "e-1", status: "pending", requestedAt },
     });
-    const useCase = new GetClass(reader, new FakeClassRosterReader(), viewerReader);
+    const useCase = new GetClass(reader, new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter());
 
     expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
       id: "e-1",
@@ -153,7 +154,7 @@ describe("GetClass", () => {
     const viewerReader = new FakeViewerEnrolmentReader({
       [`${STUDENT.id}:${ID}`]: { id: "e-2", status: "denied", requestedAt, reason: "Nível avançado" },
     });
-    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader);
+    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter());
 
     expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
       id: "e-2",
@@ -168,7 +169,7 @@ describe("GetClass", () => {
     const viewerReader = new FakeViewerEnrolmentReader({
       [`${STUDENT.id}:${ID}`]: { id: "e-3", status: "cancelled", requestedAt },
     });
-    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader);
+    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter());
 
     expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
       id: "e-3",
@@ -201,5 +202,32 @@ describe("GetClass", () => {
       useCase.execute({ actor: { ...STUDENT, status: "pending" }, id: ID }),
     ).rejects.toThrow(ForbiddenError);
     expect(reader.findByIdCalls).toEqual([]);
+  });
+
+  describe("pending requests", () => {
+    function setupPending() {
+      const reader = new FakeClassViewReader([
+        buildClassView({ id: ID, instructors: [{ id: INSTRUCTOR.id, name: "Ana" }] }),
+      ]);
+
+      return new GetClass(
+        reader,
+        new FakeClassRosterReader(),
+        new FakeViewerEnrolmentReader(),
+        new FakePendingRequestCounter(3),
+      );
+    }
+
+    it("counts them for an admin", async () => {
+      const out = await setupPending().execute({ actor: ADMIN, id: ID });
+
+      expect(out.pendingRequests).toBe(3);
+    });
+
+    it.each([["student", STUDENT], ["instructor", INSTRUCTOR]])("answers null for a %s", async (_, actor) => {
+      const out = await setupPending().execute({ actor, id: ID });
+
+      expect(out.pendingRequests).toBeNull();
+    });
   });
 });

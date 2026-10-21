@@ -2,7 +2,7 @@
 id: "045"
 slug: guests
 title: "Trial guests in classes"
-status: in-progress
+status: in-review
 started: 2026-10-20
 base_commit: a046889b23e7859fb5a1310e4454c51a3219150b
 created: 2026-10-19

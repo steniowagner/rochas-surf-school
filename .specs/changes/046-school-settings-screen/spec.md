@@ -141,9 +141,17 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-02** — Add the `WaitingListSetting` port and the `enrolment.waitingList.closed` check in `RequestSeat`
+- [x] **T-02** — Add the `WaitingListSetting` port and the `enrolment.waitingList.closed` check in `RequestSeat`
   (D-02), with tests and the fake.
   Covers: ER-02 · Done when: `npx jest test/enrolment/usecase/request-seat.usecase.test.ts` passes.
+  > ✅ 2026-10-21 — added the `WaitingListSetting` port and its fake, and the `enrolment.waitingList.closed` (409)
+  > check in `RequestSeat` after `class.started` and before `enrolment.rule.notAccepted`; files:
+  > `modules/enrolment/src/enrolment/provider/waiting-list-setting.provider.ts`, `.../provider/index.ts`,
+  > `.../usecase/request-seat.usecase.ts`, `modules/enrolment/test/mock/fake-waiting-list.setting.ts`,
+  > `.../test/mock/index.ts`, `.../test/enrolment/usecase/request-seat.usecase.test.ts`; verified: `npx jest` in
+  > `modules/enrolment` (291 passed), `tsc --noEmit` clean; deviations: knowing a class is full needs the seats taken,
+  > so `RequestSeat` also takes the existing `SeatCounter` of `@rochas-surf-school/classes` (constructor: `…clock,
+  > waitingListSetting, seatCounter`); the count only runs while the switch is off
 
 ### Backend (`apps/backend`)
 

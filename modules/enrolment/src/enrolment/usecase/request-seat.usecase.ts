@@ -1,4 +1,4 @@
-import { ClassActor, assertCanReadClasses } from "@rochas-surf-school/classes";
+import { ClassActor, SeatCounter, assertCanReadClasses } from "@rochas-surf-school/classes";
 import {
   DomainError,
   ForbiddenError,
@@ -14,6 +14,7 @@ import {
   EnrolmentNotifier,
   EnrolmentRepository,
   StudentNameReader,
+  WaitingListSetting,
 } from "../provider";
 import { EnrolmentOut, toEnrolmentOut } from "./enrolment.out";
 
@@ -37,6 +38,8 @@ export class RequestSeat implements UseCase<RequestSeatIn, EnrolmentOut> {
     private readonly studentNameReader: StudentNameReader,
     private readonly enrolmentNotifier: EnrolmentNotifier,
     private readonly clockProvider: ClockProvider,
+    private readonly waitingListSetting: WaitingListSetting,
+    private readonly seatCounter: SeatCounter,
   ) {}
 
   async execute(input: RequestSeatIn): Promise<EnrolmentOut> {
@@ -60,6 +63,14 @@ export class RequestSeat implements UseCase<RequestSeatIn, EnrolmentOut> {
 
     if (now.getTime() >= found.startsAt.getTime()) {
       throw new DomainError("class.started", 409);
+    }
+
+    if (!(await this.waitingListSetting.isEnabled())) {
+      const seatsTaken = await this.seatCounter.countSeatsTaken(found.id);
+
+      if (seatsTaken >= found.capacity) {
+        throw new DomainError("enrolment.waitingList.closed", 409);
+      }
     }
 
     if (found.hasCancellationRule && input.acceptCancellationRule !== true) {

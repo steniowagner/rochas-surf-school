@@ -71,9 +71,11 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
-  // A student hears that the class they asked for or held a seat in was cancelled, or started without a seat for them,
-  // or that their request was approved or denied, or that the school enrolled them in a class or took them out of one.
+  // A student hears that the class they asked for or held a seat in was edited or cancelled, or started without a seat
+  // for them, or that their request was approved or denied, or that the school enrolled them in a class or took them
+  // out of one.
   const isStudentClassNews =
+    data?.type === "class.edited" ||
     data?.type === "enrolment.expired" ||
     data?.type === "enrolment.approved" ||
     data?.type === "enrolment.denied" ||
@@ -83,6 +85,13 @@ const handle = async (response: Notifications.NotificationResponse) => {
 
   if (isStudentClassNews && classId !== null && flow === "student") {
     router.push(routes.student.classDetail(classId));
+
+    return;
+  }
+
+  // A changed location concerns several of a student's classes: the Agenda shows what changed.
+  if (data?.type === "location.changed" && flow === "student") {
+    router.push(routes.student.home);
 
     return;
   }

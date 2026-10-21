@@ -221,6 +221,22 @@ describe("useNotificationReceived", () => {
     expect(meCalls()).toHaveLength(0);
   });
 
+  it.each([
+    ["class.edited", [["classes"]]],
+    ["location.changed", [["classes"], ["locations"]]],
+  ])("reloads what a %s push changed for a student, without navigating", async (type, keys) => {
+    answerMe(account("approved", "student"));
+    await openApp(account("approved", "student"));
+    const pathname = app.getPathname();
+
+    await receive(push(type));
+
+    for (const queryKey of keys) {
+      expect(invalidate).toHaveBeenCalledWith({ queryKey });
+    }
+    expect(app.getPathname()).toBe(pathname);
+  });
+
   it.each([undefined, "something.else"])(
     "shows nothing more for the type %s",
     async (type) => {

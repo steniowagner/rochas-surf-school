@@ -204,8 +204,15 @@ students, pending requests and instructors will be told. This closes the "with e
   > src/modules/classes/components/location-sheet src/modules/classes/screens/new-class` (2 suites, 80 passed); deviations:
   > the new-class screen test, which asserts the same copy, was updated too.
 
-- [ ] **T-06** — Route the student's `class.edited` and `location.changed` taps and invalidations, with tests.
+- [x] **T-06** — Route the student's `class.edited` and `location.changed` taps and invalidations, with tests.
   Covers: ER-06 · Done when: `npx jest src/modules/notifications/hooks` passes.
+  > ✅ 2026-10-21 — a student's `class.edited` tap opens `/student/class/[id]` and a `location.changed` tap opens the Agenda
+  > (`routes.student.home`); `useNotificationReceived` already invalidated `["classes"]` / `["locations"]` for any role, so
+  > the tests now pin it for a student; files: `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`,
+  > `.../use-notification-response.hook.test.tsx`, `.../use-notification-received.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications/hooks` (4 suites, 101 passed), `tsc --noEmit` and eslint clean; deviations: the existing
+  > test "class.edited tapped by someone who is now a student" expected the home fallback and now covers a class.edited
+  > push without a class id instead.
 
 ### Verification
 

@@ -135,7 +135,7 @@ describe("LocationSheet (new)", () => {
   it("does not offer the notice, the removal or the edit title", async () => {
     await open();
 
-    expect(screen.queryByText("Tell the instructors of upcoming classes?")).toBeNull();
+    expect(screen.queryByText("Tell the students and instructors of upcoming classes?")).toBeNull();
     expect(screen.queryByText("Edit location")).toBeNull();
     expect(screen.queryByText("Remove location")).toBeNull();
   });
@@ -428,10 +428,10 @@ describe("LocationSheet (edit)", () => {
     const { onClose } = await open({ location: stored, locations: [stored] });
     const user = userEvent.setup();
 
-    expect(screen.getByRole("checkbox", { name: "Tell the instructors of upcoming classes?" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Tell the students and instructors of upcoming classes?" })).toBeChecked();
     expect(screen.getByText("3 upcoming classes use this location.")).toBeTruthy();
 
-    await user.press(screen.getByRole("checkbox", { name: "Tell the instructors of upcoming classes?" }));
+    await user.press(screen.getByRole("checkbox", { name: "Tell the students and instructors of upcoming classes?" }));
     await fireEvent.changeText(addressInput(), "Rua Nova");
     await user.press(submit());
 

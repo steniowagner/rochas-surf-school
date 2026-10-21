@@ -195,8 +195,14 @@ students, pending requests and instructors will be told. This closes the "with e
   > `eslint src/modules/classes src/i18n` clean; deviations: a shared `joinAudience` helper joins the parts, and the sentence
   > lists only the non-zero groups (D-04 gives only the full case).
 
-- [ ] **T-05** — Change the location sheet's checkbox copy (D-05) in the three locales, with the test updated.
+- [x] **T-05** — Change the location sheet's checkbox copy (D-05) in the three locales, with the test updated.
   Covers: ER-05 · Done when: `npx jest src/modules/classes/components/location-sheet` passes.
+  > ✅ 2026-10-21 — the notify checkbox now reads "Avisar alunos e instrutores das próximas aulas?" (and its es-ES and
+  > en-US equivalents); files: `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`,
+  > `apps/mobile/src/modules/classes/components/location-sheet/location-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes/components/location-sheet src/modules/classes/screens/new-class` (2 suites, 80 passed); deviations:
+  > the new-class screen test, which asserts the same copy, was updated too.
 
 - [ ] **T-06** — Route the student's `class.edited` and `location.changed` taps and invalidations, with tests.
   Covers: ER-06 · Done when: `npx jest src/modules/notifications/hooks` passes.

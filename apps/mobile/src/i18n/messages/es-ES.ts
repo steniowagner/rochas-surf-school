@@ -854,7 +854,7 @@ const messages: Messages = {
     point: "Punto en el mapa",
     pointHintEmpty: "Toca el mapa para marcar el punto",
     pointHintSet: "Toca para mover el punto",
-    notify: "¿Avisar a los instructores de las próximas clases?",
+    notify: "¿Avisar a alumnos e instructores de las próximas clases?",
     notifyCount_one: "1 clase futura usa este lugar.",
     notifyCount_other: "{{count}} clases futuras usan este lugar.",
     save: "Guardar",

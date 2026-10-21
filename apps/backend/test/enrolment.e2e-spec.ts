@@ -288,6 +288,28 @@ describe('Enrolment (e2e)', () => {
       expect((await requestSeat(student.accessToken, classId)).status).toBe(201);
     });
 
+    it('keeps a waiting request pending while the waiting list is closed and approves it once a seat frees', async () => {
+      const admin = await account('admin');
+      const waiting = await account('student', 'approved', 'Waiting');
+      const seated = await account('student', 'approved', 'Seated');
+      const classId = await makeClass(admin.id, [admin.id], { capacity: 1 });
+      const seatedId = await seedEnrolment(classId, seated.id, 'approved', {
+        decidedAt: new Date('2026-10-13T13:00:00.000Z'),
+      });
+      const waitingId = (await requestSeat(waiting.accessToken, classId)).body.id;
+      await prisma.schoolSettings.deleteMany();
+      await prisma.schoolSettings.create({
+        data: { id: '00000000-0000-4000-8000-000000000001', waitingListEnabled: false },
+      });
+      await prisma.enrolment.update({ where: { id: seatedId }, data: { status: 'withdrawn' } });
+
+      expect((await enrolmentsOf(classId)).find((enrolment) => enrolment.id === waitingId)?.status).toBe('pending');
+
+      const approved = await as(admin.accessToken, http().post(`/enrolments/${waitingId}/approve`));
+
+      expect([approved.status, approved.body.status]).toEqual([200, 'approved']);
+    });
+
     it.each([[undefined], [{}], [{ acceptCancellationRule: false }]])(
       'accepts a discipline with no rule with the body %j and stores no acceptance',
       async (body) => {

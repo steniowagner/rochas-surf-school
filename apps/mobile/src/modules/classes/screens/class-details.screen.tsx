@@ -409,23 +409,23 @@ export function ClassDetailsScreen({
       ) : null}
       {screen.canTakeOut ? (
         <>
-        <TakeOutSheet
-          trial
-          visible={screen.takeGuestOut.target !== null}
-          firstName={screen.takeGuestOut.target?.name ?? ""}
-          summary={screen.takeOutSummary}
-          loading={screen.takeGuestOut.isPending}
-          onConfirm={screen.takeGuestOut.confirm}
-          onClose={screen.takeGuestOut.close}
-        />
-        <TakeOutSheet
-          visible={screen.takeOut.target !== null}
-          firstName={screen.takeOutFirstName}
-          summary={screen.takeOutSummary}
-          loading={screen.takeOut.isPending}
-          onConfirm={screen.takeOut.confirm}
-          onClose={screen.takeOut.close}
-        />
+          <TakeOutSheet
+            trial
+            visible={screen.takeGuestOut.target !== null}
+            firstName={screen.takeGuestOut.target?.name ?? ""}
+            summary={screen.takeOutSummary}
+            loading={screen.takeGuestOut.isPending}
+            onConfirm={screen.takeGuestOut.confirm}
+            onClose={screen.takeGuestOut.close}
+          />
+          <TakeOutSheet
+            visible={screen.takeOut.target !== null}
+            firstName={screen.takeOutFirstName}
+            summary={screen.takeOutSummary}
+            loading={screen.takeOut.isPending}
+            onConfirm={screen.takeOut.confirm}
+            onClose={screen.takeOut.close}
+          />
         </>
       ) : null}
       <ClassToolsSheet

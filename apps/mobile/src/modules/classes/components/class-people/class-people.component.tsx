@@ -144,7 +144,9 @@ export function ClassPeople({
                   >
                     <StudentAvatar name={name} photoUrl={null} size={STUDENT_AVATAR_SIZE} />
                     <Text className="ds-text-list-title flex-1 text-ink">{name}</Text>
-                    <Chip tone="muted">{t("classDetails.trialChip")}</Chip>
+                    <View className="justify-center">
+                      <Chip tone="muted">{t("classDetails.trialChip")}</Chip>
+                    </View>
                     {onTakeGuestOut ? (
                       <TouchableOpacity
                         accessibilityRole="button"

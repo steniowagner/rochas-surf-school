@@ -2,7 +2,7 @@
 id: "046"
 slug: school-settings-screen
 title: "School settings screen: waiting list switch and WhatsApp number"
-status: in-review
+status: changes-requested
 created: 2026-10-19
 started: 2026-10-21
 base_commit: eb6839262462fba0be3e5d1a06cdb65c66d1ba06
@@ -361,3 +361,73 @@ for a seat in a full class and see that the waiting list is closed; requests alr
   already a dependency); worth recording in `memory/modules/enrolment.md` with the closed refusal.
 - The untracked root `tsconfig.json` (`extends: expo/tsconfig.base`) is not part of this spec; Expo tooling seems to
   generate it.
+
+### Round 2 — 2026-10-21 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for school-settings, enrolment, backend,
+  mobile: 27 of 27 tasks)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend, apps/mobile, modules/enrolment, modules/school-settings)
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (22 files, 608 tests)
+- each Expected Result's `Verify by` run on its own: school-settings module 81 passed; `request-seat` `-t "waiting
+  list"` 5 passed; class-details `-t "waiting list off|full banner"` 9 passed; school-settings screens + admin home 29
+  passed
+- user journeys on the iOS simulator (this branch's bundle through Metro, a backend built from this branch, a
+  temporary full class seeded in the local database and removed afterwards):
+  - admin: "Configurações da escola" read the stored switch (off) → typed a number → "Salvar" → "Configurações salvas",
+    stored `+5585999998888` with the switch still off, "Salvar" off again, the screen stays; the full class's banner
+    read "A lista de espera está desligada — ninguém pode pedir."
+  - student (switch off): the full class showed "Turma cheia · A lista de espera está fechada para esta aula." and no
+    footer button; the class they already wait on kept "Sair da lista de espera"; switch on → "Você pode entrar na
+    lista de espera." with "Entrar na lista de espera"; switch turned off behind the open screen → the request answered
+    with the toast "A lista de espera está fechada para esta aula.", the screen reloaded to the closed state, nothing
+    stored
+  - number: the cancel note's "Falar com a escola" opened WhatsApp for +55 85 99999-8888
+- round 1: F-01 ✅ (ER-01 amended and logged under `## Amendments`; the e2e asserts `schoolSettings.role.notAdmin`);
+  F-02 ✅ (`react`, `react-i18next`, `react-native`)
+
+**Expected Results**
+
+- ER-01 ✅ — module tests and the e2e "waiting list" cases: off/on read by a student, fresh database `true`, 422 for a
+  missing or non-boolean `enabled`, 403 `schoolSettings.role.notAdmin` for students and instructors, each field kept
+  when the other is saved
+- ER-02 ❌ — the behavior holds (409 `enrolment.waitingList.closed`, nothing stored, a free seat and the switch on
+  accepted; the approve flow doesn't read the switch), but the D-03 edge case has no test — see F-04
+- ER-03 ❌ — the screen behaves as specified on the simulator and in its 13 tests, but the loading state has no
+  assertion — see F-03
+- ER-04 ✅ — `class-details.screen.test.tsx -t "waiting list off"` and on the simulator (see above)
+- ER-05 ✅ — `class-details.screen.test.tsx -t "full banner"`; the off text seen on the simulator (round 1 saw the on
+  text)
+
+**Findings**
+
+- [ ] **F-03** (tests) — ER-03 lists "loading" as an edge case, but no test asserts it: `school-settings.screen.test.tsx`
+  has no case for the screen before the settings arrive, and the `ActivityIndicator` in `school-settings.screen.tsx`
+  has no label or `testID` a test could find. The lines are covered only because every test renders through that
+  state; removing the spinner would keep the suite green. Reproduce: delete the `!data && !isError` block of
+  `school-settings.screen.tsx`, run `npx jest src/modules/school-settings/screens` (from `apps/mobile`) → still
+  passes. Expected: a test that renders the screen with the settings request pending and asserts the loading
+  indicator (and that neither the form nor the error shows).
+- [ ] **F-04** (tests) — ER-02's edge case "existing waiting requests stay pending and can be approved when a seat frees
+  (D-03)" is asserted by no committed test: its `Verify by` (`request-seat.usecase.test.ts -t "waiting list"` and the
+  "waiting list closed" e2e case) only covers new requests, and round 1 checked D-03 with a temporary e2e case that
+  was not committed. Nothing would catch a later change that makes approval read the switch. Reproduce: search
+  `apps/backend/test/enrolment.e2e-spec.ts` and `modules/enrolment/test` for a case that approves a pending request
+  while `waitingListEnabled` is false → none. Expected: an e2e case (in the closed-waiting-list block) where, with the
+  switch off, a waiting request stays `pending` and `POST /enrolments/:id/approve` answers 200 `approved` once a seat
+  frees.
+
+**Notes**
+
+- The details screen reads the switch once per mount (`useSchoolSettings`, no refetch on focus): a student who keeps a
+  full class open while the admin turns the switch on keeps seeing the closed state until the screen remounts; turning
+  it off is caught by the 409, which refreshes it (seen on the simulator). Not in any Expected Result; worth a thought
+  in a later spec.
+- `apps/backend/test/school-settings.e2e-spec.ts` deletes every `school_settings` row before and after each test and
+  restores nothing (since spec 015), so running the e2e suite wipes the local database's school number and switch;
+  this spec's enrolment case does save and restore them.
+- Round 1's notes still hold (toast style, the two-request save, last save wins, `SeatCounter` for `spec-finish`, the
+  untracked root `tsconfig.json`). The untracked `.expo/` and the folders of specs 047 and 048 are not part of this
+  spec.

@@ -23,9 +23,6 @@ const NOW = new Date('2026-10-14T13:00:00.000Z');
 // Tomorrow 08:00-09:00 in Fortaleza.
 const STARTS_AT = '2026-10-15T11:00:00.000Z';
 const ENDS_AT = '2026-10-15T12:00:00.000Z';
-// A class of its own days away, so the list can tell two classes apart by start.
-const LATER_STARTS_AT = '2026-10-16T11:00:00.000Z';
-const LATER_ENDS_AT = '2026-10-16T12:00:00.000Z';
 
 type Role = 'student' | 'instructor' | 'admin';
 type Status = 'pending' | 'approved' | 'denied' | 'deleted' | 'removed';

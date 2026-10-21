@@ -203,6 +203,7 @@ const messages: Messages = {
       newClassRow: "Crear clases",
       cancellationRulesRow: "Reglas de cancelación",
       cancellationRulesSubtitle: "Una para surf, otra para skate",
+      schoolSettingsRow: "Ajustes de la escuela",
       waiting: "{{count}} esperando",
     },
   },
@@ -361,6 +362,23 @@ const messages: Messages = {
     removeAccount: "Eliminar la cuenta",
     signOut: "Cerrar sesión",
     comingSoon: "Próximamente.",
+  },
+  schoolSettings: {
+    title: "Ajustes de la escuela",
+    waitingList: {
+      section: "Lista de espera",
+      label: "Lista de espera en las clases llenas",
+      on: "En una clase llena, los alumnos pueden entrar en la lista de espera. Si se libera un cupo, la solicitud pasa a tu aprobación.",
+      off: "Desactivada — en una clase llena, los alumnos ven «Clase llena» y no pueden pedir.",
+    },
+    whatsapp: {
+      section: "WhatsApp de la escuela",
+      helper: "Es el número del botón «Hablar con la escuela».",
+    },
+    save: "Guardar",
+    saved: "Ajustes guardados",
+    loadError: "No se pudieron cargar los ajustes.",
+    retry: "Intentar de nuevo",
   },
   cancellationRules: {
     sheet: {

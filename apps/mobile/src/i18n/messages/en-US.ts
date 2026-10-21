@@ -196,6 +196,7 @@ const messages = {
       newClassRow: "Create classes",
       cancellationRulesRow: "Cancellation rules",
       cancellationRulesSubtitle: "One for surf, one for skate",
+      schoolSettingsRow: "School settings",
       waiting: "{{count}} waiting",
     },
   },
@@ -354,6 +355,23 @@ const messages = {
     removeAccount: "Remove account",
     signOut: "Sign out",
     comingSoon: "Coming soon.",
+  },
+  schoolSettings: {
+    title: "School settings",
+    waitingList: {
+      section: "Waiting list",
+      label: "Waiting list for full classes",
+      on: "In a full class, students can join the waiting list. If a seat opens, the request goes to you for approval.",
+      off: "Off — in a full class, students see \"Class full\" and can't ask for a seat.",
+    },
+    whatsapp: {
+      section: "School WhatsApp",
+      helper: "This is the number behind the \"Contact the school\" button.",
+    },
+    save: "Save",
+    saved: "Settings saved",
+    loadError: "Couldn't load the settings.",
+    retry: "Try again",
   },
   cancellationRules: {
     sheet: {

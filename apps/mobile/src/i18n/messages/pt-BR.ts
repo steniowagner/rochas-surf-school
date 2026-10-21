@@ -196,6 +196,7 @@ const messages: Messages = {
       newClassRow: "Criar aulas",
       cancellationRulesRow: "Regras de cancelamento",
       cancellationRulesSubtitle: "Uma para surf, outra para skate",
+      schoolSettingsRow: "Configurações da escola",
       waiting: "{{count}} esperando",
     },
   },
@@ -354,6 +355,23 @@ const messages: Messages = {
     removeAccount: "Remover a conta",
     signOut: "Sair",
     comingSoon: "Em breve.",
+  },
+  schoolSettings: {
+    title: "Configurações da escola",
+    waitingList: {
+      section: "Lista de espera",
+      label: "Lista de espera nas turmas cheias",
+      on: "Numa aula cheia, os alunos podem entrar na lista de espera. Se abrir vaga, o pedido passa para a sua aprovação.",
+      off: "Desligada — numa aula cheia, os alunos veem «Turma cheia» e não podem pedir.",
+    },
+    whatsapp: {
+      section: "WhatsApp da escola",
+      helper: "É o número do botão «Falar com a escola».",
+    },
+    save: "Salvar",
+    saved: "Configurações salvas",
+    loadError: "Não foi possível carregar as configurações.",
+    retry: "Tentar novamente",
   },
   cancellationRules: {
     sheet: {

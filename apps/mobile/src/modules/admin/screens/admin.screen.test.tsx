@@ -7,6 +7,7 @@ import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rules";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
+import AdminSchoolSettingsRoute from "@/app/(private)/admin/school-settings";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
@@ -72,6 +73,7 @@ async function openAdminHome() {
       "(private)/admin/cancellation-rules": AdminCancellationRulesRoute,
       "(private)/admin/new-class": AdminNewClassRoute,
       "(private)/admin/people": AdminPeopleRoute,
+      "(private)/admin/school-settings": AdminSchoolSettingsRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
       "(private)/admin/class-requests": AdminClassRequestsRoute,
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
@@ -338,5 +340,27 @@ describe("AdminScreen", () => {
       expect(app.getPathname()).toBe(routes.admin.enrolStudent);
       expect(await screen.findByText("Enrol a school student, or someone without an account in a trial class.")).toBeOnTheScreen();
     });
+  });
+
+  it("opens the school settings screen from its row under School", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/school-settings")
+          ? { whatsappNumber: null, waitingListEnabled: false }
+          : { items: [] },
+    }));
+    const app = await openAdminHome();
+
+    await user.press(screen.getByRole("button", { name: /School settings/ }));
+
+    expect(app.getPathname()).toBe(routes.admin.schoolSettings);
+    expect(await screen.findByText("Waiting list for full classes")).toBeOnTheScreen();
+
+    await act(async () => router.back());
+
+    expect(app.getPathname()).toBe(routes.admin.home);
   });
 });

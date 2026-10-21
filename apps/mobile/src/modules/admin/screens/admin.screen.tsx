@@ -17,6 +17,7 @@ const openClassRequests = () => router.push(routes.admin.classRequests);
 const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
 const openPeople = () => router.push(routes.admin.people);
 const openNewClass = () => router.push(routes.admin.newClass());
+const openSchoolSettings = () => router.push(routes.admin.schoolSettings);
 const openCancellationRules = () => router.push(routes.admin.cancellationRules);
 
 export function AdminScreen() {
@@ -128,6 +129,19 @@ export function AdminScreen() {
           {t("admin.home.schoolSection")}
         </Text>
         <PeopleEntryRow onPress={openPeople} />
+        <View className="rounded-card border border-line bg-surface px-4">
+          <Pressable
+            accessibilityRole="button"
+            onPress={openSchoolSettings}
+            className="min-h-11 flex-row items-center gap-3 py-3"
+          >
+            <Ionicons name="settings-outline" size={20} color={theme.lagoon} />
+            <Text className="ds-text-list-title flex-1 text-ink">
+              {t("admin.home.schoolSettingsRow")}
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
+          </Pressable>
+        </View>
       </View>
     </View>
   );

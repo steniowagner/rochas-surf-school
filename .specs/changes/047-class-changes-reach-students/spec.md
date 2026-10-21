@@ -2,7 +2,7 @@
 id: "047"
 slug: class-changes-reach-students
 title: "Students hear about class edits and location changes"
-status: changes-requested
+status: in-review
 started: 2026-10-21
 base_commit: 5ea7d04ede7e87382ab8db1a2a5ff69840b65941
 created: 2026-10-19
@@ -296,7 +296,7 @@ students, pending requests and instructors will be told. This closes the "with e
 
 **Findings**
 
-- [ ] **F-01** (D-04) — with students but no pending request (or the reverse), the edit footer drops the "e"
+- [x] **F-01** (D-04) — with students but no pending request (or the reverse), the edit footer drops the "e"
   before the last group: "Ao salvar, avisamos os instrutores, 1 inscrito." (en-US "When you save, we notify
   the instructors, 1 enrolled student.", es-ES the same). D-04's sentence always ends with "… e M com pedido
   pendente.", and the evidence's deviation (list only the non-zero groups) produces a list without its
@@ -304,7 +304,14 @@ students, pending requests and instructors will be told. This closes the "with e
   students"` from `apps/mobile`; the `[1, 0]` and `[0, 3]` cases assert the broken sentence. Expected: "os
   instrutores" counts as the first item of the list, e.g. "Ao salvar, avisamos os instrutores e 1 inscrito."
   and "… os instrutores e 3 com pedido pendente." (and the same in es-ES and en-US), with the tests updated.
-- [ ] **F-02** (tests) — "opens the Agenda of a student who taps a location.changed push"
+  > ✅ 2026-10-21 — "os instrutores" is now the first item of the list (`editClass.audience.instructors`), so the
+  > footer reads "Ao salvar, avisamos os instrutores e 1 inscrito." and keeps "…, 2 inscritos e 1 com pedido
+  > pendente."; `noteWithAudience` is "{{list}}" only, in the three locales; files:
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/classes
+  > src/modules/notifications` (818 passed), `tsc --noEmit` and eslint clean; deviations: none
+- [x] **F-02** (tests) — "opens the Agenda of a student who taps a location.changed push"
   (`use-notification-response.hook.test.tsx`) still passes with the new `location.changed` student branch of
   `use-notification-response.hook.ts` removed: the fallback `router.replace(routes.home)` resolves to
   `/student` as well, and the test only reads the pathname. Reproduce: delete the
@@ -312,6 +319,10 @@ students, pending requests and instructors will be told. This closes the "with e
   src/modules/notifications/hooks/use-notification-response.hook.test.tsx -t "location.changed"` → 3 passed.
   Expected: a test that fails without the branch (e.g. it opens `/student` from another screen and `router.back()`
   returns there, which a `replace` doesn't allow), or drop the branch if the fallback is the intended behavior.
+  > ✅ 2026-10-21 — the test now spies on `router.push` and expects `routes.student.home`; mutation check: with the
+  > branch disabled it fails, with it restored it passes; files:
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`; verified:
+  > `npx jest src/modules/notifications` (passed); deviations: none
 
 **Notes**
 

@@ -3,10 +3,12 @@
 
 // At most one row, keyed by SCHOOL_SETTINGS_ID and created by the first save (upsert).
 model SchoolSettings {
-  id             String   @id @db.Uuid
-  whatsappNumber String?  @map("whatsapp_number")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id                 String   @id @db.Uuid
+  whatsappNumber     String?  @map("whatsapp_number")
+  // On by default: while it is off, students can't request a seat in a full class.
+  waitingListEnabled Boolean  @default(true) @map("waiting_list_enabled")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   @@map("school_settings")
 }

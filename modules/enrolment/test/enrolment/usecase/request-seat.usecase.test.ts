@@ -1,3 +1,4 @@
+import type { SeatCounter } from "@rochas-surf-school/classes";
 import { ConflictError, ForbiddenError, NotFoundError } from "@rochas-surf-school/shared";
 import { RequestSeat } from "../../../src";
 import {
@@ -10,6 +11,7 @@ import {
   FakeEnrolmentNotifier,
   FakeEnrolmentRepository,
   FakeStudentNameReader,
+  FakeWaitingListSetting,
   INSTRUCTOR,
   NOW,
   STUDENT,
@@ -22,6 +24,8 @@ interface Options {
   noClass?: boolean;
   enrolments?: ReturnType<typeof buildEnrolment>[];
   studentName?: string | null;
+  waitingListEnabled?: boolean;
+  seatsTaken?: number;
 }
 
 function setup(options: Options = {}) {
@@ -39,6 +43,8 @@ function setup(options: Options = {}) {
     names,
     notifier,
     new FakeClockProvider(options.now ?? NOW),
+    new FakeWaitingListSetting(options.waitingListEnabled),
+    { countSeatsTaken: async () => options.seatsTaken ?? 0 } satisfies SeatCounter,
   );
 
   return { useCase, enrolments, notifier, input: { actor: STUDENT, classId: CLASS_ID, acceptCancellationRule: true } };
@@ -65,7 +71,7 @@ describe("RequestSeat", () => {
   });
 
   it("accepts a full class the same way", async () => {
-    const { useCase, input } = setup({ found: { capacity: 1 } });
+    const { useCase, input } = setup({ found: { capacity: 1 }, seatsTaken: 1 });
 
     expect((await useCase.execute(input)).status).toBe("pending");
   });
@@ -80,6 +86,52 @@ describe("RequestSeat", () => {
       expect(enrolments.all[0].ruleAcceptedAt).toBeNull();
     },
   );
+
+  describe("waiting list", () => {
+    it("refuses a full class while the waiting list is off, storing nothing", async () => {
+      const { useCase, input, enrolments, notifier } = setup({
+        found: { capacity: 2 },
+        seatsTaken: 2,
+        waitingListEnabled: false,
+      });
+
+      expect(await errorOf(useCase.execute(input))).toMatchObject({
+        message: "enrolment.waitingList.closed",
+        statusCode: 409,
+      });
+      expect(enrolments.all).toEqual([]);
+      expect(notifier.requestedEvents).toEqual([]);
+    });
+
+    it("refuses a class over its capacity the same way", async () => {
+      const { useCase, input } = setup({ found: { capacity: 2 }, seatsTaken: 3, waitingListEnabled: false });
+
+      expect(await errorOf(useCase.execute(input))).toMatchObject({ message: "enrolment.waitingList.closed" });
+    });
+
+    it("accepts a class with a free seat while the waiting list is off", async () => {
+      const { useCase, input } = setup({ found: { capacity: 2 }, seatsTaken: 1, waitingListEnabled: false });
+
+      expect((await useCase.execute(input)).status).toBe("pending");
+    });
+
+    it("accepts a full class while the waiting list is on", async () => {
+      const { useCase, input } = setup({ found: { capacity: 2 }, seatsTaken: 2, waitingListEnabled: true });
+
+      expect((await useCase.execute(input)).status).toBe("pending");
+    });
+
+    it("checks it after the class started and before the cancellation rule", async () => {
+      const full = { found: { capacity: 1 }, seatsTaken: 1, waitingListEnabled: false };
+      const started = setup({ ...full, now: TOMORROW });
+      const notAccepted = setup(full);
+
+      expect(await errorOf(started.useCase.execute(started.input))).toMatchObject({ message: "class.started" });
+      expect(
+        await errorOf(notAccepted.useCase.execute({ ...notAccepted.input, acceptCancellationRule: false })),
+      ).toMatchObject({ message: "enrolment.waitingList.closed" });
+    });
+  });
 
   it("refuses an account that isn't approved", async () => {
     const { useCase, input, enrolments } = setup();

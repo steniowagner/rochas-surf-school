@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { SCHOOL_SETTINGS_QUERY_KEY } from "@/hooks/use-school-settings.hook";
 import { CANCELLATION_RULES_QUERY_KEY } from "@/modules/cancellation-rules/hooks/use-cancellation-rules.hook";
 import type { ClassItem } from "@/modules/classes/classes.types";
 import { isClassNotFoundError } from "@/modules/classes/utils/class-error";
@@ -15,6 +16,7 @@ import {
   getRequestSeatErrorKey,
   getWithdrawRequestErrorKey,
   isRuleNotAcceptedError,
+  isWaitingListClosedError,
   shouldReloadClass,
 } from "../utils/enrolment-error";
 import { getEnrolmentDisplay } from "../utils/enrolment-status";
@@ -30,12 +32,21 @@ type UseClassEnrolmentProps = {
   canEnrol: boolean;
   /** The phone's clock: the cancellation closes at the class's deadline. */
   now: Date;
+  /** The school's waiting-list switch; unknown (not loaded, failed) counts as on, the backend decides. */
+  waitingListEnabled?: boolean;
   /** Reads the class again when what is on screen turned out to be stale. */
   reload: () => void;
 };
 
 /** The student's side of a class's details: the button, the banner and the two flows behind them. */
-export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseClassEnrolmentProps) => {
+export const useClassEnrolment = ({
+  item,
+  state,
+  canEnrol,
+  now,
+  waitingListEnabled = true,
+  reload,
+}: UseClassEnrolmentProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const alertMessage = useAlertMessage();
@@ -62,7 +73,14 @@ export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseCla
         ? ("missing" as const)
         : ("passed" as const)
       : null;
-  const cta = open ? getEnrolmentCta(item.myEnrolment, full, canCancel) : null;
+  const cta = open ? getEnrolmentCta(item.myEnrolment, full, canCancel, waitingListEnabled) : null;
+  // A full class the student can't ask for: the waiting list is closed and nothing of theirs is open.
+  const waitingListClosed =
+    open &&
+    full &&
+    !waitingListEnabled &&
+    item.myEnrolment?.status !== "pending" &&
+    item.myEnrolment?.status !== "approved";
   // A denial stays on the banner after the class started or was cancelled, so the student can still read the reason.
   const denied = canEnrol && item?.myEnrolment?.status === "denied";
   // So does a take-out: the student can read the reason after the class started or was cancelled.
@@ -93,6 +111,10 @@ export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseCla
       if (shouldReloadClass(error) || isClassNotFoundError(error)) {
         setRequestVisible(false);
         reload();
+      }
+
+      if (isWaitingListClosedError(error)) {
+        void queryClient.invalidateQueries({ queryKey: SCHOOL_SETTINGS_QUERY_KEY });
       }
 
       if (isRuleNotAcceptedError(error)) {
@@ -182,6 +204,7 @@ export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseCla
     takenOutReason: display?.key === "takenOut" ? (item?.myEnrolment?.reason ?? null) : null,
     // Students who may still ask for a seat get the invitation on the full-class banner.
     invitesWaitingList: cta?.key === "joinWaitingList",
+    waitingListClosed,
     pressCta,
     // Leaving the waiting list sends from the button itself; the other withdrawal sends from its sheet.
     ctaLoading: withdrawRequest.isPending && !withdrawVisible,

@@ -94,6 +94,14 @@ describe('School settings (e2e)', () => {
     return body === undefined ? req : req.send(body);
   };
 
+  const setWaitingList = (
+    token: string | undefined,
+    body?: object | string,
+  ) => {
+    const req = as(token, http().put('/school-settings/waiting-list'));
+    return body === undefined ? req : req.send(body);
+  };
+
   async function storedNumbers(): Promise<(string | null)[]> {
     const rows = await prisma.schoolSettings.findMany();
     return rows.map((row) => row.whatsappNumber);
@@ -112,7 +120,10 @@ describe('School settings (e2e)', () => {
       const response = await read(accessToken);
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ whatsappNumber: null });
+      expect(response.body).toEqual({
+        whatsappNumber: null,
+        waitingListEnabled: true,
+      });
     });
 
     it('reads the number for every status', async () => {
@@ -133,7 +144,10 @@ describe('School settings (e2e)', () => {
             role,
             status,
             code: 200,
-            body: { whatsappNumber: '+5585999998888' },
+            body: {
+              whatsappNumber: '+5585999998888',
+              waitingListEnabled: true,
+            },
           });
         }
       }
@@ -150,11 +164,15 @@ describe('School settings (e2e)', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ whatsappNumber: '+5585999998888' });
+      expect(response.body).toEqual({
+        whatsappNumber: '+5585999998888',
+        waitingListEnabled: true,
+      });
       expect(await storedNumbers()).toEqual(['+5585999998888']);
       const { accessToken: studentToken } = await account('student', 'denied');
       expect((await read(studentToken)).body).toEqual({
         whatsappNumber: '+5585999998888',
+        waitingListEnabled: true,
       });
     });
 
@@ -167,10 +185,14 @@ describe('School settings (e2e)', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ whatsappNumber: '+351912345678' });
+      expect(response.body).toEqual({
+        whatsappNumber: '+351912345678',
+        waitingListEnabled: true,
+      });
       expect(await storedNumbers()).toEqual(['+351912345678']);
       expect((await read(accessToken)).body).toEqual({
         whatsappNumber: '+351912345678',
+        waitingListEnabled: true,
       });
     });
 
@@ -183,7 +205,10 @@ describe('School settings (e2e)', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ whatsappNumber: '+5585999998888' });
+      expect(response.body).toEqual({
+        whatsappNumber: '+5585999998888',
+        waitingListEnabled: true,
+      });
       expect(await storedNumbers()).toEqual(['+5585999998888']);
     });
 
@@ -298,6 +323,97 @@ describe('School settings (e2e)', () => {
           expect(await storedNumbers()).toEqual(['+351912345678']);
         },
       );
+    });
+  });
+
+  describe('PUT /school-settings/waiting-list', () => {
+    it('turns the waiting list off and on, readable by any signed-in account', async () => {
+      const { accessToken } = await account('admin');
+      const { accessToken: studentToken } = await account('student');
+
+      const off = await setWaitingList(accessToken, { enabled: false });
+
+      expect(off.status).toBe(200);
+      expect(off.body).toEqual({
+        whatsappNumber: null,
+        waitingListEnabled: false,
+      });
+      expect((await read(studentToken)).body).toEqual(off.body);
+
+      const on = await setWaitingList(accessToken, { enabled: true });
+
+      expect(on.status).toBe(200);
+      expect(on.body.waitingListEnabled).toBe(true);
+      expect((await read(studentToken)).body.waitingListEnabled).toBe(true);
+    });
+
+    it('keeps the number when the switch is saved and the switch when the number is saved', async () => {
+      await storeNumber('+5585999998888');
+      const { accessToken } = await account('admin');
+
+      await setWaitingList(accessToken, { enabled: false });
+      expect((await read(accessToken)).body).toEqual({
+        whatsappNumber: '+5585999998888',
+        waitingListEnabled: false,
+      });
+
+      await setWhatsapp(accessToken, { whatsappNumber: '+351912345678' });
+      expect((await read(accessToken)).body).toEqual({
+        whatsappNumber: '+351912345678',
+        waitingListEnabled: false,
+      });
+    });
+
+    it.each<[string, object | undefined]>([
+      ['a missing body', undefined],
+      ['a missing switch', {}],
+      ['a null switch', { enabled: null }],
+      ['a string switch', { enabled: 'false' }],
+      ['a number switch', { enabled: 0 }],
+    ])(
+      'refuses %s with 422 and keeps the stored switch',
+      async (_label, body) => {
+        const { accessToken } = await account('admin');
+        await setWaitingList(accessToken, { enabled: false });
+
+        const response = await setWaitingList(accessToken, body);
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toContain(
+          'schoolSettings.waitingList.invalid',
+        );
+        expect((await read(accessToken)).body.waitingListEnabled).toBe(false);
+      },
+    );
+
+    it.each(NOT_APPROVED)('refuses a %s admin with 403', async (status) => {
+      const { accessToken } = await account('admin', status);
+
+      const response = await setWaitingList(accessToken, { enabled: false });
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toEqual(['user.status.notApproved']);
+      expect(await prisma.schoolSettings.count()).toBe(0);
+    });
+
+    it.each<Role>(['student', 'instructor'])(
+      'refuses an approved %s with 403',
+      async (role) => {
+        const { accessToken } = await account(role);
+
+        const response = await setWaitingList(accessToken, { enabled: false });
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['schoolSettings.role.notAdmin']);
+        expect(await prisma.schoolSettings.count()).toBe(0);
+      },
+    );
+
+    it('refuses a request without a token', async () => {
+      const response = await setWaitingList(undefined, { enabled: false });
+
+      expect(response.status).toBe(401);
+      expect(response.body.errors).toEqual(['auth.token.invalid']);
     });
   });
 

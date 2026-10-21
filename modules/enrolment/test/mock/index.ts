@@ -7,3 +7,4 @@ export * from "./fake-clock.provider";
 export * from "./fake-student-lookup";
 export * from "./fake-guest.repository";
 export * from "./date";
+export * from "./fake-waiting-list.setting";

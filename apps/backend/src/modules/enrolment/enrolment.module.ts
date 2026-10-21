@@ -16,6 +16,7 @@ import { PrismaStudentLookup } from './student-lookup.prisma.js';
 import { PrismaStudentNameReader } from './student-name-reader.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js';
+import { PrismaWaitingListSetting } from './waiting-list-setting.prisma.js';
 
 @Module({
   imports: [NotificationsModule],
@@ -34,6 +35,7 @@ import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js
     PrismaStudentLookup,
     PrismaStudentNameReader,
     PrismaViewerEnrolmentReader,
+    PrismaWaitingListSetting,
     SystemClockProvider,
   ],
   exports: [

@@ -13,7 +13,9 @@ import type { PrismaEnrolmentClassReader } from './enrolment-class-reader.prisma
 import type { PrismaEnrolmentRepository } from './enrolment.prisma.js';
 import type { PrismaStudentLookup } from './student-lookup.prisma.js';
 import type { PrismaStudentNameReader } from './student-name-reader.prisma.js';
+import type { PrismaSeatCounter } from './seat-counter.prisma.js';
 import type { SystemClockProvider } from './system.clock.js';
+import type { PrismaWaitingListSetting } from './waiting-list-setting.prisma.js';
 
 const STUDENT_ID = '5d1f0a7b-2c3e-4b6a-8f19-4a7c9e0d1b25';
 const INSTRUCTOR_ID = '7a2e9c41-5b8d-4f03-a6e1-3c9d0b7f5e12';
@@ -30,7 +32,7 @@ function handlerOf(name: keyof EnrolmentController): object {
   return Object.getOwnPropertyDescriptor(EnrolmentController.prototype, name)!.value as object;
 }
 
-function setup() {
+function setup(options: { waitingListEnabled?: boolean; seatsTaken?: number } = {}) {
   const stored: Enrolment[] = [];
   const enrolmentRepository = {
     create: vi.fn(async (enrolment: Enrolment) => {
@@ -82,6 +84,8 @@ function setup() {
     studentLookup as unknown as PrismaStudentLookup,
     notifier as unknown as NotificationsEnrolmentNotifier,
     { now: () => NOW } as SystemClockProvider,
+    { isEnabled: async () => options.waitingListEnabled ?? true } as unknown as PrismaWaitingListSetting,
+    { countSeatsTaken: async () => options.seatsTaken ?? 0 } as unknown as PrismaSeatCounter,
   );
 
   return { controller, enrolmentRepository, notifier, stored, studentLookup };
@@ -130,6 +134,15 @@ describe('EnrolmentController', () => {
         startsAt: STARTS_AT,
         instructorIds: [INSTRUCTOR_ID],
       });
+    });
+
+    it('answers 409 enrolment.waitingList.closed for a full class while the waiting list is off', async () => {
+      const { controller, stored } = setup({ waitingListEnabled: false, seatsTaken: 8 });
+
+      await expect(
+        controller.request(userOf('student'), CLASS_ID, { acceptCancellationRule: true }),
+      ).rejects.toMatchObject({ statusCode: 409, message: 'enrolment.waitingList.closed' });
+      expect(stored).toEqual([]);
     });
 
     it.each([[undefined], [{}], [{ acceptCancellationRule: false }]])(

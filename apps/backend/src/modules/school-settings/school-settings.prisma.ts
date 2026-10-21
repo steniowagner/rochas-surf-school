@@ -19,6 +19,7 @@ export class PrismaSchoolSettingsRepository implements SchoolSettingsRepository 
     return new SchoolSettings({
       id: record.id,
       whatsappNumber: record.whatsappNumber ?? undefined,
+      waitingListEnabled: record.waitingListEnabled,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     });
@@ -26,10 +27,11 @@ export class PrismaSchoolSettingsRepository implements SchoolSettingsRepository 
 
   async save(settings: SchoolSettings): Promise<void> {
     const whatsappNumber = settings.whatsappNumber ?? null;
+    const waitingListEnabled = settings.waitingListEnabled;
     await this.prisma.schoolSettings.upsert({
       where: { id: SCHOOL_SETTINGS_ID },
-      create: { id: SCHOOL_SETTINGS_ID, whatsappNumber },
-      update: { whatsappNumber },
+      create: { id: SCHOOL_SETTINGS_ID, whatsappNumber, waitingListEnabled },
+      update: { whatsappNumber, waitingListEnabled },
     });
   }
 }

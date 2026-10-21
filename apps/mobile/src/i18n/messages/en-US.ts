@@ -196,6 +196,7 @@ const messages = {
       newClassRow: "Create classes",
       cancellationRulesRow: "Cancellation rules",
       cancellationRulesSubtitle: "One for surf, one for skate",
+      schoolSettingsRow: "School settings",
       waiting: "{{count}} waiting",
     },
   },
@@ -355,6 +356,23 @@ const messages = {
     signOut: "Sign out",
     comingSoon: "Coming soon.",
   },
+  schoolSettings: {
+    title: "School settings",
+    waitingList: {
+      section: "Waiting list",
+      label: "Waiting list for full classes",
+      on: "In a full class, students can join the waiting list. If a seat opens, the request goes to you for approval.",
+      off: "Off — in a full class, students see \"Class full\" and can't ask for a seat.",
+    },
+    whatsapp: {
+      section: "School WhatsApp",
+      helper: "This is the number behind the \"Contact the school\" button.",
+    },
+    save: "Save",
+    saved: "Settings saved",
+    loadError: "Couldn't load the settings.",
+    retry: "Try again",
+  },
   cancellationRules: {
     sheet: {
       title: "Cancellation rules",
@@ -456,6 +474,9 @@ const messages = {
     full: {
       title: "Class full",
       waitingList: "You can join the waiting list.",
+      waitingListClosed: "The waiting list is closed for this class.",
+      newRequestsWait: "New requests join the waiting list.",
+      waitingListOff: "The waiting list is off — nobody can ask.",
     },
     rules: {
       title: "Rules",
@@ -585,6 +606,7 @@ const messages = {
       started: "The class has already started.",
       cancelled: "This class was cancelled.",
       alreadyOpen: "You already have an open request for this class.",
+      waitingListClosed: "The waiting list is closed for this class.",
       ruleNotAccepted: "The cancellation rule changed. Read it again and accept it.",
       notPending: "This request is no longer pending.",
       notFound: "This request no longer exists.",

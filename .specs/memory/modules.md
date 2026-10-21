@@ -40,9 +40,10 @@ Authentication, which says on every answer whether the account still has to acce
 
 ## School settings
 
-Keeps the school-wide settings admins control. Today that is the school's WhatsApp number, which every
-contact-the-school button will use: admins set it, and any signed-in account reads it, whatever its status, so a
-denied or removed account can still contact the school. The waiting-list switch joins it with enrolment.
+Keeps the school-wide settings admins control: the school's WhatsApp number, which every contact-the-school
+button uses, and the waiting-list switch (on by default), which decides whether a full class still takes requests.
+Admins set both on "Configurações da escola", and any signed-in account reads them, whatever its status, so a
+denied or removed account can still contact the school.
 
 - Where it physically lives: `modules/school-settings`
 - Business details: [modules/school-settings.md](modules/school-settings.md)
@@ -115,6 +116,7 @@ take a student out of a class before it starts, with an optional reason; only th
 seats taken, the approved students, the guests and the pending requests that Classes shows are counted. Admins also
 put trial guests — people without an account, with a name and a WhatsApp number — into a class that hasn't started
 and has a free seat, and take them out; guests are told nothing, and their data is erased 30 days after the class.
+While the school's waiting list is off, a full class takes no new request; requests already waiting stay.
 
 - Where it physically lives: `modules/enrolment`
 - Business details: [modules/enrolment.md](modules/enrolment.md)

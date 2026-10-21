@@ -53,7 +53,7 @@ Content-Type: application/json
 ###
 @studentToken = {{studentSession.response.body.accessToken}}
 
-### Read the settings (expects 200 with { whatsappNumber }, null until an admin sets it; any signed-in account, any status)
+### Read the settings (expects 200 with { whatsappNumber, waitingListEnabled }, number null until an admin sets it; any signed-in account, any status)
 GET {{baseUrl}}/school-settings
 Authorization: Bearer {{studentToken}}
 
@@ -103,4 +103,40 @@ Content-Type: application/json
 
 {
   "whatsappNumber": "+5585999998888"
+}
+
+### Turn the waiting list off (expects 200 with { waitingListEnabled: false } and the number unchanged)
+PUT {{baseUrl}}/school-settings/waiting-list
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "enabled": false
+}
+
+### Turn the waiting list back on (expects 200 with { waitingListEnabled: true })
+PUT {{baseUrl}}/school-settings/waiting-list
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "enabled": true
+}
+
+### Send a non-boolean switch (expects 422 schoolSettings.waitingList.invalid)
+PUT {{baseUrl}}/school-settings/waiting-list
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "enabled": "false"
+}
+
+### Turn the waiting list off as a student (expects 403 schoolSettings.role.notAdmin)
+PUT {{baseUrl}}/school-settings/waiting-list
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "enabled": false
 }

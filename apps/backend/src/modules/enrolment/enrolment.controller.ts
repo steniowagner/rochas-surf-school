@@ -17,9 +17,11 @@ import type { AuthenticatedUser } from '../../shared/types/current-user.type.js'
 import { NotificationsEnrolmentNotifier } from '../notifications/notifications.enrolment-notifier.js';
 import { PrismaEnrolmentClassReader } from './enrolment-class-reader.prisma.js';
 import { PrismaEnrolmentRepository } from './enrolment.prisma.js';
+import { PrismaSeatCounter } from './seat-counter.prisma.js';
 import { PrismaStudentLookup } from './student-lookup.prisma.js';
 import { PrismaStudentNameReader } from './student-name-reader.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
+import { PrismaWaitingListSetting } from './waiting-list-setting.prisma.js';
 
 type RequestSeatBody = { acceptCancellationRule?: unknown } | undefined;
 type DenyRequestBody = { reason?: unknown } | undefined;
@@ -44,6 +46,8 @@ export class EnrolmentController {
     private readonly studentLookup: PrismaStudentLookup,
     private readonly enrolmentNotifier: NotificationsEnrolmentNotifier,
     private readonly clock: SystemClockProvider,
+    private readonly waitingListSetting: PrismaWaitingListSetting,
+    private readonly seatCounter: PrismaSeatCounter,
   ) {}
 
   // Declared before the `:id` routes so the static path is never read as an id.
@@ -67,6 +71,8 @@ export class EnrolmentController {
       this.studentNameReader,
       this.enrolmentNotifier,
       this.clock,
+      this.waitingListSetting,
+      this.seatCounter,
     ).execute({
       actor: actorOf(user),
       classId: id,

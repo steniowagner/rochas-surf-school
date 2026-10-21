@@ -196,6 +196,7 @@ const messages: Messages = {
       newClassRow: "Criar aulas",
       cancellationRulesRow: "Regras de cancelamento",
       cancellationRulesSubtitle: "Uma para surf, outra para skate",
+      schoolSettingsRow: "Configurações da escola",
       waiting: "{{count}} esperando",
     },
   },
@@ -355,6 +356,23 @@ const messages: Messages = {
     signOut: "Sair",
     comingSoon: "Em breve.",
   },
+  schoolSettings: {
+    title: "Configurações da escola",
+    waitingList: {
+      section: "Lista de espera",
+      label: "Lista de espera nas turmas cheias",
+      on: "Numa aula cheia, os alunos podem entrar na lista de espera. Se abrir vaga, o pedido passa para a sua aprovação.",
+      off: "Desligada — numa aula cheia, os alunos veem «Turma cheia» e não podem pedir.",
+    },
+    whatsapp: {
+      section: "WhatsApp da escola",
+      helper: "É o número do botão «Falar com a escola».",
+    },
+    save: "Salvar",
+    saved: "Configurações salvas",
+    loadError: "Não foi possível carregar as configurações.",
+    retry: "Tentar novamente",
+  },
   cancellationRules: {
     sheet: {
       title: "Regras de cancelamento",
@@ -456,6 +474,9 @@ const messages: Messages = {
     full: {
       title: "Turma cheia",
       waitingList: "Você pode entrar na lista de espera.",
+      waitingListClosed: "A lista de espera está fechada para esta aula.",
+      newRequestsWait: "Novos pedidos entram na lista de espera.",
+      waitingListOff: "A lista de espera está desligada — ninguém pode pedir.",
     },
     rules: {
       title: "Regras",
@@ -585,6 +606,7 @@ const messages: Messages = {
       started: "A aula já começou.",
       cancelled: "Esta aula foi cancelada.",
       alreadyOpen: "Você já tem um pedido aberto para esta aula.",
+      waitingListClosed: "A lista de espera está fechada para esta aula.",
       ruleNotAccepted: "A regra de cancelamento mudou. Leia de novo e aceite.",
       notPending: "Este pedido não está mais pendente.",
       notFound: "Este pedido não existe mais.",

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
+import { useSchoolSettings } from "@/hooks/use-school-settings.hook";
 import { useAlertMessage } from "@/providers/alert-message";
 import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
@@ -48,6 +49,9 @@ export const useClassDetailsScreen = ({
   const now = useNow();
   const alertMessage = useAlertMessage();
   const query = useClass(id);
+  const { data: schoolSettings } = useSchoolSettings();
+  // Not loaded or failed counts as on: the backend decides.
+  const waitingListEnabled = schoolSettings?.waitingListEnabled !== false;
   const cancelClass = useCancelClass(id);
   const deleteClass = useDeleteClass(id);
   const item = query.data;
@@ -83,6 +87,7 @@ export const useClassDetailsScreen = ({
     state,
     canEnrol,
     now,
+    waitingListEnabled,
     reload: () => void query.refetch(),
   });
 
@@ -199,6 +204,7 @@ export const useClassDetailsScreen = ({
       isClassFull(item.seatsTaken, item.capacity) &&
       enrolment.display === null,
     enrolment,
+    waitingListEnabled,
     timeRange: `${start} – ${end}`,
     start,
     end,

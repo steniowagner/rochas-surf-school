@@ -66,6 +66,7 @@ describe('Enrolment (e2e)', () => {
   let now: Date;
   let locationId: string;
   let classIds: string[];
+  let storedSettings: { id: string; whatsappNumber: string | null; waitingListEnabled: boolean }[];
   let storedRules: { discipline: 'surf' | 'skate'; text: string; updatedBy: string | null }[];
 
   beforeEach(async () => {
@@ -98,6 +99,7 @@ describe('Enrolment (e2e)', () => {
     ).id;
     // The rules are shared by every suite: keep what is there and put it back.
     storedRules = await prisma.cancellationRule.findMany();
+    storedSettings = await prisma.schoolSettings.findMany();
     await setRule('surf', 'Cancele até 1 hora antes.');
     await setRule('skate', null);
   });
@@ -119,6 +121,10 @@ describe('Enrolment (e2e)', () => {
     await prisma.cancellationRule.deleteMany();
     if (storedRules.length > 0) {
       await prisma.cancellationRule.createMany({ data: storedRules });
+    }
+    await prisma.schoolSettings.deleteMany();
+    if (storedSettings.length > 0) {
+      await prisma.schoolSettings.createMany({ data: storedSettings });
     }
     await app.close();
   });
@@ -257,6 +263,51 @@ describe('Enrolment (e2e)', () => {
 
       expect(response.status).toBe(201);
       expect(response.body.status).toBe('pending');
+    });
+
+    it('refuses a full class while the waiting list is closed and accepts it again once it is on', async () => {
+      const admin = await account('admin');
+      const student = await account();
+      const seated = await account('student', 'approved', 'Seated');
+      const classId = await makeClass(admin.id, [admin.id], { capacity: 1 });
+      await seedEnrolment(classId, seated.id, 'approved', { decidedAt: new Date('2026-10-13T13:00:00.000Z') });
+      await prisma.schoolSettings.deleteMany();
+      await prisma.schoolSettings.create({
+        data: { id: '00000000-0000-4000-8000-000000000001', waitingListEnabled: false },
+      });
+
+      const closed = await requestSeat(student.accessToken, classId);
+
+      expect([closed.status, closed.body.errors]).toEqual([409, ['enrolment.waitingList.closed']]);
+      expect(await enrolmentsOf(classId)).toHaveLength(1);
+
+      const free = await makeClass(admin.id, [admin.id], { capacity: 2 });
+      expect((await requestSeat(student.accessToken, free)).status).toBe(201);
+
+      await prisma.schoolSettings.updateMany({ data: { waitingListEnabled: true } });
+      expect((await requestSeat(student.accessToken, classId)).status).toBe(201);
+    });
+
+    it('keeps a waiting request pending while the waiting list is closed and approves it once a seat frees', async () => {
+      const admin = await account('admin');
+      const waiting = await account('student', 'approved', 'Waiting');
+      const seated = await account('student', 'approved', 'Seated');
+      const classId = await makeClass(admin.id, [admin.id], { capacity: 1 });
+      const seatedId = await seedEnrolment(classId, seated.id, 'approved', {
+        decidedAt: new Date('2026-10-13T13:00:00.000Z'),
+      });
+      const waitingId = (await requestSeat(waiting.accessToken, classId)).body.id;
+      await prisma.schoolSettings.deleteMany();
+      await prisma.schoolSettings.create({
+        data: { id: '00000000-0000-4000-8000-000000000001', waitingListEnabled: false },
+      });
+      await prisma.enrolment.update({ where: { id: seatedId }, data: { status: 'withdrawn' } });
+
+      expect((await enrolmentsOf(classId)).find((enrolment) => enrolment.id === waitingId)?.status).toBe('pending');
+
+      const approved = await as(admin.accessToken, http().post(`/enrolments/${waitingId}/approve`));
+
+      expect([approved.status, approved.body.status]).toEqual([200, 'approved']);
     });
 
     it.each([[undefined], [{}], [{ acceptCancellationRule: false }]])(

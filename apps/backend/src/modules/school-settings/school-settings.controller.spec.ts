@@ -51,6 +51,7 @@ describe('SchoolSettingsController', () => {
   it.each([
     ['get', '/', RequestMethod.GET],
     ['setWhatsapp', 'whatsapp', RequestMethod.PUT],
+    ['setWaitingList', 'waiting-list', RequestMethod.PUT],
   ] as const)(
     '%s is a protected %s route answering 200',
     (name, path, method) => {
@@ -70,6 +71,7 @@ describe('SchoolSettingsController', () => {
 
     await expect(controller.get(userOf('student', 'denied'))).resolves.toEqual({
       whatsappNumber: null,
+      waitingListEnabled: true,
     });
   });
 
@@ -78,13 +80,17 @@ describe('SchoolSettingsController', () => {
 
     await expect(
       controller.setWhatsapp(ADMIN, { whatsappNumber: '+5585999998888' }),
-    ).resolves.toEqual({ whatsappNumber: '+5585999998888' });
+    ).resolves.toEqual({
+      whatsappNumber: '+5585999998888',
+      waitingListEnabled: true,
+    });
 
     expect(repository.save).toHaveBeenCalledTimes(1);
     await expect(
       controller.get(userOf('instructor', 'removed')),
     ).resolves.toEqual({
       whatsappNumber: '+5585999998888',
+      waitingListEnabled: true,
     });
   });
 
@@ -109,6 +115,56 @@ describe('SchoolSettingsController', () => {
       .setWhatsapp(userOf('student', 'approved'), {
         whatsappNumber: '+5585999998888',
       })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ForbiddenError);
+    expect((error as ForbiddenError).message).toBe(
+      'schoolSettings.role.notAdmin',
+    );
+  });
+
+  it('turns the waiting list off and keeps the number', async () => {
+    const { controller } = setup();
+    await controller.setWhatsapp(ADMIN, { whatsappNumber: '+5585999998888' });
+
+    await expect(
+      controller.setWaitingList(ADMIN, { enabled: false }),
+    ).resolves.toEqual({
+      whatsappNumber: '+5585999998888',
+      waitingListEnabled: false,
+    });
+    await expect(
+      controller.get(userOf('student', 'approved')),
+    ).resolves.toEqual({
+      whatsappNumber: '+5585999998888',
+      waitingListEnabled: false,
+    });
+  });
+
+  it('answers 422 invalid without a body or with a non-boolean', async () => {
+    const { controller, repository } = setup();
+
+    for (const body of [
+      undefined,
+      { enabled: 'false' as unknown as boolean },
+    ]) {
+      const error = (await controller
+        .setWaitingList(ADMIN, body)
+        .catch((e) => e)) as ValidationException;
+
+      expect(error).toBeInstanceOf(ValidationException);
+      expect(error.errors.map((item) => item.message)).toEqual([
+        'schoolSettings.waitingList.invalid',
+      ]);
+    }
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('refuses a student turning the switch', async () => {
+    const { controller } = setup();
+
+    const error = await controller
+      .setWaitingList(userOf('student', 'approved'), { enabled: false })
       .catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(ForbiddenError);

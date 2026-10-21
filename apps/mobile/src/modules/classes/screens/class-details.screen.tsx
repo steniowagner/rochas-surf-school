@@ -216,6 +216,20 @@ export function ClassDetailsScreen({
                       {t("classDetails.full.waitingList")}
                     </Text>
                   ) : null}
+                  {screen.enrolment.waitingListClosed ? (
+                    <Text className="ds-text-list-subtitle text-ink-2">
+                      {t("classDetails.full.waitingListClosed")}
+                    </Text>
+                  ) : null}
+                  {canEdit ? (
+                    <Text className="ds-text-list-subtitle text-ink-2">
+                      {t(
+                        screen.waitingListEnabled
+                          ? "classDetails.full.newRequestsWait"
+                          : "classDetails.full.waitingListOff",
+                      )}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             ) : null}

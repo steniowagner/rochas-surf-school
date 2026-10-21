@@ -80,6 +80,7 @@ export const routes = {
     editProfile: "/admin/edit-profile",
     whatsapp: "/admin/whatsapp",
     schoolRules: "/admin/school-rules",
+    schoolSettings: "/admin/school-settings",
     classDetail: (id: string): Href => ({
       pathname: "/admin/class/[id]",
       params: { id },

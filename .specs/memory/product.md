@@ -203,8 +203,15 @@ Listed in the order people meet them.
     the class's deadline; the seat frees at once and they may request again. Every approved admin and every
     instructor of the class is told once, with the number of pending requests left. Deleting an account cancels
     the person's approved seats in classes that haven't started and aren't cancelled (with no deadline check and
-    the same notice) and withdraws their pending requests, telling nobody. The status `taken out` exists but
-    nothing produces it yet (spec 044).
+    the same notice) and withdraws their pending requests, telling nobody.
+  - As built (spec 044): approved admins enrol an approved student directly into a class that hasn't started, isn't
+    cancelled and has a free seat (two writes for the last seat leave exactly one). A student with a pending request
+    in the class has that request approved and hears "Pedido aprovado"; otherwise a new approved enrolment is
+    created (no cancellation rule is accepted on the student's behalf) and the student hears "Você foi inscrito".
+    Instructors, admins, pending or deleted accounts and a student who already holds a seat can't be enrolled.
+    Admins take a student with an approved seat out of a class that hasn't started, with an optional reason (up to
+    300 characters); the seat frees at once, only the student is told (with the reason as written, or a default
+    line), and they may request again.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
   photo, or initials while there is no photo); guests count in the seats taken but aren't listed. As built (specs
@@ -841,7 +848,24 @@ aula de Surf de 19/10 às 08:00. 2 na lista de espera.", the count only when som
 Deleting an account now cancels the person's upcoming seats, with the same notice, and withdraws their pending
 requests. All copy is in pt-BR, es-ES and en-US.
 
-Active specs: none in progress; specs 044–048 (the rest of enrolment) are planned.
+**Admins enrol students directly and take them out** (spec `044-direct-enrolment-take-out`) — the admin home's
+"Inscrever aluno" row (under the school's tools) opens "Inscrever aluno" / "Inscreva um aluno da escola numa aula.":
+"1 · Quem" searches the approved students ("Procurar aluno"; A–Z, more as the list scrolls; initials, name and a
+radio; "Nenhum aluno encontrado." when none) and "2 · Aula" shows the week or month calendar, marking the days with
+upcoming classes, and the chosen day's classes that haven't started and aren't cancelled as class cards — full ones
+faded and not selectable, "Sem aulas por começar neste dia." when none. "Inscrever <nome>" enrols the student,
+shows "<nome> inscrito · aluno avisado" and goes back; a class that filled, started or was cancelled, a student
+already in it or no longer enrollable shows its toast and reloads the classes. On an admin's details of a class that
+hasn't started, each student in the list has "Retirar", which opens "Retirar <primeiro nome> da aula?" with the
+class line ("Surf Iniciante · Amanhã, 08:00 – 09:00. A vaga fica livre. A pessoa recebe uma notificação, com o
+motivo se você escrever."), "Motivo (opcional)" (up to 300 characters), "Retirar da aula" and "Voltar"; confirming
+shows "<nome> retirado · aluno avisado" and the class reloads. The student gets "Você foi inscrito" ("A escola
+inscreveu você na aula de Surf de 19/10 às 08:00.") or "Você foi retirado de uma aula" (the reason as written, or a
+default line), each opening the class; there a taken-out student reads "Você foi retirado da aula" / "Motivo: “…”"
+(or "Sem motivo indicado.") on the `bad` tint — kept after the class starts or is cancelled —, the Agenda chip
+"Retirado" and "Pedir novamente" while the class hasn't started. All copy is in pt-BR, es-ES and en-US.
+
+Active specs: none in progress; specs 045–048 (the rest of enrolment) are planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -896,8 +920,8 @@ Active specs: none in progress; specs 044–048 (the rest of enrolment) are plan
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
   class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings); the
   student Agenda's sport filter and notifications bell.
-- On seats and students (spec 040): guests' "Trial" rows, "inclui N trial", the "1ª vez" badge and "Retirar" on the
-  details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
+- On seats and students (spec 040): guests' "Trial" rows, "inclui N trial", the "1ª vez" badge and a guest's
+  "Retirar" on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
   about to start; opening a person's sheet (WhatsApp) from an instructor or a student on the details; and profile
   photos (initials until photos can be uploaded).
 - On editing a class (spec 032): telling its students and the people with pending requests, and warning the
@@ -917,7 +941,7 @@ Active specs: none in progress; specs 044–048 (the rest of enrolment) are plan
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On enrolment requests (specs 041–043), each planned in its own spec: direct enrolment and taking a student out (044); guests
+- On enrolment requests (specs 041–044), each planned in its own spec: guests
   (045); the waiting-list switch (046 — until then it is always on); telling students and people with pending
   requests about class edits and location changes (047); the student's "Minhas aulas" tab and history (048).
   Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
@@ -926,7 +950,9 @@ Active specs: none in progress; specs 044–048 (the rest of enrolment) are plan
   when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision. On
   cancelling a seat (spec 043): what a late cancellation costs (handled outside the app, by product decision),
   cancelling several seats at once, undoing a cancellation (the student requests again), and releasing the seats
-  and requests of a removed account or of a student promoted to instructor (their specs reuse the same release).
+  and requests of a removed account or of a student promoted to instructor (their specs reuse the same release). On
+  direct enrolment and taking out (spec 044): taking a student out after the class starts, moving a student between
+  classes, enrolling several students at once, and enrolling from a class's details.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
   admin.

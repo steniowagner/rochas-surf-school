@@ -65,7 +65,9 @@ export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseCla
   const cta = open ? getEnrolmentCta(item.myEnrolment, full, canCancel) : null;
   // A denial stays on the banner after the class started or was cancelled, so the student can still read the reason.
   const denied = canEnrol && item?.myEnrolment?.status === "denied";
-  const display = open || denied ? getEnrolmentDisplay(item?.myEnrolment ?? null, full) : null;
+  // So does a take-out: the student can read the reason after the class started or was cancelled.
+  const takenOut = canEnrol && item?.myEnrolment?.status === "takenOut";
+  const display = open || denied || takenOut ? getEnrolmentDisplay(item?.myEnrolment ?? null, full) : null;
 
   const showError = (messageKey: string | null) => {
     if (messageKey !== null) {
@@ -176,6 +178,8 @@ export const useClassEnrolment = ({ item, state, canEnrol, now, reload }: UseCla
     openDenial: () => setDenialVisible(true),
     closeDenial: () => setDenialVisible(false),
     denialReason: item?.myEnrolment?.reason ?? null,
+    // The banner of a taken-out student quotes the school's reason, when it wrote one.
+    takenOutReason: display?.key === "takenOut" ? (item?.myEnrolment?.reason ?? null) : null,
     // Students who may still ask for a seat get the invitation on the full-class banner.
     invitesWaitingList: cta?.key === "joinWaitingList",
     pressCta,

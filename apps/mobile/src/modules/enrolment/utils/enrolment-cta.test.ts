@@ -23,11 +23,13 @@ describe("getEnrolmentCta", () => {
     ["denied", true, "requestAgain", "dark", "request"],
     ["cancelled", false, "requestAgain", "primary", "request"],
     ["cancelled", true, "requestAgain", "dark", "request"],
+    ["takenOut", false, "requestAgain", "primary", "request"],
+    ["takenOut", true, "requestAgain", "dark", "request"],
   ] as const)("for %s on a class full=%s answers %s (%s)", (status, full, key, variant, action) => {
     expect(getEnrolmentCta(status === null ? null : enrolment(status), full)).toEqual({ key, variant, action });
   });
 
-  it.each(["approved", "takenOut", "classCancelled"] as const)(
+  it.each(["approved", "classCancelled"] as const)(
     "answers no button for %s",
     (status) => {
       expect(getEnrolmentCta(enrolment(status), false)).toBeNull();
@@ -46,6 +48,6 @@ describe("getEnrolmentCta", () => {
 
   it("never offers the cancellation for another status", () => {
     expect(getEnrolmentCta(enrolment("pending"), false, true)?.action).toBe("withdraw");
-    expect(getEnrolmentCta(enrolment("takenOut"), false, true)).toBeNull();
+    expect(getEnrolmentCta(enrolment("takenOut"), false, true)?.action).toBe("request");
   });
 });

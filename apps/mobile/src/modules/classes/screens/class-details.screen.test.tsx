@@ -337,6 +337,7 @@ describe("ClassDetailsScreen", () => {
         id: `s-${index}`,
         name: `Aluno ${index}`,
         photoUrl: null,
+        enrolmentId: `e-${index}`,
       }));
 
     it("groups the instructors, the students and the free seats under The class", async () => {
@@ -385,7 +386,7 @@ describe("ClassDetailsScreen", () => {
       serve(
         makeClass({
           seatsTaken: 1,
-          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null }],
+          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null, enrolmentId: "e-1" }],
           instructors: [{ id: "i-2", name: "Bruno Lima" }],
         }),
       );
@@ -1488,6 +1489,7 @@ describe("ClassDetailsScreen enrol", () => {
     [{ ...mine("expired"), ...FULL }, "Request again"],
     [{ ...mine("pending") }, "Withdraw request"],
     [{ ...mine("cancelled") }, "Request again"],
+    [{ ...mine("takenOut") }, "Request again"],
     [{ ...mine("pending"), ...FULL }, "Leave the waiting list"],
   ])("enrol: shows the button of the state %j: %s", async (overrides, label) => {
     serveEnrol(makeClass(overrides));
@@ -1503,7 +1505,6 @@ describe("ClassDetailsScreen enrol", () => {
     ["a cancelled class", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
     ["a class cancelled with the student's request", { cancelledAt: "2026-10-13T10:00:00.000Z", ...mine("classCancelled") }],
     ["an approved enrolment", mine("approved")],
-    ["a student taken out", mine("takenOut")],
   ])("enrol: shows no button for %s", async (_name, overrides) => {
     serveEnrol(makeClass(overrides));
     await renderScreen(false, true);
@@ -2080,8 +2081,8 @@ describe("ClassDetailsScreen enrolment status", () => {
     expect(screen.queryByText("Request pending")).toBeNull();
   });
 
-  it("status: shows no banner for the statuses of the later specs", async () => {
-    fetchMock.mockResolvedValue(ok(mine("takenOut")));
+  it("status: shows no banner for a class cancelled with the student's request", async () => {
+    fetchMock.mockResolvedValue(ok(mine("classCancelled")));
     await renderScreen(false, true);
 
     await screen.findByText("16:00 – 17:30");
@@ -2151,5 +2152,191 @@ describe("ClassDetailsScreen enrolment status", () => {
 
     expect(await screen.findByRole("button", { name: /Request denied/ })).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Request again" })).toBeNull();
+  });
+
+  describe("take out", () => {
+    const NOT_STARTED = {
+      startsAt: "2026-10-15T11:00:00.000Z", // tomorrow, 08:00
+      endsAt: "2026-10-15T12:00:00.000Z", // 09:00
+    };
+    const roster = [
+      { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana" },
+      { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia" },
+    ];
+    const upcoming = (overrides: Partial<ClassItem> = {}) =>
+      makeClass({ ...NOT_STARTED, seatsTaken: 2, students: roster, ...overrides });
+    const posts = () =>
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "POST") as [string, { body: string }][];
+    const serveTakeOut = (answer: () => unknown = () => ok({ id: "e-ana", classId: "c-1", status: "takenOut" })) =>
+      fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
+        init?.method === "POST" ? answer() : ok(upcoming()),
+      );
+
+    async function openSheet() {
+      const user = userEvent.setup();
+      await renderScreen(true);
+      await user.press(await screen.findByRole("button", { name: /Students? confirmed|2 students/ }));
+      await user.press(screen.getByRole("button", { name: "Take out Ana Souza" }));
+
+      return user;
+    }
+
+    beforeEach(() => {
+      mockShow.mockClear();
+      serveTakeOut();
+    });
+
+    it("gives every student of an upcoming class a Take out button, for an admin", async () => {
+      const user = userEvent.setup();
+      await renderScreen(true);
+
+      await user.press(await screen.findByRole("button", { name: /2 students/ }));
+
+      expect(screen.getByRole("button", { name: "Take out Ana Souza" })).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Take out Bia Lima" })).toBeOnTheScreen();
+    });
+
+    it.each([
+      ["a student", false, upcoming()],
+      ["a class that started", true, upcoming({ startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" })],
+      ["a class that finished", true, upcoming({ startsAt: "2026-10-14T10:00:00.000Z", endsAt: "2026-10-14T11:00:00.000Z" })],
+      ["a cancelled class", true, upcoming({ cancelledAt: "2026-10-13T10:00:00.000Z" })],
+    ])("shows no Take out button for %s", async (_name, canEdit, item) => {
+      const user = userEvent.setup();
+      serve(item);
+      await renderScreen(canEdit, !canEdit);
+
+      await user.press(await screen.findByRole("button", { name: /2 students/ }));
+
+      expect(screen.queryByRole("button", { name: /^Take out/ })).toBeNull();
+    });
+
+    it("names the first name and the class in the sheet", async () => {
+      await openSheet();
+
+      expect(screen.getByText("Take Ana out of the class?")).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          /^Surf Beginner · Tomorrow · 15 Oct, 08:00 – 09:00\. The spot becomes free\./,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it("takes the student out with the reason, shows the toast and reloads the class", async () => {
+      const user = await openSheet();
+      await user.type(screen.getByLabelText("Reason (optional)"), "Advanced class.");
+
+      await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Ana Souza taken out · student notified"));
+      expect(posts()).toHaveLength(1);
+      expect(posts()[0][0]).toBe("http://api.test/enrolments/e-ana/take-out");
+      expect(posts()[0][1].body).toBe(JSON.stringify({ reason: "Advanced class." }));
+      expect(screen.queryByText("Take Ana out of the class?")).toBeNull();
+    });
+
+    it("sends no reason when none was written", async () => {
+      const user = await openSheet();
+
+      await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+
+      await waitFor(() => expect(posts()).toHaveLength(1));
+      expect(posts()[0][1].body).toBe("{}");
+    });
+
+    it("sends once while the request is on its way", async () => {
+      let finish: (value: unknown) => void = () => undefined;
+      const pending = new Promise((resolve) => {
+        finish = resolve;
+      });
+      serveTakeOut(() => pending);
+      const user = await openSheet();
+
+      await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+      await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+
+      expect(posts()).toHaveLength(1);
+      finish(ok({ id: "e-ana", classId: "c-1", status: "takenOut" }));
+      await waitFor(() => expect(mockShow).toHaveBeenCalled());
+    });
+
+    it.each([
+      ["enrolment.notApproved", "This spot is no longer approved."],
+      ["class.started", "The class has already started."],
+    ])("shows the toast for %s, closes the sheet and reloads the class", async (key, message) => {
+      serveTakeOut(() => refused(409, key));
+      const user = await openSheet();
+      const loads = fetchMock.mock.calls.filter(([, init]) => init?.method !== "POST").length;
+
+      await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+      expect(screen.queryByText("Take Ana out of the class?")).toBeNull();
+      await waitFor(() =>
+        expect(fetchMock.mock.calls.filter(([, init]) => init?.method !== "POST").length).toBeGreaterThan(loads),
+      );
+    });
+
+    it("keeps the sheet open on any other failure", async () => {
+      serveTakeOut(() => failure(500));
+      const user = await openSheet();
+
+      await user.press(screen.getByRole("button", { name: "Take out of the class" }));
+
+      await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+      expect(screen.getByText("Take Ana out of the class?")).toBeOnTheScreen();
+    });
+  });
+});
+
+describe("ClassDetailsScreen taken out", () => {
+  const takenOut = (reason: string | null, overrides: Partial<ClassItem> = {}) =>
+    makeClass({
+      myEnrolment: { id: "e-1", status: "takenOut", requestedAt: "2026-10-13T10:00:00.000Z", reason },
+      ...overrides,
+    });
+
+  it("taken out: shows the banner with the reason on the bad tint and offers to request again", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut("This group is advanced level.")));
+    await renderScreen(false, true);
+
+    const banner = (await screen.findByText("You were taken out of the class")).parent!.parent!;
+    expect(screen.getByText("Reason: “This group is advanced level.”")).toBeOnTheScreen();
+    expect(banner.props.className).toContain("bg-bad-tint");
+    expect(screen.getByRole("button", { name: "Request again" })).toBeOnTheScreen();
+  });
+
+  it("taken out: says no reason was given", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut(null)));
+    await renderScreen(false, true);
+
+    expect(await screen.findByText("No reason given.")).toBeOnTheScreen();
+  });
+
+  it("taken out: offers to join the waiting list again, in the dark button, when the class is full", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut(null, { seatsTaken: 8 })));
+    await renderScreen(false, true);
+
+    expect(await screen.findByRole("button", { name: "Request again" })).toBeOnTheScreen();
+  });
+
+  it.each([
+    ["started", { startsAt: "2026-10-14T12:00:00.000Z", endsAt: "2026-10-14T20:00:00.000Z" }],
+    ["cancelled", { cancelledAt: "2026-10-13T10:00:00.000Z" }],
+  ])("taken out: keeps the banner on a class that %s, without Request again", async (_name, overrides) => {
+    fetchMock.mockResolvedValue(ok(takenOut("Advanced.", overrides)));
+    await renderScreen(false, true);
+
+    expect(await screen.findByText("You were taken out of the class")).toBeOnTheScreen();
+    expect(screen.getByText("Reason: “Advanced.”")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Request again" })).toBeNull();
+  });
+
+  it("taken out: shows nothing to an admin or an instructor", async () => {
+    fetchMock.mockResolvedValue(ok(takenOut("Advanced.")));
+    await renderScreen(true, false);
+
+    await screen.findByText("The class");
+    expect(screen.queryByText("You were taken out of the class")).toBeNull();
   });
 });

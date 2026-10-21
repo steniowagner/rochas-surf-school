@@ -154,15 +154,16 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 - **`modules/enrolment`** (`@rochas-surf-school/enrolment`, spec 041; depends on `@rochas-surf-school/shared`,
   `@rochas-surf-school/auth` and `@rochas-surf-school/classes` — `ClassActor`, `assertCanReadClasses` and the
   discipline; classes never imports it) — 1 aggregate, `enrolment/`: `model/enrolment.entity.ts` (`Enrolment`,
-  `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, `ENROLMENT_REASON_MAX`; `approve`, `deny` (spec 042),
-  `cancel` (spec 043), `withdraw`, `expire`, `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,enrolment-notifier.provider,clock.provider}.ts`
+  `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, `ENROLMENT_REASON_MAX`, `TAKE_OUT_REASON_MAX`; `approve`, `deny`
+  (spec 042), `cancel` (spec 043), `takeOut` (spec 044), `withdraw`, `expire`, `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,student-lookup.provider,enrolment-notifier.provider,clock.provider}.ts`
   (`create` — a second open enrolment is `enrolment.alreadyOpen` —, `findById`, `withdraw` and `expire` conditional
   on pending, `findExpirable`, `closeOpenForClass`, `findPendingByClass(now)` (the `PendingRequestsClass` read
   model), the locked `approve` → `approved | full | notPending` and `deny` conditional on pending, `cancel`
-  conditional on approved, `countPendingForClass`, `releaseForStudent` (spec 043); the class as enrolment reads it,
-  with its cancellation deadline; the student's name; `seatRequested` / `requestExpired` / `requestApproved` /
-  `requestDenied` / `seatCancelled`),
-  `usecase/{request-seat,withdraw-request,expire-pending-enrolments,close-class-enrolments,list-pending-requests,approve-request,deny-request,cancel-seat,release-student-enrolments}.usecase.ts`,
+  conditional on approved, `countPendingForClass`, `releaseForStudent` (spec 043), the locked `enrolDirectly` and
+  `takeOut` conditional on approved (spec 044); the class as enrolment reads it, with its cancellation deadline; the
+  student's name; whether a user is an approved student (`StudentLookup`, spec 044); `seatRequested` /
+  `requestExpired` / `requestApproved` / `requestDenied` / `seatCancelled` / `studentEnrolled` / `studentTakenOut`),
+  `usecase/{request-seat,withdraw-request,expire-pending-enrolments,close-class-enrolments,list-pending-requests,approve-request,deny-request,cancel-seat,release-student-enrolments,enrol-student,take-student-out}.usecase.ts`,
   `usecase/decision.ts` (the decided enrolment and its class, or 404; the not-started check) and
   `usecase/enrolment.out.ts` (`EnrolmentOut`: `{ id, classId, status, requestedAt }`). Fakes of every port (the
   fake repository takes the classes, to join them in `findExpirable`) and an entity factory are in `test/mock/`.
@@ -301,21 +302,23 @@ src/
     enrolment.controller.ts     # POST /classes/:id/enrolments (201), POST /enrolments/:id/withdraw (200);
                                 # GET /enrolments/pending (declared before the :id routes), POST
                                 # /enrolments/:id/approve and /deny (200; spec 042), POST /enrolments/:id/cancel
-                                # (200; spec 043) — protected
+                                # (200; spec 043), POST /classes/:id/enrolments/direct (201, or 200 from pending)
+                                # and POST /enrolments/:id/take-out (200; spec 044) — protected
     enrolment.prisma.ts         # PrismaEnrolmentRepository (P2002 on the partial index → enrolment.alreadyOpen;
                                 # withdraw / expire / deny conditional on pending, cancel on approved;
                                 # releaseForStudent in one $transaction; closeOpenForClass in one
                                 # updateManyAndReturn; findExpirable joins the class; findPendingByClass with one
-                                # groupBy for the seats; approve in a $transaction with SELECT … FOR UPDATE on the
-                                # class row)
+                                # groupBy for the seats; approve and enrolDirectly (spec 044) in a $transaction
+                                # with SELECT … FOR UPDATE on the class row; takeOut conditional on approved)
     enrolment-class-reader.prisma.ts  # PrismaEnrolmentClassReader (the class with its cancellation deadline, its
                                 # instructors, whether its discipline has a cancellation rule)
     student-name-reader.prisma.ts  # PrismaStudentNameReader
+    student-lookup.prisma.ts    # PrismaStudentLookup (an approved account with role student; spec 044)
     enrolment-expiry.job.ts     # EnrolmentExpiryJob (every minute, cron enrolment-expiry): runs
                                 # ExpirePendingEnrolments, logs the count only, never throws
     {class-roster-reader,seat-counter,pending-request-counter,viewer-enrolment-reader}.prisma.ts  # classes' ports
-                                # read from enrolments (approved for the roster and the seats, pending for the
-                                # requests, the caller's latest for myEnrolment)
+                                # read from enrolments (approved for the roster — with each enrolmentId, spec 044
+                                # — and the seats, pending for the requests, the caller's latest for myEnrolment)
     enrolment.class-enrolments-closer.ts  # EnrolmentClassEnrolmentsCloser: classes' ClassEnrolmentsCloser, running
                                 # CloseClassEnrolments
     enrolment.seat-releaser.ts  # EnrolmentSeatReleaser: auth's SeatReleaser, running ReleaseStudentEnrolments
@@ -352,6 +355,8 @@ test/
   seat-cancellation.e2e-spec.ts # e2e suite of POST /enrolments/:id/cancel: cancelling, the concurrent cancel, the
                                 # refusals in order (deadline missing, passed, exactly at it), the notifications
                                 # (spec 043)
+  direct-enrolment.e2e-spec.ts  # e2e suite of direct enrolment and take-out: new and from pending, the refusals,
+                                # the races, the roster's enrolmentId, the reasons, the notifications (spec 044)
   cancellation-deadlines.e2e-spec.ts  # e2e suite of CancellationDeadlineJob (AnthropicDeadlineDescriber replaced by
                                 # a configurable fake; works out, retries, without a rule, edits, stale results)
 Dockerfile, docker-compose.yml  # backend + Postgres
@@ -393,6 +398,8 @@ src/
     (private)/<role>/{edit-profile,whatsapp,school-rules}.tsx  # the Profile's inner screens, above the tab bar
     (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations), above the tab bar
     (private)/admin/class-requests.tsx               # "Inscrições em aulas" tool (/admin/class-requests, spec 042),
+                                                     # above the tab bar
+    (private)/admin/enrol-student.tsx                # "Inscrever aluno" tool (/admin/enrol-student, spec 044),
                                                      # above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
     (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
@@ -519,12 +526,18 @@ src/
                                 # provider per platform, directions URL), session-token.ts (UUID v4 per sheet),
                                 # occupancy.ts (percent, tone, full, free and hidden seats, the students label)
     classes.test-utils.tsx      # shared test helpers of the module
-  modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, and
-                                # the admins' "Inscrições em aulas" tool (spec 042)
+  modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, the
+                                # admins' "Inscrições em aulas" tool (spec 042), and direct enrolment and take-out
+                                # (spec 044)
     enrolment.types.ts          # EnrolmentStatus, MyEnrolment (with reason), EnrolmentResponse, RequestSeatRequest,
                                 # PendingRequestsResponse, DenyRequestVariables (mirror the API)
     screens/class-requests.screen.tsx  # "Inscrições em aulas": header with requests · classes, one group per class,
                                 # pull-to-refresh, loading, error + retry, "Nada à espera"
+    screens/enrol-student.screen.tsx  # "Inscrever aluno" (+ .hook.ts, .types.ts; spec 044): "1 · Quem" (search, the
+                                # students with radios, more on scroll) and "2 · Aula" (calendar, the day's upcoming
+                                # classes as cards), "Inscrever <nome>"
+    components/take-out-sheet/  # TakeOutSheet ("Retirar <nome> da aula?": a DenySheet with the visible "Motivo
+                                # (opcional)" of 300; no hook; spec 044)
     components/class-requests-group/  # ClassRequestsGroup (the class card — day block, time, location, capacity,
                                 # free seats or "Esgotado", occupancy bar —, the waiting-list label, positions and
                                 # full-class note, one DecisionCard per request)
@@ -541,11 +554,14 @@ src/
                                 # sheets, deadline note, sends and errors); use-pending-requests (GET
                                 # /enrolments/pending, ["enrolments", "pending"]), use-approve-request /
                                 # use-deny-request (no retry; invalidate the pending list and ["classes"]),
-                                # use-class-requests-screen (the tool's logic: approve, deny sheet, toasts, reloads)
+                                # use-class-requests-screen (the tool's logic: approve, deny sheet, toasts, reloads);
+                                # use-enrol-student (POST /classes/:id/enrolments/direct), use-take-student-out
+                                # (POST /enrolments/:id/take-out) — no retry; invalidate the pending list and
+                                # ["classes"] —, use-take-out (the details' take-out: target, toasts, reloads; spec 044)
     utils/                      # enrolment-cta.ts (the footer button by status and fullness; "Pedir novamente" after
-                                # a denial or a cancel; "Cancelar inscrição" before the deadline), enrolment-status.ts
+                                # a denial, a cancel or a take-out; "Cancelar inscrição" before the deadline), enrolment-status.ts
                                 # (the banner and chip: waitingList for pending on a full class, approved, denied,
-                                # cancelled), enrolment-error.ts (API error → translation key,
+                                # cancelled, takenOut), enrolment-error.ts (API error → translation key,
                                 # which errors reload the class or the tool's list), class-requests.ts (the "Pediu
                                 # às …" line and the day block)
   modules/notifications/
@@ -629,7 +645,7 @@ src/
                                 # text-input, text-area, toast, checkbox, segmented-control
   components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard: avatar, optional
                                 # pressable upper row, Deny / Approve, approveDisabled), deny-sheet (DenySheet: optional reason in a
-                                # bottom sheet, confirm and back)
+                                # bottom sheet, confirm and back; `showLabel` draws the label above the field)
   utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the
                                 # date), get-initials.ts, countries.ts (country options with localized names and
                                 # dial codes, filter, default BR), brazilian-phone.ts (toBrazilianDigits,

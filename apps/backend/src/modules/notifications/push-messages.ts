@@ -397,6 +397,61 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       },
     },
   },
+  'enrolment.enrolled': {
+    'pt-BR': {
+      title: 'Você foi inscrito',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `A escola inscreveu você na aula de ${disciplineName(discipline)} de ${day} às ${time}.`;
+      },
+    },
+    es: {
+      title: 'Te inscribieron',
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return `La escuela te inscribió en la clase de ${disciplineName(discipline)} del ${day} a las ${time}.`;
+      },
+    },
+    en: {
+      title: "You've been enrolled",
+      body: ({ discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return `The school enrolled you in the ${disciplineName(discipline)} class on ${day} at ${time}.`;
+      },
+    },
+  },
+  'enrolment.takenOut': {
+    'pt-BR': {
+      title: 'Você foi retirado de uma aula',
+      body: ({ reason, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return (
+          text(reason) ||
+          `A escola retirou você da aula de ${disciplineName(discipline)} de ${day} às ${time}.`
+        );
+      },
+    },
+    es: {
+      title: 'Te retiraron de una clase',
+      body: ({ reason, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt);
+        return (
+          text(reason) ||
+          `La escuela te retiró de la clase de ${disciplineName(discipline)} del ${day} a las ${time}.`
+        );
+      },
+    },
+    en: {
+      title: 'You were taken out of a class',
+      body: ({ reason, discipline, startsAt }) => {
+        const { day, time } = startParts(startsAt, true);
+        return (
+          text(reason) ||
+          `The school took you out of the ${disciplineName(discipline)} class on ${day} at ${time}.`
+        );
+      },
+    },
+  },
 };
 
 export function renderPush(

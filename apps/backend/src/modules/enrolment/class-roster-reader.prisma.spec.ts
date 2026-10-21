@@ -5,8 +5,12 @@ function student(index: number) {
   return { id: `s-${index}`, name: `Aluno ${index}`, photoUrl: index % 2 === 0 ? null : `https://img/${index}` };
 }
 
+function withEnrolment(index: number) {
+  return { ...student(index), enrolmentId: `e-${index}` };
+}
+
 function row(classId: string, index: number) {
-  return { classId, student: student(index) };
+  return { id: `e-${index}`, classId, student: student(index) };
 }
 
 function setup() {
@@ -25,11 +29,11 @@ describe('PrismaClassRosterReader', () => {
 
     expect(enrolment.findMany).toHaveBeenCalledWith({
       where: { classId: { in: ['c-1', 'c-2', 'c-3'] }, status: 'approved' },
-      select: { classId: true, student: { select: { id: true, name: true, photoUrl: true } } },
+      select: { id: true, classId: true, student: { select: { id: true, name: true, photoUrl: true } } },
       orderBy: [{ decidedAt: { sort: 'asc', nulls: 'last' } }, { studentId: 'asc' }],
     });
-    expect(out.get('c-1')).toEqual({ seatsTaken: 3, students: [student(1), student(2), student(3)] });
-    expect(out.get('c-2')).toEqual({ seatsTaken: 1, students: [student(5)] });
+    expect(out.get('c-1')).toEqual({ seatsTaken: 3, students: [1, 2, 3].map(withEnrolment) });
+    expect(out.get('c-2')).toEqual({ seatsTaken: 1, students: [withEnrolment(5)] });
     expect(out.has('c-3')).toBe(false);
   });
 
@@ -41,7 +45,7 @@ describe('PrismaClassRosterReader', () => {
 
     expect(out.get('c-1')).toEqual({
       seatsTaken: 7,
-      students: [1, 2, 3, 4].map(student),
+      students: [1, 2, 3, 4].map(withEnrolment),
     });
   });
 

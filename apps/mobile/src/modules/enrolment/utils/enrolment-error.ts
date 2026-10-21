@@ -153,3 +153,72 @@ export const getDecideRequestErrorKey = (error: unknown): string | null => {
 
   return fallbackKey(error);
 };
+
+const isAlreadyApprovedError = (error: unknown): boolean => hasKey(error, 409, "enrolment.alreadyApproved");
+
+const isInvalidStudentError = (error: unknown): boolean => hasKey(error, 422, "enrolment.student.invalid");
+
+/**
+ * Enrolling a student found what is on screen stale (the class filled, started or was cancelled, the student already
+ * has a seat, or is no longer an approved student), so the classes are read again.
+ */
+export const shouldReloadEnrolClasses = (error: unknown): boolean =>
+  isClassFullError(error) ||
+  isClassStartedError(error) ||
+  isClassCancelledError(error) ||
+  isAlreadyApprovedError(error) ||
+  isInvalidStudentError(error);
+
+/** The translation key of the toast for a failed direct enrolment, or `null` when nothing should be shown. */
+export const getEnrolStudentErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError) {
+    return null;
+  }
+
+  if (isAlreadyApprovedError(error)) {
+    return "enrolStudent.errors.alreadyApproved";
+  }
+
+  if (isClassFullError(error)) {
+    return "enrolStudent.errors.full";
+  }
+
+  if (isClassStartedError(error)) {
+    return "enrolStudent.errors.started";
+  }
+
+  if (isClassCancelledError(error)) {
+    return "enrolStudent.errors.cancelled";
+  }
+
+  if (isInvalidStudentError(error)) {
+    return "enrolStudent.errors.invalidStudent";
+  }
+
+  if (hasKey(error, 404, "class.notFound")) {
+    return "classDetails.notFound";
+  }
+
+  return fallbackKey(error);
+};
+
+/** The translation key of the toast for a failed take-out, or `null` when nothing should be shown. */
+export const getTakeOutErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError) {
+    return null;
+  }
+
+  if (isNotApprovedError(error)) {
+    return "takeOutSheet.errors.notApproved";
+  }
+
+  if (isClassStartedError(error)) {
+    return "takeOutSheet.errors.started";
+  }
+
+  if (hasKey(error, 404, "enrolment.notFound")) {
+    return "enrolment.errors.notFound";
+  }
+
+  return fallbackKey(error);
+};

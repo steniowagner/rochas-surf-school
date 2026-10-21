@@ -1,6 +1,7 @@
 import { ConflictError } from "@rochas-surf-school/shared";
 import {
   ApproveResult,
+  DirectEnrolResult,
   Enrolment,
   EnrolmentClass,
   EnrolmentRepository,
@@ -92,12 +93,42 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
     return "approved";
   }
 
+  async enrolDirectly(enrolment: Enrolment, now: Date): Promise<DirectEnrolResult> {
+    const found = this.classes.find((item) => item.id === enrolment.classId);
+    const forClass = this.enrolments.filter((item) => item.classId === enrolment.classId);
+
+    if (!found) return { result: "full" };
+
+    if (forClass.some((item) => item.studentId === enrolment.studentId && item.status === "approved")) {
+      return { result: "alreadyApproved" };
+    }
+
+    if (forClass.filter((item) => item.status === "approved").length >= found.capacity) {
+      return { result: "full" };
+    }
+
+    const pending = forClass.find((item) => item.studentId === enrolment.studentId && item.status === "pending");
+
+    if (pending) {
+      const approved = pending.approve(now);
+      this.enrolments = this.enrolments.map((item) => (item.id === pending.id ? approved : item));
+      return { result: "approved", enrolment: approved };
+    }
+
+    this.enrolments.push(enrolment);
+    return { result: "enrolled", enrolment };
+  }
+
   async deny(id: string, reason: string | null, now: Date): Promise<boolean> {
     return this.change(id, (item) => item.deny(reason, now));
   }
 
   async cancel(id: string, now: Date): Promise<boolean> {
     return this.change(id, (item) => item.cancel(now), "approved");
+  }
+
+  async takeOut(id: string, reason: string | null, now: Date): Promise<boolean> {
+    return this.change(id, (item) => item.takeOut(reason, now), "approved");
   }
 
   async countPendingForClass(classId: string): Promise<number> {

@@ -70,6 +70,7 @@ export const routes = {
     profile: "/admin/profile",
     registrations: "/admin/registrations",
     classRequests: "/admin/class-requests",
+    enrolStudent: "/admin/enrol-student",
     cancellationRules: "/admin/cancellation-rules",
     people: "/admin/people",
     newClass: (params?: { date?: string }): Href => ({

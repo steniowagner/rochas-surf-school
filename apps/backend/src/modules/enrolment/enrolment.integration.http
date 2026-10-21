@@ -186,3 +186,46 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {}
+
+### Enrol a student directly (expects 201 with { id, classId, status: "approved", requestedAt }; the student gets enrolment.enrolled). A student with a pending request in the class gets it approved: 200 and enrolment.approved
+POST {{baseUrl}}/classes/{{classId}}/enrolments/direct
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "studentId": "{{studentId}}"
+}
+
+### Enrolling the same student again (expects 409 enrolment.alreadyApproved); a full class answers 409 enrolment.class.full, a started one 409 class.started, a cancelled one 409 class.cancelled
+POST {{baseUrl}}/classes/{{classId}}/enrolments/direct
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "studentId": "{{studentId}}"
+}
+
+### An instructor, an admin, a pending account or an unknown id (expects 422 enrolment.student.invalid)
+POST {{baseUrl}}/classes/{{classId}}/enrolments/direct
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "studentId": "not-a-uuid"
+}
+
+### Take the student out with a reason (expects 200 with status "takenOut"; the student gets enrolment.takenOut with the reason)
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/take-out
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "reason": "Esta turma é de nível avançado."
+}
+
+### Take out with no reason (expects 200; none is stored), again (expects 409 enrolment.notApproved) or with a reason over 300 characters (expects 422 enrolment.reason.max.length)
+POST {{baseUrl}}/enrolments/{{enrolmentId}}/take-out
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{}

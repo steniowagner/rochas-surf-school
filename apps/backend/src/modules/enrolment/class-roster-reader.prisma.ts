@@ -17,6 +17,7 @@ export class PrismaClassRosterReader implements ClassRosterReader {
     const records = await this.prisma.enrolment.findMany({
       where: { classId: { in: classIds }, status: 'approved' },
       select: {
+        id: true,
         classId: true,
         student: { select: { id: true, name: true, photoUrl: true } },
       },
@@ -26,7 +27,10 @@ export class PrismaClassRosterReader implements ClassRosterReader {
     const students = new Map<string, ClassStudent[]>();
 
     for (const record of records) {
-      students.set(record.classId, [...(students.get(record.classId) ?? []), record.student]);
+      students.set(record.classId, [
+        ...(students.get(record.classId) ?? []),
+        { ...record.student, enrolmentId: record.id },
+      ]);
     }
 
     for (const [classId, all] of students) {

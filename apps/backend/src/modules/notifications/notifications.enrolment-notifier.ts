@@ -6,6 +6,8 @@ import type {
   RequestExpired,
   SeatCancelled,
   SeatRequested,
+  StudentEnrolled,
+  StudentTakenOut,
 } from '@rochas-surf-school/enrolment';
 import { Notify } from '@rochas-surf-school/notifications';
 import { ExpoPushProvider } from './expo.push.js';
@@ -132,6 +134,42 @@ export class NotificationsEnrolmentNotifier implements EnrolmentNotifier {
     } catch (error) {
       this.logger.error(
         `Could not notify enrolment.cancelled for ${classId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async studentEnrolled({ studentId, classId, discipline, startsAt }: StudentEnrolled): Promise<void> {
+    try {
+      await this.notify.execute({
+        userIds: [studentId],
+        type: 'enrolment.enrolled',
+        params: { classId, discipline, startsAt: startsAt.toISOString() },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify enrolment.enrolled for ${classId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async studentTakenOut({
+    studentId,
+    classId,
+    discipline,
+    startsAt,
+    reason,
+  }: StudentTakenOut): Promise<void> {
+    try {
+      await this.notify.execute({
+        userIds: [studentId],
+        type: 'enrolment.takenOut',
+        params: { classId, discipline, startsAt: startsAt.toISOString(), ...(reason ? { reason } : {}) },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify enrolment.takenOut for ${classId}`,
         error instanceof Error ? error.stack : String(error),
       );
     }

@@ -146,6 +146,8 @@ export type ClassStudent = {
   name: string;
   /** `null` until profile photos can be uploaded. */
   photoUrl: string | null;
+  /** The student's approved enrolment in the class, which an admin can take them out of. */
+  enrolmentId: string;
 };
 
 /** A class as `GET /classes` and `GET /classes/:id` answer it; dates are ISO 8601 UTC. */

@@ -103,6 +103,7 @@ describe("ListWeekClasses", () => {
       id: `s-${index}`,
       name: `Aluno ${index}`,
       photoUrl: null,
+      enrolmentId: `e-${index}`,
     }));
     const rosters = new FakeClassRosterReader({
       monday: { students: seven },

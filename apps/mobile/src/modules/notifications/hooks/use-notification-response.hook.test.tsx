@@ -285,7 +285,14 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
-  it.each(["enrolment.expired", "enrolment.approved", "enrolment.denied", "class.cancelled"])(
+  it.each([
+    "enrolment.expired",
+    "enrolment.approved",
+    "enrolment.denied",
+    "enrolment.enrolled",
+    "enrolment.takenOut",
+    "class.cancelled",
+  ])(
     "opens the class details of a student who taps a %s push",
     async (type) => {
       answerMe(account("approved", "student", true));
@@ -349,7 +356,7 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.admin.home));
   });
 
-  it.each(["enrolment.approved", "enrolment.denied", "enrolment.expired"])(
+  it.each(["enrolment.approved", "enrolment.denied", "enrolment.expired", "enrolment.enrolled", "enrolment.takenOut"])(
     "goes to the resolved flow when a %s push has no class id",
     async (type) => {
       answerMe(account("approved", "admin", true));

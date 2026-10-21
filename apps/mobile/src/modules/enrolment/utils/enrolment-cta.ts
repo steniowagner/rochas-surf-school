@@ -24,9 +24,8 @@ const CTAS = {
 /**
  * The one button of the student's footer on a class that hasn't started, or `null` for none: no enrolment, or an
  * ended or denied one the student can ask again after, gives a request (the waiting list when the class is full); a pending
- * request gives a withdrawal; a cancelled seat can be asked again like an ended one. An approved seat gives the
- * cancellation only while the deadline is ahead (`canCancel`); the taken-out status and the one of a cancelled class
- * give none.
+ * request gives a withdrawal; a cancelled seat or a taken-out student can ask again like an ended one. An approved seat gives the
+ * cancellation only while the deadline is ahead (`canCancel`); the one of a cancelled class gives none.
  */
 export const getEnrolmentCta = (
   enrolment: MyEnrolment | null,
@@ -42,6 +41,7 @@ export const getEnrolmentCta = (
     case "expired":
     case "denied":
     case "cancelled":
+    case "takenOut":
       return classIsFull ? CTAS.requestAgainFull : CTAS.requestAgainFree;
     case "approved":
       return canCancel ? CTAS.cancelSeat : null;

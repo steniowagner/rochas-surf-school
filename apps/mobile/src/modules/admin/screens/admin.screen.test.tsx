@@ -9,6 +9,7 @@ import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rule
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
+import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
 import { hydrateSession } from "@/services/session/session.store";
@@ -73,6 +74,7 @@ async function openAdminHome() {
       "(private)/admin/people": AdminPeopleRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
       "(private)/admin/class-requests": AdminClassRequestsRoute,
+      "(private)/admin/enrol-student": AdminEnrolStudentRoute,
     },
     { initialUrl: routes.admin.home },
   );
@@ -319,6 +321,22 @@ describe("AdminScreen", () => {
       await act(async () => router.back());
 
       expect(app.getPathname()).toBe(routes.admin.home);
+    });
+  });
+
+  describe("Enrol a student row", () => {
+    it("sits under the tools, after the class enrolments, and opens the tool", async () => {
+      const user = userEvent.setup();
+      respondWith([]);
+      const app = await openAdminHome();
+
+      const rows = screen.getAllByText(/^(Class enrolments|Enrol a student|Create classes)$/);
+      expect(rows.map((row) => row.props.children)).toEqual(["Class enrolments", "Enrol a student", "Create classes"]);
+
+      await user.press(screen.getByRole("button", { name: /Enrol a student/ }));
+
+      expect(app.getPathname()).toBe(routes.admin.enrolStudent);
+      expect(await screen.findByText("Enrol a school student in a class.")).toBeOnTheScreen();
     });
   });
 });

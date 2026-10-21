@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { useTheme } from "@/hooks/use-theme";
 
 import { StudentAvatar } from "../student-avatar";
@@ -19,6 +20,7 @@ export function ClassPeople({
   seatsTaken,
   capacity,
   state,
+  onTakeOut,
 }: ClassPeopleProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -107,6 +109,17 @@ export function ClassPeople({
                     size={STUDENT_AVATAR_SIZE}
                   />
                   <Text className="ds-text-list-title flex-1 text-ink">{student.name}</Text>
+                  {onTakeOut ? (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t("takeOutSheet.action")} ${student.name}`}
+                      activeOpacity={BUTTON_ACTIVE_OPACITY}
+                      onPress={() => onTakeOut(student)}
+                      className="min-h-11 items-center justify-center rounded-full border border-line px-4"
+                    >
+                      <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
               ))
             : null}

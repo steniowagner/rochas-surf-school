@@ -168,6 +168,8 @@ describe("useNotificationReceived", () => {
     "enrolment.expired",
     "enrolment.approved",
     "enrolment.denied",
+    "enrolment.enrolled",
+    "enrolment.takenOut",
     "enrolment.cancelled",
   ])(
     "reloads every cached class when a %s push arrives",

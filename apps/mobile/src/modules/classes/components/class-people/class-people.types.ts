@@ -17,6 +17,8 @@ export type ClassPeopleProps = {
   seatsTaken: number;
   capacity: number;
   state: ClassState;
+  /** Admins only, on a class that hasn't started: each student row gets a "Retirar" button that calls it. */
+  onTakeOut?: (student: ClassStudent) => void;
 };
 
-export type UseClassPeopleProps = Omit<ClassPeopleProps, "instructors">;
+export type UseClassPeopleProps = Omit<ClassPeopleProps, "instructors" | "onTakeOut">;

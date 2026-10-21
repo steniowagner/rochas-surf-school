@@ -254,6 +254,32 @@ describe('renderPush', () => {
     expect(renderPush('enrolment.cancelled', { ...base, waitingCount: 'x' }, locale).body).toBe(body);
   });
 
+  it.each([
+    ['pt-BR', 'Você foi inscrito', 'A escola inscreveu você na aula de Surf de 18/10 às 08:00.'],
+    ['es', 'Te inscribieron', 'La escuela te inscribió en la clase de Surf del 18/10 a las 08:00.'],
+    ['en', "You've been enrolled", 'The school enrolled you in the Surf class on 10/18 at 08:00.'],
+  ] as const)('writes the direct enrolment in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('enrolment.enrolled', params, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Você foi retirado de uma aula', 'A escola retirou você da aula de Surf de 18/10 às 08:00.'],
+    ['es', 'Te retiraron de una clase', 'La escuela te retiró de la clase de Surf del 18/10 a las 08:00.'],
+    ['en', 'You were taken out of a class', 'The school took you out of the Surf class on 10/18 at 08:00.'],
+  ] as const)('writes the take-out without a reason in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT };
+
+    expect(renderPush('enrolment.takenOut', params, locale)).toEqual({ title, body });
+  });
+
+  it.each(['pt-BR', 'es', 'en'] as const)('shows the take-out reason as written in %s', (locale) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT, reason: ' Turma avançada. ' };
+
+    expect(renderPush('enrolment.takenOut', params, locale).body).toBe('Turma avançada.');
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {

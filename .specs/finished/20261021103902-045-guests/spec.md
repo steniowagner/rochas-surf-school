@@ -2,13 +2,14 @@
 id: "045"
 slug: guests
 title: "Trial guests in classes"
-status: accepted
+status: finished
 started: 2026-10-20
 base_commit: a046889b23e7859fb5a1310e4454c51a3219150b
 reviewed_commit: c422d7d77054c9b57e3fc2e633dd6da04a1527da
 created: 2026-10-19
 fronts: [enrolment, classes, backend, mobile]
 depends_on: ["044"]
+finished: 2026-10-21
 ---
 
 # 045 — Trial guests in classes

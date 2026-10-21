@@ -112,8 +112,9 @@ many are waiting) and the class's instructors are told. When an account is delet
 up the person's upcoming seats and withdraw their pending requests. Admins also enrol an approved student straight
 into a class that hasn't started and has a free seat (approving the student's pending request there, if any), and
 take a student out of a class before it starts, with an optional reason; only the student is told. It is where the
-seats taken, the approved students and the pending requests that Classes shows are counted. Guests join with their
-spec.
+seats taken, the approved students, the guests and the pending requests that Classes shows are counted. Admins also
+put trial guests — people without an account, with a name and a WhatsApp number — into a class that hasn't started
+and has a free seat, and take them out; guests are told nothing, and their data is erased 30 days after the class.
 
 - Where it physically lives: `modules/enrolment`
 - Business details: [modules/enrolment.md](modules/enrolment.md)

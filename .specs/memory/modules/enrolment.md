@@ -11,8 +11,9 @@ student's request side and the admins' decisions: admins see the pending request
 and approve one while the class has a free seat or deny it with an optional reason. A student gives up an
 approved seat until the class's cancellation deadline, and a deleted account's upcoming seats and pending requests
 are given up on [Authentication](auth.md)'s behalf. Admins also enrol a student directly — approving the student's
-pending request when there is one — and take a student out of a class before it starts. Guests come with their
-spec (045).
+pending request when there is one — and take a student out of a class before it starts. Admins also put
+**guests** — people without an account trying a class — into a class and take them out; guests take seats, are
+told nothing, and their name and number are erased 30 days after the class.
 
 ## Main concepts
 
@@ -36,6 +37,12 @@ spec (045).
     empty). The student may request again.
   - `withdrawn`, `expired`, `cancelled`, `takenOut`, `classCancelled` — ended: kept as history, never
     changed again (a pending request also ends as `withdrawn` when its student's account is deleted).
+- **Guest** (`guest`): someone without an account trying a class, added by an admin to one class. Key fields: the
+  class, the name, the WhatsApp number (only kept for the school's records, never shown), who added them, when it
+  was erased. Never linked to an account. Takes a seat from when it is added until an admin takes it out or the
+  class is deleted; 30 days after the class ended or was cancelled its name and number are erased (the guest stays,
+  as "Trial"). A guest's name is shown only to admins and the class's instructors; everyone else, and everyone once
+  it is erased, reads "Trial".
 - **Open enrolment**: a `pending` or `approved` one — the student's one live request or seat in that class.
 - **On the waiting list** (not stored): how a `pending` request reads while its class is full (seats taken ≥
   capacity). It is a label, not a status.
@@ -87,15 +94,15 @@ spec (045).
   expired…); `class.started` (409); for an approval, `enrolment.class.full` (409, seats taken ≥ capacity).
 - **Approving takes the last seat exactly once**: the approval locks the class's row, counts the seats taken,
   refuses when the class is full and writes only while the request is still pending, all in one transaction, so of
-  two approvals racing for the last seat one wins and the other gets `enrolment.class.full`. Direct enrolment takes
-  the same lock, and guests (045) will.
+  two approvals racing for the last seat one wins and the other gets `enrolment.class.full`. Direct enrolment and
+  adding a guest take the same lock, and every one of them counts the guests.
 - **The deny reason is optional**: trimmed, a blank one stored as none, at most 500 characters; longer, or not a
   string, is `enrolment.reason.max.length` (422). A full class can still be denied.
 - **The student hears of the decision, nobody else**: `enrolment.approved` (the class's discipline and start) or
   `enrolment.denied` (also the reason, as written, when there is one), through [Notifications](notifications.md).
   Admins, instructors and the other waiting students are not told, and nobody is told when a seat opens: admins
   choose who gets it. A notification that fails never changes the answer or the decision.
-- **Seats taken are the approved enrolments** (guests join with spec 045); **the students** are the approved
+- **Seats taken are the approved enrolments plus the guests**; **the students** are the approved
   ones, in the order they were approved (then by id); **pending requests** are the pending ones. Withdrawn,
   expired, class-cancelled, denied and every other ended enrolment count nowhere.
 - **A student cancels their own approved seat while it is before the deadline**, checked in this order: the
@@ -140,6 +147,18 @@ spec (045).
 - **The student hears of a take-out, nobody else**: `enrolment.takenOut` (the class's discipline and start, and the
   reason as written when there is one), through [Notifications](notifications.md). A failed notification never
   undoes the take-out.
+- **Only approved admins add a guest, and only to a class that hasn't started and has a free seat**, checked in this
+  order: the account's status and role (403); the class (an id that isn't a UUID, or no class → `class.notFound`,
+  404); the name and the number, every problem together (422: `guest.name.*` under the same rules as an account's
+  name, `guest.whatsappNumber.invalid` for a missing or invalid number); `class.cancelled` (409); `class.started`
+  (409); `enrolment.class.full` (409). The write locks the class like an approval, so a guest and an approval for
+  the last seat leave exactly one. Nobody is told.
+- **Only approved admins take a guest out, and only before the class starts**: the account's status and role
+  (403); the guest (an id that isn't a UUID, or no guest → `guest.notFound`, 404); `class.started` (409). The seat
+  frees at once and nobody is told.
+- **Guest data is erased 30 days after the class**: every minute, the guests whose class ended or was cancelled 30
+  days ago or more, and aren't erased yet, lose their name and number in one write; running it again changes
+  nothing. Only the count is logged.
 
 ## Who can do what
 
@@ -152,9 +171,12 @@ spec (045).
 - **An approved admin** — lists the pending requests by class, approves one while its class has a free seat and
   hasn't started, and denies one, with an optional reason, before the class starts; enrols an approved student
   directly into a class that hasn't started and has a free seat; takes a student out of an approved seat before
-  the class starts, with an optional reason.
-- **Nobody** — expiring requests, ending them for a cancelled class and releasing a deleted account's enrolments
-  happen without an actor.
+  the class starts, with an optional reason; adds a guest to a class that hasn't started and has a free seat, and
+  takes one out before the class starts.
+- **The class's instructors** — read the names of the guests of the classes they teach; every other student and
+  instructor reads "Trial".
+- **Nobody** — expiring requests, ending them for a cancelled class, releasing a deleted account's enrolments and
+  erasing guest data happen without an actor.
 
 ## Boundaries
 
@@ -163,15 +185,17 @@ It depends on [Classes](classes.md) (the actor, the access check, the class stat
 discipline, start, end, capacity, cancellation, cancellation deadline, instructors and whether its discipline has
 a cancellation rule —
 and a student's name, and whether a user is an approved student, through its own contracts, which the backend fulfils. It answers Classes' contracts for the
-roster, the seats taken, the pending requests, the viewer's enrolment and closing a cancelled class's
+roster (students and guests), the seats taken, the pending requests, the viewer's enrolment and closing a cancelled class's
 enrolments, through adapters the backend provides; Classes still decides when a class is cancelled and who else is
 told. It fulfils, through a backend adapter, [Authentication](auth.md)'s contract for releasing a deleted account's
 seats and requests; Authentication decides when. It doesn't send notifications itself: the new-request, decision,
 expiry, cancelled-seat, direct-enrolment and take-out notices go through its own contract, which [Notifications](notifications.md) fulfils. It
-doesn't read the clock directly. Guests (045), the waiting-list switch (046), telling
+doesn't read the clock directly. The waiting-list switch (046), telling
 students of class edits and location changes (047) and the student's "Minhas aulas" (048) aren't built, nor a
 history of who decided or undoing a decision, cancelling several seats at once or undoing a cancellation, taking a
-student out after the class starts, moving a student between classes, or enrolling several students at once. In the
+student out after the class starts, moving a student between classes, or enrolling several students at once; nor
+editing a guest, listing a person's past trials or turning a guest into a student (guests are never messaged nor
+linked to a later account). In the
 app, students request from a class's details (a sheet with
 the class, the cancellation deadline and the rule to accept), withdraw (with a confirmation, or at once from the
 waiting list), and see their status on the details and on the Agenda's cards — "Você está inscrito" once approved,
@@ -183,7 +207,9 @@ them to contact the school, with the school's WhatsApp. Admins decide in the
 directly in the "Inscrever aluno" tool (a row on their home: search a student, pick a day and one of its upcoming
 classes), and take one out with "Retirar" on a student in the list of an upcoming class's details (a sheet with an
 optional reason). A taken-out student reads "Você foi retirado da aula" with the reason, the chip "Retirado" and
-"Pedir novamente".
+"Pedir novamente". The same tool's "Aula experimental" mode adds a guest (name and WhatsApp number); guests show in
+an upcoming class's student list with a "Trial" chip and, for admins, "Retirar" (a confirmation reminding them to
+tell the guest on WhatsApp).
 
 ## Spec history
 
@@ -213,3 +239,9 @@ optional reason). A taken-out student reads "Você foi retirado da aula" with th
   contract; the roster's students carry their enrolment's id for Classes; the app's "Inscrever aluno" tool and home
   row, "Retirar" with its sheet on the admin's class details, the student's taken-out banner, chip and "Pedir
   novamente", and the push taps.
+- `045-guests` — added the `guest` aggregate: admins add a trial guest (`POST /classes/:id/guests`, name and
+  WhatsApp number, the class's lock shared with every seat writer) and take one out (`DELETE /guests/:id`), telling
+  nobody; guests count in the seats taken and the roster carries them for Classes, names only for admins and the
+  class's instructors; `GuestErasureJob` erases a guest's name and number 30 days after the class ended or was
+  cancelled; the app's "Aula experimental" mode of "Inscrever aluno", the guest rows with "Trial" and "Retirar" on
+  the details, and "inclui N trial".

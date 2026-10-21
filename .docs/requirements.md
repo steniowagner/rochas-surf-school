@@ -979,6 +979,8 @@ Admins SHALL be able to take an approved student out of a class that hasn't star
 
 #### Guests
 
+_Implemented in spec 045-guests._
+
 Admins SHALL be able to enrol a guest, someone without an account who is trying the sport, in a class that hasn't started and has a free seat, by entering the guest's name and WhatsApp number. A guest SHALL take a seat.
 
 - _Guest enrolled:_ When an admin enrols a guest with their name and WhatsApp number, then the guest takes a seat in the class.
@@ -986,11 +988,15 @@ Admins SHALL be able to enrol a guest, someone without an account who is trying 
 
 #### Guests get nothing from the app
 
+_Implemented in spec 045-guests._
+
 The app SHALL NOT send anything to guests. When an admin edits or cancels a class that has guests, the app SHALL warn the admin that the guests won't be notified.
 
 - _Class with a guest cancelled:_ When an admin cancels a class that has a guest, then the app warns the admin that the guest won't be notified.
 
 #### Class lists
+
+_Implemented in spec 045-guests._
 
 Everyone who can see a class SHALL see who holds its seats: approved students by name, and guests labelled "Trial". Admins and the class's instructors SHALL also see each guest's name.
 
@@ -999,11 +1005,15 @@ Everyone who can see a class SHALL see who holds its seats: approved students by
 
 #### Trial classes don't carry over
 
+_Implemented in spec 045-guests._
+
 A guest's trial class SHALL NOT be linked to an account the guest creates later.
 
 - _Former guest signs up:_ When a former guest creates an account, then their trial class does not appear in their history.
 
 #### Guest data is erased
+
+_Implemented in spec 045-guests._
 
 The system SHALL erase a guest's name and WhatsApp number 30 days after their class finishes or is cancelled. The guest's seat SHALL then show "Trial" to everyone, admins and the class's instructors included.
 

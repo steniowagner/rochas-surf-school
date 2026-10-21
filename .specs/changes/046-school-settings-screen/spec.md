@@ -172,8 +172,14 @@ for a seat in a full class and see that the waiting list is closed; requests alr
   > deviations: the migration SQL was written by hand (the schema diff is one `ADD COLUMN`) instead of
   > `migrate dev`; `tsc` still reports the `RequestSeat` call in `enrolment.controller.ts` (fixed in T-04)
 
-- [ ] **T-04** — Add `src/modules/enrolment/waiting-list-setting.prisma.ts` and pass it to `RequestSeat`, with its spec.
+- [x] **T-04** — Add `src/modules/enrolment/waiting-list-setting.prisma.ts` and pass it to `RequestSeat`, with its spec.
   Covers: ER-02 · Done when: `npx vitest run src/modules/enrolment` passes.
+  > ✅ 2026-10-21 — added `PrismaWaitingListSetting` (reads `school_settings`, on while no row exists), registered it in
+  > `EnrolmentModule` and passed it, with the existing `PrismaSeatCounter`, to `RequestSeat` in the controller; files:
+  > `apps/backend/src/modules/enrolment/waiting-list-setting.prisma.ts`, `.../waiting-list-setting.prisma.spec.ts`,
+  > `.../enrolment.controller.ts`, `.../enrolment.controller.spec.ts`, `.../enrolment.module.ts`; verified:
+  > `npx vitest run src/modules/enrolment` (119 passed), `tsc --noEmit` clean; deviations: the seat counter is also
+  > passed (see T-02)
 
 - [ ] **T-05** — Add the waiting-list cases to `test/school-settings.e2e-spec.ts` and the closed case to
   `test/enrolment.e2e-spec.ts` (each resetting the switch after the test).

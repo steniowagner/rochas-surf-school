@@ -2,13 +2,14 @@
 id: "046"
 slug: school-settings-screen
 title: "School settings screen: waiting list switch and WhatsApp number"
-status: accepted
+status: finished
 created: 2026-10-19
 started: 2026-10-21
 base_commit: eb6839262462fba0be3e5d1a06cdb65c66d1ba06
 reviewed_commit: 7bfcca47419ed78217c9cd69718e074ad1760a78
 fronts: [school-settings, enrolment, backend, mobile]
 depends_on: ["045"]
+finished: 2026-10-21
 ---
 
 # 046 — School settings screen: waiting list switch and WhatsApp number

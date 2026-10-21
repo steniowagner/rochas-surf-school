@@ -209,6 +209,7 @@ A person whose registration was denied SHALL see the denial, with its reason whe
 #### School WhatsApp number
 
 _Implemented in spec 015-school-settings-whatsapp._
+_Implemented in spec 046-school-settings-screen._
 
 Admins SHALL be able to set the school's WhatsApp number, which every contact-the-school button in the app uses.
 
@@ -929,6 +930,8 @@ Students on the waiting list SHALL NOT be notified when a seat opens. They SHALL
 - _Seat opens:_ When a seat opens in a class with waiting requests, then the waiting students are not notified.
 
 #### Waiting list switch
+
+_Implemented in spec 046-school-settings-screen._
 
 Admins SHALL be able to turn the waiting list on or off, and it SHALL be on by default. While it is off, students SHALL NOT be able to request a class that has no free seat.
 

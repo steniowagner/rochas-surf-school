@@ -210,8 +210,10 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     and then renders an `<a>` with the same classes.
 - **`modules/<module>`** — business modules (`@rochas-surf-school/<module>`), plain TypeScript compiled with
   `tsc`. Tests with **Jest 30** + `ts-jest`, in `test/` mirroring `src/` (`*.test.ts`). Only `modules/auth`,
-  `modules/school-rules`, `modules/school-settings` (`GET /school-settings` and
-  `PUT /school-settings/whatsapp`, protected, both answer `{ whatsappNumber }`), `modules/notifications`
+  `modules/school-rules`, `modules/school-settings` (`GET /school-settings`, `PUT /school-settings/whatsapp` and,
+  since spec 046, `PUT /school-settings/waiting-list` `{ enabled }` — 422 `schoolSettings.waitingList.invalid` for
+  anything but a boolean —, protected, all answer `{ whatsappNumber, waitingListEnabled }`, the switch `true` while
+  no row exists; column `school_settings.waiting_list_enabled`, default true), `modules/notifications`
   (spec 020; no dependency on `auth`, see External integrations → Push notifications) and `modules/classes`
   (spec 028; depends on `auth` for `UserRole` / `UserStatus` only, and on `date-fns` 4 + `@date-fns/tz` at the
   app's versions; see Classes) exist today.
@@ -759,7 +761,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   token. The name rules shared by Create account and "Your name" are `nameRules()` in
   `modules/auth/utils/field-validation.ts`, the same as `User.validate()`.
 - Mobile closed-account calls: the Denied and Access removed screens read the school's number with a query on
-  `GET /school-settings` (`useSchoolWhatsapp` in `src/hooks/use-school-whatsapp.hook.ts`, authenticated, no retry);
+  `GET /school-settings` (`useSchoolWhatsapp` in `src/hooks/use-school-whatsapp.hook.ts`, which reads
+  `useSchoolSettings`, see Mobile school settings);
   the "Contact the school" button (`ContactSchoolButton`, `src/components/contact-school-button/`, shared with the
   class details' deadline notes since spec 043) renders only with a non-null number and opens `https://wa.me/<digits>` with
   `Linking.openURL` (a toast when it rejects) — loading, an error and `null` all hide it, because the contact is
@@ -768,6 +771,19 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   on `POST /auth/me/reactivation-request` that puts the answer in the session (`updateUser`) on 200, sets
   `reactivationStatus: "denied"` on 409 `user.reactivation.denied`, and signs out with a toast on 403
   `user.status.notDeleted`, so every answer leaves the screen matching the account.
+- Mobile school settings (spec 046): one query `["school-settings"]` (`SCHOOL_SETTINGS_QUERY_KEY`, `useSchoolSettings`
+  in `src/hooks/use-school-settings.hook.ts`, authenticated `GET /school-settings`, no retry; type
+  `SchoolSettings` in `use-school-settings.types.ts`) is shared by `useSchoolWhatsapp` and the class details.
+  `src/modules/school-settings/`: `SchoolSettingsScreen` (route `admin/school-settings`,
+  `routes.admin.schoolSettings`, reached from the admin home's "Escola" row) shows a spinner
+  (`testID="school-settings-loading"`), the error with "Tentar novamente", or `SchoolSettingsForm`
+  (`components/school-settings-form/` + hook), which starts its state from the loaded settings: a `Switch` and
+  `PhoneNumberField`, and one `Button` enabled when the switch or a typed number differs from the saved values and
+  the number, when typed, is valid (an emptied field counts as no change: the number can be replaced, not
+  cleared); a ref guards a double send. `useSaveSchoolSettings` (`hooks/`, no retry) sends only what changed — the
+  switch, then the number — puts the last answer in the cache, and maps errors to the shared no-connection /
+  generic toasts (an expired session shows nothing); success shows `schoolSettings.saved`. Copy under
+  `schoolSettings` and `admin.home.schoolSettingsRow`.
 - Mobile admin calls (`modules/admin`): one query `["registrations"]` (`useRegistrations`, authenticated
   `GET /registrations`, no retry) feeds both the admin home's pending count and the "Join the school" screen.
   `useApproveRegistration` / `useDenyRegistration` are mutations without retry (deny sends `{}` for a blank
@@ -1172,13 +1188,15 @@ guard's 401 `auth.token.invalid`.
 
 ## Enrolment
 
-Specs 041–045. The domain is `modules/enrolment` (`@rochas-surf-school/enrolment`, aggregates `src/enrolment/` and,
+Specs 041–046. The domain is `modules/enrolment` (`@rochas-surf-school/enrolment`, aggregates `src/enrolment/` and,
 since spec 045, `src/guest/`), which
 depends on `@rochas-surf-school/shared`, `@rochas-surf-school/auth` and `@rochas-surf-school/classes` (`ClassActor`,
 `assertCanReadClasses`, the discipline type); classes never imports it. The backend adapters live in
 `apps/backend/src/modules/enrolment/`: `EnrolmentModule` imports `NotificationsModule` (never `ClassesModule`),
 provides the controllers (`EnrolmentController`, `GuestsController`), `EnrolmentExpiryJob`, `GuestErasureJob` and
-every adapter, and exports the adapters, including the five
+every adapter (since spec 046 `PrismaWaitingListSetting`, `waiting-list-setting.prisma.ts`, which reads
+`school_settings.waiting_list_enabled` directly — on while no row exists — so enrolment never imports the
+school-settings module's code), and exports the adapters, including the five
 that implement classes ports (`PrismaClassRosterReader`, `PrismaSeatCounter`, `PrismaPendingRequestCounter`,
 `PrismaViewerEnrolmentReader`, `EnrolmentClassEnrolmentsCloser`); `ClassesModule` imports it, so there is no Nest
 import cycle.
@@ -1203,7 +1221,8 @@ import cycle.
   cancellationDeadline, instructorIds, hasCancellationRule }`), `StudentNameReader`
   (`findName(id)`), `EnrolmentNotifier` (`seatRequested`, `requestExpired`, `requestApproved` / `requestDenied`
   since spec 042, `seatCancelled` since spec 043, `studentEnrolled` / `studentTakenOut` since spec 044) and
-  `ClockProvider`; fakes and a factory under `test/mock/`.
+  `ClockProvider`, and since spec 046 `WaitingListSetting` (`isEnabled()`); `RequestSeat` also takes classes'
+  `SeatCounter`; fakes and a factory under `test/mock/`.
 - Table `enrolments` (`prisma/models/enrolment.model.prisma`, migration `20261019191737_enrolment`): `id`,
   `class_id` → `classes` `ON DELETE CASCADE`, `student_id` → `users` `ON DELETE RESTRICT`, `status` (Postgres enum
   `enrolment_status`, values exactly as `ENROLMENT_STATUSES`, camelCase), `requested_at`, `rule_accepted_at`,
@@ -1212,7 +1231,8 @@ import cycle.
 - `POST /classes/:id/enrolments` (`RequestSeat`) `{ acceptCancellationRule? }` → 201 `EnrolmentOut` `{ id, classId,
   status: "pending", requestedAt }`. Order: 403 `user.status.notApproved`, 403 `enrolment.role.notStudent`, 404
   `class.notFound` (non-UUID id without a lookup, or no class), 409 `class.cancelled`, 409 `class.started` (now ≥
-  `startsAt`), 422 `enrolment.rule.notAccepted` (the discipline has a rule — `PrismaEnrolmentClassReader` reads the
+  `startsAt`), 409 `enrolment.waitingList.closed` (spec 046: the switch is off and the seats taken reach the
+  capacity — counted only while it is off), 422 `enrolment.rule.notAccepted` (the discipline has a rule — `PrismaEnrolmentClassReader` reads the
   `cancellation_rules` row — and the flag isn't exactly `true`), 409 `enrolment.alreadyOpen` (the partial index).
   `ruleAcceptedAt` is now when there is a rule, else `null`. Then `StudentNameReader` and
   `EnrolmentNotifier.seatRequested({ classId, studentName, discipline, startsAt, instructorIds })`, both swallowed.
@@ -1306,7 +1326,8 @@ import cycle.
   full)`: none or `withdrawn` / `expired` → `request` / `requestAgain` (`primary`) or `joinWaitingList` /
   `requestAgain` (`dark`) when full; `pending` → `withdraw` (`outline`) or `leaveWaitingList` (`ghost`) when full;
   `denied`, `cancelled` and `takenOut` (spec 044) → `requestAgain`; `approved` → `cancelSeat` (`outline`) only with `canCancel`, the
-  third argument; any other status → none), `utils/enrolment-status.ts`
+  third argument; since spec 046 the fourth, `waitingListEnabled` (default true), gives none on a full class to
+  a student without an open enrolment while it is false; any other status → none), `utils/enrolment-status.ts`
   (`getEnrolmentDisplay`: `pending` on a full class reads `waitingList` — never stored —, with the banner and chip
   tone, icon and `enrolment.status.*` keys for `pending`, `waitingList`, `withdrawn`, `expired`, `approved` (`ok`),
   `denied` (`bad`, its banner pressable), `cancelled` (`dim`, chip "Você cancelou") and `takenOut` (`bad`, chip
@@ -1315,9 +1336,12 @@ import cycle.
   generic keys, `null` for an expired session and, on a cancel, for a closed deadline; `shouldReloadClass` for `class.started`, `class.cancelled`,
   `enrolment.alreadyOpen`, `enrolment.notPending`, `enrolment.notApproved` and `isDeadlineClosedError`
   (`enrolment.deadline.passed` / `.missing`); `isRuleNotAcceptedError`, which refetches the rules; spec 044: `getEnrolStudentErrorKey` → `enrolStudent.errors.*`,
-  `shouldReloadEnrolClasses` for `enrolment.class.full`, `class.started`, `class.cancelled`,
+  `isWaitingListClosedError` (spec 046: 409 `enrolment.waitingList.closed` → `enrolment.errors.waitingListClosed`,
+  and a reload); `shouldReloadEnrolClasses` for `enrolment.class.full`, `class.started`, `class.cancelled`,
   `enrolment.alreadyApproved` and `enrolment.student.invalid`, and `getTakeOutErrorKey` → `takeOutSheet.errors.*`). The
-  flow lives in `hooks/use-class-enrolment.hook.ts` (`useClassEnrolment({ item, state, canEnrol, now, reload })`, called
+  flow lives in `hooks/use-class-enrolment.hook.ts` (`useClassEnrolment({ item, state, canEnrol, now, reload,
+  waitingListEnabled })`, which exposes `waitingListClosed` and, on the closed refusal, also invalidates
+  `["school-settings"]`; called
   by the details' hook with the screen's minute clock): the CTA and banner only while `canEnrol` and `not-started`,
   `canCancel` (`now` before `cancellationDeadline`, exclusive like the backend) and `deadlineNote` (`"passed"` /
   `"missing"` for an approved seat that can't be cancelled), the three sheets' visibility, one
@@ -1336,7 +1360,10 @@ import cycle.
   `ClassDetailsScreen` takes `canEnrol` (set only by `src/app/(private)/student/class/[id].tsx`): a sticky footer
   `Button` with the CTA, the status banner after the state banners (it replaces "Turma cheia"; started, finished and
   cancelled classes show none), and `classDetails.full.waitingList` under "Turma cheia" while the CTA is
-  `joinWaitingList`. `ClassesWeekScreen` and `ClassCard` take `showEnrolment` (set only by the student's
+  `joinWaitingList`, or `classDetails.full.waitingListClosed` while `waitingListClosed` (spec 046); the details'
+  hook reads `useSchoolSettings` (not loaded or failed counts as on: the backend decides) and, for admins
+  (`canEdit`), adds `classDetails.full.newRequestsWait` or `classDetails.full.waitingListOff` under "Turma cheia";
+  instructors get neither. `ClassesWeekScreen` and `ClassCard` take `showEnrolment` (set only by the student's
   `(tabs)/index.tsx`): the card's status chip in the right slot, in place of "Sem vagas" (the started, finished and
   cancelled chips win). Copy under `enrolment` (`cta`, `status`, `requestSheet`, `withdrawSheet`, `cancelSeatSheet`,
   `cancelSeatNote`, `errors`) and

@@ -60,13 +60,17 @@ told nothing, and their name and number are erased 30 days after the class.
   status (`user.status.notApproved`, 403), its role (`enrolment.role.notStudent`, 403 — instructors and admins
   never take seats), the class (an id that isn't a UUID, or no class → `class.notFound`, 404),
   `class.cancelled` (409), `class.started` (409; a class whose start is exactly now has started, and a finished
-  one too), `enrolment.rule.notAccepted` (422), `enrolment.alreadyOpen` (409). A refused request stores nothing
+  one too), `enrolment.waitingList.closed` (409), `enrolment.rule.notAccepted` (422), `enrolment.alreadyOpen` (409). A refused request stores nothing
   and tells nobody.
 - **The cancellation rule is accepted only when there is one**: when the class's discipline has a rule, the
   request must say it accepts it (`true`, nothing else) and the moment is kept; without a rule the request is
   accepted either way and nothing is kept. The rule's text is never stored with the request.
-- **A full class still takes requests**: the waiting list is always on for now (the switch is spec 046), so a
-  request on a full class is an ordinary pending one, shown as on the waiting list.
+- **A full class takes requests only while the waiting list is on**: the school's waiting-list switch (in
+  [School settings](school-settings.md), on by default) decides. While it is on, a request on a full class (seats
+  taken ≥ capacity) is an ordinary pending one, shown as on the waiting list; while it is off, it is refused with
+  `enrolment.waitingList.closed` (409) and nothing is stored. A class with a free seat is requested either way.
+- **Turning the waiting list off ends nothing**: requests already waiting stay pending, and admins can still
+  approve them when a seat opens; only new requests on a full class are refused.
 - **One open enrolment per student and class**: a second request while one is pending or approved is
   `enrolment.alreadyOpen` (409) — also when two arrive at the same moment, where exactly one is stored. After an
   enrolment ends, the student may request again, as many times as they want until the class starts; every
@@ -184,13 +188,15 @@ It depends on [Classes](classes.md) (the actor, the access check, the class stat
 [Authentication](auth.md) (role and status names); Classes never depends on it. It reads a class — its
 discipline, start, end, capacity, cancellation, cancellation deadline, instructors and whether its discipline has
 a cancellation rule —
-and a student's name, and whether a user is an approved student, through its own contracts, which the backend fulfils. It answers Classes' contracts for the
+and a student's name, whether a user is an approved student, and the school's waiting-list switch, through its own
+contracts, which the backend fulfils (the switch from [School settings](school-settings.md)' stored settings, so
+enrolment never depends on that module); a request reads the seats taken through Classes' seat-count contract. It answers Classes' contracts for the
 roster (students and guests), the seats taken, the pending requests, the viewer's enrolment and closing a cancelled class's
 enrolments, through adapters the backend provides; Classes still decides when a class is cancelled and who else is
 told. It fulfils, through a backend adapter, [Authentication](auth.md)'s contract for releasing a deleted account's
 seats and requests; Authentication decides when. It doesn't send notifications itself: the new-request, decision,
 expiry, cancelled-seat, direct-enrolment and take-out notices go through its own contract, which [Notifications](notifications.md) fulfils. It
-doesn't read the clock directly. The waiting-list switch (046), telling
+doesn't read the clock directly. A waiting-list switch per class, telling
 students of class edits and location changes (047) and the student's "Minhas aulas" (048) aren't built, nor a
 history of who decided or undoing a decision, cancelling several seats at once or undoing a cancellation, taking a
 student out after the class starts, moving a student between classes, or enrolling several students at once; nor
@@ -209,7 +215,10 @@ classes), and take one out with "Retirar" on a student in the list of an upcomin
 optional reason). A taken-out student reads "Você foi retirado da aula" with the reason, the chip "Retirado" and
 "Pedir novamente". The same tool's "Aula experimental" mode adds a guest (name and WhatsApp number); guests show in
 an upcoming class's student list with a "Trial" chip and, for admins, "Retirar" (a confirmation reminding them to
-tell the guest on WhatsApp).
+tell the guest on WhatsApp). With the waiting list off, a student without an open request on a full upcoming class
+gets no button and reads "A lista de espera está fechada para esta aula." under "Turma cheia"; admins' "Turma
+cheia" banner reads "Novos pedidos entram na lista de espera." or "A lista de espera está desligada — ninguém pode
+pedir.".
 
 ## Spec history
 
@@ -245,3 +254,7 @@ tell the guest on WhatsApp).
   class's instructors; `GuestErasureJob` erases a guest's name and number 30 days after the class ended or was
   cancelled; the app's "Aula experimental" mode of "Inscrever aluno", the guest rows with "Trial" and "Retirar" on
   the details, and "inclui N trial".
+- `046-school-settings-screen` — a full class is refused with `enrolment.waitingList.closed` while the school's
+  waiting list is off (a new `WaitingListSetting` contract; `RequestSeat` also counts the seats through Classes'
+  `SeatCounter`, checked after `class.started` and before the rule); waiting requests stay pending and approvable;
+  the app's closed state on the student's details and the admin's full-class banner texts.

@@ -92,8 +92,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 - **`modules/school-settings`** (`@rochas-surf-school/school-settings`; no dependency on `auth`) — 1 aggregate:
   - `school-settings/` — `model/school-settings.entity.ts` (also `SCHOOL_SETTINGS_ID`, the fixed id of the
     single row), `provider/school-settings.repository.ts` (`get`, `save`),
-    `usecase/{get-school-settings,set-school-whatsapp}.usecase.ts`, `usecase/school-settings-actor.ts` and
-    `usecase/school-settings.out.ts` (`{ whatsappNumber }`). Its in-memory repository and test actors are in
+    `usecase/{get-school-settings,set-school-whatsapp,set-waiting-list}.usecase.ts` (`set-waiting-list`, spec 046),
+    `usecase/school-settings-actor.ts` and `usecase/school-settings.out.ts` (`{ whatsappNumber, waitingListEnabled }`). Its in-memory repository and test actors are in
     `test/mock/`.
 - **`modules/notifications`** (`@rochas-surf-school/notifications`; no dependency on `auth`) — 2 aggregates:
   - `notification/` — `model/notification.entity.ts` (`Notification` and `NOTIFICATION_TYPES`: `type` + `params`,
@@ -155,13 +155,14 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
   `@rochas-surf-school/auth` and `@rochas-surf-school/classes` — `ClassActor`, `assertCanReadClasses` and the
   discipline; classes never imports it) — 2 aggregates. `enrolment/`: `model/enrolment.entity.ts` (`Enrolment`,
   `ENROLMENT_STATUSES`, `OPEN_ENROLMENT_STATUSES`, `ENROLMENT_REASON_MAX`, `TAKE_OUT_REASON_MAX`; `approve`, `deny`
-  (spec 042), `cancel` (spec 043), `takeOut` (spec 044), `withdraw`, `expire`, `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,student-lookup.provider,enrolment-notifier.provider,clock.provider}.ts`
+  (spec 042), `cancel` (spec 043), `takeOut` (spec 044), `withdraw`, `expire`, `closeForCancelledClass`), `provider/{enrolment.repository,enrolment-class-reader.provider,student-name-reader.provider,student-lookup.provider,enrolment-notifier.provider,clock.provider,waiting-list-setting.provider}.ts`
   (`create` — a second open enrolment is `enrolment.alreadyOpen` —, `findById`, `withdraw` and `expire` conditional
   on pending, `findExpirable`, `closeOpenForClass`, `findPendingByClass(now)` (the `PendingRequestsClass` read
   model), the locked `approve` → `approved | full | notPending` and `deny` conditional on pending, `cancel`
   conditional on approved, `countPendingForClass`, `releaseForStudent` (spec 043), the locked `enrolDirectly` and
   `takeOut` conditional on approved (spec 044); the class as enrolment reads it, with its cancellation deadline; the
-  student's name; whether a user is an approved student (`StudentLookup`, spec 044); `seatRequested` /
+  student's name; whether a user is an approved student (`StudentLookup`, spec 044); the school's waiting-list switch
+  (`WaitingListSetting.isEnabled`, spec 046); `seatRequested` /
   `requestExpired` / `requestApproved` / `requestDenied` / `seatCancelled` / `studentEnrolled` / `studentTakenOut`),
   `usecase/{request-seat,withdraw-request,expire-pending-enrolments,close-class-enrolments,list-pending-requests,approve-request,deny-request,cancel-seat,release-student-enrolments,enrol-student,take-student-out}.usecase.ts`,
   `usecase/decision.ts` (the decided enrolment and its class, or 404; the not-started check) and
@@ -181,7 +182,8 @@ prisma/
   models/school-rules.model.prisma  # rules (created_by → users, SET NULL), rules_versions (one row, inserted
                                     # at version 0 by the school_rules migration)
   migrations/                   # <timestamp>_<module>[_<change>]/migration.sql
-  models/school-settings.model.prisma  # school_settings (at most one row, created by the first save)
+  models/school-settings.model.prisma  # school_settings (at most one row, created by the first save; whatsapp_number,
+                                       # waiting_list_enabled default true since spec 046)
   models/notifications.model.prisma    # notifications, push_tokens (→ users, cascade), push_tickets (no foreign key)
   models/classes.model.prisma   # locations (unique nullable name_key — null once archived —, nullable latitude,
                                 # longitude and archived_at), classes (starts_at indexed; cancelled_at and
@@ -240,8 +242,9 @@ src/
     school-rules.integration.http  # manual REST Client requests
   modules/school-settings/
     school-settings.module.ts   # wiring (DbModule)
-    school-settings.controller.ts  # GET /school-settings and PUT /school-settings/whatsapp (200) — protected;
-                                # both answer { whatsappNumber }
+    school-settings.controller.ts  # GET /school-settings, PUT /school-settings/whatsapp and
+                                # PUT /school-settings/waiting-list (200; spec 046) — protected; all answer
+                                # { whatsappNumber, waitingListEnabled }
     school-settings.prisma.ts   # PrismaSchoolSettingsRepository (get reads the fixed row, save upserts it)
     school-settings.integration.http  # manual REST Client requests
   modules/notifications/
@@ -321,6 +324,8 @@ src/
     enrolment-class-reader.prisma.ts  # PrismaEnrolmentClassReader (the class with its cancellation deadline, its
                                 # instructors, whether its discipline has a cancellation rule)
     student-name-reader.prisma.ts  # PrismaStudentNameReader
+    waiting-list-setting.prisma.ts  # PrismaWaitingListSetting (reads school_settings.waiting_list_enabled; on with no
+                                # row; spec 046)
     student-lookup.prisma.ts    # PrismaStudentLookup (an approved account with role student; spec 044)
     enrolment-expiry.job.ts     # EnrolmentExpiryJob (every minute, cron enrolment-expiry): runs
                                 # ExpirePendingEnrolments, logs the count only, never throws
@@ -413,6 +418,8 @@ src/
                                                      # above the tab bar
     (private)/admin/enrol-student.tsx                # "Inscrever aluno" tool (/admin/enrol-student, spec 044),
                                                      # above the tab bar
+    (private)/admin/school-settings.tsx              # "Configurações da escola" (/admin/school-settings, spec 046),
+                                                     # above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
     (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
     (private)/admin/cancellation-rules.tsx           # "Regras de cancelamento" (/admin/cancellation-rules), above
@@ -443,7 +450,7 @@ src/
     screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
                                 # pending count, the "Inscrições em aulas" row and its request count (spec 042),
                                 # the "Criar aulas" row and the "Regras de cancelamento" row,
-                                # "School" with the People row
+                                # "School" with the People row and the "Configurações da escola" row (spec 046)
     screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
                                 # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
                                 # the People PersonSheet (with the email) for a pressed card
@@ -623,6 +630,12 @@ src/
                                 # SchoolRulesList, fixed footer with the Checkbox and the CTA), school-rules-reader
                                 # (read-only: shield ScreenIntro, SchoolRulesList)
     screens/school-rules.screen.tsx  # the rules read from the Profile (/<role>/school-rules)
+  modules/school-settings/      # "Configurações da escola" (spec 046, admins)
+    screens/school-settings.screen.tsx  # loading, error + retry, or the form
+    components/school-settings-form/  # SchoolSettingsForm + hook: the waiting-list switch, PhoneNumberField, one
+                                # "Salvar" (only what changed, valid number, double-send guard)
+    hooks/use-save-school-settings.hook.ts  # PUT /school-settings/waiting-list, then /whatsapp; caches the answer; toasts
+    school-settings.types.ts    # SaveSchoolSettingsVariables
   modules/profile/              # the Profile tab, the same for every role
     screens/                    # profile.screen.tsx (rendered by every (tabs)/profile.tsx), edit-profile.screen.tsx,
                                 # profile-whatsapp.screen.tsx
@@ -708,8 +721,10 @@ src/
                                 # backend-locale.ts (toBackendLocale: app locale → en / es / pt-BR)
   constants/                    # routes.ts (every app path; routes.home is "/"), theme.ts (design tokens), theme-variables.ts
                                 # (--ds-* per scheme), fonts
-  hooks/                        # useTheme, color scheme, use-school-whatsapp.hook.ts (useSchoolWhatsapp: GET
-                                # /school-settings, authenticated → number or null; spec 043 moved it here)
+  hooks/                        # useTheme, color scheme, use-school-settings.hook.ts (+ .types.ts; useSchoolSettings:
+                                # GET /school-settings, ["school-settings"], authenticated, no retry; spec 046),
+                                # use-school-whatsapp.hook.ts (useSchoolWhatsapp: reads it → number or null; spec 043
+                                # moved it here)
 plugins/with-ios-scene-lifecycle.js    # config plugin (UIScene life cycle for iOS 27)
 app.json                        # the Expo config
 app.config.ts                   # takes app.json's config and appends the react-native-maps plugin with

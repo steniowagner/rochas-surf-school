@@ -187,7 +187,7 @@ Listed in the order people meet them.
     directly, or is taken out (with the reason), and when its class is edited or cancelled.
   - As built (spec 041): approved students request a seat from a class's details; the rule of the class's
     discipline is accepted only when there is one, and the moment is kept, never the text. A full class still takes
-    requests (the waiting list is always on until spec 046). Students withdraw their pending request until the
+    requests while the waiting list is on (spec 046). Students withdraw their pending request until the
     class starts, request again after any ended one, and never hold more than one open enrolment per class (two
     requests at the same moment leave one). Every approved admin and every instructor of the class is told of each
     request, each person once. Pending requests expire when the class starts, and the student is told; cancelling
@@ -212,6 +212,10 @@ Listed in the order people meet them.
     Admins take a student with an approved seat out of a class that hasn't started, with an optional reason (up to
     300 characters); the seat frees at once, only the student is told (with the reason as written, or a default
     line), and they may request again.
+  - As built (spec 046): approved admins turn the school's waiting list on or off (on by default, for every class
+    at once). While it is off, a student can't request a seat in a full class that hasn't started; a class with a
+    free seat is requested as before. Turning it off ends nothing: requests already waiting stay pending, and admins
+    can still approve them when a seat opens.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
   photo, or initials while there is no photo) and its guests ("Trial", or the name for admins and the class's
@@ -474,8 +478,8 @@ don't exist yet.
 the school's WhatsApp number through the backend, with its country code and no spaces or other characters (the
 same shape as a user's number); it can be replaced but never emptied, and the last save wins. Any signed-in
 account, whatever its role or status, reads it (nothing until one is set), so denied and removed accounts can
-use it. No screen sets the number yet (the admin's settings screens); the Denied and Access removed screens use
-it (spec 016). The waiting-list switch of the school settings isn't built.
+use it. Admins set it on "Configurações da escola" (spec 046), which also holds the waiting-list switch; the
+Denied and Access removed screens use it (spec 016).
 
 **Closed-account screens in the app** (spec `016-closed-account-screens`) — a denied, deleted or removed account
 now opens the real screen of its state instead of a placeholder, all built on one shared layout: why the
@@ -889,7 +893,23 @@ aviso — fale com eles por WhatsApp." (singular for one) on the `warn` tint. Th
 was cancelled, the guest's name and number are erased and the seat shows "Trial" to everyone. All copy is in pt-BR,
 es-ES and en-US.
 
-Active specs: none in progress; specs 046–048 (the rest of enrolment) are planned.
+**School settings screen** (spec `046-school-settings-screen`) — the admin home's "Escola" section has a
+"Configurações da escola" row, which opens the screen of the same name. Its "Lista de espera" section has the switch
+"Lista de espera nas turmas cheias" with "Numa aula cheia, os alunos podem entrar na lista de espera. Se abrir vaga,
+o pedido passa para a sua aprovação." while on, or "Desligada — numa aula cheia, os alunos veem «Turma cheia» e não
+podem pedir." while off; its "WhatsApp da escola" section has the country picker and number (Brazil preselected and
+the field empty while the school has no number) with "É o número do botão «Falar com a escola».". One "Salvar" is on
+only when the switch or the number differs from what is saved and the number, when typed, is valid (an invalid one
+shows the field's error); it saves only what changed, shows "Configurações salvas" and stays on the screen, and a
+failed save shows the usual toasts and keeps the edits. The school's number can be replaced but not cleared. While
+the waiting list is off, a student without an open request on a full class that hasn't started sees no button and
+"A lista de espera está fechada para esta aula." under "Turma cheia"; a request sent just as the switch went off
+shows that text as a toast and the class reloads. A student already waiting keeps "Sair da lista de espera". On a
+full class that hasn't started, admins read "Turma cheia" with "Novos pedidos entram na lista de espera." or "A
+lista de espera está desligada — ninguém pode pedir."; instructors see the banner alone. While the app can't read
+the settings, it treats the waiting list as on and the school decides. All copy is in pt-BR, es-ES and en-US.
+
+Active specs: none in progress; specs 047 and 048 (the rest of enrolment) are planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -963,7 +983,7 @@ Active specs: none in progress; specs 046–048 (the rest of enrolment) are plan
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On enrolment requests (specs 041–045), each planned in its own spec: the waiting-list switch (046 — until then it is always on); telling students and people with pending
+- On enrolment requests (specs 041–045), each planned in its own spec: telling students and people with pending
   requests about class edits and location changes (047); the student's "Minhas aulas" tab and history (048).
   Also left out: reminders before a class, storing the text of the cancellation rule a student accepted, and a
   success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
@@ -976,7 +996,9 @@ Active specs: none in progress; specs 046–048 (the rest of enrolment) are plan
   classes, enrolling several students at once, and enrolling from a class's details. On guests (spec 045):
   editing a guest's name or number, listing a person's past trials, showing a guest's WhatsApp number anywhere in
   the app, and turning a guest into a student; messaging guests and linking a guest to a later account are never
-  done, by product decision.
+  done, by product decision. On the waiting-list switch (spec 046): turning the waiting list on or off per class,
+  ending the waiting requests when it is turned off, recording who changed a school setting, and an open class's
+  details following a switch turned back on (it shows at the next opening).
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
   admin.

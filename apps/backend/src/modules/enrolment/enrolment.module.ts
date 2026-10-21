@@ -3,6 +3,8 @@ import { NotificationsModule } from '../notifications/notifications.module.js';
 import { EnrolmentController } from './enrolment.controller.js';
 import { EnrolmentSeatReleaser } from './enrolment.seat-releaser.js';
 import { EnrolmentExpiryJob } from './enrolment-expiry.job.js';
+import { GuestsController } from './guests.controller.js';
+import { PrismaGuestRepository } from './guest.prisma.js';
 import { PrismaClassRosterReader } from './class-roster-reader.prisma.js';
 import { EnrolmentClassEnrolmentsCloser } from './enrolment.class-enrolments-closer.js';
 import { PrismaEnrolmentClassReader } from './enrolment-class-reader.prisma.js';
@@ -16,7 +18,7 @@ import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js
 
 @Module({
   imports: [NotificationsModule],
-  controllers: [EnrolmentController],
+  controllers: [EnrolmentController, GuestsController],
   providers: [
     EnrolmentClassEnrolmentsCloser,
     EnrolmentExpiryJob,
@@ -24,6 +26,7 @@ import { PrismaViewerEnrolmentReader } from './viewer-enrolment-reader.prisma.js
     PrismaClassRosterReader,
     PrismaEnrolmentClassReader,
     PrismaEnrolmentRepository,
+    PrismaGuestRepository,
     PrismaPendingRequestCounter,
     PrismaSeatCounter,
     PrismaStudentLookup,

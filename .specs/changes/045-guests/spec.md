@@ -250,9 +250,15 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > (102 passed), `tsc --noEmit` clean after rebuilding the `classes` and `enrolment` modules; deviations: the lock
   > and the count live in `seats-taken.prisma.ts` rather than inside `guest.prisma.ts`, to share them with approvals.
 
-- [ ] **T-07** — Add `src/modules/enrolment/guests.controller.ts` (`POST /classes/:id/guests`, `DELETE /guests/:id`),
+- [x] **T-07** — Add `src/modules/enrolment/guests.controller.ts` (`POST /classes/:id/guests`, `DELETE /guests/:id`),
   its spec and `guests.integration.http`. Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-03 · Done when: `npx vitest run src/modules/enrolment/guests.controller.spec.ts` passes.
+  > ✅ 2026-10-20 — added `GuestsController` (`POST /classes/:id/guests` → 201, `DELETE /guests/:id` → 204, both
+  > behind the global auth guard) and registered it, with `PrismaGuestRepository`, in `EnrolmentModule`; files:
+  > `apps/backend/src/modules/enrolment/guests.controller.ts`, `…/guests.controller.spec.ts`,
+  > `…/guests.integration.http`, `…/enrolment.module.ts`; verified:
+  > `npx vitest run src/modules/enrolment/guests.controller.spec.ts` from `apps/backend` (8 passed), `tsc --noEmit`
+  > and oxlint clean; deviations: none.
 
 - [ ] **T-08** — Add `src/modules/enrolment/guest-erasure.job.ts` (D-05) with its spec.
   Covers: ER-04 · Done when: `npx vitest run src/modules/enrolment/guest-erasure.job.spec.ts` passes.

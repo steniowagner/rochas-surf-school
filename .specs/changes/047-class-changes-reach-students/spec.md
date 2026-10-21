@@ -2,7 +2,7 @@
 id: "047"
 slug: class-changes-reach-students
 title: "Students hear about class edits and location changes"
-status: in-review
+status: changes-requested
 started: 2026-10-21
 base_commit: 5ea7d04ede7e87382ab8db1a2a5ff69840b65941
 created: 2026-10-19
@@ -264,3 +264,67 @@ students, pending requests and instructors will be told. This closes the "with e
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-21 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (classes, backend, mobile: 27 tasks; the 15 backend oxlint warnings are all
+  on lines older than this spec)
+- related tests ✅ RELATED TESTS PASSED (apps/backend, apps/mobile, modules/classes 496, modules/enrolment 291)
+- coverage of the changed lines ✅ COVERAGE OK, 19 files at 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED, 22 files, 615 passed · mobile: ER-04 followed on the iOS simulator (pt-BR) ✅
+- HTTP against the local backend: `GET /classes/:id` for a class with 1 approved and 2 pending enrolments →
+  admin `pendingRequests: 2`, instructor and student `null`; the week list has no `pendingRequests` key
+
+**Expected Results**
+
+- ER-01 ✅ — `edit-class.usecase.test.ts` "notifies students" (kept instructors, students and pending requests;
+  instructors-only and unchanged saves tell no student; never the editor; a failed read tells the instructors
+  only) and e2e "edit tells students" (seated, pending and instructor told; withdrawn, expired and denied not;
+  push failure keeps the 200)
+- ER-02 ✅ — `edit-location.usecase.test.ts` "students" (own counts, larger count for a person who also teaches,
+  `notify: false`, never the editor) and e2e "location tells students" (counts 2 and 1, past and cancelled
+  classes ignored, one notification with count 2 for a student who teaches)
+- ER-03 ✅ — `get-class.usecase.test.ts` "pending requests", the e2e "pendingRequests" case and the HTTP check above
+- ER-04 ❌ — the cancel sheet and the full footer pass (simulator: "Avisamos 1 inscrito e 2 pessoas com pedido
+  pendente. A aula fica na agenda, marcada como cancelada." and "Ao salvar, avisamos os instrutores, 1 inscrito
+  e 2 com pedido pendente."); the footer with only one group breaks D-04's sentence, see F-01
+- ER-05 ✅ — `location-sheet.component.test.tsx`; copy in the three locales; no checkbox without upcoming classes
+- ER-06 ✅ — the taps open `/student/class/[id]` and `/student`, and the received pushes invalidate the queries;
+  but the `location.changed` tap test doesn't prove the new branch, see F-02
+
+**Findings**
+
+- [ ] **F-01** (D-04) — with students but no pending request (or the reverse), the edit footer drops the "e"
+  before the last group: "Ao salvar, avisamos os instrutores, 1 inscrito." (en-US "When you save, we notify
+  the instructors, 1 enrolled student.", es-ES the same). D-04's sentence always ends with "… e M com pedido
+  pendente.", and the evidence's deviation (list only the non-zero groups) produces a list without its
+  conjunction. Reproduce: `npx jest src/modules/classes/screens/edit-class.screen.test.tsx -t "names the
+  students"` from `apps/mobile`; the `[1, 0]` and `[0, 3]` cases assert the broken sentence. Expected: "os
+  instrutores" counts as the first item of the list, e.g. "Ao salvar, avisamos os instrutores e 1 inscrito."
+  and "… os instrutores e 3 com pedido pendente." (and the same in es-ES and en-US), with the tests updated.
+- [ ] **F-02** (tests) — "opens the Agenda of a student who taps a location.changed push"
+  (`use-notification-response.hook.test.tsx`) still passes with the new `location.changed` student branch of
+  `use-notification-response.hook.ts` removed: the fallback `router.replace(routes.home)` resolves to
+  `/student` as well, and the test only reads the pathname. Reproduce: delete the
+  `if (data?.type === "location.changed" && flow === "student")` block and run `npx jest
+  src/modules/notifications/hooks/use-notification-response.hook.test.tsx -t "location.changed"` → 3 passed.
+  Expected: a test that fails without the branch (e.g. it opens `/student` from another screen and `router.back()`
+  returns there, which a `replace` doesn't allow), or drop the branch if the fallback is the intended behavior.
+
+**Notes**
+
+- Memory Impact leaves out things `spec-finish` should record: `ClassEdited.studentIds`; the rename of
+  `LocationChanged.recipients[].instructorId` to `userId`; the new constructor arguments of `EditClass`,
+  `EditLocation` (`ClassAudienceReader`) and `GetClass` (`PendingRequestCounter`); `PrismaClassAudienceReader`
+  among the enrolment adapters of classes ports (technical-context → Enrolment); the student `class.edited` /
+  `location.changed` taps in the push section of Applications; the cancel sheet's new props and
+  `src/modules/classes/utils/audience.ts` (`joinAudience`).
+- On the simulator the admin was the class's only instructor: the edit footer still says "avisamos os
+  instrutores" and, without students or requests, the cancel sheet keeps "Avisamos os instrutores da aula.",
+  though nobody is told. That copy predates this spec and D-04 keeps it; a follow-up could drop it when K is 0.
+- The e2e "pendingRequests" case reads `week.body.items[0]`; finding the class by id would not depend on being
+  the only class that week.
+- Not done on the simulator: saving the edit and confirming the cancel. Both would change the shared dev
+  database and notify its accounts, and the e2e cases cover the stored notifications.

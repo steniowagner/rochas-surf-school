@@ -2,7 +2,7 @@
 id: "046"
 slug: school-settings-screen
 title: "School settings screen: waiting list switch and WhatsApp number"
-status: in-review
+status: changes-requested
 created: 2026-10-19
 started: 2026-10-21
 base_commit: eb6839262462fba0be3e5d1a06cdb65c66d1ba06
@@ -288,3 +288,66 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-21 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for school-settings, enrolment, backend,
+  mobile: 27 of 27 tasks)
+- related tests ✅ `RELATED TESTS PASSED` — apps/backend 58 · apps/mobile 1085 · modules/enrolment 291 ·
+  modules/school-settings 82
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (22 files, 608 tests)
+- D-03 checked with a temporary e2e case (not committed): with the switch off, a waiting request stays `pending` and
+  `POST /enrolments/:id/approve` answers 200 `approved` once a seat frees
+- user journeys on the iOS simulator (this branch's bundle through Metro, a backend built from this branch): as an
+  admin, home → "Configurações da escola" under "Escola" → the two sections, empty number with BR +55 (no school
+  number yet), "Salvar" off → switch off: the "Desligada…" text, "Salvar" on → saved, stored
+  `waiting_list_enabled = false`, the number untouched, the screen stays → a full class (1/1) shows "Turma cheia ·
+  A lista de espera está desligada — ninguém pode pedir." → switch back on → "Configurações salvas" toast, the
+  banner reads "Novos pedidos entram na lista de espera." The student side was not driven on the device (sign-in
+  codes go out by real email, so no student session was available); it rests on the class-details tests and the
+  backend e2e. The number journey (Denied screen opens the new number) was not driven either.
+
+**Expected Results**
+
+- ER-01 ❌ — the route, the 422 cases, the defaults and keeping each field across saves hold (e2e and module tests);
+  the 403 code for a student or instructor differs from the contract — see F-01
+- ER-02 ✅ — 409 `enrolment.waitingList.closed` on a full class with the switch off, nothing stored; a free seat and
+  the switch on are accepted (`request-seat.usecase.test.ts -t "waiting list"`, enrolment e2e); D-03 checked above
+- ER-03 ✅ — `school-settings.screen.test.tsx` (14 cases: sections, switch texts, only what changed is sent, invalid
+  number, no number, failed save keeps the edits, error with "Tentar novamente", done key), admin home row; pt-BR,
+  es-ES and en-US copy present; seen on the simulator
+- ER-04 ✅ — `class-details.screen.test.tsx -t "waiting list off"`: no button and the closed text, a waiting student
+  keeps "Leave the waiting list", a free seat keeps the request, a failed settings read counts as on, the 409 shows
+  the toast and reloads
+- ER-05 ✅ — `class-details.screen.test.tsx -t "full banner"` (on, off, instructor without description); both texts
+  seen on the simulator
+
+**Findings**
+
+- [ ] **F-01** (ER-01) — a student or instructor calling `PUT /school-settings/waiting-list` gets 403
+  `schoolSettings.role.notAdmin`, but ER-01 says 403 `user.role.notAdmin`. T-05 records this as a deviation, kept
+  for consistency with spec 015's number route, but the Expected Result was changed without the user's approval or
+  an entry under `## Amendments` (how-to-execute rule 10). Reproduce: `apps/backend/test/school-settings.e2e-spec.ts`
+  → "refuses an approved student with 403" asserts `['schoolSettings.role.notAdmin']`. Expected: either ER-01
+  amended to `schoolSettings.role.notAdmin` with the user's approval and logged under `## Amendments` (the code and
+  tests then stand), or the code answering `user.role.notAdmin`.
+- [ ] **F-02** (convention) — `apps/mobile/src/modules/school-settings/components/school-settings-form/school-settings-form.hook.ts`
+  imports `react-native` before `react-i18next`; `.claude/rules/react.md` §2 sorts each group alphabetically by
+  module path. Expected: `react`, `react-i18next`, `react-native`.
+
+**Notes**
+
+- The success toast "Configurações salvas" shows in the shared toast's only style (red, warning icon); the provider
+  has no success variant, so it matches the rest of the app — a success style would be a spec of its own.
+- `useSaveSchoolSettings` sends the switch, then the number: when the first succeeds and the second fails, the cache
+  keeps the old switch and the form still counts it as changed, so the next "Salvar" sends it again (harmless, the
+  route is idempotent).
+- `PrismaSchoolSettingsRepository.save` upserts both columns from a read-modify-write, so two admins saving different
+  fields at the same moment can overwrite each other's field; acceptable under the module's "last save wins" rule.
+- For `spec-finish`: `RequestSeat` now also takes `SeatCounter` from `@rochas-surf-school/classes` (the package was
+  already a dependency); worth recording in `memory/modules/enrolment.md` with the closed refusal.
+- The untracked root `tsconfig.json` (`extends: expo/tsconfig.base`) is not part of this spec; Expo tooling seems to
+  generate it.

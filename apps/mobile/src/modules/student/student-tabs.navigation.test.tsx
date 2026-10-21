@@ -77,6 +77,7 @@ const aClass = {
   instructors: [{ id: "i-1", name: "Carla Dias" }],
   seatsTaken: 0,
   students: [],
+  guests: [],
 };
 
 const people = {

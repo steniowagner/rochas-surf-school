@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import { useRef, useState } from "react";
+import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
@@ -26,6 +27,7 @@ import type { UseEnrolStudentScreenResult } from "./enrol-student.screen.types";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const STUDENT_ROLES: Person["role"][] = ["student"];
+const END_REACHED_OFFSET = 80;
 
 export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   const { t } = useTranslation();
@@ -76,6 +78,25 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     }
   };
 
+  const loadMoreOnScroll = ({
+    nativeEvent,
+  }: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = nativeEvent;
+
+    if (
+      contentOffset.y + layoutMeasurement.height >=
+      contentSize.height - END_REACHED_OFFSET
+    ) {
+      loadMoreStudents();
+    }
+  };
+
+  const classCards = dayItems.map((item) => ({
+    item,
+    full: isClassFull(item.seatsTaken, item.capacity),
+    selected: selectedClassId === item.id,
+  }));
+
   const submit = async ({ student, classId }: NonNullable<typeof target>) => {
     if (inFlight.current) {
       return;
@@ -119,6 +140,7 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     isFetchingMoreStudents: people.isFetchingNextPage,
     retryStudents: () => void people.refetch(),
     loadMoreStudents,
+    loadMoreOnScroll,
     selectedStudent,
     selectStudent: setSelectedStudent,
     now,
@@ -134,6 +156,7 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
         current.from === range.from && current.to === range.to ? current : range,
       ),
     dayItems,
+    classCards,
     isLoadingClasses: weekQuery.isPending,
     isClassesError: weekQuery.isError && !(weekQuery.error instanceof SessionExpiredError),
     retryClasses: () => void weekQuery.refetch(),

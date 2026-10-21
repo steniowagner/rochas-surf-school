@@ -3,8 +3,6 @@ import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   Text,
@@ -17,13 +15,10 @@ import { TextInput } from "@/components/ui/text-input";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
 import { ClassCard } from "@/modules/classes/components/class-card";
-import { isClassFull } from "@/modules/classes/utils/occupancy";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
 import { StackHeaderTitle, useLeftTitleHeader } from "@/navigation/stack-header";
 
 import { useEnrolStudentScreen } from "./enrol-student.screen.hook";
-
-const END_REACHED_OFFSET = 80;
 
 export function EnrolStudentScreen() {
   const { t } = useTranslation();
@@ -33,14 +28,6 @@ export function EnrolStudentScreen() {
   const headerOptions = useLeftTitleHeader(() => (
     <StackHeaderTitle title={t("enrolStudent.title")} />
   ));
-
-  const loadMoreOnScroll = ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const { contentOffset, layoutMeasurement, contentSize } = nativeEvent;
-
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - END_REACHED_OFFSET) {
-      screen.loadMoreStudents();
-    }
-  };
 
   const renderStudents = () => {
     if (screen.isLoadingStudents) {
@@ -67,7 +54,7 @@ export function EnrolStudentScreen() {
         testID="enrol-student-students"
         nestedScrollEnabled
         scrollEventThrottle={100}
-        onScroll={loadMoreOnScroll}
+        onScroll={screen.loadMoreOnScroll}
         className="max-h-72 rounded-card border border-line bg-surface"
       >
         {screen.students.map((student, index) => {
@@ -127,21 +114,16 @@ export function EnrolStudentScreen() {
 
     return (
       <View className="gap-3">
-        {screen.dayItems.map((item) => {
-          const full = isClassFull(item.seatsTaken, item.capacity);
-          const selected = screen.selectedClassId === item.id;
-
-          return (
-            <View
-              key={item.id}
-              accessibilityState={{ selected, disabled: full }}
-              pointerEvents={full ? "none" : "auto"}
-              className={`rounded-card border-2 ${selected ? "border-grape" : "border-transparent"} ${full ? "opacity-50" : ""}`}
-            >
-              <ClassCard item={item} now={screen.now} onPress={screen.selectClass} />
-            </View>
-          );
-        })}
+        {screen.classCards.map(({ item, full, selected }) => (
+          <View
+            key={item.id}
+            accessibilityState={{ selected, disabled: full }}
+            pointerEvents={full ? "none" : "auto"}
+            className={`rounded-card border-2 ${selected ? "border-grape" : "border-transparent"} ${full ? "opacity-50" : ""}`}
+          >
+            <ClassCard item={item} now={screen.now} onPress={screen.selectClass} />
+          </View>
+        ))}
       </View>
     );
   };

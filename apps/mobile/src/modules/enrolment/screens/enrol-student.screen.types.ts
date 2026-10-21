@@ -1,3 +1,5 @@
+import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
+
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
 import type { ClassItem } from "@/modules/classes/classes.types";
 import type { Person } from "@/modules/people/people.types";
@@ -12,6 +14,8 @@ export type UseEnrolStudentScreenResult = {
   isFetchingMoreStudents: boolean;
   retryStudents: () => void;
   loadMoreStudents: () => void;
+  /** Loads the next page of students once the list is scrolled near its end. */
+  loadMoreOnScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   selectedStudent: Person | null;
   selectStudent: (student: Person) => void;
   now: Date;
@@ -22,6 +26,8 @@ export type UseEnrolStudentScreenResult = {
   updateVisibleRange: (range: VisibleRange) => void;
   /** The selected day's classes that haven't started and aren't cancelled. */
   dayItems: ClassItem[];
+  /** `dayItems` with whether each is full (not selectable) and whether it is the selected one. */
+  classCards: { item: ClassItem; full: boolean; selected: boolean }[];
   isLoadingClasses: boolean;
   isClassesError: boolean;
   retryClasses: () => void;

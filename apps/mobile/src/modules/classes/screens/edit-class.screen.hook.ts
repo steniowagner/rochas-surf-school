@@ -249,6 +249,8 @@ export const useEditClassScreen = () => {
   const isNotFound = classQuery.error instanceof ApiError && classQuery.error.status === 404;
 
   return {
+    // The trial guests of the class get no notice of the edit.
+    guestCount: item?.guests.length ?? 0,
     isLoading: classQuery.isPending,
     isNotFound,
     // An expired session is handled by the session flow: nothing to show here.

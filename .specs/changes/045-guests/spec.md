@@ -339,8 +339,16 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > (1064 passed), `tsc --noEmit` and eslint clean; deviations: the trial sheet reuses `TakeOutSheet` with a
   > `trial` prop and `DenySheet` gained `hideReason`, rather than a separate sheet.
 
-- [ ] **T-13** — Add the guest warning (D-06) to `edit-class.screen.tsx` and `cancel-class-sheet`, with tests and copy.
+- [x] **T-13** — Add the guest warning (D-06) to `edit-class.screen.tsx` and `cancel-class-sheet`, with tests and copy.
   Covers: ER-07 · Done when: `npx jest src/modules/classes/screens/edit-class.screen.test.tsx src/modules/classes/components/cancel-class-sheet` passes.
+  > ✅ 2026-10-20 — added the `GuestsWarning` note (warn tint; "N alunos trial não têm conta e não recebem o aviso —
+  > fale com eles por WhatsApp.", singular for one, nothing without guests, copy in the three locales) to the footer
+  > of Editar aula and to the "Cancelar esta aula?" sheet (`guestCount`, from the class's `guests`); files:
+  > `apps/mobile/src/modules/classes/components/guests-warning/{index.ts,guests-warning.component.tsx,guests-warning.types.ts,guests-warning.component.test.tsx}`,
+  > `apps/mobile/src/modules/classes/components/cancel-class-sheet/{cancel-class-sheet.component.tsx,cancel-class-sheet.types.ts,cancel-class-sheet.component.test.tsx}`,
+  > `apps/mobile/src/modules/classes/screens/{edit-class.screen.tsx,edit-class.screen.hook.ts,edit-class.screen.test.tsx,class-details.screen.tsx,class-details.screen.hook.ts,class-details.screen.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/classes src/i18n` from
+  > `apps/mobile` (696 passed), `tsc --noEmit` and eslint clean; deviations: none.
 
 ### Verification
 

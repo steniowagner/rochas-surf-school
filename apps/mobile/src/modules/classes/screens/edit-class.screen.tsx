@@ -12,6 +12,7 @@ import { StackHeaderTitle } from "@/navigation/stack-header";
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
 import { FormSection } from "../components/form-section";
+import { GuestsWarning } from "../components/guests-warning";
 import { InstructorPicker } from "../components/instructor-picker";
 import { LocationPicker } from "../components/location-picker";
 import { LocationSheet } from "../components/location-sheet";
@@ -208,6 +209,7 @@ export function EditClassScreen() {
         className="gap-2 border-t border-line bg-page px-screen pt-3"
         style={{ paddingBottom: Math.max(insets.bottom, 16) }}
       >
+        <GuestsWarning count={screen.guestCount} />
         <Text className="ds-text-list-subtitle text-center text-ink-2">
           {t("editClass.note")}
         </Text>

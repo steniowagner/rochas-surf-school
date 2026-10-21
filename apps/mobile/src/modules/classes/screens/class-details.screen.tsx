@@ -452,6 +452,7 @@ export function ClassDetailsScreen({
       <CancelClassSheet
         visible={screen.cancelVisible}
         loading={screen.cancelling}
+        guestCount={screen.guestCount}
         onConfirm={screen.cancel}
         onClose={screen.closeCancel}
       />

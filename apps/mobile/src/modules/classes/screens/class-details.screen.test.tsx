@@ -1047,6 +1047,18 @@ describe("ClassDetailsScreen", () => {
       serveCancel();
     });
 
+    it("warns about the trial guests in the confirmation sheet (trial)", async () => {
+      fetchMock.mockImplementation(async () =>
+        ok(makeClass({ guests: [{ id: "g-1", name: "Carolina Reis" }] })),
+      );
+
+      await openSheet();
+
+      expect(
+        screen.getByText("1 trial student has no account and won't get the notice — talk to them on WhatsApp."),
+      ).toBeOnTheScreen();
+    });
+
     it("closes the tools and opens the confirmation sheet", async () => {
       await openSheet();
 

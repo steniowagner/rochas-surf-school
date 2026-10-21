@@ -87,6 +87,7 @@ const classItem = {
     { id: "t-1", name: "Ana Souza" },
     { id: "t-9", name: "Carla Dias" },
   ],
+  guests: [],
 };
 
 type Handler = (init?: { method?: string; body?: string }) => unknown;
@@ -214,6 +215,25 @@ describe("EditClassScreen", () => {
     expect(screen.getByRole("checkbox", { name: "Bruno Lima" })).not.toBeChecked();
     expect(screen.getByText("When you save, the class's instructors are notified.")).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
+  });
+
+  it.each([
+    [2, "2 trial students have no account and won't get the notice — talk to them on WhatsApp."],
+    [1, "1 trial student has no account and won't get the notice — talk to them on WhatsApp."],
+  ])("warns the admin that the %s trial guest(s) won't hear about the edit", async (count, note) => {
+    const guests = Array.from({ length: count }, (_, index) => ({ id: `g-${index}`, name: null }));
+    serve({ "GET /classes/c-1": () => ok({ ...classItem, guests }) });
+    await renderScreen();
+    await loaded();
+
+    expect(screen.getByText(note)).toBeOnTheScreen();
+  });
+
+  it("shows no trial warning for a class without guests", async () => {
+    await renderScreen();
+    await loaded();
+
+    expect(screen.queryByText(/trial student/)).toBeNull();
   });
 
   it("lists the class's own time while the suggestions are still loading", async () => {

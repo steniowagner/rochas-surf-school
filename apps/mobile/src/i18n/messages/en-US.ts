@@ -448,6 +448,8 @@ const messages = {
     spotsLeft_one: "{{count}} spot left",
     spotsLeft_other: "{{count}} spots left",
     soldOut: "sold out",
+    guestsWarning_one: "1 trial student has no account and won't get the notice — talk to them on WhatsApp.",
+    guestsWarning_other: "{{count}} trial students have no account and won't get the notice — talk to them on WhatsApp.",
     trialChip: "Trial",
     includesTrial_one: "includes {{count}} trial",
     includesTrial_other: "includes {{count}} trial",

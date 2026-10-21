@@ -228,6 +228,8 @@ export const useClassDetailsScreen = ({
     canTakeOut: canEdit && state === "not-started",
     takeOut,
     takeGuestOut,
+    // The trial guests of the class get no notice of a cancellation.
+    guestCount: item?.guests.length ?? 0,
     takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
     // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
     enrolmentDescription: !enrolment.display

@@ -160,9 +160,19 @@ they actually took. Students can follow all their requests in one place instead 
   > (pre-existing e2e warnings only); deviations: `PrismaClassViewReader.findByIds` (the T-01 port addition: one
   > `findMany` on the ids, nothing read for none).
 
-- [ ] **T-03** — Add `test/my-classes.e2e-spec.ts` (fixed clock, cleanup) with the current, history, paging,
+- [x] **T-03** — Add `test/my-classes.e2e-spec.ts` (fixed clock, cleanup) with the current, history, paging,
   exclusions and role cases.
   Covers: ER-01, ER-02 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-21 — Added the suite (classes clock fixed at 2026-10-14 10:00 Fortaleza, `ExpoPushProvider` faked,
+  > every class, location and user of its domain deleted after each test): "mine" — pending (latest after a
+  > withdrawal), under way approved and withdrawn classes by start with `myEnrolment`, a cancelled not-ended class
+  > present, a finished class and another student's class absent, `{ items: [] }`, 403 for instructor / admin /
+  > not approved, 401; "history" — 25 classes paged 20 + 5 newest first with `total: 25`, the default page, every
+  > exclusion (cancelled / takenOut / denied / expired / withdrawn, an approved seat followed by a newer withdrawal,
+  > a cancelled class, a class under way, an upcoming one, another student's), 422 keys together and per value, 403
+  > / 401. files: `apps/backend/test/my-classes.e2e-spec.ts`; verified: `npx vitest run --config vitest.config.e2e.ts
+  > test/my-classes.e2e-spec.ts` (7 passed) and `npm run test:e2e --workspace apps/backend` (23 files, 622 passed);
+  > deviations: none.
 
 ### Mobile (`apps/mobile`)
 

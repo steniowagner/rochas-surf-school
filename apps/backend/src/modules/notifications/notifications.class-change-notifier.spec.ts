@@ -57,6 +57,17 @@ describe('NotificationsClassChangeNotifier', () => {
     ]);
   });
 
+  it('also tells the students, once each, even when one is an instructor too', async () => {
+    const { notificationRepository, notifier } = setup();
+
+    await notifier.classEdited({ ...event, studentIds: [STUDENT_ID, INSTRUCTOR_ID] });
+
+    const stored = notificationRepository.createMany.mock.calls[0]![0].map(
+      (notification: { userId: string }) => notification.userId,
+    );
+    expect(stored).toEqual([INSTRUCTOR_ID, OTHER_ID, STUDENT_ID]);
+  });
+
   it('pushes to the phones of the instructor with the locale each registered', async () => {
     const { pushTokenRepository, pushProvider, notifier } = setup();
     pushTokenRepository.findByUserIds.mockResolvedValue([

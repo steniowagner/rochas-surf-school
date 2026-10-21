@@ -150,10 +150,21 @@ students, pending requests and instructors will be told. This closes the "with e
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Add `src/modules/enrolment/class-audience-reader.prisma.ts` with its spec, export it from
+- [x] **T-02** — Add `src/modules/enrolment/class-audience-reader.prisma.ts` with its spec, export it from
   `EnrolmentModule` and wire it into the classes and locations controllers. Skill:
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/enrolment src/modules/classes` passes.
+  > ✅ 2026-10-21 — `PrismaClassAudienceReader` (approved and pending enrolments; the location audience counts the
+  > upcoming, not cancelled classes per student), exported by `EnrolmentModule` and injected in both controllers;
+  > the notification adapters now take `studentIds` on `class.edited` and `userId` recipients on `location.changed`;
+  > files: `apps/backend/src/modules/enrolment/class-audience-reader.prisma.ts`, `.../class-audience-reader.prisma.spec.ts`,
+  > `.../enrolment.module.ts`, `apps/backend/src/modules/classes/classes.controller.ts`, `.../classes.controller.spec.ts`,
+  > `.../locations.controller.ts`, `.../locations.controller.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`, `.../notifications.class-change-notifier.spec.ts`,
+  > `.../notifications.location-change-notifier.ts`, `.../notifications.location-change-notifier.spec.ts`;
+  > verified: `npx vitest run src/modules/enrolment src/modules/classes src/modules/notifications` (48 files, 412 passed),
+  > `tsc --noEmit` and `oxlint src` clean (after `npm run build -w @rochas-surf-school/classes`); `GetClass` now also
+  > receives the pending-request counter in the controller; deviations: also ran the notifications specs, since the adapters changed.
 
 - [ ] **T-03** — Add the student cases to `test/classes.e2e-spec.ts` (edit, `pendingRequests`) and
   `test/locations.e2e-spec.ts` (location change).

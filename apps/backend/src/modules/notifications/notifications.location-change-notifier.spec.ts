@@ -30,8 +30,8 @@ function setup() {
 
 const event = {
   recipients: [
-    { instructorId: INSTRUCTOR_ID, count: 2 },
-    { instructorId: OTHER_ID, count: 1 },
+    { userId: INSTRUCTOR_ID, count: 2 },
+    { userId: OTHER_ID, count: 1 },
   ],
   locationName: 'Praia do Futuro',
 };

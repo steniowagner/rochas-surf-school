@@ -26,6 +26,7 @@ import {
 } from '@rochas-surf-school/classes';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import { PrismaClassAudienceReader } from '../enrolment/class-audience-reader.prisma.js';
 import { NotificationsLocationChangeNotifier } from '../notifications/notifications.location-change-notifier.js';
 import { GooglePlacesAddressSuggestionProvider } from './google-places.address-suggestions.js';
 import { PrismaLocationRepository } from './location.prisma.js';
@@ -47,6 +48,7 @@ export class LocationsController {
     private readonly clock: SystemClockProvider,
     private readonly locationChangeNotifier: NotificationsLocationChangeNotifier,
     private readonly addressSuggestionProvider: GooglePlacesAddressSuggestionProvider,
+    private readonly classAudienceReader: PrismaClassAudienceReader,
   ) {}
 
   @Get()
@@ -112,7 +114,12 @@ export class LocationsController {
     @Param('id') id: string,
     @Body() body?: EditLocationBody,
   ): Promise<LocationOut> {
-    return new EditLocation(this.locationRepository, this.locationChangeNotifier, this.clock).execute({
+    return new EditLocation(
+      this.locationRepository,
+      this.locationChangeNotifier,
+      this.clock,
+      this.classAudienceReader,
+    ).execute({
       actor: actorOf(user),
       id,
       name: body?.name,

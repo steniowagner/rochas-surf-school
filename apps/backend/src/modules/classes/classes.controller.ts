@@ -28,6 +28,7 @@ import {
 } from '@rochas-surf-school/classes';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
+import { PrismaClassAudienceReader } from '../enrolment/class-audience-reader.prisma.js';
 import { PrismaClassRosterReader } from '../enrolment/class-roster-reader.prisma.js';
 import { EnrolmentClassEnrolmentsCloser } from '../enrolment/enrolment.class-enrolments-closer.js';
 import { PrismaPendingRequestCounter } from '../enrolment/pending-request-counter.prisma.js';
@@ -64,6 +65,7 @@ export class ClassesController {
     private readonly classRosterReader: PrismaClassRosterReader,
     private readonly viewerEnrolmentReader: PrismaViewerEnrolmentReader,
     private readonly classEnrolmentsCloser: EnrolmentClassEnrolmentsCloser,
+    private readonly classAudienceReader: PrismaClassAudienceReader,
   ) {}
 
   @Post('batch')
@@ -125,6 +127,7 @@ export class ClassesController {
       this.classViewReader,
       this.classRosterReader,
       this.viewerEnrolmentReader,
+      this.pendingRequestCounter,
     ).execute({ actor: actorOf(user), id });
   }
 
@@ -145,6 +148,7 @@ export class ClassesController {
       this.classChangeNotifier,
       this.seatCounter,
       this.clock,
+      this.classAudienceReader,
     ).execute({
       actor,
       id,
@@ -163,6 +167,7 @@ export class ClassesController {
       this.classViewReader,
       this.classRosterReader,
       this.viewerEnrolmentReader,
+      this.pendingRequestCounter,
     ).execute({ actor, id });
   }
 
@@ -190,6 +195,7 @@ export class ClassesController {
       this.classViewReader,
       this.classRosterReader,
       this.viewerEnrolmentReader,
+      this.pendingRequestCounter,
     ).execute({ actor, id });
   }
 

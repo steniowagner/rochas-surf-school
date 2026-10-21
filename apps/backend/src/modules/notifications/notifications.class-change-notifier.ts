@@ -37,16 +37,25 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
     );
   }
 
-  async classEdited({ instructorIds, classId, discipline, startsAt }: ClassEdited): Promise<void> {
+  async classEdited({
+    instructorIds,
+    studentIds = [],
+    classId,
+    discipline,
+    startsAt,
+  }: ClassEdited): Promise<void> {
+    // The students with a seat or a request get the same text as the instructors; a person is told once.
+    const recipientIds = [...new Set([...instructorIds, ...studentIds])];
+
     try {
       await this.notify.execute({
-        userIds: instructorIds,
+        userIds: recipientIds,
         type: 'class.edited',
         params: { classId, discipline, startsAt: startsAt.toISOString() },
       });
     } catch (error) {
       this.logger.error(
-        `Could not notify class.edited to ${instructorIds.length} instructor(s)`,
+        `Could not notify class.edited to ${recipientIds.length} person(s)`,
         error instanceof Error ? error.stack : String(error),
       );
     }

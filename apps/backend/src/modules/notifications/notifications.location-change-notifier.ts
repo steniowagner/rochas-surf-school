@@ -9,8 +9,8 @@ import { SystemClockProvider } from './system.clock.js';
 
 /**
  * The adapter of `classes`' LocationChangeNotifier port. The edit is already stored when it runs, so notifying never
- * changes the answer: every error is logged and swallowed, and nothing retries. Each instructor gets their own
- * notification, because the count of their upcoming classes at the location differs.
+ * changes the answer: every error is logged and swallowed, and nothing retries. Each person (instructor or student)
+ * gets their own notification, because the count of their upcoming classes at the location differs.
  */
 @Injectable()
 export class NotificationsLocationChangeNotifier implements LocationChangeNotifier {
@@ -34,16 +34,16 @@ export class NotificationsLocationChangeNotifier implements LocationChangeNotifi
   }
 
   async locationChanged({ recipients, locationName }: LocationChanged): Promise<void> {
-    for (const { instructorId, count } of recipients) {
+    for (const { userId, count } of recipients) {
       try {
         await this.notify.execute({
-          userIds: [instructorId],
+          userIds: [userId],
           type: 'location.changed',
           params: { count, locationName },
         });
       } catch (error) {
         this.logger.error(
-          'Could not notify location.changed to 1 instructor',
+          'Could not notify location.changed to 1 person',
           error instanceof Error ? error.stack : String(error),
         );
       }

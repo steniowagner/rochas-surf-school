@@ -260,8 +260,13 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
   > `npx vitest run src/modules/enrolment/guests.controller.spec.ts` from `apps/backend` (8 passed), `tsc --noEmit`
   > and oxlint clean; deviations: none.
 
-- [ ] **T-08** — Add `src/modules/enrolment/guest-erasure.job.ts` (D-05) with its spec.
+- [x] **T-08** — Add `src/modules/enrolment/guest-erasure.job.ts` (D-05) with its spec.
   Covers: ER-04 · Done when: `npx vitest run src/modules/enrolment/guest-erasure.job.spec.ts` passes.
+  > ✅ 2026-10-20 — added `GuestErasureJob` (cron `guest-erasure`, every minute, `waitForCompletion`; runs
+  > `EraseGuestData`, logs only the count, never throws) and registered it in `EnrolmentModule`; files:
+  > `apps/backend/src/modules/enrolment/guest-erasure.job.ts`, `…/guest-erasure.job.spec.ts`,
+  > `…/enrolment.module.ts`; verified: `npx vitest run src/modules/enrolment/guest-erasure.job.spec.ts` from
+  > `apps/backend` (5 passed), `tsc --noEmit` clean; deviations: none.
 
 - [ ] **T-09** — Add `test/guests.e2e-spec.ts` (fixed clock, cleanup) with the add, refusals, visibility per role,
   remove, delete-class-not-empty, capacity and erasure cases.

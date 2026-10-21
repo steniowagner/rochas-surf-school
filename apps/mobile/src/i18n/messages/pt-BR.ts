@@ -807,8 +807,9 @@ const messages: Messages = {
       description: "Só dá para trocar os instrutores.",
     },
     note: "Ao salvar, avisamos os instrutores da aula.",
-    noteWithAudience: "Ao salvar, avisamos os instrutores, {{list}}.",
+    noteWithAudience: "Ao salvar, avisamos {{list}}.",
     audience: {
+      instructors: "os instrutores",
       students_one: "{{count}} inscrito",
       students_other: "{{count}} inscritos",
       pending_one: "{{count}} com pedido pendente",

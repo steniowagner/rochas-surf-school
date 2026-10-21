@@ -251,11 +251,12 @@ export const useEditClassScreen = () => {
   const studentCount = item?.students.length ?? 0;
   const pendingCount = item?.pendingRequests ?? 0;
   const audience = [
+    t("editClass.audience.instructors"),
     studentCount > 0 ? t("editClass.audience.students", { count: studentCount }) : null,
     pendingCount > 0 ? t("editClass.audience.pending", { count: pendingCount }) : null,
   ].filter((part) => part !== null);
   const note =
-    audience.length === 0
+    audience.length === 1
       ? t("editClass.note")
       : t("editClass.noteWithAudience", {
           list: joinAudience(audience, t("editClass.audience.and")),

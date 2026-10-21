@@ -807,8 +807,9 @@ const messages = {
       description: "Only the instructors can be changed.",
     },
     note: "When you save, the class's instructors are notified.",
-    noteWithAudience: "When you save, we notify the instructors, {{list}}.",
+    noteWithAudience: "When you save, we notify {{list}}.",
     audience: {
+      instructors: "the instructors",
       students_one: "{{count}} enrolled student",
       students_other: "{{count}} enrolled students",
       pending_one: "{{count}} with a pending request",

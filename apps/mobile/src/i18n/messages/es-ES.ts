@@ -814,8 +814,9 @@ const messages: Messages = {
       description: "Solo se pueden cambiar los instructores.",
     },
     note: "Al guardar, avisamos a los instructores de la clase.",
-    noteWithAudience: "Al guardar, avisamos a los instructores, {{list}}.",
+    noteWithAudience: "Al guardar, avisamos a {{list}}.",
     audience: {
+      instructors: "los instructores",
       students_one: "{{count}} inscrito",
       students_other: "{{count}} inscritos",
       pending_one: "{{count}} con solicitud pendiente",

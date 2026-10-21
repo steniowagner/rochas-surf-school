@@ -233,8 +233,8 @@ describe("EditClassScreen", () => {
 
   it.each([
     [2, 1, "When you save, we notify the instructors, 2 enrolled students and 1 with a pending request."],
-    [1, 0, "When you save, we notify the instructors, 1 enrolled student."],
-    [0, 3, "When you save, we notify the instructors, 3 with a pending request."],
+    [1, 0, "When you save, we notify the instructors and 1 enrolled student."],
+    [0, 3, "When you save, we notify the instructors and 3 with a pending request."],
   ])("names the students (%s) and pending requests (%s) the save notifies", async (students, pending, note) => {
     serve({
       "GET /classes/c-1": () =>

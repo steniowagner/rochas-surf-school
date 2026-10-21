@@ -21,4 +21,8 @@ export class FakeClassViewReader implements ClassViewReader {
 
     return this.views.find((item) => item.id === id) ?? null;
   }
+
+  async findByIds(ids: string[]): Promise<ClassView[]> {
+    return this.views.filter((item) => ids.includes(item.id));
+  }
 }

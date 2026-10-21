@@ -111,11 +111,30 @@ they actually took. Students can follow all their requests in one place instead 
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add the `MyClassesReader` port and its fake, and `ListMyClasses` and `ListMyClassHistory` in
+- [x] **T-01** — Add the `MyClassesReader` port and its fake, and `ListMyClasses` and `ListMyClassHistory` in
   `src/school-class/usecase/` (D-01–D-04; the class items built with `ClassViewReader`, the roster, the viewer
   enrolment and `toClassItem` as `GetClass` does), with tests. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npx jest test/school-class` passes from `modules/classes`.
+  > ✅ 2026-10-21 — Added the `MyClassesReader` port (`findCurrentClassIds`, `findHistoryClassIds` → `{ ids, total }`)
+  > and `FakeMyClassesReader`; `ListMyClasses` (approved students only, else 403 `user.status.notApproved` /
+  > `enrolment.role.notStudent` via `assertIsStudent`; items sorted by start then id) and `ListMyClassHistory` (`page`
+  > digits ≥ 1, default 1; `perPage` 1–50, default 20; 422 `class.page.invalid` / `class.perPage.invalid` collected;
+  > items in the reader's newest-first order, a missing class dropped), both building the items with
+  > `toClassItem`, the card roster limit and the viewer enrolment (shared `toMyClassItems`). files:
+  > `modules/classes/src/school-class/provider/my-classes-reader.provider.ts`,
+  > `modules/classes/src/school-class/provider/class-view-reader.provider.ts`,
+  > `modules/classes/src/school-class/provider/index.ts`,
+  > `modules/classes/src/school-class/usecase/list-my-classes.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/list-my-class-history.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/test/mock/fake-my-classes.reader.ts`,
+  > `modules/classes/test/mock/fake-class-view.reader.ts`, `modules/classes/test/mock/index.ts`,
+  > `modules/classes/test/school-class/provider/fake-class-view.reader.test.ts`,
+  > `modules/classes/test/school-class/usecase/list-my-classes.usecase.test.ts`,
+  > `modules/classes/test/school-class/usecase/list-my-class-history.usecase.test.ts`; verified: `npx jest
+  > test/school-class` from `modules/classes` (23 suites, 389 passed; both use cases 100% statements, branches,
+  > functions, lines), `tsc --noEmit` and `npm run lint` clean; deviations: added `ClassViewReader.findByIds(ids)`
+  > (a missing technical step: the use cases load the reader's ids as views); its Prisma implementation comes in T-02.
 
 ### Backend (`apps/backend`)
 

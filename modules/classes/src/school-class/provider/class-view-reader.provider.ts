@@ -33,4 +33,6 @@ export interface ClassViewReader {
   /** The classes whose start is at or after `from` and before `to`. */
   findStartingBetween(from: Date, to: Date): Promise<ClassView[]>;
   findById(id: string): Promise<ClassView | null>;
+  /** The classes with these ids, in no particular order; an id with no class is left out. */
+  findByIds(ids: string[]): Promise<ClassView[]>;
 }

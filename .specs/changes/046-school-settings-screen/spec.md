@@ -181,9 +181,17 @@ for a seat in a full class and see that the waiting list is closed; requests alr
   > `npx vitest run src/modules/enrolment` (119 passed), `tsc --noEmit` clean; deviations: the seat counter is also
   > passed (see T-02)
 
-- [ ] **T-05** — Add the waiting-list cases to `test/school-settings.e2e-spec.ts` and the closed case to
+- [x] **T-05** — Add the waiting-list cases to `test/school-settings.e2e-spec.ts` and the closed case to
   `test/enrolment.e2e-spec.ts` (each resetting the switch after the test).
   Covers: ER-01, ER-02 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-21 — added the `PUT /school-settings/waiting-list` cases (switch off/on read by a student, number and
+  > switch kept across saves, 422 invalid, 403 per status and role, 401) and updated the existing expectations to the
+  > new `{ whatsappNumber, waitingListEnabled }` shape; added the closed-waiting-list case to the enrolment suite
+  > (full class refused with 409, free class and re-enabled switch accepted), which saves and restores the
+  > school settings rows around each test; files: `apps/backend/test/school-settings.e2e-spec.ts`,
+  > `apps/backend/test/enrolment.e2e-spec.ts`; verified: `npm run test:e2e` in `apps/backend` (22 files, 608 passed);
+  > deviations: ER-01 says a non-admin gets `user.role.notAdmin`, but the use case (like spec 015's number route)
+  > answers `schoolSettings.role.notAdmin`; kept consistent with the existing route
 
 ### Mobile (`apps/mobile`)
 

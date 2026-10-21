@@ -2,7 +2,7 @@
 id: "045"
 slug: guests
 title: "Trial guests in classes"
-status: in-review
+status: changes-requested
 started: 2026-10-20
 base_commit: a046889b23e7859fb5a1310e4454c51a3219150b
 created: 2026-10-19
@@ -409,3 +409,64 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-21 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for enrolment, classes, backend, mobile:
+  27 tasks; the backend's 14 lint warnings are all in files this spec didn't touch)
+- related tests ✅ backend 176 · mobile 1270 · classes 480 · enrolment 286 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (37 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 593 passed, `guests.e2e-spec.ts` included (`E2E PASSED`) · mobile: the admin journey followed
+  on the iOS simulator (iPhone 18 Pro, pt-BR): see ER-05 to ER-07
+- HTTP: the running backend answers both guest routes (401 without a token); the add and remove requests themselves
+  are covered by the e2e suite and were also made through the app (guest stored with `+5512358859999`, then deleted)
+
+**Expected Results**
+
+- ER-01 ✅ — `npx jest test/guest` and the "adds a guest" e2e cases: 201 `{ id, classId, name }`, seat taken, 422
+  name and number together, 404, 409 cancelled/started/full, the raced last seat leaves one winner, 403/401
+- ER-02 ✅ — `GetClass` / `ListWeekClasses` tests and the "visibility" e2e cases: names for admins and the class's
+  instructors, `null` for students and other instructors, `guests: []` without guests, erased guests `null` for
+  everyone, delete 409 `class.delete.notEmpty`, capacity below the seats taken refused
+- ER-03 ✅ — use-case tests and the "removes a guest" e2e cases: 204 and seat freed, 404 for a non-UUID or missing
+  guest, 409 `class.started`, 403/401
+- ER-04 ✅ — use-case, `guest-erasure.job.spec.ts` and the "erasure" e2e case: ended and cancelled 30 days ago
+  erased, 29 days untouched, second run 0, "Trial" for admins and instructors, only the count logged, never throws
+- ER-05 ❌ — the tests pass and, on the simulator, "Aluno da escola" starts selected, "Aula experimental" shows the
+  placeholder "Ex.: Carolina Reis", BR +55, the note, the invalid-number error and the disabled button; a valid name,
+  number and class enrolled "Carolina Reis"; but the "Nome" and "WhatsApp" labels aren't shown (F-01)
+- ER-06 ✅ — tests pass; on the simulator the details list "Carolina Reis" with the CR avatar, the "Trial" chip and
+  "Retirar", "2 alunos confirmados" with "+1", "Máx. 8 alunos · 6 vagas livres · inclui 1 trial"; "Retirar" opens
+  "Retirar Carolina Reis da aula?" with the no-account hint and no reason field, and removes the guest (7 vagas
+  livres). The chip is misaligned (F-02). The student and instructor views weren't driven on the simulator (it would
+  mean signing out the session there); the "visibility" e2e cases and `class-people` tests cover the names and "Trial"
+- ER-07 ✅ — tests pass; on the simulator the "Cancelar esta aula?" sheet and Editar aula's footer show "1 aluno trial
+  não tem conta e não recebe o aviso — fale com ele por WhatsApp." on the warn tint
+
+**Findings**
+
+- [ ] **F-01** (ER-05) — the trial mode of "Inscrever aluno" shows no "Nome" label over the name field and no
+  "WhatsApp" label over the phone field: both exist only as `accessibilityLabel`s
+  (`enrol-student.screen.tsx` `renderTrialGuest`), so the phone field is a bare box with nothing saying it is the
+  WhatsApp number. ER-05 says step 1 shows "Nome" (with the placeholder) and "WhatsApp", and PAINEL-06 draws both as
+  labels above the fields. Reproduce: as an admin, Início → Inscrever aluno → "Aula experimental". Expected: visible
+  "Nome" and "WhatsApp" labels above the two fields (all three locales), with a test asserting the visible text, not
+  only `getByLabelText`.
+- [ ] **F-02** (ER-06) — the "Trial" chip on a guest row sits at the top of the row instead of centered with the
+  avatar, the name and "Retirar": `Chip` carries `self-start`, which overrides the row's `items-center`
+  (`class-people.component.tsx`, guest row). Reproduce: a class with a guest → details → open the students list.
+  Expected: the chip vertically centered in the row (e.g. wrap it in a centered `View`, or let the row align it),
+  without changing the `Chip` component's behaviour elsewhere.
+
+**Notes**
+
+- In trial mode the screen's description still reads "Inscreva um aluno da escola numa aula."; PAINEL-06 reads
+  "Inscreve um aluno da escola, ou alguém sem conta numa aula experimental." Worth aligning while fixing F-01.
+- `class-details.screen.tsx`: the two `TakeOutSheet`s inside the new fragment aren't indented one level deeper.
+- The working tree has untracked files this spec doesn't own: a root `tsconfig.json` (extends `expo/tsconfig.base`)
+  and `.expo/`, both created at 23:18 by running Expo from the repo root; they should be removed or ignored, not
+  committed. The other specs' folders (046–048) are unrelated.
+- `## Memory Impact` matches what was built.
+- Independence: this round ran in a fresh session, not the one that executed the spec.

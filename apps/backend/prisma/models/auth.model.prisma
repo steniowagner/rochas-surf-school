@@ -62,6 +62,7 @@ model User {
   classInstructors  ClassInstructor[]
   cancellationRules CancellationRule[]
   enrolments        Enrolment[]
+  addedGuests       Guest[]
 
   @@map("users")
 }

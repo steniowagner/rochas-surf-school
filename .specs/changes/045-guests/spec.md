@@ -221,9 +221,18 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Add the `Guest` model to `prisma/models/enrolment.model.prisma` and the migration
+- [x] **T-05** — Add the `Guest` model to `prisma/models/enrolment.model.prisma` and the migration
   `enrolment-add-guests` (D-01). Skill: [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: enabling · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies it.
+  > ✅ 2026-10-20 — added the `Guest` model (table `guests`, D-01: `class_id` cascade, `created_by` set null, nullable
+  > `name`/`whatsapp_number`, `erased_at`) with the back-relations on `SchoolClass` and `User`, and the migration
+  > `20261020120000_enrolment_add_guests`; files: `apps/backend/prisma/models/enrolment.model.prisma`,
+  > `apps/backend/prisma/models/auth.model.prisma`, `apps/backend/prisma/models/classes.model.prisma`,
+  > `apps/backend/prisma/migrations/20261020120000_enrolment_add_guests/migration.sql`;
+  > verified: `npm run prisma:migrate:deploy --workspace apps/backend` applied it to the local database,
+  > `prisma validate` and `prisma generate` pass, `\d guests` shows the columns and both foreign keys;
+  > deviations: the migration SQL is hand-written (Prisma can't express the enrolments' partial unique index and
+  > would try to drop it, as the model file warns); migration folder uses underscores like its siblings.
 
 - [ ] **T-06** — Add `src/modules/enrolment/guest.prisma.ts` (the locked insert shared with approvals) and count and
   list guests in `class-roster-reader.prisma.ts`, `seat-counter.prisma.ts` and the pending-list's `seatsTaken`, with

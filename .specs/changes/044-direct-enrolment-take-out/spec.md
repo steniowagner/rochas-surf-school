@@ -2,7 +2,7 @@
 id: "044"
 slug: direct-enrolment-take-out
 title: "Admins enrol students directly and take them out of classes"
-status: in-review
+status: changes-requested
 started: 2026-10-20
 base_commit: 90b0058217d6be77961db34562be5e51bd4e82fc
 created: 2026-10-19
@@ -328,3 +328,35 @@ way and sees the result on the class.
 - The "no Retirar" test covers a student, started, finished and cancelled classes; an instructor goes through the same `canEdit === false` path but isn't asserted on its own.
 - Review data left in the dev database: location "Review 044" with a cancelled 2031 class, and a Thursday 22 Oct 07:00 class at "Review R2 Beach" whose enrolments ended as taken out. The simulator is now signed in as the admin review account.
 - `## Memory Impact` matches what was built.
+
+### Round 2 — 2026-10-20 — changes-requested
+
+**Checks**
+
+- lint ✅ (0 errors; backend 10 warnings, the same `require-array-sort-compare` / non-null pattern as the existing e2e suites, none from F-02's constants) · type check ✅ · build ✅ (`turbo run lint check-types build`, 27 tasks: enrolment, classes, notifications, backend, mobile). The first run failed `backend#build` with `EEXIST … src/generated/prisma/models` from two `prisma generate` running at once; the backend build alone and the full command rerun both pass, so it is a race of the pre-existing `prebuild`, not this spec
+- related tests ✅ RELATED TESTS PASSED (backend 21 files / 317, mobile 90 suites / 1309, classes 474, enrolment 235, notifications 117)
+- coverage of the changed lines ✅ COVERAGE OK (31 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (21 files, 580 tests, incl. `direct-enrolment.e2e-spec.ts`)
+- iOS simulator (iPhone 18 Pro, this branch through Metro, backend `start:dev`): admin "Inscrever aluno" → search "Dev" → Dev Student → Thu 22 → 12:00 class → "Inscrever Dev Student" → toast and back; the class shows 1/8 with the student; details → students → "Retirar" → sheet → reason → "Retirar da aula" → toast, class reloads with 8 free seats; the row stored `takenOut` with the reason
+
+**Expected Results**
+
+- ER-01 ✅ — use case tests, e2e "enrols directly" cases (refusals of D-02 in order, races) and the enrolment on the simulator
+- ER-02 ✅ — notifier and push-messages specs, e2e "notifies on a direct enrolment"
+- ER-03 ✅ — use case tests, e2e "takes out" cases (trimmed/blank/300/301/non-string reason, refusals, race) and the take-out on the simulator
+- ER-04 ✅ — push-messages spec and e2e "notifies on a take-out"
+- ER-05 ✅ — `test/school-class`, `class-roster-reader.prisma.spec.ts`, and the roster on the simulator
+- ER-06 ✅ — screen tests pass; walked on the simulator as above
+- ER-07 ✅ — F-01 verified on the simulator: the sheet shows "Retirar Dev da aula?", the summary, the visible "Motivo (opcional)" above the field (also with the keyboard up), "0/300", "Retirar da aula" (`danger`) and "Voltar"; the test now asserts the visible text
+- ER-08 ✅ — `class-details.screen.test.tsx -t "taken out"`, `src/modules/enrolment/utils` and `src/modules/notifications/hooks` pass (walked on the simulator in round 1; not re-walked as the student this round, and no fix touched it)
+
+**Findings**
+
+- [ ] **F-04** (convention) — the screens still compute values in their JSX, which `.claude/rules/react.md` §1 puts in the hook (the same rule F-03 applied to the class cards): `class-details.screen.tsx` derives the sheet's first name (`screen.takeOut.target?.name.split(" ")[0] ?? ""`, line 406) and picks the taken-out banner line (`takenOutReason ? t("…takenOut.reason", …) : t("…takenOut.noReason")` nested in the description ternary, lines 239–243); `enrol-student.screen.tsx` still compares each student row's `selected` (`screen.selectedStudent?.id === student.id`) while F-03 moved the class cards' `selected` into the hook. The project's precedent for the first name is `whatsapp.hook.ts` (`firstName` from the hook). Reproduce: read those lines. Expected: the hooks return the first name (e.g. from `useTakeOut` or `useClassDetailsScreen`), the banner's description text (or key + params), and the student rows with their `selected` flag, and the screens only wire them; tests keep passing and `COVERAGE OK`.
+
+**Notes**
+
+- F-01, F-02 and F-03 are fixed as recorded.
+- F-01 gave `DenySheet` a `showLabel` prop; `technical-context.md` still says its `label` is "used only as its accessibility label". `## Memory Impact` doesn't list that change — `spec-finish` should update that line (and `structure.md`'s deny-sheet description if it repeats it).
+- Round 1's notes still stand (success toasts in the coral `AlertMessage` style; `enrolment.alreadyOpen` from the P2002 race falls back to the generic toast; duplicated `isUuid`).
+- Review data added to the dev database this round: Dev Student enrolled into, then taken out of, the Thu 22 Oct 12:00 class at "Review R2 Beach" (reason "Revisao 2"). The simulator stays signed in as the admin review account.

@@ -2,7 +2,7 @@
 id: "046"
 slug: school-settings-screen
 title: "School settings screen: waiting list switch and WhatsApp number"
-status: in-progress
+status: in-review
 created: 2026-10-19
 started: 2026-10-21
 base_commit: eb6839262462fba0be3e5d1a06cdb65c66d1ba06
@@ -237,9 +237,18 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 
 ### Verification
 
-- [ ] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-21 — `run-related-tests.mjs 046`: RELATED TESTS PASSED (backend, mobile, enrolment, school-settings);
+  > `check-coverage.mjs 046`: COVERAGE OK (24 files; closing it needed a double-send guard in the settings form's save
+  > and tests for the keyboard's done key and a school with no number); `npx turbo run lint check-types build` for the
+  > four workspaces: 27 tasks successful; `run-e2e.mjs 046`: E2E PASSED (backend, 608 tests). User journeys NOT driven
+  > by me (no iOS build of the app was made): (1) on the iOS simulator as an admin, open "Configurações da escola"
+  > from the home, turn "Lista de espera nas turmas cheias" off, tap "Salvar" → the toast "Configurações salvas"
+  > shows and the screen stays; as a student on a full class, no button and the banner reads "A lista de espera está
+  > fechada para esta aula."; turn it back on → "Entrar na lista de espera" returns. (2) change the number and save;
+  > on a Denied screen "Falar com a escola" opens the new number.
 
 ## Verification Plan
 

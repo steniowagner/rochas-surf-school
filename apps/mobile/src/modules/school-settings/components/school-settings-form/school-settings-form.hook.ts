@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Keyboard } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +20,9 @@ export const useSchoolSettingsForm = ({
     settings.waitingListEnabled,
   );
 
+  // A second press in the same frame must not send twice, before `isPending` has re-rendered.
+  const sending = useRef(false);
+
   const isSwitchChanged = waitingListEnabled !== settings.waitingListEnabled;
   // An emptied field is no change: the school's number can be replaced, not cleared.
   const isNumberFilled = phone.whatsappNumber !== "";
@@ -31,10 +34,11 @@ export const useSchoolSettingsForm = ({
     !saveSettings.isPending;
 
   const save = () => {
-    if (!canSave) {
+    if (!canSave || sending.current) {
       return;
     }
 
+    sending.current = true;
     Keyboard.dismiss();
 
     saveSettings.mutate(
@@ -42,7 +46,12 @@ export const useSchoolSettingsForm = ({
         waitingListEnabled: isSwitchChanged ? waitingListEnabled : undefined,
         whatsappNumber: isNumberChanged ? phone.whatsappNumber : undefined,
       },
-      { onSuccess: () => alertMessage.show(t("schoolSettings.saved")) },
+      {
+        onSuccess: () => alertMessage.show(t("schoolSettings.saved")),
+        onSettled: () => {
+          sending.current = false;
+        },
+      },
     );
   };
 

@@ -1,4 +1,9 @@
-import { fireEvent, screen, userEvent } from "@testing-library/react-native";
+import {
+  fireEvent,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 
 import {
   account,
@@ -171,6 +176,20 @@ describe("SchoolSettingsScreen", () => {
     expect(saveButton()).toBeDisabled();
   });
 
+  it("sets the first number of a school that has none", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { whatsappNumber: null, waitingListEnabled: true }),
+    );
+    seedSession(account({ role: "admin" }));
+    await renderWithProviders(<SchoolSettingsScreen />);
+    const user = userEvent.setup();
+    await screen.findByText("Waiting list");
+
+    await user.type(numberField(), "85988887777");
+
+    expect(saveButton()).toBeEnabled();
+  });
+
   it("treats an emptied field as no change to the number", async () => {
     const user = await open();
 
@@ -208,5 +227,27 @@ describe("SchoolSettingsScreen", () => {
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText(OFF_TEXT)).toBeOnTheScreen();
+  });
+
+  it("does not save from the keyboard's done key when nothing changed", async () => {
+    await open();
+
+    await fireEvent(numberField(), "submitEditing");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves from the keyboard's done key, and only once while it is saving", async () => {
+    await open();
+    await turn(false);
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+
+    await fireEvent(numberField(), "submitEditing");
+    await fireEvent(numberField(), "submitEditing");
+
+    await waitFor(() => expect(saveButton()).toBeDisabled());
+    await fireEvent(numberField(), "submitEditing");
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

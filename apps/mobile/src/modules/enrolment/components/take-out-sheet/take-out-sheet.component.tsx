@@ -23,6 +23,7 @@ export function TakeOutSheet({
       title={t("takeOutSheet.title", { name: firstName })}
       hint={t("takeOutSheet.hint", { summary })}
       label={t("takeOutSheet.label")}
+      showLabel
       placeholder={t("takeOutSheet.placeholder")}
       backLabel={t("takeOutSheet.back")}
       confirmLabel={t("takeOutSheet.confirm")}

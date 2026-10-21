@@ -14,6 +14,7 @@ export function DenySheet({
   title,
   hint,
   label,
+  showLabel = false,
   placeholder,
   backLabel,
   confirmLabel,
@@ -38,6 +39,7 @@ export function DenySheet({
         </View>
         <TextArea
           inBottomSheet
+          label={showLabel ? label : undefined}
           accessibilityLabel={label}
           placeholder={placeholder}
           value={reason}

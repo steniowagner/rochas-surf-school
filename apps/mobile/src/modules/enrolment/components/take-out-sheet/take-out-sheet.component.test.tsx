@@ -27,6 +27,7 @@ describe("TakeOutSheet", () => {
         "Surf Beginner · Tomorrow, 08:00 – 09:00. The spot becomes free. The person is notified, with the reason if you write one.",
       ),
     ).toBeOnTheScreen();
+    expect(screen.getByText("Reason (optional)")).toBeOnTheScreen();
     expect(screen.getByLabelText("Reason (optional)")).toBeOnTheScreen();
     expect(screen.getByText("0/300")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Take out of the class" })).toBeOnTheScreen();

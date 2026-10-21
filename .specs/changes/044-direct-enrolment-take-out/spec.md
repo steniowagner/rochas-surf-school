@@ -2,7 +2,7 @@
 id: "044"
 slug: direct-enrolment-take-out
 title: "Admins enrol students directly and take them out of classes"
-status: in-review
+status: changes-requested
 started: 2026-10-20
 base_commit: 90b0058217d6be77961db34562be5e51bd4e82fc
 created: 2026-10-19
@@ -288,3 +288,40 @@ way and sees the result on the class.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-20 — changes-requested
+
+**Checks**
+
+- lint ✅ (0 errors; backend has 12 warnings, 2 of them new dead code: see F-02) · type check ✅ · build ✅ (`turbo run lint check-types build`, 27 tasks: enrolment, classes, notifications, backend, mobile)
+- related tests ✅ RELATED TESTS PASSED (backend 21 files / 317, mobile 1302, classes 474, enrolment 235, notifications 117)
+- coverage of the changed lines ✅ COVERAGE OK (30 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED (21 files, 580 tests, incl. `direct-enrolment.e2e-spec.ts`)
+- HTTP against `npm run dev` (review accounts of `apps/backend/.env`) ✅: direct enrolment 201 `{ id, classId, status: "approved", requestedAt }`; from pending 200 with the same id; 409 `enrolment.alreadyApproved`; 404 `class.notFound`; 422 `enrolment.student.invalid` for a non-UUID, an instructor and an admin; 403 `user.role.notAdmin` for a student; roster `students[]` = `{ id, name, photoUrl, enrolmentId }`; take-out 200 `takenOut` with the reason stored trimmed, 422 `enrolment.reason.max.length` (301 chars, and a number), 409 `enrolment.notApproved`, 404 `enrolment.notFound`, 403 for a student; the student's `myEnrolment` reads `takenOut` with the reason
+- iOS simulator (iPhone 18 Pro, this branch through Metro): both user journeys of the Verification Plan walked — see ER-06, ER-07, ER-08
+
+**Expected Results**
+
+- ER-01 ✅ — use case tests (19), e2e "enrols directly" cases and the HTTP requests above
+- ER-02 ✅ — notifier and push-messages specs, e2e "notifies on a direct enrolment" (student only, `enrolment.approved` from pending, push failure keeps the 201)
+- ER-03 ✅ — use case tests, e2e "takes out" cases and the HTTP requests above
+- ER-04 ✅ — push-messages spec (reason as body, default text otherwise, three locales) and e2e "notifies on a take-out"
+- ER-05 ✅ — `test/school-class` and `class-roster-reader.prisma.spec.ts`; `GET /classes/:id` returns `enrolmentId` on each student
+- ER-06 ✅ — screen tests pass; on the simulator the "Inscrever aluno" row sits under Ferramentas, the screen shows the intro, "1 · Quem" with "Procurar aluno" (search narrows to "Dev Student"), initials avatars and radios, "2 · Aula" with the week calendar, "Sem aulas por começar neste dia." on a day whose class finished, "Inscrever" disabled until both are picked, then "Inscrever Dev Student" → toast "Dev Student inscrito · aluno avisado" and back to the home; the class shows 1/3 with the student
+- ER-07 ❌ — see F-01. Otherwise as specified on the simulator: "Retirar" (outline, `bad` text) on the student row, sheet "Retirar Dev da aula?" with "Surf Iniciante · Quinta-feira · 22 out, 07:00 – 07:45. A vaga fica livre. …", a 300-character field, "Retirar da aula" (`danger`) and "Voltar"; confirming toasts "Dev Student retirado · aluno avisado" and the class reloads empty with 3 free seats
+- ER-08 ✅ — tests pass; on the simulator as the student the Agenda chip reads "Retirado" (`bad`), and the details show "Você foi retirado da aula" / "Motivo: “Esta turma é de nível avançado.”" on the `bad` tint with "Pedir novamente"
+
+**Findings**
+
+- [ ] **F-01** (ER-07) — the take-out sheet shows no "Motivo (opcional)" above the reason field: `TakeOutSheet` passes `label` to the shared `DenySheet`, which only uses it as the `TextArea`'s `accessibilityLabel`, so a sighted admin sees only the placeholder. ER-07 lists "Motivo (opcional)" among the sheet's visible copy, and the design's `retirar` sheet (`.docs/designs/admin-app.html`) draws an uppercase "Motivo" with a lighter "(opcional)" above the textarea. Reproduce: as an admin, open an upcoming class with a student → students list → "Retirar". Expected: the label "Motivo (opcional)" is visible above the field (e.g. let `DenySheet` render `TextArea`'s visible `label` for this sheet), and the take-out sheet test asserts the visible text, not only the accessible name.
+- [ ] **F-02** (convention) — `apps/backend/test/direct-enrolment.e2e-spec.ts` lines 26–28 declare `LATER_STARTS_AT` / `LATER_ENDS_AT` (with their comment) and never use them; the backend lint reports two `no-unused-vars` warnings for them. T-13's evidence calls the 12 warnings "the same pattern the existing e2e suites use", which holds only for the 10 `require-array-sort-compare` ones. Reproduce: `npx turbo run lint --filter=@rochas-surf-school/backend`. Expected: the dead constants removed (or used), and no new warnings from this spec.
+- [ ] **F-03** (convention) — `enrol-student.screen.tsx` computes the scroll end-reached check (`loadMoreOnScroll`: offset + height against content size minus `END_REACHED_OFFSET`) and each class card's `full` / `selected` inside the component. `.claude/rules/react.md` §1 puts "any function that performs a task or calculation for the component" in the hook and keeps the `.component`/screen file to JSX. Expected: the end-reached calculation (taking the scroll event) and the per-card `full`/`selected` derivation move to `useEnrolStudentScreen`, with the screen only wiring them.
+
+**Notes**
+
+- The success toasts ("… inscrito · aluno avisado", "… retirado · aluno avisado") render in the shared `AlertMessage` style (coral, "!" icon), the only style that provider has; the design flashes them as `info`. Pre-existing, not this spec's — worth a follow-up for the provider.
+- `enrolDirectly` maps a P2002 race to 409 `enrolment.alreadyOpen`, which D-02 doesn't list; the mobile screen falls back to the generic toast for it. Reasonable as a race guard; consider adding it to `shouldReloadEnrolClasses` / the error keys.
+- `isUuid` in `enrol-student.usecase.ts` duplicates the one in `usecase/decision.ts`.
+- The "no Retirar" test covers a student, started, finished and cancelled classes; an instructor goes through the same `canEdit === false` path but isn't asserted on its own.
+- Review data left in the dev database: location "Review 044" with a cancelled 2031 class, and a Thursday 22 Oct 07:00 class at "Review R2 Beach" whose enrolments ended as taken out. The simulator is now signed in as the admin review account.
+- `## Memory Impact` matches what was built.

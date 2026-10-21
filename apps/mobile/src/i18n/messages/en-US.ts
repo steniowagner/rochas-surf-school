@@ -752,6 +752,16 @@ const messages = {
   cancelClass: {
     title: "Cancel this class?",
     description: "We'll notify the class's instructors. It stays on the schedule, marked as cancelled.",
+    descriptionWithAudience: "We'll notify {{list}}. It stays on the schedule, marked as cancelled.",
+    audience: {
+      students_one: "{{count}} enrolled student",
+      students_other: "{{count}} enrolled students",
+      pending_one: "{{count}} person with a pending request",
+      pending_other: "{{count}} people with a pending request",
+      instructors_one: "{{count}} instructor",
+      instructors_other: "{{count}} instructors",
+      and: "and",
+    },
     messageLabel: "Message (optional)",
     messagePlaceholder: "E.g.: Waves too big. Moved to Saturday, same time.",
     confirm: "Cancel and notify",
@@ -797,6 +807,14 @@ const messages = {
       description: "Only the instructors can be changed.",
     },
     note: "When you save, the class's instructors are notified.",
+    noteWithAudience: "When you save, we notify the instructors, {{list}}.",
+    audience: {
+      students_one: "{{count}} enrolled student",
+      students_other: "{{count}} enrolled students",
+      pending_one: "{{count}} with a pending request",
+      pending_other: "{{count}} with a pending request",
+      and: "and",
+    },
     submit: "Save and notify",
     saved: "Changes saved",
     errors: {

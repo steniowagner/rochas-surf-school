@@ -15,12 +15,18 @@ export function CancelClassSheet({
   visible,
   loading,
   guestCount = 0,
+  studentCount,
+  pendingCount,
+  instructorCount,
   onConfirm,
   onClose,
 }: CancelClassSheetProps) {
   const { t } = useTranslation();
-  const { message, setMessage, confirm, close } = useCancelClassSheet({
+  const { message, setMessage, description, confirm, close } = useCancelClassSheet({
     visible,
+    studentCount,
+    pendingCount,
+    instructorCount,
     onConfirm,
     onClose,
   });
@@ -30,7 +36,7 @@ export function CancelClassSheet({
       <View className="gap-4">
         <View className="gap-1">
           <Text className="ds-text-sheet-title text-ink">{t("cancelClass.title")}</Text>
-          <Text className="ds-text-body text-ink-2">{t("cancelClass.description")}</Text>
+          <Text className="ds-text-body text-ink-2">{description}</Text>
         </View>
         <GuestsWarning count={guestCount} />
         <TextArea

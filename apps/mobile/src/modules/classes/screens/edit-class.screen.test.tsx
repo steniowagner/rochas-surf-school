@@ -88,6 +88,8 @@ const classItem = {
     { id: "t-9", name: "Carla Dias" },
   ],
   guests: [],
+  students: [],
+  pendingRequests: 0,
 };
 
 type Handler = (init?: { method?: string; body?: string }) => unknown;
@@ -223,6 +225,25 @@ describe("EditClassScreen", () => {
   ])("warns the admin that the %s trial guest(s) won't hear about the edit", async (count, note) => {
     const guests = Array.from({ length: count }, (_, index) => ({ id: `g-${index}`, name: null }));
     serve({ "GET /classes/c-1": () => ok({ ...classItem, guests }) });
+    await renderScreen();
+    await loaded();
+
+    expect(screen.getByText(note)).toBeOnTheScreen();
+  });
+
+  it.each([
+    [2, 1, "When you save, we notify the instructors, 2 enrolled students and 1 with a pending request."],
+    [1, 0, "When you save, we notify the instructors, 1 enrolled student."],
+    [0, 3, "When you save, we notify the instructors, 3 with a pending request."],
+  ])("names the students (%s) and pending requests (%s) the save notifies", async (students, pending, note) => {
+    serve({
+      "GET /classes/c-1": () =>
+        ok({
+          ...classItem,
+          students: Array.from({ length: students }, (_, index) => ({ id: `s-${index}`, name: "Aluno", photoUrl: null })),
+          pendingRequests: pending,
+        }),
+    });
     await renderScreen();
     await loaded();
 

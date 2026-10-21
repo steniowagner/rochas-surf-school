@@ -181,9 +181,19 @@ students, pending requests and instructors will be told. This closes the "with e
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Add `pendingRequests` to the class types and the counts of D-04 to `cancel-class-sheet` and
+- [x] **T-04** — Add `pendingRequests` to the class types and the counts of D-04 to `cancel-class-sheet` and
   `edit-class.screen.tsx`, with tests and copy in the three locales.
   Covers: ER-04 · Done when: `npx jest src/modules/classes/components/cancel-class-sheet src/modules/classes/screens/edit-class.screen.test.tsx` passes.
+  > ✅ 2026-10-21 — `ClassItem.pendingRequests`; the cancel sheet names the enrolled students, pending requests and other
+  > instructors (counts from `class-details.screen.hook.ts`, the viewer excluded), and the edit footer names the students
+  > and pending requests, each falling back to the old sentence when there is nobody to name; pt-BR, es-ES and en-US
+  > copy with singular and plural forms; files: `apps/mobile/src/modules/classes/utils/audience.ts`, `.../audience.test.ts`,
+  > `.../classes.types.ts`, `.../components/cancel-class-sheet/cancel-class-sheet.{component.tsx,hook.ts,types.ts,component.test.tsx}`,
+  > `.../screens/class-details.screen.{hook.ts,tsx,test.tsx}`, `.../screens/edit-class.screen.{hook.ts,tsx,test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified: `npx jest src/modules/classes/components/cancel-class-sheet
+  > src/modules/classes/screens src/modules/classes/utils/audience.test.ts` (6 suites, 361 passed), `tsc --noEmit` and
+  > `eslint src/modules/classes src/i18n` clean; deviations: a shared `joinAudience` helper joins the parts, and the sentence
+  > lists only the non-zero groups (D-04 gives only the full case).
 
 - [ ] **T-05** — Change the location sheet's checkbox copy (D-05) in the three locales, with the test updated.
   Covers: ER-05 · Done when: `npx jest src/modules/classes/components/location-sheet` passes.

@@ -467,6 +467,9 @@ export function ClassDetailsScreen({
         visible={screen.cancelVisible}
         loading={screen.cancelling}
         guestCount={screen.guestCount}
+        studentCount={screen.studentCount}
+        pendingCount={screen.pendingCount}
+        instructorCount={screen.instructorCount}
         onConfirm={screen.cancel}
         onClose={screen.closeCancel}
       />

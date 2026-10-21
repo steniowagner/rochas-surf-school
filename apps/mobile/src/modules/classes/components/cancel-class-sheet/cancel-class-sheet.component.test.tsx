@@ -138,4 +138,27 @@ describe("CancelClassSheet", () => {
 
     expect(screen.queryByText(/trial student/)).toBeNull();
   });
+
+  it.each([
+    [
+      { studentCount: 2, pendingCount: 1, instructorCount: 1 },
+      "We'll notify 2 enrolled students, 1 person with a pending request and 1 instructor. It stays on the schedule, marked as cancelled.",
+    ],
+    [
+      { studentCount: 1, pendingCount: 3, instructorCount: 2 },
+      "We'll notify 1 enrolled student, 3 people with a pending request and 2 instructors. It stays on the schedule, marked as cancelled.",
+    ],
+    [
+      { studentCount: 0, pendingCount: 0, instructorCount: 2 },
+      "We'll notify 2 instructors. It stays on the schedule, marked as cancelled.",
+    ],
+    [
+      { studentCount: 4, pendingCount: 0, instructorCount: 0 },
+      "We'll notify 4 enrolled students. It stays on the schedule, marked as cancelled.",
+    ],
+  ])("names who will be told: %j", async (counts, description) => {
+    await render(<CancelClassSheet {...props(counts)} />);
+
+    expect(screen.getByText(description)).toBeOnTheScreen();
+  });
 });

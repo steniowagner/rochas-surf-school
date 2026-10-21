@@ -236,6 +236,10 @@ export const useClassDetailsScreen = ({
     takeGuestOut,
     // The trial guests of the class get no notice of a cancellation.
     guestCount: item?.guests.length ?? 0,
+    // Who the cancellation notifies: the students with a seat, the pending requests and the other instructors.
+    studentCount: item?.students.length ?? 0,
+    pendingCount: item?.pendingRequests ?? 0,
+    instructorCount: item?.instructors.filter((instructor) => instructor.id !== user?.id).length ?? 0,
     takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
     // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
     enrolmentDescription: !enrolment.display

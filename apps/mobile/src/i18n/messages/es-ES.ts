@@ -759,6 +759,16 @@ const messages: Messages = {
   cancelClass: {
     title: "¿Cancelar esta clase?",
     description: "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada.",
+    descriptionWithAudience: "Avisamos a {{list}}. La clase sigue en la agenda, marcada como cancelada.",
+    audience: {
+      students_one: "{{count}} inscrito",
+      students_other: "{{count}} inscritos",
+      pending_one: "{{count}} persona con solicitud pendiente",
+      pending_other: "{{count}} personas con solicitud pendiente",
+      instructors_one: "{{count}} instructor",
+      instructors_other: "{{count}} instructores",
+      and: "y",
+    },
     messageLabel: "Mensaje (opcional)",
     messagePlaceholder: "Ej.: Mar muy grande. La pasamos al sábado a la misma hora.",
     confirm: "Cancelar y avisar",
@@ -804,6 +814,14 @@ const messages: Messages = {
       description: "Solo se pueden cambiar los instructores.",
     },
     note: "Al guardar, avisamos a los instructores de la clase.",
+    noteWithAudience: "Al guardar, avisamos a los instructores, {{list}}.",
+    audience: {
+      students_one: "{{count}} inscrito",
+      students_other: "{{count}} inscritos",
+      pending_one: "{{count}} con solicitud pendiente",
+      pending_other: "{{count}} con solicitud pendiente",
+      and: "y",
+    },
     submit: "Guardar y notificar",
     saved: "Cambios guardados",
     errors: {

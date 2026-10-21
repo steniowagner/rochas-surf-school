@@ -22,6 +22,7 @@ import { useLocations } from "../hooks/use-locations.hook";
 import { useNow } from "../hooks/use-now.hook";
 import { useTeachers } from "../hooks/use-teachers.hook";
 import { useTimeRangeSuggestions } from "../hooks/use-time-range-suggestions.hook";
+import { joinAudience } from "../utils/audience";
 import { DateRange, minutesInSchoolZone, todayInSchoolZone } from "../utils/calendar";
 import {
   getEditClassErrorKey,
@@ -246,11 +247,26 @@ export const useEditClassScreen = () => {
     }
   };
 
+  // The footer names who is told besides the instructors; with no student and no request it keeps the general sentence.
+  const studentCount = item?.students.length ?? 0;
+  const pendingCount = item?.pendingRequests ?? 0;
+  const audience = [
+    studentCount > 0 ? t("editClass.audience.students", { count: studentCount }) : null,
+    pendingCount > 0 ? t("editClass.audience.pending", { count: pendingCount }) : null,
+  ].filter((part) => part !== null);
+  const note =
+    audience.length === 0
+      ? t("editClass.note")
+      : t("editClass.noteWithAudience", {
+          list: joinAudience(audience, t("editClass.audience.and")),
+        });
+
   const isNotFound = classQuery.error instanceof ApiError && classQuery.error.status === 404;
 
   return {
     // The trial guests of the class get no notice of the edit.
     guestCount: item?.guests.length ?? 0,
+    note,
     isLoading: classQuery.isPending,
     isNotFound,
     // An expired session is handled by the session flow: nothing to show here.

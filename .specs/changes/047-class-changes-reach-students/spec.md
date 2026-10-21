@@ -2,7 +2,7 @@
 id: "047"
 slug: class-changes-reach-students
 title: "Students hear about class edits and location changes"
-status: in-progress
+status: in-review
 started: 2026-10-21
 base_commit: 5ea7d04ede7e87382ab8db1a2a5ff69840b65941
 created: 2026-10-19
@@ -216,9 +216,18 @@ students, pending requests and instructors will be told. This closes the "with e
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-21 — `run-related-tests.mjs 047`: RELATED TESTS PASSED (backend, mobile, modules/classes, modules/enrolment);
+  > `check-coverage.mjs 047`: COVERAGE OK (19 files, all 100%); `npx turbo run lint check-types build` for classes, backend
+  > and mobile: 27 tasks successful (15 existing oxlint warnings in backend, 0 errors); `run-e2e.mjs 047`: E2E PASSED
+  > (backend, 22 files). User journeys not driven: no push or simulator session was available, so the admin journeys
+  > below are for the reviewer or the user. 1) On the iOS simulator as an admin, on a class with an enrolled student and a
+  > pending request, open Cancelar aula (expect "Avisamos 1 inscrito, 1 pessoa com pedido pendente e N instrutor(es)…") and
+  > Editar aula (footer "Ao salvar, avisamos os instrutores, 1 inscrito e 1 com pedido pendente."); change the start and
+  > save: the student has a stored `class.edited` notification. 2) Edit the class's location with the box ticked: the
+  > student has a `location.changed` notification. The same behavior is covered by the e2e cases of T-03.
 
 ## Verification Plan
 

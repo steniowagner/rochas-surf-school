@@ -2,7 +2,7 @@
 id: "046"
 slug: school-settings-screen
 title: "School settings screen: waiting list switch and WhatsApp number"
-status: changes-requested
+status: in-progress
 created: 2026-10-19
 started: 2026-10-21
 base_commit: eb6839262462fba0be3e5d1a06cdb65c66d1ba06
@@ -403,14 +403,19 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 
 **Findings**
 
-- [ ] **F-03** (tests) — ER-03 lists "loading" as an edge case, but no test asserts it: `school-settings.screen.test.tsx`
+- [x] **F-03** (tests) — ER-03 lists "loading" as an edge case, but no test asserts it: `school-settings.screen.test.tsx`
   has no case for the screen before the settings arrive, and the `ActivityIndicator` in `school-settings.screen.tsx`
   has no label or `testID` a test could find. The lines are covered only because every test renders through that
   state; removing the spinner would keep the suite green. Reproduce: delete the `!data && !isError` block of
   `school-settings.screen.tsx`, run `npx jest src/modules/school-settings/screens` (from `apps/mobile`) → still
   passes. Expected: a test that renders the screen with the settings request pending and asserts the loading
   indicator (and that neither the form nor the error shows).
-- [ ] **F-04** (tests) — ER-02's edge case "existing waiting requests stay pending and can be approved when a seat frees
+  > ✅ 2026-10-21 — added `testID="school-settings-loading"` to the spinner and a case rendering the screen with the
+  > settings request pending: asserts the indicator, and no form, "Save" or "Try again"; files:
+  > `apps/mobile/src/modules/school-settings/screens/school-settings.screen.tsx`,
+  > `apps/mobile/src/modules/school-settings/screens/school-settings.screen.test.tsx`; verified:
+  > `npx jest src/modules/school-settings/screens` (14 passed), `npx eslint` clean; deviations: none
+- [x] **F-04** (tests) — ER-02's edge case "existing waiting requests stay pending and can be approved when a seat frees
   (D-03)" is asserted by no committed test: its `Verify by` (`request-seat.usecase.test.ts -t "waiting list"` and the
   "waiting list closed" e2e case) only covers new requests, and round 1 checked D-03 with a temporary e2e case that
   was not committed. Nothing would catch a later change that makes approval read the switch. Reproduce: search
@@ -418,6 +423,10 @@ for a seat in a full class and see that the waiting list is closed; requests alr
   while `waitingListEnabled` is false → none. Expected: an e2e case (in the closed-waiting-list block) where, with the
   switch off, a waiting request stays `pending` and `POST /enrolments/:id/approve` answers 200 `approved` once a seat
   frees.
+  > ✅ 2026-10-21 — added an e2e case in the enrolment "requests a seat" block: with the switch off, the waiting
+  > request stays `pending` after the seat is freed and `POST /enrolments/:id/approve` answers 200 `approved`; files:
+  > `apps/backend/test/enrolment.e2e-spec.ts`; verified: `npx vitest run --config vitest.config.e2e.ts
+  > test/enrolment.e2e-spec.ts -t "waiting list"` (2 passed); deviations: none
 
 **Notes**
 

@@ -43,6 +43,20 @@ const turn = (value: boolean) => fireEvent(toggle(), "valueChange", value);
 const numberField = () => screen.getByLabelText("School WhatsApp");
 
 describe("SchoolSettingsScreen", () => {
+  it("shows the loading indicator, and neither the form nor the error, before the settings arrive", async () => {
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+    seedSession(account({ role: "admin" }));
+
+    await renderWithProviders(<SchoolSettingsScreen />);
+
+    expect(screen.getByTestId("school-settings-loading")).toBeOnTheScreen();
+    expect(screen.queryByText("Waiting list")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Save" }),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText("Try again")).not.toBeOnTheScreen();
+  });
+
   it("shows both sections with the saved values and Save off", async () => {
     await open();
 

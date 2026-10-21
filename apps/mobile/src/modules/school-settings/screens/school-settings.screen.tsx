@@ -36,7 +36,10 @@ export function SchoolSettingsScreen() {
       {data ? <SchoolSettingsForm settings={data} /> : null}
       {!data && !isError ? (
         <View className="items-center py-8">
-          <ActivityIndicator color={theme.grape} />
+          <ActivityIndicator
+            testID="school-settings-loading"
+            color={theme.grape}
+          />
         </View>
       ) : null}
       {!data && isError ? (

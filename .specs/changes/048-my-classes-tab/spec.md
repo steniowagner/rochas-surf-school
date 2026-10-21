@@ -199,11 +199,37 @@ they actually took. Students can follow all their requests in one place instead 
   > statements, branches, functions, lines), `tsc --noEmit` and ESLint clean; deviations: Jest hangs here with watchman,
   > so it runs with `--no-watchman`.
 
-- [ ] **T-05** — Add `src/modules/enrolment/screens/my-classes.screen.tsx` (+ hook, types) and render it from
+- [x] **T-05** — Add `src/modules/enrolment/screens/my-classes.screen.tsx` (+ hook, types) and render it from
   `src/app/(private)/student/(tabs)/my-classes.tsx` instead of the placeholder, with tests and copy in the three
   locales. Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03 · Done when: `npx jest src/modules/enrolment/screens/my-classes.screen.test.tsx src/modules/student` passes.
+  > ✅ 2026-10-21 — `MyClassesScreen` (+ `.hook.ts`, `.types.ts`): a `FlatList` (`my-classes-list`) whose header holds the
+  > "Minhas aulas" title, a round 44 pt (`h-11 w-11`, `bg-surface`, `shadowStyle("iconButton")`) history button
+  > (`time-outline`, label `myClasses.history`, `router.push(routes.student.myHistory)`) and `MyClassesFilters`
+  > (`components/my-classes-filters/`: one horizontal row of `min-h-11` chips, the selected one `bg-grape`); items are
+  > `ClassCard`s with `showEnrolment`, pressing one pushes `routes.student.classDetail(id)`. States: grape spinner
+  > (`my-classes-loading`), error with "Tentar novamente" only while nothing is loaded (a failed refetch keeps the
+  > list), nothing after an expired session, the "Nada por aqui" card with `myClasses.empty.all` / `.filtered`,
+  > pull-to-refresh with a local spinner. `useFocusEffect` refetches on focus (`cancelRefetch: false`, so the first
+  > load isn't restarted) and its cleanup puts the chips back on "Todos". Copy under `myClasses` in en-US, pt-BR,
+  > es-ES; the tab route renders the screen instead of `FlowPlaceholder`. files:
+  > `apps/mobile/src/modules/enrolment/screens/my-classes.screen.tsx`,
+  > `apps/mobile/src/modules/enrolment/screens/my-classes.screen.hook.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/my-classes.screen.types.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/my-classes.screen.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/my-classes-filters/index.ts`,
+  > `apps/mobile/src/modules/enrolment/components/my-classes-filters/my-classes-filters.component.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/my-classes-filters/my-classes-filters.types.ts`,
+  > `apps/mobile/src/modules/enrolment/components/my-classes-filters/my-classes-filters.component.test.tsx`,
+  > `apps/mobile/src/app/(private)/student/(tabs)/my-classes.tsx`, `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest --no-watchman
+  > src/modules/enrolment/screens/my-classes.screen.test.tsx src/modules/enrolment/components/my-classes-filters
+  > src/modules/student` (3 suites, 18 passed; screen, hook and chips 100% covered), ESLint clean; deviations:
+  > `routes.student.myHistory` is added here because the history button needs it; until T-06 adds the route file,
+  > `tsc` (typed routes) refuses the push — fixed by T-06. The 44 pt size is a class, which Jest can't measure (checked
+  > on the simulator in T-07).
 
 - [ ] **T-06** — Add `src/modules/enrolment/screens/my-class-history.screen.tsx` (+ hook, types), the route
   `src/app/(private)/student/my-history.tsx` and `routes.student.myHistory`, with tests and copy.

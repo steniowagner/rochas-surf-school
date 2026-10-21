@@ -7,7 +7,7 @@ import type { Person } from "@/modules/people/people.types";
 export type UseEnrolStudentScreenResult = {
   searchText: string;
   setSearchText: (text: string) => void;
-  students: Person[];
+  students: (Person & { selected: boolean })[];
   isLoadingStudents: boolean;
   isStudentsError: boolean;
   hasNoStudents: boolean;

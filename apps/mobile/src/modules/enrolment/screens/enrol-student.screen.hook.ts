@@ -129,7 +129,10 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   return {
     searchText,
     setSearchText,
-    students: people.people,
+    students: people.people.map((student) => ({
+      ...student,
+      selected: selectedStudent?.id === student.id,
+    })),
     isLoadingStudents: people.isPending,
     // An expired session is handled once, centrally.
     isStudentsError:

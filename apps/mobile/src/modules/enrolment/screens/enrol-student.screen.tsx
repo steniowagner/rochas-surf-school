@@ -58,7 +58,7 @@ export function EnrolStudentScreen() {
         className="max-h-72 rounded-card border border-line bg-surface"
       >
         {screen.students.map((student, index) => {
-          const selected = screen.selectedStudent?.id === student.id;
+          const { selected } = student;
 
           return (
             <Pressable

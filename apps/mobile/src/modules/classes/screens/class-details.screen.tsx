@@ -236,11 +236,7 @@ export function ClassDetailsScreen({
                     {t(`enrolment.status.${screen.enrolment.display.key}.title`)}
                   </Text>
                   <Text className="ds-text-list-subtitle text-ink-2">
-                    {screen.enrolment.display.key === "takenOut"
-                      ? screen.enrolment.takenOutReason
-                        ? t("enrolment.status.takenOut.reason", { reason: screen.enrolment.takenOutReason })
-                        : t("enrolment.status.takenOut.noReason")
-                      : t(`enrolment.status.${screen.enrolment.display.key}.description`)}
+                    {screen.enrolmentDescription}
                   </Text>
                 </View>
               </Pressable>
@@ -403,7 +399,7 @@ export function ClassDetailsScreen({
       {screen.canTakeOut ? (
         <TakeOutSheet
           visible={screen.takeOut.target !== null}
-          firstName={screen.takeOut.target?.name.split(" ")[0] ?? ""}
+          firstName={screen.takeOutFirstName}
           summary={screen.takeOutSummary}
           loading={screen.takeOut.isPending}
           onConfirm={screen.takeOut.confirm}

@@ -225,6 +225,15 @@ export const useClassDetailsScreen = ({
     // Admins only: a student of a class that hasn't started (and isn't cancelled) can be taken out of it.
     canTakeOut: canEdit && state === "not-started",
     takeOut,
+    takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
+    // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
+    enrolmentDescription: !enrolment.display
+      ? ""
+      : enrolment.display.key !== "takenOut"
+        ? t(`enrolment.status.${enrolment.display.key}.description`)
+        : enrolment.takenOutReason
+          ? t("enrolment.status.takenOut.reason", { reason: enrolment.takenOutReason })
+          : t("enrolment.status.takenOut.noReason"),
     // "Surf Beginner · Tomorrow, 08:00 – 09:00": the class the student leaves.
     takeOutSummary: item
       ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine}, ${start} – ${end}`

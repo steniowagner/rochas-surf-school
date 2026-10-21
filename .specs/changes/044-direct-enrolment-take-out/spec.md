@@ -2,7 +2,7 @@
 id: "044"
 slug: direct-enrolment-take-out
 title: "Admins enrol students directly and take them out of classes"
-status: changes-requested
+status: in-review
 started: 2026-10-20
 base_commit: 90b0058217d6be77961db34562be5e51bd4e82fc
 created: 2026-10-19
@@ -352,7 +352,8 @@ way and sees the result on the class.
 
 **Findings**
 
-- [ ] **F-04** (convention) — the screens still compute values in their JSX, which `.claude/rules/react.md` §1 puts in the hook (the same rule F-03 applied to the class cards): `class-details.screen.tsx` derives the sheet's first name (`screen.takeOut.target?.name.split(" ")[0] ?? ""`, line 406) and picks the taken-out banner line (`takenOutReason ? t("…takenOut.reason", …) : t("…takenOut.noReason")` nested in the description ternary, lines 239–243); `enrol-student.screen.tsx` still compares each student row's `selected` (`screen.selectedStudent?.id === student.id`) while F-03 moved the class cards' `selected` into the hook. The project's precedent for the first name is `whatsapp.hook.ts` (`firstName` from the hook). Reproduce: read those lines. Expected: the hooks return the first name (e.g. from `useTakeOut` or `useClassDetailsScreen`), the banner's description text (or key + params), and the student rows with their `selected` flag, and the screens only wire them; tests keep passing and `COVERAGE OK`.
+- [x] **F-04** (convention) — the screens still compute values in their JSX, which `.claude/rules/react.md` §1 puts in the hook (the same rule F-03 applied to the class cards): `class-details.screen.tsx` derives the sheet's first name (`screen.takeOut.target?.name.split(" ")[0] ?? ""`, line 406) and picks the taken-out banner line (`takenOutReason ? t("…takenOut.reason", …) : t("…takenOut.noReason")` nested in the description ternary, lines 239–243); `enrol-student.screen.tsx` still compares each student row's `selected` (`screen.selectedStudent?.id === student.id`) while F-03 moved the class cards' `selected` into the hook. The project's precedent for the first name is `whatsapp.hook.ts` (`firstName` from the hook). Reproduce: read those lines. Expected: the hooks return the first name (e.g. from `useTakeOut` or `useClassDetailsScreen`), the banner's description text (or key + params), and the student rows with their `selected` flag, and the screens only wire them; tests keep passing and `COVERAGE OK`.
+  > ✅ 2026-10-20 — the hooks now return what the screens drew inline: `useClassDetailsScreen` gives `takeOutFirstName` and `enrolmentDescription` (the taken-out reason or default line, or the status description), and `useEnrolStudentScreen` returns each student with its `selected` flag; the screens only wire them; files: `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.hook.ts`, `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.types.ts`, `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.tsx`; verified: `npx jest src/modules/classes src/modules/enrolment` (73 suites, 845 passed), `tsc --noEmit` and eslint clean, `run-related-tests.mjs 044` → RELATED TESTS PASSED, `check-coverage.mjs 044` → COVERAGE OK (31 files); deviations: none
 
 **Notes**
 

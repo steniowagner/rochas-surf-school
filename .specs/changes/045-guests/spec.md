@@ -285,9 +285,24 @@ won't hear about edits or a cancellation, and a guest's name and number are eras
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-10** — Extract `src/components/phone-number-field/` from `WhatsappNumberForm` (D-07) with tests, and add
+- [x] **T-10** — Extract `src/components/phone-number-field/` from `WhatsappNumberForm` (D-07) with tests, and add
   `hooks/use-add-guest.hook.ts` and `hooks/use-remove-guest.hook.ts` with their error keys.
   Covers: ER-05, ER-06 · Done when: `npx jest src/components/phone-number-field src/components/whatsapp-number-form src/modules/enrolment/hooks` passes.
+  > ✅ 2026-10-20 — extracted `PhoneNumberField` (country button + picker + masked input) and its
+  > `usePhoneNumberField` state (country, mask, E.164, validity) from `WhatsappNumberForm`, which now uses them
+  > unchanged in behavior; added `useAddGuest` / `useRemoveGuest` (invalidate the cached classes), the error keys
+  > `getAddGuestErrorKey`, `getRemoveGuestErrorKey`, `shouldReloadAddGuestClasses` (`guest.notFound` also reloads via
+  > `shouldReloadClass`), the guest types and the toasts' copy in the three locales; files:
+  > `apps/mobile/src/components/phone-number-field/{index.ts,phone-number-field.component.tsx,phone-number-field.hook.ts,phone-number-field.types.ts,phone-number-field.component.test.tsx}`,
+  > `apps/mobile/src/components/whatsapp-number-form/{whatsapp-number-form.component.tsx,whatsapp-number-form.hook.ts,whatsapp-number-form.types.ts}`,
+  > `apps/mobile/src/modules/enrolment/hooks/{use-add-guest.hook.ts,use-remove-guest.hook.ts,use-guest.hook.test.tsx}`,
+  > `apps/mobile/src/modules/enrolment/utils/{enrolment-error.ts,enrolment-error.test.ts}`,
+  > `apps/mobile/src/modules/enrolment/enrolment.types.ts`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified:
+  > `npx jest src/components src/modules/enrolment/hooks src/modules/enrolment/utils` from `apps/mobile`
+  > (299 passed; the form's existing tests unchanged), `tsc --noEmit` and eslint clean; deviations: the field
+  > is controlled (props from `usePhoneNumberField`) so the form can read the E.164 value and validity; the existing
+  > `WhatsappNumberForm` tests cover it as before.
 
 - [ ] **T-11** — Add the trial mode to `enrol-student.screen.tsx` (+ hook), with tests and copy in the three locales.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),

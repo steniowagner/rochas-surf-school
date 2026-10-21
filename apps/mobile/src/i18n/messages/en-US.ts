@@ -285,6 +285,7 @@ const messages = {
       started: "The class has already started.",
       cancelled: "This class was cancelled.",
       invalidStudent: "This student can't be enrolled.",
+      invalidGuest: "This guest's name or number isn't valid.",
     },
   },
   takeOutSheet: {
@@ -299,6 +300,7 @@ const messages = {
     errors: {
       notApproved: "This spot is no longer approved.",
       started: "The class has already started.",
+      guestNotFound: "This guest is no longer in the class.",
     },
   },
   flows: {

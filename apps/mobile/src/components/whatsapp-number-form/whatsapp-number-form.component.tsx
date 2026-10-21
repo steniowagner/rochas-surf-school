@@ -1,10 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Switch, Text, TouchableOpacity, View } from "react-native";
+import { Switch, Text, View } from "react-native";
 
-import { CountryPicker } from "@/components/country-picker";
+import { PhoneNumberField } from "@/components/phone-number-field";
 import { Button } from "@/components/ui/button";
-import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 
 import { useWhatsappNumberForm } from "./whatsapp-number-form.hook";
@@ -22,25 +21,14 @@ export function WhatsappNumberForm({
 }: WhatsappNumberFormProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const {
-    country,
-    dialCode,
-    numberField,
-    canSubmit,
-    isHidden,
-    setIsHidden,
-    isPickerVisible,
-    openPicker,
-    closePicker,
-    selectCountry,
-    submit,
-  } = useWhatsappNumberForm({
-    initialNumber,
-    initialVisible,
-    requireChange,
-    isSaving,
-    onSubmit,
-  });
+  const { phone, canSubmit, isHidden, setIsHidden, submit } =
+    useWhatsappNumberForm({
+      initialNumber,
+      initialVisible,
+      requireChange,
+      isSaving,
+      onSubmit,
+    });
 
   return (
     <View className="flex-1">
@@ -55,30 +43,14 @@ export function WhatsappNumberForm({
             </Text>
           </View>
 
-          <View className="flex-row items-start gap-2.5">
-            <TouchableOpacity
-              accessibilityRole="button"
-              activeOpacity={0.7}
-              onPress={openPicker}
-              className="h-[52px] flex-row items-center gap-1.5 rounded-control border-[1.5px] border-input-line bg-input px-3"
-            >
-              <Text className="ds-text-list-title text-ink">
-                {`${country} ${dialCode}`}
-              </Text>
-              <Ionicons name="chevron-down" size={16} color={theme.ink2} />
-            </TouchableOpacity>
-            <View className="flex-1">
-              <TextInput
-                icon={null}
-                accessibilityLabel={t("whatsapp.cardTitle")}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                returnKeyType="done"
-                onSubmitEditing={submit}
-                {...numberField}
-              />
-            </View>
-          </View>
+          <PhoneNumberField
+            country={phone.country}
+            dialCode={phone.dialCode}
+            numberInput={phone.numberInput}
+            onSelectCountry={phone.onSelectCountry}
+            label={t("whatsapp.cardTitle")}
+            onSubmitEditing={submit}
+          />
 
           <Text className="ds-text-list-subtitle text-ink-2">
             {t("whatsapp.helper")}
@@ -111,12 +83,6 @@ export function WhatsappNumberForm({
       <Button disabled={!canSubmit} loading={isSaving} onPress={submit}>
         {submitLabel}
       </Button>
-
-      <CountryPicker
-        visible={isPickerVisible}
-        onClose={closePicker}
-        onSelect={selectCountry}
-      />
     </View>
   );
 }

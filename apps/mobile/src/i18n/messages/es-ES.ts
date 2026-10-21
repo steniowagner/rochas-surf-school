@@ -292,6 +292,7 @@ const messages: Messages = {
       started: "La clase ya empezó.",
       cancelled: "Esta clase fue cancelada.",
       invalidStudent: "Este alumno no se puede inscribir.",
+      invalidGuest: "El nombre o el número de este alumno de prueba no es válido.",
     },
   },
   takeOutSheet: {
@@ -306,6 +307,7 @@ const messages: Messages = {
     errors: {
       notApproved: "Esta plaza ya no está aprobada.",
       started: "La clase ya empezó.",
+      guestNotFound: "Este alumno de prueba ya no está en la clase.",
     },
   },
   flows: {

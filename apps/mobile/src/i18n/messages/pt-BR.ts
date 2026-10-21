@@ -285,6 +285,7 @@ const messages: Messages = {
       started: "A aula já começou.",
       cancelled: "Esta aula foi cancelada.",
       invalidStudent: "Este aluno não pode ser inscrito.",
+      invalidGuest: "O nome ou o número deste aluno trial não é válido.",
     },
   },
   takeOutSheet: {
@@ -299,6 +300,7 @@ const messages: Messages = {
     errors: {
       notApproved: "Esta vaga não está mais aprovada.",
       started: "A aula já começou.",
+      guestNotFound: "Este aluno trial não está mais na aula.",
     },
   },
   flows: {

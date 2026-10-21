@@ -45,6 +45,13 @@ describe("SchoolSettings", () => {
       expect(new SchoolSettings({}).whatsappNumber).toBeUndefined();
     });
 
+    it("has the waiting list on unless it was turned off", () => {
+      expect(new SchoolSettings({}).waitingListEnabled).toBe(true);
+      expect(
+        new SchoolSettings({ waitingListEnabled: false }).waitingListEnabled,
+      ).toBe(false);
+    });
+
     it("replaces the number through clone and keeps the id", () => {
       const settings = new SchoolSettings({
         id: SCHOOL_SETTINGS_ID,

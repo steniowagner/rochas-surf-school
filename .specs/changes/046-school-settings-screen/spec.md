@@ -126,10 +126,18 @@ for a seat in a full class and see that the waiting list is closed; requests alr
 
 ### School settings module (`modules/school-settings`)
 
-- [ ] **T-01** — Add `waitingListEnabled` to the entity and `SchoolSettingsOut`, and the use case `SetWaitingList`
+- [x] **T-01** — Add `waitingListEnabled` to the entity and `SchoolSettingsOut`, and the use case `SetWaitingList`
   (`src/school-settings/usecase/set-waiting-list.usecase.ts`, D-01), with tests. Skills:
   [`module-entity`](../../../.claude/skills/module-entity), [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01 · Done when: `npx jest` passes from `modules/school-settings`.
+  > ✅ 2026-10-21 — added `waitingListEnabled` (default true) to the entity and `SchoolSettingsOut`, and `SetWaitingList`
+  > (admin-only, 422 `schoolSettings.waitingList.invalid` for a non-boolean, keeps the number, creates the row without
+  > a number when none exists); files: `modules/school-settings/src/school-settings/model/school-settings.entity.ts`,
+  > `.../usecase/school-settings.out.ts`, `.../usecase/set-waiting-list.usecase.ts`, `.../usecase/index.ts`,
+  > `modules/school-settings/test/school-settings/usecase/set-waiting-list.usecase.test.ts`,
+  > `.../usecase/get-school-settings.usecase.test.ts`, `.../usecase/set-school-whatsapp.usecase.test.ts`,
+  > `.../model/school-settings.entity.test.ts`; verified: `npx jest` in `modules/school-settings` (82 passed);
+  > deviations: none (module skills not invoked: the change extends existing files by their pattern)
 
 ### Enrolment module (`modules/enrolment`)
 

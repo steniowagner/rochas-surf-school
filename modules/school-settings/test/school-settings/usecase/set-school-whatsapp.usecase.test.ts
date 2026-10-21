@@ -34,9 +34,13 @@ describe("SetSchoolWhatsapp", () => {
     const out = await useCase.execute({
       actor: ADMIN,
       whatsappNumber: "+5585999998888",
+      waitingListEnabled: true,
     });
 
-    expect(out).toEqual({ whatsappNumber: "+5585999998888" });
+    expect(out).toEqual({
+      whatsappNumber: "+5585999998888",
+      waitingListEnabled: true,
+    });
     const saved = await repository.get();
     expect(saved?.id).toBe(SCHOOL_SETTINGS_ID);
     expect(saved?.whatsappNumber).toBe("+5585999998888");
@@ -52,7 +56,10 @@ describe("SetSchoolWhatsapp", () => {
       whatsappNumber: "+351912345678",
     });
 
-    expect(out).toEqual({ whatsappNumber: "+351912345678" });
+    expect(out).toEqual({
+      whatsappNumber: "+351912345678",
+      waitingListEnabled: true,
+    });
     const saved = await repository.get();
     expect(saved?.id).toBe(SCHOOL_SETTINGS_ID);
     expect(saved?.createdAt).toEqual(existing.createdAt);
@@ -66,9 +73,13 @@ describe("SetSchoolWhatsapp", () => {
     const out = await useCase.execute({
       actor: ADMIN,
       whatsappNumber: "+5585999998888",
+      waitingListEnabled: true,
     });
 
-    expect(out).toEqual({ whatsappNumber: "+5585999998888" });
+    expect(out).toEqual({
+      whatsappNumber: "+5585999998888",
+      waitingListEnabled: true,
+    });
     expect((await repository.get())?.whatsappNumber).toBe("+5585999998888");
   });
 

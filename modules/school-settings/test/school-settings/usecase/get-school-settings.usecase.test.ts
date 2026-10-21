@@ -16,6 +16,7 @@ describe("GetSchoolSettings", () => {
 
     await expect(useCase.execute({ actor: STUDENT })).resolves.toEqual({
       whatsappNumber: null,
+      waitingListEnabled: true,
     });
   });
 
@@ -30,6 +31,7 @@ describe("GetSchoolSettings", () => {
 
     await expect(useCase.execute({ actor: ADMIN })).resolves.toEqual({
       whatsappNumber: "+5585999998888",
+      waitingListEnabled: true,
     });
   });
 
@@ -47,7 +49,10 @@ describe("GetSchoolSettings", () => {
       for (const status of ["approved", ...NOT_APPROVED_STATUSES]) {
         await expect(
           useCase.execute({ actor: { id: ADMIN.id, role, status } }),
-        ).resolves.toEqual({ whatsappNumber: "+5585999998888" });
+        ).resolves.toEqual({
+          whatsappNumber: "+5585999998888",
+          waitingListEnabled: true,
+        });
       }
     },
   );

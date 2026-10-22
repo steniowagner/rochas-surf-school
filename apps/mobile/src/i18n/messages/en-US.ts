@@ -456,6 +456,13 @@ const messages = {
   classesWeek: {
     loading: "Loading the classes",
     hasClasses: "with classes",
+    disciplineFilter: {
+      all: "All",
+      surf: "Surf",
+      skate: "Skate",
+      open: "Filter by sport",
+      close: "Close filter",
+    },
     emptyDay: {
       title: "No classes this day",
       description: "There are no classes scheduled for {{date}} yet.",

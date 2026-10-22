@@ -185,6 +185,9 @@ export type ClassItem = {
   pendingRequests?: number | null;
 };
 
+/** The sport the week screen shows: every class, or only one discipline's. */
+export type DisciplineFilterValue = "all" | ClassDiscipline;
+
 /** A person teaching a class, as the class itself answers it. */
 export type ClassDetailsTeacher = ClassInstructor & {
   /** Picks the person sheet's chip. */

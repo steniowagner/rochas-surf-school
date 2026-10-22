@@ -803,3 +803,307 @@ describe("ClassesWeekScreen enrolment chip", () => {
     expect(screen.queryByText("Pending")).not.toBeOnTheScreen();
   });
 });
+
+describe("ClassesWeekScreen sport filter", () => {
+  // Today (Wednesday) has surf at 08:00 and 16:00 and skate at 10:00; Thursday only skate, Friday only surf.
+  const THURSDAY_SKATE = makeClass(
+    "c-th",
+    "2026-10-15T12:00:00.000Z",
+    "2026-10-15T13:00:00.000Z",
+    { discipline: "skate" },
+  );
+  const FRIDAY_SURF = makeClass(
+    "c-fr",
+    "2026-10-16T12:00:00.000Z",
+    "2026-10-16T13:00:00.000Z",
+  );
+  // Next Thursday: surf at 08:00, skate at 10:00.
+  const NEXT_WEEK_SURF = makeClass(
+    "c-ns",
+    "2026-10-22T11:00:00.000Z",
+    "2026-10-22T12:00:00.000Z",
+  );
+  const NEXT_WEEK_SKATE = makeClass(
+    "c-nk",
+    "2026-10-22T13:00:00.000Z",
+    "2026-10-22T14:00:00.000Z",
+    { discipline: "skate" },
+  );
+
+  const choose = async (
+    user: ReturnType<typeof userEvent.setup>,
+    label: "All" | "Surf" | "Skate",
+  ) => {
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByRole("button", { name: label }));
+  };
+
+  const dots = () =>
+    screen
+      .queryAllByTestId(/^calendar-day-.*-dot$/)
+      .map((dot) => dot.props.testID)
+      .sort();
+
+  beforeEach(() =>
+    serveWeeks({
+      [THIS_MONDAY]: [FINISHED, STARTED, LATER, THURSDAY_SKATE, FRIDAY_SURF],
+      "2026-10-19": [NEXT_WEEK_SURF, NEXT_WEEK_SKATE],
+    }),
+  );
+
+  it("opens the three options", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    expect(
+      screen.queryByTestId("discipline-filter-backdrop"),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "All" })).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+
+    expect(screen.getByTestId("discipline-filter-backdrop")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "All", selected: true }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Surf", selected: false }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Skate", selected: false }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Close filter" }),
+    ).toBeOnTheScreen();
+  });
+
+  it("closes without changing the filter", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    await choose(user, "Surf");
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByRole("button", { name: "Close filter" }));
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByTestId("discipline-filter-backdrop"));
+
+    expect(
+      screen.queryByTestId("discipline-filter-backdrop"),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText("16:00 – 17:00")).toBeOnTheScreen();
+    expect(screen.queryByText("10:00 – 11:30")).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+
+    expect(
+      screen.getByRole("button", { name: "Surf", selected: true }),
+    ).toBeOnTheScreen();
+  });
+
+  it.each([
+    ["the student", { titleKey: undefined, showEnrolment: true, banded: true }],
+    ["the instructor", { titleKey: "tabs.classes" as const }],
+    [
+      "the admin",
+      { titleKey: "tabs.classes" as const, canCreate: true, showFlags: true },
+    ],
+  ])("shows the filter button for every role: %s", async (_role, props) => {
+    await renderScreen(props);
+    await screen.findByText("16:00 – 17:00");
+
+    expect(
+      screen.getByRole("button", { name: "Filter by sport" }),
+    ).toBeOnTheScreen();
+  });
+
+  it("shows the filter button while loading, on an error and on an empty day", async () => {
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+    const loading = await renderScreen();
+    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Filter by sport" }),
+    ).toBeOnTheScreen();
+    await loading.unmount();
+
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ errors: [] }),
+    });
+    const failed = await renderScreen();
+    await screen.findByRole("header", { name: "Something went wrong" });
+    expect(
+      screen.getByRole("button", { name: "Filter by sport" }),
+    ).toBeOnTheScreen();
+    await failed.unmount();
+
+    serveWeeks({ [THIS_MONDAY]: [] });
+    await renderScreen();
+    await screen.findByRole("header", { name: "No classes this day" });
+    expect(
+      screen.getByRole("button", { name: "Filter by sport" }),
+    ).toBeOnTheScreen();
+  });
+
+  it("pads the list's bottom for the button and its gap", async () => {
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+
+    // The mocked bottom inset is 0, so the list keeps its 24 and adds the button's 56 and its 16 gap.
+    expect(
+      screen.getByTestId("classes-week-list").props.contentContainerStyle,
+    ).toEqual(expect.objectContaining({ paddingBottom: 24 + 56 + 16 }));
+  });
+
+  it("lists only the chosen sport", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+
+    await choose(user, "Surf");
+
+    expect(
+      screen.queryByTestId("discipline-filter-backdrop"),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
+    expect(screen.getByText("16:00 – 17:00")).toBeOnTheScreen();
+    expect(screen.queryByText("10:00 – 11:30")).not.toBeOnTheScreen();
+
+    await choose(user, "Skate");
+
+    expect(screen.getByText("10:00 – 11:30")).toBeOnTheScreen();
+    expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
+    expect(screen.queryByText("16:00 – 17:00")).not.toBeOnTheScreen();
+
+    await choose(user, "All");
+
+    expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
+    expect(screen.getByText("10:00 – 11:30")).toBeOnTheScreen();
+    expect(screen.getByText("16:00 – 17:00")).toBeOnTheScreen();
+  });
+
+  it("marks only the days with the chosen sport", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    expect(await screen.findAllByTestId(/-dot$/)).toHaveLength(3);
+
+    await choose(user, "Surf");
+
+    expect(dots()).toEqual([
+      "calendar-day-2026-10-14-dot",
+      "calendar-day-2026-10-16-dot",
+    ]);
+
+    await choose(user, "Skate");
+
+    expect(dots()).toEqual([
+      "calendar-day-2026-10-14-dot",
+      "calendar-day-2026-10-15-dot",
+    ]);
+
+    await choose(user, "All");
+
+    expect(dots()).toEqual([
+      "calendar-day-2026-10-14-dot",
+      "calendar-day-2026-10-15-dot",
+      "calendar-day-2026-10-16-dot",
+    ]);
+  });
+
+  it("keeps the filter across days and weeks", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    await choose(user, "Skate");
+
+    // Another day.
+    await user.press(screen.getByTestId("calendar-day-2026-10-15"));
+    expect(screen.getByText("09:00 – 10:00")).toBeOnTheScreen();
+
+    // Another week.
+    await user.press(
+      screen.getByRole("button", { name: "Show the next week" }),
+    );
+    expect(await screen.findByText("10:00 – 11:00")).toBeOnTheScreen();
+    expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
+    expect(dots()).toEqual(["calendar-day-2026-10-22-dot"]);
+
+    // The month and back.
+    await user.press(screen.getByRole("button", { name: "Show the month" }));
+    await waitFor(() =>
+      expect(dots()).toEqual([
+        "calendar-day-2026-10-14-dot",
+        "calendar-day-2026-10-15-dot",
+        "calendar-day-2026-10-22-dot",
+      ]),
+    );
+    await user.press(screen.getByRole("button", { name: "Show the week" }));
+    expect(screen.getByText("10:00 – 11:00")).toBeOnTheScreen();
+    expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
+
+    // A pull-to-refresh.
+    await act(async () => {
+      await screen
+        .getByTestId("classes-week-list")
+        .props.refreshControl.props.onRefresh();
+    });
+    expect(screen.getByText("10:00 – 11:00")).toBeOnTheScreen();
+    expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    expect(
+      screen.getByRole("button", { name: "Skate", selected: true }),
+    ).toBeOnTheScreen();
+  });
+
+  it("is back to All when the screen mounts again", async () => {
+    const user = userEvent.setup();
+    const first = await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    await choose(user, "Surf");
+    expect(screen.queryByText("10:00 – 11:30")).not.toBeOnTheScreen();
+    await first.unmount();
+
+    await renderScreen();
+
+    expect(await screen.findByText("10:00 – 11:30")).toBeOnTheScreen();
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    expect(
+      screen.getByRole("button", { name: "All", selected: true }),
+    ).toBeOnTheScreen();
+  });
+
+  it("shows the empty day when no class matches", async () => {
+    const user = userEvent.setup();
+    await renderScreen({ canCreate: true });
+    await screen.findByText("16:00 – 17:00");
+    await choose(user, "Skate");
+
+    // Friday has only a surf class.
+    await user.press(screen.getByTestId("calendar-day-2026-10-16"));
+
+    expect(
+      screen.getByRole("header", { name: "No classes this day" }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText("09:00 – 10:00")).not.toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Create class" }),
+    ).toBeOnTheScreen();
+  });
+
+  it("filters without a request", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+    const before = fetchMock.mock.calls.length;
+
+    await choose(user, "Surf");
+    await choose(user, "Skate");
+    await choose(user, "All");
+
+    expect(screen.getByText("10:00 – 11:30")).toBeOnTheScreen();
+    expect(fetchMock.mock.calls.length).toBe(before);
+  });
+});

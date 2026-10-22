@@ -965,6 +965,15 @@ shows a checkmark beside "Aula finalizada". The admin's class tools are four car
 disabled with "Tem inscritos" or "Já começou"); N is the people a cancellation tells — the other instructors, the
 enrolled students and the pending requests. All copy is in pt-BR, es-ES and en-US.
 
+**Filtering the week by sport** (spec `050-classes-discipline-filter`) — on the classes week screen of every role
+(the student's Agenda, the Aulas tab of instructors and admins), a floating `grape` button at the bottom right,
+above the tab bar, opens three options over a dimmed screen: "Todas", "Surf" and "Skate" (labels only, the current
+one highlighted). Choosing a sport lists only that sport's classes on the selected day and marks only the days that
+have one, in the week and in the month; "Todas" shows everything again. A day whose classes are all of the other
+sport shows the usual empty day ("Criar aula" still offered to admins on today or later). The choice stays while the
+user changes day, week or view and pulls to refresh, and goes back to "Todas" when the screen opens again; nothing
+is saved on the phone, and switching makes no request. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1018,7 +1027,10 @@ Active specs: none.
   interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
   class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings); the
-  student Agenda's sport filter and notifications bell.
+  student Agenda's notifications bell.
+- On the sport filter (spec 050): keeping the chosen sport across app launches, a mark on the closed button
+  showing a filter is on, and filtering other lists ("Minhas aulas", the class history, the people directory) by
+  sport.
 - On seats and students (spec 040): the "1ª vez" badge on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
   about to start; and profile photos (initials until photos can be uploaded).
 - On the class details' design (spec 049): the "Condições previstas" row of "Onde e como" (weather and waves), "Sem

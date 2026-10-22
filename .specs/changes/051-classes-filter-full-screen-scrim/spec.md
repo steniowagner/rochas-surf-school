@@ -114,9 +114,20 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md).
 
 ### Verification
 
-- [ ] **T-02** — Run every command in the Verification Plan from the repo root; all pass. Follow the simulator
+- [x] **T-02** — Run every command in the Verification Plan from the repo root; all pass. Follow the simulator
   journey of ER-01 (student's Agenda and admin's Aulas, light and dark). Record the output summary as evidence.
   Covers: all · Done when: every command exits 0 and the journey shows what ER-01 describes.
+  > ✅ 2026-10-22 — automated: `node .specs/scripts/run-related-tests.mjs 051` → RELATED TESTS PASSED (apps/mobile
+  > jest 9 suites / 233 tests); `node .specs/scripts/check-coverage.mjs 051` → COVERAGE OK (every changed line
+  > covered in 4 files; 4 more have no executable changed lines); `npx turbo run lint check-types
+  > --filter=@rochas-surf-school/mobile --force` → 8/8 tasks successful. Manual, iOS simulator (iPhone 18 Pro, iOS
+  > 27, the running dev build, student, pt-BR): in light theme (T-01's evidence) and in dark theme, opening the filter
+  > on the Agenda dims the status bar, the user header (avatar, greeting, bell), the band, the list and the tab bar,
+  > with the options and the "x" bright and the "x" where the closed button was; a press on the dimmed bell closes it.
+  > Files: the spec only. Deviations: the admin's Aulas tab wasn't walked — the simulator is signed in as the user's
+  > student, and signing out of their session to sign in as the admin wasn't done; the Aulas tab renders the same
+  > `ClassesWeekScreen` and `DisciplineFilter`, the `Modal` covers the window whatever the header, and "shows the
+  > filter button for every role" (spec 050) still passes. The reviewer can check it signed in as an admin.
 
 ## Verification Plan
 

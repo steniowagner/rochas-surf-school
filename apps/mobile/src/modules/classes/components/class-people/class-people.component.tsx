@@ -6,12 +6,12 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
 
+import { InstructorPill } from "../instructor-pill";
 import { StudentAvatar } from "../student-avatar";
 
 import { useClassPeople } from "./class-people.hook";
 import type { ClassPeopleProps } from "./class-people.types";
 
-const INSTRUCTOR_AVATAR_SIZE = 36;
 const STUDENT_AVATAR_SIZE = 28;
 
 /** The "A aula" group of the class details: who teaches, who is enrolled, and how many seats are left. */
@@ -23,6 +23,7 @@ export function ClassPeople({
   seatsTaken,
   capacity,
   state,
+  onOpenInstructor,
   onTakeOut,
   onTakeGuestOut,
 }: ClassPeopleProps) {
@@ -44,25 +45,24 @@ export function ClassPeople({
     <View className="gap-2">
       <Text className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</Text>
       <View className="overflow-hidden rounded-card border border-line bg-surface">
-        <View className="gap-3 p-4">
+        <View className="gap-2 bg-dim px-3.5 py-3">
           <Text className="ds-text-section-label text-ink-2">
             {t("classDetails.instructor", { count: instructors.length })}
           </Text>
           {instructors.length === 0 ? (
-            <Text className="ds-text-body text-ink-2">{t("classDetails.noInstructorAssigned")}</Text>
-          ) : null}
-          {instructors.map((instructor) => (
-            <View key={instructor.id} className="flex-row items-center gap-3">
-              <StudentAvatar
-                name={instructor.name}
-                photoUrl={null}
-                size={INSTRUCTOR_AVATAR_SIZE}
-              />
-              <Text className="ds-text-list-title text-ink">
-                {instructor.isViewer ? t("classDetails.you") : instructor.name}
-              </Text>
+            <Text className="ds-text-list-title text-ink">{t("classDetails.noInstructorAssigned")}</Text>
+          ) : (
+            <View className="flex-row flex-wrap gap-2">
+              {instructors.map((instructor) => (
+                <InstructorPill
+                  key={instructor.id}
+                  name={instructor.name}
+                  isViewer={instructor.isViewer}
+                  onPress={() => onOpenInstructor?.(instructor)}
+                />
+              ))}
             </View>
-          ))}
+          )}
         </View>
         <View className="border-t border-line">
           <Pressable

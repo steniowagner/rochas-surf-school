@@ -1,10 +1,8 @@
 import type { ClassState } from "@rochas-surf-school/classes";
 
-import type { ClassGuest, ClassStudent } from "../../classes.types";
+import type { ClassDetailsTeacher, ClassGuest, ClassStudent } from "../../classes.types";
 
-export type ClassPeopleInstructor = {
-  id: string;
-  name: string;
+export type ClassPeopleInstructor = ClassDetailsTeacher & {
   /** The signed-in viewer teaches the class: shown as "You". */
   isViewer: boolean;
 };
@@ -21,6 +19,8 @@ export type ClassPeopleProps = {
   seatsTaken: number;
   capacity: number;
   state: ClassState;
+  /** Pressing an instructor's pill: opens their person sheet. */
+  onOpenInstructor?: (instructor: ClassPeopleInstructor) => void;
   /** Admins only, on a class that hasn't started: each student row gets a "Retirar" button that calls it. */
   onTakeOut?: (student: ClassStudent) => void;
   /** Admins only, on a class that hasn't started: each guest row gets a "Retirar" button that calls it. */
@@ -29,5 +29,5 @@ export type ClassPeopleProps = {
 
 export type UseClassPeopleProps = Omit<
   ClassPeopleProps,
-  "instructors" | "onTakeOut" | "onTakeGuestOut" | "showTrialCount"
+  "instructors" | "onOpenInstructor" | "onTakeOut" | "onTakeGuestOut" | "showTrialCount"
 >;

@@ -3,7 +3,7 @@ import { render, screen, userEvent } from "@testing-library/react-native";
 import type { ClassStudent } from "../../classes.types";
 
 import { ClassPeople } from "./class-people.component";
-import type { ClassPeopleProps } from "./class-people.types";
+import type { ClassPeopleInstructor, ClassPeopleProps } from "./class-people.types";
 
 const students: ClassStudent[] = [
   { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana" },
@@ -97,5 +97,65 @@ describe("ClassPeople guests", () => {
     await render(<ClassPeople {...props({ showTrialCount: true })} />);
 
     expect(screen.getByText("Max. 8 students · 6 spots left")).toBeOnTheScreen();
+  });
+});
+
+describe("ClassPeople instructors", () => {
+  const iara: ClassPeopleInstructor = {
+    id: "i-iara",
+    name: "Iara Lima",
+    role: "admin",
+    whatsappNumber: null,
+    isViewer: false,
+  };
+  const rui: ClassPeopleInstructor = {
+    id: "i-rui",
+    name: "Rui Costa",
+    role: "instructor",
+    whatsappNumber: "+5585911111111",
+    isViewer: true,
+  };
+
+  it("heads one instructor with \"Instructor\" and a pill named after them", async () => {
+    await render(<ClassPeople {...props({ instructors: [iara] })} />);
+
+    expect(screen.getByText("Instructor")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Iara Lima" })).toBeOnTheScreen();
+  });
+
+  it("heads several with \"Instructors\" and shows the viewer's pill as You", async () => {
+    await render(<ClassPeople {...props({ instructors: [iara, rui] })} />);
+
+    expect(screen.getByText("Instructors")).toBeOnTheScreen();
+    expect(screen.getByText("Iara Lima")).toBeOnTheScreen();
+    expect(screen.getByText("You")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Rui Costa" })).toBeOnTheScreen();
+  });
+
+  it("calls onOpenInstructor with the pressed instructor", async () => {
+    const user = userEvent.setup();
+    const onOpenInstructor = jest.fn();
+    await render(<ClassPeople {...props({ instructors: [iara, rui], onOpenInstructor })} />);
+
+    await user.press(screen.getByRole("button", { name: "Rui Costa" }));
+
+    expect(onOpenInstructor).toHaveBeenCalledTimes(1);
+    expect(onOpenInstructor).toHaveBeenCalledWith(rui);
+  });
+
+  it("does nothing on a pill without onOpenInstructor", async () => {
+    const user = userEvent.setup();
+    await render(<ClassPeople {...props({ instructors: [iara] })} />);
+
+    await user.press(screen.getByRole("button", { name: "Iara Lima" }));
+
+    expect(screen.getByText("Iara Lima")).toBeOnTheScreen();
+  });
+
+  it("says no instructor is assigned in the header, with no pill", async () => {
+    await render(<ClassPeople {...props()} />);
+
+    expect(screen.getByText("No instructor assigned")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Iara Lima" })).toBeNull();
   });
 });

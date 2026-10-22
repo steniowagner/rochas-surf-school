@@ -273,12 +273,29 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > registrations screen built its sheet person as an object literal with `id` and `createdAt`, which the narrowed
   > prop rejects, so those two unused fields were dropped; no test fixture needed a change.
 
-- [ ] **T-05** — Rebuild the instructors part of `ClassPeople` (`src/modules/classes/components/class-people/`):
+- [x] **T-05** — Rebuild the instructors part of `ClassPeople` (`src/modules/classes/components/class-people/`):
   the `dim` header with the label and the pills (ER-03), each pill a new component in its own folder
   (`components/instructor-pill/`, per `.claude/rules/react.md`), pressing it calling a new
   `onOpenInstructor(instructor)` prop; tests in `class-people.component.test.tsx` and the pill's own test.
   Covers: ER-03 · Done when: `npx jest src/modules/classes/components/class-people src/modules/classes/components/instructor-pill`
   passes.
+  > ✅ 2026-10-21 — new `InstructorPill` (`components/instructor-pill/`: a `TouchableOpacity`, role `button`
+  > labelled with the instructor's name, `min-h-11`, `rounded-full`, `bg-surface`, `border-line` or `border-lagoon`
+  > for the viewer, a 32pt `StudentAvatar` and the name or "Você"); `ClassPeople`'s instructor block is now a `bg-dim`
+  > header with "Instrutor"/"Instrutores" and the pills wrapped in a row, or "Sem instrutor atribuído" when there
+  > is none; new optional `onOpenInstructor(instructor)` prop; `ClassPeopleInstructor` is now `ClassDetailsTeacher`
+  > + `isViewer`. Tests: the pill (name, initials, "You" for the viewer with the name kept as label, press); the
+  > card (singular/plural header, pills, "You", `onOpenInstructor` with the pressed instructor, no handler, no
+  > instructor). Files: `apps/mobile/src/modules/classes/components/instructor-pill/index.ts`,
+  > `apps/mobile/src/modules/classes/components/instructor-pill/instructor-pill.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/instructor-pill/instructor-pill.types.ts`,
+  > `apps/mobile/src/modules/classes/components/instructor-pill/instructor-pill.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.test.tsx`; verified: `npx jest
+  > src/modules/classes/components/class-people src/modules/classes/components/instructor-pill` (15 passed), both
+  > components at 100% coverage, `tsc --noEmit` clean. Deviations: the 44pt height can't be asserted in Jest
+  > (NativeWind classes aren't turned into styles there), so it is checked on the simulator in T-10.
 
 - [ ] **T-06** — Rebuild the students part of `ClassPeople`: guests in the stacked avatars (D-08) as a `sand`
   person-icon avatar (a new `components/guest-avatar/`), student rows with a chevron calling a new

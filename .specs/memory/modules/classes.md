@@ -4,8 +4,8 @@
 
 It schedules the school's classes, as [Product](../product.md) describes **Class** (`class`) and **Location**
 (`location`): admins create classes one at a time or in a batch, at a saved location, with the instructors who
-teach them, and the instructors are told; every approved account then browses the classes by week or by month and
-reads each one; admins edit and remove (archive) locations, and every class at a location follows its edits;
+teach them, and the instructors are told; every approved account then browses the classes by week or by month,
+all or one sport at a time, and reads each one; admins edit and remove (archive) locations, and every class at a location follows its edits;
 admins edit one class at a time, within what its state allows, cancel a class until it
 finishes, and delete one created by mistake before it starts. It also keeps the school's **Cancellation rule**
 (`cancellation-rule`) of each discipline and gives every upcoming class its **Cancellation deadline**. It is the
@@ -480,3 +480,6 @@ which stops that account from being erased while the link exists — a decision 
   carry them; in the app, the details' "A aula" (capacity beside the label, instructor pills, student and guest
   rows), "Regras", "Notas" and "Onde e como" cards follow the design, instructors and students open the person
   sheet, and the class tools are four cards with "Apagar aula" disabled once started or while anybody holds a seat.
+- `050-classes-discipline-filter` — no change to the module's rules or API: the app's classes week screen, for every
+  role, filters the selected day's classes and the calendar's marked days by sport (all, surf or skate) over the
+  classes it already loaded, from a floating filter; the choice lasts while the screen is open.

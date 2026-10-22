@@ -232,7 +232,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   (`ds-text-calendar-month-day`, Barlow Condensed 19: the month grid's numbers). The class card (spec 040) uses
   `cardMeta` (`ds-text-card-meta`, Nunito 12.5, 400: the location pill) and `occupancy` (`ds-text-occupancy`, Nunito
   11, 800, not uppercase: the "N/M vagas" line). `dayNumber`
-  (`ds-text-day-number`, 26 px; spec 030's day strip) is still defined but no screen uses it.
+  (`ds-text-day-number`, 26 px; spec 030's day strip) is still defined but no screen uses it. The week screen's
+  sport filter (spec 050) adds the colors `scrim` (the backdrop that dims the screen under a floating menu) and
+  `shadowGrape` (a `grape` button's shadow), both light and dark, and the elevations `fab` (`offsetY` 12, blur 26,
+  `shadowGrape`: a floating action button) and `menuOption` (`offsetY` 8, blur 22, `shadow`: a floating menu's
+  option).
 
 ## Persistence
 
@@ -1080,7 +1084,24 @@ guard's 401 `auth.token.invalid`.
   state around that refetch, not the queries' `isRefetching` (a month mounting cached weeks refetches them in the
   background and must not show it). Whenever the screen is focused again (`useFocusEffect`), it refetches every
   `["classes", "week"]` query that is invalidated (spec 033): a class cancelled or edited on a screen above it
-  invalidated its week while its observers weren't refetching, so without this the card stayed stale. The cards are `ClassCard` (`components/class-card/`). `ClassDetailsScreen`
+  invalidated its week while its observers weren't refetching, so without this the card stayed stale. The cards are `ClassCard` (`components/class-card/`).
+  Since spec 050 the screen filters by sport in the app, with no API parameter: `useClassesWeekScreen` keeps
+  `discipline` (`DisciplineFilterValue`, `"all" | ClassDiscipline` in `classes.types.ts`; local state starting at
+  `"all"`, so it lasts across days, weeks, the month and a refresh, and resets when the screen mounts again) and
+  filters both `dayItems` and `markedDates` with it; changing it sends no request. It is set by `DisciplineFilter`
+  (`components/discipline-filter/`, props `value` / `onChange`), rendered after the list outside its state branches,
+  so every role sees it while loading, on an error and on an empty day: a 56×56 `grape` `TouchableOpacity`
+  (`h-14 w-14 rounded-card`, `shadowStyle("fab")`, Ionicons `filter` / `close`) at the bottom right, in its own
+  `SafeAreaProvider` so the bottom inset includes the native tab bar the screen extends under. Open, a `bg-scrim`
+  `Pressable` backdrop and three label-only options ("all", "surf", "skate"; `h-11 px-4 rounded-control`,
+  `ds-text-pill`, `surface` + `line`, or `grape` + `text-on-color` when selected, `accessibilityState.selected`,
+  `shadowStyle("menuOption")`) stack above the button; choosing one closes and calls `onChange`, and the button or
+  the backdrop close without it. The motion uses Reanimated: on opening the backdrop fades in (`FadeIn`, 180 ms) and
+  each option rises 14 px while fading in (`FadeInDown`, 220 ms, 40 ms apart), the `entering` builders in
+  `discipline-filter.constants.ts` (one builder per option, since a builder's methods change it in place); the button
+  turns to −90° and back over 200 ms (`useDisciplineFilter`'s `buttonTurnStyle`); closing is instant. The list's
+  `paddingBottom` adds `DISCIPLINE_FILTER_CLEARANCE` (the button's 56 plus its 16 gap) so the last card scrolls clear
+  of it. Copy under `classesWeek.disciplineFilter`. `ClassDetailsScreen`
   (`screens/class-details.screen.tsx`, route `/<role>/class/[id]`) loads `useClass(id)` (`["classes", "detail",
   id]`, no retry on a 404 or a `SessionExpiredError`) and names the session's user "Você". Both compute the state
   with `getClassState` from `@rochas-surf-school/classes` and `useNow()` (`hooks/use-now.hook.ts`, the phone's

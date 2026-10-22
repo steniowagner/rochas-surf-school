@@ -3,13 +3,14 @@ id: "050"
 slug: classes-discipline-filter
 title: Filter the week's classes by sport
 template: quick
-status: accepted
+status: finished
 created: 2026-10-22
 started: 2026-10-22
 base_commit: e8693a6f03a1dedbe9d39565e2cffd2aeeeebd52
 reviewed_commit: b4c6dda291b6078a3264b910f3b23d178203a0b9
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-22
 ---
 
 # 050 — Filter the week's classes by sport

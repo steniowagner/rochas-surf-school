@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-review
+status: in-progress
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -97,9 +97,10 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 | D-04 | The mobile reuses `PersonSheet` from `modules/people`; its `person` prop narrows to `Pick<Person, "name" \| "role" \| "whatsappNumber">`. | One sheet for the directory and the class: same layout, same WhatsApp behavior and copy. The class answer has no `createdAt`. |
 | D-05 | On an admin's view of a class that hasn't started, a student row opens the sheet and its "Retirar" button stays at the right, in place of the chevron; pressing "Retirar" opens the take-out sheet only, never the person sheet. | `admin-app.html` draws exactly that (the button stops the row's tap). |
 | D-06 | Guests: a `sand` circle with a person icon (no initials) in the stacked avatars and in the list; in the list the name followed by the "Trial" chip when the viewer may see the name, and the "Trial" chip alone when the name is `null`; guest rows are not pressable and have no chevron. | The design's trial avatar and chip; names follow the existing "Class lists" rule; spec 045 recorded that guests open no person sheet (they have no account). |
-| D-07 | The cancellation row keeps its current value ("Cancelamento até …" with the deadline, or "Ler a regra"). The school-rules row shows "N regras para todos os alunos" (singular for one) from `useSchoolRules` once loaded with at least one rule; while loading, on error or with no rules, it shows its title only. | The design's "Sem penalização até 12 h antes" needs an hours value the free-text rules don't have; the count is one cached request the rules screen already makes. |
+| D-07 | ~~The cancellation row keeps its current value ("Cancelamento até …" with the deadline, or "Ler a regra"). The school-rules row shows "N regras para todos os alunos" (singular for one) from `useSchoolRules` once loaded with at least one rule; while loading, on error or with no rules, it shows its title only.~~ (removed: replaced by D-10, amendment 2026-10-22) | The design's "Sem penalização até 12 h antes" needs an hours value the free-text rules don't have; the count is one cached request the rules screen already makes. |
 | D-08 | The stacked avatars show the first 5 seats (students, then guests) and keep "+N" for the seats beyond them. | "+N" is current behavior that tells how many more people there are; the design omits it only because its sample class is small. |
 | D-09 | Opening a person's sheet with WhatsApp from a class's details extends "Contacting a user on WhatsApp", which names only the directory, and removes the item from the out-of-v1 list. | The user asked for it, and the design draws it; the visibility rule is the same one (D-02). |
+| D-10 | The cancellation row is titled "Cancelamento" (no modality) and its value reads "Até <prazo>" with the deadline, or "Ler a regra" without one. The school-rules row shows "N regras para todos os alunos" (singular for one) from `useSchoolRules` once loaded with at least one rule; while loading, on error or with no rules, it shows its title only. | The user's amendment of 2026-10-22: the card already sits under "Regras" next to the class's own discipline chip, so the modality and the repeated "Cancelamento" are noise; the school-rules part is D-07's, unchanged. |
 
 ## Expected Results
 
@@ -157,7 +158,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - **Verify by:** `npx jest src/modules/classes/components/class-people src/modules/classes/screens/class-details.screen.test.tsx`
   (from `apps/mobile`); iOS simulator: expand the list as a student and as an admin.
 
-### ER-05 — "Regras" rows as designed
+### ~~ER-05 — "Regras" rows as designed~~ (removed: replaced by ER-08, amendment 2026-10-22)
 
 - **Front:** mobile
 - **Behavior:** Given a class that isn't cancelled, then "Regras" is a card with two rows, each with a 34pt
@@ -179,6 +180,32 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - **Edge and error cases:** a class without notes shows no "Notas" label or card.
 - **Verify by:** `npx jest src/modules/classes/screens/class-details.screen.test.tsx` (from `apps/mobile`);
   iOS simulator: open a class with notes.
+
+### ER-07 — The capacity line heads "A aula"
+
+- **Front:** mobile
+- **Behavior:** Given a class that hasn't finished and isn't cancelled, then the capacity line ("Máx. N alunos ·
+  N vagas livres" / "esgotado", plus "inclui N trial" for admins) sits at the right of the "A aula" label, on the
+  same line, in the label's type style (`ds-text-section-label`, uppercase), `bad` when the class is full and `ink-2`
+  otherwise; nothing is left under the card.
+- **Edge and error cases:** a finished or cancelled class shows the "A aula" label alone (as today, no capacity
+  line); a long line wraps at the right without pushing the label.
+- **Verify by:** `npx jest src/modules/classes/components/class-people` (from `apps/mobile`); iOS simulator: open
+  a class with free seats and a full one.
+
+### ER-08 — "Regras" rows as amended
+
+- **Front:** mobile
+- **Behavior:** Given a class that isn't cancelled, then "Regras" is a card with two rows, each with a 34pt
+  icon tile (`dim` background, `lagoon` icon), a small uppercase title, a bold value and a chevron: "Cancelamento"
+  with "Até <prazo>" (e.g. "Até sex, 23 out · 00:00"), or "Ler a regra" when the class has no deadline, and
+  "Regras da escola" with "N regras para todos os alunos" ("1 regra para todos os alunos" for one). Tapping them
+  opens the cancellation-rules sheet and the role's school-rules screen, as before.
+- **Edge and error cases:** while the school rules load, when the request fails, or with no rules, the second
+  row shows its title only; a cancelled class shows no "Regras"; es-ES ("Cancelación", "Hasta …") and en-US
+  ("Cancellation", "Until …") have their own strings.
+- **Verify by:** `npx jest src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/components/class-rule-row`
+  (from `apps/mobile`); iOS simulator: open a class.
 
 ## Tasks
 
@@ -362,7 +389,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   `classDetails.rules.schoolCount_one` / `_other` to `src/i18n/messages/{pt-BR,es-ES,en-US}.ts` ("{{count}}
   regra(s) para todos os alunos", "{{count}} regla(s) para todos los alumnos", "{{count}} rule(s) for every
   student"); tests for the row and for the loaded, loading, failed and empty counts on the screen.
-  Covers: ER-05 · Done when: `npx jest src/modules/classes/components/class-rule-row src/modules/classes/screens/class-details.screen.test.tsx`
+  Covers: ER-08 · Done when: `npx jest src/modules/classes/components/class-rule-row src/modules/classes/screens/class-details.screen.test.tsx`
   passes.
   > ✅ 2026-10-22 — new `ClassRuleRow` (`components/class-rule-row/`: a `Pressable` with role `button` labelled by
   > its title, `min-h-11`, a 34pt `bg-dim` tile with a `lagoon` Ionicon, the title in `ds-text-section-label`, the
@@ -404,6 +431,17 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > src/modules/classes/screens/class-details.screen.test.tsx` (218 passed, screen at 100%), `tsc --noEmit` clean.
   > Deviations: none.
 
+- [ ] **T-11** — Move the capacity line of `ClassPeople` (`src/modules/classes/components/class-people/`) from under
+  the card to the right of the "A aula" label, in `ds-text-section-label` with the same `text-bad` / `text-ink-2`
+  logic (ER-07); update its tests. (added during execution, amendment 2026-10-22)
+  Covers: ER-07 · Done when: `npx jest src/modules/classes/components/class-people src/modules/classes/screens/class-details.screen.test.tsx` passes.
+
+- [ ] **T-12** — Title the cancellation row "Cancelamento" without the modality and read its value as "Até <prazo>"
+  (D-10, ER-08): change `classDetails.rules.cancellation` and add `classDetails.rules.until` in
+  `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, drop `classDetails.cancellationDeadline` if nothing else uses it, and
+  update the screen and its tests. (added during execution, amendment 2026-10-22)
+  Covers: ER-08 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/components/class-rule-row` passes.
+
 ### Verification
 
 - [x] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Follow the user
@@ -430,6 +468,11 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > your pill reads "Você" with a `lagoon` border; (3) on a database with school rules, the second row reads "N
   > regras para todos os alunos"; (4) the dark theme (the app's own theme setting kept it light when the
   > simulator was switched to dark, and I left your settings alone). Deviations: none.
+
+- [ ] **T-13** — Rerun every command in the Verification Plan from the repo root after T-11 and T-12; all pass.
+  Check ER-07 and ER-08 on the iOS simulator and record what was seen. (added during execution, amendment
+  2026-10-22)
+  Covers: ER-07, ER-08 · Done when: every automated command exits 0 and the journeys are recorded.
 
 ## Verification Plan
 
@@ -470,5 +513,15 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-22 — requested by the user after execution, approved by them in chat; the spec went back from
+  `in-review` to `in-progress`.
+  - "A aula": the capacity line moves from under the card to the right of the "A aula" label, in the label's type
+    style, keeping its colors (new ER-07, task T-11). Before: a `ds-text-list-subtitle` line under the card.
+  - "Regras", cancellation row: title "Cancelamento · <modalidade>" → "Cancelamento"; value "Cancelamento até
+    <prazo>" → "Até <prazo>" (D-07 → D-10, ER-05 → ER-08, task T-12). Reason: the user's design call.
+  - T-13 reruns the Verification Plan for the amended work.
+  - T-08's `Covers` points at ER-08 instead of the removed ER-05: it built the rows, the tiles and the
+    school-rules count that ER-08 keeps; T-12 changes only the cancellation row's title and value.
 
 ## Review

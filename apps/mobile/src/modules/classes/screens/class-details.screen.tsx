@@ -240,13 +240,18 @@ export function ClassDetailsScreen({
               </Pressable>
             ) : null}
             {screen.state === "finished" ? (
-              <View className="gap-1 rounded-card bg-dim p-4">
-                <Text className="ds-text-list-title text-ink">
-                  {t("classDetails.finished.title")}
-                </Text>
-                <Text className="ds-text-list-subtitle text-ink-2">
-                  {t("classDetails.finished.description", { end: screen.end })}
-                </Text>
+              <View className="gap-2 rounded-card bg-dim p-4 flex-row items-center">
+                <Ionicons name="checkmark" size={24} color={theme.ink2} />
+                <View className="flex-1 gap-1">
+                  <Text className="ds-text-list-title text-ink">
+                    {t("classDetails.finished.title")}
+                  </Text>
+                  <Text className="ds-text-list-subtitle text-ink-2">
+                    {t("classDetails.finished.description", {
+                      end: screen.end,
+                    })}
+                  </Text>
+                </View>
               </View>
             ) : null}
             <ClassPeople
@@ -293,7 +298,7 @@ export function ClassDetailsScreen({
                 </Text>
                 <View className="overflow-hidden rounded-card border border-line bg-surface">
                   <ClassRuleRow
-                    icon="calendar-outline"
+                    icon="close-circle-outline"
                     title={t("classDetails.rules.cancellation")}
                     value={
                       screen.cancellationDeadline
@@ -321,9 +326,15 @@ export function ClassDetailsScreen({
                 </Text>
                 <View className="flex-row gap-3 rounded-card border border-line bg-surface px-4 py-3.5">
                   <View className="pt-1">
-                    <Ionicons name="reader-outline" size={17} color={theme.lagoon} />
+                    <Ionicons
+                      name="reader-outline"
+                      size={17}
+                      color={theme.lagoon}
+                    />
                   </View>
-                  <Text className="ds-text-body flex-1 text-ink">{item.notes}</Text>
+                  <Text className="ds-text-body flex-1 text-ink">
+                    {item.notes}
+                  </Text>
                 </View>
               </View>
             ) : null}

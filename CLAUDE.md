@@ -56,6 +56,7 @@ Never hard-code colors, fonts or radii; use the tokens so light and dark themes 
 - Style with NativeWind `className`. Use `StyleSheet` or a `style` prop only when a class can't express it: values computed at runtime (safe-area insets, measured sizes), Reanimated styles, elevation (`shadowStyle()`), and props of third-party components that take style objects or colors.
 - Build buttons with `TouchableOpacity` (press feedback through `activeOpacity`, not `active:` classes). This overrides the skill's `ui-pressable` rule for buttons; other pressable elements, such as list rows, keep using `Pressable`. One exception: a link inside a sentence uses `TextButton` (`src/components/ui/text-button`), a nested `Text` with `onPress`, because a touchable can't wrap part of a line of text.
 - The Stack header draws the back button (shared options in `src/navigation/stack-header/`); screens never build one. A screen sets its title and `headerRight` with `<Stack.Screen options>`.
+- Actions at the right of the header (`headerRight`) use `HeaderButton` (`src/components/ui/header-button`): just the icon, never a circle, background (`bg-surface`, `bg-sun`) or `shadowStyle("iconButton")` around it.
 
 ## Native builds (apps/mobile)
 

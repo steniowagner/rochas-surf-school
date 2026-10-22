@@ -3,7 +3,7 @@ id: "050"
 slug: classes-discipline-filter
 title: Filter the week's classes by sport
 template: quick
-status: in-review
+status: in-progress
 created: 2026-10-22
 started: 2026-10-22
 base_commit: e8693a6f03a1dedbe9d39565e2cffd2aeeeebd52
@@ -179,6 +179,36 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > render (a T-02 file, fixed here; Jest doesn't run NativeWind's upgrade, so no test can catch it). The backdrop's
   > dim isn't visible yet: the running Metro predates the `scrim` token (T-01) and needs a restart with `--clear` —
   > checked in T-04 with the dark theme and the admin's Aulas tab.
+- [x] **T-05** (added during execution) — Animate `DisciplineFilter` as AGENDA-01B does, with Reanimated, at the user's
+  request after T-04: on opening, the backdrop fades in (180 ms, `ease`) and each option rises 14 px while fading in
+  (220 ms, `cubic-bezier(.32,.72,0,1)`, 40 ms apart from the first); the button turns to −90° and back over 200 ms with
+  the same curve, replacing the `-rotate-90` / `rotate-0` classes; closing stays instant, as in the design. Move the
+  state and the rotation into `discipline-filter.hook.ts` (`react.md`), and test the rotation and that the backdrop
+  and options animate in. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/components/discipline-filter
+  src/modules/classes/screens/classes-week.screen.test.tsx` (from `apps/mobile`) passes with every changed line
+  covered, and in the iOS simulator opening the filter shows the fade, the staggered rise and the turning button.
+  > ✅ 2026-10-22 — the backdrop is an `Animated.View` with `entering={BACKDROP_ENTERING}` (`FadeIn`, 180 ms, CSS
+  > `ease` as `Easing.bezier(0.25, 0.1, 0.25, 1)`, since Reanimated's `Easing.ease` is another curve) around the
+  > `Pressable`; each option is wrapped in an `Animated.View` with `OPTION_ENTERING[index]` (`FadeInDown` from
+  > `opacity: 0, translateY: 14`, 220 ms, `Easing.bezier(0.32, 0.72, 0, 1)`, delay `index * 40`; one builder per option,
+  > since a builder's methods change it in place); the button sits in an `Animated.View` turned by
+  > `useDisciplineFilter`'s `buttonTurnStyle` (`useDerivedValue` + `withTiming` to −90° or 0°, 200 ms, the same curve),
+  > replacing the `-rotate-90` / `rotate-0` classes; closing stays instant. The state, the handlers and the turn moved
+  > into `discipline-filter.hook.ts`; the options list and the animations into `discipline-filter.constants.ts`.
+  > Tests added: "fades the backdrop in and raises the options one after another" and "turns the button to −90° while
+  > open and back when closed" (fails with the turn set to 0°). Files:
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.constants.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.types.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.component.test.tsx`; verified:
+  > `npx jest src/modules/classes/components/discipline-filter src/modules/classes/screens/classes-week.screen.test.tsx`
+  > (57 passed; the component, hook and constants 100%), `npx tsc --noEmit` and `npx eslint` (exit 0); rerun of the
+  > Verification Plan: RELATED TESTS PASSED (mobile 1128, web 22), COVERAGE OK (8 files), lint and check-types 8/8.
+  > Deviations: the simulator part of Done when was not run by the executor — the simulator was in use by another
+  > session — and the user approved moving the spec to review after T-05 was built ("the filter task looks good");
+  > the reviewer should watch the opening in the simulator.
 
 ### Verification
 

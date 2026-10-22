@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Pressable,
@@ -8,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated from "react-native-reanimated";
 import {
   SafeAreaProvider,
   SafeAreaView,
@@ -18,11 +18,14 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { iconSizes, shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
-import type { DisciplineFilterValue } from "../../classes.types";
-
+import {
+  BACKDROP_ENTERING,
+  DISCIPLINE_FILTER_OPTIONS,
+  OPTION_ENTERING,
+} from "./discipline-filter.constants";
+import { useDisciplineFilter } from "./discipline-filter.hook";
 import type { DisciplineFilterProps } from "./discipline-filter.types";
 
-const OPTIONS: DisciplineFilterValue[] = ["all", "surf", "skate"];
 const BOTTOM_EDGE: Edge[] = ["bottom"];
 
 /**
@@ -32,23 +35,25 @@ const BOTTOM_EDGE: Edge[] = ["bottom"];
 export function DisciplineFilter({ value, onChange }: DisciplineFilterProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const select = (option: DisciplineFilterValue) => {
-    setIsOpen(false);
-    onChange(option);
-  };
+  const { isOpen, toggle, close, select, buttonTurnStyle } =
+    useDisciplineFilter({ onChange });
 
   return (
     // Its own provider measures this view, so on iOS the bottom inset includes the tab bar the screen extends under.
     <SafeAreaProvider style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {isOpen ? (
-        <Pressable
-          testID="discipline-filter-backdrop"
-          accessible={false}
+        <Animated.View
+          testID="discipline-filter-backdrop-fade"
+          entering={BACKDROP_ENTERING}
           className="absolute inset-0 bg-scrim"
-          onPress={() => setIsOpen(false)}
-        />
+        >
+          <Pressable
+            testID="discipline-filter-backdrop"
+            accessible={false}
+            className="flex-1"
+            onPress={close}
+          />
+        </Animated.View>
       ) : null}
       <SafeAreaView
         edges={BOTTOM_EDGE}
@@ -60,47 +65,58 @@ export function DisciplineFilter({ value, onChange }: DisciplineFilterProps) {
           className="items-end gap-2.5 pb-4 pr-screen"
         >
           {isOpen
-            ? OPTIONS.map((option) => {
+            ? DISCIPLINE_FILTER_OPTIONS.map((option, index) => {
                 const selected = option === value;
 
                 return (
-                  <TouchableOpacity
+                  <Animated.View
                     key={option}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    activeOpacity={BUTTON_ACTIVE_OPACITY}
-                    onPress={() => select(option)}
-                    className={`h-11 justify-center rounded-control border px-4 ${selected ? "border-grape bg-grape" : "border-line bg-surface"}`}
-                    style={shadowStyle("menuOption", theme)}
+                    testID={`discipline-filter-option-${option}`}
+                    entering={OPTION_ENTERING[index]}
                   >
-                    <Text
-                      className={`ds-text-pill ${selected ? "text-on-color" : "text-ink"}`}
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      activeOpacity={BUTTON_ACTIVE_OPACITY}
+                      onPress={() => select(option)}
+                      className={`h-11 justify-center rounded-control border px-4 ${selected ? "border-grape bg-grape" : "border-line bg-surface"}`}
+                      style={shadowStyle("menuOption", theme)}
                     >
-                      {t(`classesWeek.disciplineFilter.${option}`)}
-                    </Text>
-                  </TouchableOpacity>
+                      <Text
+                        className={`ds-text-pill ${selected ? "text-on-color" : "text-ink"}`}
+                      >
+                        {t(`classesWeek.disciplineFilter.${option}`)}
+                      </Text>
+                    </TouchableOpacity>
+                  </Animated.View>
                 );
               })
             : null}
-          <TouchableOpacity
-            testID="discipline-filter-button"
-            accessibilityRole="button"
-            accessibilityLabel={t(
-              isOpen
-                ? "classesWeek.disciplineFilter.close"
-                : "classesWeek.disciplineFilter.open",
-            )}
-            activeOpacity={BUTTON_ACTIVE_OPACITY}
-            onPress={() => setIsOpen((open) => !open)}
-            className={`h-14 w-14 items-center justify-center rounded-card bg-grape ${isOpen ? "-rotate-90" : "rotate-0"}`}
-            style={shadowStyle("fab", theme)}
+          {/* The whole button turns, shadow included, as in the design. */}
+          <Animated.View
+            testID="discipline-filter-button-turn"
+            style={buttonTurnStyle}
           >
-            <Ionicons
-              name={isOpen ? "close" : "filter"}
-              size={iconSizes.bar}
-              color={theme.onColor}
-            />
-          </TouchableOpacity>
+            <TouchableOpacity
+              testID="discipline-filter-button"
+              accessibilityRole="button"
+              accessibilityLabel={t(
+                isOpen
+                  ? "classesWeek.disciplineFilter.close"
+                  : "classesWeek.disciplineFilter.open",
+              )}
+              activeOpacity={BUTTON_ACTIVE_OPACITY}
+              onPress={toggle}
+              className="h-14 w-14 items-center justify-center rounded-card bg-grape"
+              style={shadowStyle("fab", theme)}
+            >
+              <Ionicons
+                name={isOpen ? "close" : "filter"}
+                size={iconSizes.bar}
+                color={theme.onColor}
+              />
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>

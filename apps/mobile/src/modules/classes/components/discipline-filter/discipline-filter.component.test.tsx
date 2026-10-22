@@ -8,6 +8,11 @@ import {
 import type { DisciplineFilterValue } from "../../classes.types";
 
 import { DisciplineFilter } from "./discipline-filter.component";
+import {
+  BACKDROP_ENTERING,
+  DISCIPLINE_FILTER_OPTIONS,
+  OPTION_ENTERING,
+} from "./discipline-filter.constants";
 
 const renderFilter = (value: DisciplineFilterValue = "all") => {
   const onChange = jest.fn();
@@ -99,6 +104,38 @@ describe("DisciplineFilter", () => {
       screen.getByRole("button", { name: "Filter by sport" }),
     ).toBeOnTheScreen();
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("fades the backdrop in and raises the options one after another", async () => {
+    const { user, view } = renderFilter();
+    await view;
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+
+    expect(
+      screen.getByTestId("discipline-filter-backdrop-fade").props.entering,
+    ).toBe(BACKDROP_ENTERING);
+    DISCIPLINE_FILTER_OPTIONS.forEach((option, index) => {
+      expect(
+        screen.getByTestId(`discipline-filter-option-${option}`).props.entering,
+      ).toBe(OPTION_ENTERING[index]);
+    });
+  });
+
+  it("turns the button to −90° while open and back when closed", async () => {
+    const { user, view } = renderFilter();
+    await view;
+    const turn = () => screen.getByTestId("discipline-filter-button-turn");
+
+    expect(turn()).toHaveStyle({ transform: [{ rotate: "0deg" }] });
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+
+    expect(turn()).toHaveStyle({ transform: [{ rotate: "-90deg" }] });
+
+    await user.press(screen.getByRole("button", { name: "Close filter" }));
+
+    expect(turn()).toHaveStyle({ transform: [{ rotate: "0deg" }] });
   });
 
   it.each<[string, DisciplineFilterValue]>([

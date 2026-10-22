@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-review
+status: changes-requested
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -625,3 +625,61 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   directions) doesn't change.
 
 ## Review
+
+### Round 1 — 2026-10-22 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/classes`, `backend`, `mobile`: 27 tasks; the backend's lint
+  warnings are the existing ones in untouched e2e lines, none in the new `contacts` block)
+- related tests ✅ apps/backend (41) · apps/mobile (76 suites, 1180) · modules/classes (35 suites, 524) ·
+  modules/enrolment (19 suites, 291) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` (21 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 23 files, 627 passed (`contacts` included) — `E2E PASSED`
+- HTTP, against the running dev API with a throwaway class (two students, one sharing and one hiding their number;
+  Dev Admin and Dev Instructor teaching; a named and an erased guest), deleted afterwards
+- iOS simulator: a second simulator (iPhone 17, same dev build and Metro) signed in as Dev Admin, on that class, in
+  light and dark; the student session on the iPhone 18 Pro was only looked at, not driven
+
+**Expected Results**
+
+- ER-01 ✅ — `GET /classes/:id`: a student and an instructor viewer get Sara's number, `null` for Tiago (hidden) and
+  for both instructors (hidden), Dev Admin as `role: "admin"`; the admin gets every number; 404 for an unknown id,
+  401 without a token; PUT and cancel answers covered by the `contacts` e2e scenarios, which assert the same fields
+- ER-02 ✅ — the week answer for that day carries `{ id, name, photoUrl, enrolmentId }` students and `{ id, name }`
+  instructors; the e2e scenario asserts the absent keys on the week, "mine" and "mine/history" answers
+- ER-03 ✅ — `dim` "INSTRUTORES" header with two pills; the viewer's own reads "Você" with a `lagoon` border; tapping
+  Dev Instructor opens the sheet with "INSTRUTOR" and his number (admin viewer); pills ≥ 44pt; the null-number row
+  ("Número não compartilhado.") and "no instructor" are asserted in the component and screen tests
+- ER-04 ✅ — stacked avatars: two initials and two person-icon guests; expanded: student rows, "Review Gabi" + "TRIAL"
+  and "TRIAL" alone for the erased guest (admin); "Retirar" in place of the chevron; tapping Tiago opened the sheet
+  with "ALUNO" and his hidden number; "Retirar" on Sara opened only the take-out sheet (dismissed, nothing taken
+  out); tapping the guest row did nothing
+- ER-05 — removed by the amendment of 2026-10-22, logged under Amendments; nothing builds the old title/value
+- ER-06 ✅ — "NOTAS" card with the note icon, both lines of the note kept
+- ER-07 ✅ — "MÁX. 8 ALUNOS · 4 VAGAS LIVRES · INCLUI 2 TRIAL" at the right of "A AULA", wrapping at the right without
+  pushing the label; "MÁX. 1 ALUNO · ESGOTADO" in red on the student's full class
+- ER-08 ✅ — "CANCELAMENTO" over "Até sex, 23 out · 21:00"; tapping it opens the cancellation-rules sheet, and "Regras
+  da escola" opens the admin's school-rules screen; with 0 rules in this database the row shows its title only (the
+  counts, loading and failure states and the es-ES/en-US strings are asserted in the screen tests)
+- ER-09 ✅ — "ONDE E COMO" over one card: the map with its marker across the top, the pin, "Review 044" and its
+  address, "DIREÇÕES ↗" in `lagoon`; no conditions row; the no-point card, the URLs and the failure toast are
+  asserted in the card's tests (tapping "Direções" leaves the app, not driven)
+
+**Findings**
+
+- [ ] **F-01** (convention) — `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts:33` adds
+  `import type { ClassDetailsStudent } from "../classes.types";` between `../utils/map` and `../utils/occupancy`;
+  `.claude/rules/react.md` §2 sorts the relative group alphabetically by module path, so it belongs first in that
+  group, before `../hooks/use-cancel-class.hook`. Expected: the relative imports in alphabetical order.
+
+**Notes**
+
+- Decisions D-01 to D-11 hold: `ClassContactReader` is used only by `GetClass` (`toClassItem`, `ClassRosterReader` and
+  `ClassViewReader` untouched), `visibleNumber` is the directory's rule, `PersonSheet`'s `person` is narrowed and shared.
+- `## Memory Impact` misses part of what the amendments built: the `product.md` line should also name the capacity
+  line beside "A aula" (ER-07), the cancellation row's "Cancelamento" / "Até <prazo>" (D-10) and the "Onde e como" card
+  (D-11, `ClassLocationCard`; `LocationMapPreview` is now the map alone), and D-09 extends
+  `requirements.md → Contacting a user on WhatsApp`, which `spec-finish` should update.
+- The guest avatar's `sand` and the student avatar's background read the same in both themes; that matches the
+  tokens, just worth knowing if guests should stand out more.

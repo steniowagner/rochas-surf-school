@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-progress
+status: in-review
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -892,7 +892,9 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest
   > src/modules/classes/screens/class-details.screen.test.tsx -t "finished banner"` (from `apps/mobile`) → 4
   > passed; with the icon temporarily renamed to `checkmark-done` the test failed, then the screen was restored.
-  > Deviations: none.
+  > Verification Plan rerun from the repo root: RELATED TESTS PASSED (apps/backend, apps/mobile, modules/classes,
+  > modules/enrolment), COVERAGE OK (24 files), E2E PASSED (apps/backend), lint/check-types/build 27 tasks
+  > successful (the backend's 10 existing lint warnings in untouched e2e lines). Deviations: none.
 
 **Notes**
 

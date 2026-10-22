@@ -30,6 +30,10 @@ export const colors = {
     onColor: '#FFFFFF',
     shadow: 'rgba(61,46,31,.10)',
     shadowSun: 'rgba(240,116,43,.28)',
+    // The sport filter (AGENDA-01B): the backdrop that dims the screen while its options are open, and the button's
+    // grape shadow.
+    scrim: 'rgba(24,16,10,.28)',
+    shadowGrape: 'rgba(75,42,99,.34)',
     // The student's Agenda band (AGENDA-01 / 01A): behind the user header and the calendar, with a line under it.
     band: '#F3E7D6',
     bandLine: 'rgba(212,165,116,.35)',
@@ -62,6 +66,8 @@ export const colors = {
     onColor: '#FFFFFF',
     shadow: 'rgba(0,0,0,.4)',
     shadowSun: 'rgba(245,138,69,.3)',
+    scrim: 'rgba(0,0,0,.45)',
+    shadowGrape: 'rgba(0,0,0,.4)',
     band: '#101520',
     bandLine: 'rgba(196,154,108,.16)',
   },
@@ -140,6 +146,9 @@ export const elevation = {
   iconButton: { offsetY: 2, blur: 8, color: 'shadow' },
   card: { offsetY: 3, blur: 12, color: 'shadow' },
   primary: { offsetY: 8, blur: 20, color: 'shadowSun' },
+  // The floating sport filter button and its options (AGENDA-01B).
+  fab: { offsetY: 12, blur: 26, color: 'shadowGrape' },
+  menuOption: { offsetY: 8, blur: 22, color: 'shadow' },
 } as const satisfies Record<string, { offsetY: number; blur: number; color: ColorToken }>;
 
 // Lucide icons, stroke 2.

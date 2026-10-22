@@ -95,13 +95,20 @@ Before writing code under `apps/mobile`, load the `vercel-react-native-skills` a
 skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (component folders split into
 `*.component.tsx`, `*.hook.ts`, `*.types.ts`, `index.ts`).
 
-- [ ] **T-01** — Add the D-04 tokens to `packages/design-tokens/src/tokens.ts` (`scrim` and `shadowGrape` in both
+- [x] **T-01** — Add the D-04 tokens to `packages/design-tokens/src/tokens.ts` (`scrim` and `shadowGrape` in both
   palettes, `fab` and `menuOption` in `elevation`) and regenerate `packages/design-tokens/src/tokens.css`
   (`npm run build -w @rochas-surf-school/design-tokens`); check that `apps/mobile`'s theme variables and
   `tailwind.config.ts` pick the new colors up (`bg-scrim`). Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `npm run check-types -w @rochas-surf-school/design-tokens` and
   `npm run check-types -w @rochas-surf-school/mobile` exit 0.
+  > ✅ 2026-10-22 — added `scrim` and `shadowGrape` to both palettes and the `fab` / `menuOption` elevations, and
+  > regenerated the CSS (`--ds-scrim`, `--ds-shadow-grape`, `--ds-elevation-fab`, `--ds-elevation-menu-option`);
+  > `apps/mobile`'s `theme-variables.ts` and `tailwind.config.ts` build their colors from `Object.keys(colors.light)`
+  > through `colorVariable` / `kebab`, so `bg-scrim` → `var(--ds-scrim)` needs no change there. Files:
+  > `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`; verified:
+  > `npm run check-types -w @rochas-surf-school/design-tokens` (exit 0, CSS up to date) and
+  > `npm run check-types -w @rochas-surf-school/mobile` (exit 0); deviations: none
 - [ ] **T-02** — Create `DisciplineFilter` in `src/modules/classes/components/discipline-filter/`
   (`discipline-filter.component.tsx`, `.types.ts`, `index.ts`; a `.hook.ts` only if it holds logic): props
   `value: DisciplineFilterValue` (`"all" | "surf" | "skate"`, exported from `classes.types.ts`) and

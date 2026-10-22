@@ -17,7 +17,7 @@ import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-ut
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
-import type { ClassItem } from "../classes.types";
+import type { ClassDetails } from "../classes.types";
 import {
   failure,
   fetchMock,
@@ -77,7 +77,7 @@ jest.mock("@/services/api", () => {
 // Wednesday 2026-10-14, 10:00 in Fortaleza.
 const NOW = new Date("2026-10-14T13:00:00.000Z");
 
-const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
+const makeClass = (overrides: Partial<ClassDetails> = {}): ClassDetails => ({
   id: "c-1",
   discipline: "surf",
   level: "beginner",
@@ -96,8 +96,8 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
     longitude: -38.4617,
   },
   instructors: [
-    { id: "u-1", name: "Ana Souza" },
-    { id: "i-2", name: "Bruno Lima" },
+    { id: "u-1", name: "Ana Souza", role: "instructor", whatsappNumber: null },
+    { id: "i-2", name: "Bruno Lima", role: "admin", whatsappNumber: "+5585988887777" },
   ],
   seatsTaken: 0,
   students: [],
@@ -116,7 +116,7 @@ const refused = (status: number, key: string) => ({
 const classRequestCount = () =>
   fetchMock.mock.calls.filter(([url]) => !String(url).endsWith("/school-settings")).length;
 
-const serve = (item: ClassItem) => fetchMock.mockResolvedValue(ok(item));
+const serve = (item: ClassDetails) => fetchMock.mockResolvedValue(ok(item));
 
 const renderScreen = async (canEdit?: boolean, canEnrol?: boolean) => {
   const queryClient = new QueryClient({
@@ -227,7 +227,7 @@ describe("ClassDetailsScreen", () => {
   it("names the viewer You, and one instructor singular", async () => {
     serve(
       makeClass({
-        instructors: [{ id: "u-1", name: "Ana Souza" }],
+        instructors: [{ id: "u-1", name: "Ana Souza", role: "instructor", whatsappNumber: null }],
         capacity: 1,
       }),
     );
@@ -342,6 +342,7 @@ describe("ClassDetailsScreen", () => {
         name: `Aluno ${index}`,
         photoUrl: null,
         enrolmentId: `e-${index}`,
+        whatsappNumber: null,
       }));
 
     it("groups the instructors, the students and the free seats under The class", async () => {
@@ -390,8 +391,8 @@ describe("ClassDetailsScreen", () => {
       serve(
         makeClass({
           seatsTaken: 1,
-          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null, enrolmentId: "e-1" }],
-          instructors: [{ id: "i-2", name: "Bruno Lima" }],
+          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null }],
+          instructors: [{ id: "i-2", name: "Bruno Lima", role: "instructor", whatsappNumber: null }],
         }),
       );
       await renderScreen();
@@ -456,7 +457,7 @@ describe("ClassDetailsScreen", () => {
   });
 
   describe("no instructor", () => {
-    const alone = (overrides: Partial<ClassItem> = {}) =>
+    const alone = (overrides: Partial<ClassDetails> = {}) =>
       makeClass({ instructors: [], ...overrides });
 
     it("shows an admin the banner, which opens the editor, and No instructor assigned", async () => {
@@ -560,7 +561,7 @@ describe("ClassDetailsScreen", () => {
   });
 
   describe("no deadline", () => {
-    const unset = (overrides: Partial<ClassItem> = {}) =>
+    const unset = (overrides: Partial<ClassDetails> = {}) =>
       makeClass({ cancellationDeadline: null, ...overrides });
 
     it("shows an admin the banner naming the discipline, which opens the rules screen", async () => {
@@ -1067,8 +1068,8 @@ describe("ClassDetailsScreen", () => {
         ok(
           makeClass({
             students: [
-              { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1" },
-              { id: "s-2", name: "Aluno 2", photoUrl: null, enrolmentId: "e-2" },
+              { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null },
+              { id: "s-2", name: "Aluno 2", photoUrl: null, enrolmentId: "e-2", whatsappNumber: null },
             ],
             pendingRequests: 1,
           }),
@@ -1260,7 +1261,7 @@ describe("ClassDetailsScreen", () => {
     // The class is served for every GET; the deletion answers as the test says.
     const serveDelete = (
       answer: () => unknown = noContent,
-      item: ClassItem = makeClass(),
+      item: ClassDetails = makeClass(),
     ) =>
       fetchMock.mockImplementation(
         async (_url: string, init?: { method?: string }) =>
@@ -1483,7 +1484,7 @@ describe("ClassDetailsScreen", () => {
 
 describe("ClassDetailsScreen enrol", () => {
   const FULL = { seatsTaken: 8 };
-  const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"]) => ({
+  const mine = (status: NonNullable<ClassDetails["myEnrolment"]>["status"]) => ({
     myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
   });
   const CREATED = { id: "e-2", classId: "c-1", status: "pending", requestedAt: NOW.toISOString() };
@@ -1500,7 +1501,7 @@ describe("ClassDetailsScreen enrol", () => {
 
   // The class is served for every class GET, the rules for the rules GET, and the POST answers as the test says.
   const serveEnrol = (
-    item: ClassItem,
+    item: ClassDetails,
     answer: () => unknown = () => ok(CREATED),
     rules: unknown = { surf: "Cancele até 1 hora antes.", skate: null },
   ) =>
@@ -1511,7 +1512,7 @@ describe("ClassDetailsScreen enrol", () => {
 
   beforeEach(() => mockShow.mockClear());
 
-  async function openRequestSheet(item: ClassItem, label: string) {
+  async function openRequestSheet(item: ClassDetails, label: string) {
     serveEnrol(item);
     const user = userEvent.setup();
     await renderScreen(false, true);
@@ -1710,7 +1711,7 @@ describe("ClassDetailsScreen enrol", () => {
 });
 
 describe("ClassDetailsScreen withdraw", () => {
-  const pending = (overrides: Partial<ClassItem> = {}) =>
+  const pending = (overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
@@ -1724,7 +1725,7 @@ describe("ClassDetailsScreen withdraw", () => {
       ([url, init]) => init?.method !== "POST" && String(url).endsWith("/classes/c-1"),
     ).length;
 
-  const serveWithdraw = (item: ClassItem, answer: () => unknown = () => ok(WITHDRAWN)) =>
+  const serveWithdraw = (item: ClassDetails, answer: () => unknown = () => ok(WITHDRAWN)) =>
     fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
       init?.method === "POST" ? answer() : ok(item),
     );
@@ -1822,7 +1823,7 @@ describe("ClassDetailsScreen withdraw", () => {
 
 describe("ClassDetailsScreen cancel seat", () => {
   const DEADLINE = "2026-10-14T18:00:00.000Z"; // Wed, 14 Oct · 15:00
-  const approved = (overrides: Partial<ClassItem> = {}) =>
+  const approved = (overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       cancellationDeadline: DEADLINE,
       myEnrolment: { id: "e-1", status: "approved", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
@@ -1837,7 +1838,7 @@ describe("ClassDetailsScreen cancel seat", () => {
       ([url, init]) => init?.method !== "POST" && String(url).endsWith("/classes/c-1"),
     ).length;
 
-  const serveCancel = (item: ClassItem, answer: () => unknown = () => ok(CANCELLED)) =>
+  const serveCancel = (item: ClassDetails, answer: () => unknown = () => ok(CANCELLED)) =>
     fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
       init?.method === "POST" ? answer() : ok(item),
     );
@@ -1965,7 +1966,7 @@ describe("ClassDetailsScreen cancel seat", () => {
 });
 
 describe("ClassDetailsScreen deadline notes", () => {
-  const approved = (overrides: Partial<ClassItem> = {}) =>
+  const approved = (overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status: "approved", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
@@ -1973,7 +1974,7 @@ describe("ClassDetailsScreen deadline notes", () => {
   const PASSED = "The cancellation deadline ended on Tue, 13 Oct · 17:00. Contact the school.";
   const MISSING = "This class's cancellation deadline hasn't been set yet. Contact the school to cancel.";
 
-  const serveWithSchool = (item: ClassItem, school: () => unknown) =>
+  const serveWithSchool = (item: ClassDetails, school: () => unknown) =>
     fetchMock.mockImplementation(async (url: string) =>
       String(url).endsWith("/school-settings") ? school() : ok(item),
     );
@@ -2056,7 +2057,7 @@ describe("ClassDetailsScreen deadline notes", () => {
 });
 
 describe("ClassDetailsScreen enrolment status", () => {
-  const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"], overrides: Partial<ClassItem> = {}) =>
+  const mine = (status: NonNullable<ClassDetails["myEnrolment"]>["status"], overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
@@ -2102,7 +2103,7 @@ describe("ClassDetailsScreen enrolment status", () => {
 
   describe("waiting list off", () => {
     // Answers the school settings with the switch off and everything else with the class.
-    const serveWithSwitchOff = (item: ClassItem) =>
+    const serveWithSwitchOff = (item: ClassDetails) =>
       fetchMock.mockImplementation(async (url: string) =>
         String(url).endsWith("/school-settings")
           ? ok({ whatsappNumber: null, waitingListEnabled: false })
@@ -2328,10 +2329,10 @@ describe("ClassDetailsScreen enrolment status", () => {
       endsAt: "2026-10-15T12:00:00.000Z", // 09:00
     };
     const roster = [
-      { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana" },
-      { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia" },
+      { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana", whatsappNumber: null },
+      { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia", whatsappNumber: null },
     ];
-    const upcoming = (overrides: Partial<ClassItem> = {}) =>
+    const upcoming = (overrides: Partial<ClassDetails> = {}) =>
       makeClass({ ...NOT_STARTED, seatsTaken: 2, students: roster, ...overrides });
     const posts = () =>
       fetchMock.mock.calls.filter(([, init]) => init?.method === "POST") as [string, { body: string }][];
@@ -2462,7 +2463,7 @@ describe("ClassDetailsScreen trial guests", () => {
     startsAt: "2026-10-15T11:00:00.000Z", // tomorrow, 08:00
     endsAt: "2026-10-15T12:00:00.000Z", // 09:00
   };
-  const withGuest = (name: string | null, overrides: Partial<ClassItem> = {}) =>
+  const withGuest = (name: string | null, overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       ...NOT_STARTED,
       seatsTaken: 2,
@@ -2473,7 +2474,7 @@ describe("ClassDetailsScreen trial guests", () => {
       ...overrides,
     });
   const deletes = () => fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE");
-  const serveGuests = (item: ClassItem, answer: () => unknown = () => ok(undefined)) =>
+  const serveGuests = (item: ClassDetails, answer: () => unknown = () => ok(undefined)) =>
     fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
       init?.method === "DELETE" ? answer() : ok(item),
     );
@@ -2549,7 +2550,7 @@ describe("ClassDetailsScreen trial guests", () => {
 });
 
 describe("ClassDetailsScreen taken out", () => {
-  const takenOut = (reason: string | null, overrides: Partial<ClassItem> = {}) =>
+  const takenOut = (reason: string | null, overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status: "takenOut", requestedAt: "2026-10-13T10:00:00.000Z", reason },
       ...overrides,
@@ -2597,5 +2598,68 @@ describe("ClassDetailsScreen taken out", () => {
 
     await screen.findByText("The class");
     expect(screen.queryByText("You were taken out of the class")).toBeNull();
+  });
+});
+
+describe("ClassDetailsScreen person sheet", () => {
+  const roster = [
+    { id: "s-ana", name: "Carla Dias", photoUrl: null, enrolmentId: "e-ana", whatsappNumber: null },
+    { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia", whatsappNumber: "+5585977776666" },
+  ];
+  let openURL: jest.SpyInstance;
+
+  beforeEach(() => {
+    openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  });
+
+  afterEach(() => openURL.mockRestore());
+
+  it("opens an instructor's sheet with their role and shared number, which opens WhatsApp", async () => {
+    const user = userEvent.setup();
+    serve(makeClass());
+    await renderScreen();
+
+    await user.press(await screen.findByRole("button", { name: "Bruno Lima" }));
+
+    expect(screen.getByText("Admin")).toBeOnTheScreen();
+    expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
+    expect(screen.getByText("+55 85 98888 7777")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Chat on WhatsApp" }));
+
+    expect(openURL).toHaveBeenCalledWith("https://wa.me/5585988887777");
+  });
+
+  it("opens the viewer's own pill as an instructor whose number isn't shared", async () => {
+    const user = userEvent.setup();
+    serve(makeClass());
+    await renderScreen();
+
+    await user.press(await screen.findByRole("button", { name: "Ana Souza" }));
+
+    expect(screen.getByText("Instructor")).toBeOnTheScreen();
+    expect(screen.getByText("Number not shared.")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Chat on WhatsApp" })).toBeNull();
+  });
+
+  it("opens a student's sheet with the Student chip, shared or not, and closes it", async () => {
+    const user = userEvent.setup();
+    serve(makeClass({ seatsTaken: 2, students: roster }));
+    await renderScreen();
+    await user.press(await screen.findByRole("button", { name: /2 students/ }));
+
+    await user.press(screen.getByRole("button", { name: "Bia Lima" }));
+
+    expect(screen.getByText("Student")).toBeOnTheScreen();
+    expect(screen.getByText("+55 85 97777 6666")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Close" }));
+
+    expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Carla Dias" }));
+
+    expect(screen.getByText("Student")).toBeOnTheScreen();
+    expect(screen.getByText("Number not shared.")).toBeOnTheScreen();
   });
 });

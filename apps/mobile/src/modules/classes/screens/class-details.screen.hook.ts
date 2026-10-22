@@ -29,11 +29,13 @@ import {
   isClassStartedError,
 } from "../utils/class-error";
 import { toMapPoint } from "../utils/map";
+import type { ClassDetailsStudent } from "../classes.types";
 import { isClassFull } from "../utils/occupancy";
 import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../utils/week";
 
 import type {
   ClassDetailsInstructor,
+  ClassDetailsPerson,
   ClassDetailsRole,
   DeleteSheetVariant,
   UseClassDetailsScreenProps,
@@ -64,6 +66,9 @@ export const useClassDetailsScreen = ({
     useState<DeleteSheetVariant>("confirm");
   const deleting = useRef(false);
   const [rulesVisible, setRulesVisible] = useState(false);
+  // Kept while the sheet slides away, so its content doesn't vanish before it is gone.
+  const [selectedPerson, setSelectedPerson] = useState<ClassDetailsPerson | null>(null);
+  const [personVisible, setPersonVisible] = useState(false);
 
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
     (instructor) => ({
@@ -171,6 +176,11 @@ export const useClassDetailsScreen = ({
     }
   };
 
+  const openPerson = (person: ClassDetailsPerson) => {
+    setSelectedPerson(person);
+    setPersonVisible(true);
+  };
+
   const dateLine = item
     ? formatDateLine(
         schoolDayOf(item.startsAt),
@@ -268,6 +278,14 @@ export const useClassDetailsScreen = ({
     // Everyone reads the school rules in their own flow.
     openSchoolRules: () =>
       router.push(routes[(user?.role ?? "student") as ClassDetailsRole].schoolRules),
+    selectedPerson,
+    personVisible,
+    openInstructor: ({ name, role, whatsappNumber }: ClassDetailsInstructor) =>
+      openPerson({ name, role, whatsappNumber }),
+    // Only students hold seats, so the sheet's chip is always "Student".
+    openStudent: ({ name, whatsappNumber }: ClassDetailsStudent) =>
+      openPerson({ name, role: "student", whatsappNumber }),
+    closePerson: () => setPersonVisible(false),
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),

@@ -335,11 +335,26 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > the design's 32pt one with an icon, to keep the touch target. Not part of this task: the class card test that
   > your style commit broke was fixed in its own `test(mobile)` commit.
 
-- [ ] **T-07** — In `src/modules/classes/screens/class-details.screen.tsx` and `.hook.ts`, keep the selected
+- [x] **T-07** — In `src/modules/classes/screens/class-details.screen.tsx` and `.hook.ts`, keep the selected
   person (kept while the sheet slides away, like the directory) and render `PersonSheet`: an instructor opens
   with their `role`, a student with `"student"`; tests in `class-details.screen.test.tsx` for opening from an
   instructor and from a student, a shared and a hidden number, and closing.
   Covers: ER-03, ER-04 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes.
+  > ✅ 2026-10-22 — the screen hook keeps `selectedPerson` (`ClassDetailsPerson` = `Pick<Person, "name" | "role" |
+  > "whatsappNumber">`, kept after closing so the content stays while the sheet slides away) and `personVisible`, and
+  > exposes `openInstructor` (with the instructor's `role`), `openStudent` (role `"student"`) and `closePerson`; the
+  > screen passes them to `ClassPeople` and renders the directory's `PersonSheet`. The test fixture `makeClass` is
+  > now a `ClassDetails` (instructors with `role` and `whatsappNumber`, students with `whatsappNumber`). New tests:
+  > an admin instructor's sheet with the "Admin" chip and the formatted shared number that opens `wa.me`; the
+  > viewer's own pill as "Instructor" with "Number not shared."; a student's sheet with the "Student" chip for a
+  > shared and a hidden number, and closing. Files:
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes/screens/class-details.screen.test.tsx` (209 passed), screen and hook at 100% coverage,
+  > `tsc --noEmit` clean. Deviations: before this task, the 9 screen tests that your style commit `9334b6d2` broke
+  > (header title, chip icons, deadline line) were updated in their own `test(mobile)` commit, as agreed with you.
 
 - [ ] **T-08** — Replace the "Regras" `ProfileCard` on the screen with a card of a new
   `src/modules/classes/components/class-rule-row/` (icon tile, uppercase title, bold value, chevron, at least

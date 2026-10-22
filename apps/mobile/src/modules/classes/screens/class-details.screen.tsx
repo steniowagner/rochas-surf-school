@@ -22,6 +22,7 @@ import { RequestSeatSheet } from "@/modules/enrolment/components/request-seat-sh
 import { TakeOutSheet } from "@/modules/enrolment/components/take-out-sheet";
 import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
+import { PersonSheet } from "@/modules/people/components/person-sheet";
 import { ProfileCard } from "@/modules/profile/components/profile-card";
 import { ProfileRow } from "@/modules/profile/components/profile-row";
 
@@ -257,6 +258,8 @@ export function ClassDetailsScreen({
               seatsTaken={item.seatsTaken}
               capacity={item.capacity}
               state={screen.peopleState}
+              onOpenInstructor={screen.openInstructor}
+              onOpenStudent={screen.openStudent}
               onTakeOut={
                 screen.canTakeOut
                   ? (student) =>
@@ -445,6 +448,11 @@ export function ClassDetailsScreen({
         onConfirm={screen.remove}
         onCancelInstead={screen.cancelInstead}
         onClose={screen.closeDelete}
+      />
+      <PersonSheet
+        person={screen.selectedPerson}
+        visible={screen.personVisible}
+        onClose={screen.closePerson}
       />
       <CancellationRulesSheet
         visible={screen.rulesVisible}

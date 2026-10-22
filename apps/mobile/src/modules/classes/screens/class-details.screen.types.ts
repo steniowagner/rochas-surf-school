@@ -1,3 +1,5 @@
+import type { Person } from "@/modules/people/people.types";
+
 import type { ClassDetailsTeacher } from "../classes.types";
 
 export type ClassDetailsInstructor = ClassDetailsTeacher & {
@@ -18,3 +20,6 @@ export type DeleteSheetVariant = "confirm" | "notEmpty";
 
 /** The flows that open a class: each has its own school rules screen. */
 export type ClassDetailsRole = "student" | "instructor" | "admin";
+
+/** Who the person sheet shows: an instructor with their role, or a student. */
+export type ClassDetailsPerson = Pick<Person, "name" | "role" | "whatsappNumber">;

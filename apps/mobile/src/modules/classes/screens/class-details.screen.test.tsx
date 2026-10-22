@@ -1011,7 +1011,7 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass());
       await renderScreen();
 
-      expect(await screen.findByText(glyph("calendar-outline"))).toBeOnTheScreen();
+      expect(await screen.findByText(glyph("close-circle-outline"))).toBeOnTheScreen();
       expect(screen.getByText(glyph("shield-outline"))).toBeOnTheScreen();
     });
 

@@ -659,10 +659,27 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > the URLs and the failure toast are covered by the card's tests) and a location without a point. Deviations:
   > none.
 
-- [ ] **T-17** — Rerun every command in the Verification Plan from the repo root after T-16; all pass. Check ER-10
+- [x] **T-17** — Rerun every command in the Verification Plan from the repo root after T-16; all pass. Check ER-10
   on the iOS simulator as an admin (an empty class, a class with a student, a class that has started; light and
   dark) and record what was seen. (added during execution, amendment 2026-10-22)
   Covers: ER-10 · Done when: every automated command exits 0 and the journey is recorded.
+  > ✅ 2026-10-22 — automated, from the repo root: `node .specs/scripts/run-related-tests.mjs 049` → RELATED TESTS
+  > PASSED (apps/backend, apps/mobile 57 changed files, modules/classes 524, modules/enrolment 291); `node
+  > .specs/scripts/check-coverage.mjs 049` → COVERAGE OK (24 files); `node .specs/scripts/run-e2e.mjs 049` → E2E
+  > PASSED (23 files, 627 tests); `npx turbo run lint check-types build --filter=@rochas-surf-school/classes
+  > --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile` → 27 tasks successful (the backend's
+  > lint warnings are the existing ones in untouched e2e lines). iOS simulator (iPhone 18 Pro, signed in as Dev
+  > Admin, pt-BR, the app's dark theme): on Friday's class (Dev Admin teaching alone, 1 approved and 2 pending
+  > enrolments in the database) the tools sheet opens under the unchanged "FERRAMENTAS DA AULA" title with four
+  > cards in two rows: "Editar aula · Data, hora, local…" (pencil), "Enviar mensagem · 3 pessoas" (chat bubble),
+  > "Cancelar aula · Avisa 3 pessoas" in red on the red tint, and "Apagar aula · Tem inscritos" faded; pressing
+  > "Enviar mensagem" and the faded "Apagar aula" left the sheet open with nothing else happening. On two throwaway
+  > classes inserted for the check (Dev Admin teaching, nobody enrolled): Saturday's read "Ninguém ainda",
+  > "Ninguém para avisar" and an enabled "Apagar aula · Ninguém inscrito", which closed the tools and opened the
+  > delete confirmation; confirming deleted it; today's in-progress one read "Apagar aula · Já começou", faded, and
+  > was then removed from the database (a started class can't be deleted in the app). Every card is about 118pt
+  > tall. Not driven, for you to check: the light theme (the app's own theme setting is "Escuro" and I left your
+  > settings alone). Deviations: none.
 
 ## Verification Plan
 

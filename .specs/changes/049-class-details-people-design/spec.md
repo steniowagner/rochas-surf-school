@@ -76,6 +76,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - The "Notas" card.
 - The strings in pt-BR, es-ES and en-US.
 - "Onde e como" with the location's map and "Direções" (amendment of 2026-10-22).
+- The class tools sheet's four action cards in a 2×2 grid; its header stays as is (third amendment of 2026-10-22).
 
 ### Out of scope
 
@@ -89,6 +90,8 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - Opening a sheet or a WhatsApp chat for a guest, and showing guests' numbers.
 - Profile photos (avatars stay initials until photos can be uploaded).
 - Any change to the week list, "Minhas aulas" or their cards.
+- The class tools sheet's header (title, class line, close button), and sending a message: the "Enviar mensagem"
+  card stays a placeholder that does nothing, as the notify button does today.
 
 ## Decisions
 
@@ -105,6 +108,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 | D-09 | Opening a person's sheet with WhatsApp from a class's details extends "Contacting a user on WhatsApp", which names only the directory, and removes the item from the out-of-v1 list. | The user asked for it, and the design draws it; the visibility rule is the same one (D-02). |
 | D-10 | The cancellation row is titled "Cancelamento" (no modality) and its value reads "Até <prazo>" with the deadline, or "Ler a regra" without one. The school-rules row shows "N regras para todos os alunos" (singular for one) from `useSchoolRules` once loaded with at least one rule; while loading, on error or with no rules, it shows its title only. | The user's amendment of 2026-10-22: the card already sits under "Regras" next to the class's own discipline chip, so the modality and the repeated "Cancelamento" are noise; the school-rules part is D-07's, unchanged. |
 | D-11 | "Onde e como" is one card: the real fixed map (`react-native-maps`, as today) full-bleed at the top when the location has a point, then a row with a `lagoon` pin, the location's name and, under it, its address, and the "Direções" link at the right when there is a point. A location without a point shows the row alone, without the link. | The design's card (`dMapaLocal`); its sample data has no address, but the app has one and a location without a point would otherwise lose it; directions need a point, as today. |
+| D-12 | The class tools sheet shows its four actions as a 2×2 grid of cards (icon tile, bold title, small subtitle), always all four: "Editar aula", "Enviar mensagem", "Cancelar aula", "Apagar aula". Each card does what its button does today, with one change: "Apagar aula" is disabled when the class has started ("Já começou") or anyone holds a seat, students or guests ("Tem inscritos"), and enabled with "Ninguém inscrito" otherwise; the backend's `class.notEmpty` answer still shows the existing "cancel instead" sheet. One number N serves "Enviar mensagem" ("N pessoas") and "Cancelar aula" ("Avisa N pessoas"): the class's instructors other than the viewer, plus its enrolled students, plus its pending requests (`pendingRequests`). | The user's amendment of 2026-10-22, from the design's "Ações da aula" sheet. N is exactly who `CancelClass` notifies (instructors but the actor, and the students with an `approved` or `pending` enrolment; a waitlisted request is stored as `pending`); guests have no account and get no notification. A grid of four keeps its shape when deleting isn't possible, and the disabled card says why instead of letting the admin hit the backend's refusal. |
 
 ## Expected Results
 
@@ -223,6 +227,26 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   and en-US ("Where and how") have their own label; no "Condições previstas" row.
 - **Verify by:** `npx jest src/modules/classes/components/class-location-card src/modules/classes/screens/class-details.screen.test.tsx`
   (from `apps/mobile`); iOS simulator: open a class whose location has a point.
+
+### ER-10 — Class tools as cards
+
+- **Front:** mobile
+- **Behavior:** Given an admin on the details of a class that hasn't started and has nobody in it, when they open
+  the class tools, then under the unchanged header the sheet shows four cards in two rows, each with a 40pt icon
+  tile, a bold title and a small subtitle: "Editar aula" · "Data, hora, local…" (pencil, `lagoon` on `dim`);
+  "Enviar mensagem" · "N pessoas" (chat bubble, `lagoon` on `dim`); "Cancelar aula" · "Avisa N pessoas" (x-circle,
+  title and icon in `bad`, the card on `bad-tint`); "Apagar aula" · "Ninguém inscrito" (trash). N counts the
+  class's instructors other than the viewer, its enrolled students and its pending requests (D-12). Pressing
+  "Editar aula", "Cancelar aula" or "Apagar aula" closes the sheet and opens what it opens today (the edit screen,
+  the cancel sheet, the delete confirmation).
+- **Edge and error cases:** with anyone holding a seat (a student or a guest), "Apagar aula" reads "Tem inscritos";
+  on a class that has started, it reads "Já começou"; in both it is faded, marked disabled for accessibility, and
+  pressing it does nothing; pressing "Enviar mensagem" does nothing and leaves the sheet open; one person reads
+  "1 pessoa" / "Avisa 1 pessoa"; nobody reads "Ninguém ainda" / "Ninguém para avisar"; es-ES and en-US have their
+  own strings; every card is at least 44pt tall and has the accessibility role `button` with its title.
+- **Verify by:** `npx jest src/modules/classes/components/class-tools-sheet src/modules/classes/components/class-tool-card src/modules/classes/screens/class-details.screen.test.tsx`
+  (from `apps/mobile`); iOS simulator: as an admin, open the tools on an empty class, on one with a student, and on
+  one that has started.
 
 ## Tasks
 
@@ -514,6 +538,29 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > src/modules/classes/screens/class-details.screen.test.tsx` (225 passed, the card, its hook, the map preview and
   > the screen at 100%), `tsc --noEmit` clean. Deviations: none.
 
+- [ ] **T-16** — Rebuild the actions of `ClassToolsSheet` (`src/modules/classes/components/class-tools-sheet/`) as the
+  2×2 grid of ER-10 (D-12), keeping its header as it is: a new `components/class-tool-card/` (per
+  `.claude/rules/react.md`: a `TouchableOpacity` with role `button` labelled by its title, at least 44pt, a 40pt
+  icon tile, the title and the subtitle; a `danger` tone on `bad-tint` with the title and icon in `bad`; a
+  `disabled` state, faded and marked disabled); the sheet takes `messageCount: number` and `deleteState:
+  "available" | "started" | "enrolled"` in place of `canDelete`; the screen hook computes `messageCount`
+  (instructors other than the viewer + students + `pendingRequests ?? 0`) and `deleteState` (`started` unless the
+  class is `not-started`, `enrolled` when `seatsTaken > 0`); in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`,
+  `classTools.notify` becomes "Enviar mensagem" / "Enviar mensaje" / "Send message", `classTools.delete` becomes
+  "Apagar aula" in pt-BR (es-ES and en-US keep "Eliminar clase" / "Delete class"), and new keys hold the
+  subtitles: `editHint` ("Data, hora, local…" / "Fecha, hora, lugar…" / "Date, time, place…"), `people_one` /
+  `people_other` ("{{count}} pessoa(s)" / "{{count}} persona(s)" / "{{count}} person / people"), `nobody`
+  ("Ninguém ainda" / "Nadie todavía" / "Nobody yet"), `notifies_one` / `notifies_other` ("Avisa {{count}}
+  pessoa(s)" / "Avisa a {{count}} persona(s)" / "Notifies {{count}} person / people"), `nobodyToNotify` ("Ninguém
+  para avisar" / "Nadie a quien avisar" / "Nobody to notify"), `deleteEmpty` ("Ninguém inscrito" / "Nadie
+  inscrito" / "Nobody enrolled"), `deleteEnrolled` ("Tem inscritos" / "Tiene inscritos" / "Has people
+  enrolled"), `deleteStarted` ("Já começou" / "Ya empezó" / "Already started"). Tests: the card (title, subtitle,
+  press, danger tone, disabled doing nothing); the sheet (the four cards, each subtitle and plural, zero, the
+  three delete states, edit/cancel/delete closing first, the message card doing nothing); the screen (N and the
+  delete state from the class). (added during execution, amendment 2026-10-22)
+  Covers: ER-10 · Done when: `npx jest src/modules/classes/components/class-tools-sheet src/modules/classes/components/class-tool-card src/modules/classes/screens/class-details.screen.test.tsx`
+  passes with every changed line covered.
+
 ### Verification
 
 - [x] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Follow the user
@@ -569,6 +616,11 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > the URLs and the failure toast are covered by the card's tests) and a location without a point. Deviations:
   > none.
 
+- [ ] **T-17** — Rerun every command in the Verification Plan from the repo root after T-16; all pass. Check ER-10
+  on the iOS simulator as an admin (an empty class, a class with a student, a class that has started; light and
+  dark) and record what was seen. (added during execution, amendment 2026-10-22)
+  Covers: ER-10 · Done when: every automated command exits 0 and the journey is recorded.
+
 ## Verification Plan
 
 - Automated:
@@ -587,13 +639,19 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
     chevron opens only the take-out sheet, the row opens the person sheet with the hidden number visible.
   - ER-05 / ER-06: the "Regras" rows with the rule count, both taps open what they did before; the "Notas" card;
     a class without notes has no "Notas"; light and dark themes both read correctly.
+  - ER-10 as an admin: the tools sheet's four cards with their subtitles; "Apagar aula" enabled on an empty class,
+    "Tem inscritos" with a student, "Já começou" on a started class; light and dark.
 
 ## Memory Impact
 
 - `memory/product.md` — class details: the "A aula" card with instructor pills, student rows and the person
   sheet (WhatsApp by the directory's rule), guests' person-icon avatar and "Trial" chip, the "Regras" rows with
-  the school-rules count, the "Notas" card; remove "opening a person's sheet (WhatsApp) from an instructor or a
-  student on the details" from the out-of-v1 list (D-09).
+  the school-rules count, the "Notas" card; the capacity line beside the "A aula" label (ER-07); the cancellation
+  row's "Cancelamento" / "Até <prazo>" (D-10); the "Onde e como" card (D-11: `ClassLocationCard`, with
+  `LocationMapPreview` now the map alone); the class tools sheet's four cards, "Apagar aula" disabled when the
+  class has started or has people, and N = the people a cancellation notifies (D-12); remove "opening a person's
+  sheet (WhatsApp) from an instructor or a student on the details" from the out-of-v1 list (D-09). D-09 also
+  extends `requirements.md` → Contacting a user on WhatsApp.
 - `memory/modules/classes.md` — `GetClass` answers carry `whatsappNumber` per student and `role` +
   `whatsappNumber` per instructor through `ClassContactReader`, filtered by D-02; the list answers don't.
 - `memory/technical-context.md` — the classes read model: `ClassContactReader` / `PrismaClassContactReader`, only
@@ -623,6 +681,17 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   tasks T-14 and T-15); its "Condições previstas" row stays out of scope. Out of scope before: "'Onde e como'
   (map, directions, weather)". Reason: align the details' last section with the design; the logic (map, marker,
   directions) doesn't change.
+- 2026-10-22 — /spec-plan --amend — the class tools sheet's actions as cards, from the design's "Ações da aula"
+  sheet; its header stays out of scope. Approved by the user. The status stays `changes-requested`; review
+  finding F-01 stays open.
+  - Scope: "the class tools sheet's four action cards" added to In scope; its header and sending a message added
+    to Out of scope.
+  - D-12 added: the 2×2 grid, "Apagar aula" disabled with "Já começou" / "Tem inscritos" (before: the delete
+    button was hidden on a started class and always enabled before it, the backend's refusal opening the "cancel
+    instead" sheet), and N = instructors other than the viewer + students + pending requests.
+  - ER-10 added ("Class tools as cards"); T-16 added (Covers: ER-10); T-17 added to rerun the Verification Plan.
+  - Verification Plan: the ER-10 journey added. Memory Impact: the `product.md` line now also names ER-07, D-10,
+    D-11 and D-12, and D-09's `requirements.md` section, which the review round noted were missing.
 
 ## Review
 

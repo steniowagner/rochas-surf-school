@@ -1,18 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
-import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
 
+import { ClassGuestRow } from "../class-guest-row";
+import { ClassStudentRow } from "../class-student-row";
+import { GuestAvatar } from "../guest-avatar";
 import { InstructorPill } from "../instructor-pill";
 import { StudentAvatar } from "../student-avatar";
 
 import { useClassPeople } from "./class-people.hook";
 import type { ClassPeopleProps } from "./class-people.types";
 
-const STUDENT_AVATAR_SIZE = 28;
+const STUDENT_AVATAR_SIZE = 30;
 
 /** The "A aula" group of the class details: who teaches, who is enrolled, and how many seats are left. */
 export function ClassPeople({
@@ -24,6 +25,7 @@ export function ClassPeople({
   capacity,
   state,
   onOpenInstructor,
+  onOpenStudent,
   onTakeOut,
   onTakeGuestOut,
 }: ClassPeopleProps) {
@@ -74,14 +76,18 @@ export function ClassPeople({
           >
             {people.shown.length > 0 || people.hiddenSeats > 0 ? (
               <View className="flex-row items-center">
-                {people.shown.map((student, index) => (
-                  <View key={student.id} className={index === 0 ? "" : "-ml-2"}>
-                    <StudentAvatar
-                      name={student.name}
-                      photoUrl={student.photoUrl}
-                      size={STUDENT_AVATAR_SIZE}
-                      ringed
-                    />
+                {people.shown.map((seat, index) => (
+                  <View key={seat.id} className={index === 0 ? "" : "-ml-2"}>
+                    {seat.kind === "student" ? (
+                      <StudentAvatar
+                        name={seat.name}
+                        photoUrl={seat.photoUrl}
+                        size={STUDENT_AVATAR_SIZE}
+                        ringed
+                      />
+                    ) : (
+                      <GuestAvatar size={STUDENT_AVATAR_SIZE} ringed />
+                    )}
                   </View>
                 ))}
                 {people.hiddenSeats > 0 ? (
@@ -109,58 +115,23 @@ export function ClassPeople({
           </Pressable>
           {people.expanded
             ? students.map((student) => (
-                <View
+                <ClassStudentRow
                   key={student.id}
-                  className="flex-row items-center gap-3 border-t border-line px-4 py-2"
-                >
-                  <StudentAvatar
-                    name={student.name}
-                    photoUrl={student.photoUrl}
-                    size={STUDENT_AVATAR_SIZE}
-                  />
-                  <Text className="ds-text-list-title flex-1 text-ink">{student.name}</Text>
-                  {onTakeOut ? (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityLabel={`${t("takeOutSheet.action")} ${student.name}`}
-                      activeOpacity={BUTTON_ACTIVE_OPACITY}
-                      onPress={() => onTakeOut(student)}
-                      className="min-h-11 items-center justify-center rounded-full border border-line px-4"
-                    >
-                      <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
+                  name={student.name}
+                  photoUrl={student.photoUrl}
+                  onPress={() => onOpenStudent?.(student)}
+                  onTakeOut={onTakeOut ? () => onTakeOut(student) : undefined}
+                />
               ))
             : null}
           {people.expanded
-            ? guests.map((guest) => {
-                const name = guest.name ?? t("classDetails.trialChip");
-
-                return (
-                  <View
-                    key={guest.id}
-                    className="flex-row items-center gap-3 border-t border-line px-4 py-2"
-                  >
-                    <StudentAvatar name={name} photoUrl={null} size={STUDENT_AVATAR_SIZE} />
-                    <Text className="ds-text-list-title flex-1 text-ink">{name}</Text>
-                    <View className="justify-center">
-                      <Chip tone="muted">{t("classDetails.trialChip")}</Chip>
-                    </View>
-                    {onTakeGuestOut ? (
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={`${t("takeOutSheet.action")} ${name}`}
-                        activeOpacity={BUTTON_ACTIVE_OPACITY}
-                        onPress={() => onTakeGuestOut(guest)}
-                        className="min-h-11 items-center justify-center rounded-full border border-line px-4"
-                      >
-                        <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                );
-              })
+            ? guests.map((guest) => (
+                <ClassGuestRow
+                  key={guest.id}
+                  name={guest.name}
+                  onTakeOut={onTakeGuestOut ? () => onTakeGuestOut(guest) : undefined}
+                />
+              ))
             : null}
         </View>
       </View>

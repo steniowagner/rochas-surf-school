@@ -297,12 +297,43 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > components at 100% coverage, `tsc --noEmit` clean. Deviations: the 44pt height can't be asserted in Jest
   > (NativeWind classes aren't turned into styles there), so it is checked on the simulator in T-10.
 
-- [ ] **T-06** — Rebuild the students part of `ClassPeople`: guests in the stacked avatars (D-08) as a `sand`
+- [x] **T-06** — Rebuild the students part of `ClassPeople`: guests in the stacked avatars (D-08) as a `sand`
   person-icon avatar (a new `components/guest-avatar/`), student rows with a chevron calling a new
   `onOpenStudent(student)` prop, guest rows per D-06, and "Retirar" in place of the chevron without triggering
   the row (D-05); extract the rows into their own component folders as `.claude/rules/react.md` requires; tests
   for each case in ER-04.
   Covers: ER-04 · Done when: `npx jest src/modules/classes/components` passes.
+  > ✅ 2026-10-22 — new `GuestAvatar` (`components/guest-avatar/`: Feather `user` on a `bg-sand` circle, labelled
+  > "Trial", optional ring), `ClassStudentRow` (`components/class-student-row/`: a `Pressable` row with role `button`
+  > named after the student, 32pt avatar, name, `chevron-forward` in `ink3`, or the "Retirar" `TouchableOpacity`
+  > in its place, which takes out without pressing the row — D-05) and `ClassGuestRow`
+  > (`components/class-guest-row/`: not pressable, `GuestAvatar`, the name then the "Trial" chip or the chip alone,
+  > "Retirar" for admins — D-06); `ClassPeople` stacks the first 5 seats, students then guests (D-08), keeps "+N",
+  > renders the rows, and takes a new optional `onOpenStudent(student)`; its students are `ClassDetailsStudent`;
+  > stacked avatars are 30pt as in the design (were 28). Tests: each row and the avatar; on the card, the 5 stacked
+  > seats with a guest and "+2", opening a student, no handler, take-out without opening, guests not pressable,
+  > the guest list showing "Trial" twice (name + chip, chip alone), "No students yet" disabled. Files:
+  > `apps/mobile/src/modules/classes/components/guest-avatar/index.ts`,
+  > `apps/mobile/src/modules/classes/components/guest-avatar/guest-avatar.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/guest-avatar/guest-avatar.types.ts`,
+  > `apps/mobile/src/modules/classes/components/guest-avatar/guest-avatar.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-student-row/index.ts`,
+  > `apps/mobile/src/modules/classes/components/class-student-row/class-student-row.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-student-row/class-student-row.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-student-row/class-student-row.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-guest-row/index.ts`,
+  > `apps/mobile/src/modules/classes/components/class-guest-row/class-guest-row.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-guest-row/class-guest-row.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-guest-row/class-guest-row.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.test.tsx`; verified: `npx jest
+  > src/modules/classes/components src/modules/classes/screens/class-details.screen.test.tsx` (27 suites, 433
+  > passed), the new and changed lines covered (the only uncovered branches are the untouched capacity line's),
+  > `tsc --noEmit` clean. Deviations: the "Retirar" button keeps its current look (44pt, `border-line`) rather than
+  > the design's 32pt one with an icon, to keep the touch target. Not part of this task: the class card test that
+  > your style commit broke was fixed in its own `test(mobile)` commit.
 
 - [ ] **T-07** — In `src/modules/classes/screens/class-details.screen.tsx` and `.hook.ts`, keep the selected
   person (kept while the sheet slides away, like the directory) and render `PersonSheet`: an instructor opens

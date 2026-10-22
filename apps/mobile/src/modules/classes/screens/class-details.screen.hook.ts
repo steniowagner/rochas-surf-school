@@ -80,6 +80,7 @@ export const useClassDetailsScreen = ({
       isViewer: instructor.id === user?.id,
     }),
   );
+  const instructorCount = instructors.filter((instructor) => !instructor.isViewer).length;
   const start = item ? schoolTimeOf(item.startsAt) : "";
   const end = item ? schoolTimeOf(item.endsAt) : "";
   const state = item
@@ -232,8 +233,13 @@ export const useClassDetailsScreen = ({
       item !== undefined &&
       state !== "finished" &&
       state !== "cancelled",
-    // A class can be deleted only before it starts; a started one can only be cancelled.
-    canDelete: state === "not-started",
+    // A class can be deleted only before it starts and while nobody holds a seat; otherwise it can only be cancelled.
+    deleteState:
+      item === undefined || state !== "not-started"
+        ? ("started" as const)
+        : item.seatsTaken > 0
+          ? ("enrolled" as const)
+          : ("available" as const),
     // Admins only: the class hasn't started and nobody teaches it; the banner opens the editor.
     showNoInstructor:
       canEdit && state !== null && isWithoutInstructor(instructors.length, state),
@@ -253,7 +259,9 @@ export const useClassDetailsScreen = ({
     // Who the cancellation notifies: the students with a seat, the pending requests and the other instructors.
     studentCount: item?.students.length ?? 0,
     pendingCount: item?.pendingRequests ?? 0,
-    instructorCount: item?.instructors.filter((instructor) => instructor.id !== user?.id).length ?? 0,
+    instructorCount,
+    // The tools' "Send message" and "Cancel class" reach the same people as the cancellation's notice.
+    messageCount: instructorCount + (item?.students.length ?? 0) + (item?.pendingRequests ?? 0),
     takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
     // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
     enrolmentDescription: !enrolment.display

@@ -1,3 +1,5 @@
+export type ClassToolsDeleteState = "available" | "started" | "enrolled";
+
 export type ClassToolsSheetProps = {
   visible: boolean;
   onClose: () => void;
@@ -5,13 +7,20 @@ export type ClassToolsSheetProps = {
   onEdit: () => void;
   /** "Cancelar aula": the sheet closes first. */
   onCancel: () => void;
-  /** "Excluir aula": the sheet closes first. */
+  /** "Apagar aula": the sheet closes first. */
   onDelete: () => void;
-  /** Only a class that hasn't started can be deleted. */
-  canDelete: boolean;
+  /** Who a message or a cancellation reaches: the other instructors, the students and the pending requests. */
+  messageCount: number;
+  /** Only a class that hasn't started and has nobody in it can be deleted. */
+  deleteState: ClassToolsDeleteState;
 };
 
 export type UseClassToolsSheetProps = Pick<
   ClassToolsSheetProps,
-  "onClose" | "onEdit" | "onCancel" | "onDelete"
+  | "onClose"
+  | "onEdit"
+  | "onCancel"
+  | "onDelete"
+  | "messageCount"
+  | "deleteState"
 >;

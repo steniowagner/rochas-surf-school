@@ -444,7 +444,8 @@ export function ClassDetailsScreen({
         onEdit={screen.edit}
         onCancel={screen.openCancel}
         onDelete={screen.openDelete}
-        canDelete={screen.canDelete}
+        messageCount={screen.messageCount}
+        deleteState={screen.deleteState}
       />
       <DeleteClassSheet
         visible={screen.deleteVisible}

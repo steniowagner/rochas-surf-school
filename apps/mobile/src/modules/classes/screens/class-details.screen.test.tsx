@@ -847,7 +847,7 @@ describe("ClassDetailsScreen", () => {
       expect(screen.queryByText(glyph("pencil"))).toBeNull();
     });
 
-    it("opens the sheet with the three tools, and Edit class opens the editor", async () => {
+    it("opens the sheet with the four tools, and Edit class opens the editor", async () => {
       const user = userEvent.setup();
       serve(makeClass());
       await renderScreen(true);
@@ -857,7 +857,7 @@ describe("ClassDetailsScreen", () => {
       );
 
       expect(
-        screen.getByRole("button", { name: "Notify students and instructors" }),
+        screen.getByRole("button", { name: "Send message" }),
       ).toBeOnTheScreen();
       expect(
         screen.getByRole("button", { name: "Cancel class" }),
@@ -869,7 +869,57 @@ describe("ClassDetailsScreen", () => {
       expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
     });
 
-    it("does nothing when Notify students and instructors is pressed", async () => {
+    it("counts the other instructors for Send message and Cancel class", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      expect(screen.getByText("1 person")).toBeOnTheScreen();
+      expect(screen.getByText("Notifies 1 person")).toBeOnTheScreen();
+    });
+
+    it("adds the students and the pending requests, not the guests, to the count", async () => {
+      const user = userEvent.setup();
+      serve(
+        makeClass({
+          seatsTaken: 3,
+          students: [
+            { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null },
+            { id: "s-2", name: "Aluno 2", photoUrl: null, enrolmentId: "e-2", whatsappNumber: null },
+          ],
+          guests: [{ id: "g-1", name: "Carolina Reis" }],
+          pendingRequests: 2,
+        }),
+      );
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      expect(screen.getByText("5 people")).toBeOnTheScreen();
+      expect(screen.getByText("Notifies 5 people")).toBeOnTheScreen();
+    });
+
+    it("reads Nobody yet when the viewer teaches it alone and nobody is in it", async () => {
+      const user = userEvent.setup();
+      serve(
+        makeClass({
+          instructors: [{ id: "u-1", name: "Ana Souza", role: "admin", whatsappNumber: null }],
+        }),
+      );
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      expect(screen.getByText("Nobody yet")).toBeOnTheScreen();
+      expect(screen.getByText("Nobody to notify")).toBeOnTheScreen();
+    });
+
+    it("does nothing when Send message is pressed", async () => {
       const user = userEvent.setup();
       serve(makeClass());
       await renderScreen(true);
@@ -878,7 +928,7 @@ describe("ClassDetailsScreen", () => {
       );
 
       await user.press(
-        screen.getByRole("button", { name: "Notify students and instructors" }),
+        screen.getByRole("button", { name: "Send message" }),
       );
 
       expect(router.push).not.toHaveBeenCalled();
@@ -1193,7 +1243,7 @@ describe("ClassDetailsScreen", () => {
       expect(screen.getByText("Message (optional)")).toBeOnTheScreen();
       expect(
         screen.queryByRole("button", {
-          name: "Notify students and instructors",
+          name: "Send message",
         }),
       ).toBeNull();
       expect(posts()).toHaveLength(0);
@@ -1404,7 +1454,14 @@ describe("ClassDetailsScreen", () => {
       expect(labels).toEqual(["Cancel class", "Delete class"]);
     });
 
-    it("offers no Delete class on a class that has started", async () => {
+    it("reads Nobody enrolled on an empty class that hasn't started", async () => {
+      await openTools();
+
+      expect(screen.getByText("Nobody enrolled")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Delete class" })).toBeEnabled();
+    });
+
+    it("disables Delete class with Already started on a class that has started", async () => {
       serveDelete(
         noContent,
         makeClass({
@@ -1412,10 +1469,37 @@ describe("ClassDetailsScreen", () => {
           endsAt: "2026-10-14T14:00:00.000Z",
         }),
       );
-      await openTools();
+      const user = await openTools();
 
       expect(screen.getByRole("button", { name: "Cancel class" })).toBeOnTheScreen();
-      expect(screen.queryByRole("button", { name: "Delete class" })).toBeNull();
+      expect(screen.getByText("Already started")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Delete class" })).toBeDisabled();
+
+      await user.press(screen.getByRole("button", { name: "Delete class" }));
+
+      expect(screen.queryByText("Delete this class?")).toBeNull();
+    });
+
+    it.each([
+      [
+        "a student",
+        {
+          seatsTaken: 1,
+          students: [{ id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null }],
+        },
+      ],
+      ["a guest", { seatsTaken: 1, guests: [{ id: "g-1", name: "Carolina Reis" }] }],
+    ])("disables Delete class with Has people enrolled when %s holds a seat", async (_who, overrides) => {
+      serveDelete(noContent, makeClass(overrides));
+      const user = await openTools();
+
+      expect(screen.getByText("Has people enrolled")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Delete class" })).toBeDisabled();
+
+      await user.press(screen.getByRole("button", { name: "Delete class" }));
+
+      expect(screen.queryByText("Delete this class?")).toBeNull();
+      expect(deletes()).toHaveLength(0);
     });
 
     it("closes the tools and opens the confirmation sheet with the class line, sending nothing", async () => {
@@ -1426,7 +1510,7 @@ describe("ClassDetailsScreen", () => {
         screen.getByText("Surf Beginner · Today · 14 Oct, 16:00 – 17:30 · Praia do Futuro"),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByRole("button", { name: "Notify students and instructors" }),
+        screen.queryByRole("button", { name: "Send message" }),
       ).toBeNull();
       expect(deletes()).toHaveLength(0);
     });

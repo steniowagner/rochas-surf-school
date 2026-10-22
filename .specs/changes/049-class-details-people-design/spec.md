@@ -538,7 +538,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > src/modules/classes/screens/class-details.screen.test.tsx` (225 passed, the card, its hook, the map preview and
   > the screen at 100%), `tsc --noEmit` clean. Deviations: none.
 
-- [ ] **T-16** — Rebuild the actions of `ClassToolsSheet` (`src/modules/classes/components/class-tools-sheet/`) as the
+- [x] **T-16** — Rebuild the actions of `ClassToolsSheet` (`src/modules/classes/components/class-tools-sheet/`) as the
   2×2 grid of ER-10 (D-12), keeping its header as it is: a new `components/class-tool-card/` (per
   `.claude/rules/react.md`: a `TouchableOpacity` with role `button` labelled by its title, at least 44pt, a 40pt
   icon tile, the title and the subtitle; a `danger` tone on `bad-tint` with the title and icon in `bad`; a
@@ -560,6 +560,49 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   delete state from the class). (added during execution, amendment 2026-10-22)
   Covers: ER-10 · Done when: `npx jest src/modules/classes/components/class-tools-sheet src/modules/classes/components/class-tool-card src/modules/classes/screens/class-details.screen.test.tsx`
   passes with every changed line covered.
+  > ✅ 2026-10-22 — new `ClassToolCard` (`components/class-tool-card/`: a `TouchableOpacity` with role `button`
+  > labelled by its title, `min-h-11`, `BUTTON_ACTIVE_OPACITY`, `accessibilityState.disabled`; inside, a
+  > `rounded-card` surface (`border-line bg-surface`, or `bg-bad-tint` for the `danger` tone, `opacity-50` when
+  > disabled) with a 40pt `rounded-checkbox` tile (`bg-dim`, an Ionicon in `lagoon`, or in `bad` on a `bg-surface`
+  > tile for `danger`), the title in `ds-text-list-title` (`text-bad` for `danger`) and the subtitle in
+  > `ds-text-list-subtitle`). `ClassToolsSheet` keeps its title and shows the four cards in two rows: "Editar aula"
+  > (`pencil-outline`, "Data, hora, local…"), "Enviar mensagem" (`chatbubble-outline`, "N pessoas" / "Ninguém
+  > ainda", no handler), "Cancelar aula" (`close-circle-outline`, `danger`, "Avisa N pessoas" / "Ninguém para
+  > avisar") and "Apagar aula" (`trash-outline`, "Ninguém inscrito", or disabled with "Tem inscritos" / "Já
+  > começou"); it takes `messageCount` and `deleteState` in place of `canDelete`, and its hook picks the subtitles.
+  > The screen hook computes `messageCount` (instructors other than the viewer + students + `pendingRequests`) and
+  > `deleteState` (`started` unless the class is `not-started`, `enrolled` when `seatsTaken > 0`, else `available`);
+  > `instructorCount` is now computed once and shared by the cancel sheet and the count. Strings: `classTools.notify`
+  > and pt-BR's `classTools.delete` changed, `editHint`, `people_one/_other`, `nobody`, `notifies_one/_other`,
+  > `nobodyToNotify`, `deleteEmpty`, `deleteEnrolled` and `deleteStarted` added in the three locales. Tests: the
+  > card (title, subtitle, icon, press, the danger tone, disabled doing nothing); the sheet (the four cards in
+  > order, every subtitle in the plural, the singular and zero, both disabled delete states doing nothing, edit,
+  > cancel and delete closing first, "Send message" doing nothing, the pt-BR and es-ES strings); the screen (N from
+  > the other instructor, from students + pending requests without the guests, "Nobody yet" when the viewer teaches
+  > alone; "Nobody enrolled" enabled, "Already started" and "Has people enrolled" for a student and for a guest,
+  > disabled); the existing tool tests now press "Send message". Files:
+  > `apps/mobile/src/modules/classes/components/class-tool-card/index.ts`,
+  > `apps/mobile/src/modules/classes/components/class-tool-card/class-tool-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-tool-card/class-tool-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-tool-card/class-tool-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`; verified: `npx jest
+  > src/modules/classes/components/class-tools-sheet src/modules/classes/components/class-tool-card
+  > src/modules/classes/screens/class-details.screen.test.tsx` (3 suites, 240 passed; the card, the sheet, its hook,
+  > the screen and its hook at 100% statements/branches/functions/lines), `npx tsc --noEmit` and `npx eslint` on the
+  > changed folders clean; the card's three tests failed before its classes were reachable. Deviations: the icons
+  > are Ionicons (`pencil-outline`, `chatbubble-outline`, `close-circle-outline`, `trash-outline`), as on the rest
+  > of the details, rather than Feather; the 44pt height can't be asserted in Jest (NativeWind classes), it is
+  > checked on the simulator in T-17; `TouchableOpacity` drops `className` in the test renderer, so the card's
+  > surface classes sit on an inner `View`; the danger card's tile is `bg-surface` (the ER names no tile color for
+  > it, and `bg-dim` on `bad-tint` reads muddy). Not changed: `deleteClass.confirm` still reads "Excluir aula" in
+  > pt-BR (the confirmation sheet is out of this task).
 
 ### Verification
 

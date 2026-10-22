@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-progress
+status: in-review
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -555,9 +555,19 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > out · 00:00". Not driven on the simulator: a class with free seats (the line in `ink-2`), covered by the
   > component tests. Deviations: none.
 
-- [ ] **T-15** — Rerun every command in the Verification Plan from the repo root after T-14; all pass. Check ER-09
+- [x] **T-15** — Rerun every command in the Verification Plan from the repo root after T-14; all pass. Check ER-09
   on the iOS simulator and record what was seen. (added during execution, amendment 2026-10-22)
   Covers: ER-09 · Done when: every automated command exits 0 and the journey is recorded.
+  > ✅ 2026-10-22 — automated, from the repo root: `node .specs/scripts/run-related-tests.mjs 049` → RELATED TESTS
+  > PASSED (apps/backend, apps/mobile 49 changed files, modules/classes, modules/enrolment); `node
+  > .specs/scripts/check-coverage.mjs 049` → COVERAGE OK (21 files); `node .specs/scripts/run-e2e.mjs 049` → E2E
+  > PASSED (627 tests); `npx turbo run lint check-types build --filter=@rochas-surf-school/classes
+  > --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile` → 27 tasks successful. iOS simulator
+  > (same student session and class): "ONDE E COMO" over one card with the map and its marker across the top, then
+  > the pin, "Review R2 Beach" with its address under it, and "DIREÇÕES ↗" in `lagoon` at the right; no
+  > "Condições previstas". Not driven on the simulator: tapping "Direções" (it leaves the app for Apple Maps;
+  > the URLs and the failure toast are covered by the card's tests) and a location without a point. Deviations:
+  > none.
 
 ## Verification Plan
 

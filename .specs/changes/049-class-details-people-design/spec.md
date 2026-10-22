@@ -431,10 +431,19 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > src/modules/classes/screens/class-details.screen.test.tsx` (218 passed, screen at 100%), `tsc --noEmit` clean.
   > Deviations: none.
 
-- [ ] **T-11** — Move the capacity line of `ClassPeople` (`src/modules/classes/components/class-people/`) from under
+- [x] **T-11** — Move the capacity line of `ClassPeople` (`src/modules/classes/components/class-people/`) from under
   the card to the right of the "A aula" label, in `ds-text-section-label` with the same `text-bad` / `text-ink-2`
   logic (ER-07); update its tests. (added during execution, amendment 2026-10-22)
   Covers: ER-07 · Done when: `npx jest src/modules/classes/components/class-people src/modules/classes/screens/class-details.screen.test.tsx` passes.
+  > ✅ 2026-10-22 — `ClassPeople` opens with a `flex-row justify-between` header: the "A aula" label at the left and
+  > the capacity line at the right (`ds-text-section-label`, `shrink text-right`, `text-bad` when full and
+  > `text-ink-2` otherwise, same text as before, still hidden on a finished or cancelled class); nothing is left
+  > under the card. Tests: the line (free seats and sold out) is in the label's row and the card isn't (both failed
+  > before the move); a finished class shows the label alone. Files:
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.test.tsx`; verified: `npx jest
+  > src/modules/classes/components/class-people src/modules/classes/screens/class-details.screen.test.tsx` (239
+  > passed, the component at 100%), `tsc --noEmit` clean. Deviations: none.
 
 - [ ] **T-12** — Title the cancellation row "Cancelamento" without the modality and read its value as "Até <prazo>"
   (D-10, ER-08): change `classDetails.rules.cancellation` and add `classDetails.rules.until` in

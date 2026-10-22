@@ -45,7 +45,24 @@ export function ClassPeople({
 
   return (
     <View className="gap-2">
-      <Text className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</Text>
+      <View className="flex-row items-start justify-between gap-3">
+        <Text className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</Text>
+        {people.showCapacityLine ? (
+          <Text
+            className={`ds-text-section-label shrink text-right ${people.full ? "text-bad" : "text-ink-2"}`}
+          >
+            {`${t("classDetails.capacity", { count: capacity })} · ${
+              people.full
+                ? t("classDetails.soldOut")
+                : t("classDetails.spotsLeft", { count: people.freeSeats })
+            }${
+              showTrialCount && guests.length > 0
+                ? ` · ${t("classDetails.includesTrial", { count: guests.length })}`
+                : ""
+            }`}
+          </Text>
+        ) : null}
+      </View>
       <View className="overflow-hidden rounded-card border border-line bg-surface">
         <View className="gap-2 bg-dim px-3.5 py-3">
           <Text className="ds-text-section-label text-ink-2">
@@ -135,21 +152,6 @@ export function ClassPeople({
             : null}
         </View>
       </View>
-      {people.showCapacityLine ? (
-        <Text
-          className={`ds-text-list-subtitle ${people.full ? "text-bad" : "text-ink-2"}`}
-        >
-          {`${t("classDetails.capacity", { count: capacity })} · ${
-            people.full
-              ? t("classDetails.soldOut")
-              : t("classDetails.spotsLeft", { count: people.freeSeats })
-          }${
-            showTrialCount && guests.length > 0
-              ? ` · ${t("classDetails.includesTrial", { count: guests.length })}`
-              : ""
-          }`}
-        </Text>
-      ) : null}
     </View>
   );
 }

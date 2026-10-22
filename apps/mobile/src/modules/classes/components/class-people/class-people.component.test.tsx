@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from "@testing-library/react-native";
+import { render, screen, userEvent, within } from "@testing-library/react-native";
 
 import type { ClassDetailsStudent } from "../../classes.types";
 
@@ -235,5 +235,33 @@ describe("ClassPeople students", () => {
 
     const row = screen.getByRole("button", { name: "No students yet" });
     expect(row).toBeDisabled();
+  });
+});
+
+describe("ClassPeople capacity line", () => {
+  it("sits beside the The class label, not under the card", async () => {
+    await render(<ClassPeople {...props()} />);
+
+    const row = within(screen.getByText("The class").parent!);
+
+    // The header row holds the label and the line, and the card sits below it.
+    expect(row.getByText("Max. 8 students · 6 spots left")).toBeOnTheScreen();
+    expect(row.queryByText("No instructor assigned")).toBeNull();
+  });
+
+  it("says the class is sold out when every seat is taken", async () => {
+    await render(<ClassPeople {...props({ capacity: 2 })} />);
+
+    const row = within(screen.getByText("The class").parent!);
+
+    expect(row.getByText("Max. 2 students · sold out")).toBeOnTheScreen();
+    expect(row.queryByText("No instructor assigned")).toBeNull();
+  });
+
+  it("leaves the label alone on a finished class", async () => {
+    await render(<ClassPeople {...props({ state: "finished" })} />);
+
+    expect(screen.getByText("The class")).toBeOnTheScreen();
+    expect(screen.queryByText(/^Max\./)).toBeNull();
   });
 });

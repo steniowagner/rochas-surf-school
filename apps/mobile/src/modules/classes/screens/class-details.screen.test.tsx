@@ -14,7 +14,6 @@ import { Linking } from "react-native";
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
 import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
-import { headerTitleOf } from "@/navigation/stack-header/header-title.test-utils";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
@@ -174,7 +173,7 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
-    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Details");
+    expect(headerOptions().headerTitle).toBeUndefined();
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(screen.getByText("Beginner")).toBeOnTheScreen();
@@ -201,12 +200,12 @@ describe("ClassDetailsScreen", () => {
     expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
   });
 
-  it("draws the surf icon on the discipline chip", async () => {
+  it("draws no icon on the discipline chip", async () => {
     serve(makeClass());
     await renderScreen();
 
     await screen.findByText("Surf");
-    expect(screen.getByText(glyph("water-outline"))).toBeOnTheScreen();
+    expect(screen.queryByText(glyph("water-outline"))).toBeNull();
   });
 
   it("shows the skate chip for skate", async () => {
@@ -214,7 +213,7 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(await screen.findByText("Skate")).toBeOnTheScreen();
-    expect(screen.getByText(glyph("disc-outline"))).toBeOnTheScreen();
+    expect(screen.queryByText(glyph("disc-outline"))).toBeNull();
   });
 
   it("hides the notes when there are none", async () => {
@@ -517,25 +516,25 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen();
 
-      // Once under the date and once as the value of the cancellation row.
-      expect(await screen.findAllByText("Cancelamento até seg, 19 out · 20:00")).toHaveLength(2);
-      expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
+      // As the value of the cancellation row only: the header block no longer repeats it.
+      expect(await screen.findAllByText("Cancelamento até seg, 19 out · 20:00")).toHaveLength(1);
+      expect(screen.queryByText(glyph("calendar-clear-outline"))).toBeNull();
     });
 
     it("writes the English weekday and month in en-US", async () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen(true);
 
-      // Once under the date and once as the value of the cancellation row.
-      expect(await screen.findAllByText("Cancel until Mon, 19 Oct · 20:00")).toHaveLength(2);
+      // As the value of the cancellation row only.
+      expect(await screen.findAllByText("Cancel until Mon, 19 Oct · 20:00")).toHaveLength(1);
     });
 
     it("uses Fortaleza's time whatever the phone's time zone", async () => {
       serve(makeClass({ cancellationDeadline: "2026-10-14T02:30:00.000Z" }));
       await renderScreen();
 
-      // Once under the date and once as the value of the cancellation row.
-      expect(await screen.findAllByText("Cancel until Tue, 13 Oct · 23:30")).toHaveLength(2);
+      // As the value of the cancellation row only.
+      expect(await screen.findAllByText("Cancel until Tue, 13 Oct · 23:30")).toHaveLength(1);
     });
 
     it("shows no line without a deadline", async () => {
@@ -702,7 +701,7 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
-    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Details");
+    expect(headerOptions().headerTitle).toBeUndefined();
     expect(headerOptions().headerRight).toBeUndefined();
   });
 
@@ -911,7 +910,7 @@ describe("ClassDetailsScreen", () => {
 
       expect(await screen.findByText("Rules")).toBeOnTheScreen();
       expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
-      expect(screen.getAllByText(/^Cancel until /)).toHaveLength(2);
+      expect(screen.getAllByText(/^Cancel until /)).toHaveLength(1);
       expect(screen.getByText("School rules")).toBeOnTheScreen();
     });
 
@@ -1570,8 +1569,8 @@ describe("ClassDetailsScreen enrol", () => {
     expect(
       screen.getByText("Surf Beginner · Today · 14 Oct · 16:00. Your request stays pending until the school confirms."),
     ).toBeOnTheScreen();
-    // The details line, the rules row and the sheet card.
-    expect(screen.getAllByText("Cancel until Tue, 13 Oct · 17:00")).toHaveLength(3);
+    // The rules row and the sheet card.
+    expect(screen.getAllByText("Cancel until Tue, 13 Oct · 17:00")).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Send request" })).toBeDisabled();
   });
 

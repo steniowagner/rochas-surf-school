@@ -1,0 +1,301 @@
+---
+id: "049"
+slug: class-details-people-design
+title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
+status: in-progress
+created: 2026-10-21
+started: 2026-10-21
+base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
+fronts: [classes, backend, mobile]
+depends_on: []
+---
+
+# 049 — Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet
+
+## Goal
+
+On a class's details (every role), the "A aula", "Regras" and "Notas" sections look as they do in the student
+design (`student-app.html`, "Detalhe da aula", variant 2c), and the admin's student rows as in `admin-app.html`.
+Tapping an instructor or a student opens the same person sheet the directory uses, whose WhatsApp row follows
+the existing visibility rule — so the class answer has to carry each person's number, filtered by who is
+asking. The rest of the screen's logic (banners, enrolment actions, sheets, the class tools) doesn't change.
+
+## Context
+
+- Product: [product.md](../../memory/product.md) — relevant concepts: class details (spec 030/040), trial guests
+  (spec 045: "guests open no person sheet"), the people directory and its person sheet (spec 027), and the
+  out-of-v1 list, which names "opening a person's sheet (WhatsApp) from an instructor or a student on the
+  details" (spec 040) — this spec builds it (D-09).
+- Requirements:
+  [requirements.md → Contacting a user on WhatsApp](../../../.docs/requirements.md#contacting-a-user-on-whatsapp)
+  — chats open in WhatsApp on the phone, admins reach anyone with a number, others only who shares it;
+  [requirements.md → WhatsApp number visibility](../../../.docs/requirements.md#whatsapp-number-visibility) —
+  hidden by default, admins always see it;
+  [requirements.md → Class lists](../../../.docs/requirements.md#class-lists) — students by name, guests as
+  "Trial", guest names for admins and the class's instructors;
+  [requirements.md → Class notes visibility](../../../.docs/requirements.md#class-notes-visibility) — notes
+  shown to everyone who sees the class;
+  [requirements.md → Reading and accepting the rules](../../../.docs/requirements.md#reading-and-accepting-the-rules)
+  — both cancellation rules readable at any time, also from a class's details.
+- Designs: `.docs/designs/student-app.html` → `detalheScreen()` (`dComQuem`, `dAvatar`, `dRow`, `dGrupo`,
+  `dRegras`, the "Notas" group) and `pessoaModal()`; `.docs/designs/admin-app.html` → the same `dComQuem` with
+  the "Retirar" button on each row. The bundles are compressed: unpack the `__bundler/manifest` entries (base64,
+  gzip when `compressed`) to read them.
+- Technical: [technical-context.md](../../memory/technical-context.md) — relevant sections: Applications
+  (`apps/mobile`, `apps/backend`), Automated validation, Coverage; [CLAUDE.md](../../../CLAUDE.md) → Design
+  system and Rules for apps/mobile; `.claude/rules/react.md` (one folder per component, child components
+  extracted).
+- Existing code this builds on:
+  - `modules/classes/src/school-class/usecase/get-class.usecase.ts` — answers `GET /classes/:id`, and the
+    answers of `PUT /classes/:id` and `POST /classes/:id/cancel` (`apps/backend/src/modules/classes/classes.controller.ts`
+    builds `GetClass` three times). It maps with `toClassItem` (`class-item.ts`), shared with the week list,
+    "mine" and "mine/history", which spreads each roster student into the answer.
+  - `modules/auth/src/user/usecase/list-people.usecase.ts` — the directory's visibility rule:
+    `whatsappNumber && (whatsappVisible || viewer is admin)`.
+  - `apps/backend/prisma/models/auth.model.prisma` — `User.role`, `User.status`, `whatsappNumber`,
+    `whatsappVisible`.
+  - `apps/mobile/src/modules/classes/components/class-people/` — the "A aula" card today: instructor rows
+    (avatar + name, not tappable), the students row with stacked avatars and "+N", the expanded list (students,
+    then guests with initials and a muted "Trial" chip) and the admin's "Retirar" buttons.
+  - `apps/mobile/src/modules/classes/screens/class-details.screen.tsx` (+ `.hook.ts`) — the "Regras" group
+    built from `ProfileCard`/`ProfileRow`, the notes as plain text under "Notas".
+  - `apps/mobile/src/modules/people/components/person-sheet/` — the directory's sheet: initials, name, role
+    chip, "Conversar por WhatsApp" with the number (opens `wa.me`) or disabled with "Número não
+    compartilhado.", and "Fechar". Its `person` prop is the whole `Person` (with `createdAt`).
+  - `apps/mobile/src/modules/school-rules/hooks/use-school-rules.hook.ts` — `GET /school-rules`, one shared
+    cache entry.
+
+## Scope
+
+### In scope
+
+- `whatsappNumber` on each student and instructor, and `role` on each instructor, in every `GetClass` answer.
+- The "A aula" card: instructor pills, student rows that open the person sheet, trial guests as designed, the
+  admin's "Retirar" next to the row tap.
+- The "Regras" rows as designed, with the school-rules count.
+- The "Notas" card.
+- The strings in pt-BR, es-ES and en-US.
+
+### Out of scope
+
+- "Depois da aula" (ratings and photos) and "Onde e como" (map, directions, weather).
+- The header block (chips, date, time range) and the status banners — the date/time order change is the user's
+  own uncommitted work, committed before execution.
+- The "1ª vez" badge (no data for it).
+- "Sem penalização até N h antes" as the cancellation row's value (the rules are free text, no hours field).
+- Opening a sheet or a WhatsApp chat for a guest, and showing guests' numbers.
+- Profile photos (avatars stay initials until photos can be uploaded).
+- Any change to the week list, "Minhas aulas" or their cards.
+
+## Decisions
+
+| ID   | Decision | Reason |
+| ---- | -------- | ------ |
+| D-01 | A new domain provider, `ClassContactReader` (`findContacts(userIds)` → per user: `role`, `status`, `whatsappNumber`, `whatsappVisible`), is used by `GetClass` only. `ClassRosterReader`, `ClassViewReader` and `toClassItem` don't change. | `toClassItem` spreads roster students into the week list, "mine" and "mine/history": adding numbers to the roster would leak them there. A separate read keeps the numbers to the one answer that needs them. |
+| D-02 | A person's `whatsappNumber` in the answer is their number when they are `approved`, have a number, and either share it (`whatsappVisible`) or the viewer is an admin; otherwise `null`. The viewer's own entry follows the same rule. | Same rule as the directory (`ListPeople`), so a number visible in one place is visible in the other; a hidden number never leaves the backend for a non-admin. Removed, deleted and erased accounts aren't in the directory either. |
+| D-03 | The answer shape: `students[]` gain `whatsappNumber: string \| null`; `instructors[]` gain `role: "instructor" \| "admin"` and `whatsappNumber: string \| null`. Every `GetClass` answer has them (GET, PUT, POST cancel). | The mobile keeps one detail type and the cache stays complete after an edit or a cancellation. The instructor's role picks the sheet's chip ("Instrutor" / "Admin"); a student is always a student (only students hold seats). |
+| D-04 | The mobile reuses `PersonSheet` from `modules/people`; its `person` prop narrows to `Pick<Person, "name" \| "role" \| "whatsappNumber">`. | One sheet for the directory and the class: same layout, same WhatsApp behavior and copy. The class answer has no `createdAt`. |
+| D-05 | On an admin's view of a class that hasn't started, a student row opens the sheet and its "Retirar" button stays at the right, in place of the chevron; pressing "Retirar" opens the take-out sheet only, never the person sheet. | `admin-app.html` draws exactly that (the button stops the row's tap). |
+| D-06 | Guests: a `sand` circle with a person icon (no initials) in the stacked avatars and in the list; in the list the name followed by the "Trial" chip when the viewer may see the name, and the "Trial" chip alone when the name is `null`; guest rows are not pressable and have no chevron. | The design's trial avatar and chip; names follow the existing "Class lists" rule; spec 045 recorded that guests open no person sheet (they have no account). |
+| D-07 | The cancellation row keeps its current value ("Cancelamento até …" with the deadline, or "Ler a regra"). The school-rules row shows "N regras para todos os alunos" (singular for one) from `useSchoolRules` once loaded with at least one rule; while loading, on error or with no rules, it shows its title only. | The design's "Sem penalização até 12 h antes" needs an hours value the free-text rules don't have; the count is one cached request the rules screen already makes. |
+| D-08 | The stacked avatars show the first 5 seats (students, then guests) and keep "+N" for the seats beyond them. | "+N" is current behavior that tells how many more people there are; the design omits it only because its sample class is small. |
+| D-09 | Opening a person's sheet with WhatsApp from a class's details extends "Contacting a user on WhatsApp", which names only the directory, and removes the item from the out-of-v1 list. | The user asked for it, and the design draws it; the visibility rule is the same one (D-02). |
+
+## Expected Results
+
+### ER-01 — The class answer carries each person's number, filtered by visibility
+
+- **Front:** backend
+- **Behavior:** Given a class with student S (shares her number), student T (doesn't share it) and instructor I
+  (role `admin`, doesn't share it), when a student calls `GET /classes/:id`, then S's `whatsappNumber` is her
+  number, T's and I's are `null`, and I's `role` is `"admin"`; when an admin calls it, T's and I's numbers are
+  present too.
+- **Edge and error cases:** a person without a number has `null` for every viewer; a person whose status isn't
+  `approved` (removed, deleted, erased) has `null` even when they shared it; an instructor viewer sees the same as
+  a student viewer; `PUT /classes/:id` and `POST /classes/:id/cancel` answer with the same fields and values;
+  unknown id still answers 404, no token 401.
+- **Verify by:** `npx jest test/school-class/usecase/get-class.usecase.test.ts` (from `modules/classes`) and
+  `npx vitest run --config ./vitest.config.e2e.ts test/classes.e2e-spec.ts -t "contacts"` (from
+  `apps/backend`).
+
+### ER-02 — The list answers carry no numbers
+
+- **Front:** backend
+- **Behavior:** Given a class whose students and instructors share their numbers, when an admin calls
+  `GET /classes`, `GET /classes/mine` (as one of its students) and `GET /classes/mine/history`, then no student
+  or instructor in any answer has a `whatsappNumber` or `role` key.
+- **Edge and error cases:** holds for admins too (who may see every number on the details).
+- **Verify by:** `npx vitest run --config ./vitest.config.e2e.ts test/classes.e2e-spec.ts -t "contacts"` (from
+  `apps/backend`), whose scenarios assert the absent keys.
+
+### ER-03 — Instructor pills open the person sheet
+
+- **Front:** mobile
+- **Behavior:** Given a class's details, then "A aula" opens with a `dim` header holding "Instrutor" /
+  "Instrutores" and one pill per instructor (rounded-full, `surface` background, `line` border, a 32pt avatar
+  and the name); the viewer's own pill reads "Você" with a `lagoon` border. When the user taps a pill, then the
+  person sheet opens with the instructor's name, the "Instrutor" or "Admin" chip and "Conversar por WhatsApp"
+  with the formatted number, which opens WhatsApp.
+- **Edge and error cases:** a `null` number shows the disabled row with "Número não compartilhado."; a class
+  without instructors keeps "Sem instrutor atribuído" in the header; each pill is at least 44pt tall to touch
+  and has the accessibility role `button` with the instructor's name.
+- **Verify by:** `npx jest src/modules/classes/components/class-people src/modules/classes/screens/class-details.screen.test.tsx`
+  (from `apps/mobile`); iOS simulator: open a class as a student, tap the instructor.
+
+### ER-04 — Student and guest rows as designed
+
+- **Front:** mobile
+- **Behavior:** Given a class with students and guests, then the stacked avatars show the first 5 seats
+  (students, then guests as a `sand` person icon) and "+N" for the rest. When the user expands the list, then
+  each student row shows a 32pt avatar, the name and a chevron, and tapping it opens the person sheet with the
+  "Aluno" chip and the WhatsApp row; each guest row shows the person-icon avatar and either the name followed by
+  "Trial" (admins and the class's instructors) or "Trial" alone (everyone else), and tapping it does nothing.
+- **Edge and error cases:** on an admin's view of a class that hasn't started, student and guest rows show
+  "Retirar" instead of the chevron, and pressing it opens the take-out sheet without opening the person sheet;
+  a guest whose name was erased shows "Trial" alone to admins too; a class with no seats taken shows "Ainda sem
+  alunos", as today, and can't expand.
+- **Verify by:** `npx jest src/modules/classes/components/class-people src/modules/classes/screens/class-details.screen.test.tsx`
+  (from `apps/mobile`); iOS simulator: expand the list as a student and as an admin.
+
+### ER-05 — "Regras" rows as designed
+
+- **Front:** mobile
+- **Behavior:** Given a class that isn't cancelled, then "Regras" is a card with two rows, each with a 34pt
+  icon tile (`dim` background, `lagoon` icon), a small uppercase title, a bold value and a chevron: "Cancelamento
+  · <modalidade>" with the current value, and "Regras da escola" with "N regras para todos os alunos" ("1 regra
+  para todos os alunos" for one). Tapping them opens the cancellation-rules sheet and the role's school-rules
+  screen, as today.
+- **Edge and error cases:** while the school rules load, when the request fails, or with no rules, the second
+  row shows its title only; a cancelled class shows no "Regras" (as today); es-ES and en-US have their own
+  strings.
+- **Verify by:** `npx jest src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/components/class-rule-row`
+  (from `apps/mobile`); iOS simulator: open a class.
+
+### ER-06 — "Notas" card
+
+- **Front:** mobile
+- **Behavior:** Given a class with notes, then under the "Notas" label a card (`surface`, `line` border,
+  `rounded-card`) shows a `lagoon` note icon and the notes as written, line breaks kept.
+- **Edge and error cases:** a class without notes shows no "Notas" label or card.
+- **Verify by:** `npx jest src/modules/classes/screens/class-details.screen.test.tsx` (from `apps/mobile`);
+  iOS simulator: open a class with notes.
+
+## Tasks
+
+### Classes module (`modules/classes`)
+
+- [ ] **T-01** — Add `ClassContactReader` in `src/school-class/provider/class-contact-reader.provider.ts`
+  (exported from the provider index) and its fake in `test/mock/fake-class-contact.reader.ts`; make `GetClass`
+  take it, read the contacts of the class's students and instructors in the same `Promise.all`, and add
+  `whatsappNumber` (D-02) to each student and `role` + `whatsappNumber` to each instructor in `GetClassOut`
+  (D-03), without touching `toClassItem` or `ClassItem`. Extend `test/school-class/usecase/get-class.usecase.test.ts`:
+  shared, hidden for a student/instructor viewer, hidden for an admin viewer, no number, non-approved, a person
+  missing from the contacts. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
+  Covers: ER-01, ER-02 · Done when: `npm test` passes in `modules/classes` with every changed line covered.
+
+### Backend (`apps/backend`)
+
+- [ ] **T-02** — Implement `PrismaClassContactReader` in `src/modules/classes/class-contact-reader.prisma.ts`
+  (one `user.findMany` by ids selecting `id`, `role`, `status`, `whatsappNumber`, `whatsappVisible`; empty ids
+  read nothing) with `class-contact-reader.prisma.spec.ts`, and register it in `classes.module.ts`. Skill:
+  [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
+  Covers: ER-01 · Done when: `npx vitest run src/modules/classes/class-contact-reader.prisma.spec.ts` passes.
+
+- [ ] **T-03** — Pass the reader to the three `GetClass` constructions in
+  `src/modules/classes/classes.controller.ts`, update `classes.controller.spec.ts`, and add a `contacts`
+  describe to `test/classes.e2e-spec.ts` with the ER-01 and ER-02 scenarios (student, instructor and admin
+  viewers; shared, hidden, no number, removed user; PUT and cancel answers; the three list endpoints without the
+  keys). Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
+  Covers: ER-01, ER-02 · Done when: `npm run test:e2e` passes in `apps/backend`, including the `contacts`
+  scenarios.
+
+### Mobile (`apps/mobile`)
+
+- [ ] **T-04** — Add the class details answer type in `src/modules/classes/classes.types.ts` (students with
+  `whatsappNumber`, instructors with `role` and `whatsappNumber`) and use it in `hooks/use-class.hook.ts`,
+  `use-edit-class.hook.ts` and `use-cancel-class.hook.ts` and the screen hook's `ClassDetailsInstructor`; narrow
+  `PersonSheet`'s `person` prop (D-04) in `src/modules/people/components/person-sheet/person-sheet.types.ts`,
+  updating test fixtures as needed.
+  Covers: enabling · Done when: `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0 and
+  `npx jest src/modules/people src/modules/classes/hooks` passes.
+
+- [ ] **T-05** — Rebuild the instructors part of `ClassPeople` (`src/modules/classes/components/class-people/`):
+  the `dim` header with the label and the pills (ER-03), each pill a new component in its own folder
+  (`components/instructor-pill/`, per `.claude/rules/react.md`), pressing it calling a new
+  `onOpenInstructor(instructor)` prop; tests in `class-people.component.test.tsx` and the pill's own test.
+  Covers: ER-03 · Done when: `npx jest src/modules/classes/components/class-people src/modules/classes/components/instructor-pill`
+  passes.
+
+- [ ] **T-06** — Rebuild the students part of `ClassPeople`: guests in the stacked avatars (D-08) as a `sand`
+  person-icon avatar (a new `components/guest-avatar/`), student rows with a chevron calling a new
+  `onOpenStudent(student)` prop, guest rows per D-06, and "Retirar" in place of the chevron without triggering
+  the row (D-05); extract the rows into their own component folders as `.claude/rules/react.md` requires; tests
+  for each case in ER-04.
+  Covers: ER-04 · Done when: `npx jest src/modules/classes/components` passes.
+
+- [ ] **T-07** — In `src/modules/classes/screens/class-details.screen.tsx` and `.hook.ts`, keep the selected
+  person (kept while the sheet slides away, like the directory) and render `PersonSheet`: an instructor opens
+  with their `role`, a student with `"student"`; tests in `class-details.screen.test.tsx` for opening from an
+  instructor and from a student, a shared and a hidden number, and closing.
+  Covers: ER-03, ER-04 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes.
+
+- [ ] **T-08** — Replace the "Regras" `ProfileCard` on the screen with a card of a new
+  `src/modules/classes/components/class-rule-row/` (icon tile, uppercase title, bold value, chevron, at least
+  44pt, accessibility role `button`); read the rule count with `useSchoolRules` in the screen hook (D-07); add
+  `classDetails.rules.schoolCount_one` / `_other` to `src/i18n/messages/{pt-BR,es-ES,en-US}.ts` ("{{count}}
+  regra(s) para todos os alunos", "{{count}} regla(s) para todos los alumnos", "{{count}} rule(s) for every
+  student"); tests for the row and for the loaded, loading, failed and empty counts on the screen.
+  Covers: ER-05 · Done when: `npx jest src/modules/classes/components/class-rule-row src/modules/classes/screens/class-details.screen.test.tsx`
+  passes.
+
+- [ ] **T-09** — Render "Notas" as the card of ER-06 on the screen (Ionicons `reader-outline` in `lagoon`, the
+  notes in `ds-text-body`), with screen tests for a class with and without notes.
+  Covers: ER-06 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes.
+
+### Verification
+
+- [ ] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Follow the user
+  journeys on the iOS simulator and record what was seen. Record the output summary as evidence.
+  Covers: all · Done when: every automated command exits 0 and the journeys are recorded.
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 049` — the tests this spec adds or changes, and the existing
+    tests related to its changes, pass (with coverage).
+  - `node .specs/scripts/check-coverage.mjs 049` — every line this spec adds or changes is covered.
+  - `node .specs/scripts/run-e2e.mjs 049` — the backend e2e suite passes, including the `contacts` scenarios
+    of ER-01 and ER-02.
+  - `npx turbo run lint check-types build --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile`
+    — no errors.
+- User journeys (iOS simulator, seeded data with a class that has a student who shares their number, one who
+  doesn't, a guest and notes):
+  - ER-03 / ER-04 as a student: the pills and "Você" (as an instructor of the class), tapping the instructor and
+    each student opens the sheet with the right chip and WhatsApp row; the guest shows "Trial" and does nothing.
+  - ER-04 as an admin on a class that hasn't started: the guest's name with "Trial", "Retirar" in place of the
+    chevron opens only the take-out sheet, the row opens the person sheet with the hidden number visible.
+  - ER-05 / ER-06: the "Regras" rows with the rule count, both taps open what they did before; the "Notas" card;
+    a class without notes has no "Notas"; light and dark themes both read correctly.
+
+## Memory Impact
+
+- `memory/product.md` — class details: the "A aula" card with instructor pills, student rows and the person
+  sheet (WhatsApp by the directory's rule), guests' person-icon avatar and "Trial" chip, the "Regras" rows with
+  the school-rules count, the "Notas" card; remove "opening a person's sheet (WhatsApp) from an instructor or a
+  student on the details" from the out-of-v1 list (D-09).
+- `memory/modules/classes.md` — `GetClass` answers carry `whatsappNumber` per student and `role` +
+  `whatsappNumber` per instructor through `ClassContactReader`, filtered by D-02; the list answers don't.
+- `memory/technical-context.md` — the classes read model: `ClassContactReader` / `PrismaClassContactReader`, only
+  in `GetClass`; `PersonSheet` is shared with the classes module.
+
+## References
+
+- [How to execute](../../shared/how-to-execute.md)
+- [Task breakdown](../../shared/task-breakdown.md)
+- [Acceptance criteria rules](../../shared/acceptance-criteria.md)
+- [Naming rules](../../shared/naming-rules.md)
+- [Spec lifecycle](../../shared/spec-lifecycle.md)
+
+## Amendments
+
+## Review

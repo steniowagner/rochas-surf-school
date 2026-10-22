@@ -1,4 +1,9 @@
-import { render, screen, userEvent } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  userEvent,
+  within,
+} from "@testing-library/react-native";
 import * as SecureStore from "expo-secure-store";
 import { Appearance } from "react-native";
 
@@ -46,6 +51,24 @@ describe("ThemeSheet", () => {
     expect(
       screen.getByRole("button", { name: /Dark/, selected: true }),
     ).toBeOnTheScreen();
+  });
+
+  it("keeps a checkmark in every row and only shows the selected one", async () => {
+    const user = userEvent.setup();
+    setThemePreference("dark");
+    await render(<ThemeSheet visible onClose={jest.fn()} />);
+    const checkOf = (name: RegExp) =>
+      within(screen.getByRole("button", { name })).getByTestId(
+        "theme-sheet-check",
+      );
+
+    await user.press(screen.getByText("Light"));
+
+    // Choosing only changes which checkmark is visible: no row gains or loses a view.
+    expect(screen.getAllByTestId("theme-sheet-check")).toHaveLength(3);
+    expect(checkOf(/Light/)).toHaveStyle({ opacity: 1 });
+    expect(checkOf(/Dark/)).toHaveStyle({ opacity: 0 });
+    expect(checkOf(/Same as phone/)).toHaveStyle({ opacity: 0 });
   });
 
   it("goes back to following the phone", async () => {

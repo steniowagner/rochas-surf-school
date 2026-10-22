@@ -45,9 +45,16 @@ export function ThemeSheet({ visible, onClose }: ThemeSheetProps) {
             <Text className="ds-text-list-title flex-1 text-ink">
               {t(`theme.${choice}`)}
             </Text>
-            {isSelected ? (
-              <Ionicons name="checkmark" size={19} color={colors.lagoon} />
-            ) : null}
+            {/* Every row keeps its checkmark and only shows it when selected. Choosing a theme re-renders the whole app
+                with the new palette; mounting the checkmark in another row during that commit left the native views
+                out of order, and iOS crashed when it later unmounted the checkmark. */}
+            <Ionicons
+              testID="theme-sheet-check"
+              name="checkmark"
+              size={19}
+              color={colors.lagoon}
+              style={{ opacity: isSelected ? 1 : 0 }}
+            />
           </Pressable>
         );
       })}

@@ -160,6 +160,17 @@ const capitalize = (text: string): string =>
 export const weekdayName = (isoDate: string, locale: Locale): string =>
   capitalize(formatIsoDate(isoDate, "EEEE", locale));
 
+// The weekday, day and month without the year, in each app locale's own order (date-fns has no such long format).
+const LONG_DAY_PATTERNS: Record<string, string> = {
+  "en-US": "EEEE, MMMM d",
+  es: "EEEE, d 'de' MMMM",
+  "pt-BR": "EEEE, d 'de' MMMM",
+};
+
+/** "Saturday, October 17", "sábado, 17 de outubro". */
+export const formatLongDay = (isoDate: string, locale: Locale): string =>
+  formatIsoDate(isoDate, LONG_DAY_PATTERNS[locale.code] ?? LONG_DAY_PATTERNS["en-US"], locale);
+
 /** "MON". */
 export const weekdayAbbreviation = (isoDate: string, locale: Locale): string =>
   formatIsoDate(isoDate, "EEEE", locale).slice(0, 3).toUpperCase();

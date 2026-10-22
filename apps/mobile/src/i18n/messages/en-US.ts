@@ -445,9 +445,11 @@ const messages = {
   },
   classesWeek: {
     hasClasses: "with classes",
-    empty: "No classes on this day.",
+    emptyDay: {
+      title: "No classes this day",
+      description: "There are no classes scheduled for {{date}} yet.",
+    },
     create: "Create class",
-    createOnDay: "Create class on this day",
     newClass: "New class",
     loadError: "Couldn't load the classes.",
     retry: "Try again",

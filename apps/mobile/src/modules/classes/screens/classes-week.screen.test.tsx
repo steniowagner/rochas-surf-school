@@ -3,6 +3,7 @@ import { act, render, screen, userEvent, waitFor } from "@testing-library/react-
 import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
+import i18n from "@/i18n";
 import * as api from "@/services/api";
 
 import type { ClassItem } from "../classes.types";
@@ -288,11 +289,29 @@ describe("ClassesWeekScreen", () => {
     expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
   });
 
-  it("shows an empty day", async () => {
+  it("shows an empty day, with the selected date and no button for a student", async () => {
     serveWeeks({ [THIS_MONDAY]: [] });
     await renderScreen();
 
-    expect(await screen.findByText("No classes on this day.")).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: "No classes this day" })).toBeOnTheScreen();
+    expect(
+      screen.getByText("There are no classes scheduled for Wednesday, October 14 yet."),
+    ).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Create class" })).not.toBeOnTheScreen();
+  });
+
+  it("shows the empty day in pt-BR", async () => {
+    await i18n.changeLanguage("pt-BR");
+    const user = userEvent.setup();
+    serveWeeks({ [THIS_MONDAY]: [] });
+    await renderScreen();
+    await screen.findByRole("header", { name: "Sem aulas neste dia" });
+
+    await user.press(screen.getByTestId("calendar-day-2026-10-17"));
+
+    expect(
+      screen.getByText("Ainda não há aulas marcadas para sábado, 17 de outubro."),
+    ).toBeOnTheScreen();
   });
 
   it("selecting a day in the month keeps the month and shows that day's classes", async () => {
@@ -438,9 +457,6 @@ describe("ClassesWeekScreen admin entry points", () => {
     await screen.findByText("16:00 – 17:00");
     expect(screen.getByRole("button", { name: "New class" })).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Create class on this day" }));
-    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-14" }));
-
     await user.press(screen.getByRole("button", { name: "New class" }));
     expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-14" }));
 
@@ -449,18 +465,19 @@ describe("ClassesWeekScreen admin entry points", () => {
     expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-17" }));
   });
 
-  it("offers only the + on a past day", async () => {
+  it("offers no entry point on a past day, and offers them again back on today", async () => {
     const user = userEvent.setup();
     await renderScreen({ canCreate: true });
     await screen.findByText("16:00 – 17:00");
 
     await user.press(screen.getByTestId("calendar-day-2026-10-13"));
 
+    expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Create class" })).not.toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Create class on this day" })).not.toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "New class" }));
-    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass(undefined));
+    await user.press(screen.getByTestId("calendar-day-2026-10-14"));
+
+    expect(screen.getByRole("button", { name: "New class" })).toBeOnTheScreen();
   });
 
   it("offers no entry point without canCreate", async () => {
@@ -468,7 +485,6 @@ describe("ClassesWeekScreen admin entry points", () => {
     await screen.findByText("16:00 – 17:00");
 
     expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Create class on this day" })).not.toBeOnTheScreen();
   });
 
   it("fetches an invalidated week when the screen is focused again, so a cancelled class shows at once", async () => {

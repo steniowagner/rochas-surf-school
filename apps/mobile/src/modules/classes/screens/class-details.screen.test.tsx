@@ -317,7 +317,7 @@ describe("ClassDetailsScreen", () => {
 
     expect(await screen.findByText("Class finished")).toBeOnTheScreen();
     expect(screen.getByText("Ended at 08:30.")).toBeOnTheScreen();
-    expect(screen.getByText(glyph("checkmark"))).toBeOnTheScreen();
+    expect(screen.queryByText(glyph("checkmark"))).not.toBeOnTheScreen();
   });
 
   it("shows the started banner once the clock passes the start", async () => {

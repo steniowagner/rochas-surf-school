@@ -10,11 +10,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { HeaderButton } from "@/components/ui/header-button";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
 import {
   StackHeaderTitle,
+  useHeaderInset,
   useLeftTitleHeader,
 } from "@/navigation/stack-header";
 
@@ -33,6 +35,7 @@ export function ClassesWeekScreen({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const screen = useClassesWeekScreen({ classRoute, canCreate });
   const headerOptions = useLeftTitleHeader(() => (
     <StackHeaderTitle title={t(titleKey)} />
@@ -43,7 +46,7 @@ export function ClassesWeekScreen({
       <Stack.Screen
         options={{
           ...headerOptions,
-          headerRight: screen.canCreate
+          headerRight: screen.canCreateOnDay
             ? () => (
                 <HeaderButton
                   icon="add"
@@ -54,76 +57,88 @@ export function ClassesWeekScreen({
             : undefined,
         }}
       />
-      <ScrollView
-        testID="classes-week-list"
-        className="flex-1 bg-page"
-        // On iOS the safe areas, the header and the floating tab bar are added by the scroll view.
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-4 px-screen"
-        contentContainerStyle={{
-          paddingTop: 8,
-          paddingBottom: Math.max(insets.bottom, 24),
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={screen.isRefreshing}
-            onRefresh={screen.refresh}
+      <View className="flex-1 bg-page">
+        {/* The calendar stays put: only the day's classes scroll under it. */}
+        <View
+          className="px-screen pb-4"
+          style={{ paddingTop: headerInset + 8 }}
+        >
+          <WeekMonthCalendar
+            selectedDate={screen.selectedDate}
+            today={screen.today}
+            markedDates={screen.markedDates}
+            markedLabel={t("classesWeek.hasClasses")}
+            onSelectDate={screen.selectDate}
+            onVisibleRangeChange={screen.updateVisibleRange}
           />
-        }
-      >
-        <WeekMonthCalendar
-          selectedDate={screen.selectedDate}
-          today={screen.today}
-          markedDates={screen.markedDates}
-          markedLabel={t("classesWeek.hasClasses")}
-          onSelectDate={screen.selectDate}
-          onVisibleRangeChange={screen.updateVisibleRange}
-        />
-        {screen.isLoading ? (
-          <ActivityIndicator
-            testID="classes-week-loading"
-            color={theme.grape}
-            className="py-8"
-          />
-        ) : screen.isError ? (
-          <View className="items-center gap-3 py-8">
-            <Text className="ds-text-body text-center text-ink-2">
-              {t("classesWeek.loadError")}
-            </Text>
-            <Button variant="outline" onPress={screen.retry}>
-              {t("classesWeek.retry")}
-            </Button>
-          </View>
-        ) : (
-          <View className="gap-3">
-            {screen.dayItems.length === 0 ? (
-              <View className="items-center gap-3 rounded-card border border-line bg-surface p-6">
-                <Text className="ds-text-body text-center text-ink-2">
-                  {t("classesWeek.empty")}
-                </Text>
-                {screen.canCreateOnDay ? (
-                  <Button variant="outline" onPress={screen.createClass}>
-                    {t("classesWeek.create")}
-                  </Button>
-                ) : null}
-              </View>
-            ) : (
-              <>
-                {screen.dayItems.map((item) => (
-                  <ClassCard
-                    key={item.id}
-                    item={item}
-                    now={screen.now}
-                    onPress={screen.openClass}
-                    showFlags={showFlags}
-                    showEnrolment={showEnrolment}
-                  />
-                ))}
-              </>
-            )}
-          </View>
-        )}
-      </ScrollView>
+        </View>
+        <ScrollView
+          testID="classes-week-list"
+          className="flex-1"
+          // On iOS the bottom safe area and the floating tab bar are added by the scroll view.
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerClassName="px-screen"
+          contentContainerStyle={{
+            paddingBottom: Math.max(insets.bottom, 24),
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={screen.isRefreshing}
+              onRefresh={screen.refresh}
+            />
+          }
+        >
+          {screen.isLoading ? (
+            <ActivityIndicator
+              testID="classes-week-loading"
+              color={theme.grape}
+              className="py-8"
+            />
+          ) : screen.isError ? (
+            <View className="items-center gap-3 py-8">
+              <Text className="ds-text-body text-center text-ink-2">
+                {t("classesWeek.loadError")}
+              </Text>
+              <Button variant="outline" onPress={screen.retry}>
+                {t("classesWeek.retry")}
+              </Button>
+            </View>
+          ) : screen.dayItems.length === 0 ? (
+            // Just under the calendar, not centered in the space left.
+            <View className="pt-8">
+              <EmptyState
+                icon="calendar-outline"
+                title={t("classesWeek.emptyDay.title")}
+                description={t("classesWeek.emptyDay.description", {
+                  date: screen.selectedDayName,
+                })}
+                action={
+                  screen.canCreateOnDay
+                    ? {
+                        label: t("classesWeek.create"),
+                        icon: "add",
+                        onPress: screen.createClass,
+                      }
+                    : undefined
+                }
+              />
+            </View>
+          ) : (
+            <View className="gap-3">
+              {screen.dayItems.map((item) => (
+                <ClassCard
+                  key={item.id}
+                  item={item}
+                  now={screen.now}
+                  onPress={screen.openClass}
+                  showFlags={showFlags}
+                  showEnrolment={showEnrolment}
+                />
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      </View>
     </>
   );
 }

@@ -252,7 +252,7 @@ describe("admin tabs", () => {
     await act(async () => router.navigate(routes.admin.classes));
     await screen.findByText("Praia do Futuro");
 
-    await user.press(screen.getByRole("button", { name: "Create class on this day" }));
+    await user.press(screen.getByRole("button", { name: "New class" }));
 
     expect(app.getPathname()).toBe("/admin/new-class");
   });

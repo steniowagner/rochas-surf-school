@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: changes-requested
+status: in-progress
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -77,14 +77,19 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - The strings in pt-BR, es-ES and en-US.
 - "Onde e como" with the location's map and "Direções" (amendment of 2026-10-22).
 - The class tools sheet's four action cards in a 2×2 grid; its header stays as is (third amendment of 2026-10-22).
+- The "finished" status banner's checkmark icon, at the left of its title and line, and the cancellation row's
+  `close-circle-outline` icon (fourth amendment of 2026-10-22).
 
 ### Out of scope
 
 - ~~"Depois da aula" (ratings and photos) and "Onde e como" (map, directions, weather).~~ (changed by the
   amendment of 2026-10-22: "Onde e como" moved in scope, without its conditions row)
 - "Depois da aula" (ratings and photos), and the "Condições previstas" row of "Onde e como" (weather and waves).
-- The header block (chips, date, time range) and the status banners — the date/time order change is the user's
-  own uncommitted work, committed before execution.
+- ~~The header block (chips, date, time range) and the status banners — the date/time order change is the user's
+  own uncommitted work, committed before execution.~~ (changed by the fourth amendment of 2026-10-22: the
+  "finished" banner's checkmark moved in scope)
+- The header block (chips, date, time range) and the status banners other than the "finished" banner's checkmark
+  icon — the date/time order change is the user's own uncommitted work, committed before execution.
 - The "1ª vez" badge (no data for it).
 - "Sem penalização até N h antes" as the cancellation row's value (the rules are free text, no hours field).
 - Opening a sheet or a WhatsApp chat for a guest, and showing guests' numbers.
@@ -753,6 +758,16 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   - Verification Plan: the ER-10 journey added. Memory Impact: the `product.md` line now also names ER-07, D-10,
     D-11 and D-12, and D-09's `requirements.md` section, which the review round noted were missing.
 
+- 2026-10-22 (fourth) — the user's own design change, committed outside any task in `7a57c22b` (screen) and
+  `ba48a71a` (its test), recorded to close review finding F-02; approved by the user in chat. The status went from
+  `changes-requested` to `in-progress`.
+  - The "finished" status banner: before, the title and the "Terminou às …" line stacked alone on the `dim` card;
+    after, a 24pt `checkmark` icon in `ink-2` sits at their left, the card laid out as a row. Scope: the banner's
+    icon moved from Out of scope ("the status banners") to In scope; the rest of the banners stays out.
+  - "Regras", cancellation row: the icon tile's icon `calendar-outline` (T-08's choice) → `close-circle-outline`.
+    ER-08 names no icon, so no Expected Result changes.
+  - Reason: the user's design call.
+
 ## Review
 
 ### Round 1 — 2026-10-22 — changes-requested
@@ -861,13 +876,23 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 
 **Findings**
 
-- [ ] **F-02** (scope) — commit `7a57c22b` ("style(mobile): checkmark on the finished banner and a close-circle icon
+- [x] **F-02** (scope) — commit `7a57c22b` ("style(mobile): checkmark on the finished banner and a close-circle icon
   on the cancellation row") changes `class-details.screen.tsx` in ways no task explains: it adds a checkmark icon and
   a row layout to the "finished" status banner, which Out of scope names ("the status banners"), and swaps the
   cancellation row's icon from `calendar-outline` (T-08's recorded choice) to `close-circle-outline`. The spec
   doesn't mention either change. Reproduce: `git show 7a57c22b`. Expected: if this is your own design call, record
   it in the spec (an Amendments entry naming both changes and moving the finished banner's icon in scope, like the
   base commit's work was recorded), or revert the banner part.
+  > ✅ 2026-10-22 — the user confirmed both changes are their design call and chose to keep them: logged as the
+  > fourth amendment of 2026-10-22 (the finished banner's checkmark moved in scope, the cancellation row's icon
+  > `calendar-outline` → `close-circle-outline`); In scope and Out of scope updated with the old line struck
+  > through. The rules row's icon was already asserted (`ba48a71a`, "draws the rows with their icons and
+  > chevrons"); added the missing assertion for the banner's `checkmark` to "shows the finished banner". Files:
+  > `.specs/changes/049-class-details-people-design/spec.md`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes/screens/class-details.screen.test.tsx -t "finished banner"` (from `apps/mobile`) → 4
+  > passed; with the icon temporarily renamed to `checkmark-done` the test failed, then the screen was restored.
+  > Deviations: none.
 
 **Notes**
 

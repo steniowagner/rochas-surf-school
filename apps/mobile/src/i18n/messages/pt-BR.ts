@@ -11,6 +11,7 @@ const messages: Messages = {
     close: "Fechar",
     back: "Voltar",
     clear: "Limpar",
+    tryAgain: "Tentar de novo",
   },
   auth: {
     continueWithApple: "Continuar com a Apple",
@@ -443,13 +444,19 @@ const messages: Messages = {
     nextMonth: "Ver o mês seguinte",
   },
   classesWeek: {
+    loading: "Carregando as aulas",
     hasClasses: "com aulas",
-    empty: "Sem aulas neste dia.",
+    emptyDay: {
+      title: "Sem aulas neste dia",
+      description: "Ainda não há aulas marcadas para {{date}}.",
+    },
     create: "Criar aula",
-    createOnDay: "Criar aula neste dia",
     newClass: "Nova aula",
-    loadError: "Não foi possível carregar as aulas.",
-    retry: "Tentar novamente",
+    loadError: {
+      title: "Algo deu errado",
+      description:
+        "Não conseguimos carregar as aulas de {{date}}. Verifique sua conexão e tente novamente.",
+    },
     state: {
       started: "Em andamento",
       finished: "Finalizada",

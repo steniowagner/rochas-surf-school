@@ -12,6 +12,7 @@ describe("Button", () => {
   it.each<ButtonVariant>([
     "primary",
     "dark",
+    "ink",
     "outline",
     "subtle",
     "danger",

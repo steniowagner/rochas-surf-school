@@ -10,6 +10,8 @@ export const variantClasses: Record<
 > = {
   primary: { container: "bg-sun", label: "text-on-color" },
   dark: { container: "bg-grape", label: "text-on-color" },
+  // Ink fill with a page-colored label, so it inverts with the theme (the error state's "Try again").
+  ink: { container: "bg-ink", label: "text-page" },
   outline: { container: "border border-input-line", label: "text-ink" },
   subtle: { container: "bg-dim", label: "text-ink-2" },
   danger: { container: "bg-bad", label: "text-on-color" },

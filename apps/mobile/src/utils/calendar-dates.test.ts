@@ -9,6 +9,7 @@ import {
   buildMonthGrid,
   dayAccessibilityLabel,
   formatIsoDate,
+  formatLongDay,
   getDateLocale,
   isoWeekdayOf,
   isSameMonth,
@@ -230,6 +231,14 @@ describe("fitted month grid", () => {
     expect(grid.flat()[0]).toBe("2026-09-28");
     expect(grid.flat().at(-1)).toBe("2026-11-01");
     expect(grid.every((week) => week.length === 7)).toBe(true);
+  });
+});
+
+describe("formatLongDay", () => {
+  it("is the weekday, day and month without the year, in each locale", () => {
+    expect(formatLongDay("2026-10-17", enUS)).toBe("Saturday, October 17");
+    expect(formatLongDay("2026-10-17", es)).toBe("sábado, 17 de octubre");
+    expect(formatLongDay("2026-10-17", ptBR)).toBe("sábado, 17 de outubro");
   });
 });
 

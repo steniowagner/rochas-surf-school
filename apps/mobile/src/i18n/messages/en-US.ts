@@ -10,6 +10,7 @@ const messages = {
     close: "Close",
     back: "Back",
     clear: "Clear",
+    tryAgain: "Try again",
   },
   auth: {
     continueWithApple: "Continue with Apple",
@@ -443,13 +444,19 @@ const messages = {
     nextMonth: "Show the next month",
   },
   classesWeek: {
+    loading: "Loading the classes",
     hasClasses: "with classes",
-    empty: "No classes on this day.",
+    emptyDay: {
+      title: "No classes this day",
+      description: "There are no classes scheduled for {{date}} yet.",
+    },
     create: "Create class",
-    createOnDay: "Create class on this day",
     newClass: "New class",
-    loadError: "Couldn't load the classes.",
-    retry: "Try again",
+    loadError: {
+      title: "Something went wrong",
+      description:
+        "We couldn't load the classes for {{date}}. Check your connection and try again.",
+    },
     state: {
       started: "In progress",
       finished: "Finished",

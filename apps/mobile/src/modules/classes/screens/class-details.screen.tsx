@@ -24,7 +24,6 @@ import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-re
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
 import { ProfileCard } from "@/modules/profile/components/profile-card";
 import { ProfileRow } from "@/modules/profile/components/profile-row";
-import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassPeople } from "../components/class-people";
@@ -49,9 +48,6 @@ export function ClassDetailsScreen({
     <>
       <Stack.Screen
         options={{
-          headerTitle: () => (
-            <StackHeaderTitle title={t("classDetails.title")} />
-          ),
           headerRight: screen.showTools
             ? () => (
                 <HeaderButton
@@ -66,7 +62,7 @@ export function ClassDetailsScreen({
       <ScrollView
         className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-6 px-screen"
+        contentContainerClassName="gap-6 pt-4 px-screen"
         contentContainerStyle={{
           paddingBottom: Math.max(insets.bottom, 24),
         }}
@@ -91,38 +87,17 @@ export function ClassDetailsScreen({
           </View>
         ) : item ? (
           <>
-            <View className="gap-3">
-              <View className="flex-row flex-wrap gap-2">
-                <Chip
-                  tone={item.discipline === "surf" ? "surf" : "skate"}
-                  icon={
-                    item.discipline === "surf"
-                      ? "water-outline"
-                      : "disc-outline"
-                  }
-                >
+            <View className="gap-2">
+              <View className="flex-row flex-wrap gap-2 mb-1">
+                <Chip tone={item.discipline === "surf" ? "surf" : "skate"}>
                   {t(`newClass.discipline.${item.discipline}`)}
                 </Chip>
                 <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>
               </View>
-              <Text className="ds-text-kpi text-ink">{screen.timeRange}</Text>
-              <Text className="ds-text-list-subtitle text-ink-2">
+              <Text className="ds-text-list-title text-ink-2">
                 {screen.dateLine}
               </Text>
-              {screen.cancellationDeadline ? (
-                <View className="flex-row items-center gap-2">
-                  <Ionicons
-                    name="calendar-clear-outline"
-                    size={16}
-                    color={theme.ink2}
-                  />
-                  <Text className="ds-text-list-subtitle text-ink-2">
-                    {t("classDetails.cancellationDeadline", {
-                      when: screen.cancellationDeadline,
-                    })}
-                  </Text>
-                </View>
-              ) : null}
+              <Text className="ds-text-kpi text-ink">{screen.timeRange}</Text>
             </View>
             {screen.showNoInstructor ? (
               <Pressable

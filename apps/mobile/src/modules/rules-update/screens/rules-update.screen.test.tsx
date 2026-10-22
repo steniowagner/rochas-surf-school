@@ -10,9 +10,11 @@ import { renderRouter } from "expo-router/testing-library";
 import { ReactNode } from "react";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
-import AdminRoute from "@/app/(private)/admin/(tabs)/index";
+import AdminHomeLayout from "@/app/(private)/admin/(tabs)/(home)/_layout";
+import AdminRoute from "@/app/(private)/admin/(tabs)/(home)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
-import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
+import InstructorHomeLayout from "@/app/(private)/instructor/(tabs)/(home)/_layout";
+import InstructorRoute from "@/app/(private)/instructor/(tabs)/(home)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
 import AgendaLayout from "@/app/(private)/student/(tabs)/(agenda)/_layout";
 import StudentRoute from "@/app/(private)/student/(tabs)/(agenda)/index";
@@ -330,13 +332,15 @@ describe("RulesUpdateScreen on its route", () => {
     "(private)/student/(tabs)/(agenda)/_layout": AgendaLayout,
     "(private)/student/(tabs)/(agenda)/index": StudentRoute,
     "(private)/instructor/_layout": InstructorLayout,
-    "(private)/instructor/(tabs)/index": InstructorRoute,
+    "(private)/instructor/(tabs)/(home)/_layout": InstructorHomeLayout,
+    "(private)/instructor/(tabs)/(home)/index": InstructorRoute,
     "(private)/admin/_layout": AdminLayout,
-    "(private)/admin/(tabs)/index": AdminRoute,
+    "(private)/admin/(tabs)/(home)/_layout": AdminHomeLayout,
+    "(private)/admin/(tabs)/(home)/index": AdminRoute,
   };
 
   it.each([
-    { role: "student", path: routes.student.home, name: "SCHEDULE" },
+    { role: "student", path: routes.student.home, name: "Ana" },
     { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
     { role: "admin", path: routes.admin.home, name: "School tools" },
   ])(

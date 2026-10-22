@@ -8,6 +8,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
 import { useTheme } from "@/hooks/use-theme";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
+import { useHeaderInset } from "@/navigation/stack-header";
 
 const openPeople = () => router.push(routes.instructor.people);
 
@@ -15,12 +16,14 @@ export function InstructorScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
 
   return (
     <View
       className="flex-1 gap-6 bg-page px-screen"
       style={{
-        paddingTop: insets.top + 12,
+        // Clears the user header, which the tab's stack draws above the screen.
+        paddingTop: headerInset + 16,
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >

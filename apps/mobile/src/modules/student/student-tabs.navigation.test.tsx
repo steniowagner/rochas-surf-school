@@ -157,7 +157,12 @@ describe("student tabs", () => {
     ]);
     expect(app.getPathname()).toBe("/student");
     expect(selectedTabLabel()).toBe("Schedule");
-    expect(screen.getByText("SCHEDULE")).toBeOnTheScreen();
+    // The user header takes the place of the "Schedule" title.
+    expect(screen.queryByText("SCHEDULE")).not.toBeOnTheScreen();
+    expect(screen.getByText("Ana")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Notifications, 3 unread" }),
+    ).toBeOnTheScreen();
     expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.student.myClasses));

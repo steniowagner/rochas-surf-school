@@ -427,6 +427,16 @@ const messages = {
     empty: "You haven't taken any class yet.",
     loadError: "We couldn't load your history.",
   },
+  userHeader: {
+    greeting: {
+      morning: "Good morning,",
+      afternoon: "Good afternoon,",
+      evening: "Good evening,",
+    },
+    notifications: "Notifications",
+    notificationsUnread_one: "Notifications, {{count}} unread",
+    notificationsUnread_other: "Notifications, {{count}} unread",
+  },
   tabs: {
     agenda: "Schedule",
     myClasses: "My classes",

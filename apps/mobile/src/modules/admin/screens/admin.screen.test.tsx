@@ -4,7 +4,8 @@ import { router, Slot } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
-import AdminRoute from "@/app/(private)/admin/(tabs)/index";
+import AdminHomeLayout from "@/app/(private)/admin/(tabs)/(home)/_layout";
+import AdminRoute from "@/app/(private)/admin/(tabs)/(home)/index";
 import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rules";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminSchoolSettingsRoute from "@/app/(private)/admin/school-settings";
@@ -13,6 +14,7 @@ import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
+import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
 
 const fetchMock = jest.fn();
@@ -30,7 +32,7 @@ function TestRootLayout({ children }: { children?: React.ReactNode }) {
         })
       }
     >
-      {children}
+      <SessionProvider>{children}</SessionProvider>
     </QueryClientProvider>
   );
 }
@@ -69,7 +71,8 @@ async function openAdminHome() {
         </TestRootLayout>
       ),
       "(private)/admin/_layout": AdminLayout,
-      "(private)/admin/(tabs)/index": AdminRoute,
+      "(private)/admin/(tabs)/(home)/_layout": AdminHomeLayout,
+      "(private)/admin/(tabs)/(home)/index": AdminRoute,
       "(private)/admin/cancellation-rules": AdminCancellationRulesRoute,
       "(private)/admin/new-class": AdminNewClassRoute,
       "(private)/admin/people": AdminPeopleRoute,
@@ -87,7 +90,12 @@ async function openAdminHome() {
 
 beforeEach(() => {
   hydrateSession({
-    user: { id: "admin-1", role: "admin", status: "approved" } as never,
+    user: {
+      id: "admin-1",
+      name: "Marta Rocha",
+      role: "admin",
+      status: "approved",
+    } as never,
     tokens: {
       accessToken: "at-1",
       accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
@@ -101,6 +109,17 @@ beforeEach(() => {
 });
 
 describe("AdminScreen", () => {
+  it("shows the user header with the first name and the bell", async () => {
+    respondWith([]);
+    await openAdminHome();
+
+    expect(screen.getByText("Marta")).toBeOnTheScreen();
+    expect(screen.getByText("MR")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Notifications, 3 unread" }),
+    ).toBeOnTheScreen();
+  });
+
   it("shows the title and the row with the pending count", async () => {
     respondWith([person("a"), person("b"), person("c")]);
     await openAdminHome();

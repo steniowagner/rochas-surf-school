@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
 
-import { useStackHeader } from "@/navigation/stack-header";
+import { useUserStackHeader } from "@/navigation/stack-header";
 
-// The tab shows its title in the native header, so it needs its own stack.
+// The tab's header is the user header (avatar, greeting and bell), so it needs its own stack.
 export default function AgendaLayout() {
-  const header = useStackHeader();
+  const screenOptions = useUserStackHeader();
 
-  return <Stack screenOptions={header} />;
+  return <Stack screenOptions={screenOptions} />;
 }

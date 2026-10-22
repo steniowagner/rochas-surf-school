@@ -36,7 +36,7 @@ jest.mock("expo-router", () => ({
     Screen: ({ options }: any) => (
       <>
         {options.unstable_headerLeftItems?.({})[0].element ??
-          options.headerTitle()}
+          options.headerTitle?.()}
         {options.headerRight?.()}
       </>
     ),
@@ -189,10 +189,17 @@ describe("ClassesWeekScreen", () => {
   });
 
   it("uses the title it is given", async () => {
-    await renderScreen({ titleKey: "tabs.agenda" });
+    await renderScreen({ titleKey: "tabs.classes" });
     await screen.findByText("16:00 – 17:00");
 
-    expect(screen.getByText("SCHEDULE")).toBeOnTheScreen();
+    expect(screen.getByText("CLASSES")).toBeOnTheScreen();
+  });
+
+  it("leaves the header to its stack without a title", async () => {
+    await renderScreen({ titleKey: undefined });
+    await screen.findByText("16:00 – 17:00");
+
+    expect(screen.queryByText("CLASSES")).not.toBeOnTheScreen();
   });
 
   it("shows each card's state from the phone's clock", async () => {

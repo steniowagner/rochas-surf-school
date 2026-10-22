@@ -33,14 +33,14 @@ export function ClassesWeekScreen({
   const headerInset = useHeaderInset();
   const screen = useClassesWeekScreen({ classRoute, canCreate });
   const headerOptions = useLeftTitleHeader(() => (
-    <StackHeaderTitle title={t(titleKey)} />
+    <StackHeaderTitle title={titleKey ? t(titleKey) : ""} />
   ));
 
   return (
     <>
       <Stack.Screen
         options={{
-          ...headerOptions,
+          ...(titleKey ? headerOptions : null),
           headerRight: screen.canCreateOnDay
             ? () => (
                 <HeaderButton

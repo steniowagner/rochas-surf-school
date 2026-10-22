@@ -236,12 +236,22 @@ describe("ClassDetailsScreen", () => {
     expect(screen.queryByText(glyph("disc-outline"))).toBeNull();
   });
 
+  it("shows the notes in a card with the note icon, line breaks kept", async () => {
+    serve(makeClass({ notes: "Ponto de encontro na barraca 3.\nTragam protetor." }));
+    await renderScreen();
+
+    expect(await screen.findByText("Notes")).toBeOnTheScreen();
+    expect(screen.getByText("Ponto de encontro na barraca 3.\nTragam protetor.")).toBeOnTheScreen();
+    expect(screen.getByText(glyph("reader-outline"))).toBeOnTheScreen();
+  });
+
   it("hides the notes when there are none", async () => {
     serve(makeClass({ notes: null }));
     await renderScreen();
 
     await screen.findByText("16:00 – 17:30");
     expect(screen.queryByText("Notes")).not.toBeOnTheScreen();
+    expect(screen.queryByText(glyph("reader-outline"))).not.toBeOnTheScreen();
   });
 
   it("names the viewer You, and one instructor singular", async () => {

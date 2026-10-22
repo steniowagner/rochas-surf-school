@@ -321,7 +321,12 @@ export function ClassDetailsScreen({
                 <Text className="ds-text-section-label text-ink-2">
                   {t("classDetails.notes")}
                 </Text>
-                <Text className="ds-text-body text-ink">{item.notes}</Text>
+                <View className="flex-row gap-3 rounded-card border border-line bg-surface px-4 py-3.5">
+                  <View className="pt-1">
+                    <Ionicons name="reader-outline" size={17} color={theme.lagoon} />
+                  </View>
+                  <Text className="ds-text-body flex-1 text-ink">{item.notes}</Text>
+                </View>
               </View>
             ) : null}
             <View className="gap-2">

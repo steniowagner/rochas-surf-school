@@ -393,9 +393,16 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > than adding a token; the cancellation icon is `calendar-outline` (Ionicons has no `calendar-x`, and
   > `calendar-clear-outline` is the no-deadline banner's).
 
-- [ ] **T-09** — Render "Notas" as the card of ER-06 on the screen (Ionicons `reader-outline` in `lagoon`, the
+- [x] **T-09** — Render "Notas" as the card of ER-06 on the screen (Ionicons `reader-outline` in `lagoon`, the
   notes in `ds-text-body`), with screen tests for a class with and without notes.
   Covers: ER-06 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx` passes.
+  > ✅ 2026-10-22 — under the "Notas" label, the notes sit in a `rounded-card` `border-line` `bg-surface` card with
+  > an Ionicons `reader-outline` in `lagoon` and the text in `ds-text-body`, as written (a `Text` keeps the line
+  > breaks); a class without notes has neither. Tests: notes with a line break shown as written with the icon; no
+  > label and no icon without notes. Files: `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes/screens/class-details.screen.test.tsx` (218 passed, screen at 100%), `tsc --noEmit` clean.
+  > Deviations: none.
 
 ### Verification
 

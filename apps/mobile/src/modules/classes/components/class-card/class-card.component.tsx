@@ -12,7 +12,7 @@ import { StudentAvatar } from "../student-avatar";
 import { useClassCard } from "./class-card.hook";
 import type { ClassCardProps } from "./class-card.types";
 
-const AVATAR_SIZE = 26;
+const AVATAR_SIZE = 34;
 
 const FILL_CLASSES = {
   bad: "bg-bad",
@@ -36,7 +36,11 @@ export function ClassCard({
   const started = state === "started";
   const border = started ? "border-sun" : "border-line";
   const opacity =
-    state === "finished" ? "opacity-[.55]" : state === "cancelled" ? "opacity-[.78]" : "";
+    state === "finished"
+      ? "opacity-[.55]"
+      : state === "cancelled"
+        ? "opacity-[.78]"
+        : "";
 
   return (
     <Pressable
@@ -57,16 +61,25 @@ export function ClassCard({
           <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>
           <View className="ml-auto items-end gap-2">
             {state === "started" ? (
-              <Chip tone="sun" icon="time-outline">{t("classesWeek.state.started")}</Chip>
+              <Chip tone="sun" icon="time-outline">
+                {t("classesWeek.state.started")}
+              </Chip>
             ) : null}
             {state === "finished" ? (
-              <Chip tone="muted" icon="checkmark-outline">{t("classesWeek.state.finished")}</Chip>
+              <Chip tone="muted" icon="checkmark-outline">
+                {t("classesWeek.state.finished")}
+              </Chip>
             ) : null}
             {state === "cancelled" ? (
-              <Chip tone="bad" icon="close-circle-outline">{t("classesWeek.cancelled")}</Chip>
+              <Chip tone="bad" icon="close-circle-outline">
+                {t("classesWeek.cancelled")}
+              </Chip>
             ) : null}
             {card.enrolment ? (
-              <Chip tone={toChipTone(card.enrolment.tone)} icon={card.enrolment.icon}>
+              <Chip
+                tone={toChipTone(card.enrolment.tone)}
+                icon={card.enrolment.icon}
+              >
                 {t(`enrolment.status.${card.enrolment.key}.chip`)}
               </Chip>
             ) : null}
@@ -74,10 +87,14 @@ export function ClassCard({
               <Chip tone="bad">{t("classesWeek.full")}</Chip>
             ) : null}
             {showFlags && card.withoutInstructor ? (
-              <Chip tone="warn" icon="person-remove-outline">{t("classesWeek.noInstructor")}</Chip>
+              <Chip tone="warn" icon="person-remove-outline">
+                {t("classesWeek.noInstructor")}
+              </Chip>
             ) : null}
             {showFlags && card.withoutDeadline ? (
-              <Chip tone="warn" icon="calendar-clear-outline">{t("classesWeek.noDeadline")}</Chip>
+              <Chip tone="warn" icon="calendar-clear-outline">
+                {t("classesWeek.noDeadline")}
+              </Chip>
             ) : null}
           </View>
         </View>
@@ -88,7 +105,9 @@ export function ClassCard({
         </Text>
         <View className="flex-row items-center gap-[7px] self-start rounded-full border border-line bg-dim px-[13px] py-[7px]">
           <Ionicons name="location-outline" size={14} color={theme.ink2} />
-          <Text className="ds-text-card-meta text-ink-2">{item.location.name}</Text>
+          <Text className="ds-text-card-meta text-ink-2">
+            {item.location.name}
+          </Text>
         </View>
         {card.showOccupancy ? (
           <View className="mt-3 gap-1.5">
@@ -126,7 +145,11 @@ export function ClassCard({
               ))}
               {card.hiddenSeats > 0 ? (
                 <View
-                  style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: AVATAR_SIZE / 2 }}
+                  style={{
+                    width: AVATAR_SIZE,
+                    height: AVATAR_SIZE,
+                    borderRadius: AVATAR_SIZE / 2,
+                  }}
                   className="-ml-2 items-center justify-center border-2 border-surface bg-sand"
                 >
                   <Text className="ds-text-chip text-ink">{`+${card.hiddenSeats}`}</Text>

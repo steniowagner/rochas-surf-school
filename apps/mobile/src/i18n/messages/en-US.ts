@@ -10,6 +10,7 @@ const messages = {
     close: "Close",
     back: "Back",
     clear: "Clear",
+    tryAgain: "Try again",
   },
   auth: {
     continueWithApple: "Continue with Apple",

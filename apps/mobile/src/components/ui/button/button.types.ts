@@ -2,7 +2,14 @@ import { ReactNode } from "react";
 import { TouchableOpacityProps } from "react-native";
 
 export type ButtonVariant =
-  "primary" | "dark" | "outline" | "subtle" | "danger" | "success" | "ghost";
+  | "primary"
+  | "dark"
+  | "ink"
+  | "outline"
+  | "subtle"
+  | "danger"
+  | "success"
+  | "ghost";
 
 export type ButtonProps = Omit<TouchableOpacityProps, "children"> & {
   variant?: ButtonVariant;

@@ -137,4 +137,7 @@ export const iconSizes = {
   bar: 22, // tab bar and headers
   list: 19,
   chip: 12,
+  button: 18, // glyph before a button label
+  errorState: 38, // inside the error state's badge
+  emptyState: 42, // inside the empty state's tile
 } as const;

@@ -47,7 +47,11 @@ export function Button({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={isGhost ? theme.ink : theme.onColor} />
+        <ActivityIndicator
+          color={
+            isGhost ? theme.ink : variant === "ink" ? theme.page : theme.onColor
+          }
+        />
       ) : icon ? (
         <View className="flex-row items-center gap-2">
           {icon}

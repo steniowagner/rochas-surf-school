@@ -119,11 +119,6 @@ export function ClassesWeekScreen({
                     showEnrolment={showEnrolment}
                   />
                 ))}
-                {screen.canCreateOnDay ? (
-                  <Button variant="ghost" onPress={screen.createClass}>
-                    {t("classesWeek.createOnDay")}
-                  </Button>
-                ) : null}
               </>
             )}
           </View>

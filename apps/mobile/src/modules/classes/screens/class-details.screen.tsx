@@ -241,7 +241,6 @@ export function ClassDetailsScreen({
             ) : null}
             {screen.state === "finished" ? (
               <View className="gap-2 rounded-card bg-dim p-4 flex-row items-center">
-                <Ionicons name="checkmark" size={24} color={theme.ink2} />
                 <View className="flex-1 gap-1">
                   <Text className="ds-text-list-title text-ink">
                     {t("classDetails.finished.title")}

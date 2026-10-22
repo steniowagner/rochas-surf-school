@@ -548,7 +548,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       // As the value of the cancellation row only: the header block no longer repeats it.
-      expect(await screen.findAllByText("Cancelamento até seg, 19 out · 20:00")).toHaveLength(1);
+      expect(await screen.findAllByText("Até seg, 19 out · 20:00")).toHaveLength(1);
       expect(screen.queryByText(glyph("calendar-clear-outline"))).toBeNull();
     });
 
@@ -557,7 +557,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen(true);
 
       // As the value of the cancellation row only.
-      expect(await screen.findAllByText("Cancel until Mon, 19 Oct · 20:00")).toHaveLength(1);
+      expect(await screen.findAllByText("Until Mon, 19 Oct · 20:00")).toHaveLength(1);
     });
 
     it("uses Fortaleza's time whatever the phone's time zone", async () => {
@@ -565,7 +565,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       // As the value of the cancellation row only.
-      expect(await screen.findAllByText("Cancel until Tue, 13 Oct · 23:30")).toHaveLength(1);
+      expect(await screen.findAllByText("Until Tue, 13 Oct · 23:30")).toHaveLength(1);
     });
 
     it("shows no line without a deadline", async () => {
@@ -573,7 +573,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
-      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/^Until /)).not.toBeOnTheScreen();
     });
 
     it("shows no line on a cancelled class", async () => {
@@ -586,7 +586,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
-      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/^Until /)).not.toBeOnTheScreen();
     });
   });
 
@@ -940,8 +940,9 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("Rules")).toBeOnTheScreen();
-      expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
-      expect(screen.getAllByText(/^Cancel until /)).toHaveLength(1);
+      expect(screen.getByText("Cancellation")).toBeOnTheScreen();
+      expect(screen.queryByText(/^Cancellation · /)).not.toBeOnTheScreen();
+      expect(screen.getByText("Until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
       expect(screen.getByText("School rules")).toBeOnTheScreen();
     });
 
@@ -971,9 +972,9 @@ describe("ClassDetailsScreen", () => {
     });
 
     it.each([
-      ["pt-BR", "2 regras para todos os alunos", "Regras da escola"],
-      ["es-ES", "2 reglas para todos los alumnos", "Reglas de la escuela"],
-    ])("writes the count in %s", async (language, text, title) => {
+      ["pt-BR", "2 regras para todos os alunos", "Regras da escola", "Cancelamento", /^Até /],
+      ["es-ES", "2 reglas para todos los alumnos", "Reglas de la escuela", "Cancelación", /^Hasta /],
+    ])("writes the rows in %s", async (language, text, title, cancellation, until) => {
       await i18n.changeLanguage(language);
       mockUseSchoolRules.mockReturnValue(schoolRules(2));
       serve(makeClass());
@@ -983,6 +984,8 @@ describe("ClassDetailsScreen", () => {
 
         expect(await screen.findByText(text)).toBeOnTheScreen();
         expect(screen.getByText(title)).toBeOnTheScreen();
+        expect(screen.getByText(cancellation)).toBeOnTheScreen();
+        expect(screen.getByText(until)).toBeOnTheScreen();
       } finally {
         await i18n.changeLanguage("en-US");
       }
@@ -1000,7 +1003,8 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass({ discipline: "skate", cancellationDeadline: null }));
       await renderScreen();
 
-      expect(await screen.findByText("Cancellation · Skate")).toBeOnTheScreen();
+      expect(await screen.findByText("Cancellation")).toBeOnTheScreen();
+      expect(screen.queryByText("Cancellation · Skate")).not.toBeOnTheScreen();
       expect(screen.getByText("Read the rule")).toBeOnTheScreen();
     });
 
@@ -1010,7 +1014,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(screen.queryByText("Cancellation rules")).not.toBeOnTheScreen();
-      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+      await user.press(await screen.findByRole("button", { name: "Cancellation" }));
 
       expect(await screen.findByText("Cancellation rules")).toBeOnTheScreen();
     });
@@ -1020,7 +1024,7 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass());
       await renderScreen();
 
-      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+      await user.press(await screen.findByRole("button", { name: "Cancellation" }));
       await screen.findByText("Cancellation rules");
       await user.press(screen.getByLabelText("Dismiss sheet"));
 
@@ -1651,8 +1655,9 @@ describe("ClassDetailsScreen enrol", () => {
     expect(
       screen.getByText("Surf Beginner · Today · 14 Oct · 16:00. Your request stays pending until the school confirms."),
     ).toBeOnTheScreen();
-    // The rules row and the sheet card.
-    expect(screen.getAllByText("Cancel until Tue, 13 Oct · 17:00")).toHaveLength(2);
+    // The sheet card, and the rules row in its own words.
+    expect(screen.getByText("Cancel until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
+    expect(screen.getByText("Until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Send request" })).toBeDisabled();
   });
 

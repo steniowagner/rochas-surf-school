@@ -507,7 +507,8 @@ const messages = {
     },
     rules: {
       title: "Rules",
-      cancellation: "Cancellation · {{discipline}}",
+      cancellation: "Cancellation",
+      until: "Until {{when}}",
       read: "Read the rule",
       school: "School rules",
       schoolCount_one: "{{count}} rule for every student",
@@ -529,7 +530,6 @@ const messages = {
       description: "Assign an instructor before the class.",
     },
     noInstructorAssigned: "No instructor assigned",
-    cancellationDeadline: "Cancel until {{when}}",
     noDeadline: {
       title: "No cancellation deadline",
       description: "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",

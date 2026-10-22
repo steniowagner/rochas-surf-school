@@ -294,12 +294,10 @@ export function ClassDetailsScreen({
                 <View className="overflow-hidden rounded-card border border-line bg-surface">
                   <ClassRuleRow
                     icon="calendar-outline"
-                    title={t("classDetails.rules.cancellation", {
-                      discipline: t(`newClass.discipline.${item.discipline}`),
-                    })}
+                    title={t("classDetails.rules.cancellation")}
                     value={
                       screen.cancellationDeadline
-                        ? t("classDetails.cancellationDeadline", {
+                        ? t("classDetails.rules.until", {
                             when: screen.cancellationDeadline,
                           })
                         : t("classDetails.rules.read")

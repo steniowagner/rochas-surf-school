@@ -445,11 +445,24 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > src/modules/classes/components/class-people src/modules/classes/screens/class-details.screen.test.tsx` (239
   > passed, the component at 100%), `tsc --noEmit` clean. Deviations: none.
 
-- [ ] **T-12** — Title the cancellation row "Cancelamento" without the modality and read its value as "Até <prazo>"
+- [x] **T-12** — Title the cancellation row "Cancelamento" without the modality and read its value as "Até <prazo>"
   (D-10, ER-08): change `classDetails.rules.cancellation` and add `classDetails.rules.until` in
   `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, drop `classDetails.cancellationDeadline` if nothing else uses it, and
   update the screen and its tests. (added during execution, amendment 2026-10-22)
   Covers: ER-08 · Done when: `npx jest src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/components/class-rule-row` passes.
+  > ✅ 2026-10-22 — `classDetails.rules.cancellation` is now "Cancelamento" / "Cancelación" / "Cancellation" (no
+  > `discipline` parameter) and the new `classDetails.rules.until` reads "Até {{when}}" / "Hasta {{when}}" / "Until
+  > {{when}}"; the screen uses them for the cancellation row ("Ler a regra" without a deadline, unchanged);
+  > `classDetails.cancellationDeadline` had no other user and was removed from the three locales (the request
+  > sheet's "Cancel until …" is its own key). Tests: the title without the modality for surf and skate, the "Until
+  > …" value, the deadline tests, the request-sheet test (the sheet keeps "Cancel until …", the row reads "Until
+  > …"), the pt-BR and es-ES titles and values, and the taps by the new button name. Files:
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/components/class-rule-row
+  > src/modules/student src/modules/instructor src/modules/admin` (300 passed), the screen at 100%, `tsc --noEmit`
+  > clean. Deviations: none.
 
 ### Verification
 

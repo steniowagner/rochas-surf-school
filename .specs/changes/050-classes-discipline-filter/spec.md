@@ -3,7 +3,7 @@ id: "050"
 slug: classes-discipline-filter
 title: Filter the week's classes by sport
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-22
 started: 2026-10-22
 base_commit: e8693a6f03a1dedbe9d39565e2cffd2aeeeebd52

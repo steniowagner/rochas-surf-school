@@ -92,7 +92,7 @@ export function DisciplineFilter({ value, onChange }: DisciplineFilterProps) {
             )}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             onPress={() => setIsOpen((open) => !open)}
-            className={`h-14 w-14 items-center justify-center rounded-card bg-grape ${isOpen ? "-rotate-90" : ""}`}
+            className={`h-14 w-14 items-center justify-center rounded-card bg-grape ${isOpen ? "-rotate-90" : "rotate-0"}`}
             style={shadowStyle("fab", theme)}
           >
             <Ionicons

@@ -13,7 +13,7 @@ import {
   mondayOf,
 } from "@/utils/calendar-dates";
 
-import type { ClassItem } from "../classes.types";
+import type { ClassItem, DisciplineFilterValue } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
 import { useVisibleWeeksClasses } from "../hooks/use-visible-weeks-classes.hook";
 import { useWeekClasses } from "../hooks/use-week-classes.hook";
@@ -41,6 +41,9 @@ export const useClassesWeekScreen = ({
     to: addDays(currentWeek, 6),
   });
   const weekStart = mondayOf(selectedDate);
+  // The sport shown, over the classes already loaded: switching it needs no request, and it lasts while the screen is
+  // mounted.
+  const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   // Only the user's pull-to-refresh turns the spinner on: a week refetching in the background (the month view mounting
   // its cached weeks) must not, or the list would sink as in a pull-to-refresh.
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -63,11 +66,17 @@ export const useClassesWeekScreen = ({
   );
 
   const items = query.data?.items ?? NO_ITEMS;
+  const isShown = (item: ClassItem) =>
+    discipline === "all" || item.discipline === discipline;
   const dayItems = items.filter(
-    (item) => schoolDayOf(item.startsAt) === selectedDate,
+    (item) => schoolDayOf(item.startsAt) === selectedDate && isShown(item),
   );
   const markedDates = [
-    ...new Set(visibleWeeks.items.map((item) => schoolDayOf(item.startsAt))),
+    ...new Set(
+      visibleWeeks.items
+        .filter(isShown)
+        .map((item) => schoolDayOf(item.startsAt)),
+    ),
   ];
 
   // Both entry points (the header's "+" and the empty day's "Criar aula") are for admins, on today or later.
@@ -101,6 +110,7 @@ export const useClassesWeekScreen = ({
     selectedDayName: formatLongDay(selectedDate, getDateLocale(i18n.language)),
     markedDates,
     dayItems,
+    discipline,
     canCreateOnDay,
     isLoading: query.isPending && !isRetrying,
     // An expired session is handled by the session flow: nothing to show here.
@@ -112,6 +122,7 @@ export const useClassesWeekScreen = ({
     isRetrying,
     retry: () => void query.refetch(),
     selectDate: setSelectedDate,
+    selectDiscipline: setDiscipline,
     updateVisibleRange,
     createClass,
     openClass,

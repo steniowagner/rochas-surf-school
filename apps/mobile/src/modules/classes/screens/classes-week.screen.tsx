@@ -15,6 +15,8 @@ import {
 
 import { ClassCard } from "../components/class-card";
 import { ClassCardSkeleton } from "../components/class-card-skeleton";
+import { DisciplineFilter } from "../components/discipline-filter";
+import { DISCIPLINE_FILTER_CLEARANCE } from "../components/discipline-filter/discipline-filter.constants";
 
 import { useClassesWeekScreen } from "./classes-week.screen.hook";
 import type { ClassesWeekScreenProps } from "./classes-week.screen.types";
@@ -76,8 +78,10 @@ export function ClassesWeekScreen({
           contentInsetAdjustmentBehavior="automatic"
           // The band ends in a line, so the classes keep the design's gap below it.
           contentContainerClassName={`px-screen ${banded ? "pt-4" : ""}`}
+          // The last card scrolls clear of the floating sport filter.
           contentContainerStyle={{
-            paddingBottom: Math.max(insets.bottom, 24),
+            paddingBottom:
+              Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
           }}
           refreshControl={
             <RefreshControl
@@ -145,6 +149,11 @@ export function ClassesWeekScreen({
             </View>
           )}
         </ScrollView>
+        {/* Over the list in every state: loading, error, an empty day and the cards. */}
+        <DisciplineFilter
+          value={screen.discipline}
+          onChange={screen.selectDiscipline}
+        />
       </View>
     </>
   );

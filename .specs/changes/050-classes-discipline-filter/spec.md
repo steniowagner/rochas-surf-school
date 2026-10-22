@@ -143,7 +143,7 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > design 24); the options and button sit `pr-screen` (20, design 18) and `pb-4` (16, design 18) above the bottom
   > inset, which a `SafeAreaProvider` of its own measures so that on iOS it includes the native tab bar the screen
   > extends under; the −90° rotation is applied without the design's transition.
-- [ ] **T-03** — Wire the filter into `src/modules/classes/screens/classes-week.screen.hook.ts` (the D-03 state,
+- [x] **T-03** — Wire the filter into `src/modules/classes/screens/classes-week.screen.hook.ts` (the D-03 state,
   `dayItems` and `markedDates` filtered by it, the setter returned) and `classes-week.screen.tsx` (render
   `DisciplineFilter` over the list in every state, the D-06 bottom padding). Add to `classes-week.screen.test.tsx`
   the tests named in ER-01 ("shows the filter button for every role": the student, instructor and admin props) and
@@ -152,6 +152,33 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/classes-week.screen.test.tsx` (from
   `apps/mobile`) passes, and in the iOS simulator the student's Agenda filters a mixed week by "SURF" and back to
   "TODAS".
+  > ✅ 2026-10-22 — `useClassesWeekScreen` keeps `discipline` (`useState<DisciplineFilterValue>("all")`), filters
+  > `dayItems` and `markedDates` by it (`isShown`) and returns it with `selectDiscipline`; `ClassesWeekScreen` renders
+  > `DisciplineFilter` after the list, outside its state branches (loading, error, empty day, cards), and adds
+  > `DISCIPLINE_FILTER_CLEARANCE` (56 + 16) to the list's `paddingBottom`. Tests added to the screen suite: "opens the
+  > three options", "closes without changing the filter", "shows the filter button for every role" (student, instructor
+  > and admin props), "shows the filter button while loading, on an error and on an empty day", "pads the list's bottom
+  > for the button and its gap", "lists only the chosen sport", "marks only the days with the chosen sport", "keeps the
+  > filter across days and weeks" (another day, the next week, the month and back, a pull-to-refresh), "is back to All
+  > when the screen mounts again", "shows the empty day when no class matches" (admin, "Create class" still offered)
+  > and "filters without a request". Files: `apps/mobile/src/modules/classes/screens/classes-week.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.constants.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.component.tsx`; verified: `npx jest
+  > src/modules/classes/screens/classes-week.screen.test.tsx src/modules/classes/components/discipline-filter` (55
+  > passed; the hook, the constants and the component 100%, the screen 100% of lines, its one uncovered branch — line
+  > 39, the title — predates this spec), `npx tsc --noEmit` and `npx eslint` (exit 0); iOS simulator (iPhone 18 Pro,
+  > iOS 27, the running dev build, signed in as a student, pt-BR): the Agenda shows the button above the floating tab
+  > bar; it opens "TODAS" (selected, `grape`) · "SURF" · "SKATE", labels only, with the "x"; "SKATE" emptied a surf-only
+  > week (no dots, the empty day), kept on the previous week (only Saturday 17 marked, its skate card alone), "TODAS"
+  > brought every card and dot back, and "SURF" on Saturday 17 hid its skate card. Deviations: opening the filter in the
+  > app first threw "Couldn't find a navigation context": Tailwind's `-rotate-90` sets a CSS variable, and adding it
+  > after the first render makes NativeWind upgrade the button, whose upgrade warning stringifies props that reach React
+  > Navigation's throwing context getters; the closed button now has `rotate-0`, so the variable is set from the first
+  > render (a T-02 file, fixed here; Jest doesn't run NativeWind's upgrade, so no test can catch it). The backdrop's
+  > dim isn't visible yet: the running Metro predates the `scrim` token (T-01) and needs a restart with `--clear` —
+  > checked in T-04 with the dark theme and the admin's Aulas tab.
 
 ### Verification
 

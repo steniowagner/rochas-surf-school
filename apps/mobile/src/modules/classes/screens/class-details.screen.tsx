@@ -25,11 +25,11 @@ import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
+import { ClassLocationCard } from "../components/class-location-card";
 import { ClassPeople } from "../components/class-people";
 import { ClassRuleRow } from "../components/class-rule-row";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
 import { DeleteClassSheet } from "../components/delete-class-sheet";
-import { LocationMapPreview } from "../components/location-map-preview";
 
 import { useClassDetailsScreen } from "./class-details.screen.hook";
 import type { ClassDetailsScreenProps } from "./class-details.screen.types";
@@ -331,19 +331,11 @@ export function ClassDetailsScreen({
               <Text className="ds-text-section-label text-ink-2">
                 {t("classDetails.location")}
               </Text>
-              <View className="gap-1 rounded-card border border-line bg-surface p-4">
-                <Text className="ds-text-list-title text-ink">
-                  {item.location.name}
-                </Text>
-                <Text className="ds-text-list-subtitle text-ink-2">
-                  {item.location.address}
-                </Text>
-                {screen.locationPoint ? (
-                  <View className="pt-2">
-                    <LocationMapPreview point={screen.locationPoint} />
-                  </View>
-                ) : null}
-              </View>
+              <ClassLocationCard
+                name={item.location.name}
+                address={item.location.address}
+                point={screen.locationPoint}
+              />
             </View>
           </>
         ) : null}

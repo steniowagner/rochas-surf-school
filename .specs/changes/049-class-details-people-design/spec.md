@@ -481,13 +481,38 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > src/modules/student src/modules/instructor src/modules/admin` (300 passed), the screen at 100%, `tsc --noEmit`
   > clean. Deviations: none.
 
-- [ ] **T-14** — Build `ClassLocationCard` (`src/modules/classes/components/class-location-card/`, D-11, ER-09): the
+- [x] **T-14** — Build `ClassLocationCard` (`src/modules/classes/components/class-location-card/`, D-11, ER-09): the
   card with `LocationMapPreview` at the top (now the map alone, full-bleed, without its border and button) and the
   row with the pin, name, address and the "Direções" link, which takes over the directions hook and its tests;
   render it on the screen under `classDetails.location` renamed to "Onde e como" / "Dónde y cómo" / "Where and how"
   in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; update the screen tests. (added during execution, amendment
   2026-10-22)
   Covers: ER-09 · Done when: `npx jest src/modules/classes/components/class-location-card src/modules/classes/components/location-map-preview src/modules/classes/screens/class-details.screen.test.tsx` passes.
+  > ✅ 2026-10-22 — new `ClassLocationCard` (`components/class-location-card/`: a `rounded-card` `border-line`
+  > `bg-surface` card with `overflow-hidden`; `LocationMapPreview` across the top when there is a point; a row with a
+  > Feather `map-pin` in `lagoon`, the name in `ds-text-list-title` and the address in `ds-text-list-subtitle`, and,
+  > with a point, a `TouchableOpacity` "Direções" in `ds-text-section-label` `text-lagoon` with a Feather
+  > `arrow-up-right`, at least 44pt tall); its hook holds `openDirections(point)` (moved from `LocationMapPreview`,
+  > same URL and same error toast); `LocationMapPreview` is now the map alone (`h-24`, no border, radius or
+  > button; its hook file was removed); the screen renders the card under `classDetails.location`, now "Onde e
+  > como" / "Dónde y cómo" / "Where and how". Tests: the card (map, name, address, Directions; no point; iOS and
+  > Android URLs; the failure toast), the map preview, the screen (new label in en-US, pt-BR and es-ES, the
+  > existing map and no-point cases). Files:
+  > `apps/mobile/src/modules/classes/components/class-location-card/index.ts`,
+  > `apps/mobile/src/modules/classes/components/class-location-card/class-location-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-location-card/class-location-card.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/class-location-card/class-location-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-location-card/class-location-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-map-preview/location-map-preview.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-map-preview/location-map-preview.types.ts`,
+  > `apps/mobile/src/modules/classes/components/location-map-preview/location-map-preview.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-map-preview/location-map-preview.hook.ts` (deleted),
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`; verified: `npx jest
+  > src/modules/classes/components/class-location-card src/modules/classes/components/location-map-preview
+  > src/modules/classes/screens/class-details.screen.test.tsx` (225 passed, the card, its hook, the map preview and
+  > the screen at 100%), `tsc --noEmit` clean. Deviations: none.
 
 ### Verification
 

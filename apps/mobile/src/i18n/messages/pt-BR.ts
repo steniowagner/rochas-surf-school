@@ -519,7 +519,7 @@ const messages: Messages = {
       notAssigned: "Você não está escalado nesta aula — você vê tudo em modo somente leitura",
     },
     notes: "Notas",
-    location: "Local",
+    location: "Onde e como",
     directions: "Direções",
     directionsUnavailable: "Não foi possível abrir o mapa.",
     loadError: "Não foi possível carregar a aula.",

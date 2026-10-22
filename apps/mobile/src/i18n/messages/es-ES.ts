@@ -526,7 +526,7 @@ const messages: Messages = {
       notAssigned: "No estás asignado a esta clase: lo ves todo en modo de solo lectura",
     },
     notes: "Notas",
-    location: "Lugar",
+    location: "Dónde y cómo",
     directions: "Cómo llegar",
     directionsUnavailable: "No se pudo abrir el mapa.",
     loadError: "No se pudo cargar la clase.",

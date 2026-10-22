@@ -207,7 +207,7 @@ describe("ClassDetailsScreen", () => {
     expect(
       screen.getByText("Ponto de encontro na barraca 3."),
     ).toBeOnTheScreen();
-    expect(screen.getByText("Location")).toBeOnTheScreen();
+    expect(screen.getByText("Where and how")).toBeOnTheScreen();
     expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
     expect(screen.getByText("Av. Zezé Diogo, 1000")).toBeOnTheScreen();
     expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
@@ -354,6 +354,22 @@ describe("ClassDetailsScreen", () => {
       expect(await screen.findByText("Av. Zezé Diogo, 1000")).toBeOnTheScreen();
       expect(screen.queryByTestId("location-map-preview")).toBeNull();
       expect(screen.queryByRole("button", { name: "Directions" })).toBeNull();
+    });
+
+    it("heads the card with Onde e como in pt-BR and Dónde y cómo in es-ES", async () => {
+      serve(makeClass());
+
+      try {
+        await i18n.changeLanguage("pt-BR");
+        await renderScreen();
+        expect(await screen.findByText("Onde e como")).toBeOnTheScreen();
+        expect(screen.getByRole("button", { name: "Direções" })).toBeOnTheScreen();
+
+        await i18n.changeLanguage("es-ES");
+        expect(await screen.findByText("Dónde y cómo")).toBeOnTheScreen();
+      } finally {
+        await i18n.changeLanguage("en-US");
+      }
     });
 
     it("shows the same card on a cancelled class", async () => {

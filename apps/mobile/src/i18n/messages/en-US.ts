@@ -519,7 +519,7 @@ const messages = {
       notAssigned: "You aren't assigned to this class — you see everything in read-only mode",
     },
     notes: "Notes",
-    location: "Location",
+    location: "Where and how",
     directions: "Directions",
     directionsUnavailable: "Couldn't open the map.",
     loadError: "Couldn't load the class.",

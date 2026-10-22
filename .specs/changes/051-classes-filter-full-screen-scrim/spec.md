@@ -68,7 +68,7 @@ it. Today the native header and the tab bar stay bright, because the scrim sits 
 Before writing code under `apps/mobile`, load the `vercel-react-native-skills` and `vercel-react-best-practices`
 skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md).
 
-- [ ] **T-01** — Render the open filter in a full-window `Modal` (D-01–D-03), in
+- [x] **T-01** — Render the open filter in a full-window `Modal` (D-01–D-03), in
   `apps/mobile/src/modules/classes/components/`: `DisciplineFilter` keeps its `SafeAreaProvider` and renders a new
   `DisciplineFilterMenu` (`discipline-filter-menu/`: component, hook, types, index), which takes over the open state
   and the turn from `discipline-filter/discipline-filter.hook.ts` (removed), keeps the closed button in the screen
@@ -82,6 +82,35 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md).
   Covers: ER-01 · Done when: `npx jest src/modules/classes/components src/modules/classes/screens/classes-week.screen.test.tsx`
   (from `apps/mobile`) passes with every changed line covered, and in the iOS simulator the open filter dims the
   student Agenda's header and the tab bar.
+  > ✅ 2026-10-22 — `DisciplineFilter` keeps its `SafeAreaProvider` and renders `DisciplineFilterMenu`, whose hook
+  > (`useDisciplineFilterMenu`: `isOpen`, `open`, `close`, `select`, `buttonTurnStyle`) replaces
+  > `useDisciplineFilter`. Closed, the menu draws only the closed button in the screen (bottom inset as padding,
+  > `pb-4 pr-screen`). Open, a `Modal` (`transparent`, `animationType="none"`, `statusBarTranslucent`,
+  > `navigationBarTranslucent`, `onRequestClose` → `close`) holds the `bg-scrim` backdrop (fade unchanged), and a layer
+  > at `useSafeAreaFrame()` with the same bottom padding holds the options (rise unchanged) and the open button.
+  > `DisciplineFilterButton` draws both buttons with the one `buttonTurnStyle`; the closed one gets
+  > `accessibilityElementsHidden` / `importantForAccessibility="no-hide-descendants"` while open. Tests added:
+  > "renders the open filter above the header and the tab bar", "closes on the Android back button", "hides the
+  > closed button while open"; "turns the button to −90° while open and back when closed" now reads the hidden closed
+  > button (`includeHiddenElements`) and the open one. Files:
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.types.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.hook.ts` (deleted),
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter-menu/discipline-filter-menu.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter-menu/discipline-filter-menu.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter-menu/discipline-filter-menu.types.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter-menu/index.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter-button/discipline-filter-button.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter-button/discipline-filter-button.types.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter-button/index.ts`; verified: `npx jest
+  > src/modules/classes/components src/modules/classes/screens/classes-week.screen.test.tsx --coverage` (32 suites,
+  > 303 passed; the filter, menu and button 100% statements, branches, functions and lines), `npx tsc --noEmit` and
+  > `npx eslint` on the three folders (exit 0); iOS simulator (iPhone 18 Pro, iOS 27, the running dev build,
+  > student, pt-BR, light): opening the filter dims the status bar, the user header (avatar, greeting, bell), the
+  > band, the list and the tab bar, with "TODAS" · "SURF" · "SKATE" and the "x" bright, the "x" exactly where the
+  > closed button is; a press on the dimmed bell closed the options and stayed on the Agenda; "SKATE" from the `Modal`
+  > emptied the all-surf week, and "TODAS" brought it back. Deviations: none.
 
 ### Verification
 

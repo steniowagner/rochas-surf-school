@@ -1,4 +1,5 @@
 import {
+  act,
   render,
   screen,
   userEvent,
@@ -125,17 +126,91 @@ describe("DisciplineFilter", () => {
   it("turns the button to −90° while open and back when closed", async () => {
     const { user, view } = renderFilter();
     await view;
-    const turn = () => screen.getByTestId("discipline-filter-button-turn");
+    // The closed button is hidden from accessibility while open, under the open one; both share the turn.
+    const turn = () =>
+      screen.getByTestId("discipline-filter-button-turn", {
+        includeHiddenElements: true,
+      });
 
     expect(turn()).toHaveStyle({ transform: [{ rotate: "0deg" }] });
 
     await user.press(screen.getByRole("button", { name: "Filter by sport" }));
 
     expect(turn()).toHaveStyle({ transform: [{ rotate: "-90deg" }] });
+    expect(
+      screen.getByTestId("discipline-filter-open-button-turn"),
+    ).toHaveStyle({ transform: [{ rotate: "-90deg" }] });
 
     await user.press(screen.getByRole("button", { name: "Close filter" }));
 
     expect(turn()).toHaveStyle({ transform: [{ rotate: "0deg" }] });
+  });
+
+  it("renders the open filter above the header and the tab bar", async () => {
+    const { user, view } = renderFilter();
+    await view;
+    expect(
+      screen.queryByTestId("discipline-filter-overlay"),
+    ).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+
+    // A transparent modal over the whole window, so the scrim also covers the native header and tab bar.
+    const overlay = screen.getByTestId("discipline-filter-overlay");
+    expect(overlay).toHaveProp("transparent", true);
+    expect(overlay).toHaveProp("statusBarTranslucent", true);
+    expect(overlay).toHaveProp("navigationBarTranslucent", true);
+    expect(
+      within(overlay).getByTestId("discipline-filter-backdrop"),
+    ).toBeOnTheScreen();
+    for (const label of OPTION_LABELS) {
+      expect(
+        within(overlay).getByRole("button", { name: label }),
+      ).toBeOnTheScreen();
+    }
+    expect(
+      within(overlay).getByRole("button", { name: "Close filter" }),
+    ).toBeOnTheScreen();
+    // Laid out at the provider's frame (the mock's 320×640 at 0,0), where the closed button is.
+    expect(screen.getByTestId("discipline-filter-layer")).toHaveStyle({
+      left: 0,
+      top: 0,
+      width: 320,
+      height: 640,
+    });
+  });
+
+  it("closes on the Android back button", async () => {
+    const { onChange, user, view } = renderFilter("surf");
+    await view;
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await act(async () => {
+      screen.getByTestId("discipline-filter-overlay").props.onRequestClose();
+    });
+
+    expect(
+      screen.queryByTestId("discipline-filter-overlay"),
+    ).not.toBeOnTheScreen();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("hides the closed button while open", async () => {
+    const { user, view } = renderFilter();
+    await view;
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Filter by sport" }),
+    ).not.toBeOnTheScreen();
+    expect(screen.getAllByRole("button", { name: /filter/i })).toHaveLength(1);
+
+    await user.press(screen.getByRole("button", { name: "Close filter" }));
+
+    expect(
+      screen.getByRole("button", { name: "Filter by sport" }),
+    ).toBeOnTheScreen();
   });
 
   it.each<[string, DisciplineFilterValue]>([

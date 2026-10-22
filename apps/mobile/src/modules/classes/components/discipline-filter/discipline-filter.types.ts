@@ -4,5 +4,3 @@ export type DisciplineFilterProps = {
   value: DisciplineFilterValue;
   onChange: (value: DisciplineFilterValue) => void;
 };
-
-export type UseDisciplineFilterProps = Pick<DisciplineFilterProps, "onChange">;

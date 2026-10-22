@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-progress
+status: in-review
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -491,10 +491,19 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > regras para todos os alunos"; (4) the dark theme (the app's own theme setting kept it light when the
   > simulator was switched to dark, and I left your settings alone). Deviations: none.
 
-- [ ] **T-13** — Rerun every command in the Verification Plan from the repo root after T-11 and T-12; all pass.
+- [x] **T-13** — Rerun every command in the Verification Plan from the repo root after T-11 and T-12; all pass.
   Check ER-07 and ER-08 on the iOS simulator and record what was seen. (added during execution, amendment
   2026-10-22)
   Covers: ER-07, ER-08 · Done when: every automated command exits 0 and the journeys are recorded.
+  > ✅ 2026-10-22 — automated, from the repo root: `node .specs/scripts/run-related-tests.mjs 049` → RELATED TESTS
+  > PASSED (apps/backend, apps/mobile, modules/classes, modules/enrolment); `node .specs/scripts/check-coverage.mjs
+  > 049` → COVERAGE OK (18 files); `node .specs/scripts/run-e2e.mjs 049` → E2E PASSED (627 tests); `npx turbo run
+  > lint check-types build --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/backend
+  > --filter=@rochas-surf-school/mobile` → 27 tasks successful. iOS simulator (same student session and class as
+  > T-10): "A AULA" at the left and "MÁX. 1 ALUNO · ESGOTADO" at the right of the same line, uppercase in the label's
+  > style and red since the class is full, nothing under the card; "Regras" reads "CANCELAMENTO" over "Até sex, 23
+  > out · 00:00". Not driven on the simulator: a class with free seats (the line in `ink-2`), covered by the
+  > component tests. Deviations: none.
 
 ## Verification Plan
 

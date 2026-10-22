@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-review
+status: in-progress
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -75,10 +75,13 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - The "Regras" rows as designed, with the school-rules count.
 - The "Notas" card.
 - The strings in pt-BR, es-ES and en-US.
+- "Onde e como" with the location's map and "Direções" (amendment of 2026-10-22).
 
 ### Out of scope
 
-- "Depois da aula" (ratings and photos) and "Onde e como" (map, directions, weather).
+- ~~"Depois da aula" (ratings and photos) and "Onde e como" (map, directions, weather).~~ (changed by the
+  amendment of 2026-10-22: "Onde e como" moved in scope, without its conditions row)
+- "Depois da aula" (ratings and photos), and the "Condições previstas" row of "Onde e como" (weather and waves).
 - The header block (chips, date, time range) and the status banners — the date/time order change is the user's
   own uncommitted work, committed before execution.
 - The "1ª vez" badge (no data for it).
@@ -101,6 +104,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 | D-08 | The stacked avatars show the first 5 seats (students, then guests) and keep "+N" for the seats beyond them. | "+N" is current behavior that tells how many more people there are; the design omits it only because its sample class is small. |
 | D-09 | Opening a person's sheet with WhatsApp from a class's details extends "Contacting a user on WhatsApp", which names only the directory, and removes the item from the out-of-v1 list. | The user asked for it, and the design draws it; the visibility rule is the same one (D-02). |
 | D-10 | The cancellation row is titled "Cancelamento" (no modality) and its value reads "Até <prazo>" with the deadline, or "Ler a regra" without one. The school-rules row shows "N regras para todos os alunos" (singular for one) from `useSchoolRules` once loaded with at least one rule; while loading, on error or with no rules, it shows its title only. | The user's amendment of 2026-10-22: the card already sits under "Regras" next to the class's own discipline chip, so the modality and the repeated "Cancelamento" are noise; the school-rules part is D-07's, unchanged. |
+| D-11 | "Onde e como" is one card: the real fixed map (`react-native-maps`, as today) full-bleed at the top when the location has a point, then a row with a `lagoon` pin, the location's name and, under it, its address, and the "Direções" link at the right when there is a point. A location without a point shows the row alone, without the link. | The design's card (`dMapaLocal`); its sample data has no address, but the app has one and a location without a point would otherwise lose it; directions need a point, as today. |
 
 ## Expected Results
 
@@ -206,6 +210,19 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   ("Cancellation", "Until …") have their own strings.
 - **Verify by:** `npx jest src/modules/classes/screens/class-details.screen.test.tsx src/modules/classes/components/class-rule-row`
   (from `apps/mobile`); iOS simulator: open a class.
+
+### ER-09 — "Onde e como" card
+
+- **Front:** mobile
+- **Behavior:** Given a class whose location has a point, then under the "Onde e como" label a card (`surface`,
+  `line` border, `rounded-card`) shows the fixed map with the marker across its top, then a row with a `lagoon`
+  pin, the location's name (bold) and address, and "Direções" with an arrow at the right in `lagoon` uppercase;
+  tapping "Direções" opens the phone's maps app at the point, as before.
+- **Edge and error cases:** a location without a point shows the row with the name and address, no map and no
+  "Direções"; a maps app that can't open shows "Não foi possível abrir o mapa." as before; es-ES ("Dónde y cómo")
+  and en-US ("Where and how") have their own label; no "Condições previstas" row.
+- **Verify by:** `npx jest src/modules/classes/components/class-location-card src/modules/classes/screens/class-details.screen.test.tsx`
+  (from `apps/mobile`); iOS simulator: open a class whose location has a point.
 
 ## Tasks
 
@@ -464,6 +481,14 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > src/modules/student src/modules/instructor src/modules/admin` (300 passed), the screen at 100%, `tsc --noEmit`
   > clean. Deviations: none.
 
+- [ ] **T-14** — Build `ClassLocationCard` (`src/modules/classes/components/class-location-card/`, D-11, ER-09): the
+  card with `LocationMapPreview` at the top (now the map alone, full-bleed, without its border and button) and the
+  row with the pin, name, address and the "Direções" link, which takes over the directions hook and its tests;
+  render it on the screen under `classDetails.location` renamed to "Onde e como" / "Dónde y cómo" / "Where and how"
+  in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; update the screen tests. (added during execution, amendment
+  2026-10-22)
+  Covers: ER-09 · Done when: `npx jest src/modules/classes/components/class-location-card src/modules/classes/components/location-map-preview src/modules/classes/screens/class-details.screen.test.tsx` passes.
+
 ### Verification
 
 - [x] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Follow the user
@@ -504,6 +529,10 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > style and red since the class is full, nothing under the card; "Regras" reads "CANCELAMENTO" over "Até sex, 23
   > out · 00:00". Not driven on the simulator: a class with free seats (the line in `ink-2`), covered by the
   > component tests. Deviations: none.
+
+- [ ] **T-15** — Rerun every command in the Verification Plan from the repo root after T-14; all pass. Check ER-09
+  on the iOS simulator and record what was seen. (added during execution, amendment 2026-10-22)
+  Covers: ER-09 · Done when: every automated command exits 0 and the journey is recorded.
 
 ## Verification Plan
 
@@ -554,5 +583,10 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   - T-13 reruns the Verification Plan for the amended work.
   - T-08's `Covers` points at ER-08 instead of the removed ER-05: it built the rows, the tiles and the
     school-rules count that ER-08 keeps; T-12 changes only the cancellation row's title and value.
+- 2026-10-22 (second) — requested by the user, approved by them in chat; the spec went back from `in-review` to
+  `in-progress`. "Onde e como" moves in scope, the map only: the location card as designed (new ER-09, D-11,
+  tasks T-14 and T-15); its "Condições previstas" row stays out of scope. Out of scope before: "'Onde e como'
+  (map, directions, weather)". Reason: align the details' last section with the design; the logic (map, marker,
+  directions) doesn't change.
 
 ## Review

@@ -1,18 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
-import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
 
+import { ClassGuestRow } from "../class-guest-row";
+import { ClassStudentRow } from "../class-student-row";
+import { GuestAvatar } from "../guest-avatar";
+import { InstructorPill } from "../instructor-pill";
 import { StudentAvatar } from "../student-avatar";
 
 import { useClassPeople } from "./class-people.hook";
 import type { ClassPeopleProps } from "./class-people.types";
 
-const INSTRUCTOR_AVATAR_SIZE = 36;
-const STUDENT_AVATAR_SIZE = 28;
+const STUDENT_AVATAR_SIZE = 30;
 
 /** The "A aula" group of the class details: who teaches, who is enrolled, and how many seats are left. */
 export function ClassPeople({
@@ -23,6 +24,8 @@ export function ClassPeople({
   seatsTaken,
   capacity,
   state,
+  onOpenInstructor,
+  onOpenStudent,
   onTakeOut,
   onTakeGuestOut,
 }: ClassPeopleProps) {
@@ -42,27 +45,43 @@ export function ClassPeople({
 
   return (
     <View className="gap-2">
-      <Text className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</Text>
+      <View className="flex-row items-start justify-between gap-3">
+        <Text className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</Text>
+        {people.showCapacityLine ? (
+          <Text
+            className={`ds-text-section-label shrink text-right ${people.full ? "text-bad" : "text-ink-2"}`}
+          >
+            {`${t("classDetails.capacity", { count: capacity })} · ${
+              people.full
+                ? t("classDetails.soldOut")
+                : t("classDetails.spotsLeft", { count: people.freeSeats })
+            }${
+              showTrialCount && guests.length > 0
+                ? ` · ${t("classDetails.includesTrial", { count: guests.length })}`
+                : ""
+            }`}
+          </Text>
+        ) : null}
+      </View>
       <View className="overflow-hidden rounded-card border border-line bg-surface">
-        <View className="gap-3 p-4">
+        <View className="gap-2 bg-dim px-3.5 py-3">
           <Text className="ds-text-section-label text-ink-2">
             {t("classDetails.instructor", { count: instructors.length })}
           </Text>
           {instructors.length === 0 ? (
-            <Text className="ds-text-body text-ink-2">{t("classDetails.noInstructorAssigned")}</Text>
-          ) : null}
-          {instructors.map((instructor) => (
-            <View key={instructor.id} className="flex-row items-center gap-3">
-              <StudentAvatar
-                name={instructor.name}
-                photoUrl={null}
-                size={INSTRUCTOR_AVATAR_SIZE}
-              />
-              <Text className="ds-text-list-title text-ink">
-                {instructor.isViewer ? t("classDetails.you") : instructor.name}
-              </Text>
+            <Text className="ds-text-list-title text-ink">{t("classDetails.noInstructorAssigned")}</Text>
+          ) : (
+            <View className="flex-row flex-wrap gap-2">
+              {instructors.map((instructor) => (
+                <InstructorPill
+                  key={instructor.id}
+                  name={instructor.name}
+                  isViewer={instructor.isViewer}
+                  onPress={() => onOpenInstructor?.(instructor)}
+                />
+              ))}
             </View>
-          ))}
+          )}
         </View>
         <View className="border-t border-line">
           <Pressable
@@ -74,14 +93,18 @@ export function ClassPeople({
           >
             {people.shown.length > 0 || people.hiddenSeats > 0 ? (
               <View className="flex-row items-center">
-                {people.shown.map((student, index) => (
-                  <View key={student.id} className={index === 0 ? "" : "-ml-2"}>
-                    <StudentAvatar
-                      name={student.name}
-                      photoUrl={student.photoUrl}
-                      size={STUDENT_AVATAR_SIZE}
-                      ringed
-                    />
+                {people.shown.map((seat, index) => (
+                  <View key={seat.id} className={index === 0 ? "" : "-ml-2"}>
+                    {seat.kind === "student" ? (
+                      <StudentAvatar
+                        name={seat.name}
+                        photoUrl={seat.photoUrl}
+                        size={STUDENT_AVATAR_SIZE}
+                        ringed
+                      />
+                    ) : (
+                      <GuestAvatar size={STUDENT_AVATAR_SIZE} ringed />
+                    )}
                   </View>
                 ))}
                 {people.hiddenSeats > 0 ? (
@@ -109,76 +132,26 @@ export function ClassPeople({
           </Pressable>
           {people.expanded
             ? students.map((student) => (
-                <View
+                <ClassStudentRow
                   key={student.id}
-                  className="flex-row items-center gap-3 border-t border-line px-4 py-2"
-                >
-                  <StudentAvatar
-                    name={student.name}
-                    photoUrl={student.photoUrl}
-                    size={STUDENT_AVATAR_SIZE}
-                  />
-                  <Text className="ds-text-list-title flex-1 text-ink">{student.name}</Text>
-                  {onTakeOut ? (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityLabel={`${t("takeOutSheet.action")} ${student.name}`}
-                      activeOpacity={BUTTON_ACTIVE_OPACITY}
-                      onPress={() => onTakeOut(student)}
-                      className="min-h-11 items-center justify-center rounded-full border border-line px-4"
-                    >
-                      <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
+                  name={student.name}
+                  photoUrl={student.photoUrl}
+                  onPress={() => onOpenStudent?.(student)}
+                  onTakeOut={onTakeOut ? () => onTakeOut(student) : undefined}
+                />
               ))
             : null}
           {people.expanded
-            ? guests.map((guest) => {
-                const name = guest.name ?? t("classDetails.trialChip");
-
-                return (
-                  <View
-                    key={guest.id}
-                    className="flex-row items-center gap-3 border-t border-line px-4 py-2"
-                  >
-                    <StudentAvatar name={name} photoUrl={null} size={STUDENT_AVATAR_SIZE} />
-                    <Text className="ds-text-list-title flex-1 text-ink">{name}</Text>
-                    <View className="justify-center">
-                      <Chip tone="muted">{t("classDetails.trialChip")}</Chip>
-                    </View>
-                    {onTakeGuestOut ? (
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={`${t("takeOutSheet.action")} ${name}`}
-                        activeOpacity={BUTTON_ACTIVE_OPACITY}
-                        onPress={() => onTakeGuestOut(guest)}
-                        className="min-h-11 items-center justify-center rounded-full border border-line px-4"
-                      >
-                        <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                );
-              })
+            ? guests.map((guest) => (
+                <ClassGuestRow
+                  key={guest.id}
+                  name={guest.name}
+                  onTakeOut={onTakeGuestOut ? () => onTakeGuestOut(guest) : undefined}
+                />
+              ))
             : null}
         </View>
       </View>
-      {people.showCapacityLine ? (
-        <Text
-          className={`ds-text-list-subtitle ${people.full ? "text-bad" : "text-ink-2"}`}
-        >
-          {`${t("classDetails.capacity", { count: capacity })} · ${
-            people.full
-              ? t("classDetails.soldOut")
-              : t("classDetails.spotsLeft", { count: people.freeSeats })
-          }${
-            showTrialCount && guests.length > 0
-              ? ` · ${t("classDetails.includesTrial", { count: guests.length })}`
-              : ""
-          }`}
-        </Text>
-      ) : null}
     </View>
   );
 }

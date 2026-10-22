@@ -185,6 +185,26 @@ export type ClassItem = {
   pendingRequests?: number | null;
 };
 
+/** A person teaching a class, as the class itself answers it. */
+export type ClassDetailsTeacher = ClassInstructor & {
+  /** Picks the person sheet's chip. */
+  role: "instructor" | "admin";
+  /** E.164; `null` unless they share it or the viewer is an admin. */
+  whatsappNumber: string | null;
+};
+
+/** An approved student of a class, as the class itself answers it. */
+export type ClassDetailsStudent = ClassStudent & {
+  /** E.164; `null` unless they share it or the viewer is an admin. */
+  whatsappNumber: string | null;
+};
+
+/** A class as `GET /classes/:id`, `PUT /classes/:id` and `POST /classes/:id/cancel` answer it: each person's number too. */
+export type ClassDetails = Omit<ClassItem, "instructors" | "students"> & {
+  instructors: ClassDetailsTeacher[];
+  students: ClassDetailsStudent[];
+};
+
 /** The answer of `GET /classes?date=`: `weekStart` is the Monday, `YYYY-MM-DD`. */
 export type WeekClasses = {
   weekStart: string;

@@ -193,7 +193,7 @@ describe('Direct enrolment and take-out (e2e)', () => {
       const details = await as(admin.accessToken, http().get(`/classes/${classId}`));
       expect(details.body.seatsTaken).toBe(1);
       expect(details.body.students).toEqual([
-        { id: student.id, name: 'Ana', photoUrl: null, enrolmentId: response.body.id },
+        { id: student.id, name: 'Ana', photoUrl: null, enrolmentId: response.body.id, whatsappNumber: null },
       ]);
     });
 

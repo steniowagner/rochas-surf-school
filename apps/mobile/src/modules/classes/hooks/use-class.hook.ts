@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { ApiError, apiGet, SessionExpiredError } from "@/services/api";
 
-import { ClassItem } from "../classes.types";
+import { ClassDetails } from "../classes.types";
 
 const DEFAULT_RETRIES = 3;
 
@@ -10,7 +10,7 @@ const DEFAULT_RETRIES = 3;
 export const useClass = (id: string) =>
   useQuery({
     queryKey: ["classes", "detail", id],
-    queryFn: () => apiGet<ClassItem>(`/classes/${id}`, { authenticated: true }),
+    queryFn: () => apiGet<ClassDetails>(`/classes/${id}`, { authenticated: true }),
     retry: (failureCount, error) =>
       !(error instanceof ApiError && error.status === 404) &&
       !(error instanceof SessionExpiredError) &&

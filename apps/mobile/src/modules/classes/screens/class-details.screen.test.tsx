@@ -14,11 +14,10 @@ import { Linking } from "react-native";
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
 import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
-import { headerTitleOf } from "@/navigation/stack-header/header-title.test-utils";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
-import type { ClassItem } from "../classes.types";
+import type { ClassDetails } from "../classes.types";
 import {
   failure,
   fetchMock,
@@ -35,6 +34,25 @@ const mockShow = jest.fn();
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
 }));
+
+// The school rules are one shared query of their own; each test says what it answers.
+const mockUseSchoolRules = jest.fn();
+
+jest.mock("@/modules/school-rules/hooks/use-school-rules.hook", () => ({
+  useSchoolRules: () => mockUseSchoolRules(),
+}));
+
+const schoolRules = (count: number) => ({
+  data: {
+    version: 1,
+    rules: Array.from({ length: count }, (_, index) => ({
+      id: `r-${index}`,
+      title: `Rule ${index}`,
+      description: "",
+      index,
+    })),
+  },
+});
 
 // The global sheet mock always renders its content; this one renders it only while visible.
 jest.mock("@/components/ui/bottom-modal", () => {
@@ -78,7 +96,7 @@ jest.mock("@/services/api", () => {
 // Wednesday 2026-10-14, 10:00 in Fortaleza.
 const NOW = new Date("2026-10-14T13:00:00.000Z");
 
-const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
+const makeClass = (overrides: Partial<ClassDetails> = {}): ClassDetails => ({
   id: "c-1",
   discipline: "surf",
   level: "beginner",
@@ -97,8 +115,8 @@ const makeClass = (overrides: Partial<ClassItem> = {}): ClassItem => ({
     longitude: -38.4617,
   },
   instructors: [
-    { id: "u-1", name: "Ana Souza" },
-    { id: "i-2", name: "Bruno Lima" },
+    { id: "u-1", name: "Ana Souza", role: "instructor", whatsappNumber: null },
+    { id: "i-2", name: "Bruno Lima", role: "admin", whatsappNumber: "+5585988887777" },
   ],
   seatsTaken: 0,
   students: [],
@@ -117,7 +135,7 @@ const refused = (status: number, key: string) => ({
 const classRequestCount = () =>
   fetchMock.mock.calls.filter(([url]) => !String(url).endsWith("/school-settings")).length;
 
-const serve = (item: ClassItem) => fetchMock.mockResolvedValue(ok(item));
+const serve = (item: ClassDetails) => fetchMock.mockResolvedValue(ok(item));
 
 const renderScreen = async (canEdit?: boolean, canEnrol?: boolean) => {
   const queryClient = new QueryClient({
@@ -153,6 +171,7 @@ const FAKE_ONLY_DATE = [
 beforeEach(() => {
   setupSignedInUser();
   jest.useFakeTimers({ now: NOW, doNotFake: [...FAKE_ONLY_DATE] });
+  mockUseSchoolRules.mockReturnValue(schoolRules(3));
 });
 
 afterEach(() => jest.useRealTimers());
@@ -174,7 +193,7 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
-    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Details");
+    expect(headerOptions().headerTitle).toBeUndefined();
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(screen.getByText("Beginner")).toBeOnTheScreen();
@@ -188,7 +207,7 @@ describe("ClassDetailsScreen", () => {
     expect(
       screen.getByText("Ponto de encontro na barraca 3."),
     ).toBeOnTheScreen();
-    expect(screen.getByText("Location")).toBeOnTheScreen();
+    expect(screen.getByText("Where and how")).toBeOnTheScreen();
     expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
     expect(screen.getByText("Av. Zezé Diogo, 1000")).toBeOnTheScreen();
     expect(screen.queryByText("In progress")).not.toBeOnTheScreen();
@@ -201,12 +220,12 @@ describe("ClassDetailsScreen", () => {
     expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
   });
 
-  it("draws the surf icon on the discipline chip", async () => {
+  it("draws no icon on the discipline chip", async () => {
     serve(makeClass());
     await renderScreen();
 
     await screen.findByText("Surf");
-    expect(screen.getByText(glyph("water-outline"))).toBeOnTheScreen();
+    expect(screen.queryByText(glyph("water-outline"))).toBeNull();
   });
 
   it("shows the skate chip for skate", async () => {
@@ -214,7 +233,16 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(await screen.findByText("Skate")).toBeOnTheScreen();
-    expect(screen.getByText(glyph("disc-outline"))).toBeOnTheScreen();
+    expect(screen.queryByText(glyph("disc-outline"))).toBeNull();
+  });
+
+  it("shows the notes in a card with the note icon, line breaks kept", async () => {
+    serve(makeClass({ notes: "Ponto de encontro na barraca 3.\nTragam protetor." }));
+    await renderScreen();
+
+    expect(await screen.findByText("Notes")).toBeOnTheScreen();
+    expect(screen.getByText("Ponto de encontro na barraca 3.\nTragam protetor.")).toBeOnTheScreen();
+    expect(screen.getByText(glyph("reader-outline"))).toBeOnTheScreen();
   });
 
   it("hides the notes when there are none", async () => {
@@ -223,12 +251,13 @@ describe("ClassDetailsScreen", () => {
 
     await screen.findByText("16:00 – 17:30");
     expect(screen.queryByText("Notes")).not.toBeOnTheScreen();
+    expect(screen.queryByText(glyph("reader-outline"))).not.toBeOnTheScreen();
   });
 
   it("names the viewer You, and one instructor singular", async () => {
     serve(
       makeClass({
-        instructors: [{ id: "u-1", name: "Ana Souza" }],
+        instructors: [{ id: "u-1", name: "Ana Souza", role: "instructor", whatsappNumber: null }],
         capacity: 1,
       }),
     );
@@ -288,6 +317,7 @@ describe("ClassDetailsScreen", () => {
 
     expect(await screen.findByText("Class finished")).toBeOnTheScreen();
     expect(screen.getByText("Ended at 08:30.")).toBeOnTheScreen();
+    expect(screen.getByText(glyph("checkmark"))).toBeOnTheScreen();
   });
 
   it("shows the started banner once the clock passes the start", async () => {
@@ -327,6 +357,22 @@ describe("ClassDetailsScreen", () => {
       expect(screen.queryByRole("button", { name: "Directions" })).toBeNull();
     });
 
+    it("heads the card with Onde e como in pt-BR and Dónde y cómo in es-ES", async () => {
+      serve(makeClass());
+
+      try {
+        await i18n.changeLanguage("pt-BR");
+        await renderScreen();
+        expect(await screen.findByText("Onde e como")).toBeOnTheScreen();
+        expect(screen.getByRole("button", { name: "Direções" })).toBeOnTheScreen();
+
+        await i18n.changeLanguage("es-ES");
+        expect(await screen.findByText("Dónde y cómo")).toBeOnTheScreen();
+      } finally {
+        await i18n.changeLanguage("en-US");
+      }
+    });
+
     it("shows the same card on a cancelled class", async () => {
       serve(makeClass({ cancelledAt: "2026-10-13T12:00:00.000Z" }));
       await renderScreen();
@@ -343,6 +389,7 @@ describe("ClassDetailsScreen", () => {
         name: `Aluno ${index}`,
         photoUrl: null,
         enrolmentId: `e-${index}`,
+        whatsappNumber: null,
       }));
 
     it("groups the instructors, the students and the free seats under The class", async () => {
@@ -391,8 +438,8 @@ describe("ClassDetailsScreen", () => {
       serve(
         makeClass({
           seatsTaken: 1,
-          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null, enrolmentId: "e-1" }],
-          instructors: [{ id: "i-2", name: "Bruno Lima" }],
+          students: [{ id: "u-1", name: "Ana Souza", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null }],
+          instructors: [{ id: "i-2", name: "Bruno Lima", role: "instructor", whatsappNumber: null }],
         }),
       );
       await renderScreen();
@@ -457,7 +504,7 @@ describe("ClassDetailsScreen", () => {
   });
 
   describe("no instructor", () => {
-    const alone = (overrides: Partial<ClassItem> = {}) =>
+    const alone = (overrides: Partial<ClassDetails> = {}) =>
       makeClass({ instructors: [], ...overrides });
 
     it("shows an admin the banner, which opens the editor, and No instructor assigned", async () => {
@@ -517,25 +564,25 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen();
 
-      // Once under the date and once as the value of the cancellation row.
-      expect(await screen.findAllByText("Cancelamento até seg, 19 out · 20:00")).toHaveLength(2);
-      expect(screen.getByText(glyph("calendar-clear-outline"))).toBeOnTheScreen();
+      // As the value of the cancellation row only: the header block no longer repeats it.
+      expect(await screen.findAllByText("Até seg, 19 out · 20:00")).toHaveLength(1);
+      expect(screen.queryByText(glyph("calendar-clear-outline"))).toBeNull();
     });
 
     it("writes the English weekday and month in en-US", async () => {
       serve(makeClass({ cancellationDeadline: "2026-10-19T23:00:00.000Z" }));
       await renderScreen(true);
 
-      // Once under the date and once as the value of the cancellation row.
-      expect(await screen.findAllByText("Cancel until Mon, 19 Oct · 20:00")).toHaveLength(2);
+      // As the value of the cancellation row only.
+      expect(await screen.findAllByText("Until Mon, 19 Oct · 20:00")).toHaveLength(1);
     });
 
     it("uses Fortaleza's time whatever the phone's time zone", async () => {
       serve(makeClass({ cancellationDeadline: "2026-10-14T02:30:00.000Z" }));
       await renderScreen();
 
-      // Once under the date and once as the value of the cancellation row.
-      expect(await screen.findAllByText("Cancel until Tue, 13 Oct · 23:30")).toHaveLength(2);
+      // As the value of the cancellation row only.
+      expect(await screen.findAllByText("Until Tue, 13 Oct · 23:30")).toHaveLength(1);
     });
 
     it("shows no line without a deadline", async () => {
@@ -543,7 +590,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
-      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/^Until /)).not.toBeOnTheScreen();
     });
 
     it("shows no line on a cancelled class", async () => {
@@ -556,12 +603,12 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("Class cancelled")).toBeOnTheScreen();
-      expect(screen.queryByText(/Cancel until/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/^Until /)).not.toBeOnTheScreen();
     });
   });
 
   describe("no deadline", () => {
-    const unset = (overrides: Partial<ClassItem> = {}) =>
+    const unset = (overrides: Partial<ClassDetails> = {}) =>
       makeClass({ cancellationDeadline: null, ...overrides });
 
     it("shows an admin the banner naming the discipline, which opens the rules screen", async () => {
@@ -702,7 +749,7 @@ describe("ClassDetailsScreen", () => {
     await renderScreen();
 
     expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
-    expect(headerTitleOf(headerOptions().headerTitle)).toBe("Details");
+    expect(headerOptions().headerTitle).toBeUndefined();
     expect(headerOptions().headerRight).toBeUndefined();
   });
 
@@ -801,7 +848,7 @@ describe("ClassDetailsScreen", () => {
       expect(screen.queryByText(glyph("pencil"))).toBeNull();
     });
 
-    it("opens the sheet with the three tools, and Edit class opens the editor", async () => {
+    it("opens the sheet with the four tools, and Edit class opens the editor", async () => {
       const user = userEvent.setup();
       serve(makeClass());
       await renderScreen(true);
@@ -811,7 +858,7 @@ describe("ClassDetailsScreen", () => {
       );
 
       expect(
-        screen.getByRole("button", { name: "Notify students and instructors" }),
+        screen.getByRole("button", { name: "Send message" }),
       ).toBeOnTheScreen();
       expect(
         screen.getByRole("button", { name: "Cancel class" }),
@@ -823,7 +870,57 @@ describe("ClassDetailsScreen", () => {
       expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
     });
 
-    it("does nothing when Notify students and instructors is pressed", async () => {
+    it("counts the other instructors for Send message and Cancel class", async () => {
+      const user = userEvent.setup();
+      serve(makeClass());
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      expect(screen.getByText("1 person")).toBeOnTheScreen();
+      expect(screen.getByText("Notifies 1 person")).toBeOnTheScreen();
+    });
+
+    it("adds the students and the pending requests, not the guests, to the count", async () => {
+      const user = userEvent.setup();
+      serve(
+        makeClass({
+          seatsTaken: 3,
+          students: [
+            { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null },
+            { id: "s-2", name: "Aluno 2", photoUrl: null, enrolmentId: "e-2", whatsappNumber: null },
+          ],
+          guests: [{ id: "g-1", name: "Carolina Reis" }],
+          pendingRequests: 2,
+        }),
+      );
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      expect(screen.getByText("5 people")).toBeOnTheScreen();
+      expect(screen.getByText("Notifies 5 people")).toBeOnTheScreen();
+    });
+
+    it("reads Nobody yet when the viewer teaches it alone and nobody is in it", async () => {
+      const user = userEvent.setup();
+      serve(
+        makeClass({
+          instructors: [{ id: "u-1", name: "Ana Souza", role: "admin", whatsappNumber: null }],
+        }),
+      );
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      expect(screen.getByText("Nobody yet")).toBeOnTheScreen();
+      expect(screen.getByText("Nobody to notify")).toBeOnTheScreen();
+    });
+
+    it("does nothing when Send message is pressed", async () => {
       const user = userEvent.setup();
       serve(makeClass());
       await renderScreen(true);
@@ -832,7 +929,7 @@ describe("ClassDetailsScreen", () => {
       );
 
       await user.press(
-        screen.getByRole("button", { name: "Notify students and instructors" }),
+        screen.getByRole("button", { name: "Send message" }),
       );
 
       expect(router.push).not.toHaveBeenCalled();
@@ -910,16 +1007,71 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(await screen.findByText("Rules")).toBeOnTheScreen();
-      expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
-      expect(screen.getAllByText(/^Cancel until /)).toHaveLength(2);
+      expect(screen.getByText("Cancellation")).toBeOnTheScreen();
+      expect(screen.queryByText(/^Cancellation · /)).not.toBeOnTheScreen();
+      expect(screen.getByText("Until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
       expect(screen.getByText("School rules")).toBeOnTheScreen();
+    });
+
+    it.each([
+      [3, "3 rules for every student"],
+      [1, "1 rule for every student"],
+    ])("counts %i school rule(s) under the school rules row", async (count, text) => {
+      mockUseSchoolRules.mockReturnValue(schoolRules(count));
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(text)).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "School rules" })).toBeOnTheScreen();
+    });
+
+    it.each([
+      ["loading", { data: undefined, isPending: true }],
+      ["failed", { data: undefined, isError: true }],
+      ["empty", schoolRules(0)],
+    ])("shows the school rules row's title only while %s", async (_, answer) => {
+      mockUseSchoolRules.mockReturnValue(answer);
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByRole("button", { name: "School rules" })).toBeOnTheScreen();
+      expect(screen.queryByText(/for every student/)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ["pt-BR", "2 regras para todos os alunos", "Regras da escola", "Cancelamento", /^Até /],
+      ["es-ES", "2 reglas para todos los alumnos", "Reglas de la escuela", "Cancelación", /^Hasta /],
+    ])("writes the rows in %s", async (language, text, title, cancellation, until) => {
+      await i18n.changeLanguage(language);
+      mockUseSchoolRules.mockReturnValue(schoolRules(2));
+      serve(makeClass());
+
+      try {
+        await renderScreen();
+
+        expect(await screen.findByText(text)).toBeOnTheScreen();
+        expect(screen.getByText(title)).toBeOnTheScreen();
+        expect(screen.getByText(cancellation)).toBeOnTheScreen();
+        expect(screen.getByText(until)).toBeOnTheScreen();
+      } finally {
+        await i18n.changeLanguage("en-US");
+      }
+    });
+
+    it("draws the rows with their icons and chevrons", async () => {
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(glyph("close-circle-outline"))).toBeOnTheScreen();
+      expect(screen.getByText(glyph("shield-outline"))).toBeOnTheScreen();
     });
 
     it("names skate and reads Read the rule when the class has no deadline", async () => {
       serve(makeClass({ discipline: "skate", cancellationDeadline: null }));
       await renderScreen();
 
-      expect(await screen.findByText("Cancellation · Skate")).toBeOnTheScreen();
+      expect(await screen.findByText("Cancellation")).toBeOnTheScreen();
+      expect(screen.queryByText("Cancellation · Skate")).not.toBeOnTheScreen();
       expect(screen.getByText("Read the rule")).toBeOnTheScreen();
     });
 
@@ -929,7 +1081,7 @@ describe("ClassDetailsScreen", () => {
       await renderScreen();
 
       expect(screen.queryByText("Cancellation rules")).not.toBeOnTheScreen();
-      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+      await user.press(await screen.findByRole("button", { name: "Cancellation" }));
 
       expect(await screen.findByText("Cancellation rules")).toBeOnTheScreen();
     });
@@ -939,7 +1091,7 @@ describe("ClassDetailsScreen", () => {
       serve(makeClass());
       await renderScreen();
 
-      await user.press(await screen.findByRole("button", { name: "Cancellation · Surf" }));
+      await user.press(await screen.findByRole("button", { name: "Cancellation" }));
       await screen.findByText("Cancellation rules");
       await user.press(screen.getByLabelText("Dismiss sheet"));
 
@@ -1068,8 +1220,8 @@ describe("ClassDetailsScreen", () => {
         ok(
           makeClass({
             students: [
-              { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1" },
-              { id: "s-2", name: "Aluno 2", photoUrl: null, enrolmentId: "e-2" },
+              { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null },
+              { id: "s-2", name: "Aluno 2", photoUrl: null, enrolmentId: "e-2", whatsappNumber: null },
             ],
             pendingRequests: 1,
           }),
@@ -1092,7 +1244,7 @@ describe("ClassDetailsScreen", () => {
       expect(screen.getByText("Message (optional)")).toBeOnTheScreen();
       expect(
         screen.queryByRole("button", {
-          name: "Notify students and instructors",
+          name: "Send message",
         }),
       ).toBeNull();
       expect(posts()).toHaveLength(0);
@@ -1261,7 +1413,7 @@ describe("ClassDetailsScreen", () => {
     // The class is served for every GET; the deletion answers as the test says.
     const serveDelete = (
       answer: () => unknown = noContent,
-      item: ClassItem = makeClass(),
+      item: ClassDetails = makeClass(),
     ) =>
       fetchMock.mockImplementation(
         async (_url: string, init?: { method?: string }) =>
@@ -1303,7 +1455,14 @@ describe("ClassDetailsScreen", () => {
       expect(labels).toEqual(["Cancel class", "Delete class"]);
     });
 
-    it("offers no Delete class on a class that has started", async () => {
+    it("reads Nobody enrolled on an empty class that hasn't started", async () => {
+      await openTools();
+
+      expect(screen.getByText("Nobody enrolled")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Delete class" })).toBeEnabled();
+    });
+
+    it("disables Delete class with Already started on a class that has started", async () => {
       serveDelete(
         noContent,
         makeClass({
@@ -1311,10 +1470,37 @@ describe("ClassDetailsScreen", () => {
           endsAt: "2026-10-14T14:00:00.000Z",
         }),
       );
-      await openTools();
+      const user = await openTools();
 
       expect(screen.getByRole("button", { name: "Cancel class" })).toBeOnTheScreen();
-      expect(screen.queryByRole("button", { name: "Delete class" })).toBeNull();
+      expect(screen.getByText("Already started")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Delete class" })).toBeDisabled();
+
+      await user.press(screen.getByRole("button", { name: "Delete class" }));
+
+      expect(screen.queryByText("Delete this class?")).toBeNull();
+    });
+
+    it.each([
+      [
+        "a student",
+        {
+          seatsTaken: 1,
+          students: [{ id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null }],
+        },
+      ],
+      ["a guest", { seatsTaken: 1, guests: [{ id: "g-1", name: "Carolina Reis" }] }],
+    ])("disables Delete class with Has people enrolled when %s holds a seat", async (_who, overrides) => {
+      serveDelete(noContent, makeClass(overrides));
+      const user = await openTools();
+
+      expect(screen.getByText("Has people enrolled")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Delete class" })).toBeDisabled();
+
+      await user.press(screen.getByRole("button", { name: "Delete class" }));
+
+      expect(screen.queryByText("Delete this class?")).toBeNull();
+      expect(deletes()).toHaveLength(0);
     });
 
     it("closes the tools and opens the confirmation sheet with the class line, sending nothing", async () => {
@@ -1325,7 +1511,7 @@ describe("ClassDetailsScreen", () => {
         screen.getByText("Surf Beginner · Today · 14 Oct, 16:00 – 17:30 · Praia do Futuro"),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByRole("button", { name: "Notify students and instructors" }),
+        screen.queryByRole("button", { name: "Send message" }),
       ).toBeNull();
       expect(deletes()).toHaveLength(0);
     });
@@ -1484,7 +1670,7 @@ describe("ClassDetailsScreen", () => {
 
 describe("ClassDetailsScreen enrol", () => {
   const FULL = { seatsTaken: 8 };
-  const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"]) => ({
+  const mine = (status: NonNullable<ClassDetails["myEnrolment"]>["status"]) => ({
     myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
   });
   const CREATED = { id: "e-2", classId: "c-1", status: "pending", requestedAt: NOW.toISOString() };
@@ -1501,7 +1687,7 @@ describe("ClassDetailsScreen enrol", () => {
 
   // The class is served for every class GET, the rules for the rules GET, and the POST answers as the test says.
   const serveEnrol = (
-    item: ClassItem,
+    item: ClassDetails,
     answer: () => unknown = () => ok(CREATED),
     rules: unknown = { surf: "Cancele até 1 hora antes.", skate: null },
   ) =>
@@ -1512,7 +1698,7 @@ describe("ClassDetailsScreen enrol", () => {
 
   beforeEach(() => mockShow.mockClear());
 
-  async function openRequestSheet(item: ClassItem, label: string) {
+  async function openRequestSheet(item: ClassDetails, label: string) {
     serveEnrol(item);
     const user = userEvent.setup();
     await renderScreen(false, true);
@@ -1570,8 +1756,9 @@ describe("ClassDetailsScreen enrol", () => {
     expect(
       screen.getByText("Surf Beginner · Today · 14 Oct · 16:00. Your request stays pending until the school confirms."),
     ).toBeOnTheScreen();
-    // The details line, the rules row and the sheet card.
-    expect(screen.getAllByText("Cancel until Tue, 13 Oct · 17:00")).toHaveLength(3);
+    // The sheet card, and the rules row in its own words.
+    expect(screen.getByText("Cancel until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
+    expect(screen.getByText("Until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Send request" })).toBeDisabled();
   });
 
@@ -1711,7 +1898,7 @@ describe("ClassDetailsScreen enrol", () => {
 });
 
 describe("ClassDetailsScreen withdraw", () => {
-  const pending = (overrides: Partial<ClassItem> = {}) =>
+  const pending = (overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
@@ -1725,7 +1912,7 @@ describe("ClassDetailsScreen withdraw", () => {
       ([url, init]) => init?.method !== "POST" && String(url).endsWith("/classes/c-1"),
     ).length;
 
-  const serveWithdraw = (item: ClassItem, answer: () => unknown = () => ok(WITHDRAWN)) =>
+  const serveWithdraw = (item: ClassDetails, answer: () => unknown = () => ok(WITHDRAWN)) =>
     fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
       init?.method === "POST" ? answer() : ok(item),
     );
@@ -1823,7 +2010,7 @@ describe("ClassDetailsScreen withdraw", () => {
 
 describe("ClassDetailsScreen cancel seat", () => {
   const DEADLINE = "2026-10-14T18:00:00.000Z"; // Wed, 14 Oct · 15:00
-  const approved = (overrides: Partial<ClassItem> = {}) =>
+  const approved = (overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       cancellationDeadline: DEADLINE,
       myEnrolment: { id: "e-1", status: "approved", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
@@ -1838,7 +2025,7 @@ describe("ClassDetailsScreen cancel seat", () => {
       ([url, init]) => init?.method !== "POST" && String(url).endsWith("/classes/c-1"),
     ).length;
 
-  const serveCancel = (item: ClassItem, answer: () => unknown = () => ok(CANCELLED)) =>
+  const serveCancel = (item: ClassDetails, answer: () => unknown = () => ok(CANCELLED)) =>
     fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
       init?.method === "POST" ? answer() : ok(item),
     );
@@ -1966,7 +2153,7 @@ describe("ClassDetailsScreen cancel seat", () => {
 });
 
 describe("ClassDetailsScreen deadline notes", () => {
-  const approved = (overrides: Partial<ClassItem> = {}) =>
+  const approved = (overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status: "approved", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
@@ -1974,7 +2161,7 @@ describe("ClassDetailsScreen deadline notes", () => {
   const PASSED = "The cancellation deadline ended on Tue, 13 Oct · 17:00. Contact the school.";
   const MISSING = "This class's cancellation deadline hasn't been set yet. Contact the school to cancel.";
 
-  const serveWithSchool = (item: ClassItem, school: () => unknown) =>
+  const serveWithSchool = (item: ClassDetails, school: () => unknown) =>
     fetchMock.mockImplementation(async (url: string) =>
       String(url).endsWith("/school-settings") ? school() : ok(item),
     );
@@ -2057,7 +2244,7 @@ describe("ClassDetailsScreen deadline notes", () => {
 });
 
 describe("ClassDetailsScreen enrolment status", () => {
-  const mine = (status: NonNullable<ClassItem["myEnrolment"]>["status"], overrides: Partial<ClassItem> = {}) =>
+  const mine = (status: NonNullable<ClassDetails["myEnrolment"]>["status"], overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status, requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
       ...overrides,
@@ -2103,7 +2290,7 @@ describe("ClassDetailsScreen enrolment status", () => {
 
   describe("waiting list off", () => {
     // Answers the school settings with the switch off and everything else with the class.
-    const serveWithSwitchOff = (item: ClassItem) =>
+    const serveWithSwitchOff = (item: ClassDetails) =>
       fetchMock.mockImplementation(async (url: string) =>
         String(url).endsWith("/school-settings")
           ? ok({ whatsappNumber: null, waitingListEnabled: false })
@@ -2329,10 +2516,10 @@ describe("ClassDetailsScreen enrolment status", () => {
       endsAt: "2026-10-15T12:00:00.000Z", // 09:00
     };
     const roster = [
-      { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana" },
-      { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia" },
+      { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana", whatsappNumber: null },
+      { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia", whatsappNumber: null },
     ];
-    const upcoming = (overrides: Partial<ClassItem> = {}) =>
+    const upcoming = (overrides: Partial<ClassDetails> = {}) =>
       makeClass({ ...NOT_STARTED, seatsTaken: 2, students: roster, ...overrides });
     const posts = () =>
       fetchMock.mock.calls.filter(([, init]) => init?.method === "POST") as [string, { body: string }][];
@@ -2463,7 +2650,7 @@ describe("ClassDetailsScreen trial guests", () => {
     startsAt: "2026-10-15T11:00:00.000Z", // tomorrow, 08:00
     endsAt: "2026-10-15T12:00:00.000Z", // 09:00
   };
-  const withGuest = (name: string | null, overrides: Partial<ClassItem> = {}) =>
+  const withGuest = (name: string | null, overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       ...NOT_STARTED,
       seatsTaken: 2,
@@ -2474,7 +2661,7 @@ describe("ClassDetailsScreen trial guests", () => {
       ...overrides,
     });
   const deletes = () => fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE");
-  const serveGuests = (item: ClassItem, answer: () => unknown = () => ok(undefined)) =>
+  const serveGuests = (item: ClassDetails, answer: () => unknown = () => ok(undefined)) =>
     fetchMock.mockImplementation(async (_url: string, init?: { method?: string }) =>
       init?.method === "DELETE" ? answer() : ok(item),
     );
@@ -2550,7 +2737,7 @@ describe("ClassDetailsScreen trial guests", () => {
 });
 
 describe("ClassDetailsScreen taken out", () => {
-  const takenOut = (reason: string | null, overrides: Partial<ClassItem> = {}) =>
+  const takenOut = (reason: string | null, overrides: Partial<ClassDetails> = {}) =>
     makeClass({
       myEnrolment: { id: "e-1", status: "takenOut", requestedAt: "2026-10-13T10:00:00.000Z", reason },
       ...overrides,
@@ -2598,5 +2785,68 @@ describe("ClassDetailsScreen taken out", () => {
 
     await screen.findByText("The class");
     expect(screen.queryByText("You were taken out of the class")).toBeNull();
+  });
+});
+
+describe("ClassDetailsScreen person sheet", () => {
+  const roster = [
+    { id: "s-ana", name: "Carla Dias", photoUrl: null, enrolmentId: "e-ana", whatsappNumber: null },
+    { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia", whatsappNumber: "+5585977776666" },
+  ];
+  let openURL: jest.SpyInstance;
+
+  beforeEach(() => {
+    openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  });
+
+  afterEach(() => openURL.mockRestore());
+
+  it("opens an instructor's sheet with their role and shared number, which opens WhatsApp", async () => {
+    const user = userEvent.setup();
+    serve(makeClass());
+    await renderScreen();
+
+    await user.press(await screen.findByRole("button", { name: "Bruno Lima" }));
+
+    expect(screen.getByText("Admin")).toBeOnTheScreen();
+    expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
+    expect(screen.getByText("+55 85 98888 7777")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Chat on WhatsApp" }));
+
+    expect(openURL).toHaveBeenCalledWith("https://wa.me/5585988887777");
+  });
+
+  it("opens the viewer's own pill as an instructor whose number isn't shared", async () => {
+    const user = userEvent.setup();
+    serve(makeClass());
+    await renderScreen();
+
+    await user.press(await screen.findByRole("button", { name: "Ana Souza" }));
+
+    expect(screen.getByText("Instructor")).toBeOnTheScreen();
+    expect(screen.getByText("Number not shared.")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Chat on WhatsApp" })).toBeNull();
+  });
+
+  it("opens a student's sheet with the Student chip, shared or not, and closes it", async () => {
+    const user = userEvent.setup();
+    serve(makeClass({ seatsTaken: 2, students: roster }));
+    await renderScreen();
+    await user.press(await screen.findByRole("button", { name: /2 students/ }));
+
+    await user.press(screen.getByRole("button", { name: "Bia Lima" }));
+
+    expect(screen.getByText("Student")).toBeOnTheScreen();
+    expect(screen.getByText("+55 85 97777 6666")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Close" }));
+
+    expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Carla Dias" }));
+
+    expect(screen.getByText("Student")).toBeOnTheScreen();
+    expect(screen.getByText("Number not shared.")).toBeOnTheScreen();
   });
 });

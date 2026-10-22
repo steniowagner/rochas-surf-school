@@ -52,10 +52,7 @@ export function ClassCard({
     >
       <View className="px-3.5 pb-3.5 pt-[13px]">
         <View className="mb-2.5 flex-row flex-wrap items-center gap-2">
-          <Chip
-            tone={item.discipline === "surf" ? "surf" : "skate"}
-            icon={item.discipline === "surf" ? "water-outline" : "disc-outline"}
-          >
+          <Chip tone={item.discipline === "surf" ? "surf" : "skate"}>
             {t(`newClass.discipline.${item.discipline}`)}
           </Chip>
           <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>

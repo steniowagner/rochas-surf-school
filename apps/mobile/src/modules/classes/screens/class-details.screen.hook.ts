@@ -13,7 +13,9 @@ import { getDateLocale } from "@/utils/calendar-dates";
 import { useClassEnrolment } from "@/modules/enrolment/hooks/use-class-enrolment.hook";
 import { useTakeGuestOut } from "@/modules/enrolment/hooks/use-take-guest-out.hook";
 import { useTakeOut } from "@/modules/enrolment/hooks/use-take-out.hook";
+import { useSchoolRules } from "@/modules/school-rules/hooks/use-school-rules.hook";
 
+import type { ClassDetailsStudent } from "../classes.types";
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
 import { useDeleteClass } from "../hooks/use-delete-class.hook";
@@ -34,6 +36,7 @@ import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../ut
 
 import type {
   ClassDetailsInstructor,
+  ClassDetailsPerson,
   ClassDetailsRole,
   DeleteSheetVariant,
   UseClassDetailsScreenProps,
@@ -50,6 +53,9 @@ export const useClassDetailsScreen = ({
   const alertMessage = useAlertMessage();
   const query = useClass(id);
   const { data: schoolSettings } = useSchoolSettings();
+  // Loading, failed or empty: the school rules row shows its title only.
+  const { data: schoolRules } = useSchoolRules();
+  const schoolRuleCount = schoolRules?.rules.length ?? 0;
   // Not loaded or failed counts as on: the backend decides.
   const waitingListEnabled = schoolSettings?.waitingListEnabled !== false;
   const cancelClass = useCancelClass(id);
@@ -64,6 +70,9 @@ export const useClassDetailsScreen = ({
     useState<DeleteSheetVariant>("confirm");
   const deleting = useRef(false);
   const [rulesVisible, setRulesVisible] = useState(false);
+  // Kept while the sheet slides away, so its content doesn't vanish before it is gone.
+  const [selectedPerson, setSelectedPerson] = useState<ClassDetailsPerson | null>(null);
+  const [personVisible, setPersonVisible] = useState(false);
 
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
     (instructor) => ({
@@ -71,6 +80,7 @@ export const useClassDetailsScreen = ({
       isViewer: instructor.id === user?.id,
     }),
   );
+  const instructorCount = instructors.filter((instructor) => !instructor.isViewer).length;
   const start = item ? schoolTimeOf(item.startsAt) : "";
   const end = item ? schoolTimeOf(item.endsAt) : "";
   const state = item
@@ -171,6 +181,11 @@ export const useClassDetailsScreen = ({
     }
   };
 
+  const openPerson = (person: ClassDetailsPerson) => {
+    setSelectedPerson(person);
+    setPersonVisible(true);
+  };
+
   const dateLine = item
     ? formatDateLine(
         schoolDayOf(item.startsAt),
@@ -218,8 +233,13 @@ export const useClassDetailsScreen = ({
       item !== undefined &&
       state !== "finished" &&
       state !== "cancelled",
-    // A class can be deleted only before it starts; a started one can only be cancelled.
-    canDelete: state === "not-started",
+    // A class can be deleted only before it starts and while nobody holds a seat; otherwise it can only be cancelled.
+    deleteState:
+      item === undefined || state !== "not-started"
+        ? ("started" as const)
+        : item.seatsTaken > 0
+          ? ("enrolled" as const)
+          : ("available" as const),
     // Admins only: the class hasn't started and nobody teaches it; the banner opens the editor.
     showNoInstructor:
       canEdit && state !== null && isWithoutInstructor(instructors.length, state),
@@ -239,7 +259,9 @@ export const useClassDetailsScreen = ({
     // Who the cancellation notifies: the students with a seat, the pending requests and the other instructors.
     studentCount: item?.students.length ?? 0,
     pendingCount: item?.pendingRequests ?? 0,
-    instructorCount: item?.instructors.filter((instructor) => instructor.id !== user?.id).length ?? 0,
+    instructorCount,
+    // The tools' "Send message" and "Cancel class" reach the same people as the cancellation's notice.
+    messageCount: instructorCount + (item?.students.length ?? 0) + (item?.pendingRequests ?? 0),
     takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
     // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
     enrolmentDescription: !enrolment.display
@@ -262,12 +284,24 @@ export const useClassDetailsScreen = ({
           : ("classDetails.readOnly.notAssigned" as const),
     // A cancelled class has nothing left to cancel.
     showRules: state !== null && state !== "cancelled",
+    schoolRulesValue:
+      schoolRuleCount > 0
+        ? t("classDetails.rules.schoolCount", { count: schoolRuleCount })
+        : null,
     rulesVisible,
     openRules: () => setRulesVisible(true),
     closeRules: () => setRulesVisible(false),
     // Everyone reads the school rules in their own flow.
     openSchoolRules: () =>
       router.push(routes[(user?.role ?? "student") as ClassDetailsRole].schoolRules),
+    selectedPerson,
+    personVisible,
+    openInstructor: ({ name, role, whatsappNumber }: ClassDetailsInstructor) =>
+      openPerson({ name, role, whatsappNumber }),
+    // Only students hold seats, so the sheet's chip is always "Student".
+    openStudent: ({ name, whatsappNumber }: ClassDetailsStudent) =>
+      openPerson({ name, role: "student", whatsappNumber }),
+    closePerson: () => setPersonVisible(false),
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),

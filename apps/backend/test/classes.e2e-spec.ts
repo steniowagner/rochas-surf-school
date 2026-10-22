@@ -737,7 +737,11 @@ describe('Classes (e2e)', () => {
         students: [],
       });
       expect(list.body.items.filter((item: { id: string }) => item.id === id)).toEqual([
-        { ...response.body, pendingRequests: undefined },
+        {
+          ...response.body,
+          pendingRequests: undefined,
+          instructors: [{ id: instructor.id, name: 'Person instructor' }],
+        },
       ]);
     });
 
@@ -760,6 +764,180 @@ describe('Classes (e2e)', () => {
       expect(ok.body).toEqual({ items: [] });
       expect(refused.status).toBe(403);
       expect(refused.body.errors).toEqual(['user.role.notAdmin']);
+    });
+  });
+
+  describe('contacts', () => {
+    const one = (token: string | undefined, id: string) => as(token, http().get(`/classes/${id}`));
+
+    async function person(
+      role: Role,
+      name: string,
+      data: { whatsappNumber?: string | null; whatsappVisible?: boolean; status?: Status } = {},
+    ): Promise<Account> {
+      const created = await account(role, data.status ?? 'approved');
+      await prisma.user.update({
+        where: { id: created.id },
+        data: { name, whatsappNumber: data.whatsappNumber ?? null, whatsappVisible: data.whatsappVisible ?? false },
+      });
+      return created;
+    }
+
+    // Shared (S), hidden (T), without a number (N) and removed after sharing (R) students; an admin teaching it
+    // with a hidden number (I); a guest with a number nobody may see.
+    async function seedPeople() {
+      const admin = await account();
+      const s = await person('student', 'Sara', { whatsappNumber: '+5585911111111', whatsappVisible: true });
+      const t = await person('student', 'Tiago', { whatsappNumber: '+5585922222222' });
+      const n = await person('student', 'Nina');
+      const r = await person('student', 'Rui', {
+        whatsappNumber: '+5585933333333',
+        whatsappVisible: true,
+        status: 'removed',
+      });
+      const i = await person('admin', 'Iara', { whatsappNumber: '+5585944444444' });
+      return { admin, s, t, n, r, i };
+    }
+
+    async function seedClassOf(
+      people: Awaited<ReturnType<typeof seedPeople>>,
+      startsAt: string,
+      endsAt: string,
+    ): Promise<string> {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date(startsAt),
+          endsAt: new Date(endsAt),
+          locationId,
+          capacity: 8,
+          createdBy: people.admin.id,
+          instructors: { create: [{ userId: people.i.id }] },
+        },
+      });
+      for (const [index, student] of [people.s, people.t, people.n, people.r].entries()) {
+        await prisma.enrolment.create({
+          data: {
+            id: randomUUID(),
+            classId: id,
+            studentId: student.id,
+            status: 'approved',
+            requestedAt: NOW,
+            decidedAt: new Date(NOW.getTime() + index),
+          },
+        });
+      }
+      await prisma.guest.create({
+        data: { id: randomUUID(), classId: id, name: 'Gabi', whatsappNumber: '+5585955555555' },
+      });
+      return id;
+    }
+
+    const numbers = (body: { students: { name: string; whatsappNumber: string | null }[] }) =>
+      Object.fromEntries(body.students.map((student) => [student.name, student.whatsappNumber]));
+
+    it('shows students and instructors only the shared numbers of approved people', async () => {
+      const people = await seedPeople();
+      const id = await seedClassOf(people, '2026-10-15T11:00:00.000Z', '2026-10-15T12:00:00.000Z');
+
+      for (const viewer of [await account('student'), await account('instructor')]) {
+        const response = await one(viewer.accessToken, id);
+
+        expect(response.status).toBe(200);
+        expect(numbers(response.body)).toEqual({ Sara: '+5585911111111', Tiago: null, Nina: null, Rui: null });
+        expect(response.body.instructors).toEqual([
+          { id: people.i.id, name: 'Iara', role: 'admin', whatsappNumber: null },
+        ]);
+        expect(response.body.guests).toEqual([{ id: expect.any(String), name: null }]);
+      }
+    });
+
+    it('shows an admin the hidden numbers too, never a removed person\'s nor a guest\'s', async () => {
+      const people = await seedPeople();
+      const id = await seedClassOf(people, '2026-10-15T11:00:00.000Z', '2026-10-15T12:00:00.000Z');
+
+      const response = await one(people.admin.accessToken, id);
+
+      expect(numbers(response.body)).toEqual({
+        Sara: '+5585911111111',
+        Tiago: '+5585922222222',
+        Nina: null,
+        Rui: null,
+      });
+      expect(response.body.instructors).toEqual([
+        { id: people.i.id, name: 'Iara', role: 'admin', whatsappNumber: '+5585944444444' },
+      ]);
+      expect(response.body.guests).toEqual([{ id: expect.any(String), name: 'Gabi' }]);
+    });
+
+    it('answers the same fields after an edit and a cancellation', async () => {
+      const people = await seedPeople();
+      const id = await seedClassOf(people, '2026-10-15T11:00:00.000Z', '2026-10-15T12:00:00.000Z');
+
+      const edited = await as(people.admin.accessToken, http().put(`/classes/${id}`)).send({
+        discipline: 'surf',
+        level: 'beginner',
+        date: '2026-10-15',
+        start: '08:00',
+        end: '09:00',
+        locationId,
+        instructorIds: [people.i.id],
+        capacity: 8,
+        notes: 'Bring a hat',
+      });
+      const cancelled = await as(people.admin.accessToken, http().post(`/classes/${id}/cancel`)).send({});
+
+      expect(edited.status).toBe(200);
+      expect(numbers(edited.body)).toEqual({
+        Sara: '+5585911111111',
+        Tiago: '+5585922222222',
+        Nina: null,
+        Rui: null,
+      });
+      // Cancelling closes the enrolments, so only the instructors are left to carry the fields.
+      expect(cancelled.status).toBe(200);
+      expect(cancelled.body.students).toEqual([]);
+      for (const response of [edited, cancelled]) {
+        expect(response.body.instructors).toEqual([
+          { id: people.i.id, name: 'Iara', role: 'admin', whatsappNumber: '+5585944444444' },
+        ]);
+      }
+    });
+
+    it('keeps the numbers and the role out of the week, "mine" and "mine/history" answers', async () => {
+      const people = await seedPeople();
+      const upcoming = await seedClassOf(people, '2026-10-14T19:00:00.000Z', '2026-10-14T20:00:00.000Z');
+      const finished = await seedClassOf(people, '2026-10-13T11:00:00.000Z', '2026-10-13T12:00:00.000Z');
+
+      const week = await as(people.admin.accessToken, http().get('/classes?date=2026-10-14'));
+      const mine = await as(people.s.accessToken, http().get('/classes/mine'));
+      const history = await as(people.s.accessToken, http().get('/classes/mine/history'));
+
+      const items = [
+        ...week.body.items.filter((item: { id: string }) => [upcoming, finished].includes(item.id)),
+        ...mine.body.items.filter((item: { id: string }) => item.id === upcoming),
+        ...history.body.items.filter((item: { id: string }) => item.id === finished),
+      ];
+      expect(items.map((item: { id: string }) => item.id)).toEqual([finished, upcoming, upcoming, finished]);
+      for (const item of items) {
+        expect(item.instructors).toEqual([{ id: people.i.id, name: 'Iara' }]);
+        expect(item.students.length).toBeGreaterThan(0);
+        for (const student of item.students) {
+          expect(student).not.toHaveProperty('whatsappNumber');
+          expect(student).not.toHaveProperty('role');
+        }
+      }
+    });
+
+    it('still answers 401 without a token and 404 for an unknown class', async () => {
+      const people = await seedPeople();
+      const id = await seedClassOf(people, '2026-10-15T11:00:00.000Z', '2026-10-15T12:00:00.000Z');
+
+      expect((await one(undefined, id)).status).toBe(401);
+      expect((await one(people.admin.accessToken, randomUUID())).status).toBe(404);
     });
   });
 

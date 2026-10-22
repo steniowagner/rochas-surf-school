@@ -333,20 +333,23 @@ WhatsApp numbers SHALL include a country code, with Brazil (+55) preselected.
 _Implemented in spec 008-onboarding-whatsapp._
 _Implemented in spec 026-profile-tab._
 _Implemented in spec 027-people-directory._
+_Implemented in spec 049-class-details-people-design._
 
 Users SHALL choose whether other users can see their WhatsApp number, and the number SHALL be hidden by default. Admins SHALL always see every user's WhatsApp number.
 
 - _Default visibility:_ When a user has not changed the visibility setting, then only admins can see their WhatsApp number.
-- _User shares their number:_ When a user chooses to share their WhatsApp number, then every user can see it on their profile and in the directory.
+- _User shares their number:_ When a user chooses to share their WhatsApp number, then every user can see it on their profile, in the directory and on the details of the classes they teach or hold a seat in.
 
 #### Contacting a user on WhatsApp
 
 _Implemented in spec 027-people-directory._
+_Implemented in spec 049-class-details-people-design._
 
-Admins SHALL be able to open a WhatsApp chat with any user who has a number from that user's entry in the directory, and every other user with any user who shares their number. The chat SHALL open in WhatsApp on the user's own phone; the app SHALL NOT send WhatsApp messages itself.
+Admins SHALL be able to open a WhatsApp chat with any user who has a number from that user's entry in the directory, or from the user's name among a class's instructors or students on its details, and every other user with any user who shares their number. The chat SHALL open in WhatsApp on the user's own phone; the app SHALL NOT send WhatsApp messages itself.
 
 - _Admin contacts a user:_ When an admin taps the WhatsApp button on a user's directory entry, then WhatsApp opens on the admin's phone with a chat to that user's number.
 - _Number not shared:_ When a non-admin opens the entry of a user who doesn't share their number, then the WhatsApp button is disabled and says the number isn't shared.
+- _From a class:_ When a user taps an instructor or a student on a class's details, then the same entry opens, with the same WhatsApp button; a trial guest opens none.
 
 #### User directory
 
@@ -768,6 +771,8 @@ _Implemented in spec 030-classes-week-view._
 
 _Implemented in spec 040-class-seats-read-model._
 
+_Implemented in spec 049-class-details-people-design._
+
 Class notes SHALL be shown to everyone who can see the class.
 
 - _Student reads the notes:_ When a student opens a class that has notes, then they see the notes.
@@ -1003,6 +1008,8 @@ The app SHALL NOT send anything to guests. When an admin edits or cancels a clas
 
 _Implemented in spec 045-guests._
 
+_Implemented in spec 049-class-details-people-design._
+
 Everyone who can see a class SHALL see who holds its seats: approved students by name, and guests labelled "Trial". Admins and the class's instructors SHALL also see each guest's name.
 
 - _Student views the class list:_ When a student views the people in a class that has a guest, then the guest appears as "Trial".
@@ -1053,6 +1060,8 @@ _Implemented in spec 036-cancellation-rules-deadline (reading both rules at any 
 _Implemented in spec 040-class-seats-read-model (both rules are also read from a class's details)._
 
 _Implemented in spec 041-enrolment-requests (accepting the rule when requesting a seat)._
+
+_Implemented in spec 049-class-details-people-design._
 
 Users SHALL be able to read both cancellation rules at any time. When requesting a seat, a student SHALL be shown the class's cancellation deadline and be able to read the rule for the class's discipline, and SHALL accept that rule; while the discipline has no rule, there is nothing to accept.
 

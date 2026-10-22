@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
-import { Button } from "@/components/ui/button";
+
+import { ClassToolCard } from "../class-tool-card";
 
 import { useClassToolsSheet } from "./class-tools-sheet.hook";
 import type { ClassToolsSheetProps } from "./class-tools-sheet.types";
@@ -13,14 +14,25 @@ export function ClassToolsSheet({
   onEdit,
   onCancel,
   onDelete,
-  canDelete,
+  messageCount,
+  deleteState,
 }: ClassToolsSheetProps) {
   const { t } = useTranslation();
-  const { edit, cancel, remove } = useClassToolsSheet({
+  const {
+    edit,
+    cancel,
+    remove,
+    messageSubtitle,
+    cancelSubtitle,
+    deleteSubtitle,
+    canDelete,
+  } = useClassToolsSheet({
     onClose,
     onEdit,
     onCancel,
     onDelete,
+    messageCount,
+    deleteState,
   });
 
   return (
@@ -30,19 +42,36 @@ export function ClassToolsSheet({
           {t("classTools.title")}
         </Text>
         <View className="gap-2">
-          <Button variant="subtle" onPress={edit}>
-            {t("classTools.edit")}
-          </Button>
-          {/* Placeholder: sending a message to the class's people comes with its own spec. */}
-          <Button variant="subtle">{t("classTools.notify")}</Button>
-          <Button variant="danger" onPress={cancel}>
-            {t("classTools.cancel")}
-          </Button>
-          {canDelete ? (
-            <Button variant="subtle" onPress={remove}>
-              {t("classTools.delete")}
-            </Button>
-          ) : null}
+          <View className="flex-row gap-2">
+            <ClassToolCard
+              icon="pencil-outline"
+              title={t("classTools.edit")}
+              subtitle={t("classTools.editHint")}
+              onPress={edit}
+            />
+            {/* Placeholder: sending a message to the class's people comes with its own spec. */}
+            <ClassToolCard
+              icon="chatbubble-outline"
+              title={t("classTools.notify")}
+              subtitle={messageSubtitle}
+            />
+          </View>
+          <View className="flex-row gap-2">
+            <ClassToolCard
+              icon="close-circle-outline"
+              title={t("classTools.cancel")}
+              subtitle={cancelSubtitle}
+              tone="danger"
+              onPress={cancel}
+            />
+            <ClassToolCard
+              icon="trash-outline"
+              title={t("classTools.delete")}
+              subtitle={deleteSubtitle}
+              disabled={!canDelete}
+              onPress={remove}
+            />
+          </View>
         </View>
       </View>
     </BottomModal>

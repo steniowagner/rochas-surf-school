@@ -22,15 +22,14 @@ import { RequestSeatSheet } from "@/modules/enrolment/components/request-seat-sh
 import { TakeOutSheet } from "@/modules/enrolment/components/take-out-sheet";
 import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
-import { ProfileCard } from "@/modules/profile/components/profile-card";
-import { ProfileRow } from "@/modules/profile/components/profile-row";
-import { StackHeaderTitle } from "@/navigation/stack-header";
+import { PersonSheet } from "@/modules/people/components/person-sheet";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
+import { ClassLocationCard } from "../components/class-location-card";
 import { ClassPeople } from "../components/class-people";
+import { ClassRuleRow } from "../components/class-rule-row";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
 import { DeleteClassSheet } from "../components/delete-class-sheet";
-import { LocationMapPreview } from "../components/location-map-preview";
 
 import { useClassDetailsScreen } from "./class-details.screen.hook";
 import type { ClassDetailsScreenProps } from "./class-details.screen.types";
@@ -49,9 +48,6 @@ export function ClassDetailsScreen({
     <>
       <Stack.Screen
         options={{
-          headerTitle: () => (
-            <StackHeaderTitle title={t("classDetails.title")} />
-          ),
           headerRight: screen.showTools
             ? () => (
                 <HeaderButton
@@ -66,7 +62,7 @@ export function ClassDetailsScreen({
       <ScrollView
         className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-6 px-screen"
+        contentContainerClassName="gap-6 pt-4 px-screen"
         contentContainerStyle={{
           paddingBottom: Math.max(insets.bottom, 24),
         }}
@@ -91,38 +87,17 @@ export function ClassDetailsScreen({
           </View>
         ) : item ? (
           <>
-            <View className="gap-3">
-              <View className="flex-row flex-wrap gap-2">
-                <Chip
-                  tone={item.discipline === "surf" ? "surf" : "skate"}
-                  icon={
-                    item.discipline === "surf"
-                      ? "water-outline"
-                      : "disc-outline"
-                  }
-                >
+            <View className="gap-2">
+              <View className="flex-row flex-wrap gap-2 mb-1">
+                <Chip tone={item.discipline === "surf" ? "surf" : "skate"}>
                   {t(`newClass.discipline.${item.discipline}`)}
                 </Chip>
                 <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>
               </View>
-              <Text className="ds-text-kpi text-ink">{screen.timeRange}</Text>
-              <Text className="ds-text-list-subtitle text-ink-2">
+              <Text className="ds-text-list-title text-ink-2">
                 {screen.dateLine}
               </Text>
-              {screen.cancellationDeadline ? (
-                <View className="flex-row items-center gap-2">
-                  <Ionicons
-                    name="calendar-clear-outline"
-                    size={16}
-                    color={theme.ink2}
-                  />
-                  <Text className="ds-text-list-subtitle text-ink-2">
-                    {t("classDetails.cancellationDeadline", {
-                      when: screen.cancellationDeadline,
-                    })}
-                  </Text>
-                </View>
-              ) : null}
+              <Text className="ds-text-kpi text-ink">{screen.timeRange}</Text>
             </View>
             {screen.showNoInstructor ? (
               <Pressable
@@ -265,13 +240,18 @@ export function ClassDetailsScreen({
               </Pressable>
             ) : null}
             {screen.state === "finished" ? (
-              <View className="gap-1 rounded-card bg-dim p-4">
-                <Text className="ds-text-list-title text-ink">
-                  {t("classDetails.finished.title")}
-                </Text>
-                <Text className="ds-text-list-subtitle text-ink-2">
-                  {t("classDetails.finished.description", { end: screen.end })}
-                </Text>
+              <View className="gap-2 rounded-card bg-dim p-4 flex-row items-center">
+                <Ionicons name="checkmark" size={24} color={theme.ink2} />
+                <View className="flex-1 gap-1">
+                  <Text className="ds-text-list-title text-ink">
+                    {t("classDetails.finished.title")}
+                  </Text>
+                  <Text className="ds-text-list-subtitle text-ink-2">
+                    {t("classDetails.finished.description", {
+                      end: screen.end,
+                    })}
+                  </Text>
+                </View>
               </View>
             ) : null}
             <ClassPeople
@@ -282,6 +262,8 @@ export function ClassDetailsScreen({
               seatsTaken={item.seatsTaken}
               capacity={item.capacity}
               state={screen.peopleState}
+              onOpenInstructor={screen.openInstructor}
+              onOpenStudent={screen.openStudent}
               onTakeOut={
                 screen.canTakeOut
                   ? (student) =>
@@ -314,28 +296,27 @@ export function ClassDetailsScreen({
                 <Text className="ds-text-section-label text-ink-2">
                   {t("classDetails.rules.title")}
                 </Text>
-                <ProfileCard>
-                  <ProfileRow
-                    icon="document-text-outline"
-                    label={t("classDetails.rules.cancellation", {
-                      discipline: t(`newClass.discipline.${item.discipline}`),
-                    })}
+                <View className="overflow-hidden rounded-card border border-line bg-surface">
+                  <ClassRuleRow
+                    icon="close-circle-outline"
+                    title={t("classDetails.rules.cancellation")}
                     value={
                       screen.cancellationDeadline
-                        ? t("classDetails.cancellationDeadline", {
+                        ? t("classDetails.rules.until", {
                             when: screen.cancellationDeadline,
                           })
                         : t("classDetails.rules.read")
                     }
-                    valueBelow
                     onPress={screen.openRules}
                   />
-                  <ProfileRow
+                  <View className="h-px bg-line" />
+                  <ClassRuleRow
                     icon="shield-outline"
-                    label={t("classDetails.rules.school")}
+                    title={t("classDetails.rules.school")}
+                    value={screen.schoolRulesValue}
                     onPress={screen.openSchoolRules}
                   />
-                </ProfileCard>
+                </View>
               </View>
             ) : null}
             {item.notes ? (
@@ -343,26 +324,29 @@ export function ClassDetailsScreen({
                 <Text className="ds-text-section-label text-ink-2">
                   {t("classDetails.notes")}
                 </Text>
-                <Text className="ds-text-body text-ink">{item.notes}</Text>
+                <View className="flex-row gap-3 rounded-card border border-line bg-surface px-4 py-3.5">
+                  <View className="pt-1">
+                    <Ionicons
+                      name="reader-outline"
+                      size={17}
+                      color={theme.lagoon}
+                    />
+                  </View>
+                  <Text className="ds-text-body flex-1 text-ink">
+                    {item.notes}
+                  </Text>
+                </View>
               </View>
             ) : null}
             <View className="gap-2">
               <Text className="ds-text-section-label text-ink-2">
                 {t("classDetails.location")}
               </Text>
-              <View className="gap-1 rounded-card border border-line bg-surface p-4">
-                <Text className="ds-text-list-title text-ink">
-                  {item.location.name}
-                </Text>
-                <Text className="ds-text-list-subtitle text-ink-2">
-                  {item.location.address}
-                </Text>
-                {screen.locationPoint ? (
-                  <View className="pt-2">
-                    <LocationMapPreview point={screen.locationPoint} />
-                  </View>
-                ) : null}
-              </View>
+              <ClassLocationCard
+                name={item.location.name}
+                address={item.location.address}
+                point={screen.locationPoint}
+              />
             </View>
           </>
         ) : null}
@@ -460,7 +444,8 @@ export function ClassDetailsScreen({
         onEdit={screen.edit}
         onCancel={screen.openCancel}
         onDelete={screen.openDelete}
-        canDelete={screen.canDelete}
+        messageCount={screen.messageCount}
+        deleteState={screen.deleteState}
       />
       <DeleteClassSheet
         visible={screen.deleteVisible}
@@ -470,6 +455,11 @@ export function ClassDetailsScreen({
         onConfirm={screen.remove}
         onCancelInstead={screen.cancelInstead}
         onClose={screen.closeDelete}
+      />
+      <PersonSheet
+        person={screen.selectedPerson}
+        visible={screen.personVisible}
+        onClose={screen.closePerson}
       />
       <CancellationRulesSheet
         visible={screen.rulesVisible}

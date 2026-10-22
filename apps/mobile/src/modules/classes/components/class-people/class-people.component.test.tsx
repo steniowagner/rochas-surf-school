@@ -1,13 +1,13 @@
-import { render, screen, userEvent } from "@testing-library/react-native";
+import { render, screen, userEvent, within } from "@testing-library/react-native";
 
-import type { ClassStudent } from "../../classes.types";
+import type { ClassDetailsStudent } from "../../classes.types";
 
 import { ClassPeople } from "./class-people.component";
-import type { ClassPeopleProps } from "./class-people.types";
+import type { ClassPeopleInstructor, ClassPeopleProps } from "./class-people.types";
 
-const students: ClassStudent[] = [
-  { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana" },
-  { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia" },
+const students: ClassDetailsStudent[] = [
+  { id: "s-ana", name: "Ana Souza", photoUrl: null, enrolmentId: "e-ana", whatsappNumber: null },
+  { id: "s-bia", name: "Bia Lima", photoUrl: null, enrolmentId: "e-bia", whatsappNumber: "+5585911111111" },
 ];
 
 function props(overrides: Partial<ClassPeopleProps> = {}): ClassPeopleProps {
@@ -52,14 +52,26 @@ describe("ClassPeople guests", () => {
     { id: "g-2", name: null },
   ];
 
-  it("lists each guest with a Trial chip, the name when it is known and \"Trial\" when it is not", async () => {
+  it("lists each guest with a Trial chip, after the name when it is known and alone when it is not", async () => {
     const user = userEvent.setup();
     await render(<ClassPeople {...props({ guests, seatsTaken: 4 })} />);
 
     await user.press(screen.getByRole("button", { name: /4 students/ }));
 
     expect(screen.getByText("Carolina Reis")).toBeOnTheScreen();
-    expect(screen.getAllByText("Trial")).toHaveLength(3);
+    expect(screen.getAllByText("Trial")).toHaveLength(2);
+  });
+
+  it("makes no guest row pressable, whatever onOpenStudent is", async () => {
+    const user = userEvent.setup();
+    const onOpenStudent = jest.fn();
+    await render(<ClassPeople {...props({ students: [], guests, seatsTaken: 2, onOpenStudent })} />);
+
+    await user.press(screen.getByRole("button", { name: /2 students/ }));
+
+    expect(screen.queryByRole("button", { name: "Carolina Reis" })).toBeNull();
+    await user.press(screen.getByText("Carolina Reis"));
+    expect(onOpenStudent).not.toHaveBeenCalled();
   });
 
   it("opens a class that has only guests", async () => {
@@ -97,5 +109,159 @@ describe("ClassPeople guests", () => {
     await render(<ClassPeople {...props({ showTrialCount: true })} />);
 
     expect(screen.getByText("Max. 8 students · 6 spots left")).toBeOnTheScreen();
+  });
+});
+
+describe("ClassPeople instructors", () => {
+  const iara: ClassPeopleInstructor = {
+    id: "i-iara",
+    name: "Iara Lima",
+    role: "admin",
+    whatsappNumber: null,
+    isViewer: false,
+  };
+  const rui: ClassPeopleInstructor = {
+    id: "i-rui",
+    name: "Rui Costa",
+    role: "instructor",
+    whatsappNumber: "+5585911111111",
+    isViewer: true,
+  };
+
+  it("heads one instructor with \"Instructor\" and a pill named after them", async () => {
+    await render(<ClassPeople {...props({ instructors: [iara] })} />);
+
+    expect(screen.getByText("Instructor")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Iara Lima" })).toBeOnTheScreen();
+  });
+
+  it("heads several with \"Instructors\" and shows the viewer's pill as You", async () => {
+    await render(<ClassPeople {...props({ instructors: [iara, rui] })} />);
+
+    expect(screen.getByText("Instructors")).toBeOnTheScreen();
+    expect(screen.getByText("Iara Lima")).toBeOnTheScreen();
+    expect(screen.getByText("You")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Rui Costa" })).toBeOnTheScreen();
+  });
+
+  it("calls onOpenInstructor with the pressed instructor", async () => {
+    const user = userEvent.setup();
+    const onOpenInstructor = jest.fn();
+    await render(<ClassPeople {...props({ instructors: [iara, rui], onOpenInstructor })} />);
+
+    await user.press(screen.getByRole("button", { name: "Rui Costa" }));
+
+    expect(onOpenInstructor).toHaveBeenCalledTimes(1);
+    expect(onOpenInstructor).toHaveBeenCalledWith(rui);
+  });
+
+  it("does nothing on a pill without onOpenInstructor", async () => {
+    const user = userEvent.setup();
+    await render(<ClassPeople {...props({ instructors: [iara] })} />);
+
+    await user.press(screen.getByRole("button", { name: "Iara Lima" }));
+
+    expect(screen.getByText("Iara Lima")).toBeOnTheScreen();
+  });
+
+  it("says no instructor is assigned in the header, with no pill", async () => {
+    await render(<ClassPeople {...props()} />);
+
+    expect(screen.getByText("No instructor assigned")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Iara Lima" })).toBeNull();
+  });
+});
+
+describe("ClassPeople students", () => {
+  const seven: ClassDetailsStudent[] = Array.from({ length: 4 }, (_, index) => ({
+    id: `s-${index}`,
+    name: `Aluno ${index}`,
+    photoUrl: null,
+    enrolmentId: `e-${index}`,
+    whatsappNumber: null,
+  }));
+  const guests = [
+    { id: "g-1", name: "Carolina Reis" },
+    { id: "g-2", name: null },
+    { id: "g-3", name: null },
+  ];
+
+  it("stacks the first 5 seats, students then guests as a person icon, and +N for the rest", async () => {
+    await render(<ClassPeople {...props({ students: seven, guests, seatsTaken: 7 })} />);
+
+    expect(screen.getByLabelText("Aluno 0")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Aluno 3")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText("Trial")).toHaveLength(1);
+    expect(screen.getByText("+2")).toBeOnTheScreen();
+  });
+
+  it("opens a student's row with onOpenStudent and that student", async () => {
+    const user = userEvent.setup();
+    const onOpenStudent = jest.fn();
+    await render(<ClassPeople {...props({ onOpenStudent })} />);
+    await user.press(screen.getByRole("button", { name: /2 students/ }));
+
+    await user.press(screen.getByRole("button", { name: "Bia Lima" }));
+
+    expect(onOpenStudent).toHaveBeenCalledTimes(1);
+    expect(onOpenStudent).toHaveBeenCalledWith(students[1]);
+  });
+
+  it("does nothing on a student's row without onOpenStudent", async () => {
+    const user = userEvent.setup();
+    await render(<ClassPeople {...props()} />);
+    await user.press(screen.getByRole("button", { name: /2 students/ }));
+
+    await user.press(screen.getByRole("button", { name: "Bia Lima" }));
+
+    expect(screen.getByText("Bia Lima")).toBeOnTheScreen();
+  });
+
+  it("takes a student out without opening their sheet", async () => {
+    const user = userEvent.setup();
+    const onOpenStudent = jest.fn();
+    const onTakeOut = jest.fn();
+    await render(<ClassPeople {...props({ onOpenStudent, onTakeOut })} />);
+    await user.press(screen.getByRole("button", { name: /2 students/ }));
+
+    await user.press(screen.getByRole("button", { name: "Take out Ana Souza" }));
+
+    expect(onTakeOut).toHaveBeenCalledWith(students[0]);
+    expect(onOpenStudent).not.toHaveBeenCalled();
+  });
+
+  it("says nobody is enrolled yet and can't expand a class with no seats taken", async () => {
+    await render(<ClassPeople {...props({ students: [], seatsTaken: 0 })} />);
+
+    const row = screen.getByRole("button", { name: "No students yet" });
+    expect(row).toBeDisabled();
+  });
+});
+
+describe("ClassPeople capacity line", () => {
+  it("sits beside the The class label, not under the card", async () => {
+    await render(<ClassPeople {...props()} />);
+
+    const row = within(screen.getByText("The class").parent!);
+
+    // The header row holds the label and the line, and the card sits below it.
+    expect(row.getByText("Max. 8 students · 6 spots left")).toBeOnTheScreen();
+    expect(row.queryByText("No instructor assigned")).toBeNull();
+  });
+
+  it("says the class is sold out when every seat is taken", async () => {
+    await render(<ClassPeople {...props({ capacity: 2 })} />);
+
+    const row = within(screen.getByText("The class").parent!);
+
+    expect(row.getByText("Max. 2 students · sold out")).toBeOnTheScreen();
+    expect(row.queryByText("No instructor assigned")).toBeNull();
+  });
+
+  it("leaves the label alone on a finished class", async () => {
+    await render(<ClassPeople {...props({ state: "finished" })} />);
+
+    expect(screen.getByText("The class")).toBeOnTheScreen();
+    expect(screen.queryByText(/^Max\./)).toBeNull();
   });
 });

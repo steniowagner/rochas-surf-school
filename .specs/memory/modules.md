@@ -90,8 +90,9 @@ is assigned, and the admins are told. It also keeps the two cancellation rules a
 for skate, read by everyone) and gives every upcoming class one cancellation deadline, worked out in the
 background by a language model from its discipline's rule and its details; while a class has none, admins see it
 flagged "no cancellation deadline". The seats taken, the approved students, the pending requests and each
-reader's own enrolment come from Enrolment, through contracts this module owns; ratings and photos will build on
-its classes too.
+reader's own enrolment come from Enrolment, through contracts this module owns; reading one class also gives
+each student's and instructor's WhatsApp number to who may see it, by the people directory's rule. Ratings and
+photos will build on its classes too.
 
 - Where it physically lives: `modules/classes`
 - Business details: [modules/classes.md](modules/classes.md)

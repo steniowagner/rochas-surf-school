@@ -808,6 +808,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `https://wa.me/<digits>` with `Linking.openURL`, toast `people.whatsappUnavailable` on a rejection. `PersonSheet`
   also takes an optional `email`: with it, a non-pressable email row (Feather `mail`, `people.email`) replaces the
   WhatsApp row — the "Join the school" screen opens it for a registration as a `student` with no number (spec 039).
+  Since spec 049 its `person` is `Pick<Person, "name" | "role" | "whatsappNumber"> | null`, so a class's details
+  open the same sheet for an instructor (their `role`) or a student (`"student"`).
   The home rows'
   "N na plataforma" is the constant `PEOPLE_COUNT_PLACEHOLDER = 9` (`constants/people.ts`) until a backend route
   gives the count.
@@ -890,7 +892,18 @@ guard's 401 `auth.token.invalid`.
   account; `GetClass`) → 200 one `ClassItem`; a non-UUID id (no lookup) or no class → 404 `class.notFound`. Since
   spec 047 `GetClassOut` is the `ClassItem` plus `pendingRequests` — `PendingRequestCounter.countPendingRequests`
   for an admin, `null` for every other role (`GetClass`'s fourth constructor argument) — so the answers of
-  `PUT /classes/:id` and `POST /classes/:id/cancel` carry it too; the week list's items have no such key. It is
+  `PUT /classes/:id` and `POST /classes/:id/cancel` carry it too; the week list's items have no such key. Since
+  spec 049 `GetClassOut`'s `students` are `GetClassStudent` (`ClassStudent` + `whatsappNumber: string | null`) and
+  its `instructors` `GetClassInstructor` (`{ id, name, role: "instructor" | "admin", whatsappNumber }`), read through
+  the `ClassContactReader` port (`provider/class-contact-reader.provider.ts`, `findContacts(userIds)` →
+  `Map<userId, ClassContact>` with `role`, `status`, `whatsappNumber`, `whatsappVisible`; `GetClass`'s fifth
+  constructor argument, one call for the roster's students and the view's instructors, chained after
+  `findRosters`), implemented by `PrismaClassContactReader` (`apps/backend/src/modules/classes/class-contact-reader.prisma.ts`:
+  one `user.findMany` by ids, nothing read for no ids). `visibleNumber` applies `ListPeople`'s rule — the number of an
+  `approved` person who has one and shares it, or every such number for an admin reader, else `null` (a person
+  missing from the map too); an instructor missing from the map reads `role: "instructor"`. Only `GetClass` uses it:
+  `toClassItem`, `ClassRosterReader` and `ClassViewReader` don't change, so the week, "mine" and "mine/history" items
+  carry no `whatsappNumber` or `role`, and guests stay `{ id, name }`. It is
   declared after `GET /classes/time-range-suggestions`, so that path keeps its handler. Both read through the
   `ClassViewReader` port (`findStartingBetween(from, to)`, `findById(id)`, and since spec 048 `findByIds(ids)` → `ClassView`, `ClassItem` with
   `Date`s), implemented by `PrismaClassViewReader` (`class-view-reader.prisma.ts`): one `findMany` / `findUnique`
@@ -1099,9 +1112,9 @@ guard's 401 `auth.token.invalid`.
 - Mobile class tools and cancelling (spec 033): with `canEdit`, a loaded class that is neither finished nor
   cancelled (a started one included) shows a round 44×44 tools button (`construct-outline`, `bg-surface`,
   `shadowStyle`, label `classDetails.tools`) at the right of the details' header, opening `ClassToolsSheet`
-  (`components/class-tools-sheet/`: a `BottomModal` titled `classTools.title` with three shared `Button`s, no
-  icons — "Editar aula" and "Avisar alunos e instrutores" `subtle`, "Cancelar aula" `danger`; edit and cancel close
-  the sheet first, notify has no action). "Cancelar aula" opens `CancelClassSheet` (`components/cancel-class-sheet/`:
+  (`components/class-tools-sheet/`: a `BottomModal` titled `classTools.title`; since spec 049 its actions are four
+  `ClassToolCard`s, see "Mobile class details design" below; edit and cancel close the sheet first, the message
+  card has no action). "Cancelar aula" opens `CancelClassSheet` (`components/cancel-class-sheet/`:
   `BottomModal` with the description — since spec 047 built by its hook from the `studentCount`, `pendingCount` and
   `instructorCount` props (the details' hook passes `students.length`, `pendingRequests` and the instructors other
   than the viewer) as `cancelClass.descriptionWithAudience` with the non-zero `cancelClass.audience.*` parts joined
@@ -1118,9 +1131,9 @@ guard's 401 `auth.token.invalid`.
   border and no fading; on the details, one `bad-tint` banner `classDetails.cancelled.title` with the
   `cancellationMessage` under it as stored, or `classDetails.cancelled.description`. Copy lives under
   `classTools`, `cancelClass`, `classDetails.cancelled` and `classDetails.tools`.
-- Mobile deleting (spec 034): `ClassToolsSheet` takes `onDelete` and `canDelete`; the details pass `canDelete`
-  only while the class is `not-started`, and the sheet then shows a `subtle` "Excluir aula" (`classTools.delete`)
-  below "Cancelar aula" (closing the sheet first). It opens `DeleteClassSheet` (`components/delete-class-sheet/`:
+- Mobile deleting (spec 034): `ClassToolsSheet` takes `onDelete` and, since spec 049, `deleteState` (`available`
+  only while the class is `not-started` and `seatsTaken` is 0; `started` / `enrolled` disable the "Apagar aula"
+  card, `classTools.delete`, which closes the sheet first when enabled). It opens `DeleteClassSheet` (`components/delete-class-sheet/`:
   component, types and index, no hook — the variant is a prop the details control): a `BottomModal` with the
   title, the class line (`{discipline} {level} · {dateLine}, {timeRange} · {location}`) and the description, then
   in the `confirm` variant a `danger` "Excluir aula" with `loading`, in the `notEmpty` variant a `danger` "Cancelar
@@ -1189,9 +1202,9 @@ guard's 401 `auth.token.invalid`.
   (Nova aula `locationId: null`; Editar aula `""`, so Save turns off). On Editar aula a class whose location isn't in
   the loaded list keeps it as its selected row, marked archived once the list has loaded. On the details,
   `LocationMapPreview` (`components/location-map-preview/`) shows, only for a location with a point, a fixed 96 pt
-  `MapView` (scroll, zoom, rotate and pitch off, `PREVIEW_DELTA` 0.01°) with a `Marker` and a "Direções" outline
-  button (`Linking.openURL(getDirectionsUrl(point))`, toast `classDetails.directionsUnavailable` on failure), for
-  every role and for cancelled classes. Copy under `locationSheet`, `locationPicker`, `archiveLocation`,
+  `MapView` (scroll, zoom, rotate and pitch off, `PREVIEW_DELTA` 0.01°) with a `Marker`, for every role and for
+  cancelled classes; since spec 049 it is the map alone, inside `ClassLocationCard` (below), whose hook holds
+  "Direções" (`Linking.openURL(getDirectionsUrl(point))`, toast `classDetails.directionsUnavailable` on failure). Copy under `locationSheet`, `locationPicker`, `archiveLocation`,
   `newClass.errors.locationArchived` and `classDetails.directions*`.
 - Mobile seats and students (spec 040). `ClassItem` carries `seatsTaken` and `students` (`ClassStudent`: `id`,
   `name`, `photoUrl`). `utils/occupancy.ts`: `getOccupancyPercent` (0–100, rounded), `isClassFull` (seats taken ≥
@@ -1207,20 +1220,57 @@ guard's 401 `auth.token.invalid`.
   and not started: the `bad-tint` `Chip` `classesWeek.full` in the state chips' slot), `showFooter` (not cancelled:
   top border `line`, `bg-dim`, up to `CLASS_CARD_AVATARS` 4 ringed 26 pt avatars overlapping by 8, the "+N" circle
   on `sand` and the uppercase label). On the details, `ClassPeople` (`components/class-people/` + hook) is the
-  `classDetails.theClass` group: the instructors (36 pt `StudentAvatar` with initials, `classDetails.you` for the
-  viewer, `classDetails.noInstructorAssigned` when none), the students row (up to `CLASS_PEOPLE_AVATARS` 5 ringed
-  28 pt avatars, "+N", the label; a `Pressable` with `accessibilityState.expanded` that opens the list of every
-  student, disabled with none; with the optional `onTakeOut` (spec 044) each row of the list ends with a "Retirar"
-  `TouchableOpacity`, outline with `text-bad`), and under the card `classDetails.capacity` · `spotsLeft` (plural) or `soldOut` in
-  `text-bad`, hidden when finished or cancelled. The details' hook adds `showFullBanner` (loaded, `not-started`,
+  `classDetails.theClass` group (rebuilt by spec 049, see "Mobile class details design" below): the instructors
+  (`classDetails.you` for the viewer, `classDetails.noInstructorAssigned` when none), the students row (up to
+  `CLASS_PEOPLE_AVATARS` 5 ringed avatars, "+N", the label; a `Pressable` with `accessibilityState.expanded` that
+  opens the list of every student, disabled with none; with the optional `onTakeOut` (spec 044) each row of the list
+  gets a "Retirar" `TouchableOpacity`, outline with `text-bad`), and `classDetails.capacity` · `spotsLeft` (plural) or
+  `soldOut` in `text-bad`, hidden when finished or cancelled. The details' hook adds `showFullBanner` (loaded, `not-started`,
   full: a `bad-tint` banner `classDetails.full.title` after the cancelled / started ones), `readOnlyNoteKey`
   (instructors only: `classDetails.readOnly.teaches` when they teach the class, `.notAssigned` otherwise; a `bg-dim`
   note with `eye-outline` under the group), and `showRules` (loaded and not cancelled): a `classDetails.rules`
-  group in the Profile's `ProfileCard` with two `ProfileRow`s — `rules.cancellation` (`{{discipline}}`) whose value is
-  `classDetails.cancellationDeadline` or `rules.read`, stacked under the label with `ProfileRow`'s `valueBelow`
-  (default off; the label stays whole on narrow phones), opening `CancellationRulesSheet` on the details
-  (`rulesVisible`), and `rules.school`, pushing `routes[<role>].schoolRules`. The instructors' `initials` field left
-  the details' types (the avatar draws them).
+  group with two rows — `rules.cancellation`, opening `CancellationRulesSheet` on the details (`rulesVisible`), and
+  `rules.school`, pushing `routes[<role>].schoolRules` (since spec 049 `ClassRuleRow`s, below). The instructors'
+  `initials` field left the details' types (the avatar draws them).
+- Mobile class details design (spec 049). `classes.types.ts` adds `ClassDetailsTeacher` (`ClassInstructor` +
+  `role` + `whatsappNumber`), `ClassDetailsStudent` (`ClassStudent` + `whatsappNumber`) and `ClassDetails` (`ClassItem`
+  with those lists), the answer of `useClass`, `useEditClass` and `useCancelClass`. `ClassPeople` opens with a
+  `flex-row justify-between` header: the label and the capacity line in `ds-text-section-label` (`shrink text-right`,
+  `text-bad` / `text-ink-2`, plus `includesTrial` for admins); the card starts with a `bg-dim` header
+  (`classDetails.instructor`, plural) holding one `InstructorPill` per instructor (`components/instructor-pill/`: a
+  `TouchableOpacity` `min-h-11` `rounded-full` `bg-surface`, `border-lagoon` for the viewer else `border-line`, a 32 pt
+  `StudentAvatar`, labelled with the name; `onOpenInstructor`). The stacked avatars (30 pt) are the first 5 seats,
+  students then guests (`ClassPeopleSeat`), a guest drawn as `GuestAvatar` (`components/guest-avatar/`: Feather
+  `user` in `ink-2` on a `bg-sand` circle, labelled `classDetails.trialChip`, optional ring). The expanded list renders
+  `ClassStudentRow` (`components/class-student-row/`: a `Pressable` with role `button` named after the student, 32 pt
+  avatar, name, `chevron-forward` in `ink3`, or the "Retirar" button in its place, which never presses the row;
+  `onOpenStudent`) and `ClassGuestRow` (`components/class-guest-row/`: not pressable, `GuestAvatar`, the name then a
+  `muted` "Trial" `Chip`, or the chip alone for a `null` name; "Retirar" for admins). The details' hook keeps
+  `selectedPerson` (`ClassDetailsPerson` = `Pick<Person, "name" | "role" | "whatsappNumber">`, kept after closing so the
+  content stays while the sheet slides away) and `personVisible`, with `openInstructor` (the instructor's `role`),
+  `openStudent` (`"student"`) and `closePerson`, and renders the People module's `PersonSheet`. "Regras" is a
+  `rounded-card` `bg-surface` card of two `ClassRuleRow`s (`components/class-rule-row/`: a `Pressable` `min-h-11` with
+  role `button` labelled by its title, a 34 pt `rounded-checkbox` `bg-dim` tile with a `lagoon` Ionicon, the title in
+  `ds-text-section-label`, the optional value in `ds-text-list-title`, `chevron-forward`) split by a `h-px bg-line`:
+  `close-circle-outline` "Cancelamento" with `rules.until` (`{{when}}`) or `rules.read`, and `shield-outline` "Regras
+  da escola" with `rules.schoolCount` (plural) from `useSchoolRules` once it has at least one rule, title only while
+  loading, on error or with none (`schoolRulesValue`). The notes sit in a `rounded-card` `border-line` `bg-surface`
+  card with a `lagoon` `reader-outline` and the text in `ds-text-body`. `ClassLocationCard`
+  (`components/class-location-card/` + hook, under `classDetails.location`, "Onde e como"): an `overflow-hidden`
+  card with `LocationMapPreview` across the top when there is a point, then a row with a Feather `map-pin` in `lagoon`,
+  the name (`ds-text-list-title`) and address (`ds-text-list-subtitle`), and with a point a `min-h-11` "Direções"
+  `TouchableOpacity` (`ds-text-section-label text-lagoon`, Feather `arrow-up-right`). The "finished" banner is a row
+  with a 24 pt `checkmark` in `ink-2` at the left of its title and line. `ClassToolsSheet` keeps its title and lays
+  out four `ClassToolCard`s in two rows (`components/class-tool-card/`: a `TouchableOpacity` `min-h-11 flex-1` with
+  role `button` labelled by its title and `accessibilityState.disabled`; inside, a `rounded-card` surface — `border-line
+  bg-surface`, or `bg-bad-tint` for the `danger` tone, `opacity-50` when disabled — with a 40 pt `rounded-checkbox`
+  tile, `bg-dim` with a `lagoon` Ionicon or `bg-surface` with a `bad` one for `danger`, the title in
+  `ds-text-list-title`, `text-bad` for `danger`, and the subtitle in `ds-text-list-subtitle`): `pencil-outline` "Editar
+  aula" (`classTools.editHint`), `chatbubble-outline` "Enviar mensagem" (`classTools.people` plural, or `nobody`; no
+  action), `close-circle-outline` `danger` "Cancelar aula" (`notifies` plural, or `nobodyToNotify`) and
+  `trash-outline` "Apagar aula" (`deleteEmpty`, or disabled with `deleteEnrolled` / `deleteStarted`). The sheet takes
+  `messageCount` — the details' hook's instructors other than the viewer + `students.length` + `pendingRequests`, the
+  same people the cancel sheet names (guests have no account) — and `deleteState`.
 
 ## Enrolment
 
@@ -1448,8 +1498,8 @@ import cycle.
   ("Aula experimental" / "Aluno da escola", the latter first): in trial mode "1 · Quem" draws the labelled "Nome"
   `TextInput` (user name rules) and the labelled "WhatsApp" `PhoneNumberField` (Brazil preselected) with the
   no-history note, and the button adds the guest once (a ref guard), toasts "<nome> inscrito" and goes back.
-  `ClassItem` (`classes.types.ts`) carries `guests`. `ClassPeople` lists the guests after the students (`StudentAvatar`
-  without photo, the name or "Trial", a `muted` `Chip` "Trial" in a centered `View`), opens for a class with only
+  `ClassItem` (`classes.types.ts`) carries `guests`. `ClassPeople` lists the guests after the students (since spec 049
+  `ClassGuestRow`: `GuestAvatar`, the name when known, a `muted` `Chip` "Trial"), opens for a class with only
   guests, takes `onTakeGuestOut`, and ends the admin's capacity line with "· inclui N trial" (`showTrialCount`).
   `useTakeGuestOut(reload)` (`hooks/use-take-guest-out.hook.ts`) holds the guest target and, for `class.started` /
   `guest.notFound`, closes and reloads; `TakeOutSheet` takes `trial` (the guest copy, no reason field, through

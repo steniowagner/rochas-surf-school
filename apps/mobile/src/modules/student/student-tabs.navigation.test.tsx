@@ -100,6 +100,11 @@ const people = {
 };
 
 const respond = (url: string) => {
+  // The class details read the school rules for the count on their rules row.
+  if (url.includes("/school-rules")) {
+    return { version: 1, rules: [] };
+  }
+
   if (url.includes("/classes?date=")) {
     return { weekStart: "x", items: [aClass] };
   }

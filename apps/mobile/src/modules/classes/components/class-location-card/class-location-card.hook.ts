@@ -3,15 +3,14 @@ import { Linking } from "react-native";
 
 import { useAlertMessage } from "@/providers/alert-message";
 
+import type { MapPoint } from "../../classes.types";
 import { getDirectionsUrl } from "../../utils/map";
 
-import { UseLocationMapPreviewProps } from "./location-map-preview.types";
-
-export const useLocationMapPreview = ({ point }: UseLocationMapPreviewProps) => {
+export const useClassLocationCard = () => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
 
-  const openDirections = async () => {
+  const openDirections = async (point: MapPoint) => {
     try {
       await Linking.openURL(getDirectionsUrl(point));
     } catch {

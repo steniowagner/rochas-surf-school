@@ -3,7 +3,7 @@ id: "050"
 slug: classes-discipline-filter
 title: Filter the week's classes by sport
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-22
 started: 2026-10-22
 base_commit: e8693a6f03a1dedbe9d39565e2cffd2aeeeebd52
@@ -196,11 +196,14 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > card alone), "TODAS" brought every card and dot back, "SURF" on Saturday 17 hid its skate card. As an admin, the
   > Aulas tab shows the button and its options; the `scrim` backdrop dims the screen in light and in dark themes, and
   > a tap on it closes the options; dark theme draws the `surface` / `line` options and the dark `grape`. Files: the
-  > spec only. Observed once, not reproduced: the dev build aborted (SIGABRT, a React Native Fabric assertion in
-  > `-[RCTViewComponentView unmountChildComponentView:index:]`, report
-  > `~/Library/Logs/DiagnosticReports/RochasSurfSchool-2026-10-22-193808.ips`) right after the app theme was switched
-  > (Escuro → Claro) and three taps were sent at once (theme option, the Aulas tab, the filter button); the same
-  > steps, slowly and fast, didn't crash it again in three tries, and the report doesn't say which view was unmounted.
+  > spec only. Observed once, not reproduced, and not caused by this spec: the dev build aborted (SIGABRT, report
+  > `~/Library/Logs/DiagnosticReports/RochasSurfSchool-2026-10-22-193808.ips`) at 19:38:01, when "Claro" was pressed in
+  > the Tema sheet. The simulator log (`log show`) has the assertion: "Attempt to unmount a view which has a different
+  > index" in `-[RCTViewComponentView unmountChildComponentView:index:]`, parent a 362×45.7 row at x 20, child a 19 pt
+  > Ionicons glyph in light `lagoon` at its right edge, expected index 2, actual 0 — the selected row's checkmark of
+  > `ThemeSheet` (`apps/mobile/src/components/theme-sheet/theme-sheet.component.tsx`: icon, label, `checkmark` size 19
+  > `lagoon`), moving to the new theme's row. That bottom sheet is on the Perfil tab and this spec doesn't change it;
+  > `DisciplineFilter` isn't in that view tree. The same steps, slowly and fast, didn't crash again in three tries.
 
 ## Verification Plan
 

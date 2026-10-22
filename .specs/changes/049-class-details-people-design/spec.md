@@ -184,7 +184,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add `ClassContactReader` in `src/school-class/provider/class-contact-reader.provider.ts`
+- [x] **T-01** — Add `ClassContactReader` in `src/school-class/provider/class-contact-reader.provider.ts`
   (exported from the provider index) and its fake in `test/mock/fake-class-contact.reader.ts`; make `GetClass`
   take it, read the contacts of the class's students and instructors in the same `Promise.all`, and add
   `whatsappNumber` (D-02) to each student and `role` + `whatsappNumber` to each instructor in `GetClassOut`
@@ -192,6 +192,22 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   shared, hidden for a student/instructor viewer, hidden for an admin viewer, no number, non-approved, a person
   missing from the contacts. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npm test` passes in `modules/classes` with every changed line covered.
+  > ✅ 2026-10-21 — added the `ClassContactReader` port (`ClassContact`: id, role, status, whatsappNumber,
+  > whatsappVisible; `findContacts(userIds)` → `Map`) and `FakeClassContactReader` (records its calls); `GetClass`
+  > takes it as its 5th dependency, reads the contacts of the roster's students and the view's instructors in one
+  > call, and maps `whatsappNumber` per student and `role` + `whatsappNumber` per instructor through
+  > `visibleNumber` (D-02); `GetClassOut` now replaces `students`/`instructors` with `GetClassStudent` /
+  > `GetClassInstructor` (D-03); `toClassItem`/`ClassItem` untouched. Tests: student and instructor viewers see
+  > only shared numbers, an admin also the hidden ones, no number, a removed person, a person missing from the
+  > contacts, an instructor with role `admin`, one contacts call; the existing constructions take the fake.
+  > Files: `modules/classes/src/school-class/provider/class-contact-reader.provider.ts`,
+  > `modules/classes/src/school-class/provider/index.ts`, `modules/classes/src/school-class/usecase/get-class.usecase.ts`,
+  > `modules/classes/test/mock/fake-class-contact.reader.ts`, `modules/classes/test/mock/index.ts`,
+  > `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`; verified: `npm test` in `modules/classes`
+  > (35 suites, 524 passed), `get-class.usecase.ts` at 100% statements/branches/functions/lines, `npm run
+  > check-types` and `npm run lint` clean; the new tests failed before the change (7 failed). Deviations: the
+  > student ids come from the roster, so the contacts read is chained after `findRosters` inside the same
+  > `Promise.all` (parallel with the enrolment and pending-request reads) rather than a sibling entry of it.
 
 ### Backend (`apps/backend`)
 

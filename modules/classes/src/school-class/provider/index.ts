@@ -13,3 +13,4 @@ export * from "./viewer-enrolment-reader.provider";
 export * from "./class-enrolments-closer.provider";
 export * from "./class-audience-reader.provider";
 export * from "./my-classes-reader.provider";
+export * from "./class-contact-reader.provider";

@@ -1,9 +1,10 @@
 import { ForbiddenError, NotFoundError } from "@rochas-surf-school/shared";
-import { GetClass } from "../../../src";
+import { ClassContact, GetClass } from "../../../src";
 import {
   ADMIN,
   buildClassView,
   INSTRUCTOR,
+  FakeClassContactReader,
   FakeClassRosterReader,
   FakeClassViewReader,
   FakePendingRequestCounter,
@@ -33,7 +34,7 @@ function setup() {
 
   const rosterReader = new FakeClassRosterReader({ [ID]: { students: SEVEN } });
 
-  return { reader, rosterReader, useCase: new GetClass(reader, rosterReader, new FakeViewerEnrolmentReader(), new FakePendingRequestCounter()) };
+  return { reader, rosterReader, useCase: new GetClass(reader, rosterReader, new FakeViewerEnrolmentReader(), new FakePendingRequestCounter(), new FakeClassContactReader()) };
 }
 
 const GUESTS = [
@@ -47,7 +48,7 @@ function setupWithGuests(instructorId = INSTRUCTOR.id) {
   ]);
   const rosters = new FakeClassRosterReader({ [ID]: { students: SEVEN.slice(0, 2), guests: GUESTS } });
 
-  return new GetClass(reader, rosters, new FakeViewerEnrolmentReader(), new FakePendingRequestCounter());
+  return new GetClass(reader, rosters, new FakeViewerEnrolmentReader(), new FakePendingRequestCounter(), new FakeClassContactReader());
 }
 
 describe("GetClass", () => {
@@ -90,7 +91,7 @@ describe("GetClass", () => {
       }),
     ]);
 
-    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader(), new FakePendingRequestCounter()).execute({ actor: STUDENT, id: ID });
+    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader(), new FakePendingRequestCounter(), new FakeClassContactReader()).execute({ actor: STUDENT, id: ID });
 
     expect(out.location).toEqual({ id: "l-1", name: "Antigo", address: "Rua A", latitude: null, longitude: null });
   });
@@ -104,8 +105,8 @@ describe("GetClass", () => {
       notes: "Ponto de encontro",
       location: { name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000", latitude: -3.7442, longitude: -38.4617 },
       instructors: [
-        { id: "i-1", name: "ana" },
-        { id: "i-2", name: "Bruno" },
+        { id: "i-1", name: "ana", role: "instructor", whatsappNumber: null },
+        { id: "i-2", name: "Bruno", role: "instructor", whatsappNumber: null },
       ],
     });
   });
@@ -116,14 +117,14 @@ describe("GetClass", () => {
     const out = await useCase.execute({ actor: STUDENT, id: ID });
 
     expect(out.seatsTaken).toBe(7);
-    expect(out.students).toEqual(SEVEN);
+    expect(out.students).toEqual(SEVEN.map((student) => ({ ...student, whatsappNumber: null })));
     expect(rosterReader.calls).toEqual([{ classIds: [ID], studentsLimit: undefined }]);
   });
 
   it("answers no seats taken for a class the roster reader does not know", async () => {
     const reader = new FakeClassViewReader([buildClassView({ id: ID })]);
 
-    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader(), new FakePendingRequestCounter()).execute({ actor: STUDENT, id: ID });
+    const out = await new GetClass(reader, new FakeClassRosterReader(), new FakeViewerEnrolmentReader(), new FakePendingRequestCounter(), new FakeClassContactReader()).execute({ actor: STUDENT, id: ID });
 
     expect(out).toMatchObject({ seatsTaken: 0, students: [] });
   });
@@ -134,7 +135,7 @@ describe("GetClass", () => {
     const viewerReader = new FakeViewerEnrolmentReader({
       [`${STUDENT.id}:${ID}`]: { id: "e-1", status: "pending", requestedAt },
     });
-    const useCase = new GetClass(reader, new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter());
+    const useCase = new GetClass(reader, new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter(), new FakeClassContactReader());
 
     expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
       id: "e-1",
@@ -154,7 +155,7 @@ describe("GetClass", () => {
     const viewerReader = new FakeViewerEnrolmentReader({
       [`${STUDENT.id}:${ID}`]: { id: "e-2", status: "denied", requestedAt, reason: "Nível avançado" },
     });
-    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter());
+    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter(), new FakeClassContactReader());
 
     expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
       id: "e-2",
@@ -169,7 +170,7 @@ describe("GetClass", () => {
     const viewerReader = new FakeViewerEnrolmentReader({
       [`${STUDENT.id}:${ID}`]: { id: "e-3", status: "cancelled", requestedAt },
     });
-    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter());
+    const useCase = new GetClass(new FakeClassViewReader([buildClassView({ id: ID })]), new FakeClassRosterReader(), viewerReader, new FakePendingRequestCounter(), new FakeClassContactReader());
 
     expect((await useCase.execute({ actor: STUDENT, id: ID })).myEnrolment).toEqual({
       id: "e-3",
@@ -215,6 +216,7 @@ describe("GetClass", () => {
         new FakeClassRosterReader(),
         new FakeViewerEnrolmentReader(),
         new FakePendingRequestCounter(3),
+        new FakeClassContactReader(),
       );
     }
 
@@ -228,6 +230,112 @@ describe("GetClass", () => {
       const out = await setupPending().execute({ actor, id: ID });
 
       expect(out.pendingRequests).toBeNull();
+    });
+  });
+
+  describe("contacts", () => {
+    const SHARED = "s-shared";
+    const HIDDEN = "s-hidden";
+    const NO_NUMBER = "s-none";
+    const REMOVED = "s-removed";
+    const MISSING = "s-missing";
+    const TEACHER = "i-admin";
+
+    function contact(id: string, overrides: Partial<ClassContact> = {}): ClassContact {
+      return {
+        id,
+        role: "student",
+        status: "approved",
+        whatsappNumber: `+55859${id.length}000000`,
+        whatsappVisible: true,
+        ...overrides,
+      };
+    }
+
+    function setupContacts() {
+      const reader = new FakeClassViewReader([
+        buildClassView({ id: ID, instructors: [{ id: TEACHER, name: "Iara" }] }),
+      ]);
+      const students = [SHARED, HIDDEN, NO_NUMBER, REMOVED, MISSING].map((id) => ({
+        id,
+        name: id,
+        photoUrl: null,
+        enrolmentId: `e-${id}`,
+      }));
+      const contactReader = new FakeClassContactReader([
+        contact(SHARED, { whatsappNumber: "+5585911111111" }),
+        contact(HIDDEN, { whatsappNumber: "+5585922222222", whatsappVisible: false }),
+        contact(NO_NUMBER, { whatsappNumber: null }),
+        contact(REMOVED, { status: "removed", whatsappNumber: "+5585933333333" }),
+        contact(TEACHER, { role: "admin", whatsappNumber: "+5585944444444", whatsappVisible: false }),
+      ]);
+      const useCase = new GetClass(
+        reader,
+        new FakeClassRosterReader({ [ID]: { students } }),
+        new FakeViewerEnrolmentReader(),
+        new FakePendingRequestCounter(),
+        contactReader,
+      );
+
+      return { contactReader, useCase };
+    }
+
+    function numbers(out: { students: { id: string; whatsappNumber: string | null }[] }) {
+      return Object.fromEntries(out.students.map((student) => [student.id, student.whatsappNumber]));
+    }
+
+    it.each([["student", STUDENT], ["instructor", INSTRUCTOR]])(
+      "shows a %s only the numbers that are shared",
+      async (_, actor) => {
+        const out = await setupContacts().useCase.execute({ actor, id: ID });
+
+        expect(numbers(out)).toEqual({
+          [SHARED]: "+5585911111111",
+          [HIDDEN]: null,
+          [NO_NUMBER]: null,
+          [REMOVED]: null,
+          [MISSING]: null,
+        });
+        expect(out.instructors).toEqual([{ id: TEACHER, name: "Iara", role: "admin", whatsappNumber: null }]);
+      },
+    );
+
+    it("shows an admin the hidden numbers too, but never a removed person's", async () => {
+      const out = await setupContacts().useCase.execute({ actor: ADMIN, id: ID });
+
+      expect(numbers(out)).toEqual({
+        [SHARED]: "+5585911111111",
+        [HIDDEN]: "+5585922222222",
+        [NO_NUMBER]: null,
+        [REMOVED]: null,
+        [MISSING]: null,
+      });
+      expect(out.instructors).toEqual([
+        { id: TEACHER, name: "Iara", role: "admin", whatsappNumber: "+5585944444444" },
+      ]);
+    });
+
+    it("reads the students' and the instructors' contacts in one call", async () => {
+      const { contactReader, useCase } = setupContacts();
+
+      await useCase.execute({ actor: STUDENT, id: ID });
+
+      expect(contactReader.calls).toEqual([[SHARED, HIDDEN, NO_NUMBER, REMOVED, MISSING, TEACHER]]);
+    });
+
+    it("answers an instructor missing from the contacts as an instructor without a number", async () => {
+      const reader = new FakeClassViewReader([
+        buildClassView({ id: ID, instructors: [{ id: "i-gone", name: "Rui" }] }),
+      ]);
+      const gone = await new GetClass(
+        reader,
+        new FakeClassRosterReader(),
+        new FakeViewerEnrolmentReader(),
+        new FakePendingRequestCounter(),
+        new FakeClassContactReader(),
+      ).execute({ actor: ADMIN, id: ID });
+
+      expect(gone.instructors).toEqual([{ id: "i-gone", name: "Rui", role: "instructor", whatsappNumber: null }]);
     });
   });
 });

@@ -35,6 +35,25 @@ jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
 }));
 
+// The school rules are one shared query of their own; each test says what it answers.
+const mockUseSchoolRules = jest.fn();
+
+jest.mock("@/modules/school-rules/hooks/use-school-rules.hook", () => ({
+  useSchoolRules: () => mockUseSchoolRules(),
+}));
+
+const schoolRules = (count: number) => ({
+  data: {
+    version: 1,
+    rules: Array.from({ length: count }, (_, index) => ({
+      id: `r-${index}`,
+      title: `Rule ${index}`,
+      description: "",
+      index,
+    })),
+  },
+});
+
 // The global sheet mock always renders its content; this one renders it only while visible.
 jest.mock("@/components/ui/bottom-modal", () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
@@ -152,6 +171,7 @@ const FAKE_ONLY_DATE = [
 beforeEach(() => {
   setupSignedInUser();
   jest.useFakeTimers({ now: NOW, doNotFake: [...FAKE_ONLY_DATE] });
+  mockUseSchoolRules.mockReturnValue(schoolRules(3));
 });
 
 afterEach(() => jest.useRealTimers());
@@ -913,6 +933,57 @@ describe("ClassDetailsScreen", () => {
       expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
       expect(screen.getAllByText(/^Cancel until /)).toHaveLength(1);
       expect(screen.getByText("School rules")).toBeOnTheScreen();
+    });
+
+    it.each([
+      [3, "3 rules for every student"],
+      [1, "1 rule for every student"],
+    ])("counts %i school rule(s) under the school rules row", async (count, text) => {
+      mockUseSchoolRules.mockReturnValue(schoolRules(count));
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(text)).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "School rules" })).toBeOnTheScreen();
+    });
+
+    it.each([
+      ["loading", { data: undefined, isPending: true }],
+      ["failed", { data: undefined, isError: true }],
+      ["empty", schoolRules(0)],
+    ])("shows the school rules row's title only while %s", async (_, answer) => {
+      mockUseSchoolRules.mockReturnValue(answer);
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByRole("button", { name: "School rules" })).toBeOnTheScreen();
+      expect(screen.queryByText(/for every student/)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ["pt-BR", "2 regras para todos os alunos", "Regras da escola"],
+      ["es-ES", "2 reglas para todos los alumnos", "Reglas de la escuela"],
+    ])("writes the count in %s", async (language, text, title) => {
+      await i18n.changeLanguage(language);
+      mockUseSchoolRules.mockReturnValue(schoolRules(2));
+      serve(makeClass());
+
+      try {
+        await renderScreen();
+
+        expect(await screen.findByText(text)).toBeOnTheScreen();
+        expect(screen.getByText(title)).toBeOnTheScreen();
+      } finally {
+        await i18n.changeLanguage("en-US");
+      }
+    });
+
+    it("draws the rows with their icons and chevrons", async () => {
+      serve(makeClass());
+      await renderScreen();
+
+      expect(await screen.findByText(glyph("calendar-outline"))).toBeOnTheScreen();
+      expect(screen.getByText(glyph("shield-outline"))).toBeOnTheScreen();
     });
 
     it("names skate and reads Read the rule when the class has no deadline", async () => {

@@ -130,11 +130,14 @@ beforeEach(() => {
     ok: true,
     status: 200,
     json: async () =>
-      String(url).includes("/classes?date=")
-        ? { weekStart: "x", items: [aClass] }
-        : String(url).includes("/classes/")
-          ? aClass
-          : { items: [person("a"), person("b")] },
+      // The class details read the school rules for the count on their rules row.
+      String(url).includes("/school-rules")
+        ? { version: 1, rules: [] }
+        : String(url).includes("/classes?date=")
+          ? { weekStart: "x", items: [aClass] }
+          : String(url).includes("/classes/")
+            ? aClass
+            : { items: [person("a"), person("b")] },
   }));
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";

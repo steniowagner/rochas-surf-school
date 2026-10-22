@@ -13,6 +13,7 @@ import { getDateLocale } from "@/utils/calendar-dates";
 import { useClassEnrolment } from "@/modules/enrolment/hooks/use-class-enrolment.hook";
 import { useTakeGuestOut } from "@/modules/enrolment/hooks/use-take-guest-out.hook";
 import { useTakeOut } from "@/modules/enrolment/hooks/use-take-out.hook";
+import { useSchoolRules } from "@/modules/school-rules/hooks/use-school-rules.hook";
 
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
@@ -52,6 +53,9 @@ export const useClassDetailsScreen = ({
   const alertMessage = useAlertMessage();
   const query = useClass(id);
   const { data: schoolSettings } = useSchoolSettings();
+  // Loading, failed or empty: the school rules row shows its title only.
+  const { data: schoolRules } = useSchoolRules();
+  const schoolRuleCount = schoolRules?.rules.length ?? 0;
   // Not loaded or failed counts as on: the backend decides.
   const waitingListEnabled = schoolSettings?.waitingListEnabled !== false;
   const cancelClass = useCancelClass(id);
@@ -272,6 +276,10 @@ export const useClassDetailsScreen = ({
           : ("classDetails.readOnly.notAssigned" as const),
     // A cancelled class has nothing left to cancel.
     showRules: state !== null && state !== "cancelled",
+    schoolRulesValue:
+      schoolRuleCount > 0
+        ? t("classDetails.rules.schoolCount", { count: schoolRuleCount })
+        : null,
     rulesVisible,
     openRules: () => setRulesVisible(true),
     closeRules: () => setRulesVisible(false),

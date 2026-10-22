@@ -510,6 +510,8 @@ const messages: Messages = {
       cancellation: "Cancelamento · {{discipline}}",
       read: "Ler a regra",
       school: "Regras da escola",
+      schoolCount_one: "{{count}} regra para todos os alunos",
+      schoolCount_other: "{{count}} regras para todos os alunos",
     },
     readOnly: {
       teaches: "Matrículas, cancelamentos e mudanças de horário são feitos pela escola",

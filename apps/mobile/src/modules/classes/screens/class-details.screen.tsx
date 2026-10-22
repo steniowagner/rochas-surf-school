@@ -23,11 +23,10 @@ import { TakeOutSheet } from "@/modules/enrolment/components/take-out-sheet";
 import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
-import { ProfileCard } from "@/modules/profile/components/profile-card";
-import { ProfileRow } from "@/modules/profile/components/profile-row";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassPeople } from "../components/class-people";
+import { ClassRuleRow } from "../components/class-rule-row";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
 import { DeleteClassSheet } from "../components/delete-class-sheet";
 import { LocationMapPreview } from "../components/location-map-preview";
@@ -292,10 +291,10 @@ export function ClassDetailsScreen({
                 <Text className="ds-text-section-label text-ink-2">
                   {t("classDetails.rules.title")}
                 </Text>
-                <ProfileCard>
-                  <ProfileRow
-                    icon="document-text-outline"
-                    label={t("classDetails.rules.cancellation", {
+                <View className="overflow-hidden rounded-card border border-line bg-surface">
+                  <ClassRuleRow
+                    icon="calendar-outline"
+                    title={t("classDetails.rules.cancellation", {
                       discipline: t(`newClass.discipline.${item.discipline}`),
                     })}
                     value={
@@ -305,15 +304,16 @@ export function ClassDetailsScreen({
                           })
                         : t("classDetails.rules.read")
                     }
-                    valueBelow
                     onPress={screen.openRules}
                   />
-                  <ProfileRow
+                  <View className="h-px bg-line" />
+                  <ClassRuleRow
                     icon="shield-outline"
-                    label={t("classDetails.rules.school")}
+                    title={t("classDetails.rules.school")}
+                    value={screen.schoolRulesValue}
                     onPress={screen.openSchoolRules}
                   />
-                </ProfileCard>
+                </View>
               </View>
             ) : null}
             {item.notes ? (

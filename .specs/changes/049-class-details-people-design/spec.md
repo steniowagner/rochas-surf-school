@@ -356,7 +356,7 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > `tsc --noEmit` clean. Deviations: before this task, the 9 screen tests that your style commit `9334b6d2` broke
   > (header title, chip icons, deadline line) were updated in their own `test(mobile)` commit, as agreed with you.
 
-- [ ] **T-08** — Replace the "Regras" `ProfileCard` on the screen with a card of a new
+- [x] **T-08** — Replace the "Regras" `ProfileCard` on the screen with a card of a new
   `src/modules/classes/components/class-rule-row/` (icon tile, uppercase title, bold value, chevron, at least
   44pt, accessibility role `button`); read the rule count with `useSchoolRules` in the screen hook (D-07); add
   `classDetails.rules.schoolCount_one` / `_other` to `src/i18n/messages/{pt-BR,es-ES,en-US}.ts` ("{{count}}
@@ -364,6 +364,34 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   student"); tests for the row and for the loaded, loading, failed and empty counts on the screen.
   Covers: ER-05 · Done when: `npx jest src/modules/classes/components/class-rule-row src/modules/classes/screens/class-details.screen.test.tsx`
   passes.
+  > ✅ 2026-10-22 — new `ClassRuleRow` (`components/class-rule-row/`: a `Pressable` with role `button` labelled by
+  > its title, `min-h-11`, a 34pt `bg-dim` tile with a `lagoon` Ionicon, the title in `ds-text-section-label`, the
+  > value in `ds-text-list-title` when given, a `chevron-forward` in `ink3`); the screen's "Regras" is now a
+  > `rounded-card` `bg-surface` card with a line between "Cancelamento · <modalidade>" (`calendar-outline`, the
+  > current deadline or "Ler a regra") and "Regras da escola" (`shield-outline`); the screen hook reads
+  > `useSchoolRules` and gives `schoolRulesValue`, the `classDetails.rules.schoolCount` plural, or `null` while
+  > loading, on error or with no rules (D-07); the strings are in pt-BR, es-ES and en-US. Tests: the row (value and
+  > title only); on the screen, 3 and 1 rules, loading, failed and empty showing the title only, pt-BR and es-ES
+  > strings, the icons; the existing taps (cancellation sheet, each role's school rules) still pass. Files:
+  > `apps/mobile/src/modules/classes/components/class-rule-row/index.ts`,
+  > `apps/mobile/src/modules/classes/components/class-rule-row/class-rule-row.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-rule-row/class-rule-row.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-rule-row/class-rule-row.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/modules/student/student-tabs.navigation.test.tsx`,
+  > `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx`,
+  > `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`; verified: `npx jest
+  > src/modules/classes/components/class-rule-row src/modules/classes/screens/class-details.screen.test.tsx` (219
+  > passed; row, screen and hook at 100%), `npx jest src/modules/student src/modules/instructor src/modules/admin
+  > src/modules/enrolment` (339 passed), `tsc --noEmit` clean. Deviations: the screen test mocks `useSchoolRules`
+  > (one shared query) to drive its states; the three role navigation tests, which open a class and answered every
+  > other URL with a people page, now answer `/school-rules` with an empty rule list (they crashed reading
+  > `rules.length`); the tile uses `rounded-checkbox` (8px), the closest radius token to the design's 11px, rather
+  > than adding a token; the cancellation icon is `calendar-outline` (Ionicons has no `calendar-x`, and
+  > `calendar-clear-outline` is the no-deadline banner's).
 
 - [ ] **T-09** — Render "Notas" as the card of ER-06 on the screen (Ionicons `reader-outline` in `lagoon`, the
   notes in `ds-text-body`), with screen tests for a class with and without notes.

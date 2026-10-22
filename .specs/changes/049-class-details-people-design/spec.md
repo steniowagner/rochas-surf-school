@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: changes-requested
+status: in-progress
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -737,10 +737,15 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 
 **Findings**
 
-- [ ] **F-01** (convention) — `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts:33` adds
+- [x] **F-01** (convention) — `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts:33` adds
   `import type { ClassDetailsStudent } from "../classes.types";` between `../utils/map` and `../utils/occupancy`;
   `.claude/rules/react.md` §2 sorts the relative group alphabetically by module path, so it belongs first in that
   group, before `../hooks/use-cancel-class.hook`. Expected: the relative imports in alphabetical order.
+  > ✅ 2026-10-22 — moved the `../classes.types` import to the head of the `../` group, before
+  > `../hooks/use-cancel-class.hook`; the relative imports now read `../classes.types`, `../hooks/*`, `../utils/*`
+  > in alphabetical order. Files: `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`;
+  > verified: read the import block, `npx eslint src/modules/classes/screens/class-details.screen.hook.ts` and
+  > `npx tsc --noEmit` (from `apps/mobile`) clean. Deviations: none.
 
 **Notes**
 

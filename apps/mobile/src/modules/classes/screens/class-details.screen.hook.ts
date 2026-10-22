@@ -15,6 +15,7 @@ import { useTakeGuestOut } from "@/modules/enrolment/hooks/use-take-guest-out.ho
 import { useTakeOut } from "@/modules/enrolment/hooks/use-take-out.hook";
 import { useSchoolRules } from "@/modules/school-rules/hooks/use-school-rules.hook";
 
+import type { ClassDetailsStudent } from "../classes.types";
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
 import { useDeleteClass } from "../hooks/use-delete-class.hook";
@@ -30,7 +31,6 @@ import {
   isClassStartedError,
 } from "../utils/class-error";
 import { toMapPoint } from "../utils/map";
-import type { ClassDetailsStudent } from "../classes.types";
 import { isClassFull } from "../utils/occupancy";
 import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../utils/week";
 

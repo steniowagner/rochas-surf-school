@@ -2,10 +2,11 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-review
+status: accepted
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
+reviewed_commit: 91b8590c1aaf2a0a0259cf2f6dbd23264bbe6cde
 fronts: [classes, backend, mobile]
 depends_on: []
 ---
@@ -909,3 +910,57 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 - F-01 is fixed: the relative imports of `class-details.screen.hook.ts` read `../classes.types`, `../hooks/*`,
   `../utils/*`.
 - `## Memory Impact` now names ER-07, D-10, D-11, D-12 and D-09's `requirements.md` section.
+
+### Round 3 — 2026-10-22 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/classes`, `backend`, `mobile`: 27 tasks; the backend's lint
+  warnings are the existing ones in untouched e2e lines)
+- related tests ✅ apps/backend (2 files, 41) · apps/mobile (78 suites, 1201) · modules/classes (35 suites, 524) ·
+  modules/enrolment (19 suites, 291) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files); no coverage-ignore comments, debug leftovers or TODOs in
+  the diff
+- e2e: backend suite ✅ 23 files, 627 passed (`contacts` included) — `E2E PASSED`; web skipped (not affected)
+- iOS simulator (iPhone 18 Pro, Dev Admin, pt-BR, the app's dark theme): a finished class the viewer teaches
+- since round 2 only the spec (the fourth amendment) and one assertion in `class-details.screen.test.tsx` changed;
+  the whole diff from `base_commit` was read again
+
+**Expected Results**
+
+- ER-01 ✅ — the `contacts` e2e scenarios (student, instructor and admin viewers; shared, hidden, no number, removed;
+  PUT and cancel; 401 and 404) and the `GetClass` unit tests pass; `visibleNumber` is the directory's rule (D-02)
+- ER-02 ✅ — the `contacts` e2e scenario asserts no `whatsappNumber` / `role` on the week, "mine" and "mine/history"
+  items; `toClassItem` is untouched
+- ER-03 ✅ — the viewer's pill reads "Você" with a `lagoon` border under the `dim` "INSTRUTOR" header; tapping it
+  opened the person sheet with "DEV ADMIN", the "ADMIN" chip and "Conversar por WhatsApp" with the formatted number
+  (admin viewer); "Fechar" closed it; the null number and "no instructor" are asserted in the component and screen
+  tests
+- ER-04 ✅ — the component and screen tests pass (stacked seats with guests and "+N", student rows opening the sheet,
+  "Retirar" taking out without opening it, guests not pressable, "Trial" after the name or alone); unchanged since
+  round 1, where it was driven
+- ER-06 ✅ — the screen tests for a class with and without notes pass; unchanged since round 2, where it was seen
+- ER-07 ✅ — the finished class shows "A AULA" alone, with no capacity line; the free and full lines are asserted in the
+  component tests and were seen in round 2
+- ER-08 ✅ — "CANCELAMENTO" over "Até qua, 21 out · 19:00", now with the `close-circle-outline` tile (fourth
+  amendment), and "REGRAS DA ESCOLA" with its title only (no rules in this database); counts and locales asserted in
+  the screen tests
+- ER-09 ✅ — "ONDE E COMO" over one card with the map and its marker, the pin, "Review R2 Beach" and "DIREÇÕES ↗"
+- ER-10 ✅ — the card, sheet and screen tests pass; unchanged since round 2, which drove the empty, enrolled and started
+  states in both themes
+- the fourth amendment: the "finished" banner shows the `checkmark` at the left of "Aula finalizada" and "Terminou às
+  07:45."; the new assertion in "shows the finished banner" checks it
+
+**Findings**
+
+None. F-02 is fixed: the amendment is logged under `## Amendments`, In scope and Out of scope say what moved, and the
+banner's icon is asserted.
+
+**Notes**
+
+- Decisions D-01 to D-12 hold; nothing in Out of scope is built (the class card test change is the fix for the base
+  commit's own style change; the tools sheet's header and the "Enviar mensagem" placeholder are unchanged).
+- `## Memory Impact` doesn't name the fourth amendment: `product.md`'s class details should also say the "finished"
+  banner carries a checkmark, if `spec-finish` records the banners there.
+- Round 2's notes still stand: a class with pending requests but no seats reads "Ninguém inscrito" and the backend
+  then refuses the delete; pt-BR's "Apagar aula" card opens a confirmation that reads "Excluir aula".

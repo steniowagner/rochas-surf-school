@@ -41,6 +41,7 @@ import { PrismaSeatCounter } from '../enrolment/seat-counter.prisma.js';
 import { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-reader.prisma.js';
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
+import { PrismaClassContactReader } from './class-contact-reader.prisma.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
@@ -72,6 +73,7 @@ export class ClassesController {
     private readonly classEnrolmentsCloser: EnrolmentClassEnrolmentsCloser,
     private readonly classAudienceReader: PrismaClassAudienceReader,
     private readonly myClassesReader: PrismaMyClassesReader,
+    private readonly classContactReader: PrismaClassContactReader,
   ) {}
 
   @Post('batch')
@@ -162,6 +164,7 @@ export class ClassesController {
       this.classRosterReader,
       this.viewerEnrolmentReader,
       this.pendingRequestCounter,
+      this.classContactReader,
     ).execute({ actor: actorOf(user), id });
   }
 
@@ -202,6 +205,7 @@ export class ClassesController {
       this.classRosterReader,
       this.viewerEnrolmentReader,
       this.pendingRequestCounter,
+      this.classContactReader,
     ).execute({ actor, id });
   }
 
@@ -230,6 +234,7 @@ export class ClassesController {
       this.classRosterReader,
       this.viewerEnrolmentReader,
       this.pendingRequestCounter,
+      this.classContactReader,
     ).execute({ actor, id });
   }
 

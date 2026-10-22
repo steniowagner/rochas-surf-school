@@ -225,13 +225,28 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   > (`dist/`, ignored) so the backend sees the new export; the controller's type errors (4 of 5 `GetClass`
   > arguments) are fixed in T-03.
 
-- [ ] **T-03** — Pass the reader to the three `GetClass` constructions in
+- [x] **T-03** — Pass the reader to the three `GetClass` constructions in
   `src/modules/classes/classes.controller.ts`, update `classes.controller.spec.ts`, and add a `contacts`
   describe to `test/classes.e2e-spec.ts` with the ER-01 and ER-02 scenarios (student, instructor and admin
   viewers; shared, hidden, no number, removed user; PUT and cancel answers; the three list endpoints without the
   keys). Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02 · Done when: `npm run test:e2e` passes in `apps/backend`, including the `contacts`
   scenarios.
+  > ✅ 2026-10-21 — `ClassesController` injects `PrismaClassContactReader` and passes it to the three `GetClass`
+  > constructions (GET, PUT, POST cancel); `classes.controller.spec.ts` gives `setup()` a contact reader and checks
+  > that `one` carries a student's number and that edit and cancel read the contacts. New `contacts` describe in
+  > `classes.e2e-spec.ts`: student and instructor viewers see only Sara's shared number and Iara (an admin
+  > teaching it, hidden number) as `role: "admin"` with `null`; an admin also sees the hidden ones, never the
+  > removed student's nor the guest's (guests stay `{ id, name }`); the PUT answer carries the same numbers and
+  > the cancel answer the instructor's (cancelling closes the enrolments, so it has no students); the week,
+  > "mine" and "mine/history" items have no `whatsappNumber`/`role` keys; 401 without a token, 404 for an unknown
+  > id. Files: `apps/backend/src/modules/classes/classes.controller.ts`,
+  > `apps/backend/src/modules/classes/classes.controller.spec.ts`, `apps/backend/test/classes.e2e-spec.ts`,
+  > `apps/backend/test/direct-enrolment.e2e-spec.ts`, `apps/backend/test/enrolment-decisions.e2e-spec.ts`;
+  > verified: `npm run test:e2e` (23 files, 627 passed, `contacts` 5 passed), `npm test` (76 files, 649 passed),
+  > `tsc --noEmit` and `npm run lint` clean (no new warnings). Deviations: two existing e2e assertions that
+  > compared the whole `students` of `GET /classes/:id` with `toEqual` now expect `whatsappNumber: null`; the
+  > existing "answers one class" e2e compares the week item with the details minus the instructors' new fields.
 
 ### Mobile (`apps/mobile`)
 

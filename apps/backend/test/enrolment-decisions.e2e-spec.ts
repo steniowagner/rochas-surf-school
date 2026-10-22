@@ -262,7 +262,7 @@ describe('Enrolment decisions (e2e)', () => {
       expect(await enrolmentOf(id)).toMatchObject({ status: 'approved', decidedAt: NOW });
       const detail = await as(admin.accessToken, http().get(`/classes/${classId}`));
       expect(detail.body.seatsTaken).toBe(1);
-      expect(detail.body.students).toEqual([{ id: student.id, name: 'Ana', photoUrl: null, enrolmentId: id }]);
+      expect(detail.body.students).toEqual([{ id: student.id, name: 'Ana', photoUrl: null, enrolmentId: id, whatsappNumber: null }]);
     });
 
     it('answers each refusal in order and writes nothing', async () => {

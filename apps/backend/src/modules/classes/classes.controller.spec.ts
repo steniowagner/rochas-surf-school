@@ -16,6 +16,7 @@ import type { PrismaSeatCounter } from '../enrolment/seat-counter.prisma.js';
 import type { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-reader.prisma.js';
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
+import type { PrismaClassContactReader } from './class-contact-reader.prisma.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
@@ -77,6 +78,7 @@ function setup() {
   const pendingRequestCounter = { countPendingRequests: vi.fn(async () => 0) };
   const classRosterReader = { findRosters: vi.fn(async () => new Map()) };
   const viewerEnrolmentReader = { findLatest: vi.fn(async () => new Map()) };
+  const classContactReader = { findContacts: vi.fn(async () => new Map()) };
   const classAudienceReader = {
     findClassAudience: vi.fn(async (): Promise<string[]> => []),
     findLocationAudience: vi.fn(async () => []),
@@ -97,6 +99,7 @@ function setup() {
     enrolmentsCloser as unknown as EnrolmentClassEnrolmentsCloser,
     classAudienceReader as unknown as PrismaClassAudienceReader,
     myClassesReader as unknown as PrismaMyClassesReader,
+    classContactReader as unknown as PrismaClassContactReader,
   );
   const body = {
     discipline: 'surf',
@@ -119,6 +122,7 @@ function setup() {
     enrolmentsCloser,
     viewerEnrolmentReader,
     classRosterReader,
+    classContactReader,
     myClassesReader,
     stored,
     location,
@@ -246,7 +250,7 @@ describe('ClassesController', () => {
   });
 
   it("carries the caller's enrolment, the seats and the students read from the enrolments", async () => {
-    const { controller, classViewReader, classRosterReader, viewerEnrolmentReader } = setup();
+    const { controller, classViewReader, classRosterReader, viewerEnrolmentReader, classContactReader } = setup();
     const id = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
     const requestedAt = new Date('2026-10-14T10:00:00.000Z');
     classViewReader.findById.mockResolvedValueOnce({
@@ -266,12 +270,18 @@ describe('ClassesController', () => {
     viewerEnrolmentReader.findLatest.mockResolvedValueOnce(
       new Map([[id, { id: 'e-1', status: 'pending', requestedAt }]]),
     );
+    classContactReader.findContacts.mockResolvedValueOnce(
+      new Map([
+        ['s-1', { id: 's-1', role: 'student', status: 'approved', whatsappNumber: '+5585999999999', whatsappVisible: true }],
+      ]),
+    );
 
     const out = await controller.one(userOf('student'), id);
 
+    expect(classContactReader.findContacts).toHaveBeenCalledWith(['s-1']);
     expect(out).toMatchObject({
       seatsTaken: 2,
-      students: [{ id: 's-1', name: 'Ana', photoUrl: null }],
+      students: [{ id: 's-1', name: 'Ana', photoUrl: null, whatsappNumber: '+5585999999999' }],
       myEnrolment: { id: 'e-1', status: 'pending', requestedAt: requestedAt.toISOString() },
     });
     expect(viewerEnrolmentReader.findLatest).toHaveBeenCalledWith(ADMIN_ID, [id]);
@@ -412,11 +422,12 @@ describe('ClassesController', () => {
     }
 
     it('edits the class and answers the updated class item', async () => {
-      const { controller, classRepository, editBody } = withStoredClass();
+      const { controller, classRepository, classContactReader, editBody } = withStoredClass();
 
       const out = await controller.edit(userOf('admin'), EDITED_ID, editBody as never);
 
       expect(classRepository.update).toHaveBeenCalledTimes(1);
+      expect(classContactReader.findContacts).toHaveBeenCalledTimes(1);
       expect(out).toMatchObject({
         id: EDITED_ID,
         discipline: 'skate',
@@ -498,11 +509,12 @@ describe('ClassesController', () => {
     }
 
     it('cancels the class with the trimmed message and answers the class item', async () => {
-      const { controller, classRepository } = withStoredClass();
+      const { controller, classRepository, classContactReader } = withStoredClass();
 
       const out = await controller.cancel(userOf('admin'), CANCELLED_ID, { message: '  Mar muito grande.  ' });
 
       expect(classRepository.cancel).toHaveBeenCalledWith(CANCELLED_ID, NOW, 'Mar muito grande.');
+      expect(classContactReader.findContacts).toHaveBeenCalledTimes(1);
       expect(out).toMatchObject({
         id: CANCELLED_ID,
         cancelledAt: NOW.toISOString(),

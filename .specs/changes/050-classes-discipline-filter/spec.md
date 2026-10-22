@@ -109,7 +109,7 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   > `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`; verified:
   > `npm run check-types -w @rochas-surf-school/design-tokens` (exit 0, CSS up to date) and
   > `npm run check-types -w @rochas-surf-school/mobile` (exit 0); deviations: none
-- [ ] **T-02** — Create `DisciplineFilter` in `src/modules/classes/components/discipline-filter/`
+- [x] **T-02** — Create `DisciplineFilter` in `src/modules/classes/components/discipline-filter/`
   (`discipline-filter.component.tsx`, `.types.ts`, `index.ts`; a `.hook.ts` only if it holds logic): props
   `value: DisciplineFilterValue` (`"all" | "surf" | "skate"`, exported from `classes.types.ts`) and
   `onChange(value)`; its own open state; the backdrop, the options and the button as in the Context and D-04–D-06,
@@ -120,6 +120,29 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
   and closes" for each option. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01 · Done when: `npx jest src/modules/classes/components/discipline-filter` (from `apps/mobile`)
   passes with every line of the component covered.
+  > ✅ 2026-10-22 — `DisciplineFilter` (`value`, `onChange`, its own `isOpen` state): closed, only the 56×56 `grape`
+  > button (`h-14 w-14 rounded-card`, `shadowStyle("fab")`, Ionicons `filter`, label "Filter by sport"); open, a
+  > `bg-scrim` `Pressable` backdrop over the screen and the three label-only options above the button (`h-11 px-4
+  > rounded-control`, `surface` + `line` border, or `grape` + `text-on-color` when selected, `shadowStyle("menuOption")`,
+  > `accessibilityRole="button"`, `accessibilityState.selected`), the button showing `close` rotated −90° and labelled
+  > "Close filter". Choosing an option closes and calls `onChange`; the button or the backdrop close without it.
+  > `DisciplineFilterValue` (`"all" | ClassDiscipline`) is in `classes.types.ts`; the D-05 copy under
+  > `classesWeek.disciplineFilter` (`all`, `surf`, `skate`, `open`, `close`) in the three languages. Files:
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.types.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/index.ts`,
+  > `apps/mobile/src/modules/classes/components/discipline-filter/discipline-filter.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`; verified:
+  > `npx jest src/modules/classes/components/discipline-filter --coverage` (7 passed: "renders only the closed button",
+  > "opens the three options", "selects All the first time", "closes without changing the filter", "calls onChange and
+  > closes when All / Surf / Skate is chosen"; the component 100% statements, branches, functions and lines), `npx tsc
+  > --noEmit` and `npx eslint` on the files (exit 0); deviations: no `.hook.ts` — one `useState` and two inline handlers,
+  > which `react.md` keeps in the component; the label uses the existing `ds-text-pill` type style (Nunito 12.5
+  > extra-bold, uppercase, 0.06em) since no token is 12 / 0.1em and D-04 adds none; the icon is `iconSizes.bar` (22,
+  > design 24); the options and button sit `pr-screen` (20, design 18) and `pb-4` (16, design 18) above the bottom
+  > inset, which a `SafeAreaProvider` of its own measures so that on iOS it includes the native tab bar the screen
+  > extends under; the −90° rotation is applied without the design's transition.
 - [ ] **T-03** — Wire the filter into `src/modules/classes/screens/classes-week.screen.hook.ts` (the D-03 state,
   `dayItems` and `markedDates` filtered by it, the setter returned) and `classes-week.screen.tsx` (render
   `DisciplineFilter` over the list in every state, the D-06 bottom padding). Add to `classes-week.screen.test.tsx`

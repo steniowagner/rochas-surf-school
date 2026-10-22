@@ -3,10 +3,11 @@ id: "050"
 slug: classes-discipline-filter
 title: Filter the week's classes by sport
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-22
 started: 2026-10-22
 base_commit: e8693a6f03a1dedbe9d39565e2cffd2aeeeebd52
+reviewed_commit: b4c6dda291b6078a3264b910f3b23d178203a0b9
 fronts: [mobile]
 depends_on: []
 ---
@@ -258,3 +259,62 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-22 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile
+  --filter=@rochas-surf-school/design-tokens --force`, 8/8, uncached; the tokens' check confirms `tokens.css` is
+  up to date)
+- related tests ✅ apps/mobile jest 69 suites / 1128 tests · apps/web vitest 22 tests (packages/design-tokens has no
+  runner)
+- coverage of the changed lines ✅ COVERAGE OK — 8 files measured, every changed line covered; no coverage-ignore
+  comments in the diff
+- e2e ✅ E2E PASSED — apps/web Playwright 22 passed (imports the tokens); the backend is not affected
+- iOS simulator (iPhone 18 Pro, iOS 27, the running dev build, pt-BR, signed in as an admin): the journeys of ER-01
+  and ER-02 on the Aulas tab, in light and dark themes
+
+**Expected Results**
+
+- ER-01 ✅ — the tests "opens the three options", "closes without changing the filter", "shows the filter button for
+  every role" (student, instructor, admin props), "shows the filter button while loading, on an error and on an
+  empty day" and "pads the list's bottom for the button and its gap" pass and assert the labels, the selected
+  state, the label switch to "Close filter", the backdrop, and `paddingBottom` 24 + 56 + 16; "renders only the
+  closed button" checks that nothing else renders while closed. Simulator: the grape button sits above the floating
+  tab bar; pressing it dims the screen with the `scrim` and stacks "TODAS" (selected, `grape`) · "SURF" ·
+  "SKATE", labels only, with the "x" on the button; the backdrop closes the options and keeps the filter. Dark
+  theme draws the darker scrim, the `surface` / `line` options and the dark `grape`.
+- ER-02 ✅ — "lists only the chosen sport", "marks only the days with the chosen sport", "keeps the filter across
+  days and weeks" (another day, the next week, the month and back, a pull-to-refresh), "is back to All when the
+  screen mounts again", "shows the empty day when no class matches" (admin, "Create class" still offered) and
+  "filters without a request" (the `fetch` count is unchanged) pass. Simulator: "SKATE" on the all-surf week of
+  19–25 Oct removed every dot and showed the empty day with "Criar aula" today; on the previous week only Saturday
+  17 stayed marked, with its skate card alone; "TODAS" brought back its three cards and the dots on 16, 17 and 18;
+  "SURF" on Saturday 17 hid the skate card. After the app relaunched, the filter was back to "TODAS".
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Decisions: D-01 (no API change; the filter runs over the loaded week and the visible weeks), D-02 (no prop
+  gates the button), D-03 (`useState<DisciplineFilterValue>("all")` in `useClassesWeekScreen`), D-04 (token values
+  match), D-05 (copy in the three languages) and D-06 (`TouchableOpacity` button and options, `Pressable` backdrop,
+  `accessibilityRole` / `accessibilityState`, the extra bottom padding) all hold. Nothing out of scope was built.
+- The opening animation of T-05 (backdrop fade, staggered rise, the button's turn) couldn't be watched frame by
+  frame: the simulator's screenshots lag the device by 1–2 s, so they only show the settled open and closed states.
+  Those states match, and the tests assert the `entering` builders and the −90° / 0° turn.
+- Seen again, not caused by this spec: the dev build aborted at 20:19:02 right after "Escuro" was chosen in the Tema
+  sheet (`~/Library/Logs/DiagnosticReports/RochasSurfSchool-2026-10-22-201907.ips`). It is the same assertion T-04
+  recorded ("Attempt to unmount a view which has a different index"), on the same view: parent a 362×45.7 row at
+  x 20, child the 19 pt glyph at its right edge, the `ThemeSheet` row's checkmark. Reports at 20:03 and 20:04 show the
+  same stack. `ThemeSheet` is not in this spec's diff and `DisciplineFilter` is not in that view tree. Switching back
+  to "Claro" right after didn't crash.
+- The scrim covers the screen's content but not the native tab bar, which `NativeTabs` draws outside the screen's
+  view. That fits ER-01 ("a backdrop covers the screen").
+- `DISCIPLINE_FILTER_CLEARANCE` (56 + 16) repeats the button's `h-14` and `pb-4` as numbers; its comment says so,
+  and the screen test pins the sum. If either class changes, the constant must change with it.
+- Memory Impact: `technical-context.md` could also record the T-05 motion (Reanimated `entering` builders in
+  `discipline-filter.constants.ts`, the button's turn in `useDisciplineFilter`), so later floating menus can reuse it.

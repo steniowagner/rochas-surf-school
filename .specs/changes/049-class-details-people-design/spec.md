@@ -406,9 +406,30 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 
 ### Verification
 
-- [ ] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Follow the user
+- [x] **T-10** — Run every command in the Verification Plan from the repo root; all pass. Follow the user
   journeys on the iOS simulator and record what was seen. Record the output summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the journeys are recorded.
+  > ✅ 2026-10-22 — automated, from the repo root: `node .specs/scripts/run-related-tests.mjs 049` → RELATED TESTS
+  > PASSED (apps/backend, apps/mobile 75 suites / 1174 tests, modules/classes 524, modules/enrolment 291);
+  > `node .specs/scripts/check-coverage.mjs 049` → COVERAGE OK (every changed line covered in 18 files);
+  > `node .specs/scripts/run-e2e.mjs 049` → E2E PASSED (apps/backend, 23 files, 627 tests, `contacts` included);
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/backend
+  > --filter=@rochas-surf-school/mobile` → 27 tasks successful, 0 errors (the backend's 10 lint warnings are the
+  > existing ones in untouched e2e lines). iOS simulator (iPhone 18 Pro, iOS 27, the dev backend and Metro already
+  > running, signed in as the student Ana Silva, pt-BR, light theme), on a surf class with Dev Admin teaching,
+  > Ana as its one student and notes: "A aula" opens with the `dim` "INSTRUTOR" header and the Dev Admin pill;
+  > tapping it opened the sheet with "ADMIN" and "Conversar por WhatsApp · Número não compartilhado." (his number
+  > is hidden); "Fechar" closed it; the list expanded to Ana's row (avatar, name, chevron), and tapping it opened the
+  > sheet with "ALUNO" and her number with the chat arrow; "Regras" showed the two rows with icon tiles, the
+  > uppercase titles, "Cancelamento até sex, 23 out · 00:00" and the chevrons, and "Regras da escola" with its title
+  > only, which is right for this database (it has 0 rules, D-07); "Notas" showed the card with the note icon.
+  > Not driven, for you to check on the simulator: (1) as an admin, on a class that hasn't started and has a
+  > trial guest and a student whose number is hidden, expand the list: the guest shows the person icon, the name
+  > and "Trial", and does nothing when tapped; "Retirar" sits where the chevron was and opens only the take-out
+  > sheet; tapping the student opens the sheet with the hidden number visible; (2) as an instructor of a class,
+  > your pill reads "Você" with a `lagoon` border; (3) on a database with school rules, the second row reads "N
+  > regras para todos os alunos"; (4) the dark theme (the app's own theme setting kept it light when the
+  > simulator was switched to dark, and I left your settings alone). Deviations: none.
 
 ## Verification Plan
 

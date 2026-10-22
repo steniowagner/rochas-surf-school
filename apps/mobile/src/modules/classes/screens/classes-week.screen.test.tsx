@@ -24,6 +24,16 @@ jest.mock("expo-router", () => ({
   useFocusEffect: (effect: () => void) => {
     focusEffect = effect;
   },
+  // Renders the screen's header title and right button so the tests can see them.
+  Stack: {
+    Screen: ({ options }: any) => (
+      <>
+        {options.unstable_headerLeftItems?.({})[0].element ??
+          options.headerTitle()}
+        {options.headerRight?.()}
+      </>
+    ),
+  },
 }));
 
 jest.mock("@/services/api", () => {
@@ -127,7 +137,7 @@ describe("ClassesWeekScreen", () => {
   it("opens on the week view with today selected", async () => {
     await renderScreen();
 
-    expect(screen.getByRole("header", { name: "Classes" })).toBeOnTheScreen();
+    expect(screen.getByText("CLASSES")).toBeOnTheScreen();
     expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Show the month" })).toBeOnTheScreen();
     expect(screen.queryByText("This week")).not.toBeOnTheScreen();
@@ -145,7 +155,7 @@ describe("ClassesWeekScreen", () => {
     await renderScreen({ titleKey: "tabs.agenda" });
     await screen.findByText("16:00 – 17:00");
 
-    expect(screen.getByRole("header", { name: "Schedule" })).toBeOnTheScreen();
+    expect(screen.getByText("SCHEDULE")).toBeOnTheScreen();
   });
 
   it("shows each card's state from the phone's clock", async () => {

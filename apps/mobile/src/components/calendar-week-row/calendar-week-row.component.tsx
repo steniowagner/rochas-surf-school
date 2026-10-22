@@ -34,7 +34,7 @@ export function CalendarWeekRow({
           >
             <View
               testID={`calendar-day-${day.date}-background`}
-              className={`items-center justify-center gap-1 rounded-card py-2 ${day.selected ? "bg-grape" : ""}`}
+              className={`items-center justify-center gap-1 rounded-control py-2 ${day.selected ? "bg-grape" : ""}`}
             >
               <Text
                 className={`ds-text-chip ${day.selected ? "text-on-color" : "text-ink-2"}`}

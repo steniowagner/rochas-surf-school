@@ -9,7 +9,8 @@ import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
-import StudentRoute from "@/app/(private)/student/(tabs)/index";
+import AgendaLayout from "@/app/(private)/student/(tabs)/(agenda)/_layout";
+import StudentRoute from "@/app/(private)/student/(tabs)/(agenda)/index";
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
 import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
 import RemovedRoute from "@/app/(offboarding)/offboarding/removed";
@@ -99,7 +100,8 @@ const routeTree = {
   "(offboarding)/offboarding/denied": DeniedRoute,
   "(offboarding)/offboarding/removed": RemovedRoute,
   "(private)/student/_layout": StudentLayout,
-  "(private)/student/(tabs)/index": StudentRoute,
+  "(private)/student/(tabs)/(agenda)/_layout": AgendaLayout,
+  "(private)/student/(tabs)/(agenda)/index": StudentRoute,
   "(private)/instructor/_layout": InstructorLayout,
   "(private)/instructor/(tabs)/index": InstructorRoute,
   "(private)/admin/_layout": AdminLayout,
@@ -234,7 +236,7 @@ describe("RootNavigator", () => {
     );
 
     it.each([
-      { role: "student", path: routes.student.home, name: "Schedule" },
+      { role: "student", path: routes.student.home, name: "SCHEDULE" },
       { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
       { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
@@ -311,7 +313,7 @@ describe("RootNavigator", () => {
     });
 
     it.each([
-      { role: "student", path: routes.student.home, name: "Schedule" },
+      { role: "student", path: routes.student.home, name: "SCHEDULE" },
       { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
       { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
@@ -428,7 +430,7 @@ describe("RootNavigator", () => {
         state: "approved student",
         user: onboardedAccount("student"),
         path: routes.student.home,
-        name: "Schedule",
+        name: "SCHEDULE",
       },
       {
         state: "approved instructor",
@@ -521,7 +523,7 @@ describe("RootNavigator", () => {
 
       await navigate(path);
 
-      expectFlowScreen(routes.student.home, "Schedule");
+      expectFlowScreen(routes.student.home, "SCHEDULE");
     });
 
     it("can't go back to auth after signing in", async () => {
@@ -542,7 +544,7 @@ describe("RootNavigator", () => {
           tokens: TOKENS,
         }),
       );
-      expectFlowScreen(routes.student.home, "Schedule");
+      expectFlowScreen(routes.student.home, "SCHEDULE");
 
       // The auth screens left the history with their guard, so there is nothing to go back to.
       expect(router.canGoBack()).toBe(false);

@@ -4,7 +4,8 @@ import { router, Stack } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
 import AdminTabsLayout from "@/app/(private)/admin/(tabs)/_layout";
-import ClassesRoute from "@/app/(private)/admin/(tabs)/classes";
+import ClassesLayout from "@/app/(private)/admin/(tabs)/classes/_layout";
+import ClassesRoute from "@/app/(private)/admin/(tabs)/classes/index";
 import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import ProfileRoute from "@/app/(private)/admin/(tabs)/profile";
 import AdminLayout from "@/app/(private)/admin/_layout";
@@ -88,7 +89,8 @@ const routeTree = {
   "(private)/admin/_layout": AdminLayout,
   "(private)/admin/(tabs)/_layout": AdminTabsLayout,
   "(private)/admin/(tabs)/index": AdminRoute,
-  "(private)/admin/(tabs)/classes": ClassesRoute,
+  "(private)/admin/(tabs)/classes/_layout": ClassesLayout,
+  "(private)/admin/(tabs)/classes/index": ClassesRoute,
   "(private)/admin/(tabs)/profile": ProfileRoute,
   "(private)/admin/cancellation-rules": AdminCancellationRulesRoute,
   "(private)/admin/new-class": AdminNewClassRoute,

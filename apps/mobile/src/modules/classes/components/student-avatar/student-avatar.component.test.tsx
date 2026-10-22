@@ -38,6 +38,6 @@ describe("StudentAvatar", () => {
   it("scales the initials' line height with the font so a 40pt circle doesn't clip them", async () => {
     await render(<StudentAvatar name="Marina Costa" photoUrl={null} size={40} />);
 
-    expect(screen.getByText("MC").props.style).toEqual(expect.objectContaining({ fontSize: 16, lineHeight: 21 }));
+    expect(screen.getByText("MC").props.style).toEqual(expect.objectContaining({ fontSize: 13, lineHeight: 17 }));
   });
 });

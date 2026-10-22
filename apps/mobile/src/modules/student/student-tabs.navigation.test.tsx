@@ -4,8 +4,10 @@ import { router, Stack } from "expo-router";
 import { renderRouter, screen } from "expo-router/testing-library";
 
 import StudentTabsLayout from "@/app/(private)/student/(tabs)/_layout";
-import StudentRoute from "@/app/(private)/student/(tabs)/index";
-import MyClassesRoute from "@/app/(private)/student/(tabs)/my-classes";
+import AgendaLayout from "@/app/(private)/student/(tabs)/(agenda)/_layout";
+import StudentRoute from "@/app/(private)/student/(tabs)/(agenda)/index";
+import MyClassesLayout from "@/app/(private)/student/(tabs)/my-classes/_layout";
+import MyClassesRoute from "@/app/(private)/student/(tabs)/my-classes/index";
 import ProfileRoute from "@/app/(private)/student/(tabs)/profile";
 import SchoolLayout from "@/app/(private)/student/(tabs)/school/_layout";
 import SchoolRoute from "@/app/(private)/student/(tabs)/school/index";
@@ -57,8 +59,10 @@ const routeTree = {
   ),
   "(private)/student/_layout": StudentLayout,
   "(private)/student/(tabs)/_layout": StudentTabsLayout,
-  "(private)/student/(tabs)/index": StudentRoute,
-  "(private)/student/(tabs)/my-classes": MyClassesRoute,
+  "(private)/student/(tabs)/(agenda)/_layout": AgendaLayout,
+  "(private)/student/(tabs)/(agenda)/index": StudentRoute,
+  "(private)/student/(tabs)/my-classes/_layout": MyClassesLayout,
+  "(private)/student/(tabs)/my-classes/index": MyClassesRoute,
   "(private)/student/(tabs)/school/_layout": SchoolLayout,
   "(private)/student/(tabs)/school/index": SchoolRoute,
   "(private)/student/(tabs)/profile": ProfileRoute,
@@ -148,7 +152,7 @@ describe("student tabs", () => {
     ]);
     expect(app.getPathname()).toBe("/student");
     expect(selectedTabLabel()).toBe("Schedule");
-    expect(screen.getByRole("header", { name: "Schedule" })).toBeOnTheScreen();
+    expect(screen.getByText("SCHEDULE")).toBeOnTheScreen();
     expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.student.myClasses));

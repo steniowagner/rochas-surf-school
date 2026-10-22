@@ -9,7 +9,8 @@ import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
-import StudentRoute from "@/app/(private)/student/(tabs)/index";
+import AgendaLayout from "@/app/(private)/student/(tabs)/(agenda)/_layout";
+import StudentRoute from "@/app/(private)/student/(tabs)/(agenda)/index";
 import OnboardingLayout from "@/app/(onboarding)/onboarding/_layout";
 import OnboardingRoute from "@/app/(onboarding)/onboarding/index";
 import SchoolRulesRoute from "@/app/(onboarding)/onboarding/school-rules";
@@ -79,7 +80,8 @@ const routeTree = {
   "(onboarding)/onboarding/index": OnboardingRoute,
   "(onboarding)/onboarding/school-rules": SchoolRulesRoute,
   "(private)/student/_layout": StudentLayout,
-  "(private)/student/(tabs)/index": StudentRoute,
+  "(private)/student/(tabs)/(agenda)/_layout": AgendaLayout,
+  "(private)/student/(tabs)/(agenda)/index": StudentRoute,
   "(private)/instructor/_layout": InstructorLayout,
   "(private)/instructor/(tabs)/index": InstructorRoute,
   "(private)/admin/_layout": AdminLayout,
@@ -100,7 +102,7 @@ beforeEach(() => {
 
 describe("SchoolRulesScreen", () => {
   it.each([
-    { role: "student", path: routes.student.home, name: "Schedule" },
+    { role: "student", path: routes.student.home, name: "SCHEDULE" },
     { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
     { role: "admin", path: routes.admin.home, name: "School tools" },
   ])(

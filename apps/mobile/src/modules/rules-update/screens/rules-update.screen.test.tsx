@@ -14,7 +14,8 @@ import AdminRoute from "@/app/(private)/admin/(tabs)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
-import StudentRoute from "@/app/(private)/student/(tabs)/index";
+import AgendaLayout from "@/app/(private)/student/(tabs)/(agenda)/_layout";
+import StudentRoute from "@/app/(private)/student/(tabs)/(agenda)/index";
 import RulesUpdateLayout from "@/app/(rules-update)/rules-update/_layout";
 import RulesUpdateRoute from "@/app/(rules-update)/rules-update/index";
 import Index from "@/app/index";
@@ -326,7 +327,8 @@ describe("RulesUpdateScreen on its route", () => {
     "(rules-update)/rules-update/_layout": RulesUpdateLayout,
     "(rules-update)/rules-update/index": RulesUpdateRoute,
     "(private)/student/_layout": StudentLayout,
-    "(private)/student/(tabs)/index": StudentRoute,
+    "(private)/student/(tabs)/(agenda)/_layout": AgendaLayout,
+    "(private)/student/(tabs)/(agenda)/index": StudentRoute,
     "(private)/instructor/_layout": InstructorLayout,
     "(private)/instructor/(tabs)/index": InstructorRoute,
     "(private)/admin/_layout": AdminLayout,
@@ -334,7 +336,7 @@ describe("RulesUpdateScreen on its route", () => {
   };
 
   it.each([
-    { role: "student", path: routes.student.home, name: "Schedule" },
+    { role: "student", path: routes.student.home, name: "SCHEDULE" },
     { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
     { role: "admin", path: routes.admin.home, name: "School tools" },
   ])(

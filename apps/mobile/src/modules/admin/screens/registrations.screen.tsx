@@ -144,10 +144,8 @@ export function RegistrationsScreen() {
         // A registration is always a pending student with no WhatsApp number yet.
         person={
           selected && {
-            id: selected.id,
             name: selected.name,
             role: "student",
-            createdAt: selected.createdAt,
             whatsappNumber: null,
           }
         }

@@ -250,13 +250,28 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Add the class details answer type in `src/modules/classes/classes.types.ts` (students with
+- [x] **T-04** — Add the class details answer type in `src/modules/classes/classes.types.ts` (students with
   `whatsappNumber`, instructors with `role` and `whatsappNumber`) and use it in `hooks/use-class.hook.ts`,
   `use-edit-class.hook.ts` and `use-cancel-class.hook.ts` and the screen hook's `ClassDetailsInstructor`; narrow
   `PersonSheet`'s `person` prop (D-04) in `src/modules/people/components/person-sheet/person-sheet.types.ts`,
   updating test fixtures as needed.
   Covers: enabling · Done when: `npx turbo run check-types --filter=@rochas-surf-school/mobile` exits 0 and
   `npx jest src/modules/people src/modules/classes/hooks` passes.
+  > ✅ 2026-10-21 — `classes.types.ts` gains `ClassDetailsTeacher` (instructor + `role` + `whatsappNumber`),
+  > `ClassDetailsStudent` (student + `whatsappNumber`) and `ClassDetails` (`ClassItem` with those lists, so it still
+  > fits where a `ClassItem` is expected); `useClass`, `useEditClass` and `useCancelClass` answer `ClassDetails`;
+  > the screen's `ClassDetailsInstructor` is `ClassDetailsTeacher` + `isViewer`; `PersonSheet`'s `person` is
+  > `Pick<Person, "name" | "role" | "whatsappNumber"> | null` (D-04). Files:
+  > `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/hooks/use-class.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-edit-class.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-cancel-class.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.types.ts`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.types.ts`,
+  > `apps/mobile/src/modules/admin/screens/registrations.screen.tsx`; verified: `npx turbo run check-types
+  > --filter=@rochas-surf-school/mobile` (5 tasks successful), `npx jest src/modules/people
+  > src/modules/classes/hooks src/modules/admin/screens/registrations` (31 suites, 131 passed). Deviations: the
+  > registrations screen built its sheet person as an object literal with `id` and `createdAt`, which the narrowed
+  > prop rejects, so those two unused fields were dropped; no test fixture needed a change.
 
 - [ ] **T-05** — Rebuild the instructors part of `ClassPeople` (`src/modules/classes/components/class-people/`):
   the `dim` header with the label and the pills (ER-03), each pill a new component in its own folder

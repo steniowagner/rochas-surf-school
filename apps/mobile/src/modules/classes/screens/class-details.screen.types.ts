@@ -1,6 +1,6 @@
-export type ClassDetailsInstructor = {
-  id: string;
-  name: string;
+import type { ClassDetailsTeacher } from "../classes.types";
+
+export type ClassDetailsInstructor = ClassDetailsTeacher & {
   /** The signed-in viewer teaches the class: shown as "You". */
   isViewer: boolean;
 };

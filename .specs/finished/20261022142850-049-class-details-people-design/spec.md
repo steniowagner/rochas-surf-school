@@ -2,13 +2,14 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: accepted
+status: finished
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
 reviewed_commit: 91b8590c1aaf2a0a0259cf2f6dbd23264bbe6cde
 fronts: [classes, backend, mobile]
 depends_on: []
+finished: 2026-10-22
 ---
 
 # 049 — Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet

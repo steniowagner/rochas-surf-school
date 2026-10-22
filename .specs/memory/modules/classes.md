@@ -102,6 +102,11 @@ The classes themselves, and how a batch becomes classes.
 - **Class roster** (not stored): the seats taken, the approved students (id, name, photo or none, and the id of
   the approved enrolment, which an admin can take them out of) and the guests (id and name, the name empty once
   erased) of a class, read for many classes at once, from Enrolment.
+- **Class contacts** (not stored): for the students and instructors of one class, each person's role, status,
+  WhatsApp number and whether they share it, from the accounts. Reading one class gives each student and
+  instructor their number only when they are approved, have one, and share it or the reader is an admin (the
+  People directory's rule), and each instructor their role (instructor or admin); the week list and a student's
+  own classes never carry either.
 - **Pending requests** (not stored): how many enrolment requests of a class still wait for an answer, from
   Enrolment. Reading one class gives the count to an admin and none to every other role; the week list never
   carries it.
@@ -304,7 +309,8 @@ The account's status is checked before its role (`user.status.notApproved`, then
 
 - **An approved account of any role** — lists the active locations, lists the classes of any week, past or future,
   reads any class with its notes, its cancellation deadline, its seats taken, its approved students, its guests
-  as "Trial" (names only for admins and the class's instructors) and their own
+  as "Trial" (names only for admins and the class's instructors), its instructors' roles, the WhatsApp numbers of
+  its students and instructors who share them (every number for an admin) and their own
   latest enrolment in it, and reads both cancellation rules.
 - **An approved student** — lists their own classes: those that haven't ended where they have any enrolment
   (cancelled ones included), each with their latest enrolment, and, page by page, the classes they took — ended,
@@ -328,7 +334,8 @@ The account's status is checked before its role (`user.status.notApproved`, then
 ## Boundaries
 
 It knows people only by their ids: whether an id is an approved instructor or admin, and the names shown with a
-class, come through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
+class, and the role, status and WhatsApp number of a class's people (read only for one class's details), come
+through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
 status names. It doesn't send notifications itself: it hands the instructors and the class's details to two
 contracts that [Notifications](notifications.md) fulfils (assignments — added and removed — and class changes:
 edits, cancellations and deletions), plus a third for the classes left without an instructor and a fourth for
@@ -354,29 +361,32 @@ built from the module's state rule; the classes a person teaches aren't marked. 
 occupancy bar with "N/M vagas" (red when full, sun above 80%, otherwise the discipline's colour) and a "Sem vagas"
 chip on a full class that hasn't started, and a footer with up to 4 student avatars, "+N" for the other seats
 taken (guests included) and "Ainda sem alunos" / "N alunos confirmados", or "N alunos presentes" once finished; a
-finished card has no bar and a cancelled one neither bar nor footer. The details show "A aula" — the instructors,
-the students row (up to 5 avatars, opening the list of every student) and "Máx. N alunos · X vagas livres" (or
-"esgotado"), hidden once finished or cancelled —, a "Turma cheia" banner on a full class that hasn't started, a
-"Regras" group (the cancellation row with "Cancelamento até …" or "Ler a regra", opening the rules sheet, and the
-school rules; not on a cancelled class) and, for instructors, a note that the school makes the changes (a class
+finished card has no bar and a cancelled one neither bar nor footer. The details show "A aula" — with "Máx. N
+alunos · X vagas livres" (or "esgotado") at the right of the label, hidden once finished or cancelled; the
+instructors as pills and the students row (up to 5 avatars, students then guests, opening the list of every
+student and guest); an instructor's pill and a student's row open the People directory's person sheet, whose
+WhatsApp row follows the class's contacts, while guests open nothing —, a "Turma cheia" banner on a full class that
+hasn't started, a "Regras" card (the "Cancelamento" row with "Até …" or "Ler a regra", opening the rules sheet, and
+"Regras da escola" with how many rules the school has; not on a cancelled class), the notes in a card, the "Onde e
+como" card and, for instructors, a note that the school makes the changes (a class
 they teach) or that they read it only (one they don't). A person without a photo shows their initials. A cancelled class shows "Cancelada" with its time struck through on its card and one "Aula
 cancelada" banner with its message on its details. Admins reach a class's tools from a round button on its
-details (hidden once it has finished or is cancelled): "Editar aula" (one day, one time range, the other Nova
-aula sections; only the instructors once it has started), "Avisar alunos e instrutores" (not doing anything yet)
-and "Cancelar aula" (a confirmation with the optional message), plus "Excluir aula" while the class hasn't
-started (a confirmation; when the class turns out not to be empty, a "Não dá para excluir" variant that offers
-"Cancelar aula" instead). A class with no instructor says "Sem instrutor
+details (hidden once it has finished or is cancelled), four cards: "Editar aula" (one day, one time range, the other Nova
+aula sections; only the instructors once it has started), "Enviar mensagem" (with how many people it would reach;
+not doing anything yet), "Cancelar aula" (a confirmation with the optional message) and "Apagar aula", disabled
+once the class has started or while anybody holds a seat (a confirmation; when the class turns out not to be
+empty, a "Não dá para excluir" variant that offers "Cancelar aula" instead). A class with no instructor says "Sem instrutor
 atribuído" on its details for everyone; while it hasn't started, admins also see a "Sem instrutor" chip on the
 card and a banner on the details that opens "Editar aula". Admins edit the cancellation rules from a screen
 reached from their home; everyone reads them in a sheet from the Profile. A class without a deadline shows
 admins a "Sem prazo" chip on its card and a "Sem prazo de cancelamento" banner on its details that opens the rules
-screen; a class with one shows everyone "Cancelamento até …" on its details. The student's request button, its
+screen; a class with one shows everyone its deadline in the "Cancelamento" row of its details. The student's request button, its
 sheet and the enrolment banners and card chip are Enrolment's (on the student's details, Agenda and "Minhas aulas"), and so
 are the "Cancelar inscrição" button and its sheet and the deadline notes with "Falar com a escola" (spec 043). On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
 mode opens a location to edit it; the location sheet searches addresses as the admin types, places the point on a
 small map, offers to tell the instructors when upcoming classes use it, and removes it after a confirmation; a
 class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
-has a point shows everyone a small map with "Direções" on its details. "My classes" for instructors and admins, ratings and photos come with
+has a point shows everyone a small map across the top of the "Onde e como" card, with "Direções" beside the place. "My classes" for instructors and admins, ratings and photos come with
 their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
@@ -464,3 +474,9 @@ which stops that account from being erased while the link exists — a decision 
   enrolment approved, newest first; `class.page.invalid` / `class.perPage.invalid`); other roles get
   `enrolment.role.notStudent`; the ids come through a new contract answered by Enrolment, and the classes are read
   as the week's cards.
+- `049-class-details-people-design` — reading one class (and the answers of an edit and a cancellation) gives each
+  student and instructor their WhatsApp number by the People directory's rule, and each instructor their role,
+  through a new contract the backend answers from the accounts; the week list and a student's own classes don't
+  carry them; in the app, the details' "A aula" (capacity beside the label, instructor pills, student and guest
+  rows), "Regras", "Notas" and "Onde e como" cards follow the design, instructors and students open the person
+  sheet, and the class tools are four cards with "Apagar aula" disabled once started or while anybody holds a seat.

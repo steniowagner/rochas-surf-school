@@ -135,7 +135,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
     cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
     (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider,my-classes-reader.provider}.ts`
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider,my-classes-reader.provider,class-contact-reader.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
     when asked), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
@@ -307,6 +307,8 @@ src/
                                 # ReleaseUpcomingClasses (errors propagate)
     teacher-lookup.prisma.ts    # PrismaTeacherLookup (id, role and status of the given users)
     class-view-reader.prisma.ts # PrismaClassViewReader (one query per read, with the location and instructors' names)
+    class-contact-reader.prisma.ts  # PrismaClassContactReader (spec 049: role, status and WhatsApp number of the
+                                # given users, for GetClass only)
     system.clock.ts             # SystemClockProvider of the module (the e2e suite overrides it)
     {locations,classes,cancellation-rules}.integration.http  # manual REST Client requests
   modules/enrolment/            # spec 041; never imports ClassesModule (ClassesModule imports it)
@@ -504,9 +506,9 @@ src/
                                 # states, pull-to-refresh, the admin's entry points, refetching invalidated weeks
                                 # on focus); the Agenda and Aulas tabs
     screens/class-details.screen.tsx  # ClassDetailsScreen + hook (one class by the route's id, banners — the
-                                # cancelled one with its message, "Turma cheia" —, the "A aula" group, the
-                                # instructors' read-only note, the "Regras" rows and the cancellation rules
-                                # sheet, the student's request footer (with the deadline note and
+                                # cancelled one with its message, "Turma cheia" —, the "A aula" group and the
+                                # people's PersonSheet, the instructors' read-only note, the "Regras" card with the
+                                # school-rules count and the cancellation rules sheet, the "Notas" and "Onde e como" cards, the student's request footer (with the deadline note and
                                 # ContactSchoolButton once a seat can't be cancelled), status banner and sheets
                                 # with canEnrol,
                                 # the admin's tools button with canEdit,
@@ -515,7 +517,7 @@ src/
     screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
                                 # changes, single day and time, started mode, states — a cancelled class shows
                                 # only a message —, submit and its errors)
-    classes.types.ts            # ClassLocation (with the point and upcomingClasses), MapPoint, Teacher, NewClassForm, BatchRequest, EditClassRequest, ClassItem,
+    classes.types.ts            # ClassLocation (with the point and upcomingClasses), MapPoint, Teacher, NewClassForm, BatchRequest, EditClassRequest, ClassItem, ClassDetails (the one-class answer, with numbers),
                                 # WeekClasses and the answers (mirror the API)
     components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
                                 # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
@@ -523,11 +525,15 @@ src/
                                 # location-picker (with the "Gerir" mode), location-sheet ("Novo local" / "Editar
                                 # local"), address-search-field (Endereço and its suggestions), location-map-picker
                                 # (the sheet's map), archive-location-sheet ("Remover local?"), location-map-preview
-                                # (the details' map and "Direções"), capacity-stepper, instructor-picker, class-card
+                                # (the details' fixed map), class-location-card (the details' "Onde e como": map,
+                                # place and "Direções"), capacity-stepper, instructor-picker, class-card
                                 # (occupancy bar, "Sem vagas" or the student's enrolment chip, students footer), class-people (the details' "A aula":
-                                # instructors, students, guests with "Trial", the free seats and "inclui N trial"), student-avatar (photo or initials),
-                                # class-tools-sheet (the admin's edit / notify / cancel / delete tools of one
-                                # class), cancel-class-sheet (the cancel confirmation with its optional message),
+                                # the capacity line beside the label, instructor pills, stacked seats, the list), instructor-pill,
+                                # class-student-row (opens the person sheet; "Retirar"), class-guest-row (not pressable, "Trial"),
+                                # guest-avatar (person icon on sand), student-avatar (photo or initials),
+                                # class-rule-row (a "Regras" row: icon tile, title, value, chevron),
+                                # class-tools-sheet (the admin's four tool cards of one class), class-tool-card
+                                # (icon tile, title, subtitle; danger tone, disabled), cancel-class-sheet (the cancel confirmation with its optional message),
                                 # delete-class-sheet (the delete confirmation and its "can't delete" variant),
                                 # guests-warning (spec 045: the admin's "N alunos trial …" note on Editar aula and
                                 # the cancel sheet)

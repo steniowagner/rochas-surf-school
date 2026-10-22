@@ -162,8 +162,8 @@ Listed in the order people meet them.
   the backend computes the exact instant (in Fortaleza time) and caps it at the start. A background job works
   out the classes without one every minute, retrying a failed class after 1, 2, 4… up to 60 minutes; an edit
   that changes a detail the model reads (not only the instructors) clears it, and so does a rule change. A
-  discipline without a rule gets no deadline and nothing is sent. Every role sees "Cancelamento até <dia, data
-  · hora>" on a class's details; admins see the "Sem prazo" flag. As built (spec 043): a student cancels an
+  discipline without a rule gets no deadline and nothing is sent. Every role sees the "Cancelamento" row reading
+  "Até <dia, data · hora>" on a class's details (spec 049); admins see the "Sem prazo" flag. As built (spec 043): a student cancels an
   approved seat while it is still before the deadline (at the deadline it is refused); after it, or while the
   class has none, the app tells them to contact the school and offers the school's WhatsApp.
 - **Enrolment** (`enrolment`): a student's place, or attempt at a place, in one class. A student **requests**
@@ -259,7 +259,8 @@ Listed in the order people meet them.
   admin), always sorted A–Z by name ignoring case and accents, 20 at a time. It is searched by name (ignoring case
   and accents) and filtered by any number of roles (a user with one of the chosen roles is listed; none chosen means
   everyone). Opening a person offers a WhatsApp chat, in WhatsApp on the viewer's own phone, whenever the viewer
-  may see the number — so admins can chat with anyone who has a number.
+  may see the number — so admins can chat with anyone who has a number. The same person sheet, with the same rule,
+  opens from a class's instructors and students on its details (spec 049); trial guests open none.
 
 ## Main journeys
 
@@ -708,8 +709,8 @@ pt-BR, es-ES and en-US.
 finishes, a started one included, with an optional message (up to 300 characters, shown exactly as written, e.g.
 "Mar muito grande."). The admin's tools for one class sit behind a round tools button in the header of its
 details, where the pencil was (admins only; hidden on a finished or cancelled class): the "Ferramentas da aula"
-sheet holds "Editar aula" (opens the editor), "Avisar alunos e instrutores" (drawn, does nothing yet) and
-"Cancelar aula". The last opens "Cancelar esta aula?" with "Mensagem (opcional)" and its counter, "Cancelar e
+sheet holds "Editar aula" (opens the editor), "Avisar alunos e instrutores" (drawn, does nothing yet; "Enviar
+mensagem" since spec 049, which makes the tools four cards) and "Cancelar aula". The last opens "Cancelar esta aula?" with "Mensagem (opcional)" and its counter, "Cancelar e
 avisar" and "Manter aula"; on success "Aula cancelada", and the details stay on screen. Cancelling is final: the
 class stays on the schedule for every role, its card shows "Cancelada" with the time struck through (never "Em
 andamento" or "Finalizada", and its day keeps the calendar dot), its details show one "Aula cancelada" banner with
@@ -721,7 +722,8 @@ the cards already show a class just cancelled or edited. All copy is in pt-BR, e
 
 **Deleting a class** (spec `034-class-deletion`) — an approved admin deletes a class created by mistake, from
 "Excluir aula" in the class tools, below "Cancelar aula" — offered only while the class hasn't started (a started
-class can only be cancelled; finished and cancelled classes show no tools). It opens "Excluir esta aula?" with the
+class can only be cancelled; finished and cancelled classes show no tools). Since spec 049 it is the "Apagar aula"
+card, disabled with "Já começou" or "Tem inscritos" (anybody holding a seat). It opens "Excluir esta aula?" with the
 class in one line ("Surf Iniciante · Amanhã · 19 out, 08:00 – 09:00 · <local>"), "Os instrutores são avisados e a
 aula sai da agenda. Não dá para desfazer.", "Excluir aula" and "Manter aula". On success "Aula excluída", the app
 leaves the details, and the class is gone from the schedule for good, for every role — nothing of it is kept.
@@ -758,8 +760,8 @@ its discipline's rule and its details, never anything about a person; it is redo
 a detail the model reads and after the rule changes, and retried with growing waits while it can't be worked out.
 Until it exists, admins see a "Sem prazo" chip on the class's card (under "Sem instrutor" when both apply) and a
 "Sem prazo de cancelamento" banner on its details ("… Confira a regra de surf."), which opens the rules screen;
-nobody is notified. Every role sees "Cancelamento até seg, 19 out · 20:00" on the details of a class that has a
-deadline and isn't cancelled. The site's privacy policy names Anthropic as the service that works out the
+nobody is notified. Every role sees the deadline on the details of a class that has one and isn't cancelled
+(since spec 049 the "Cancelamento" row reads "Até seg, 19 out · 20:00"). The site's privacy policy names Anthropic as the service that works out the
 deadline. All copy is in pt-BR, es-ES and en-US.
 
 **Class locations** (spec `037-class-locations`) — a location now has a point on the map, and admins edit and
@@ -776,7 +778,8 @@ Aulas tab). A new name or address makes the upcoming classes' deadlines be worke
 used again, it can't be given to a class, the classes that used it keep showing it, and when it was the form's
 choice another must be picked; on Editar aula a class whose location was removed shows it with "Removido" and can
 keep it. The last location can be removed. Every role sees, on the details of a class whose location has a point,
-a small fixed map with a pin and "Direções", which opens Apple Maps on iPhone and Google Maps on Android. The
+a small fixed map with a pin and "Direções" (since spec 049 in the "Onde e como" card), which opens Apple Maps on
+iPhone and Google Maps on Android. The
 site's privacy policy names Google's address suggestions and Apple Maps. All copy is in pt-BR, es-ES and en-US.
 
 **Fixed header on the screens that go back** (spec `038-native-stack-header`) — every app screen that can go
@@ -806,10 +809,10 @@ that hasn't started; a footer with up to 4 student avatars, "+N" for the other s
 "1 aluno confirmado" / "N alunos confirmados", or "N alunos presentes" once finished. A finished card has no bar, a
 cancelled one neither bar nor footer. A class's details show "A aula": the instructors with their avatars ("Você" for
 the viewer, "Sem instrutor atribuído" when none), the students row with up to 5 avatars and the same label, which
-opens the list of every student, and under it "Máx. N alunos · X vagas livres" (or "· esgotado", in red), hidden for
+opens the list of every student, and "Máx. N alunos · X vagas livres" (or "· esgotado", in red), hidden for
 finished and cancelled classes; a "Turma cheia" banner on a full class that hasn't started; and, except for a
-cancelled class, "Regras": "Cancelamento · Surf" (or Skate) with the "Cancelamento até …" line or "Ler a regra",
-opening the cancellation rules sheet, and "Regras da escola", opening the role's school rules. Instructors also see
+cancelled class, "Regras": the cancellation row ("Ler a regra" without a deadline), opening the cancellation rules
+sheet, and "Regras da escola", opening the role's school rules (spec 049 redrew all of it, see below). Instructors also see
 a note: the school makes enrolments, cancellations and schedule changes on a class they teach, and they see a class
 they don't teach in read-only mode. A person without a photo shows their initials on a `sand` circle. All copy is
 in pt-BR, es-ES and en-US.
@@ -941,6 +944,27 @@ history button opens "Histórico": the classes the student took (a seat held whe
 newest first, 20 more at the end of the list, each card reading "N alunos presentes"; with none, "Você ainda não fez
 nenhuma aula.". All copy is in pt-BR, es-ES and en-US.
 
+**Class details as designed, with the person sheet** (spec `049-class-details-people-design`) — on a class's
+details, for every role, "A aula" has "Máx. N alunos · X vagas livres" (or "esgotado", in red; "· inclui N trial"
+for admins) at the right of its label, in the label's style, hidden once finished or cancelled. The card opens with a
+tinted header, "Instrutor" / "Instrutores" (or "Sem instrutor atribuído"), and one pill per instructor with their
+avatar and name ("Você" with a lagoon border for the viewer). The students row stacks the first 5 seats, students
+then guests (a person icon on `sand`), with "+N" for the rest; the list shows each student with their avatar, name
+and a chevron, and each guest with the person icon and the name followed by "Trial" (admins and the class's
+instructors) or "Trial" alone. Tapping an instructor or a student opens the People directory's sheet — initials, name,
+the "Instrutor" / "Admin" / "Aluno" chip and "Conversar por WhatsApp" with the number, or "Número não compartilhado."
+— by the directory's rule: a person's number shows when they are approved and share it, and admins see every number;
+guests open nothing. On an admin's view of a class that hasn't started, "Retirar" takes the chevron's place and opens
+only the take-out sheet. "Regras" is a card of two rows with icon tiles: "Cancelamento" with "Até <dia, data · hora>"
+(or "Ler a regra") and "Regras da escola" with "N regras para todos os alunos" once the school has any. The notes
+sit in a card with a note icon, as written. "Onde e como" is one card: the fixed map across the top when the
+location has a point, then the pin, the name and the address, and "Direções" at the right. The "finished" banner
+shows a checkmark beside "Aula finalizada". The admin's class tools are four cards under the unchanged title:
+"Editar aula" ("Data, hora, local…"), "Enviar mensagem" ("N pessoas" or "Ninguém ainda"; does nothing yet),
+"Cancelar aula" in red ("Avisa N pessoas" or "Ninguém para avisar") and "Apagar aula" ("Ninguém inscrito", or
+disabled with "Tem inscritos" or "Já começou"); N is the people a cancellation tells — the other instructors, the
+enrolled students and the pending requests. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -996,8 +1020,11 @@ Active specs: none.
   class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings); the
   student Agenda's sport filter and notifications bell.
 - On seats and students (spec 040): the "1ª vez" badge on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
-  about to start; opening a person's sheet (WhatsApp) from an instructor or a student on the details; and profile
-  photos (initials until photos can be uploaded).
+  about to start; and profile photos (initials until photos can be uploaded).
+- On the class details' design (spec 049): the "Condições previstas" row of "Onde e como" (weather and waves), "Sem
+  penalização até N h antes" as the cancellation row's value (the rules are free text), sending a message to a
+  class's people from "Enviar mensagem" (the card is drawn and does nothing), and opening a sheet or a chat for a
+  trial guest.
 - On editing a class (spec 032): editing several classes at once, and the editor's "gerir" links to manage time ranges and locations.
 - On cancelling a class (spec 033): storing who cancelled it,
   restoring a cancelled class and editing its message; what "Avisar alunos e instrutores" in the class tools does

@@ -451,8 +451,11 @@ const messages = {
     },
     create: "Create class",
     newClass: "New class",
-    loadError: "Couldn't load the classes.",
-    retry: "Try again",
+    loadError: {
+      title: "Something went wrong",
+      description:
+        "We couldn't load the classes for {{date}}. Check your connection and try again.",
+    },
     state: {
       started: "In progress",
       finished: "Finished",

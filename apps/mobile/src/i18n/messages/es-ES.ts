@@ -458,8 +458,11 @@ const messages: Messages = {
     },
     create: "Crear clase",
     newClass: "Nueva clase",
-    loadError: "No se pudieron cargar las clases.",
-    retry: "Intentar de nuevo",
+    loadError: {
+      title: "Algo salió mal",
+      description:
+        "No pudimos cargar las clases del {{date}}. Revisa tu conexión e inténtalo de nuevo.",
+    },
     state: {
       started: "En curso",
       finished: "Finalizada",

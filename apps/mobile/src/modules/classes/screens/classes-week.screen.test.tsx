@@ -253,13 +253,44 @@ describe("ClassesWeekScreen", () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
     await renderScreen();
 
-    expect(await screen.findByText("Couldn't load the classes.")).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "We couldn't load the classes for Wednesday, October 14. Check your connection and try again.",
+      ),
+    ).toBeOnTheScreen();
 
     serveWeeks();
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
-    expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+  });
+
+  it("shows the spinner in Try again while the week loads again", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    await renderScreen();
+    await screen.findByRole("header", { name: "Something went wrong" });
+
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+    await user.press(screen.getByRole("button", { name: "Try again" }));
+
+    expect(screen.getByRole("button", { name: "Try again" })).toBeDisabled();
+  });
+
+  it("shows the error in pt-BR", async () => {
+    await i18n.changeLanguage("pt-BR");
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    await renderScreen();
+
+    expect(await screen.findByRole("header", { name: "Algo deu errado" })).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "Não conseguimos carregar as aulas de quarta-feira, 14 de outubro. Verifique sua conexão e tente novamente.",
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeOnTheScreen();
   });
 
   it("keeps the calendar when the week fails to load", async () => {
@@ -267,7 +298,7 @@ describe("ClassesWeekScreen", () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
     await renderScreen();
 
-    expect(await screen.findByText("Couldn't load the classes.")).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
     expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
     expect(screen.getByText("WED")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
@@ -275,7 +306,11 @@ describe("ClassesWeekScreen", () => {
     await user.press(screen.getByTestId("calendar-day-2026-10-16"));
 
     expect(screen.getByTestId("calendar-day-2026-10-16")).toBeSelected();
-    expect(screen.getByText("Couldn't load the classes.")).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "We couldn't load the classes for Friday, October 16. Check your connection and try again.",
+      ),
+    ).toBeOnTheScreen();
   });
 
   it("shows no error state when the session expired", async () => {
@@ -286,7 +321,7 @@ describe("ClassesWeekScreen", () => {
       expect(queryClient.getQueryState(["classes", "week", THIS_MONDAY])?.status).toBe("error"),
     );
 
-    expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
   });
 
   it("shows an empty day, with the selected date and no button for a student", async () => {
@@ -374,7 +409,7 @@ describe("ClassesWeekScreen", () => {
     await user.press(screen.getByRole("button", { name: "Show the month" }));
     await waitFor(() => expect(requestedPaths()).toHaveLength(5));
 
-    expect(screen.queryByText("Couldn't load the classes.")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
     expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
     expect(screen.queryAllByTestId("calendar-day-2026-10-20-dot")).toHaveLength(0);
   });

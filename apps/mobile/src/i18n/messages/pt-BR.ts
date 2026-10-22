@@ -451,8 +451,11 @@ const messages: Messages = {
     },
     create: "Criar aula",
     newClass: "Nova aula",
-    loadError: "Não foi possível carregar as aulas.",
-    retry: "Tentar novamente",
+    loadError: {
+      title: "Algo deu errado",
+      description:
+        "Não conseguimos carregar as aulas de {{date}}. Verifique sua conexão e tente novamente.",
+    },
     state: {
       started: "Em andamento",
       finished: "Finalizada",

@@ -90,6 +90,9 @@ export const useClassesWeekScreen = ({
   const createClass = () =>
     router.push(routes.admin.newClass({ date: selectedDate }));
   const openClass = (id: string) => router.push(classRoute(id));
+  // A week with no data goes back to pending when it is fetched again after an error: while "Try again" runs, the
+  // error stays on screen with the spinner in its button, instead of the loading state.
+  const isRetrying = query.isPending && query.errorUpdateCount > 0;
 
   return {
     now,
@@ -99,11 +102,14 @@ export const useClassesWeekScreen = ({
     markedDates,
     dayItems,
     canCreateOnDay,
-    isLoading: query.isPending,
+    isLoading: query.isPending && !isRetrying,
     // An expired session is handled by the session flow: nothing to show here.
-    isError: query.isError && !(query.error instanceof SessionExpiredError),
+    isError:
+      isRetrying ||
+      (query.isError && !(query.error instanceof SessionExpiredError)),
     isRefreshing,
     refresh,
+    isRetrying,
     retry: () => void query.refetch(),
     selectDate: setSelectedDate,
     updateVisibleRange,

@@ -4,13 +4,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
 import { HeaderButton } from "@/components/ui/header-button";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
@@ -95,13 +94,16 @@ export function ClassesWeekScreen({
               className="py-8"
             />
           ) : screen.isError ? (
-            <View className="items-center gap-3 py-8">
-              <Text className="ds-text-body text-center text-ink-2">
-                {t("classesWeek.loadError")}
-              </Text>
-              <Button variant="outline" onPress={screen.retry}>
-                {t("classesWeek.retry")}
-              </Button>
+            // Just under the calendar, as the empty day.
+            <View className="pt-8">
+              <ErrorState
+                title={t("classesWeek.loadError.title")}
+                description={t("classesWeek.loadError.description", {
+                  date: screen.selectedDayName,
+                })}
+                onRetry={screen.retry}
+                retrying={screen.isRetrying}
+              />
             </View>
           ) : screen.dayItems.length === 0 ? (
             // Just under the calendar, not centered in the space left.

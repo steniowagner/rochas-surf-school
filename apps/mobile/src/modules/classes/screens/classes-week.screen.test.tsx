@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
@@ -79,28 +85,54 @@ const makeClass = (
 });
 
 // Today's three classes (Fortaleza 08:00–09:00, 10:00–11:30, 16:00–17:00).
-const FINISHED = makeClass("c-1", "2026-10-14T11:00:00.000Z", "2026-10-14T12:00:00.000Z");
-const STARTED = makeClass("c-2", "2026-10-14T13:00:00.000Z", "2026-10-14T14:30:00.000Z", {
-  discipline: "skate",
-});
-const LATER = makeClass("c-3", "2026-10-14T19:00:00.000Z", "2026-10-14T20:00:00.000Z");
+const FINISHED = makeClass(
+  "c-1",
+  "2026-10-14T11:00:00.000Z",
+  "2026-10-14T12:00:00.000Z",
+);
+const STARTED = makeClass(
+  "c-2",
+  "2026-10-14T13:00:00.000Z",
+  "2026-10-14T14:30:00.000Z",
+  {
+    discipline: "skate",
+  },
+);
+const LATER = makeClass(
+  "c-3",
+  "2026-10-14T19:00:00.000Z",
+  "2026-10-14T20:00:00.000Z",
+);
 
-const serveWeeks = (weeks: Record<string, ClassItem[]> = { [THIS_MONDAY]: [FINISHED, STARTED, LATER] }) =>
+const serveWeeks = (
+  weeks: Record<string, ClassItem[]> = {
+    [THIS_MONDAY]: [FINISHED, STARTED, LATER],
+  },
+) =>
   fetchMock.mockImplementation(async (url: string) => {
     const weekStart = new URL(String(url)).searchParams.get("date") as string;
 
     return ok({ weekStart, items: weeks[weekStart] ?? [] });
   });
 
-const openClass = (id: string) => ({ pathname: "/student/class/[id]", params: { id } });
+const openClass = (id: string) => ({
+  pathname: "/student/class/[id]",
+  params: { id },
+});
 
-const renderScreen = async (props: Partial<Parameters<typeof ClassesWeekScreen>[0]> = {}) => {
+const renderScreen = async (
+  props: Partial<Parameters<typeof ClassesWeekScreen>[0]> = {},
+) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
   const view = await render(
     <QueryClientProvider client={queryClient}>
-      <ClassesWeekScreen titleKey="tabs.classes" classRoute={openClass as never} {...props} />
+      <ClassesWeekScreen
+        titleKey="tabs.classes"
+        classRoute={openClass as never}
+        {...props}
+      />
     </QueryClientProvider>,
   );
 
@@ -140,9 +172,13 @@ describe("ClassesWeekScreen", () => {
 
     expect(screen.getByText("CLASSES")).toBeOnTheScreen();
     expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Show the month" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Show the month" }),
+    ).toBeOnTheScreen();
     expect(screen.queryByText("This week")).not.toBeOnTheScreen();
-    expect(screen.queryByTestId("calendar-day-2026-11-01")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId("calendar-day-2026-11-01"),
+    ).not.toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
     expect(await screen.findByText("08:00 – 09:00")).toBeOnTheScreen();
     expect(screen.getByText("10:00 – 11:30")).toBeOnTheScreen();
@@ -171,7 +207,9 @@ describe("ClassesWeekScreen", () => {
     await renderScreen();
     await screen.findByText("16:00 – 17:00");
 
-    await user.press(screen.getByRole("button", { name: "Show the next week" }));
+    await user.press(
+      screen.getByRole("button", { name: "Show the next week" }),
+    );
 
     expect(await screen.findByText("19 – 25 OCT")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-10-21")).toBeSelected();
@@ -179,8 +217,12 @@ describe("ClassesWeekScreen", () => {
     expect(screen.queryByText("Today")).not.toBeOnTheScreen();
     expect(screen.queryByText("Next week")).not.toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
-    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    await user.press(
+      screen.getByRole("button", { name: "Show the previous week" }),
+    );
+    await user.press(
+      screen.getByRole("button", { name: "Show the previous week" }),
+    );
 
     expect(await screen.findByText("5 – 11 OCT")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-10-07")).toBeSelected();
@@ -188,16 +230,28 @@ describe("ClassesWeekScreen", () => {
 
   it("shows one dot per day with classes", async () => {
     const five = Array.from({ length: 5 }, (_, index) =>
-      makeClass(`f-${index}`, "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z"),
+      makeClass(
+        `f-${index}`,
+        "2026-10-15T11:00:00.000Z",
+        "2026-10-15T12:00:00.000Z",
+      ),
     );
     serveWeeks({ [THIS_MONDAY]: [FINISHED, STARTED, ...five] });
     await renderScreen();
     await screen.findByText("08:00 – 09:00");
 
-    expect(await screen.findAllByTestId("calendar-day-2026-10-14-dot")).toHaveLength(1);
-    expect(screen.getAllByTestId("calendar-day-2026-10-15-dot")).toHaveLength(1);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-16-dot")).toHaveLength(0);
-    expect(screen.getByLabelText("Thursday, October 15th, 2026, with classes")).toBeOnTheScreen();
+    expect(
+      await screen.findAllByTestId("calendar-day-2026-10-14-dot"),
+    ).toHaveLength(1);
+    expect(screen.getAllByTestId("calendar-day-2026-10-15-dot")).toHaveLength(
+      1,
+    );
+    expect(screen.queryAllByTestId("calendar-day-2026-10-16-dot")).toHaveLength(
+      0,
+    );
+    expect(
+      screen.getByLabelText("Thursday, October 15th, 2026, with classes"),
+    ).toBeOnTheScreen();
   });
 
   it("shows another day's cards", async () => {
@@ -205,7 +259,11 @@ describe("ClassesWeekScreen", () => {
     serveWeeks({
       [THIS_MONDAY]: [
         FINISHED,
-        makeClass("c-9", "2026-10-15T12:00:00.000Z", "2026-10-15T13:00:00.000Z"),
+        makeClass(
+          "c-9",
+          "2026-10-15T12:00:00.000Z",
+          "2026-10-15T13:00:00.000Z",
+        ),
       ],
     });
     await renderScreen();
@@ -245,15 +303,22 @@ describe("ClassesWeekScreen", () => {
     fetchMock.mockReturnValue(new Promise(() => undefined));
     await renderScreen();
 
-    expect(screen.getByTestId("classes-week-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
+    expect(screen.getAllByTestId("class-card-skeleton")).toHaveLength(4);
   });
 
   it("shows the error and retries", async () => {
     const user = userEvent.setup();
-    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ errors: [] }),
+    });
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "Something went wrong" }),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText(
         "We couldn't load the classes for Wednesday, October 14. Check your connection and try again.",
@@ -264,12 +329,18 @@ describe("ClassesWeekScreen", () => {
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
-    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("header", { name: "Something went wrong" }),
+    ).not.toBeOnTheScreen();
   });
 
   it("shows the spinner in Try again while the week loads again", async () => {
     const user = userEvent.setup();
-    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ errors: [] }),
+    });
     await renderScreen();
     await screen.findByRole("header", { name: "Something went wrong" });
 
@@ -281,24 +352,38 @@ describe("ClassesWeekScreen", () => {
 
   it("shows the error in pt-BR", async () => {
     await i18n.changeLanguage("pt-BR");
-    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ errors: [] }),
+    });
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "Algo deu errado" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "Algo deu errado" }),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText(
         "Não conseguimos carregar as aulas de quarta-feira, 14 de outubro. Verifique sua conexão e tente novamente.",
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Tentar de novo" }),
+    ).toBeOnTheScreen();
   });
 
   it("keeps the calendar when the week fails to load", async () => {
     const user = userEvent.setup();
-    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ errors: [] }),
+    });
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "Something went wrong" }),
+    ).toBeOnTheScreen();
     expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
     expect(screen.getByText("WED")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
@@ -314,25 +399,37 @@ describe("ClassesWeekScreen", () => {
   });
 
   it("shows no error state when the session expired", async () => {
-    (api.apiGet as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+    (api.apiGet as jest.Mock).mockRejectedValueOnce(
+      new api.SessionExpiredError(),
+    );
     const { queryClient } = await renderScreen();
 
     await waitFor(() =>
-      expect(queryClient.getQueryState(["classes", "week", THIS_MONDAY])?.status).toBe("error"),
+      expect(
+        queryClient.getQueryState(["classes", "week", THIS_MONDAY])?.status,
+      ).toBe("error"),
     );
 
-    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("header", { name: "Something went wrong" }),
+    ).not.toBeOnTheScreen();
   });
 
   it("shows an empty day, with the selected date and no button for a student", async () => {
     serveWeeks({ [THIS_MONDAY]: [] });
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "No classes this day" })).toBeOnTheScreen();
     expect(
-      screen.getByText("There are no classes scheduled for Wednesday, October 14 yet."),
+      await screen.findByRole("header", { name: "No classes this day" }),
     ).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Create class" })).not.toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "There are no classes scheduled for Wednesday, October 14 yet.",
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Create class" }),
+    ).not.toBeOnTheScreen();
   });
 
   it("shows the empty day in pt-BR", async () => {
@@ -345,7 +442,9 @@ describe("ClassesWeekScreen", () => {
     await user.press(screen.getByTestId("calendar-day-2026-10-17"));
 
     expect(
-      screen.getByText("Ainda não há aulas marcadas para sábado, 17 de outubro."),
+      screen.getByText(
+        "Ainda não há aulas marcadas para sábado, 17 de outubro.",
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -353,7 +452,13 @@ describe("ClassesWeekScreen", () => {
     const user = userEvent.setup();
     serveWeeks({
       [THIS_MONDAY]: [FINISHED],
-      "2026-10-19": [makeClass("c-20", "2026-10-20T12:00:00.000Z", "2026-10-20T13:00:00.000Z")],
+      "2026-10-19": [
+        makeClass(
+          "c-20",
+          "2026-10-20T12:00:00.000Z",
+          "2026-10-20T13:00:00.000Z",
+        ),
+      ],
     });
     await renderScreen();
     await screen.findByText("08:00 – 09:00");
@@ -363,7 +468,9 @@ describe("ClassesWeekScreen", () => {
 
     expect(screen.getByTestId("calendar-day-2026-10-20")).toBeSelected();
     expect(screen.getByText("OCTOBER 2026")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Show the week" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Show the week" }),
+    ).toBeOnTheScreen();
     expect(await screen.findByText("09:00 – 10:00")).toBeOnTheScreen();
     expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
   });
@@ -372,8 +479,20 @@ describe("ClassesWeekScreen", () => {
     const user = userEvent.setup();
     serveWeeks({
       [THIS_MONDAY]: [FINISHED],
-      "2026-09-28": [makeClass("c-s", "2026-09-30T11:00:00.000Z", "2026-09-30T12:00:00.000Z")],
-      "2026-10-26": [makeClass("c-n", "2026-11-01T11:00:00.000Z", "2026-11-01T12:00:00.000Z")],
+      "2026-09-28": [
+        makeClass(
+          "c-s",
+          "2026-09-30T11:00:00.000Z",
+          "2026-09-30T12:00:00.000Z",
+        ),
+      ],
+      "2026-10-26": [
+        makeClass(
+          "c-n",
+          "2026-11-01T11:00:00.000Z",
+          "2026-11-01T12:00:00.000Z",
+        ),
+      ],
     });
     await renderScreen();
     await screen.findByText("08:00 – 09:00");
@@ -388,7 +507,9 @@ describe("ClassesWeekScreen", () => {
       "/classes?date=2026-10-19",
       "/classes?date=2026-10-26",
     ]);
-    expect(await screen.findByTestId("calendar-day-2026-09-30-dot")).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId("calendar-day-2026-09-30-dot"),
+    ).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-11-01-dot")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-10-14-dot")).toBeOnTheScreen();
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(3);
@@ -409,9 +530,13 @@ describe("ClassesWeekScreen", () => {
     await user.press(screen.getByRole("button", { name: "Show the month" }));
     await waitFor(() => expect(requestedPaths()).toHaveLength(5));
 
-    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("header", { name: "Something went wrong" }),
+    ).not.toBeOnTheScreen();
     expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
-    expect(screen.queryAllByTestId("calendar-day-2026-10-20-dot")).toHaveLength(0);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-20-dot")).toHaveLength(
+      0,
+    );
   });
 
   it("doesn't show the pull-to-refresh spinner when the month refetches cached weeks", async () => {
@@ -421,15 +546,24 @@ describe("ClassesWeekScreen", () => {
     await user.press(screen.getByRole("button", { name: "Show the month" }));
     await waitFor(() => expect(requestedPaths()).toHaveLength(5));
     await user.press(screen.getByRole("button", { name: "Show the week" }));
-    await user.press(screen.getByRole("button", { name: "Show the next week" }));
-    await user.press(screen.getByRole("button", { name: "Show the previous week" }));
+    await user.press(
+      screen.getByRole("button", { name: "Show the next week" }),
+    );
+    await user.press(
+      screen.getByRole("button", { name: "Show the previous week" }),
+    );
     const before = fetchMock.mock.calls.length;
     fetchMock.mockReturnValue(new Promise(() => undefined));
 
     await user.press(screen.getByRole("button", { name: "Show the month" }));
 
-    await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(before));
-    expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(false);
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.length).toBeGreaterThan(before),
+    );
+    expect(
+      screen.getByTestId("classes-week-list").props.refreshControl.props
+        .refreshing,
+    ).toBe(false);
   });
 
   it("shows the pull-to-refresh spinner only while the user's refresh runs", async () => {
@@ -444,15 +578,23 @@ describe("ClassesWeekScreen", () => {
     );
 
     await act(async () => {
-      screen.getByTestId("classes-week-list").props.refreshControl.props.onRefresh();
+      screen
+        .getByTestId("classes-week-list")
+        .props.refreshControl.props.onRefresh();
     });
 
-    expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(true);
+    expect(
+      screen.getByTestId("classes-week-list").props.refreshControl.props
+        .refreshing,
+    ).toBe(true);
 
     await act(async () => release());
 
     await waitFor(() =>
-      expect(screen.getByTestId("classes-week-list").props.refreshControl.props.refreshing).toBe(false),
+      expect(
+        screen.getByTestId("classes-week-list").props.refreshControl.props
+          .refreshing,
+      ).toBe(false),
     );
   });
 
@@ -465,7 +607,9 @@ describe("ClassesWeekScreen", () => {
     const before = fetchMock.mock.calls.length;
 
     await act(async () => {
-      screen.getByTestId("classes-week-list").props.refreshControl.props.onRefresh();
+      screen
+        .getByTestId("classes-week-list")
+        .props.refreshControl.props.onRefresh();
     });
 
     await waitFor(() => expect(fetchMock.mock.calls.length).toBe(before + 5));
@@ -477,7 +621,9 @@ describe("ClassesWeekScreen", () => {
     const before = fetchMock.mock.calls.length;
 
     await act(async () => {
-      screen.getByTestId("classes-week-list").props.refreshControl.props.onRefresh();
+      screen
+        .getByTestId("classes-week-list")
+        .props.refreshControl.props.onRefresh();
     });
 
     await waitFor(() => expect(fetchMock.mock.calls.length).toBe(before + 1));
@@ -493,11 +639,15 @@ describe("ClassesWeekScreen admin entry points", () => {
     expect(screen.getByRole("button", { name: "New class" })).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "New class" }));
-    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-14" }));
+    expect(router.push).toHaveBeenLastCalledWith(
+      routes.admin.newClass({ date: "2026-10-14" }),
+    );
 
     await user.press(screen.getByTestId("calendar-day-2026-10-17"));
     await user.press(screen.getByRole("button", { name: "Create class" }));
-    expect(router.push).toHaveBeenLastCalledWith(routes.admin.newClass({ date: "2026-10-17" }));
+    expect(router.push).toHaveBeenLastCalledWith(
+      routes.admin.newClass({ date: "2026-10-17" }),
+    );
   });
 
   it("offers no entry point on a past day, and offers them again back on today", async () => {
@@ -507,8 +657,12 @@ describe("ClassesWeekScreen admin entry points", () => {
 
     await user.press(screen.getByTestId("calendar-day-2026-10-13"));
 
-    expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Create class" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "New class" }),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Create class" }),
+    ).not.toBeOnTheScreen();
 
     await user.press(screen.getByTestId("calendar-day-2026-10-14"));
 
@@ -519,7 +673,9 @@ describe("ClassesWeekScreen admin entry points", () => {
     await renderScreen();
     await screen.findByText("16:00 – 17:00");
 
-    expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "New class" }),
+    ).not.toBeOnTheScreen();
   });
 
   it("fetches an invalidated week when the screen is focused again, so a cancelled class shows at once", async () => {
@@ -532,11 +688,18 @@ describe("ClassesWeekScreen admin entry points", () => {
       [THIS_MONDAY]: [
         FINISHED,
         STARTED,
-        { ...LATER, cancelledAt: "2026-10-14T13:00:00.000Z", cancellationMessage: null },
+        {
+          ...LATER,
+          cancelledAt: "2026-10-14T13:00:00.000Z",
+          cancellationMessage: null,
+        },
       ],
     });
     await act(async () => {
-      await queryClient.invalidateQueries({ queryKey: ["classes"], refetchType: "none" });
+      await queryClient.invalidateQueries({
+        queryKey: ["classes"],
+        refetchType: "none",
+      });
     });
     await act(async () => focusEffect());
 
@@ -556,9 +719,14 @@ describe("ClassesWeekScreen admin entry points", () => {
 });
 
 describe("ClassesWeekScreen no instructor", () => {
-  const ALONE = makeClass("c-4", "2026-10-14T19:00:00.000Z", "2026-10-14T20:00:00.000Z", {
-    instructors: [],
-  });
+  const ALONE = makeClass(
+    "c-4",
+    "2026-10-14T19:00:00.000Z",
+    "2026-10-14T20:00:00.000Z",
+    {
+      instructors: [],
+    },
+  );
 
   it("shows the no instructor chip to admins (showFlags)", async () => {
     serveWeeks({ [THIS_MONDAY]: [ALONE] });
@@ -574,14 +742,26 @@ describe("ClassesWeekScreen no instructor", () => {
 
     expect(await screen.findByText("No students yet")).toBeOnTheScreen();
     expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
-    expect(screen.queryByText(glyph("person-remove-outline"))).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(glyph("person-remove-outline")),
+    ).not.toBeOnTheScreen();
   });
 });
 
 describe("ClassesWeekScreen enrolment chip", () => {
-  const MINE = makeClass("c-5", "2026-10-14T19:00:00.000Z", "2026-10-14T20:00:00.000Z", {
-    myEnrolment: { id: "e-1", status: "pending", requestedAt: "2026-10-13T10:00:00.000Z", reason: null },
-  });
+  const MINE = makeClass(
+    "c-5",
+    "2026-10-14T19:00:00.000Z",
+    "2026-10-14T20:00:00.000Z",
+    {
+      myEnrolment: {
+        id: "e-1",
+        status: "pending",
+        requestedAt: "2026-10-13T10:00:00.000Z",
+        reason: null,
+      },
+    },
+  );
 
   it("shows the viewer's enrolment chip on the cards with showEnrolment", async () => {
     serveWeeks({ [THIS_MONDAY]: [MINE] });

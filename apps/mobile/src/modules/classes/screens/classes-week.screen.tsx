@@ -1,18 +1,12 @@
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  View,
-} from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { HeaderButton } from "@/components/ui/header-button";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
-import { useTheme } from "@/hooks/use-theme";
 import {
   StackHeaderTitle,
   useHeaderInset,
@@ -20,9 +14,12 @@ import {
 } from "@/navigation/stack-header";
 
 import { ClassCard } from "../components/class-card";
+import { ClassCardSkeleton } from "../components/class-card-skeleton";
 
 import { useClassesWeekScreen } from "./classes-week.screen.hook";
 import type { ClassesWeekScreenProps } from "./classes-week.screen.types";
+
+const LOADING_CARDS = [0, 1, 2, 3];
 
 export function ClassesWeekScreen({
   titleKey,
@@ -32,7 +29,6 @@ export function ClassesWeekScreen({
   showEnrolment = false,
 }: ClassesWeekScreenProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const headerInset = useHeaderInset();
   const screen = useClassesWeekScreen({ classRoute, canCreate });
@@ -88,11 +84,17 @@ export function ClassesWeekScreen({
           }
         >
           {screen.isLoading ? (
-            <ActivityIndicator
+            // Enough cards to fill the screen under the calendar, read out as one loading state.
+            <View
               testID="classes-week-loading"
-              color={theme.grape}
-              className="py-8"
-            />
+              accessible
+              accessibilityLabel={t("classesWeek.loading")}
+              className="gap-3"
+            >
+              {LOADING_CARDS.map((key) => (
+                <ClassCardSkeleton key={key} />
+              ))}
+            </View>
           ) : screen.isError ? (
             // Just under the calendar, as the empty day.
             <View className="pt-8">

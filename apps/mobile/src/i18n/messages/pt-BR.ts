@@ -444,6 +444,7 @@ const messages: Messages = {
     nextMonth: "Ver o mês seguinte",
   },
   classesWeek: {
+    loading: "Carregando as aulas",
     hasClasses: "com aulas",
     emptyDay: {
       title: "Sem aulas neste dia",

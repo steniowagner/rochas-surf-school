@@ -211,11 +211,19 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Implement `PrismaClassContactReader` in `src/modules/classes/class-contact-reader.prisma.ts`
+- [x] **T-02** — Implement `PrismaClassContactReader` in `src/modules/classes/class-contact-reader.prisma.ts`
   (one `user.findMany` by ids selecting `id`, `role`, `status`, `whatsappNumber`, `whatsappVisible`; empty ids
   read nothing) with `class-contact-reader.prisma.spec.ts`, and register it in `classes.module.ts`. Skill:
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01 · Done when: `npx vitest run src/modules/classes/class-contact-reader.prisma.spec.ts` passes.
+  > ✅ 2026-10-21 — `PrismaClassContactReader` reads `id`, `role`, `status`, `whatsappNumber`, `whatsappVisible`
+  > with one `user.findMany` by ids and answers a `Map` by id; no ids reads nothing; registered in
+  > `ClassesModule`'s providers. Files: `apps/backend/src/modules/classes/class-contact-reader.prisma.ts`,
+  > `apps/backend/src/modules/classes/class-contact-reader.prisma.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.module.ts`; verified: `npx vitest run
+  > src/modules/classes/class-contact-reader.prisma.spec.ts` (2 passed). Deviations: rebuilt `modules/classes`
+  > (`dist/`, ignored) so the backend sees the new export; the controller's type errors (4 of 5 `GetClass`
+  > arguments) are fixed in T-03.
 
 - [ ] **T-03** — Pass the reader to the three `GetClass` constructions in
   `src/modules/classes/classes.controller.ts`, update `classes.controller.spec.ts`, and add a `contacts`

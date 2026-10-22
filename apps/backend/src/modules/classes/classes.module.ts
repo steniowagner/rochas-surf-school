@@ -4,6 +4,7 @@ import { EnrolmentModule } from '../enrolment/enrolment.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { AnthropicDeadlineDescriber } from './anthropic.deadline-describer.js';
 import { PrismaCancellationRuleRepository } from './cancellation-rule.prisma.js';
+import { PrismaClassContactReader } from './class-contact-reader.prisma.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { CancellationDeadlineJob } from './cancellation-deadline.job.js';
 import { CancellationRulesController } from './cancellation-rules.controller.js';
@@ -25,6 +26,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
     ClassesTeachingReleaser,
     GooglePlacesAddressSuggestionProvider,
     PrismaCancellationRuleRepository,
+    PrismaClassContactReader,
     PrismaClassViewReader,
     PrismaLocationRepository,
     PrismaSchoolClassRepository,

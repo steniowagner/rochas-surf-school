@@ -6,16 +6,14 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ContactSchoolButton } from "@/components/contact-school-button";
 import { Button } from "@/components/ui/button";
-import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
+import { HeaderButton } from "@/components/ui/header-button";
 import { Chip } from "@/components/ui/chip";
-import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
 import { CancelSeatSheet } from "@/modules/enrolment/components/cancel-seat-sheet";
@@ -51,23 +49,16 @@ export function ClassDetailsScreen({
     <>
       <Stack.Screen
         options={{
-          headerTitle: () => <StackHeaderTitle title={t("classDetails.title")} />,
+          headerTitle: () => (
+            <StackHeaderTitle title={t("classDetails.title")} />
+          ),
           headerRight: screen.showTools
             ? () => (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel={t("classDetails.tools")}
-                  activeOpacity={BUTTON_ACTIVE_OPACITY}
+                <HeaderButton
+                  icon="construct-outline"
+                  label={t("classDetails.tools")}
                   onPress={screen.openTools}
-                  style={shadowStyle("iconButton", theme)}
-                  className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-                >
-                  <Ionicons
-                    name="construct-outline"
-                    size={20}
-                    color={theme.ink}
-                  />
-                </TouchableOpacity>
+                />
               )
             : undefined,
         }}
@@ -120,9 +111,15 @@ export function ClassDetailsScreen({
               </Text>
               {screen.cancellationDeadline ? (
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name="calendar-clear-outline" size={16} color={theme.ink2} />
+                  <Ionicons
+                    name="calendar-clear-outline"
+                    size={16}
+                    color={theme.ink2}
+                  />
                   <Text className="ds-text-list-subtitle text-ink-2">
-                    {t("classDetails.cancellationDeadline", { when: screen.cancellationDeadline })}
+                    {t("classDetails.cancellationDeadline", {
+                      when: screen.cancellationDeadline,
+                    })}
                   </Text>
                 </View>
               ) : null}
@@ -235,7 +232,9 @@ export function ClassDetailsScreen({
             ) : null}
             {screen.enrolment.display ? (
               <Pressable
-                accessibilityRole={screen.enrolment.pressableDisplay ? "button" : undefined}
+                accessibilityRole={
+                  screen.enrolment.pressableDisplay ? "button" : undefined
+                }
                 disabled={!screen.enrolment.pressableDisplay}
                 onPress={screen.enrolment.openDenial}
                 className={`flex-row items-center gap-3 rounded-card p-4 ${BANNER_CLASSES[screen.enrolment.display.tone]}`}
@@ -243,11 +242,21 @@ export function ClassDetailsScreen({
                 <Ionicons
                   name={screen.enrolment.display.icon}
                   size={24}
-                  color={theme[screen.enrolment.display.tone === "bad" ? "bad" : screen.enrolment.display.tone === "ok" ? "ok" : "ink"]}
+                  color={
+                    theme[
+                      screen.enrolment.display.tone === "bad"
+                        ? "bad"
+                        : screen.enrolment.display.tone === "ok"
+                          ? "ok"
+                          : "ink"
+                    ]
+                  }
                 />
                 <View className="flex-1 gap-1">
                   <Text className="ds-text-list-title text-ink">
-                    {t(`enrolment.status.${screen.enrolment.display.key}.title`)}
+                    {t(
+                      `enrolment.status.${screen.enrolment.display.key}.title`,
+                    )}
                   </Text>
                   <Text className="ds-text-list-subtitle text-ink-2">
                     {screen.enrolmentDescription}
@@ -375,9 +384,12 @@ export function ClassDetailsScreen({
           {screen.enrolment.deadlineNote ? (
             <>
               <Text className="ds-text-list-subtitle text-ink-2">
-                {t(`enrolment.cancelSeatNote.${screen.enrolment.deadlineNote}`, {
-                  deadline: screen.cancellationDeadline,
-                })}
+                {t(
+                  `enrolment.cancelSeatNote.${screen.enrolment.deadlineNote}`,
+                  {
+                    deadline: screen.cancellationDeadline,
+                  },
+                )}
               </Text>
               <ContactSchoolButton />
             </>

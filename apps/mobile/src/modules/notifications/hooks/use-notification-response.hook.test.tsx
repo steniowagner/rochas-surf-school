@@ -13,7 +13,8 @@ import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorClassesRoute from "@/app/(private)/instructor/(tabs)/classes";
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import StudentLayout from "@/app/(private)/student/_layout";
-import StudentRoute from "@/app/(private)/student/(tabs)/index";
+import AgendaLayout from "@/app/(private)/student/(tabs)/(agenda)/_layout";
+import StudentRoute from "@/app/(private)/student/(tabs)/(agenda)/index";
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
 import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
 import PendingLayout from "@/app/(pending)/pending/_layout";
@@ -69,7 +70,8 @@ const routeTree = {
   "(offboarding)/offboarding/_layout": OffboardingLayout,
   "(offboarding)/offboarding/denied": DeniedRoute,
   "(private)/student/_layout": StudentLayout,
-  "(private)/student/(tabs)/index": StudentRoute,
+  "(private)/student/(tabs)/(agenda)/_layout": AgendaLayout,
+  "(private)/student/(tabs)/(agenda)/index": StudentRoute,
   "(private)/student/class/[id]": ClassStub,
   "(private)/admin/_layout": AdminLayout,
   "(private)/admin/(tabs)/index": AdminRoute,

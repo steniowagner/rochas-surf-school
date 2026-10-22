@@ -28,6 +28,16 @@ jest.mock("expo-router", () => ({
   useFocusEffect: (effect: () => (() => void) | void) => {
     focusEffect = effect;
   },
+  // Renders the screen's header title and right button so the tests can see them.
+  Stack: {
+    Screen: ({ options }: any) => (
+      <>
+        {options.unstable_headerLeftItems?.({})[0].element ??
+          options.headerTitle()}
+        {options.headerRight?.()}
+      </>
+    ),
+  },
 }));
 
 jest.mock("@/services/api", () => {
@@ -109,7 +119,7 @@ describe("MyClassesScreen", () => {
   it("shows the title, the history button, the chips with All selected and the classes in order", async () => {
     await renderScreen();
 
-    expect(screen.getByRole("header", { name: "My classes" })).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "MY CLASSES" })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "History" })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "All" })).toBeSelected();
     await screen.findByText("16:00 – 17:00");
@@ -268,7 +278,7 @@ describe("MyClassesScreen", () => {
     fetchMock.mockResolvedValue(ok({ items: [] }));
     await renderScreen();
 
-    expect(screen.getByRole("header", { name: "Minhas aulas" })).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "MINHAS AULAS" })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Todos" })).toBeSelected();
     expect(screen.getByRole("button", { name: "Aula cancelada" })).toBeOnTheScreen();
     expect(await screen.findByText("Nada por aqui")).toBeOnTheScreen();
@@ -282,7 +292,7 @@ describe("MyClassesScreen", () => {
     fetchMock.mockResolvedValue(ok({ items: [] }));
     await renderScreen();
 
-    expect(screen.getByRole("header", { name: "Mis clases" })).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "MIS CLASES" })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Historial" })).toBeOnTheScreen();
     expect(await screen.findByText("Nada por aquí")).toBeOnTheScreen();
   });

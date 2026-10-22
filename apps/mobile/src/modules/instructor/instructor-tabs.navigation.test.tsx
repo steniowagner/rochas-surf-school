@@ -4,7 +4,8 @@ import { router, Stack } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
 import InstructorTabsLayout from "@/app/(private)/instructor/(tabs)/_layout";
-import ClassesRoute from "@/app/(private)/instructor/(tabs)/classes";
+import ClassesLayout from "@/app/(private)/instructor/(tabs)/classes/_layout";
+import ClassesRoute from "@/app/(private)/instructor/(tabs)/classes/index";
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
 import ProfileRoute from "@/app/(private)/instructor/(tabs)/profile";
 import InstructorClassRoute from "@/app/(private)/instructor/class/[id]";
@@ -57,7 +58,8 @@ const routeTree = {
   "(private)/instructor/_layout": InstructorLayout,
   "(private)/instructor/(tabs)/_layout": InstructorTabsLayout,
   "(private)/instructor/(tabs)/index": InstructorRoute,
-  "(private)/instructor/(tabs)/classes": ClassesRoute,
+  "(private)/instructor/(tabs)/classes/_layout": ClassesLayout,
+  "(private)/instructor/(tabs)/classes/index": ClassesRoute,
   "(private)/instructor/(tabs)/profile": ProfileRoute,
   "(private)/instructor/people": InstructorPeopleRoute,
   "(private)/instructor/class/[id]": InstructorClassRoute,
@@ -135,7 +137,7 @@ describe("instructor tabs", () => {
     await act(async () => router.navigate(routes.instructor.classes));
     expect(app.getPathname()).toBe("/instructor/classes");
     expect(selectedTabLabel()).toBe("Classes");
-    expect(screen.getByRole("header", { name: "Classes" })).toBeOnTheScreen();
+    expect(screen.getByText("CLASSES")).toBeOnTheScreen();
     expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
 

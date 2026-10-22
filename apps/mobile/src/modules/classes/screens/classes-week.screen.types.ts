@@ -14,6 +14,11 @@ export type ClassesWeekScreenProps = {
   showFlags?: boolean;
   /** Students only: the cards' chip of the viewer's own enrolment. */
   showEnrolment?: boolean;
+  /**
+   * Students only (the Agenda): the calendar on the `band` color, continuing the user header's, with a
+   * `band-line` border under it (AGENDA-01 / 01A).
+   */
+  banded?: boolean;
 };
 
 export type UseClassesWeekScreenProps = Pick<

@@ -195,6 +195,24 @@ describe("ClassesWeekScreen", () => {
     expect(screen.getByText("CLASSES")).toBeOnTheScreen();
   });
 
+  it("puts the calendar on the Agenda band when banded", async () => {
+    await renderScreen({ banded: true });
+    await screen.findByText("16:00 – 17:00");
+
+    expect(screen.getByTestId("classes-week-calendar").props.className).toEqual(
+      expect.stringContaining("bg-band"),
+    );
+  });
+
+  it("keeps the calendar on the page color by default", async () => {
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+
+    expect(
+      screen.getByTestId("classes-week-calendar").props.className,
+    ).not.toEqual(expect.stringContaining("bg-band"));
+  });
+
   it("leaves the header to its stack without a title", async () => {
     await renderScreen({ titleKey: undefined });
     await screen.findByText("16:00 – 17:00");

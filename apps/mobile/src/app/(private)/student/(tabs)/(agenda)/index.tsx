@@ -6,6 +6,7 @@ export default function StudentRoute() {
     <ClassesWeekScreen
       classRoute={routes.student.classDetail}
       showEnrolment
+      banded
     />
   );
 }

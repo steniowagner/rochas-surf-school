@@ -182,9 +182,25 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md) (com
 
 ### Verification
 
-- [ ] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Follow the simulator
+- [x] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Follow the simulator
   journeys of ER-01 and ER-02 (light and dark). Record the output summary as evidence. Covers: all · Done when: every
   command exits 0 and both journeys show what the Expected Results describe.
+  > ✅ 2026-10-22 — automated: `node .specs/scripts/run-related-tests.mjs 050` → RELATED TESTS PASSED (apps/mobile
+  > jest 69 suites / 1126 tests, apps/web vitest 22 tests; packages/design-tokens has no runner);
+  > `node .specs/scripts/check-coverage.mjs 050` → COVERAGE OK (every changed line covered in 7 files);
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile --filter=@rochas-surf-school/design-tokens` →
+  > 8/8 tasks successful; `node .specs/scripts/run-e2e.mjs 050` → E2E PASSED (apps/web Playwright 22 passed, the
+  > backend not affected). Manual, iOS simulator (iPhone 18 Pro, iOS 27, pt-BR, Metro restarted with `--clear` so the
+  > T-01 tokens compile): as a student, the Agenda shows the button above the tab bar; it opens "TODAS" (selected) ·
+  > "SURF" · "SKATE", labels only, with the "x"; "SKATE" kept on the previous week (only Saturday 17 marked, its skate
+  > card alone), "TODAS" brought every card and dot back, "SURF" on Saturday 17 hid its skate card. As an admin, the
+  > Aulas tab shows the button and its options; the `scrim` backdrop dims the screen in light and in dark themes, and
+  > a tap on it closes the options; dark theme draws the `surface` / `line` options and the dark `grape`. Files: the
+  > spec only. Observed once, not reproduced: the dev build aborted (SIGABRT, a React Native Fabric assertion in
+  > `-[RCTViewComponentView unmountChildComponentView:index:]`, report
+  > `~/Library/Logs/DiagnosticReports/RochasSurfSchool-2026-10-22-193808.ips`) right after the app theme was switched
+  > (Escuro → Claro) and three taps were sent at once (theme option, the Aulas tab, the filter button); the same
+  > steps, slowly and fast, didn't crash it again in three tries, and the report doesn't say which view was unmounted.
 
 ## Verification Plan
 

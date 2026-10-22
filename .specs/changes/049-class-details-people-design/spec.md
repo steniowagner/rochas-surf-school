@@ -2,7 +2,7 @@
 id: "049"
 slug: class-details-people-design
 title: 'Class details: "A aula", "Regras" and "Notas" as designed, with the person sheet'
-status: in-review
+status: changes-requested
 created: 2026-10-21
 started: 2026-10-21
 base_commit: 9334b6d25a86ad9522b00762fc10708f7c11b3e0
@@ -817,3 +817,68 @@ asking. The rest of the screen's logic (banners, enrolment actions, sheets, the 
   `requirements.md → Contacting a user on WhatsApp`, which `spec-finish` should update.
 - The guest avatar's `sand` and the student avatar's background read the same in both themes; that matches the
   tokens, just worth knowing if guests should stand out more.
+
+### Round 2 — 2026-10-22 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`@rochas-surf-school/classes`, `backend`, `mobile`: 27 tasks; the backend's 10 lint
+  warnings are the existing ones in untouched e2e lines)
+- related tests ✅ apps/backend (2 files, 41) · apps/mobile (78 suites, 1201) · modules/classes (35 suites, 524) ·
+  modules/enrolment (19 suites, 291) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files; `class-tool-card`, `class-tools-sheet` and its hook, the
+  screen and its hook at 100%); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 23 files, 627 passed (`contacts` included) — `E2E PASSED`; the backend hasn't changed since
+  round 1
+- iOS simulator (iPhone 18 Pro, Dev Admin, pt-BR), in the app's dark theme and then its light theme (set back to
+  "Escuro" afterwards); a throwaway in-progress class inserted for the "Já começou" state and deleted afterwards
+
+**Expected Results**
+
+- ER-01 ✅ — the `contacts` e2e scenarios pass; the backend and `GetClass` are unchanged since round 1, which drove the
+  HTTP requests
+- ER-02 ✅ — the `contacts` e2e scenarios assert the absent keys on the week, "mine" and "mine/history" answers
+- ER-03 ✅ — as the instructor of the class, the viewer's pill reads "Você" with a `lagoon` border under a `dim`
+  "INSTRUTOR" / "INSTRUTORES" header (one and eleven instructors); the sheet, the null number and "no instructor" are
+  asserted in the component and screen tests
+- ER-04 ✅ — unchanged since round 1 (driven there); the component and screen tests pass
+- ER-06 ✅ — the "NOTAS" card with the note icon
+- ER-07 ✅ — "MÁX. 1 ALUNO · ESGOTADO" in `bad` and "MÁX. 8 ALUNOS · 8 VAGAS LIVRES" in `ink-2`, beside "A AULA"
+- ER-08 ✅ — "CANCELAMENTO" over "Até sex, 23 out · 00:00", and "Ler a regra" on a class without a deadline
+- ER-09 ✅ — the map, the place and "DIREÇÕES ↗" in one card under "ONDE E COMO"
+- ER-10 ✅ — under the unchanged "FERRAMENTAS DA AULA" title, four cards in two rows, each about 118pt tall:
+  - Friday's class (the viewer teaching alone, 1 student, 2 pending requests): "Editar aula · Data, hora, local…",
+    "Enviar mensagem · 3 pessoas", "Cancelar aula · Avisa 3 pessoas" in `bad` on `bad-tint`, "Apagar aula · Tem
+    inscritos" faded; pressing "Apagar aula" and "Enviar mensagem" left the sheet open with nothing else happening;
+    "Cancelar aula" closed it and opened the cancel sheet ("Avisamos 1 inscrito e 2 pessoas com pedido pendente",
+    the same 3), dismissed with "Manter aula"
+  - Saturday's class (11 instructors, nobody in it): "10 pessoas", "Avisa 10 pessoas", "Apagar aula · Ninguém
+    inscrito" enabled; pressing it closed the tools and opened the delete confirmation, dismissed with "Manter aula"
+  - the in-progress throwaway class (the viewer teaching alone): "Ninguém ainda", "Ninguém para avisar", "Apagar
+    aula · Já começou" faded and doing nothing; "Editar aula" opened the editor
+  - light theme: the same cards on Friday's class read correctly; es-ES / en-US strings, "1 pessoa" and the
+    accessibility state are asserted in the card, sheet and screen tests
+
+**Findings**
+
+- [ ] **F-02** (scope) — commit `7a57c22b` ("style(mobile): checkmark on the finished banner and a close-circle icon
+  on the cancellation row") changes `class-details.screen.tsx` in ways no task explains: it adds a checkmark icon and
+  a row layout to the "finished" status banner, which Out of scope names ("the status banners"), and swaps the
+  cancellation row's icon from `calendar-outline` (T-08's recorded choice) to `close-circle-outline`. The spec
+  doesn't mention either change. Reproduce: `git show 7a57c22b`. Expected: if this is your own design call, record
+  it in the spec (an Amendments entry naming both changes and moving the finished banner's icon in scope, like the
+  base commit's work was recorded), or revert the banner part.
+
+**Notes**
+
+- Decisions D-01 to D-12 hold. D-12: N is instructors other than the viewer + students + `pendingRequests`, which is
+  exactly what the cancel sheet reported; `deleteState` is `started` unless the class is `not-started`, else
+  `enrolled` when `seatsTaken > 0`.
+- As D-12 accepts, a class with pending requests but no seats reads "Ninguém inscrito" with "Apagar aula" enabled,
+  and the backend then refuses it (`DeleteClass` refuses `seatsTaken > 0 || pendingRequests > 0`) and the "cancel
+  instead" sheet opens. Counting `pendingRequests` in the `enrolled` state would spare the admin that round trip.
+- In pt-BR the card now reads "Apagar aula" while the confirmation it opens still reads "Excluir esta aula?" /
+  "Excluir aula" (T-16 left the confirmation alone, as scoped). Worth aligning in a later change.
+- F-01 is fixed: the relative imports of `class-details.screen.hook.ts` read `../classes.types`, `../hooks/*`,
+  `../utils/*`.
+- `## Memory Impact` now names ER-07, D-10, D-11, D-12 and D-09's `requirements.md` section.

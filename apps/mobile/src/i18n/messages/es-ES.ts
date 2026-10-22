@@ -434,6 +434,16 @@ const messages: Messages = {
     empty: "Todavía no has hecho ninguna clase.",
     loadError: "No se pudo cargar tu historial.",
   },
+  userHeader: {
+    greeting: {
+      morning: "Buenos días,",
+      afternoon: "Buenas tardes,",
+      evening: "Buenas noches,",
+    },
+    notifications: "Notificaciones",
+    notificationsUnread_one: "Notificaciones, {{count}} sin leer",
+    notificationsUnread_other: "Notificaciones, {{count}} sin leer",
+  },
   tabs: {
     agenda: "Agenda",
     myClasses: "Mis clases",

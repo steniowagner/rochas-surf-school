@@ -6,7 +6,8 @@ import { renderRouter } from "expo-router/testing-library";
 import AdminTabsLayout from "@/app/(private)/admin/(tabs)/_layout";
 import ClassesLayout from "@/app/(private)/admin/(tabs)/classes/_layout";
 import ClassesRoute from "@/app/(private)/admin/(tabs)/classes/index";
-import AdminRoute from "@/app/(private)/admin/(tabs)/index";
+import AdminHomeLayout from "@/app/(private)/admin/(tabs)/(home)/_layout";
+import AdminRoute from "@/app/(private)/admin/(tabs)/(home)/index";
 import ProfileRoute from "@/app/(private)/admin/(tabs)/profile";
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminClassRoute from "@/app/(private)/admin/class/[id]";
@@ -88,7 +89,8 @@ const routeTree = {
   ),
   "(private)/admin/_layout": AdminLayout,
   "(private)/admin/(tabs)/_layout": AdminTabsLayout,
-  "(private)/admin/(tabs)/index": AdminRoute,
+  "(private)/admin/(tabs)/(home)/_layout": AdminHomeLayout,
+  "(private)/admin/(tabs)/(home)/index": AdminRoute,
   "(private)/admin/(tabs)/classes/_layout": ClassesLayout,
   "(private)/admin/(tabs)/classes/index": ClassesRoute,
   "(private)/admin/(tabs)/profile": ProfileRoute,

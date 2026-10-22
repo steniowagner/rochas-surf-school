@@ -30,6 +30,9 @@ export const colors = {
     onColor: '#FFFFFF',
     shadow: 'rgba(61,46,31,.10)',
     shadowSun: 'rgba(240,116,43,.28)',
+    // The student's Agenda band (AGENDA-01 / 01A): behind the user header and the calendar, with a line under it.
+    band: '#F3E7D6',
+    bandLine: 'rgba(212,165,116,.35)',
   },
   dark: {
     page: '#161B27',
@@ -59,6 +62,8 @@ export const colors = {
     onColor: '#FFFFFF',
     shadow: 'rgba(0,0,0,.4)',
     shadowSun: 'rgba(245,138,69,.3)',
+    band: '#101520',
+    bandLine: 'rgba(196,154,108,.16)',
   },
 } as const;
 
@@ -105,6 +110,11 @@ export const typography = {
   // The day numbers of the week row (a little larger than AGENDA-01's 22, as the user asked) and of the month grid.
   calendarDay: { font: 'display', weight: 700, size: 24, lineHeight: 1, letterSpacing: 0, uppercase: false },
   calendarMonthDay: { font: 'display', weight: 700, size: 19, lineHeight: 1, letterSpacing: 0, uppercase: false },
+  // The user header of the home tabs (PAINEL-01): the time-of-day greeting over the person's name.
+  greeting: { font: 'body', weight: 400, size: 12, lineHeight: 1.4, letterSpacing: 0, uppercase: false },
+  greetingName: { font: 'display', weight: 700, size: 24, lineHeight: 1, letterSpacing: 0, uppercase: true },
+  // The count over a header button's icon; its 16px line is the pill's height, so the digits sit centered.
+  badge: { font: 'body', weight: 800, size: 9, lineHeight: 1.78, letterSpacing: 0, uppercase: false },
 } as const;
 
 export type TypographyVariant = keyof typeof typography;

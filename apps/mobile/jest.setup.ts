@@ -20,6 +20,7 @@ jest.mock("@/navigation/stack-header/header-inset.hook", () => ({
 // No native module in Jest: the opaque header by default, a test turns Liquid Glass on.
 jest.mock("expo-glass-effect", () => ({
   isLiquidGlassAvailable: jest.fn(() => false),
+  GlassView: require("react-native").View,
 }));
 
 jest.mock("react-native-reanimated", () =>

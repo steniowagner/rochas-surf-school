@@ -2,10 +2,12 @@ import { screen, userEvent } from "@testing-library/react-native";
 import { Slot } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
-import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
+import InstructorHomeLayout from "@/app/(private)/instructor/(tabs)/(home)/_layout";
+import InstructorRoute from "@/app/(private)/instructor/(tabs)/(home)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorPeopleRoute from "@/app/(private)/instructor/people";
 import { routes } from "@/constants/routes";
+import { SessionProvider } from "@/providers/session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { hydrateSession } from "@/services/session/session.store";
 
@@ -20,11 +22,14 @@ async function openInstructorHome() {
     {
       _layout: () => (
         <QueryClientProvider client={new QueryClient()}>
-          <Slot />
+          <SessionProvider>
+            <Slot />
+          </SessionProvider>
         </QueryClientProvider>
       ),
       "(private)/instructor/_layout": InstructorLayout,
-      "(private)/instructor/(tabs)/index": InstructorRoute,
+      "(private)/instructor/(tabs)/(home)/_layout": InstructorHomeLayout,
+      "(private)/instructor/(tabs)/(home)/index": InstructorRoute,
       "(private)/instructor/people": InstructorPeopleRoute,
     },
     { initialUrl: routes.instructor.home },
@@ -36,7 +41,12 @@ async function openInstructorHome() {
 
 beforeEach(() => {
   hydrateSession({
-    user: { id: "instructor-1", role: "instructor", status: "approved" } as never,
+    user: {
+      id: "instructor-1",
+      name: "Bruno Lima",
+      role: "instructor",
+      status: "approved",
+    } as never,
     tokens: {
       accessToken: "at-1",
       accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
@@ -54,6 +64,15 @@ beforeEach(() => {
 });
 
 describe("InstructorScreen", () => {
+  it("shows the user header with the first name and the bell", async () => {
+    await openInstructorHome();
+
+    expect(screen.getByText("Bruno")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Notifications, 3 unread" }),
+    ).toBeOnTheScreen();
+  });
+
   it("shows the Dashboard title and the School section with the People row", async () => {
     await openInstructorHome();
 

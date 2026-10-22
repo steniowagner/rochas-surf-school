@@ -9,6 +9,7 @@ import { routes } from "@/constants/routes";
 import { useTheme } from "@/hooks/use-theme";
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
+import { useHeaderInset } from "@/navigation/stack-header";
 
 import { useRegistrations } from "../hooks/use-registrations.hook";
 
@@ -24,6 +25,7 @@ export function AdminScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const { data } = useRegistrations();
   const { data: pendingRequests } = usePendingRequests();
 
@@ -36,7 +38,8 @@ export function AdminScreen() {
     <View
       className="flex-1 gap-6 bg-page px-screen"
       style={{
-        paddingTop: insets.top + 12,
+        // Clears the user header, which the tab's stack draws above the screen.
+        paddingTop: headerInset + 16,
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >

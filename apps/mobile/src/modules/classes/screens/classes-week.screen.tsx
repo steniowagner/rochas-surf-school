@@ -27,20 +27,21 @@ export function ClassesWeekScreen({
   canCreate = false,
   showFlags = false,
   showEnrolment = false,
+  banded = false,
 }: ClassesWeekScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const headerInset = useHeaderInset();
   const screen = useClassesWeekScreen({ classRoute, canCreate });
   const headerOptions = useLeftTitleHeader(() => (
-    <StackHeaderTitle title={t(titleKey)} />
+    <StackHeaderTitle title={titleKey ? t(titleKey) : ""} />
   ));
 
   return (
     <>
       <Stack.Screen
         options={{
-          ...headerOptions,
+          ...(titleKey ? headerOptions : null),
           headerRight: screen.canCreateOnDay
             ? () => (
                 <HeaderButton
@@ -55,7 +56,8 @@ export function ClassesWeekScreen({
       <View className="flex-1 bg-page">
         {/* The calendar stays put: only the day's classes scroll under it. */}
         <View
-          className="px-screen pb-4"
+          testID="classes-week-calendar"
+          className={`px-screen pb-4 ${banded ? "border-b border-band-line bg-band" : ""}`}
           style={{ paddingTop: headerInset + 8 }}
         >
           <WeekMonthCalendar
@@ -72,7 +74,8 @@ export function ClassesWeekScreen({
           className="flex-1"
           // On iOS the bottom safe area and the floating tab bar are added by the scroll view.
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerClassName="px-screen"
+          // The band ends in a line, so the classes keep the design's gap below it.
+          contentContainerClassName={`px-screen ${banded ? "pt-4" : ""}`}
           contentContainerStyle={{
             paddingBottom: Math.max(insets.bottom, 24),
           }}

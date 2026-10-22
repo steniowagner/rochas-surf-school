@@ -29,6 +29,8 @@
   --ds-on-color: #FFFFFF;
   --ds-shadow: rgba(61,46,31,.10);
   --ds-shadow-sun: rgba(240,116,43,.28);
+  --ds-band: #F3E7D6;
+  --ds-band-line: rgba(212,165,116,.35);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -60,6 +62,8 @@
     --ds-on-color: #FFFFFF;
     --ds-shadow: rgba(0,0,0,.4);
     --ds-shadow-sun: rgba(245,138,69,.3);
+    --ds-band: #101520;
+    --ds-band-line: rgba(196,154,108,.16);
   }
 }
 
@@ -91,6 +95,8 @@
   --ds-on-color: #FFFFFF;
   --ds-shadow: rgba(0,0,0,.4);
   --ds-shadow-sun: rgba(245,138,69,.3);
+  --ds-band: #101520;
+  --ds-band-line: rgba(196,154,108,.16);
 }
 
 :root {
@@ -262,6 +268,33 @@
   font-weight: 700;
   font-size: 19px;
   line-height: 1;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-greeting {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-greeting-name {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: 0em;
+  text-transform: uppercase;
+}
+
+.ds-text-badge {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 9px;
+  line-height: 1.78;
   letter-spacing: 0em;
   text-transform: none;
 }

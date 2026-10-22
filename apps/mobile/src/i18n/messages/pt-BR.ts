@@ -427,6 +427,16 @@ const messages: Messages = {
     empty: "Você ainda não fez nenhuma aula.",
     loadError: "Não foi possível carregar seu histórico.",
   },
+  userHeader: {
+    greeting: {
+      morning: "Bom dia,",
+      afternoon: "Boa tarde,",
+      evening: "Boa noite,",
+    },
+    notifications: "Notificações",
+    notificationsUnread_one: "Notificações, {{count}} não lida",
+    notificationsUnread_other: "Notificações, {{count}} não lidas",
+  },
   tabs: {
     agenda: "Agenda",
     myClasses: "Minhas aulas",

@@ -6,7 +6,8 @@ import { renderRouter } from "expo-router/testing-library";
 import InstructorTabsLayout from "@/app/(private)/instructor/(tabs)/_layout";
 import ClassesLayout from "@/app/(private)/instructor/(tabs)/classes/_layout";
 import ClassesRoute from "@/app/(private)/instructor/(tabs)/classes/index";
-import InstructorRoute from "@/app/(private)/instructor/(tabs)/index";
+import InstructorHomeLayout from "@/app/(private)/instructor/(tabs)/(home)/_layout";
+import InstructorRoute from "@/app/(private)/instructor/(tabs)/(home)/index";
 import ProfileRoute from "@/app/(private)/instructor/(tabs)/profile";
 import InstructorClassRoute from "@/app/(private)/instructor/class/[id]";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
@@ -57,7 +58,8 @@ const routeTree = {
   ),
   "(private)/instructor/_layout": InstructorLayout,
   "(private)/instructor/(tabs)/_layout": InstructorTabsLayout,
-  "(private)/instructor/(tabs)/index": InstructorRoute,
+  "(private)/instructor/(tabs)/(home)/_layout": InstructorHomeLayout,
+  "(private)/instructor/(tabs)/(home)/index": InstructorRoute,
   "(private)/instructor/(tabs)/classes/_layout": ClassesLayout,
   "(private)/instructor/(tabs)/classes/index": ClassesRoute,
   "(private)/instructor/(tabs)/profile": ProfileRoute,

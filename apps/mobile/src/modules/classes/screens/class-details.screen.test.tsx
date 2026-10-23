@@ -13,7 +13,11 @@ import { Linking } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
-import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+import {
+  insetBehaviorsOf,
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
@@ -215,9 +219,48 @@ describe("ClassDetailsScreen", () => {
   });
 
   it("insets its scroll view below the header, whatever the header is", async () => {
+    serve(makeClass());
     await renderScreen();
+    await screen.findByText("16:00 – 17:30");
 
     expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
+  });
+
+  it.each([
+    [
+      "loading",
+      () => fetchMock.mockReturnValue(new Promise(() => undefined)),
+      () => screen.getByLabelText("Loading the class"),
+    ],
+    [
+      "not found",
+      () => fetchMock.mockResolvedValue(failure(404)),
+      () => screen.getByRole("header", { name: "Class not found" }),
+    ],
+  ])(
+    "shows the %s state in a view that doesn't scroll, clear of the transparent header",
+    async (_state, answer, getState) => {
+      answer();
+      await underTransparentHeader(116, async () => {
+        await renderScreen();
+        await waitFor(() => expect(getState()).toBeOnTheScreen());
+
+        expect(insetBehaviorsOf(screen.toJSON())).toEqual([]);
+        expect(topPaddingsOf(screen.toJSON())).toContain(116 + 16);
+      });
+    },
+  );
+
+  it("shows the error in a view that doesn't scroll", async () => {
+    jest.useFakeTimers();
+    fetchMock.mockResolvedValue(failure(500));
+    await renderScreen();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(20_000);
+    });
+
+    expect(screen.getByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
+    expect(insetBehaviorsOf(screen.toJSON())).toEqual([]);
   });
 
   it("draws no icon on the discipline chip", async () => {

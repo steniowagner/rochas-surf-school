@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { MyClassesReader, MyClassHistoryPage } from '@rochas-surf-school/classes';
+import type { MyClassesReader } from '@rochas-surf-school/classes';
 import { PrismaService } from '../../db/prisma.service.js';
-import { Prisma } from '../../generated/prisma/client.js';
 
 @Injectable()
 export class PrismaMyClassesReader implements MyClassesReader {
@@ -17,15 +16,11 @@ export class PrismaMyClassesReader implements MyClassesReader {
     return records.map((record) => record.id);
   }
 
-  async findHistoryClassIds(
-    studentId: string,
-    now: Date,
-    page: number,
-    perPage: number,
-  ): Promise<MyClassHistoryPage> {
+  async findHistoryClassIds(studentId: string, now: Date, from: Date, to: Date): Promise<string[]> {
     // The student's latest enrolment per class (newest `requested_at`, then `id`) must be the approved one:
     // a seat held when the class ended.
-    const from = Prisma.sql`
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT c.id
       FROM classes c
       JOIN (
         SELECT DISTINCT ON (e.class_id) e.class_id, e.status
@@ -33,15 +28,10 @@ export class PrismaMyClassesReader implements MyClassesReader {
         WHERE e.student_id = ${studentId}::uuid
         ORDER BY e.class_id, e.requested_at DESC, e.id DESC
       ) latest ON latest.class_id = c.id
-      WHERE latest.status = 'approved' AND c.cancelled_at IS NULL AND c.ends_at <= ${now}`;
+      WHERE latest.status = 'approved' AND c.cancelled_at IS NULL AND c.ends_at <= ${now}
+        AND c.starts_at >= ${from} AND c.starts_at < ${to}
+      ORDER BY c.starts_at DESC, c.id DESC`;
 
-    const [rows, counts] = await Promise.all([
-      this.prisma.$queryRaw<{ id: string }[]>`
-        SELECT c.id ${from} ORDER BY c.starts_at DESC, c.id DESC
-        LIMIT ${perPage} OFFSET ${(page - 1) * perPage}`,
-      this.prisma.$queryRaw<{ total: bigint }[]>`SELECT COUNT(*) AS total ${from}`,
-    ]);
-
-    return { ids: rows.map((row) => row.id), total: Number(counts[0].total) };
+    return rows.map((row) => row.id);
   }
 }

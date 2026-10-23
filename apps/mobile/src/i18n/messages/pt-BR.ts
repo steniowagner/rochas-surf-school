@@ -418,9 +418,24 @@ const messages: Messages = {
     retry: "Tentar novamente",
   },
   myHistory: {
-    title: "Histórico",
-    empty: "Você ainda não fez nenhuma aula.",
-    loadError: "Não foi possível carregar seu histórico.",
+    legend: "Dias em que você fez aula",
+    hasClasses: "você fez aula",
+    allClasses: "Todas as aulas",
+    clearDay: "Limpar {{date}}",
+    loading: "Carregando as aulas",
+    loadError: {
+      title: "Algo deu errado",
+      description:
+        "Não conseguimos carregar seu histórico. Verifique sua conexão e tente novamente.",
+    },
+    emptyDay: {
+      title: "Sem aulas neste dia",
+      description: "Você não fez nenhuma aula neste dia.",
+    },
+    emptyPeriod: {
+      title: "Sem aulas neste período",
+      description: "Você não fez nenhuma aula neste período.",
+    },
   },
   userHeader: {
     greeting: {

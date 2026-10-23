@@ -109,7 +109,7 @@ const monthAbbreviation = (isoDate: string, locale: Locale): string =>
   formatIsoDate(isoDate, "MMM", locale).replace(/\.$/, "").toUpperCase();
 
 /** "18 OCT". */
-const dayAndMonth = (isoDate: string, locale: Locale): string =>
+export const dayAndMonth = (isoDate: string, locale: Locale): string =>
   `${formatIsoDate(isoDate, "d", locale)} ${monthAbbreviation(isoDate, locale)}`;
 
 /** "12 – 18 OCT" for a week inside one month, "28 SEP – 4 OCT" when it spans two (the year is never shown). */
@@ -195,3 +195,9 @@ export const monthRange = (month: CalendarMonth): { from: string; to: string } =
 
   return { from, to: addDays(from, Math.ceil((leading + length) / 7) * 7 - 1) };
 };
+
+/** The first and the last day of a month, `YYYY-MM-DD`. */
+export const monthPeriod = (month: CalendarMonth): { from: string; to: string } => ({
+  from: toIsoDate(month, 1),
+  to: toIsoDate(month, new Date(month.year, month.month, 0).getDate()),
+});

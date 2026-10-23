@@ -15,6 +15,7 @@ import {
   isSameMonth,
   mondayOf,
   monthCaption,
+  monthPeriod,
   monthRange,
   monthOf,
   toIsoDate,
@@ -257,5 +258,12 @@ describe("monthRange", () => {
     expect(monthRange({ year: 2026, month: 10 })).toEqual({ from: "2026-09-28", to: "2026-11-01" });
     expect(monthRange({ year: 2027, month: 2 })).toEqual({ from: "2027-02-01", to: "2027-02-28" });
     expect(monthRange({ year: 2026, month: 8 })).toEqual({ from: "2026-07-27", to: "2026-09-06" });
+  });
+});
+
+describe("monthPeriod", () => {
+  it("answers the 1st and the last day of the month", () => {
+    expect(monthPeriod({ year: 2026, month: 10 })).toEqual({ from: "2026-10-01", to: "2026-10-31" });
+    expect(monthPeriod({ year: 2028, month: 2 })).toEqual({ from: "2028-02-01", to: "2028-02-29" });
   });
 });

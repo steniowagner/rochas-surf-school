@@ -98,4 +98,19 @@ describe("CalendarWeekRow", () => {
 
     expect(onSelectDate).toHaveBeenCalledWith("2026-10-17");
   });
+
+  it("selects no day without a selection", async () => {
+    await render(
+      <CalendarWeekRow
+        days={DAYS}
+        selectedDate={null}
+        today="2026-10-15"
+        markedDates={["2026-10-12"]}
+        onSelectDate={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryAllByTestId("calendar-day-2026-10-12-dot")).toHaveLength(1);
+    DAYS.forEach((day) => expect(screen.getByTestId(`calendar-day-${day}`)).not.toBeSelected());
+  });
 });

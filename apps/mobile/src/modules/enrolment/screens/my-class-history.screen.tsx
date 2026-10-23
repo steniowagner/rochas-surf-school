@@ -1,36 +1,57 @@
-import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, RefreshControl, Text, View } from "react-native";
+import { FlatList, RefreshControl, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { ClassCard } from "@/modules/classes/components/class-card";
-import { StackHeaderTitle } from "@/navigation/stack-header";
+import { ClassCardSkeleton } from "@/modules/classes/components/class-card-skeleton";
+
+import { HistoryDayLabel } from "../components/history-day-label";
+import { HistoryListHeader } from "../components/history-list-header";
 
 import { useMyClassHistoryScreen } from "./my-class-history.screen.hook";
 
-/** "Histórico": the classes the student took, newest first, 20 more at the end of the list. */
+const LOADING_CARDS = [0, 1, 2];
+
+/**
+ * "Histórico": a calendar of the month (or the week) with a dot per class taken, and the period's classes under a
+ * label for each day, newest first. Tapping a day narrows the list to it.
+ */
 export function MyClassHistoryScreen() {
   const { t } = useTranslation();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const screen = useMyClassHistoryScreen();
 
   const renderEmpty = () => {
     if (screen.isLoading) {
+      // Enough cards to fill the screen under the calendar, read out as one loading state.
       return (
-        <ActivityIndicator testID="my-history-loading" color={theme.grape} className="py-8" />
+        <View
+          testID="my-history-loading"
+          accessible
+          accessibilityLabel={t("myHistory.loading")}
+          className="gap-3"
+        >
+          {LOADING_CARDS.map((key) => (
+            <ClassCardSkeleton key={key} />
+          ))}
+        </View>
       );
     }
 
+    // The states below are `flex-1`: in a row they only fill the width, so they keep their height when the calendar
+    // switches view (in the list's column they collapsed after it).
     if (screen.isError) {
       return (
-        <View className="items-center gap-3 py-8">
-          <Text className="ds-text-body text-center text-ink-2">{t("myHistory.loadError")}</Text>
-          <Button variant="outline" onPress={screen.retry}>
-            {t("myClasses.retry")}
-          </Button>
+        <View className="flex-row pt-4">
+          <ErrorState
+            title={t("myHistory.loadError.title")}
+            description={t("myHistory.loadError.description")}
+            onRetry={screen.retry}
+            retrying={screen.isRetrying}
+          />
         </View>
       );
     }
@@ -40,46 +61,72 @@ export function MyClassHistoryScreen() {
       return null;
     }
 
+    const copy = screen.selectedDay === null ? "myHistory.emptyPeriod" : "myHistory.emptyDay";
+
     return (
-      <View className="items-center rounded-card border border-line bg-surface p-6">
-        <Text className="ds-text-body text-center text-ink-2">{t("myHistory.empty")}</Text>
+      <View className="flex-row pt-4">
+        <EmptyState
+          icon="calendar-outline"
+          title={t(`${copy}.title`)}
+          description={t(`${copy}.description`)}
+        />
       </View>
     );
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{ headerTitle: () => <StackHeaderTitle title={t("myHistory.title")} /> }}
-      />
-      <FlatList
-        testID="my-history-list"
-        className="flex-1 bg-page"
-        data={screen.classes}
-        keyExtractor={(item) => item.id}
-        // On iOS the safe areas and the header are added by the scroll view.
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-3 px-screen"
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: Math.max(insets.bottom, 24) }}
-        refreshControl={
-          <RefreshControl refreshing={screen.isRefreshing} onRefresh={screen.refresh} />
-        }
-        renderItem={({ item }) => (
-          <ClassCard item={item} now={screen.now} onPress={screen.openClass} />
-        )}
-        ListEmptyComponent={renderEmpty()}
-        ListFooterComponent={
-          screen.isFetchingNextPage ? (
-            <ActivityIndicator
-              testID="my-history-loading-more"
-              color={theme.grape}
-              className="py-4"
+    // The native header draws only the back button: the history has no title.
+    <FlatList
+      testID="my-history-list"
+      className="flex-1 bg-page"
+      data={screen.rows}
+      keyExtractor={(row) => row.key}
+      // On iOS the safe areas and the header are added by the scroll view.
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="gap-3 px-screen"
+      contentContainerStyle={{ paddingTop: 8, paddingBottom: Math.max(insets.bottom, 24) }}
+      refreshControl={
+        <RefreshControl refreshing={screen.isRefreshing} onRefresh={screen.refresh} />
+      }
+      ListHeaderComponent={
+        <View className="gap-5">
+          <View
+            testID="my-history-calendar"
+            className="gap-3 rounded-card border border-line bg-surface p-3"
+          >
+            <WeekMonthCalendar
+              selectedDate={screen.selectedDay}
+              today={screen.today}
+              markedDates={screen.markedDates}
+              markedLabel={t("myHistory.hasClasses")}
+              onSelectDate={screen.selectDay}
+              initialView="month"
+              clearable
+              onClearSelection={screen.clearDay}
+              onPeriodChange={screen.updatePeriod}
             />
-          ) : null
-        }
-        onEndReached={screen.loadMore}
-        onEndReachedThreshold={0.5}
-      />
-    </>
+            <View className="flex-row items-center gap-2 px-1.5">
+              <View className="h-1.5 w-1.5 rounded-full bg-lagoon" />
+              <Text className="ds-text-list-subtitle text-ink-2">{t("myHistory.legend")}</Text>
+            </View>
+          </View>
+          <HistoryListHeader
+            title={t("myHistory.allClasses")}
+            caption={screen.caption}
+            dayLabel={screen.dayLabel}
+            clearDayLabel={t("myHistory.clearDay", { date: screen.dayLabel })}
+            onClearDay={screen.clearDay}
+          />
+        </View>
+      }
+      renderItem={({ item: row }) =>
+        row.type === "day" ? (
+          <HistoryDayLabel label={row.label} />
+        ) : (
+          <ClassCard item={row.item} now={screen.now} onPress={screen.openClass} />
+        )
+      }
+      ListEmptyComponent={renderEmpty()}
+    />
   );
 }

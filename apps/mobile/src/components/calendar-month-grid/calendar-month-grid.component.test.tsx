@@ -97,4 +97,19 @@ describe("CalendarMonthGrid", () => {
     expect(onSelectDate).toHaveBeenNthCalledWith(1, "2026-11-01");
     expect(onSelectDate).toHaveBeenNthCalledWith(2, "2026-10-20");
   });
+
+  it("selects no day without a selection", async () => {
+    await render(
+      <CalendarMonthGrid
+        month={OCTOBER}
+        selectedDate={null}
+        today="2026-10-15"
+        markedDates={[]}
+        onSelectDate={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("calendar-day-2026-10-14")).not.toBeSelected();
+    expect(screen.getByText("14").parent?.props.className).not.toContain("bg-grape");
+  });
 });

@@ -16,7 +16,8 @@ const PILL_HIT_SLOP = { top: 7, bottom: 7, left: 0, right: 0 };
 
 /**
  * A week or a month to pick a day from. The pill in the middle of the header switches between the two; picking a day
- * never does, and the selected day is the one both views are drawn around. The parent owns the selection.
+ * never does, and the selected day is the one both views are drawn around. The parent owns the selection. With
+ * `clearable`, the selection may be empty and the calendar keeps the week or month on screen itself.
  */
 export function WeekMonthCalendar({
   selectedDate,
@@ -25,11 +26,24 @@ export function WeekMonthCalendar({
   markedLabel,
   onSelectDate,
   onVisibleRangeChange,
+  initialView,
+  clearable,
+  onClearSelection,
+  onPeriodChange,
 }: WeekMonthCalendarProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { view, days, month, caption, toggleView, goPrevious, goNext } =
-    useWeekMonthCalendar({ selectedDate, onSelectDate, onVisibleRangeChange });
+  const { view, days, month, caption, toggleView, goPrevious, goNext, selectDate } =
+    useWeekMonthCalendar({
+      selectedDate,
+      today,
+      onSelectDate,
+      onVisibleRangeChange,
+      initialView,
+      clearable,
+      onClearSelection,
+      onPeriodChange,
+    });
   const isMonth = view === "month";
   const pillColor = isMonth ? theme.onColor : theme.ink;
 
@@ -86,7 +100,7 @@ export function WeekMonthCalendar({
           today={today}
           markedDates={markedDates}
           markedLabel={markedLabel}
-          onSelectDate={onSelectDate}
+          onSelectDate={selectDate}
         />
       ) : (
         <CalendarWeekRow
@@ -95,7 +109,7 @@ export function WeekMonthCalendar({
           today={today}
           markedDates={markedDates}
           markedLabel={markedLabel}
-          onSelectDate={onSelectDate}
+          onSelectDate={selectDate}
         />
       )}
     </View>

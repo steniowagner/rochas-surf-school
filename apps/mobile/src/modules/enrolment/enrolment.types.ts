@@ -109,12 +109,22 @@ export type MyClassesResponse = {
   items: ClassItem[];
 };
 
-/** One page of `GET /classes/mine/history`: the classes the student took, newest first. */
-export type MyClassHistoryPage = {
+/** The answer of `GET /classes/mine/history`: the classes the student took in the period, newest first. */
+export type MyClassHistoryResponse = {
   items: ClassItem[];
-  total: number;
-  page: number;
-  perPage: number;
+};
+
+/** A period of the history: its first and last America/Fortaleza day, `YYYY-MM-DD`. */
+export type MyClassHistoryPeriod = {
+  from: string;
+  to: string;
+};
+
+/** The classes of one America/Fortaleza day of the history, newest first. */
+export type ClassHistoryDay = {
+  /** `YYYY-MM-DD`. */
+  day: string;
+  items: ClassItem[];
 };
 
 /** A chip of "Minhas aulas", grouping the request statuses; `all` shows every class. */

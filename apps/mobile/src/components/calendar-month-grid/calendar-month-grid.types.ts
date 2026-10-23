@@ -3,8 +3,8 @@ import type { CalendarMonth } from "@/utils/calendar-dates.types";
 export type CalendarMonthGridProps = {
   /** The month to draw; the days of the months around it fill its first and last weeks. */
   month: CalendarMonth;
-  /** The selected day, `YYYY-MM-DD`. */
-  selectedDate: string;
+  /** The selected day, `YYYY-MM-DD`, or `null` when no day is selected. */
+  selectedDate: string | null;
   /** Today, `YYYY-MM-DD`. */
   today: string;
   /** The days that get a dot. */

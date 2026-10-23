@@ -100,8 +100,12 @@ describe('My classes (e2e)', () => {
 
   /** A one-hour class starting `offsetMs` from now. */
   async function makeClass(offsetMs: number, cancelled = false): Promise<string> {
+    return makeClassAt(new Date(NOW.getTime() + offsetMs), cancelled);
+  }
+
+  /** A one-hour class starting at `startsAt`. */
+  async function makeClassAt(startsAt: Date, cancelled = false): Promise<string> {
     const id = randomUUID();
-    const startsAt = new Date(NOW.getTime() + offsetMs);
     await prisma.schoolClass.create({
       data: {
         id,
@@ -193,31 +197,60 @@ describe('My classes (e2e)', () => {
   });
 
   describe('history', () => {
-    it('pages the finished classes where the student held a seat, newest first', async () => {
+    const ids = (response: request.Response) => response.body.items.map((item: { id: string }) => item.id);
+
+    it('lists every class taken on a Fortaleza day of the period, newest first, unpaged', async () => {
       const ana = await account();
-      const taken: string[] = [];
-      for (let day = 1; day <= 25; day += 1) {
-        const id = await makeClass(-day * DAY);
+      // 00:00 Fortaleza on 1 August, 23:59 Fortaleza on 31 August, and 25 classes in between.
+      const firstMinute = await makeClassAt(new Date('2026-08-01T03:00:00.000Z'));
+      const lastMinute = await makeClassAt(new Date('2026-09-01T02:59:00.000Z'));
+      const between: string[] = [];
+      for (let day = 2; day <= 26; day += 1) {
+        between.unshift(await makeClassAt(new Date(Date.UTC(2026, 7, day, 12))));
+      }
+      // 00:00 Fortaleza on 1 September and 23:59 Fortaleza on 31 July.
+      const nextMonth = await makeClassAt(new Date('2026-09-01T03:00:00.000Z'));
+      const previousMonth = await makeClassAt(new Date('2026-08-01T02:59:00.000Z'));
+      for (const id of [firstMinute, lastMinute, ...between, nextMonth, previousMonth]) {
         await enrol(id, ana.id, 'approved');
-        taken.push(id);
       }
 
-      const first = await history(ana.accessToken, { page: '1', perPage: '20' });
-      const second = await history(ana.accessToken, { page: '2', perPage: '20' });
+      const response = await history(ana.accessToken, { from: '2026-08-01', to: '2026-08-31' });
 
-      expect(first.status).toBe(200);
-      expect(first.body).toMatchObject({ total: 25, page: 1, perPage: 20 });
-      expect(first.body.items.map((item: { id: string }) => item.id)).toEqual(taken.slice(0, 20));
-      expect(first.body.items[0]).toMatchObject({ seatsTaken: 1, myEnrolment: { status: 'approved' } });
-      expect(second.body).toMatchObject({ total: 25, page: 2, perPage: 20 });
-      expect(second.body.items.map((item: { id: string }) => item.id)).toEqual(taken.slice(20));
+      expect(response.status).toBe(200);
+      expect(Object.keys(response.body)).toEqual(['items']);
+      expect(ids(response)).toEqual([lastMinute, ...between, firstMinute]);
+      expect(response.body.items[0]).toMatchObject({ seatsTaken: 1, myEnrolment: { status: 'approved' } });
     });
 
-    it('defaults to the first 20 and leaves out every class where no seat was held at the end', async () => {
+    it('orders classes starting together by id, descending', async () => {
+      const ana = await account();
+      const startsAt = new Date('2026-08-10T12:00:00.000Z');
+      const pair = [await makeClassAt(startsAt), await makeClassAt(startsAt)];
+      for (const id of pair) await enrol(id, ana.id, 'approved');
+
+      const response = await history(ana.accessToken, { from: '2026-08-10', to: '2026-08-10' });
+
+      expect(ids(response)).toEqual([...pair].sort().reverse());
+    });
+
+    it('answers one day when from equals to', async () => {
+      const ana = await account();
+      const onTheDay = await makeClassAt(new Date('2026-08-14T12:00:00.000Z'));
+      const dayBefore = await makeClassAt(new Date('2026-08-13T12:00:00.000Z'));
+      const dayAfter = await makeClassAt(new Date('2026-08-15T12:00:00.000Z'));
+      for (const id of [onTheDay, dayBefore, dayAfter]) await enrol(id, ana.id, 'approved');
+
+      const response = await history(ana.accessToken, { from: '2026-08-14', to: '2026-08-14' });
+
+      expect([response.status, ids(response)]).toEqual([200, [onTheDay]]);
+    });
+
+    it('leaves out every class where no seat was held at the end, whatever its date', async () => {
       const ana = await account();
       const kept = await makeClass(-DAY);
       await enrol(kept, ana.id, 'approved');
-      for (const status of ['cancelled', 'takenOut', 'denied', 'expired', 'withdrawn'] as const) {
+      for (const status of ['cancelled', 'takenOut', 'denied', 'expired', 'withdrawn', 'pending'] as const) {
         await enrol(await makeClass(-2 * DAY), ana.id, status);
       }
       // A seat given up later: the latest enrolment isn't the approved one.
@@ -229,33 +262,58 @@ describe('My classes (e2e)', () => {
       await enrol(await makeClass(DAY), ana.id, 'approved');
       await enrol(await makeClass(-5 * DAY), (await account()).id, 'approved');
 
-      const response = await history(ana.accessToken);
+      const response = await history(ana.accessToken, { from: '2026-10-01', to: '2026-10-31' });
 
-      expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({ total: 1, page: 1, perPage: 20 });
-      expect(response.body.items.map((item: { id: string }) => item.id)).toEqual([kept]);
+      expect([response.status, ids(response)]).toEqual([200, [kept]]);
     });
 
-    it('answers 422 for a page or perPage that is not a whole number in range', async () => {
+    it('answers no items when nothing was taken in the period', async () => {
+      const ana = await account();
+      await enrol(await makeClassAt(new Date('2026-07-10T12:00:00.000Z')), ana.id, 'approved');
+
+      const response = await history(ana.accessToken, { from: '2026-08-01', to: '2026-08-31' });
+
+      expect([response.status, response.body]).toEqual([200, { items: [] }]);
+    });
+
+    it('accepts 42 days and refuses a longer period or one that ends before it starts with 422', async () => {
       const ana = await account();
 
-      const both = await history(ana.accessToken, { page: '0', perPage: '51' });
-      expect([both.status, both.body.errors]).toEqual([422, ['class.page.invalid', 'class.perPage.invalid']]);
-      const queries: Record<string, string>[] = [{ page: '1.5' }, { page: 'x' }, { perPage: '0' }, { perPage: '-3' }];
-      for (const query of queries) {
-        expect((await history(ana.accessToken, query)).status).toBe(422);
+      const longest = await history(ana.accessToken, { from: '2026-08-01', to: '2026-09-11' });
+      expect([longest.status, longest.body]).toEqual([200, { items: [] }]);
+      for (const query of [
+        { from: '2026-08-01', to: '2026-09-12' },
+        { from: '2026-08-02', to: '2026-08-01' },
+      ]) {
+        const response = await history(ana.accessToken, query);
+        expect([response.status, response.body.errors]).toEqual([422, ['class.range.invalid']]);
       }
     });
 
-    it('refuses instructors, admins and accounts not approved', async () => {
+    it('answers 422 for a missing or unreal date', async () => {
+      const ana = await account();
+
+      const cases: [Record<string, string>, string[]][] = [
+        [{ page: '1', perPage: '20' }, ['class.from.invalid', 'class.to.invalid']],
+        [{ from: '2026-02-30', to: '2026-03-01' }, ['class.from.invalid']],
+        [{ from: '2026-08-01' }, ['class.to.invalid']],
+        [{ from: '01/08/2026', to: '2026-08-31x' }, ['class.from.invalid', 'class.to.invalid']],
+      ];
+      for (const [query, errors] of cases) {
+        const response = await history(ana.accessToken, query);
+        expect([response.status, response.body.errors]).toEqual([422, errors]);
+      }
+    });
+
+    it('refuses instructors, admins and accounts not approved before checking the period', async () => {
       for (const role of ['instructor', 'admin'] as const) {
-        const response = await history((await account(role)).accessToken);
+        const response = await history((await account(role)).accessToken, { from: 'x' });
         expect([response.status, response.body.errors]).toEqual([403, ['enrolment.role.notStudent']]);
       }
 
       const deleted = await history((await account('student', 'deleted')).accessToken);
       expect([deleted.status, deleted.body.errors]).toEqual([403, ['user.status.notApproved']]);
-      expect((await history()).status).toBe(401);
+      expect((await history(undefined, { from: '2026-08-01', to: '2026-08-31' })).status).toBe(401);
     });
   });
 });

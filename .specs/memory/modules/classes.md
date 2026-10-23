@@ -313,8 +313,9 @@ The account's status is checked before its role (`user.status.notApproved`, then
   its students and instructors who share them (every number for an admin) and their own
   latest enrolment in it, and reads both cancellation rules.
 - **An approved student** — lists their own classes: those that haven't ended where they have any enrolment
-  (cancelled ones included), each with their latest enrolment, and, page by page, the classes they took — ended,
-  not cancelled, with their latest enrolment approved. Other roles are refused (`enrolment.role.notStudent`).
+  (cancelled ones included), each with their latest enrolment, and, one period at a time (up to 42 days, spec 053),
+  the classes they took — ended, not cancelled, with their latest enrolment approved, starting on an America/Fortaleza
+  day of the period. Other roles are refused (`enrolment.role.notStudent`).
 - **A student with a seat or a pending request** — receives one notification when the class is edited (a class
   field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
   tell them.
@@ -485,3 +486,8 @@ which stops that account from being erased while the link exists — a decision 
   classes it already loaded, from a floating filter; the choice lasts while the screen is open.
 - `051-classes-filter-full-screen-scrim` — no change to the module's rules or API: in the app, the open sport filter
   dims the whole phone, the header and the tab bar included.
+- `053-history-calendar-filter` — a student's history is read by period instead of pages: `from` and `to` (Fortaleza
+  days, both required, up to 42 days counting both ends) answer every class taken whose start falls in them, newest
+  first (`class.from.invalid`, `class.to.invalid`, `class.range.invalid`; the paging and its errors are gone); in the
+  app, the shared week and month calendar can open on the month, keep no day selected and report the period on
+  screen, for the student's "Histórico".

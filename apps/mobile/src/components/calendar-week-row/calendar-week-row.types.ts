@@ -1,8 +1,8 @@
 export type CalendarWeekRowProps = {
   /** The seven days of the week, `YYYY-MM-DD`, Monday first. */
   days: string[];
-  /** The selected day, `YYYY-MM-DD`. */
-  selectedDate: string;
+  /** The selected day, `YYYY-MM-DD`, or `null` when no day is selected. */
+  selectedDate: string | null;
   /** Today, `YYYY-MM-DD`. */
   today: string;
   /** The days that get a dot. */

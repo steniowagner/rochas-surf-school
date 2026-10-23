@@ -2,7 +2,7 @@ import { render, screen, userEvent } from "@testing-library/react-native";
 import { useState } from "react";
 
 import { WeekMonthCalendar } from "./week-month-calendar.component";
-import type { VisibleRange } from "./week-month-calendar.types";
+import type { CalendarPeriod, VisibleRange } from "./week-month-calendar.types";
 
 const TODAY = "2026-10-14";
 
@@ -238,5 +238,205 @@ describe("WeekMonthCalendar", () => {
     await press("Show the month");
 
     expect(screen.getByText("OCTOBER 2026")).toBeOnTheScreen();
+  });
+});
+
+type ClearableHarnessProps = {
+  initial?: string | null;
+  today?: string;
+  markedDates?: string[];
+  onPeriodChange?: (period: CalendarPeriod) => void;
+  onSelectDate?: (date: string) => void;
+};
+
+function ClearableHarness({
+  initial = null,
+  today = TODAY,
+  markedDates = [],
+  onPeriodChange,
+  onSelectDate,
+}: ClearableHarnessProps) {
+  const [selectedDate, setSelectedDate] = useState<string | null>(initial);
+
+  return (
+    <WeekMonthCalendar
+      selectedDate={selectedDate}
+      today={today}
+      markedDates={markedDates}
+      onSelectDate={(date) => {
+        onSelectDate?.(date);
+        setSelectedDate(date);
+      }}
+      initialView="month"
+      clearable
+      onClearSelection={() => setSelectedDate(null)}
+      onPeriodChange={onPeriodChange}
+    />
+  );
+}
+
+const selectedDays = () =>
+  screen.queryAllByTestId(/^calendar-day-\d{4}-\d{2}-\d{2}$/).filter((node) => node.props.accessibilityState?.selected);
+
+describe("WeekMonthCalendar, clearable", () => {
+  it("opens on today's month with no day selected", async () => {
+    await render(<ClearableHarness />);
+
+    expect(screen.getByText("OCTOBER 2026")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Show the week" })).toBeExpanded();
+    expect(selectedDays()).toHaveLength(0);
+  });
+
+  it("reports the period on screen, never the faded days of the grid", async () => {
+    const onPeriodChange = jest.fn();
+    await render(<ClearableHarness onPeriodChange={onPeriodChange} />);
+
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2026-10-01", to: "2026-10-31" });
+
+    await press("Show the previous month");
+
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2026-09-01", to: "2026-09-30" });
+
+    await press("Show the week");
+
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2026-08-31", to: "2026-09-06" });
+    expect(onPeriodChange).toHaveBeenCalledTimes(3);
+  });
+
+  it("moves the month with the arrows without selecting a day", async () => {
+    const onSelectDate = jest.fn();
+    await render(<ClearableHarness onSelectDate={onSelectDate} />);
+
+    await press("Show the next month");
+
+    expect(screen.getByText("NOVEMBER 2026")).toBeOnTheScreen();
+    expect(selectedDays()).toHaveLength(0);
+    expect(onSelectDate).not.toHaveBeenCalled();
+  });
+
+  it("selects a day, and clears it when pressed again", async () => {
+    await render(<ClearableHarness />);
+
+    await pressDay("2026-10-20");
+
+    expect(day("2026-10-20")).toBeSelected();
+
+    await pressDay("2026-10-20");
+
+    expect(day("2026-10-20")).not.toBeSelected();
+    expect(screen.getByText("OCTOBER 2026")).toBeOnTheScreen();
+  });
+
+  it("opens the month of a faded day with that day selected", async () => {
+    const onPeriodChange = jest.fn();
+    await render(<ClearableHarness onPeriodChange={onPeriodChange} />);
+
+    await pressDay("2026-11-01");
+
+    expect(screen.getByText("NOVEMBER 2026")).toBeOnTheScreen();
+    expect(day("2026-11-01")).toBeSelected();
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2026-11-01", to: "2026-11-30" });
+  });
+
+  it("clears the selection when an arrow moves the period, in both views", async () => {
+    await render(<ClearableHarness />);
+
+    await pressDay("2026-10-20");
+    await press("Show the next month");
+
+    expect(screen.getByText("NOVEMBER 2026")).toBeOnTheScreen();
+    expect(selectedDays()).toHaveLength(0);
+
+    await press("Show the week");
+    await pressDay("2026-11-01");
+    await press("Show the previous week");
+
+    expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+    expect(selectedDays()).toHaveLength(0);
+  });
+
+  it("moves the week with the arrows by seven days", async () => {
+    await render(<ClearableHarness />);
+
+    await press("Show the week");
+    await press("Show the next week");
+
+    expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+  });
+
+  it("keeps the selected day when switching view, opening its week and its month", async () => {
+    await render(<ClearableHarness />);
+
+    await pressDay("2026-10-27");
+    await press("Show the week");
+
+    expect(screen.getByText("26 OCT – 1 NOV")).toBeOnTheScreen();
+    expect(day("2026-10-27")).toBeSelected();
+
+    await pressDay("2026-11-01");
+    await press("Show the month");
+
+    expect(screen.getByText("NOVEMBER 2026")).toBeOnTheScreen();
+    expect(day("2026-11-01")).toBeSelected();
+  });
+
+  it("opens today's week from today's month without a selected day", async () => {
+    await render(<ClearableHarness />);
+
+    await press("Show the week");
+
+    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+  });
+
+  it("opens the week of the 1st from another month without a selected day", async () => {
+    await render(<ClearableHarness />);
+
+    await press("Show the next month");
+    await press("Show the week");
+
+    expect(screen.getByText("26 OCT – 1 NOV")).toBeOnTheScreen();
+  });
+
+  it("opens the month of the week's Monday without a selected day", async () => {
+    await render(<ClearableHarness />);
+
+    await press("Show the next month");
+    await press("Show the week");
+    await press("Show the month");
+
+    expect(screen.getByText("OCTOBER 2026")).toBeOnTheScreen();
+  });
+
+  it("opens on the selected day's month when one is given", async () => {
+    await render(<ClearableHarness initial="2026-08-14" />);
+
+    expect(screen.getByText("AUGUST 2026")).toBeOnTheScreen();
+    expect(day("2026-08-14")).toBeSelected();
+  });
+
+  it("shows one dot on each marked day of the month", async () => {
+    await render(<ClearableHarness markedDates={["2026-10-05", "2026-10-06"]} />);
+
+    expect(screen.queryAllByTestId("calendar-day-2026-10-05-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-06-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(2);
+  });
+
+  it("draws today's week when it isn't clearable and no day is given", async () => {
+    await render(<WeekMonthCalendar selectedDate={null} today={TODAY} markedDates={[]} onSelectDate={jest.fn()} />);
+
+    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+    expect(selectedDays()).toHaveLength(0);
+  });
+
+  it("works without the clearing and period listeners", async () => {
+    await render(
+      <WeekMonthCalendar selectedDate="2026-10-14" today={TODAY} markedDates={[]} onSelectDate={jest.fn()} clearable />,
+    );
+
+    await pressDay("2026-10-14");
+    await press("Show the previous week");
+
+    expect(screen.getByText("5 – 11 OCT")).toBeOnTheScreen();
   });
 });

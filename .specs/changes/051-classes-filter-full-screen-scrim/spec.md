@@ -3,10 +3,11 @@ id: "051"
 slug: classes-filter-full-screen-scrim
 title: The sport filter dims the whole phone
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 517a7c0b905b53fbcb2e236a1d8ae14a86e98519
+reviewed_commit: 75f2c2b3e3ecfcdd25e936bd92aa244085b23265
 fronts: [mobile]
 depends_on: []
 ---
@@ -150,3 +151,45 @@ skills and follow [.claude/rules/react.md](../../../.claude/rules/react.md).
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-22 — accepted (self-review)
+
+Reviewed in the session that ran `/spec-execute 051`. That run found the spec already `in-review` and changed no code; the
+tasks were executed in an earlier session. Allowed for a quick spec.
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile --force`: 8/8 tasks)
+- related tests ✅ apps/mobile jest, 9 suites / 233 passed (`run-related-tests.mjs 051`: RELATED TESTS PASSED)
+- coverage of the changed lines ✅ COVERAGE OK: 4 files measured at 100% statements, branches, functions and lines; 4
+  files with no executable changed lines; no coverage-ignore comments in the diff
+- ER-01 `Verify by` command ✅ `npx jest src/modules/classes/components/discipline-filter src/modules/classes/screens/classes-week.screen.test.tsx`
+  (2 suites, 60 passed)
+- e2e: no mobile suite; ER-01 exercised in the iOS simulator (iPhone 18 Pro, iOS 27, the running dev build) ✅
+
+**Expected Results**
+
+- ER-01 ✅ — Student, Agenda, light: opening the filter dims the status bar, the user header (avatar, greeting, bell),
+  the band, the list and the tab bar. "TODAS" · "SURF" · "SKATE" and the "x" stay bright, and the "x" sits where the
+  closed button was. A press on the dimmed bell, and another on the dimmed "Escola" tab, each closed the options and
+  stayed on the Agenda. Admin (`admin@example.com` review account), Aulas: in light and dark themes, the title, "+",
+  calendar, list and tab bar are dimmed under the options. A press on the dimmed "+" closed the options without opening
+  the new-class screen. "SKATE" chosen from the `Modal` closed it and filtered the week to its empty state. The tests
+  "renders the open filter above the header and the tab bar", "closes on the Android back button" and "hides the closed
+  button while open" fail without the change: no `Modal`, no `onRequestClose`, two "filter" buttons. The turn test reads
+  both buttons.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- D-01–D-03 are honored: a transparent `Modal` (`animationType="none"`, `statusBarTranslucent`, `navigationBarTranslucent`,
+  `onRequestClose={close}`), placed at `useSafeAreaFrame()` with the bottom inset, and one `DisciplineFilterButton` for
+  both buttons, sharing one turn. The closed button uses `accessibilityElementsHidden` /
+  `no-hide-descendants` while open.
+- Android was checked only by the unit test (`onRequestClose`), not in an emulator. The spec's manual plan is iOS only.
+- The related run prints expo-router's existing "No route named (tabs)" warnings from the routing tests. They are not
+  failures and are unrelated to this spec.
+- Memory Impact matches what was built.

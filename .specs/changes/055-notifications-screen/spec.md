@@ -346,11 +346,19 @@ screen and the read state that spec 020 left for later, so a notification is nev
   > backend-prisma-sync-module skill’s `migrate dev` was split into `--create-only` + `migrate deploy` so the SQL
   > was read before it touched the local database.
 
-- [ ] **T-04** — Add `renderInApp(type, params, locale)` to `apps/backend/src/modules/notifications/push-messages.ts`
+- [x] **T-04** — Add `renderInApp(type, params, locale)` to `apps/backend/src/modules/notifications/push-messages.ts`
   (D-02: the push text, minus the "open the app" sentences of `class.edited` and the no-reason `registration.denied`),
   with cases in `push-messages.spec.ts` for those two types in the three languages and for every other type matching
   `renderPush`.
   Covers: ER-02 · Done when: `npx vitest run src/modules/notifications/push-messages.spec.ts` passes.
+  > ✅ 2026-10-23 13:36 — Added `renderInApp(type, params, locale)`: the push title and body from the same catalog,
+  > except where a catalog entry has the new optional `inAppBody` — `class.edited` (its shared sentence moved to
+  > `classEdited`, so the push still appends “Abra o app para ver.” / “Abre la app para verla.” / “Open the app to
+  > see it.”) and `registration.denied` (the trimmed reason, or `""`); files:
+  > `apps/backend/src/modules/notifications/push-messages.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run
+  > src/modules/notifications/push-messages.spec.ts` (83 passed, including the existing push cases;
+  > `push-messages.ts` at 100% statements, branches, functions and lines), `tsc --noEmit` clean; deviations: none.
 
 - [ ] **T-05** — Expose in `apps/backend/src/modules/notifications/notifications.controller.ts` (protected):
   `GET /notifications` (query `page`, `perPage`, `locale` → `ListNotifications`, items mapped by D-14 with

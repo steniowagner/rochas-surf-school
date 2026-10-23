@@ -12,6 +12,8 @@ export interface PushText {
 interface PushCopy {
   title: string | ((params: NotificationParams) => string);
   body: (params: NotificationParams) => string;
+  /** The body on the app's notifications screen, when it differs from the push's (no "open the app" there). */
+  inAppBody?: (params: NotificationParams) => string;
 }
 
 const text = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
@@ -48,6 +50,22 @@ const waitingCount = (value: unknown): number =>
 const classCount = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : 1;
 
+/** The sentence of `class.edited` that the push and the app share. */
+const classEdited: Record<PushLocale, (params: NotificationParams) => string> = {
+  'pt-BR': ({ discipline, startsAt }) => {
+    const { day, time } = startParts(startsAt);
+    return `A aula de ${disciplineName(discipline)} de ${day} às ${time} foi alterada.`;
+  },
+  es: ({ discipline, startsAt }) => {
+    const { day, time } = startParts(startsAt);
+    return `La clase de ${disciplineName(discipline)} del ${day} a las ${time} cambió.`;
+  },
+  en: ({ discipline, startsAt }) => {
+    const { day, time } = startParts(startsAt, true);
+    return `Your ${disciplineName(discipline)} class on ${day} at ${time} was changed.`;
+  },
+};
+
 // The second user-facing text the backend writes (next to the sign-in email): a push is drawn by the OS, often with
 // the app closed, so its text travels in the payload. The admin's denial reason is shown as written, never translated.
 const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
@@ -83,14 +101,17 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
     'pt-BR': {
       title: 'Inscrição recusada',
       body: ({ reason }) => text(reason) || 'Abra o app para saber mais.',
+      inAppBody: ({ reason }) => text(reason),
     },
     es: {
       title: 'Inscripción rechazada',
       body: ({ reason }) => text(reason) || 'Abre la app para saber más.',
+      inAppBody: ({ reason }) => text(reason),
     },
     en: {
       title: 'Registration denied',
       body: ({ reason }) => text(reason) || 'Open the app to learn more.',
+      inAppBody: ({ reason }) => text(reason),
     },
   },
   'class.assigned': {
@@ -119,24 +140,18 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
   'class.edited': {
     'pt-BR': {
       title: 'Aula alterada',
-      body: ({ discipline, startsAt }) => {
-        const { day, time } = startParts(startsAt);
-        return `A aula de ${disciplineName(discipline)} de ${day} às ${time} foi alterada. Abra o app para ver.`;
-      },
+      body: (params) => `${classEdited['pt-BR'](params)} Abra o app para ver.`,
+      inAppBody: (params) => classEdited['pt-BR'](params),
     },
     es: {
       title: 'Clase modificada',
-      body: ({ discipline, startsAt }) => {
-        const { day, time } = startParts(startsAt);
-        return `La clase de ${disciplineName(discipline)} del ${day} a las ${time} cambió. Abre la app para verla.`;
-      },
+      body: (params) => `${classEdited.es(params)} Abre la app para verla.`,
+      inAppBody: (params) => classEdited.es(params),
     },
     en: {
       title: 'Class changed',
-      body: ({ discipline, startsAt }) => {
-        const { day, time } = startParts(startsAt, true);
-        return `Your ${disciplineName(discipline)} class on ${day} at ${time} was changed. Open the app to see it.`;
-      },
+      body: (params) => `${classEdited.en(params)} Open the app to see it.`,
+      inAppBody: (params) => classEdited.en(params),
     },
   },
   'class.unassigned': {
@@ -480,4 +495,19 @@ export function renderPush(
   const copy = CATALOG[type][locale];
   const title = typeof copy.title === 'function' ? copy.title(params) : copy.title;
   return { title, body: copy.body(params) };
+}
+
+/**
+ * The text of a notification on the app's notifications screen: the push's, minus the sentences that send the person
+ * to the app they are already in (a `class.edited` ends after the change; a `registration.denied` without a reason has
+ * an empty body).
+ */
+export function renderInApp(
+  type: NotificationType,
+  params: NotificationParams,
+  locale: PushLocale,
+): PushText {
+  const { title, body } = renderPush(type, params, locale);
+  const { inAppBody } = CATALOG[type][locale];
+  return { title, body: inAppBody ? inAppBody(params) : body };
 }

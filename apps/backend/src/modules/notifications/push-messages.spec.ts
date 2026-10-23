@@ -2,7 +2,7 @@ import {
   NOTIFICATION_TYPES,
   PUSH_LOCALES,
 } from '@rochas-surf-school/notifications';
-import { renderPush } from './push-messages.js';
+import { renderInApp, renderPush } from './push-messages.js';
 
 describe('renderPush', () => {
   it.each([
@@ -302,6 +302,63 @@ describe('renderPush', () => {
         const { title, body } = renderPush(type, { name: 'Ana', reason: 'x' }, locale);
         expect(title).not.toBe('');
         expect(body).not.toBe('');
+      }
+    }
+  });
+});
+
+describe('renderInApp', () => {
+  const EDITED = { classId: 'c-1', discipline: 'surf', startsAt: '2026-10-20T11:00:00.000Z' };
+
+  it.each([
+    ['pt-BR', 'Aula alterada', 'A aula de Surf de 20/10 às 08:00 foi alterada.'],
+    ['es', 'Clase modificada', 'La clase de Surf del 20/10 a las 08:00 cambió.'],
+    ['en', 'Class changed', 'Your Surf class on 10/20 at 08:00 was changed.'],
+  ] as const)('ends a class.edited after the change in %s, without "open the app"', (locale, title, body) => {
+    expect(renderInApp('class.edited', EDITED, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'A aula de Surf de 20/10 às 08:00 foi alterada. Abra o app para ver.'],
+    ['es', 'La clase de Surf del 20/10 a las 08:00 cambió. Abre la app para verla.'],
+    ['en', 'Your Surf class on 10/20 at 08:00 was changed. Open the app to see it.'],
+  ] as const)('keeps "open the app" in the class.edited push in %s', (locale, body) => {
+    expect(renderPush('class.edited', EDITED, locale).body).toBe(body);
+  });
+
+  it.each([
+    ['pt-BR', 'Inscrição recusada'],
+    ['es', 'Inscripción rechazada'],
+    ['en', 'Registration denied'],
+  ] as const)('gives a registration.denied the reason as its body, or an empty one, in %s', (locale, title) => {
+    expect(renderInApp('registration.denied', { reason: ' Não conhecemos você. ' }, locale)).toEqual({
+      title,
+      body: 'Não conhecemos você.',
+    });
+    expect(renderInApp('registration.denied', {}, locale)).toEqual({ title, body: '' });
+  });
+
+  it('writes every other type and locale exactly as the push', () => {
+    const params = {
+      classId: 'c-1',
+      name: 'Ana Souza',
+      studentName: 'Ana Souza',
+      discipline: 'skate',
+      startsAt: '2026-10-20T11:00:00.000Z',
+      count: 2,
+      waitingCount: 1,
+      locationName: 'Praia do Futuro',
+      message: 'Mar grande.',
+      reason: 'Turma cheia.',
+    };
+    const others = NOTIFICATION_TYPES.filter(
+      (type) => type !== 'class.edited' && type !== 'registration.denied',
+    );
+
+    expect(others).toHaveLength(16);
+    for (const type of others) {
+      for (const locale of PUSH_LOCALES) {
+        expect(renderInApp(type, params, locale)).toEqual(renderPush(type, params, locale));
       }
     }
   });

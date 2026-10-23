@@ -1027,6 +1027,11 @@ const messages = {
     removed: "{{name}} removed",
   },
   teachingClasses: {
+    row: {
+      assigned_one: "{{count}} class assigned to you",
+      assigned_other: "{{count}} classes assigned to you",
+      none: "No classes assigned",
+    },
     title: "My classes",
     today: "Today",
     tomorrow: "Tomorrow",

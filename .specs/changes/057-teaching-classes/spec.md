@@ -330,7 +330,7 @@ header's clock button.
   > (2 suites, 16 passed; screen, hook and header 100%), `npx tsc --noEmit` and `npx eslint` on the files (no errors);
   > deviations: the minute tick is tested by mocking `useNow` and re-rendering, not with fake timers.
 
-- [ ] **T-08** — Add `src/modules/classes/components/teaching-classes-entry-row/` (`role` prop: always rendered for
+- [x] **T-08** — Add `src/modules/classes/components/teaching-classes-entry-row/` (`role` prop: always rendered for
   `instructor`, only with `teachesAny` for `admin`; the subtitle of D-07; refetch on focus — D-08) and render it as the
   first row of the Escola section in `src/modules/instructor/screens/instructor.screen.tsx` and
   `src/modules/admin/screens/admin.screen.tsx`, opening `routes.<role>.myClasses`, with tests (the component's, and the
@@ -339,6 +339,30 @@ header's clock button.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03, ER-04 · Done when: `npx jest src/modules/classes/components/teaching-classes-entry-row src/modules/instructor src/modules/admin/screens/admin.screen.test.tsx`
   passes from `apps/mobile`.
+  > ✅ 2026-10-23 20:32 — added `TeachingClassesEntryRow` (component, hook, types, index; prop `role`): a card row
+  > (MaterialCommunityIcons `surfing` in `lagoon`, "Minhas aulas", the subtitle, a chevron) over the shared
+  > `["classes", "teaching"]` query, refetched by `useFocusEffect` (`cancelRefetch: false`); always rendered for an
+  > instructor, and for an admin only once the query has data with `teachesAny: true` (never while loading or after an
+  > error); subtitle "{{count}} aula(s) atribuída(s) a você" over the items not cancelled, "Nenhuma aula atribuída" at zero,
+  > none while loading or after an error; copy `teachingClasses.row` in the three locales. Rendered as the first row of
+  > the Escola section on both homes, opening `routes.instructor.myClasses` / `routes.admin.myClasses`. Home tests answer
+  > `/classes/teaching` apart (like `/school-rules`) and cover the row's place, count, failed request, navigation to the
+  > screen and, for the admin, no row when not teaching / failed / loading and the row appearing back on the home after
+  > `teachesAny` turns true; the two tabs navigation tests answer the new request. Files:
+  > `apps/mobile/src/modules/classes/components/teaching-classes-entry-row/index.ts`,
+  > `apps/mobile/src/modules/classes/components/teaching-classes-entry-row/teaching-classes-entry-row.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/teaching-classes-entry-row/teaching-classes-entry-row.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/teaching-classes-entry-row/teaching-classes-entry-row.types.ts`,
+  > `apps/mobile/src/modules/classes/components/teaching-classes-entry-row/teaching-classes-entry-row.component.test.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`,
+  > `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.tsx`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`, `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`;
+  > verified: `npx jest src/modules/instructor src/modules/admin src/modules/classes/components/teaching-classes-entry-row`
+  > (11 suites, 97 passed; the row's component and hook 100% covered), `npx tsc --noEmit` and `npx eslint` (no errors);
+  > deviations: the instructor test "shows the Rules row first under School…" was renamed, since "My classes" now comes first;
+  > the two `*-tabs.navigation.test.tsx` files were updated too, because their homes now send `GET /classes/teaching`.
 
 ### Verification
 

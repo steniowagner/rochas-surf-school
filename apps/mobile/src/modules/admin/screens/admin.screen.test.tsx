@@ -13,8 +13,10 @@ import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
 import AdminManageSchoolRulesRoute from "@/app/(private)/admin/manage-school-rules";
+import AdminMyClassesRoute from "@/app/(private)/admin/my-classes";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
+import { buildClassItem } from "@/modules/classes/classes.test-utils";
 import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
 
@@ -30,12 +32,29 @@ const SCHOOL_RULES = {
   })),
 };
 
-// The Rules row asks for the school rules on its own: they are answered here, so `fetchMock` sees only the home's
-// other requests.
+// What `GET /classes/teaching` answers: nothing taught unless a test says otherwise; `null` fails.
+const NOT_TEACHING = { items: [], teachesAny: false };
+const TEACHING = {
+  items: [
+    buildClassItem("c-1", "2099-10-15T11:00:00.000Z", "2099-10-15T12:00:00.000Z"),
+    buildClassItem("c-2", "2099-10-16T11:00:00.000Z", "2099-10-16T12:00:00.000Z", {
+      cancelledAt: "2099-10-01T12:00:00.000Z",
+    }),
+  ],
+  teachesAny: true,
+};
+let teaching: typeof TEACHING | typeof NOT_TEACHING | null = NOT_TEACHING;
+
+// The Rules and My classes rows ask for the school rules and the classes taught on their own: they are answered here,
+// so `fetchMock` sees only the home's other requests.
 const fetchWithSchoolRules = (url: string, init: RequestInit) =>
   String(url).endsWith("/school-rules")
     ? Promise.resolve({ ok: true, status: 200, json: async () => SCHOOL_RULES })
-    : fetchMock(url, init);
+    : String(url).endsWith("/classes/teaching")
+      ? teaching
+        ? Promise.resolve({ ok: true, status: 200, json: async () => teaching })
+        : Promise.resolve({ ok: false, status: 500, json: async () => ({ errors: [] }) })
+      : fetchMock(url, init);
 
 // The bell asks for the unread count on its own: the home's requests are the others.
 const homeCalls = () =>
@@ -103,6 +122,7 @@ async function openAdminHome() {
       "(private)/admin/class-requests": AdminClassRequestsRoute,
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
       "(private)/admin/manage-school-rules": AdminManageSchoolRulesRoute,
+      "(private)/admin/my-classes": AdminMyClassesRoute,
     },
     { initialUrl: routes.admin.home },
   );
@@ -126,6 +146,7 @@ beforeEach(() => {
       refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
     },
   });
+  teaching = NOT_TEACHING;
   fetchMock.mockReset();
   globalThis.fetch = fetchWithSchoolRules as typeof fetch;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
@@ -428,5 +449,73 @@ describe("AdminScreen", () => {
     await act(async () => router.back());
 
     expect(app.getPathname()).toBe(routes.admin.home);
+  });
+
+  describe("My classes", () => {
+    it("is the first row under School when the admin teaches, counts the classes not cancelled, and opens the screen", async () => {
+      const user = userEvent.setup();
+      teaching = TEACHING;
+      respondWith([]);
+      const app = await openAdminHome();
+
+      expect(await screen.findByText("1 class assigned to you")).toBeOnTheScreen();
+      const rows = screen.getAllByText(/^(School|My classes|Rules|People|School settings)$/);
+      expect(rows.map((row) => row.props.children)).toEqual([
+        "School",
+        "My classes",
+        "Rules",
+        "People",
+        "School settings",
+      ]);
+
+      await user.press(screen.getByRole("button", { name: /My classes/ }));
+
+      expect(app.getPathname()).toBe(routes.admin.myClasses);
+      expect(await screen.findByRole("header", { name: "MY CLASSES" })).toBeOnTheScreen();
+    });
+
+    it("isn't shown when the admin teaches nothing, nor after a failed request", async () => {
+      respondWith([]);
+      await openAdminHome();
+      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
+
+      teaching = null;
+      await openAdminHome();
+      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
+    });
+
+    it("isn't shown while the request loads", async () => {
+      teaching = TEACHING;
+      respondWith([]);
+      const pending = new Promise<never>(() => undefined);
+      globalThis.fetch = ((url: string, init: RequestInit) =>
+        String(url).endsWith("/classes/teaching") ? pending : fetchWithSchoolRules(url, init)) as typeof fetch;
+      await openAdminHome();
+
+      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
+    });
+
+    it("appears back on the home once the admin teaches a class, without restarting the app", async () => {
+      const user = userEvent.setup();
+      fetchMock.mockImplementation(async (url: string) => ({
+        ok: true,
+        status: 200,
+        json: async () =>
+          String(url).includes("/people") ? { items: [], page: 1, perPage: 20, total: 0 } : { items: [] },
+      }));
+      await openAdminHome();
+      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /People/ }));
+      expect(await screen.findByText("No one found")).toBeOnTheScreen();
+      teaching = TEACHING;
+      await act(async () => router.back());
+
+      expect(await screen.findByText("1 class assigned to you")).toBeOnTheScreen();
+    });
   });
 });

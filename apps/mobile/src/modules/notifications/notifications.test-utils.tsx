@@ -74,7 +74,8 @@ export const failure = (status = 500) => ({
 
 export const requests = (): { method: string; path: string }[] =>
   fetchMock.mock.calls.map(([url, init]) => ({
-    method: (init as RequestInit | undefined)?.method ?? "GET",
+    // The API client always names the method.
+    method: (init as RequestInit).method as string,
     path: String(url).replace("http://api.test", ""),
   }));
 

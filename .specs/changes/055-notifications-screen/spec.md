@@ -470,13 +470,35 @@ screen and the read state that spec 020 left for later, so a notification is nev
   > at 100%), `npx jest src/i18n` (passes, the three locales keep the same keys), `tsc --noEmit` and `eslint` clean;
   > deviations: the icon table lives in `utils/notification-icon.ts` so the screen and tests share it.
 
-- [ ] **T-09** — Add `NotificationsScreen` in `apps/mobile/src/modules/notifications/screens/notifications.screen.tsx`
+- [x] **T-09** — Add `NotificationsScreen` in `apps/mobile/src/modules/notifications/screens/notifications.screen.tsx`
   (title "Avisos" and the `headerRight` mark-all `HeaderButton` through `<Stack.Screen options>`, skeleton, empty and
   error states, the list with paging and pull to refresh, row tap → mark read and `router.push(notificationTarget(…))`
   for the session's flow, mark-all with its toast), the copy of D-06, D-12 and D-13 in
   `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, with `notifications.screen.test.tsx`. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-07, ER-08, ER-09, ER-10 · Done when: `npx jest src/modules/notifications/screens` passes from `apps/mobile`.
+  > ✅ 2026-10-23 13:54 — Added `NotificationsScreen` with its hook and types: `<Stack.Screen options>` sets
+  > `headerTitle` (`StackHeaderTitle` “Avisos” / “Avisos” / “Notifications”) and, only while rows are on screen and
+  > the unread count is above 0, the `headerRight` `HeaderButton` `checkmark-done-outline` labelled “Marcar todos
+  > como lidos” / “Marcar todos como leídos” / “Mark all as read”; a `FlatList` (first descendant,
+  > `contentInsetAdjustmentBehavior="automatic"`) of `NotificationRow`s with five skeleton rows while loading,
+  > `EmptyState` (`notifications-outline`) and `ErrorState` with retry (D-13 copy), the next page at the end, a
+  > footer spinner, and pull to refresh that trims the cache to page 1 before reloading the list and the count; a
+  > row tap marks an unread row read (`useMarkNotificationRead`) and pushes `notificationTarget(type, classId,
+  > flow)` for the session’s resolved flow when there is one; mark-all runs `useMarkAllNotificationsRead` and toasts
+  > the D-12 message on failure (not for an expired session); the D-06 / D-12 / D-13 copy is in the `notifications`
+  > namespace of the three message files; files:
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.tsx`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.types.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`,
+  > `apps/mobile/src/modules/notifications/notifications.test-utils.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest
+  > src/modules/notifications/screens` from `apps/mobile` (20 passed; screen and hook at 100% statements, branches,
+  > functions and lines), `npx jest src/modules/notifications src/i18n` (311 passed), `tsc --noEmit` and `eslint`
+  > clean; deviations: the screen hook sits next to the screen (`notifications.screen.hook.ts`), as the history
+  > screen’s does; the test run prints `act(...)` warnings from React Query updates, as the people screen’s suite
+  > does.
 
 - [ ] **T-10** — Add the routes `apps/mobile/src/app/(private)/{student,instructor,admin}/notifications.tsx` (each
   renders `NotificationsScreen`) and `routes.<role>.notifications` in `apps/mobile/src/constants/routes.ts`; in

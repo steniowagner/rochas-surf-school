@@ -80,7 +80,14 @@ export const requests = (): { method: string; path: string }[] =>
 
 export const setupSignedInUser = (role = "student") => {
   hydrateSession({
-    user: { id: "u-1", role, status: "approved" } as never,
+    user: {
+      id: "u-1",
+      role,
+      status: "approved",
+      whatsappNumber: "+5585999998888",
+      rulesAccepted: true,
+      rulesAcceptedBefore: true,
+    } as never,
     tokens: {
       accessToken: "at-1",
       accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",

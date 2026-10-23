@@ -954,6 +954,18 @@ const messages: Messages = {
     archived: "Removido",
   },
   notifications: {
+    title: "Avisos",
+    markAll: "Marcar todos como lidos",
+    markAllError: "Não foi possível marcar os avisos como lidos. Tente de novo.",
+    loading: "Carregando avisos",
+    empty: {
+      title: "Nenhum aviso por enquanto",
+      description: "Quando algo mudar nas suas aulas ou na sua conta, avisamos aqui.",
+    },
+    loadError: {
+      title: "Não foi possível carregar os avisos",
+      description: "Verifique sua conexão e tente de novo.",
+    },
     now: "Agora",
     unread: ", não lido",
   },

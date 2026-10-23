@@ -2,10 +2,11 @@
 id: "053"
 slug: history-calendar-filter
 title: Filter the class history by day, week or month
-status: in-review
+status: accepted
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 038bb0bd6d0328754ac283661af9cc73accb5105
+reviewed_commit: d5addc190e64eeab48e969820f904b6a75cad5ee
 fronts: [classes, backend, mobile]
 depends_on: []
 ---
@@ -523,4 +524,55 @@ list can follow the period. Students find a past class by when it happened inste
 - `isWeek` in `my-class-history.screen.hook.ts` tells a week from a month by `addDays(from, 6) === to`; it holds because
   every month has at least 28 days, but keeping the calendar's view next to the period (the `CalendarPeriod` could carry
   it) would say it directly.
+- The Memory Impact matches what was built.
+
+### Round 2 — 2026-10-22 — accepted
+
+**Checks**
+
+- lint ✅ (0 errors; the backend's 10 warnings are all in e2e lines this spec didn't touch) · type check ✅ (turbo, 18/18
+  tasks: modules/classes, apps/backend, apps/mobile and their dependencies) · build ✅ (modules/classes and apps/mobile
+  through turbo, 4/4; apps/backend with `tsc -p tsconfig.build.json` into a scratch folder, leaving the user's running
+  `nest start --watch` and its `dist` alone)
+- related tests ✅ apps/backend 42 · apps/mobile 1273 · modules/classes 525 · modules/enrolment 291 (RELATED TESTS PASSED)
+- coverage of the changed lines ✅ COVERAGE OK, 15 files at 100%; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 23 files, 631 passed (E2E PASSED) · mobile: journeys driven on the iOS simulator (iPhone 18 Pro,
+  pt-BR, the dev student, existing data: one class taken on 21 Oct)
+- `classes.integration.http` requests against the running backend as the review student / instructor / admin:
+  October → 200, body only `items` (the 21 Oct class); `2026-10-21` alone → that class; August and the 42-day
+  `2026-08-01..2026-09-11` → 200 `{ items: [] }`; `to=2026-09-12` and `to` before `from` → 422 `class.range.invalid`;
+  `from=2026-02-30&to=2026-03-01` → 422 `class.from.invalid`; `from=2026-02-30` alone, `page=1&perPage=20` and no
+  query → 422 `class.from.invalid` + `class.to.invalid`; instructor and admin with `from=x` → 403
+  `enrolment.role.notStudent`; no token → 401
+
+**Expected Results**
+
+- ER-01 ✅ — the reader's single query with `starts_at >= from AND starts_at < to`, the use case's Fortaleza instants
+  (1 Aug 03:00 UTC → 1 Sep 03:00 UTC), the e2e day edges, `from` = `to`, ordering by id and every exclusion; the HTTP
+  answers above
+- ER-02 ✅ — the use case and e2e 422 / 403 / 401 cases (403 before the period is checked), and the same over HTTP
+- ER-03 ✅ — on the simulator: only the back button in the header, month view on OUTUBRO 2026, one dot on 21, "Dias em que
+  você fez aula"; the arrows moved the week (19 – 25 OUT → 26 OUT – 1 NOV → 2 – 8 NOV) and the pill switched view by
+  D-08 (month of November with no day → "26 OUT – 1 NOV", the week of its 1st); faded days had no dot. The
+  two-classes-one-dot case and the Agenda's unchanged behavior are covered by the screen and calendar tests (the
+  Agenda's existing tests only gained an import and new cases)
+- ER-04 ✅ — 21 selected showed only its class under "QUA, 21 OUT" with the "21 OUT ✕" chip, kept through week → month;
+  the chip cleared it and "OUTUBRO 2026" came back; the faded 30 Sep opened SETEMBRO 2026 with 30 selected; an arrow
+  cleared the day; 20 and 27 showed "Sem aulas neste dia" with their chip
+- ER-05 ✅ — F-01 is fixed: "Sem aulas neste dia" stays whole (tile, title, description under the list header) on both
+  of round 1's paths (20 → pill → "19 – 25 OUT"; week 27 → pill → October, cached) and month 30 Sep → pill → "28 SET –
+  4 OUT"; "Sem aulas neste período" whole on "26 OUT – 1 NOV". With the backend stopped (with the user's permission),
+  "2 – 8 NOV" showed "Algo deu errado", its description and "Tentar novamente", and the error stayed whole after week →
+  month (NOVEMBRO 2026) and month → week (10 Nov → "9 – 15 NOV"); once the backend was back, "Tentar novamente"
+  reloaded the period and showed the day's empty state. The skeleton and the retry button's spinner went by faster than
+  a screenshot; the screen test asserts both
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Round 1's note on `isWeek` (`addDays(from, 6) === to` in `my-class-history.screen.hook.ts`) still stands as a
+  suggestion; it is correct as written.
 - The Memory Impact matches what was built.

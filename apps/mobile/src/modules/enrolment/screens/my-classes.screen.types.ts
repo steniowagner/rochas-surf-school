@@ -14,6 +14,8 @@ export type UseMyClassesScreenResult = {
   emptyKey: "myClasses.empty.all" | "myClasses.empty.filtered";
   isLoading: boolean;
   isError: boolean;
+  /** "Try again" is loading the classes: the error stays, with the spinner in its button. */
+  isRetrying: boolean;
   isRefreshing: boolean;
   refresh: () => Promise<void>;
   retry: () => void;

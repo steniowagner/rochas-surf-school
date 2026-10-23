@@ -414,8 +414,12 @@ const messages: Messages = {
       all: "Você ainda não pediu vaga em nenhuma aula.",
       filtered: "Você não tem pedidos com este status.",
     },
-    loadError: "Não foi possível carregar suas aulas.",
-    retry: "Tentar novamente",
+    loading: "Carregando as aulas",
+    loadError: {
+      title: "Algo deu errado",
+      description:
+        "Não conseguimos carregar suas aulas. Verifique sua conexão e tente novamente.",
+    },
   },
   myHistory: {
     legend: "Dias em que você fez aula",

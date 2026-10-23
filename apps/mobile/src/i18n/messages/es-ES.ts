@@ -421,8 +421,12 @@ const messages: Messages = {
       all: "Todavía no has pedido plaza en ninguna clase.",
       filtered: "No tienes solicitudes con este estado.",
     },
-    loadError: "No se pudieron cargar tus clases.",
-    retry: "Reintentar",
+    loading: "Cargando las clases",
+    loadError: {
+      title: "Algo salió mal",
+      description:
+        "No pudimos cargar tus clases. Revisa tu conexión e inténtalo de nuevo.",
+    },
   },
   myHistory: {
     legend: "Días en que hiciste clase",

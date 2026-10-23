@@ -125,9 +125,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `YYYY-MM-DD` helpers live in `src/utils/calendar-dates.ts` (spec 031; `CalendarMonth` in
     `calendar-dates.types.ts`): the date-fns locale of the app language, months and ISO weekdays, adding days, weeks
     and months (`addMonthsKeepingDay`), the Monday and the seven days of a week, the month grids (`buildMonthGrid`
-    for Nova aula, `buildFittedMonthGrid` and `monthRange` for only the weeks a month needs), the captions
-    (`weekCaption` "12 – 18 OCT" / "28 SEP – 4 OCT", `monthCaption` "OCTOBER 2026", upper-cased, a trailing "."
-    dropped from month abbreviations), weekday names, abbreviations and initials, and a day's accessibility label.
+    for Nova aula, `buildFittedMonthGrid` and `monthRange` for only the weeks a month needs, `monthPeriod` for its
+    1st to its last day — spec 053), the captions (`weekCaption` "12 – 18 OCT" / "28 SEP – 4 OCT", `monthCaption`
+    "OCTOBER 2026", `dayAndMonth` "18 OCT", upper-cased, a trailing "." dropped from month abbreviations), weekday names, abbreviations and initials, and a day's accessibility label.
     The class calendar (spec 028) is a custom component built from the tokens (Monday first, month names and weekday
     initials from the date-fns locale); "today" and the current minutes are computed in Fortaleza
     (`src/modules/classes/utils/calendar.ts`, with the date-range helpers). Since spec 029 it marks a range as a band (`bg-grape-tint`, the
@@ -462,7 +462,13 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `onVisibleRangeChange?({ from, to })` (the first and last day drawn, on mount and on change, through
   `useEffectEvent`) and `markedLabel?` (appended to a marked day's accessibility label). Everything shown derives
   from `selectedDate` and the view, so the arrows select ±7 days or ±1 month (`addMonthsKeepingDay`, capped at the
-  month's last day). Days are buttons labelled with date-fns `PPPP` and `accessibilityState.selected`, `testID`
+  month's last day). Optional props for the class history (spec 053), none used by the classes screen:
+  `initialView` (`"month"` to open on the month), `clearable` (`selectedDate` may be `null`; the calendar keeps the
+  week or month on screen itself, the arrows move that period and call `onClearSelection?()`, pressing the selected
+  day calls it too, a faded day opens its month selected, and switching view opens the selected day's week or month —
+  with none, today's week when today is in the month, else the week of its 1st, or the month of the week's Monday)
+  and `onPeriodChange?({ from, to })` (`CalendarPeriod`: Monday to Sunday, or the month's 1st to last day, never the
+  faded days; on mount and on change). Days are buttons labelled with date-fns `PPPP` and `accessibilityState.selected`, `testID`
   `calendar-day-<date>` (dot `calendar-day-<date>-dot`); the pill has `accessibilityState.expanded` on the month;
   the 36 pt arrows and the pill reach 44 pt through `hitSlop`. Copy under `weekMonthCalendar`. App-wide helpers
   live in `src/utils/`: `formatCreatedAt` ("now", relative up to 7 days, then the date in America/Fortaleza; used
@@ -935,19 +941,20 @@ guard's 401 `auth.token.invalid`.
 - A student's own classes (spec 048), both declared before `GET /classes/:id`: `GET /classes/mine` (`ListMyClasses`) →
   200 `{ items: ClassItem[] }`, unpaged: the classes whose `endsAt` is after now (cancelled ones included) where the
   caller has any enrolment, by `startsAt` then `id`, each with `myEnrolment` (the latest). `GET
-  /classes/mine/history?page=&perPage=` (`ListMyClassHistory`) → 200 `{ items, total, page, perPage }`: the classes
-  that ended (`endsAt <= now`), aren't cancelled, and where the caller's latest enrolment (by `requestedAt` desc, then
-  `id` desc) is `approved`, newest `startsAt` first, then `id` desc. `page` and `perPage` are the raw query strings:
-  digits only, `page` 1 to `Number.MAX_SAFE_INTEGER` (default 1), `perPage` 1–50 (default 20,
-  `MY_CLASS_HISTORY_DEFAULT_PER_PAGE` / `MY_CLASS_HISTORY_MAX_PER_PAGE`); anything else → 422 `class.page.invalid` /
-  `class.perPage.invalid`, collected. Both are for approved students: `assertIsStudent` (exported from
-  `list-my-classes.usecase.ts`) answers 403 `user.status.notApproved`, then `enrolment.role.notStudent` for other
+  /classes/mine/history?from=YYYY-MM-DD&to=YYYY-MM-DD` (`ListMyClassHistory`; by period since spec 053) → 200
+  `{ items }`, unpaged: the classes that ended (`endsAt <= now`), aren't cancelled, and where the caller's latest
+  enrolment (by `requestedAt` desc, then `id` desc) is `approved`, whose start falls on an America/Fortaleza day from
+  `from` to `to` (`startsAt >= toInstant(from, 0)` and `< toInstant(to + 1 day, 0)`), newest `startsAt` first, then
+  `id` desc. Both are required: a missing or unreal date → 422 `class.from.invalid` / `class.to.invalid` (`isValidIsoDate`,
+  collected); then `to` before `from` or more than `MY_CLASS_HISTORY_MAX_DAYS` (42, the largest month grid) days
+  counting both ends → 422 `class.range.invalid`. Both routes are for approved students: `assertIsStudent` (exported
+  from `list-my-classes.usecase.ts`) answers 403 `user.status.notApproved`, then `enrolment.role.notStudent` for other
   roles, before the query is checked. The ids come from the `MyClassesReader` port
   (`provider/my-classes-reader.provider.ts`: `findCurrentClassIds(studentId, now)` → `string[]`,
-  `findHistoryClassIds(studentId, now, page, perPage)` → `MyClassHistoryPage` `{ ids, total }`), implemented by
+  `findHistoryClassIds(studentId, now, from, to)` → `string[]`, `to` exclusive), implemented by
   `PrismaMyClassesReader` (`apps/backend/src/modules/enrolment/my-classes-reader.prisma.ts`: one `findMany` for the
-  current ids; for the history, two raw queries sharing one `Prisma.sql` fragment, the student's latest enrolment per
-  class by `DISTINCT ON (class_id)`, `LIMIT` / `OFFSET` and the `COUNT`). The classes are then loaded with
+  current ids; for the history, one raw query on the student's latest enrolment per class by
+  `DISTINCT ON (class_id)`, with `c.starts_at >= from AND c.starts_at < to`). The classes are then loaded with
   `ClassViewReader.findByIds(ids)` (one `findMany`, nothing read for no ids; any order, a missing id left out) and
   built by `toMyClassItems` as cards (`CLASS_CARD_STUDENTS_LIMIT`, the viewer's latest enrolment, guests' names
   hidden); the history keeps the reader's order.
@@ -1538,11 +1545,14 @@ import cycle.
   singular, nothing at zero) sits in Editar aula's footer and in `CancelClassSheet` (`guestCount`). Copy under
   `enrolStudent.trial`, `takeOutSheet.guest*`, `classDetails.trialChip` / `includesTrial` / `guestsWarning`.
 - Mobile, spec 048: `useMyClasses()` (`hooks/use-my-classes.hook.ts`, `MY_CLASSES_QUERY_KEY` = `["classes", "mine"]`,
-  `GET /classes/mine`, no retry) and `useMyClassHistory()` (`hooks/use-my-class-history.hook.ts`, `useInfiniteQuery`
-  keyed `["classes", "mine", "history"]`, `GET /classes/mine/history?page=N&perPage=20`
-  (`MY_CLASS_HISTORY_PAGE_SIZE`), a next page while `page * 20 < total`, a class repeated across pages dropped by
-  id, no retry); both sit under `["classes"]`, so every existing `["classes"]` invalidation refreshes them. Types
-  `MyClassesResponse`, `MyClassHistoryPage` and `MyClassesFilter` in `enrolment.types.ts`. `utils/my-classes-filter.ts`:
+  `GET /classes/mine`, no retry) and `useMyClassHistory({ from, to })` (`hooks/use-my-class-history.hook.ts`, spec
+  053: a `useQuery` keyed `["classes", "mine", "history", from, to]` (`myClassHistoryQueryKey`), `GET
+  /classes/mine/history?from=…&to=…`, no retry; each period cached on its own, a period not in the cache has no data
+  until it loads); both sit under `["classes"]`, so every existing `["classes"]` invalidation refreshes them. Types
+  `MyClassesResponse`, `MyClassHistoryResponse` (`{ items }`), `MyClassHistoryPeriod`, `ClassHistoryDay` and
+  `MyClassesFilter` in `enrolment.types.ts`. `utils/class-history.ts` (spec 053): `daysWithClasses` (each Fortaleza day
+  with classes once, for the dots), `filterClassesByDay`, `groupClassesByDay` (newest day first, a day's classes newest
+  first then `id` desc), `historyDayLabel` ("WED, 21 OCT") and `historyChipLabel` ("21 OCT"). `utils/my-classes-filter.ts`:
   `MY_CLASSES_FILTERS` (the chips in order: `all`, `pending`, `approved`, `denied`, `withdrawn`, `cancelled`,
   `takenOut`, `expired`, `classCancelled`), `getMyClassFilter(item)` (a cancelled class or a `classCancelled` request
   → `classCancelled`, else the request's status — `pending` covers the waiting list —, `null` without a request) and
@@ -1558,11 +1568,19 @@ import cycle.
   refetch keeps the list), nothing after an expired session, the empty card (`myClasses.empty.all` / `.filtered`),
   pull-to-refresh with its own spinner. `MyClassHistoryScreen` (`screens/my-class-history.screen.tsx` + `.hook.ts` /
   `.types.ts`, route `src/app/(private)/student/my-history.tsx`, `routes.student.myHistory` = `/student/my-history`,
-  in the student `Stack`, title through `StackHeaderTitle`): a `FlatList` (`my-history-list`,
-  `contentInsetAdjustmentBehavior="automatic"`) of `ClassCard`s, `onEndReached` loading the next page (ignored while
-  one loads or at the end) with a footer spinner; a failed next page keeps the classes and toasts through
-  `getRegistrationErrorKey` (nothing for an expired session), as People does; spinner, error with retry, the empty
-  line and pull-to-refresh. `buildClassItem(id, startsAt, endsAt, overrides)` in `classes.test-utils.tsx` builds a
+  in the student `Stack`; rebuilt in spec 053, it sets no header options, so the header has only the back button): one
+  `FlatList` (`my-history-list`, `contentInsetAdjustmentBehavior="automatic"`) whose header holds the calendar card
+  (`WeekMonthCalendar` with `initialView="month"`, `clearable`, `onPeriodChange`, the days with classes marked and
+  `myHistory.hasClasses` as `markedLabel`), the legend (a `bg-lagoon` dot) and `HistoryListHeader`
+  (`components/history-list-header/`: "Todas as aulas" with the period's caption, or the selected day's
+  `bg-info-tint` / `text-lagoon` chip in a 44 pt target that clears it); its rows are `HistoryDayLabel`s
+  (`components/history-day-label/`) and `ClassCard`s. The screen hook keeps the period (the current Fortaleza month on
+  open), the selected day (none) and the refresh spinner as local state; the day filter runs on the loaded period.
+  States through `ListEmptyComponent`, each under the calendar and the legend: three `ClassCardSkeleton`s read as one
+  loading state, `ErrorState` with retry (`isRetrying` keeps it on screen with the button's spinner while a period
+  with no data reloads), `EmptyState` `calendar-outline` for a day or a period, nothing after an expired session; a
+  failed refresh keeps the classes. The error and empty states sit in a `flex-row` wrapper: as `flex-1` children of
+  the list's auto-height cell they collapsed when the calendar switched view. Pull-to-refresh reloads the period. `buildClassItem(id, startsAt, endsAt, overrides)` in `classes.test-utils.tsx` builds a
   test `ClassItem`. Copy under `myClasses` and `myHistory`.
 
 ## Error handling

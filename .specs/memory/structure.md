@@ -286,7 +286,8 @@ src/
                                 # adapter (Places API (New) with fetch; GOOGLE_MAPS_API_KEY required in production)
     classes.controller.ts       # POST /classes/batch (201 { count }), GET /classes/time-range-suggestions (200),
                                 # GET /classes?date= (200, one week), GET /classes/mine and GET
-                                # /classes/mine/history (200, students only; spec 048), GET /classes/:id (200), in that order, and
+                                # /classes/mine/history?from=&to= (200, students only; spec 048, by period since
+                                # 053), GET /classes/:id (200), in that order, and
                                 # PUT /classes/:id (200 ClassItem), POST /classes/:id/cancel (200 ClassItem),
                                 # DELETE /classes/:id (204) — protected
     cancellation-rules.controller.ts  # GET /cancellation-rules (200), PUT /cancellation-rules/:discipline (200)
@@ -332,8 +333,8 @@ src/
                                 # instructors, whether its discipline has a cancellation rule)
     student-name-reader.prisma.ts  # PrismaStudentNameReader
     my-classes-reader.prisma.ts # PrismaMyClassesReader (classes' MyClassesReader: the student's current class ids;
-                                # the history page and count in two raw queries on the latest enrolment per class;
-                                # spec 048)
+                                # the history of a period in one raw query on the latest enrolment per class;
+                                # specs 048, 053)
     waiting-list-setting.prisma.ts  # PrismaWaitingListSetting (reads school_settings.waiting_list_enabled; on with no
                                 # row; spec 046)
     student-lookup.prisma.ts    # PrismaStudentLookup (an approved account with role student; spec 044)
@@ -570,12 +571,16 @@ src/
                                 # (spec 044), and the student's "Minhas aulas" and history (spec 048)
     enrolment.types.ts          # EnrolmentStatus, MyEnrolment (with reason), EnrolmentResponse, RequestSeatRequest,
                                 # PendingRequestsResponse, DenyRequestVariables, MyClassesResponse,
-                                # MyClassHistoryPage, MyClassesFilter (mirror the API)
+                                # MyClassHistoryResponse, MyClassHistoryPeriod, ClassHistoryDay, MyClassesFilter
+                                # (mirror the API)
     screens/my-classes.screen.tsx  # "Minhas aulas" (+ .hook.ts, .types.ts; spec 048): title, round history button,
                                 # the group chips, the classes as ClassCards with their chip; refetch on focus,
                                 # chips back on "Todas" on blur, pull-to-refresh, loading, error + retry, empty
-    screens/my-class-history.screen.tsx  # "Histórico" (+ .hook.ts, .types.ts; spec 048): the classes taken, newest
-                                # first, 20 more at the end, pull-to-refresh, loading, error + retry, empty
+    screens/my-class-history.screen.tsx  # "Histórico" (+ .hook.ts, .types.ts; spec 048, rebuilt in 053): the month or
+                                # week calendar, the legend, "Todas as aulas" with the period or the day's chip, the
+                                # period's classes under a label per day; skeleton, error + retry, empty, refresh
+    components/history-list-header/  # HistoryListHeader ("Todas as aulas", the caption or the day chip; spec 053)
+    components/history-day-label/  # HistoryDayLabel (the label above a day's classes; spec 053)
     components/my-classes-filters/  # MyClassesFilters (the horizontal row of chips; spec 048; four groups since 052)
     screens/class-requests.screen.tsx  # "Inscrições em aulas": header with requests · classes, one group per class,
                                 # pull-to-refresh, loading, error + retry, "Nada à espera"
@@ -608,15 +613,17 @@ src/
                                 # use-add-guest (POST /classes/:id/guests), use-remove-guest (DELETE /guests/:id) — no
                                 # retry; invalidate ["classes"] —, use-take-guest-out (the details' guest removal;
                                 # spec 045); use-my-classes (GET /classes/mine, ["classes", "mine"]) and
-                                # use-my-class-history (infinite GET /classes/mine/history, ["classes", "mine",
-                                # "history"]; spec 048)
+                                # use-my-class-history (GET /classes/mine/history?from=&to=, ["classes", "mine",
+                                # "history", from, to]; specs 048, 053)
     utils/                      # enrolment-cta.ts (the footer button by status and fullness; "Pedir novamente" after
                                 # a denial, a cancel or a take-out; "Cancelar inscrição" before the deadline), enrolment-status.ts
                                 # (the banner and chip: waitingList for pending on a full class, approved, denied,
                                 # cancelled, takenOut), enrolment-error.ts (API error → translation key,
                                 # which errors reload the class or the tool's list), class-requests.ts (the "Pediu
                                 # às …" line and the day block), my-classes-filter.ts (the chips and which one a class
-                                # belongs to; spec 048; each status mapped to its group since 052)
+                                # belongs to; spec 048; each status mapped to its group since 052), class-history.ts
+                                # (the days with classes, the day filter, grouping by day, the day and chip labels;
+                                # spec 053)
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
@@ -710,8 +717,8 @@ src/
                                 # date), get-initials.ts, countries.ts (country options with localized names and
                                 # dial codes, filter, default BR), brazilian-phone.ts (toBrazilianDigits,
                                 # formatBrazilianPhone: the Brazilian number mask), calendar-dates.ts (+ .types.ts:
-                                # CalendarMonth; YYYY-MM-DD arithmetic, month grids, captions, weekday names and
-                                # initials, the date-fns locale)
+                                # CalendarMonth; YYYY-MM-DD arithmetic, month grids and periods, captions, weekday
+                                # names and initials, the date-fns locale)
   providers/alert-message/      # AlertMessageProvider + useAlertMessage (toast for API errors)
   providers/session/            # SessionProvider + useSession: the session store exposed to React
                                 # (user, tokens, isRestoring, setSession, updateUser, clearSession); starts the restore
@@ -732,7 +739,8 @@ src/
                                 # class details' deadline notes; spec 043)
   components/week-month-calendar/  # WeekMonthCalendar: header (arrows, the week/month pill), the view, the moves;
                                 # draws calendar-week-row/ (CalendarWeekRow: seven days) or calendar-month-grid/
-                                # (CalendarMonthGrid: the fitted month); controlled selection, one dot per marked day
+                                # (CalendarMonthGrid: the fitted month); controlled selection, one dot per marked day;
+                                # optional month start, clearable selection and period reports (spec 053)
   services/google-sign-in.ts    # configures GoogleSignin once; the only import point of the Google library
   services/push/push.service.ts # expo-notifications: foreground handler and Android channel at load,
                                 # getPushToken({ askPermission }), isPushPermissionDenied(), the token registered

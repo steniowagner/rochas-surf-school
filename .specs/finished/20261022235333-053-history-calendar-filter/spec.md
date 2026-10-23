@@ -2,13 +2,14 @@
 id: "053"
 slug: history-calendar-filter
 title: Filter the class history by day, week or month
-status: accepted
+status: finished
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 038bb0bd6d0328754ac283661af9cc73accb5105
 reviewed_commit: d5addc190e64eeab48e969820f904b6a75cad5ee
 fronts: [classes, backend, mobile]
 depends_on: []
+finished: 2026-10-22
 ---
 
 # 053 — Filter the class history by day, week or month

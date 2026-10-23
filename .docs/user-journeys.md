@@ -46,6 +46,8 @@ Applies to students, instructors and admins.
 
 ### People and classes
 
+_Implemented in spec 053-history-calendar-filter._
+
 - As a user, I'd like to see a directory of approved, active users, with their name, photo and role, and their WhatsApp number if they share it. The list can be searched by name and filtered by role (admin, instructor or student). Pending, denied, deleted and removed accounts don't appear.
 - As a user, I'd like to see every class, past and future. The classes view opens on the current week, day by day, and I can move freely to other weeks. A week-day picker shows one dot for each class on that day.
 - As a user, I'd like to see past classes grouped under a label for each day, filtered by day, week or month.

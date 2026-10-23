@@ -219,7 +219,9 @@ Listed in the order people meet them.
   - As built (spec 048): a student's **classes** ("Minhas aulas") are the classes that haven't ended where they have
     any enrolment, cancelled classes included, each shown with its latest enrolment. Their **history** (the
     classes they **took**) is the classes that ended, aren't cancelled, and where their latest enrolment is
-    `approved`: a seat held when the class ended. Only approved students have either list.
+    `approved`: a seat held when the class ended. Only approved students have either list. Since spec 053 the
+    history is read one period at a time (a day, a week or a month): a class belongs to the America/Fortaleza day
+    its start falls on.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
   photo, or initials while there is no photo) and its guests ("Trial", or the name for admins and the class's
@@ -943,8 +945,8 @@ it reads "Nada por aqui" with "Você ainda não pediu vaga em nenhuma aula." (To
 este status." (a group without classes); the list reloads when the tab is shown
 again and on pull-to-refresh, and a failed load offers "Tentar novamente". A card opens the class's details. The round
 history button opens "Histórico": the classes the student took (a seat held when the class ended, not cancelled),
-newest first, 20 more at the end of the list, each card reading "N alunos presentes"; with none, "Você ainda não fez
-nenhuma aula.". All copy is in pt-BR, es-ES and en-US.
+each card reading "N alunos presentes", found by day, week or month since spec 053 (below). All copy is in pt-BR,
+es-ES and en-US.
 
 **Class details as designed, with the person sheet** (spec `049-class-details-people-design`) — on a class's
 details, for every role, "A aula" has "Máx. N alunos · X vagas livres" (or "esgotado", in red; "· inclui N trial"
@@ -976,6 +978,21 @@ have one, in the week and in the month; "Todas" shows everything again. A day wh
 sport shows the usual empty day ("Criar aula" still offered to admins on today or later). The choice stays while the
 user changes day, week or view and pulls to refresh, and goes back to "Todas" when the screen opens again; nothing
 is saved on the phone, and switching makes no request. All copy is in pt-BR, es-ES and en-US.
+
+**Filtering the class history by day, week or month** (spec `053-history-calendar-filter`) — "Histórico" shows only
+the back button in its header, then the classes screen's week and month calendar in a card, opening on the current
+month (America/Fortaleza) with no day selected, and the legend "Dias em que você fez aula": each day with one or more
+classes taken has one dot. Below, "Todas as aulas" sits at the left with the period on screen at the right ("OUTUBRO
+2026", "12 – 18 OUT"), and the period's classes are grouped under a label per day ("QUA, 21 OUT"), newest day first,
+a day's classes newest first; a card opens the class's details. The arrows move one month (or one week) and clear
+the selected day; the pill switches between month and week and keeps it (with no day, month → week opens today's
+week when today is in that month, else the week of its 1st; week → month opens the month of the week's Monday).
+Tapping a day narrows the list to it and puts a "21 OUT ✕" chip in place of the period; the chip, or the day again,
+shows the whole period, and a faded day of the month around opens that month with the day selected. Picking a day
+makes no request. While a period loads, class-card placeholders show under the calendar; a failed load shows "Algo
+deu errado" with "Tentar novamente"; nothing to show reads "Sem aulas neste dia" or "Sem aulas neste período";
+pull-to-refresh reloads the period on screen. A period already seen shows at once when the student goes back to it,
+and the screen opens on the current month again each time. All copy is in pt-BR, es-ES and en-US.
 
 Active specs: none.
 
@@ -1055,8 +1072,9 @@ Active specs: none.
 - On the week and month calendar (spec 031): swiping between weeks or months (only the arrows move), an animation
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
-- On "Minhas aulas" (spec 048): the history's calendar to jump to a date (the history is a paged list), and keeping
-  the chosen chip after a class or the history opened above the tab.
+- On "Minhas aulas" (spec 048): keeping the chosen chip after a class or the history opened above the tab.
+- On the class history's calendar (spec 053): a "Hoje" button, keeping the chosen period or day after leaving the
+  screen, filtering the history by sport, level or status and searching it, and swiping between weeks or months.
 - On enrolment requests (specs 041–045): reminders before a class, storing the text of the cancellation rule a student accepted, and a
   success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
   requests on the admin's class details, filtering or searching the tool, a stored history of who decided and

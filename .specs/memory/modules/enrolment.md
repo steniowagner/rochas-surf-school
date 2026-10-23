@@ -224,8 +224,9 @@ tell the guest on WhatsApp). The student's "Minhas aulas" tab lists their curren
 with their status chip, filtered by four group chips (spec 052): Todas, Pendentes (pending, the waiting list
 included), Confirmadas (approved) and Encerradas (denied, withdrawn, cancelled, taken out, expired, ended by the
 class's cancellation, and any request in a cancelled class), each card keeping its exact status chip; back on Todas
-whenever the tab loses focus; its history button opens "Histórico", the classes they took, newest first, 20 at a
-time. With the waiting list off, a student without an open request on a full upcoming class
+whenever the tab loses focus; its history button opens "Histórico" (spec 053): a month or week calendar with a dot
+on each day they took a class, and that period's classes under a label per day, newest first; tapping a day narrows
+the list to it. With the waiting list off, a student without an open request on a full upcoming class
 gets no button and reads "A lista de espera está fechada para esta aula." under "Turma cheia"; admins' "Turma
 cheia" banner reads "Novos pedidos entram na lista de espera." or "A lista de espera está desligada — ninguém pode
 pedir.".
@@ -277,3 +278,6 @@ pedir.".
 - `052-my-classes-grouped-filters` — no rule change here: the app's "Minhas aulas" chips group the request statuses
   into Todas, Pendentes, Confirmadas and Encerradas (any request in a cancelled class included), each card keeping
   its exact status chip.
+- `053-history-calendar-filter` — no rule change here: the classes a student took are read one period at a time
+  (the adapter answers the ids whose start falls in it, unpaged); the app's "Histórico" gains the month and week
+  calendar, the day filter, a label per day and the shared loading, error and empty states.

@@ -7,6 +7,7 @@ import { PrismaCancellationRuleRepository } from './cancellation-rule.prisma.js'
 import { PrismaClassContactReader } from './class-contact-reader.prisma.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { CancellationDeadlineJob } from './cancellation-deadline.job.js';
+import { ClassReminderJob } from './class-reminder.job.js';
 import { CancellationRulesController } from './cancellation-rules.controller.js';
 import { ClassesController } from './classes.controller.js';
 import { ClassesTeachingReleaser } from './classes.teaching-releaser.js';
@@ -23,6 +24,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
   providers: [
     AnthropicDeadlineDescriber,
     CancellationDeadlineJob,
+    ClassReminderJob,
     ClassesTeachingReleaser,
     GooglePlacesAddressSuggestionProvider,
     PrismaCancellationRuleRepository,

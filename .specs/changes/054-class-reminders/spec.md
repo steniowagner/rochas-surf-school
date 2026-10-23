@@ -274,11 +274,20 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
   > is Fortaleza whatever the machine zone), `npm run check-types --workspace apps/backend` exits 0; deviations:
   > none
 
-- [ ] **T-06** — Add `ClassReminderJob` (`apps/backend/src/modules/classes/class-reminder.job.ts`, D-06: runs
+- [x] **T-06** — Add `ClassReminderJob` (`apps/backend/src/modules/classes/class-reminder.job.ts`, D-06: runs
   `SendClassReminders` with `PrismaSchoolClassRepository`, `PrismaClassRosterReader`, `PrismaLocationRepository`, the
   notifier and the classes clock; catches and logs every error, logs only the count) registered in `ClassesModule`,
   with `class-reminder.job.spec.ts`. Covers: ER-01, ER-02 · Done when:
   `npx vitest run src/modules/classes/class-reminder.job.spec.ts` passes.
+  > ✅ 2026-10-23 12:53 — added `ClassReminderJob` (cron `class-reminder`, `EVERY_MINUTE`, `waitForCompletion`)
+  > running `SendClassReminders` with `PrismaSchoolClassRepository`, `PrismaClassRosterReader` (from
+  > `EnrolmentModule`), `PrismaLocationRepository`, `NotificationsClassReminderNotifier` and the classes clock; it
+  > logs `Class reminders: N reminded` only when N > 0, and catches and logs every error, answering `{ reminded: 0
+  > }`; registered in `ClassesModule`; files: `apps/backend/src/modules/classes/class-reminder.job.ts`,
+  > `apps/backend/src/modules/classes/class-reminder.job.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.module.ts`; verified: `npx vitest run
+  > src/modules/classes/class-reminder.job.spec.ts` (6 passed, the job at 100%), backend `tsc --noEmit` clean;
+  > deviations: none
 
 - [ ] **T-07** — Add `apps/backend/test/class-reminders.e2e-spec.ts` (fixed classes clock, faked `ExpoPushProvider`,
   the job run through `app.get(ClassReminderJob).run()`, each test deleting the classes, locations and users it

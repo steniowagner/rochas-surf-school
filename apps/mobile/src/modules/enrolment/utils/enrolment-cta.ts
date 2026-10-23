@@ -13,9 +13,8 @@ export type EnrolmentCta = {
 
 const CTAS = {
   request: { key: "request", variant: "primary", action: "request" },
-  joinWaitingList: { key: "joinWaitingList", variant: "dark", action: "request" },
-  requestAgainFree: { key: "requestAgain", variant: "primary", action: "request" },
-  requestAgainFull: { key: "requestAgain", variant: "dark", action: "request" },
+  joinWaitingList: { key: "joinWaitingList", variant: "primary", action: "request" },
+  requestAgain: { key: "requestAgain", variant: "primary", action: "request" },
   withdraw: { key: "withdraw", variant: "outline", action: "withdraw" },
   cancelSeat: { key: "cancelSeat", variant: "outline", action: "cancelSeat" },
   leaveWaitingList: { key: "leaveWaitingList", variant: "ghost", action: "leaveWaitingList" },
@@ -50,7 +49,7 @@ export const getEnrolmentCta = (
     case "takenOut":
       if (closed) return null;
 
-      return classIsFull ? CTAS.requestAgainFull : CTAS.requestAgainFree;
+      return CTAS.requestAgain;
     case "approved":
       return canCancel ? CTAS.cancelSeat : null;
     default:

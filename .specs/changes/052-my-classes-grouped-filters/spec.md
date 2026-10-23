@@ -3,10 +3,11 @@ id: "052"
 slug: my-classes-grouped-filters
 title: Group the "Minhas aulas" filters into four chips
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 21bdb997f42514d748d4507c6294bca1029ba02e
+reviewed_commit: 4d0d0666cf01277d41adcb74f3fad70c987dd713
 fronts: [mobile]
 depends_on: []
 ---
@@ -139,3 +140,39 @@ status chip, so the student still sees every status the requirements ask for.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-22 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8 tasks)
+- related tests ✅ 1003 passed, 59 suites (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK — 4 measured files, every changed line covered; no coverage-ignore
+  comments in the diff
+- e2e: no suite applies (only apps/mobile changed) — E2E PASSED
+
+**Expected Results**
+
+- ER-01 ✅ — `my-classes-filters.component.test.tsx` asserts exactly All, Pending, Confirmed, Ended in order,
+  only the selected chip selected, and "Ended" reports `ended`; `my-classes-filter.test.ts` checks the four
+  labels in en-US, pt-BR ("Todas"…"Encerradas") and es-ES ("Todas"…"Cerradas"); the old keys are gone from all
+  three locales and from `MyClassesFilter`, so none of the old chips can be drawn.
+- ER-02 ✅ — `getMyClassFilter` maps every `EnrolmentStatus` through an exhaustive `Record` (pending → pending,
+  approved → confirmed, the six others → ended); a cancelled class with an approved or pending request is
+  `ended`; no request → `null`; `filterMyClasses(items, "all")` returns the same array. Each case is asserted.
+- ER-03 ✅ — the screen test presses "Ended" and lists only the withdrawn and cancelled cards, each with its own
+  chip ("Withdrawn", "Cancelled"); "Pending" and "Confirmed" each list their one card; a list without ended
+  classes shows "Nothing here" and "You have no requests with this status."; leaving the tab puts "All" back
+  with all four cards.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The optional simulator check of the Verification Plan wasn't run in this review either; every Expected Result
+  names a Jest test as its `Verify by`, and those pass.
+- `requirements.md → Request statuses` still says the tab is "filterable by status" (spec 048's note), and
+  `memory/modules/enrolment.md` lists the nine old chips: both are for `spec-finish` to update, as the Memory
+  Impact says.

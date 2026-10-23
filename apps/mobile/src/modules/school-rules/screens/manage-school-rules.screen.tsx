@@ -51,20 +51,22 @@ export function ManageSchoolRulesScreen() {
             testID="school-rules-loading"
             accessible
             accessibilityLabel={t("manageSchoolRules.loading")}
-            className="rounded-card border border-line bg-surface px-4"
+            className="rounded-card border border-line bg-surface"
           >
             {LOADING_ROWS.map((key) => (
               <View
                 key={key}
-                className={`flex-row items-center gap-3 py-3.5 ${key < LOADING_ROWS.length - 1 ? "border-b border-line" : ""}`}
+                className={`flex-row items-start gap-3 px-4 py-3.5 ${key < LOADING_ROWS.length - 1 ? "border-b border-line" : ""}`}
               >
                 <Skeleton className="h-[22px] w-7 rounded-full" />
                 <View className="flex-1 gap-2">
                   <Skeleton className="h-3.5 w-1/2 rounded-full" />
                   <Skeleton className="h-3 w-5/6 rounded-full" />
                 </View>
-                <Skeleton className="h-11 w-11 rounded-control" />
-                <Skeleton className="h-11 w-11 rounded-control" />
+                <View className="gap-2">
+                  <Skeleton className="h-9 w-9 rounded-icon-button" />
+                  <Skeleton className="h-9 w-9 rounded-icon-button" />
+                </View>
               </View>
             ))}
           </View>
@@ -91,7 +93,7 @@ export function ManageSchoolRulesScreen() {
         ) : null}
         {screen.status === "ready" ? (
           <>
-            <View className="rounded-card border border-line bg-surface pl-4 pr-2">
+            <View className="rounded-card border border-line bg-surface">
               {screen.rules.map((rule, index) => (
                 <SchoolRuleEditableRow
                   key={rule.id}

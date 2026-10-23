@@ -127,6 +127,7 @@ export type TypographyVariant = keyof typeof typography;
 
 export const radii = {
   checkbox: 8, // checkbox box
+  iconButton: 12, // small bordered icon buttons, such as a rule's move up / down
   control: 16, // buttons, inputs
   card: 20,
   sheet: 28, // top corners of bottom sheets

@@ -7,6 +7,9 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { SchoolRuleEditableRowProps } from "./school-rule-editable-row.types";
 
+// The 36px buttons reach the 44px touch target; the 8px gap between them takes both slops.
+const MOVE_HIT_SLOP = 4;
+
 /** A rule of "Regras da escola": its text opens "Editar regra", and ↑ / ↓ move it one place. */
 export function SchoolRuleEditableRow({
   rule,
@@ -23,7 +26,7 @@ export function SchoolRuleEditableRow({
 
   return (
     <View
-      className={`flex-row items-center gap-2 ${showDivider ? "border-b border-line" : ""}`}
+      className={`flex-row items-start gap-3 px-4 ${showDivider ? "border-b border-line" : ""}`}
     >
       <Pressable
         accessibilityRole="button"
@@ -38,7 +41,7 @@ export function SchoolRuleEditableRow({
           <Text className="ds-text-body text-ink-2">{rule.description}</Text>
         </View>
       </Pressable>
-      <View className="flex-row gap-1">
+      <View className="gap-2 py-3.5">
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={t("manageSchoolRules.moveUp", { position })}
@@ -46,9 +49,10 @@ export function SchoolRuleEditableRow({
           activeOpacity={BUTTON_ACTIVE_OPACITY}
           disabled={moveUpDisabled}
           onPress={onMoveUp}
-          className="h-11 w-11 items-center justify-center rounded-control bg-sand"
+          hitSlop={MOVE_HIT_SLOP}
+          className="h-9 w-9 items-center justify-center rounded-icon-button border border-line bg-surface"
         >
-          <Ionicons name="arrow-up" size={20} color={moveUpDisabled ? theme.ink3 : theme.ink} />
+          <Ionicons name="chevron-up" size={18} color={moveUpDisabled ? theme.ink3 : theme.ink} />
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
@@ -57,9 +61,10 @@ export function SchoolRuleEditableRow({
           activeOpacity={BUTTON_ACTIVE_OPACITY}
           disabled={moveDownDisabled}
           onPress={onMoveDown}
-          className="h-11 w-11 items-center justify-center rounded-control bg-sand"
+          hitSlop={MOVE_HIT_SLOP}
+          className="h-9 w-9 items-center justify-center rounded-icon-button border border-line bg-surface"
         >
-          <Ionicons name="arrow-down" size={20} color={moveDownDisabled ? theme.ink3 : theme.ink} />
+          <Ionicons name="chevron-down" size={18} color={moveDownDisabled ? theme.ink3 : theme.ink} />
         </TouchableOpacity>
       </View>
     </View>

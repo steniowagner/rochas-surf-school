@@ -164,7 +164,7 @@ list can follow the period. Students find a past class by when it happened inste
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Change `MyClassesReader.findHistoryClassIds` to `(studentId, now, from: Date, to: Date)` → `string[]`
+- [x] **T-01** — Change `MyClassesReader.findHistoryClassIds` to `(studentId, now, from: Date, to: Date)` → `string[]`
   (`to` exclusive, already the instant after the last day) in
   `src/school-class/provider/my-classes-reader.provider.ts`, and its fake in `test/mock/fake-my-classes.reader.ts`.
   Change `ListMyClassHistory` (`src/school-class/usecase/list-my-class-history.usecase.ts`) to take raw `from` / `to`,
@@ -173,6 +173,20 @@ list can follow the period. Students find a past class by when it happened inste
   exports. Update `test/school-class/usecase/list-my-class-history.usecase.test.ts` for every case of ER-01 and ER-02.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npx jest test/school-class` passes from `modules/classes`.
+  > ✅ 2026-10-22 22:50 — `MyClassesReader.findHistoryClassIds(studentId, now, from, to)` → `string[]` (`to` exclusive);
+  > `ListMyClassHistory` takes raw `from` / `to`, refuses after `assertIsStudent` with `class.from.invalid` /
+  > `class.to.invalid` (collected) and then `class.range.invalid` (`to` before `from` or more than
+  > `MY_CLASS_HISTORY_MAX_DAYS` = 42 days inclusive), asks the reader for `toInstant(from, 0)` up to
+  > `toInstant(to + 1 day, 0)` and answers `{ items }`; the paging constants, `parseInteger` and `MyClassHistoryPage`
+  > are gone; the fake records `from` / `to`. Files: `modules/classes/src/school-class/provider/my-classes-reader.provider.ts`,
+  > `modules/classes/src/school-class/usecase/list-my-class-history.usecase.ts`,
+  > `modules/classes/test/mock/fake-my-classes.reader.ts`,
+  > `modules/classes/test/school-class/usecase/list-my-class-history.usecase.test.ts`; verified: `npx jest test/school-class`
+  > from `modules/classes` (23 suites, 395 passed; the use case at 100% statements/branches/functions/lines),
+  > `npm run check-types` and `npx oxlint src test` clean; deviations: the module's skill (`module-use-case`) creates
+  > use cases, so this existing one was changed by hand following its pattern; a `MY_CLASS_HISTORY_MAX_DAYS` constant
+  > holds the 42-day rule. The day-edge and exclusion cases of ER-01 are the reader's (T-02, T-03); here the test checks the
+  > instants handed to it (1 Aug 00:00 Fortaleza → 1 Sep 00:00 Fortaleza).
 
 ### Backend (`apps/backend`)
 

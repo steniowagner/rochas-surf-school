@@ -1,12 +1,12 @@
-import { MyClassesReader, MyClassHistoryPage } from "../../src";
+import { MyClassesReader } from "../../src";
 
 export class FakeMyClassesReader implements MyClassesReader {
   readonly currentCalls: { studentId: string; now: Date }[] = [];
-  readonly historyCalls: { studentId: string; now: Date; page: number; perPage: number }[] = [];
+  readonly historyCalls: { studentId: string; now: Date; from: Date; to: Date }[] = [];
 
   /**
    * `current` maps a student to the ids of their current classes; `history` to the ids of the classes they
-   * took, already newest first, which the fake pages through.
+   * took, already newest first and in the period asked, which the fake answers as they are.
    */
   constructor(
     private readonly current: Record<string, string[]> = {},
@@ -19,16 +19,9 @@ export class FakeMyClassesReader implements MyClassesReader {
     return this.current[studentId] ?? [];
   }
 
-  async findHistoryClassIds(
-    studentId: string,
-    now: Date,
-    page: number,
-    perPage: number,
-  ): Promise<MyClassHistoryPage> {
-    this.historyCalls.push({ studentId, now, page, perPage });
+  async findHistoryClassIds(studentId: string, now: Date, from: Date, to: Date): Promise<string[]> {
+    this.historyCalls.push({ studentId, now, from, to });
 
-    const ids = this.history[studentId] ?? [];
-
-    return { ids: ids.slice((page - 1) * perPage, page * perPage), total: ids.length };
+    return this.history[studentId] ?? [];
   }
 }

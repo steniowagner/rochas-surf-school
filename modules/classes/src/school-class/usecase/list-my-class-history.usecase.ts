@@ -4,6 +4,7 @@ import {
   ValidationException,
 } from "@rochas-surf-school/shared";
 import { ClassActor } from "../../access";
+import { isValidIsoDate, toInstant } from "../model";
 import {
   ClassRosterReader,
   ClassView,
@@ -17,29 +18,23 @@ import { assertIsStudent, toMyClassItems } from "./list-my-classes.usecase";
 
 export interface ListMyClassHistoryIn {
   actor: ClassActor;
-  /** The raw query strings. */
-  page?: unknown;
-  perPage?: unknown;
+  /** The raw query strings: the first and the last America/Fortaleza day of the period, `YYYY-MM-DD`. */
+  from?: unknown;
+  to?: unknown;
 }
 
 export interface ListMyClassHistoryOut {
   items: ClassItem[];
-  total: number;
-  page: number;
-  perPage: number;
 }
 
-export const MY_CLASS_HISTORY_DEFAULT_PER_PAGE = 20;
-export const MY_CLASS_HISTORY_MAX_PER_PAGE = 50;
+/** The longest period, in days counting both ends: the largest month grid. */
+export const MY_CLASS_HISTORY_MAX_DAYS = 42;
 
-/** Digits only, between `min` and `max`; absent → `fallback`; anything else → `null`. */
-function parseInteger(value: unknown, fallback: number, min: number, max: number): number | null {
-  if (value === undefined) return fallback;
-  if (typeof value !== "string" || !/^\d+$/.test(value)) return null;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-  const parsed = Number(value);
-
-  return parsed >= min && parsed <= max ? parsed : null;
+/** The `YYYY-MM-DD` day after a real `YYYY-MM-DD` date. */
+function nextDay(date: string): string {
+  return new Date(Date.parse(date) + DAY_MS).toISOString().slice(0, 10);
 }
 
 export class ListMyClassHistory implements UseCase<ListMyClassHistoryIn, ListMyClassHistoryOut> {
@@ -54,26 +49,24 @@ export class ListMyClassHistory implements UseCase<ListMyClassHistoryIn, ListMyC
   async execute(input: ListMyClassHistoryIn): Promise<ListMyClassHistoryOut> {
     assertIsStudent(input.actor);
 
+    const { from, to } = input;
     const errors: ValidationError[] = [];
 
-    const page = parseInteger(input.page, 1, 1, Number.MAX_SAFE_INTEGER);
-    if (page === null) errors.push(new ValidationError("class.page.invalid"));
+    if (!isValidIsoDate(from)) errors.push(new ValidationError("class.from.invalid"));
+    if (!isValidIsoDate(to)) errors.push(new ValidationError("class.to.invalid"));
+    if (!isValidIsoDate(from) || !isValidIsoDate(to)) throw new ValidationException(errors);
 
-    const perPage = parseInteger(
-      input.perPage,
-      MY_CLASS_HISTORY_DEFAULT_PER_PAGE,
-      1,
-      MY_CLASS_HISTORY_MAX_PER_PAGE,
-    );
-    if (perPage === null) errors.push(new ValidationError("class.perPage.invalid"));
+    const days = (Date.parse(to) - Date.parse(from)) / DAY_MS + 1;
 
-    if (page === null || perPage === null) throw new ValidationException(errors);
+    if (days < 1 || days > MY_CLASS_HISTORY_MAX_DAYS) {
+      throw new ValidationException([new ValidationError("class.range.invalid")]);
+    }
 
-    const { ids, total } = await this.myClassesReader.findHistoryClassIds(
+    const ids = await this.myClassesReader.findHistoryClassIds(
       input.actor.id,
       this.clock.now(),
-      page,
-      perPage,
+      toInstant(from, 0),
+      toInstant(nextDay(to), 0),
     );
 
     const found = ids.length > 0 ? await this.classViewReader.findByIds(ids) : [];
@@ -89,9 +82,6 @@ export class ListMyClassHistory implements UseCase<ListMyClassHistoryIn, ListMyC
         this.classRosterReader,
         this.viewerEnrolmentReader,
       ),
-      total,
-      page,
-      perPage,
     };
   }
 }

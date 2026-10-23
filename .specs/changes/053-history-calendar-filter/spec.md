@@ -213,10 +213,20 @@ list can follow the period. Students find a past class by when it happened inste
   > (`backend-provider-implementation`, `backend-nest-controller`) create new adapters, so the existing ones were changed
   > by hand in their pattern.
 
-- [ ] **T-03** — Replace the history cases of `test/my-classes.e2e-spec.ts` (paging, default page, `page` /
+- [x] **T-03** — Replace the history cases of `test/my-classes.e2e-spec.ts` (paging, default page, `page` /
   `perPage` 422s) with ER-01's period, day-edge and exclusion cases and ER-02's 422 / 403 / 401 cases.
   Covers: ER-01, ER-02 · Done when: `npx vitest run --config vitest.config.e2e.ts test/my-classes.e2e-spec.ts` passes
   from `apps/backend`.
+  > ✅ 2026-10-22 22:52 — the paging cases of the `history` block are replaced: the August period (00:00 Fortaleza
+  > on 1 Aug and 23:59 on 31 Aug in, 00:00 on 1 Sep and 23:59 on 31 Jul out, 27 classes unpaged, body only `items`),
+  > same-start ordering by id desc, `from` = `to`, every exclusion (under way, upcoming, cancelled, latest enrolment not
+  > `approved` for six statuses and a seat given up, another student's) on an October period around the clock, an empty
+  > period; 42 days → 200, 43 days and `to` before `from` → 422 `class.range.invalid`; `page=1&perPage=20` alone →
+  > `class.from.invalid` + `class.to.invalid`, `2026-02-30`, a missing `to` and malformed dates → their keys; instructor
+  > / admin with a bad period → 403 `enrolment.role.notStudent`, a deleted student → 403 `user.status.notApproved`, no
+  > token → 401. A `makeClassAt(startsAt)` helper was added and `makeClass` uses it. Files:
+  > `apps/backend/test/my-classes.e2e-spec.ts`; verified: `npx vitest run --config vitest.config.e2e.ts
+  > test/my-classes.e2e-spec.ts` from `apps/backend` against the local Postgres (11 passed); deviations: none.
 
 ### Mobile (`apps/mobile`)
 

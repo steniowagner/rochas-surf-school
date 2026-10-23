@@ -66,4 +66,14 @@ export interface SchoolClassRepository {
     attempts: number,
     nextAttemptAt: Date,
   ): Promise<boolean>;
+  /**
+   * The classes due for their reminder: not cancelled, not reminded yet, and starting after `now` but no more
+   * than `leadMinutes` after it.
+   */
+  findDueForReminder(now: Date, leadMinutes: number): Promise<SchoolClass[]>;
+  /**
+   * Marks the class as reminded at `at` only while it isn't reminded yet nor cancelled. Returns whether it
+   * wrote: of two runs at once exactly one reminds the class.
+   */
+  markReminded(id: string, at: Date): Promise<boolean>;
 }

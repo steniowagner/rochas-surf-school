@@ -125,6 +125,33 @@ describe("FakeSchoolClassRepository", () => {
     expect(await repository.update(buildClass(), {})).toBe(false);
   });
 
+  it("finds the classes due for their reminder", async () => {
+    const now = new Date("2026-10-15T10:30:00.000Z");
+    const due = buildClass();
+    const edge = buildClass({ startsAt: new Date("2026-10-15T10:31:00.000Z"), endsAt: new Date("2026-10-15T11:31:00.000Z") });
+    const tooEarly = buildClass({ startsAt: new Date("2026-10-15T11:01:00.000Z"), endsAt: new Date("2026-10-15T12:01:00.000Z") });
+    const started = buildClass({ startsAt: now, endsAt: new Date("2026-10-15T11:30:00.000Z") });
+    const reminded = buildClass({ reminderSentAt: now });
+    const cancelled = buildClass({ cancelledAt: now });
+    const repository = new FakeSchoolClassRepository([due, edge, tooEarly, started, reminded, cancelled]);
+
+    expect(await repository.findDueForReminder(now, 30)).toEqual([due, edge]);
+  });
+
+  it("marks a class as reminded once, never a cancelled or missing one", async () => {
+    const at = new Date("2026-10-15T10:30:00.000Z");
+    const stored = buildClass();
+    const cancelled = buildClass({ cancelledAt: at });
+    const repository = new FakeSchoolClassRepository([stored, cancelled]);
+
+    expect(await repository.markReminded(stored.id, at)).toBe(true);
+    expect(await repository.markReminded(stored.id, new Date("2026-10-15T10:31:00.000Z"))).toBe(false);
+    expect((await repository.findById(stored.id))!.reminderSentAt).toEqual(at);
+    expect(await repository.markReminded(cancelled.id, at)).toBe(false);
+    expect((await repository.findById(cancelled.id))!.reminderSentAt).toBeNull();
+    expect(await repository.markReminded("11111111-1111-4111-8111-111111111111", at)).toBe(false);
+  });
+
   it("cancels a class once, keeping the first cancellation", async () => {
     const stored = buildClass();
     const other = buildClass();

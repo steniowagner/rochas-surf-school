@@ -196,7 +196,7 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
   > repository and use-case changes are by hand); `PrismaSchoolClassRepository.update` follows the new signature in
   > T-04
 
-- [ ] **T-03** — Add `CLASS_REMINDER_LEAD_MINUTES`, `findDueForReminder(now, leadMinutes)` and
+- [x] **T-03** — Add `CLASS_REMINDER_LEAD_MINUTES`, `findDueForReminder(now, leadMinutes)` and
   `markReminded(id, at)` to `SchoolClassRepository`, the `ClassReminderNotifier` port
   (`modules/classes/src/school-class/provider/class-reminder-notifier.provider.ts`) and the `SendClassReminders`
   use case (`modules/classes/src/school-class/usecase/send-class-reminders.usecase.ts`, output `{ reminded }`) by
@@ -204,6 +204,27 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
   `modules/classes/test/school-class/usecase/send-class-reminders.usecase.test.ts`. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest` passes from `modules/classes`.
+  > ✅ 2026-10-23 12:49 — added `CLASS_REMINDER_LEAD_MINUTES = 30` (in `class-limits.ts`), `findDueForReminder(now,
+  > leadMinutes)` and the conditional `markReminded(id, at)` to `SchoolClassRepository`, the `ClassReminderNotifier`
+  > port (`classReminder({ recipientIds, classId, discipline, startsAt, locationName })`) and `SendClassReminders`
+  > (output `{ reminded }`): due classes are read once, their rosters in one read and each location once; a class is
+  > notified only when its mark was written (D-03), to its approved students plus its instructors, each once (D-01);
+  > guests are ignored; a notifier error is swallowed; a class whose location can't be found stays due and unmarked
+  > (as `WorkOutCancellationDeadlines` does); exported through the barrels; fakes `FakeClassReminderNotifier` and
+  > the two new `FakeSchoolClassRepository` methods, with their tests; files:
+  > `modules/classes/src/school-class/model/class-limits.ts`,
+  > `modules/classes/src/school-class/provider/school-class.repository.ts`,
+  > `modules/classes/src/school-class/provider/class-reminder-notifier.provider.ts`,
+  > `modules/classes/src/school-class/provider/index.ts`,
+  > `modules/classes/src/school-class/usecase/send-class-reminders.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`,
+  > `modules/classes/test/mock/fake-class-reminder.notifier.ts`,
+  > `modules/classes/test/mock/fake-school-class.repository.ts`, `modules/classes/test/mock/index.ts`,
+  > `modules/classes/test/school-class/usecase/send-class-reminders.usecase.test.ts`,
+  > `modules/classes/test/school-class/provider/fake-class-reminder.notifier.test.ts`,
+  > `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`; verified: `npx jest` from
+  > `modules/classes` (37 suites, 554 passed; `send-class-reminders.usecase.ts` 100%
+  > statements/branches/functions/lines), `tsc --noEmit` and `oxlint` clean; deviations: none
 
 ### Backend (`apps/backend`)
 

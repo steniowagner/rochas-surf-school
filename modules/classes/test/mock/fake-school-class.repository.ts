@@ -170,6 +170,30 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
     });
   }
 
+  async findDueForReminder(now: Date, leadMinutes: number): Promise<SchoolClass[]> {
+    const until = now.getTime() + leadMinutes * 60_000;
+
+    return this.classes.filter(
+      (item) =>
+        !item.cancelledAt &&
+        !item.reminderSentAt &&
+        item.startsAt.getTime() > now.getTime() &&
+        item.startsAt.getTime() <= until,
+    );
+  }
+
+  async markReminded(id: string, at: Date): Promise<boolean> {
+    const stored = this.classes.find((item) => item.id === id);
+
+    if (!stored || stored.cancelledAt || stored.reminderSentAt) return false;
+
+    this.classes = this.classes.map((item) =>
+      item.id === id ? item.clone({ reminderSentAt: at, updatedAt: item.updatedAt }) : item,
+    );
+
+    return true;
+  }
+
   private writeDeadline(
     id: string,
     revision: number,

@@ -11,3 +11,6 @@ export const CLASS_CANCELLATION_MESSAGE_MAX = 300;
 export const CLASS_BATCH_MAX = 200;
 
 export const CLASS_TIME_ZONE = "America/Fortaleza";
+
+/** How long before its start a class reminds its people. */
+export const CLASS_REMINDER_LEAD_MINUTES = 30;

@@ -386,7 +386,7 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   > doesn't resolve a touchable's classes there and RNTL 14 has no `UNSAFE_` queries), so it is checked in the iOS
   > simulator in T-08.
 
-- [ ] **T-06** — Add the management screen `src/modules/school-rules/screens/manage-school-rules.screen.tsx` with
+- [x] **T-06** — Add the management screen `src/modules/school-rules/screens/manage-school-rules.screen.tsx` with
   `manage-school-rules.screen.hook.ts` (which sheet is open: none, add, edit with a rule, delete with a rule; the
   moves via T-02) and `.types.ts`: the header title and intro (D-10), the list card of T-05 rows, the bottom "Add
   rule", the `Skeleton` / `ErrorState` / `EmptyState` states (D-08) and the sheets of T-03 and T-04; the route
@@ -397,6 +397,23 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03, ER-04, ER-05, ER-06, ER-07, ER-08, ER-10 · Done when:
   `npx jest src/modules/school-rules/screens/manage-school-rules.screen.test.tsx` passes from `apps/mobile`.
+  > ✅ 2026-10-23 — `ManageSchoolRulesScreen`: header title "Regras da escola" through `StackHeaderTitle`, a
+  > `ScrollView` (first descendant, `contentInsetAdjustmentBehavior="automatic"`) with the intro, then by state: three
+  > `Skeleton` rule rows (number, two lines, two 44pt squares) in the list card, one accessible element labelled
+  > "Loading the rules" (`testID="school-rules-loading"`); `ErrorState` (`retrying` while it refetches); `EmptyState`
+  > (`shield-outline`, action "Add rule" with `add`); or the card of `SchoolRuleEditableRow`s (arrows off at the ends and
+  > while a reorder runs) and the outline "Add rule" with a `+` icon — the bottom button only in that last state. The
+  > hook (`useManageSchoolRulesScreen`) derives the status (a list already shown stays when a reload fails), moves a
+  > rule one place through `useReorderSchoolRules`, and tracks the open sheet (`none` / `rule` / `delete`) with what the
+  > add/edit sheet shows; "Delete rule" swaps the edit sheet for the confirmation, and the edit sheet's late dismissal
+  > doesn't close the confirmation. Route `apps/mobile/src/app/(private)/admin/manage-school-rules.tsx`,
+  > `routes.admin.manageSchoolRules`. Files: `apps/mobile/src/modules/school-rules/screens/{manage-school-rules.screen.tsx,manage-school-rules.screen.hook.ts,manage-school-rules.screen.types.ts,manage-school-rules.screen.test.tsx}`,
+  > `apps/mobile/src/app/(private)/admin/manage-school-rules.tsx`, `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`. Verified: `npx jest --coverage
+  > src/modules/school-rules/screens/manage-school-rules.screen.test.tsx` (17 passed: "lists" ×3, "state" ×3, "adds",
+  > "edits" ×2, "deletes" ×4, "reorders" ×4, driven through a mocked `fetch`; 100 % of the screen and its hook);
+  > `npx tsc --noEmit` (exit 0). Deviations: the test mocks `BottomModal` to show a sheet's content only while visible
+  > and to keep its `onClose`, so it can tell the two sheets apart and replay the library's late dismissal.
 
 - [ ] **T-07** — Add `src/modules/school-rules/components/school-rules-entry-row/` (component, hook, types,
   `index.ts`, D-09) with `school-rules-entry-row.component.test.tsx` (both roles, 1 / n / 0, loading, error), and put

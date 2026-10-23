@@ -711,6 +711,18 @@ const messages: Messages = {
     description: "Poucas e simples, para as aulas correrem bem para todos.",
   },
   manageSchoolRules: {
+    title: "Regras da escola",
+    intro: "Os alunos leem estas regras e precisam aceitá-las antes de entrar no app. A ordem aqui é a ordem que eles veem.",
+    add: "Adicionar regra",
+    loading: "Carregando as regras",
+    loadError: {
+      title: "Não foi possível carregar as regras",
+      description: "Confira sua conexão e tente de novo.",
+    },
+    empty: {
+      title: "Nenhuma regra ainda",
+      description: "Adicione a primeira regra. Os alunos leem e aceitam as regras antes de entrar no app.",
+    },
     moveUp: "Subir a regra {{position}}",
     moveDown: "Descer a regra {{position}}",
     deleteSheet: {

@@ -711,6 +711,18 @@ const messages = {
     description: "Few and simple, so classes go well for everyone.",
   },
   manageSchoolRules: {
+    title: "School rules",
+    intro: "Students read these rules and must accept them before using the app. The order here is the order they see.",
+    add: "Add rule",
+    loading: "Loading the rules",
+    loadError: {
+      title: "Couldn't load the rules",
+      description: "Check your connection and try again.",
+    },
+    empty: {
+      title: "No rules yet",
+      description: "Add the first rule. Students read and accept the rules before using the app.",
+    },
     moveUp: "Move rule {{position}} up",
     moveDown: "Move rule {{position}} down",
     deleteSheet: {

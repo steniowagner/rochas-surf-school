@@ -404,15 +404,10 @@ const messages: Messages = {
     title: "Minhas aulas",
     history: "Histórico",
     filters: {
-      all: "Todos",
+      all: "Todas",
       pending: "Pendentes",
-      approved: "Aprovados",
-      denied: "Recusados",
-      withdrawn: "Anulados",
-      cancelled: "Cancelados",
-      takenOut: "Retirados",
-      expired: "Expirados",
-      classCancelled: "Aula cancelada",
+      confirmed: "Confirmadas",
+      ended: "Encerradas",
     },
     empty: {
       title: "Nada por aqui",

@@ -83,7 +83,7 @@ status chip, so the student still sees every status the requirements ask for.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Group the chips: change `MyClassesFilter` in `src/modules/enrolment/enrolment.types.ts` to
+- [x] **T-01** — Group the chips: change `MyClassesFilter` in `src/modules/enrolment/enrolment.types.ts` to
   `all | pending | confirmed | ended`; in `src/modules/enrolment/utils/my-classes-filter.ts` set
   `MY_CLASSES_FILTERS` to the four keys and make `getMyClassFilter` map each status to its group (a cancelled
   class first, as today); replace the `myClasses.filters` labels in `src/i18n/messages/{pt-BR,en-US,es-ES}.ts`
@@ -93,6 +93,22 @@ status chip, so the student still sees every status the requirements ask for.
   `screens/my-classes.screen.test.tsx` (the group cases of ER-03). Skills: `vercel-react-native-skills`,
   `vercel-react-best-practices`.
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/enrolment` (from `apps/mobile`) passes.
+  > ✅ 2026-10-22 — `MyClassesFilter` is now `all | pending | confirmed | ended`; `MY_CLASSES_FILTERS` holds the
+  > four keys and `getMyClassFilter` maps each status to its group through a `Record<EnrolmentStatus, …>` (a
+  > cancelled class first → `ended`; no request → `null`); the `myClasses.filters` labels of pt-BR, en-US and es-ES
+  > are the four of ER-01 (pt-BR "Todos" → "Todas", D-03). Tests written first and watched fail (5 failing, 3
+  > suites), then pass: the util test checks the order, every status's group, a cancelled class with an approved
+  > or pending request, no request, filtering, and the labels of the three locales; the component test draws the
+  > four chips and presses "Ended"; the screen test covers "Ended" (Withdrawn and Cancelled cards), "Pending",
+  > "Confirmed", the empty state of a group, the reset to All, and the pt-BR labels. Files:
+  > `apps/mobile/src/modules/enrolment/enrolment.types.ts`,
+  > `apps/mobile/src/modules/enrolment/utils/my-classes-filter.ts`,
+  > `apps/mobile/src/modules/enrolment/utils/my-classes-filter.test.ts`,
+  > `apps/mobile/src/modules/enrolment/components/my-classes-filters/my-classes-filters.component.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/screens/my-classes.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest src/modules/enrolment` (29 suites, 263 passed),
+  > `npx tsc --noEmit` and `npx eslint src/modules/enrolment src/i18n` clean; deviations: none.
 
 ### Verification
 

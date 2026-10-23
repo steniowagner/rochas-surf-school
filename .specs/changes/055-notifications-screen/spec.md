@@ -322,7 +322,7 @@ screen and the read state that spec 020 left for later, so a notification is nev
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-03** — Add `readAt DateTime? @map("read_at")` to `Notification` in
+- [x] **T-03** — Add `readAt DateTime? @map("read_at")` to `Notification` in
   `apps/backend/prisma/models/notifications.model.prisma` with the migration
   `apps/backend/prisma/migrations/<timestamp>_notifications_add_read_at/` (column only, existing rows unread), and
   implement `findPage`, `countUnread`, `markRead` (one conditional `updateMany` by id, user and `read_at` null, then
@@ -331,6 +331,20 @@ screen and the read state that spec 020 left for later, so a notification is nev
   [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: enabling · Done when: the migration applies (`npm run prisma:migrate:deploy --workspace apps/backend`) and
   `npx vitest run src/modules/notifications/notification.prisma.spec.ts` passes.
+  > ✅ 2026-10-23 13:35 — Added `readAt DateTime? @map("read_at")` to the `Notification` model and created the
+  > migration with `prisma migrate dev --create-only --name notifications_add_read_at` (SQL: one `ALTER TABLE
+  > "notifications" ADD COLUMN "read_at" TIMESTAMP(3)`, so existing rows stay unread), applied with `npm run
+  > prisma:migrate:deploy` (all applied); implemented in `PrismaNotificationRepository` `findPage` (`findMany` by
+  > user ordered `createdAt` desc then `id` desc, `skip` / `take`, plus `count`, mapped to `Notification` with
+  > `readAt`), `countUnread`, `markRead` (one `updateMany` by id, user and `readAt: null`, then a `count` by id and
+  > user when nothing changed) and `markAllRead`; files: `apps/backend/prisma/models/notifications.model.prisma`,
+  > `apps/backend/prisma/migrations/20261023163428_notifications_add_read_at/migration.sql`,
+  > `apps/backend/src/modules/notifications/notification.prisma.ts`,
+  > `apps/backend/src/modules/notifications/notification.prisma.spec.ts`; verified: `npx vitest run
+  > src/modules/notifications/notification.prisma.spec.ts` (9 passed; 100% lines, the one uncovered branch is the
+  > `@Injectable()` decorator metadata the coverage gate skips), `tsc --noEmit` clean; deviations: the
+  > backend-prisma-sync-module skill’s `migrate dev` was split into `--create-only` + `migrate deploy` so the SQL
+  > was read before it touched the local database.
 
 - [ ] **T-04** — Add `renderInApp(type, params, locale)` to `apps/backend/src/modules/notifications/push-messages.ts`
   (D-02: the push text, minus the "open the app" sentences of `class.edited` and the no-reason `registration.denied`),

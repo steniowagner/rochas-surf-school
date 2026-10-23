@@ -415,7 +415,7 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   > `npx tsc --noEmit` (exit 0). Deviations: the test mocks `BottomModal` to show a sheet's content only while visible
   > and to keep its `onClose`, so it can tell the two sheets apart and replay the library's late dismissal.
 
-- [ ] **T-07** — Add `src/modules/school-rules/components/school-rules-entry-row/` (component, hook, types,
+- [x] **T-07** — Add `src/modules/school-rules/components/school-rules-entry-row/` (component, hook, types,
   `index.ts`, D-09) with `school-rules-entry-row.component.test.tsx` (both roles, 1 / n / 0, loading, error), and put
   it first under "Escola" in `src/modules/admin/screens/admin.screen.tsx` (opens `routes.admin.manageSchoolRules`)
   and `src/modules/instructor/screens/instructor.screen.tsx` (opens `routes.instructor.schoolRules`), with the row's
@@ -425,6 +425,22 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-01, ER-02, ER-10 · Done when: `npx jest src/modules/school-rules/components/school-rules-entry-row src/modules/admin/screens src/modules/instructor/screens`
   passes from `apps/mobile`.
+  > ✅ 2026-10-23 — `SchoolRulesEntryRow` (`role`, `onPress`): a card of its own like `PeopleEntryRow` — `shield-outline`
+  > in `lagoon`, "Rules", the subtitle under it and a chevron; the hook reads `useSchoolRules()` and gives the admin /
+  > instructor plural (`_one` / `_other`), "No rules yet" for 0, and no subtitle while loading or after an error. It is
+  > the first row under "School" on the admin's home (opens `routes.admin.manageSchoolRules`) and the instructor's home
+  > (opens `routes.instructor.schoolRules`), above "People". Files:
+  > `apps/mobile/src/modules/school-rules/components/school-rules-entry-row/{index.ts,school-rules-entry-row.component.tsx,school-rules-entry-row.hook.ts,school-rules-entry-row.types.ts,school-rules-entry-row.component.test.tsx}`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts` (`schoolRulesEntryRow`). Verified: `npx jest
+  > src/modules/school-rules/components/school-rules-entry-row src/modules/admin/screens src/modules/instructor/screens`
+  > (4 suites, 52 passed: both roles with 6 / 1 / 0 rules, loading, error; each home's row order and navigation, the
+  > instructor's opening the read-only screen with no arrows and no "Add rule"); `npx jest src/modules/profile`
+  > (7 suites, 67 passed — Perfil still opens `/admin/school-rules`); `npx tsc --noEmit` (exit 0). Deviations: the two
+  > home tests answer `GET /school-rules` apart from their `fetchMock` (a small wrapper), so the existing request counts
+  > and `{ items }` answers stay as they were.
 
 ### Verification
 

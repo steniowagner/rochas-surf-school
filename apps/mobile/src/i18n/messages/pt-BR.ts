@@ -710,6 +710,14 @@ const messages: Messages = {
     title: "Regras da escola",
     description: "Poucas e simples, para as aulas correrem bem para todos.",
   },
+  schoolRulesEntryRow: {
+    title: "Regras",
+    adminSubtitle_one: "{{count}} regra no onboarding dos alunos",
+    adminSubtitle_other: "{{count}} regras no onboarding dos alunos",
+    instructorSubtitle_one: "{{count}} regra para todos os alunos",
+    instructorSubtitle_other: "{{count}} regras para todos os alunos",
+    empty: "Nenhuma regra ainda",
+  },
   manageSchoolRules: {
     title: "Regras da escola",
     intro: "Os alunos leem estas regras e precisam aceitá-las antes de entrar no app. A ordem aqui é a ordem que eles veem.",

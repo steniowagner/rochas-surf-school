@@ -12,12 +12,30 @@ import AdminSchoolSettingsRoute from "@/app/(private)/admin/school-settings";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
+import AdminManageSchoolRulesRoute from "@/app/(private)/admin/manage-school-rules";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import { routes } from "@/constants/routes";
 import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
 
 const fetchMock = jest.fn();
+
+const SCHOOL_RULES = {
+  version: 1,
+  rules: Array.from({ length: 6 }, (_, index) => ({
+    id: `r-${index + 1}`,
+    title: `Rule ${index + 1}`,
+    description: `Explanation ${index + 1}`,
+    index: index + 1,
+  })),
+};
+
+// The Rules row asks for the school rules on its own: they are answered here, so `fetchMock` sees only the home's
+// other requests.
+const fetchWithSchoolRules = (url: string, init: RequestInit) =>
+  String(url).endsWith("/school-rules")
+    ? Promise.resolve({ ok: true, status: 200, json: async () => SCHOOL_RULES })
+    : fetchMock(url, init);
 
 // The bell asks for the unread count on its own: the home's requests are the others.
 const homeCalls = () =>
@@ -84,6 +102,7 @@ async function openAdminHome() {
       "(private)/admin/registrations": AdminRegistrationsRoute,
       "(private)/admin/class-requests": AdminClassRequestsRoute,
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
+      "(private)/admin/manage-school-rules": AdminManageSchoolRulesRoute,
     },
     { initialUrl: routes.admin.home },
   );
@@ -108,7 +127,7 @@ beforeEach(() => {
     },
   });
   fetchMock.mockReset();
-  globalThis.fetch = fetchMock;
+  globalThis.fetch = fetchWithSchoolRules as typeof fetch;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
@@ -368,6 +387,25 @@ describe("AdminScreen", () => {
       expect(app.getPathname()).toBe(routes.admin.enrolStudent);
       expect(await screen.findByText("Enrol a school student, or someone without an account in a trial class.")).toBeOnTheScreen();
     });
+  });
+
+  it("shows the Rules row first under School, above People, with the rule count, and opens the rules management screen", async () => {
+    const user = userEvent.setup();
+    respondWith([]);
+    const app = await openAdminHome();
+
+    expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+    const rows = screen.getAllByText(/^(School|Rules|People|School settings)$/);
+    expect(rows.map((row) => row.props.children)).toEqual(["School", "Rules", "People", "School settings"]);
+
+    await user.press(screen.getByRole("button", { name: /Rules/ }));
+
+    expect(app.getPathname()).toBe(routes.admin.manageSchoolRules);
+    expect(await screen.findByRole("button", { name: "Move rule 1 down" })).toBeOnTheScreen();
+
+    await act(async () => router.back());
+
+    expect(app.getPathname()).toBe(routes.admin.home);
   });
 
   it("opens the school settings screen from its row under School", async () => {

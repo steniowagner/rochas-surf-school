@@ -8,9 +8,11 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
 import { useTheme } from "@/hooks/use-theme";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
+import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
 
 const openPeople = () => router.push(routes.instructor.people);
+const openSchoolRules = () => router.push(routes.instructor.schoolRules);
 
 export function InstructorScreen() {
   const { t } = useTranslation();
@@ -42,6 +44,7 @@ export function InstructorScreen() {
         <Text className="ds-text-section-label text-ink-2">
           {t("admin.home.schoolSection")}
         </Text>
+        <SchoolRulesEntryRow role="instructor" onPress={openSchoolRules} />
         <PeopleEntryRow onPress={openPeople} />
       </View>
     </View>

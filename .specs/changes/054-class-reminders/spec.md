@@ -254,12 +254,25 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
   > `migrate dev`, so the SQL could be reviewed first; the backend type check still fails on the missing
   > `class.reminder` catalog entry until T-05
 
-- [ ] **T-05** — Add `NotificationsClassReminderNotifier`
+- [x] **T-05** — Add `NotificationsClassReminderNotifier`
   (`apps/backend/src/modules/notifications/notifications.class-reminder-notifier.ts`, runs `Notify` with
   `class.reminder`, logs and swallows every error) exported by `NotificationsModule`, and the `class.reminder` entry
   in the three locales of `push-messages.ts` (D-05), with `notifications.class-reminder-notifier.spec.ts` and
   `push-messages.spec.ts`. Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-05 · Done when: `npx vitest run src/modules/notifications` passes and the backend's `check-types` exits 0.
+  > ✅ 2026-10-23 12:52 — added `NotificationsClassReminderNotifier` (runs `Notify` with `class.reminder` and `{
+  > classId, discipline, startsAt (ISO), locationName }`, logs `Could not notify class.reminder to N person(s)` and
+  > swallows every error) registered and exported by `NotificationsModule`, and the `class.reminder` catalog entry
+  > in pt-BR, es and en by D-05 (title per locale, body with the discipline, the start time in Fortaleza and no day,
+  > and the location name as stored); files:
+  > `apps/backend/src/modules/notifications/notifications.class-reminder-notifier.ts`,
+  > `apps/backend/src/modules/notifications/notifications.class-reminder-notifier.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.module.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `TZ=Pacific/Kiritimati npx vitest run
+  > src/modules/notifications` with coverage (160 passed; `push-messages.ts` and the notifier at 100%, so the time
+  > is Fortaleza whatever the machine zone), `npm run check-types --workspace apps/backend` exits 0; deviations:
+  > none
 
 - [ ] **T-06** — Add `ClassReminderJob` (`apps/backend/src/modules/classes/class-reminder.job.ts`, D-06: runs
   `SendClassReminders` with `PrismaSchoolClassRepository`, `PrismaClassRosterReader`, `PrismaLocationRepository`, the

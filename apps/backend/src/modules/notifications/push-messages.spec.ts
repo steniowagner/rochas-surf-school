@@ -168,6 +168,22 @@ describe('renderPush', () => {
     expect(renderPush('location.changed', params, locale).body).toBe(one);
   });
 
+  it.each([
+    ['pt-BR', 'Sua aula começa em breve', 'A aula de Surf começa às 08:00 · Praia do Futuro.'],
+    ['es', 'Tu clase empieza pronto', 'La clase de Surf empieza a las 08:00 · Praia do Futuro.'],
+    ['en', 'Your class starts soon', 'The Surf class starts at 08:00 · Praia do Futuro.'],
+  ] as const)('writes the class reminder in %s', (locale, title, body) => {
+    const params = { classId: 'c-1', discipline: 'surf', startsAt: STARTS_AT, locationName: ' Praia do Futuro ' };
+
+    expect(renderPush('class.reminder', params, locale)).toEqual({ title, body });
+  });
+
+  it('names Skate in a skate class reminder, with the time in Fortaleza', () => {
+    const params = { classId: 'c-1', discipline: 'skate', startsAt: '2026-10-19T03:10:00.000Z', locationName: 'Cumbuco' };
+
+    expect(renderPush('class.reminder', params, 'pt-BR').body).toBe('A aula de Skate começa às 00:10 · Cumbuco.');
+  });
+
   it('shows the start in Fortaleza even when it falls on the previous or next UTC day', () => {
     expect(renderPush('class.edited', { discipline: 'surf', startsAt: '2026-10-19T01:30:00.000Z' }, 'pt-BR').body).toBe(
       'A aula de Surf de 18/10 às 22:30 foi alterada. Abra o app para ver.',

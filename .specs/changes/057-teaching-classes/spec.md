@@ -201,11 +201,18 @@ header's clock button.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Add `src/modules/classes/teaching-classes-reader.prisma.ts` (`PrismaTeachingClassesReader`, over
+- [x] **T-02** — Add `src/modules/classes/teaching-classes-reader.prisma.ts` (`PrismaTeachingClassesReader`, over
   `class_instructors`) with `teaching-classes-reader.prisma.spec.ts`, and register it as a provider in
   `classes.module.ts`. Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/classes/teaching-classes-reader.prisma.spec.ts` passes
   from `apps/backend`.
+  > ✅ 2026-10-23 20:12 — added `PrismaTeachingClassesReader`: `findCurrentClassIds` is one `schoolClass.findMany`
+  > (`endsAt > now`, `instructors: { some: { userId } }`, by `startsAt` then `id`; cancelled classes included) and
+  > `teachesAny` one `classInstructor.findFirst` by `userId` (any class state; a deleted class's rows go with it by
+  > cascade); registered in `ClassesModule`'s providers. Files: `apps/backend/src/modules/classes/teaching-classes-reader.prisma.ts`,
+  > `apps/backend/src/modules/classes/teaching-classes-reader.prisma.spec.ts`, `apps/backend/src/modules/classes/classes.module.ts`;
+  > verified: `npx vitest run src/modules/classes/teaching-classes-reader.prisma.spec.ts` (3 passed) and
+  > `npx tsc --noEmit -p apps/backend` (no errors, after building `modules/classes`); deviations: none.
 
 - [ ] **T-03** — Add `GET /classes/teaching` to `src/modules/classes/classes.controller.ts` (before `:id`), with its
   cases in `classes.controller.spec.ts` and requests (instructor, admin, student 403, no token 401) in

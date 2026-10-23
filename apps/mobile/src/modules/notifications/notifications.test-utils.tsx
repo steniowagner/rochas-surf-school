@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode } from "react";
 
@@ -6,6 +7,10 @@ import { hydrateSession } from "@/services/session/session.store";
 import { NotificationItem } from "./notifications.types";
 
 export const fetchMock = jest.fn();
+
+// The character an Ionicons icon renders, to find the icon by text in a test.
+export const glyph = (name: keyof typeof Ionicons.glyphMap) =>
+  String.fromCodePoint(Number(Ionicons.glyphMap[name]));
 
 export const buildNotification = (
   index: number,

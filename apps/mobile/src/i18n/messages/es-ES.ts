@@ -960,6 +960,10 @@ const messages: Messages = {
     done: "Listo",
     archived: "Eliminado",
   },
+  notifications: {
+    now: "Ahora",
+    unread: ", no leído",
+  },
   archiveLocation: {
     title: "¿Eliminar lugar?",
     description: "Deja de aparecer para nuevas clases.",

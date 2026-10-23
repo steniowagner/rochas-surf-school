@@ -953,6 +953,10 @@ const messages = {
     done: "Done",
     archived: "Removed",
   },
+  notifications: {
+    now: "Now",
+    unread: ", unread",
+  },
   archiveLocation: {
     title: "Remove location?",
     description: "It no longer shows up for new classes.",

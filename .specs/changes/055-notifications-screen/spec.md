@@ -446,11 +446,29 @@ screen and the read state that spec 020 left for later, so a notification is nev
   > `utils/notifications-cache.ts` (as `modules/admin/utils/registrations-cache.ts`), and a
   > `notifications.test-utils.tsx` (as the people module’s) holds the test fixtures.
 
-- [ ] **T-08** — Add `NotificationRow` in `apps/mobile/src/modules/notifications/components/notification-row/`
+- [x] **T-08** — Add `NotificationRow` in `apps/mobile/src/modules/notifications/components/notification-row/`
   (component, hook, types, index; icon and tone by [Row icons](#row-icons), title, optional body, `formatCreatedAt`
   time, `sun` dot when unread, accessibility label by D-13, `Pressable`), with
   `notification-row.component.test.tsx`. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-07 · Done when: `npx jest src/modules/notifications/components` passes from `apps/mobile`.
+  > ✅ 2026-10-23 13:51 — Added `NotificationRow` (component, hook, types, index): a `Pressable` card
+  > (`rounded-card`, `bg-surface`, `shadowStyle("card")`) with a round tinted tile and Ionicons glyph from
+  > `notificationIcon(type)` (the Row icons table; unknown types → `notifications-outline` on `infoTint`), the title
+  > (`ds-text-list-title`), the body only when not empty, the `formatCreatedAt` time (“Agora” / “Ahora” / “Now”
+  > under a minute), a `bg-sun` dot while unread, and the accessibility label “title, body, time” plus “, não lido”
+  > / “, no leído” / “, unread” when unread (D-13); the two row strings went into a new `notifications` namespace of
+  > the three message files; files:
+  > `apps/mobile/src/modules/notifications/components/notification-row/notification-row.component.tsx`,
+  > `apps/mobile/src/modules/notifications/components/notification-row/notification-row.hook.ts`,
+  > `apps/mobile/src/modules/notifications/components/notification-row/notification-row.types.ts`,
+  > `apps/mobile/src/modules/notifications/components/notification-row/index.ts`,
+  > `apps/mobile/src/modules/notifications/components/notification-row/notification-row.component.test.tsx`,
+  > `apps/mobile/src/modules/notifications/utils/notification-icon.ts`,
+  > `apps/mobile/src/modules/notifications/notifications.test-utils.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest
+  > src/modules/notifications/components` from `apps/mobile` (10 passed; component, hook and `notification-icon.ts`
+  > at 100%), `npx jest src/i18n` (passes, the three locales keep the same keys), `tsc --noEmit` and `eslint` clean;
+  > deviations: the icon table lives in `utils/notification-icon.ts` so the screen and tests share it.
 
 - [ ] **T-09** — Add `NotificationsScreen` in `apps/mobile/src/modules/notifications/screens/notifications.screen.tsx`
   (title "Avisos" and the `headerRight` mark-all `HeaderButton` through `<Stack.Screen options>`, skeleton, empty and

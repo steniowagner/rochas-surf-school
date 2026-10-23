@@ -953,6 +953,10 @@ const messages: Messages = {
     done: "Concluir",
     archived: "Removido",
   },
+  notifications: {
+    now: "Agora",
+    unread: ", não lido",
+  },
   archiveLocation: {
     title: "Remover local?",
     description: "Ele deixa de aparecer para novas aulas.",

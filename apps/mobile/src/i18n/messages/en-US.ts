@@ -711,6 +711,19 @@ const messages = {
     description: "Few and simple, so classes go well for everyone.",
   },
   manageSchoolRules: {
+    sheet: {
+      addTitle: "New rule",
+      editTitle: "Edit rule",
+      titleLabel: "Title",
+      descriptionLabel: "Explanation",
+      titlePlaceholder: "E.g. Bring sunscreen",
+      descriptionPlaceholder: "One or two short sentences, speaking straight to the student.",
+      saveNote: "Once saved, everyone will need to accept the rules again the next time they open the app.",
+      add: "Add rule",
+      save: "Save",
+      delete: "Delete rule",
+      cancel: "Cancel",
+    },
     toasts: {
       added: "Rule added",
       saved: "Rule saved",

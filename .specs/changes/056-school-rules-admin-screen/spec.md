@@ -319,7 +319,7 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   > `npx tsc --noEmit` (exit 0); deviations: the variables carry the reordered rules rather than only their ids, so the
   > optimistic write needs no lookup — the request still sends only `ruleIds`.
 
-- [ ] **T-03** — Add `src/modules/school-rules/components/school-rule-sheet/` (component, hook, types, `index.ts`):
+- [x] **T-03** — Add `src/modules/school-rules/components/school-rule-sheet/` (component, hook, types, `index.ts`):
   the `BottomModal` with mode `add` | `edit` (D-06), the title field with its counter, the explanation `TextArea`, the
   save note (D-01), the primary button ("Add rule" / "Save") calling the T-01 hooks and closing with its toast on
   success, "Delete rule" in `edit` (calls an `onDelete(rule)` prop) and "Cancel", with copy in the three locales and
@@ -329,6 +329,23 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-05, ER-06, ER-09, ER-10 · Done when: `npx jest src/modules/school-rules/components/school-rule-sheet`
   passes from `apps/mobile`.
+  > ✅ 2026-10-23 — `SchoolRuleSheet` (`mode` `add` | `edit`, `rule`, `onClose`, `onDelete`): "Title" `TextInput` (no
+  > icon, `maxLength` 60, `n/60` counter under it), "Explanation" `TextArea` (`inBottomSheet`, `maxLength` 300, its
+  > `n/300`), the save note (D-01) in a `bg-sand` note row, the primary "Add rule" / "Save" (on when both trimmed fields
+  > have text and, in `edit`, the trimmed text differs from the stored one; `loading` while the request runs, so a
+  > second tap is ignored), "Delete rule" (outline, `edit` only, calls `onDelete(rule)`) and a ghost "Cancel". Success
+  > toasts "Rule added" / "Rule saved" and closes; a 404 closes (the T-01 hook already reloaded and toasted); any other
+  > failure keeps the sheet and the draft. Each opening starts from the rule's text (or empty), dropping a cancelled
+  > draft. Files: `apps/mobile/src/modules/school-rules/components/school-rule-sheet/{index.ts,school-rule-sheet.component.tsx,school-rule-sheet.hook.ts,school-rule-sheet.types.ts,school-rule-sheet.component.test.tsx}`,
+  > `apps/mobile/src/modules/school-rules/school-rules.constants.ts` (the 60 / 300 limits),
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; also `apps/mobile/src/modules/school-rules/hooks/use-{create,update,delete}-school-rule.hook.test.tsx`
+  > (T-01 tests: the success cases now wait for the mutation's success, which flushes a React Query notification that
+  > leaked into the next test as an `act()` warning). Verified: `npx jest src/modules/school-rules/components/school-rule-sheet`
+  > (15 passed); `npx jest --coverage src/modules/school-rules` (17 suites, 89 passed; 100 % statements, branches,
+  > functions and lines in the module); `npx tsc --noEmit` (exit 0). Deviations: the limits are local constants because
+  > the app doesn't depend on `@rochas-surf-school/school-rules` (whose entity holds the same 60 / 300); adding that
+  > dependency was out of this task. One `act()` warning can still appear when the whole module runs (test noise, no
+  > failure).
 
 - [ ] **T-04** — Add `src/modules/school-rules/components/delete-school-rule-sheet/` (component, hook, types,
   `index.ts`): the confirmation of D-04 with the rule's title and the delete note, calling the T-01 delete hook, with

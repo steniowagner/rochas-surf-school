@@ -49,8 +49,9 @@ describe("useDeleteSchoolRule", () => {
     const answer = { version: 2, rules: [rule(1), rule(2, "r-3")] };
     fetchMock.mockResolvedValue(ok(answer));
 
-    await remove(queryClient);
+    const result = await remove(queryClient);
 
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules/r-2", {
       method: "DELETE",
       headers: { Authorization: "Bearer at-1", "Content-Type": "application/json" },

@@ -51,8 +51,9 @@ describe("useCreateSchoolRule", () => {
     const answer = { version: 2, rules: [rule(1), rule(2)] };
     fetchMock.mockResolvedValue(ok(answer));
 
-    await create(queryClient);
+    const result = await create(queryClient);
 
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules", {
       method: "POST",
       headers: { Authorization: "Bearer at-1", "Content-Type": "application/json" },

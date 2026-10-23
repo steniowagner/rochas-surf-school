@@ -51,8 +51,9 @@ describe("useUpdateSchoolRule", () => {
     const answer = { version: 2, rules: [rule(1), rule(2, "New title")] };
     fetchMock.mockResolvedValue(ok(answer));
 
-    await update(queryClient);
+    const result = await update(queryClient);
 
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules/r-2", {
       method: "PUT",
       headers: { Authorization: "Bearer at-1", "Content-Type": "application/json" },

@@ -293,7 +293,7 @@ screen and the read state that spec 020 left for later, so a notification is nev
   > `test/push-token/provider/fakes.test.ts`, where the other fakes are tested. The backend’s
   > `PrismaNotificationRepository` gains the four methods in T-03.
 
-- [ ] **T-02** — Add the use cases `ListNotifications` (`{ userId, page?, perPage?, locale? }` → `{ items: [{ id,
+- [x] **T-02** — Add the use cases `ListNotifications` (`{ userId, page?, perPage?, locale? }` → `{ items: [{ id,
   type, params, createdAt, read }], page, perPage, total, locale }`, D-03, `PUSH_LOCALES` for the locale),
   `CountUnreadNotifications` (`{ userId }` → `{ count }`), `MarkNotificationRead` (`{ userId, notificationId }`,
   `NotFoundError("notification.notFound")` for an unknown, foreign or non-UUID id, D-04) and
@@ -302,6 +302,23 @@ screen and the read state that spec 020 left for later, so a notification is nev
   `modules/notifications/test/notification/usecase/`. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-03, ER-04, ER-05 · Done when: `npx jest` passes from `modules/notifications` with the four use
   cases at 100% lines and branches.
+  > ✅ 2026-10-23 13:34 — Added `ListNotifications` (page / perPage parsed as `ListPeople` does, `locale` one of
+  > `PUSH_LOCALES` defaulting to `pt-BR`, every invalid field in one `ValidationException` with
+  > `notifications.{page,perPage,locale}.invalid`; items `{ id, type, params, createdAt (ISO), read }` plus `page`,
+  > `perPage`, `total`, `locale`), `CountUnreadNotifications`, `MarkNotificationRead`
+  > (`NotFoundError("notification.notFound")` for an id failing the shared `RequiredRule` / `UuidRule`, or one
+  > `markRead` does not find for the caller) and `MarkAllNotificationsRead`, both with the clock, exported through
+  > the usecase barrel; files: `modules/notifications/src/notification/usecase/list-notifications.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/count-unread-notifications.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/mark-notification-read.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/mark-all-notifications-read.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/index.ts`,
+  > `modules/notifications/test/notification/usecase/list-notifications.usecase.test.ts`,
+  > `modules/notifications/test/notification/usecase/count-unread-notifications.usecase.test.ts`,
+  > `modules/notifications/test/notification/usecase/mark-notification-read.usecase.test.ts`,
+  > `modules/notifications/test/notification/usecase/mark-all-notifications-read.usecase.test.ts`; verified: `npx
+  > jest --coverage` from `modules/notifications` (151 passed; the four use cases at 100% statements, branches,
+  > functions and lines), `tsc --noEmit` and `npm run lint` clean; deviations: none.
 
 ### Backend (`apps/backend`)
 

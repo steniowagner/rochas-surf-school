@@ -245,6 +245,7 @@ Students cannot:
 - WhatsApp messages sent by the app, and email notifications.
 - Saved lists of time ranges.
 - Undoing admin decisions.
+- Ratings and photos ([requirements, section 5](requirements.md#5-ratings-and-photos)): rating a class, instructor comments, class photos and the prompt to rate a class after it ends. They're planned for a future version; the journeys that mention them stay as the target.
 - Reporting comments or photos.
 - Translating text written by admins.
 - Checking a cancellation rule's wording when it's saved.

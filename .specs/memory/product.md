@@ -1019,6 +1019,8 @@ Active specs: none.
 - A stored history of registration decisions (who decided, when an account was approved), shown anywhere in the
   app (spec 039 removed the per-visit "Decided just now" list); and searching, filtering or paging the
   registrations.
+- Ratings and photos ([section 5](../../.docs/requirements.md#5-ratings-and-photos)): ratings, instructor
+  comments, class photos and the prompt to rate a class; planned for a future version, not the first release.
 - Reporting comments or photos.
 - Translating text written by admins.
 - Checking a cancellation rule's wording when it's saved, and previewing the deadline a rule would give.

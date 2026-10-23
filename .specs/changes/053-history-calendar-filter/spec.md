@@ -230,7 +230,7 @@ list can follow the period. Students find a past class by when it happened inste
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Extend `src/components/week-month-calendar/` (component, hook, types) and, for the dot count,
+- [x] **T-04** — Extend `src/components/week-month-calendar/` (component, hook, types) and, for the dot count,
   `src/components/calendar-week-row/` and `src/components/calendar-month-grid/` with D-04's and D-05's optional props
   and D-08's view rules, keeping today's behavior when they are absent. Tests in each folder's
   `*.component.test.tsx` cover the new props (opening on the month, no selection, arrows moving the period and
@@ -239,6 +239,23 @@ list can follow the period. Students find a past class by when it happened inste
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03 · Done when: `npx jest src/components/week-month-calendar src/components/calendar-week-row src/components/calendar-month-grid src/modules/classes/screens/classes-week.screen.test.tsx`
   passes from `apps/mobile`.
+  > ✅ 2026-10-22 22:58 — `WeekMonthCalendar` gains optional props: `initialView` (`"month"` to open on the month),
+  > `clearable` (`selectedDate` may be `null`; the calendar keeps the shown week/month itself; the arrows move that
+  > period and clear the selection; pressing the selected day clears it; a faded day opens its month selected; switching
+  > view follows D-08), `onClearSelection`, `onPeriodChange({ from, to })` (Monday–Sunday, or the month's 1st–last day,
+  > never the faded days) and `markedCounts` (dots per marked day, up to 3, passed down to `CalendarWeekRow` and
+  > `CalendarMonthGrid`, which draw that many dots in the existing style and accept a `null` selection). Without them it
+  > behaves as before: every existing test is unchanged (only an import line gained `CalendarPeriod`) and the Agenda's call
+  > site is untouched. Files: `apps/mobile/src/components/week-month-calendar/week-month-calendar.{component.tsx,hook.ts,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-week-row/calendar-week-row.{component.tsx,hook.ts,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.{component.tsx,hook.ts,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/utils/calendar-dates.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`; verified: `npx jest
+  > src/components/week-month-calendar src/components/calendar-week-row src/components/calendar-month-grid
+  > src/modules/classes/screens/classes-week.screen.test.tsx src/utils/calendar-dates.test.ts` from `apps/mobile` (5 suites,
+  > 132 passed; the three calendar folders at 100%), `npx tsc --noEmit` and `npx eslint` on the files clean; deviations: the
+  > dot count shared by the row and the grid is `markedDayDots` (+ `MAX_DAY_DOTS`) in `src/utils/calendar-dates.ts`, with its
+  > unit test. The dots on faded days stay as on the Agenda: the history only marks days of the loaded period, so faded days
+  > get none there.
 
 - [ ] **T-05** — Change `src/modules/enrolment/hooks/use-my-class-history.hook.ts` to `useMyClassHistory({ from, to })`
   (D-10, `GET /classes/mine/history?from=…&to=…`, `{ items }` typed in `enrolment.types.ts` in place of

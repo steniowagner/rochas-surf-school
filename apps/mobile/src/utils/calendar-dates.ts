@@ -195,3 +195,14 @@ export const monthRange = (month: CalendarMonth): { from: string; to: string } =
 
   return { from, to: addDays(from, Math.ceil((leading + length) / 7) * 7 - 1) };
 };
+
+/** The most dots a calendar day shows. */
+export const MAX_DAY_DOTS = 3;
+
+/** How many dots a calendar day shows: none when it isn't marked, else its count (one when it has none), up to 3. */
+export const markedDayDots = (
+  isoDate: string,
+  markedDates: ReadonlySet<string>,
+  markedCounts: Record<string, number> | undefined,
+): number =>
+  markedDates.has(isoDate) ? Math.min(MAX_DAY_DOTS, markedCounts?.[isoDate] || 1) : 0;

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   dayAccessibilityLabel,
   getDateLocale,
+  markedDayDots,
   weekdayAbbreviation,
 } from "@/utils/calendar-dates";
 
@@ -16,6 +17,7 @@ export const useCalendarWeekRow = ({
   selectedDate,
   today,
   markedDates,
+  markedCounts,
   markedLabel,
 }: UseCalendarWeekRowProps) => {
   const { i18n } = useTranslation();
@@ -29,6 +31,7 @@ export const useCalendarWeekRow = ({
     selected: date === selectedDate,
     today: date === today,
     marked: marked.has(date),
+    dots: markedDayDots(date, marked, markedCounts),
     accessibilityLabel: dayAccessibilityLabel(
       date,
       locale,

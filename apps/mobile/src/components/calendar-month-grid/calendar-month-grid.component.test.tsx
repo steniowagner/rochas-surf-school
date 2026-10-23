@@ -97,4 +97,22 @@ describe("CalendarMonthGrid", () => {
     expect(onSelectDate).toHaveBeenNthCalledWith(1, "2026-11-01");
     expect(onSelectDate).toHaveBeenNthCalledWith(2, "2026-10-20");
   });
+
+  it("shows one dot per class, up to 3, with the counts", async () => {
+    await render(
+      <CalendarMonthGrid
+        month={OCTOBER}
+        selectedDate={null}
+        today="2026-10-15"
+        markedDates={["2026-10-05", "2026-10-06", "2026-10-07"]}
+        markedCounts={{ "2026-10-05": 3, "2026-10-06": 7, "2026-10-07": 0 }}
+        onSelectDate={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryAllByTestId("calendar-day-2026-10-05-dot")).toHaveLength(3);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-06-dot")).toHaveLength(3);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-07-dot")).toHaveLength(1);
+    expect(screen.getByTestId("calendar-day-2026-10-14")).not.toBeSelected();
+  });
 });

@@ -967,8 +967,9 @@ enrolled students and the pending requests. All copy is in pt-BR, es-ES and en-U
 
 **Filtering the week by sport** (spec `050-classes-discipline-filter`) — on the classes week screen of every role
 (the student's Agenda, the Aulas tab of instructors and admins), a floating `grape` button at the bottom right,
-above the tab bar, opens three options over a dimmed screen: "Todas", "Surf" and "Skate" (labels only, the current
-one highlighted). Choosing a sport lists only that sport's classes on the selected day and marks only the days that
+above the tab bar, opens three options over a dimmed phone: "Todas", "Surf" and "Skate" (labels only, the current
+one highlighted). Since spec `051-classes-filter-full-screen-scrim` the dimming covers everything, the header and the
+tab bar included, and a press anywhere on it — or Android's back button — closes the options and keeps the sport. Choosing a sport lists only that sport's classes on the selected day and marks only the days that
 have one, in the week and in the month; "Todas" shows everything again. A day whose classes are all of the other
 sport shows the usual empty day ("Criar aula" still offered to admins on today or later). The choice stays while the
 user changes day, week or view and pulls to refresh, and goes back to "Todas" when the screen opens again; nothing

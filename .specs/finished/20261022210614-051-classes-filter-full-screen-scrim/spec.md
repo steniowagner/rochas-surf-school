@@ -3,13 +3,14 @@ id: "051"
 slug: classes-filter-full-screen-scrim
 title: The sport filter dims the whole phone
 template: quick
-status: accepted
+status: finished
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 517a7c0b905b53fbcb2e236a1d8ae14a86e98519
 reviewed_commit: 75f2c2b3e3ecfcdd25e936bd92aa244085b23265
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-22
 ---
 
 # 051 — The sport filter dims the whole phone

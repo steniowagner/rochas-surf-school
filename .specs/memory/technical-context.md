@@ -1090,16 +1090,26 @@ guard's 401 `auth.token.invalid`.
   `"all"`, so it lasts across days, weeks, the month and a refresh, and resets when the screen mounts again) and
   filters both `dayItems` and `markedDates` with it; changing it sends no request. It is set by `DisciplineFilter`
   (`components/discipline-filter/`, props `value` / `onChange`), rendered after the list outside its state branches,
-  so every role sees it while loading, on an error and on an empty day: a 56×56 `grape` `TouchableOpacity`
-  (`h-14 w-14 rounded-card`, `shadowStyle("fab")`, Ionicons `filter` / `close`) at the bottom right, in its own
-  `SafeAreaProvider` so the bottom inset includes the native tab bar the screen extends under. Open, a `bg-scrim`
-  `Pressable` backdrop and three label-only options ("all", "surf", "skate"; `h-11 px-4 rounded-control`,
-  `ds-text-pill`, `surface` + `line`, or `grape` + `text-on-color` when selected, `accessibilityState.selected`,
-  `shadowStyle("menuOption")`) stack above the button; choosing one closes and calls `onChange`, and the button or
-  the backdrop close without it. The motion uses Reanimated: on opening the backdrop fades in (`FadeIn`, 180 ms) and
-  each option rises 14 px while fading in (`FadeInDown`, 220 ms, 40 ms apart), the `entering` builders in
-  `discipline-filter.constants.ts` (one builder per option, since a builder's methods change it in place); the button
-  turns to −90° and back over 200 ms (`useDisciplineFilter`'s `buttonTurnStyle`); closing is instant. The list's
+  so every role sees it while loading, on an error and on an empty day. `DisciplineFilter` is its own
+  `SafeAreaProvider` (absolute over the screen), so the bottom inset includes the native tab bar the screen extends
+  under, and renders `DisciplineFilterMenu` (`components/discipline-filter-menu/`), whose hook
+  (`useDisciplineFilterMenu`: `isOpen`, `open`, `close`, `select`, `buttonTurnStyle`) holds the open state. Both
+  buttons are `DisciplineFilterButton` (`components/discipline-filter-button/`): a 56×56 `grape` `TouchableOpacity`
+  (`h-14 w-14 rounded-card`, `shadowStyle("fab")`, Ionicons `filter` / `close`) inside the `Animated.View` that
+  turns. Closed, only the `filter` button is drawn, in the screen, at the bottom right. Open (spec 051), the backdrop,
+  the options and the `close` button are drawn in a transparent, full-window React Native `Modal`
+  (`animationType="none"`, `statusBarTranslucent`, `navigationBarTranslucent`, `onRequestClose` closes, so Android's
+  back button closes it), because the native Stack header and `NativeTabs` sit above the screen's views and the
+  scrim must cover them too. The `Modal` holds a `bg-scrim` `Pressable` backdrop over the whole window and a layer
+  placed at the provider's frame (`useSafeAreaFrame()`) with its bottom inset, so the `close` button lands exactly on
+  the closed one; the closed button stays in the screen, hidden from accessibility while open. The three label-only
+  options ("all", "surf", "skate"; `h-11 px-4 rounded-control`, `ds-text-pill`, `surface` + `line`, or `grape` +
+  `text-on-color` when selected, `accessibilityState.selected`, `shadowStyle("menuOption")`) stack above the button;
+  choosing one closes and calls `onChange`, and the button or the backdrop close without it. The motion uses
+  Reanimated: on opening the backdrop fades in (`FadeIn`, 180 ms) and each option rises 14 px while fading in
+  (`FadeInDown`, 220 ms, 40 ms apart), the `entering` builders in `discipline-filter.constants.ts` (one builder per
+  option, since a builder's methods change it in place); both buttons share one turn to −90° and back over 200 ms
+  (`buttonTurnStyle`); closing is instant, since the `Modal` goes at once. The list's
   `paddingBottom` adds `DISCIPLINE_FILTER_CLEARANCE` (the button's 56 plus its 16 gap) so the last card scrolls clear
   of it. Copy under `classesWeek.disciplineFilter`. `ClassDetailsScreen`
   (`screens/class-details.screen.tsx`, route `/<role>/class/[id]`) loads `useClass(id)` (`["classes", "detail",

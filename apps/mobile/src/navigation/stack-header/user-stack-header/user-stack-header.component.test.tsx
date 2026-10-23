@@ -7,8 +7,20 @@ import {
 
 import { UserStackHeader } from "./user-stack-header.component";
 
+// The bell's count reloads when the home screen is focused; there is no navigator here.
+jest.mock("expo-router", () => ({
+  router: { push: jest.fn() },
+  useFocusEffect: jest.fn(),
+}));
+
 beforeEach(() => {
   seedSession();
+  globalThis.fetch = jest.fn(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ count: 0 }),
+  })) as unknown as typeof fetch;
+  process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
 describe("UserStackHeader", () => {

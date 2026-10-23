@@ -47,6 +47,7 @@ export function UserHeader() {
         iconSize={BELL_ICON_SIZE}
         label={header.notificationsLabel}
         badge={header.unreadCount}
+        onPress={header.openNotifications}
         standalone
       />
     </View>

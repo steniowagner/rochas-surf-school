@@ -500,13 +500,41 @@ screen and the read state that spec 020 left for later, so a notification is nev
   > screen’s does; the test run prints `act(...)` warnings from React Query updates, as the people screen’s suite
   > does.
 
-- [ ] **T-10** — Add the routes `apps/mobile/src/app/(private)/{student,instructor,admin}/notifications.tsx` (each
+- [x] **T-10** — Add the routes `apps/mobile/src/app/(private)/{student,instructor,admin}/notifications.tsx` (each
   renders `NotificationsScreen`) and `routes.<role>.notifications` in `apps/mobile/src/constants/routes.ts`; in
   `apps/mobile/src/components/user-header/` give the bell an `onPress` that pushes the signed-in role's notifications
   route, replace `UNREAD_NOTIFICATIONS_COUNT` with `useUnreadNotificationsCount` (refetched when the screen gains
   focus, no badge on failure) and delete `user-header.constants.ts`; update `user-header.component.test.tsx`. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-06 · Done when: `npx jest src/components/user-header src/navigation` passes from `apps/mobile`.
+  > ✅ 2026-10-23 14:05 — Added `routes.{student,instructor,admin}.notifications` and the three route files (each
+  > renders `NotificationsScreen`, in the role’s Stack outside `(tabs)`, so it opens above the tab bar with the
+  > native back button); the bell now takes `onPress` (pushes the signed-in role’s route; nothing for another role
+  > or once the session is gone) and its badge / label come from `useUnreadNotificationsCount`, refetched by
+  > `useFocusEffect` when the home screen gains focus (`cancelRefetch: false`, so a running request is reused);
+  > `user-header.constants.ts` deleted; files: `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/app/(private)/student/notifications.tsx`,
+  > `apps/mobile/src/app/(private)/instructor/notifications.tsx`,
+  > `apps/mobile/src/app/(private)/admin/notifications.tsx`,
+  > `apps/mobile/src/components/user-header/user-header.hook.ts`,
+  > `apps/mobile/src/components/user-header/user-header.component.tsx`,
+  > `apps/mobile/src/components/user-header/user-header.constants.ts` (deleted),
+  > `apps/mobile/src/components/user-header/user-header.component.test.tsx`,
+  > `apps/mobile/src/components/ui/header-button/header-button.constants.ts`,
+  > `apps/mobile/src/components/ui/header-button/header-button.component.test.tsx`,
+  > `apps/mobile/src/navigation/stack-header/user-stack-header/user-stack-header.component.test.tsx`,
+  > `apps/mobile/src/modules/student/student-tabs.navigation.test.tsx`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`; verified: `npx jest
+  > src/components/user-header src/navigation` from `apps/mobile` (passes; “3” and “Notifications, 3 unread”, no
+  > badge and “Notifications” at 0 and on a failed count, “9+” at 12, the focus reload, the bell per role;
+  > `user-header.hook.ts` and `.component.tsx` at 100%), a navigation case where the student’s bell opens
+  > `/student/notifications` and back on the Agenda reloads the count, the full mobile suite `npx jest` (249 suites,
+  > 2671 passed), `tsc --noEmit` and `eslint src` clean; deviations: (1) ER-06 asks for “9+” above 9, but
+  > `HeaderButton` capped the badge at “99+” (the spec’s Context said 9+): `MAX_BADGE_COUNT` changed from 99 to 9
+  > and its test updated; (2) the admin, instructor and student-tabs suites counted every fetch or expected the
+  > fixed “3”: they now answer the unread count and leave its request out of their counts; the user-stack-header
+  > test mocks `useFocusEffect`, since it renders without a navigator.
 
 ### Verification
 

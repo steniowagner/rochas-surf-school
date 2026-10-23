@@ -42,6 +42,7 @@ export const routes = {
     home: "/student",
     myClasses: "/student/my-classes",
     myHistory: "/student/my-history",
+    notifications: "/student/notifications",
     school: "/student/school",
     profile: "/student/profile",
     editProfile: "/student/edit-profile",
@@ -56,6 +57,7 @@ export const routes = {
     home: "/instructor",
     classes: "/instructor/classes",
     people: "/instructor/people",
+    notifications: "/instructor/notifications",
     profile: "/instructor/profile",
     editProfile: "/instructor/edit-profile",
     whatsapp: "/instructor/whatsapp",
@@ -74,6 +76,7 @@ export const routes = {
     enrolStudent: "/admin/enrol-student",
     cancellationRules: "/admin/cancellation-rules",
     people: "/admin/people",
+    notifications: "/admin/notifications",
     newClass: (params?: { date?: string }): Href => ({
       pathname: "/admin/new-class",
       params,

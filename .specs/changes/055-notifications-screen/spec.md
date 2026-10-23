@@ -2,7 +2,7 @@
 id: "055"
 slug: notifications-screen
 title: Notifications screen with read state
-status: in-progress
+status: in-review
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 66686ab329a0a62b13f5656dc7557ab0e403465f
@@ -538,9 +538,32 @@ screen and the read state that spec 020 left for later, so a notification is nev
 
 ### Verification
 
-- [ ] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys on
+- [x] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys on
   the iOS simulator and record what was seen. Record the output summary as evidence. Covers: all · Done when: every
   automated command exits 0 and each journey's expected observation is recorded.
+  > ✅ 2026-10-23 14:12 — Ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs
+  > 055` → RELATED TESTS PASSED (apps/backend 23 files, apps/mobile 70 suites / 1433 tests, modules/notifications 16
+  > suites / 151 tests); `node .specs/scripts/check-coverage.mjs 055` → COVERAGE OK, every changed line covered in
+  > 29 files (the first run flagged an unreachable `?? "GET"` in
+  > `apps/mobile/src/modules/notifications/notifications.test-utils.tsx`, removed in its own commit); `node
+  > .specs/scripts/run-e2e.mjs 055` → E2E PASSED (24 files, 654 tests); `npx turbo run lint check-types build
+  > --filter=…notifications --filter=…backend --filter=…mobile` → 27/27 tasks successful with `--concurrency=1` (run
+  > in parallel, the backend’s check-types and build both ran `prisma generate` and collided on
+  > `src/generated/prisma` with EEXIST; the backend’s 10 lint warnings predate this spec); the full mobile suite
+  > also passed (249 suites, 2671 tests). Journeys on the iOS simulator (iPhone 18 Pro, the dev build on Metro, a
+  > backend started from `dist` against the local database), signed in as Dev Student with 13 unread: **Bell and
+  > badge** — the Agenda’s bell showed “9+”; tapping it opened “NOTIFICATIONS” above the tabs with the back button
+  > and the check button; rows showed the tinted icon (red `person-remove`, green `person-add`), title, body, “2
+  > days ago” and the orange dot. **Row tap** — the unread “You’ve been enrolled” row opened its class details (22
+  > Oct, 12:00); back, its dot was gone and the database had that one `enrolment.enrolled` with `read_at` set.
+  > **Mark all** — the check button cleared every dot and hid itself; the database showed 0 of 13 unread; back on
+  > the Agenda the bell had no badge. With the app in Português the screen read “AVISOS”, the rows were in pt-BR and
+  > the time “há 2 dias”. Afterwards the app was set back to English and the 13 rows the journeys marked were set
+  > back to unread. Not driven: the bell as an instructor and as an admin, and the **Empty** journey (they need
+  > another account signed in on the simulator); they are covered by `user-header.component.test.tsx` (the bell per
+  > role) and `notifications.screen.test.tsx` (the empty state with no header button). Files:
+  > `apps/mobile/src/modules/notifications/notifications.test-utils.tsx`; deviations: the journeys used an account
+  > with 13 unread rather than 3, so the badge read “9+”.
 
 ## Verification Plan
 

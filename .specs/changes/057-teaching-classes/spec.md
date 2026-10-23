@@ -2,7 +2,7 @@
 id: "057"
 slug: teaching-classes
 title: "\"Minhas aulas\" for instructors and admins who teach"
-status: in-review
+status: changes-requested
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 30d2bccaa1cca3534931006e3117df3fefcda72e
@@ -465,3 +465,67 @@ header's clock button.
 - 2026-10-23 — D-11 → D-13: the "Minhas aulas" title was at the left of the header (`useLeftTitleHeader`) → centered (`headerTitle` with `StackHeaderTitle`); task T-10 added. Reason: the user asked to center it after seeing the screen; approved by the user in the execution session ("centralize the title").
 
 ## Review
+
+### Round 1 — 2026-10-23 — changes-requested
+
+**Checks**
+
+- lint ✅ (backend: 0 errors, the existing warnings are all in other files) · type check ✅ · build ✅ (classes, backend,
+  mobile, design-tokens)
+- related tests ✅ `RELATED TESTS PASSED`: apps/mobile 1648, modules/classes 291, modules/enrolment 563, apps/backend
+  related, apps/web 22
+- coverage of the changed lines ✅ `COVERAGE OK` (22 files measured); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED`: backend 25 files / 665 tests (`teaching-classes.e2e-spec.ts` included), web Playwright 22
+- HTTP against the running dev backend ✅: Dev Admin 200 (3 classes + the cancelled one in 2031, `myEnrolment: null`,
+  `teachesAny: true`), Dev Instructor 200 (4 items, `teachesAny: true`), Dev Student 403 `user.role.notTeacher`, no
+  token 401
+- iOS simulator (iPhone 18 Pro, iOS 27, pt-BR, the app's dark theme), as Dev Admin, with one temporary class under way
+  added to the dev database and deleted afterwards: see ER-04 to ER-06
+
+**Expected Results**
+
+- ER-01 ✅ — use case test and the e2e tests "lists the classes the caller teaches" (instructor and admin; order
+  B, C, D; same start by id; end == now left out; co-taught class kept; `myEnrolment: null`, guest names)
+- ER-02 ✅ — e2e "teachesAny" (none → false for both roles, ended only → true, cancelled → listed and true, deleted →
+  false) and "access" (403 `user.role.notTeacher`, 403 `user.status.notApproved`, 401); reader and controller specs
+- ER-03 ✅ — `teaching-classes-entry-row` and `instructor.screen` tests (count without cancelled, 1 / 0 copy, no
+  subtitle while loading or after an error, refetch on focus, opens `/instructor/my-classes`)
+- ER-04 ✅ — `admin.screen` tests (first row under Escola, hidden when not teaching / loading / failed, appears back on
+  the home after `teachesAny` turns true); on the simulator the admin's home shows "Minhas aulas — 3 aulas atribuídas a
+  você" first under Escola, and "4 aulas" once the class under way was added (the cancelled 2031 class not counted).
+  "Admin who doesn't teach" was not seen on the device: every approved admin in the dev database teaches; the tests
+  cover it.
+- ER-05 ❌ — the layout is right in the tests (B on grape, "Today / 17 Sep", "Tomorrow / 18 Sep", "Saturday / 19 Sep",
+  N alone "Up next", the minute tick) and on the simulator (the class under way on a grape card with "EM ANDAMENTO",
+  translucent pill, track and footer; "AMANHÃ · 24 out" with the 17:00 class "PRÓXIMA" and the sun border; the cancelled
+  class with "CANCELADA" in its own day), but the weekday header reads "QUARTA-FEIRA": see F-02
+- ER-06 ✅ — screen tests (skeleton as one loading state, empty, error with retry, pull-to-refresh, refetch on focus,
+  pt-BR / es-ES / en-US, centered title with nothing on the right); on the simulator "MINHAS AULAS" centered with the
+  back button, no tab bar, the grape card opens the class's details, back returns to the list
+
+**Findings**
+
+- [ ] **F-01** (scope) — commit `fe536da1` "fix(mobile): use the with-back title style in the stack header" is part of
+  this spec's change (`git diff 30d2bcca..HEAD`) but no task explains it: it switches `StackHeaderTitle` to
+  `ds-text-screen-title-with-back` for every screen that uses it, and reformats
+  `apps/mobile/src/modules/school-rules/screens/manage-school-rules.screen.tsx`. Reproduce:
+  `git show --stat fe536da1`; `git log --oneline 30d2bcca..HEAD` lists it before `docs(spec-057): start`. Expected:
+  the spec ships only what its tasks explain — move the commit out of `spec/057-teaching-classes` (its own branch and PR
+  from `main`), or, if this spec needs it, record it with the user's approval (an amendment and a task with evidence).
+- [ ] **F-02** (D-06) — the header of a day that is neither today nor tomorrow shows the pt-BR weekday with "-feira"
+  ("Quarta-feira", "Sexta-feira"…), while D-06 gives the label as "Sexta". Reproduce: on the simulator as Dev Admin,
+  "Minhas aulas" → the cancelled class of 12 Mar 2031 sits under "QUARTA-FEIRA"; in code, `weekdayName` formats `EEEE`
+  (`apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`). The screen test only checks "Saturday",
+  which has no suffix. Expected: "Quarta", "Sexta"… as D-06 says (with a test on a pt-BR weekday that has "-feira"),
+  or an amendment to D-06 approved by the user if "Quarta-feira" is what they want.
+
+**Notes**
+
+- Metro had been running since before T-06 added the `onGrape*` tokens, so the grape card first drew a black pill
+  border, a black footer line and no track or shade. After `expo start --clear` it rendered correctly — no code issue,
+  but restart Metro with `--clear` before a journey that follows a token change (CLAUDE.md).
+- After a failed **refetch** (focus or pull), the home row keeps the last subtitle, since TanStack Query keeps the data;
+  D-07's "after an error, no subtitle" is met for a failed first load, which is what the tests check. Worth a word in
+  the memory if that is the intended reading.
+- `.specs/changes/058-admin-role-changes/` is untracked in the working tree; it isn't part of this spec and wasn't
+  committed.

@@ -2,7 +2,7 @@
 id: "054"
 slug: class-reminders
 title: Class reminders 30 minutes before the start
-status: in-progress
+status: in-review
 created: 2026-10-23
 started: 2026-10-23
 base_commit: f60fc4c51b2a9f2a061dd16a6be3638fbc24466b

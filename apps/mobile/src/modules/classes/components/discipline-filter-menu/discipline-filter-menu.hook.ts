@@ -6,13 +6,16 @@ import {
 } from "react-native-reanimated";
 
 import type { DisciplineFilterValue } from "../../classes.types";
+import { BUTTON_TURN } from "../discipline-filter/discipline-filter.constants";
 
-import { BUTTON_TURN } from "./discipline-filter.constants";
-import type { UseDisciplineFilterProps } from "./discipline-filter.types";
+import type { UseDisciplineFilterMenuProps } from "./discipline-filter-menu.types";
 
-export const useDisciplineFilter = ({ onChange }: UseDisciplineFilterProps) => {
+export const useDisciplineFilterMenu = ({
+  onChange,
+}: UseDisciplineFilterMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  // One turn for both buttons: the open one turns in as the options appear, and the closed one turns back once they go.
   const turn = useDerivedValue(() =>
     withTiming(isOpen ? BUTTON_TURN.degrees : 0, {
       duration: BUTTON_TURN.duration,
@@ -23,12 +26,12 @@ export const useDisciplineFilter = ({ onChange }: UseDisciplineFilterProps) => {
     transform: [{ rotate: `${turn.get()}deg` }],
   }));
 
-  const toggle = () => setIsOpen((open) => !open);
+  const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
   const select = (option: DisciplineFilterValue) => {
     setIsOpen(false);
     onChange(option);
   };
 
-  return { isOpen, toggle, close, select, buttonTurnStyle };
+  return { isOpen, open, close, select, buttonTurnStyle };
 };

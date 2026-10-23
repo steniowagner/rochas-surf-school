@@ -483,3 +483,5 @@ which stops that account from being erased while the link exists — a decision 
 - `050-classes-discipline-filter` — no change to the module's rules or API: the app's classes week screen, for every
   role, filters the selected day's classes and the calendar's marked days by sport (all, surf or skate) over the
   classes it already loaded, from a floating filter; the choice lasts while the screen is open.
+- `051-classes-filter-full-screen-scrim` — no change to the module's rules or API: in the app, the open sport filter
+  dims the whole phone, the header and the tab bar included.

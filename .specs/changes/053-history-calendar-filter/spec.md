@@ -257,13 +257,29 @@ list can follow the period. Students find a past class by when it happened inste
   > unit test. The dots on faded days stay as on the Agenda: the history only marks days of the loaded period, so faded days
   > get none there.
 
-- [ ] **T-05** — Change `src/modules/enrolment/hooks/use-my-class-history.hook.ts` to `useMyClassHistory({ from, to })`
+- [x] **T-05** — Change `src/modules/enrolment/hooks/use-my-class-history.hook.ts` to `useMyClassHistory({ from, to })`
   (D-10, `GET /classes/mine/history?from=…&to=…`, `{ items }` typed in `enrolment.types.ts` in place of
   `MyClassHistoryPage`) and its test. Add `src/modules/enrolment/utils/class-history.ts` with its test: counting the
   classes per Fortaleza day (for the dots), filtering by a day, and grouping by day newest first (D-06), plus the day
   label and chip captions ("SEX, 14 AGO", "14 AGO") from `src/utils/calendar-dates.ts`'s locale helpers.
   Covers: ER-03, ER-04 · Done when: `npx jest src/modules/enrolment/hooks/use-my-class-history.hook.test.tsx src/modules/enrolment/utils/class-history.test.ts`
   passes from `apps/mobile`.
+  > ✅ 2026-10-22 22:59 — `useMyClassHistory({ from, to })` is a `useQuery` keyed `["classes", "mine", "history", from,
+  > to]` (`myClassHistoryQueryKey`), `GET /classes/mine/history?from=…&to=…`, no retry; `MyClassHistoryPage` became
+  > `MyClassHistoryResponse` `{ items }`, with `MyClassHistoryPeriod` and `ClassHistoryDay` in `enrolment.types.ts`;
+  > `MY_CLASS_HISTORY_PAGE_SIZE` is gone. `utils/class-history.ts`: `countClassesByDay`, `filterClassesByDay`,
+  > `groupClassesByDay` (newest day first, a day's classes newest first then id desc, input untouched), `historyDayLabel`
+  > ("SEX, 14 AGO") and `historyChipLabel` ("14 AGO"). The hook test checks the URL and key, that a new period shows no
+  > data until it loads and a cached one shows at once (D-10), the `["classes"]` invalidation and no retry; the util test
+  > checks the Fortaleza day edges (02:59 / 03:00 UTC) and the captions in pt-BR, es-ES and en-US. Files:
+  > `apps/mobile/src/modules/enrolment/hooks/use-my-class-history.hook.ts`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-my-class-history.hook.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/utils/class-history.ts`, `apps/mobile/src/modules/enrolment/utils/class-history.test.ts`,
+  > `apps/mobile/src/modules/enrolment/enrolment.types.ts`, `apps/mobile/src/utils/calendar-dates.ts`; verified: `npx jest
+  > src/modules/enrolment/hooks/use-my-class-history.hook.test.tsx src/modules/enrolment/utils/class-history.test.ts` from
+  > `apps/mobile` (13 passed, both files at 100%; with `src/utils/calendar-dates.test.ts`, 49 passed), `npx eslint` on the
+  > files clean; deviations: `dayAndMonth` in `src/utils/calendar-dates.ts` is now exported for the captions. Until T-06
+  > rebuilds it, `my-class-history.screen.hook.ts` still calls the paged hook, so `tsc` reports it.
 
 - [ ] **T-06** — Rebuild `src/modules/enrolment/screens/my-class-history.screen.tsx` (+ `.hook.ts`, `.types.ts`): one
   list whose header holds the calendar (D-04 props, D-07 state), the legend and the list header, with day labels and

@@ -109,7 +109,7 @@ const monthAbbreviation = (isoDate: string, locale: Locale): string =>
   formatIsoDate(isoDate, "MMM", locale).replace(/\.$/, "").toUpperCase();
 
 /** "18 OCT". */
-const dayAndMonth = (isoDate: string, locale: Locale): string =>
+export const dayAndMonth = (isoDate: string, locale: Locale): string =>
   `${formatIsoDate(isoDate, "d", locale)} ${monthAbbreviation(isoDate, locale)}`;
 
 /** "12 – 18 OCT" for a week inside one month, "28 SEP – 4 OCT" when it spans two (the year is never shown). */

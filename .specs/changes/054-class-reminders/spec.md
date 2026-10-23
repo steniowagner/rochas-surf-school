@@ -157,10 +157,16 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-01** — Add `"class.reminder"` to `NOTIFICATION_TYPES` in
+- [x] **T-01** — Add `"class.reminder"` to `NOTIFICATION_TYPES` in
   `modules/notifications/src/notification/model/notification.entity.ts`, with the test in
   `modules/notifications/test/notification/model/notification.entity.test.ts`. The backend's catalog entry follows in
   T-05. Covers: enabling · Done when: `npx jest` passes from `modules/notifications`.
+  > ✅ 2026-10-23 12:45 — added `"class.reminder"` to `NOTIFICATION_TYPES` and a test that a `class.reminder` with `{
+  > classId, discipline, startsAt, locationName }` validates; files:
+  > `modules/notifications/src/notification/model/notification.entity.ts`,
+  > `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest` from
+  > `modules/notifications` (12 suites, 119 passed); deviations: none (the backend type check fails until T-05 adds
+  > the catalog entry, as the task says)
 
 ### Classes module (`modules/classes`)
 

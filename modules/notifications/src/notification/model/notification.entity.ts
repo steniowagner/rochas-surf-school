@@ -19,6 +19,7 @@ export const NOTIFICATION_TYPES = [
   "class.cancelled",
   "class.deleted",
   "class.noInstructor",
+  "class.reminder",
   "location.changed",
   "enrolment.requested",
   "enrolment.expired",

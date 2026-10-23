@@ -67,6 +67,20 @@ describe("Notification", () => {
     expect(notification.params).toEqual(params);
   });
 
+  it("accepts a class.reminder notification with its class, start and location name", () => {
+    const params = {
+      classId: "c-1",
+      discipline: "surf",
+      startsAt: "2026-10-19T11:00:00.000Z",
+      locationName: "Praia do Futuro",
+    };
+    const notification = build({ type: "class.reminder", params });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe("class.reminder");
+    expect(notification.params).toEqual(params);
+  });
+
   it("accepts a location.changed notification with its count and the new location name", () => {
     const notification = build({
       type: "location.changed",

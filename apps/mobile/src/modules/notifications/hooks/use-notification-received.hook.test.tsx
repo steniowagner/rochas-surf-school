@@ -27,6 +27,10 @@ const TOKENS = {
 };
 
 const queryClient = new QueryClient();
+const NOTIFICATIONS_INVALIDATIONS = [
+  [{ queryKey: ["notifications", "list"] }],
+  [{ queryKey: ["notifications", "unread-count"] }],
+];
 const invalidate = jest.spyOn(queryClient, "invalidateQueries");
 
 function TestRootLayout(): ReactNode {
@@ -238,7 +242,7 @@ describe("useNotificationReceived", () => {
   });
 
   it.each(["student", "instructor", "admin"])(
-    "reloads nothing and stays put when a class.reminder push arrives for a %s",
+    "reloads only the notifications and stays put when a class.reminder push arrives for a %s",
     async (role) => {
       answerMe(account("approved", role));
       await openApp(account("approved", role));
@@ -246,25 +250,54 @@ describe("useNotificationReceived", () => {
 
       await receive(push("class.reminder"));
 
-      expect(invalidate).not.toHaveBeenCalled();
+      expect(invalidate.mock.calls).toEqual(NOTIFICATIONS_INVALIDATIONS);
       expect(meCalls()).toHaveLength(0);
       expect(app.getPathname()).toBe(pathname);
     },
   );
 
   it.each([undefined, "something.else"])(
-    "shows nothing more for the type %s",
+    "only reloads the notifications for the type %s",
     async (type) => {
       answerMe(account("approved"));
       await openApp(account("pending"));
 
       await receive(push(type));
 
-      expect(invalidate).not.toHaveBeenCalled();
+      expect(invalidate.mock.calls).toEqual(NOTIFICATIONS_INVALIDATIONS);
       expect(meCalls()).toHaveLength(0);
       expect(app.getPathname()).toBe(routes.pending.home);
     },
   );
+
+  it.each([
+    "registration.pending",
+    "registration.approved",
+    "registration.denied",
+    "class.assigned",
+    "class.edited",
+    "class.unassigned",
+    "class.cancelled",
+    "class.deleted",
+    "class.noInstructor",
+    "class.reminder",
+    "location.changed",
+    "enrolment.requested",
+    "enrolment.expired",
+    "enrolment.approved",
+    "enrolment.denied",
+    "enrolment.cancelled",
+    "enrolment.enrolled",
+    "enrolment.takenOut",
+  ])("reloads the notifications list and the unread count when a %s push arrives", async (type) => {
+    answerMe(account("pending"));
+    await openApp(account("pending"));
+
+    await receive(push(type));
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["notifications", "list"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["notifications", "unread-count"] });
+  });
 
   it("keeps the screen as it was when the refresh fails", async () => {
     answerMe(new TypeError("offline"));

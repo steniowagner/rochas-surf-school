@@ -410,7 +410,7 @@ screen and the read state that spec 020 left for later, so a notification is nev
   > one mark for a response handled twice), coverage of `src/modules/notifications` 100%, `tsc --noEmit` clean;
   > deviations: none.
 
-- [ ] **T-07** — Add the hooks in `apps/mobile/src/modules/notifications/hooks/`: `useNotifications` (infinite query
+- [x] **T-07** — Add the hooks in `apps/mobile/src/modules/notifications/hooks/`: `useNotifications` (infinite query
   `["notifications", "list"]`, `locale` from `toBackendLocale`, D-10), `useUnreadNotificationsCount`
   (`["notifications", "unread-count"]`), `useMarkNotificationRead` and `useMarkAllNotificationsRead` (optimistic cache
   updates, rollback on failure for "all", both invalidate the count, D-07, D-12), with the types in
@@ -418,6 +418,33 @@ screen and the read state that spec 020 left for later, so a notification is nev
   every push (D-09); tests next to each hook. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-12 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
+  > ✅ 2026-10-23 13:48 — Added `useNotifications` (infinite query `["notifications", "list"]`, `GET
+  > /notifications?page=N&perPage=20&locale=<toBackendLocale>`, next page while `page * perPage < total`, rows
+  > repeated across pages dropped by `id`), `useUnreadNotificationsCount` (`["notifications", "unread-count"]`,
+  > `count` 0 while unknown or failed), `useMarkNotificationRead` (optimistic: the row read and the cached count
+  > down by one when it was unread; silent on failure; count invalidated when settled) and
+  > `useMarkAllNotificationsRead` (optimistic: every row read and the count 0; snapshot put back on failure; count
+  > invalidated when settled), the API types in `notifications.types.ts`, the keys / page size / `markReadInPages`
+  > in `utils/notifications-cache.ts`; `useNotificationReceived` now invalidates both keys for every push before its
+  > per-type invalidations; files: `apps/mobile/src/modules/notifications/notifications.types.ts`,
+  > `apps/mobile/src/modules/notifications/notifications.test-utils.tsx`,
+  > `apps/mobile/src/modules/notifications/utils/notifications-cache.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notifications.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notifications.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-unread-notifications-count.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-unread-notifications-count.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-mark-notification-read.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-mark-notification-read.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-mark-all-notifications-read.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-mark-all-notifications-read.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications` from `apps/mobile` (274 passed, every source file of the module at 100%; the
+  > received-hook cases that asserted “no invalidation” for `class.reminder` and unknown types now assert exactly
+  > the two notification keys, and all 18 types are checked to invalidate both), `tsc --noEmit` and `eslint
+  > src/modules/notifications` clean; deviations: the shared keys and the optimistic-update helper live in a new
+  > `utils/notifications-cache.ts` (as `modules/admin/utils/registrations-cache.ts`), and a
+  > `notifications.test-utils.tsx` (as the people module’s) holds the test fixtures.
 
 - [ ] **T-08** — Add `NotificationRow` in `apps/mobile/src/modules/notifications/components/notification-row/`
   (component, hook, types, index; icon and tone by [Row icons](#row-icons), title, optional body, `formatCreatedAt`

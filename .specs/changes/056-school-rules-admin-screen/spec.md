@@ -364,7 +364,7 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   > src/modules/school-rules/components/delete-school-rule-sheet` (7 passed, 100 % of the component and hook);
   > `npx tsc --noEmit` (exit 0); deviations: none.
 
-- [ ] **T-05** — Add `src/modules/school-rules/components/school-rule-editable-row/` (component, types, `index.ts`):
+- [x] **T-05** — Add `src/modules/school-rules/components/school-rule-editable-row/` (component, types, `index.ts`):
   the position, title and explanation in a `Pressable` that calls `onEdit`, and the ↑/↓ `TouchableOpacity` buttons
   (44pt targets, labels "Move rule N up/down", `disabled` props for the ends and while a reorder runs) calling
   `onMoveUp` / `onMoveDown`, with a divider except on the last row (D-10), copy in the three locales and
@@ -373,6 +373,18 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03, ER-08 · Done when: `npx jest src/modules/school-rules/components/school-rule-editable-row` passes from
   `apps/mobile`.
+  > ✅ 2026-10-23 — `SchoolRuleEditableRow` (`rule`, `position`, `showDivider`, `moveUpDisabled`, `moveDownDisabled`,
+  > `onEdit`, `onMoveUp`, `onMoveDown`): the position (`01`…, `ds-text-sheet-title` — Barlow Condensed — in `text-sun`,
+  > as the read-only `SchoolRuleRow`), title and explanation in one `Pressable` (role button) that calls `onEdit`, and
+  > two `TouchableOpacity` arrows (`h-11 w-11`, 44pt, `bg-sand`, Ionicons `arrow-up` / `arrow-down` in `ink`, `ink3`
+  > when disabled), labelled "Move rule N up" / "Move rule N down", with `disabled` and `accessibilityState.disabled`;
+  > a `border-b border-line` divider unless `showDivider` is false. No hook (no state). Files:
+  > `apps/mobile/src/modules/school-rules/components/school-rule-editable-row/{index.ts,school-rule-editable-row.component.tsx,school-rule-editable-row.types.ts,school-rule-editable-row.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts` (`manageSchoolRules.moveUp` / `.moveDown`). Verified:
+  > `npx jest --coverage src/modules/school-rules/components/school-rule-editable-row` (7 passed, 100 % of the
+  > component); `npx tsc --noEmit` (exit 0). Deviations: the 44pt target can't be asserted under Jest (NativeWind
+  > doesn't resolve a touchable's classes there and RNTL 14 has no `UNSAFE_` queries), so it is checked in the iOS
+  > simulator in T-08.
 
 - [ ] **T-06** — Add the management screen `src/modules/school-rules/screens/manage-school-rules.screen.tsx` with
   `manage-school-rules.screen.hook.ts` (which sheet is open: none, add, edit with a rule, delete with a rule; the

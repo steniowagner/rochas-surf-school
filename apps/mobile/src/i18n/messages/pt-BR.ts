@@ -711,6 +711,8 @@ const messages: Messages = {
     description: "Poucas e simples, para as aulas correrem bem para todos.",
   },
   manageSchoolRules: {
+    moveUp: "Subir a regra {{position}}",
+    moveDown: "Descer a regra {{position}}",
     deleteSheet: {
       title: "Excluir esta regra?",
       note: "Depois de excluir, todos vão precisar aceitar as regras de novo na próxima vez que abrirem o app.",

@@ -717,6 +717,14 @@ const messages: Messages = {
     title: "Reglas de la escuela",
     description: "Pocas y sencillas, para que las clases salgan bien para todos.",
   },
+  manageSchoolRules: {
+    toasts: {
+      added: "Regla añadida",
+      saved: "Regla guardada",
+      deleted: "Regla eliminada",
+      notFound: "Esta regla ya se eliminó.",
+    },
+  },
   signOutSheet: {
     title: "¿Cerrar sesión?",
     description: "Para volver, solo inicia sesión otra vez con la misma cuenta.",

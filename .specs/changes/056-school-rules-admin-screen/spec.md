@@ -265,7 +265,7 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add the text mutations in `src/modules/school-rules/hooks/`: `use-create-school-rule.hook.ts`
+- [x] **T-01** — Add the text mutations in `src/modules/school-rules/hooks/`: `use-create-school-rule.hook.ts`
   (`POST /school-rules`), `use-update-school-rule.hook.ts` (`PUT /school-rules/:id`) and
   `use-delete-school-rule.hook.ts` (`DELETE /school-rules/:id`), each sending trimmed text where it applies, putting
   the answer in `SCHOOL_RULES_QUERY_KEY`, and on failure (D-07): 404 `schoolRule.id.notFound` → invalidate the query
@@ -276,6 +276,23 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-05, ER-06, ER-07 · Done when: `npx jest src/modules/school-rules/hooks src/modules/school-rules/utils`
   passes from `apps/mobile`.
+  > ✅ 2026-10-23 — `useCreateSchoolRule` (`POST /school-rules`), `useUpdateSchoolRule` (`PUT /school-rules/:id`) and
+  > `useDeleteSchoolRule` (`DELETE /school-rules/:id`, no body), text trimmed, the answer written to
+  > `SCHOOL_RULES_QUERY_KEY`, no retry; on failure 404 `schoolRule.id.notFound` invalidates the query (edit, delete) and
+  > every failure toasts through `getSchoolRuleErrorKey` (not-found / no-connection / generic, `null` for
+  > `SessionExpiredError`). The success toasts are shown by the sheets (T-03, T-04), so their copy is added here with the
+  > failure copy under `manageSchoolRules.toasts`. Files: `apps/mobile/src/modules/school-rules/hooks/use-create-school-rule.hook.ts`,
+  > `apps/mobile/src/modules/school-rules/hooks/use-create-school-rule.hook.test.tsx`,
+  > `apps/mobile/src/modules/school-rules/hooks/use-update-school-rule.hook.ts`,
+  > `apps/mobile/src/modules/school-rules/hooks/use-update-school-rule.hook.test.tsx`,
+  > `apps/mobile/src/modules/school-rules/hooks/use-delete-school-rule.hook.ts`,
+  > `apps/mobile/src/modules/school-rules/hooks/use-delete-school-rule.hook.test.tsx`,
+  > `apps/mobile/src/modules/school-rules/utils/school-rules-error.ts`,
+  > `apps/mobile/src/modules/school-rules/utils/school-rules-error.test.ts`,
+  > `apps/mobile/src/modules/school-rules/school-rules.types.ts` (the variables types),
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`; verified: `npx jest src/modules/school-rules/hooks
+  > src/modules/school-rules/utils` (6 suites, 35 passed), `npx tsc --noEmit` (exit 0); deviations: the tests reuse
+  > `src/modules/people/people.test-utils.tsx` instead of a new test-utils file.
 
 - [ ] **T-02** — Add `src/modules/school-rules/hooks/use-reorder-school-rules.hook.ts` (D-05): `onMutate` cancels
   the rules query, keeps the previous list and writes the new order to the cache; `onSuccess` writes the answer;

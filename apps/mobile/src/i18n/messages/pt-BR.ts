@@ -710,6 +710,14 @@ const messages: Messages = {
     title: "Regras da escola",
     description: "Poucas e simples, para as aulas correrem bem para todos.",
   },
+  manageSchoolRules: {
+    toasts: {
+      added: "Regra adicionada",
+      saved: "Regra salva",
+      deleted: "Regra excluída",
+      notFound: "Esta regra já foi excluída.",
+    },
+  },
   signOutSheet: {
     title: "Sair da conta?",
     description: "Para voltar, é só entrar de novo com a mesma conta.",

@@ -710,6 +710,14 @@ const messages = {
     title: "School rules",
     description: "Few and simple, so classes go well for everyone.",
   },
+  manageSchoolRules: {
+    toasts: {
+      added: "Rule added",
+      saved: "Rule saved",
+      deleted: "Rule deleted",
+      notFound: "This rule was already deleted.",
+    },
+  },
   signOutSheet: {
     title: "Sign out?",
     description: "To come back, just sign in again with the same account.",

@@ -176,7 +176,7 @@ header's clock button.
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-01** — Add the `TeachingClassesReader` port in `src/school-class/provider/teaching-classes-reader.provider.ts`
+- [x] **T-01** — Add the `TeachingClassesReader` port in `src/school-class/provider/teaching-classes-reader.provider.ts`
   (`findCurrentClassIds(teacherId, now)`: the classes whose end is after `now` where the person is an instructor,
   cancelled ones included, by start then id; `teachesAny(teacherId)`: an instructor of any class), its fake in
   `test/mock/fake-teaching-classes.reader.ts`, and `ListTeachingClasses` with `assertIsTeacher`
@@ -185,6 +185,19 @@ header's clock button.
   from the barrels, with tests in `test/school-class/usecase/list-teaching-classes.usecase.test.ts`. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npx jest test/school-class` passes from `modules/classes`.
+  > ✅ 2026-10-23 20:11 — added the `TeachingClassesReader` port (`findCurrentClassIds`, `teachesAny`), its fake and
+  > `ListTeachingClasses` + `assertIsTeacher` (403 `user.status.notApproved`, then `user.role.notTeacher`); the id
+  > read and `teachesAny` run together, then the views are sorted by start then id, the rosters read with
+  > `CLASS_CARD_STUDENTS_LIMIT`, and each item built by `toClassItem` with the guests' names and no enrolment. Files:
+  > `modules/classes/src/school-class/provider/teaching-classes-reader.provider.ts`,
+  > `modules/classes/src/school-class/provider/index.ts`,
+  > `modules/classes/src/school-class/usecase/list-teaching-classes.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/test/mock/fake-teaching-classes.reader.ts`,
+  > `modules/classes/test/mock/index.ts`, `modules/classes/test/school-class/usecase/list-teaching-classes.usecase.test.ts`;
+  > verified: `npx jest test/school-class --coverage` (26 suites, 433 passed; the use case 100% statements, branches,
+  > functions, lines) and `npm run check-types` (no errors); deviations: the `module-use-case` skill's mandatory
+  > reference `modules/auth/src/user/usecase/register-user.usecase.ts` no longer exists, so the module's own
+  > `ListMyClasses` was the pattern.
 
 ### Backend (`apps/backend`)
 

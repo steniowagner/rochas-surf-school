@@ -22,3 +22,4 @@ export * from "./fake-class-audience.reader";
 export * from "./fake-my-classes.reader";
 export * from "./fake-class-contact.reader";
 export * from "./fake-class-reminder.notifier";
+export * from "./fake-teaching-classes.reader";

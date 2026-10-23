@@ -914,7 +914,7 @@ describe('Classes (e2e)', () => {
 
       const week = await as(people.admin.accessToken, http().get('/classes?date=2026-10-14'));
       const mine = await as(people.s.accessToken, http().get('/classes/mine'));
-      const history = await as(people.s.accessToken, http().get('/classes/mine/history'));
+      const history = await as(people.s.accessToken, http().get('/classes/mine/history?from=2026-10-13&to=2026-10-13'));
 
       const items = [
         ...week.body.items.filter((item: { id: string }) => [upcoming, finished].includes(item.id)),

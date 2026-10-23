@@ -228,6 +228,15 @@ list can follow the period. Students find a past class by when it happened inste
   > `apps/backend/test/my-classes.e2e-spec.ts`; verified: `npx vitest run --config vitest.config.e2e.ts
   > test/my-classes.e2e-spec.ts` from `apps/backend` against the local Postgres (11 passed); deviations: none.
 
+- [x] **T-08** — (added during execution) In `test/classes.e2e-spec.ts`, the "contacts" case that reads
+  `GET /classes/mine/history` without a period (now a 422 by ER-02) asks for the day of its finished class
+  (`?from=2026-10-13&to=2026-10-13`).
+  Covers: ER-01 · Done when: `node .specs/scripts/run-e2e.mjs 053` passes.
+  > ✅ 2026-10-22 23:10 — found by the Verification Plan: `classes.e2e-spec.ts` › contacts › "keeps the numbers and the
+  > role out of the week, \"mine\" and \"mine/history\" answers" called the history without a period and got the new 422; it
+  > now asks for `?from=2026-10-13&to=2026-10-13`, the day of its finished class. Files: `apps/backend/test/classes.e2e-spec.ts`;
+  > verified: `node .specs/scripts/run-e2e.mjs 053` (23 files, 631 passed, E2E PASSED); deviations: none.
+
 ### Mobile (`apps/mobile`)
 
 - [x] **T-04** — Extend `src/components/week-month-calendar/` (component, hook, types) and, for the dot count,

@@ -2,7 +2,7 @@
 id: "053"
 slug: history-calendar-filter
 title: Filter the class history by day, week or month
-status: changes-requested
+status: in-progress
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 038bb0bd6d0328754ac283661af9cc73accb5105
@@ -491,7 +491,7 @@ list can follow the period. Students find a past class by when it happened inste
 
 **Findings**
 
-- [ ] **F-01** (ER-04, ER-05) — when the calendar switches view while the list shows `EmptyState`, the empty state is
+- [x] **F-01** (ER-04, ER-05) — when the calendar switches view while the list shows `EmptyState`, the empty state is
   drawn broken: its icon tile moves up over the "TODAS AS AULAS" row and its title and description disappear, and it
   stays that way (scrolling doesn't fix it). Reproduce on the simulator: open "Histórico", tap a day without classes
   (e.g. 20) → "Sem aulas neste dia" is fine → tap the pill ("19 – 25 OUT") → broken; or, on week view, tap a day without
@@ -501,6 +501,18 @@ list can follow the period. Students find a past class by when it happened inste
   toggle, is that the history renders it through `FlatList`'s `ListEmptyComponent` (`EmptyState` is `flex-1` /
   `justify-center` inside a `pt-4` wrapper) while the Agenda renders it as a plain child of a `ScrollView`; a test can't
   see this layout, so the evidence is the simulator.
+  > ✅ 2026-10-22 23:40 — reproduced on the iOS simulator (iPhone 18 Pro, pt-BR, dev student): 20 → "Sem aulas neste
+  > dia" → pill → the tile over "TODAS AS AULAS" and no title or description. `EmptyState` (and `ErrorState`) are
+  > `flex-1`, and in the list's column a `flex-1` child of an auto-height cell collapsed when the header changed height.
+  > The wrappers of the empty and error states are now `flex-row`, so `flex-1` only fills the width and the state keeps
+  > its content height, just under the list header (a comment says why); the shared components are unchanged. Error
+  > state got the same wrapper because it has the same root and sits in the same cell. files:
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.tsx`; verified: on the simulator both of the
+  > reviewer's paths (month 20 → pill → week "19 – 25 OUT"; week "26 OUT – 1 NOV" 27 → pill → October, cached) and
+  > back again show the tile, "Sem aulas neste dia" and its description under the header; the next arrow to an empty
+  > week shows "Sem aulas neste período" whole; `npx jest src/modules/enrolment/screens/my-class-history.screen.test.tsx`
+  > (17 passed), eslint and `tsc --noEmit` clean; deviations: the error state after a view switch wasn't driven (it
+  > needs the user's running backend stopped); no test, since Jest can't see the layout
 
 **Notes**
 

@@ -41,9 +41,11 @@ export function MyClassHistoryScreen() {
       );
     }
 
+    // The states below are `flex-1`: in a row they only fill the width, so they keep their height when the calendar
+    // switches view (in the list's column they collapsed after it).
     if (screen.isError) {
       return (
-        <View className="pt-4">
+        <View className="flex-row pt-4">
           <ErrorState
             title={t("myHistory.loadError.title")}
             description={t("myHistory.loadError.description")}
@@ -62,7 +64,7 @@ export function MyClassHistoryScreen() {
     const copy = screen.selectedDay === null ? "myHistory.emptyPeriod" : "myHistory.emptyDay";
 
     return (
-      <View className="pt-4">
+      <View className="flex-row pt-4">
         <EmptyState
           icon="calendar-outline"
           title={t(`${copy}.title`)}

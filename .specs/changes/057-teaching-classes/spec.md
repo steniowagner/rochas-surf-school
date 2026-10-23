@@ -299,7 +299,7 @@ header's clock button.
   > the chips over grape reuse `Chip`'s existing `onHighlight` tone (white at 18%, the design's value) instead of a new chip
   > tone; its raw `bg-white/[.18]` class was left as it is (outside this task).
 
-- [ ] **T-07** — Add `src/modules/classes/screens/teaching-classes.screen.tsx` (+ `.hook.ts`, `.types.ts`) with the
+- [x] **T-07** — Add `src/modules/classes/screens/teaching-classes.screen.tsx` (+ `.hook.ts`, `.types.ts`) with the
   `src/modules/classes/components/teaching-day-header/` component, `routes.instructor.myClasses` and
   `routes.admin.myClasses` in `src/constants/routes.ts`, and the routes `src/app/(private)/instructor/my-classes.tsx`
   and `src/app/(private)/admin/my-classes.tsx` (D-06, D-11), with tests in `teaching-classes.screen.test.tsx` and the
@@ -307,6 +307,28 @@ header's clock button.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-05, ER-06 · Done when: `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/components/teaching-day-header`
   passes from `apps/mobile`.
+  > ✅ 2026-10-23 20:29 — added `TeachingClassesScreen` (+ hook, types; prop `role`): title "Minhas aulas" through
+  > `useLeftTitleHeader` + `StackHeaderTitle`, no `headerRight`; a `FlatList` of rows built from `layoutTeachingClasses`
+  > at `useNow()` — `OngoingClassCard`s first, then per day a `TeachingDayHeader` ("Hoje" / "Amanhã" / the weekday's
+  > full name, and the short date) and its `ClassCard`s with `isNext` on the next class; skeleton cards read as one
+  > loading state, `EmptyState` "Nada por aqui", `ErrorState` with retry (the error kept with the spinner while retrying),
+  > nothing after an expired session, pull-to-refresh and a refetch on focus; a card opens `routes.<role>.classDetail(id)`.
+  > New `TeachingDayHeader` component (role `header`, labelled "<day>, <date>"). Routes `routes.instructor.myClasses` and
+  > `routes.admin.myClasses`, route files for both stacks (outside `(tabs)`, so no tab bar), and the screen's copy under
+  > `teachingClasses` in the three locales. Files: `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/teaching-day-header/index.ts`,
+  > `apps/mobile/src/modules/classes/components/teaching-day-header/teaching-day-header.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/teaching-day-header/teaching-day-header.types.ts`,
+  > `apps/mobile/src/modules/classes/components/teaching-day-header/teaching-day-header.component.test.tsx`,
+  > `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/app/(private)/instructor/my-classes.tsx`,
+  > `apps/mobile/src/app/(private)/admin/my-classes.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`; verified:
+  > `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/components/teaching-day-header --coverage`
+  > (2 suites, 16 passed; screen, hook and header 100%), `npx tsc --noEmit` and `npx eslint` on the files (no errors);
+  > deviations: the minute tick is tested by mocking `useNow` and re-rendering, not with fake timers.
 
 - [ ] **T-08** — Add `src/modules/classes/components/teaching-classes-entry-row/` (`role` prop: always rendered for
   `instructor`, only with `teachesAny` for `admin`; the subtitle of D-07; refetch on focus — D-08) and render it as the

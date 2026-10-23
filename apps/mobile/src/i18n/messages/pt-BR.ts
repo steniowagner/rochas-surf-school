@@ -1027,6 +1027,19 @@ const messages: Messages = {
     removed: "{{name}} removido",
   },
   teachingClasses: {
+    title: "Minhas aulas",
+    today: "Hoje",
+    tomorrow: "Amanhã",
+    loading: "Carregando as aulas",
+    empty: {
+      title: "Nada por aqui",
+      description: "Você ainda não tem aulas atribuídas.",
+    },
+    loadError: {
+      title: "Algo deu errado",
+      description:
+        "Não conseguimos carregar suas aulas. Verifique sua conexão e tente novamente.",
+    },
     next: "Próxima",
   },
 };

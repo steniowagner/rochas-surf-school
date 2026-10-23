@@ -1034,6 +1034,19 @@ const messages: Messages = {
     removed: "{{name}} eliminado",
   },
   teachingClasses: {
+    title: "Mis clases",
+    today: "Hoy",
+    tomorrow: "Mañana",
+    loading: "Cargando las clases",
+    empty: {
+      title: "Nada por aquí",
+      description: "Aún no tienes clases asignadas.",
+    },
+    loadError: {
+      title: "Algo salió mal",
+      description:
+        "No pudimos cargar tus clases. Revisa tu conexión e inténtalo de nuevo.",
+    },
     next: "Próxima",
   },
 };

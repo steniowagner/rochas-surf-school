@@ -373,9 +373,30 @@ header's clock button.
 
 ### Verification
 
-- [ ] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys on
+- [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys on
   the iOS simulator and record the output summary and what was seen as evidence.
   Covers: all · Done when: every automated command exits 0 and the three user journeys are recorded.
+  > ✅ 2026-10-23 20:40 — Verification Plan, automated: `node .specs/scripts/run-related-tests.mjs 057` → RELATED
+  > TESTS PASSED (apps/mobile 1648, modules/classes 291, modules/enrolment 563, apps/backend related, apps/web whole suite;
+  > the first run failed 6 tests in 3 suites that open the homes — fixed and recorded under T-08); `node
+  > .specs/scripts/check-coverage.mjs 057` → COVERAGE OK (22 files); `node .specs/scripts/run-e2e.mjs 057` → E2E PASSED
+  > (backend 25 files / 665 tests, web Playwright 22); `npx turbo run lint check-types build` for classes, backend, mobile
+  > and design-tokens → lint and check-types pass (backend lint: 0 errors, 10 existing warnings in other files); the
+  > backend build failed once on a race (`check-types` and `build` both running `prisma generate`, ENOTEMPTY on
+  > `src/generated/prisma/models`) and passed when rerun alone (`npx turbo run build --filter=@rochas-surf-school/backend`,
+  > 8/8); `GET /classes/teaching` against the running dev backend with the review accounts → admin 200 `{ items: 4,
+  > teachesAny: true }`, instructor 200 `{ items: 4, teachesAny: true }`, student 403 `user.role.notTeacher`, no token 401.
+  > User journeys on the iOS simulator (iPhone 18 Pro, iOS 27, dark theme, pt-BR), on the dev database as it was (four
+  > classes tomorrow, none under way or cancelled; no data was written to it): **Instructor** — the review instructor's
+  > Início shows "Minhas aulas — 4 aulas atribuídas a você" as the first Escola row, above Regras and Pessoas; the screen
+  > "MINHAS AULAS" opens with the back button, nothing on the right and no tab bar; one "AMANHÃ · 24 out" group; the 09:00
+  > class alone has "PRÓXIMA" and the sun border; pressing the 17:00 card opens its details ("Você" among the instructors),
+  > back returns to the list, back again to Início. **Admin who teaches** — the review admin's home shows "Minhas aulas — 3
+  > aulas atribuídas a você" first under Escola; its screen lists their three classes with the 17:00 one as "PRÓXIMA". Not
+  > seen on the simulator, covered by the component and screen tests only: the grape card of a class under way, a
+  > cancelled class in its day, a day with a weekday name, the light theme (the theme tap was refused by a transient
+  > permission-check error, so the theme stayed on Escuro), and the admin journeys "Admin who doesn't teach" / the row
+  > appearing after an admin is assigned (both review accounts already teach). Files: `.specs/changes/057-teaching-classes/spec.md`.
 
 ## Verification Plan
 

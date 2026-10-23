@@ -440,7 +440,11 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   > instructor's opening the read-only screen with no arrows and no "Add rule"); `npx jest src/modules/profile`
   > (7 suites, 67 passed — Perfil still opens `/admin/school-rules`); `npx tsc --noEmit` (exit 0). Deviations: the two
   > home tests answer `GET /school-rules` apart from their `fetchMock` (a small wrapper), so the existing request counts
-  > and `{ items }` answers stay as they were.
+  > and `{ items }` answers stay as they were. Found by the T-08 related-test run: two other suites render the homes and
+  > answered every request with `{ items: [] }`, which the row can't read, so they now answer `GET /school-rules` with
+  > no rules — `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx` (two of its tests' mocks, as its
+  > `beforeEach` already did) and `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`
+  > (`answerMe`); `npx jest` on both: 2 suites, 71 passed.
 
 ### Verification
 

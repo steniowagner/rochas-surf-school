@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { StackHeaderTitle, useLeftTitleHeader } from "@/navigation/stack-header";
+import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { ClassCard } from "../components/class-card";
 import { ClassCardSkeleton } from "../components/class-card-skeleton";
@@ -22,9 +22,6 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const screen = useTeachingClassesScreen({ role });
-  const headerOptions = useLeftTitleHeader(() => (
-    <StackHeaderTitle title={t("teachingClasses.title")} />
-  ));
 
   const renderEmpty = () => {
     if (screen.isLoading) {
@@ -75,7 +72,11 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
 
   return (
     <>
-      <Stack.Screen options={headerOptions} />
+      <Stack.Screen
+        options={{
+          headerTitle: () => <StackHeaderTitle title={t("teachingClasses.title")} />,
+        }}
+      />
       <FlatList
         testID="teaching-classes-list"
         className="flex-1 bg-page"

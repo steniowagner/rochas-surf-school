@@ -2,7 +2,7 @@
 id: "057"
 slug: teaching-classes
 title: "\"Minhas aulas\" for instructors and admins who teach"
-status: in-review
+status: in-progress
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 30d2bccaa1cca3534931006e3117df3fefcda72e
@@ -90,8 +90,9 @@ header's clock button.
 | D-08 | The home row and the screen share one query, `["classes", "teaching"]` (under `["classes"]`, so every class mutation that invalidates `["classes"]` refreshes it). The home refetches it when it gains focus; so does the screen. On the admin's home the row renders only when the query has data with `teachesAny: true` — never while loading or after an error. On the instructor's home it always renders. | The admin's row must appear after they assign themselves to a class and come back, and must never flash. |
 | D-09 | Copy (pt-BR / es-ES / en-US): row and screen title "Minhas aulas" / "Mis clases" / "My classes"; next chip "Próxima" / "Próxima" / "Up next"; the under-way chip reuses `classesWeek.state.started` ("Em andamento"); day labels "Hoje"/"Amanhã", "Hoy"/"Mañana", "Today"/"Tomorrow"; empty "Nada por aqui" + "Você ainda não tem aulas atribuídas." / "Nada por aquí" + "Aún no tienes clases asignadas." / "Nothing here" + "You don't have any classes assigned yet."; error "Algo deu errado" + "Não conseguimos carregar suas aulas. Verifique sua conexão e tente novamente." (and the es/en equivalents); zero subtitle "Nenhuma aula atribuída" / "Ninguna clase asignada" / "No classes assigned"; subtitle "N aula(s) atribuída(s) a você" / "N clase(s) asignada(s) a ti" / "N class(es) assigned to you". | The design is pt-PT ("As minhas aulas", "A decorrer", "Já a seguir"); the app is pt-BR, as in spec 048. |
 | D-10 | The `OngoingClassCard` is a `grape` card with `onColor` text and icons, the `primary`-style elevation via `shadowStyle()`, and the same content as `ClassCard` (sport and level chips, "Em andamento" chip, time, location pill, occupancy bar and "N/M vagas", students footer). Any translucent fill it needs over grape (chips, location pill, bar track, footer) becomes a new token in `packages/design-tokens/src/tokens.ts` (light and dark), never a raw value. | CLAUDE.md: never hard-code colors; grape is the design system's highlight color. |
-| D-11 | The screen is an inner screen above the tab bar (no tab bar, unlike the design's frame), with its title through `useLeftTitleHeader` + `StackHeaderTitle` and no `headerRight` in this spec. The routes are `/instructor/my-classes` and `/admin/my-classes`; a card opens `routes.<role>.classDetail(id)`. | The app's convention for inner screens (CLAUDE.md, structure.md). |
+| D-11 | ~~The screen is an inner screen above the tab bar (no tab bar, unlike the design's frame), with its title through `useLeftTitleHeader` + `StackHeaderTitle` and no `headerRight` in this spec. The routes are `/instructor/my-classes` and `/admin/my-classes`; a card opens `routes.<role>.classDetail(id)`.~~ (removed: replaced by D-13, the title is centered) | The app's convention for inner screens (CLAUDE.md, structure.md). |
 | D-12 | The mobile code lives in the `classes` module (`src/modules/classes/`): `TeachingClassesScreen`, `TeachingClassesEntryRow`, `OngoingClassCard`, `TeachingDayHeader`, `useTeachingClasses`, `utils/teaching-classes.ts`. | modules/classes.md says "My classes" for instructors and admins comes with the Classes module. |
+| D-13 | The screen is an inner screen above the tab bar (no tab bar, unlike the design's frame), with its title centered through `headerTitle: () => <StackHeaderTitle />` (the native back button at the left) and no `headerRight` in this spec. The routes are `/instructor/my-classes` and `/admin/my-classes`; a card opens `routes.<role>.classDetail(id)`. | The user asked for a centered title after seeing the left-aligned one (amendment of 2026-10-23); the routes and navigation of D-11 are unchanged. |
 
 ## Expected Results
 
@@ -371,6 +372,20 @@ header's clock button.
   > \`apps/mobile/src/modules/onboarding/screens/school-rules.screen.test.tsx\`; verified: \`npx jest\` on the three
   > (3 suites, 105 passed).
 
+- [x] **T-10** — (added during execution) Center the title of `TeachingClassesScreen`: `headerTitle: () =>
+  <StackHeaderTitle />` instead of `useLeftTitleHeader`, with the screen test asserting a centered title (no left
+  alignment, no left items) (D-13).
+  Covers: ER-06 · Done when: `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx` passes from
+  `apps/mobile`.
+  > ✅ 2026-10-23 20:43 — `TeachingClassesScreen` passes `headerTitle: () => <StackHeaderTitle title={…} />` to
+  > `<Stack.Screen options>` instead of `useLeftTitleHeader`, so iOS centers the title and keeps the native back button;
+  > the screen test captures the header options and asserts no `headerTitleAlign`, no `unstable_headerLeftItems` and no
+  > `headerRight` (the old options fail it). Files: `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx --coverage` (15 passed; screen and hook 100%),
+  > `npx tsc --noEmit` and `npx eslint src/modules/classes/screens` (no errors), and on the iOS simulator (admin review
+  > account, dark theme) "MINHAS AULAS" centered in the header with the back button at the left; deviations: none.
+
 ### Verification
 
 - [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys on
@@ -446,5 +461,7 @@ header's clock button.
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-23 — D-11 → D-13: the "Minhas aulas" title was at the left of the header (`useLeftTitleHeader`) → centered (`headerTitle` with `StackHeaderTitle`); task T-10 added. Reason: the user asked to center it after seeing the screen; approved by the user in the execution session ("centralize the title").
 
 ## Review

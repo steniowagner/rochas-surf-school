@@ -20,6 +20,8 @@ import { TeachingClassesScreen } from "./teaching-classes.screen";
 
 // The callback the screen gave `useFocusEffect`, run by a test when the screen is focused.
 let focusEffect: () => (() => void) | void = () => undefined;
+// The options the screen gave its Stack header.
+let headerOptions: any = {};
 // The clock `useNow` answers; a test moves it to simulate the minute tick.
 let mockNow = new Date();
 
@@ -30,12 +32,16 @@ jest.mock("expo-router", () => ({
   },
   // Renders the screen's header title and right button so the tests can see them.
   Stack: {
-    Screen: ({ options }: any) => (
-      <>
-        {options.unstable_headerLeftItems?.({})[0].element ?? options.headerTitle()}
-        {options.headerRight?.()}
-      </>
-    ),
+    Screen: ({ options }: any) => {
+      headerOptions = options;
+
+      return (
+        <>
+          {options.headerTitle()}
+          {options.headerRight?.()}
+        </>
+      );
+    },
   },
 }));
 
@@ -91,6 +97,10 @@ describe("TeachingClassesScreen", () => {
     await renderScreen();
 
     expect(screen.getByRole("header", { name: "MY CLASSES" })).toBeOnTheScreen();
+    // A centered title: no left alignment and no left items, so the native back button stays.
+    expect(headerOptions.headerTitleAlign).toBeUndefined();
+    expect(headerOptions.unstable_headerLeftItems).toBeUndefined();
+    expect(headerOptions.headerRight).toBeUndefined();
     expect(screen.queryAllByRole("button", { name: /history/i })).toEqual([]);
     expect(await screen.findByText("19:00 – 20:00")).toBeOnTheScreen();
     expect(cardTimes()).toEqual([

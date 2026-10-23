@@ -233,7 +233,7 @@ list can follow the period. Students find a past class by when it happened inste
   (`?from=2026-10-13&to=2026-10-13`).
   Covers: ER-01 · Done when: `node .specs/scripts/run-e2e.mjs 053` passes.
   > ✅ 2026-10-22 23:10 — found by the Verification Plan: `classes.e2e-spec.ts` › contacts › "keeps the numbers and the
-  > role out of the week, \"mine\" and \"mine/history\" answers" called the history without a period and got the new 422; it
+  > role out of the week, 'mine' and 'mine/history' answers" called the history without a period and got the new 422; it
   > now asks for `?from=2026-10-13&to=2026-10-13`, the day of its finished class. Files: `apps/backend/test/classes.e2e-spec.ts`;
   > verified: `node .specs/scripts/run-e2e.mjs 053` (23 files, 631 passed, E2E PASSED); deviations: none.
 
@@ -325,9 +325,31 @@ list can follow the period. Students find a past class by when it happened inste
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
   and record what was seen. Record the output summary as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-22 23:12 — Automated, from the repo root: `node .specs/scripts/run-related-tests.mjs 053` → RELATED TESTS
+  > PASSED (apps/backend 42, apps/mobile 1275, modules/classes 525, modules/enrolment 291 — all passed);
+  > `node .specs/scripts/check-coverage.mjs 053` → COVERAGE OK (19 files measured, every changed line covered);
+  > `npx turbo run lint check-types build --filter=…classes --filter=…backend --filter=…mobile` → 27/27 tasks, 0 errors (the
+  > backend's 10 lint warnings are all in files this spec doesn't touch); `node .specs/scripts/run-e2e.mjs 053` → first run
+  > failed one `classes.e2e-spec.ts` case still calling the history without a period, fixed in T-08 (added during execution),
+  > then E2E PASSED (23 files, 631 tests); the `classes.integration.http` requests against the running `nest start --watch`
+  > backend with a student token: `from=2026-08-01&to=2026-08-31` → 200 `{"items":[]}`, `from=2026-10-01&to=2026-10-31` → 200
+  > `{ items: [...] }`, `to=2026-09-12` (43 days) → 422 `class.range.invalid`, `from=2026-02-30` → 422 `class.from.invalid` +
+  > `class.to.invalid`, `page=1&perPage=20` → the same two keys. User journeys on the iOS simulator (iPhone 18 Pro, iOS 27,
+  > pt-BR, as the dev student, with three finished classes added to the local dev database for the run — two on 13 Oct, one
+  > on 6 Oct, besides the one on 21 Oct — and deleted afterwards): (1) "Histórico" opened on OUTUBRO 2026 in month view with
+  > no day selected, dots 6 (1), 13 (2), 21 (1), "Dias com aula dada", "TODAS AS AULAS" / "OUTUBRO 2026" and the classes
+  > under "QUA, 21 OUT" then "TER, 13 OUT"; the previous arrow showed the skeleton and then SETEMBRO 2026; the pill opened
+  > today's week "19 – 25 OUT" with its class; (2) tapping 13 selected it, showed only its two classes (16:00 skate, then 08:00
+  > surf) and the "13 OUT ✕" chip; the chip brought the whole month back; a day without classes (19) showed "Sem aulas neste
+  > dia" with the "19 OUT" chip; a card opened the class's details; (3) September showed "Sem aulas neste período" under the
+  > calendar and the legend; (4) the Agenda still opened on the week with today (QUI 22) selected and one dot per day.
+  > Not driven: journey 3's error with the backend stopped (the running backend is the user's session); the screen test covers
+  > it (skeleton, then "Something went wrong", retry with its spinner) — to see it, stop the backend, move to a month not yet
+  > loaded, check the skeleton then "Algo deu errado", start the backend and press "Tentar novamente". Files: none
+  > (`.specs/changes/053-history-calendar-filter/spec.md` only); deviations: none.
 
 ## Verification Plan
 

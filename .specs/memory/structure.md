@@ -135,9 +135,9 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
     cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
     (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider,my-classes-reader.provider,class-contact-reader.provider}.ts`
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider,my-classes-reader.provider,class-contact-reader.provider,class-reminder-notifier.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
-    when asked), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
+    and, spec 054, the reminder mark when asked; the mark is never written from the entity), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
     `CancellationDeadlineDescriber.describe` (the language-model port);
     `TeacherLookup.findTeachers`; `ClassAssignmentNotifier.classAssigned` / `classUnassigned`;
@@ -149,8 +149,10 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     enrolment a cancellation ended — the last three answered by enrolment's adapters, spec 041;
     `ClassAudienceReader.findClassAudience` / `findLocationAudience` → the students with a seat or a pending request,
     of one class or of a location's upcoming classes with their counts, spec 047;
-    `MyClassesReader.findCurrentClassIds` / `findHistoryClassIds` → a student's class ids, spec 048),
-    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history}.usecase.ts`
+    `MyClassesReader.findCurrentClassIds` / `findHistoryClassIds` → a student's class ids, spec 048;
+    `findDueForReminder` and the conditional `markReminded` of the repository and
+    `ClassReminderNotifier.classReminder`, spec 054),
+    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history,send-class-reminders}.usecase.ts`
     (`list-my-classes` also exports `assertIsStudent` and `toMyClassItems`, shared with the history), and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
     the students, the guests — names only for `canSeeGuestNames`, spec 045 — and `myEnrolment`). Fakes of every port and entity
@@ -268,6 +270,8 @@ src/
                                 # class.assigned / class.unassigned; logs and swallows every error)
     notifications.class-change-notifier.ts  # ClassChangeNotifier adapter of classes (Notify class.edited /
                                 # class.cancelled / class.deleted; logs and swallows every error)
+    notifications.class-reminder-notifier.ts  # ClassReminderNotifier adapter of classes (Notify class.reminder;
+                                # logs and swallows every error; spec 054)
     notifications.no-instructor-notifier.ts  # NoInstructorNotifier adapter of classes
                                 # (NotifyClassesWithoutInstructor; logs and swallows every error)
     notifications.location-change-notifier.ts  # LocationChangeNotifier adapter of classes (one Notify
@@ -276,7 +280,7 @@ src/
     system.clock.ts             # SystemClockProvider
   modules/classes/
     classes.module.ts           # wiring (DbModule; imports NotificationsModule for the class-assignment,
-                                # class-change and location-change notifiers, and EnrolmentModule for the roster,
+                                # class-change, location-change and class-reminder notifiers, and EnrolmentModule for the roster,
                                 # seat, pending-request, viewer-enrolment and enrolments-closer adapters); provides the Google Places provider;
                                 # provides and exports ClassesTeachingReleaser
     locations.controller.ts     # GET /locations (200), POST /locations (201), GET /locations/address-suggestions
@@ -298,6 +302,8 @@ src/
                                 # structured outputs; ANTHROPIC_API_KEY required in production)
     cancellation-deadline.job.ts  # CancellationDeadlineJob (every minute, cron cancellation-deadline): runs
                                 # WorkOutCancellationDeadlines, logs counts only, never throws
+    class-reminder.job.ts       # ClassReminderJob (every minute, cron class-reminder, spec 054): runs
+                                # SendClassReminders, logs only the count, never throws
     {location,school-class}.prisma.ts  # Prisma repositories (P2002 on name_key → location.name.duplicate; a
                                 # location's update and the clearing of its upcoming deadlines in one $transaction,
                                 # archive only an active one and null its name_key;
@@ -388,6 +394,8 @@ test/
                                 # an approval, visibility per role, delete and capacity, remove, the 30-day erasure
   cancellation-deadlines.e2e-spec.ts  # e2e suite of CancellationDeadlineJob (AnthropicDeadlineDescriber replaced by
                                 # a configurable fake; works out, retries, without a rule, edits, stale results)
+  class-reminders.e2e-spec.ts   # e2e suite of ClassReminderJob (spec 054; clock in 2037, ExpoPushProvider faked):
+                                # recipients, only once, cancelled and started, start moved through PUT /classes/:id
 Dockerfile, docker-compose.yml  # backend + Postgres
 ```
 

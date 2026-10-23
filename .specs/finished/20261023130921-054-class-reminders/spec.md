@@ -2,13 +2,14 @@
 id: "054"
 slug: class-reminders
 title: Class reminders 30 minutes before the start
-status: accepted
+status: finished
 created: 2026-10-23
 started: 2026-10-23
 base_commit: f60fc4c51b2a9f2a061dd16a6be3638fbc24466b
 reviewed_commit: 072fd4d1ac45454b5228bc16e8731c8894e56184
 fronts: [notifications, classes, backend, mobile]
 depends_on: []
+finished: 2026-10-23
 ---
 
 # 054 — Class reminders 30 minutes before the start

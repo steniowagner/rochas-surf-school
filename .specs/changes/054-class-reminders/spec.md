@@ -289,11 +289,26 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
   > src/modules/classes/class-reminder.job.spec.ts` (6 passed, the job at 100%), backend `tsc --noEmit` clean;
   > deviations: none
 
-- [ ] **T-07** — Add `apps/backend/test/class-reminders.e2e-spec.ts` (fixed classes clock, faked `ExpoPushProvider`,
+- [x] **T-07** — Add `apps/backend/test/class-reminders.e2e-spec.ts` (fixed classes clock, faked `ExpoPushProvider`,
   the job run through `app.get(ClassReminderJob).run()`, each test deleting the classes, locations and users it
   created) with the cases of ER-01 to ER-04: "reminds seats and instructors", "only once" (including a failing push),
   "cancelled and started", and "start moved" (through `PUT /classes/:id`).
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-23 12:56 — added `apps/backend/test/class-reminders.e2e-spec.ts`: faked `ExpoPushProvider` (records
+  > messages, can throw), the classes clock fixed on 2037-10-15 in Fortaleza and moved per test (far from any real
+  > class, as the deadline suites do, so the job never marks real classes of a shared dev database), the job run
+  > through `app.get(ClassReminderJob).run()`, each test deleting the classes, location and users it created; 14
+  > cases: "reminds seats and instructors" (S1, I1 and A1 get exactly one `class.reminder` with `{ classId,
+  > discipline, startsAt, locationName }`, S2 pending and the guest none, only S1's phone gets the push; nothing at
+  > 07:29; a class created at 07:45 reminded at 07:46; withdrawn, denied, cancelled and taken-out students not
+  > reminded), "only once" (07:31 and 07:45 add nothing; two runs at once store one per person; a failing push keeps
+  > the mark and the stored notifications, doesn't throw, and the next run sends nothing), "cancelled and started"
+  > (cancelled class; 08:00 and 08:10 without a reminder; cancelled after the reminder via `POST
+  > /classes/:id/cancel`), "start moved" (`PUT /classes/:id` to 10:00 clears the mark, 09:29 sends nothing, 09:30
+  > stores the second reminder with the 10:00 start; an edit of notes, capacity and instructors keeps the mark; a
+  > start moved to 07:50 at 07:35 is reminded at the next run); files:
+  > `apps/backend/test/class-reminders.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (24
+  > files, 645 passed); deviations: none
 
 ### Mobile (`apps/mobile`)
 

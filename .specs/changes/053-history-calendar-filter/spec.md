@@ -2,7 +2,7 @@
 id: "053"
 slug: history-calendar-filter
 title: Filter the class history by day, week or month
-status: in-progress
+status: in-review
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 038bb0bd6d0328754ac283661af9cc73accb5105
@@ -382,9 +382,20 @@ list can follow the period. Students find a past class by when it happened inste
   > loaded, check the skeleton then "Algo deu errado", start the backend and press "Tentar novamente". Files: none
   > (`.specs/changes/053-history-calendar-filter/spec.md` only); deviations: none.
 
-- [ ] **T-10** — (added by the amendment of 2026-10-22) Rerun the Verification Plan after T-09: the related tests, the
+- [x] **T-10** — (added by the amendment of 2026-10-22) Rerun the Verification Plan after T-09: the related tests, the
   coverage gate, lint / type check / build, the e2e suite, and journeys 1 and 4 on the simulator.
   Covers: all · Done when: every automated command exits 0 and the journeys are recorded.
+  > ✅ 2026-10-22 23:27 — Automated, from the repo root after T-09: `node .specs/scripts/run-related-tests.mjs 053` → RELATED
+  > TESTS PASSED (apps/backend, apps/mobile, modules/classes, modules/enrolment); `node .specs/scripts/check-coverage.mjs 053` →
+  > COVERAGE OK (15 files; a first run caught the calendar test the T-09 edit had dropped, restored in T-09's follow-up
+  > commit); `npx turbo run lint check-types build --filter=…classes --filter=…backend --filter=…mobile` → 27/27 (a first run
+  > failed `prisma generate` with ENOTEMPTY on `src/generated/prisma/models` while the user's `nest start --watch` was running —
+  > not code-related; the rerun passed); `node .specs/scripts/run-e2e.mjs 053` → E2E PASSED (23 files, 631 tests). The verification
+  > build also stopped the user's running backend; the user restarted it. Journeys on the iOS simulator after a fresh launch
+  > (pt-BR, the dev student, two finished classes on 13 Oct added to the local dev database for the run and deleted after):
+  > (1) "Histórico" opens with only the back button in the header (no title), on OUTUBRO 2026 with no day selected, one dot on
+  > 13 (two classes) and one on 21, the legend "Dias em que você fez aula", and the classes under "QUA, 21 OUT" / "TER, 13 OUT";
+  > (4) the Agenda still opens on the week with today (QUI 22) selected and one dot per day. Files: none; deviations: none.
 
 ## Verification Plan
 

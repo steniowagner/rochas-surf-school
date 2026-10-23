@@ -2,10 +2,11 @@
 id: "054"
 slug: class-reminders
 title: Class reminders 30 minutes before the start
-status: in-review
+status: accepted
 created: 2026-10-23
 started: 2026-10-23
 base_commit: f60fc4c51b2a9f2a061dd16a6be3638fbc24466b
+reviewed_commit: 072fd4d1ac45454b5228bc16e8731c8894e56184
 fronts: [notifications, classes, backend, mobile]
 depends_on: []
 ---
@@ -391,3 +392,56 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-23 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` over notifications, classes, backend,
+  mobile: 27 tasks; the 10 backend lint warnings are `require-array-sort-compare` in e2e files this spec didn't touch)
+- related tests ✅ apps/backend 333 · apps/mobile 192 · modules/classes 554 · modules/notifications 119 ·
+  modules/enrolment 291 (dependent) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` (10 measured files, all at 100% of their changed lines; 2 type-only,
+  4 excluded by the technical context); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 24 files, 645 passed (`E2E PASSED`), including `class-reminders.e2e-spec.ts`
+- migrations: none pending on the local database; Prisma client regenerated
+
+**Expected Results**
+
+- ER-01 ✅ — use-case tests and the e2e "reminds seats and instructors" cases: S1, I1 and A1 get one `class.reminder`
+  with `{ classId, discipline, startsAt, locationName }`, the pending request and the guest none; nothing at 07:29; a
+  class created at 07:45 is reminded at 07:46; people without a push token still get the stored notification;
+  withdrawn, denied, cancelled and taken-out students get nothing
+- ER-02 ✅ — 07:31 and 07:45 add nothing; two simultaneous runs store one per person (conditional `updateMany`);
+  a failing push keeps the mark and the stored rows, the job resolves, and the next run sends nothing
+- ER-03 ✅ — a cancelled class is never reminded; 08:00 and 08:10 without a reminder send nothing; a class cancelled
+  through `POST /classes/:id/cancel` after its reminder gets no second one
+- ER-04 ✅ — `PUT /classes/:id` to 10:00 clears `reminder_sent_at` in the same `updateMany` as the edit; 09:29 sends
+  nothing, 09:30 stores the second reminder with the 10:00 start; notes/capacity/instructors/end edits keep the mark
+  (`edit-class.usecase.test.ts`, `school-class.prisma.spec.ts`, e2e "start moved"); a start moved to 07:50 at 07:35 is
+  reminded at the next run
+- ER-05 ✅ — `push-messages.spec.ts` asserts the exact pt-BR, es and en title and body, "Skate" and 00:10 in Fortaleza
+  (spec run under `TZ=Pacific/Kiritimati` per T-05); the notifier spec and the e2e assert `classId` in the push params
+- ER-06 ✅ — `use-notification-response.hook.test.tsx` opens `/student/class/c-1`, `/instructor/class/c-1` and
+  `/admin/class/c-1`, and goes to `routes.home` without a class id; `use-notification-received.hook.test.tsx` shows a
+  received `class.reminder` invalidates nothing. The simulator half is conditional on pushes reaching a device: an
+  `xcrun simctl push` of a `class.reminder` payload to the installed dev build was refused ("Source is not
+  authorized": the app has no notification permission on this simulator), so the tap wasn't driven
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Race between a run and an edit (within D-03 as written): `SendClassReminders` reads the due classes, then
+  `markReminded` conditions only on `reminder_sent_at` and `cancelled_at`. If an admin moves the start in the few
+  milliseconds between the read and the mark, the run marks the class and sends the old start time, and the new start
+  is never reminded. Adding the read `startsAt` to `markReminded`'s `where` would close it; worth a quick follow-up
+  spec or an amendment.
+- To finish ER-06 by hand: allow notifications for the app on the simulator (turn pushes on in the app), then run
+  `xcrun simctl push booted com.rochassurfschool.app <payload>` with `"body": { "type": "class.reminder", "classId":
+  "<an existing class id>" }` and tap the banner as a student, an instructor and an admin.
+- Reviewed in a fresh session (not the one that executed the spec). The working tree held unrelated uncommitted edits
+  to `.docs/requirements.md`, `.docs/user-journeys.md` and `.specs/memory/product.md` (ratings and photos deferred);
+  they are not part of this spec and were left out of the review commit.

@@ -179,7 +179,7 @@ describe('PrismaSchoolClassRepository', () => {
       updatedAt: NOW,
     });
 
-    expect(await repository.update(edited, false)).toBe(true);
+    expect(await repository.update(edited, {})).toBe(true);
 
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(calls).toEqual(['class', 'unassign', 'instructors']);
@@ -205,7 +205,7 @@ describe('PrismaSchoolClassRepository', () => {
   it('clears the deadline in the same write when told to (deadline)', async () => {
     const { schoolClass, repository } = setup();
 
-    expect(await repository.update(domain(), true)).toBe(true);
+    expect(await repository.update(domain(), { clearDeadline: true })).toBe(true);
 
     expect(schoolClass.updateMany).toHaveBeenCalledWith({
       where: { id: ID, cancelledAt: null },
@@ -221,11 +221,92 @@ describe('PrismaSchoolClassRepository', () => {
   it('leaves the deadline columns out of an update that keeps it (deadline)', async () => {
     const { schoolClass, repository } = setup();
 
-    await repository.update(domain(), false);
+    await repository.update(domain(), {});
 
     const [{ data }] = schoolClass.updateMany.mock.calls[0] as unknown as [{ data: object }];
     expect(Object.keys(data)).not.toContain('cancellationDeadline');
     expect(Object.keys(data)).not.toContain('deadlineRevision');
+  });
+
+  it('clears the reminder mark in the same write when told to (reminder)', async () => {
+    const { schoolClass, repository } = setup();
+
+    expect(await repository.update(domain(), { clearReminder: true })).toBe(true);
+
+    expect(schoolClass.updateMany).toHaveBeenCalledTimes(1);
+    expect(schoolClass.updateMany).toHaveBeenCalledWith({
+      where: { id: ID, cancelledAt: null },
+      data: expect.objectContaining({ startsAt: STARTS_AT, reminderSentAt: null }),
+    });
+    const [{ data }] = schoolClass.updateMany.mock.calls[0] as unknown as [{ data: object }];
+    expect(Object.keys(data)).not.toContain('cancellationDeadline');
+  });
+
+  it('never writes the reminder mark from the class it updates (reminder)', async () => {
+    const { schoolClass, repository } = setup();
+
+    await repository.update(domain().clone({ reminderSentAt: NOW }), { clearDeadline: true });
+
+    const [{ data }] = schoolClass.updateMany.mock.calls[0] as unknown as [{ data: object }];
+    expect(Object.keys(data)).not.toContain('reminderSentAt');
+  });
+
+  it('finds the classes due for their reminder with their instructors (reminder)', async () => {
+    const { schoolClass, repository } = setup();
+    const now = new Date('2026-10-15T10:30:00.000Z');
+    const remindedAt = new Date('2026-10-15T10:31:00.000Z');
+    schoolClass.findMany.mockResolvedValue([
+      {
+        id: ID,
+        discipline: 'surf',
+        level: 'beginner',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        locationId: LOCATION_ID,
+        capacity: 8,
+        notes: null,
+        cancelledAt: null,
+        cancellationMessage: null,
+        cancellationDeadline: null,
+        deadlineRevision: 0,
+        deadlineAttempts: 0,
+        deadlineNextAttemptAt: null,
+        reminderSentAt: remindedAt,
+        createdBy: ADMIN_ID,
+        createdAt: NOW,
+        updatedAt: NOW,
+        instructors: [{ userId: INSTRUCTOR_ID }],
+      },
+    ]);
+
+    const due = await repository.findDueForReminder(now, 30);
+
+    expect(schoolClass.findMany).toHaveBeenCalledWith({
+      where: {
+        cancelledAt: null,
+        reminderSentAt: null,
+        startsAt: { gt: now, lte: new Date('2026-10-15T11:00:00.000Z') },
+      },
+      include: { instructors: { select: { userId: true } } },
+      orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+    });
+    expect(due).toHaveLength(1);
+    expect(due[0]).toMatchObject({ id: ID, instructorIds: [INSTRUCTOR_ID] });
+    expect(due[0].reminderSentAt).toEqual(remindedAt);
+  });
+
+  it('marks a class as reminded with one conditional write and tells whether it won (reminder)', async () => {
+    const { schoolClass, repository } = setup();
+    const at = new Date('2026-10-15T10:30:00.000Z');
+
+    expect(await repository.markReminded(ID, at)).toBe(true);
+    expect(schoolClass.updateMany).toHaveBeenCalledWith({
+      where: { id: ID, reminderSentAt: null, cancelledAt: null },
+      data: { reminderSentAt: at },
+    });
+
+    schoolClass.updateMany.mockResolvedValueOnce({ count: 0 });
+    expect(await repository.markReminded(ID, at)).toBe(false);
   });
 
   it('reads the deadline fields of a class (deadline)', async () => {
@@ -345,7 +426,7 @@ describe('PrismaSchoolClassRepository', () => {
     const { schoolClass, classInstructor, calls, repository } = setup();
     schoolClass.updateMany.mockResolvedValueOnce({ count: 0 });
 
-    expect(await repository.update(domain(), false)).toBe(false);
+    expect(await repository.update(domain(), {})).toBe(false);
 
     expect(calls).toEqual([]);
     expect(classInstructor.deleteMany).not.toHaveBeenCalled();
@@ -405,7 +486,7 @@ describe('PrismaSchoolClassRepository', () => {
     const { classInstructor, repository } = setup();
     classInstructor.createMany.mockRejectedValue(new Error('down'));
 
-    await expect(repository.update(domain(), false)).rejects.toThrow('down');
+    await expect(repository.update(domain(), {})).rejects.toThrow('down');
   });
 
   it('delete removes the class only while it is not cancelled and starts after now', async () => {

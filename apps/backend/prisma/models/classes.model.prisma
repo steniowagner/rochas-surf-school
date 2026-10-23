@@ -54,6 +54,8 @@ model SchoolClass {
   deadlineRevision      Int             @default(0) @map("deadline_revision")
   deadlineAttempts      Int             @default(0) @map("deadline_attempts")
   deadlineNextAttemptAt DateTime?       @map("deadline_next_attempt_at")
+  // When the reminder of the current start was sent; cleared when an edit moves the start.
+  reminderSentAt        DateTime?       @map("reminder_sent_at")
   createdBy             String          @map("created_by") @db.Uuid
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")

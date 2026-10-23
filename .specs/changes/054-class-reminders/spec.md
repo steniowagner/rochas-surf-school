@@ -228,7 +228,7 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-04** — Add `reminderSentAt DateTime? @map("reminder_sent_at")` to `SchoolClass` in
+- [x] **T-04** — Add `reminderSentAt DateTime? @map("reminder_sent_at")` to `SchoolClass` in
   `apps/backend/prisma/models/classes.model.prisma` with the migration
   `apps/backend/prisma/migrations/<timestamp>_classes_add_reminder_sent_at/`, and implement in
   `apps/backend/src/modules/classes/school-class.prisma.ts` the mapping, `findDueForReminder`, the conditional
@@ -236,6 +236,23 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
   `school-class.prisma.spec.ts`. Skill: [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the migration applies (`npm run prisma:migrate:deploy --workspace
   apps/backend`) and `npx vitest run src/modules/classes/school-class.prisma.spec.ts` passes.
+  > ✅ 2026-10-23 12:51 — added `reminderSentAt DateTime? @map("reminder_sent_at")` to `SchoolClass` and the
+  > migration `20261023155019_classes_add_reminder_sent_at` (generated with `prisma migrate dev --create-only`,
+  > reviewed: only `ALTER TABLE "classes" ADD COLUMN "reminder_sent_at" TIMESTAMP(3)`, no drop of the hand-written
+  > partial index); `PrismaSchoolClassRepository` maps the column, `findDueForReminder` reads `cancelledAt` null,
+  > `reminderSentAt` null, `startsAt` in (now, now + lead] with the instructors, `markReminded` is one conditional
+  > `updateMany` (`reminderSentAt` and `cancelledAt` null) answering whether it wrote, and `update(schoolClass,
+  > options)` sets `reminderSentAt: null` in the same write only with `clearReminder`, never writing the mark from
+  > the entity (D-04); files: `apps/backend/prisma/models/classes.model.prisma`,
+  > `apps/backend/prisma/migrations/20261023155019_classes_add_reminder_sent_at/migration.sql`,
+  > `apps/backend/src/modules/classes/school-class.prisma.ts`,
+  > `apps/backend/src/modules/classes/school-class.prisma.spec.ts`; verified: `npm run prisma:migrate:deploy
+  > --workspace apps/backend` (all migrations applied), `npx vitest run
+  > src/modules/classes/school-class.prisma.spec.ts` (27 passed; the file at 100% lines, statements and functions,
+  > the one missed branch is the decorator-metadata branch on the class line that the coverage policy skips);
+  > deviations: the migration was created with `--create-only` and applied with `migrate deploy` instead of a plain
+  > `migrate dev`, so the SQL could be reviewed first; the backend type check still fails on the missing
+  > `class.reminder` catalog entry until T-05
 
 - [ ] **T-05** — Add `NotificationsClassReminderNotifier`
   (`apps/backend/src/modules/notifications/notifications.class-reminder-notifier.ts`, runs `Notify` with

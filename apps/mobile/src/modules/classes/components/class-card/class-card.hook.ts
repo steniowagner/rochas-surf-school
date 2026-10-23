@@ -18,6 +18,7 @@ export const useClassCard = ({
   item,
   now,
   showEnrolment,
+  isNext,
 }: UseClassCardProps): UseClassCardResult => {
   const names = item.instructors.map((instructor) => instructor.name);
 
@@ -36,6 +37,7 @@ export const useClassCard = ({
 
   return {
     state,
+    next: !!isNext && state === "not-started",
     timeRange: `${schoolTimeOf(item.startsAt)} – ${schoolTimeOf(item.endsAt)}`,
     showOccupancy: state === "not-started" || state === "started",
     occupancyPercent: getOccupancyPercent(item.seatsTaken, item.capacity),

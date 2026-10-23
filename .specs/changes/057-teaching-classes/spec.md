@@ -267,7 +267,7 @@ header's clock button.
   > (2 suites, 9 passed; both files 100%), `npx tsc --noEmit` and `npx eslint` on the files (no errors); deviations: the
   > layout types live in `classes.types.ts` with the response, and `formatShortDate` was added there for the day header's date.
 
-- [ ] **T-06** — Add the `isNext` prop to `src/modules/classes/components/class-card/` (sun border and the "Próxima"
+- [x] **T-06** — Add the `isNext` prop to `src/modules/classes/components/class-card/` (sun border and the "Próxima"
   chip) and the new `src/modules/classes/components/ongoing-class-card/` (D-10, adding tokens to
   `packages/design-tokens/src/tokens.ts` and regenerating `tokens.css` only if a translucent fill over grape is
   missing), with component tests and the copy in the three locales. Skills:
@@ -275,6 +275,29 @@ header's clock button.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-05 · Done when: `npx jest src/modules/classes/components/class-card src/modules/classes/components/ongoing-class-card`
   passes from `apps/mobile` (and `npm run check-types -w @rochas-surf-school/design-tokens` if tokens changed).
+  > ✅ 2026-10-23 20:22 — `ClassCard` takes `isNext`: while the class hasn't started (not cancelled) it shows the `sun`
+  > "Próxima" chip (`time-outline`) first in the state slot, the `sun` border and the `primary` shadow (the hook returns
+  > `next`). New `OngoingClassCard` (component, hook, types, index): a `grape` card with `shadowStyle("primary")`, the
+  > discipline chip, the level and "Em andamento" chips on the existing `onHighlight` tone, the time in `text-on-color`, the
+  > location pill, the occupancy bar (white fill, `bad` when full with `text-on-grape-bad`) and the students footer with
+  > avatars in a grape ring. Tokens added (light and dark, `tokens.css` regenerated): `onGrapeTint`, `onGrapeFill`,
+  > `onGrapeTrack`, `onGrapeShade`, `onGrapeBad`. Copy `teachingClasses.next` ("Up next" / "Próxima" / "Próxima").
+  > Files: `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/index.ts`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.component.test.tsx`;
+  > verified: `npx jest src/modules/classes/components/class-card src/modules/classes/components/ongoing-class-card --coverage`
+  > (all passed; both components and hooks 100%), `npm run check-types -w @rochas-surf-school/design-tokens` (CSS up to date),
+  > `npx tsc --noEmit` and `npx eslint` in `apps/mobile` (no errors), `npx jest src/constants src/i18n` (passed); deviations:
+  > the chips over grape reuse `Chip`'s existing `onHighlight` tone (white at 18%, the design's value) instead of a new chip
+  > tone; its raw `bg-white/[.18]` class was left as it is (outside this task).
 
 - [ ] **T-07** — Add `src/modules/classes/screens/teaching-classes.screen.tsx` (+ `.hook.ts`, `.types.ts`) with the
   `src/modules/classes/components/teaching-day-header/` component, `routes.instructor.myClasses` and

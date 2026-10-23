@@ -149,6 +149,36 @@ describe("ClassCard", () => {
       expect(card.props.style).not.toEqual(upcomingShadow);
     });
 
+    it("draws the next class with the sun border, the primary shadow and the \"Up next\" chip", async () => {
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} />);
+      const upcomingShadow = screen.getByRole("button").props.style;
+      expect(screen.queryByText("Up next")).not.toBeOnTheScreen();
+
+      await render(<ClassCard item={item()} now={BEFORE} onPress={jest.fn()} isNext />);
+
+      const card = screen.getByRole("button");
+      expect(screen.getByText("Up next")).toBeOnTheScreen();
+      expect(card.props.className).toContain("border-sun");
+      expect(card.props.style).not.toEqual(upcomingShadow);
+    });
+
+    it("shows no \"Up next\" chip once the next class has started, nor on a cancelled one", async () => {
+      await render(<ClassCard item={item()} now={DURING} onPress={jest.fn()} isNext />);
+      expect(screen.queryByText("Up next")).not.toBeOnTheScreen();
+      expect(screen.getByText("In progress")).toBeOnTheScreen();
+
+      await render(
+        <ClassCard
+          item={item({ cancelledAt: "2026-10-13T10:00:00.000Z" })}
+          now={BEFORE}
+          onPress={jest.fn()}
+          isNext
+        />,
+      );
+      expect(screen.queryByText("Up next")).not.toBeOnTheScreen();
+      expect(screen.getByRole("button").props.className).not.toContain("border-sun");
+    });
+
     it("fades a cancelled class less than a finished one", async () => {
       await render(
         <ClassCard

@@ -33,6 +33,11 @@
   --ds-shadow-grape: rgba(75,42,99,.34);
   --ds-band: #F3E7D6;
   --ds-band-line: rgba(212,165,116,.35);
+  --ds-on-grape-tint: rgba(255,255,255,.18);
+  --ds-on-grape-fill: rgba(255,255,255,.12);
+  --ds-on-grape-track: rgba(255,255,255,.22);
+  --ds-on-grape-shade: rgba(0,0,0,.14);
+  --ds-on-grape-bad: #FFD2CC;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -68,6 +73,11 @@
     --ds-shadow-grape: rgba(0,0,0,.4);
     --ds-band: #101520;
     --ds-band-line: rgba(196,154,108,.16);
+    --ds-on-grape-tint: rgba(255,255,255,.18);
+    --ds-on-grape-fill: rgba(255,255,255,.12);
+    --ds-on-grape-track: rgba(255,255,255,.22);
+    --ds-on-grape-shade: rgba(0,0,0,.14);
+    --ds-on-grape-bad: #FFD2CC;
   }
 }
 
@@ -103,6 +113,11 @@
   --ds-shadow-grape: rgba(0,0,0,.4);
   --ds-band: #101520;
   --ds-band-line: rgba(196,154,108,.16);
+  --ds-on-grape-tint: rgba(255,255,255,.18);
+  --ds-on-grape-fill: rgba(255,255,255,.12);
+  --ds-on-grape-track: rgba(255,255,255,.22);
+  --ds-on-grape-shade: rgba(0,0,0,.14);
+  --ds-on-grape-bad: #FFD2CC;
 }
 
 :root {

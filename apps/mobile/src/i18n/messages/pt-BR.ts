@@ -1026,6 +1026,9 @@ const messages: Messages = {
     keep: "Manter",
     removed: "{{name}} removido",
   },
+  teachingClasses: {
+    next: "Próxima",
+  },
 };
 
 export default messages;

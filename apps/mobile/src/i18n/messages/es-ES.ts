@@ -1033,6 +1033,9 @@ const messages: Messages = {
     keep: "Mantener",
     removed: "{{name}} eliminado",
   },
+  teachingClasses: {
+    next: "Próxima",
+  },
 };
 
 export default messages;

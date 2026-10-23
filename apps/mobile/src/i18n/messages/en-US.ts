@@ -1026,6 +1026,9 @@ const messages = {
     keep: "Keep",
     removed: "{{name}} removed",
   },
+  teachingClasses: {
+    next: "Up next",
+  },
 };
 
 export type Messages = typeof messages;

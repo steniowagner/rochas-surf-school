@@ -247,13 +247,25 @@ header's clock button.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-05** — Add `TeachingClassesResponse` to `src/modules/classes/classes.types.ts`, the hook
+- [x] **T-05** — Add `TeachingClassesResponse` to `src/modules/classes/classes.types.ts`, the hook
   `src/modules/classes/hooks/use-teaching-classes.hook.ts` (`["classes", "teaching"]`, `GET /classes/teaching`,
   authenticated, `retry: false`) and `src/modules/classes/utils/teaching-classes.ts` (the classes under way, the day
   groups with their label key and short date, the next class's id, the non-cancelled count — D-06, D-07), with tests
   `use-teaching-classes.hook.test.tsx` and `teaching-classes.test.ts`.
   Covers: ER-03, ER-04, ER-05 · Done when: `npx jest src/modules/classes/hooks/use-teaching-classes.hook.test.tsx src/modules/classes/utils/teaching-classes.test.ts`
   passes from `apps/mobile`.
+  > ✅ 2026-10-23 20:17 — added `TeachingClassesResponse` (and the layout types `TeachingDayLabel`, `TeachingDay`,
+  > `TeachingClassesLayout`) to `classes.types.ts`; `useTeachingClasses` (`["classes", "teaching"]`, authenticated
+  > `GET /classes/teaching`, `retry: false`); `utils/teaching-classes.ts` with `layoutTeachingClasses(items, now)` (ended
+  > items dropped at the given clock; `started` ones on top; the rest grouped by Fortaleza day with `today` / `tomorrow` /
+  > `weekday`; `nextId` the first `not-started`, never a cancelled one), `countAssignedClasses` (items not cancelled) and
+  > `formatShortDate` ("17 set", "17 Sep"). Files: `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-teaching-classes.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-teaching-classes.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/utils/teaching-classes.ts`, `apps/mobile/src/modules/classes/utils/teaching-classes.test.ts`;
+  > verified: `npx jest src/modules/classes/hooks/use-teaching-classes.hook.test.tsx src/modules/classes/utils/teaching-classes.test.ts --coverage`
+  > (2 suites, 9 passed; both files 100%), `npx tsc --noEmit` and `npx eslint` on the files (no errors); deviations: the
+  > layout types live in `classes.types.ts` with the response, and `formatShortDate` was added there for the day header's date.
 
 - [ ] **T-06** — Add the `isNext` prop to `src/modules/classes/components/class-card/` (sun border and the "Próxima"
   chip) and the new `src/modules/classes/components/ongoing-class-card/` (D-10, adding tokens to

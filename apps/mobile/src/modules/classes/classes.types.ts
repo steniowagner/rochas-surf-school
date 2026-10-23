@@ -213,3 +213,28 @@ export type WeekClasses = {
   weekStart: string;
   items: ClassItem[];
 };
+
+/** The answer of `GET /classes/teaching`: the classes the caller teaches that haven't ended, by start, and whether they teach any class at all. */
+export type TeachingClassesResponse = {
+  items: ClassItem[];
+  teachesAny: boolean;
+};
+
+/** How a day of "Minhas aulas" is named: "Hoje", "Amanhã" or the weekday's full name. */
+export type TeachingDayLabel = "today" | "tomorrow" | "weekday";
+
+/** The classes of "Minhas aulas" that start on one America/Fortaleza day, in start order. */
+export type TeachingDay = {
+  /** `YYYY-MM-DD`. */
+  day: string;
+  label: TeachingDayLabel;
+  items: ClassItem[];
+};
+
+/** "Minhas aulas" at a given clock: the classes under way on top, the rest by day, and the next class. */
+export type TeachingClassesLayout = {
+  ongoing: ClassItem[];
+  days: TeachingDay[];
+  /** The earliest class that hasn't started and isn't cancelled, or `null`. */
+  nextId: string | null;
+};

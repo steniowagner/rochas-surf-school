@@ -1,34 +1,38 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScreenIntro } from "@/components/ui/screen-intro";
-import { useTheme } from "@/hooks/use-theme";
+import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { SchoolRulesList } from "../school-rules-list";
 
 /** The school rules to read at any time: no checkbox and no button, only the back button. */
 export function SchoolRulesReader() {
   const { t } = useTranslation();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1 bg-page">
+      <Stack.Screen
+        options={{
+          headerTitle: () => (
+            <StackHeaderTitle title={t("schoolRulesScreen.title")} />
+          ),
+        }}
+      />
       <ScrollView
         className="flex-1"
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-6 px-[22px] pt-6"
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) }}
+        contentContainerClassName="gap-4 px-screen"
+        contentContainerStyle={{
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 24),
+        }}
       >
-        <ScreenIntro
-          icon={
-            <Ionicons name="shield-outline" size={30} color={theme.grape} />
-          }
-          title={t("schoolRulesScreen.title")}
-          description={t("schoolRulesScreen.description")}
-        />
+        <Text className="ds-text-body text-ink-2">
+          {t("schoolRulesScreen.description")}
+        </Text>
         <SchoolRulesList />
       </ScrollView>
     </View>

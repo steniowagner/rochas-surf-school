@@ -11,7 +11,13 @@ import {
 
 import { SchoolRulesReadScreen } from "./school-rules.screen";
 
-jest.mock("expo-router", () => ({ router: { back: jest.fn() } }));
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  // Renders the header's title so the tests can see it.
+  Stack: {
+    Screen: ({ options }: any) => <>{options.headerTitle()}</>,
+  },
+}));
 jest.useFakeTimers();
 
 const fetchMock = setupFetch();
@@ -38,7 +44,7 @@ describe("SchoolRulesReadScreen", () => {
     await open();
 
     expect(
-      screen.getByRole("header", { name: "School rules" }),
+      screen.getByRole("header", { name: "SCHOOL RULES" }),
     ).toBeOnTheScreen();
     expect(
       screen.getByText("Few and simple, so classes go well for everyone."),

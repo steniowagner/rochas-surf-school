@@ -312,12 +312,24 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-08** — Route `class.reminder` taps in
+- [x] **T-08** — Route `class.reminder` taps in
   `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts` by D-07, with tests in
   `use-notification-response.hook.test.tsx` (three flows and the missing class id) and a test in
   `use-notification-received.hook.test.tsx` that a received `class.reminder` invalidates nothing. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-06 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
+  > ✅ 2026-10-23 12:57 — a tapped `class.reminder` with a string `classId` now opens `routes.student.classDetail`,
+  > `routes.instructor.classDetail` or `routes.admin.classDetail` by the resolved flow (added to the class-change
+  > and student class-news groups); without a class id it falls through to `router.replace(routes.home)`; the
+  > received hook is unchanged, so a `class.reminder` invalidates nothing (D-07); tests: the three flows open their
+  > class details, the three flows without a class id go to `routes.home` and land on their home, and a received
+  > `class.reminder` invalidates no query and stays on the screen for the three roles; files:
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications/hooks` from `apps/mobile` (4 suites, 110 passed; both hooks at 100%), `tsc --noEmit`
+  > and `eslint` clean; deviations: none (the `vercel-react-native-skills` and `vercel-react-best-practices` rules
+  > were loaded; none applies to this routing-only change)
 
 ### Verification
 

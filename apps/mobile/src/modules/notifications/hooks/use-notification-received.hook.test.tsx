@@ -237,6 +237,21 @@ describe("useNotificationReceived", () => {
     expect(app.getPathname()).toBe(pathname);
   });
 
+  it.each(["student", "instructor", "admin"])(
+    "reloads nothing and stays put when a class.reminder push arrives for a %s",
+    async (role) => {
+      answerMe(account("approved", role));
+      await openApp(account("approved", role));
+      const pathname = app.getPathname();
+
+      await receive(push("class.reminder"));
+
+      expect(invalidate).not.toHaveBeenCalled();
+      expect(meCalls()).toHaveLength(0);
+      expect(app.getPathname()).toBe(pathname);
+    },
+  );
+
   it.each([undefined, "something.else"])(
     "shows nothing more for the type %s",
     async (type) => {

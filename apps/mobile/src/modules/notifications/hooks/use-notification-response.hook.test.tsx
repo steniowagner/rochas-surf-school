@@ -292,6 +292,37 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
   });
 
+  it.each([
+    ["student", "/student/class/c-1"],
+    ["instructor", "/instructor/class/c-1"],
+    ["admin", "/admin/class/c-1"],
+  ])("opens the class details of a %s who taps a class.reminder push", async (role, pathname) => {
+    answerMe(account("approved", role, true));
+    await openApp(account("approved", role, true));
+
+    await tap(response("class.reminder", "n1", "c-1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(pathname));
+    expect(meCalls()).toHaveLength(1);
+  });
+
+  it.each([
+    ["student", routes.student.home],
+    ["instructor", routes.instructor.home],
+    ["admin", routes.admin.home],
+  ])("goes to the resolved flow when a %s taps a class.reminder push without a class", async (role, home) => {
+    answerMe(account("approved", role, true));
+    await openApp(account("approved", role, true));
+
+    const replace = jest.spyOn(router, "replace");
+
+    await tap(response("class.reminder"));
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith(routes.home));
+    await waitFor(() => expect(app.getPathname()).toBe(home));
+    replace.mockRestore();
+  });
+
   it("opens the Agenda of a student who taps a location.changed push", async () => {
     answerMe(account("approved", "student", true));
     await openApp(account("approved", "student", true));

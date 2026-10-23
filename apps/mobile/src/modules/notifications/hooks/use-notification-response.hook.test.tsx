@@ -121,7 +121,10 @@ const response = (type: string | undefined, id = "n1", classId?: string) =>
 const fetchMock = jest.fn();
 let app: ReturnType<typeof renderRouter>;
 
-/** `GET /auth/me` answers `me`; every other call (the admin's list) answers an empty list. */
+/**
+ * `GET /auth/me` answers `me`, `GET /school-rules` (the homes' Rules row) no rules, and every other call (the admin's
+ * list) an empty list.
+ */
 const answerMe = (me: SessionUser | Error) => {
   fetchMock.mockImplementation(async (url: string) => {
     if (url.endsWith("/auth/me")) {
@@ -130,6 +133,10 @@ const answerMe = (me: SessionUser | Error) => {
       }
 
       return { ok: true, status: 200, json: async () => me };
+    }
+
+    if (url.endsWith("/school-rules")) {
+      return { ok: true, status: 200, json: async () => ({ version: 1, rules: [] }) };
     }
 
     return { ok: true, status: 200, json: async () => ({ items: [] }) };

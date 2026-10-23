@@ -430,6 +430,7 @@ Lets admins keep the school rules up to date and makes sure users accept the rul
 #### Managing the school rules
 
 _Implemented in spec 010-school-rules-management._
+_Implemented in spec 056-school-rules-admin-screen._
 
 Admins SHALL be able to add, edit, remove and reorder school rules. A new rule goes last; removing a rule moves the rules after it up one place.
 
@@ -451,6 +452,7 @@ Users SHALL accept the school rules after their registration is approved and bef
 _Implemented in spec 010-school-rules-management._
 _Implemented in spec 012-onboarding-school-rules._
 _Implemented in spec 026-profile-tab._
+_Implemented in spec 056-school-rules-admin-screen._
 
 Approved users, of any role, SHALL be able to read the school rules at any time.
 
@@ -462,6 +464,7 @@ _Implemented in spec 010-school-rules-management._
 _Implemented in spec 011-school-rules-acceptance._
 _Implemented in spec 012-onboarding-school-rules._
 _Implemented in spec 013-school-rules-update._
+_Implemented in spec 056-school-rules-admin-screen._
 
 Every time admins add, edit or remove a school rule, the rules SHALL get a new version, and each user SHALL accept it the next time they open the app, before continuing; admins don't choose. Reordering the rules, or saving a rule without changing its text, SHALL NOT create a new version. The change SHALL NOT send a notification.
 

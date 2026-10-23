@@ -190,9 +190,12 @@ describe("admin tabs", () => {
       ok: true,
       status: 200,
       json: async () =>
-        String(url).includes("/people?")
-          ? { items: [], page: 1, perPage: 50, total: 0 }
-          : { items: [] },
+        // The home's Rules row reads the school rules for its count.
+        String(url).includes("/school-rules")
+          ? { version: 1, rules: [] }
+          : String(url).includes("/people?")
+            ? { items: [], page: 1, perPage: 50, total: 0 }
+            : { items: [] },
     }));
     const app = await open();
 
@@ -214,9 +217,12 @@ describe("admin tabs", () => {
       ok: true,
       status: 200,
       json: async () =>
-        String(url).includes("/cancellation-rules")
-          ? { surf: null, skate: null }
-          : { items: [] },
+        // The home's Rules row reads the school rules for its count.
+        String(url).includes("/school-rules")
+          ? { version: 1, rules: [] }
+          : String(url).includes("/cancellation-rules")
+            ? { surf: null, skate: null }
+            : { items: [] },
     }));
     const app = await open();
 

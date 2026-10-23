@@ -446,6 +446,8 @@ src/
                                                      # above the tab bar
     (private)/admin/school-settings.tsx              # "Configurações da escola" (/admin/school-settings, spec 046),
                                                      # above the tab bar
+    (private)/admin/manage-school-rules.tsx          # "Regras da escola" management (/admin/manage-school-rules,
+                                                     # spec 056), above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
     (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
     (private)/admin/cancellation-rules.tsx           # "Regras de cancelamento" (/admin/cancellation-rules), above
@@ -471,14 +473,15 @@ src/
                                 # opaque page elsewhere), useHeaderInset (fixed screens' top padding),
                                 # useKeyboardOffset (keyboardVerticalOffset), StackHeaderTitle (a screen's
                                 # headerTitle), test utils; stack-header.layouts.test.tsx tests the four layouts
-  modules/instructor/screens/instructor.screen.tsx  # the instructor's Início: "Painel" with the Escola section
-                                # and the People row
+  modules/instructor/screens/instructor.screen.tsx  # the instructor's Início: "Painel" with the Escola section:
+                                # the Rules row (read-only rules, spec 056) and the People row
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
     screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
                                 # pending count, the "Inscrições em aulas" row and its request count (spec 042),
                                 # the "Criar aulas" row and the "Regras de cancelamento" row,
-                                # "School" with the People row and the "Configurações da escola" row (spec 046)
+                                # "School" with the Rules row (management screen, spec 056), the People row and the
+                                # "Configurações da escola" row (spec 046)
     screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
                                 # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
                                 # the People PersonSheet (with the email) for a pressed card
@@ -685,8 +688,20 @@ src/
                                 # school-rule-row (number, title, description), school-rules-acceptance
                                 # (SchoolRulesAcceptance: icon, eyebrow/title/description/submitLabel props,
                                 # SchoolRulesList, fixed footer with the Checkbox and the CTA), school-rules-reader
-                                # (read-only: shield ScreenIntro, SchoolRulesList)
+                                # (read-only: shield ScreenIntro, SchoolRulesList); spec 056 adds
+                                # school-rules-entry-row (the homes' "Regras" row, admin / instructor subtitle),
+                                # school-rule-editable-row (number, text that opens the edit sheet, ↑ / ↓),
+                                # school-rule-sheet (add / edit: title and explanation with counters, save note)
+                                # and delete-school-rule-sheet (the confirmation, with the delete note)
+    hooks/use-{create,update,delete}-school-rule.hook.ts  # POST /school-rules, PUT and DELETE /school-rules/:id:
+                                # text trimmed, the answer cached; a 404 reloads the list; toasts (spec 056)
+    hooks/use-reorder-school-rules.hook.ts  # PUT /school-rules/order with every id: optimistic, put back on a
+                                # failure, reloads on schoolRule.order.mismatch (spec 056)
+    utils/school-rules-error.ts  # the not-found / order-mismatch matchers and the toast keys
+    school-rules.constants.ts   # the 60 / 300 limits of the title and the explanation
     screens/school-rules.screen.tsx  # the rules read from the Profile (/<role>/school-rules)
+    screens/manage-school-rules.screen.tsx  # the admin's management screen (+ hook: status, moves, open sheet):
+                                # loading, error + retry, empty, or the list with the bottom "Adicionar regra"
   modules/school-settings/      # "Configurações da escola" (spec 046, admins)
     screens/school-settings.screen.tsx  # loading, error + retry, or the form
     components/school-settings-form/  # SchoolSettingsForm + hook: the waiting-list switch, PhoneNumberField, one

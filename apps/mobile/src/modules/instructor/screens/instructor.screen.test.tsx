@@ -6,12 +6,30 @@ import InstructorHomeLayout from "@/app/(private)/instructor/(tabs)/(home)/_layo
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/(home)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorPeopleRoute from "@/app/(private)/instructor/people";
+import InstructorSchoolRulesRoute from "@/app/(private)/instructor/school-rules";
 import { routes } from "@/constants/routes";
 import { SessionProvider } from "@/providers/session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { hydrateSession } from "@/services/session/session.store";
 
 const fetchMock = jest.fn();
+
+const SCHOOL_RULES = {
+  version: 1,
+  rules: Array.from({ length: 6 }, (_, index) => ({
+    id: `r-${index + 1}`,
+    title: `Rule ${index + 1}`,
+    description: `Explanation ${index + 1}`,
+    index: index + 1,
+  })),
+};
+
+// The Rules row asks for the school rules on its own: they are answered here, so `fetchMock` sees only the home's
+// other requests.
+const fetchWithSchoolRules = (url: string, init: RequestInit) =>
+  String(url).endsWith("/school-rules")
+    ? Promise.resolve({ ok: true, status: 200, json: async () => SCHOOL_RULES })
+    : fetchMock(url, init);
 
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: jest.fn() }),
@@ -31,6 +49,7 @@ async function openInstructorHome() {
       "(private)/instructor/(tabs)/(home)/_layout": InstructorHomeLayout,
       "(private)/instructor/(tabs)/(home)/index": InstructorRoute,
       "(private)/instructor/people": InstructorPeopleRoute,
+      "(private)/instructor/school-rules": InstructorSchoolRulesRoute,
     },
     { initialUrl: routes.instructor.home },
   );
@@ -63,7 +82,7 @@ beforeEach(() => {
         ? { count: 3 }
         : { items: [], page: 1, perPage: 20, total: 0 },
   }));
-  globalThis.fetch = fetchMock;
+  globalThis.fetch = fetchWithSchoolRules as typeof fetch;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
@@ -84,7 +103,7 @@ describe("InstructorScreen", () => {
     expect(screen.getByText("School")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
     expect(screen.getByText("9 on the platform")).toBeOnTheScreen();
-    // Only the bell's count: the home itself loads nothing.
+    // Only the bell's count besides the Rules row's rules, answered apart.
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "http://api.test/notifications/unread-count",
     ]);
@@ -98,5 +117,21 @@ describe("InstructorScreen", () => {
 
     expect(app.getPathname()).toBe(routes.instructor.people);
     expect(await screen.findByText("No one found")).toBeOnTheScreen();
+  });
+
+  it("shows the Rules row first under School, above People, with the rule count, and opens the read-only rules", async () => {
+    const user = userEvent.setup();
+    const app = await openInstructorHome();
+
+    expect(await screen.findByText("6 rules for every student")).toBeOnTheScreen();
+    const rows = screen.getAllByText(/^(School|Rules|People)$/);
+    expect(rows.map((row) => row.props.children)).toEqual(["School", "Rules", "People"]);
+
+    await user.press(screen.getByRole("button", { name: /Rules/ }));
+
+    expect(app.getPathname()).toBe(routes.instructor.schoolRules);
+    expect(await screen.findByText("Rule 6")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: /Move rule/ })).not.toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Add rule" })).not.toBeOnTheScreen();
   });
 });

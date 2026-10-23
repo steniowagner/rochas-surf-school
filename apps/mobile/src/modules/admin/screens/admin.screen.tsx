@@ -9,6 +9,7 @@ import { routes } from "@/constants/routes";
 import { useTheme } from "@/hooks/use-theme";
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
+import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
 
 import { useRegistrations } from "../hooks/use-registrations.hook";
@@ -20,6 +21,7 @@ const openPeople = () => router.push(routes.admin.people);
 const openNewClass = () => router.push(routes.admin.newClass());
 const openSchoolSettings = () => router.push(routes.admin.schoolSettings);
 const openCancellationRules = () => router.push(routes.admin.cancellationRules);
+const openSchoolRules = () => router.push(routes.admin.manageSchoolRules);
 
 export function AdminScreen() {
   const { t } = useTranslation();
@@ -131,6 +133,7 @@ export function AdminScreen() {
         <Text className="ds-text-section-label text-ink-2">
           {t("admin.home.schoolSection")}
         </Text>
+        <SchoolRulesEntryRow role="admin" onPress={openSchoolRules} />
         <PeopleEntryRow onPress={openPeople} />
         <View className="rounded-card border border-line bg-surface px-4">
           <Pressable

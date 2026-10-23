@@ -448,9 +448,24 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
 
 ### Verification
 
-- [ ] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence, and the user journeys followed on the iOS simulator (or say which ones weren't).
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-23 — `node .specs/scripts/run-related-tests.mjs 056`: RELATED TESTS PASSED (apps/mobile, 79 suites,
+  > 1510 tests; the first run failed in two existing suites that render the homes, fixed under T-07 in `8b3e9701`);
+  > `node .specs/scripts/check-coverage.mjs 056`: COVERAGE OK — every changed line covered in 21 files (the route file
+  > is excluded by the technical context; types and barrels have no executable lines); `npx turbo run lint check-types
+  > build --filter=@rochas-surf-school/mobile`: 12 tasks successful (`expo lint` exit 0, `tsc --noEmit` exit 0, the
+  > workspace has no build script); `node .specs/scripts/run-e2e.mjs 056`: E2E PASSED — no e2e suite applies.
+  > Journeys on the iOS simulator (iPhone 18 Pro, the dev build on Metro with this branch, the local backend), dark
+  > theme, pt-BR: **instructor** — signed in as Dev Instructor, Início showed "ESCOLA" → "Regras / Nenhuma regra ainda"
+  > first, above "Pessoas"; tapping it opened the read-only "REGRAS DA ESCOLA" (no arrows, no add button). **Not
+  > driven** — every admin journey (home row, list, add, edit, reorder, delete, error and empty states, Perfil
+  > read-only, re-acceptance at relaunch, dark theme of the screen and sheets): signing in as the seeded Dev Admin
+  > needs the e-mailed code (the local `.env` has a Resend key, so codes are sent, not logged), which this session can't
+  > read. They are covered by `manage-school-rules.screen.test.tsx`, the sheet and row tests and `admin.screen.test.tsx`,
+  > and are listed for the user to follow in the report. Deviations: the simulator is left signed out, on the code
+  > screen for `admin@example.com`.
 
 ## Verification Plan
 

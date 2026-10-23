@@ -112,8 +112,13 @@ status chip, so the student still sees every status the requirements ask for.
 
 ### Verification
 
-- [ ] **T-02** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-02** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-22 — `node .specs/scripts/run-related-tests.mjs 052` → RELATED TESTS PASSED (apps/mobile: 59 suites,
+  > 1003 passed); `node .specs/scripts/check-coverage.mjs 052` → COVERAGE OK (4 measured files, every changed line
+  > covered; `enrolment.types.ts` has no executable changed lines); `npx turbo run lint check-types
+  > --filter=@rochas-surf-school/mobile` → 8 tasks successful. The optional manual simulator check wasn't run (the
+  > Jest tests cover every Expected Result). Files: the spec only; deviations: none.
 
 ## Verification Plan
 

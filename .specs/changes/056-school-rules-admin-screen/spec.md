@@ -347,13 +347,22 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   > dependency was out of this task. One `act()` warning can still appear when the whole module runs (test noise, no
   > failure).
 
-- [ ] **T-04** — Add `src/modules/school-rules/components/delete-school-rule-sheet/` (component, hook, types,
+- [x] **T-04** — Add `src/modules/school-rules/components/delete-school-rule-sheet/` (component, hook, types,
   `index.ts`): the confirmation of D-04 with the rule's title and the delete note, calling the T-01 delete hook, with
   copy in the three locales and `delete-school-rule-sheet.component.test.tsx` (confirm, cancel, 404, failure keeps it
   open, the note). Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-07, ER-09, ER-10 · Done when: `npx jest src/modules/school-rules/components/delete-school-rule-sheet`
   passes from `apps/mobile`.
+  > ✅ 2026-10-23 — `DeleteSchoolRuleSheet` (`visible`, `rule`, `onClose`): "Delete this rule?", the rule's title, the
+  > delete note (D-01) in the same `bg-sand` note row as the edit sheet, a danger "Delete rule" (`loading` while the
+  > request runs) and a ghost "Cancel". Confirming calls the T-01 delete hook: success toasts "Rule deleted" and closes,
+  > a 404 closes (the hook reloaded and toasted), any other failure keeps it open. Files:
+  > `apps/mobile/src/modules/school-rules/components/delete-school-rule-sheet/{index.ts,delete-school-rule-sheet.component.tsx,delete-school-rule-sheet.hook.ts,delete-school-rule-sheet.types.ts,delete-school-rule-sheet.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts` (`manageSchoolRules.deleteSheet`; the buttons reuse
+  > `manageSchoolRules.sheet.delete` / `.cancel`, the same words). Verified: `npx jest --coverage
+  > src/modules/school-rules/components/delete-school-rule-sheet` (7 passed, 100 % of the component and hook);
+  > `npx tsc --noEmit` (exit 0); deviations: none.
 
 - [ ] **T-05** — Add `src/modules/school-rules/components/school-rule-editable-row/` (component, types, `index.ts`):
   the position, title and explanation in a `Pressable` that calls `onEdit`, and the ↑/↓ `TouchableOpacity` buttons

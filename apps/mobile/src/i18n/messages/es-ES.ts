@@ -718,6 +718,10 @@ const messages: Messages = {
     description: "Pocas y sencillas, para que las clases salgan bien para todos.",
   },
   manageSchoolRules: {
+    deleteSheet: {
+      title: "¿Eliminar esta regla?",
+      note: "Al eliminarla, todos tendrán que aceptar las reglas de nuevo la próxima vez que abran la app.",
+    },
     sheet: {
       addTitle: "Nueva regla",
       editTitle: "Editar regla",

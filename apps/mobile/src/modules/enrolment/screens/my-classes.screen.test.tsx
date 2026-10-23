@@ -219,7 +219,7 @@ describe("MyClassesScreen", () => {
     fetchMock.mockResolvedValue(ok({ items: [] }));
     await renderScreen();
 
-    expect(await screen.findByText("Nothing here")).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: "Nothing here" })).toBeOnTheScreen();
     expect(screen.getByText("You haven't asked for a seat in any class yet.")).toBeOnTheScreen();
   });
 
@@ -235,20 +235,45 @@ describe("MyClassesScreen", () => {
     expect(router.push).toHaveBeenNthCalledWith(2, routes.student.myHistory);
   });
 
-  it("shows a spinner while loading, then the error with a retry that loads again", async () => {
+  it("shows the skeleton as one loading state, then the error with a retry that loads again", async () => {
     let fail: (value: Response) => void = () => undefined;
     fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (fail = resolve)));
     const user = userEvent.setup();
     await renderScreen();
 
-    expect(screen.getByTestId("my-classes-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
+    expect(screen.getAllByTestId("class-card-skeleton")).toHaveLength(4);
+    expect(screen.getByRole("button", { name: "All" })).toBeOnTheScreen();
 
     await act(async () => fail(failure(500) as Response));
 
-    expect(await screen.findByText("We couldn't load your classes.")).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
+    expect(
+      screen.getByText("We couldn't load your classes. Check your connection and try again."),
+    ).toBeOnTheScreen();
+    expect(screen.queryByLabelText("Loading the classes")).not.toBeOnTheScreen();
     expect(screen.queryByText("Nothing here")).not.toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+  });
+
+  it("keeps the error with the button's spinner while Try again loads, not the skeleton", async () => {
+    let answer: (value: Response) => void = () => undefined;
+    fetchMock.mockResolvedValueOnce(failure(500));
+    const user = userEvent.setup();
+    await renderScreen();
+    await screen.findByRole("header", { name: "Something went wrong" });
+    fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (answer = resolve)));
+
+    await user.press(screen.getByRole("button", { name: "Try again" }));
+
+    expect(screen.getByRole("button", { name: "Try again" })).toBeDisabled();
+    expect(screen.queryByLabelText("Loading the classes")).not.toBeOnTheScreen();
+
+    await act(async () => answer(ok({ items: ITEMS }) as Response));
 
     expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
   });
@@ -264,16 +289,16 @@ describe("MyClassesScreen", () => {
 
     await waitFor(() => expect(requestedPaths()).toHaveLength(2));
     expect(screen.getByText("16:00 – 17:00")).toBeOnTheScreen();
-    expect(screen.queryByText("We couldn't load your classes.")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
   });
 
   it("shows nothing after an expired session", async () => {
     (api.apiGet as jest.Mock).mockRejectedValueOnce(new SessionExpiredError());
     await renderScreen();
 
-    await waitFor(() => expect(screen.queryByTestId("my-classes-loading")).not.toBeOnTheScreen());
+    await waitFor(() => expect(screen.queryByLabelText("Loading the classes")).not.toBeOnTheScreen());
     expect(api.apiGet).toHaveBeenCalledWith("/classes/mine", { authenticated: true });
-    expect(screen.queryByText("We couldn't load your classes.")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
     expect(screen.queryByText("Nothing here")).not.toBeOnTheScreen();
   });
 
@@ -302,6 +327,18 @@ describe("MyClassesScreen", () => {
     expect(screen.getByText("Você ainda não pediu vaga em nenhuma aula.")).toBeOnTheScreen();
     await userEvent.press(screen.getByRole("button", { name: "Encerradas" }));
     expect(screen.getByText("Você não tem pedidos com este status.")).toBeOnTheScreen();
+  });
+
+  it("shows the error in Portuguese", async () => {
+    await act(() => i18n.changeLanguage("pt-BR"));
+    fetchMock.mockResolvedValue(failure(500));
+    await renderScreen();
+
+    expect(await screen.findByRole("header", { name: "Algo deu errado" })).toBeOnTheScreen();
+    expect(
+      screen.getByText("Não conseguimos carregar suas aulas. Verifique sua conexão e tente novamente."),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeOnTheScreen();
   });
 
   it("is translated into Spanish", async () => {

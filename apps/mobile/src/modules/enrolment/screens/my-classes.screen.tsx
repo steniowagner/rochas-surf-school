@@ -1,18 +1,13 @@
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
 import { HeaderButton } from "@/components/ui/header-button";
-import { useTheme } from "@/hooks/use-theme";
 import { ClassCard } from "@/modules/classes/components/class-card";
+import { ClassCardSkeleton } from "@/modules/classes/components/class-card-skeleton";
 import {
   StackHeaderTitle,
   useLeftTitleHeader,
@@ -22,10 +17,11 @@ import { MyClassesFilters } from "../components/my-classes-filters";
 
 import { useMyClassesScreen } from "./my-classes.screen.hook";
 
+const LOADING_CARDS = [0, 1, 2, 3];
+
 /** The student's "Minhas aulas" tab: every class they asked for that hasn't finished, by status. */
 export function MyClassesScreen() {
   const { t } = useTranslation();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const screen = useMyClassesScreen();
   const headerOptions = useLeftTitleHeader(() => (
@@ -34,40 +30,47 @@ export function MyClassesScreen() {
 
   const renderEmpty = () => {
     if (screen.isLoading) {
+      // Enough cards to fill the screen under the chips, read out as one loading state.
       return (
-        <ActivityIndicator
+        <View
           testID="my-classes-loading"
-          color={theme.grape}
-          className="py-8"
-        />
-      );
-    }
-
-    if (screen.isError) {
-      return (
-        <View className="items-center gap-3 py-8">
-          <Text className="ds-text-body text-center text-ink-2">
-            {t("myClasses.loadError")}
-          </Text>
-          <Button variant="outline" onPress={screen.retry}>
-            {t("myClasses.retry")}
-          </Button>
+          accessible
+          accessibilityLabel={t("myClasses.loading")}
+          className="gap-3"
+        >
+          {LOADING_CARDS.map((key) => (
+            <ClassCardSkeleton key={key} />
+          ))}
         </View>
       );
     }
 
+    // The states below are `flex-1`: in a row they only fill the width, so they don't collapse in the list's column.
+    if (screen.isError) {
+      return (
+        <View className="flex-row pt-4">
+          <ErrorState
+            title={t("myClasses.loadError.title")}
+            description={t("myClasses.loadError.description")}
+            onRetry={screen.retry}
+            retrying={screen.isRetrying}
+          />
+        </View>
+      );
+    }
+
+    // Nothing after an expired session: it is handled once, centrally.
     if (!screen.isEmpty) {
       return null;
     }
 
     return (
-      <View className="items-center gap-2 rounded-card border border-line bg-surface p-6">
-        <Text className="ds-text-list-title text-center text-ink">
-          {t("myClasses.empty.title")}
-        </Text>
-        <Text className="ds-text-body text-center text-ink-2">
-          {t(screen.emptyKey)}
-        </Text>
+      <View className="flex-row pt-4">
+        <EmptyState
+          icon="calendar-outline"
+          title={t("myClasses.empty.title")}
+          description={t(screen.emptyKey)}
+        />
       </View>
     );
   };

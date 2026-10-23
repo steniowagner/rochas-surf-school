@@ -41,6 +41,9 @@ export const useMyClassesScreen = (): UseMyClassesScreenResult => {
     }
   };
 
+  // With no classes loaded, a fetch after an error goes back to pending: while "Try again" runs, the error stays on
+  // screen with the spinner in its button, instead of the loading state.
+  const isRetrying = query.isPending && query.errorUpdateCount > 0;
   const items = filterMyClasses(query.data?.items ?? NO_ITEMS, filter);
 
   return {
@@ -50,10 +53,12 @@ export const useMyClassesScreen = (): UseMyClassesScreenResult => {
     items,
     isEmpty: query.data !== undefined && items.length === 0,
     emptyKey: filter === "all" ? "myClasses.empty.all" : "myClasses.empty.filtered",
-    isLoading: query.isPending,
+    isLoading: query.isPending && !isRetrying,
     // An expired session is handled by the session flow; a failed refetch keeps the list it had.
     isError:
-      query.isError && query.data === undefined && !(query.error instanceof SessionExpiredError),
+      isRetrying ||
+      (query.isError && query.data === undefined && !(query.error instanceof SessionExpiredError)),
+    isRetrying,
     isRefreshing,
     refresh,
     retry: () => void refetch(),

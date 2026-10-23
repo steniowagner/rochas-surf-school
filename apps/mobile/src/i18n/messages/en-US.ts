@@ -414,8 +414,12 @@ const messages = {
       all: "You haven't asked for a seat in any class yet.",
       filtered: "You have no requests with this status.",
     },
-    loadError: "We couldn't load your classes.",
-    retry: "Try again",
+    loading: "Loading the classes",
+    loadError: {
+      title: "Something went wrong",
+      description:
+        "We couldn't load your classes. Check your connection and try again.",
+    },
   },
   myHistory: {
     legend: "Days you took a class",

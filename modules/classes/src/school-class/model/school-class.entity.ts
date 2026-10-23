@@ -41,6 +41,8 @@ export interface SchoolClassState extends EntityState {
   deadlineAttempts?: number;
   /** When the next attempt is due; none means due now. */
   deadlineNextAttemptAt?: Date | null;
+  /** When the reminder of the current start was sent; none means it wasn't. */
+  reminderSentAt?: Date | null;
 }
 
 export class SchoolClass extends Entity<SchoolClassState> {
@@ -59,6 +61,7 @@ export class SchoolClass extends Entity<SchoolClassState> {
       deadlineNextAttemptAt: props.deadlineNextAttemptAt
         ? new Date(props.deadlineNextAttemptAt.getTime())
         : null,
+      reminderSentAt: props.reminderSentAt ? new Date(props.reminderSentAt.getTime()) : null,
     });
   }
 
@@ -126,6 +129,10 @@ export class SchoolClass extends Entity<SchoolClassState> {
     return this.props.deadlineNextAttemptAt
       ? new Date(this.props.deadlineNextAttemptAt.getTime())
       : null;
+  }
+
+  get reminderSentAt(): Date | null {
+    return this.props.reminderSentAt ? new Date(this.props.reminderSentAt.getTime()) : null;
   }
 
   public validate(): void {

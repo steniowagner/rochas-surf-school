@@ -226,6 +226,37 @@ describe("EditClass", () => {
     });
   });
 
+  describe("reminder", () => {
+    const REMINDED_AT = new Date("2026-10-15T10:30:00.000Z");
+    const reminded = { reminderSentAt: REMINDED_AT };
+
+    it.each([
+      ["start time", { start: "08:30" }],
+      ["date", { date: "2026-10-16" }],
+    ])("clears the reminder mark when the %s changes", async (_field, change) => {
+      const { useCase, input, classes, stored } = setup({ stored: reminded });
+
+      await useCase.execute({ ...input, ...change });
+
+      expect((await classes.findById(stored.id))!.reminderSentAt).toBeNull();
+      expect(classes.clearReminderCalls).toEqual([true]);
+    });
+
+    it.each([
+      ["end", { end: "09:30" }],
+      ["notes", { notes: "Other" }],
+      ["capacity", { capacity: 9 }],
+      ["instructors", { instructorIds: [A, C] }],
+    ])("keeps the reminder mark when only the %s changes", async (_field, change) => {
+      const { useCase, input, classes, stored } = setup({ stored: reminded });
+
+      await useCase.execute({ ...input, ...change });
+
+      expect((await classes.findById(stored.id))!.reminderSentAt).toEqual(REMINDED_AT);
+      expect(classes.clearReminderCalls).toEqual([false]);
+    });
+  });
+
   describe("access and lookup", () => {
     it("refuses a student and an instructor", async () => {
       const { useCase, input, classes } = setup();

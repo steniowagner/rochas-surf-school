@@ -69,6 +69,20 @@ describe("SchoolClass", () => {
     expect(worked.deadlineAttempts).toBe(3);
   });
 
+  it("has no reminder mark by default and does not share its reminderSentAt", () => {
+    expect(buildClass().reminderSentAt).toBeNull();
+    expect(buildClass({ reminderSentAt: null }).reminderSentAt).toBeNull();
+
+    const reminded = buildClass({ reminderSentAt: new Date("2026-10-15T10:30:00.000Z") });
+    reminded.reminderSentAt!.setFullYear(1999);
+
+    expect(reminded.reminderSentAt!.toISOString()).toBe("2026-10-15T10:30:00.000Z");
+    expect(reminded.clone({ capacity: 5 }).reminderSentAt!.toISOString()).toBe(
+      "2026-10-15T10:30:00.000Z",
+    );
+    expect(() => reminded.validate()).not.toThrow();
+  });
+
   it("does not share its dates or instructors with the caller", () => {
     const item = buildClass();
 

@@ -51,7 +51,7 @@ describe("FakeSchoolClassRepository", () => {
     const repository = new FakeSchoolClassRepository([stored, other]);
     const edited = stored.clone({ capacity: 5 });
 
-    expect(await repository.update(edited, false)).toBe(true);
+    expect(await repository.update(edited, {})).toBe(true);
 
     expect(repository.updateCalls).toEqual([edited]);
     expect((await repository.findById(stored.id))?.capacity).toBe(5);
@@ -67,7 +67,7 @@ describe("FakeSchoolClassRepository", () => {
     });
     const repository = new FakeSchoolClassRepository([stored]);
 
-    expect(await repository.update(stored.clone({ capacity: 5 }), true)).toBe(true);
+    expect(await repository.update(stored.clone({ capacity: 5 }), { clearDeadline: true })).toBe(true);
 
     const saved = (await repository.findById(stored.id))!;
     expect(saved.capacity).toBe(5);
@@ -83,18 +83,46 @@ describe("FakeSchoolClassRepository", () => {
     const stored = buildClass({ cancellationDeadline: deadline });
     const repository = new FakeSchoolClassRepository([stored]);
 
-    await repository.update(stored.clone({ capacity: 5 }), false);
+    await repository.update(stored.clone({ capacity: 5 }), {});
 
     expect((await repository.findById(stored.id))!.cancellationDeadline).toEqual(deadline);
+  });
+
+  it("clears the reminder mark in the same write when told to", async () => {
+    const stored = buildClass({ reminderSentAt: new Date("2026-10-15T10:30:00.000Z") });
+    const repository = new FakeSchoolClassRepository([stored]);
+
+    expect(await repository.update(stored.clone({ capacity: 5 }), { clearReminder: true })).toBe(true);
+
+    const saved = (await repository.findById(stored.id))!;
+    expect(saved.capacity).toBe(5);
+    expect(saved.reminderSentAt).toBeNull();
+    expect(repository.clearReminderCalls).toEqual([true]);
+    expect(repository.clearDeadlineCalls).toEqual([false]);
+  });
+
+  it("never writes the reminder mark from the edited class", async () => {
+    const remindedAt = new Date("2026-10-15T10:30:00.000Z");
+    const stored = buildClass({ reminderSentAt: remindedAt });
+    const repository = new FakeSchoolClassRepository([stored]);
+
+    await repository.update(stored.clone({ capacity: 5, reminderSentAt: null }), {});
+    expect((await repository.findById(stored.id))!.reminderSentAt).toEqual(remindedAt);
+
+    const unmarked = buildClass();
+    const other = new FakeSchoolClassRepository([unmarked]);
+    await other.update(unmarked.clone({ reminderSentAt: remindedAt }), {});
+    expect((await other.findById(unmarked.id))!.reminderSentAt).toBeNull();
+    expect(other.clearReminderCalls).toEqual([false]);
   });
 
   it("refuses to update a cancelled class and a missing one", async () => {
     const stored = buildClass({ cancelledAt: new Date("2026-10-14T10:00:00.000Z") });
     const repository = new FakeSchoolClassRepository([stored]);
 
-    expect(await repository.update(stored.clone({ capacity: 5 }), false)).toBe(false);
+    expect(await repository.update(stored.clone({ capacity: 5 }), {})).toBe(false);
     expect((await repository.findById(stored.id))?.capacity).toBe(8);
-    expect(await repository.update(buildClass(), false)).toBe(false);
+    expect(await repository.update(buildClass(), {})).toBe(false);
   });
 
   it("cancels a class once, keeping the first cancellation", async () => {

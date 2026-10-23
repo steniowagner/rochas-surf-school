@@ -1,5 +1,12 @@
 import { ClassDiscipline, SchoolClass } from "../model";
 
+export interface SchoolClassUpdateOptions {
+  /** Clears the cancellation deadline (no deadline, no attempts, due now) and bumps its revision. */
+  clearDeadline?: boolean;
+  /** Clears the reminder mark, so the new start is reminded. */
+  clearReminder?: boolean;
+}
+
 export interface SchoolClassRepository {
   /** Stores every class with its instructors in one atomic write. */
   createMany(classes: SchoolClass[]): Promise<void>;
@@ -8,11 +15,11 @@ export interface SchoolClassRepository {
   /** The class with its instructor ids, or null when there is none. */
   findById(id: string): Promise<SchoolClass | null>;
   /**
-   * Writes the class and replaces its instructors in one atomic write. With `clearDeadline`, the same write
-   * clears the cancellation deadline (no deadline, no attempts, due now) and bumps its revision. Returns
+   * Writes the class and replaces its instructors in one atomic write; the options clear the deadline and the
+   * reminder mark in that same write. The stored reminder mark is never written from `schoolClass`. Returns
    * `false`, writing nothing, when the stored class is cancelled.
    */
-  update(schoolClass: SchoolClass, clearDeadline: boolean): Promise<boolean>;
+  update(schoolClass: SchoolClass, options: SchoolClassUpdateOptions): Promise<boolean>;
   /**
    * Marks the class as cancelled at `at`, with the message (or none). Returns `true` when it cancelled the
    * class and `false` when it was already cancelled (or is gone): of two simultaneous cancels exactly one wins.

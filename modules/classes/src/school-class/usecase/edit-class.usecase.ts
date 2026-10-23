@@ -160,10 +160,11 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     const instructorIds = [...new Set(input.instructorIds as unknown[])];
     const capacity = input.capacity as number;
 
+    const startChanged = startsAt.getTime() !== stored.startsAt.getTime();
     const classChanged =
       input.discipline !== stored.discipline ||
       input.level !== stored.level ||
-      startsAt.getTime() !== stored.startsAt.getTime() ||
+      startChanged ||
       endsAt.getTime() !== stored.endsAt.getTime() ||
       locationId !== stored.locationId ||
       capacity !== stored.capacity ||
@@ -217,7 +218,8 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
     });
     edited.validate();
 
-    if (!(await this.schoolClassRepository.update(edited, classChanged))) {
+    const options = { clearDeadline: classChanged, clearReminder: startChanged };
+    if (!(await this.schoolClassRepository.update(edited, options))) {
       throw new DomainError("class.cancelled", 409);
     }
 

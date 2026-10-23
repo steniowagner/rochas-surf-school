@@ -170,13 +170,31 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-02** — Add `reminderSentAt` (nullable date, cloned like `cancelledAt`) to `SchoolClass` in
+- [x] **T-02** — Add `reminderSentAt` (nullable date, cloned like `cancelledAt`) to `SchoolClass` in
   `modules/classes/src/school-class/model/school-class.entity.ts`; change `SchoolClassRepository.update` to take
   options (`{ clearDeadline, clearReminder }`) in
   `modules/classes/src/school-class/provider/school-class.repository.ts`; make `EditClass` pass `clearReminder: true`
   only when `startsAt` changed (D-04); update `modules/classes/test/mock/fake-school-class.repository.ts` and the
   entity and `edit-class.usecase.test.ts` tests. Skill: [`module-entity`](../../../.claude/skills/module-entity).
   Covers: ER-04 · Done when: `npx jest` passes from `modules/classes`.
+  > ✅ 2026-10-23 12:47 — added `reminderSentAt` (nullable, copied in the constructor like `cancelledAt`, with its
+  > getter) to `SchoolClass`; `SchoolClassRepository.update(schoolClass, options)` now takes
+  > `SchoolClassUpdateOptions` (`{ clearDeadline?, clearReminder? }`) and documents that the stored mark is never
+  > written from the entity; `EditClass` passes `clearDeadline: classChanged` and `clearReminder` only when
+  > `startsAt` changed (D-04); the fake repository records `clearReminderCalls`, keeps the stored mark unless told
+  > to clear it, and the tests that called `update(…, true/false)` pass the options; files:
+  > `modules/classes/src/school-class/model/school-class.entity.ts`,
+  > `modules/classes/src/school-class/provider/school-class.repository.ts`,
+  > `modules/classes/src/school-class/usecase/edit-class.usecase.ts`,
+  > `modules/classes/test/mock/fake-school-class.repository.ts`,
+  > `modules/classes/test/school-class/model/school-class.entity.test.ts`,
+  > `modules/classes/test/school-class/usecase/edit-class.usecase.test.ts`,
+  > `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`,
+  > `modules/classes/test/school-class/usecase/work-out-cancellation-deadlines.usecase.test.ts`; verified: `npx
+  > jest` from `modules/classes` (35 suites, 534 passed; entity and `edit-class.usecase.ts` at 100%), `tsc --noEmit`
+  > and `oxlint` clean; deviations: the `module-entity` skill was used for the field and its tests only (the
+  > repository and use-case changes are by hand); `PrismaSchoolClassRepository.update` follows the new signature in
+  > T-04
 
 - [ ] **T-03** — Add `CLASS_REMINDER_LEAD_MINUTES`, `findDueForReminder(now, leadMinutes)` and
   `markReminded(id, at)` to `SchoolClassRepository`, the `ClassReminderNotifier` port

@@ -1,4 +1,5 @@
 import {
+  DateRule,
   Entity,
   EntityState,
   InRule,
@@ -38,12 +39,17 @@ export interface NotificationState extends EntityState {
   userId: string;
   type: NotificationType;
   params: NotificationParams;
+  /** When its user read it; none means unread. */
+  readAt?: Date | null;
 }
 
 /** A stored notification: it holds no text, only what the app or the push needs to draw one. */
 export class Notification extends Entity<NotificationState> {
   constructor(props: NotificationState) {
-    super(props);
+    super({
+      ...props,
+      readAt: props.readAt ? new Date(props.readAt.getTime()) : null,
+    });
   }
 
   get userId(): string {
@@ -56,6 +62,10 @@ export class Notification extends Entity<NotificationState> {
 
   get params(): NotificationParams {
     return this.props.params;
+  }
+
+  get readAt(): Date | null {
+    return this.props.readAt ? new Date(this.props.readAt.getTime()) : null;
   }
 
   public validate(): void {
@@ -76,6 +86,11 @@ export class Notification extends Entity<NotificationState> {
         code: "notification.type",
         value: this.type,
         rules: [new RequiredRule(), new InRule(NOTIFICATION_TYPES)],
+      },
+      {
+        code: "notification.readAt",
+        value: this.readAt,
+        rules: [new DateRule()],
       },
     ]);
   }

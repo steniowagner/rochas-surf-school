@@ -6,12 +6,17 @@ import { PENDING_REQUESTS_QUERY_KEY } from "@/modules/enrolment/hooks/use-pendin
 import { REGISTRATIONS_QUERY_KEY } from "@/modules/admin/utils/registrations-cache";
 import { getSession } from "@/services/session/session.store";
 
+import {
+  NOTIFICATIONS_LIST_QUERY_KEY,
+  UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY,
+} from "../utils/notifications-cache";
 import { refreshAccount } from "../utils/refresh-account";
 
 /**
  * A push that arrives with the app open (shown as a banner by the push service) also updates what is on screen
  * (spec 020, D-16): a decision refreshes the account, so the flow guards move the app on by themselves, and a
- * new registration refreshes the admin's list, and a class assignment reloads the cached weeks, and an edited, unassigned, cancelled, deleted or instructor-less class reloads every cached class, and a changed location reloads the classes and the locations, and a new seat request (also the admins' pending list), an expired, approved, denied, direct-enrolled or taken-out one reloads every cached class, and a cancelled seat reloads them and the admins' pending list (its waiting count). No navigation.
+ * new registration refreshes the admin's list, and a class assignment reloads the cached weeks, and an edited, unassigned, cancelled, deleted or instructor-less class reloads every cached class, and a changed location reloads the classes and the locations, and a new seat request (also the admins' pending list), an expired, approved, denied, direct-enrolled or taken-out one reloads every cached class, and a cancelled seat reloads them and the admins' pending list (its waiting count); every push also reloads the notifications
+ * list and the unread count (spec 055). No navigation.
  */
 export const useNotificationReceived = () => {
   const queryClient = useQueryClient();
@@ -20,6 +25,12 @@ export const useNotificationReceived = () => {
     const subscription = Notifications.addNotificationReceivedListener(
       (notification) => {
         const type = notification.request.content.data?.type;
+
+        // Every push is a new notification: the list and the bell's badge reload, whatever its type (spec 055, D-09).
+        void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_LIST_QUERY_KEY });
+        void queryClient.invalidateQueries({
+          queryKey: UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY,
+        });
 
         if (type === "registration.pending") {
           void queryClient.invalidateQueries({

@@ -54,22 +54,26 @@ beforeEach(() => {
       refreshTokenExpiresAt: "2099-11-10T12:00:00.000Z",
     },
   });
-  fetchMock.mockReset().mockResolvedValue({
+  // The bell asks for the unread count; everything else is an empty page.
+  fetchMock.mockReset().mockImplementation(async (url: string) => ({
     ok: true,
     status: 200,
-    json: async () => ({ items: [], page: 1, perPage: 20, total: 0 }),
-  });
+    json: async () =>
+      String(url).endsWith("/notifications/unread-count")
+        ? { count: 3 }
+        : { items: [], page: 1, perPage: 20, total: 0 },
+  }));
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
 describe("InstructorScreen", () => {
-  it("shows the user header with the first name and the bell", async () => {
+  it("shows the user header with the first name and the bell with the unread count", async () => {
     await openInstructorHome();
 
     expect(screen.getByText("Bruno")).toBeOnTheScreen();
     expect(
-      screen.getByRole("button", { name: "Notifications, 3 unread" }),
+      await screen.findByRole("button", { name: "Notifications, 3 unread" }),
     ).toBeOnTheScreen();
   });
 
@@ -80,7 +84,10 @@ describe("InstructorScreen", () => {
     expect(screen.getByText("School")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
     expect(screen.getByText("9 on the platform")).toBeOnTheScreen();
-    expect(fetchMock).not.toHaveBeenCalled();
+    // Only the bell's count: the home itself loads nothing.
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://api.test/notifications/unread-count",
+    ]);
   });
 
   it("opens the people directory", async () => {

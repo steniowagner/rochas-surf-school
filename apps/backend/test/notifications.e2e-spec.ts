@@ -590,4 +590,203 @@ describe('Notifications (e2e)', () => {
       expect(await rowsOf(person.id, 'registration.denied')).toHaveLength(1);
     });
   });
+
+  describe('the notifications screen', () => {
+    const BASE = new Date('2026-10-01T12:00:00.000Z');
+    const STARTS_AT = '2026-10-20T11:00:00.000Z';
+
+    /** Stores a notification straight in the database, `minutes` after BASE. */
+    async function stored(
+      userId: string,
+      minutes: number,
+      data: { type?: string; params?: object; readAt?: Date | null } = {},
+    ) {
+      return prisma.notification.create({
+        data: {
+          id: randomUUID(),
+          userId,
+          type: data.type ?? 'enrolment.approved',
+          params: data.params ?? { classId: randomUUID(), discipline: 'surf', startsAt: STARTS_AT },
+          createdAt: new Date(BASE.getTime() + minutes * 60_000),
+          readAt: data.readAt ?? null,
+        },
+      });
+    }
+
+    const list = (token: string | undefined, query = '') =>
+      as(token, http().get(`/notifications${query}`));
+    const unreadCount = (token: string | undefined) =>
+      as(token, http().get('/notifications/unread-count'));
+    const markRead = (token: string | undefined, id: string) =>
+      as(token, http().post(`/notifications/${id}/read`));
+    const markAllRead = (token: string | undefined) =>
+      as(token, http().post('/notifications/read-all'));
+
+    describe('lists notifications', () => {
+      it("pages the caller's notifications newest first, never another user's", async () => {
+        const ana = await account();
+        const bia = await account();
+        const own = [];
+        for (let minutes = 0; minutes < 25; minutes += 1) own.push(await stored(ana.id, minutes));
+        for (let minutes = 0; minutes < 3; minutes += 1) await stored(bia.id, minutes + 100);
+        const newestFirst = own.map((row) => row.id).reverse();
+
+        const first = await list(ana.accessToken, '?locale=en').expect(200);
+        const second = await list(ana.accessToken, '?page=2&locale=en').expect(200);
+
+        expect(first.body).toMatchObject({ page: 1, perPage: 20, total: 25 });
+        expect(first.body.items.map((item: { id: string }) => item.id)).toEqual(newestFirst.slice(0, 20));
+        expect(second.body).toMatchObject({ page: 2, perPage: 20, total: 25 });
+        expect(second.body.items.map((item: { id: string }) => item.id)).toEqual(newestFirst.slice(20));
+        expect(first.body.items[0]).toEqual({
+          id: own[24].id,
+          type: 'enrolment.approved',
+          classId: (own[24].params as { classId: string }).classId,
+          title: 'Request approved',
+          body: 'Your seat in the Surf class on 10/20 at 08:00 is confirmed.',
+          createdAt: own[24].createdAt.toISOString(),
+          read: false,
+        });
+      });
+
+      it('answers an empty page, a null class id, the read state, and pt-BR without a locale', async () => {
+        const ana = await account();
+        const bia = await account('student', 'pending');
+        const deleted = await stored(bia.id, 0, {
+          type: 'class.deleted',
+          params: { discipline: 'surf', startsAt: STARTS_AT },
+          readAt: BASE,
+        });
+
+        const empty = await list(ana.accessToken).expect(200);
+        const pending = await list(bia.accessToken).expect(200);
+
+        expect(empty.body).toEqual({ items: [], page: 1, perPage: 20, total: 0 });
+        expect(pending.body.items).toEqual([
+          expect.objectContaining({
+            id: deleted.id,
+            classId: null,
+            title: 'Aula excluída',
+            body: 'A aula de Surf de 20/10 às 08:00 foi excluída.',
+            read: true,
+          }),
+        ]);
+      });
+
+      it('answers one 422 with every invalid query key, and 401 without a token', async () => {
+        const ana = await account();
+
+        const invalid = await list(ana.accessToken, '?page=0&perPage=51&locale=fr').expect(422);
+        expect(invalid.body.errors).toEqual([
+          'notifications.page.invalid',
+          'notifications.perPage.invalid',
+          'notifications.locale.invalid',
+        ]);
+        const notNumber = await list(ana.accessToken, '?page=abc').expect(422);
+        expect(notNumber.body.errors).toEqual(['notifications.page.invalid']);
+        const unauthenticated = await list(undefined).expect(401);
+        expect(unauthenticated.body.errors).toEqual(['auth.token.invalid']);
+      });
+    });
+
+    it('writes the text in the requested language', async () => {
+      const ana = await account();
+      const params = { classId: randomUUID(), discipline: 'surf', startsAt: STARTS_AT };
+      await stored(ana.id, 0, { type: 'class.edited', params });
+
+      const texts = await Promise.all(
+        ['pt-BR', 'es', 'en'].map(async (locale) => {
+          const response = await list(ana.accessToken, `?locale=${locale}`).expect(200);
+          const { title, body } = response.body.items[0];
+          return { title, body };
+        }),
+      );
+
+      expect(texts).toEqual([
+        { title: 'Aula alterada', body: 'A aula de Surf de 20/10 às 08:00 foi alterada.' },
+        { title: 'Clase modificada', body: 'La clase de Surf del 20/10 a las 08:00 cambió.' },
+        { title: 'Class changed', body: 'Your Surf class on 10/20 at 08:00 was changed.' },
+      ]);
+      expect(renderPush('class.edited', params, 'pt-BR').body).toBe(
+        'A aula de Surf de 20/10 às 08:00 foi alterada. Abra o app para ver.',
+      );
+    });
+
+    it('counts unread', async () => {
+      const ana = await account();
+      const bia = await account();
+      await stored(ana.id, 0);
+      await stored(ana.id, 1);
+      await stored(ana.id, 2);
+      await stored(ana.id, 3, { readAt: BASE });
+      await stored(bia.id, 0);
+      await stored(bia.id, 1);
+      const nobody = await account();
+
+      expect((await unreadCount(ana.accessToken).expect(200)).body).toEqual({ count: 3 });
+      expect((await unreadCount(nobody.accessToken).expect(200)).body).toEqual({ count: 0 });
+      expect((await unreadCount(undefined).expect(401)).body.errors).toEqual(['auth.token.invalid']);
+    });
+
+    describe('marks one read', () => {
+      it('marks it, keeps its first read time on a repeat, and drops the count by one', async () => {
+        const ana = await account();
+        const row = await stored(ana.id, 0);
+        await stored(ana.id, 1);
+
+        await markRead(ana.accessToken, row.id).expect(204);
+        const firstReadAt = (await prisma.notification.findUniqueOrThrow({ where: { id: row.id } })).readAt;
+        await markRead(ana.accessToken, row.id).expect(204);
+
+        expect(firstReadAt).toBeInstanceOf(Date);
+        expect((await prisma.notification.findUniqueOrThrow({ where: { id: row.id } })).readAt).toEqual(
+          firstReadAt,
+        );
+        const listed = await list(ana.accessToken).expect(200);
+        expect(listed.body.items.find((item: { id: string }) => item.id === row.id).read).toBe(true);
+        expect((await unreadCount(ana.accessToken).expect(200)).body).toEqual({ count: 1 });
+      });
+
+      it("answers 404 for another user's, an unknown and a non-UUID id, changing nothing, and 401 without a token", async () => {
+        const ana = await account();
+        const bia = await account();
+        const foreign = await stored(bia.id, 0);
+
+        for (const id of [foreign.id, randomUUID(), 'not-a-uuid']) {
+          const response = await markRead(ana.accessToken, id).expect(404);
+          expect(response.body.errors).toEqual(['notification.notFound']);
+        }
+        expect((await prisma.notification.findUniqueOrThrow({ where: { id: foreign.id } })).readAt).toBeNull();
+        expect((await markRead(undefined, foreign.id).expect(401)).body.errors).toEqual(['auth.token.invalid']);
+      });
+    });
+
+    describe('marks all read', () => {
+      it("marks every unread notification of the caller and no one else's", async () => {
+        const ana = await account();
+        const bia = await account();
+        const alreadyRead = await stored(ana.id, 0, { readAt: BASE });
+        for (let minutes = 1; minutes <= 3; minutes += 1) await stored(ana.id, minutes);
+        await stored(bia.id, 0);
+        await stored(bia.id, 1);
+
+        await markAllRead(ana.accessToken).expect(204);
+
+        expect((await unreadCount(ana.accessToken).expect(200)).body).toEqual({ count: 0 });
+        const listed = await list(ana.accessToken).expect(200);
+        expect(listed.body.items.every((item: { read: boolean }) => item.read)).toBe(true);
+        expect((await prisma.notification.findUniqueOrThrow({ where: { id: alreadyRead.id } })).readAt).toEqual(
+          BASE,
+        );
+        expect((await unreadCount(bia.accessToken).expect(200)).body).toEqual({ count: 2 });
+      });
+
+      it('answers 204 with nothing unread, and 401 without a token', async () => {
+        const ana = await account();
+
+        await markAllRead(ana.accessToken).expect(204);
+        expect((await markAllRead(undefined).expect(401)).body.errors).toEqual(['auth.token.invalid']);
+      });
+    });
+  });
 });

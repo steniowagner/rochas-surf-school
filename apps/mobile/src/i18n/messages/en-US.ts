@@ -953,6 +953,22 @@ const messages = {
     done: "Done",
     archived: "Removed",
   },
+  notifications: {
+    title: "Notifications",
+    markAll: "Mark all as read",
+    markAllError: "Couldn't mark the notifications as read. Try again.",
+    loading: "Loading notifications",
+    empty: {
+      title: "No notifications yet",
+      description: "When something changes in your classes or your account, you'll see it here.",
+    },
+    loadError: {
+      title: "Couldn't load your notifications",
+      description: "Check your connection and try again.",
+    },
+    now: "Now",
+    unread: ", unread",
+  },
   archiveLocation: {
     title: "Remove location?",
     description: "It no longer shows up for new classes.",

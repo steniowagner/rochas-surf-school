@@ -253,7 +253,9 @@ Listed in the order people meet them.
   their own; admins can delete any without telling the uploader.
 - **Notification** (`notification`): a message to one user about an event. Always kept on the user's
   notifications screen, with a read/unread state (mark one or all as read), and also pushed to the phone
-  unless the user turned pushes off. Pushes are the only outbound channel.
+  unless the user turned pushes off. Pushes are the only outbound channel. Its text is written for the reader in
+  their language, the same on the push and on the screen (without the push's "open the app"), and it stays until
+  the account is gone.
 - **Broadcast** (`broadcast`): a notification an admin writes (title and description) for an audience —
   `everyone` (admins included), `students` or `instructors` — reaching the approved, active users of those
   roles. The admin sees the number of recipients and confirms before it is sent.
@@ -551,8 +553,7 @@ onboarding WhatsApp step after an approval, the Denied screen after a denial. A 
 open is shown as a banner and updates the screen at once (the Pending screen moves on; the admin's waiting count
 and list reload). A failed push never changes the answer of the sign-up or the decision. Signing out stops the
 pushes to that phone; a phone whose session expired without a sign-out keeps receiving its account's pushes
-until someone signs in on it. The notifications screen (with read state) doesn't exist yet: the stored
-notifications aren't shown anywhere. The in-app push switch came with the Profile tab (spec 026). Delivery to a real phone needs the EAS project and the APNs / FCM credentials, which aren't set up yet.
+until someone signs in on it. The notifications screen (with read state) came with spec 055. The in-app push switch came with the Profile tab (spec 026). Delivery to a real phone needs the EAS project and the APNs / FCM credentials, which aren't set up yet.
 
 **Denied registrations are erased** (spec `021-denied-registration-erasure`) — 30 days after an admin denies a
 registration, the account is erased with everything it has (its sign-ins, sessions, rules acceptances,
@@ -1007,6 +1008,20 @@ stored even when the person turned pushes off. Tapping the push opens the class'
 instructor's or admin's flow; received with the app open it reloads nothing. Delivery to a real phone still needs the
 EAS project and the APNs / FCM credentials.
 
+**Notifications screen** (spec `055-notifications-screen`) — every student, instructor and admin opens "Avisos"
+from the bell on their home screen (the student's Agenda, the instructor's and the admin's Início), above the tabs:
+every notification kept for them, newest first, 20 at a time, in the app's language (pt-BR, es or en), each with an
+icon and color for its kind, its title, its text when there is one, when it arrived ("Agora", "há 5 minutos", then
+the date after a week) and an orange dot while unread. The text is the push's, without its "open the app" sentence
+(a denied registration without a reason shows only its title). Tapping a notification marks it read at once and
+opens what it is about, the same screen its push opens (a kind with nothing to open, such as "Account approved",
+only becomes read); a failure there shows nothing. The check button in the header marks them all read and shows only
+while something is unread; if that fails, the dots come back with a message. Tapping a push also marks its
+notification read. The bell shows the real number of unread notifications ("9+" above nine, nothing at zero or when
+the count can't load), updated when the home screen shows again, after marking and when a push arrives with the app
+open. Notifications are never deleted, hidden or marked read just by being seen. Pending, denied, deleted and
+removed accounts have no bell. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1035,9 +1050,9 @@ Active specs: none.
   offline launch by the last known account).
 - Using the Google profile photo as the account's photo (spec 017 doesn't store it), and Google One Tap /
   automatic sign-in.
-- The notifications screen (with read / unread state): spec 020 stores every notification but nothing shows
-  them; badges on the app icon, rich pushes, and a screen before the OS
-  permission dialog (or asking again after a refusal).
+- On notifications: badges on the app icon, rich pushes, and a screen before the OS
+  permission dialog (or asking again after a refusal); deleting, hiding or expiring notifications (spec 055 keeps
+  them for as long as the account), and class names or before/after values in their text.
 - Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
   "Former instructor" handling): spec 021 erases only denied registrations, and spec 045 guest data.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
@@ -1052,7 +1067,7 @@ Active specs: none.
   "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", promoting, demoting or
   removing someone from their sheet, searching by email, the real count on the home rows (a fixed "9 na
   plataforma" until the backend can give it), and the rest of the admin and instructor dashboards (greeting,
-  bell, metrics and every other row).
+  metrics and every other row).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - After creating classes (spec 028): the instructors' "Surf" / "Skate" subtitles and photos in the picker; a real
@@ -1061,8 +1076,7 @@ Active specs: none.
   the class form; filling the address from a tapped point, "near me" from the phone's own location, and an
   interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
 - On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
-  class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings); the
-  student Agenda's notifications bell.
+  class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings).
 - On the sport filter (spec 050): keeping the chosen sport across app launches, a mark on the closed button
   showing a filter is on, and filtering other lists ("Minhas aulas", the class history, the people directory) by
   sport.

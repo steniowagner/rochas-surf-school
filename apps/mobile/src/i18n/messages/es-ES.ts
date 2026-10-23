@@ -960,6 +960,22 @@ const messages: Messages = {
     done: "Listo",
     archived: "Eliminado",
   },
+  notifications: {
+    title: "Avisos",
+    markAll: "Marcar todos como leídos",
+    markAllError: "No se pudieron marcar los avisos como leídos. Inténtalo de nuevo.",
+    loading: "Cargando avisos",
+    empty: {
+      title: "Ningún aviso por ahora",
+      description: "Cuando algo cambie en tus clases o en tu cuenta, te avisamos aquí.",
+    },
+    loadError: {
+      title: "No se pudieron cargar los avisos",
+      description: "Revisa tu conexión e inténtalo de nuevo.",
+    },
+    now: "Ahora",
+    unread: ", no leído",
+  },
   archiveLocation: {
     title: "¿Eliminar lugar?",
     description: "Deja de aparecer para nuevas clases.",

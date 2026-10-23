@@ -1,13 +1,15 @@
 // Models of the notifications module (modules/notifications).
 // Tables and columns are snake_case in the database (@@map / @map).
 
-// A stored notification holds no text: `type` and `params` are enough for the app or the push to draw one.
+// A stored notification holds no text: `type` and `params` are enough for the backend to write the push and the
+// in-app text. Unread while `readAt` is null.
 model Notification {
-  id        String   @id @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
+  id        String    @id @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
   type      String
   params    Json
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  readAt    DateTime? @map("read_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

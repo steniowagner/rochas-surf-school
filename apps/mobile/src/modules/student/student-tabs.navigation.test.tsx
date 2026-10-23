@@ -13,6 +13,7 @@ import SchoolLayout from "@/app/(private)/student/(tabs)/school/_layout";
 import SchoolRoute from "@/app/(private)/student/(tabs)/school/index";
 import StudentClassRoute from "@/app/(private)/student/class/[id]";
 import StudentLayout from "@/app/(private)/student/_layout";
+import StudentNotificationsRoute from "@/app/(private)/student/notifications";
 import {
   selectedTabLabel,
   tabLabels,
@@ -67,6 +68,7 @@ const routeTree = {
   "(private)/student/(tabs)/school/index": SchoolRoute,
   "(private)/student/(tabs)/profile": ProfileRoute,
   "(private)/student/class/[id]": StudentClassRoute,
+  "(private)/student/notifications": StudentNotificationsRoute,
 };
 
 const aClass = {
@@ -100,6 +102,15 @@ const people = {
 };
 
 const respond = (url: string) => {
+  // The bell's badge, and an empty "Avisos".
+  if (url.endsWith("/notifications/unread-count")) {
+    return { count: 3 };
+  }
+
+  if (url.includes("/notifications?")) {
+    return { items: [], page: 1, perPage: 20, total: 0 };
+  }
+
   // The class details read the school rules for the count on their rules row.
   if (url.includes("/school-rules")) {
     return { version: 1, rules: [] };
@@ -161,7 +172,7 @@ describe("student tabs", () => {
     expect(screen.queryByText("SCHEDULE")).not.toBeOnTheScreen();
     expect(screen.getByText("Ana")).toBeOnTheScreen();
     expect(
-      screen.getByRole("button", { name: "Notifications, 3 unread" }),
+      await screen.findByRole("button", { name: "Notifications, 3 unread" }),
     ).toBeOnTheScreen();
     expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
 
@@ -192,6 +203,25 @@ describe("student tabs", () => {
 
     expect(app.getPathname()).toBe("/student");
     expect(selectedTabLabel()).toBe("Schedule");
+  });
+
+  it("opens Notifications above the tabs from the bell, and back reloads the badge on the Agenda", async () => {
+    const user = userEvent.setup();
+    const app = await open();
+    const countCalls = () =>
+      fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/notifications/unread-count"));
+
+    await user.press(await screen.findByRole("button", { name: "Notifications, 3 unread" }));
+
+    expect(app.getPathname()).toBe(routes.student.notifications);
+    expect(await screen.findByText("No notifications yet")).toBeOnTheScreen();
+    const callsBeforeBack = countCalls().length;
+
+    await act(async () => router.back());
+
+    expect(app.getPathname()).toBe("/student");
+    expect(selectedTabLabel()).toBe("Schedule");
+    expect(countCalls().length).toBeGreaterThan(callsBeforeBack);
   });
 
   it("the Escola tab shows the people directory", async () => {

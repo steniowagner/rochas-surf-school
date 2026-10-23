@@ -37,6 +37,8 @@ Applies to students, instructors and admins.
 
 ### Preferences and notifications
 
+_Implemented in spec 055-notifications-screen._
+
 - As a user, I'd like to choose the app's theme (light or dark) and language (Brazilian Portuguese, Spanish or English). Until I choose, both follow my phone. If my phone's language isn't one of the three, the app uses Brazilian Portuguese.
 - As a user, I'd like to get notifications as pushes on my phone. The app doesn't send notifications by email or WhatsApp; the sign-in code is the only email it sends.
 - As a user, I'd like to turn phone pushes off. Notifications still appear on the notifications screen.

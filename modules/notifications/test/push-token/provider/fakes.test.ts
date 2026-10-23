@@ -11,6 +11,7 @@ import {
   pushToken,
   USER_A,
   USER_B,
+  USER_C,
 } from "../../mock";
 import { Notification } from "../../../src";
 
@@ -117,6 +118,49 @@ describe("other fakes", () => {
 
     repository.failWith = new Error("db");
     await expect(repository.createMany([notification])).rejects.toThrow("db");
+  });
+
+  it("FakeNotificationRepository pages a user's notifications newest first, by id on a tie", async () => {
+    const repository = new FakeNotificationRepository();
+    const at = (minutes: number) => minutesAgo(minutes);
+    const tieLow = new Notification({ id: "00000000-0000-4000-8000-000000000001", userId: USER_A, type: "registration.approved", params: {}, createdAt: at(1) });
+    const tieHigh = new Notification({ id: "00000000-0000-4000-8000-000000000002", userId: USER_A, type: "registration.approved", params: {}, createdAt: at(1) });
+    const newest = new Notification({ userId: USER_A, type: "registration.approved", params: {}, createdAt: at(0) });
+    const oldest = new Notification({ userId: USER_A, type: "registration.approved", params: {}, createdAt: at(5) });
+    const foreign = new Notification({ userId: USER_B, type: "registration.approved", params: {}, createdAt: at(0) });
+    await repository.createMany([oldest, tieLow, foreign, newest, tieHigh]);
+
+    const first = await repository.findPage(USER_A, 1, 3);
+    const second = await repository.findPage(USER_A, 2, 3);
+
+    expect(first.items.map((item) => item.id)).toEqual([newest.id, tieHigh.id, tieLow.id]);
+    expect(first.total).toBe(4);
+    expect(second.items.map((item) => item.id)).toEqual([oldest.id]);
+    expect(await repository.findPage(USER_C, 1, 20)).toEqual({ items: [], total: 0 });
+  });
+
+  it("FakeNotificationRepository counts and marks only the user's unread notifications", async () => {
+    const repository = new FakeNotificationRepository();
+    const first = new Notification({ userId: USER_A, type: "registration.approved", params: {} });
+    const second = new Notification({ userId: USER_A, type: "registration.approved", params: {} });
+    const foreign = new Notification({ userId: USER_B, type: "registration.approved", params: {} });
+    await repository.createMany([first, second, foreign]);
+
+    expect(await repository.countUnread(USER_A)).toBe(2);
+    expect(await repository.markRead(USER_B, first.id, NOW)).toBe(false);
+    expect(await repository.markRead(USER_A, "unknown", NOW)).toBe(false);
+    expect(await repository.markRead(USER_A, first.id, NOW)).toBe(true);
+    expect(await repository.markRead(USER_A, first.id, minutesAgo(-5))).toBe(true);
+    expect(repository.items[0].readAt).toEqual(NOW);
+    expect(await repository.countUnread(USER_A)).toBe(1);
+
+    await repository.markAllRead(USER_A, minutesAgo(-10));
+
+    expect(await repository.countUnread(USER_A)).toBe(0);
+    expect(repository.items[0].readAt).toEqual(NOW);
+    expect(repository.items[1].readAt).toEqual(minutesAgo(-10));
+    expect(repository.items[2].readAt).toBeNull();
+    expect(await repository.countUnread(USER_B)).toBe(1);
   });
 
   it("FakeRecipientsProvider returns a copy of its admins", async () => {

@@ -19,6 +19,10 @@ import { hydrateSession } from "@/services/session/session.store";
 
 const fetchMock = jest.fn();
 
+// The bell asks for the unread count on its own: the home's requests are the others.
+const homeCalls = () =>
+  fetchMock.mock.calls.filter(([url]) => !String(url).endsWith("/notifications/unread-count"));
+
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: jest.fn() }),
 }));
@@ -109,14 +113,19 @@ beforeEach(() => {
 });
 
 describe("AdminScreen", () => {
-  it("shows the user header with the first name and the bell", async () => {
-    respondWith([]);
+  it("shows the user header with the first name and the bell with the unread count", async () => {
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).endsWith("/notifications/unread-count") ? { count: 3 } : { items: [] },
+    }));
     await openAdminHome();
 
     expect(screen.getByText("Marta")).toBeOnTheScreen();
     expect(screen.getByText("MR")).toBeOnTheScreen();
     expect(
-      screen.getByRole("button", { name: "Notifications, 3 unread" }),
+      await screen.findByRole("button", { name: "Notifications, 3 unread" }),
     ).toBeOnTheScreen();
   });
 
@@ -227,7 +236,7 @@ describe("AdminScreen", () => {
     });
     await openAdminHome();
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(homeCalls()).toHaveLength(2));
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
     expect(screen.queryByText(/waiting/)).toBeNull();
   });
@@ -323,7 +332,7 @@ describe("AdminScreen", () => {
       servePending({ total: 0, classes: [] });
       await openAdminHome();
 
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(homeCalls()).toHaveLength(2));
       expect(screen.getByText("Class enrolments")).toBeOnTheScreen();
       expect(screen.queryByText(/request/)).toBeNull();
     });

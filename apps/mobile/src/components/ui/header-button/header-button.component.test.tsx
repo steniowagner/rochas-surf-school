@@ -27,12 +27,20 @@ describe("HeaderButton", () => {
     expect(screen.queryByTestId("header-button-badge")).not.toBeOnTheScreen();
   });
 
-  it("caps the badge at 99+", async () => {
+  it("caps the badge at 9+", async () => {
     await render(
-      <HeaderButton icon="notifications-outline" label="Bell" badge={120} />,
+      <HeaderButton icon="notifications-outline" label="Bell" badge={12} />,
     );
 
-    expect(screen.getByText("99+")).toBeOnTheScreen();
+    expect(screen.getByText("9+")).toBeOnTheScreen();
+  });
+
+  it("shows 9 as it is", async () => {
+    await render(
+      <HeaderButton icon="notifications-outline" label="Bell" badge={9} />,
+    );
+
+    expect(screen.getByText("9")).toBeOnTheScreen();
   });
 
   it("calls onPress when pressed", async () => {

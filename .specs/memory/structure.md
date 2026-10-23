@@ -97,10 +97,12 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `test/mock/`.
 - **`modules/notifications`** (`@rochas-surf-school/notifications`; no dependency on `auth`) — 2 aggregates:
   - `notification/` — `model/notification.entity.ts` (`Notification` and `NOTIFICATION_TYPES`: `type` + `params`,
-    no text), `provider/{notification.repository,push.provider,recipients.provider,clock.provider}.ts`
+    no text; `readAt`, null while unread), `provider/{notification.repository,push.provider,recipients.provider,clock.provider}.ts`
     (`PushProvider`: `send` → tickets, `getReceipts`; `RecipientsProvider.findApprovedAdminIds()`),
     `usecase/{notify,notify-approved-admins,notify-classes-without-instructor}.usecase.ts` (store every
-    notification, then push to each device; the last one tells the approved admins minus the excluded ones).
+    notification, then push to each device; the last one tells the approved admins minus the excluded ones),
+    `usecase/{list-notifications,count-unread-notifications,mark-notification-read,mark-all-notifications-read}.usecase.ts`
+    (the caller's own notifications on the notifications screen; spec 055).
   - `push-token/` — `model/push-token.entity.ts` (`PushToken`, `PUSH_TOKEN_PATTERN`, `PUSH_LOCALES`),
     `model/push-ticket.ts` (a plain interface: its id is Expo's ticket id),
     `provider/{push-token.repository,push-ticket.repository}.ts`,
@@ -255,12 +257,15 @@ src/
     school-settings.integration.http  # manual REST Client requests
   modules/notifications/
     notifications.module.ts     # wiring (DbModule); exports the adapters of auth's and classes' ports
-    notifications.controller.ts # PUT and DELETE /notifications/push-token (204) — protected
+    notifications.controller.ts # PUT and DELETE /notifications/push-token (204); GET /notifications,
+                                # GET /notifications/unread-count, POST /notifications/read-all and
+                                # POST /notifications/:id/read (spec 055) — protected
     notifications.integration.http  # manual REST Client requests
     {notification,push-token,push-ticket,recipients}.prisma.ts  # Prisma repositories; PrismaRecipientsProvider
                                 # (role admin and status approved)
     expo.push.ts                # ExpoPushProvider (expo-server-sdk: chunks, tickets, receipts)
-    push-messages.ts            # renderPush: the push copy in pt-BR / es / en
+    push-messages.ts            # renderPush: the push copy in pt-BR / es / en; renderInApp: the notifications
+                                # screen's text, the push's minus "open the app" (spec 055)
     notifications.registration-notifier.ts  # RegistrationNotifier adapter (Notify / NotifyApprovedAdmins; logs
                                 # and swallows every error)
     notifications.push-token-remover.ts     # PushTokenRemover adapter (RemovePushToken)
@@ -450,6 +455,8 @@ src/
     (private)/{admin,instructor}/people.tsx          # the People screen under the native header (/admin/people,
                                                      # /instructor/people), above the tab bar; the student's
                                                      # (tabs)/school.tsx renders it as a tab with no header
+    (private)/{student,instructor,admin}/notifications.tsx  # "Avisos" (/<role>/notifications, spec 055), opened
+                                                     # from the home bell, above the tab bar
   navigation/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
                                 # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
@@ -645,7 +652,13 @@ src/
                                 # (a push with the app open → refresh, or invalidate ["registrations"] / ["classes",
                                 # "week"], ["classes"] for the class and enrolment pushes (plus ["enrolments",
                                 # "pending"] for enrolment.requested and enrolment.cancelled), and ["classes"] +
-                                # ["locations"] for location.changed)
+                                # ["locations"] for location.changed; every push also ["notifications", …]);
+                                # use-notifications, use-unread-notifications-count, use-mark-notification-read,
+                                # use-mark-all-notifications-read (the notifications screen and the bell; spec 055)
+    screens/notifications.screen.tsx  # "Avisos": the list, its states, row taps and "mark all" (spec 055)
+    components/notification-row/  # one notification: tinted icon, title, body, time, unread dot
+    utils/notification-target.ts  # where a notification leads per type, class id and flow (push and row)
+    utils/notifications-cache.ts  # query keys, page size, markReadInPages; utils/notification-icon.ts per type
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
     utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored
   modules/offboarding/

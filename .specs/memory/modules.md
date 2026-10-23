@@ -61,8 +61,9 @@ cancelled seats, direct enrolments and take-outs), which
 reaches it through abstract contracts. Today it carries the three registration notifications, the class ones
 (assigned, edited, unassigned, cancelled — to the instructors and to the students whose enrolment it ended —,
 deleted, no instructor), the location change, and the enrolment ones (a new request, an approval, a denial, a
-request that expired, a cancelled seat, a direct enrolment, a take-out);
-nothing shows the stored notifications yet.
+request that expired, a cancelled seat, a direct enrolment, a take-out).
+It also shows each person their own notifications, in the app's language, each read or unread, and lets them mark
+one or all of them read.
 
 - Where it physically lives: `modules/notifications`
 - Business details: [modules/notifications.md](modules/notifications.md)

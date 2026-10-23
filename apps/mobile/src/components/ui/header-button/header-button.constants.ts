@@ -1,2 +1,2 @@
-// Larger counts read "99+", so the badge stays small.
-export const MAX_BADGE_COUNT = 99;
+// Larger counts read "9+", so the badge stays small (spec 055, ER-06).
+export const MAX_BADGE_COUNT = 9;

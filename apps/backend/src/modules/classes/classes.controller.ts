@@ -144,8 +144,8 @@ export class ClassesController {
   @HttpCode(HttpStatus.OK)
   myHistory(
     @CurrentUser() user: AuthenticatedUser,
-    @Query('page') page?: unknown,
-    @Query('perPage') perPage?: unknown,
+    @Query('from') from?: unknown,
+    @Query('to') to?: unknown,
   ): Promise<ListMyClassHistoryOut> {
     return new ListMyClassHistory(
       this.myClassesReader,
@@ -153,7 +153,7 @@ export class ClassesController {
       this.classRosterReader,
       this.viewerEnrolmentReader,
       this.clock,
-    ).execute({ actor: actorOf(user), page, perPage });
+    ).execute({ actor: actorOf(user), from, to });
   }
 
   @Get(':id')

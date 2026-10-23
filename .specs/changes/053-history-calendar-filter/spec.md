@@ -190,7 +190,7 @@ list can follow the period. Students find a past class by when it happened inste
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — In `src/modules/enrolment/my-classes-reader.prisma.ts`, make `findHistoryClassIds` one raw query on
+- [x] **T-02** — In `src/modules/enrolment/my-classes-reader.prisma.ts`, make `findHistoryClassIds` one raw query on
   the same latest-enrolment fragment with `c.starts_at >= from AND c.starts_at < to`, ordered `starts_at DESC, id
   DESC`, without `LIMIT` / `OFFSET` / `COUNT`; update its spec. In `src/modules/classes/classes.controller.ts`,
   `myHistory` reads `@Query('from')` and `@Query('to')`; update `classes.controller.spec.ts` and the history requests
@@ -198,6 +198,20 @@ list can follow the period. Students find a past class by when it happened inste
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/enrolment src/modules/classes` passes from
   `apps/backend`.
+  > ✅ 2026-10-22 22:51 — `PrismaMyClassesReader.findHistoryClassIds(studentId, now, from, to)` is one raw query on the
+  > same latest-enrolment fragment, with `c.starts_at >= from AND c.starts_at < to`, ordered `starts_at DESC, id DESC`,
+  > without `LIMIT` / `OFFSET` / `COUNT`; `myHistory` reads `@Query('from')` / `@Query('to')`; the specs check the SQL
+  > text and bound values, the empty answer, the period passed through the controller (1 Aug → 1 Sep 03:00 UTC) and a
+  > 422 `class.from.invalid`; `classes.integration.http` has the period request (200 `{ items }`), the unreal date
+  > (422 from/to) and the 43-day range (422 `class.range.invalid`). Files:
+  > `apps/backend/src/modules/enrolment/my-classes-reader.prisma.ts`,
+  > `apps/backend/src/modules/enrolment/my-classes-reader.prisma.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.integration.http`; verified: `npx vitest run src/modules/enrolment
+  > src/modules/classes` from `apps/backend` (33 files, 272 passed), `npm run check-types` and `npx oxlint src` clean
+  > (after `npm run build` in `modules/classes`, which the backend reads through `dist`); deviations: the named skills
+  > (`backend-provider-implementation`, `backend-nest-controller`) create new adapters, so the existing ones were changed
+  > by hand in their pattern.
 
 - [ ] **T-03** — Replace the history cases of `test/my-classes.e2e-spec.ts` (paging, default page, `page` /
   `perPage` 422s) with ER-01's period, day-edge and exclusion cases and ER-02's 422 / 403 / 401 cases.

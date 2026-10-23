@@ -171,12 +171,16 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/classes/mine
 Authorization: Bearer {{token}}
 
-### A student's class history: finished, not cancelled classes where they held a seat, newest first (expects 200 with { items, total, page, perPage }; default perPage 20, max 50)
-GET {{baseUrl}}/classes/mine/history?page=1&perPage=20
+### A student's class history for a period: finished, not cancelled classes where they held a seat, starting on a Fortaleza day from `from` to `to`, newest first (expects 200 with { items }, unpaged)
+GET {{baseUrl}}/classes/mine/history?from=2026-08-01&to=2026-08-31
 Authorization: Bearer {{token}}
 
-### A page or perPage that isn't a whole number in range (expects 422 class.page.invalid and class.perPage.invalid)
-GET {{baseUrl}}/classes/mine/history?page=0&perPage=51
+### A missing or unreal date (expects 422 class.from.invalid and class.to.invalid)
+GET {{baseUrl}}/classes/mine/history?from=2026-02-30
+Authorization: Bearer {{token}}
+
+### A period longer than 42 days, both ends included (expects 422 class.range.invalid)
+GET {{baseUrl}}/classes/mine/history?from=2026-08-01&to=2026-09-12
 Authorization: Bearer {{token}}
 
 ### One class by id (expects 200 with the class, including seatsTaken: 0 and students: []; set classId to an id from the week list)

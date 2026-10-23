@@ -4,6 +4,8 @@ import { PrismaMyClassesReader } from './my-classes-reader.prisma.js';
 
 const STUDENT_ID = '5d1f0a7b-2c3e-4b6a-8f19-4a7c9e0d1b25';
 const NOW = new Date('2026-10-15T11:30:00.000Z');
+const FROM_INSTANT = new Date('2026-08-01T03:00:00.000Z');
+const TO_INSTANT = new Date('2026-09-01T03:00:00.000Z');
 
 function setup() {
   const schoolClass = { findMany: vi.fn() };
@@ -37,29 +39,24 @@ describe('PrismaMyClassesReader', () => {
     });
   });
 
-  it('pages the finished, not cancelled classes whose latest enrolment is approved, newest first', async () => {
+  it('lists the finished, not cancelled classes of the period whose latest enrolment is approved, newest first', async () => {
     const { $queryRaw, reader } = setup();
-    $queryRaw.mockResolvedValueOnce([{ id: 'c-9' }, { id: 'c-8' }]).mockResolvedValueOnce([{ total: 25n }]);
+    $queryRaw.mockResolvedValueOnce([{ id: 'c-9' }, { id: 'c-8' }]);
 
-    expect(await reader.findHistoryClassIds(STUDENT_ID, NOW, 2, 20)).toEqual({
-      ids: ['c-9', 'c-8'],
-      total: 25,
-    });
+    expect(await reader.findHistoryClassIds(STUDENT_ID, NOW, FROM_INSTANT, TO_INSTANT)).toEqual(['c-9', 'c-8']);
+    expect($queryRaw).toHaveBeenCalledTimes(1);
     expect(sqlOf($queryRaw, 0)).toEqual({
-      text: `SELECT c.id ${FROM} ORDER BY c.starts_at DESC, c.id DESC LIMIT ? OFFSET ?`,
-      values: [STUDENT_ID, NOW, 20, 20],
-    });
-    expect(sqlOf($queryRaw, 1)).toEqual({
-      text: `SELECT COUNT(*) AS total ${FROM}`,
-      values: [STUDENT_ID, NOW],
+      text:
+        `SELECT c.id ${FROM} AND c.starts_at >= ? AND c.starts_at < ? ` +
+        'ORDER BY c.starts_at DESC, c.id DESC',
+      values: [STUDENT_ID, NOW, FROM_INSTANT, TO_INSTANT],
     });
   });
 
-  it('starts the first page at offset 0', async () => {
+  it('answers no ids when nothing was taken in the period', async () => {
     const { $queryRaw, reader } = setup();
-    $queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ total: 0n }]);
+    $queryRaw.mockResolvedValueOnce([]);
 
-    expect(await reader.findHistoryClassIds(STUDENT_ID, NOW, 1, 50)).toEqual({ ids: [], total: 0 });
-    expect(sqlOf($queryRaw, 0).values).toEqual([STUDENT_ID, NOW, 50, 0]);
+    expect(await reader.findHistoryClassIds(STUDENT_ID, NOW, FROM_INSTANT, TO_INSTANT)).toEqual([]);
   });
 });

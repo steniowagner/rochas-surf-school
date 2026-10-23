@@ -72,7 +72,7 @@ function setup() {
   };
   const myClassesReader = {
     findCurrentClassIds: vi.fn(async (): Promise<string[]> => []),
-    findHistoryClassIds: vi.fn(async () => ({ ids: [] as string[], total: 0 })),
+    findHistoryClassIds: vi.fn(async () => [] as string[]),
   };
   const seatCounter = { countSeatsTaken: vi.fn(async () => 0) };
   const pendingRequestCounter = { countPendingRequests: vi.fn(async () => 0) };
@@ -301,19 +301,19 @@ describe('ClassesController', () => {
     expect(myClassesReader.findCurrentClassIds).toHaveBeenCalledWith(ADMIN_ID, NOW);
   });
 
-  it("pages a student's class history with the query strings", async () => {
+  it("lists a student's class history for the period of the query strings", async () => {
     const { controller, myClassesReader } = setup();
 
-    expect(await controller.myHistory(userOf('student'), '2', '10')).toEqual({
-      items: [],
-      total: 0,
-      page: 2,
-      perPage: 10,
-    });
-    expect(myClassesReader.findHistoryClassIds).toHaveBeenCalledWith(ADMIN_ID, NOW, 2, 10);
+    expect(await controller.myHistory(userOf('student'), '2026-08-01', '2026-08-31')).toEqual({ items: [] });
+    expect(myClassesReader.findHistoryClassIds).toHaveBeenCalledWith(
+      ADMIN_ID,
+      NOW,
+      new Date('2026-08-01T03:00:00.000Z'),
+      new Date('2026-09-01T03:00:00.000Z'),
+    );
   });
 
-  it('refuses both student routes to other roles and a bad page with 422', async () => {
+  it('refuses both student routes to other roles and a bad period with 422', async () => {
     const { controller } = setup();
 
     await expect(controller.mine(userOf('admin'))).rejects.toMatchObject({
@@ -322,8 +322,8 @@ describe('ClassesController', () => {
     await expect(controller.myHistory(userOf('instructor'))).rejects.toMatchObject({
       message: 'enrolment.role.notStudent',
     });
-    await expect(controller.myHistory(userOf('student'), '0')).rejects.toMatchObject({
-      errors: [expect.objectContaining({ message: 'class.page.invalid' })],
+    await expect(controller.myHistory(userOf('student'), '2026-02-30', '2026-03-01')).rejects.toMatchObject({
+      errors: [expect.objectContaining({ message: 'class.from.invalid' })],
     });
   });
 

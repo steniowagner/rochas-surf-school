@@ -1128,6 +1128,8 @@ While a class has no deadline because it couldn't be worked out, students who tr
 
 ## 5. Ratings and photos
 
+_Deferred to a future version: not part of the first release, so no spec plans it yet._
+
 After a class, the school wants feedback and memories: students rate the classes they took, instructors comment, and everyone shares photos.
 
 **What it covers**

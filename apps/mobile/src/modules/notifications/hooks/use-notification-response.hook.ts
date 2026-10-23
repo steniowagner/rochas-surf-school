@@ -5,14 +5,24 @@ import { useEffect, useRef } from "react";
 import { routes } from "@/constants/routes";
 import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
 import { useSession } from "@/providers/session";
+import { apiPost } from "@/services/api";
 import { getSession } from "@/services/session/session.store";
 
+import { notificationTarget } from "../utils/notification-target";
 import { refreshAccount } from "../utils/refresh-account";
 
 const handle = async (response: Notifications.NotificationResponse) => {
   const { data } = response.notification.request.content;
   const session = getSession();
   let user = session?.user ?? null;
+
+  // Seen through its push, the notification is read on the notifications screen too (spec 055, D-08). Not awaited:
+  // routing never waits on it, and a failed mark only leaves it unread.
+  if (session && typeof data?.notificationId === "string") {
+    apiPost(`/notifications/${data.notificationId}/read`, undefined, {
+      authenticated: true,
+    }).catch(() => {});
+  }
 
   if (session) {
     try {
@@ -27,108 +37,11 @@ const handle = async (response: Notifications.NotificationResponse) => {
     ? resolveFlow({ user, onboardingCompleted: isOnboardingCompleted(user) })
     : "auth";
 
-  if (data?.type === "registration.pending" && flow === "admin") {
-    router.push(routes.admin.registrations);
-
-    return;
-  }
-
-  // A batch has many classes and the push names none, a deleted class is gone, and a changed location concerns
-  // several classes: the Aulas tab is where the schedule shows what changed.
-  const opensClasses =
-    data?.type === "class.assigned" ||
-    data?.type === "class.deleted" ||
-    data?.type === "location.changed";
-
-  if (opensClasses && flow === "instructor") {
-    router.push(routes.instructor.classes);
-
-    return;
-  }
-
-  if (opensClasses && flow === "admin") {
-    router.push(routes.admin.classes);
-
-    return;
-  }
-
-  // An edited, unassigned, cancelled or soon-starting class opens that class, in the details of the flow the account
-  // resolves to.
   const classId = typeof data?.classId === "string" ? data.classId : null;
-  const isClassChange =
-    data?.type === "class.edited" ||
-    data?.type === "class.unassigned" ||
-    data?.type === "class.cancelled" ||
-    data?.type === "class.reminder";
+  const target = notificationTarget(data?.type, classId, flow);
 
-  if (isClassChange && classId !== null && flow === "instructor") {
-    router.push(routes.instructor.classDetail(classId));
-
-    return;
-  }
-
-  if (isClassChange && classId !== null && flow === "admin") {
-    router.push(routes.admin.classDetail(classId));
-
-    return;
-  }
-
-  // A student hears that the class they asked for or held a seat in was edited or cancelled, or started without a seat
-  // for them, or that their request was approved or denied, or that the school enrolled them in a class or took them
-  // out of one, or that their class starts soon.
-  const isStudentClassNews =
-    data?.type === "class.edited" ||
-    data?.type === "class.reminder" ||
-    data?.type === "enrolment.expired" ||
-    data?.type === "enrolment.approved" ||
-    data?.type === "enrolment.denied" ||
-    data?.type === "enrolment.enrolled" ||
-    data?.type === "enrolment.takenOut" ||
-    data?.type === "class.cancelled";
-
-  if (isStudentClassNews && classId !== null && flow === "student") {
-    router.push(routes.student.classDetail(classId));
-
-    return;
-  }
-
-  // A changed location concerns several of a student's classes: the Agenda shows what changed.
-  if (data?.type === "location.changed" && flow === "student") {
-    router.push(routes.student.home);
-
-    return;
-  }
-
-  // The class's instructors hear that a student asked for a seat: it opens that class.
-  if (data?.type === "enrolment.requested" && classId !== null && flow === "instructor") {
-    router.push(routes.instructor.classDetail(classId));
-
-    return;
-  }
-
-  // A cancelled seat opens its class, for the class's instructors and for the admins.
-  if (data?.type === "enrolment.cancelled" && classId !== null && flow === "instructor") {
-    router.push(routes.instructor.classDetail(classId));
-
-    return;
-  }
-
-  if (data?.type === "enrolment.cancelled" && classId !== null && flow === "admin") {
-    router.push(routes.admin.classDetail(classId));
-
-    return;
-  }
-
-  // Admins act on the request: it opens the tool.
-  if (data?.type === "enrolment.requested" && flow === "admin") {
-    router.push(routes.admin.classRequests);
-
-    return;
-  }
-
-  // Only admins hear about a class left without an instructor: it opens the earliest one, where to assign someone.
-  if (data?.type === "class.noInstructor" && classId !== null && flow === "admin") {
-    router.push(routes.admin.classDetail(classId));
+  if (target !== null) {
+    router.push(target);
 
     return;
   }

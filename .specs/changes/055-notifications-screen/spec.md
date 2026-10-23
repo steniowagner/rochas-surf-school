@@ -389,13 +389,26 @@ screen and the read state that spec 020 left for later, so a notification is nev
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-06** — Extract the routing of `use-notification-response.hook.ts` into
+- [x] **T-06** — Extract the routing of `use-notification-response.hook.ts` into
   `apps/mobile/src/modules/notifications/utils/notification-target.ts` (`notificationTarget(type, classId, flow)` →
   an href or `null`, same destinations, D-07), keep the push handler's `routes.home` fallback for `null`, and send
   `POST /notifications/<notificationId>/read` on a handled tap (D-08); tests in `notification-target.test.ts` (every
   type × flow destination and `null`) and `use-notification-response.hook.test.tsx` (mark sent, none without id, a
   failed mark still routes). Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-09, ER-11 · Done when: `npx jest src/modules/notifications` passes from `apps/mobile`.
+  > ✅ 2026-10-23 13:39 — Moved the routing of the push handler into `notificationTarget(type, classId, flow)` → an
+  > href or `null` (same destinations and order; the two instructor class-detail branches of `enrolment.requested` /
+  > `enrolment.cancelled` merged into one condition), the handler keeps `router.replace(routes.home)` for `null`; on
+  > a handled tap with a session and a string `notificationId` it now sends `POST /notifications/<id>/read`, not
+  > awaited, failures ignored (D-08); files: `apps/mobile/src/modules/notifications/utils/notification-target.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notification-target.test.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications` from `apps/mobile` (7 suites, 241 passed, including every existing push-routing case;
+  > every type × student / instructor / admin with and without a class id, the seven other flows and unknown types
+  > in `notification-target.test.ts`; the mark sent, none without an id or a session, a failed mark still routing,
+  > one mark for a response handled twice), coverage of `src/modules/notifications` 100%, `tsc --noEmit` clean;
+  > deviations: none.
 
 - [ ] **T-07** — Add the hooks in `apps/mobile/src/modules/notifications/hooks/`: `useNotifications` (infinite query
   `["notifications", "list"]`, `locale` from `toBackendLocale`, D-10), `useUnreadNotificationsCount`

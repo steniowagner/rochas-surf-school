@@ -581,4 +581,81 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.auth.signIn));
     expect(getSession()).toBeNull();
   });
+
+  describe("marking the notification read", () => {
+    const markCalls = () =>
+      fetchMock.mock.calls.filter(([url]) => /\/notifications\/[^/]+\/read$/.test(String(url)));
+
+    it("marks the tapped notification read and opens its class as before", async () => {
+      answerMe(account("approved", "student", true));
+      await openApp(account("approved", "student", true));
+
+      await tap(response("enrolment.approved", "n-42", "c-1"));
+
+      await waitFor(() => expect(app.getPathname()).toBe("/student/class/c-1"));
+      expect(markCalls()).toHaveLength(1);
+      expect(markCalls()[0][0]).toBe("http://api.test/notifications/n-42/read");
+      expect(markCalls()[0][1]).toMatchObject({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer access-1" }),
+      });
+    });
+
+    it("marks nothing for a push without a notification id", async () => {
+      answerMe(account("approved", "admin", true));
+      await openApp(account("approved", "admin", true));
+      const withoutId = {
+        notification: {
+          request: {
+            identifier: "request-only",
+            content: { data: { type: "registration.pending" } },
+          },
+        },
+      } as unknown as Notifications.NotificationResponse;
+
+      await tap(withoutId);
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.admin.registrations));
+      expect(markCalls()).toHaveLength(0);
+    });
+
+    it("routes as before when the mark fails", async () => {
+      answerMe(account("approved", "student", true));
+      const answer = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation(async (url: string, init: RequestInit) => {
+        if (String(url).endsWith("/read")) {
+          return { ok: false, status: 500, json: async () => ({ errors: ["INTERNAL_SERVER_ERROR"] }) };
+        }
+
+        return answer(url, init);
+      });
+      await openApp(account("approved", "student", true));
+
+      await tap(response("enrolment.approved", "n-42", "c-1"));
+
+      await waitFor(() => expect(app.getPathname()).toBe("/student/class/c-1"));
+      expect(markCalls()).toHaveLength(1);
+    });
+
+    it("sends one mark when the same response is handled twice", async () => {
+      answerMe(account("approved", "student", true));
+      await openApp(account("approved", "student", true));
+
+      await tap(response("enrolment.approved", "n-42", "c-1"));
+      await waitFor(() => expect(app.getPathname()).toBe("/student/class/c-1"));
+      await tap(response("enrolment.approved", "n-42", "c-1"));
+
+      expect(markCalls()).toHaveLength(1);
+    });
+
+    it("sends nothing without a session", async () => {
+      answerMe(account("approved"));
+      await openApp(null);
+
+      await tap(response("registration.approved", "n-42"));
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.auth.signIn));
+      expect(markCalls()).toHaveLength(0);
+    });
+  });
 });

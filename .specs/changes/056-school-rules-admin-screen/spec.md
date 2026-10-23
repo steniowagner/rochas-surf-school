@@ -2,7 +2,7 @@
 id: "056"
 slug: school-rules-admin-screen
 title: "School rules management screen and home entries"
-status: in-progress
+status: in-review
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 3fc50e7e77838ebc52979a0004266c5e76d07cd2

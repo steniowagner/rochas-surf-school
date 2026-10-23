@@ -2,7 +2,7 @@
 id: "053"
 slug: history-calendar-filter
 title: Filter the class history by day, week or month
-status: in-progress
+status: in-review
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 038bb0bd6d0328754ac283661af9cc73accb5105
@@ -513,6 +513,10 @@ list can follow the period. Students find a past class by when it happened inste
   > week shows "Sem aulas neste período" whole; `npx jest src/modules/enrolment/screens/my-class-history.screen.test.tsx`
   > (17 passed), eslint and `tsc --noEmit` clean; deviations: the error state after a view switch wasn't driven (it
   > needs the user's running backend stopped); no test, since Jest can't see the layout
+  > ✅ 2026-10-22 23:42 — Verification Plan rerun after the fix: `node .specs/scripts/run-related-tests.mjs 053` →
+  > RELATED TESTS PASSED (apps/backend, apps/mobile, modules/classes, modules/enrolment); `node .specs/scripts/check-coverage.mjs 053`
+  > → COVERAGE OK, 15 files; `npx turbo run lint check-types build --filter=@rochas-surf-school/mobile` → no errors;
+  > `node .specs/scripts/run-e2e.mjs 053` → E2E PASSED (apps/backend)
 
 **Notes**
 

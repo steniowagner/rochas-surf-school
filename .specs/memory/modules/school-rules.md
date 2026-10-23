@@ -68,8 +68,11 @@ accepted and whether any version was ever accepted. The app shows the rules (a r
 asks for a first acceptance at the onboarding School rules step; an account that accepted before is asked
 for a new version, at the next sign-in, launch or session renewal, on the "Regras atualizadas" screen, which has no way back but
 accepting. Both screens share one acceptance component. Any approved account, admins included, reads the rules
-at any time from its Profile ("Regras da escola"), on a read-only screen with no checkbox and no button. The
-admin's screen to manage the rules doesn't exist yet. Acceptances can't be withdrawn, and nothing lists who accepted
+at any time from its Profile ("Regras da escola"), on a read-only screen with no checkbox and no button. Approved
+admins manage the rules on their own "Regras da escola" screen, opened from the "Regras" row of their home (spec
+056): they add, edit and delete rules (a delete asks for a confirmation first) and move a rule one place with ↑ / ↓,
+which sends the whole list in its new order; every sheet says that everyone will accept the rules again, and there is
+no choice about it. Instructors open the read-only rules from the same row on their home. Acceptances can't be withdrawn, and nothing lists who accepted
 which version. It sends no notification about changes. It doesn't keep the text of past versions, or who edited, deleted or reordered a
 rule.
 
@@ -87,3 +90,6 @@ rule.
   the acceptance screen and its mutation are shared by both.
 - `026-profile-tab` — no change to the module: the app gains a read-only School rules screen, opened from the
   Profile of every role.
+- `056-school-rules-admin-screen` — no change to the module: the app gains the admin's screen to add, edit, delete
+  (after a confirmation) and reorder the rules (↑ / ↓, the whole list sent), opened from a "Regras" row on the admin's
+  home; instructors get the same row, which opens the read-only rules.

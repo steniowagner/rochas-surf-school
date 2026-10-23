@@ -438,8 +438,9 @@ saved with +55; other countries show the number as typed.
 
 **School rules on the backend** (spec `010-school-rules-management`) — admins add, edit, delete and reorder the
 school rules through the backend, and any approved account reads them, in the admins' order, with the current
-version. Every add, edit or delete raises the version by one; reordering and an unchanged save don't. Only the
-backend exists: no screen shows or manages the rules yet.
+version. Every add, edit or delete raises the version by one; reordering and an unchanged save don't. The app's
+screens on top of it came later: reading and accepting (specs 012, 013, 026) and the admin's management screen
+(spec 056).
 
 **Accepting the school rules on the backend** (spec `011-school-rules-acceptance`) — an approved account of any
 role accepts the current version of the rules through the backend, which records the version and when it was
@@ -480,7 +481,7 @@ request is sent. The app sends it from the Account deleted screen (spec 016).
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker. The real screens of each flow (every student and instructor screen, every admin screen besides the
-School tools home, "Join the school" and the Profile tab included, and the admin's school rules screen), reloading the account when the app returns from the
+School tools home, "Join the school" and the Profile tab included), reloading the account when the app returns from the
 background (a rule change or an admin's decision is seen at the next launch or session renewal), and Apple sign-in
 don't exist yet.
 
@@ -1021,6 +1022,27 @@ notification read. The bell shows the real number of unread notifications ("9+" 
 the count can't load), updated when the home screen shows again, after marking and when a push arrives with the app
 open. Notifications are never deleted, hidden or marked read just by being seen. Pending, denied, deleted and
 removed accounts have no bell. All copy is in pt-BR, es-ES and en-US.
+
+**Managing the school rules in the app** (spec `056-school-rules-admin-screen`) — approved admins open "Regras da
+escola" from a "Regras" row, the first under "Escola" on their Início, above "Pessoas". Its subtitle reads "N regras
+no onboarding dos alunos" ("1 regra…", "Nenhuma regra ainda" with none; no subtitle while loading or after an error).
+The screen shows the intro, then the rules in the admins' order, numbered "01", "02"… with each title and explanation
+as written, each with ↑ / ↓ arrows, and an "Adicionar regra" button below. ↑ / ↓ move a rule one place at once and
+send the whole new order; every arrow is off until the answer, the first ↑ and the last ↓ are always off, and there
+is no success toast. A failure puts the list back with a toast, and a stale order (another admin changed the list)
+reloads it with "As regras mudaram. Confira a nova ordem.". "Adicionar regra" opens "Nova regra" and tapping a rule
+opens "Editar regra": "Título" (up to 60 characters) and "Explicação" (up to 300), each with its counter, sent
+trimmed. "Adicionar regra" turns on when both fields have text; "Salvar" turns on only when the trimmed text also
+differs from the stored one. Each sheet notes that, once saved, everyone will need to accept the rules again the
+next time they open the app; there is no checkbox, since admins don't choose. "Excluir regra" in the edit sheet
+opens "Excluir esta regra?" with the rule's title and the same note for deleting, then deletes it, and the rules
+after it move up. The toasts are "Regra adicionada", "Regra salva" and "Regra excluída". A rule that is already gone
+closes the sheet, reloads the list and says "Esta regra já foi excluída."; any other failure keeps the sheet and
+the draft. The screen has a loading state (placeholder rows), an error state with "Tentar novamente", and an empty
+state "Nenhuma regra ainda" with its own "Adicionar regra". The admin who changed the rules accepts the new version
+like everyone else, at their next launch, sign-in or session renewal. Perfil and the class details still open the
+read-only rules. Instructors get the same "Regras" row on their Início ("N regras para todos os alunos"), which opens
+the read-only rules. All copy is in pt-BR, es-ES and en-US.
 
 Active specs: none.
 

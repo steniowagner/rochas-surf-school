@@ -16,6 +16,7 @@ import {
   markedDayDots,
   mondayOf,
   monthCaption,
+  monthPeriod,
   monthRange,
   monthOf,
   toIsoDate,
@@ -273,5 +274,12 @@ describe("markedDayDots", () => {
 
   it("gives a day that isn't marked no dot, whatever its count", () => {
     expect(markedDayDots("2026-10-08", marked, { "2026-10-08": 2 })).toBe(0);
+  });
+});
+
+describe("monthPeriod", () => {
+  it("answers the 1st and the last day of the month", () => {
+    expect(monthPeriod({ year: 2026, month: 10 })).toEqual({ from: "2026-10-01", to: "2026-10-31" });
+    expect(monthPeriod({ year: 2028, month: 2 })).toEqual({ from: "2028-02-01", to: "2028-02-29" });
   });
 });

@@ -419,8 +419,24 @@ const messages = {
   },
   myHistory: {
     title: "History",
-    empty: "You haven't taken any class yet.",
-    loadError: "We couldn't load your history.",
+    legend: "Days with classes taken",
+    hasClasses: "with classes taken",
+    allClasses: "All classes",
+    clearDay: "Clear {{date}}",
+    loading: "Loading the classes",
+    loadError: {
+      title: "Something went wrong",
+      description:
+        "We couldn't load your history. Check your connection and try again.",
+    },
+    emptyDay: {
+      title: "No classes this day",
+      description: "You didn't take any class this day.",
+    },
+    emptyPeriod: {
+      title: "No classes in this period",
+      description: "You didn't take any class in this period.",
+    },
   },
   userHeader: {
     greeting: {

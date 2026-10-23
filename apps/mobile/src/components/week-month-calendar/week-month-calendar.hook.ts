@@ -10,6 +10,7 @@ import {
   mondayOf,
   monthCaption,
   monthOf,
+  monthPeriod,
   monthRange,
   toIsoDate,
   weekCaption,
@@ -46,9 +47,7 @@ export const useWeekMonthCalendar = ({
   const month = monthOf(anchor);
   const weekEnd = addDays(weekStart, 6);
   const range: VisibleRange = isMonth ? monthRange(month) : { from: weekStart, to: weekEnd };
-  const period: CalendarPeriod = isMonth
-    ? { from: toIsoDate(month, 1), to: toIsoDate(month, new Date(month.year, month.month, 0).getDate()) }
-    : { from: weekStart, to: weekEnd };
+  const period: CalendarPeriod = isMonth ? monthPeriod(month) : { from: weekStart, to: weekEnd };
 
   const reportRange = useEffectEvent((visible: VisibleRange) => {
     onVisibleRangeChange?.(visible);

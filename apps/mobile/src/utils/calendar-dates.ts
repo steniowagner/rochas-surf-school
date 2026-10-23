@@ -206,3 +206,9 @@ export const markedDayDots = (
   markedCounts: Record<string, number> | undefined,
 ): number =>
   markedDates.has(isoDate) ? Math.min(MAX_DAY_DOTS, markedCounts?.[isoDate] || 1) : 0;
+
+/** The first and the last day of a month, `YYYY-MM-DD`. */
+export const monthPeriod = (month: CalendarMonth): { from: string; to: string } => ({
+  from: toIsoDate(month, 1),
+  to: toIsoDate(month, new Date(month.year, month.month, 0).getDate()),
+});

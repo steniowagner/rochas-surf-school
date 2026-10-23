@@ -281,7 +281,7 @@ list can follow the period. Students find a past class by when it happened inste
   > files clean; deviations: `dayAndMonth` in `src/utils/calendar-dates.ts` is now exported for the captions. Until T-06
   > rebuilds it, `my-class-history.screen.hook.ts` still calls the paged hook, so `tsc` reports it.
 
-- [ ] **T-06** — Rebuild `src/modules/enrolment/screens/my-class-history.screen.tsx` (+ `.hook.ts`, `.types.ts`): one
+- [x] **T-06** — Rebuild `src/modules/enrolment/screens/my-class-history.screen.tsx` (+ `.hook.ts`, `.types.ts`): one
   list whose header holds the calendar (D-04 props, D-07 state), the legend and the list header, with day labels and
   `ClassCard`s as rows, and ER-05's states. Extract `components/history-list-header/` ("Todas as aulas" with the
   caption or the day chip) and `components/history-day-label/` in `src/modules/enrolment/`, each with its test.
@@ -290,6 +290,29 @@ list can follow the period. Students find a past class by when it happened inste
   `infoTint` with `lagoon` text, as designed). Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03, ER-04, ER-05 · Done when: `npx jest src/modules/enrolment` passes from `apps/mobile`.
+  > ✅ 2026-10-22 23:07 — `MyClassHistoryScreen` is one `FlatList` (`my-history-list`, first descendant,
+  > `contentInsetAdjustmentBehavior="automatic"`) whose header holds the calendar in a `bg-surface` card with `border-line`
+  > (`WeekMonthCalendar` with `initialView="month"`, `clearable`, `markedCounts`, `onClearSelection`, `onPeriodChange`), the
+  > legend (a `bg-lagoon` dot and "Dias com aula dada") and `HistoryListHeader`; its rows are `HistoryDayLabel`s and
+  > `ClassCard`s (`HistoryRow`), grouped by Fortaleza day newest first and filtered by the selected day in the app. The hook
+  > keeps the period (Fortaleza's current month on open), the selected day (none on open) and the refresh spinner as local
+  > state (D-07); states follow D-09 / ER-05: three `ClassCardSkeleton`s read as "Carregando as aulas", `ErrorState`
+  > with retry and its spinner (`isRetrying`), `EmptyState` `calendar-outline` for a day or a period, nothing after an
+  > expired session, a failed refresh keeping the classes; the calendar and legend stay in every state. New
+  > `components/history-list-header/` ("Todas as aulas", the caption or the `bg-info-tint` / `text-lagoon` chip, a 44 pt
+  > target, `myHistory.clearDay` as its label) and `components/history-day-label/` (a `ds-text-section-label` header), each
+  > with its test. `myHistory` copy replaced in pt-BR, es-ES and en-US (`empty` / `loadError` strings gone). Files:
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.{tsx,hook.ts,types.ts,test.tsx}`,
+  > `apps/mobile/src/modules/enrolment/components/history-list-header/{index.ts,history-list-header.component.tsx,history-list-header.types.ts,history-list-header.component.test.tsx}`,
+  > `apps/mobile/src/modules/enrolment/components/history-day-label/{index.ts,history-day-label.component.tsx,history-day-label.types.ts,history-day-label.component.test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, `apps/mobile/src/utils/calendar-dates.ts`,
+  > `apps/mobile/src/utils/calendar-dates.test.ts`, `apps/mobile/src/components/week-month-calendar/week-month-calendar.hook.ts`;
+  > verified: `npx jest src/modules/enrolment` from `apps/mobile` (32 suites, 281 passed; the screen, its hook and both
+  > components at 100%), `npx jest src/components/week-month-calendar src/utils src/i18n` (131 passed), `npx tsc --noEmit`
+  > and `npx eslint` clean; deviations: a `monthPeriod(month)` helper (1st to last day) added to `calendar-dates.ts` with
+  > its test, used for the screen's opening period and in place of the same inline computation in the calendar hook; the
+  > caption at the right uses the pill's captions (`monthCaption` / `weekCaption`), upper-cased like the rest of the app,
+  > where the prototype capitalizes the month.
 
 ### Verification
 

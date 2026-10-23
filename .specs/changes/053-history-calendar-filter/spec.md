@@ -2,7 +2,7 @@
 id: "053"
 slug: history-calendar-filter
 title: Filter the class history by day, week or month
-status: in-review
+status: changes-requested
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 038bb0bd6d0328754ac283661af9cc73accb5105
@@ -452,3 +452,59 @@ list can follow the period. Students find a past class by when it happened inste
   T-09 (the change) and T-10 (rerun the verification).
 
 ## Review
+
+### Round 1 — 2026-10-22 — changes-requested
+
+**Checks**
+
+- lint ✅ (0 errors; the backend's 10 warnings are in e2e lines this spec didn't touch) · type check ✅ · build ✅
+  (modules/classes, apps/mobile through turbo, 12/12 tasks; apps/backend with `tsc --noEmit` and
+  `tsc -p tsconfig.build.json` into a scratch folder, so the user's running `nest start --watch` and its `dist` were
+  left alone; no Prisma schema change in this spec)
+- related tests ✅ apps/backend 42 · apps/mobile 1273 · modules/classes 525 · modules/enrolment 291 (RELATED TESTS PASSED)
+- coverage of the changed lines ✅ COVERAGE OK, 15 files; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 23 files, 631 passed (E2E PASSED) · mobile: journeys driven on the iOS simulator (iPhone 18 Pro,
+  pt-BR, the dev student, existing data only: one class taken on 21 Oct)
+- `classes.integration.http` requests against the running backend, signed in as the review student / instructor /
+  admin: `from=2026-10-01&to=2026-10-31` → 200, body only `items` (the 21 Oct class); August, `2026-10-13` alone and the
+  42-day `2026-08-01..2026-09-11` → 200 `{ items: [] }`; `to=2026-09-12` and `to` before `from` → 422
+  `class.range.invalid`; `from=2026-02-30&to=2026-03-01` → 422 `class.from.invalid`; `from=2026-02-30` alone,
+  `page=1&perPage=20` and no query → 422 `class.from.invalid` + `class.to.invalid`; instructor and admin with
+  `from=x` → 403 `enrolment.role.notStudent`; no token → 401
+
+**Expected Results**
+
+- ER-01 ✅ — the reader's single query with `starts_at >= from AND starts_at < to`, the use case's Fortaleza instants,
+  the e2e day edges (00:00 on 1 Aug and 23:59 on 31 Aug in, 00:00 on 1 Sep and 23:59 on 31 Jul out), `from` = `to`, the
+  ordering by id and every exclusion; the HTTP answers above
+- ER-02 ✅ — the use case and e2e 422 / 403 / 401 cases, and the same answers over HTTP
+- ER-03 ✅ — on the simulator: only the back button in the header, OUTUBRO 2026 in month view, no day selected, one dot
+  on 21, "Dias em que você fez aula", "TODAS AS AULAS" / "OUTUBRO 2026"; the pill opened "19 – 25 OUT"; the arrows moved
+  the week; faded days had no dot. The two-classes-one-dot case is covered by the screen test (no data was added to the
+  dev database). The Agenda still opens on the week with QUI 22 selected and one dot per day
+- ER-04 ❌ — picking 21 selected it with the "21 OUT ✕" chip and only its class; the chip cleared it; 20 showed
+  "Sem aulas neste dia" with its chip; the pill kept the day; the next arrow cleared it. But see F-01: switching view
+  with the empty state on screen breaks it
+- ER-05 ❌ — the skeleton on a new week, then "Sem aulas neste período" under the calendar and the legend, render well;
+  the empty state breaks after a view switch (F-01). The error and its retry are covered by the screen test; journey 3's
+  error with the backend stopped was not driven (the running backend is the user's)
+
+**Findings**
+
+- [ ] **F-01** (ER-04, ER-05) — when the calendar switches view while the list shows `EmptyState`, the empty state is
+  drawn broken: its icon tile moves up over the "TODAS AS AULAS" row and its title and description disappear, and it
+  stays that way (scrolling doesn't fix it). Reproduce on the simulator: open "Histórico", tap a day without classes
+  (e.g. 20) → "Sem aulas neste dia" is fine → tap the pill ("19 – 25 OUT") → broken; or, on week view, tap a day without
+  classes (e.g. 27 in "26 OUT – 1 NOV") → fine → tap the pill (October, cached) → broken. Skeleton → empty without a view
+  switch renders well. Expected: the empty state shows its tile, title and description just under the list header in
+  every view, as before the switch. The difference from the Agenda, whose empty state survives the same calendar
+  toggle, is that the history renders it through `FlatList`'s `ListEmptyComponent` (`EmptyState` is `flex-1` /
+  `justify-center` inside a `pt-4` wrapper) while the Agenda renders it as a plain child of a `ScrollView`; a test can't
+  see this layout, so the evidence is the simulator.
+
+**Notes**
+
+- `isWeek` in `my-class-history.screen.hook.ts` tells a week from a month by `addDays(from, 6) === to`; it holds because
+  every month has at least 28 days, but keeping the calendar's view next to the period (the `CalendarPeriod` could carry
+  it) would say it directly.
+- The Memory Impact matches what was built.

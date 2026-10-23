@@ -570,6 +570,15 @@ const messages: Messages = {
     loadError: "No se pudo cargar la clase.",
     notFound: "Esta clase ya no existe.",
     retry: "Intentar de nuevo",
+    loading: "Cargando la clase",
+    errorState: {
+      title: "Algo salió mal",
+      description: "No pudimos cargar esta clase. Revisa tu conexión e inténtalo de nuevo.",
+    },
+    notFoundState: {
+      title: "Clase no encontrada",
+      description: "Esta clase fue eliminada o ya no existe.",
+    },
     noInstructor: {
       title: "Sin instructor",
       description: "Asigna un instructor antes de la clase.",

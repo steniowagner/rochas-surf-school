@@ -13,7 +13,11 @@ import { Linking } from "react-native";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
-import { insetBehaviorsOf } from "@/navigation/stack-header/header-inset.test-utils";
+import {
+  insetBehaviorsOf,
+  topPaddingsOf,
+  underTransparentHeader,
+} from "@/navigation/stack-header/header-inset.test-utils";
 import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
@@ -215,9 +219,48 @@ describe("ClassDetailsScreen", () => {
   });
 
   it("insets its scroll view below the header, whatever the header is", async () => {
+    serve(makeClass());
     await renderScreen();
+    await screen.findByText("16:00 – 17:30");
 
     expect(insetBehaviorsOf(screen.toJSON())).toContain("automatic");
+  });
+
+  it.each([
+    [
+      "loading",
+      () => fetchMock.mockReturnValue(new Promise(() => undefined)),
+      () => screen.getByLabelText("Loading the class"),
+    ],
+    [
+      "not found",
+      () => fetchMock.mockResolvedValue(failure(404)),
+      () => screen.getByRole("header", { name: "Class not found" }),
+    ],
+  ])(
+    "shows the %s state in a view that doesn't scroll, clear of the transparent header",
+    async (_state, answer, getState) => {
+      answer();
+      await underTransparentHeader(116, async () => {
+        await renderScreen();
+        await waitFor(() => expect(getState()).toBeOnTheScreen());
+
+        expect(insetBehaviorsOf(screen.toJSON())).toEqual([]);
+        expect(topPaddingsOf(screen.toJSON())).toContain(116 + 16);
+      });
+    },
+  );
+
+  it("shows the error in a view that doesn't scroll", async () => {
+    jest.useFakeTimers();
+    fetchMock.mockResolvedValue(failure(500));
+    await renderScreen();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(20_000);
+    });
+
+    expect(screen.getByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
+    expect(insetBehaviorsOf(screen.toJSON())).toEqual([]);
   });
 
   it("draws no icon on the discipline chip", async () => {
@@ -748,7 +791,8 @@ describe("ClassDetailsScreen", () => {
     fetchMock.mockReturnValue(new Promise(() => undefined));
     await renderScreen();
 
-    expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the class")).toBeOnTheScreen();
+    expect(screen.getByTestId("class-details-skeleton")).toBeOnTheScreen();
     expect(headerOptions().headerTitle).toBeUndefined();
     expect(headerOptions().headerRight).toBeUndefined();
   });
@@ -766,12 +810,36 @@ describe("ClassDetailsScreen", () => {
       await jest.advanceTimersByTimeAsync(20_000);
     });
 
-    expect(screen.getByText("Couldn't load the class.")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
+    expect(
+      screen.getByText("We couldn't load this class. Check your connection and try again."),
+    ).toBeOnTheScreen();
 
     serve(makeClass());
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("16:00 – 17:30")).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+  });
+
+  it("keeps the error with the button's spinner while Try again loads, not the skeleton", async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ errors: [] }),
+    });
+    await renderScreen();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(20_000);
+    });
+    fetchMock.mockReturnValue(new Promise(() => undefined));
+
+    await user.press(screen.getByRole("button", { name: "Try again" }));
+
+    expect(screen.getByRole("button", { name: "Try again" })).toBeDisabled();
+    expect(screen.queryByLabelText("Loading the class")).not.toBeOnTheScreen();
   });
 
   it("shows nothing when the session expired", async () => {
@@ -783,13 +851,9 @@ describe("ClassDetailsScreen", () => {
     await waitFor(() => expect(api.apiGet).toHaveBeenCalled());
     await act(async () => undefined);
 
-    expect(
-      screen.queryByText("Couldn't load the class."),
-    ).not.toBeOnTheScreen();
-    expect(screen.queryByTestId("class-details-loading")).not.toBeOnTheScreen();
-    expect(
-      screen.queryByText("This class no longer exists."),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+    expect(screen.queryByLabelText("Loading the class")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Class not found" })).not.toBeOnTheScreen();
   });
 
   it("says a missing class no longer exists", async () => {
@@ -800,9 +864,8 @@ describe("ClassDetailsScreen", () => {
     });
     await renderScreen();
 
-    expect(
-      await screen.findByText("This class no longer exists."),
-    ).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: "Class not found" })).toBeOnTheScreen();
+    expect(screen.getByText("This class was deleted or no longer exists.")).toBeOnTheScreen();
     expect(
       screen.queryByRole("button", { name: "Try again" }),
     ).not.toBeOnTheScreen();
@@ -821,7 +884,7 @@ describe("ClassDetailsScreen", () => {
       await jest.advanceTimersByTimeAsync(20_000);
     });
 
-    expect(screen.getByText("Couldn't load the class.")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Class tools" })).toBeNull();
   });
 
@@ -980,7 +1043,7 @@ describe("ClassDetailsScreen", () => {
       fetchMock.mockReturnValue(new Promise((resolve) => (finish = resolve)));
       await renderScreen(true);
 
-      expect(screen.getByTestId("class-details-loading")).toBeOnTheScreen();
+      expect(screen.getByLabelText("Loading the class")).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
       expect(headerOptions().headerRight).toBeUndefined();
 
@@ -991,9 +1054,7 @@ describe("ClassDetailsScreen", () => {
       fetchMock.mockResolvedValue(failure(404));
       await renderScreen(true);
 
-      expect(
-        await screen.findByText("This class no longer exists."),
-      ).toBeOnTheScreen();
+      expect(await screen.findByRole("header", { name: "Class not found" })).toBeOnTheScreen();
       expect(toolsButton()).toBeNull();
       expect(headerOptions().headerRight).toBeUndefined();
     });

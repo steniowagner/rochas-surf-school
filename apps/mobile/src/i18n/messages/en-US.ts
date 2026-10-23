@@ -563,6 +563,15 @@ const messages = {
     loadError: "Couldn't load the class.",
     notFound: "This class no longer exists.",
     retry: "Try again",
+    loading: "Loading the class",
+    errorState: {
+      title: "Something went wrong",
+      description: "We couldn't load this class. Check your connection and try again.",
+    },
+    notFoundState: {
+      title: "Class not found",
+      description: "This class was deleted or no longer exists.",
+    },
     noInstructor: {
       title: "No instructor",
       description: "Assign an instructor before the class.",

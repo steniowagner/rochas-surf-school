@@ -333,9 +333,23 @@ reminded once; a cancelled class, or one that has already started, never is. Tap
 
 ### Verification
 
-- [ ] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every automated command exits 0 and the user journey is recorded
   (or recorded as not drivable while pushes can't reach a device, with the stored notification as evidence).
+  > ✅ 2026-10-23 13:00 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs
+  > 054` → RELATED TESTS PASSED (apps/backend, apps/mobile, modules/classes, modules/notifications, and
+  > modules/enrolment as a dependent); `node .specs/scripts/check-coverage.mjs 054` → COVERAGE OK (10 measured
+  > files, every changed line covered); `npx turbo run lint check-types build --filter=…notifications
+  > --filter=…classes --filter=…backend --filter=…mobile` → 27 tasks successful, 0 errors (the 10 backend lint
+  > warnings are `require-array-sort-compare` in e2e files this spec didn't touch); `node .specs/scripts/run-e2e.mjs
+  > 054` → E2E PASSED (24 files, 645 tests, including `class-reminders.e2e-spec.ts`). User journey: pushes can`t
+  > reach a device yet (no EAS project or APNs credentials), so the tap on the simulator wasn't driven (the routing
+  > is covered by the hook tests of T-08); the stored-notification half was checked live against the running backend
+  > (`nest start --watch`, real clock): a seeded approved student and an admin teaching a class starting 20 minutes
+  > later each got one `class.reminder` row (`{ classId, discipline: "surf", startsAt, locationName }`) at the
+  > 16:00:00 cron tick, with `reminder_sent_at` set to that tick; the seeded rows were deleted afterwards. To finish
+  > the journey once pushes reach a device: sign in on the iOS simulator as a student with an approved seat in a
+  > class starting within 30 minutes, wait for the push, tap it, and see that class's details
 
 ## Verification Plan
 

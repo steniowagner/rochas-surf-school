@@ -360,7 +360,7 @@ screen and the read state that spec 020 left for later, so a notification is nev
   > src/modules/notifications/push-messages.spec.ts` (83 passed, including the existing push cases;
   > `push-messages.ts` at 100% statements, branches, functions and lines), `tsc --noEmit` clean; deviations: none.
 
-- [ ] **T-05** — Expose in `apps/backend/src/modules/notifications/notifications.controller.ts` (protected):
+- [x] **T-05** — Expose in `apps/backend/src/modules/notifications/notifications.controller.ts` (protected):
   `GET /notifications` (query `page`, `perPage`, `locale` → `ListNotifications`, items mapped by D-14 with
   `renderInApp`), `GET /notifications/unread-count`, `POST /notifications/read-all` (204) and
   `POST /notifications/:id/read` (204), wiring the repository and clock in `notifications.module.ts`; add the cases to
@@ -369,6 +369,23 @@ screen and the read state that spec 020 left for later, so a notification is nev
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npx vitest run src/modules/notifications/notifications.controller.spec.ts`
   and `npm run test:e2e --workspace apps/backend -- notifications` pass.
+  > ✅ 2026-10-23 13:38 — Added to `NotificationsController` (protected by the global guard, no `@Public`) `GET
+  > /notifications` (`page`, `perPage`, `locale` → `ListNotifications`; items mapped to `{ id, type, classId, title,
+  > body, createdAt, read }` with `classId` from a string `params.classId`, else `null`, and the text from
+  > `renderInApp` in the use case’s locale), `GET /notifications/unread-count`, `POST /notifications/read-all` (204)
+  > and `POST /notifications/:id/read` (204); added the controller cases, a “the notifications screen” block to the
+  > e2e suite (“lists notifications”, “writes the text in the requested language”, “counts unread”, “marks one
+  > read”, “marks all read”: paging 25 rows with another user’s 3, empty list, `classId: null`, `read: true`, a
+  > pending account, the one 422 with three keys, 401s, repeat marks keeping the first `read_at`, 404 for a foreign
+  > / unknown / non-UUID id) and the requests to the `.integration.http`; files:
+  > `apps/backend/src/modules/notifications/notifications.controller.ts`,
+  > `apps/backend/src/modules/notifications/notifications.controller.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.integration.http`,
+  > `apps/backend/test/notifications.e2e-spec.ts`; verified: `npx vitest run
+  > src/modules/notifications/notifications.controller.spec.ts` (18 passed, controller at 100%), `npm run test:e2e
+  > --workspace apps/backend -- notifications` (51 passed), `tsc --noEmit` clean, `npm run lint` exit 0 with the
+  > same 10 pre-existing warnings as before the change; deviations: `notifications.module.ts` needed no change — it
+  > already provides `PrismaNotificationRepository` and `SystemClockProvider`, which the controller now injects.
 
 ### Mobile (`apps/mobile`)
 

@@ -93,6 +93,41 @@ Content-Type: application/json
   "token": "ExponentPushToken[review-admin]"
 }
 
+### List my notifications, newest first (expects 200 with items, page, perPage and total; text in the locale, pt-BR without one)
+# @name notifications
+GET {{baseUrl}}/notifications?page=1&perPage=20&locale=pt-BR
+Authorization: Bearer {{accessToken}}
+
+###
+@notificationId = {{notifications.response.body.items[0].id}}
+
+### The second page in English (expects 200)
+GET {{baseUrl}}/notifications?page=2&locale=en
+Authorization: Bearer {{accessToken}}
+
+### Invalid paging and locale (expects 422 with notifications.page.invalid, notifications.perPage.invalid and notifications.locale.invalid)
+GET {{baseUrl}}/notifications?page=0&perPage=51&locale=fr
+Authorization: Bearer {{accessToken}}
+
+### Count my unread notifications (expects 200 with { count })
+GET {{baseUrl}}/notifications/unread-count
+Authorization: Bearer {{accessToken}}
+
+### Mark one notification read (expects 204; again keeps its first read time and still answers 204)
+POST {{baseUrl}}/notifications/{{notificationId}}/read
+Authorization: Bearer {{accessToken}}
+
+### Mark an unknown or someone else's notification read (expects 404 notification.notFound)
+POST {{baseUrl}}/notifications/not-a-uuid/read
+Authorization: Bearer {{accessToken}}
+
+### Mark all my notifications read (expects 204)
+POST {{baseUrl}}/notifications/read-all
+Authorization: Bearer {{accessToken}}
+
+### List without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/notifications
+
 ### Sign out and stop pushing to this device (expects 204)
 POST {{baseUrl}}/auth/sign-out
 Content-Type: application/json

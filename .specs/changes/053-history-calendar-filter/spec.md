@@ -2,7 +2,7 @@
 id: "053"
 slug: history-calendar-filter
 title: Filter the class history by day, week or month
-status: in-review
+status: in-progress
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 038bb0bd6d0328754ac283661af9cc73accb5105
@@ -52,7 +52,7 @@ list can follow the period. Students find a past class by when it happened inste
 ### In scope
 
 - `GET /classes/mine/history` takes a required period (`from`, `to`) and answers every class taken in it, unpaged.
-- The shared `WeekMonthCalendar` gains optional behavior for the history (D-04, D-05); the Agenda keeps today's.
+- The shared `WeekMonthCalendar` gains optional behavior for the history (D-04, ~~D-05~~ D-11); the Agenda keeps today's.
 - The history screen rebuilt: calendar, legend, list header with the day chip, day labels, and the shared loading,
   error and empty states, in pt-BR, es-ES and en-US.
 
@@ -73,12 +73,13 @@ list can follow the period. Students find a past class by when it happened inste
 | D-02 | The day filter runs in the app, on the period already loaded; picking or clearing a day sends no request. | The period's classes are already there for the dots. |
 | D-03 | A class belongs to the America/Fortaleza day its `startsAt` falls on: the range is `startsAt >= toInstant(from, 0)` and `startsAt < toInstant(to + 1 day, 0)`. `to` before `from`, or more than 42 days from `from` to `to` inclusive, is refused. The app asks for the month (its 1st to its last day) or the week (Monday to Sunday) on screen — never the faded days of the month grid. | One rule for the server and the calendar; 42 days is the largest month grid, so the cap never blocks the app. |
 | D-04 | `WeekMonthCalendar` gets optional props (names are the executor's choice) for: opening on the month; a selection that may be empty; arrows that move the period without selecting; pressing the selected day to clear it; and reporting the period on screen. Without them it behaves exactly as today; the Agenda's call site doesn't change. | One calendar for both screens: captions, grids and accessibility are already built and tested. Approved by the user. |
-| D-05 | Each day shows one dot per class taken that day, up to 3 (a count per day, optional), in the calendar's existing dot style; the Agenda keeps its single dot. | The design (`pkDots`, `Math.min(3, …)`). Approved by the user. |
+| D-05 | ~~Each day shows one dot per class taken that day, up to 3 (a count per day, optional), in the calendar's existing dot style; the Agenda keeps its single dot.~~ (removed: replaced by D-11, amendment of 2026-10-22) | ~~The design (`pkDots`, `Math.min(3, …)`). Approved by the user.~~ |
 | D-06 | The list is grouped under a label per Fortaleza day, newest day first, the cards of a day newest first. | The journey asks for it, and the cards carry no date; the design's flat list would leave month-view cards undated. Approved by the user. |
 | D-07 | The screen's state is local: it always opens on month view, on Fortaleza's current month, with no day selected; leaving the screen drops it. | Nothing to persist; the same rule as the Agenda's filter. Approved by the user. |
 | D-08 | Moving the period with the arrows clears the selected day. Switching view keeps it: month → week opens the selected day's week (with no day: today's week when today is in that month, else the week of the month's 1st); week → month opens the selected day's month (with no day: the month of the week's Monday). Pressing a faded day outside the month opens that month with the day selected. | The list always matches what the calendar shows; the prototype keeps a day selected in a month that is no longer on screen. |
 | D-09 | Loading shows `ClassCardSkeleton` cards under the calendar, read as one loading state; a failed load shows `ErrorState` with retry; no classes shows `EmptyState`. The calendar and the legend stay on screen in all three. | The user asked for the app's shared components, as on the Agenda. |
 | D-10 | The query is `useQuery` keyed `["classes", "mine", "history", from, to]`, no retry. Each period is cached on its own, under `["classes"]`, so the existing invalidations still refresh it. A period not in the cache shows the skeleton, not the previous period's classes. | A key per period lets going back to a month show at once; showing old classes under a new caption would mislead. |
+| D-11 | Each day of the history with one or more classes taken shows a single dot, as on the Agenda; the calendar takes no count per day. The legend and the days' accessibility label are the student's own copy ("Dias em que você fez aula" / "você fez aula"), not "Dias com aula dada", which reads as the staff's. The native header of the history shows only the back button, no title. | Asked by the user after the first review hand-off (amendment of 2026-10-22). |
 
 ## Expected Results
 
@@ -117,13 +118,14 @@ list can follow the period. Students find a past class by when it happened inste
 ### ER-03 — The history's calendar
 
 - **Front:** mobile
-- **Behavior:** Given a student opening "Histórico", when the screen shows, then under the native header the calendar
+- **Behavior:** Given a student opening "Histórico", when the screen shows, then under the native header (only the
+  back button, no title — D-11) the calendar
   is on month view, on Fortaleza's current month ("OUTUBRO 2026" in the pill), with no day selected, followed by the
-  legend — a dot and "Dias com aula dada" — and the list loads that month (`from` its 1st, `to` its last day). Each
-  day of the month shows one dot per class taken that day, up to 3. The arrows move one month (or one week on week
+  legend — a dot and ~~"Dias com aula dada"~~ "Dias em que você fez aula" (D-11) — and the list loads that month (`from` its 1st, `to` its last day). Each
+  day of the month ~~shows one dot per class taken that day, up to 3~~ with one or more classes taken shows one dot (D-11). The arrows move one month (or one week on week
   view) and load that period; the pill switches view by D-08 and loads the new period. On week view the period is
   Monday to Sunday and the pill reads the week ("12 – 18 OUT").
-- **Edge and error cases:** a day with 5 classes shows 3 dots; faded days outside the month show no dot; a failed
+- **Edge and error cases:** a day with ~~5 classes shows 3 dots~~ 2 or more classes still shows 1 dot (D-11); faded days outside the month show no dot; a failed
   load shows no dots; the Agenda's calendar still opens on the week with today selected, its arrows still select
   ±7 days or ±1 month, and it still shows one dot per day — its existing tests pass unchanged.
 - **Verify by:** `npx jest src/components/week-month-calendar src/components/calendar-week-row src/components/calendar-month-grid src/modules/classes/screens/classes-week.screen.test.tsx`
@@ -323,6 +325,14 @@ list can follow the period. Students find a past class by when it happened inste
   > caption at the right uses the pill's captions (`monthCaption` / `weekCaption`), upper-cased like the rest of the app,
   > where the prototype capitalizes the month.
 
+- [ ] **T-09** — (added by the amendment of 2026-10-22) D-11: remove the dot count — `markedCounts` from
+  `src/components/week-month-calendar/`, `calendar-week-row/` and `calendar-month-grid/` (back to one dot per marked
+  day, their existing tests unchanged), `markedDayDots` / `MAX_DAY_DOTS` from `src/utils/calendar-dates.ts`, and
+  `countClassesByDay` in favour of the days with classes in `src/modules/enrolment/utils/class-history.ts`; drop the
+  history screen's header title (`Stack.Screen` `headerTitle`); replace `myHistory.legend` / `myHistory.hasClasses` with
+  the student's copy in pt-BR, es-ES and en-US; update the tests.
+  Covers: ER-03 · Done when: `npx jest src/components src/utils src/modules/enrolment src/modules/classes/screens/classes-week.screen.test.tsx` passes from `apps/mobile`.
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
@@ -351,6 +361,10 @@ list can follow the period. Students find a past class by when it happened inste
   > loaded, check the skeleton then "Algo deu errado", start the backend and press "Tentar novamente". Files: none
   > (`.specs/changes/053-history-calendar-filter/spec.md` only); deviations: none.
 
+- [ ] **T-10** — (added by the amendment of 2026-10-22) Rerun the Verification Plan after T-09: the related tests, the
+  coverage gate, lint / type check / build, the e2e suite, and journeys 1 and 4 on the simulator.
+  Covers: all · Done when: every automated command exits 0 and the journeys are recorded.
+
 ## Verification Plan
 
 - Automated:
@@ -364,8 +378,9 @@ list can follow the period. Students find a past class by when it happened inste
     answers 422 `class.range.invalid`.
 - User journeys (on the iOS simulator, as a student with classes taken on at least two days of one month, one of
   them with two classes):
-  1. "Minhas aulas" → history button: "Histórico" opens on the current month with no day selected, the dots (two
-     on the day with two classes), "Dias com aula dada", and the month's classes under day labels. The previous
+  1. "Minhas aulas" → history button: "Histórico" opens, with no title in the header, on the current month with no
+     day selected, one dot on each day with classes (one on the day with two classes), "Dias em que você fez aula",
+     and the month's classes under day labels. The previous
      arrow loads the previous month; the pill switches to a week and back.
   2. Tapping a day with classes shows only them and the "<dia> <MÊS>" chip; tapping the chip shows the whole month
      again; tapping a day without classes shows "Sem aulas neste dia"; a card opens the class's details.
@@ -379,7 +394,7 @@ list can follow the period. Students find a past class by when it happened inste
   remove "the history's calendar to jump to a date" from what spec 048 left out.
 - `memory/technical-context.md` — `GET /classes/mine/history?from=&to=` (`{ items }`, the 42-day rule and its 422
   keys), `MyClassesReader.findHistoryClassIds(studentId, now, from, to)`, `WeekMonthCalendar`'s new optional props
-  and dot count, `useMyClassHistory({ from, to })` and its key, the rebuilt history screen and its components.
+  (no dot count: D-11), `useMyClassHistory({ from, to })` and its key, the rebuilt history screen and its components.
 - `memory/structure.md` — the new `history-list-header` and `history-day-label` components and
   `utils/class-history.ts` in the enrolment module; the history screen's description.
 - `memory/modules.md` — None.
@@ -395,5 +410,13 @@ list can follow the period. Students find a past class by when it happened inste
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-22 — asked by the user after the spec was handed to review (status `in-review` → `in-progress`), approved in
+  chat: (1) D-05 "one dot per class, up to 3" → D-11 "one dot for a day with one or more classes", so the calendar's
+  count per day goes away; (2) ER-03's legend "Dias com aula dada" → "Dias em que você fez aula" (and the days'
+  accessibility label "com aula dada" → "você fez aula"), because "aula dada" is how the staff say it; (3) ER-03: the
+  history's native header shows no title ("HISTÓRICO" removed), only the back button. ER-03's edge case "a day with
+  5 classes shows 3 dots" → "2 or more classes still show 1 dot"; journey 1 and the Memory Impact follow. New tasks
+  T-09 (the change) and T-10 (rerun the verification).
 
 ## Review

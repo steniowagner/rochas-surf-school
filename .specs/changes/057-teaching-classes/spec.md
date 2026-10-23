@@ -214,11 +214,20 @@ header's clock button.
   > verified: `npx vitest run src/modules/classes/teaching-classes-reader.prisma.spec.ts` (3 passed) and
   > `npx tsc --noEmit -p apps/backend` (no errors, after building `modules/classes`); deviations: none.
 
-- [ ] **T-03** — Add `GET /classes/teaching` to `src/modules/classes/classes.controller.ts` (before `:id`), with its
+- [x] **T-03** — Add `GET /classes/teaching` to `src/modules/classes/classes.controller.ts` (before `:id`), with its
   cases in `classes.controller.spec.ts` and requests (instructor, admin, student 403, no token 401) in
   `classes.integration.http`. Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/classes/classes.controller.spec.ts` passes from
   `apps/backend`.
+  > ✅ 2026-10-23 20:13 — added `GET /classes/teaching` (handler `teaching`, declared after `mine/history` and before
+  > `:id`) running `ListTeachingClasses` with the new `PrismaTeachingClassesReader` constructor argument, the view and
+  > roster readers and the classes clock; spec cases for its metadata (protected GET, 200), its order before `:id`, an
+  > instructor and an admin at the clock's now, a student (`user.role.notTeacher`) and a pending account
+  > (`user.status.notApproved`); REST Client requests for a teacher, a student (403) and no token (401). Files:
+  > `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.integration.http`; verified: `npx vitest run src/modules/classes/classes.controller.spec.ts`
+  > (44 passed), `npx tsc --noEmit -p apps/backend` and `npm run lint -w apps/backend` (no errors; existing warnings in
+  > other files only); deviations: none.
 
 - [ ] **T-04** — Add `test/teaching-classes.e2e-spec.ts` (fixed classes clock and fake `ExpoPushProvider` as in
   `my-classes.e2e-spec.ts`, deleting what each test creates) with the "lists the classes the caller teaches" cases

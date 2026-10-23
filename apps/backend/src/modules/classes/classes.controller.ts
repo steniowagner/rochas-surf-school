@@ -25,6 +25,8 @@ import {
   ListMyClassesOut,
   ListMyClassHistory,
   ListMyClassHistoryOut,
+  ListTeachingClasses,
+  ListTeachingClassesOut,
   ListWeekClasses,
   ListWeekClassesOut,
   ListTimeRangeSuggestions,
@@ -47,6 +49,7 @@ import { PrismaLocationRepository } from './location.prisma.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
+import { PrismaTeachingClassesReader } from './teaching-classes-reader.prisma.js';
 
 type CreateClassBatchBody = Partial<Omit<CreateClassBatchIn, 'actor'>> | undefined;
 type EditClassBody = Partial<Omit<EditClassIn, 'actor' | 'id'>> | undefined;
@@ -74,6 +77,7 @@ export class ClassesController {
     private readonly classAudienceReader: PrismaClassAudienceReader,
     private readonly myClassesReader: PrismaMyClassesReader,
     private readonly classContactReader: PrismaClassContactReader,
+    private readonly teachingClassesReader: PrismaTeachingClassesReader,
   ) {}
 
   @Post('batch')
@@ -154,6 +158,17 @@ export class ClassesController {
       this.viewerEnrolmentReader,
       this.clock,
     ).execute({ actor: actorOf(user), from, to });
+  }
+
+  @Get('teaching')
+  @HttpCode(HttpStatus.OK)
+  teaching(@CurrentUser() user: AuthenticatedUser): Promise<ListTeachingClassesOut> {
+    return new ListTeachingClasses(
+      this.teachingClassesReader,
+      this.classViewReader,
+      this.classRosterReader,
+      this.clock,
+    ).execute({ actor: actorOf(user) });
   }
 
   @Get(':id')

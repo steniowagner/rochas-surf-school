@@ -716,6 +716,7 @@ const messages = {
       saved: "Rule saved",
       deleted: "Rule deleted",
       notFound: "This rule was already deleted.",
+      orderMismatch: "The rules changed. Check the new order.",
     },
   },
   signOutSheet: {

@@ -723,6 +723,7 @@ const messages: Messages = {
       saved: "Regla guardada",
       deleted: "Regla eliminada",
       notFound: "Esta regla ya se eliminó.",
+      orderMismatch: "Las reglas cambiaron. Revisa el nuevo orden.",
     },
   },
   signOutSheet: {

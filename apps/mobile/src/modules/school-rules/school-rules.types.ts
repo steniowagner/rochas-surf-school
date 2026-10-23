@@ -27,3 +27,13 @@ export type UpdateSchoolRuleVariables = CreateSchoolRuleVariables & {
 export type DeleteSchoolRuleVariables = {
   id: string;
 };
+
+/** `PUT /school-rules/order`: every current rule, in the new order; the hook sends their ids. */
+export type ReorderSchoolRulesVariables = {
+  rules: SchoolRule[];
+};
+
+/** The list before an optimistic reorder, put back when the request fails. */
+export type ReorderSchoolRulesContext = {
+  previous: SchoolRules | undefined;
+};

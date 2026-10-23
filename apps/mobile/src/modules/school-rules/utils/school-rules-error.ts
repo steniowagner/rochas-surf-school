@@ -9,6 +9,10 @@ const hasKey = (error: unknown, status: number, key: string): boolean =>
 export const isRuleNotFoundError = (error: unknown): boolean =>
   hasKey(error, 404, "schoolRule.id.notFound");
 
+/** The order didn't name every current rule exactly once (422): another admin changed the list meanwhile. */
+export const isOrderMismatchError = (error: unknown): boolean =>
+  hasKey(error, 422, "schoolRule.order.mismatch");
+
 const fallbackKey = (error: unknown): string =>
   error instanceof NetworkError ? "createAccount.errors.noConnection" : "createAccount.errors.generic";
 
@@ -23,6 +27,19 @@ export const getSchoolRuleErrorKey = (error: unknown): string | null => {
 
   if (isRuleNotFoundError(error)) {
     return "manageSchoolRules.toasts.notFound";
+  }
+
+  return fallbackKey(error);
+};
+
+/** The translation key of the toast for a failed reorder, or `null` when nothing should be shown. */
+export const getReorderSchoolRulesErrorKey = (error: unknown): string | null => {
+  if (error instanceof SessionExpiredError) {
+    return null;
+  }
+
+  if (isOrderMismatchError(error)) {
+    return "manageSchoolRules.toasts.orderMismatch";
   }
 
   return fallbackKey(error);

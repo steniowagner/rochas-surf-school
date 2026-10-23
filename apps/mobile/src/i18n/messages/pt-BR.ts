@@ -716,6 +716,7 @@ const messages: Messages = {
       saved: "Regra salva",
       deleted: "Regra excluída",
       notFound: "Esta regra já foi excluída.",
+      orderMismatch: "As regras mudaram. Confira a nova ordem.",
     },
   },
   signOutSheet: {

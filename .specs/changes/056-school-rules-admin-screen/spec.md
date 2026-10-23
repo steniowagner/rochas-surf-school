@@ -294,7 +294,7 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   > src/modules/school-rules/utils` (6 suites, 35 passed), `npx tsc --noEmit` (exit 0); deviations: the tests reuse
   > `src/modules/people/people.test-utils.tsx` instead of a new test-utils file.
 
-- [ ] **T-02** — Add `src/modules/school-rules/hooks/use-reorder-school-rules.hook.ts` (D-05): `onMutate` cancels
+- [x] **T-02** — Add `src/modules/school-rules/hooks/use-reorder-school-rules.hook.ts` (D-05): `onMutate` cancels
   the rules query, keeps the previous list and writes the new order to the cache; `onSuccess` writes the answer;
   `onError` restores the previous list and shows the toast, or on 422 `schoolRule.order.mismatch` invalidates the
   query and shows "The rules changed. Check the new order."; it exposes whether a reorder is in flight. With its
@@ -303,6 +303,21 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-08 · Done when: `npx jest src/modules/school-rules/hooks/use-reorder-school-rules.hook.test.tsx` passes
   from `apps/mobile`.
+  > ✅ 2026-10-23 — `useReorderSchoolRules` takes the whole list in its new order (`{ rules }`) and sends
+  > `PUT /school-rules/order` `{ ruleIds }`; `onMutate` cancels the query, keeps the previous list and writes the new
+  > order (positions renumbered 1…N; nothing written while the rules were never loaded); `onSuccess` writes the answer;
+  > `onError` puts the previous list back, invalidates the query on 422 `schoolRule.order.mismatch` and toasts through
+  > `getReorderSchoolRulesErrorKey` (order-mismatch / no-connection / generic, `null` for an expired session); no
+  > success toast; `isPending` is what callers read for "a reorder is in flight". Files:
+  > `apps/mobile/src/modules/school-rules/hooks/use-reorder-school-rules.hook.ts`,
+  > `apps/mobile/src/modules/school-rules/hooks/use-reorder-school-rules.hook.test.tsx`,
+  > `apps/mobile/src/modules/school-rules/utils/school-rules-error.ts`,
+  > `apps/mobile/src/modules/school-rules/utils/school-rules-error.test.ts`,
+  > `apps/mobile/src/modules/school-rules/school-rules.types.ts`, `apps/mobile/src/i18n/messages/{en-US,pt-BR,es-ES}.ts`;
+  > verified: `npx jest src/modules/school-rules/hooks/use-reorder-school-rules.hook.test.tsx src/modules/school-rules/utils`
+  > (2 suites, 18 passed; the first run failed on an identity assertion, fixed to compare the answer's content),
+  > `npx tsc --noEmit` (exit 0); deviations: the variables carry the reordered rules rather than only their ids, so the
+  > optimistic write needs no lookup — the request still sends only `ruleIds`.
 
 - [ ] **T-03** — Add `src/modules/school-rules/components/school-rule-sheet/` (component, hook, types, `index.ts`):
   the `BottomModal` with mode `add` | `edit` (D-06), the title field with its counter, the explanation `TextArea`, the

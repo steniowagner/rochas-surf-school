@@ -1,19 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ContactSchoolButton } from "@/components/contact-school-button";
 import { Button } from "@/components/ui/button";
-import { HeaderButton } from "@/components/ui/header-button";
 import { Chip } from "@/components/ui/chip";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { HeaderButton } from "@/components/ui/header-button";
 import { useTheme } from "@/hooks/use-theme";
 import { CancellationRulesSheet } from "@/modules/cancellation-rules/components/cancellation-rules-sheet";
 import { CancelSeatSheet } from "@/modules/enrolment/components/cancel-seat-sheet";
@@ -25,6 +21,7 @@ import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
+import { ClassDetailsSkeleton } from "../components/class-details-skeleton";
 import { ClassLocationCard } from "../components/class-location-card";
 import { ClassPeople } from "../components/class-people";
 import { ClassRuleRow } from "../components/class-rule-row";
@@ -62,29 +59,34 @@ export function ClassDetailsScreen({
       <ScrollView
         className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-6 pt-4 px-screen"
+        // `grow` lets the error and not-found states fill the screen under the header.
+        contentContainerClassName="grow gap-6 pt-4 px-screen"
         contentContainerStyle={{
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
         {screen.isLoading ? (
-          <ActivityIndicator
+          // Read out as one loading state.
+          <View
             testID="class-details-loading"
-            color={theme.grape}
-          />
-        ) : screen.isNotFound ? (
-          <Text className="ds-text-body text-center text-ink-2">
-            {t("classDetails.notFound")}
-          </Text>
-        ) : screen.isError ? (
-          <View className="items-center gap-3">
-            <Text className="ds-text-body text-center text-ink-2">
-              {t("classDetails.loadError")}
-            </Text>
-            <Button variant="outline" onPress={screen.retry}>
-              {t("classDetails.retry")}
-            </Button>
+            accessible
+            accessibilityLabel={t("classDetails.loading")}
+          >
+            <ClassDetailsSkeleton />
           </View>
+        ) : screen.isNotFound ? (
+          <EmptyState
+            icon="search-outline"
+            title={t("classDetails.notFoundState.title")}
+            description={t("classDetails.notFoundState.description")}
+          />
+        ) : screen.isError ? (
+          <ErrorState
+            title={t("classDetails.errorState.title")}
+            description={t("classDetails.errorState.description")}
+            onRetry={screen.retry}
+            retrying={screen.isRetrying}
+          />
         ) : item ? (
           <>
             <View className="gap-2">

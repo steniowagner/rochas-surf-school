@@ -559,6 +559,15 @@ const messages: Messages = {
     loadError: "Não foi possível carregar a aula.",
     notFound: "Esta aula não existe mais.",
     retry: "Tentar novamente",
+    loading: "Carregando a aula",
+    errorState: {
+      title: "Algo deu errado",
+      description: "Não conseguimos carregar esta aula. Verifique sua conexão e tente novamente.",
+    },
+    notFoundState: {
+      title: "Aula não encontrada",
+      description: "Esta aula foi excluída ou não existe mais.",
+    },
     noInstructor: {
       title: "Sem instrutor",
       description: "Atribua um instrutor antes da aula.",

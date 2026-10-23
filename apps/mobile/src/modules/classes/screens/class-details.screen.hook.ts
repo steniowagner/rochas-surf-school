@@ -61,6 +61,9 @@ export const useClassDetailsScreen = ({
   const cancelClass = useCancelClass(id);
   const deleteClass = useDeleteClass(id);
   const item = query.data;
+  // With no class loaded, a fetch after an error goes back to pending: while "Try again" runs, the error stays on
+  // screen with the spinner in its button, instead of the loading state.
+  const isRetrying = query.isPending && query.errorUpdateCount > 0;
   const [toolsVisible, setToolsVisible] = useState(false);
   const [cancelVisible, setCancelVisible] = useState(false);
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
@@ -331,13 +334,15 @@ export const useClassDetailsScreen = ({
     },
     cancelling: cancelClass.isPending,
     cancel,
-    isLoading: query.isPending,
+    isLoading: query.isPending && !isRetrying,
     isNotFound: query.error instanceof ApiError && query.error.status === 404,
     // An expired session is handled by the session flow: nothing to show here.
     isError:
-      query.isError &&
-      !(query.error instanceof ApiError && query.error.status === 404) &&
-      !(query.error instanceof SessionExpiredError),
+      isRetrying ||
+      (query.isError &&
+        !(query.error instanceof ApiError && query.error.status === 404) &&
+        !(query.error instanceof SessionExpiredError)),
+    isRetrying,
     retry: () => void query.refetch(),
   };
 };

@@ -2,13 +2,14 @@
 id: "055"
 slug: notifications-screen
 title: Notifications screen with read state
-status: accepted
+status: finished
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 66686ab329a0a62b13f5656dc7557ab0e403465f
 reviewed_commit: f7a4997e452186a2b421fcd29c265e7d619d5592
 fronts: [notifications, backend, mobile]
 depends_on: []
+finished: 2026-10-23
 ---
 
 # 055 — Notifications screen with read state

@@ -12,8 +12,9 @@ two business areas: **Notifications** (what is stored and sent) and **Devices** 
 What the person is told, and how it reaches them.
 
 - **Notification** (`notification`): one message to one person about an event. Key fields: the person, the
-  type, the details the type needs, when it was created. It holds **no text**: the app (and the push) write it
-  from the type and its details, in the reader's language. Types today:
+  type, the details the type needs, when it was created, and when its person read it (none while unread, spec
+  055). It holds **no text**: the backend writes it from the type and its details, in the reader's language — the
+  push in its phone's language, the notifications screen in the app's. Types today:
   - `registration.pending` — a new account is waiting for approval; details: its name and its id (`userId`).
     When that account is erased (a denied registration, spec 021), every `registration.pending` about it is
     deleted on Authentication's request; older rows without an id are not touched.
@@ -143,7 +144,23 @@ What the person is told, and how it reaches them.
   instructor gets without a class, or a person who now resolves to another flow, falls back as before); tapping an
   `enrolment.cancelled` push opens that class's details as an instructor or an admin. Any enrolment push received
   with the app open reloads every class shown, and an `enrolment.requested` or `enrolment.cancelled` one also the
-  admin's pending requests.
+  admin's pending requests. Tapping any push also marks its notification read (without waiting for it; a failure
+  is ignored), and any push received with the app open reloads the notifications list and the bell's unread count
+  (spec 055).
+- **In-app text** (spec 055): the push's title and body in the language the app asks for (pt-BR when it asks for
+  none), minus the sentences that send the person to the app they are already in: `class.edited` ends after "…foi
+  alterada." / "…cambió." / "…was changed.", and `registration.denied` without a reason has an empty body (with
+  one, the reason).
+- **Notifications screen** ("Avisos" / "Avisos" / "Notifications", spec 055): opened from the bell on the home
+  screen of students (the Agenda), instructors and admins, above the tabs. It lists every notification of the
+  person, newest first, 20 at a time (the next ones load at the end of the list; pulling reloads from the first
+  page), each with an icon and tone for its type (a bell on the info tone for a type the app doesn't know), its
+  title, its body when there is one, when it arrived (relative up to a week, then the date) and an orange dot while
+  unread. Tapping a row marks it read at once and opens the same screen its push opens for the account's current
+  flow; a type with no screen there only marks it read, and a failed mark shows nothing. The header's button marks
+  them all read at once, shows only while something is unread, and on failure puts the dots back with a toast. The
+  bell's badge is the real unread count ("9+" above nine, none at zero or when the count fails), reloaded when the
+  home screen is shown again, after any mark and when a push arrives.
 
 Rules:
 
@@ -161,6 +178,9 @@ Rules:
   excludes (the person whose account deletion caused it, still approved while it runs); none left → nothing
   stored or sent.
 - **Nothing is retried**: a push that fails is not sent again; the notification stays stored.
+- **Read once** (spec 055): a notification is unread until its person marks it, by tapping its row or its push, or
+  with "mark all"; marking a read one again changes nothing, so it keeps when it was first read. Nothing marks
+  notifications read by being shown, and nothing deletes or expires them: they last as long as the account.
 
 ## Devices
 
@@ -197,6 +217,9 @@ Rules:
   while it is off the phone never registers again and retries the removal at each launch or sign-in, and turning
   it on registers the phone at once (a refused OS permission turns it back off). Turning pushes off never touches
   the stored notifications.
+- **Any signed-in account, whatever its status** — lists its own notifications, counts its unread ones, and marks
+  one or all of them read (spec 055); someone else's notification is answered as not found. In the app only
+  students, instructors and admins have the bell that opens them.
 - **Approved admins** — receive a push for each new registration.
 - **The person whose registration was decided** — receives the approval, or the denial with its reason.
 - **An instructor or admin assigned to a batch of classes** — receives one `class.assigned`, unless they
@@ -240,9 +263,8 @@ location edit. [Enrolment](enrolment.md) reaches it through its own contract for
 requests, cancelled seats, direct enrolments and take-outs, with the same guarantee. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
-which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
-state, badges and rich pushes come
-with their specs, as do the notifications of every other event (reactivation requests, role changes,
+which also writes the push text and the in-app text. The app reads the stored notifications only through the
+backend (spec 055). Badges on the app icon and rich pushes come with their specs, as do the notifications of every other event (reactivation requests, role changes,
 seat cancellations, broadcasts) and those of an edit or a location change to the classes' students and pending
 requests (spec 047).
 
@@ -301,3 +323,7 @@ requests (spec 047).
   copy, to a class's students with an approved seat and its instructors 30 minutes before each start, through the
   Classes module's contract; in the app, a tap opens the class in the student's, instructor's or admin's flow, and
   one received with the app open reloads nothing.
+- `055-notifications-screen` — the read state (`readAt`; marks keep the first read time), listing, counting the
+  unread and marking one or all read for any signed-in account, own notifications only; the in-app text (the push
+  copy minus "open the app"); in the app, the "Avisos" screen from the bell of students, instructors and admins,
+  the bell's real unread count, and a tapped push marks its notification read.

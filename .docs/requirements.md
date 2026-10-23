@@ -515,11 +515,15 @@ The system SHALL deliver notifications as pushes to the user's phone. It SHALL N
 
 #### Notifications screen
 
+_Implemented in spec 055-notifications-screen._
+
 Every notification SHALL also appear on an in-app notifications screen, whether or not its push was shown.
 
 - _Push not shown:_ When a user who turned pushes off is notified, then the notification appears on their notifications screen.
 
 #### Read state
+
+_Implemented in spec 055-notifications-screen._
 
 Users SHALL be able to mark a notification as read, and mark all their notifications as read at once.
 

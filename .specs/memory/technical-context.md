@@ -88,8 +88,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     its status or the i18n language changes; silent on any failure — while `prefs.pushEnabled` is off it sends
     nothing of the kind and calls `unregisterPushToken()` instead, so a failed DELETE heals at the next launch or
     sign-in), `useNotificationResponse` (a tap — the
-    launch response once the session is restored, then the listener; deduplicated by `notificationId`: refreshes
-    the account with `refreshAccount()`, then `router.push(routes.admin.registrations)` for a
+    launch response once the session is restored, then the listener; deduplicated by `notificationId`: with a
+    session and a string `data.notificationId` it first sends `POST /notifications/<id>/read`, not awaited, failures
+    ignored (spec 055); refreshes the account with `refreshAccount()`, then routes to
+    `notificationTarget(type, classId, flow)` (`src/modules/notifications/utils/notification-target.ts`, an href or
+    `null`, shared with the notifications screen since spec 055): `router.push(routes.admin.registrations)` for a
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
     / `router.push(routes.admin.classes)` for a `class.assigned`, `class.deleted` or `location.changed` push when it
     resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
@@ -103,14 +106,15 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
     class id (spec 042), `router.push(routes.instructor.classDetail(classId))` /
     `router.push(routes.admin.classDetail(classId))` for an `enrolment.cancelled` push with a string `data.classId`
-    in the `instructor` / `admin` flow (spec 043), else
+    in the `instructor` / `admin` flow (spec 043), else (`null`)
     `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
-    `useNotificationReceived` (a push with the app open: `registration.approved` / `.denied` refresh the account,
+    `useNotificationReceived` (a push with the app open: every push invalidates `["notifications", "list"]` and
+    `["notifications", "unread-count"]` (spec 055), then `registration.approved` / `.denied` refresh the account,
     `registration.pending` invalidates `["registrations"]`, `class.assigned` invalidates `["classes", "week"]`,
     `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
     `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037; for every role, students included),
     the seven enrolment pushes invalidate `["classes"]` and `enrolment.requested` / `enrolment.cancelled` also
-    `["enrolments", "pending"]` (specs 041–044); `class.reminder` invalidates nothing (spec 054); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    `["enrolments", "pending"]` (specs 041–044); `class.reminder` invalidates nothing else (spec 054); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -121,6 +125,21 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     the token stops pushes: the OS shows background pushes without asking the app. Pushes need the EAS `projectId` in `app.json` (`eas init`) and the APNs key /
     FCM service account (`eas credentials`) plus a native rebuild — not set up yet, so the app registers nothing
     until then.
+  - Notifications screen (spec 055): `NotificationsScreen` (`src/modules/notifications/screens/`) is the route
+    `notifications` of each role's Stack, outside `(tabs)` (`routes.<role>.notifications`, `/<role>/notifications`),
+    with `headerTitle` and, while rows show and the unread count is above 0, a `headerRight` `HeaderButton`
+    (`checkmark-done-outline`) for "mark all". Hooks in `src/modules/notifications/hooks/`: `useNotifications`
+    (`useInfiniteQuery` `["notifications", "list"]` — no locale in the key —, `GET
+    /notifications?page&perPage=20&locale=<toBackendLocale>`, rows repeated across pages dropped by `id`),
+    `useUnreadNotificationsCount` (`["notifications", "unread-count"]`, `count` 0 while unknown or failed),
+    `useMarkNotificationRead` (optimistic: the row read and the cached count down by one; silent on failure) and
+    `useMarkAllNotificationsRead` (optimistic: every row read and the count 0; the snapshot back on failure, and
+    the screen toasts unless the session expired); both invalidate the count when settled. Keys, page size and
+    `markReadInPages` live in `utils/notifications-cache.ts`, the per-type glyph and tone in
+    `utils/notification-icon.ts`. Pull to refresh trims the cache to page 1 before refetching. The home bell
+    (`UserHeader`, `src/components/user-header/`) pushes the signed-in role's route and shows
+    `useUnreadNotificationsCount`, refetched by `useFocusEffect` (`cancelRefetch: false`); `HeaderButton`'s badge
+    reads "9+" above 9 (`MAX_BADGE_COUNT`).
   - Dates: `date-fns` 4 + `@date-fns/tz`, always displayed in `America/Fortaleza` (`format(…, { in: tz("America/Fortaleza") })`);
     relative times use date-fns locales `ptBR` / `es` / `enUS`, picked from the i18n language. The general
     `YYYY-MM-DD` helpers live in `src/utils/calendar-dates.ts` (spec 031; `CalendarMonth` in
@@ -365,8 +384,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   code email, whose pt-BR / es / en copy lives in `ResendEmailProvider` (the client sends the `locale` picked on
   the sign-in screen), and the push text, whose catalog (`renderPush(type, params, locale)`) lives in
   `apps/backend/src/modules/notifications/push-messages.ts` and is drawn per device in the locale that device
-  registered (spec 020). A stored notification holds no text — only `type` and `params` — so the app can
-  translate it.
+  registered (spec 020). The same catalog also writes the notifications screen's text (`renderInApp(type, params,
+  locale)`, in the `locale` the app sends to `GET /notifications`; spec 055), so an installed app still shows the
+  text of a type it doesn't know. A stored notification holds no text — only `type` and `params`.
 - **Contracts**: controllers reuse the use case's `In` interface and return its output; a controller-specific
   DTO only when HTTP really differs from the use case. No `class-validator` / `ValidationPipe`: input is
   validated by the domain, so there is one set of rules.
@@ -1642,6 +1662,19 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `pushToken.token.required`; `deleteForUser(userId, token)`, so another account's token or an unknown one
   changes nothing) — and when Expo reports `DeviceNotRegistered` in a ticket or a receipt; never when a session
   expires, the account changes status, or by age.
+- Read state and the notifications screen (spec 055): `notifications.read_at` (nullable; null = unread; migration
+  `notifications_add_read_at`). Four protected endpoints, any status, own notifications only:
+  `GET /notifications` (`ListNotifications`: `page` digits ≥ 1, default 1 → else `notifications.page.invalid`;
+  `perPage` digits 1–50, default 20 → else `notifications.perPage.invalid`; `locale` `pt-BR` / `es` / `en`, default
+  `pt-BR` → else `notifications.locale.invalid`; all in one 422; ordered `created_at` then `id` descending) →
+  `{ items: [{ id, type, classId, title, body, createdAt, read }], page, perPage, total }` (`classId` from a string
+  `params.classId`, else `null`; `title` / `body` from `renderInApp`; `params` not returned);
+  `GET /notifications/unread-count` (`CountUnreadNotifications`) → `{ count }`; `POST /notifications/read-all`
+  (`MarkAllNotificationsRead`, 204) and `POST /notifications/:id/read` (`MarkNotificationRead`, 204; an id that isn't
+  a UUID, is unknown or someone else's → 404 `notification.notFound`). Marks use the clock and set `read_at` only
+  while it is null (`PrismaNotificationRepository.markRead`: one conditional `updateMany`, then an existence
+  count), so a repeat keeps the first time. `renderInApp` is `renderPush` except where a catalog entry has an
+  `inAppBody` (`class.edited` without "open the app", `registration.denied` with the reason or `""`).
 - Tickets and receipts: every `ok` ticket is stored in `push_tickets` (`id` = Expo ticket id, `token`, no foreign
   key); `PushReceiptCheckJob` runs `CheckPushReceipts` every minute — tickets 15 minutes old or more are asked
   about (`getPushNotificationReceiptsAsync` in chunks of up to 1000 ids), the token of each `DeviceNotRegistered`

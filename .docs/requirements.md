@@ -791,6 +791,8 @@ Every approved user SHALL be able to see all classes, past and future, with thei
 
 #### Reminders
 
+_Implemented in spec 054-class-reminders._
+
 30 minutes before a class starts, its students and instructors SHALL be notified. No reminder SHALL be sent for a cancelled class.
 
 - _Class about to start:_ When a class starts in 30 minutes, then its students and instructors are notified.

@@ -52,12 +52,14 @@ const handle = async (response: Notifications.NotificationResponse) => {
     return;
   }
 
-  // An edited, unassigned or cancelled class opens that class, in the details of the flow the account resolves to.
+  // An edited, unassigned, cancelled or soon-starting class opens that class, in the details of the flow the account
+  // resolves to.
   const classId = typeof data?.classId === "string" ? data.classId : null;
   const isClassChange =
     data?.type === "class.edited" ||
     data?.type === "class.unassigned" ||
-    data?.type === "class.cancelled";
+    data?.type === "class.cancelled" ||
+    data?.type === "class.reminder";
 
   if (isClassChange && classId !== null && flow === "instructor") {
     router.push(routes.instructor.classDetail(classId));
@@ -73,9 +75,10 @@ const handle = async (response: Notifications.NotificationResponse) => {
 
   // A student hears that the class they asked for or held a seat in was edited or cancelled, or started without a seat
   // for them, or that their request was approved or denied, or that the school enrolled them in a class or took them
-  // out of one.
+  // out of one, or that their class starts soon.
   const isStudentClassNews =
     data?.type === "class.edited" ||
+    data?.type === "class.reminder" ||
     data?.type === "enrolment.expired" ||
     data?.type === "enrolment.approved" ||
     data?.type === "enrolment.denied" ||

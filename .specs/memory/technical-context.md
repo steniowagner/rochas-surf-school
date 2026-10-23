@@ -93,11 +93,12 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
     / `router.push(routes.admin.classes)` for a `class.assigned`, `class.deleted` or `location.changed` push when it
     resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
-    for a `class.edited` / `class.unassigned` / `class.cancelled` push with a string `data.classId` (specs 032,
-    033), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
+    for a `class.edited` / `class.unassigned` / `class.cancelled` / `class.reminder` push with a string
+    `data.classId` (specs 032, 033, 054), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
     `data.classId` when it resolves to the `admin` flow (spec 035), `router.push(routes.student.classDetail(classId))`
     for an `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `enrolment.enrolled` /
-    `enrolment.takenOut` / `class.cancelled` / `class.edited` push in the `student` flow (specs 041, 042, 044, 047),
+    `enrolment.takenOut` / `class.cancelled` / `class.edited` / `class.reminder` push in the `student` flow (specs
+    041, 042, 044, 047, 054),
     `router.push(routes.student.home)` for a `location.changed` push in the `student` flow (spec 047), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
     the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
     class id (spec 042), `router.push(routes.instructor.classDetail(classId))` /
@@ -109,7 +110,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
     `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037; for every role, students included),
     the seven enrolment pushes invalidate `["classes"]` and `enrolment.requested` / `enrolment.cancelled` also
-    `["enrolments", "pending"]` (specs 041–044); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    `["enrolments", "pending"]` (specs 041–044); `class.reminder` invalidates nothing (spec 054); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -278,7 +279,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   transaction, the instructors replaced only when it matched; `false` for a cancelled class), and deleting the same
   way with `deleteMany` (spec 034): `PrismaSchoolClassRepository.delete` (`where: { id, cancelledAt: null,
   startsAt: { gt: now } }`, the `class_instructors` rows going with it by their `ON DELETE CASCADE`, `true` when
-  one row matched). Releasing a person from their upcoming classes (spec 035) is one `$transaction` running
+  one row matched), and marking a class as reminded (spec 054): `PrismaSchoolClassRepository.markReminded`
+  (`where: { id, reminderSentAt: null, cancelledAt: null }`, `true` when one row matched, so of two runs at once
+  exactly one reminds the class). Releasing a person from their upcoming classes (spec 035) is one `$transaction` running
   `classInstructor.deleteMany({ userId, classId: { in } })` (`PrismaSchoolClassRepository.removeInstructor`; an
   empty list writes nothing); a concurrent edit adding the person back isn't prevented, the last write wins.
   Cancellation deadlines (spec 036) use both: saving a rule is one `$transaction` (`PrismaCancellationRuleRepository.save`:
@@ -971,9 +974,12 @@ guard's 401 `auth.token.invalid`.
   `class.capacity.belowSeatsTaken` (`details: { seatsTaken }`). "Differs" compares discipline, level, `startsAt`,
   `endsAt`, location id, capacity and trimmed notes (`null` for none), and the instructors as a set; nothing
   differing → 200 with no write (not even `updatedAt`) and no notification. Otherwise
-  `SchoolClassRepository.update(schoolClass, clearDeadline)` (one `$transaction`, see Persistence; `clearDeadline`
-  is true when a class field differs — exactly the details the language model reads — so the deadline is cleared
-  in the same write, and kept when only the instructors change, spec 036; last save wins; it returns `false` when the
+  `SchoolClassRepository.update(schoolClass, { clearDeadline, clearReminder })` (one `$transaction`, see
+  Persistence; `clearDeadline` is true when a class field differs — exactly the details the language model reads —
+  so the deadline is cleared in the same write, and kept when only the instructors change, spec 036;
+  `clearReminder` is true only when `startsAt` changes, so the same write sets `reminder_sent_at` to null and the
+  new start is reminded, spec 054 — the stored mark is never written from the entity, so an edit can't undo a mark
+  the reminder job set meanwhile; last save wins; it returns `false` when the
   class was cancelled after it was read, which `EditClass` turns into 409 `class.cancelled` with nobody
   notified), then, all except the
   caller and each swallowed when it throws: `ClassChangeNotifier.classEdited({ instructorIds, studentIds?, classId,
@@ -1665,8 +1671,12 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   startsAt, waitingCount }` to the approved admins plus the class's instructors, deduplicated, the "N na lista de
   espera." sentence only when `waitingCount` > 0; spec 044: `studentEnrolled` → `enrolment.enrolled` with `{ classId,
   discipline, startsAt }` and `studentTakenOut` → `enrolment.takenOut` with `{ classId, discipline, startsAt,
-  reason? }`, `reason` only when written and used as the push body, both to the student only). Since spec 041
-  `NotificationsClassChangeNotifier.classCancelled` notifies the union of `instructorIds` and `studentIds`, and
+  reason? }`, `reason` only when written and used as the push body, both to the student only) and
+  `ClassReminderNotifier` (classes, `NotificationsClassReminderNotifier`, spec 054: `classReminder({ recipientIds,
+  classId, discipline, startsAt, locationName })` → `class.reminder` with `{ classId, discipline, startsAt,
+  locationName }`, `startsAt` as ISO text and `locationName` read when the reminder is sent; the copy shows the
+  start time in Fortaleza with no day, since a class just after midnight is reminded the evening before). Since
+  spec 041 `NotificationsClassChangeNotifier.classCancelled` notifies the union of `instructorIds` and `studentIds`, and
   since spec 047 `classEdited` does the same. A
   catalog entry's `title` in
   `push-messages.ts` is a string or a function of the params (`class.noInstructor`'s depends on the count; a
@@ -1751,7 +1761,13 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `enrolment-expiry`, `waitForCompletion`: runs `ExpirePendingEnrolments`, idempotent by the stored status — a
   request is written only while `pending` and only a changed row is pushed —, logs only the count) and
   `GuestErasureJob` (spec 045, cron `guest-erasure`, `waitForCompletion`: runs `EraseGuestData`, idempotent by the
-  write — it only touches guests not erased yet —, logs only the count)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
+  write — it only touches guests not erased yet —, logs only the count) and `ClassReminderJob` (spec 054, cron
+  `class-reminder`, `waitForCompletion`, in `apps/backend/src/modules/classes/`: runs `SendClassReminders` —
+  classes not cancelled, not reminded and starting in (now, now + `CLASS_REMINDER_LEAD_MINUTES` = 30] are marked
+  with one conditional `updateMany` (`reminder_sent_at` and `cancelled_at` null → now), and only a class whose write
+  changed the row notifies its approved students (`ClassRosterReader`) and instructors, each once; a class whose
+  location can't be found stays due; a failed push isn't retried —, idempotent by `classes.reminder_sent_at`,
+  which an edit that moves the start clears, logs only the count)): one job per kind of timed event (expired sign-in codes, pending enrolments expiring at the
   class start, 30-minute reminders, rating prompts, 30-day erasures of denied/deleted/removed accounts, guest
   data erasure, cancellation-deadline retries), each running every minute and **idempotent** — it records in
   the database what it already did, so a restart or a late tick never sends twice.

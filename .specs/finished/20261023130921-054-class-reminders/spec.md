@@ -1,0 +1,448 @@
+---
+id: "054"
+slug: class-reminders
+title: Class reminders 30 minutes before the start
+status: finished
+created: 2026-10-23
+started: 2026-10-23
+base_commit: f60fc4c51b2a9f2a061dd16a6be3638fbc24466b
+reviewed_commit: 072fd4d1ac45454b5228bc16e8731c8894e56184
+fronts: [notifications, classes, backend, mobile]
+depends_on: []
+finished: 2026-10-23
+---
+
+# 054 — Class reminders 30 minutes before the start
+
+## Goal
+
+About 30 minutes before a class starts, the students who hold a seat in it and its instructors get a push saying the
+class starts soon, with its start time and its place, so nobody forgets a class they are in. Each start of a class is
+reminded once; a cancelled class, or one that has already started, never is. Tapping the push opens the class.
+
+## Context
+
+- Product: [product.md](../../memory/product.md) — concepts: Class ("students and instructors get a reminder 30
+  minutes before it starts (not when cancelled)"), Enrolment, Guest, Notification; decision "Pushes are the only
+  notification channel"; times are America/Fortaleza.
+- Requirements: [requirements.md → Reminders](../../../.docs/requirements.md#reminders) — 30 minutes before a class
+  starts its students and instructors are notified; no reminder for a cancelled class.
+- Technical: [technical-context.md](../../memory/technical-context.md) — External integrations → Push notifications
+  (`Notify`, the per-module notifier ports and their adapters in `apps/backend/src/modules/notifications/`, the
+  `renderPush` catalog in `push-messages.ts`, `data.classId` copied from the params), Scheduled work (one job per kind
+  of timed event, every minute, idempotent by what it records, never throws, logs only counts; already lists
+  "30-minute reminders"), Automated validation (backend e2e with faked `ExpoPushProvider` and fixed clocks).
+- Existing code this builds on:
+  - `apps/backend/src/modules/enrolment/enrolment-expiry.job.ts` and
+    `modules/enrolment/src/enrolment/usecase/expire-pending-enrolments.usecase.ts` — the pattern to mirror: find the
+    due rows, write each conditionally, notify only for a row that changed, swallow notifier errors.
+  - `modules/classes/src/school-class/provider/school-class.repository.ts` — `update(schoolClass, clearDeadline)`
+    already clears the deadline in the same write as an edit; `apps/backend/src/modules/classes/school-class.prisma.ts`
+    implements it.
+  - `modules/classes/src/school-class/usecase/edit-class.usecase.ts` — computes `startsAt` and compares it with the
+    stored one.
+  - `modules/classes/src/school-class/provider/class-roster-reader.provider.ts` — `findRosters(classIds)` gives the
+    approved students of each class (`PrismaClassRosterReader`, exported by `EnrolmentModule`).
+  - `modules/classes/src/location/provider/location.repository.ts` — `findById` gives the location's name.
+  - `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts` — routes push taps per flow; an
+    unknown type falls back to `router.replace(routes.home)`.
+
+## Scope
+
+### In scope
+
+- A nullable `reminder_sent_at` column on `classes` (migration), carried by the `SchoolClass` entity.
+- The `SendClassReminders` use case and the `ClassReminderNotifier` port in `modules/classes`.
+- The `class.reminder` notification type, its adapter and its push text in pt-BR, es and en.
+- `ClassReminderJob`, every minute, in the backend's classes module.
+- Clearing the reminder mark when an edit moves the class's start.
+- Opening the class's details when a `class.reminder` push is tapped, in the student, instructor and admin flows.
+
+### Out of scope
+
+- The notifications screen (spec 020 stores notifications; no screen shows them yet).
+- The "Começa em 30 min" chip of `design-system.html` (an "A começar" card state, out of scope since spec 040).
+- Choosing the lead time, or turning reminders off per person or per type (only the phone's push switch applies).
+- Reminders to pending or waiting-list requests, and to guests.
+- The prompt to rate a class after it ends (ratings are deferred to a future version).
+- Retrying a reminder whose push failed.
+- Reminding people who join a class (approved, enrolled, assigned) after its reminder was sent.
+- Running more than one backend instance (the jobs assume one).
+
+## Decisions
+
+| ID   | Decision | Reason |
+| ---- | -------- | ------ |
+| D-01 | Recipients: the students with an **approved** enrolment in the class and **every instructor** of the class (instructors and admins who teach it), each person once. Pending requests (waiting list included) and guests are never reminded. | Spec 047 separates "its students" from "the people with pending enrolments"; a pending request expires at the start, so reminding it would mislead. Guests get nothing from the app (product decision). |
+| D-02 | Window: a class is due when `startsAt − 30 min ≤ now < startsAt`, it isn't cancelled and its reminder wasn't sent. The first run inside the window sends it, so a class created or moved into the window, or a backend back from downtime, is reminded at the next run. Once the class has started, no reminder is ever sent. The lead time is the constant `CLASS_REMINDER_LEAD_MINUTES = 30` in `modules/classes`. | Matches the scheduled-work convention (a late tick still acts, never twice). The copy carries the start time, so a late reminder is still true. |
+| D-03 | Idempotency: the class is marked with a conditional write (`reminder_sent_at` null and `cancelled_at` null → set to now); only the run whose write changed the row notifies. A failed push is not retried. | Same pattern as `EnrolmentExpiryJob`: two runs at once, or a restart, never send twice. |
+| D-04 | An edit that changes `startsAt` clears `reminder_sent_at` **in the same write** as the edit (an option of `SchoolClassRepository.update`, next to the deadline clearing); any other edit leaves it untouched. People added after the reminder was sent get none. | Writing the stored value back from the edit could undo a mark the job set meanwhile and resend. A student approved or an instructor assigned inside the window was just told by "Pedido aprovado" / "Você foi inscrito" / "Novas aulas na sua escala". |
+| D-05 | Push type `class.reminder`, params `{ classId, discipline, startsAt, locationName }` (`startsAt` as ISO text, `locationName` read when the reminder is sent). Text, the same for every role, with the time formatted in Fortaleza like the other class pushes and no day: pt-BR "Sua aula começa em breve" / "A aula de Surf começa às 08:00 · Praia do Futuro."; es "Tu clase empieza pronto" / "La clase de Surf empieza a las 08:00 · Praia do Futuro."; en "Your class starts soon" / "The Surf class starts at 08:00 · Praia do Futuro." | A class at 00:10 is reminded the evening before, so "hoje" / a weekday would be wrong; the start time and the place are what someone needs at that moment. |
+| D-06 | Ownership: `SendClassReminders` in `modules/classes` (`school-class/usecase/`), reading due classes through `SchoolClassRepository` (`findDueForReminder(now, leadMinutes)`, `markReminded(id, at)`), approved students through the existing `ClassRosterReader`, the location name through `LocationRepository.findById`, and telling people through a new `ClassReminderNotifier` port (`classReminder({ recipientIds, classId, discipline, startsAt, locationName })`), implemented by `NotificationsClassReminderNotifier` (logs and swallows every error). The job is `ClassReminderJob` in `apps/backend/src/modules/classes/` (cron name `class-reminder`, `EVERY_MINUTE`, `waitForCompletion`), logging only the count of classes reminded. | The reminder is about the class; it reuses the roster port the class views already use and mirrors the existing notifier ports and jobs. |
+| D-07 | Mobile: a `class.reminder` tap with a string `classId` opens `routes.student.classDetail(classId)`, `routes.instructor.classDetail(classId)` or `routes.admin.classDetail(classId)` by the resolved flow; without a class id it falls back to `routes.home`. Received with the app open, it shows the usual banner and invalidates no query. A class that no longer exists shows the details' existing "Esta aula não existe mais." state. | Every other push about one class opens it; a reminder changes nothing on screen, so nothing reloads. |
+
+## Expected Results
+
+### ER-01 — Seat holders and instructors are reminded 30 minutes before
+
+- **Front:** backend
+- **Behavior:** Given a class starting at 08:00 (Fortaleza) with an approved student S1, a pending request by S2, a
+  guest, an instructor I1 and an admin A1 who teaches it, when the reminder job runs at 07:30, then S1, I1 and A1
+  each have exactly one stored `class.reminder` notification with params `{ classId, discipline, startsAt,
+  locationName }`, and S2 has none.
+- **Edge and error cases:** a run at 07:29 stores nothing for the class; a class created at 07:45 to start at 08:00
+  is reminded by the next run (07:46); a person who turned pushes off still gets the stored notification; a student
+  whose enrolment was withdrawn, denied, cancelled or taken out is not reminded.
+- **Verify by:** `npx jest test/school-class/usecase/send-class-reminders.usecase.test.ts` (from `modules/classes`)
+  and the "reminds seats and instructors" cases of `apps/backend/test/class-reminders.e2e-spec.ts`
+  (`npm run test:e2e --workspace apps/backend`).
+
+### ER-02 — A class start is reminded only once
+
+- **Front:** backend
+- **Behavior:** Given a class already reminded at 07:30, when the job runs again at 07:31 and at 07:45, then no
+  further `class.reminder` is stored for it.
+- **Edge and error cases:** two runs at the same moment store one reminder per person; a push that fails (the fake
+  provider throws) leaves the class marked, stores the notifications, doesn't make the job throw, and the next run
+  sends nothing again.
+- **Verify by:** `npx jest test/school-class/usecase/send-class-reminders.usecase.test.ts` (from `modules/classes`),
+  `npx vitest run src/modules/classes/class-reminder.job.spec.ts` (from `apps/backend`) and the "only once" cases of
+  `apps/backend/test/class-reminders.e2e-spec.ts`.
+
+### ER-03 — Cancelled and started classes are never reminded
+
+- **Front:** backend
+- **Behavior:** Given a class starting at 08:00 that an admin cancelled, when the job runs at 07:30, then no
+  `class.reminder` is stored for it.
+- **Edge and error cases:** a class whose start is 08:00 and was never reminded (the job didn't run between 07:30 and
+  08:00) gets nothing from a run at 08:00 or later; a class cancelled after its reminder was sent gets no second one.
+- **Verify by:** `npx jest test/school-class/usecase/send-class-reminders.usecase.test.ts` (from `modules/classes`)
+  and the "cancelled and started" cases of `apps/backend/test/class-reminders.e2e-spec.ts`.
+
+### ER-04 — Moving the start re-arms the reminder
+
+- **Front:** backend
+- **Behavior:** Given a class reminded at 07:30 for an 08:00 start, when an admin edits its start to 10:00 with
+  `PUT /classes/:id`, then a run at 09:29 sends nothing and a run at 09:30 stores a second `class.reminder` for each of
+  its people, whose `startsAt` is the 10:00 start.
+- **Edge and error cases:** an edit that keeps the start (notes, capacity, instructors only) leaves the class marked,
+  and no second reminder is sent; a start moved earlier into the window (e.g. to 07:50 at 07:35) is reminded by the
+  next run.
+- **Verify by:** `npx jest test/school-class/usecase/edit-class.usecase.test.ts` (from `modules/classes`),
+  `npx vitest run src/modules/classes/school-class.prisma.spec.ts` (from `apps/backend`) and the "start moved" cases
+  of `apps/backend/test/class-reminders.e2e-spec.ts`.
+
+### ER-05 — The reminder's push text in each language
+
+- **Front:** backend
+- **Behavior:** Given a `class.reminder` with discipline `surf`, a start at 08:00 Fortaleza and location "Praia do
+  Futuro", when it is rendered, then pt-BR reads "Sua aula começa em breve" / "A aula de Surf começa às 08:00 · Praia
+  do Futuro.", es reads "Tu clase empieza pronto" / "La clase de Surf empieza a las 08:00 · Praia do Futuro." and en
+  reads "Your class starts soon" / "The Surf class starts at 08:00 · Praia do Futuro.".
+- **Edge and error cases:** a `skate` class reads "Skate"; the time is in Fortaleza whatever the machine's time zone;
+  the push's `data` carries the `classId`.
+- **Verify by:** `npx vitest run src/modules/notifications/push-messages.spec.ts src/modules/notifications/notifications.class-reminder-notifier.spec.ts`
+  (from `apps/backend`).
+
+### ER-06 — Tapping a reminder opens the class
+
+- **Front:** mobile
+- **Behavior:** Given a `class.reminder` push with a `classId`, when a student taps it, then the app opens
+  `/student/class/<classId>`; for an instructor, the instructor's class details; for an admin, the admin's class
+  details.
+- **Edge and error cases:** a `class.reminder` without a `classId` falls back to the home route; received with the
+  app open, it invalidates no query.
+- **Verify by:** `npx jest src/modules/notifications/hooks` (from `apps/mobile`); on the iOS simulator, once pushes
+  can reach a device, tapping a reminder opens the class.
+
+## Tasks
+
+### Notifications module (`modules/notifications`)
+
+- [x] **T-01** — Add `"class.reminder"` to `NOTIFICATION_TYPES` in
+  `modules/notifications/src/notification/model/notification.entity.ts`, with the test in
+  `modules/notifications/test/notification/model/notification.entity.test.ts`. The backend's catalog entry follows in
+  T-05. Covers: enabling · Done when: `npx jest` passes from `modules/notifications`.
+  > ✅ 2026-10-23 12:45 — added `"class.reminder"` to `NOTIFICATION_TYPES` and a test that a `class.reminder` with `{
+  > classId, discipline, startsAt, locationName }` validates; files:
+  > `modules/notifications/src/notification/model/notification.entity.ts`,
+  > `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest` from
+  > `modules/notifications` (12 suites, 119 passed); deviations: none (the backend type check fails until T-05 adds
+  > the catalog entry, as the task says)
+
+### Classes module (`modules/classes`)
+
+- [x] **T-02** — Add `reminderSentAt` (nullable date, cloned like `cancelledAt`) to `SchoolClass` in
+  `modules/classes/src/school-class/model/school-class.entity.ts`; change `SchoolClassRepository.update` to take
+  options (`{ clearDeadline, clearReminder }`) in
+  `modules/classes/src/school-class/provider/school-class.repository.ts`; make `EditClass` pass `clearReminder: true`
+  only when `startsAt` changed (D-04); update `modules/classes/test/mock/fake-school-class.repository.ts` and the
+  entity and `edit-class.usecase.test.ts` tests. Skill: [`module-entity`](../../../.claude/skills/module-entity).
+  Covers: ER-04 · Done when: `npx jest` passes from `modules/classes`.
+  > ✅ 2026-10-23 12:47 — added `reminderSentAt` (nullable, copied in the constructor like `cancelledAt`, with its
+  > getter) to `SchoolClass`; `SchoolClassRepository.update(schoolClass, options)` now takes
+  > `SchoolClassUpdateOptions` (`{ clearDeadline?, clearReminder? }`) and documents that the stored mark is never
+  > written from the entity; `EditClass` passes `clearDeadline: classChanged` and `clearReminder` only when
+  > `startsAt` changed (D-04); the fake repository records `clearReminderCalls`, keeps the stored mark unless told
+  > to clear it, and the tests that called `update(…, true/false)` pass the options; files:
+  > `modules/classes/src/school-class/model/school-class.entity.ts`,
+  > `modules/classes/src/school-class/provider/school-class.repository.ts`,
+  > `modules/classes/src/school-class/usecase/edit-class.usecase.ts`,
+  > `modules/classes/test/mock/fake-school-class.repository.ts`,
+  > `modules/classes/test/school-class/model/school-class.entity.test.ts`,
+  > `modules/classes/test/school-class/usecase/edit-class.usecase.test.ts`,
+  > `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`,
+  > `modules/classes/test/school-class/usecase/work-out-cancellation-deadlines.usecase.test.ts`; verified: `npx
+  > jest` from `modules/classes` (35 suites, 534 passed; entity and `edit-class.usecase.ts` at 100%), `tsc --noEmit`
+  > and `oxlint` clean; deviations: the `module-entity` skill was used for the field and its tests only (the
+  > repository and use-case changes are by hand); `PrismaSchoolClassRepository.update` follows the new signature in
+  > T-04
+
+- [x] **T-03** — Add `CLASS_REMINDER_LEAD_MINUTES`, `findDueForReminder(now, leadMinutes)` and
+  `markReminded(id, at)` to `SchoolClassRepository`, the `ClassReminderNotifier` port
+  (`modules/classes/src/school-class/provider/class-reminder-notifier.provider.ts`) and the `SendClassReminders`
+  use case (`modules/classes/src/school-class/usecase/send-class-reminders.usecase.ts`, output `{ reminded }`) by
+  D-01 to D-03 and D-06, exported from the package; add the fakes in `modules/classes/test/mock/` and
+  `modules/classes/test/school-class/usecase/send-class-reminders.usecase.test.ts`. Skill:
+  [`module-use-case`](../../../.claude/skills/module-use-case).
+  Covers: ER-01, ER-02, ER-03 · Done when: `npx jest` passes from `modules/classes`.
+  > ✅ 2026-10-23 12:49 — added `CLASS_REMINDER_LEAD_MINUTES = 30` (in `class-limits.ts`), `findDueForReminder(now,
+  > leadMinutes)` and the conditional `markReminded(id, at)` to `SchoolClassRepository`, the `ClassReminderNotifier`
+  > port (`classReminder({ recipientIds, classId, discipline, startsAt, locationName })`) and `SendClassReminders`
+  > (output `{ reminded }`): due classes are read once, their rosters in one read and each location once; a class is
+  > notified only when its mark was written (D-03), to its approved students plus its instructors, each once (D-01);
+  > guests are ignored; a notifier error is swallowed; a class whose location can't be found stays due and unmarked
+  > (as `WorkOutCancellationDeadlines` does); exported through the barrels; fakes `FakeClassReminderNotifier` and
+  > the two new `FakeSchoolClassRepository` methods, with their tests; files:
+  > `modules/classes/src/school-class/model/class-limits.ts`,
+  > `modules/classes/src/school-class/provider/school-class.repository.ts`,
+  > `modules/classes/src/school-class/provider/class-reminder-notifier.provider.ts`,
+  > `modules/classes/src/school-class/provider/index.ts`,
+  > `modules/classes/src/school-class/usecase/send-class-reminders.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`,
+  > `modules/classes/test/mock/fake-class-reminder.notifier.ts`,
+  > `modules/classes/test/mock/fake-school-class.repository.ts`, `modules/classes/test/mock/index.ts`,
+  > `modules/classes/test/school-class/usecase/send-class-reminders.usecase.test.ts`,
+  > `modules/classes/test/school-class/provider/fake-class-reminder.notifier.test.ts`,
+  > `modules/classes/test/school-class/provider/fake-school-class.repository.test.ts`; verified: `npx jest` from
+  > `modules/classes` (37 suites, 554 passed; `send-class-reminders.usecase.ts` 100%
+  > statements/branches/functions/lines), `tsc --noEmit` and `oxlint` clean; deviations: none
+
+### Backend (`apps/backend`)
+
+- [x] **T-04** — Add `reminderSentAt DateTime? @map("reminder_sent_at")` to `SchoolClass` in
+  `apps/backend/prisma/models/classes.model.prisma` with the migration
+  `apps/backend/prisma/migrations/<timestamp>_classes_add_reminder_sent_at/`, and implement in
+  `apps/backend/src/modules/classes/school-class.prisma.ts` the mapping, `findDueForReminder`, the conditional
+  `markReminded` and the `clearReminder` option of `update` (same write as the edit), with
+  `school-class.prisma.spec.ts`. Skill: [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
+  Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the migration applies (`npm run prisma:migrate:deploy --workspace
+  apps/backend`) and `npx vitest run src/modules/classes/school-class.prisma.spec.ts` passes.
+  > ✅ 2026-10-23 12:51 — added `reminderSentAt DateTime? @map("reminder_sent_at")` to `SchoolClass` and the
+  > migration `20261023155019_classes_add_reminder_sent_at` (generated with `prisma migrate dev --create-only`,
+  > reviewed: only `ALTER TABLE "classes" ADD COLUMN "reminder_sent_at" TIMESTAMP(3)`, no drop of the hand-written
+  > partial index); `PrismaSchoolClassRepository` maps the column, `findDueForReminder` reads `cancelledAt` null,
+  > `reminderSentAt` null, `startsAt` in (now, now + lead] with the instructors, `markReminded` is one conditional
+  > `updateMany` (`reminderSentAt` and `cancelledAt` null) answering whether it wrote, and `update(schoolClass,
+  > options)` sets `reminderSentAt: null` in the same write only with `clearReminder`, never writing the mark from
+  > the entity (D-04); files: `apps/backend/prisma/models/classes.model.prisma`,
+  > `apps/backend/prisma/migrations/20261023155019_classes_add_reminder_sent_at/migration.sql`,
+  > `apps/backend/src/modules/classes/school-class.prisma.ts`,
+  > `apps/backend/src/modules/classes/school-class.prisma.spec.ts`; verified: `npm run prisma:migrate:deploy
+  > --workspace apps/backend` (all migrations applied), `npx vitest run
+  > src/modules/classes/school-class.prisma.spec.ts` (27 passed; the file at 100% lines, statements and functions,
+  > the one missed branch is the decorator-metadata branch on the class line that the coverage policy skips);
+  > deviations: the migration was created with `--create-only` and applied with `migrate deploy` instead of a plain
+  > `migrate dev`, so the SQL could be reviewed first; the backend type check still fails on the missing
+  > `class.reminder` catalog entry until T-05
+
+- [x] **T-05** — Add `NotificationsClassReminderNotifier`
+  (`apps/backend/src/modules/notifications/notifications.class-reminder-notifier.ts`, runs `Notify` with
+  `class.reminder`, logs and swallows every error) exported by `NotificationsModule`, and the `class.reminder` entry
+  in the three locales of `push-messages.ts` (D-05), with `notifications.class-reminder-notifier.spec.ts` and
+  `push-messages.spec.ts`. Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
+  Covers: ER-05 · Done when: `npx vitest run src/modules/notifications` passes and the backend's `check-types` exits 0.
+  > ✅ 2026-10-23 12:52 — added `NotificationsClassReminderNotifier` (runs `Notify` with `class.reminder` and `{
+  > classId, discipline, startsAt (ISO), locationName }`, logs `Could not notify class.reminder to N person(s)` and
+  > swallows every error) registered and exported by `NotificationsModule`, and the `class.reminder` catalog entry
+  > in pt-BR, es and en by D-05 (title per locale, body with the discipline, the start time in Fortaleza and no day,
+  > and the location name as stored); files:
+  > `apps/backend/src/modules/notifications/notifications.class-reminder-notifier.ts`,
+  > `apps/backend/src/modules/notifications/notifications.class-reminder-notifier.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.module.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `TZ=Pacific/Kiritimati npx vitest run
+  > src/modules/notifications` with coverage (160 passed; `push-messages.ts` and the notifier at 100%, so the time
+  > is Fortaleza whatever the machine zone), `npm run check-types --workspace apps/backend` exits 0; deviations:
+  > none
+
+- [x] **T-06** — Add `ClassReminderJob` (`apps/backend/src/modules/classes/class-reminder.job.ts`, D-06: runs
+  `SendClassReminders` with `PrismaSchoolClassRepository`, `PrismaClassRosterReader`, `PrismaLocationRepository`, the
+  notifier and the classes clock; catches and logs every error, logs only the count) registered in `ClassesModule`,
+  with `class-reminder.job.spec.ts`. Covers: ER-01, ER-02 · Done when:
+  `npx vitest run src/modules/classes/class-reminder.job.spec.ts` passes.
+  > ✅ 2026-10-23 12:53 — added `ClassReminderJob` (cron `class-reminder`, `EVERY_MINUTE`, `waitForCompletion`)
+  > running `SendClassReminders` with `PrismaSchoolClassRepository`, `PrismaClassRosterReader` (from
+  > `EnrolmentModule`), `PrismaLocationRepository`, `NotificationsClassReminderNotifier` and the classes clock; it
+  > logs `Class reminders: N reminded` only when N > 0, and catches and logs every error, answering `{ reminded: 0
+  > }`; registered in `ClassesModule`; files: `apps/backend/src/modules/classes/class-reminder.job.ts`,
+  > `apps/backend/src/modules/classes/class-reminder.job.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.module.ts`; verified: `npx vitest run
+  > src/modules/classes/class-reminder.job.spec.ts` (6 passed, the job at 100%), backend `tsc --noEmit` clean;
+  > deviations: none
+
+- [x] **T-07** — Add `apps/backend/test/class-reminders.e2e-spec.ts` (fixed classes clock, faked `ExpoPushProvider`,
+  the job run through `app.get(ClassReminderJob).run()`, each test deleting the classes, locations and users it
+  created) with the cases of ER-01 to ER-04: "reminds seats and instructors", "only once" (including a failing push),
+  "cancelled and started", and "start moved" (through `PUT /classes/:id`).
+  Covers: ER-01, ER-02, ER-03, ER-04 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-23 12:56 — added `apps/backend/test/class-reminders.e2e-spec.ts`: faked `ExpoPushProvider` (records
+  > messages, can throw), the classes clock fixed on 2037-10-15 in Fortaleza and moved per test (far from any real
+  > class, as the deadline suites do, so the job never marks real classes of a shared dev database), the job run
+  > through `app.get(ClassReminderJob).run()`, each test deleting the classes, location and users it created; 14
+  > cases: "reminds seats and instructors" (S1, I1 and A1 get exactly one `class.reminder` with `{ classId,
+  > discipline, startsAt, locationName }`, S2 pending and the guest none, only S1's phone gets the push; nothing at
+  > 07:29; a class created at 07:45 reminded at 07:46; withdrawn, denied, cancelled and taken-out students not
+  > reminded), "only once" (07:31 and 07:45 add nothing; two runs at once store one per person; a failing push keeps
+  > the mark and the stored notifications, doesn't throw, and the next run sends nothing), "cancelled and started"
+  > (cancelled class; 08:00 and 08:10 without a reminder; cancelled after the reminder via `POST
+  > /classes/:id/cancel`), "start moved" (`PUT /classes/:id` to 10:00 clears the mark, 09:29 sends nothing, 09:30
+  > stores the second reminder with the 10:00 start; an edit of notes, capacity and instructors keeps the mark; a
+  > start moved to 07:50 at 07:35 is reminded at the next run); files:
+  > `apps/backend/test/class-reminders.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (24
+  > files, 645 passed); deviations: none
+
+### Mobile (`apps/mobile`)
+
+- [x] **T-08** — Route `class.reminder` taps in
+  `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts` by D-07, with tests in
+  `use-notification-response.hook.test.tsx` (three flows and the missing class id) and a test in
+  `use-notification-received.hook.test.tsx` that a received `class.reminder` invalidates nothing. Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-06 · Done when: `npx jest src/modules/notifications/hooks` passes from `apps/mobile`.
+  > ✅ 2026-10-23 12:57 — a tapped `class.reminder` with a string `classId` now opens `routes.student.classDetail`,
+  > `routes.instructor.classDetail` or `routes.admin.classDetail` by the resolved flow (added to the class-change
+  > and student class-news groups); without a class id it falls through to `router.replace(routes.home)`; the
+  > received hook is unchanged, so a `class.reminder` invalidates nothing (D-07); tests: the three flows open their
+  > class details, the three flows without a class id go to `routes.home` and land on their home, and a received
+  > `class.reminder` invalidates no query and stays on the screen for the three roles; files:
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications/hooks` from `apps/mobile` (4 suites, 110 passed; both hooks at 100%), `tsc --noEmit`
+  > and `eslint` clean; deviations: none (the `vercel-react-native-skills` and `vercel-react-best-practices` rules
+  > were loaded; none applies to this routing-only change)
+
+### Verification
+
+- [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+  summary as evidence. Covers: all · Done when: every automated command exits 0 and the user journey is recorded
+  (or recorded as not drivable while pushes can't reach a device, with the stored notification as evidence).
+  > ✅ 2026-10-23 13:00 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs
+  > 054` → RELATED TESTS PASSED (apps/backend, apps/mobile, modules/classes, modules/notifications, and
+  > modules/enrolment as a dependent); `node .specs/scripts/check-coverage.mjs 054` → COVERAGE OK (10 measured
+  > files, every changed line covered); `npx turbo run lint check-types build --filter=…notifications
+  > --filter=…classes --filter=…backend --filter=…mobile` → 27 tasks successful, 0 errors (the 10 backend lint
+  > warnings are `require-array-sort-compare` in e2e files this spec didn't touch); `node .specs/scripts/run-e2e.mjs
+  > 054` → E2E PASSED (24 files, 645 tests, including `class-reminders.e2e-spec.ts`). User journey: pushes can`t
+  > reach a device yet (no EAS project or APNs credentials), so the tap on the simulator wasn't driven (the routing
+  > is covered by the hook tests of T-08); the stored-notification half was checked live against the running backend
+  > (`nest start --watch`, real clock): a seeded approved student and an admin teaching a class starting 20 minutes
+  > later each got one `class.reminder` row (`{ classId, discipline: "surf", startsAt, locationName }`) at the
+  > 16:00:00 cron tick, with `reminder_sent_at` set to that tick; the seeded rows were deleted afterwards. To finish
+  > the journey once pushes reach a device: sign in on the iOS simulator as a student with an approved seat in a
+  > class starting within 30 minutes, wait for the push, tap it, and see that class's details
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 054` — the tests this spec added or changed, and the existing tests
+    related to its changes, pass (with coverage).
+  - `node .specs/scripts/check-coverage.mjs 054` — every line this spec adds or changes is covered.
+  - `npx turbo run lint check-types build --filter=@rochas-surf-school/notifications --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile`
+    — no errors.
+  - `node .specs/scripts/run-e2e.mjs 054` — the backend e2e suite passes, including
+    `apps/backend/test/class-reminders.e2e-spec.ts`.
+- User journeys (e2e, followed in a simulator):
+  - On the iOS simulator signed in as a student with an approved seat in a class starting within 30 minutes (the
+    backend running): within a minute the `notifications` table holds a `class.reminder` row for the student (and
+    the push arrives once the EAS project and APNs credentials exist); tapping the push opens the class's details.
+
+## Memory Impact
+
+- `memory/product.md` — Current state: classes remind their seat holders and instructors 30 minutes before the start
+  (once per start, re-armed when the start moves, never for cancelled or started classes); remove "reminders before a
+  class" from the Out of scope line of specs 041–045.
+- `memory/technical-context.md` — Scheduled work: `ClassReminderJob` (cron `class-reminder`) and its idempotency by
+  `reminder_sent_at`; Push notifications: the `ClassReminderNotifier` port and `class.reminder` (`{ classId,
+  discipline, startsAt, locationName }`); Applications (mobile): the `class.reminder` tap routes.
+- `memory/structure.md` — `class-reminder.job.ts`, `notifications.class-reminder-notifier.ts`,
+  `send-class-reminders.usecase.ts`, the `reminder_sent_at` migration and `class-reminders.e2e-spec.ts`.
+- `memory/modules.md` — None.
+- `memory/modules/classes.md` — the reminder rule (recipients, window, once per start, cleared by a start change).
+- `memory/modules/notifications.md` — the `class.reminder` type.
+
+## References
+
+- [How to execute](../../shared/how-to-execute.md)
+- [Task breakdown](../../shared/task-breakdown.md)
+- [Acceptance criteria rules](../../shared/acceptance-criteria.md)
+- [Naming rules](../../shared/naming-rules.md)
+- [Spec lifecycle](../../shared/spec-lifecycle.md)
+
+## Amendments
+
+## Review
+
+### Round 1 — 2026-10-23 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` over notifications, classes, backend,
+  mobile: 27 tasks; the 10 backend lint warnings are `require-array-sort-compare` in e2e files this spec didn't touch)
+- related tests ✅ apps/backend 333 · apps/mobile 192 · modules/classes 554 · modules/notifications 119 ·
+  modules/enrolment 291 (dependent) — `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK` (10 measured files, all at 100% of their changed lines; 2 type-only,
+  4 excluded by the technical context); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 24 files, 645 passed (`E2E PASSED`), including `class-reminders.e2e-spec.ts`
+- migrations: none pending on the local database; Prisma client regenerated
+
+**Expected Results**
+
+- ER-01 ✅ — use-case tests and the e2e "reminds seats and instructors" cases: S1, I1 and A1 get one `class.reminder`
+  with `{ classId, discipline, startsAt, locationName }`, the pending request and the guest none; nothing at 07:29; a
+  class created at 07:45 is reminded at 07:46; people without a push token still get the stored notification;
+  withdrawn, denied, cancelled and taken-out students get nothing
+- ER-02 ✅ — 07:31 and 07:45 add nothing; two simultaneous runs store one per person (conditional `updateMany`);
+  a failing push keeps the mark and the stored rows, the job resolves, and the next run sends nothing
+- ER-03 ✅ — a cancelled class is never reminded; 08:00 and 08:10 without a reminder send nothing; a class cancelled
+  through `POST /classes/:id/cancel` after its reminder gets no second one
+- ER-04 ✅ — `PUT /classes/:id` to 10:00 clears `reminder_sent_at` in the same `updateMany` as the edit; 09:29 sends
+  nothing, 09:30 stores the second reminder with the 10:00 start; notes/capacity/instructors/end edits keep the mark
+  (`edit-class.usecase.test.ts`, `school-class.prisma.spec.ts`, e2e "start moved"); a start moved to 07:50 at 07:35 is
+  reminded at the next run
+- ER-05 ✅ — `push-messages.spec.ts` asserts the exact pt-BR, es and en title and body, "Skate" and 00:10 in Fortaleza
+  (spec run under `TZ=Pacific/Kiritimati` per T-05); the notifier spec and the e2e assert `classId` in the push params
+- ER-06 ✅ — `use-notification-response.hook.test.tsx` opens `/student/class/c-1`, `/instructor/class/c-1` and
+  `/admin/class/c-1`, and goes to `routes.home` without a class id; `use-notification-received.hook.test.tsx` shows a
+  received `class.reminder` invalidates nothing. The simulator half is conditional on pushes reaching a device: an
+  `xcrun simctl push` of a `class.reminder` payload to the installed dev build was refused ("Source is not
+  authorized": the app has no notification permission on this simulator), so the tap wasn't driven
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Race between a run and an edit (within D-03 as written): `SendClassReminders` reads the due classes, then
+  `markReminded` conditions only on `reminder_sent_at` and `cancelled_at`. If an admin moves the start in the few
+  milliseconds between the read and the mark, the run marks the class and sends the old start time, and the new start
+  is never reminded. Adding the read `startsAt` to `markReminded`'s `where` would close it; worth a quick follow-up
+  spec or an amendment.
+- To finish ER-06 by hand: allow notifications for the app on the simulator (turn pushes on in the app), then run
+  `xcrun simctl push booted com.rochassurfschool.app <payload>` with `"body": { "type": "class.reminder", "classId":
+  "<an existing class id>" }` and tap the banner as a student, an instructor and an admin.
+- Reviewed in a fresh session (not the one that executed the spec). The working tree held unrelated uncommitted edits
+  to `.docs/requirements.md`, `.docs/user-journeys.md` and `.specs/memory/product.md` (ratings and photos deferred);
+  they are not part of this spec and were left out of the review commit.

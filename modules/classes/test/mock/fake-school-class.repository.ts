@@ -1,9 +1,16 @@
-import { ClassDiscipline, SchoolClass, SchoolClassRepository, SchoolClassState } from "../../src";
+import {
+  ClassDiscipline,
+  SchoolClass,
+  SchoolClassRepository,
+  SchoolClassState,
+  SchoolClassUpdateOptions,
+} from "../../src";
 
 export class FakeSchoolClassRepository implements SchoolClassRepository {
   readonly createManyCalls: SchoolClass[][] = [];
   readonly updateCalls: SchoolClass[] = [];
   readonly clearDeadlineCalls: boolean[] = [];
+  readonly clearReminderCalls: boolean[] = [];
   readonly cancelCalls: { id: string; at: Date; message: string | null }[] = [];
   readonly deleteCalls: { id: string; now: Date }[] = [];
   readonly removeInstructorCalls: { userId: string; classIds: string[] }[] = [];
@@ -40,22 +47,29 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
     return this.classes.find((item) => item.id === id) ?? null;
   }
 
-  async update(schoolClass: SchoolClass, clearDeadline: boolean): Promise<boolean> {
+  async update(schoolClass: SchoolClass, options: SchoolClassUpdateOptions): Promise<boolean> {
+    const clearDeadline = options.clearDeadline ?? false;
+    const clearReminder = options.clearReminder ?? false;
     this.updateCalls.push(schoolClass);
     this.clearDeadlineCalls.push(clearDeadline);
+    this.clearReminderCalls.push(clearReminder);
 
     const stored = this.classes.find((item) => item.id === schoolClass.id);
     if (!stored || stored.cancelledAt) return false;
 
-    const written = clearDeadline
-      ? schoolClass.clone({
-          cancellationDeadline: null,
-          deadlineAttempts: 0,
-          deadlineNextAttemptAt: null,
-          deadlineRevision: stored.deadlineRevision + 1,
-          updatedAt: schoolClass.updatedAt,
-        })
-      : schoolClass;
+    // Like the database, the reminder mark is never written from the edited class.
+    const written = schoolClass.clone({
+      ...(clearDeadline
+        ? {
+            cancellationDeadline: null,
+            deadlineAttempts: 0,
+            deadlineNextAttemptAt: null,
+            deadlineRevision: stored.deadlineRevision + 1,
+          }
+        : {}),
+      reminderSentAt: clearReminder ? null : stored.reminderSentAt,
+      updatedAt: schoolClass.updatedAt,
+    });
 
     this.classes = this.classes.map((item) => (item.id === schoolClass.id ? written : item));
 
@@ -154,6 +168,30 @@ export class FakeSchoolClassRepository implements SchoolClassRepository {
       deadlineAttempts: attempts,
       deadlineNextAttemptAt: nextAttemptAt,
     });
+  }
+
+  async findDueForReminder(now: Date, leadMinutes: number): Promise<SchoolClass[]> {
+    const until = now.getTime() + leadMinutes * 60_000;
+
+    return this.classes.filter(
+      (item) =>
+        !item.cancelledAt &&
+        !item.reminderSentAt &&
+        item.startsAt.getTime() > now.getTime() &&
+        item.startsAt.getTime() <= until,
+    );
+  }
+
+  async markReminded(id: string, at: Date): Promise<boolean> {
+    const stored = this.classes.find((item) => item.id === id);
+
+    if (!stored || stored.cancelledAt || stored.reminderSentAt) return false;
+
+    this.classes = this.classes.map((item) =>
+      item.id === id ? item.clone({ reminderSentAt: at, updatedAt: item.updatedAt }) : item,
+    );
+
+    return true;
   }
 
   private writeDeadline(

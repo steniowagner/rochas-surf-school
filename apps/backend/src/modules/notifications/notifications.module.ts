@@ -3,6 +3,7 @@ import { DbModule } from '../../db/db.module.js';
 import { ExpoPushProvider } from './expo.push.js';
 import { NotificationsClassAssignmentNotifier } from './notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from './notifications.class-change-notifier.js';
+import { NotificationsClassReminderNotifier } from './notifications.class-reminder-notifier.js';
 import { NotificationsController } from './notifications.controller.js';
 import { NotificationsEnrolmentNotifier } from './notifications.enrolment-notifier.js';
 import { NotificationsLocationChangeNotifier } from './notifications.location-change-notifier.js';
@@ -30,6 +31,7 @@ import { SystemClockProvider } from './system.clock.js';
     NotificationsRegistrationNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,
+    NotificationsClassReminderNotifier,
     NotificationsEnrolmentNotifier,
     NotificationsLocationChangeNotifier,
     NotificationsNoInstructorNotifier,
@@ -41,6 +43,7 @@ import { SystemClockProvider } from './system.clock.js';
     NotificationsRegistrationNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,
+    NotificationsClassReminderNotifier,
     NotificationsEnrolmentNotifier,
     NotificationsLocationChangeNotifier,
     NotificationsNoInstructorNotifier,

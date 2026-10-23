@@ -150,8 +150,9 @@ Listed in the order people meet them.
   - Flags shown to admins: **no instructor** (an upcoming class lost its only instructor — admins are notified)
     and **no cancellation deadline** (the deadline couldn't be worked out yet — no notification).
   - Notifications: edits and cancellations reach its students, the people with pending enrolments and its
-    instructors; instructors hear when they are assigned or unassigned; students and instructors get a reminder
-    30 minutes before it starts (not when cancelled).
+    instructors; instructors hear when they are assigned or unassigned; its students with an approved seat and
+    its instructors get a reminder 30 minutes before it starts — once per start (again when an edit moves the
+    start), never for a cancelled or started class, never to pending requests or guests.
 - **Cancellation deadline** (part of a class): the moment until which a student may cancel a seat in that
   class — one per class, the same for all its students, never after the start. It is worked out by a language
   model from the discipline's cancellation rule and the class's details (never personal data or anything
@@ -994,6 +995,18 @@ deu errado" with "Tentar novamente"; nothing to show reads "Sem aulas neste dia"
 pull-to-refresh reloads the period on screen. A period already seen shows at once when the student goes back to it,
 and the screen opens on the current month again each time. All copy is in pt-BR, es-ES and en-US.
 
+**Class reminders** (spec `054-class-reminders`) — about 30 minutes before a class starts, the students with an
+approved seat in it and every instructor who teaches it (admins included), each once, get a notification "Sua aula
+começa em breve" / "A aula de Surf começa às 08:00 · Praia do Futuro." (the start time in Fortaleza, no day, and the
+location's name; also in es and en). The first check inside the 30 minutes sends it, so a class created or moved
+into that window, or a backend back from downtime, is still reminded before the start; once the class has started,
+none is sent. Each start is reminded once: a cancelled class never is, and an edit that moves the start re-arms the
+reminder for the new time, while any other edit doesn't. Pending requests (waiting list included) and guests are
+never reminded, nor are people added after the reminder went out; a failed push isn't retried. The notification is
+stored even when the person turned pushes off. Tapping the push opens the class's details in the student's,
+instructor's or admin's flow; received with the app open it reloads nothing. Delivery to a real phone still needs the
+EAS project and the APNs / FCM credentials.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1075,7 +1088,10 @@ Active specs: none.
 - On "Minhas aulas" (spec 048): keeping the chosen chip after a class or the history opened above the tab.
 - On the class history's calendar (spec 053): a "Hoje" button, keeping the chosen period or day after leaving the
   screen, filtering the history by sport, level or status and searching it, and swiping between weeks or months.
-- On enrolment requests (specs 041–045): reminders before a class, storing the text of the cancellation rule a student accepted, and a
+- On class reminders (spec 054): choosing the lead time or turning reminders off per person or per type (only the
+  phone's push switch applies), reminding pending requests or guests, reminding people who join a class after its
+  reminder was sent, and retrying a reminder whose push failed.
+- On enrolment requests (specs 041–045): storing the text of the cancellation rule a student accepted, and a
   success style for toasts (every toast uses the error style). On decisions (spec 042): listing the pending
   requests on the admin's class details, filtering or searching the tool, a stored history of who decided and
   when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision. On

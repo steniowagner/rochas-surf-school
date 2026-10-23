@@ -256,6 +256,25 @@ Releasing a person's upcoming classes (when their account is deleted):
 - **The "no instructor" flag is computed, never stored**: a class with no instructor that hasn't started. It
   disappears once the class starts, is cancelled, or gets an instructor (an edit always needs one).
 
+Reminding a class's people (spec 054):
+
+- **No actor**: a check runs every minute, never on a request.
+- **Who is reminded**: the students with an approved seat in the class and every instructor of the class
+  (instructors and admins who teach it), each person once. Pending requests (the waiting list included) and guests
+  never are, nor are people added after the reminder went out.
+- **When**: a class is due when its start is within the next 30 minutes (the lead time is fixed), it hasn't
+  started and isn't cancelled, and its start wasn't reminded yet. The first check inside those 30 minutes reminds
+  it, so a class created or moved into them, or one missed while the server was down, is still reminded before
+  it starts; a class that has started never is.
+- **Once per start**: the class is marked as reminded by a write that only succeeds while it is unmarked and not
+  cancelled, and only the check whose write succeeded tells anybody — two checks at once remind once. A class
+  cancelled after its reminder gets no second one.
+- **Moving the start re-arms it**: an edit that changes the start clears the mark in the same write as the edit,
+  so the new start is reminded; any other edit (end, notes, capacity, instructors, location…) keeps it.
+- **What it says**: `class.reminder` with the class, its discipline, its start and its location's name, read when
+  the reminder is sent. A class whose location can't be found stays due and unmarked. A notification that fails
+  keeps the class marked and isn't retried.
+
 ## Cancellation rules and deadlines
 
 What a student may cancel, and until when.
@@ -318,7 +337,7 @@ The account's status is checked before its role (`user.status.notApproved`, then
   day of the period. Other roles are refused (`enrolment.role.notStudent`).
 - **A student with a seat or a pending request** — receives one notification when the class is edited (a class
   field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
-  tell them.
+  tell them; with an approved seat, one reminder 30 minutes before each start of the class.
 - **An approved admin** — creates, edits and removes locations, gets address suggestions, creates batches of
   classes, reads the time-range suggestions, edits a
   class that hasn't finished and isn't cancelled, reads a class's pending-request count, cancels a class that
@@ -330,7 +349,7 @@ The account's status is checked before its role (`user.status.notApproved`, then
   they created it), and one when a class they teach is edited, when they are added to one or removed from one
   (unless they made the edit), when it is cancelled (unless they cancelled it), and when it is deleted (unless
   they deleted it), and one when a location of their upcoming classes changes, if the admin who edits it chooses
-  to tell them (unless they made the edit).
+  to tell them (unless they made the edit), and one reminder 30 minutes before each start of a class they teach.
 
 ## Boundaries
 
@@ -339,8 +358,9 @@ class, and the role, status and WhatsApp number of a class's people (read only f
 through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
 status names. It doesn't send notifications itself: it hands the instructors and the class's details to two
 contracts that [Notifications](notifications.md) fulfils (assignments — added and removed — and class changes:
-edits, cancellations and deletions), plus a third for the classes left without an instructor and a fourth for
-location changes (each person — instructor or student — with their count, and the location's new name). The address suggestions come
+edits, cancellations and deletions), plus a third for the classes left without an instructor, a fourth for
+location changes (each person — instructor or student — with their count, and the location's new name) and a
+fifth for class reminders (the people to remind, the class, its discipline, its start and its location's name). The address suggestions come
 through their own contract, which the backend fulfils with Google's Places service; the module never sees the
 provider. Authentication
 reaches the release through its own contract, which the backend fulfils with this module's use case — this module
@@ -491,3 +511,7 @@ which stops that account from being erased while the link exists — a decision 
   first (`class.from.invalid`, `class.to.invalid`, `class.range.invalid`; the paging and its errors are gone); in the
   app, the shared week and month calendar can open on the month, keep no day selected and report the period on
   screen, for the student's "Histórico".
+- `054-class-reminders` — 30 minutes before a class starts, its students with an approved seat and its instructors,
+  each once, get `class.reminder` (the class, discipline, start and location name) through a new contract answered
+  by Notifications; a minute check marks the class with a conditional write, so each start is reminded once, never
+  for a cancelled or started class; an edit that moves the start clears the mark in the same write.

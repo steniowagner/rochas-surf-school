@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ClassDiscipline, SchoolClass, SchoolClassRepository } from '@rochas-surf-school/classes';
+import {
+  ClassDiscipline,
+  SchoolClass,
+  SchoolClassRepository,
+  SchoolClassUpdateOptions,
+} from '@rochas-surf-school/classes';
 import { PrismaService } from '../../db/prisma.service.js';
 import type {
   ClassInstructor as ClassInstructorRecord,
@@ -55,7 +60,7 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     return record ? this.toDomain(record) : null;
   }
 
-  async update(schoolClass: SchoolClass, clearDeadline: boolean): Promise<boolean> {
+  async update(schoolClass: SchoolClass, options: SchoolClassUpdateOptions): Promise<boolean> {
     return this.prisma.$transaction(async (tx) => {
       // The check sits on the write itself: an edit that read the class before a cancel writes nothing.
       const { count } = await tx.schoolClass.updateMany({
@@ -70,7 +75,7 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
           notes: schoolClass.notes,
           updatedAt: schoolClass.updatedAt,
           // The edit and the clearing are one write: a deadline never outlives the details it was worked out from.
-          ...(clearDeadline
+          ...(options.clearDeadline
             ? {
                 cancellationDeadline: null,
                 deadlineAttempts: 0,
@@ -78,6 +83,8 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
                 deadlineRevision: { increment: 1 },
               }
             : {}),
+          // Never written from the entity: writing the read value back could undo a mark the job set meanwhile.
+          ...(options.clearReminder ? { reminderSentAt: null } : {}),
         },
       });
       if (count === 0) {
@@ -187,6 +194,29 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
     return count === 1;
   }
 
+  async findDueForReminder(now: Date, leadMinutes: number): Promise<SchoolClass[]> {
+    const records = await this.prisma.schoolClass.findMany({
+      where: {
+        cancelledAt: null,
+        reminderSentAt: null,
+        startsAt: { gt: now, lte: new Date(now.getTime() + leadMinutes * 60_000) },
+      },
+      include: { instructors: { select: { userId: true } } },
+      orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
+    });
+    return records.map((record) => this.toDomain(record));
+  }
+
+  async markReminded(id: string, at: Date): Promise<boolean> {
+    // The checks sit on the write itself: of two runs at once, or a run racing a cancel, one write wins.
+    const { count } = await this.prisma.schoolClass.updateMany({
+      where: { id, reminderSentAt: null, cancelledAt: null },
+      data: { reminderSentAt: at },
+    });
+
+    return count === 1;
+  }
+
   private toDomain(record: SchoolClassWithInstructors): SchoolClass {
     return new SchoolClass({
       id: record.id,
@@ -204,6 +234,7 @@ export class PrismaSchoolClassRepository implements SchoolClassRepository {
       deadlineRevision: record.deadlineRevision,
       deadlineAttempts: record.deadlineAttempts,
       deadlineNextAttemptAt: record.deadlineNextAttemptAt,
+      reminderSentAt: record.reminderSentAt,
       createdBy: record.createdBy,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,

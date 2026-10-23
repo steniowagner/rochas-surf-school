@@ -36,6 +36,9 @@ What the person is told, and how it reaches them.
   - `class.noInstructor` — an account deletion left classes that haven't started with no instructor; details:
     how many (`count`) and the earliest of them — its id, its discipline and its start (`startsAt`, ISO UTC). One
     per approved admin and deletion.
+  - `class.reminder` — a class the person holds an approved seat in or teaches starts within 30 minutes (spec 054);
+    details: the class's id, its discipline, its start (`startsAt`, ISO UTC) and its location's name
+    (`locationName`, as stored when the reminder is sent). One per person and start of the class.
   - `location.changed` — an admin edited a location of upcoming classes the person teaches, or holds a seat or a
     pending request in (spec 047), and chose to tell them; details: how many of the person's upcoming classes are at
     that location (`count`; the larger one for a person on both lists) and its new name (`locationName`, as
@@ -69,6 +72,7 @@ What the person is told, and how it reaches them.
   | `class.cancelled` | Class cancelled | Your {discipline} class on {MM/dd} at {HH:mm} was cancelled. / with a message: {discipline}, {MM/dd} at {HH:mm}: {message} |
   | `class.deleted` | Class deleted | Your {discipline} class on {MM/dd} at {HH:mm} was deleted. |
   | `class.noInstructor` | Class without an instructor / Classes without an instructor | The {discipline} class on {MM/dd} at {HH:mm} has no instructor now. / {count} classes have no instructor now. The next one: {discipline}, {MM/dd} at {HH:mm}. |
+  | `class.reminder` | Your class starts soon | The {discipline} class starts at {HH:mm} · {locationName}. |
   | `location.changed` | Class location changed | {locationName} changed. Check your next class there. / {locationName} changed. Check your {count} upcoming classes there. |
   | `enrolment.requested` | New seat request | {studentName} requested a seat in the {discipline} class on {MM/dd} at {HH:mm}. |
   | `enrolment.expired` | You didn't get a seat | The {discipline} class on {MM/dd} at {HH:mm} started without a seat for your request. |
@@ -96,7 +100,10 @@ What the person is told, and how it reaches them.
   instrutor." or "Aulas sem instrutor" / "{count} aulas ficaram sem instrutor. A próxima: {discipline}, {dd/MM} às
   {HH:mm}.", es "Clase sin instructor" / "La clase de {discipline} del {dd/MM} a las {HH:mm} se quedó sin
   instructor." or "Clases sin instructor" / "{count} clases se quedaron sin instructor. La próxima: {discipline},
-  {dd/MM} a las {HH:mm}." (a missing count counts as one); `location.changed`: pt-BR "Local de aula alterado" /
+  {dd/MM} a las {HH:mm}." (a missing count counts as one); `class.reminder`: pt-BR "Sua aula começa em breve" /
+  "A aula de {discipline} começa às {HH:mm} · {locationName}.", es "Tu clase empieza pronto" / "La clase de
+  {discipline} empieza a las {HH:mm} · {locationName}." (no day: a class just after midnight is reminded the evening
+  before); `location.changed`: pt-BR "Local de aula alterado" /
   "O local {locationName} mudou. Confira sua próxima aula lá." or "… Confira suas {count} próximas aulas lá.", es
   "Lugar de clase modificado" / "El lugar {locationName} cambió. Revisa tu próxima clase allí." or "… Revisa tus
   {count} próximas clases allí."; `enrolment.requested`: pt-BR "Novo pedido de vaga" / "{studentName} pediu vaga na
@@ -129,7 +136,9 @@ What the person is told, and how it reaches them.
   and the locations, for every role.
   Tapping an `enrolment.expired`, `enrolment.approved`, `enrolment.denied`, `enrolment.enrolled`,
   `enrolment.takenOut`, `class.cancelled` or `class.edited` push as a student
-  opens that class's details in the student's flow; tapping an `enrolment.requested` push opens that class's
+  opens that class's details in the student's flow; tapping a `class.reminder` push opens that class's details in
+  the student's, instructor's or admin's flow (else the home, also when the push carries no class), and one received
+  with the app open reloads nothing; tapping an `enrolment.requested` push opens that class's
   details as an instructor and the "Inscrições em aulas" tool as an admin (with or without a class id; a push an
   instructor gets without a class, or a person who now resolves to another flow, falls back as before); tapping an
   `enrolment.cancelled` push opens that class's details as an instructor or an admin. Any enrolment push received
@@ -214,6 +223,9 @@ Rules:
 - **An instructor or admin of a location's upcoming classes, and a student with a seat or a pending request in
   them** — receives one `location.changed` when an admin edits that location and chooses to tell them, unless they
   made the edit.
+- **A student with an approved seat in a class, and every instructor or admin who teaches it** — receives one
+  `class.reminder` 30 minutes before each start of the class, never for a cancelled one; pending requests and
+  guests receive none.
 
 ## Boundaries
 
@@ -222,15 +234,15 @@ It knows people only by their ids and the phones they registered, and it doesn't
 it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
 backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
-and removed), class changes (edits, cancellations, deletions), classes left without an instructor and location
-changes; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
+and removed), class changes (edits, cancellations, deletions), classes left without an instructor, location
+changes and class reminders; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
 location edit. [Enrolment](enrolment.md) reaches it through its own contract for new, decided and expired
 requests, cancelled seats, direct enrolments and take-outs, with the same guarantee. It doesn't decide when an event happens — the
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text. Nothing reads the stored notifications yet: the notifications screen, read
 state, badges and rich pushes come
-with their specs, as do the notifications of every other event (reactivation requests, role changes, reminders,
+with their specs, as do the notifications of every other event (reactivation requests, role changes,
 seat cancellations, broadcasts) and those of an edit or a location change to the classes' students and pending
 requests (spec 047).
 
@@ -285,3 +297,7 @@ requests (spec 047).
   and the people with a pending request, through the Classes module's contracts (one notification per person; on
   `location.changed` each with their own count); in the app, a student's tap on `class.edited` opens the class in
   the student's flow and on `location.changed` the Agenda.
+- `054-class-reminders` — the `class.reminder` type (`{ classId, discipline, startsAt, locationName }`) and its push
+  copy, to a class's students with an approved seat and its instructors 30 minutes before each start, through the
+  Classes module's contract; in the app, a tap opens the class in the student's, instructor's or admin's flow, and
+  one received with the app open reloads nothing.

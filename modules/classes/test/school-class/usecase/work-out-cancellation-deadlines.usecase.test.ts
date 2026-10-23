@@ -233,7 +233,7 @@ describe("WorkOutCancellationDeadlines", () => {
       const item = surfClass("2026-10-20");
       const { useCase, repository, describer } = setup([item]);
       describer.answer = async () => {
-        await repository.update(item.clone({ capacity: 5 }), true);
+        await repository.update(item.clone({ capacity: 5 }), { clearDeadline: true });
 
         return { kind: "minutesBefore", minutes: 60 };
       };
@@ -250,7 +250,7 @@ describe("WorkOutCancellationDeadlines", () => {
       const item = surfClass("2026-10-20");
       const { useCase, repository, describer } = setup([item]);
       describer.answer = async () => {
-        await repository.update(item.clone({ capacity: 5 }), true);
+        await repository.update(item.clone({ capacity: 5 }), { clearDeadline: true });
 
         return { kind: "unclear" };
       };

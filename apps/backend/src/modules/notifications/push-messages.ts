@@ -246,6 +246,24 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       },
     },
   },
+  // No day: a class just after midnight is reminded the evening before. The location's name is shown as stored.
+  'class.reminder': {
+    'pt-BR': {
+      title: 'Sua aula começa em breve',
+      body: ({ discipline, startsAt, locationName }) =>
+        `A aula de ${disciplineName(discipline)} começa às ${startParts(startsAt).time} · ${text(locationName)}.`,
+    },
+    es: {
+      title: 'Tu clase empieza pronto',
+      body: ({ discipline, startsAt, locationName }) =>
+        `La clase de ${disciplineName(discipline)} empieza a las ${startParts(startsAt).time} · ${text(locationName)}.`,
+    },
+    en: {
+      title: 'Your class starts soon',
+      body: ({ discipline, startsAt, locationName }) =>
+        `The ${disciplineName(discipline)} class starts at ${startParts(startsAt).time} · ${text(locationName)}.`,
+    },
+  },
   // The location's name is shown as stored; the push concerns several classes, so it carries no class to open.
   'location.changed': {
     'pt-BR': {

@@ -270,7 +270,7 @@ screen and the read state that spec 020 left for later, so a notification is nev
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-01** — Add `readAt: Date | null` (optional in the state, default `null`, with a getter) to `Notification` in
+- [x] **T-01** — Add `readAt: Date | null` (optional in the state, default `null`, with a getter) to `Notification` in
   `modules/notifications/src/notification/model/notification.entity.ts`, and to `NotificationRepository`
   (`provider/notification.repository.ts`) `findPage(userId, page, perPage)` → `{ items, total }` (newest first, D-03),
   `countUnread(userId)`, `markRead(userId, id, at)` → whether the caller's notification exists (sets `readAt` only
@@ -278,6 +278,20 @@ screen and the read state that spec 020 left for later, so a notification is nev
   tests in `test/notification/model/notification.entity.test.ts` and a fake-repository test. Skill:
   [`module-entity`](../../../.claude/skills/module-entity).
   Covers: enabling · Done when: `npx jest` passes from `modules/notifications`.
+  > ✅ 2026-10-23 13:32 — Added `readAt` (optional, defaults to `null`, copied in and out, validated with `DateRule`)
+  > to `Notification`, and `findPage` / `countUnread` / `markRead` / `markAllRead` (with `NotificationPage`) to the
+  > `NotificationRepository` port, implemented in the fake (newest first, `id` descending on a tie; `markRead` keeps
+  > the first `readAt` and answers whether the caller owns the id); files:
+  > `modules/notifications/src/notification/model/notification.entity.ts`,
+  > `modules/notifications/src/notification/provider/notification.repository.ts`,
+  > `modules/notifications/test/mock/fake-notification.repository.ts`,
+  > `modules/notifications/test/notification/model/notification.entity.test.ts`,
+  > `modules/notifications/test/push-token/provider/fakes.test.ts`; verified: `npx jest` from
+  > `modules/notifications` (12 suites, 124 passed; entity and fake at 100% lines and branches), `npx tsc --noEmit`
+  > clean; deviations: the module-entity skill was followed by hand (an existing entity gained one field: its
+  > pattern for nullable dates, as `SchoolClass.cancelledAt`); the fake-repository tests sit in the existing
+  > `test/push-token/provider/fakes.test.ts`, where the other fakes are tested. The backend’s
+  > `PrismaNotificationRepository` gains the four methods in T-03.
 
 - [ ] **T-02** — Add the use cases `ListNotifications` (`{ userId, page?, perPage?, locale? }` → `{ items: [{ id,
   type, params, createdAt, read }], page, perPage, total, locale }`, D-03, `PUSH_LOCALES` for the locale),

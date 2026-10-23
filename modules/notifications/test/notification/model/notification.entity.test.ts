@@ -33,7 +33,32 @@ describe("Notification", () => {
     expect(notification.userId).toBe(USER_ID);
     expect(notification.type).toBe("registration.pending");
     expect(notification.params).toEqual({ name: "Ana Souza" });
+    expect(notification.readAt).toBeNull();
     expect(() => notification.validate()).not.toThrow();
+  });
+
+  it("keeps when it was read, as a copy", () => {
+    const readAt = new Date("2026-10-20T12:00:00.000Z");
+    const notification = build({ readAt });
+
+    readAt.setFullYear(2030);
+    const exposed = notification.readAt!;
+    exposed.setFullYear(2031);
+
+    expect(notification.readAt).toEqual(new Date("2026-10-20T12:00:00.000Z"));
+    expect(() => notification.validate()).not.toThrow();
+  });
+
+  it("treats a null readAt as unread", () => {
+    expect(build({ readAt: null }).readAt).toBeNull();
+  });
+
+  it("rejects an invalid readAt", () => {
+    const notification = build({ readAt: new Date("nope") });
+
+    expect(messagesOf(() => notification.validate())).toEqual([
+      "notification.readAt.invalid.date",
+    ]);
   });
 
   it.each(NOTIFICATION_TYPES)("accepts the type %s", (type) => {

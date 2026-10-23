@@ -87,6 +87,11 @@ const serve = ({
       return json(200, { items: [] });
     }
 
+    // The instructor's and the admin's homes ask whether they teach.
+    if (url.endsWith("/classes/teaching")) {
+      return json(200, { items: [], teachesAny: false });
+    }
+
     return url.endsWith("/acceptances") ? accept?.() : rules?.();
   });
 

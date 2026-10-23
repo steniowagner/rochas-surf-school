@@ -273,14 +273,16 @@ describe("RootNavigator", () => {
         json: async () =>
           url.endsWith("/registrations")
             ? { items: [] }
-            : url.endsWith("/acceptances")
-              ? { ...updatedAccount(role), rulesAccepted: true }
-              : {
-                  version: 5,
-                  rules: [
-                    { id: "r1", title: "Rule", description: "Text", index: 0 },
-                  ],
-                },
+            : url.endsWith("/classes/teaching")
+              ? { items: [], teachesAny: false }
+              : url.endsWith("/acceptances")
+                ? { ...updatedAccount(role), rulesAccepted: true }
+                : {
+                    version: 5,
+                    rules: [
+                      { id: "r1", title: "Rule", description: "Text", index: 0 },
+                    ],
+                  },
       })));
 
     beforeEach(() => {

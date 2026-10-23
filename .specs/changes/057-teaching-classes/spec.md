@@ -363,6 +363,13 @@ header's clock button.
   > (11 suites, 97 passed; the row's component and hook 100% covered), `npx tsc --noEmit` and `npx eslint` (no errors);
   > deviations: the instructor test "shows the Rules row first under School…" was renamed, since "My classes" now comes first;
   > the two `*-tabs.navigation.test.tsx` files were updated too, because their homes now send `GET /classes/teaching`.
+  > ✅ 2026-10-23 — fix found by the Verification Plan's related tests: three suites that open the instructor's or the
+  > admin's home after accepting the rules answered \`GET /classes/teaching\` with the rules body, so the row crashed
+  > the home; they now answer \`{ items: [], teachesAny: false }\` like they answer \`/registrations\`. Files:
+  > \`apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx\`,
+  > \`apps/mobile/src/modules/rules-update/screens/rules-update.screen.test.tsx\`,
+  > \`apps/mobile/src/modules/onboarding/screens/school-rules.screen.test.tsx\`; verified: \`npx jest\` on the three
+  > (3 suites, 105 passed).
 
 ### Verification
 

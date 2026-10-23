@@ -422,6 +422,13 @@ describe("WeekMonthCalendar, clearable", () => {
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(2);
   });
 
+  it("draws today's week when it isn't clearable and no day is given", async () => {
+    await render(<WeekMonthCalendar selectedDate={null} today={TODAY} markedDates={[]} onSelectDate={jest.fn()} />);
+
+    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+    expect(selectedDays()).toHaveLength(0);
+  });
+
   it("works without the clearing and period listeners", async () => {
     await render(
       <WeekMonthCalendar selectedDate="2026-10-14" today={TODAY} markedDates={[]} onSelectDate={jest.fn()} clearable />,

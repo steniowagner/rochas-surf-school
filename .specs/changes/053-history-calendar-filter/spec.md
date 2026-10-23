@@ -350,6 +350,9 @@ list can follow the period. Students find a past class by when it happened inste
   > `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/components src/utils src/modules/enrolment
   > src/modules/classes/screens/classes-week.screen.test.tsx` from `apps/mobile` (68 suites, 634 passed), `npx tsc --noEmit`
   > and `npx eslint` clean; deviations: none.
+  > Follow-up found by T-10's coverage gate: the edit had also dropped the calendar test "draws today's week when it
+  > isn't clearable and no day is given" (its branch went uncovered); it is back, unchanged, in
+  > `apps/mobile/src/components/week-month-calendar/week-month-calendar.component.test.tsx` (29 passed).
 
 ### Verification
 

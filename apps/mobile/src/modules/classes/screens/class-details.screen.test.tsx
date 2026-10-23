@@ -1810,15 +1810,15 @@ describe("ClassDetailsScreen enrol", () => {
     expect(screen.queryByText("Request pending")).toBeNull();
   });
 
-  it("enrol: opens the request sheet with the class line, the deadline and Send request disabled until the rule is ticked", async () => {
+  it("enrol: opens the request sheet with the class, the rule and Send request disabled until the rule is ticked", async () => {
     await openRequestSheet(makeClass(), "Request a seat");
 
     expect(screen.getAllByText("Request a seat")).toHaveLength(2);
-    expect(
-      screen.getByText("Surf Beginner · Today · 14 Oct · 16:00. Your request stays pending until the school confirms."),
-    ).toBeOnTheScreen();
+    // The screen and the sheet's class card.
+    expect(screen.getAllByText("16:00 – 17:30")).toHaveLength(2);
+    expect(screen.getByText("Your request stays pending until the school confirms.")).toBeOnTheScreen();
     // The sheet card, and the rules row in its own words.
-    expect(screen.getByText("Cancel until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
+    expect(screen.getByText("You can cancel until Tue, 13 Oct · 17:00.")).toBeOnTheScreen();
     expect(screen.getByText("Until Tue, 13 Oct · 17:00")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Send request" })).toBeDisabled();
   });
@@ -1843,7 +1843,7 @@ describe("ClassDetailsScreen enrol", () => {
 
     expect(
       screen.getByText(
-        "Surf Beginner · Today · 14 Oct · 16:00. The class is full: your request goes on the waiting list. If a seat opens, it goes to the school for approval.",
+        "The class is full: your request goes on the waiting list. If a seat opens, it goes to the school for approval.",
       ),
     ).toBeOnTheScreen();
     await user.press(await screen.findByRole("checkbox", { name: RULE }));
@@ -2821,7 +2821,7 @@ describe("ClassDetailsScreen taken out", () => {
     expect(await screen.findByText("No reason given.")).toBeOnTheScreen();
   });
 
-  it("taken out: offers to join the waiting list again, in the dark button, when the class is full", async () => {
+  it("taken out: offers to join the waiting list again when the class is full", async () => {
     fetchMock.mockResolvedValue(ok(takenOut(null, { seatsTaken: 8 })));
     await renderScreen(false, true);
 

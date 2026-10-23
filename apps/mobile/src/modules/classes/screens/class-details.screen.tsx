@@ -401,8 +401,11 @@ export function ClassDetailsScreen({
             visible={screen.enrolment.requestVisible}
             loading={screen.enrolment.requesting}
             waitingList={screen.enrolment.waitingList}
-            summary={screen.requestSummary}
             discipline={item.discipline}
+            level={item.level}
+            startsAt={item.startsAt}
+            endsAt={item.endsAt}
+            locationName={item.location.name}
             deadline={screen.cancellationDeadline}
             onConfirm={screen.enrolment.request}
             onClose={screen.enrolment.closeRequest}

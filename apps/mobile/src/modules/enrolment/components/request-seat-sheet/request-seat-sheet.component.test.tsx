@@ -66,8 +66,11 @@ function props(overrides: Partial<RequestSeatSheetProps> = {}): RequestSeatSheet
     visible: true,
     loading: false,
     waitingList: false,
-    summary: "Surf Beginner · Tomorrow · 08:00",
     discipline: "surf",
+    level: "beginner",
+    startsAt: "2026-10-14T11:00:00.000Z", // 08:00 in Fortaleza
+    endsAt: "2026-10-14T12:30:00.000Z", // 09:30
+    locationName: "Praia do Futuro",
     deadline: "Mon, Oct 19 · 8:00 PM",
     onConfirm: jest.fn(),
     onClose: jest.fn(),
@@ -91,16 +94,19 @@ const SUBMIT = { name: "Send request" };
 const RULE = "I read and accept the cancellation rule";
 
 describe("RequestSeatSheet", () => {
-  it("shows the class line, the deadline and the rule to accept, with Send request disabled until it is ticked", async () => {
+  it("shows the class, the note and the deadline of the rule to accept, with Send request disabled until it is ticked", async () => {
     fetchMock.mockResolvedValue(ok({ surf: "Cancele até 1 hora antes.", skate: null }));
     const { user } = await renderSheet();
 
     expect(screen.getByText("Request a seat")).toBeOnTheScreen();
-    expect(
-      screen.getByText("Surf Beginner · Tomorrow · 08:00. Your request stays pending until the school confirms."),
-    ).toBeOnTheScreen();
-    expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
-    expect(screen.getByText("Cancel until Mon, Oct 19 · 8:00 PM")).toBeOnTheScreen();
+    expect(screen.getByText("Wednesday")).toBeOnTheScreen();
+    expect(screen.getByText("14 OCT")).toBeOnTheScreen();
+    expect(screen.getByText("08:00 – 09:30")).toBeOnTheScreen();
+    expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
+    expect(screen.getByText("Your request stays pending until the school confirms.")).toBeOnTheScreen();
+    expect(screen.getByText("You can cancel until Mon, Oct 19 · 8:00 PM.")).toBeOnTheScreen();
+    // The school's own words stay behind Read: they are in whatever language it wrote them.
+    expect(screen.queryByText("Cancele até 1 hora antes.")).toBeNull();
     expect(screen.getByRole("button", { name: "Not now" })).toBeOnTheScreen();
     expect(screen.getByRole("button", SUBMIT)).toBeDisabled();
 
@@ -172,7 +178,7 @@ describe("RequestSeatSheet", () => {
     expect(sheet.onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("reads the full class as the waiting list, in the title, the line and the button", async () => {
+  it("reads the full class as the waiting list, in the title, the note and the button", async () => {
     fetchMock.mockResolvedValue(ok({ surf: "Regra.", skate: null }));
     await renderSheet({ waitingList: true });
 
@@ -180,7 +186,7 @@ describe("RequestSeatSheet", () => {
     expect(screen.queryByText("Request a seat")).toBeNull();
     expect(
       screen.getByText(
-        "Surf Beginner · Tomorrow · 08:00. The class is full: your request goes on the waiting list. If a seat opens, it goes to the school for approval.",
+        "The class is full: your request goes on the waiting list. If a seat opens, it goes to the school for approval.",
       ),
     ).toBeOnTheScreen();
   });
@@ -190,7 +196,7 @@ describe("RequestSeatSheet", () => {
     const { sheet, user } = await renderSheet();
 
     expect(await screen.findByText("The school hasn't written this rule yet.")).toBeOnTheScreen();
-    expect(screen.getByText("Cancellation · Surf")).toBeOnTheScreen();
+    expect(screen.queryByText("Cancellation · Surf")).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
     expect(screen.queryByRole("link", { name: "Read" })).toBeNull();
     expect(screen.getByRole("button", SUBMIT)).toBeEnabled();

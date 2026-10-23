@@ -314,10 +314,6 @@ export const useClassDetailsScreen = ({
     closeCancel: () => setCancelVisible(false),
     deleteVisible,
     deleteVariant,
-    // "Surf Beginner · Tomorrow · 08:00": the class in the request sheet.
-    requestSummary: item
-      ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine} · ${start}`
-      : "",
     classLine: item
       ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine}, ${start} – ${end} · ${item.location.name}`
       : "",

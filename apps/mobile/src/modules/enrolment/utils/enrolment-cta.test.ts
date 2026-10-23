@@ -12,19 +12,19 @@ const enrolment = (status: EnrolmentStatus): MyEnrolment => ({
 describe("getEnrolmentCta", () => {
   it.each([
     [null, false, "request", "primary", "request"],
-    [null, true, "joinWaitingList", "dark", "request"],
+    [null, true, "joinWaitingList", "primary", "request"],
     ["pending", false, "withdraw", "outline", "withdraw"],
     ["pending", true, "leaveWaitingList", "ghost", "leaveWaitingList"],
     ["withdrawn", false, "requestAgain", "primary", "request"],
-    ["withdrawn", true, "requestAgain", "dark", "request"],
+    ["withdrawn", true, "requestAgain", "primary", "request"],
     ["expired", false, "requestAgain", "primary", "request"],
-    ["expired", true, "requestAgain", "dark", "request"],
+    ["expired", true, "requestAgain", "primary", "request"],
     ["denied", false, "requestAgain", "primary", "request"],
-    ["denied", true, "requestAgain", "dark", "request"],
+    ["denied", true, "requestAgain", "primary", "request"],
     ["cancelled", false, "requestAgain", "primary", "request"],
-    ["cancelled", true, "requestAgain", "dark", "request"],
+    ["cancelled", true, "requestAgain", "primary", "request"],
     ["takenOut", false, "requestAgain", "primary", "request"],
-    ["takenOut", true, "requestAgain", "dark", "request"],
+    ["takenOut", true, "requestAgain", "primary", "request"],
   ] as const)("for %s on a class full=%s answers %s (%s)", (status, full, key, variant, action) => {
     expect(getEnrolmentCta(status === null ? null : enrolment(status), full)).toEqual({ key, variant, action });
   });

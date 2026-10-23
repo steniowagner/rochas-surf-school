@@ -413,13 +413,8 @@ const messages: Messages = {
     filters: {
       all: "Todas",
       pending: "Pendientes",
-      approved: "Aprobadas",
-      denied: "Rechazadas",
-      withdrawn: "Anuladas",
-      cancelled: "Canceladas",
-      takenOut: "Retiradas",
-      expired: "Expiradas",
-      classCancelled: "Clase cancelada",
+      confirmed: "Confirmadas",
+      ended: "Cerradas",
     },
     empty: {
       title: "Nada por aquí",

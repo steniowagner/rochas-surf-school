@@ -221,8 +221,9 @@ optional reason). A taken-out student reads "Você foi retirado da aula" with th
 "Pedir novamente". The same tool's "Aula experimental" mode adds a guest (name and WhatsApp number); guests show in
 an upcoming class's student list with a "Trial" chip and, for admins, "Retirar" (a confirmation reminding them to
 tell the guest on WhatsApp). The student's "Minhas aulas" tab lists their current classes as the Agenda's cards
-with their status chip, filtered by chips (Todos, Pendentes, Aprovados, Recusados, Anulados, Cancelados, Retirados,
-Expirados, Aula cancelada — a request ended by the cancellation or any request in a cancelled class), back on Todos
+with their status chip, filtered by four group chips (spec 052): Todas, Pendentes (pending, the waiting list
+included), Confirmadas (approved) and Encerradas (denied, withdrawn, cancelled, taken out, expired, ended by the
+class's cancellation, and any request in a cancelled class), each card keeping its exact status chip; back on Todas
 whenever the tab loses focus; its history button opens "Histórico", the classes they took, newest first, 20 at a
 time. With the waiting list off, a student without an open request on a full upcoming class
 gets no button and reads "A lista de espera está fechada para esta aula." under "Turma cheia"; admins' "Turma
@@ -273,3 +274,6 @@ pedir.".
 - `048-my-classes-tab` — a student's own classes for Classes' new contract: the current ones (not ended, any
   enrolment) and the ones they took (ended, not cancelled, latest enrolment approved), paged; the app's "Minhas
   aulas" tab with its status chips and the "Histórico" screen.
+- `052-my-classes-grouped-filters` — no rule change here: the app's "Minhas aulas" chips group the request statuses
+  into Todas, Pendentes, Confirmadas and Encerradas (any request in a cancelled class included), each card keeping
+  its exact status chip.

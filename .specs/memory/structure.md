@@ -572,11 +572,11 @@ src/
                                 # PendingRequestsResponse, DenyRequestVariables, MyClassesResponse,
                                 # MyClassHistoryPage, MyClassesFilter (mirror the API)
     screens/my-classes.screen.tsx  # "Minhas aulas" (+ .hook.ts, .types.ts; spec 048): title, round history button,
-                                # the status chips, the classes as ClassCards with their chip; refetch on focus,
-                                # chips back on "Todos" on blur, pull-to-refresh, loading, error + retry, empty
+                                # the group chips, the classes as ClassCards with their chip; refetch on focus,
+                                # chips back on "Todas" on blur, pull-to-refresh, loading, error + retry, empty
     screens/my-class-history.screen.tsx  # "Histórico" (+ .hook.ts, .types.ts; spec 048): the classes taken, newest
                                 # first, 20 more at the end, pull-to-refresh, loading, error + retry, empty
-    components/my-classes-filters/  # MyClassesFilters (the horizontal row of status chips; spec 048)
+    components/my-classes-filters/  # MyClassesFilters (the horizontal row of chips; spec 048; four groups since 052)
     screens/class-requests.screen.tsx  # "Inscrições em aulas": header with requests · classes, one group per class,
                                 # pull-to-refresh, loading, error + retry, "Nada à espera"
     screens/enrol-student.screen.tsx  # "Inscrever aluno" (+ .hook.ts, .types.ts; spec 044): "1 · Quem" (search, the
@@ -616,7 +616,7 @@ src/
                                 # cancelled, takenOut), enrolment-error.ts (API error → translation key,
                                 # which errors reload the class or the tool's list), class-requests.ts (the "Pediu
                                 # às …" line and the day block), my-classes-filter.ts (the chips and which one a class
-                                # belongs to; spec 048)
+                                # belongs to; spec 048; each status mapped to its group since 052)
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),

@@ -406,13 +406,8 @@ const messages = {
     filters: {
       all: "All",
       pending: "Pending",
-      approved: "Approved",
-      denied: "Denied",
-      withdrawn: "Withdrawn",
-      cancelled: "Cancelled",
-      takenOut: "Taken out",
-      expired: "Expired",
-      classCancelled: "Class cancelled",
+      confirmed: "Confirmed",
+      ended: "Ended",
     },
     empty: {
       title: "Nothing here",

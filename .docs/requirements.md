@@ -1038,6 +1038,7 @@ The system SHALL erase a guest's name and WhatsApp number 30 days after their cl
 _Partly implemented in spec 041-enrolment-requests (every status is stored; a class's details and the student's Agenda card show pending, "on the waiting list", withdrawn and expired, and a class-cancelled request shows the class's cancelled banner)._
 _Partly implemented in spec 042-enrolment-decisions (approved and denied, on the details and the Agenda card; a denial's reason opens from its banner; cancelled and taken out come with specs 043–044)._
 _Implemented in spec 048-my-classes-tab (every request's status in one place, the student's "Minhas aulas" tab, filterable by status)._
+_Implemented in spec 052-my-classes-grouped-filters ("Minhas aulas" filters by four groups — all, pending, confirmed, ended — and each card keeps its request's exact status)._
 
 Students SHALL be able to see the status of each of their requests: pending (shown as "on the waiting list" while the class is full), approved, denied, withdrawn, cancelled, taken out, expired, or class cancelled.
 

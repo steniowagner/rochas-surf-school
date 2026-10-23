@@ -147,21 +147,38 @@ describe("MyClassesScreen", () => {
     expect(within(cancelled!).getByText("Cancelled")).toBeOnTheScreen();
   });
 
-  it("shows only the chosen status, and the empty state for a status without classes", async () => {
+  it("shows only the chosen group, each card with its own status, and the empty state for a group without classes", async () => {
     const user = userEvent.setup();
     await renderScreen();
     await screen.findByText("16:00 – 17:00");
 
+    await user.press(screen.getByRole("button", { name: "Ended" }));
+
+    expect(screen.getByRole("button", { name: "Ended" })).toBeSelected();
+    expect(
+      screen
+        .getAllByRole("button", { name: /^Surf, / })
+        .map((card) => card.props.accessibilityLabel),
+    ).toEqual(["Surf, 16:00 – 17:00", "Surf, 08:00 – 09:00"]);
+    expect(within(cardOf("16:00 – 17:00")).getByText("Withdrawn")).toBeOnTheScreen();
+    expect(within(cardOf("08:00 – 09:00")).getByText("Cancelled")).toBeOnTheScreen();
+
     await user.press(screen.getByRole("button", { name: "Pending" }));
 
-    expect(screen.getByRole("button", { name: "Pending" })).toBeSelected();
     expect(screen.getAllByRole("button", { name: /^Surf, / })).toHaveLength(1);
     expect(within(cardOf("08:00 – 09:00")).getByText("Pending")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Class cancelled" }));
-    expect(screen.getAllByRole("button", { name: /^Surf, / })).toHaveLength(1);
+    await user.press(screen.getByRole("button", { name: "Confirmed" }));
 
-    await user.press(screen.getByRole("button", { name: "Denied" }));
+    expect(screen.getAllByRole("button", { name: /^Surf, / })).toHaveLength(1);
+    expect(within(cardOf("09:00 – 10:00")).getByText("In progress")).toBeOnTheScreen();
+
+    fetchMock.mockResolvedValue(ok({ items: [UNDER_WAY, PENDING] }));
+    await act(async () => {
+      focusEffect();
+    });
+    await waitFor(() => expect(requestedPaths()).toHaveLength(2));
+    await user.press(screen.getByRole("button", { name: "Ended" }));
 
     expect(screen.queryAllByRole("button", { name: /^Surf, / })).toHaveLength(0);
     expect(screen.getByText("Nothing here")).toBeOnTheScreen();
@@ -176,8 +193,8 @@ describe("MyClassesScreen", () => {
     await act(async () => {
       cleanup = focusEffect();
     });
-    await user.press(screen.getByRole("button", { name: "Expired" }));
-    expect(screen.getByRole("button", { name: "Expired" })).toBeSelected();
+    await user.press(screen.getByRole("button", { name: "Ended" }));
+    expect(screen.getByRole("button", { name: "Ended" })).toBeSelected();
 
     await act(async () => cleanup?.());
 
@@ -279,11 +296,11 @@ describe("MyClassesScreen", () => {
     await renderScreen();
 
     expect(screen.getByRole("header", { name: "MINHAS AULAS" })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Todos" })).toBeSelected();
-    expect(screen.getByRole("button", { name: "Aula cancelada" })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Todas" })).toBeSelected();
+    expect(screen.getByRole("button", { name: "Encerradas" })).toBeOnTheScreen();
     expect(await screen.findByText("Nada por aqui")).toBeOnTheScreen();
     expect(screen.getByText("Você ainda não pediu vaga em nenhuma aula.")).toBeOnTheScreen();
-    await userEvent.press(screen.getByRole("button", { name: "Recusados" }));
+    await userEvent.press(screen.getByRole("button", { name: "Encerradas" }));
     expect(screen.getByText("Você não tem pedidos com este status.")).toBeOnTheScreen();
   });
 

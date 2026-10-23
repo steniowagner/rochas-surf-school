@@ -1,5 +1,6 @@
 import { buildClassItem } from "@/modules/classes/classes.test-utils";
 import type { ClassItem } from "@/modules/classes/classes.types";
+import i18n from "@/i18n";
 
 import type { EnrolmentStatus } from "../enrolment.types";
 
@@ -15,30 +16,36 @@ const withStatus = (id: string, status: EnrolmentStatus, overrides: Partial<Clas
   });
 
 describe("my classes filter", () => {
-  it("lists the chips in the design's order, all first", () => {
-    expect(MY_CLASSES_FILTERS).toEqual([
-      "all",
-      "pending",
-      "approved",
-      "denied",
-      "withdrawn",
-      "cancelled",
-      "takenOut",
-      "expired",
-      "classCancelled",
-    ]);
+  it("lists the four chips in order, all first", () => {
+    expect(MY_CLASSES_FILTERS).toEqual(["all", "pending", "confirmed", "ended"]);
   });
 
-  it.each(["pending", "approved", "denied", "withdrawn", "cancelled", "takenOut", "expired"] as const)(
-    "puts a %s request under its own chip",
-    (status) => {
-      expect(getMyClassFilter(withStatus("c", status))).toBe(status);
-    },
-  );
+  it.each([
+    ["en-US", ["All", "Pending", "Confirmed", "Ended"]],
+    ["pt-BR", ["Todas", "Pendentes", "Confirmadas", "Encerradas"]],
+    ["es-ES", ["Todas", "Pendientes", "Confirmadas", "Cerradas"]],
+  ])("labels the four chips in every language (%s)", (locale, labels) => {
+    const t = i18n.getFixedT(locale);
 
-  it("puts a class closed by its cancellation, or any request of a cancelled class, under Aula cancelada", () => {
-    expect(getMyClassFilter(withStatus("a", "classCancelled"))).toBe("classCancelled");
-    expect(getMyClassFilter(withStatus("b", "withdrawn", { cancelledAt: START }))).toBe("classCancelled");
+    expect(MY_CLASSES_FILTERS.map((filter) => t(`myClasses.filters.${filter}`))).toEqual(labels);
+  });
+
+  it.each([
+    ["pending", "pending"],
+    ["approved", "confirmed"],
+    ["denied", "ended"],
+    ["withdrawn", "ended"],
+    ["cancelled", "ended"],
+    ["takenOut", "ended"],
+    ["expired", "ended"],
+    ["classCancelled", "ended"],
+  ] as const)("puts a %s request under %s", (status, filter) => {
+    expect(getMyClassFilter(withStatus("c", status))).toBe(filter);
+  });
+
+  it("puts any request of a cancelled class under ended, an approved or pending one included", () => {
+    expect(getMyClassFilter(withStatus("a", "approved", { cancelledAt: START }))).toBe("ended");
+    expect(getMyClassFilter(withStatus("b", "pending", { cancelledAt: START }))).toBe("ended");
   });
 
   it("puts a class without a request under no chip", () => {
@@ -49,13 +56,16 @@ describe("my classes filter", () => {
     const items = [
       withStatus("1", "pending"),
       withStatus("2", "approved"),
-      withStatus("3", "pending"),
-      withStatus("4", "denied", { cancelledAt: START }),
+      withStatus("3", "withdrawn"),
+      withStatus("4", "pending"),
+      withStatus("5", "approved", { cancelledAt: START }),
+      buildClassItem("6", START, END),
     ];
 
     expect(filterMyClasses(items, "all")).toBe(items);
-    expect(filterMyClasses(items, "pending").map((item) => item.id)).toEqual(["1", "3"]);
-    expect(filterMyClasses(items, "classCancelled").map((item) => item.id)).toEqual(["4"]);
-    expect(filterMyClasses(items, "denied")).toEqual([]);
+    expect(filterMyClasses(items, "pending").map((item) => item.id)).toEqual(["1", "4"]);
+    expect(filterMyClasses(items, "confirmed").map((item) => item.id)).toEqual(["2"]);
+    expect(filterMyClasses(items, "ended").map((item) => item.id)).toEqual(["3", "5"]);
+    expect(filterMyClasses([withStatus("1", "pending")], "ended")).toEqual([]);
   });
 });

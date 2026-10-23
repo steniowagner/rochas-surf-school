@@ -117,14 +117,5 @@ export type MyClassHistoryPage = {
   perPage: number;
 };
 
-/** A status chip of "Minhas aulas"; `all` shows every class. */
-export type MyClassesFilter =
-  | "all"
-  | "pending"
-  | "approved"
-  | "denied"
-  | "withdrawn"
-  | "cancelled"
-  | "takenOut"
-  | "expired"
-  | "classCancelled";
+/** A chip of "Minhas aulas", grouping the request statuses; `all` shows every class. */
+export type MyClassesFilter = "all" | "pending" | "confirmed" | "ended";

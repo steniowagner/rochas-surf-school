@@ -229,11 +229,21 @@ header's clock button.
   > (44 passed), `npx tsc --noEmit -p apps/backend` and `npm run lint -w apps/backend` (no errors; existing warnings in
   > other files only); deviations: none.
 
-- [ ] **T-04** — Add `test/teaching-classes.e2e-spec.ts` (fixed classes clock and fake `ExpoPushProvider` as in
+- [x] **T-04** — Add `test/teaching-classes.e2e-spec.ts` (fixed classes clock and fake `ExpoPushProvider` as in
   `my-classes.e2e-spec.ts`, deleting what each test creates) with the "lists the classes the caller teaches" cases
   (instructor, admin, order, exclusions, co-instructor), the "teachesAny" cases (none, ended only, cancelled, deleted)
   and the "access" cases (student 403, pending 403, no token 401).
   Covers: ER-01, ER-02 · Done when: `npm run test:e2e --workspace apps/backend` passes.
+  > ✅ 2026-10-23 20:15 — added the e2e suite (classes clock fixed at 2026-10-14 10:00 Fortaleza, fake
+  > `ExpoPushProvider`, each test's classes, location and users deleted after it): "lists the classes the caller teaches"
+  > (an instructor and an admin: ended class left out, the under-way, the cancelled and next week's classes in that order,
+  > another teacher's class left out, `myEnrolment: null` and the guest's name; same start by id; a class ending exactly now
+  > left out; a co-taught class kept), "teachesAny" (none → false for admin and instructor; ended only → true; cancelled
+  > not ended → listed and true; after the only class is deleted → false) and "access" (student 403
+  > `user.role.notTeacher`, pending instructor 403 `user.status.notApproved`, no token 401). Files:
+  > `apps/backend/test/teaching-classes.e2e-spec.ts`; verified: `npm run test:e2e --workspace apps/backend` (25 files, 665
+  > passed; the first full run had 1 failure in `auth-session.e2e-spec.ts` "GET /auth/me returns the signed-in account…",
+  > which passed alone (55/55) and on the full rerun — unrelated to this change); deviations: none.
 
 ### Mobile (`apps/mobile`)
 

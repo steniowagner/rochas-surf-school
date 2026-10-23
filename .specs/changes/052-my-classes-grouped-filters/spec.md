@@ -3,7 +3,7 @@ id: "052"
 slug: my-classes-grouped-filters
 title: Group the "Minhas aulas" filters into four chips
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-22
 started: 2026-10-22
 base_commit: 21bdb997f42514d748d4507c6294bca1029ba02e

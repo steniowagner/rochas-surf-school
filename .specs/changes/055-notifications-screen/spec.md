@@ -2,10 +2,11 @@
 id: "055"
 slug: notifications-screen
 title: Notifications screen with read state
-status: in-review
+status: accepted
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 66686ab329a0a62b13f5656dc7557ab0e403465f
+reviewed_commit: f7a4997e452186a2b421fcd29c265e7d619d5592
 fronts: [notifications, backend, mobile]
 depends_on: []
 ---
@@ -619,3 +620,64 @@ screen and the read state that spec 020 left for later, so a notification is nev
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-23 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`modules/notifications`, `apps/backend`, `apps/mobile`: 27/27 turbo tasks, `--concurrency=1`)
+- related tests ✅ apps/backend · apps/mobile (1433 tests) · modules/notifications (16 suites, 151 tests)
+- coverage of the changed lines ✅ COVERAGE OK, every changed line covered in 29 files; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 24 files, 654 passed (includes "the notifications screen" block) · mobile: journeys driven on the
+  iOS simulator (iPhone 18 Pro, dev build on Metro, backend from `dist` against the local database), signed in as
+  Dev Student with 12 of 13 unread
+
+**Expected Results**
+
+- ER-01 ✅ — use-case tests and the e2e "lists notifications" cases: 25 rows paged 20 + 5 newest first, never another
+  user's; empty page; `classId: null` for `class.deleted`; `read: true`; pt-BR without `locale`; a pending account
+  lists its own; one 422 with the three keys; 401 without a token
+- ER-02 ✅ — `renderInApp` cases in `push-messages.spec.ts` and the e2e text case in pt-BR / es / en; the push still ends
+  with "Abra o app para ver."
+- ER-03 ✅ — use-case test and e2e: `{ count: 3 }` with one read and another user's two unread; 0 with none; 401
+- ER-04 ✅ — use-case test and e2e: 204, listed `read: true`, count down by one, first `read_at` kept on a repeat;
+  404 `notification.notFound` for a foreign, unknown and non-UUID id, nothing changed; 401
+- ER-05 ✅ — use-case test and e2e: 204, count 0 and every item read, other user's count still 2, an already-read row
+  keeps its `read_at`; 204 with nothing unread; 401
+- ER-06 ✅ — `user-header.component.test.tsx` ("3" / "Notifications, 3 unread", no badge at 0 and on a failed count,
+  "9+" at 12, the focus reload, the bell per role); simulator: the Agenda's bell read "9+" with 12 unread; tapping it
+  opened "NOTIFICATIONS" above the tabs (no tab bar) with the back button; after "Mark all" the Agenda's bell had no
+  badge. The bell as an instructor and as an admin was not driven (another sign-in); covered by the per-role test
+- ER-07 ✅ — row and screen tests (icon and tint per type, title, body, "5 minutes ago", `sun` dot, empty body, unknown
+  type, 20 then 5 more at the end, pull to refresh from page 1, ", unread" only when unread); simulator: tinted icons
+  (red `person-remove`, green `person-add`), title, body, "2 days ago" and the orange dot on unread rows
+- ER-08 ✅ — screen tests: skeleton while loading, empty state, error state with a working retry, no mark-all button in
+  any of the three
+- ER-09 ✅ — `notification-target.test.ts` and screen tests; simulator: tapping the unread "You've been enrolled"
+  (10/22 at 07:00) row opened its class details (22 Oct, 07:00 – 07:45), the database had that row's `read_at` set,
+  and back on "Notifications" its dot was gone
+- ER-10 ✅ — screen tests (dots cleared, read-all sent, button hidden; rollback and toast on failure; no toast on an
+  expired session); simulator: the check button cleared every dot and hid itself, the database showed 0 of 13 unread,
+  and back on the Agenda the bell had no badge
+- ER-11 ✅ — `use-notification-response.hook.test.tsx`: mark sent and the class opens, none without an id or a session,
+  a failed mark still routes, one mark for a response handled twice
+- ER-12 ✅ — `use-notification-received.hook.test.tsx`: both keys invalidated for all 18 types and an unknown one, no
+  navigation
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `HeaderButton`'s `MAX_BADGE_COUNT` went from 99 to 9 (T-10 deviation): the bell is its only user with a badge, so
+  nothing else changed, but the shared component's cap is not in Memory Impact; `spec-finish` may mention it with the
+  bell's real count.
+- The bell picks its route from `user.role` (`NOTIFICATIONS_ROUTES` in `user-header.hook.ts`), not from the resolved
+  flow; correct since only the three approved home stacks render the bell.
+- The comment on `Notification` (`notification.entity.ts`, "only what the app or the push needs to draw one") predates
+  D-02, which has the backend write the in-app text too.
+- `["notifications", "list"]` doesn't include the locale (D-09 fixes the key), so after a language change the cached
+  rows show their old language until the screen's mount refetch answers.
+- The journeys changed Dev Student's rows in the local database (one tap and "Mark all"); afterwards they were put
+  back as they were before the review (12 unread, `1a811696…` read).

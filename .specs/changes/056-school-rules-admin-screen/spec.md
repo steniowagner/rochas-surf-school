@@ -2,10 +2,11 @@
 id: "056"
 slug: school-rules-admin-screen
 title: "School rules management screen and home entries"
-status: in-review
+status: accepted
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 3fc50e7e77838ebc52979a0004266c5e76d07cd2
+reviewed_commit: 1feedf51870e069ec0012312ccbfed8ad4b41430
 fronts: [mobile]
 depends_on: []
 ---
@@ -517,3 +518,67 @@ The add and edit sheets each have a "Cancelar" (ghost) that closes them and drop
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-23 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`: 12
+  tasks successful; the workspace has no build script)
+- related tests ✅ 79 suites, 1510 passed (apps/mobile, `run-related-tests.mjs 056`)
+- coverage of the changed lines ✅ COVERAGE OK — 21 files measured, all at 100 %; the route file excluded by the
+  technical context; no coverage-ignore comments in the diff
+- e2e ✅ E2E PASSED — no suite applies (mobile has none)
+- Each `Verify by` filter run on its own: screen test `-t lists` 5 · `state` 4 · `adds` 1 · `edits` 2 · `deletes` 4
+  · `reorders` 4 passed; sheets `-t note` 3 passed; `npx jest src/modules/profile` 67 passed
+- iOS simulator (iPhone 18 Pro, dev build on Metro with this branch, local backend, dark theme, pt-BR), signed in as
+  the review admin: home row "Regras / Nenhuma regra ainda" first under "Escola", above "Pessoas" → empty state
+  (`shield-outline`, "Nenhuma regra ainda", primary "Adicionar regra", no bottom button) → "Nova regra" with the save
+  note, `0/60` · `0/300`, no checkbox, submit off until both fields have text → added two rules ("Regra adicionada",
+  listed `01`, `02`; arrows 44pt, first ↑ and last ↓ off) → ↓ on rule 01 moved it at once and kept it, no toast →
+  edit: "Salvar" off until a change, "Regra salva", text changed in place → delete: "Excluir esta regra?" with the
+  title, the delete note, danger "Excluir regra" → "Regra excluída", the former 02 became 01 with both arrows off →
+  home row "1 regra no onboarding dos alunos" → Perfil → "Regras da escola" read-only (no arrows, no add) → relaunch:
+  the admin is asked to accept the rules (onboarding step, as this account had never accepted a version; D-12) →
+  deleting the last rule showed the empty state; the title saved from "  Targa protector solar  " came back trimmed
+  (21/60). Not driven here: the backend-stopped error state (covered by the "state" tests), the instructor journey
+  (recorded in T-08; covered by `instructor.screen.test.tsx`), the light theme.
+
+**Expected Results**
+
+- ER-01 ✅ — `school-rules-entry-row` and `admin.screen.test.tsx` (6 / 1 / 0 rules, no subtitle while loading or after
+  an error, first under "School", opens `/admin/manage-school-rules`); profile suite green; seen in the simulator
+- ER-02 ✅ — entry-row and `instructor.screen.test.tsx` (opens `/instructor/school-rules`, no arrows, no "Add rule")
+- ER-03 ✅ — "lists": header, intro, `01`–`03`, titles and explanations, arrows enabled/disabled at the ends and for a
+  single rule, tapping the text opens "Edit rule" with its text; seen in the simulator
+- ER-04 ✅ — "state": one labelled loading element, error → failed retry → error again → successful retry lists, empty
+  state's action opens "New rule", no bottom button in the three states
+- ER-05 ✅ — sheet and hook tests (trimmed body, submit rules, limits and counters, network/generic toasts keep the
+  draft, Cancel sends nothing, double tap sends once) and "adds" (listed last as `03`); seen in the simulator
+- ER-06 ✅ — sheet and hook tests (unchanged or blank → "Save" off, trimmed body, 404 closes + reloads + toast, other
+  failure keeps the draft) and "edits"; seen in the simulator
+- ER-07 ✅ — delete sheet and hook tests (no body, Cancel, 404, failures keep it open, double tap) and "deletes"
+  (former 03 → 02, the edit sheet doesn't come back, last rule → empty state); seen in the simulator
+- ER-08 ✅ — hook and "reorders" tests (optimistic A, C, B, every arrow off until the answer, `ruleIds` [a, c, b], no
+  toast; failure restores and toasts; 422 mismatch reloads with its toast); seen in the simulator
+- ER-09 ✅ — `-t note`: the save note in add and edit, the delete note, no checkbox or switch; bodies are exactly
+  `{ title, description }` or none
+- ER-10 ✅ — check-types exits 0; the new keys in the three locales match the Copy table; pt-BR uses "Salvar",
+  "Excluir regra", "o app", "Traga"
+
+**Findings**
+
+None.
+
+**Notes**
+
+- T-08 says the admin journeys couldn't be driven because the sign-in code is e-mailed. The seeded admin is a
+  `REVIEW_ACCOUNTS` account: its code is fixed and no e-mail is sent (`request-sign-in-code.usecase.ts`), so the
+  admin can sign in on the simulator after a code request. This round drove those journeys.
+- Existing behavior, not from this spec: the shared toast (`useAlertMessage`) has one style, so "Regra adicionada" /
+  "salva" / "excluída" show with the coral "!" look of an error, like every other success toast in the app. And with
+  the keyboard open, `BottomModal` grows the add/edit sheet up under the status bar and the Dynamic Island, so its
+  title overlaps them. `BottomModal` has no top-inset option. Both would be specs of their own.
+- The new hook suites print a few `act()` warnings (5 in total). Other suites print many more, and nothing fails.
+- The sheet test covers "keeps the draft" for a network failure in `add` and a generic failure in `edit`. A generic
+  failure in `add` goes through the same `catch`, and the hook test covers its toast.

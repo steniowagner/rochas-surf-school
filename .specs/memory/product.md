@@ -934,11 +934,13 @@ received with the app open reloads the classes. All copy is in pt-BR, es-ES and 
 
 **"Minhas aulas" and the class history** (spec `048-my-classes-tab`) — the student's "Minhas aulas" tab lists every
 class they asked for that hasn't ended (cancelled ones included), by start, as the Agenda's cards with the status
-chip of their latest request. A row of chips filters it: Todos, Pendentes (the waiting list included), Aprovados,
-Recusados, Anulados, Cancelados, Retirados, Expirados and Aula cancelada (a request ended by the class's
-cancellation, or any request in a cancelled class); the chips go back to Todos whenever the tab loses focus, a class
-or the history opened above it included. With nothing to show it reads "Nada por aqui" with "Você ainda não pediu
-vaga em nenhuma aula." (Todos) or "Você não tem pedidos com este status."; the list reloads when the tab is shown
+chip of their latest request. Since spec `052-my-classes-grouped-filters` a row of four chips filters it by group:
+Todas, Pendentes (pending requests, the waiting list included), Confirmadas (approved) and Encerradas (denied,
+withdrawn, cancelled, taken out, expired, ended by the class's cancellation, and any request in a cancelled class);
+a class without a request shows only under Todas, and each card keeps its request's exact status chip. The chips go
+back to Todas whenever the tab loses focus, a class or the history opened above it included. With nothing to show
+it reads "Nada por aqui" with "Você ainda não pediu vaga em nenhuma aula." (Todas) or "Você não tem pedidos com
+este status." (a group without classes); the list reloads when the tab is shown
 again and on pull-to-refresh, and a failed load offers "Tentar novamente". A card opens the class's details. The round
 history button opens "Histórico": the classes the student took (a seat held when the class ended, not cancelled),
 newest first, 20 more at the end of the list, each card reading "N alunos presentes"; with none, "Você ainda não fez

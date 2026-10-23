@@ -21,8 +21,6 @@ export type WeekMonthCalendarProps = {
   today: string;
   /** The days that get a dot. */
   markedDates: string[];
-  /** How many dots each marked day gets, up to 3; a marked day missing from it gets one. */
-  markedCounts?: Record<string, number>;
   /** Appended to the accessibility label of a marked day. */
   markedLabel?: string;
   onSelectDate: (date: string) => void;

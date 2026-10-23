@@ -5,7 +5,7 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { useCalendarMonthGrid } from "./calendar-month-grid.hook";
 import type { CalendarMonthGridProps } from "./calendar-month-grid.types";
 
-/** A month, Monday first, with only the weeks it needs: the selected day in a circle, dots (1 to 3) under each day with classes. */
+/** A month, Monday first, with only the weeks it needs: the selected day in a circle, a dot under each day with classes. */
 export function CalendarMonthGrid({ onSelectDate, ...props }: CalendarMonthGridProps) {
   const { initials, weeks } = useCalendarMonthGrid(props);
 
@@ -50,14 +50,13 @@ export function CalendarMonthGrid({ onSelectDate, ...props }: CalendarMonthGridP
                     {day.number}
                   </Text>
                 </View>
-                <View className="h-1 flex-row gap-0.5">
-                  {Array.from({ length: day.dots }, (_, index) => (
+                <View className="h-1">
+                  {day.marked ? (
                     <View
-                      key={index}
                       testID={`calendar-day-${day.date}-dot`}
                       className="h-1 w-1 rounded-full bg-lagoon"
                     />
-                  ))}
+                  ) : null}
                 </View>
               </TouchableOpacity>
             );

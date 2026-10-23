@@ -3,7 +3,7 @@ import { enUS, es, ptBR } from "date-fns/locale";
 import { buildClassItem } from "@/modules/classes/classes.test-utils";
 
 import {
-  countClassesByDay,
+  daysWithClasses,
   filterClassesByDay,
   groupClassesByDay,
   historyChipLabel,
@@ -19,10 +19,10 @@ const EARLY_15 = item("c-c", "2026-08-15T03:00:00.000Z");
 const SAME_START_14 = item("c-z", "2026-08-14T11:00:00.000Z");
 const ITEMS = [MORNING_14, EARLY_15, LATE_14, SAME_START_14];
 
-describe("countClassesByDay", () => {
-  it("counts the classes per Fortaleza day", () => {
-    expect(countClassesByDay(ITEMS)).toEqual({ "2026-08-14": 3, "2026-08-15": 1 });
-    expect(countClassesByDay([])).toEqual({});
+describe("daysWithClasses", () => {
+  it("lists each Fortaleza day with classes once", () => {
+    expect(daysWithClasses(ITEMS)).toEqual(["2026-08-14", "2026-08-15"]);
+    expect(daysWithClasses([])).toEqual([]);
   });
 });
 

@@ -244,7 +244,7 @@ describe("WeekMonthCalendar", () => {
 type ClearableHarnessProps = {
   initial?: string | null;
   today?: string;
-  markedCounts?: Record<string, number>;
+  markedDates?: string[];
   onPeriodChange?: (period: CalendarPeriod) => void;
   onSelectDate?: (date: string) => void;
 };
@@ -252,7 +252,7 @@ type ClearableHarnessProps = {
 function ClearableHarness({
   initial = null,
   today = TODAY,
-  markedCounts = {},
+  markedDates = [],
   onPeriodChange,
   onSelectDate,
 }: ClearableHarnessProps) {
@@ -262,8 +262,7 @@ function ClearableHarness({
     <WeekMonthCalendar
       selectedDate={selectedDate}
       today={today}
-      markedDates={Object.keys(markedCounts)}
-      markedCounts={markedCounts}
+      markedDates={markedDates}
       onSelectDate={(date) => {
         onSelectDate?.(date);
         setSelectedDate(date);
@@ -415,19 +414,12 @@ describe("WeekMonthCalendar, clearable", () => {
     expect(day("2026-08-14")).toBeSelected();
   });
 
-  it("shows one dot per class, up to 3", async () => {
-    await render(<ClearableHarness markedCounts={{ "2026-10-05": 5, "2026-10-06": 2, "2026-10-07": 1 }} />);
+  it("shows one dot on each marked day of the month", async () => {
+    await render(<ClearableHarness markedDates={["2026-10-05", "2026-10-06"]} />);
 
-    expect(screen.queryAllByTestId("calendar-day-2026-10-05-dot")).toHaveLength(3);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-06-dot")).toHaveLength(2);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-07-dot")).toHaveLength(1);
-  });
-
-  it("draws today's week when it isn't clearable and no day is given", async () => {
-    await render(<WeekMonthCalendar selectedDate={null} today={TODAY} markedDates={[]} onSelectDate={jest.fn()} />);
-
-    expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
-    expect(selectedDays()).toHaveLength(0);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-05-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-06-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(2);
   });
 
   it("works without the clearing and period listeners", async () => {

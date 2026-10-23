@@ -12,9 +12,8 @@ export type UseMyClassHistoryScreenResult = {
   today: string;
   /** The selected day, `YYYY-MM-DD`, or `null` for the whole period. */
   selectedDay: string | null;
-  /** The days of the period with classes, and how many each has, for the calendar's dots. */
+  /** The days of the period with one or more classes, for the calendar's dots. */
   markedDates: string[];
-  markedCounts: Record<string, number>;
   /** The period on screen: "OUTUBRO 2026", "12 – 18 OUT". */
   caption: string;
   /** The selected day's chip, "14 AGO", or `null` without one. */

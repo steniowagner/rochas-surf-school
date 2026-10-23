@@ -325,13 +325,31 @@ list can follow the period. Students find a past class by when it happened inste
   > caption at the right uses the pill's captions (`monthCaption` / `weekCaption`), upper-cased like the rest of the app,
   > where the prototype capitalizes the month.
 
-- [ ] **T-09** — (added by the amendment of 2026-10-22) D-11: remove the dot count — `markedCounts` from
+- [x] **T-09** — (added by the amendment of 2026-10-22) D-11: remove the dot count — `markedCounts` from
   `src/components/week-month-calendar/`, `calendar-week-row/` and `calendar-month-grid/` (back to one dot per marked
   day, their existing tests unchanged), `markedDayDots` / `MAX_DAY_DOTS` from `src/utils/calendar-dates.ts`, and
   `countClassesByDay` in favour of the days with classes in `src/modules/enrolment/utils/class-history.ts`; drop the
   history screen's header title (`Stack.Screen` `headerTitle`); replace `myHistory.legend` / `myHistory.hasClasses` with
   the student's copy in pt-BR, es-ES and en-US; update the tests.
   Covers: ER-03 · Done when: `npx jest src/components src/utils src/modules/enrolment src/modules/classes/screens/classes-week.screen.test.tsx` passes from `apps/mobile`.
+  > ✅ 2026-10-22 23:18 — D-11: `markedCounts` is gone from `WeekMonthCalendar`, `CalendarWeekRow` and `CalendarMonthGrid`
+  > (their component and hook files are back to `main`'s single dot; only `selectedDate: string | null` stays in their types,
+  > for the history's empty selection, with a test each), `markedDayDots` / `MAX_DAY_DOTS` are gone from
+  > `src/utils/calendar-dates.ts`, and `countClassesByDay` became `daysWithClasses` (each Fortaleza day with classes once).
+  > The history screen no longer sets `Stack.Screen` options, so the shared header shows only the back button
+  > (`myHistory.title` removed from the three locales); its legend and the days' accessibility label are "Dias em que você
+  > fez aula" / "você fez aula" (es-ES "Días en que hiciste clase" / "hiciste clase", en-US "Days you took a class" / "you
+  > took a class"). Tests: the screen checks one dot on the day with two and the one with five classes, the new copy, and
+  > that no header options are set; the calendar's clearable test marks days without counts. Files:
+  > `apps/mobile/src/components/week-month-calendar/week-month-calendar.{component.tsx,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-week-row/calendar-week-row.{component.tsx,hook.ts,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/components/calendar-month-grid/calendar-month-grid.{component.tsx,hook.ts,types.ts,component.test.tsx}`,
+  > `apps/mobile/src/utils/calendar-dates.ts`, `apps/mobile/src/utils/calendar-dates.test.ts`,
+  > `apps/mobile/src/modules/enrolment/utils/class-history.ts`, `apps/mobile/src/modules/enrolment/utils/class-history.test.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.{tsx,hook.ts,types.ts,test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/components src/utils src/modules/enrolment
+  > src/modules/classes/screens/classes-week.screen.test.tsx` from `apps/mobile` (68 suites, 634 passed), `npx tsc --noEmit`
+  > and `npx eslint` clean; deviations: none.
 
 ### Verification
 

@@ -19,7 +19,7 @@ import {
 
 import { useMyClassHistory } from "../hooks/use-my-class-history.hook";
 import {
-  countClassesByDay,
+  daysWithClasses,
   filterClassesByDay,
   groupClassesByDay,
   historyChipLabel,
@@ -42,7 +42,6 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
   const query = useMyClassHistory(period);
 
   const items = query.data?.items ?? NO_ITEMS;
-  const markedCounts = countClassesByDay(items);
   // The day filter runs on the period already loaded: picking or clearing a day sends no request.
   const rows: HistoryRow[] = groupClassesByDay(filterClassesByDay(items, selectedDay)).flatMap(
     ({ day, items: dayItems }) => [
@@ -69,8 +68,7 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
     now,
     today,
     selectedDay,
-    markedDates: Object.keys(markedCounts),
-    markedCounts,
+    markedDates: daysWithClasses(items),
     caption: isWeek ? weekCaption(period.from, locale) : monthCaption(monthOf(period.from), locale),
     dayLabel: selectedDay === null ? null : historyChipLabel(selectedDay, locale),
     rows,

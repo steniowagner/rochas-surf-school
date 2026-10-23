@@ -99,21 +99,18 @@ describe("CalendarWeekRow", () => {
     expect(onSelectDate).toHaveBeenCalledWith("2026-10-17");
   });
 
-  it("shows one dot per class, up to 3, with the counts", async () => {
+  it("selects no day without a selection", async () => {
     await render(
       <CalendarWeekRow
         days={DAYS}
         selectedDate={null}
         today="2026-10-15"
-        markedDates={["2026-10-12", "2026-10-13", "2026-10-14"]}
-        markedCounts={{ "2026-10-12": 4, "2026-10-13": 2 }}
+        markedDates={["2026-10-12"]}
         onSelectDate={jest.fn()}
       />,
     );
 
-    expect(screen.queryAllByTestId("calendar-day-2026-10-12-dot")).toHaveLength(3);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-13-dot")).toHaveLength(2);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-14-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-12-dot")).toHaveLength(1);
     DAYS.forEach((day) => expect(screen.getByTestId(`calendar-day-${day}`)).not.toBeSelected());
   });
 });

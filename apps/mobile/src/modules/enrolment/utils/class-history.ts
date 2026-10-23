@@ -6,17 +6,10 @@ import { dayAndMonth, weekdayAbbreviation } from "@/utils/calendar-dates";
 
 import type { ClassHistoryDay } from "../enrolment.types";
 
-/** How many classes start on each America/Fortaleza day, for the calendar's dots. */
-export const countClassesByDay = (items: ClassItem[]): Record<string, number> => {
-  const counts: Record<string, number> = {};
-
-  for (const item of items) {
-    const day = schoolDayOf(item.startsAt);
-    counts[day] = (counts[day] ?? 0) + 1;
-  }
-
-  return counts;
-};
+/** The America/Fortaleza days with one or more classes, each once, for the calendar's dots. */
+export const daysWithClasses = (items: ClassItem[]): string[] => [
+  ...new Set(items.map((item) => schoolDayOf(item.startsAt))),
+];
 
 /** The classes that start on the America/Fortaleza day, or all of them without a day. */
 export const filterClassesByDay = (items: ClassItem[], day: string | null): ClassItem[] =>

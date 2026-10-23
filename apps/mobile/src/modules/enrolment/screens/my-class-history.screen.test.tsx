@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, userEvent, waitFor } from "@testing-library/react-native";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -20,8 +20,8 @@ import { MyClassHistoryScreen } from "./my-class-history.screen";
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
-  // Renders the screen's header title so the tests can see it.
-  Stack: { Screen: ({ options }: any) => options.headerTitle() },
+  // Records any header options the screen would set: the history sets none, so the header has no title.
+  Stack: { Screen: jest.fn(() => null) },
 }));
 
 jest.mock("@/services/api", () => {
@@ -134,25 +134,26 @@ describe("MyClassHistoryScreen", () => {
   it("opens on the current month with no day selected, the legend, and loads that month", async () => {
     await renderLoaded();
 
-    expect(screen.getByText("HISTORY")).toBeOnTheScreen();
+    expect(Stack.Screen).not.toHaveBeenCalled();
+    expect(screen.queryByText("HISTORY")).not.toBeOnTheScreen();
     // In the pill and at the right of the list's title.
     expect(screen.getAllByText("OCTOBER 2026")).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Show the week" })).toBeExpanded();
-    expect(screen.getByText("Days with classes taken")).toBeOnTheScreen();
+    expect(screen.getByText("Days you took a class")).toBeOnTheScreen();
     expect(
       screen.queryAllByTestId(/^calendar-day-\d{4}-\d{2}-\d{2}$/).filter((node) => node.props.accessibilityState?.selected),
     ).toHaveLength(0);
     expect(requestedPaths()).toEqual([OCTOBER]);
   });
 
-  it("shows one dot per class taken that day, up to 3", async () => {
+  it("shows a single dot on each day with one or more classes taken", async () => {
     await renderLoaded();
 
-    expect(screen.queryAllByTestId("calendar-day-2026-10-13-dot")).toHaveLength(2);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-13-dot")).toHaveLength(1);
     expect(screen.queryAllByTestId("calendar-day-2026-10-06-dot")).toHaveLength(1);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-02-dot")).toHaveLength(3);
-    expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(6);
-    expect(screen.getByLabelText("Tuesday, October 13th, 2026, with classes taken")).toBeOnTheScreen();
+    expect(screen.queryAllByTestId("calendar-day-2026-10-02-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(3);
+    expect(screen.getByLabelText("Tuesday, October 13th, 2026, you took a class")).toBeOnTheScreen();
   });
 
   it("lists the classes under a label per day, newest first, below the title and the period", async () => {
@@ -281,7 +282,7 @@ describe("MyClassHistoryScreen", () => {
 
     expect(screen.getByRole("header", { name: "No classes this day" })).toBeOnTheScreen();
     expect(screen.getByText("You didn't take any class this day.")).toBeOnTheScreen();
-    expect(screen.getByText("Days with classes taken")).toBeOnTheScreen();
+    expect(screen.getByText("Days you took a class")).toBeOnTheScreen();
   });
 
   it("says when the period has no classes, under the calendar and the legend", async () => {
@@ -291,7 +292,7 @@ describe("MyClassHistoryScreen", () => {
     expect(await screen.findByRole("header", { name: "No classes in this period" })).toBeOnTheScreen();
     expect(screen.getByText("You didn't take any class in this period.")).toBeOnTheScreen();
     expect(screen.getByTestId("my-history-calendar")).toBeOnTheScreen();
-    expect(screen.getByText("Days with classes taken")).toBeOnTheScreen();
+    expect(screen.getByText("Days you took a class")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Try again" })).not.toBeOnTheScreen();
   });
 
@@ -305,7 +306,7 @@ describe("MyClassHistoryScreen", () => {
     expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
     expect(screen.getAllByTestId("class-card-skeleton")).toHaveLength(3);
     expect(rowKeys()).toEqual([]);
-    expect(screen.getByText("Days with classes taken")).toBeOnTheScreen();
+    expect(screen.getByText("Days you took a class")).toBeOnTheScreen();
 
     await act(async () => answer(ok({ items: [] }) as Response));
 
@@ -323,7 +324,7 @@ describe("MyClassHistoryScreen", () => {
       screen.getByText("We couldn't load your history. Check your connection and try again."),
     ).toBeOnTheScreen();
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(0);
-    expect(screen.getByText("Days with classes taken")).toBeOnTheScreen();
+    expect(screen.getByText("Days you took a class")).toBeOnTheScreen();
 
     fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (answer = resolve)));
     await press("Try again");
@@ -383,11 +384,10 @@ describe("MyClassHistoryScreen", () => {
     await act(() => i18n.changeLanguage("pt-BR"));
     const view = await renderScreen();
 
-    expect(screen.getByText("HISTÓRICO")).toBeOnTheScreen();
     expect(await screen.findByRole("header", { name: "Sem aulas neste período" })).toBeOnTheScreen();
     expect(screen.getByText("Você não fez nenhuma aula neste período.")).toBeOnTheScreen();
     expect(screen.getAllByText("OUTUBRO 2026")).toHaveLength(2);
-    expect(screen.getByText("Dias com aula dada")).toBeOnTheScreen();
+    expect(screen.getByText("Dias em que você fez aula")).toBeOnTheScreen();
     expect(screen.getByRole("header", { name: "Todas as aulas" })).toBeOnTheScreen();
 
     await pressDay("2026-10-14");
@@ -400,9 +400,8 @@ describe("MyClassHistoryScreen", () => {
     await act(() => i18n.changeLanguage("es-ES"));
     await renderScreen();
 
-    expect(screen.getByText("HISTORIAL")).toBeOnTheScreen();
     expect(await screen.findByRole("header", { name: "Sin clases en este período" })).toBeOnTheScreen();
-    expect(screen.getByText("Días con clase hecha")).toBeOnTheScreen();
+    expect(screen.getByText("Días en que hiciste clase")).toBeOnTheScreen();
     expect(screen.getByRole("header", { name: "Todas las clases" })).toBeOnTheScreen();
   });
 

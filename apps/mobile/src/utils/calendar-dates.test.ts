@@ -13,7 +13,6 @@ import {
   getDateLocale,
   isoWeekdayOf,
   isSameMonth,
-  markedDayDots,
   mondayOf,
   monthCaption,
   monthPeriod,
@@ -259,21 +258,6 @@ describe("monthRange", () => {
     expect(monthRange({ year: 2026, month: 10 })).toEqual({ from: "2026-09-28", to: "2026-11-01" });
     expect(monthRange({ year: 2027, month: 2 })).toEqual({ from: "2027-02-01", to: "2027-02-28" });
     expect(monthRange({ year: 2026, month: 8 })).toEqual({ from: "2026-07-27", to: "2026-09-06" });
-  });
-});
-
-describe("markedDayDots", () => {
-  const marked = new Set(["2026-10-05", "2026-10-06", "2026-10-07"]);
-
-  it("gives a marked day its count, up to 3, and one without a count", () => {
-    expect(markedDayDots("2026-10-05", marked, { "2026-10-05": 2 })).toBe(2);
-    expect(markedDayDots("2026-10-05", marked, { "2026-10-05": 9 })).toBe(3);
-    expect(markedDayDots("2026-10-06", marked, {})).toBe(1);
-    expect(markedDayDots("2026-10-07", marked, undefined)).toBe(1);
-  });
-
-  it("gives a day that isn't marked no dot, whatever its count", () => {
-    expect(markedDayDots("2026-10-08", marked, { "2026-10-08": 2 })).toBe(0);
   });
 });
 

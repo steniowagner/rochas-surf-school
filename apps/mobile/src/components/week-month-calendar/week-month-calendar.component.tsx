@@ -23,7 +23,6 @@ export function WeekMonthCalendar({
   selectedDate,
   today,
   markedDates,
-  markedCounts,
   markedLabel,
   onSelectDate,
   onVisibleRangeChange,
@@ -100,7 +99,6 @@ export function WeekMonthCalendar({
           selectedDate={selectedDate}
           today={today}
           markedDates={markedDates}
-          markedCounts={markedCounts}
           markedLabel={markedLabel}
           onSelectDate={selectDate}
         />
@@ -110,7 +108,6 @@ export function WeekMonthCalendar({
           selectedDate={selectedDate}
           today={today}
           markedDates={markedDates}
-          markedCounts={markedCounts}
           markedLabel={markedLabel}
           onSelectDate={selectDate}
         />

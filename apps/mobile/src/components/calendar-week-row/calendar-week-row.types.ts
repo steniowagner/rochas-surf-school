@@ -7,8 +7,6 @@ export type CalendarWeekRowProps = {
   today: string;
   /** The days that get a dot. */
   markedDates: string[];
-  /** How many dots each marked day gets, up to 3; a marked day missing from it gets one. */
-  markedCounts?: Record<string, number>;
   /** Appended to the accessibility label of a marked day. */
   markedLabel?: string;
   onSelectDate: (date: string) => void;
@@ -16,7 +14,7 @@ export type CalendarWeekRowProps = {
 
 export type UseCalendarWeekRowProps = Pick<
   CalendarWeekRowProps,
-  "days" | "selectedDate" | "today" | "markedDates" | "markedCounts" | "markedLabel"
+  "days" | "selectedDate" | "today" | "markedDates" | "markedLabel"
 >;
 
 export type CalendarWeekRowDay = {
@@ -27,7 +25,5 @@ export type CalendarWeekRowDay = {
   selected: boolean;
   today: boolean;
   marked: boolean;
-  /** How many dots the day shows: 0 to 3. */
-  dots: number;
   accessibilityLabel: string;
 };

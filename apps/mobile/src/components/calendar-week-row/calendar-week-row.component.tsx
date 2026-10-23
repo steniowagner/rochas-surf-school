@@ -5,7 +5,7 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { useCalendarWeekRow } from "./calendar-week-row.hook";
 import type { CalendarWeekRowProps } from "./calendar-week-row.types";
 
-/** The seven days of a week in a row: only the selected day has a background, and a day with classes has dots (1 to 3). */
+/** The seven days of a week in a row: only the selected day has a background, and a day with classes has one dot. */
 export function CalendarWeekRow({
   onSelectDate,
   ...props
@@ -44,14 +44,13 @@ export function CalendarWeekRow({
               <Text className={`ds-text-calendar-day ${number}`}>
                 {day.number}
               </Text>
-              <View className="h-1 flex-row gap-0.5">
-                {Array.from({ length: day.dots }, (_, index) => (
+              <View className="h-1">
+                {day.marked ? (
                   <View
-                    key={index}
                     testID={`calendar-day-${day.date}-dot`}
                     className={`h-1 w-1 rounded-full ${day.selected ? "bg-on-color" : "bg-lagoon"}`}
                   />
-                ))}
+                ) : null}
               </View>
             </View>
           </TouchableOpacity>

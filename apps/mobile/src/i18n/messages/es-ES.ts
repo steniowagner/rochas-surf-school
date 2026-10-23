@@ -425,9 +425,8 @@ const messages: Messages = {
     retry: "Reintentar",
   },
   myHistory: {
-    title: "Historial",
-    legend: "Días con clase hecha",
-    hasClasses: "con clase hecha",
+    legend: "Días en que hiciste clase",
+    hasClasses: "hiciste clase",
     allClasses: "Todas las clases",
     clearDay: "Quitar {{date}}",
     loading: "Cargando las clases",

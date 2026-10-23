@@ -5,7 +5,6 @@ import {
   dayAccessibilityLabel,
   getDateLocale,
   isSameMonth,
-  markedDayDots,
   monthOf,
   weekdayInitials,
 } from "@/utils/calendar-dates";
@@ -20,7 +19,6 @@ export const useCalendarMonthGrid = ({
   selectedDate,
   today,
   markedDates,
-  markedCounts,
   markedLabel,
 }: UseCalendarMonthGridProps) => {
   const { i18n } = useTranslation();
@@ -36,7 +34,6 @@ export const useCalendarMonthGrid = ({
         today: date === today,
         adjacent: !isSameMonth(monthOf(date), month),
         marked: marked.has(date),
-        dots: markedDayDots(date, marked, markedCounts),
         accessibilityLabel: dayAccessibilityLabel(
           date,
           locale,

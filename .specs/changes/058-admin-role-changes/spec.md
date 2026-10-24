@@ -508,12 +508,30 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > passed); deviations: by hand on the existing controller — `backend-nest-controller` creates a new controller and
   > its `.http` file, while this adds a route to an existing one.
 
-- [ ] **T-10** — Add `test/people-roles.e2e-spec.ts` (faked pushes and classes clock, cleanup of what it creates)
+- [x] **T-10** — Add `test/people-roles.e2e-spec.ts` (faked pushes and classes clock, cleanup of what it creates)
   with the cases named in ER-01 to ER-07 ("promotes a student to instructor", "promotes to admin", "demotes an
   instructor", "admin to instructor", "refuses…", "last admin", "notifies…"), and the "only admin" cases in
   `test/auth-profile.e2e-spec.ts`.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when: `npm run test:e2e --workspace apps/backend`
   passes.
+  > ✅ 2026-10-24 00:48 — new `apps/backend/test/people-roles.e2e-spec.ts` (fake Expo push that can fail, classes and
+  > enrolment clocks fixed at 2026-10-14 10:00 Fortaleza, everything it creates deleted after each test, plus the
+  > `class.noInstructor` / `enrolment.cancelled` of its classes sent to admins already in the database) with the
+  > describes "promotes a student to instructor", "promotes to admin", "demotes an instructor", "admin to instructor",
+  > "refuses" (every refusal of ER-05 and 401 without a token, each checking that nothing changed, nothing was
+  > released and no `role.changed` exists), "last admin" and "notifies"; the "only admin" describe in
+  > `apps/backend/test/auth-profile.e2e-spec.ts` (only admin → 409, still approved and still teaching; a second admin
+  > → 204 released; a student and an instructor never refused). The shared database's own approved admins (here the
+  > admin review account and three seed admins) are set aside where an exact number of admins matters (role set to
+  > `instructor` by raw SQL, so `updated_at` isn't touched) and put back after every test — checked: the 4 are
+  > approved admins again after the run. The races are deterministic: the test holds the approved admins' rows `FOR
+  > UPDATE` until both requests wait on the lock (`pg_stat_activity`), then lets go; removing the admins' `FOR UPDATE`
+  > from `updateKeepingAnAdmin` makes both race tests fail (checked, then restored); files:
+  > `apps/backend/test/people-roles.e2e-spec.ts`, `apps/backend/test/auth-profile.e2e-spec.ts`; verified: `npm run
+  > test:e2e --workspace apps/backend` (26 files, 704 passed), each ER's `-t` filter selects its cases; deviations:
+  > ER-02's edge "can be assigned to classes like any admin (no extra flag)" isn't driven through a route of its own —
+  > the backend has no assignable-instructor listing, and assignment already accepts any approved admin
+  > (`TEACHER_ROLES`); the test checks the promoted person stays on their class.
 
 ### Mobile (`apps/mobile`)
 

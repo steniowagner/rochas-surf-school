@@ -3,10 +3,11 @@ id: "059"
 slug: teaching-classes-sport-filter
 title: "Sport filter on the instructor's and admin's \"Minhas aulas\""
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-24
 started: 2026-10-24
 base_commit: 9c26c2478e5ae8209924cc58712b9525ba2393d5
+reviewed_commit: 24ed993473d5ce1a82838a31d46e6af1ba93da74
 fronts: [mobile]
 depends_on: []
 ---
@@ -195,3 +196,44 @@ nothing left says so in its own words.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-24 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 817 passed in 43 suites (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK — 5 files measured, 100% statements/branches/functions; the types
+  file has no executable lines; no coverage-ignore comments in the diff
+- e2e: no suite applies to apps/mobile (E2E PASSED) · user journey re-run on the iOS simulator ✅ (iPhone 18 Pro,
+  iOS 27, pt-BR, this branch's Metro, local backend and Postgres), signed in as "Dev Admin" with a temporary skate
+  class added for the journey and removed after it
+
+**Expected Results**
+
+- ER-01 ✅ — the screen test asserts Surf / Skate / All on the Bs, Bk, Nk, Ns, Fk set (grape cards, day headers,
+  "Up next"), the cancelled class kept and never next, the minute tick without a refetch, no request on a switch and
+  "All" on a remount. On the simulator: "Surf" dropped the skate class and the "Amanhã" header, kept the cancelled
+  surf class and the "Próxima" on 17:00; "Skate" left only the skate class under "Amanhã" with "Próxima"; reopening
+  showed every class with "Todas" selected.
+- ER-02 ✅ — tests cover the button for both roles and while loading, failed and empty, the bottom padding
+  24 + 56 + 16, "Nothing here" whatever the sport with no items, and the home row's count unchanged with a shared
+  query. On the simulator the last card scrolls clear of the button, and Início kept "3 aulas atribuídas a você"
+  with "Skate" chosen.
+- ER-03 ✅ — tests cover the filtered empty state for Surf and Skate in pt-BR, es-ES and en-US with no action, "All"
+  bringing the classes back, and the minute tick turning the last surf class into "No surf classes", then "Nothing
+  here", with one request. On the simulator: "Nenhuma aula de skate" / "Você não tem aulas de skate atribuídas."
+  with the calendar icon and only the filter's button.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- D-01–D-04 are honored: the hook filters before `layoutTeachingClasses`, reuses `DisciplineFilter`, its labels and
+  `DISCIPLINE_FILTER_CLEARANCE` as the week screen does, keeps the sport in local state, and the entry row's count
+  doesn't read it.
+- The screen's test file prints "overlapping act()" console errors and Jest force-exits a worker; the tests pass,
+  and the executor noted the act warning already shows on the base commit. Worth cleaning up separately.
+- The untracked `.claude/launch.json` (a backend launch config) is not part of this spec and stays uncommitted.

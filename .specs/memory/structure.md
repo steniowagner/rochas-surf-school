@@ -137,7 +137,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `model/class-flags.ts` (`isWithoutInstructor` and `isWithoutDeadline`: the computed "no instructor" and "no
     cancellation deadline" flags; also used by the app), `model/cancellation-deadline.ts`
     (`CancellationDeadlineDescription`, `computeCancellationDeadline`: the instant from the model's description),
-    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider,my-classes-reader.provider,class-contact-reader.provider,class-reminder-notifier.provider}.ts`
+    `provider/{school-class.repository,teacher-lookup.provider,class-assignment-notifier.provider,class-change-notifier.provider,seat-counter.provider,pending-request-counter.provider,clock.provider,class-view-reader.provider,no-instructor-notifier.provider,cancellation-deadline-describer.provider,class-roster-reader.provider,viewer-enrolment-reader.provider,class-enrolments-closer.provider,class-audience-reader.provider,my-classes-reader.provider,class-contact-reader.provider,class-reminder-notifier.provider,teaching-classes-reader.provider}.ts`
     (`createMany` atomic, `findStartingBetween`, `findById`, `update` atomic and conditional (clearing the deadline
     and, spec 054, the reminder mark when asked; the mark is never written from the entity), `cancel` and `delete` conditional, `findUpcomingTaughtBy`, `removeInstructor` atomic,
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
@@ -153,9 +153,11 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     of one class or of a location's upcoming classes with their counts, spec 047;
     `MyClassesReader.findCurrentClassIds` / `findHistoryClassIds` → a student's class ids, spec 048;
     `findDueForReminder` and the conditional `markReminded` of the repository and
-    `ClassReminderNotifier.classReminder`, spec 054),
-    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history,send-class-reminders}.usecase.ts`
-    (`list-my-classes` also exports `assertIsStudent` and `toMyClassItems`, shared with the history), and
+    `ClassReminderNotifier.classReminder`, spec 054; `TeachingClassesReader.findCurrentClassIds` / `teachesAny` → the
+    classes a person teaches, spec 057),
+    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history,send-class-reminders,list-teaching-classes}.usecase.ts`
+    (`list-my-classes` also exports `assertIsStudent` and `toMyClassItems`, shared with the history;
+    `list-teaching-classes` exports `assertIsTeacher`, spec 057), and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
     the students, the guests — names only for `canSeeGuestNames`, spec 045 — and `myEnrolment`). Fakes of every port and entity
     factories are in `test/mock/`.
@@ -296,7 +298,8 @@ src/
     classes.controller.ts       # POST /classes/batch (201 { count }), GET /classes/time-range-suggestions (200),
                                 # GET /classes?date= (200, one week), GET /classes/mine and GET
                                 # /classes/mine/history?from=&to= (200, students only; spec 048, by period since
-                                # 053), GET /classes/:id (200), in that order, and
+                                # 053), GET /classes/teaching (200 { items, teachesAny }, instructors and admins;
+                                # spec 057), GET /classes/:id (200), in that order, and
                                 # PUT /classes/:id (200 ClassItem), POST /classes/:id/cancel (200 ClassItem),
                                 # DELETE /classes/:id (204) — protected
     cancellation-rules.controller.ts  # GET /cancellation-rules (200), PUT /cancellation-rules/:discipline (200)
@@ -318,6 +321,8 @@ src/
     classes.teaching-releaser.ts  # ClassesTeachingReleaser: auth's TeachingReleaser, running
                                 # ReleaseUpcomingClasses (errors propagate)
     teacher-lookup.prisma.ts    # PrismaTeacherLookup (id, role and status of the given users)
+    teaching-classes-reader.prisma.ts  # PrismaTeachingClassesReader (TeachingClassesReader over class_instructors;
+                                # spec 057)
     class-view-reader.prisma.ts # PrismaClassViewReader (one query per read, with the location and instructors' names)
     class-contact-reader.prisma.ts  # PrismaClassContactReader (spec 049: role, status and WhatsApp number of the
                                 # given users, for GetClass only)
@@ -373,6 +378,7 @@ test/
   auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
   registrations.e2e-spec.ts     # e2e suite of the /registrations routes (accounts through Prisma; concurrency)
   people.e2e-spec.ts            # e2e suite of GET /people (accounts through Prisma, isolated by a per-test name tag)
+  teaching-classes.e2e-spec.ts  # e2e suite of GET /classes/teaching (fixed classes clock; spec 057)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
   school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
   school-settings.e2e-spec.ts   # e2e suite of the /school-settings routes (accounts in each status and role through Prisma)
@@ -446,6 +452,8 @@ src/
                                                      # above the tab bar
     (private)/admin/school-settings.tsx              # "Configurações da escola" (/admin/school-settings, spec 046),
                                                      # above the tab bar
+    (private)/{instructor,admin}/my-classes.tsx      # "Minhas aulas" of the classes they teach (/instructor/my-classes,
+                                                     # /admin/my-classes; TeachingClassesScreen, spec 057), above the tab bar
     (private)/admin/manage-school-rules.tsx          # "Regras da escola" management (/admin/manage-school-rules,
                                                      # spec 056), above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
@@ -474,13 +482,15 @@ src/
                                 # useKeyboardOffset (keyboardVerticalOffset), StackHeaderTitle (a screen's
                                 # headerTitle), test utils; stack-header.layouts.test.tsx tests the four layouts
   modules/instructor/screens/instructor.screen.tsx  # the instructor's Início: "Painel" with the Escola section:
-                                # the Rules row (read-only rules, spec 056) and the People row
+                                # the "Minhas aulas" row (spec 057), the Rules row (read-only rules, spec 056) and
+                                # the People row
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
     screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
                                 # pending count, the "Inscrições em aulas" row and its request count (spec 042),
                                 # the "Criar aulas" row and the "Regras de cancelamento" row,
-                                # "School" with the Rules row (management screen, spec 056), the People row and the
+                                # "School" with the "Minhas aulas" row once they teach (spec 057), the Rules row
+                                # (management screen, spec 056), the People row and the
                                 # "Configurações da escola" row (spec 046)
     screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
                                 # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
@@ -533,6 +543,10 @@ src/
                                 # the admin's tools button with canEdit,
                                 # the tools, cancel and delete sheets, the cancel and delete requests and their
                                 # errors)
+    screens/teaching-classes.screen.tsx  # TeachingClassesScreen + hook, types (spec 057): "Minhas aulas" of an
+                                # instructor or a teaching admin — the classes under way on grape cards, then by day
+                                # with TeachingDayHeaders, the next class highlighted; loading, empty, error + retry,
+                                # pull-to-refresh, refetch on focus
     screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
                                 # changes, single day and time, started mode, states — a cancelled class shows
                                 # only a message —, submit and its errors)
@@ -555,7 +569,9 @@ src/
                                 # (icon tile, title, subtitle; danger tone, disabled), cancel-class-sheet (the cancel confirmation with its optional message),
                                 # delete-class-sheet (the delete confirmation and its "can't delete" variant),
                                 # guests-warning (spec 045: the admin's "N alunos trial …" note on Editar aula and
-                                # the cancel sheet)
+                                # the cancel sheet); spec 057: ongoing-class-card (a class under way on grape),
+                                # teaching-day-header (a day's label and short date), teaching-classes-entry-row (the
+                                # homes' "Minhas aulas" row and its count; class-card's isNext draws "Próxima")
     hooks/                      # use-locations (["locations"]), use-create-location (adds to that cache),
                                 # use-edit-location (PUT /locations/:id; replaces the row, reloads ["classes"]),
                                 # use-archive-location (POST /locations/:id/archive; drops the row),
@@ -571,7 +587,8 @@ src/
                                 # cache and invalidates the weeks),
                                 # use-week-classes (["classes", "week", weekStart], weekClassesOptions),
                                 # use-visible-weeks-classes (useQueries over every week a calendar draws, same key),
-                                # use-class (["classes", "detail", id]), use-now (the clock, every 60 s)
+                                # use-class (["classes", "detail", id]), use-now (the clock, every 60 s),
+                                # use-teaching-classes (GET /classes/teaching, ["classes", "teaching"]; spec 057)
     utils/                      # calendar.ts (Fortaleza today and minutes, pressDay: ranges and their removed
                                 # days, initialRange), week.ts (an instant's Fortaleza day and time, the date line,
                                 # formatDeadline for "Cancelamento até …"),
@@ -582,7 +599,8 @@ src/
                                 # provider per platform, directions URL), session-token.ts (UUID v4 per sheet),
                                 # occupancy.ts (percent, tone, full, free and hidden seats, the students label),
                                 # audience.ts (joinAudience: who will be told, for the cancel sheet and Editar aula's
-                                # footer; spec 047)
+                                # footer; spec 047), teaching-classes.ts (the layout of "Minhas aulas", the count,
+                                # the day header's date and weekday; spec 057)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, the
                                 # admins' "Inscrições em aulas" tool (spec 042), direct enrolment and take-out

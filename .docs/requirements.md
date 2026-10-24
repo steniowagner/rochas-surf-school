@@ -388,6 +388,8 @@ Only students SHALL be able to request or hold seats in classes. Instructors and
 
 #### Admins can teach
 
+_Implemented in spec 057-teaching-classes._
+
 Admins SHALL be able to teach classes, and SHALL see the classes they teach among their own classes, as instructors do.
 
 - _Admin assigned to a class:_ When an admin is assigned to teach a class, then the class appears among that admin's own classes.

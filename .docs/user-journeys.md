@@ -166,6 +166,8 @@ All three tools share the same pattern: a card for each pending request with Den
 
 ## Instructor
 
+_Implemented in spec 057-teaching-classes._
+
 Instructors teach and follow classes, but can't change schedules or rules.
 
 ### Permissions
@@ -180,7 +182,7 @@ Instructors cannot approve or deny registrations or requests, cancel classes, ch
 ### User journeys
 
 - As an instructor, I'd like to see the details of the classes I'll teach, including the students confirmed for each one and any guests, with their names.
-- As an instructor, I'd like my next class to stand out at the top of My classes.
+- As an instructor, I'd like my next class to stand out in My classes, below any class under way.
 - As an instructor, I'd like to see all the classes I've taught. The Past classes screen groups them by day and can be filtered by day, week or month.
 - As an instructor, I'd like a notification 30 minutes before a class I'm teaching starts.
 - As an instructor, I'd like to be notified when:

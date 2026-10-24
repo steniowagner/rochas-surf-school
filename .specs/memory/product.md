@@ -223,6 +223,11 @@ Listed in the order people meet them.
     `approved`: a seat held when the class ended. Only approved students have either list. Since spec 053 the
     history is read one period at a time (a day, a week or a month): a class belongs to the America/Fortaleza day
     its start falls on.
+  - As built (spec 057): the classes a person **teaches** are the classes where they are one of the instructors. An
+    admin **teaches** when they are an instructor of at least one class, in any state (not started, under way, ended
+    or cancelled); nothing is stored on the account, and a deleted class doesn't count. An instructor's or a teaching
+    admin's "Minhas aulas" lists the classes they teach that haven't ended, cancelled ones included; the **next**
+    class is the earliest one that hasn't started and isn't cancelled.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
   photo, or initials while there is no photo) and its guests ("Trial", or the name for admins and the class's
@@ -1044,6 +1049,22 @@ like everyone else, at their next launch, sign-in or session renewal. Perfil and
 read-only rules. Instructors get the same "Regras" row on their Início ("N regras para todos os alunos"), which opens
 the read-only rules. All copy is in pt-BR, es-ES and en-US.
 
+**"Minhas aulas" for instructors and admins who teach** (spec `057-teaching-classes`) — the first row under "Escola"
+on the instructor's and the admin's Início is "Minhas aulas", above "Regras", with the subtitle "N aulas atribuídas
+a você" ("1 aula atribuída a você", "Nenhuma aula atribuída" at zero; no subtitle while loading or after a failed
+first load) counting the classes they teach that haven't ended and aren't cancelled. Instructors always see the row;
+an admin sees it only once they teach a class (never while it loads or after an error), and it appears when they come
+back to the home after being assigned one. The row opens "Minhas aulas", an inner screen above the tab bar with its
+title centered and nothing on the right: the classes under way first, each on a grape card with "Em andamento", then
+the other classes grouped by day, each day headed "Hoje", "Amanhã" or the weekday ("Quarta", "Sábado" — without
+"-feira") with its short date ("17 set"). The next class has the "Próxima" chip and a sun border; cancelled classes
+stay in their day with "Cancelada" and are never the next one nor under way. The list moves on every minute without
+reloading (a class that ends disappears, one that starts moves to the top), reloads when the screen or the home
+shows again and on pull-to-refresh, and has a loading state, an empty state "Nada por aqui" ("Você ainda não tem aulas
+atribuídas.") and an error state with "Tentar novamente". A card opens the class's details. Every stack screen's
+header title now uses the smaller type style of a title next to the back button. All copy is in pt-BR, es-ES and
+en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1093,12 +1114,12 @@ Active specs: none.
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
   only).
 - After creating classes (spec 028): the instructors' "Surf" / "Skate" subtitles and photos in the picker; a real
-  count on the "Criar aulas" row; and "My classes" for admins who teach.
+  count on the "Criar aulas" row.
 - On class locations (spec 037): restoring an archived location, listing archived locations, and a locations screen outside
   the class form; filling the address from a tapped point, "near me" from the phone's own location, and an
   interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
-- On the week view and class details (spec 030): "My classes" for instructors and admins who teach, with the next
-  class highlighted, and a marker on the cards of one's own classes; "Depois da aula" (photos and ratings).
+- On the week view and class details (spec 030): a marker on the cards of one's own classes; "Depois da aula"
+  (photos and ratings).
 - On the sport filter (spec 050): keeping the chosen sport across app launches, a mark on the closed button
   showing a filter is on, and filtering other lists ("Minhas aulas", the class history, the people directory) by
   sport.
@@ -1124,6 +1145,11 @@ Active specs: none.
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
 - On "Minhas aulas" (spec 048): keeping the chosen chip after a class or the history opened above the tab.
+- On the instructor's and admin's "Minhas aulas" (spec 057): the past classes they taught ("Aulas anteriores") and the
+  header's clock button that opens them; the "Atualizada" chip of a recently edited class; a stored "also an
+  instructor" option on admin accounts; filtering the list by sport, level or status, searching it and paging it; the
+  admin's week-by-week layout; and the rest of the dashboards (greeting, metrics, "Avaliações das aulas", "Ocupação
+  semanal").
 - On the class history's calendar (spec 053): a "Hoje" button, keeping the chosen period or day after leaving the
   screen, filtering the history by sport, level or status and searching it, and swiping between weeks or months.
 - On class reminders (spec 054): choosing the lead time or turning reminders off per person or per type (only the

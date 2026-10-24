@@ -2,13 +2,14 @@
 id: "057"
 slug: teaching-classes
 title: "\"Minhas aulas\" for instructors and admins who teach"
-status: accepted
+status: finished
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 30d2bccaa1cca3534931006e3117df3fefcda72e
 reviewed_commit: 9fd29a94880a2daef9fe63d45db5064c017ad1fd
 fronts: [classes, backend, mobile]
 depends_on: []
+finished: 2026-10-23
 ---
 
 # 057 — "Minhas aulas" for instructors and admins who teach

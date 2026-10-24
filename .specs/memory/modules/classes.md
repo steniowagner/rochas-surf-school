@@ -117,6 +117,10 @@ The classes themselves, and how a batch becomes classes.
   reason — the admin's denial reason, else none) of the
   person reading the class, by when it was requested and then id, or none; read for many classes at once, from
   Enrolment, for every role (instructors and admins never have one).
+- **Classes a person teaches** (not stored, spec 057): the classes where the person is one of the instructors. A
+  person **teaches** when they are an instructor of at least one class, in any state — not started, under way,
+  ended or cancelled; a deleted class leaves nothing. Their current classes are those that haven't ended, cancelled
+  ones included, by start then id, each read as a card with the guests' names and no enrolment.
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
 - **Class view** (not stored): a class as people read it — its fields, its location's name, address and point
   (none when the location has none; an archived location reads the same), its instructors' ids and names, its
@@ -335,6 +339,9 @@ The account's status is checked before its role (`user.status.notApproved`, then
   (cancelled ones included), each with their latest enrolment, and, one period at a time (up to 42 days, spec 053),
   the classes they took — ended, not cancelled, with their latest enrolment approved, starting on an America/Fortaleza
   day of the period. Other roles are refused (`enrolment.role.notStudent`).
+- **An approved instructor or admin** — lists the classes they teach that haven't ended (cancelled ones included)
+  and learns whether they teach any class at all; students are refused (`user.role.notTeacher`, 403, after the
+  status check).
 - **A student with a seat or a pending request** — receives one notification when the class is edited (a class
   field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
   tell them; with an approved seat, one reminder 30 minutes before each start of the class.
@@ -407,8 +414,10 @@ are the "Cancelar inscrição" button and its sheet and the deadline notes with 
 mode opens a location to edit it; the location sheet searches addresses as the admin types, places the point on a
 small map, offers to tell the instructors when upcoming classes use it, and removes it after a confirmation; a
 class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
-has a point shows everyone a small map across the top of the "Onde e como" card, with "Direções" beside the place. "My classes" for instructors and admins, ratings and photos come with
-their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
+has a point shows everyone a small map across the top of the "Onde e como" card, with "Direções" beside the place. Instructors, and admins who teach, open "Minhas aulas" from
+the first "Escola" row of their home (an admin's row shows only once they teach a class): the classes under way on
+grape cards, then the others by day ("Hoje", "Amanhã", the weekday) with the next class marked "Próxima" and
+cancelled ones in their day (spec 057); their past classes, ratings and photos come with their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
 ## Spec history
@@ -515,3 +524,9 @@ which stops that account from being erased while the link exists — a decision 
   each once, get `class.reminder` (the class, discipline, start and location name) through a new contract answered
   by Notifications; a minute check marks the class with a conditional write, so each start is reminded once, never
   for a cancelled or started class; an edit that moves the start clears the mark in the same write.
+- `057-teaching-classes` — the classes a person teaches: `GET /classes/teaching` gives an approved instructor or
+  admin the classes they teach that haven't ended (cancelled ones included, by start) and whether they teach any
+  class in any state (an admin "teaches" by assignment, nothing stored); students are refused with
+  `user.role.notTeacher`. In the app, "Minhas aulas" is the first Escola row of both homes (the admin's only once
+  they teach) and opens a screen with the classes under way on grape cards, then the rest by day, the next class
+  highlighted.

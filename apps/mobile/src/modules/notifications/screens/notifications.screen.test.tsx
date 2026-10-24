@@ -41,7 +41,7 @@ jest.mock("@/providers/session", () => ({
 }));
 
 jest.mock("expo-router", () => ({
-  router: { push: jest.fn() },
+  router: { push: jest.fn(), replace: jest.fn() },
   // Renders the header's title and right button so the tests can see and press them.
   Stack: {
     Screen: ({ options }: any) => (
@@ -100,6 +100,7 @@ beforeEach(() => {
   mockSignedIn = true;
   mockShow.mockReset();
   jest.mocked(router.push).mockReset();
+  jest.mocked(router.replace).mockReset();
 });
 
 describe("NotificationsScreen", () => {
@@ -294,7 +295,23 @@ describe("NotificationsScreen", () => {
 
       await waitFor(() => expect(posts()).toEqual(["/notifications/n-1/read"]));
       expect(router.push).not.toHaveBeenCalled();
+      expect(router.replace).not.toHaveBeenCalled();
       expect(screen.getByText("Row")).toBeOnTheScreen();
+    });
+
+    it("opens the home of the account's flow for a role.changed row", async () => {
+      const user = userEvent.setup();
+      serve({
+        count: 1,
+        list: () => page([buildNotification(1, { type: "role.changed", classId: null, title: "Your role changed" })]),
+      });
+      await renderScreen();
+      await screen.findByText("Your role changed");
+
+      await user.press(screen.getByRole("button", { name: /Your role changed/ }));
+
+      expect(router.replace).toHaveBeenCalledWith(routes.home);
+      expect(router.push).not.toHaveBeenCalled();
     });
 
     it("opens nothing for a session already gone (signing out)", async () => {

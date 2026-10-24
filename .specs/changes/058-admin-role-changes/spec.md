@@ -603,10 +603,32 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > compressed and couldn't be read here, so the rows reuse the sheet's existing row layout (icon, title, subtitle,
   > chevron) with Feather icons picked for each action — the journey in T-15 is where the look gets checked.
 
-- [ ] **T-13** — Handle `role.changed`: `refreshAccount` and invalidate `["people"]` on receipt in
+- [x] **T-13** — Handle `role.changed`: `refreshAccount` and invalidate `["people"]` on receipt in
   `use-notification-received.hook.ts`; the icon in `notification-icon.ts`; a `notificationTarget` test proving it
   opens the flow's home; with tests (new `notification-icon.test.ts`). (D-13)
   Covers: ER-11 · Done when: `npx jest src/modules/notifications` passes from `apps/mobile`.
+  > ✅ 2026-10-24 01:07 — a received `role.changed` push invalidates `["people"]` and, with a session, reloads the
+  > account (`refreshAccount`) like `registration.*`, so the guards move the app; its row icon is
+  > `shield-checkmark-outline` on the info tone; `notificationTarget` keeps answering `null` for it (now in the target
+  > table, 19 types, with a test across every flow), so a tapped push goes to `routes.home`, which redirects to the
+  > reloaded account's flow. Missing step done here: a tapped row with a `null` target did nothing, so the
+  > notifications screen hook replaces to `routes.home` for a `role.changed` row (ER-11: "its row … opens the home of
+  > the flow"). Tests: the received hook (a student moved to the instructor flow — stub student and instructor route
+  > groups added to its route tree —, `["people"]` invalidated, a failed reload leaving the student flow,
+  > `role.changed` in the list/badge reload table), the tapped push (student → instructor home), the tapped row
+  > (`router.replace(routes.home)`, with `router.replace` mocked and reset), new `notification-icon.test.ts`
+  > (role.changed, a known type, unknown types); files:
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/utils/notification-icon.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notification-icon.test.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notification-target.test.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified: `npx jest
+  > src/modules/notifications` (14 suites, 320 passed; `-t "role.changed"` selects the new cases), then the screen
+  > suite again after the mock reset (21 passed); deviations: the row's `role.changed` branch in
+  > `notifications.screen.hook.ts` (above), which the task didn't name.
 
 - [ ] **T-14** — Add the only-admin state to `src/modules/profile/components/delete-account-sheet/` (D-14): the admins
   count query for an admin viewer, the 409 `user.role.lastAdmin` from `useDeleteAccount`, "Ainda não dá" with "Ir para

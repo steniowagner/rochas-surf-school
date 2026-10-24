@@ -16,7 +16,8 @@ import { refreshAccount } from "../utils/refresh-account";
  * A push that arrives with the app open (shown as a banner by the push service) also updates what is on screen
  * (spec 020, D-16): a decision refreshes the account, so the flow guards move the app on by themselves, and a
  * new registration refreshes the admin's list, and a class assignment reloads the cached weeks, and an edited, unassigned, cancelled, deleted or instructor-less class reloads every cached class, and a changed location reloads the classes and the locations, and a new seat request (also the admins' pending list), an expired, approved, denied, direct-enrolled or taken-out one reloads every cached class, and a cancelled seat reloads them and the admins' pending list (its waiting count); every push also reloads the notifications
- * list and the unread count (spec 055). No navigation.
+ * list and the unread count (spec 055); a role change refreshes the account, so the guards move the app to the new
+ * role's flow, and reloads the people (spec 058, D-13). No navigation.
  */
 export const useNotificationReceived = () => {
   const queryClient = useQueryClient();
@@ -81,9 +82,14 @@ export const useNotificationReceived = () => {
           return;
         }
 
+        if (type === "role.changed") {
+          void queryClient.invalidateQueries({ queryKey: ["people"] });
+        }
+
         if (
           (type === "registration.approved" ||
-            type === "registration.denied") &&
+            type === "registration.denied" ||
+            type === "role.changed") &&
           getSession()
         ) {
           // Only an expired session makes it throw: useSessionExpired owns that case.

@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
+import { Stack } from "expo-router";
 import { act, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import { ReactNode } from "react";
+import { Text } from "react-native";
 
 import OffboardingLayout from "@/app/(offboarding)/offboarding/_layout";
 import DeniedRoute from "@/app/(offboarding)/offboarding/denied";
@@ -56,6 +58,11 @@ const routeTree = {
   "(onboarding)/onboarding/index": OnboardingRoute,
   "(offboarding)/offboarding/_layout": OffboardingLayout,
   "(offboarding)/offboarding/denied": DeniedRoute,
+  // Stand-ins for the role flows: only the guards that pick them are under test.
+  "(private)/student/_layout": () => <Stack />,
+  "(private)/student/index": () => <Text>Student home</Text>,
+  "(private)/instructor/_layout": () => <Stack />,
+  "(private)/instructor/index": () => <Text>Instructor home</Text>,
 };
 
 const account = (status: string, role = "student"): SessionUser => ({
@@ -289,6 +296,7 @@ describe("useNotificationReceived", () => {
     "enrolment.cancelled",
     "enrolment.enrolled",
     "enrolment.takenOut",
+    "role.changed",
   ])("reloads the notifications list and the unread count when a %s push arrives", async (type) => {
     answerMe(account("pending"));
     await openApp(account("pending"));
@@ -343,5 +351,38 @@ describe("useNotificationReceived", () => {
     await act(async () => screen.unmount());
 
     expect(subscriptions.every((item) => item.remove.mock.calls.length > 0)).toBe(true);
+  });
+
+  describe("role.changed", () => {
+    const onboarded = (role: string): SessionUser => ({
+      ...account("approved", role),
+      whatsappNumber: "+5585999998888",
+      rulesAccepted: true,
+    });
+
+    it("reloads the account and moves a student whose role changed to the instructor flow", async () => {
+      answerMe(onboarded("instructor"));
+      await openApp(onboarded("student"));
+      expect(app.getPathname()).toBe(routes.student.home);
+
+      await receive(push("role.changed"));
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
+      expect(screen.getByText("Instructor home")).toBeOnTheScreen();
+      expect(getSession()?.user.role).toBe("instructor");
+      expect(meCalls()).toHaveLength(1);
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["people"] });
+    });
+
+    it("leaves the screen as it was when the reload fails", async () => {
+      answerMe(new Error("offline"));
+      await openApp(onboarded("student"));
+
+      await receive(push("role.changed"));
+
+      await waitFor(() => expect(meCalls()).toHaveLength(1));
+      expect(app.getPathname()).toBe(routes.student.home);
+      expect(getSession()?.user.role).toBe("student");
+    });
   });
 });

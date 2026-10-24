@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { routes } from "@/constants/routes";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
 import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
 import { useAlertMessage } from "@/providers/alert-message";
@@ -52,6 +53,13 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
 
     if (target !== null) {
       router.push(target);
+
+      return;
+    }
+
+    // A new role starts at its flow's home: `index` redirects to the flow of the account (spec 058, D-13).
+    if (notification.type === "role.changed") {
+      router.replace(routes.home);
     }
   };
 

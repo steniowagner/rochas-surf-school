@@ -62,6 +62,8 @@ const WITH_CLASS: Record<string, Record<(typeof ROLES)[number], unknown>> = {
   },
   "enrolment.enrolled": { student: routes.student.classDetail("C"), instructor: null, admin: null },
   "enrolment.takenOut": { student: routes.student.classDetail("C"), instructor: null, admin: null },
+  // Leads to no screen of its own: the push and the row open the home of the flow the account now resolves to.
+  "role.changed": { student: null, instructor: null, admin: null },
 };
 
 /** The same without a class id: only the destinations that name no class remain. */
@@ -82,8 +84,14 @@ const cases = Object.entries(WITH_CLASS).flatMap(([type, byRole]) =>
 );
 
 describe("notificationTarget", () => {
-  it("covers the 18 notification types", () => {
-    expect(Object.keys(WITH_CLASS)).toHaveLength(18);
+  it("covers the 19 notification types", () => {
+    expect(Object.keys(WITH_CLASS)).toHaveLength(19);
+  });
+
+  it("leads a role.changed nowhere in any flow, so its tap opens the flow's home", () => {
+    for (const flow of [...ROLES, ...OTHER_FLOWS]) {
+      expect(notificationTarget("role.changed", null, flow)).toBeNull();
+    }
   });
 
   it.each(cases)("leads a %s for a %s with a class where its push leads", (type, flow, target) => {

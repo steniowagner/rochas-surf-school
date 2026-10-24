@@ -28,6 +28,7 @@ const ICONS: Record<string, NotificationIcon> = {
   "enrolment.cancelled": { name: "person-remove-outline", tone: "warn" },
   "enrolment.enrolled": { name: "person-add-outline", tone: "ok" },
   "enrolment.takenOut": { name: "person-remove-outline", tone: "bad" },
+  "role.changed": { name: "shield-checkmark-outline", tone: "info" },
 };
 
 const FALLBACK: NotificationIcon = { name: "notifications-outline", tone: "info" };

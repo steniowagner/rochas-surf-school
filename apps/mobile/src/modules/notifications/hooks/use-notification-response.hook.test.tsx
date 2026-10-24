@@ -456,6 +456,15 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
   });
 
+  it("opens the home of the new flow when a role.changed push is tapped, after refreshing the account", async () => {
+    answerMe(account("approved", "instructor", true));
+    await openApp(account("approved", "student", true));
+
+    await tap(response("role.changed"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
+  });
+
   it("goes home when a class.noInstructor push has no class id", async () => {
     answerMe(account("approved", "admin", true));
     await openApp(account("approved", "admin", true));

@@ -557,10 +557,10 @@ header's clock button.
   > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`; verified:
   > `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/utils/teaching-classes.test.ts --coverage`
   > (2 suites, 24 passed; the hook and the utils 100%), the new screen test failing against the old hook (1 failed),
-  > `npx tsc --noEmit` and `npx eslint src/modules/classes/utils src/modules/classes/screens` (no errors). Not confirmed on
-  > the simulator: the Metro already running (started before this session, `expo start --clear`) kept serving the app
-  > its old bundle after two relaunches, though a fresh request to it for the route returned the new `formatDayName`
-  > code; the screen still read "QUARTA-FEIRA". Restart Metro with `--clear` before checking it on a device. Deviations: none.
+  > `npx tsc --noEmit` and `npx eslint src/modules/classes/utils src/modules/classes/screens` (no errors), and on the iOS
+  > simulator (iPhone 18 Pro, pt-BR, dark theme, Dev Admin, Metro restarted with `--clear` since the one already running
+  > served a stale bundle) "Minhas aulas" shows the cancelled class of 12 Mar 2031 under "QUARTA" / "12 mar", where the
+  > reviewer saw "QUARTA-FEIRA". Deviations: none.
 
 **Notes**
 

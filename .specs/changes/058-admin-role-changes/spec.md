@@ -630,13 +630,35 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > suite again after the mock reset (21 passed); deviations: the row's `role.changed` branch in
   > `notifications.screen.hook.ts` (above), which the task didn't name.
 
-- [ ] **T-14** — Add the only-admin state to `src/modules/profile/components/delete-account-sheet/` (D-14): the admins
+- [x] **T-14** — Add the only-admin state to `src/modules/profile/components/delete-account-sheet/` (D-14): the admins
   count query for an admin viewer, the 409 `user.role.lastAdmin` from `useDeleteAccount`, "Ainda não dá" with "Ir para
   Pessoas", and the `deleteAccountSheet.onlyAdmin.*` keys in the three locales; with a new
   `delete-account-sheet.component.test.tsx`. Skills:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-12 · Done when: `npx jest src/modules/profile` passes from `apps/mobile`.
+  > ✅ 2026-10-24 01:10 — the delete-account sheet reads the admins count (`useAdminsCount`: `GET
+  > /people?role=admin&perPage=1`, key `["people", "admins", "count"]`, no retry, enabled only while the sheet is open
+  > and the viewer is an admin) and shows "Ainda não dá" with its description, "Ir para Pessoas" (closes the sheet and
+  > pushes `routes.admin.people`) and "Cancelar" when the total is 1 or when `DELETE /auth/me` answers 409
+  > `user.role.lastAdmin` (`isLastAdminError`; `useDeleteAccount` shows no toast for it and doesn't sign out); while
+  > the count loads or after it fails the normal confirmation shows; closing resets the refusal; the state is gated on
+  > the viewer being an admin, so a cached count never shows it to someone else; `deleteAccountSheet.onlyAdmin.*` in
+  > pt-BR, es-ES and en-US; new `delete-account-sheet.component.test.tsx` (only admin + Go to People, two admins, a
+  > student and an instructor without a count request, loading, a failed count without retry, the 409 switching while
+  > staying signed in and without a toast, then Cancel; a normal deletion), plus `last-admin-error.test.ts` and a
+  > `use-delete-account.hook.test.tsx` case; files:
+  > `apps/mobile/src/modules/profile/components/delete-account-sheet/delete-account-sheet.component.tsx`,
+  > `apps/mobile/src/modules/profile/components/delete-account-sheet/delete-account-sheet.hook.ts`,
+  > `apps/mobile/src/modules/profile/components/delete-account-sheet/delete-account-sheet.types.ts`,
+  > `apps/mobile/src/modules/profile/components/delete-account-sheet/delete-account-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/profile/hooks/use-admins-count.hook.ts`,
+  > `apps/mobile/src/modules/profile/hooks/use-delete-account.hook.ts`,
+  > `apps/mobile/src/modules/profile/hooks/use-delete-account.hook.test.tsx`,
+  > `apps/mobile/src/modules/profile/utils/last-admin-error.ts`,
+  > `apps/mobile/src/modules/profile/utils/last-admin-error.test.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`; verified: `npx jest
+  > src/modules/profile` (9 suites, 77 passed), `npx tsc --noEmit` exits 0; deviations: none
 
 ### Verification
 

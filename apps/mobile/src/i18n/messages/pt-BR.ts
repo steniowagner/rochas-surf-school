@@ -842,6 +842,11 @@ const messages: Messages = {
     description: "Sua conta é encerrada agora e suas vagas e pedidos futuros são cancelados. Você pode pedir a reativação em até 30 dias.",
     confirm: "Remover a conta",
     cancel: "Cancelar",
+    onlyAdmin: {
+      title: "Ainda não dá",
+      description: "Você é o único admin da escola. Promova outra pessoa a admin antes de remover sua conta.",
+      goToPeople: "Ir para Pessoas",
+    },
   },
   newClass: {
     title: "Nova aula",

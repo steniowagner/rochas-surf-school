@@ -842,6 +842,11 @@ const messages = {
     description: "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",
     confirm: "Remove account",
     cancel: "Cancel",
+    onlyAdmin: {
+      title: "Not yet",
+      description: "You're the school's only admin. Make someone else an admin before removing your account.",
+      goToPeople: "Go to People",
+    },
   },
   newClass: {
     title: "New class",

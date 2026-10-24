@@ -849,6 +849,11 @@ const messages: Messages = {
     description: "Tu cuenta se cierra ahora y se cancelan tus plazas y solicitudes futuras. Puedes pedir la reactivación en un plazo de 30 días.",
     confirm: "Eliminar cuenta",
     cancel: "Cancelar",
+    onlyAdmin: {
+      title: "Todavía no",
+      description: "Eres el único admin de la escuela. Haz admin a otra persona antes de eliminar tu cuenta.",
+      goToPeople: "Ir a Personas",
+    },
   },
   newClass: {
     title: "Nueva clase",

@@ -1099,6 +1099,16 @@ const messages: Messages = {
       title: "Nada por aquí",
       description: "Aún no tienes clases asignadas.",
     },
+    emptyFiltered: {
+      surf: {
+        title: "Ninguna clase de surf",
+        description: "No tienes clases de surf asignadas.",
+      },
+      skate: {
+        title: "Ninguna clase de skate",
+        description: "No tienes clases de skate asignadas.",
+      },
+    },
     loadError: {
       title: "Algo salió mal",
       description:

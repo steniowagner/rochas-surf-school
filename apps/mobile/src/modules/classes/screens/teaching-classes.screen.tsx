@@ -61,6 +61,18 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
       return null;
     }
 
+    if (screen.emptyDiscipline) {
+      return (
+        <View className="flex-row pt-4">
+          <EmptyState
+            icon="calendar-outline"
+            title={t(`teachingClasses.emptyFiltered.${screen.emptyDiscipline}.title`)}
+            description={t(`teachingClasses.emptyFiltered.${screen.emptyDiscipline}.description`)}
+          />
+        </View>
+      );
+    }
+
     return (
       <View className="flex-row pt-4">
         <EmptyState

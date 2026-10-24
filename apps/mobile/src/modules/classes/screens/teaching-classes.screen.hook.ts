@@ -50,10 +50,9 @@ export const useTeachingClassesScreen = ({
   };
 
   const locale = getDateLocale(i18n.language);
+  const allItems = query.data?.items ?? NO_ITEMS;
   // Filtered before the layout, so the classes under way, the days and the next class are all of the chosen sport.
-  const items = (query.data?.items ?? NO_ITEMS).filter(
-    (item) => discipline === "all" || item.discipline === discipline,
-  );
+  const items = allItems.filter((item) => discipline === "all" || item.discipline === discipline);
   const layout = layoutTeachingClasses(items, now);
   const rows: TeachingClassesRow[] = [
     ...layout.ongoing.map((item): TeachingClassesRow => ({ type: "ongoing", key: `ongoing-${item.id}`, item })),
@@ -77,11 +76,20 @@ export const useTeachingClassesScreen = ({
   // screen with the spinner in its button, instead of the loading state.
   const isRetrying = query.isPending && query.errorUpdateCount > 0;
 
+  const isEmpty = query.data !== undefined && rows.length === 0;
+  // Empty only because of the filter, while classes of the other sport are still to come: "no classes assigned yet"
+  // would be false.
+  const emptyDiscipline =
+    isEmpty && discipline !== "all" && allItems.some((item) => new Date(item.endsAt).getTime() > now.getTime())
+      ? discipline
+      : null;
+
   return {
     now,
     rows,
     discipline,
-    isEmpty: query.data !== undefined && rows.length === 0,
+    isEmpty,
+    emptyDiscipline,
     isLoading: query.isPending && !isRetrying,
     // An expired session is handled by the session flow; a failed refetch keeps the list it had.
     isError:

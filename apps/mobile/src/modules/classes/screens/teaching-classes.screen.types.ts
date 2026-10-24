@@ -1,3 +1,5 @@
+import type { ClassDiscipline } from "@rochas-surf-school/classes";
+
 import type { ClassItem, DisciplineFilterValue } from "../classes.types";
 
 export type TeachingClassesScreenProps = {
@@ -20,6 +22,8 @@ export type UseTeachingClassesScreenResult = {
   discipline: DisciplineFilterValue;
   /** Loaded, with no class left to show (never after an expired session). */
   isEmpty: boolean;
+  /** Empty only because of the filter: the chosen sport has no class left, the other one has. */
+  emptyDiscipline: ClassDiscipline | null;
   isLoading: boolean;
   isError: boolean;
   /** "Try again" is loading the classes: the error stays, with the spinner in its button. */

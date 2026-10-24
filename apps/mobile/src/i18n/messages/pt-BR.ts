@@ -1092,6 +1092,16 @@ const messages: Messages = {
       title: "Nada por aqui",
       description: "Você ainda não tem aulas atribuídas.",
     },
+    emptyFiltered: {
+      surf: {
+        title: "Nenhuma aula de surf",
+        description: "Você não tem aulas de surf atribuídas.",
+      },
+      skate: {
+        title: "Nenhuma aula de skate",
+        description: "Você não tem aulas de skate atribuídas.",
+      },
+    },
     loadError: {
       title: "Algo deu errado",
       description:

@@ -516,6 +516,73 @@ describe("TeachingClassesScreen sport filter", () => {
     },
   );
 
+  it.each([
+    ["pt-BR", "Surf", [NK, FK], "Nenhuma aula de surf", "Você não tem aulas de surf atribuídas."],
+    ["pt-BR", "Skate", [BS, NS], "Nenhuma aula de skate", "Você não tem aulas de skate atribuídas."],
+    ["es-ES", "Surf", [NK, FK], "Ninguna clase de surf", "No tienes clases de surf asignadas."],
+    ["es-ES", "Skate", [BS, NS], "Ninguna clase de skate", "No tienes clases de skate asignadas."],
+    ["en-US", "Surf", [NK, FK], "No surf classes", "You don't have any surf classes assigned."],
+    ["en-US", "Skate", [BS, NS], "No skate classes", "You don't have any skate classes assigned."],
+  ] as const)(
+    "says when no class of the chosen sport is assigned (%s, %s)",
+    async (language, label, items, title, description) => {
+      const user = userEvent.setup();
+      await act(() => i18n.changeLanguage(language));
+      // The filter's labels in the language: "Surf" and "Skate" are the same in all three.
+      const filterName = { "pt-BR": "Filtrar por modalidade", "es-ES": "Filtrar por modalidad", "en-US": "Filter by sport" };
+      await renderScreen("instructor", [...items]);
+      await waitFor(() => expect(cards()).toHaveLength(2));
+
+      await user.press(screen.getByRole("button", { name: filterName[language] }));
+      await user.press(screen.getByRole("button", { name: label }));
+
+      expect(screen.queryAllByRole("button", { name: /^(Surf|Skate), / })).toEqual([]);
+      expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
+      expect(screen.getByText(description)).toBeOnTheScreen();
+      // No action: the filter's is the only button.
+      expect(screen.getAllByRole("button").map((button) => button.props.accessibilityLabel)).toEqual([
+        filterName[language],
+      ]);
+    },
+  );
+
+  it("brings the classes back on All", async () => {
+    const user = userEvent.setup();
+    await renderScreen("instructor", [NK, FK]);
+    await waitFor(() => expect(cards()).toHaveLength(2));
+    await choose(user, "Surf");
+    expect(screen.getByRole("header", { name: "No surf classes" })).toBeOnTheScreen();
+
+    await choose(user, "All");
+
+    expect(cards()).toEqual(["Skate, 09:00 – 10:00", "Skate, 09:00 – 10:00"]);
+    expect(screen.queryByRole("header", { name: "No surf classes" })).not.toBeOnTheScreen();
+  });
+
+  it("shows the filtered empty state when the sport's last class ends at the minute tick, without a refetch", async () => {
+    const user = userEvent.setup();
+    // The only surf class is under way until 09:00; the skate one is today at 09:00–10:00.
+    const { rerenderScreen } = await renderScreen("instructor", [BS, NK]);
+    await waitFor(() => expect(cards()).toHaveLength(2));
+    await choose(user, "Surf");
+    expect(cards()).toEqual(["Surf, 07:30 – 09:00"]);
+
+    mockNow = new Date("2026-09-17T12:00:00.000Z");
+    await rerenderScreen();
+
+    expect(screen.queryAllByRole("button", { name: /^(Surf|Skate), / })).toEqual([]);
+    expect(screen.getByRole("header", { name: "No surf classes" })).toBeOnTheScreen();
+    expect(screen.getByText("You don't have any surf classes assigned.")).toBeOnTheScreen();
+
+    // 10:00: no class left of any sport, so nothing is assigned.
+    mockNow = new Date("2026-09-17T13:00:00.000Z");
+    await rerenderScreen();
+
+    expect(screen.getByRole("header", { name: "Nothing here" })).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "No surf classes" })).not.toBeOnTheScreen();
+    expect(requestedPaths()).toEqual(["/classes/teaching"]);
+  });
+
   it("keeps the home row's count whatever the sport chosen", async () => {
     const user = userEvent.setup();
     fetchMock.mockResolvedValue(ok({ items: MIXED, teachesAny: true }));

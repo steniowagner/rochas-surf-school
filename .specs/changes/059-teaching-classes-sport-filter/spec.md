@@ -125,7 +125,7 @@ nothing left says so in its own words.
   > (2 suites, 39 passed), `npx tsc --noEmit` and `npx eslint` on the screen's files clean; deviations: none
   > (`teaching-classes-entry-row.component.test.tsx` unchanged; the "not wrapped in act" console warning of the
   > screen's test file already shows on the base commit).
-- [ ] **T-02** — Add the filtered empty state (D-03): the hook tells it apart from the empty list, the screen
+- [x] **T-02** — Add the filtered empty state (D-03): the hook tells it apart from the empty list, the screen
   renders it in `ListEmptyComponent`, and the copy goes under `teachingClasses.emptyFiltered` in
   `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, with tests in `teaching-classes.screen.test.tsx` for every case of ER-03
   in the three languages. Skills:
@@ -133,6 +133,21 @@ nothing left says so in its own words.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03 · Done when: `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/i18n` passes
   from `apps/mobile`.
+  > ✅ 2026-10-24 — the hook returns `emptyDiscipline` (the chosen sport when the filtered list is empty while a class
+  > of any sport hasn't ended at `useNow()`, else `null`), and `ListEmptyComponent` renders `EmptyState`
+  > (`calendar-outline`, no action) with `teachingClasses.emptyFiltered.<sport>.{title,description}`; with no class
+  > left of any sport "Nada por aqui" stays. Copy added in the three languages as D-03 words it. Tests (written first,
+  > 8 failing before the change) cover ER-03: the filtered empty state for Surf and Skate in pt-BR, es-ES and en-US
+  > with the filter's button as the only button; All brings the classes back; at the minute tick the last surf class
+  > ending shows "No surf classes", and once nothing is left "Nothing here", with one request. Files:
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`; verified: `npx jest
+  > src/modules/classes/screens/teaching-classes.screen.test.tsx src/i18n` (3 suites, 43 passed), `npx tsc --noEmit`
+  > and `npx eslint` clean; deviations: the icon isn't asserted by the tests (RNTL 14 has no props query, and no test in
+  > the app asserts an icon), it is passed as `icon="calendar-outline"` in the screen.
 
 ### Verification
 

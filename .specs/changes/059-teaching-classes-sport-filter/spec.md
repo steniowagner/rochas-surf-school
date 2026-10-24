@@ -151,9 +151,24 @@ nothing left says so in its own words.
 
 ### Verification
 
-- [ ] **T-03** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journey on
+- [x] **T-03** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journey on
   the iOS simulator and record the output summary and what was seen as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journey is recorded.
+  > ✅ 2026-10-24 — automated: `node .specs/scripts/run-related-tests.mjs 059` → RELATED TESTS PASSED (apps/mobile,
+  > 43 suites, 817 tests, changed files 100% statements/branches/functions/lines); `node .specs/scripts/check-coverage.mjs
+  > 059` → COVERAGE OK (5 files measured, the types file has no executable lines); `npx turbo run lint check-types build
+  > --filter=@rochas-surf-school/mobile` → 12 tasks successful; `node .specs/scripts/run-e2e.mjs 059` → E2E PASSED (no
+  > suite applies to apps/mobile). User journey on the iOS simulator (iPhone 18 Pro, iOS 27, pt-BR, debug build on the
+  > branch's Metro, local backend and Postgres), signed in as the approved admin "Dev Admin", who teaches 3 surf classes
+  > and a cancelled one; one skate class (Sunday 09:00) was added to the local database for the journey and removed
+  > after it. Seen: Início "4 aulas atribuídas a você"; "Minhas aulas" with the floating filter button at the bottom
+  > right over the list, and at the end of the list the last card clear of it; "Surf" → only surf classes, the
+  > "Amanhã" header gone, "Próxima" on the 17:00 surf class, the cancelled surf class still in its day (and the filter
+  > kept through a pull-to-refresh); "Skate" → only the skate class under "Amanhã" with "Próxima"; with the skate class
+  > removed and a pull-to-refresh, "Nenhuma aula de skate" / "Você não tem aulas de skate atribuídas." with the calendar
+  > icon and no action; back on Início "3 aulas atribuídas a você" (every surf class, not the 0 of the chosen sport —
+  > 4 → 3 only because the skate class was removed); reopening shows every class and the menu with "Todas" selected.
+  > Files: none; deviations: none.
 
 ## Verification Plan
 

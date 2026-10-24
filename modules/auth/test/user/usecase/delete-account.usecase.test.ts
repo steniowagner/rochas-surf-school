@@ -1,4 +1,4 @@
-import { ForbiddenError, UnauthorizedError } from "@rochas-surf-school/shared";
+import { ConflictError, ForbiddenError, UnauthorizedError } from "@rochas-surf-school/shared";
 import { DeleteAccount, User, UserRole, UserStatus } from "../../../src";
 import { FakeClockProvider, FakeSeatReleaser, FakeTeachingReleaser, FakeUserRepository } from "../../mock";
 
@@ -13,8 +13,17 @@ const buildUser = (status: UserStatus = "approved", role: UserRole = "student") 
     status,
   });
 
-function setup(users: User[] = []) {
-  const repository = new FakeUserRepository(users);
+// Another approved admin, so an admin closing their account isn't the only one.
+const OTHER_ADMIN = new User({
+  name: "Rita Admin",
+  email: "rita@example.com",
+  whatsappVisible: false,
+  role: "admin",
+  status: "approved",
+});
+
+function setup(users: User[] = [], { otherAdmin = true } = {}) {
+  const repository = new FakeUserRepository(otherAdmin ? [...users, OTHER_ADMIN] : users);
   const releaser = new FakeTeachingReleaser();
   const seatReleaser = new FakeSeatReleaser();
   const useCase = new DeleteAccount(repository, new FakeClockProvider(NOW), releaser, seatReleaser);
@@ -43,6 +52,7 @@ describe("DeleteAccount", () => {
       releaser.releaseUpcomingClasses = async (userId) => {
         statusWhenReleased = (await repository.findById(userId))?.status;
         releaser.released.push(userId);
+        return 0;
       };
 
       await useCase.execute({ userId: ana.id });
@@ -62,11 +72,13 @@ describe("DeleteAccount", () => {
       let statusWhenReleased: string | undefined;
       releaser.releaseUpcomingClasses = async () => {
         order.push("classes");
+        return 0;
       };
       seatReleaser.releaseSeats = async (userId) => {
         order.push("seats");
         statusWhenReleased = (await repository.findById(userId))?.status;
         seatReleaser.released.push(userId);
+        return 0;
       };
 
       await useCase.execute({ userId: ana.id });
@@ -139,5 +151,71 @@ describe("DeleteAccount", () => {
     expect(error.message).toBe("auth.token.invalid");
     expect(releaser.released).toEqual([]);
     expect(seatReleaser.released).toEqual([]);
+  });
+
+  describe("only admin", () => {
+    it("refuses the only approved admin before releasing anything", async () => {
+      const ana = buildUser("approved", "admin");
+      const deletedAdmin = buildUser("deleted", "admin");
+      const { repository, releaser, seatReleaser, useCase } = setup([ana, deletedAdmin], { otherAdmin: false });
+
+      const error = await useCase.execute({ userId: ana.id }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(ConflictError);
+      expect(error.message).toBe("user.role.lastAdmin");
+      expect((await repository.findById(ana.id))?.status).toBe("approved");
+      expect(releaser.released).toEqual([]);
+      expect(seatReleaser.released).toEqual([]);
+    });
+
+    it("closes an admin's account when another approved admin remains", async () => {
+      const ana = buildUser("approved", "admin");
+      const { repository, releaser, useCase } = setup([ana]);
+
+      await useCase.execute({ userId: ana.id });
+
+      expect(releaser.released).toEqual([ana.id]);
+      expect((await repository.findById(ana.id))?.status).toBe("deleted");
+    });
+
+    it.each<UserRole>(["student", "instructor"])("never refuses the account of a %s, even with no admin", async (role) => {
+      const ana = buildUser("approved", role);
+      const { repository, useCase } = setup([ana], { otherAdmin: false });
+
+      await useCase.execute({ userId: ana.id });
+
+      expect((await repository.findById(ana.id))?.status).toBe("deleted");
+    });
+
+    it("refuses when the other admin left meanwhile, after the release", async () => {
+      const ana = buildUser("approved", "admin");
+      const { repository, releaser, useCase } = setup([ana]);
+      releaser.releaseUpcomingClasses = async (userId) => {
+        // The other admin closed their account while this one was releasing.
+        await repository.update(OTHER_ADMIN.clone({ status: "deleted" }));
+        releaser.released.push(userId);
+        return 1;
+      };
+
+      const error = await useCase.execute({ userId: ana.id }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(ConflictError);
+      expect(error.message).toBe("user.role.lastAdmin");
+      expect((await repository.findById(ana.id))?.status).toBe("approved");
+    });
+
+    it("refuses when the account changed meanwhile", async () => {
+      const ana = buildUser();
+      const { repository, seatReleaser, useCase } = setup([ana]);
+      seatReleaser.releaseSeats = async () => {
+        await repository.update(ana.clone({ status: "deleted", deletedAt: NOW }));
+        return 0;
+      };
+
+      const error = await useCase.execute({ userId: ana.id }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(ForbiddenError);
+      expect(error.message).toBe("user.status.notApproved");
+    });
   });
 });

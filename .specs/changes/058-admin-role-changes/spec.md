@@ -409,10 +409,21 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > deviations: the code follows the module's use-case pattern by hand (`module-use-case`'s conventions: `ChangeRole`,
   > `ChangeRoleIn`/`ChangeRoleOut`, concrete fakes) rather than its scaffold, since the behavior is fully custom.
 
-- [ ] **T-06** — In `DeleteAccount`, refuse an approved admin when `countApprovedAdmins()` is 1 with 409
+- [x] **T-06** — In `DeleteAccount`, refuse an approved admin when `countApprovedAdmins()` is 1 with 409
   `user.role.lastAdmin` before any release, and write with `updateKeepingAnAdmin` (`"lastAdmin"` → the same 409)
   (D-08), with tests for the only admin, two admins, a student and the race.
   Covers: ER-08 · Done when: `npx jest test/user/usecase/delete-account.usecase.test.ts` passes from `modules/auth`.
+  > ✅ 2026-10-24 00:35 — `DeleteAccount` refuses an approved admin with 409 `user.role.lastAdmin` when
+  > `countApprovedAdmins()` is 1, before any release, and writes with `updateKeepingAnAdmin` (`"lastAdmin"` → the same
+  > 409); the existing tests get a second approved admin by default (`setup(users, { otherAdmin })`) and their release
+  > overrides return a count; new "only admin" tests: the only admin (nothing released, still approved), two admins, a
+  > student and an instructor with no admin, the race (the other admin leaves during the release → 409) and an account
+  > changed meanwhile; files: `modules/auth/src/user/usecase/delete-account.usecase.ts`,
+  > `modules/auth/test/user/usecase/delete-account.usecase.test.ts`; verified: `npx jest
+  > test/user/usecase/delete-account.usecase.test.ts --coverage` (21 passed, the use case 100% on every metric), `npx
+  > jest test/user` (all passed), `npm run check-types` exits 0; deviations: D-08 doesn't say what `"changed"` means
+  > for a deletion (the stored role or status changed between the read and the write, e.g. a double tap) — it answers
+  > 403 `user.status.notApproved`, as a request after that change would.
 
 ### Backend (`apps/backend`)
 

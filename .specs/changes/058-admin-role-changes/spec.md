@@ -2,10 +2,11 @@
 id: "058"
 slug: admin-role-changes
 title: "Admins change people's roles"
-status: in-review
+status: accepted
 created: 2026-10-23
 started: 2026-10-24
 base_commit: 8b28b59430a73925be69587449e72cf1ad983b03
+reviewed_commit: 641a25d7e08c3a84009cec35424f055be6a88dff
 fronts: [enrolment, classes, notifications, auth, backend, mobile]
 depends_on: []
 ---
@@ -833,3 +834,59 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 - `.claude/launch.json` (the backend launch config T-15 created) is still untracked; it isn't part of the diff.
 - Memory Impact → `structure.md` could also list the new mobile hooks and utils (`use-change-role`,
   `use-admins-count`, `role-change-error`, `last-admin-error`, `constants/role-actions`).
+
+### Round 2 — 2026-10-24 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (auth, classes, enrolment, notifications, backend, mobile: 27/27 tasks; the
+  backend's 10 lint warnings are all in older e2e files — none in this spec's files)
+- related tests ✅ RELATED TESTS PASSED (apps/backend 444, apps/mobile 1722, modules/auth 565, classes 333, enrolment
+  153, notifications 292, school-rules 113 as a dependent)
+- coverage of the changed lines ✅ COVERAGE OK, 34 files; no coverage-ignore comments, debug leftovers or TODOs in the
+  diff
+- e2e: backend suite ✅ E2E PASSED, 26 files, 704 passed; the shared database's 4 approved admins are intact after it
+- every Expected Result's `Verify by` filter selects its tests and passes (e2e `people-roles` filters 2/2/2/1/23/2/4,
+  `auth-profile` "only admin" 4; `push-messages` "role.changed" 10, the notifier 3, `user.prisma` "updateKeepingAnAdmin"
+  7; `change-role` 34 / "admin" 7 / "refuses" 25; `delete-account` "only admin" 6; `release-upcoming-classes` "actor" 2;
+  mobile "role actions" 9, "confirm" 16, notifications "role.changed" 16, `delete-account-sheet` 8)
+- iOS simulator (iPhone 18 Pro, iOS 27, Metro, backend on port 4000), as the admin review account, read-only: ER-09
+  and ER-10's "Voltar" path driven again (below); nothing was changed in the database (checked afterwards)
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "promotes a student to instructor"; use case tests
+- ER-02 ✅ — e2e "promotes to admin"; use case `-t "admin"`
+- ER-03 ✅ — e2e "demotes an instructor"; `release-upcoming-classes` "actor"
+- ER-04 ✅ — e2e "admin to instructor" (class kept, `GET /registrations` → 403 `user.role.notAdmin`)
+- ER-05 ✅ — e2e "refuses" (every refusal, the order, 401 without a token, nothing changed or released or told); use
+  case "refuses"
+- ER-06 ✅ — e2e "last admin" (both races forced through the row locks); `user.prisma.spec.ts` "updateKeepingAnAdmin"
+- ER-07 ✅ — `push-messages.spec.ts` "role.changed", the notifier spec, e2e "notifies"; the catalog's copy matches Copy
+  in pt-BR, es and en
+- ER-08 ✅ — e2e "only admin"; `delete-account.usecase.test.ts` "only admin"
+- ER-09 ✅ — simulator: Carla Dias (student) shows "Promover a instrutor" and "Promover a admin" with their subtitles
+  below WhatsApp; Davi Reis (instructor) "Promover a admin" and "Rebaixar a aluno" (danger); Fabio Melo (admin) only
+  "Passar a instrutor" (danger); Dev Admin (the viewer) none; "Fechar" closes; Jest "role actions"
+- ER-10 ✅ — simulator: "Promover a instrutor" opens "Promover Carla a instrutor?", its description, "Promover a
+  instrutor" and "Voltar"; "Voltar" returns to the details and Carla stays a student; the confirmed change, the error
+  toasts, no connection and the double tap rest on Jest "confirm" (the confirmation was driven in round 1 on the same
+  code); the copy matches Copy in all three locales
+- ER-11 ✅ — F-01 fixed: a tapped `role.changed` row reloads `GET /auth/me` before `router.replace(routes.home)` (the
+  test checks the order and that the stored account resolves to the instructor flow), a failed reload still opens the
+  home, an expired session or no session opens nothing; Jest `-t "role.changed"` 16 passed. Not driven in the
+  simulator here: reproducing it needs a role written straight to the database, which this session's permissions
+  refused; the executor's run of round 1's reproduction is recorded under F-01
+- ER-12 ✅ — Jest `delete-account-sheet` (only admin + Go to People, two admins, students and instructors without a
+  count request, loading, a failed count, the 409 switch while signed in); driven in round 1 on the same code
+
+**Findings**
+
+None.
+
+**Notes**
+
+- F-01 (round 1) is closed: only `notifications.screen.hook.ts` and its test changed since round 1, and the four new
+  row tests would fail on the previous hook.
+- `.claude/launch.json` (the backend launch config) and `.specs/changes/059-teaching-classes-sport-filter/` are
+  untracked and outside this spec's diff.

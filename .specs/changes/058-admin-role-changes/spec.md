@@ -555,13 +555,53 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > src/modules/people/utils` (8 suites, 36 passed); deviations: the `people.roleErrors.*` keys the util names are
   > added with the rest of the copy in T-12.
 
-- [ ] **T-12** — Add `src/modules/people/components/person-role-actions/` (the rows of D-12) and
+- [x] **T-12** — Add `src/modules/people/components/person-role-actions/` (the rows of D-12) and
   `src/modules/people/components/role-change-confirmation/` (D-11, D-15), a `canChangeRole` prop on `PersonSheet` that
   swaps between the details and the confirmation, set by `PeopleScreen` when the viewer is an approved admin and the
   person isn't the viewer; the Copy keys in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; with component and screen
   tests ("role actions", "confirm"). Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-09, ER-10 · Done when: `npx jest src/modules/people` passes from `apps/mobile`.
+  > ✅ 2026-10-24 01:05 — `PersonRoleActions` (the rows of D-12 per role, from `ROLE_ACTIONS`, each a `Pressable` with
+  > its title and subtitle, the demotions in the danger tone) and `RoleChangeConfirmation` (the title with the first
+  > name, the description, the seats note when asked, the confirm `Button` — `danger` for the demotions, `loading`
+  > while the request runs — and a `subtle` "Voltar"); `PersonSheet` takes `canChangeRole` (and the person's optional
+  > `id`) and its hook holds the chosen action, swaps the details for the confirmation in the same `BottomModal`, runs
+  > `useChangeRole` (a ref guard sends a double tap once), closes on success and toasts `getRoleChangeErrorKey` on a
+  > failure, staying on the confirmation; every close goes back to the details; `PeopleScreen` sets `canChangeRole`
+  > when the session's user is an approved admin and the person isn't them (the class-details and registrations sheets
+  > don't set it); new `constants/role-actions.ts` (actions per role, target role, icon and tone) and the `RoleAction`
+  > type; the Copy keys `people.roleActions.*`, `people.roleConfirm.*` and `people.roleErrors.*` in pt-BR, es-ES and
+  > en-US; tests: "role actions" (each role's rows, danger tone, none without `canChangeRole` or id, Close) and
+  > "confirm" (the swap, the PUT and close, Back without a request, the seats note for a student and not an
+  > instructor, the two demotions, each 409 and an unknown one, no connection, a double tap) in the sheet; both new
+  > components; the screen's "role actions" (an approved admin on a student's, an instructor's, another admin's and
+  > their own sheet; a student viewer; a confirmed promotion closing the sheet and showing the "Instructor" chip after
+  > the reload). The screen test now renders inside `SessionProvider` (as `class-details.screen.test.tsx` does) and
+  > `people.test-utils.tsx` gains `setupSignedInAdmin`; files:
+  > `apps/mobile/src/modules/people/components/person-role-actions/index.ts`,
+  > `apps/mobile/src/modules/people/components/person-role-actions/person-role-actions.component.tsx`,
+  > `apps/mobile/src/modules/people/components/person-role-actions/person-role-actions.types.ts`,
+  > `apps/mobile/src/modules/people/components/person-role-actions/person-role-actions.component.test.tsx`,
+  > `apps/mobile/src/modules/people/components/role-change-confirmation/index.ts`,
+  > `apps/mobile/src/modules/people/components/role-change-confirmation/role-change-confirmation.component.tsx`,
+  > `apps/mobile/src/modules/people/components/role-change-confirmation/role-change-confirmation.types.ts`,
+  > `apps/mobile/src/modules/people/components/role-change-confirmation/role-change-confirmation.component.test.tsx`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.component.tsx`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.hook.ts`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.types.ts`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/people/constants/role-actions.ts`, `apps/mobile/src/modules/people/people.types.ts`,
+  > `apps/mobile/src/modules/people/people.test-utils.tsx`,
+  > `apps/mobile/src/modules/people/hooks/use-people-screen.hook.ts`,
+  > `apps/mobile/src/modules/people/hooks/use-people-screen.types.ts`,
+  > `apps/mobile/src/modules/people/screens/people.screen.tsx`,
+  > `apps/mobile/src/modules/people/screens/people.screen.test.tsx`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`; verified: `npx jest
+  > src/modules/people` (16 suites, 96 passed; `-t "role actions"` and `-t "confirm"` select the ER-09 and ER-10
+  > cases), `npx tsc --noEmit` exits 0; deviations: the design's markup in `.docs/designs/admin-app.html` is stored
+  > compressed and couldn't be read here, so the rows reuse the sheet's existing row layout (icon, title, subtitle,
+  > chevron) with Feather icons picked for each action — the journey in T-15 is where the look gets checked.
 
 - [ ] **T-13** — Handle `role.changed`: `refreshAccount` and invalidate `["people"]` on receipt in
   `use-notification-received.hook.ts`; the icon in `notification-icon.ts`; a `notificationTarget` test proving it

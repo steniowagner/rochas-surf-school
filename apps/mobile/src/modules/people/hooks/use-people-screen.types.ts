@@ -18,6 +18,8 @@ export type UsePeopleScreenResult = {
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;
   selectedPerson: Person | null;
+  /** The viewer may change the selected person's role. */
+  canChangeRole: boolean;
   isSheetVisible: boolean;
   openPerson: (person: Person) => void;
   closeSheet: () => void;

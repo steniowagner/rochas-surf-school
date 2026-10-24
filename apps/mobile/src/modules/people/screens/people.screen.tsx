@@ -46,6 +46,7 @@ export function PeopleScreen() {
     refresh,
     loadMore,
     selectedPerson,
+    canChangeRole,
     isSheetVisible,
     openPerson,
     closeSheet,
@@ -161,6 +162,7 @@ export function PeopleScreen() {
       />
       <PersonSheet
         person={selectedPerson}
+        canChangeRole={canChangeRole}
         visible={isSheetVisible}
         onClose={closeSheet}
       />

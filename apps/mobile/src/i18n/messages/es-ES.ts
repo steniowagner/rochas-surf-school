@@ -796,6 +796,53 @@ const messages: Messages = {
     whatsappNotShared: "Número no compartido.",
     email: "Correo electrónico",
     whatsappUnavailable: "No se pudo abrir WhatsApp.",
+    roleActions: {
+      promoteInstructor: {
+        title: "Ascender a instructor",
+        subtitle: "Podrá ser asignado a clases.",
+      },
+      promoteAdmin: {
+        title: "Ascender a admin",
+        subtitle: "Gestionará la escuela. También puede dar clases.",
+      },
+      demoteStudent: {
+        title: "Bajar a alumno",
+        subtitle: "Deja las próximas clases que tiene asignadas.",
+      },
+      adminToInstructor: {
+        title: "Pasar a instructor",
+        subtitle: "Deja de gestionar la escuela.",
+      },
+    },
+    roleConfirm: {
+      promoteInstructor: {
+        title: "¿Ascender a {{name}} a instructor?",
+        description: "Pasa a ser instructor: puede ser asignado a clases y ve a los alumnos inscritos. Las plazas y solicitudes que tenía en clases futuras, como alumno, se cancelan.",
+        confirm: "Ascender a instructor",
+      },
+      promoteAdmin: {
+        title: "¿Ascender a {{name}} a admin?",
+        description: "Pasa a ser admin: gestiona clases, personas, reglas y solicitudes de la escuela. También puede dar clases.",
+        seatsNote: "Las plazas y solicitudes que tenía en clases futuras, como alumno, se cancelan.",
+        confirm: "Ascender a admin",
+      },
+      demoteStudent: {
+        title: "¿Bajar a {{name}} a alumno?",
+        description: "Pasa a ser alumno: deja las próximas clases que tiene asignadas, que pueden quedarse sin instructor. Las clases ya dadas quedan en el historial.",
+        confirm: "Bajar a alumno",
+      },
+      adminToInstructor: {
+        title: "¿Quitar a {{name}} de admin?",
+        description: "Deja de gestionar la escuela y pasa a instructor. Sigue en las clases que tiene asignadas.",
+        confirm: "Pasar a instructor",
+      },
+      back: "Volver",
+    },
+    roleErrors: {
+      changed: "El rol de esta persona cambió. Actualiza la lista.",
+      lastAdmin: "La escuela necesita al menos un admin.",
+      notApproved: "Esta persona ya no está en la plataforma.",
+    },
   },
   deleteAccountSheet: {
     title: "¿Eliminar tu cuenta?",

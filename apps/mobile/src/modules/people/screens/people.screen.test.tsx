@@ -8,6 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
+import { SessionProvider } from "@/providers/session";
 import * as api from "@/services/api";
 
 import {
@@ -19,6 +20,7 @@ import {
   fetchMock,
   ok,
   requestedPaths,
+  setupSignedInAdmin,
   setupSignedInUser,
 } from "../people.test-utils";
 
@@ -70,9 +72,12 @@ const serve = (list: (path: string) => unknown, total = 3) => {
 };
 
 const renderScreen = () =>
-  render(<PeopleScreen />, {
-    wrapper: createWrapper(createQueryClient()),
-  });
+  render(
+    <SessionProvider>
+      <PeopleScreen />
+    </SessionProvider>,
+    { wrapper: createWrapper(createQueryClient()) },
+  );
 
 const listPaths = () =>
   requestedPaths().filter((path) => path !== "/people?perPage=1");
@@ -437,5 +442,93 @@ describe("PeopleScreen", () => {
 
     await user.press(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
+  });
+
+  describe("role actions", () => {
+    const everyone = () =>
+      ok({
+        items: [
+          buildPerson(1, { name: "Ana Silva" }),
+          buildPerson(2, { name: "Bia Admin", role: "admin" }),
+          buildPerson(3, { name: "João Pinto", role: "instructor" }),
+          buildPerson(4, { id: "u-1", name: "Rita Me", role: "admin" }),
+        ],
+        page: 1,
+        perPage: 20,
+        total: 4,
+      });
+
+    const open = async (name: string) => {
+      const user = userEvent.setup();
+      await user.press(await screen.findByRole("button", { name }));
+      return user;
+    };
+
+    it("shows an approved admin the actions of each role, and none on their own sheet", async () => {
+      setupSignedInAdmin();
+      serve(everyone, 4);
+      await renderScreen();
+
+      let user = await open("Ana Silva");
+      expect(screen.getByRole("button", { name: "Make instructor" })).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Make admin" })).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Close" }));
+
+      user = await open("João Pinto");
+      expect(screen.getByRole("button", { name: "Make admin" })).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Make student" })).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Close" }));
+
+      user = await open("Bia Admin");
+      expect(screen.getByRole("button", { name: "Remove admin" })).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Close" }));
+
+      await open("Rita Me");
+      expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
+      for (const action of ["Make instructor", "Make admin", "Make student", "Remove admin"]) {
+        expect(screen.queryByRole("button", { name: action })).not.toBeOnTheScreen();
+      }
+    });
+
+    it("shows a student or instructor viewer no action", async () => {
+      serve(everyone, 4);
+      await renderScreen();
+
+      await open("João Pinto");
+
+      expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "Make admin" })).not.toBeOnTheScreen();
+    });
+
+    it("confirms a promotion: the sheet closes and the row shows the new chip", async () => {
+      setupSignedInAdmin();
+      let promoted = false;
+      fetchMock.mockImplementation(async (url: string, init?: { method?: string }) => {
+        const path = String(url).replace("http://api.test", "");
+        if (init?.method === "PUT") {
+          promoted = true;
+          return ok({ id: "p-1", role: "instructor" });
+        }
+        return path === "/people?perPage=1"
+          ? ok(buildPage(1, 1, 1))
+          : ok({
+              items: [buildPerson(1, { name: "Ana Silva", role: promoted ? "instructor" : "student" })],
+              page: 1,
+              perPage: 20,
+              total: 1,
+            });
+      });
+      await renderScreen();
+      const user = await open("Ana Silva");
+
+      await user.press(screen.getByRole("button", { name: "Make instructor" }));
+      expect(screen.getByText("Make Ana an instructor?")).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Make instructor" }));
+
+      await waitFor(() => expect(screen.getByText("Instructor")).toBeOnTheScreen());
+      expect(screen.queryByText("Make Ana an instructor?")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
+      expect(requestedPaths()).toContain("/people/p-1/role");
+    });
   });
 });

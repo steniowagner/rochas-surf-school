@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { getRegistrationErrorKey } from "@/modules/admin/utils/registration-error";
 import { useAlertMessage } from "@/providers/alert-message";
+import { useSession } from "@/providers/session";
 import { SessionExpiredError } from "@/services/api";
 
 import { PeopleRole, Person } from "../people.types";
@@ -15,6 +16,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 export const usePeopleScreen = (): UsePeopleScreenResult => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
+  const { user } = useSession();
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
   const [roles, setRoles] = useState<PeopleRole[]>([]);
@@ -88,6 +90,12 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     refresh,
     loadMore,
     selectedPerson,
+    // Only an approved admin changes roles, and never their own (spec 058, D-04).
+    canChangeRole:
+      user?.role === "admin" &&
+      user.status === "approved" &&
+      selectedPerson !== null &&
+      selectedPerson.id !== user.id,
     isSheetVisible,
     openPerson: (person) => {
       setSelectedPerson(person);

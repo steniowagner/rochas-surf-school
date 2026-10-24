@@ -9,6 +9,8 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { roleChip } from "../../utils/role-chip";
 import { PersonAvatar } from "../person-avatar";
+import { PersonRoleActions } from "../person-role-actions";
+import { RoleChangeConfirmation } from "../role-change-confirmation";
 
 import { usePersonSheet } from "./person-sheet.hook";
 import { PersonSheetProps } from "./person-sheet.types";
@@ -16,16 +18,36 @@ import { PersonSheetProps } from "./person-sheet.types";
 export function PersonSheet({
   person,
   email,
+  canChangeRole = false,
   visible,
   onClose,
 }: PersonSheetProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { formattedNumber, openChat } = usePersonSheet({ person });
+  const {
+    formattedNumber,
+    openChat,
+    close,
+    roleAction,
+    selectRoleAction,
+    backToDetails,
+    confirmRoleChange,
+    isChangingRole,
+    firstName,
+  } = usePersonSheet({ person, onClose });
 
   return (
-    <BottomModal visible={visible} onClose={onClose}>
-      {person ? (
+    <BottomModal visible={visible} onClose={close}>
+      {person && roleAction ? (
+        <RoleChangeConfirmation
+          action={roleAction}
+          name={firstName}
+          showSeatsNote={roleAction === "promoteAdmin" && person.role === "student"}
+          loading={isChangingRole}
+          onConfirm={confirmRoleChange}
+          onBack={backToDetails}
+        />
+      ) : person ? (
         <View className="gap-4">
           <View className="flex-row items-center gap-4">
             <PersonAvatar name={person.name} size="lg" />
@@ -90,11 +112,14 @@ export function PersonSheet({
               </View>
             </View>
           )}
+          {canChangeRole && person.id ? (
+            <PersonRoleActions role={person.role} onSelect={selectRoleAction} />
+          ) : null}
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={t("common.close")}
             activeOpacity={BUTTON_ACTIVE_OPACITY}
-            onPress={onClose}
+            onPress={close}
             className="min-h-11 items-center justify-center"
           >
             <Text className="ds-text-button text-ink">{t("common.close")}</Text>

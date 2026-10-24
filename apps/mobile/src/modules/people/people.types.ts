@@ -34,3 +34,10 @@ export type RoleChange = {
   id: string;
   role: PeopleRole;
 };
+
+/** A role change an admin can start from a person's sheet (spec 058, D-12). */
+export type RoleAction =
+  | "promoteInstructor"
+  | "promoteAdmin"
+  | "demoteStudent"
+  | "adminToInstructor";

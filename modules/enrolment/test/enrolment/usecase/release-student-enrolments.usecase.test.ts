@@ -51,7 +51,7 @@ describe("ReleaseStudentEnrolments", () => {
 
     const out = await useCase.execute({ studentId: STUDENT.id });
 
-    expect(out).toEqual({ cancelled: 1 });
+    expect(out).toEqual({ cancelled: 1, withdrawn: 1 });
     expect(enrolments.all.map((item) => item.status)).toEqual(["cancelled", "withdrawn", "approved", "pending"]);
     expect(notifier.cancelledEvents).toEqual([
       {
@@ -68,10 +68,10 @@ describe("ReleaseStudentEnrolments", () => {
   it("does nothing for a student without enrolments, and when run again", async () => {
     const { useCase, notifier } = setup();
 
-    expect(await useCase.execute({ studentId: "none" })).toEqual({ cancelled: 0 });
+    expect(await useCase.execute({ studentId: "none" })).toEqual({ cancelled: 0, withdrawn: 0 });
     await useCase.execute({ studentId: STUDENT.id });
     notifier.cancelledEvents.length = 0;
-    expect(await useCase.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 0 });
+    expect(await useCase.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 0, withdrawn: 0 });
     expect(notifier.cancelledEvents).toEqual([]);
   });
 
@@ -80,8 +80,8 @@ describe("ReleaseStudentEnrolments", () => {
     failing.notifier.error = new Error("push down");
     const nameless = setup({});
 
-    expect(await failing.useCase.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 1 });
-    expect(await nameless.useCase.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 1 });
+    expect(await failing.useCase.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 1, withdrawn: 1 });
+    expect(await nameless.useCase.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 1, withdrawn: 1 });
     expect(nameless.notifier.cancelledEvents).toEqual([]);
 
     const gone = new ReleaseStudentEnrolments(
@@ -91,7 +91,28 @@ describe("ReleaseStudentEnrolments", () => {
       new FakeEnrolmentNotifier(),
       new FakeClockProvider(NOW),
     );
-    expect(await gone.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 1 });
+    expect(await gone.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 1, withdrawn: 0 });
+  });
+
+  it("counts only the seats when the student has no request, and only the requests when no seat", async () => {
+    const classes = [buildEnrolmentClass(), buildEnrolmentClass({ id: SECOND_CLASS })];
+    const build = (items: ReturnType<typeof buildEnrolment>[]) =>
+      new ReleaseStudentEnrolments(
+        new FakeEnrolmentRepository(items, classes),
+        new FakeEnrolmentClassReader(classes),
+        new FakeStudentNameReader({ [STUDENT.id]: "Ana Souza" }),
+        new FakeEnrolmentNotifier(),
+        new FakeClockProvider(NOW),
+      );
+
+    const seatsOnly = build([
+      buildEnrolment({ status: "approved" }),
+      buildEnrolment({ classId: SECOND_CLASS, status: "approved" }),
+    ]);
+    const requestsOnly = build([buildEnrolment(), buildEnrolment({ classId: SECOND_CLASS })]);
+
+    expect(await seatsOnly.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 2, withdrawn: 0 });
+    expect(await requestsOnly.execute({ studentId: STUDENT.id })).toEqual({ cancelled: 0, withdrawn: 2 });
   });
 
   it("propagates a failed write", async () => {

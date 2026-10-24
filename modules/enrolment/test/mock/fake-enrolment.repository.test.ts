@@ -219,9 +219,10 @@ describe("FakeEnrolmentRepository releases", () => {
       [upcoming, started, cancelledClass],
     );
 
-    const cancelled = await repository.releaseForStudent(STUDENT.id, NOW);
+    const { cancelled, withdrawn } = await repository.releaseForStudent(STUDENT.id, NOW);
 
     expect(cancelled.map((item) => item.id)).toEqual([seat.id]);
+    expect(withdrawn).toBe(1);
     expect(repository.all.map((item) => item.status)).toEqual([
       "cancelled",
       "withdrawn",

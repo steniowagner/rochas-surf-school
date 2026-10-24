@@ -318,12 +318,23 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-01** — Make `EnrolmentRepository.releaseForStudent` return `{ cancelled: Enrolment[]; withdrawn: number }`
+- [x] **T-01** — Make `EnrolmentRepository.releaseForStudent` return `{ cancelled: Enrolment[]; withdrawn: number }`
   (interface and in-memory fake in `test/mock`) and `ReleaseStudentEnrolments` return `{ cancelled, withdrawn }`
   (D-09), with tests for seats only, requests only, both and none. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-07 · Done when: `npx jest test/enrolment/usecase/release-student-enrolments.usecase.test.ts`
   passes from `modules/enrolment`.
+  > ✅ 2026-10-24 00:29 — `releaseForStudent` returns `ReleasedEnrolments` (`{ cancelled: Enrolment[]; withdrawn:
+  > number }`, new exported type) in the port and the in-memory fake; `ReleaseStudentEnrolments` returns `{ cancelled,
+  > withdrawn }`; tests for both, none, seats only and requests only; files:
+  > `modules/enrolment/src/enrolment/provider/enrolment.repository.ts`,
+  > `modules/enrolment/src/enrolment/usecase/release-student-enrolments.usecase.ts`,
+  > `modules/enrolment/test/enrolment/usecase/release-student-enrolments.usecase.test.ts`,
+  > `modules/enrolment/test/mock/fake-enrolment.repository.ts`,
+  > `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`; verified: `npx jest
+  > test/enrolment/usecase/release-student-enrolments.usecase.test.ts test/mock` (3 suites, 28 passed), `npm run
+  > check-types` exits 0; deviations: the change follows the existing use case by hand — `module-use-case` scaffolds
+  > new use cases and has nothing to generate for a changed return type.
 
 ### Classes module (`modules/classes`)
 

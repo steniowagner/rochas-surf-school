@@ -481,13 +481,32 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > `backend-provider-implementation` targets a provider of a module's own port and has nothing for a cross-module
   > notifier adapter.
 
-- [ ] **T-09** — Add `PUT /people/:id/role` to `src/modules/auth/people.controller.ts` (runs `ChangeRole` with the
+- [x] **T-09** — Add `PUT /people/:id/role` to `src/modules/auth/people.controller.ts` (runs `ChangeRole` with the
   repository, the two releasers and the notifier, wired in `AuthModule`), and the 409 of `DELETE /auth/me` through the
   changed `DeleteAccount`; with controller specs and the requests in `people.integration.http`. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-08 · Done when:
   `npx vitest run src/modules/auth/people.controller.spec.ts src/modules/auth/auth.controller.spec.ts` passes and
   `npm run check-types --workspace apps/backend` exits 0.
+  > ✅ 2026-10-24 00:43 — `PUT /people/:id/role` (`PeopleController.changeRole`, 200) runs `ChangeRole` with
+  > `PrismaUserRepository`, `EnrolmentSeatReleaser`, `ClassesTeachingReleaser` and `NotificationsRoleChangeNotifier`,
+  > the caller as actor and `body?.role`; `AuthModule` already imports the modules that export them, so the wiring is
+  > the controller's constructor; `DELETE /auth/me` answers 409 `user.role.lastAdmin` through the changed
+  > `DeleteAccount`; specs: the route metadata, a promoted student (seats released, guarded write with the expected
+  > state, notifier), a demoted instructor (actor passed), no body (422), a non-admin caller (403), a last-admin write
+  > (409), the only admin's deletion (409, nothing released) and two admins (204); requests added to
+  > `people.integration.http` and the 409 noted in `auth.integration.http`. Missing step done here: an id that isn't a
+  > UUID would reach Prisma's `@db.Uuid` comparison and answer 500, so `ChangeRole` answers 404 `user.notFound`
+  > without querying (reusing `UUID_PATTERN`, now exported from `pending-registration.ts`), with a test; files:
+  > `apps/backend/src/modules/auth/people.controller.ts`, `apps/backend/src/modules/auth/people.controller.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/people.integration.http`,
+  > `apps/backend/src/modules/auth/auth.integration.http`, `modules/auth/src/user/usecase/change-role.usecase.ts`,
+  > `modules/auth/src/user/usecase/pending-registration.ts`,
+  > `modules/auth/test/user/usecase/change-role.usecase.test.ts`; verified: `npx vitest run
+  > src/modules/auth/people.controller.spec.ts src/modules/auth/auth.controller.spec.ts` (2 files, 51 passed), `npm
+  > run check-types --workspace apps/backend` exits 0, `npx jest test/user/usecase/change-role.usecase.test.ts` (34
+  > passed); deviations: by hand on the existing controller — `backend-nest-controller` creates a new controller and
+  > its `.http` file, while this adds a route to an existing one.
 
 - [ ] **T-10** — Add `test/people-roles.e2e-spec.ts` (faked pushes and classes clock, cleanup of what it creates)
   with the cases named in ER-01 to ER-07 ("promotes a student to instructor", "promotes to admin", "demotes an

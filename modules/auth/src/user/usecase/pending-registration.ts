@@ -2,7 +2,7 @@ import { ConflictError, NotFoundError } from "@rochas-surf-school/shared";
 import { User } from "../model";
 import { UserRepository } from "../provider";
 
-const UUID_PATTERN =
+export const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const REGISTRATION_NOT_PENDING = "registration.status.notPending";

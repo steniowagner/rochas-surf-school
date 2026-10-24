@@ -1,4 +1,4 @@
-# Manual REST Client requests for GET /people (VS Code REST Client).
+# Manual REST Client requests for GET /people and PUT /people/:id/role (VS Code REST Client).
 # Sign in with any approved review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
 # Codes are read from the backend log when RESEND_API_KEY is unset.
 
@@ -50,3 +50,35 @@ Authorization: Bearer {{token}}
 ### Invalid query (expects 422 with errors people.page.invalid, people.perPage.invalid, people.role.invalid)
 GET {{baseUrl}}/people?page=0&perPage=51&role=guest
 Authorization: Bearer {{token}}
+
+### Change someone's role, as an approved admin (expects 200 { id, role }). Allowed: student → instructor or admin,
+### instructor → admin or student, admin → instructor. A student gives up their upcoming seats and pending requests;
+### an instructor made a student leaves their upcoming classes. The person gets a role.changed notification.
+@personId = 00000000-0000-4000-8000-000000000000
+PUT {{baseUrl}}/people/{{personId}}/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "instructor"
+}
+
+### Missing or unknown role (expects 422 people.role.invalid)
+PUT {{baseUrl}}/people/{{personId}}/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "guest"
+}
+
+### Refusals: a student or instructor caller (403 user.role.notAdmin); an unknown id (404 user.notFound); one's own id
+### (403 user.role.self); a person who isn't approved (409 user.status.notApproved); admin → student or the same role
+### (409 user.role.changeNotAllowed); a change that would leave no approved admin (409 user.role.lastAdmin)
+PUT {{baseUrl}}/people/{{personId}}/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "student"
+}

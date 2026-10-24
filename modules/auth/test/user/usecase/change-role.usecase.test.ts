@@ -257,17 +257,19 @@ describe("ChangeRole", () => {
       );
     });
 
-    it("refuses an unknown person", async () => {
+    it.each(["unknown", "7d1e2f3a-4b5c-4d6e-8f7a-9b0c1d2e3f4a"])("refuses an unknown person (%s)", async (userId) => {
       const ana = buildUser("student");
       const context = setup([ana]);
+      const findById = jest.spyOn(context.repository, "findById");
 
       await expectRefused(
-        () => context.useCase.execute({ actor: ACTOR, userId: "unknown", role: "instructor" }),
+        () => context.useCase.execute({ actor: ACTOR, userId, role: "instructor" }),
         NotFoundError,
         "user.notFound",
         context,
         ana,
       );
+      expect(findById).toHaveBeenCalledTimes(userId === "unknown" ? 1 : 2);
     });
 
     it("refuses a change of one's own role, before the pair", async () => {

@@ -13,6 +13,7 @@ import {
   TeachingReleaser,
   UserRepository,
 } from "../provider";
+import { UUID_PATTERN } from "./pending-registration";
 import {
   assertCanDecideRegistrations,
   RegistrationActor,
@@ -56,7 +57,10 @@ export class ChangeRole implements UseCase<ChangeRoleIn, ChangeRoleOut> {
 
     const role = this.toRole(input.role);
 
-    const user = await this.userRepository.findById(input.userId);
+    // An id that isn't a UUID can't name anyone (and the database would refuse to compare it).
+    const user = UUID_PATTERN.test(input.userId)
+      ? await this.userRepository.findById(input.userId)
+      : null;
     if (!user) {
       throw new NotFoundError("user.notFound");
     }

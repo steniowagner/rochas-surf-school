@@ -2,10 +2,11 @@
 id: "057"
 slug: teaching-classes
 title: "\"Minhas aulas\" for instructors and admins who teach"
-status: in-review
+status: accepted
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 30d2bccaa1cca3534931006e3117df3fefcda72e
+reviewed_commit: 9fd29a94880a2daef9fe63d45db5064c017ad1fd
 fronts: [classes, backend, mobile]
 depends_on: []
 ---
@@ -572,3 +573,50 @@ header's clock button.
   the memory if that is the intended reading.
 - `.specs/changes/058-admin-role-changes/` is untracked in the working tree; it isn't part of this spec and wasn't
   committed.
+
+### Round 2 — 2026-10-23 — accepted
+
+**Checks**
+
+- lint ✅ (backend: 0 errors, the existing warnings are all in other files) · type check ✅ · build ✅ (classes, backend,
+  mobile, design-tokens)
+- related tests ✅ `RELATED TESTS PASSED`: apps/mobile 1651, modules/classes 291, modules/enrolment 563, apps/backend
+  related, apps/web 22
+- coverage of the changed lines ✅ `COVERAGE OK` (22 files measured); no coverage-ignore comments, raw colors or
+  debug leftovers in the diff
+- e2e ✅ `E2E PASSED`: backend 25 files / 665 tests (`teaching-classes.e2e-spec.ts` included), web Playwright 22
+- HTTP against the running dev backend ✅: Dev Instructor 200 (4 items by start, `myEnrolment: null`, `teachesAny:
+  true`), Dev Admin 200 (3 classes + the cancelled one of 2031, `teachesAny: true`), Dev Student 403
+  `user.role.notTeacher`, no token 401 `auth.token.invalid`
+- iOS simulator (iPhone 18 Pro, iOS 27, pt-BR, dark theme), as Dev Admin: see ER-04 and ER-05
+
+**Expected Results**
+
+- ER-01 ✅ — use case test and the e2e tests "lists the classes the caller teaches"; the dev backend lists the
+  instructor's classes by start with `myEnrolment: null`
+- ER-02 ✅ — e2e "teachesAny" and "access"; reader and controller specs; student 403 and no token 401 on the dev backend
+- ER-03 ✅ — `teaching-classes-entry-row` and `instructor.screen` tests (count without cancelled, 1 / 0 copy, no
+  subtitle while loading or after an error, refetch on focus, opens `/instructor/my-classes`)
+- ER-04 ✅ — `admin.screen` tests; on the simulator the admin's home shows "Minhas aulas — 3 aulas atribuídas a você"
+  first under Escola (the cancelled 2031 class not counted)
+- ER-05 ✅ — the layout tests and the minute tick; F-02 checked: `formatDayName` tests (pt-BR "Segunda", "Quarta",
+  "Sexta", "Sábado"; es-ES "Viernes"; en-US "Friday") and the screen test "Quarta, 23 set"; on the simulator "AMANHÃ ·
+  24 out" with the 17:00 class "PRÓXIMA" and the sun border, and the cancelled class of 12 Mar 2031 under "QUARTA" /
+  "12 mar" with "CANCELADA"
+- ER-06 ✅ — screen tests (skeleton as one loading state, empty, error with retry, pull-to-refresh, refetch on focus,
+  three locales, centered title with nothing on the right); on the simulator "MINHAS AULAS" centered in the with-back
+  style next to the back button, no tab bar, pull-to-refresh reloads the list
+
+**Findings**
+
+None. F-01 and F-02 of round 1 are fixed: D-14, T-11 and the amendment record the with-back title style, and the new
+`StackHeaderTitle` test checks it; the weekday header drops the pt-BR "-feira".
+
+**Notes**
+
+- Round 1's note on the home row after a failed refetch still holds (the last subtitle stays, as TanStack Query keeps
+  the data); worth a word in the memory at `spec-finish` if that is the intended reading of D-07.
+- "Admin who doesn't teach" was again not seen on the device (every approved admin in the dev database teaches); the
+  `admin.screen` and row tests cover it.
+- `.specs/changes/058-admin-role-changes/` is still untracked in the working tree; it isn't part of this spec and
+  wasn't committed.

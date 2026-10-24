@@ -351,9 +351,14 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-03** — Add `role.changed` to `NOTIFICATION_TYPES` in `src/notification/model/notification.entity.ts`, with
+- [x] **T-03** — Add `role.changed` to `NOTIFICATION_TYPES` in `src/notification/model/notification.entity.ts`, with
   the entity tests.
   Covers: ER-07 · Done when: `npx jest test/notification` passes from `modules/notifications`.
+  > ✅ 2026-10-24 00:30 — `role.changed` added to `NOTIFICATION_TYPES` (the `type` column is a plain string, so no
+  > migration); the `it.each` over the types covers it, plus a test of a `role.changed` with its params; files:
+  > `modules/notifications/src/notification/model/notification.entity.ts`,
+  > `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest
+  > test/notification` (9 suites, 88 passed), `npm run check-types` exits 0; deviations: none
 
 ### Auth module (`modules/auth`)
 

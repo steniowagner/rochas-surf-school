@@ -29,6 +29,7 @@ export const NOTIFICATION_TYPES = [
   "enrolment.cancelled",
   "enrolment.enrolled",
   "enrolment.takenOut",
+  "role.changed",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

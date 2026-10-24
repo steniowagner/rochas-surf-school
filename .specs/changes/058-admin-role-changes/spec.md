@@ -602,6 +602,11 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > cases), `npx tsc --noEmit` exits 0; deviations: the design's markup in `.docs/designs/admin-app.html` is stored
   > compressed and couldn't be read here, so the rows reuse the sheet's existing row layout (icon, title, subtitle,
   > chevron) with Feather icons picked for each action — the journey in T-15 is where the look gets checked.
+  > Follow-up from T-15's coverage gate (2026-10-24): the hook's double-tap ref was redundant — `Button`'s `loading`
+  > already ignores presses, as in the delete-account sheet, and the double-tap test passes without it — so it was
+  > removed; new `apps/mobile/src/modules/people/components/person-sheet/person-sheet.hook.test.tsx` covers the guard
+  > (no action, no person, no id) and an expired session (no toast, stays on the confirmation); the hook is now 100%
+  > covered (`npx jest src/modules/people`: 17 suites, 98 passed).
 
 - [x] **T-13** — Handle `role.changed`: `refreshAccount` and invalidate `["people"]` on receipt in
   `use-notification-received.hook.ts`; the icon in `notification-icon.ts`; a `notificationTarget` test proving it

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking } from "react-native";
 
@@ -17,8 +17,6 @@ export const usePersonSheet = ({ person, onClose }: UsePersonSheetProps) => {
   const alertMessage = useAlertMessage();
   const changeRole = useChangeRole();
   const [roleAction, setRoleAction] = useState<RoleAction | null>(null);
-  // A second tap can land before the loading state is drawn: this guard sends the change once.
-  const isChangingRole = useRef(false);
   const number = person?.whatsappNumber ?? null;
 
   const openChat = async () => {
@@ -34,12 +32,12 @@ export const usePersonSheet = ({ person, onClose }: UsePersonSheetProps) => {
     onClose();
   };
 
+  // The confirm button ignores presses while it is loading, so a second tap can't send another change.
   const confirmRoleChange = async () => {
-    if (!person?.id || !roleAction || isChangingRole.current) {
+    if (!person?.id || !roleAction) {
       return;
     }
 
-    isChangingRole.current = true;
     try {
       await changeRole.mutateAsync({ id: person.id, role: ROLE_ACTION_TARGET[roleAction] });
       close();
@@ -49,8 +47,6 @@ export const usePersonSheet = ({ person, onClose }: UsePersonSheetProps) => {
       if (key) {
         alertMessage.show(t(key));
       }
-    } finally {
-      isChangingRole.current = false;
     }
   };
 

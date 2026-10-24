@@ -1,7 +1,7 @@
 import { getClassState } from "@rochas-surf-school/classes";
 import type { Locale } from "date-fns";
 
-import { addDays, formatIsoDate } from "@/utils/calendar-dates";
+import { addDays, formatIsoDate, weekdayName } from "@/utils/calendar-dates";
 
 import { ClassItem, TeachingClassesLayout, TeachingDay, TeachingDayLabel } from "../classes.types";
 import { todayInSchoolZone } from "./calendar";
@@ -52,3 +52,6 @@ export const countAssignedClasses = (items: ClassItem[]): number =>
 /** "17 set", "17 Sep": the day and the month's abbreviation, without the dot some locales add. */
 export const formatShortDate = (day: string, locale: Locale): string =>
   formatIsoDate(day, "d MMM", locale).replace(/\.$/, "");
+
+/** "Sexta", "Viernes", "Friday": the weekday's full name, without the "-feira" of the pt-BR weekdays. */
+export const formatDayName = (day: string, locale: Locale): string => weekdayName(day, locale).split("-")[0];

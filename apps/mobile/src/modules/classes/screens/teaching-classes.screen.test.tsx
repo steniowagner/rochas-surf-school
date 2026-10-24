@@ -282,6 +282,15 @@ describe("TeachingClassesScreen", () => {
     expect(screen.getByText("Cancelada")).toBeOnTheScreen();
   });
 
+  it("writes a weekday's name without the Portuguese \"-feira\"", async () => {
+    await act(() => i18n.changeLanguage("pt-BR"));
+    // Wednesday 23 Sep, 09:00.
+    await renderScreen("instructor", [buildClassItem("w", "2026-09-23T12:00:00.000Z", "2026-09-23T13:00:00.000Z")]);
+
+    expect(await screen.findByRole("header", { name: "Quarta, 23 set" })).toBeOnTheScreen();
+    expect(screen.queryByText(/feira/i)).toBeNull();
+  });
+
   it("shows the empty state and the error in Portuguese", async () => {
     await act(() => i18n.changeLanguage("pt-BR"));
     await renderScreen("instructor", []);

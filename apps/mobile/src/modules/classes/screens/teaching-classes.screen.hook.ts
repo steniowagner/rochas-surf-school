@@ -4,12 +4,12 @@ import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
 import { SessionExpiredError } from "@/services/api";
-import { getDateLocale, weekdayName } from "@/utils/calendar-dates";
+import { getDateLocale } from "@/utils/calendar-dates";
 
 import type { ClassItem } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
 import { useTeachingClasses } from "../hooks/use-teaching-classes.hook";
-import { formatShortDate, layoutTeachingClasses } from "../utils/teaching-classes";
+import { formatDayName, formatShortDate, layoutTeachingClasses } from "../utils/teaching-classes";
 
 import type {
   TeachingClassesRow,
@@ -54,7 +54,7 @@ export const useTeachingClassesScreen = ({
       {
         type: "day",
         key: `day-${day.day}`,
-        label: day.label === "weekday" ? weekdayName(day.day, locale) : t(`teachingClasses.${day.label}`),
+        label: day.label === "weekday" ? formatDayName(day.day, locale) : t(`teachingClasses.${day.label}`),
         date: formatShortDate(day.day, locale),
       },
       ...day.items.map((item): TeachingClassesRow => ({

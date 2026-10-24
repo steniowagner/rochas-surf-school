@@ -2,7 +2,7 @@
 id: "057"
 slug: teaching-classes
 title: "\"Minhas aulas\" for instructors and admins who teach"
-status: changes-requested
+status: in-progress
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 30d2bccaa1cca3534931006e3117df3fefcda72e
@@ -512,12 +512,24 @@ header's clock button.
   `git show --stat fe536da1`; `git log --oneline 30d2bcca..HEAD` lists it before `docs(spec-057): start`. Expected:
   the spec ships only what its tasks explain — move the commit out of `spec/057-teaching-classes` (its own branch and PR
   from `main`), or, if this spec needs it, record it with the user's approval (an amendment and a task with evidence).
-- [ ] **F-02** (D-06) — the header of a day that is neither today nor tomorrow shows the pt-BR weekday with "-feira"
+- [x] **F-02** (D-06) — the header of a day that is neither today nor tomorrow shows the pt-BR weekday with "-feira"
   ("Quarta-feira", "Sexta-feira"…), while D-06 gives the label as "Sexta". Reproduce: on the simulator as Dev Admin,
   "Minhas aulas" → the cancelled class of 12 Mar 2031 sits under "QUARTA-FEIRA"; in code, `weekdayName` formats `EEEE`
   (`apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`). The screen test only checks "Saturday",
   which has no suffix. Expected: "Quarta", "Sexta"… as D-06 says (with a test on a pt-BR weekday that has "-feira"),
   or an amendment to D-06 approved by the user if "Quarta-feira" is what they want.
+  > ✅ 2026-10-23 — the day header's weekday comes from the new `formatDayName` (`utils/teaching-classes.ts`), which
+  > drops the pt-BR "-feira" the way `request-seat-class-card` already does (`weekdayName(…).split("-")[0]`): "Segunda",
+  > "Quarta", "Sexta", while "Sábado", "Viernes" and "Friday" are unchanged; the shared `weekdayName` is untouched, so
+  > the Aulas tab keeps its labels. Tests: `formatDayName` in `teaching-classes.test.ts` (pt-BR Monday, Wednesday,
+  > Friday and Saturday, es-ES and en-US Friday) and the screen test "writes a weekday's name without the Portuguese
+  > \"-feira\"" (a pt-BR Wednesday reads "Quarta, 23 set"), which fails with the old hook. Files:
+  > `apps/mobile/src/modules/classes/utils/teaching-classes.ts`, `apps/mobile/src/modules/classes/utils/teaching-classes.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/utils/teaching-classes.test.ts --coverage`
+  > (2 suites, 24 passed; the hook and the utils 100%), the new screen test failing against the old hook (1 failed),
+  > `npx tsc --noEmit` and `npx eslint src/modules/classes/utils src/modules/classes/screens` (no errors); deviations: none.
 
 **Notes**
 

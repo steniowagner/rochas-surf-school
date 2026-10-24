@@ -1,7 +1,7 @@
 import { getDateLocale } from "@/utils/calendar-dates";
 
 import { buildClassItem } from "../classes.test-utils";
-import { countAssignedClasses, formatShortDate, layoutTeachingClasses } from "./teaching-classes";
+import { countAssignedClasses, formatDayName, formatShortDate, layoutTeachingClasses } from "./teaching-classes";
 
 // Thursday 17 Sep 2026, 08:00 in Fortaleza (UTC−3).
 const NOW = new Date("2026-09-17T11:00:00.000Z");
@@ -72,5 +72,16 @@ describe("formatShortDate", () => {
     expect(formatShortDate("2026-09-17", getDateLocale("pt-BR"))).toBe("17 set");
     expect(formatShortDate("2026-09-17", getDateLocale("en-US"))).toBe("17 Sep");
     expect(formatShortDate("2026-09-17", getDateLocale("es-ES"))).not.toMatch(/\.$/);
+  });
+});
+
+describe("formatDayName", () => {
+  it("writes the weekday's full name in the app's language, without the pt-BR \"-feira\"", () => {
+    expect(formatDayName("2026-09-21", getDateLocale("pt-BR"))).toBe("Segunda");
+    expect(formatDayName("2026-09-23", getDateLocale("pt-BR"))).toBe("Quarta");
+    expect(formatDayName("2026-09-25", getDateLocale("pt-BR"))).toBe("Sexta");
+    expect(formatDayName("2026-09-19", getDateLocale("pt-BR"))).toBe("Sábado");
+    expect(formatDayName("2026-09-25", getDateLocale("es-ES"))).toBe("Viernes");
+    expect(formatDayName("2026-09-25", getDateLocale("en-US"))).toBe("Friday");
   });
 });

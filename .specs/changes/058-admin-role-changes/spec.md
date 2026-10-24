@@ -2,7 +2,7 @@
 id: "058"
 slug: admin-role-changes
 title: "Admins change people's roles"
-status: in-review
+status: changes-requested
 created: 2026-10-23
 started: 2026-10-24
 base_commit: 8b28b59430a73925be69587449e72cf1ad983b03
@@ -745,3 +745,74 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-24 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (auth, classes, enrolment, notifications, backend, mobile: 27/27 tasks; the
+  backend's 10 lint warnings are all in older e2e files)
+- related tests ✅ (apps/backend 444, apps/mobile 1719, modules/auth 565, classes 333, enrolment 153, notifications 292,
+  school-rules 113 as a dependent)
+- coverage of the changed lines ✅ COVERAGE OK, 34 files; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 26 files, 704 passed (`people-roles.e2e-spec.ts` and the "only admin" cases included)
+- iOS simulator (iPhone 18 Pro, iOS 27, Metro, backend on port 4000), as the admin review account: ER-09, ER-10, ER-12
+  and the row half of ER-11 driven by hand (below). A simulated `role.changed` push (`xcrun simctl push`) was refused:
+  the app has no notification permission on this simulator, so the push-arrival half of ER-11 rests on its Jest tests.
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "promotes a student to instructor": 200 `{ id, role }`, upcoming seat `cancelled`, request `withdrawn`,
+  started class's seat `approved`, `enrolment.cancelled` to the admins; nothing-to-release case; use case tests
+- ER-02 ✅ — e2e "promotes to admin": a student's seats and requests released; an instructor stays on their class
+- ER-03 ✅ — e2e "demotes an instructor": off C1 and C2, still on the started and the cancelled class, C1 shows no
+  instructor, one `class.noInstructor` for the other admin and none for the actor; `-t "actor"` in modules/classes
+- ER-04 ✅ — e2e "admin to instructor": the class kept, `GET /registrations` → 403 `user.role.notAdmin` at once
+- ER-05 ✅ — e2e "refuses": every refusal and its order, 401 without a token, nothing changed or released and no
+  `role.changed` in each case
+- ER-06 ✅ — e2e "last admin": the two races are forced through the row locks (one 200, one 409 `user.role.lastAdmin`,
+  one approved admin left; the second change of the same person → 409 `user.role.changeNotAllowed`);
+  `user.prisma.spec.ts` "updateKeepingAnAdmin"
+- ER-07 ✅ — `push-messages.spec.ts` "role.changed", the notifier spec, e2e "notifies" (pt-BR texts of the three cases,
+  nothing for the actor, no `class.unassigned`, 200 when the push fails)
+- ER-08 ✅ — e2e "only admin" (409, still approved and teaching; 204 with a second admin; students and instructors
+  never refused); `delete-account.usecase.test.ts` "only admin"
+- ER-09 ✅ — simulator: a student's sheet shows "Promover a instrutor" and "Promover a admin" with their subtitles
+  below WhatsApp; an instructor's "Promover a admin" and "Rebaixar a aluno" (danger); an admin's only "Passar a
+  instrutor" (danger); the viewer's own sheet (Dev Admin) none; Jest "role actions" in the sheet and the screen
+- ER-10 ✅ — simulator: "Promover Bruno a admin?" with the seats note (a student), "Tirar Bruno de admin?", "Rebaixar
+  Bruno a aluno?"; "Voltar" returns to the details; each confirmation closes the sheet and the row shows the new chip
+  (ADMIN → INSTRUTOR → ALUNO); Jest "confirm" covers the error toasts, no connection and the double tap
+- ER-11 ❌ — see F-01. The received push (account reloaded, moved to the instructor flow, `["people"]` invalidated, a
+  failed reload leaving the screen) and the tapped push pass in Jest; the row shows `shield-checkmark-outline` in the
+  info tone (seen in the simulator)
+- ER-12 ✅ — simulator, with the three other admins set aside: Perfil → "Remover a conta" shows "Ainda não dá", the
+  description, "Ir para Pessoas" and "Cancelar"; "Ir para Pessoas" closes the sheet and opens Pessoas; Jest
+  `delete-account-sheet` covers two admins, students/instructors without a count request, loading, a failed count and
+  the 409 switch
+
+**Findings**
+
+- [ ] **F-01** (ER-11) — tapping a `role.changed` row on the notifications screen doesn't reload the account, so it opens
+  the home of the flow the *cached* session resolves to, not the reloaded account's. `openNotification` in
+  `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts` only calls `router.replace(routes.home)`;
+  the account is reloaded only by a push received with the app open, by a tapped push and at app start. So a person
+  whose push didn't arrive in the foreground (push turned off in Perfil, app in the background, no permission) and
+  who opens Avisos and taps the row stays in their old flow. Reproduce (simulator, signed in as the admin review
+  account, app open): set that user's `role` to `instructor` in the database and add a `role.changed` notification
+  for them (`params {"role":"instructor","seatsReleased":false,"classesReleased":false}`); open Avisos and tap "Seu
+  papel mudou" → the admin "Painel" opens. Expected: the app reloads `GET /auth/me` (as the tapped push does) and
+  opens the instructor home. `notifications.screen.test.tsx` "opens the home of the account's flow for a role.changed
+  row" only checks `router.replace(routes.home)`; it should also check the reload and the resulting flow.
+
+**Notes**
+
+- While driving ER-10 I mistakenly confirmed "Promover a admin" for the seeded student Bruno Lima (simulator
+  screenshots lag one action behind). Everything that changed was put back: his role is student again (through the UI:
+  admin → instructor → student), his cancelled seat is `approved` again, and the 9 notifications it and the journey
+  created are deleted. The four approved admins are as before.
+- ER-01's edge names the class's instructors as `enrolment.cancelled` recipients; the e2e class has none, so only the
+  admins are asserted. The release itself is spec 043's code and keeps its own tests.
+- `.claude/launch.json` (the backend launch config T-15 created) is still untracked; it isn't part of the diff.
+- Memory Impact → `structure.md` could also list the new mobile hooks and utils (`use-change-role`,
+  `use-admins-count`, `role-change-error`, `last-admin-error`, `constants/role-actions`).

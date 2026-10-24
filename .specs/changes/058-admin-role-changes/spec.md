@@ -460,11 +460,26 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > `backend-provider-implementation` skills scaffold new repositories/providers and have no step for adding a method
   > to an existing one.
 
-- [ ] **T-08** — Add `src/modules/notifications/notifications.role-change-notifier.ts`
+- [x] **T-08** — Add `src/modules/notifications/notifications.role-change-notifier.ts`
   (`NotificationsRoleChangeNotifier`, one `role.changed` to the person, errors logged and swallowed) exported from the
   notifications module, and the `role.changed` entry of `push-messages.ts` in pt-BR, es and en (Copy), with specs.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-07 · Done when: `npx vitest run src/modules/notifications` passes from `apps/backend`.
+  > ✅ 2026-10-24 00:41 — `NotificationsRoleChangeNotifier` (one `role.changed` to the person through `Notify`, params
+  > `{ role, seatsReleased, classesReleased }`, errors logged and swallowed) provided and exported by
+  > `NotificationsModule`; the `role.changed` entry of `push-messages.ts` in pt-BR, es and en (title, then the role
+  > sentence and, only when true, the seats and the classes sentences; the in-app text is the push's); specs for the
+  > copy (each locale, both extras, none, an unknown role) and the notifier (stored and pushed, store failure, push
+  > failure, non-Error throw); the catalog's "every type" tests now pass a `role` and count 17 other types; files:
+  > `apps/backend/src/modules/notifications/notifications.role-change-notifier.ts`,
+  > `apps/backend/src/modules/notifications/notifications.role-change-notifier.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.module.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run
+  > src/modules/notifications` (19 files, 200 passed; `-t "role.changed"` selects 10), both source files 100% covered,
+  > `npx tsc --noEmit` exits 0; deviations: written by hand on `NotificationsRegistrationNotifier`'s pattern —
+  > `backend-provider-implementation` targets a provider of a module's own port and has nothing for a cross-module
+  > notifier adapter.
 
 - [ ] **T-09** — Add `PUT /people/:id/role` to `src/modules/auth/people.controller.ts` (runs `ChangeRole` with the
   repository, the two releasers and the notifier, wired in `AuthModule`), and the 409 of `DELETE /auth/me` through the

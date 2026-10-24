@@ -66,6 +66,53 @@ const classEdited: Record<PushLocale, (params: NotificationParams) => string> = 
   },
 };
 
+/** The sentences of `role.changed`: the new role, then what the change gave up. */
+const ROLE_CHANGED: Record<
+  PushLocale,
+  { roles: Record<string, string>; seatsReleased: string; classesReleased: string }
+> = {
+  'pt-BR': {
+    roles: {
+      student: 'Agora você é aluno.',
+      instructor: 'Agora você é instrutor.',
+      admin: 'Agora você é admin.',
+    },
+    seatsReleased: 'Suas vagas e pedidos em aulas futuras foram cancelados.',
+    classesReleased: 'Você saiu das suas próximas aulas.',
+  },
+  es: {
+    roles: {
+      student: 'Ahora eres alumno.',
+      instructor: 'Ahora eres instructor.',
+      admin: 'Ahora eres admin.',
+    },
+    seatsReleased: 'Tus plazas y solicitudes en clases futuras se cancelaron.',
+    classesReleased: 'Dejaste tus próximas clases.',
+  },
+  en: {
+    roles: {
+      student: "You're now a student.",
+      instructor: "You're now an instructor.",
+      admin: "You're now an admin.",
+    },
+    seatsReleased: 'Your upcoming seats and pending requests were cancelled.',
+    classesReleased: 'You were taken off your upcoming classes.',
+  },
+};
+
+const roleChanged =
+  (locale: PushLocale) =>
+  ({ role, seatsReleased, classesReleased }: NotificationParams): string => {
+    const copy = ROLE_CHANGED[locale];
+    return [
+      typeof role === 'string' ? copy.roles[role] : undefined,
+      seatsReleased === true ? copy.seatsReleased : undefined,
+      classesReleased === true ? copy.classesReleased : undefined,
+    ]
+      .filter(Boolean)
+      .join(' ');
+  };
+
 // The second user-facing text the backend writes (next to the sign-in email): a push is drawn by the OS, often with
 // the app closed, so its text travels in the payload. The admin's denial reason is shown as written, never translated.
 const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
@@ -484,6 +531,11 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
         );
       },
     },
+  },
+  'role.changed': {
+    'pt-BR': { title: 'Seu papel mudou', body: roleChanged('pt-BR') },
+    es: { title: 'Tu rol cambió', body: roleChanged('es') },
+    en: { title: 'Your role changed', body: roleChanged('en') },
   },
 };
 

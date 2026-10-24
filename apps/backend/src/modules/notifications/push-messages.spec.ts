@@ -296,10 +296,50 @@ describe('renderPush', () => {
     expect(renderPush('enrolment.takenOut', params, locale).body).toBe('Turma avançada.');
   });
 
+  it.each([
+    ['pt-BR', 'Seu papel mudou', 'Agora você é instrutor. Suas vagas e pedidos em aulas futuras foram cancelados.'],
+    ['es', 'Tu rol cambió', 'Ahora eres instructor. Tus plazas y solicitudes en clases futuras se cancelaron.'],
+    ['en', 'Your role changed', "You're now an instructor. Your upcoming seats and pending requests were cancelled."],
+  ] as const)('tells a promoted student in %s of role.changed and the seats given up', (locale, title, body) => {
+    const params = { role: 'instructor', seatsReleased: true, classesReleased: false };
+
+    expect(renderPush('role.changed', params, locale)).toEqual({ title, body });
+    expect(renderInApp('role.changed', params, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Agora você é aluno. Você saiu das suas próximas aulas.'],
+    ['es', 'Ahora eres alumno. Dejaste tus próximas clases.'],
+    ['en', "You're now a student. You were taken off your upcoming classes."],
+  ] as const)('tells a demoted instructor in %s of role.changed and the classes left', (locale, body) => {
+    const params = { role: 'student', seatsReleased: false, classesReleased: true };
+
+    expect(renderPush('role.changed', params, locale).body).toBe(body);
+  });
+
+  it.each([
+    ['pt-BR', 'Agora você é admin.'],
+    ['es', 'Ahora eres admin.'],
+    ['en', "You're now an admin."],
+  ] as const)('says only the new role of role.changed in %s when nothing was given up', (locale, body) => {
+    expect(renderPush('role.changed', { role: 'admin', seatsReleased: false, classesReleased: false }, locale).body).toBe(
+      body,
+    );
+  });
+
+  it('writes both sentences of role.changed, and skips an unknown role', () => {
+    expect(
+      renderPush('role.changed', { role: 'student', seatsReleased: true, classesReleased: true }, 'en').body,
+    ).toBe("You're now a student. Your upcoming seats and pending requests were cancelled. You were taken off your upcoming classes.");
+    expect(renderPush('role.changed', { role: 42, seatsReleased: 'yes', classesReleased: true }, 'pt-BR').body).toBe(
+      'Você saiu das suas próximas aulas.',
+    );
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {
-        const { title, body } = renderPush(type, { name: 'Ana', reason: 'x' }, locale);
+        const { title, body } = renderPush(type, { name: 'Ana', reason: 'x', role: 'student' }, locale);
         expect(title).not.toBe('');
         expect(body).not.toBe('');
       }
@@ -350,12 +390,14 @@ describe('renderInApp', () => {
       locationName: 'Praia do Futuro',
       message: 'Mar grande.',
       reason: 'Turma cheia.',
+      role: 'admin',
+      seatsReleased: true,
     };
     const others = NOTIFICATION_TYPES.filter(
       (type) => type !== 'class.edited' && type !== 'registration.denied',
     );
 
-    expect(others).toHaveLength(16);
+    expect(others).toHaveLength(17);
     for (const type of others) {
       for (const locale of PUSH_LOCALES) {
         expect(renderInApp(type, params, locale)).toEqual(renderPush(type, params, locale));

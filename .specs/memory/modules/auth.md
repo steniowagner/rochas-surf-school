@@ -20,19 +20,42 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   more identities; many sessions. Lifecycle: as in Product; today the creation of a `pending` student
   through an email code or Google is built, plus the seeded review accounts, an admin approving or denying a
   `pending` account, an approved account adding or changing its WhatsApp number, an approved account changing
-  its name, an approved account deleting itself, and a deleted account sending its reactivation request.
+  its name, an approved account deleting itself, a deleted account sending its reactivation request, and an
+  approved admin changing another approved account's role.
 - **Changing one's name**: an approved account replaces its own name; the name is trimmed and must follow the same
   rules as at sign-up (refused with a `user.name.*` key otherwise, the stored name kept). Only the name changes;
   the email never does. Any other status is refused with `user.status.notApproved`.
 - **Deleting one's account**: an approved account closes itself after a confirmation in the app; it becomes
   `deleted` with the moment of the deletion, and can then send its reactivation request. Any other status is
-  refused with `user.status.notApproved`. After those checks and before the account is marked deleted, its
+  refused with `user.status.notApproved`. The school's only approved admin is refused with `user.role.lastAdmin`
+  (409) before anything is released. After those checks and before the account is marked deleted, its
   upcoming class assignments are released (every role; a student has none), then its seats in classes that
   haven't started are cancelled and its pending requests withdrawn ([Enrolment](enrolment.md) tells admins and
   instructors of each cancelled seat): if either release fails, the deletion fails as a whole and the account
-  stays approved, and since releasing twice changes nothing more, trying again is safe. A reactivation doesn't
-  bring the assignments, seats or requests back. Not built yet: refusing the only admin, and erasing it 30 days
-  later.
+  stays approved, and since releasing twice changes nothing more, trying again is safe. The deletion is written
+  with the guarded write below: when the last two admins delete their accounts at the same moment, one is refused
+  with `user.role.lastAdmin`; an account whose role or status changed meanwhile is refused with
+  `user.status.notApproved`. A reactivation doesn't bring the assignments, seats or requests back. Not built yet:
+  erasing it 30 days later.
+- **Changing someone's role**: an approved admin changes another approved account's role. Exactly five changes,
+  one step each: student → instructor, student → admin, instructor → admin, instructor → student, admin →
+  instructor (an admin reaches student in two). Checked in this order: the caller's status
+  (`user.status.notApproved`, 403) and role (`user.role.notAdmin`, 403); the new role missing, not text or unknown
+  (`people.role.invalid`, 422); an id that isn't a UUID or names no account (`user.notFound`, 404); the caller's own
+  account (`user.role.self`, 403); an account that isn't approved (`user.status.notApproved`, 409); any other pair,
+  including the current role (`user.role.changeNotAllowed`, 409). Then, first, the release: a student gives up their
+  upcoming seats and pending requests (as for a deletion), an instructor made a student leaves their upcoming
+  classes, with the admin as actor (left out of the "no instructor" notice); instructor ↔ admin keeps every class.
+  A failed release fails the call (a retry is safe). Then the guarded write of the new role:
+  `user.role.changeNotAllowed` (409) when the stored role or status changed since it was read, `user.role.lastAdmin`
+  (409) when no approved admin would remain. Then the person is told once (`role.changed`, with the new role and
+  whether seats or classes were given up); the actor isn't, and a failed notification never changes the answer,
+  `{ id, role }`. A role change applies at once, since every request reloads role and status.
+- **There is always an approved admin**: the account write of a role change or a deletion runs in one step that
+  first locks the approved admins, writes only while the stored role and status are the ones read, and refuses
+  when the account is an approved admin who stops being one and no other approved admin remains — so two admins
+  demoting each other, or the last two deleting their accounts, at the same moment can't leave the school without
+  one. With no self-change, demoting another admin always leaves the actor.
 - **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
   country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
@@ -173,7 +196,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   own account, and reads the people directory (any role; anyone else gets `user.status.notApproved`).
 - **A deleted account** — sends its one reactivation request.
 - **An approved admin** — lists the pending registrations and approves or denies each one, with an optional
-  reason when denying. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
+  reason when denying; changes another approved account's role (never their own). The school's only approved
+  admin can't delete their account. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
   (checked first, so a removed admin gets it), an approved non-admin with `user.role.notAdmin` — before the id is
   even looked up.
 - **Anyone holding a refresh token** — renews or ends that session (10 requests per minute per network address
@@ -256,6 +280,20 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   loading the next 20 at the end, with pull-to-refresh and loading, empty and error-with-retry states. A person's
   sheet opens WhatsApp on the phone with their number when the viewer may see it, and otherwise shows a disabled
   "Número não compartilhado." row.
+- **In the app**, an approved admin on the People screen sees, on anyone else's sheet, the role actions below the
+  WhatsApp row: a student's "Promover a instrutor" and "Promover a admin", an instructor's "Promover a admin" and
+  "Rebaixar a aluno", another admin's "Passar a instrutor" (demotions in red). None on the viewer's own sheet, for
+  other viewers, or on the sheets opened from the class details and "Join the school". An action swaps the sheet's
+  content for its confirmation (the first name in the title, the consequences — the seats sentence of "Promover a
+  admin" only for a student —, the confirm button, "Voltar" back to the details); confirming sends the change once
+  (the button ignores presses while it runs), closes the sheet and reloads the people and the classes, with no
+  success toast. A refusal or failure shows its toast and keeps the confirmation; an expired session shows none.
+- **In the app**, a `role.changed` push reloads the account with the app open, so the flow guards move it to the new
+  role's experience; tapping the push or its row reloads the account and opens the home of the flow it resolves to.
+- **In the app**, an admin's "Remover a conta" sheet reads the number of approved admins when it opens; with one,
+  or when the deletion is refused with `user.role.lastAdmin`, it shows "Ainda não dá" with "Ir para Pessoas"
+  (closes the sheet and opens People) and "Cancelar", and the person stays signed in. While the count loads or if
+  it fails, the normal confirmation shows (the backend still refuses).
 - **In the app**, a removed account sees that its access was removed and can't be reactivated from the app, and
   can contact the school on WhatsApp when the school has a number; a stored reactivation status changes
   nothing for it.
@@ -276,8 +314,10 @@ registration is erased, and asks a third contract, provided the same way, to del
 registration" notifications about it (spec 021). Deleting one's own account is built (spec 026); it releases the
 account's upcoming classes through a fourth contract of its own, fulfilled by the backend with
 [Classes](classes.md)' release (spec 035), then gives up the account's seats and requests through a fifth,
-fulfilled with [Enrolment](enrolment.md)'s release (spec 043) — this module depends on neither. The role-change
-and removal rules are meant to use the same contracts. Removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
+fulfilled with [Enrolment](enrolment.md)'s release (spec 043) — this module depends on neither. Both contracts
+answer how much they released. Changing a role uses the same two contracts (the teaching one with the admin as
+actor) and tells the person through a sixth, fulfilled with [Notifications](notifications.md) (spec 058); removal
+is meant to use them too. Removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
 requests, and deciding reactivation requests are rules of the account lifecycle still to be specified.
 
 ## Spec history
@@ -352,3 +392,10 @@ requests, and deciding reactivation requests are rules of the account lifecycle 
   "Back"), and a decided card just leaves the list, without "Decided just now".
 - `043-seat-cancellation` — deleting one's account also gives up the account's upcoming seats and pending
   requests, through the new `SeatReleaser` contract called after `TeachingReleaser`, with the same failure rule.
+- `058-admin-role-changes` — approved admins change another approved account's role (`PUT /people/:id/role`,
+  `ChangeRole`: the five allowed changes, the checks in order, release first, then the guarded write, then
+  `role.changed` through the new `RoleChangeNotifier` contract); `DELETE /auth/me` refuses the only approved admin
+  (409 `user.role.lastAdmin`); `UserRepository` gains `countApprovedAdmins` and `updateKeepingAnAdmin` (locks the
+  approved admins, conditional write, `"updated" | "changed" | "lastAdmin"`), used by both; `SeatReleaser` and
+  `TeachingReleaser` answer counts, and the teaching one takes the actor. In the app, the person sheet's role
+  actions and confirmation on People, the `role.changed` reload, and the delete-account sheet's only-admin state.

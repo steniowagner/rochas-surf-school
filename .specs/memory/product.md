@@ -73,10 +73,13 @@ Listed in the order people meet them.
   - **Erasure** removes name, email, photo and WhatsApp number and deletes the account's comments; star ratings
     stay without a name; class lists and photos show "Former student" (or "Former instructor" for an
     instructor or admin). The email is then free to sign up again as a new registration.
-  - Role changes (admins only): student → instructor (cancels the student's upcoming seats and pending
-    enrolments, and the notification says so); any user → admin; instructor → student (unassigned from the
-    classes they teach that haven't started, kept on the others); admin → another role. The only admin can't
-    be demoted or removed. Users are notified when their role changes.
+  - Role changes (an approved admin, on someone else's approved account — never their own): exactly five, one
+    step each — student → instructor and student → admin (both cancel the student's upcoming seats and withdraw
+    their pending requests, and the notification says so); instructor → admin (kept on every class they teach);
+    instructor → student (unassigned from the classes they teach that haven't started, kept on the others);
+    admin → instructor (kept on every class they teach). An admin reaches student in two steps. The only admin
+    can't be demoted or removed. The person gets one notification of their new role, and their app moves to the
+    new role's experience. There is no "also an instructor" flag: every admin can be assigned to teach.
 - **Identity** (`identity`): one way a user signs in — Google, Apple (iOS only) or a code sent by email. Key
   fields: method, the email it provides. Relationship: belongs to one user; a user has one or more. Any method
   that provides the same email opens the same account; a Google sign-in keeps opening its account even after
@@ -617,8 +620,8 @@ sign-in shows the Account deleted screen). Theme, language and pushes are kept o
 out. Turning pushes off removes the phone from the account's pushes at once (retried at the next launch or
 sign-in if it fails); turning them on registers it again, and a refused OS permission keeps the switch off with a
 message. Deleting the account takes the person off their classes that haven't started (spec 035, below), then
-cancels their seats in classes that haven't started and withdraws their pending requests (spec 043, below); it
-doesn't yet refuse the only admin. All copy is in pt-BR, es-ES and en-US.
+cancels their seats in classes that haven't started and withdraws their pending requests (spec 043, below); the
+school's only admin is refused (spec 058, below). All copy is in pt-BR, es-ES and en-US.
 
 **People directory** (spec `027-people-directory`) — every approved member can now see the school's other
 approved members on one "Pessoas" screen, the same for the three roles: a student opens it from the Escola tab; an
@@ -1065,6 +1068,27 @@ atribuídas.") and an error state with "Tentar novamente". A card opens the clas
 header title now uses the smaller type style of a title next to the back button. All copy is in pt-BR, es-ES and
 en-US.
 
+**Admins change people's roles** (spec `058-admin-role-changes`) — on the People screen, the sheet of someone else
+shows an approved admin the role actions below the WhatsApp row: a student's "Promover a instrutor" and "Promover a
+admin"; an instructor's "Promover a admin" and "Rebaixar a aluno"; another admin's "Passar a instrutor" (the two
+that take something away in red). The viewer's own sheet, a student's or instructor's view, and the sheets opened
+from the class details or "Entrar na escola" show none. An action swaps the sheet for its confirmation — "Promover
+Ana a instrutor?" with the person's first name, what the change does ("Promover a admin" adds the seats sentence
+only for a student), the confirm button and "Voltar" back to the details. Confirming closes the sheet and the list
+shows the new role; a role changed meanwhile ("O papel desta pessoa mudou. Atualize a lista."), the last admin ("A
+escola precisa de pelo menos um admin."), a person no longer on the platform, no connection or any other failure
+shows a toast and keeps the confirmation. Promoting a student gives up their upcoming seats and withdraws their
+pending requests (admins and instructors are told of each seat as for a deletion); demoting an instructor takes them
+off their upcoming classes, and a class left with nobody is flagged and the other admins are told — never the admin
+who demoted; instructor ↔ admin keeps every class. The person gets one "Seu papel mudou" notification ("Agora você é
+instrutor.", plus "Suas vagas e pedidos em aulas futuras foram cancelados." or "Você saiu das suas próximas aulas."
+when something was given up); with the app open it reloads the account and moves to the new role's experience, and
+tapping the push or its row reloads the account and opens the new role's home. Two admins demoting each other at
+the same moment can't both win, so the school always keeps an approved admin. The only approved admin can't delete
+their account: "Remover a conta" shows "Ainda não dá" ("Você é o único admin da escola. Promova outra pessoa a admin
+antes de remover sua conta.") with "Ir para Pessoas" and "Cancelar", also when the backend refuses a deletion the
+app didn't foresee. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1104,11 +1128,11 @@ Active specs: none.
   switch on the site (it follows the system theme).
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, real data in the
-  About sheet (mocked), keeping the theme, language and push preferences on the account or syncing them across
-  phones, and, when a person deletes their account, refusing the only admin.
+  About sheet (mocked), and keeping the theme, language and push preferences on the account or syncing them across
+  phones.
 - On the People directory (spec 027): profile photos (initials only), class counts and the "Acesso total" /
-  "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", promoting, demoting or
-  removing someone from their sheet, searching by email, the real count on the home rows (a fixed "9 na
+  "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", removing someone from
+  their sheet, searching by email, the real count on the home rows (a fixed "9 na
   plataforma" until the backend can give it), and the rest of the admin and instructor dashboards (greeting,
   metrics and every other row).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
@@ -1135,8 +1159,8 @@ Active specs: none.
   (a message to a class's people, its own spec).
 - On deleting a class (spec 034): the seat and pending-request counts on the confirmation sheet; deleting several
   classes at once; restoring a deleted class or keeping any record of it.
-- On classes left without an instructor (spec 035): releasing the classes when an instructor is demoted to
-  student or an account is removed (their specs reuse the same step); telling the students of a class that lost
+- On classes left without an instructor (spec 035): releasing the classes when an account is removed (its spec
+  reuses the same step; a demotion to student uses it since spec 058); telling the students of a class that lost
   its instructor; a list or filter of the classes without an instructor.
 - On cancellation rules and deadlines (spec 036): notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
   showing who saved a rule; a list or filter of the classes without a deadline, and admins setting a deadline by
@@ -1161,7 +1185,7 @@ Active specs: none.
   when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision. On
   cancelling a seat (spec 043): what a late cancellation costs (handled outside the app, by product decision),
   cancelling several seats at once, undoing a cancellation (the student requests again), and releasing the seats
-  and requests of a removed account or of a student promoted to instructor (their specs reuse the same release). On
+  and requests of a removed account (its spec reuses the same release; a promoted student uses it since spec 058). On
   direct enrolment and taking out (spec 044): taking a student out after the class starts, moving a student between
   classes, enrolling several students at once, and enrolling from a class's details. On guests (spec 045):
   editing a guest's name or number, listing a person's past trials, showing a guest's WhatsApp number anywhere in
@@ -1169,9 +1193,14 @@ Active specs: none.
   done, by product decision. On the waiting-list switch (spec 046): turning the waiting list on or off per class,
   ending the waiting requests when it is turned off, recording who changed a school setting, and an open class's
   details following a switch turned back on (it shows at the next opening).
+- On role changes (spec 058): an admin going straight to student, and anyone changing their own role (never
+  allowed, by product decision); role actions on the sheets opened from the class details or "Entrar na escola";
+  "Remover da plataforma", the removed accounts section and "Restaurar" (their own spec); undoing a role change and a
+  success style for toasts; telling anyone but the person (the releases keep their own notifications), and a
+  `class.unassigned` per released class. The designs' "Também é instrutor" option is decided against: there is no
+  "also an instructor" flag, since every admin can be assigned to teach.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
-  notes on registrations and enrolment requests; an "also an instructor" option when promoting someone to
-  admin.
+  notes on registrations and enrolment requests.
 
 ## Source documents
 

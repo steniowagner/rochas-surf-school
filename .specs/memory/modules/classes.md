@@ -247,14 +247,17 @@ Deleting one class:
   instructor of the class gets `class.deleted` with its discipline and start (no class to open). A class taught
   only by that admin tells nobody. A notification that fails never changes the answer or the deletion.
 
-Releasing a person's upcoming classes (when their account is deleted):
+Releasing a person's upcoming classes (when their account is deleted, or an instructor is made a student):
 
-- **No actor**: it runs for an account event, never on a request; nobody's role or status is checked here.
+- **No access check**: it runs for an account event or a role change, never on its own request; nobody's role or
+  status is checked here. A role change passes the admin who made it (`actorId`), left out of the "no instructor"
+  notice; a deletion passes none.
+- **It answers how many classes the person left** and how many were left with nobody.
 - **Only classes that haven't started and aren't cancelled** lose the person — every one of them, in one write;
   classes under way, finished or cancelled keep them as history. No such class → nothing written or sent.
 - **A class left with nobody stays scheduled**: it isn't cancelled or deleted, and it is flagged.
 - **Admins are told once per event**, after the write, only when at least one class was left with nobody: the
-  count and the earliest such class (by start, then id), never the person who left. Classes that keep another
+  count and the earliest such class (by start, then id), never the person who left nor the actor. Classes that keep another
   instructor tell nobody. A notification that fails never changes the result or the write; a failed write tells
   nobody.
 - **The "no instructor" flag is computed, never stored**: a class with no instructor that hasn't started. It
@@ -530,3 +533,7 @@ which stops that account from being erased while the link exists — a decision 
   `user.role.notTeacher`. In the app, "Minhas aulas" is the first Escola row of both homes (the admin's only once
   they teach) and opens a screen with the classes under way on grape cards, then the rest by day, the next class
   highlighted.
+- `058-admin-role-changes` — `ReleaseUpcomingClasses` takes an optional `actorId`, left out of the
+  `class.noInstructor` recipients with the person; Authentication's demotion of an instructor to student now runs
+  the release (through `ClassesTeachingReleaser`, which passes the actor and answers how many classes were
+  released).

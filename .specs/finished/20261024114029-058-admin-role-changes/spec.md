@@ -2,13 +2,14 @@
 id: "058"
 slug: admin-role-changes
 title: "Admins change people's roles"
-status: accepted
+status: finished
 created: 2026-10-23
 started: 2026-10-24
 base_commit: 8b28b59430a73925be69587449e72cf1ad983b03
 reviewed_commit: 641a25d7e08c3a84009cec35424f055be6a88dff
 fronts: [enrolment, classes, notifications, auth, backend, mobile]
 depends_on: []
+finished: 2026-10-24
 ---
 
 # 058 — Admins change people's roles

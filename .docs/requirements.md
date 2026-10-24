@@ -389,6 +389,7 @@ Only students SHALL be able to request or hold seats in classes. Instructors and
 #### Admins can teach
 
 _Implemented in spec 057-teaching-classes._
+_Implemented in spec 058-admin-role-changes (a role change keeps admins assignable; there is no "also an instructor" flag)._
 
 Admins SHALL be able to teach classes, and SHALL see the classes they teach among their own classes, as instructors do.
 
@@ -396,11 +397,15 @@ Admins SHALL be able to teach classes, and SHALL see the classes they teach amon
 
 #### Promoting users
 
-Admins SHALL be able to make a student an instructor, and make any user an admin. Promoting a student SHALL cancel their upcoming seats and pending requests.
+_Implemented in spec 058-admin-role-changes._
+
+Admins SHALL be able to make a student an instructor, and make a student or an instructor an admin. Promoting a student SHALL cancel their upcoming seats and pending requests.
 
 - _Student promoted:_ When an admin promotes a student with upcoming seats to instructor, then the user becomes an instructor, and their upcoming seats and pending requests are cancelled.
 
 #### Demoting instructors
+
+_Implemented in spec 058-admin-role-changes._
 
 Admins SHALL be able to demote an instructor to student. The demoted user SHALL be removed from the classes they teach that have not started, and SHALL stay on the other classes they taught.
 
@@ -408,11 +413,15 @@ Admins SHALL be able to demote an instructor to student. The demoted user SHALL 
 
 #### Changing admins
 
-Admins SHALL be able to change another admin's role or remove another admin.
+_Implemented in spec 058-admin-role-changes (changing the role; removal comes with its spec)._
+
+Admins SHALL be able to change another admin's role to instructor, or remove another admin. An admin SHALL NOT change their own role, and an admin reaches student in two steps (admin to instructor, then instructor to student).
 
 - _Admin made an instructor:_ When an admin changes another admin's role to instructor, then that user becomes an instructor.
 
 #### At least one admin
+
+_Implemented in spec 058-admin-role-changes (demotion and account deletion; removal comes with its spec)._
 
 The system SHALL always keep at least one admin. The only admin SHALL NOT be demoted or removed, and SHALL make someone else an admin before deleting their own account.
 
@@ -420,6 +429,8 @@ The system SHALL always keep at least one admin. The only admin SHALL NOT be dem
 - _Demoting the only admin:_ When anyone tries to demote or remove the only admin, then the change is refused.
 
 #### Role change notification
+
+_Implemented in spec 058-admin-role-changes._
 
 The system SHALL notify users when their role changes. When a promotion cancels a student's seats and pending requests, the notification SHALL say so.
 
@@ -760,6 +771,7 @@ Admins SHALL be able to assign instructors and admins to teach a class, and remo
 #### Class without an instructor
 
 _Implemented in spec 035-class-no-instructor (when the instructor deletes their account; demotion and removal come with their specs)._
+_Implemented in spec 058-admin-role-changes (when the instructor is demoted to student)._
 
 When a class that hasn't started loses its only instructor, because that instructor was demoted or removed or deleted their account, the class SHALL stay scheduled and be flagged as having no instructor, and admins SHALL be notified.
 

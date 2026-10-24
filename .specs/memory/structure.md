@@ -53,17 +53,21 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 
 - **`modules/auth`** (`@rochas-surf-school/auth`) — 4 aggregates:
   - `user/` — `model/user.entity.ts`, `provider/user.repository.ts` (with `addRulesAcceptance`, `findPending`,
-    `updateIfPending`, the conditional write of a registration decision, and `findDirectoryPage`, the people
-    directory's page),
+    `updateIfPending`, the conditional write of a registration decision, `findDirectoryPage`, the people
+    directory's page, and `countApprovedAdmins` / `updateKeepingAnAdmin`, the write that always keeps an approved
+    admin),
     `provider/rules-version.provider.ts` (`RulesVersionProvider`: the current school rules version, read
     without depending on `school-rules`), `provider/registration-notifier.provider.ts` (`RegistrationNotifier`:
     tells admins and the person about a registration, without depending on `notifications`),
     `provider/teaching-releaser.provider.ts` (`TeachingReleaser`: takes a person off their upcoming classes,
     without depending on `classes`), `provider/seat-releaser.provider.ts` (`SeatReleaser`: gives up a person's
-    upcoming seats and pending requests, without depending on `enrolment`; spec 043),
+    upcoming seats and pending requests, without depending on `enrolment`; spec 043; both answer counts),
+    `provider/role-change-notifier.provider.ts` (`RoleChangeNotifier`: tells a person their role changed; spec 058),
     `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,set-name,delete-account,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
-    (`SetName`: an approved account renames itself; `DeleteAccount`: an approved account releases its upcoming
-    classes, then its seats and requests, then closes itself → `deleted`)
+    (`SetName`: an approved account renames itself; `DeleteAccount`: an approved account — never the only admin —
+    releases its upcoming classes, then its seats and requests, then closes itself → `deleted` through
+    `updateKeepingAnAdmin`), `usecase/change-role.usecase.ts` (`ChangeRole`: an approved admin changes another
+    account's role — the five allowed changes, release, guarded write, `role.changed`; spec 058)
     and `usecase/account.out.ts` (`AccountOut` / `toAccountOut`: the account shape every answer carries, with
     `rulesAccepted`, `denialReason` and `reactivationStatus`);
     `usecase/{list-registrations,approve-registration,deny-registration}.usecase.ts` with
@@ -230,7 +234,8 @@ src/
     auth.integration.http       # manual REST Client requests
     registrations.controller.ts # GET /registrations, POST /registrations/:id/approve and /deny (200) — protected
     registrations.integration.http  # manual REST Client requests
-    people.controller.ts        # GET /people (200) — protected; the people directory (ListPeople)
+    people.controller.ts        # GET /people (200) — protected; the people directory (ListPeople); PUT
+                                # /people/:id/role (200) — ChangeRole, with the two releasers and the notifier
     people.integration.http     # manual REST Client requests
     auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser, GOOGLE_WEB_CLIENT_ID
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
@@ -273,6 +278,8 @@ src/
     notifications.push-token-remover.ts     # PushTokenRemover adapter (RemovePushToken)
     notifications.registration-notification-eraser.ts  # RegistrationNotificationEraser adapter
                                 # (DeleteRegistrationNotifications)
+    notifications.role-change-notifier.ts  # RoleChangeNotifier adapter (one role.changed to the person through
+                                # Notify; logs and swallows every error; spec 058)
     notifications.class-assignment-notifier.ts  # ClassAssignmentNotifier adapter of classes (Notify
                                 # class.assigned / class.unassigned; logs and swallows every error)
     notifications.class-change-notifier.ts  # ClassChangeNotifier adapter of classes (Notify class.edited /
@@ -378,6 +385,8 @@ test/
   auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
   registrations.e2e-spec.ts     # e2e suite of the /registrations routes (accounts through Prisma; concurrency)
   people.e2e-spec.ts            # e2e suite of GET /people (accounts through Prisma, isolated by a per-test name tag)
+  people-roles.e2e-spec.ts      # e2e suite of PUT /people/:id/role (spec 058): the five changes, their releases,
+                                # every refusal, the last-admin races forced through the row locks, role.changed
   teaching-classes.e2e-spec.ts  # e2e suite of GET /classes/teaching (fixed classes clock; spec 057)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
   school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
@@ -505,15 +514,22 @@ src/
     screens/people.screen.tsx   # PeopleScreen: count eyebrow, title, search, RoleFilters, FlatList
                                 # grouped by first letter (end-reached paging, footer spinner, empty, loading,
                                 # error + retry, pull-to-refresh), PersonSheet
-    people.types.ts             # Person, PeoplePage, PeopleRole, PeopleFilters (mirror the API)
+    people.types.ts             # Person, PeoplePage, PeopleRole, PeopleFilters (mirror the API), RoleAction,
+                                # ChangeRoleVariables, RoleChange
     constants/people.ts         # PEOPLE_PAGE_SIZE (20), PEOPLE_ROLES (fixed order), PEOPLE_COUNT_PLACEHOLDER (9)
+    constants/role-actions.ts   # the role actions per role, each one's target role, icon and danger tone (spec 058)
     hooks/                      # use-people (infinite query ["people", { roles, search }]), use-people-count
-                                # (["people", "count"]), use-people-screen (debounce, roles, sheet, toasts)
+                                # (["people", "count"]), use-people-screen (debounce, roles, sheet, toasts, whether
+                                # the viewer may change the selected person's role), use-change-role (PUT
+                                # /people/:id/role; invalidates ["people"] and ["classes"]; spec 058)
     components/                 # role-filters (one toggle button per role), person-avatar (initials), person-row,
-                                # person-sheet (WhatsApp row or "not shared", Close), people-entry-row (the
-                                # homes' "People · N on the platform" row)
+                                # person-sheet (WhatsApp row or "not shared", the role actions when canChangeRole,
+                                # swapped for the confirmation in the same sheet, Close), person-role-actions (the
+                                # rows of each role), role-change-confirmation (title, consequences, confirm,
+                                # Voltar), people-entry-row (the homes' "People · N on the platform" row)
     utils/                      # people-query.ts (buildPeoplePagePath), group-by-initial.ts, format-since.ts
-                                # ("MMM yyyy"), format-whatsapp-number.ts, role-chip.ts (role → chip tone and label)
+                                # ("MMM yyyy"), format-whatsapp-number.ts, role-chip.ts (role → chip tone and label),
+                                # role-change-error.ts (the toast key of each role-change error)
   modules/cancellation-rules/   # the cancellation rules (spec 036): reading them (every role) and editing them
                                 # (admins)
     screens/cancellation-rules.screen.tsx  # CancellationRulesScreen + hook + types (the Surf / Skate drafts, the
@@ -734,7 +750,11 @@ src/
                                 # (also used by the class details' "Regras"; valueBelow stacks the value),
                                 # edit-profile, profile-whatsapp, sign-out-sheet, delete-account-sheet, about-sheet
     hooks/                      # use-update-name (PUT /auth/me/name), use-delete-account (DELETE /auth/me, then
-                                # sign-out), use-open-url (in-app browser, toast on failure)
+                                # sign-out; no toast for the only admin's 409), use-admins-count (["people",
+                                # "admins", "count"], GET /people?role=admin&perPage=1, while an admin's
+                                # delete-account sheet is open; spec 058), use-open-url (in-app browser, toast on
+                                # failure)
+    utils/last-admin-error.ts   # isLastAdminError: DELETE /auth/me's 409 user.role.lastAdmin (spec 058)
     constants/about.ts          # the About sheet's mocked content (version, creator, links)
     utils/web-pages.ts          # getWebPageUrl: privacy policy / terms of use from EXPO_PUBLIC_WEB_URL and the language
   modules/pending/

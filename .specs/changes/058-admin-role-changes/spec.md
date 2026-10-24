@@ -535,12 +535,25 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-11** — Add `src/modules/people/hooks/use-change-role.hook.ts` (`PUT /people/:id/role`, no retry,
+- [x] **T-11** — Add `src/modules/people/hooks/use-change-role.hook.ts` (`PUT /people/:id/role`, no retry,
   invalidates `["people"]` and `["classes"]` on success) and `src/modules/people/utils/role-change-error.ts` (the
   toast key of each error, `null` for an expired session), with tests. Skills:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-10 · Done when: `npx jest src/modules/people/hooks src/modules/people/utils` passes from `apps/mobile`.
+  > ✅ 2026-10-24 00:55 — `useChangeRole` (`PUT /people/:id/role` with `{ role }`, authenticated, no retry; on success
+  > invalidates `["people"]` and `["classes"]`) with the `ChangeRoleVariables` / `RoleChange` types, and
+  > `getRoleChangeErrorKey` (409 `user.role.changeNotAllowed` → `people.roleErrors.changed`, 409 `user.role.lastAdmin`
+  > → `people.roleErrors.lastAdmin`, 409 `user.status.notApproved` → `people.roleErrors.notApproved`, no connection →
+  > `createAccount.errors.noConnection`, an expired session → `null`, anything else → `createAccount.errors.generic`),
+  > with tests (the request and both invalidations; a failure without retry or invalidation; every mapping); files:
+  > `apps/mobile/src/modules/people/hooks/use-change-role.hook.ts`,
+  > `apps/mobile/src/modules/people/hooks/use-change-role.hook.test.tsx`,
+  > `apps/mobile/src/modules/people/utils/role-change-error.ts`,
+  > `apps/mobile/src/modules/people/utils/role-change-error.test.ts`,
+  > `apps/mobile/src/modules/people/people.types.ts`; verified: `npx jest src/modules/people/hooks
+  > src/modules/people/utils` (8 suites, 36 passed); deviations: the `people.roleErrors.*` keys the util names are
+  > added with the rest of the copy in T-12.
 
 - [ ] **T-12** — Add `src/modules/people/components/person-role-actions/` (the rows of D-12) and
   `src/modules/people/components/role-change-confirmation/` (D-11, D-15), a `canChangeRole` prop on `PersonSheet` that

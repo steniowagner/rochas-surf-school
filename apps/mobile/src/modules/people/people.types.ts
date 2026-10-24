@@ -22,3 +22,15 @@ export type PeopleFilters = {
   roles: PeopleRole[];
   search: string;
 };
+
+/** What `PUT /people/:id/role` takes: whose role and the new one. */
+export type ChangeRoleVariables = {
+  id: string;
+  role: PeopleRole;
+};
+
+/** What `PUT /people/:id/role` answers. */
+export type RoleChange = {
+  id: string;
+  role: PeopleRole;
+};

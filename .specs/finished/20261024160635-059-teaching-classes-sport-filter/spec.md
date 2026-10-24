@@ -3,13 +3,14 @@ id: "059"
 slug: teaching-classes-sport-filter
 title: "Sport filter on the instructor's and admin's \"Minhas aulas\""
 template: quick
-status: accepted
+status: finished
 created: 2026-10-24
 started: 2026-10-24
 base_commit: 9c26c2478e5ae8209924cc58712b9525ba2393d5
 reviewed_commit: 24ed993473d5ce1a82838a31d46e6af1ba93da74
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-24
 ---
 
 # 059 — Sport filter on the instructor's and admin's "Minhas aulas"

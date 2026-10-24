@@ -420,7 +420,8 @@ class whose location was removed shows it as "Removido" on "Editar aula" and can
 has a point shows everyone a small map across the top of the "Onde e como" card, with "Direções" beside the place. Instructors, and admins who teach, open "Minhas aulas" from
 the first "Escola" row of their home (an admin's row shows only once they teach a class): the classes under way on
 grape cards, then the others by day ("Hoje", "Amanhã", the weekday) with the next class marked "Próxima" and
-cancelled ones in their day (spec 057); their past classes, ratings and photos come with their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
+cancelled ones in their day (spec 057), filtered by sport with the Aulas tab's floating button ("Nenhuma aula de
+surf/skate" when the chosen sport has none left, spec 059); their past classes, ratings and photos come with their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
 ## Spec history
@@ -533,6 +534,10 @@ which stops that account from being erased while the link exists — a decision 
   `user.role.notTeacher`. In the app, "Minhas aulas" is the first Escola row of both homes (the admin's only once
   they teach) and opens a screen with the classes under way on grape cards, then the rest by day, the next class
   highlighted.
+- `059-teaching-classes-sport-filter` — the instructor's and admin's "Minhas aulas" filters the loaded classes by
+  sport with spec 050's floating button (no request, back to "Todas" on reopening): the classes under way, the days
+  and "Próxima" follow the chosen sport, and a filtered list with nothing left says "Nenhuma aula de surf/skate"; the
+  home row's count ignores the filter.
 - `058-admin-role-changes` — `ReleaseUpcomingClasses` takes an optional `actorId`, left out of the
   `class.noInstructor` recipients with the person; Authentication's demotion of an instructor to student now runs
   the release (through `ClassesTeachingReleaser`, which passes the actor and answers how many classes were

@@ -64,6 +64,8 @@ header's clock button.
 - The "Minhas aulas" screen of PAINEL-03 for both roles: the classes under way on grape cards, the rest grouped by day,
   the next class highlighted, cancelled classes in their day; loading, empty, error and refresh states.
 - Copy in pt-BR, es-ES and en-US.
+- The Stack header's title (`StackHeaderTitle`) in the type style of a title next to the back button, on every screen
+  that uses it (D-14).
 
 ### Out of scope
 
@@ -93,6 +95,7 @@ header's clock button.
 | D-11 | ~~The screen is an inner screen above the tab bar (no tab bar, unlike the design's frame), with its title through `useLeftTitleHeader` + `StackHeaderTitle` and no `headerRight` in this spec. The routes are `/instructor/my-classes` and `/admin/my-classes`; a card opens `routes.<role>.classDetail(id)`.~~ (removed: replaced by D-13, the title is centered) | The app's convention for inner screens (CLAUDE.md, structure.md). |
 | D-12 | The mobile code lives in the `classes` module (`src/modules/classes/`): `TeachingClassesScreen`, `TeachingClassesEntryRow`, `OngoingClassCard`, `TeachingDayHeader`, `useTeachingClasses`, `utils/teaching-classes.ts`. | modules/classes.md says "My classes" for instructors and admins comes with the Classes module. |
 | D-13 | The screen is an inner screen above the tab bar (no tab bar, unlike the design's frame), with its title centered through `headerTitle: () => <StackHeaderTitle />` (the native back button at the left) and no `headerRight` in this spec. The routes are `/instructor/my-classes` and `/admin/my-classes`; a card opens `routes.<role>.classDetail(id)`. | The user asked for a centered title after seeing the left-aligned one (amendment of 2026-10-23); the routes and navigation of D-11 are unchanged. |
+| D-14 | `StackHeaderTitle` uses `ds-text-screen-title-with-back` (26 px) instead of `ds-text-screen-title` (34 px), for every screen that uses it — "Minhas aulas" among them — and `manage-school-rules.screen.tsx` keeps the line wrapping that commit `fe536da1` gave it. | The header title always sits next to the native back button, the case the design system's with-back style is for; the change was committed on this branch before the spec started (review finding F-01) and the user chose to keep it in this spec (2026-10-23). |
 
 ## Expected Results
 
@@ -386,6 +389,23 @@ header's clock button.
   > `npx tsc --noEmit` and `npx eslint src/modules/classes/screens` (no errors), and on the iOS simulator (admin review
   > account, dark theme) "MINHAS AULAS" centered in the header with the back button at the left; deviations: none.
 
+- [x] **T-11** — (added during execution) Record commit `fe536da1` "fix(mobile): use the with-back title style in the
+  stack header": `StackHeaderTitle` in `ds-text-screen-title-with-back`, and the reformat of
+  `src/modules/school-rules/screens/manage-school-rules.screen.tsx`, with a `StackHeaderTitle` test on the style (D-14).
+  Covers: ER-06 · Done when: `npx jest src/navigation/stack-header src/modules/school-rules/screens` passes from
+  `apps/mobile`.
+  > ✅ 2026-10-23 — the code is commit `fe536da1` (before `docs(spec-057): start`, so inside `base_commit..HEAD`):
+  > `StackHeaderTitle`'s title `Text` uses `ds-text-screen-title-with-back text-ink`, and `manage-school-rules.screen.tsx`
+  > is only re-wrapped (no behavior change). Added the test "uses the type style of a title next to the back button",
+  > which fails against the old `ds-text-screen-title` class (1 failed) and passes on the current one. Files:
+  > `apps/mobile/src/navigation/stack-header/stack-header-title/stack-header-title.component.tsx` (in `fe536da1`),
+  > `apps/mobile/src/modules/school-rules/screens/manage-school-rules.screen.tsx` (in `fe536da1`),
+  > `apps/mobile/src/navigation/stack-header/stack-header-title/stack-header-title.component.test.tsx`; verified:
+  > `npx jest src/navigation/stack-header src/modules/school-rules/screens` (9 suites, 38 passed, before the new test),
+  > `npx jest src/navigation/stack-header/stack-header-title` (3 passed) and `npx eslint` on both folders' files (no
+  > errors); deviations: the code predates this task (it was committed before the spec started), so the task records it
+  > instead of writing it.
+
 ### Verification
 
 - [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys on
@@ -463,6 +483,9 @@ header's clock button.
 ## Amendments
 
 - 2026-10-23 — D-11 → D-13: the "Minhas aulas" title was at the left of the header (`useLeftTitleHeader`) → centered (`headerTitle` with `StackHeaderTitle`); task T-10 added. Reason: the user asked to center it after seeing the screen; approved by the user in the execution session ("centralize the title").
+- 2026-10-23 — Scope and Decisions: the header title style of commit `fe536da1` was on the branch without a task → in
+  scope, as D-14, with task T-11 (added during execution). Reason: review finding F-01; the user chose to keep the
+  commit in this spec rather than move it to its own branch.
 
 ## Review
 
@@ -505,13 +528,18 @@ header's clock button.
 
 **Findings**
 
-- [ ] **F-01** (scope) — commit `fe536da1` "fix(mobile): use the with-back title style in the stack header" is part of
+- [x] **F-01** (scope) — commit `fe536da1` "fix(mobile): use the with-back title style in the stack header" is part of
   this spec's change (`git diff 30d2bcca..HEAD`) but no task explains it: it switches `StackHeaderTitle` to
   `ds-text-screen-title-with-back` for every screen that uses it, and reformats
   `apps/mobile/src/modules/school-rules/screens/manage-school-rules.screen.tsx`. Reproduce:
   `git show --stat fe536da1`; `git log --oneline 30d2bcca..HEAD` lists it before `docs(spec-057): start`. Expected:
   the spec ships only what its tasks explain — move the commit out of `spec/057-teaching-classes` (its own branch and PR
   from `main`), or, if this spec needs it, record it with the user's approval (an amendment and a task with evidence).
+  > ✅ 2026-10-23 — the user chose to keep the commit in this spec ("Keep it in spec 057"): recorded in Scope, as D-14
+  > and as task T-11 (added during execution), with a `StackHeaderTitle` test on the style that fails on the old class;
+  > logged under Amendments. Files: `.specs/changes/057-teaching-classes/spec.md`,
+  > `apps/mobile/src/navigation/stack-header/stack-header-title/stack-header-title.component.test.tsx`; verified: see
+  > T-11; deviations: none.
 - [x] **F-02** (D-06) — the header of a day that is neither today nor tomorrow shows the pt-BR weekday with "-feira"
   ("Quarta-feira", "Sexta-feira"…), while D-06 gives the label as "Sexta". Reproduce: on the simulator as Dev Admin,
   "Minhas aulas" → the cancelled class of 12 Mar 2031 sits under "QUARTA-FEIRA"; in code, `weekdayName` formats `EEEE`

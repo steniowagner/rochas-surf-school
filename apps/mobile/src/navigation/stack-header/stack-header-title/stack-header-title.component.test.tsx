@@ -9,6 +9,12 @@ describe("StackHeaderTitle", () => {
     expect(screen.getByText("NEW CLASS")).toBeTruthy();
   });
 
+  it("uses the type style of a title next to the back button", async () => {
+    await render(<StackHeaderTitle title="New class" />);
+
+    expect(screen.getByText("NEW CLASS").props.className).toContain("ds-text-screen-title-with-back");
+  });
+
   it("shows the subtitle only when given", async () => {
     const { rerender } = await render(
       <StackHeaderTitle title="People" subtitle="3 on the platform" />,

@@ -463,7 +463,7 @@ describe('PUT /people/:id/role (e2e)', () => {
         ]),
       );
 
-      const statuses = [first.status, second.status].sort();
+      const statuses = [first.status, second.status].sort((x, y) => x - y);
       expect(statuses).toEqual([200, 409]);
       const refused = first.status === 409 ? first : second;
       expect(refused.body.errors).toEqual(['user.role.lastAdmin']);
@@ -483,7 +483,7 @@ describe('PUT /people/:id/role (e2e)', () => {
         ]),
       );
 
-      expect([first.status, second.status].sort()).toEqual([200, 409]);
+      expect([first.status, second.status].sort((x, y) => x - y)).toEqual([200, 409]);
       const refused = first.status === 409 ? first : second;
       expect(refused.body.errors).toEqual(['user.role.changeNotAllowed']);
       expect(await roleOf(student.id)).toBe('instructor');

@@ -3,6 +3,8 @@ import { ClockProvider, NoInstructorNotifier, SchoolClassRepository } from "../p
 
 export interface ReleaseUpcomingClassesIn {
   userId: string;
+  /** The admin who caused the release (a demotion), left out of the notification; none for an account event. */
+  actorId?: string;
 }
 
 export interface ReleaseUpcomingClassesOut {
@@ -11,9 +13,9 @@ export interface ReleaseUpcomingClassesOut {
 }
 
 /**
- * Takes a person off every class of theirs that hasn't started and isn't cancelled (an account event, so no
- * actor), then tells the approved admins once about the classes left with nobody. Started, finished and
- * cancelled classes keep the person.
+ * Takes a person off every class of theirs that hasn't started and isn't cancelled, then tells the approved admins
+ * (except the person and the actor, when there is one) once about the classes left with nobody. Started, finished
+ * and cancelled classes keep the person.
  */
 export class ReleaseUpcomingClasses
   implements UseCase<ReleaseUpcomingClassesIn, ReleaseUpcomingClassesOut>
@@ -48,7 +50,7 @@ export class ReleaseUpcomingClasses
           classId: earliest.id,
           discipline: earliest.discipline,
           startsAt: earliest.startsAt,
-          excludeUserIds: [input.userId],
+          excludeUserIds: input.actorId ? [input.userId, input.actorId] : [input.userId],
         });
       } catch {
         // A failed notification never changes the answer; the adapter logs it.

@@ -338,10 +338,16 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-02** — Add the optional `actorId` to `ReleaseUpcomingClassesIn`, added to `excludeUserIds` of the
+- [x] **T-02** — Add the optional `actorId` to `ReleaseUpcomingClassesIn`, added to `excludeUserIds` of the
   `class.noInstructor` notification (D-10), with tests with and without an actor.
   Covers: ER-03 · Done when: `npx jest test/school-class/usecase/release-upcoming-classes.usecase.test.ts` passes from
   `modules/classes`.
+  > ✅ 2026-10-24 00:30 — `ReleaseUpcomingClassesIn` takes an optional `actorId`, added after the person to
+  > `excludeUserIds` of `class.noInstructor`; tests with an actor (`[person, actor]`) and without one (`[person]`);
+  > files: `modules/classes/src/school-class/usecase/release-upcoming-classes.usecase.ts`,
+  > `modules/classes/test/school-class/usecase/release-upcoming-classes.usecase.test.ts`; verified: `npx jest
+  > test/school-class/usecase/release-upcoming-classes.usecase.test.ts` (9 passed; `-t "actor"` selects the two new
+  > ones), `npm run check-types` exits 0; deviations: none
 
 ### Notifications module (`modules/notifications`)
 

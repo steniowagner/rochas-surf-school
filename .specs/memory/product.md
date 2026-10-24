@@ -1089,6 +1089,17 @@ their account: "Remover a conta" shows "Ainda não dá" ("Você é o único admi
 antes de remover sua conta.") with "Ir para Pessoas" and "Cancelar", also when the backend refuses a deletion the
 app didn't foresee. All copy is in pt-BR, es-ES and en-US.
 
+**Filtering the instructor's and admin's "Minhas aulas" by sport** (spec `059-teaching-classes-sport-filter`) — the
+"Minhas aulas" of instructors and admins who teach has the Aulas tab's floating sport button at the bottom right, over
+the list in every state (loading, error, empty and the classes), with the same "Todas", "Surf" and "Skate" options.
+Choosing a sport keeps only that sport's classes: the classes under way, the day groups (a day with only the other
+sport loses its header) and the "Próxima" chip, which goes to the next class of the chosen sport; a cancelled class of
+that sport stays in its day. The last card scrolls clear of the button. When classes are left but none of the chosen
+sport, the screen says "Nenhuma aula de surf" / "Você não tem aulas de surf atribuídas." (or skate), with no action;
+with no class left of any sport, "Nada por aqui" stays. The choice survives the minute tick and pull-to-refresh and
+goes back to "Todas" when the screen opens again; nothing is saved on the phone, switching makes no request, and the
+home row's "N aulas atribuídas a você" counts every sport. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1145,8 +1156,8 @@ Active specs: none.
 - On the week view and class details (spec 030): a marker on the cards of one's own classes; "Depois da aula"
   (photos and ratings).
 - On the sport filter (spec 050): keeping the chosen sport across app launches, a mark on the closed button
-  showing a filter is on, and filtering other lists ("Minhas aulas", the class history, the people directory) by
-  sport.
+  showing a filter is on, and filtering other lists (the student's "Minhas aulas", the class history, the people
+  directory) by sport.
 - On seats and students (spec 040): the "1ª vez" badge on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
   about to start; and profile photos (initials until photos can be uploaded).
 - On the class details' design (spec 049): the "Condições previstas" row of "Onde e como" (weather and waves), "Sem
@@ -1171,9 +1182,12 @@ Active specs: none.
 - On "Minhas aulas" (spec 048): keeping the chosen chip after a class or the history opened above the tab.
 - On the instructor's and admin's "Minhas aulas" (spec 057): the past classes they taught ("Aulas anteriores") and the
   header's clock button that opens them; the "Atualizada" chip of a recently edited class; a stored "also an
-  instructor" option on admin accounts; filtering the list by sport, level or status, searching it and paging it; the
+  instructor" option on admin accounts; filtering the list by level or status, searching it and paging it; the
   admin's week-by-week layout; and the rest of the dashboards (greeting, metrics, "Avaliações das aulas", "Ocupação
   semanal").
+- On the sport filter of the instructor's and admin's "Minhas aulas" (spec 059): keeping the chosen sport after
+  leaving the screen or across launches, a mark on the closed button showing a filter is on, and filtering the home
+  row's count by sport.
 - On the class history's calendar (spec 053): a "Hoje" button, keeping the chosen period or day after leaving the
   screen, filtering the history by sport, level or status and searching it, and swiping between weeks or months.
 - On class reminders (spec 054): choosing the lead time or turning reminders off per person or per type (only the

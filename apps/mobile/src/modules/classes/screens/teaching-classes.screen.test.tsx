@@ -16,6 +16,7 @@ import {
   setupSignedInUser,
 } from "../classes.test-utils";
 import type { ClassItem } from "../classes.types";
+import { TeachingClassesEntryRow } from "../components/teaching-classes-entry-row";
 import { TeachingClassesScreen } from "./teaching-classes.screen";
 
 // The callback the screen gave `useFocusEffect`, run by a test when the screen is focused.
@@ -318,5 +319,289 @@ describe("TeachingClassesScreen", () => {
     expect(await screen.findByRole("header", { name: /^Hoy, / })).toBeOnTheScreen();
     expect(screen.getByRole("header", { name: /^Mañana, / })).toBeOnTheScreen();
     expect(screen.getByText("Próxima")).toBeOnTheScreen();
+  });
+});
+
+describe("TeachingClassesScreen sport filter", () => {
+  // Under way: Bs (surf) 07:30–09:00 and Bk (skate) 07:00–09:00. Today: Nk (skate) 09:00, Ns (surf) 11:00. Saturday:
+  // Fk (skate) 09:00. In start order, as the API answers.
+  const BK = buildClassItem("bk", "2026-09-17T10:00:00.000Z", "2026-09-17T12:00:00.000Z", { discipline: "skate" });
+  const BS = buildClassItem("bs", "2026-09-17T10:30:00.000Z", "2026-09-17T12:00:00.000Z");
+  const NK = buildClassItem("nk", "2026-09-17T12:00:00.000Z", "2026-09-17T13:00:00.000Z", { discipline: "skate" });
+  const NS = buildClassItem("ns", "2026-09-17T14:00:00.000Z", "2026-09-17T15:00:00.000Z");
+  const FK = buildClassItem("fk", "2026-09-19T12:00:00.000Z", "2026-09-19T13:00:00.000Z", { discipline: "skate" });
+  const MIXED = [BK, BS, NK, NS, FK];
+
+  const choose = async (user: ReturnType<typeof userEvent.setup>, label: "All" | "Surf" | "Skate") => {
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByRole("button", { name: label }));
+  };
+
+  const cards = () =>
+    screen.getAllByRole("button", { name: /^(Surf|Skate), / }).map((card) => card.props.accessibilityLabel);
+  const dayHeaders = () =>
+    screen
+      .getAllByRole("header")
+      .map((header) => header.props.accessibilityLabel)
+      .slice(1);
+  const grapeCards = () =>
+    screen
+      .getAllByRole("button", { name: /^(Surf|Skate), / })
+      .filter((card) => card.props.className.includes("bg-grape"))
+      .map((card) => card.props.accessibilityLabel);
+  const nextCard = () =>
+    screen
+      .getAllByRole("button", { name: /^(Surf|Skate), / })
+      .filter((card) => card.props.className.includes("border-sun"))
+      .map((card) => card.props.accessibilityLabel);
+
+  it("lists only the chosen sport, with its own class under way and its own next class", async () => {
+    const user = userEvent.setup();
+    await renderScreen("instructor", MIXED);
+    await screen.findByText("11:00 – 12:00");
+
+    await choose(user, "Surf");
+
+    expect(screen.queryByTestId("discipline-filter-backdrop")).not.toBeOnTheScreen();
+    expect(cards()).toEqual(["Surf, 07:30 – 09:00", "Surf, 11:00 – 12:00"]);
+    expect(grapeCards()).toEqual(["Surf, 07:30 – 09:00"]);
+    expect(dayHeaders()).toEqual(["Today, 17 Sep"]);
+    expect(nextCard()).toEqual(["Surf, 11:00 – 12:00"]);
+    expect(screen.getAllByText("Up next")).toHaveLength(1);
+
+    await choose(user, "Skate");
+
+    expect(cards()).toEqual(["Skate, 07:00 – 09:00", "Skate, 09:00 – 10:00", "Skate, 09:00 – 10:00"]);
+    expect(grapeCards()).toEqual(["Skate, 07:00 – 09:00"]);
+    expect(dayHeaders()).toEqual(["Today, 17 Sep", "Saturday, 19 Sep"]);
+    const [todaySkate, saturdaySkate] = screen.getAllByRole("button", { name: "Skate, 09:00 – 10:00" });
+    expect(todaySkate!.props.className).toContain("border-sun");
+    expect(saturdaySkate!.props.className).not.toContain("border-sun");
+
+    await choose(user, "All");
+
+    expect(cards()).toEqual([
+      "Skate, 07:00 – 09:00",
+      "Surf, 07:30 – 09:00",
+      "Skate, 09:00 – 10:00",
+      "Surf, 11:00 – 12:00",
+      "Skate, 09:00 – 10:00",
+    ]);
+    expect(grapeCards()).toEqual(["Skate, 07:00 – 09:00", "Surf, 07:30 – 09:00"]);
+    expect(dayHeaders()).toEqual(["Today, 17 Sep", "Saturday, 19 Sep"]);
+    expect(screen.getAllByRole("button", { name: "Skate, 09:00 – 10:00" })[0]!.props.className).toContain(
+      "border-sun",
+    );
+    expect(screen.getAllByText("Up next")).toHaveLength(1);
+  });
+
+  it("keeps a cancelled class of the chosen sport in its day, never as the next class", async () => {
+    const user = userEvent.setup();
+    // Surf, today 10:00–11:00, cancelled: before Ns, so it would be the next class if it counted.
+    const cancelled = buildClassItem("cs", "2026-09-17T13:00:00.000Z", "2026-09-17T14:00:00.000Z", {
+      cancelledAt: CANCELLED_AT,
+    });
+    await renderScreen("instructor", [BK, BS, NK, cancelled, NS, FK]);
+    await screen.findByText("11:00 – 12:00");
+
+    await choose(user, "Surf");
+
+    expect(cards()).toEqual(["Surf, 07:30 – 09:00", "Surf, 10:00 – 11:00", "Surf, 11:00 – 12:00"]);
+    expect(dayHeaders()).toEqual(["Today, 17 Sep"]);
+    expect(screen.getByText("Cancelled")).toBeOnTheScreen();
+    expect(nextCard()).toEqual(["Surf, 11:00 – 12:00"]);
+  });
+
+  it("keeps the chosen sport with the minute tick, without a refetch", async () => {
+    const user = userEvent.setup();
+    const { rerenderScreen } = await renderScreen("instructor", MIXED);
+    await screen.findByText("11:00 – 12:00");
+    await choose(user, "Skate");
+
+    // 09:00: Bk has ended and Nk is under way.
+    mockNow = new Date("2026-09-17T12:00:00.000Z");
+    await rerenderScreen();
+
+    expect(cards()).toEqual(["Skate, 09:00 – 10:00", "Skate, 09:00 – 10:00"]);
+    expect(grapeCards()).toEqual(["Skate, 09:00 – 10:00"]);
+    expect(dayHeaders()).toEqual(["Saturday, 19 Sep"]);
+    expect(nextCard()).toEqual(["Skate, 09:00 – 10:00"]);
+    expect(requestedPaths()).toEqual(["/classes/teaching"]);
+  });
+
+  it("filters without a request", async () => {
+    const user = userEvent.setup();
+    await renderScreen("admin", MIXED);
+    await screen.findByText("11:00 – 12:00");
+
+    await choose(user, "Surf");
+    await choose(user, "Skate");
+    await choose(user, "All");
+
+    expect(cards()).toHaveLength(5);
+    expect(requestedPaths()).toEqual(["/classes/teaching"]);
+  });
+
+  it("is back to All when the screen opens again", async () => {
+    const user = userEvent.setup();
+    const first = await renderScreen("instructor", MIXED);
+    await screen.findByText("11:00 – 12:00");
+    await choose(user, "Surf");
+    expect(cards()).toHaveLength(2);
+    await first.unmount();
+
+    await renderScreen("instructor", MIXED);
+
+    await waitFor(() => expect(cards()).toHaveLength(5));
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    expect(screen.getByRole("button", { name: "All", selected: true })).toBeOnTheScreen();
+  });
+
+  it.each(["instructor", "admin"] as const)("shows the filter button to the %s", async (role) => {
+    await renderScreen(role, MIXED);
+    await screen.findByText("11:00 – 12:00");
+
+    expect(screen.getByRole("button", { name: "Filter by sport" })).toBeOnTheScreen();
+  });
+
+  it("shows the filter button while loading, on an error and when empty", async () => {
+    const queryClient = () =>
+      new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
+    fetchMock.mockReturnValueOnce(new Promise<Response>(() => undefined));
+    const loading = await render(
+      <QueryClientProvider client={queryClient()}>
+        <TeachingClassesScreen role="instructor" />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Filter by sport" })).toBeOnTheScreen();
+    await loading.unmount();
+
+    fetchMock.mockResolvedValueOnce(failure(500));
+    const failed = await render(
+      <QueryClientProvider client={queryClient()}>
+        <TeachingClassesScreen role="instructor" />
+      </QueryClientProvider>,
+    );
+    await screen.findByRole("header", { name: "Something went wrong" });
+    expect(screen.getByRole("button", { name: "Filter by sport" })).toBeOnTheScreen();
+    await failed.unmount();
+
+    await renderScreen("instructor", []);
+    await screen.findByRole("header", { name: "Nothing here" });
+    expect(screen.getByRole("button", { name: "Filter by sport" })).toBeOnTheScreen();
+  });
+
+  it("pads the list's bottom for the button and its gap", async () => {
+    await renderScreen("instructor", MIXED);
+    await screen.findByText("11:00 – 12:00");
+
+    // The mocked bottom inset is 0, so the list keeps its 24 and adds the button's 56 and its 16 gap.
+    expect(screen.getByTestId("teaching-classes-list").props.contentContainerStyle).toEqual(
+      expect.objectContaining({ paddingBottom: 24 + 56 + 16 }),
+    );
+  });
+
+  it.each(["Surf", "Skate"] as const)(
+    "says nothing is assigned whatever the sport when there are no classes: %s",
+    async (label) => {
+      const user = userEvent.setup();
+      await renderScreen("instructor", []);
+      await screen.findByRole("header", { name: "Nothing here" });
+
+      await choose(user, label);
+
+      expect(screen.getByRole("header", { name: "Nothing here" })).toBeOnTheScreen();
+      expect(screen.getByText("You don't have any classes assigned yet.")).toBeOnTheScreen();
+    },
+  );
+
+  it.each([
+    ["pt-BR", "Surf", [NK, FK], "Nenhuma aula de surf", "Você não tem aulas de surf atribuídas."],
+    ["pt-BR", "Skate", [BS, NS], "Nenhuma aula de skate", "Você não tem aulas de skate atribuídas."],
+    ["es-ES", "Surf", [NK, FK], "Ninguna clase de surf", "No tienes clases de surf asignadas."],
+    ["es-ES", "Skate", [BS, NS], "Ninguna clase de skate", "No tienes clases de skate asignadas."],
+    ["en-US", "Surf", [NK, FK], "No surf classes", "You don't have any surf classes assigned."],
+    ["en-US", "Skate", [BS, NS], "No skate classes", "You don't have any skate classes assigned."],
+  ] as const)(
+    "says when no class of the chosen sport is assigned (%s, %s)",
+    async (language, label, items, title, description) => {
+      const user = userEvent.setup();
+      await act(() => i18n.changeLanguage(language));
+      // The filter's labels in the language: "Surf" and "Skate" are the same in all three.
+      const filterName = { "pt-BR": "Filtrar por modalidade", "es-ES": "Filtrar por modalidad", "en-US": "Filter by sport" };
+      await renderScreen("instructor", [...items]);
+      await waitFor(() => expect(cards()).toHaveLength(2));
+
+      await user.press(screen.getByRole("button", { name: filterName[language] }));
+      await user.press(screen.getByRole("button", { name: label }));
+
+      expect(screen.queryAllByRole("button", { name: /^(Surf|Skate), / })).toEqual([]);
+      expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
+      expect(screen.getByText(description)).toBeOnTheScreen();
+      // No action: the filter's is the only button.
+      expect(screen.getAllByRole("button").map((button) => button.props.accessibilityLabel)).toEqual([
+        filterName[language],
+      ]);
+    },
+  );
+
+  it("brings the classes back on All", async () => {
+    const user = userEvent.setup();
+    await renderScreen("instructor", [NK, FK]);
+    await waitFor(() => expect(cards()).toHaveLength(2));
+    await choose(user, "Surf");
+    expect(screen.getByRole("header", { name: "No surf classes" })).toBeOnTheScreen();
+
+    await choose(user, "All");
+
+    expect(cards()).toEqual(["Skate, 09:00 – 10:00", "Skate, 09:00 – 10:00"]);
+    expect(screen.queryByRole("header", { name: "No surf classes" })).not.toBeOnTheScreen();
+  });
+
+  it("shows the filtered empty state when the sport's last class ends at the minute tick, without a refetch", async () => {
+    const user = userEvent.setup();
+    // The only surf class is under way until 09:00; the skate one is today at 09:00–10:00.
+    const { rerenderScreen } = await renderScreen("instructor", [BS, NK]);
+    await waitFor(() => expect(cards()).toHaveLength(2));
+    await choose(user, "Surf");
+    expect(cards()).toEqual(["Surf, 07:30 – 09:00"]);
+
+    mockNow = new Date("2026-09-17T12:00:00.000Z");
+    await rerenderScreen();
+
+    expect(screen.queryAllByRole("button", { name: /^(Surf|Skate), / })).toEqual([]);
+    expect(screen.getByRole("header", { name: "No surf classes" })).toBeOnTheScreen();
+    expect(screen.getByText("You don't have any surf classes assigned.")).toBeOnTheScreen();
+
+    // 10:00: no class left of any sport, so nothing is assigned.
+    mockNow = new Date("2026-09-17T13:00:00.000Z");
+    await rerenderScreen();
+
+    expect(screen.getByRole("header", { name: "Nothing here" })).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "No surf classes" })).not.toBeOnTheScreen();
+    expect(requestedPaths()).toEqual(["/classes/teaching"]);
+  });
+
+  it("keeps the home row's count whatever the sport chosen", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue(ok({ items: MIXED, teachesAny: true }));
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
+    // The home's row and the screen share the query, as when the screen is pushed over the home.
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <TeachingClassesEntryRow role="instructor" onPress={jest.fn()} />
+        <TeachingClassesScreen role="instructor" />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText("5 classes assigned to you")).toBeOnTheScreen();
+
+    await choose(user, "Surf");
+    expect(cards()).toHaveLength(2);
+    expect(screen.getByText("5 classes assigned to you")).toBeOnTheScreen();
+
+    await choose(user, "Skate");
+    expect(cards()).toHaveLength(3);
+    expect(screen.getByText("5 classes assigned to you")).toBeOnTheScreen();
   });
 });

@@ -1,4 +1,6 @@
-import type { ClassItem } from "../classes.types";
+import type { ClassDiscipline } from "@rochas-surf-school/classes";
+
+import type { ClassItem, DisciplineFilterValue } from "../classes.types";
 
 export type TeachingClassesScreenProps = {
   /** Picks the class details' route. */
@@ -16,8 +18,12 @@ export type TeachingClassesRow =
 export type UseTeachingClassesScreenResult = {
   now: Date;
   rows: TeachingClassesRow[];
+  /** The sport the list shows, "all" when the screen opens. */
+  discipline: DisciplineFilterValue;
   /** Loaded, with no class left to show (never after an expired session). */
   isEmpty: boolean;
+  /** Empty only because of the filter: the chosen sport has no class left, the other one has. */
+  emptyDiscipline: ClassDiscipline | null;
   isLoading: boolean;
   isError: boolean;
   /** "Try again" is loading the classes: the error stays, with the spinner in its button. */
@@ -25,5 +31,6 @@ export type UseTeachingClassesScreenResult = {
   isRefreshing: boolean;
   refresh: () => Promise<void>;
   retry: () => void;
+  selectDiscipline: (discipline: DisciplineFilterValue) => void;
   openClass: (id: string) => void;
 };

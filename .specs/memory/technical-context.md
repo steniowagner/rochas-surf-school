@@ -1650,7 +1650,15 @@ import cycle.
   (`components/ongoing-class-card/`): a `bg-grape` card with `shadowStyle("primary")` and `text-on-color`, the
   chips on `Chip`'s `onHighlight` tone, the location pill on `onGrapeFill`, the occupancy track `onGrapeTrack` with
   a white fill (`onGrapeBad` text when full), the footer on `onGrapeShade` with avatars ringed in grape. Copy under
-  `teachingClasses` (the under-way chip reuses `classesWeek.state.started`).
+  `teachingClasses` (the under-way chip reuses `classesWeek.state.started`). Since spec 059 the screen filters by
+  sport: `useTeachingClassesScreen` keeps `discipline` (`DisciplineFilterValue`, local state starting at `"all"`,
+  set through `selectDiscipline`) and filters the loaded items before `layoutTeachingClasses`, so `ongoing`, the days
+  and `nextId` are all of the chosen sport; `emptyDiscipline` is the chosen sport when the filtered list is empty while
+  an item of any sport hasn't ended at `useNow()`, else `null`. The `FlatList` sits in a `flex-1 bg-page` view with
+  spec 050's `DisciplineFilter` over it in every state, and its bottom padding adds `DISCIPLINE_FILTER_CLEARANCE`;
+  `ListEmptyComponent` renders `EmptyState` (`calendar-outline`, no action) with
+  `teachingClasses.emptyFiltered.<sport>.{title,description}` when `emptyDiscipline` is set. The home row's count
+  doesn't read the filter.
 
 ## Error handling
 

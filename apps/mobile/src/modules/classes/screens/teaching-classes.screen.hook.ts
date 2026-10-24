@@ -6,7 +6,7 @@ import { routes } from "@/constants/routes";
 import { SessionExpiredError } from "@/services/api";
 import { getDateLocale } from "@/utils/calendar-dates";
 
-import type { ClassItem } from "../classes.types";
+import type { ClassItem, DisciplineFilterValue } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
 import { useTeachingClasses } from "../hooks/use-teaching-classes.hook";
 import { formatDayName, formatShortDate, layoutTeachingClasses } from "../utils/teaching-classes";
@@ -24,6 +24,9 @@ export const useTeachingClassesScreen = ({
 }: UseTeachingClassesScreenProps): UseTeachingClassesScreenResult => {
   const { t, i18n } = useTranslation();
   const now = useNow();
+  // The sport shown, over the classes already loaded: switching it needs no request, and it lasts while the screen is
+  // mounted.
+  const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   // Only the user's pull-to-refresh turns the spinner on, not the refetch of a focus.
   const [isRefreshing, setIsRefreshing] = useState(false);
   const query = useTeachingClasses();
@@ -47,7 +50,10 @@ export const useTeachingClassesScreen = ({
   };
 
   const locale = getDateLocale(i18n.language);
-  const layout = layoutTeachingClasses(query.data?.items ?? NO_ITEMS, now);
+  const allItems = query.data?.items ?? NO_ITEMS;
+  // Filtered before the layout, so the classes under way, the days and the next class are all of the chosen sport.
+  const items = allItems.filter((item) => discipline === "all" || item.discipline === discipline);
+  const layout = layoutTeachingClasses(items, now);
   const rows: TeachingClassesRow[] = [
     ...layout.ongoing.map((item): TeachingClassesRow => ({ type: "ongoing", key: `ongoing-${item.id}`, item })),
     ...layout.days.flatMap((day): TeachingClassesRow[] => [
@@ -70,10 +76,20 @@ export const useTeachingClassesScreen = ({
   // screen with the spinner in its button, instead of the loading state.
   const isRetrying = query.isPending && query.errorUpdateCount > 0;
 
+  const isEmpty = query.data !== undefined && rows.length === 0;
+  // Empty only because of the filter, while classes of the other sport are still to come: "no classes assigned yet"
+  // would be false.
+  const emptyDiscipline =
+    isEmpty && discipline !== "all" && allItems.some((item) => new Date(item.endsAt).getTime() > now.getTime())
+      ? discipline
+      : null;
+
   return {
     now,
     rows,
-    isEmpty: query.data !== undefined && rows.length === 0,
+    discipline,
+    isEmpty,
+    emptyDiscipline,
     isLoading: query.isPending && !isRetrying,
     // An expired session is handled by the session flow; a failed refetch keeps the list it had.
     isError:
@@ -83,6 +99,7 @@ export const useTeachingClassesScreen = ({
     isRefreshing,
     refresh,
     retry: () => void refetch(),
+    selectDiscipline: setDiscipline,
     openClass: (id) => router.push(routes[role].classDetail(id)),
   };
 };

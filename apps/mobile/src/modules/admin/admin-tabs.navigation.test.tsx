@@ -137,9 +137,11 @@ beforeEach(() => {
         ? { version: 1, rules: [] }
         : String(url).includes("/classes?date=")
           ? { weekStart: "x", items: [aClass] }
-          : String(url).includes("/classes/")
-            ? aClass
-            : { items: [person("a"), person("b")] },
+          : String(url).endsWith("/classes/teaching")
+            ? { items: [], teachesAny: false }
+            : String(url).includes("/classes/")
+              ? aClass
+              : { items: [person("a"), person("b")] },
   }));
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";

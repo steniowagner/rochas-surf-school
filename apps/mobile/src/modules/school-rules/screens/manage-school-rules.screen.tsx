@@ -34,7 +34,9 @@ export function ManageSchoolRulesScreen() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: () => <StackHeaderTitle title={t("manageSchoolRules.title")} />,
+          headerTitle: () => (
+            <StackHeaderTitle title={t("manageSchoolRules.title")} />
+          ),
         }}
       />
       <ScrollView
@@ -42,9 +44,14 @@ export function ManageSchoolRulesScreen() {
         className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-4 px-screen"
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: Math.max(insets.bottom, 24) }}
+        contentContainerStyle={{
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 24),
+        }}
       >
-        <Text className="ds-text-body text-ink-2">{t("manageSchoolRules.intro")}</Text>
+        <Text className="ds-text-body text-ink-2">
+          {t("manageSchoolRules.intro")}
+        </Text>
         {screen.status === "loading" ? (
           // Rows shaped like rules, read out as one loading state.
           <View
@@ -87,7 +94,11 @@ export function ManageSchoolRulesScreen() {
               icon="shield-outline"
               title={t("manageSchoolRules.empty.title")}
               description={t("manageSchoolRules.empty.description")}
-              action={{ label: t("manageSchoolRules.add"), icon: "add", onPress: screen.openAdd }}
+              action={{
+                label: t("manageSchoolRules.add"),
+                icon: "add",
+                onPress: screen.openAdd,
+              }}
             />
           </View>
         ) : null}
@@ -101,7 +112,9 @@ export function ManageSchoolRulesScreen() {
                   position={index + 1}
                   showDivider={index < screen.rules.length - 1}
                   moveUpDisabled={index === 0 || screen.reordering}
-                  moveDownDisabled={index === screen.rules.length - 1 || screen.reordering}
+                  moveDownDisabled={
+                    index === screen.rules.length - 1 || screen.reordering
+                  }
                   onEdit={() => screen.openEdit(rule)}
                   onMoveUp={() => screen.moveUp(index)}
                   onMoveDown={() => screen.moveDown(index)}
@@ -110,7 +123,13 @@ export function ManageSchoolRulesScreen() {
             </View>
             <Button
               variant="outline"
-              icon={<Ionicons name="add" size={iconSizes.button} color={theme.ink} />}
+              icon={
+                <Ionicons
+                  name="add"
+                  size={iconSizes.button}
+                  color={theme.ink}
+                />
+              }
               onPress={screen.openAdd}
             >
               {t("manageSchoolRules.add")}

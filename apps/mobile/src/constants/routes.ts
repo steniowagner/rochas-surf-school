@@ -56,6 +56,7 @@ export const routes = {
   instructor: {
     home: "/instructor",
     classes: "/instructor/classes",
+    myClasses: "/instructor/my-classes",
     people: "/instructor/people",
     notifications: "/instructor/notifications",
     profile: "/instructor/profile",
@@ -70,6 +71,7 @@ export const routes = {
   admin: {
     home: "/admin",
     classes: "/admin/classes",
+    myClasses: "/admin/my-classes",
     profile: "/admin/profile",
     registrations: "/admin/registrations",
     classRequests: "/admin/class-requests",

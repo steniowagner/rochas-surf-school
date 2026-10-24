@@ -92,6 +92,11 @@ const respond = (url: string) => {
     return { weekStart: "x", items: [aClass] };
   }
 
+  // The home's "My classes" row: nothing taught.
+  if (url.endsWith("/classes/teaching")) {
+    return { items: [], teachesAny: false };
+  }
+
   return url.includes("/classes/")
     ? aClass
     : { items: [], page: 1, perPage: 20, total: 0 };

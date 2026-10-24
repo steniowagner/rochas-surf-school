@@ -23,6 +23,7 @@ import { PrismaLocationRepository } from './location.prisma.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
+import type { PrismaTeachingClassesReader } from './teaching-classes-reader.prisma.js';
 
 const ADMIN_ID = '0b4d1c6e-3f7a-4c58-9a21-7d5e8f1a2b34';
 const INSTRUCTOR_ID = '7a2e9c41-5b8d-4f03-a6e1-3c9d0b7f5e12';
@@ -74,6 +75,10 @@ function setup() {
     findCurrentClassIds: vi.fn(async (): Promise<string[]> => []),
     findHistoryClassIds: vi.fn(async () => [] as string[]),
   };
+  const teachingClassesReader = {
+    findCurrentClassIds: vi.fn(async (): Promise<string[]> => []),
+    teachesAny: vi.fn(async () => true),
+  };
   const seatCounter = { countSeatsTaken: vi.fn(async () => 0) };
   const pendingRequestCounter = { countPendingRequests: vi.fn(async () => 0) };
   const classRosterReader = { findRosters: vi.fn(async () => new Map()) };
@@ -100,6 +105,7 @@ function setup() {
     classAudienceReader as unknown as PrismaClassAudienceReader,
     myClassesReader as unknown as PrismaMyClassesReader,
     classContactReader as unknown as PrismaClassContactReader,
+    teachingClassesReader as unknown as PrismaTeachingClassesReader,
   );
   const body = {
     discipline: 'surf',
@@ -124,6 +130,7 @@ function setup() {
     classRosterReader,
     classContactReader,
     myClassesReader,
+    teachingClassesReader,
     stored,
     location,
     body,
@@ -137,6 +144,7 @@ describe('ClassesController', () => {
     ['week', '/', RequestMethod.GET, HttpStatus.OK],
     ['mine', 'mine', RequestMethod.GET, HttpStatus.OK],
     ['myHistory', 'mine/history', RequestMethod.GET, HttpStatus.OK],
+    ['teaching', 'teaching', RequestMethod.GET, HttpStatus.OK],
     ['one', ':id', RequestMethod.GET, HttpStatus.OK],
     ['edit', ':id', RequestMethod.PUT, HttpStatus.OK],
     ['cancel', ':id/cancel', RequestMethod.POST, HttpStatus.OK],
@@ -292,6 +300,32 @@ describe('ClassesController', () => {
 
     expect(names.indexOf('mine')).toBeLessThan(names.indexOf('one'));
     expect(names.indexOf('myHistory')).toBeLessThan(names.indexOf('one'));
+  });
+
+  it('declares the teaching route before :id, so "teaching" never reaches it', () => {
+    const names = Object.getOwnPropertyNames(ClassesController.prototype);
+
+    expect(names.indexOf('teaching')).toBeLessThan(names.indexOf('one'));
+  });
+
+  it.each(['instructor', 'admin'])("lists the classes an approved %s teaches at the clock's now", async (role) => {
+    const { controller, teachingClassesReader } = setup();
+
+    expect(await controller.teaching(userOf(role))).toEqual({ items: [], teachesAny: true });
+    expect(teachingClassesReader.findCurrentClassIds).toHaveBeenCalledWith(ADMIN_ID, NOW);
+    expect(teachingClassesReader.teachesAny).toHaveBeenCalledWith(ADMIN_ID);
+  });
+
+  it('refuses the teaching route to students and to accounts that are not approved', async () => {
+    const { controller, teachingClassesReader } = setup();
+
+    await expect(controller.teaching(userOf('student'))).rejects.toMatchObject({
+      message: 'user.role.notTeacher',
+    });
+    await expect(controller.teaching(userOf('instructor', 'pending'))).rejects.toMatchObject({
+      message: 'user.status.notApproved',
+    });
+    expect(teachingClassesReader.findCurrentClassIds).not.toHaveBeenCalled();
   });
 
   it("lists a student's current classes at the clock's now", async () => {

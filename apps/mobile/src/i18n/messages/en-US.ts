@@ -1026,6 +1026,27 @@ const messages = {
     keep: "Keep",
     removed: "{{name}} removed",
   },
+  teachingClasses: {
+    row: {
+      assigned_one: "{{count}} class assigned to you",
+      assigned_other: "{{count}} classes assigned to you",
+      none: "No classes assigned",
+    },
+    title: "My classes",
+    today: "Today",
+    tomorrow: "Tomorrow",
+    loading: "Loading the classes",
+    empty: {
+      title: "Nothing here",
+      description: "You don't have any classes assigned yet.",
+    },
+    loadError: {
+      title: "Something went wrong",
+      description:
+        "We couldn't load your classes. Check your connection and try again.",
+    },
+    next: "Up next",
+  },
 };
 
 export type Messages = typeof messages;

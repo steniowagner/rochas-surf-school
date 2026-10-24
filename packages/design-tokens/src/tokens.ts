@@ -37,6 +37,13 @@ export const colors = {
     // The student's Agenda band (AGENDA-01 / 01A): behind the user header and the calendar, with a line under it.
     band: '#F3E7D6',
     bandLine: 'rgba(212,165,116,.35)',
+    // The grape card of a class under way ("Minhas aulas", PAINEL-03): white and black veils over grape for its chips and
+    // borders, the location pill, the occupancy track and the students footer, and the "full" text.
+    onGrapeTint: 'rgba(255,255,255,.18)',
+    onGrapeFill: 'rgba(255,255,255,.12)',
+    onGrapeTrack: 'rgba(255,255,255,.22)',
+    onGrapeShade: 'rgba(0,0,0,.14)',
+    onGrapeBad: '#FFD2CC',
   },
   dark: {
     page: '#161B27',
@@ -70,6 +77,11 @@ export const colors = {
     shadowGrape: 'rgba(0,0,0,.4)',
     band: '#101520',
     bandLine: 'rgba(196,154,108,.16)',
+    onGrapeTint: 'rgba(255,255,255,.18)',
+    onGrapeFill: 'rgba(255,255,255,.12)',
+    onGrapeTrack: 'rgba(255,255,255,.22)',
+    onGrapeShade: 'rgba(0,0,0,.14)',
+    onGrapeBad: '#FFD2CC',
   },
 } as const;
 

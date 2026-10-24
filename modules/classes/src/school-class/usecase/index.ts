@@ -11,3 +11,4 @@ export * from "./work-out-cancellation-deadlines.usecase";
 export * from "./list-my-classes.usecase";
 export * from "./list-my-class-history.usecase";
 export * from "./send-class-reminders.usecase";
+export * from "./list-teaching-classes.usecase";

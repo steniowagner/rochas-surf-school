@@ -256,7 +256,10 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   sport filter (spec 050) adds the colors `scrim` (the backdrop that dims the screen under a floating menu) and
   `shadowGrape` (a `grape` button's shadow), both light and dark, and the elevations `fab` (`offsetY` 12, blur 26,
   `shadowGrape`: a floating action button) and `menuOption` (`offsetY` 8, blur 22, `shadow`: a floating menu's
-  option).
+  option). The grape card of a class under way (spec 057) adds the colors `onGrapeTint` (white at 18%: borders and
+  the avatars' ring), `onGrapeFill` (white at 12%: the location pill), `onGrapeTrack` (white at 22%: the occupancy
+  track), `onGrapeShade` (black at 14%: the students footer) and `onGrapeBad` (`#FFD2CC`: "full" text over grape),
+  the same in light and dark.
 
 ## Persistence
 
@@ -981,6 +984,21 @@ guard's 401 `auth.token.invalid`.
   `ClassViewReader.findByIds(ids)` (one `findMany`, nothing read for no ids; any order, a missing id left out) and
   built by `toMyClassItems` as cards (`CLASS_CARD_STUDENTS_LIMIT`, the viewer's latest enrolment, guests' names
   hidden); the history keeps the reader's order.
+- The classes a person teaches (spec 057): `GET /classes/teaching` (`ListTeachingClasses` in
+  `usecase/list-teaching-classes.usecase.ts`), declared after `mine/history` and before `GET /classes/:id` → 200
+  `{ items: ClassItem[], teachesAny: boolean }`, unpaged: `items` are the classes whose `endsAt` is after now (the
+  classes clock; cancelled ones included) where the caller is one of the instructors, by `startsAt` then `id`, built
+  with `toClassItem` as cards (`CLASS_CARD_STUDENTS_LIMIT`, guests' names shown, `myEnrolment: null`); `teachesAny`
+  says whether the caller is an instructor of any class in any state (a deleted class's `class_instructors` rows go
+  with it by cascade). For approved instructors and admins: `assertIsTeacher` (exported from the use case) answers
+  403 `user.status.notApproved`, then 403 `user.role.notTeacher` for students; no token → 401. The port
+  `TeachingClassesReader` (`provider/teaching-classes-reader.provider.ts`: `findCurrentClassIds(teacherId, now)` →
+  `string[]`, `teachesAny(teacherId)` → `boolean`) is implemented by `PrismaTeachingClassesReader`
+  (`apps/backend/src/modules/classes/teaching-classes-reader.prisma.ts`: one `schoolClass.findMany` with
+  `instructors: { some: { userId } }`, and one `classInstructor.findFirst` by `userId`), a provider of
+  `ClassesModule`; both reads run together, then the views come from `ClassViewReader.findByIds` sorted by start then
+  id. Fake `FakeTeachingClassesReader` in `modules/classes/test/mock/`; e2e in
+  `apps/backend/test/teaching-classes.e2e-spec.ts` (fixed classes clock).
 - `PUT /classes/:id` (admins; spec 032, `EditClass` in `usecase/edit-class.usecase.ts`) `{ discipline, level, date,
   start, end, locationId, instructorIds, capacity, notes? }` (`date` `YYYY-MM-DD`, `start` / `end` `HH:mm`,
   Fortaleza, turned into `startsAt` / `endsAt` with `toInstant` from `model/class-batch.ts`; the whole class every
@@ -1608,6 +1626,31 @@ import cycle.
   failed refresh keeps the classes. The error and empty states sit in a `flex-row` wrapper: as `flex-1` children of
   the list's auto-height cell they collapsed when the calendar switched view. Pull-to-refresh reloads the period. `buildClassItem(id, startsAt, endsAt, overrides)` in `classes.test-utils.tsx` builds a
   test `ClassItem`. Copy under `myClasses` and `myHistory`.
+- Mobile, spec 057 ("Minhas aulas" for instructors and admins, in `src/modules/classes/`): `useTeachingClasses()`
+  (`hooks/use-teaching-classes.hook.ts`, `TEACHING_CLASSES_QUERY_KEY` = `["classes", "teaching"]`, authenticated `GET
+  /classes/teaching`, no retry; `TeachingClassesResponse` in `classes.types.ts`), under `["classes"]` so every class
+  invalidation refreshes it, and shared by the home row and the screen, which each refetch it on focus
+  (`useFocusEffect`, `refetch({ cancelRefetch: false })`). `utils/teaching-classes.ts`: `layoutTeachingClasses(items,
+  now)` → `{ ongoing, days, nextId }` (items ended at `now` dropped; `started` ones in `ongoing`; the rest grouped by
+  `schoolDayOf` with the label `today` / `tomorrow` / `weekday`; `nextId` the first `not-started`), `countAssignedClasses`
+  (items not cancelled), `formatShortDate` ("17 set", without a trailing dot) and `formatDayName` (`weekdayName`
+  without the pt-BR "-feira"). `TeachingClassesEntryRow` (`components/teaching-classes-entry-row/`, prop `role`): a
+  `rounded-card` row with the MaterialCommunityIcons `surfing` in `lagoon`, the title, the subtitle (`null` until
+  data) and a chevron; always rendered for `instructor`, for `admin` only when the data has `teachesAny: true`; it is
+  the first row of the Escola section of `InstructorScreen` and `AdminScreen`, opening `routes.<role>.myClasses`
+  (`/instructor/my-classes`, `/admin/my-classes`; route files in each role's stack, outside `(tabs)`).
+  `TeachingClassesScreen` (`screens/teaching-classes.screen.tsx` + hook, types; prop `role`): title through
+  `headerTitle: () => <StackHeaderTitle />` (centered), no `headerRight`; one `FlatList` (`teaching-classes-list`)
+  of rows built at `useNow()`: `OngoingClassCard`s, then per day a `TeachingDayHeader`
+  (`components/teaching-day-header/`: role `header`, label left and date right in `ds-text-section-label`) and its
+  `ClassCard`s, `isNext` on the next one. States as `MyClassesScreen` (four `ClassCardSkeleton`s as one loading
+  state, `ErrorState` kept with the spinner while retrying, `EmptyState`, nothing after an expired session,
+  pull-to-refresh). `ClassCard` takes `isNext`: while not started and not cancelled, the `sun` "Próxima" `Chip`
+  (`time-outline`) first in the state slot, the `sun` border and the primary shadow. `OngoingClassCard`
+  (`components/ongoing-class-card/`): a `bg-grape` card with `shadowStyle("primary")` and `text-on-color`, the
+  chips on `Chip`'s `onHighlight` tone, the location pill on `onGrapeFill`, the occupancy track `onGrapeTrack` with
+  a white fill (`onGrapeBad` text when full), the footer on `onGrapeShade` with avatars ringed in grape. Copy under
+  `teachingClasses` (the under-way chip reuses `classesWeek.state.started`).
 
 ## Error handling
 

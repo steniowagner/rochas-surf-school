@@ -116,14 +116,16 @@ describe("SchoolRulesScreen", () => {
       fetchMock.mockImplementation(async (url: string) =>
         url.endsWith("/registrations")
           ? json({ items: [] })
-          : url.endsWith("/acceptances")
-            ? json(accountOf(role, true))
-            : json({
-                version: 3,
-                rules: [
-                  { id: "r1", title: "Rule", description: "Text", index: 0 },
-                ],
-              }),
+          : url.endsWith("/classes/teaching")
+            ? json({ items: [], teachesAny: false })
+            : url.endsWith("/acceptances")
+              ? json(accountOf(role, true))
+              : json({
+                  version: 3,
+                  rules: [
+                    { id: "r1", title: "Rule", description: "Text", index: 0 },
+                  ],
+                }),
       );
       const press = userEvent.setup();
       const app = renderRouter(routeTree, { initialUrl: "/" });

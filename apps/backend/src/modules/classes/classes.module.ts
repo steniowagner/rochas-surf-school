@@ -16,6 +16,7 @@ import { PrismaLocationRepository } from './location.prisma.js';
 import { LocationsController } from './locations.controller.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
+import { PrismaTeachingClassesReader } from './teaching-classes-reader.prisma.js';
 import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
 
 @Module({
@@ -33,6 +34,7 @@ import { PrismaTeacherLookup } from './teacher-lookup.prisma.js';
     PrismaLocationRepository,
     PrismaSchoolClassRepository,
     PrismaTeacherLookup,
+    PrismaTeachingClassesReader,
     SystemClockProvider,
   ],
   exports: [ClassesTeachingReleaser],

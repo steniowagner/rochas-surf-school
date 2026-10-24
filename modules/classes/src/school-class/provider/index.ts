@@ -15,3 +15,4 @@ export * from "./class-audience-reader.provider";
 export * from "./my-classes-reader.provider";
 export * from "./class-contact-reader.provider";
 export * from "./class-reminder-notifier.provider";
+export * from "./teaching-classes-reader.provider";

@@ -1026,6 +1026,27 @@ const messages: Messages = {
     keep: "Manter",
     removed: "{{name}} removido",
   },
+  teachingClasses: {
+    row: {
+      assigned_one: "{{count}} aula atribuída a você",
+      assigned_other: "{{count}} aulas atribuídas a você",
+      none: "Nenhuma aula atribuída",
+    },
+    title: "Minhas aulas",
+    today: "Hoje",
+    tomorrow: "Amanhã",
+    loading: "Carregando as aulas",
+    empty: {
+      title: "Nada por aqui",
+      description: "Você ainda não tem aulas atribuídas.",
+    },
+    loadError: {
+      title: "Algo deu errado",
+      description:
+        "Não conseguimos carregar suas aulas. Verifique sua conexão e tente novamente.",
+    },
+    next: "Próxima",
+  },
 };
 
 export default messages;

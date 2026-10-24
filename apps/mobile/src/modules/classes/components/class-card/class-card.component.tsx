@@ -27,14 +27,15 @@ export function ClassCard({
   onPress,
   showFlags = false,
   showEnrolment = false,
+  isNext = false,
 }: ClassCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const card = useClassCard({ item, now, showEnrolment });
+  const card = useClassCard({ item, now, showEnrolment, isNext });
   const { state, timeRange } = card;
 
-  const started = state === "started";
-  const border = started ? "border-sun" : "border-line";
+  const highlighted = state === "started" || card.next;
+  const border = highlighted ? "border-sun" : "border-line";
   const opacity =
     state === "finished"
       ? "opacity-[.55]"
@@ -47,7 +48,7 @@ export function ClassCard({
       accessibilityRole="button"
       accessibilityLabel={`${t(`newClass.discipline.${item.discipline}`)}, ${timeRange}`}
       onPress={() => onPress(item.id)}
-      style={shadowStyle(started ? "primary" : "card", theme)}
+      style={shadowStyle(highlighted ? "primary" : "card", theme)}
       className={`overflow-hidden rounded-card border bg-surface ${border} ${opacity}`}
     >
       <View className="px-3.5 pb-3.5 pt-[13px]">
@@ -57,6 +58,11 @@ export function ClassCard({
           </Chip>
           <Chip tone="info">{t(`newClass.level.${item.level}`)}</Chip>
           <View className="ml-auto items-end gap-2">
+            {card.next ? (
+              <Chip tone="sun" icon="time-outline">
+                {t("teachingClasses.next")}
+              </Chip>
+            ) : null}
             {state === "started" ? (
               <Chip tone="sun" icon="time-outline">
                 {t("classesWeek.state.started")}

@@ -1033,6 +1033,27 @@ const messages: Messages = {
     keep: "Mantener",
     removed: "{{name}} eliminado",
   },
+  teachingClasses: {
+    row: {
+      assigned_one: "{{count}} clase asignada a ti",
+      assigned_other: "{{count}} clases asignadas a ti",
+      none: "Ninguna clase asignada",
+    },
+    title: "Mis clases",
+    today: "Hoy",
+    tomorrow: "Mañana",
+    loading: "Cargando las clases",
+    empty: {
+      title: "Nada por aquí",
+      description: "Aún no tienes clases asignadas.",
+    },
+    loadError: {
+      title: "Algo salió mal",
+      description:
+        "No pudimos cargar tus clases. Revisa tu conexión e inténtalo de nuevo.",
+    },
+    next: "Próxima",
+  },
 };
 
 export default messages;

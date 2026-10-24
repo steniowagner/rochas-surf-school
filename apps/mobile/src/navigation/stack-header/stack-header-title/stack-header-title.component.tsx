@@ -9,7 +9,10 @@ import { StackHeaderTitleProps } from "./stack-header-title.types";
  */
 export function StackHeaderTitle({ title, subtitle }: StackHeaderTitleProps) {
   const titleText = (
-    <Text accessibilityRole="header" className="ds-text-screen-title text-ink">
+    <Text
+      accessibilityRole="header"
+      className="ds-text-screen-title-with-back text-ink"
+    >
       {title.toLocaleUpperCase()}
     </Text>
   );

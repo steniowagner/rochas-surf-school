@@ -13,12 +13,16 @@ export type ClassCardProps = {
   showFlags?: boolean;
   /** Students only: the chip of the viewer's own enrolment (pending, on the waiting list, withdrawn, expired). */
   showEnrolment?: boolean;
+  /** "Minhas aulas": the teacher's next class, drawn with the sun border and the "Próxima" chip while it hasn't started. */
+  isNext?: boolean;
 };
 
-export type UseClassCardProps = Pick<ClassCardProps, "item" | "now" | "showEnrolment">;
+export type UseClassCardProps = Pick<ClassCardProps, "item" | "now" | "showEnrolment" | "isNext">;
 
 export type UseClassCardResult = {
   state: ClassState;
+  /** `isNext` and not started: the "Próxima" chip, the sun border and the primary shadow. */
+  next: boolean;
   /** "08:00 – 09:30", America/Fortaleza. */
   timeRange: string;
   /** The occupancy bar is shown: not for a finished or cancelled class. */

@@ -2,7 +2,7 @@
 id: "057"
 slug: teaching-classes
 title: "\"Minhas aulas\" for instructors and admins who teach"
-status: in-progress
+status: in-review
 created: 2026-10-23
 started: 2026-10-23
 base_commit: 30d2bccaa1cca3534931006e3117df3fefcda72e
@@ -557,7 +557,10 @@ header's clock button.
   > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`; verified:
   > `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/utils/teaching-classes.test.ts --coverage`
   > (2 suites, 24 passed; the hook and the utils 100%), the new screen test failing against the old hook (1 failed),
-  > `npx tsc --noEmit` and `npx eslint src/modules/classes/utils src/modules/classes/screens` (no errors); deviations: none.
+  > `npx tsc --noEmit` and `npx eslint src/modules/classes/utils src/modules/classes/screens` (no errors). Not confirmed on
+  > the simulator: the Metro already running (started before this session, `expo start --clear`) kept serving the app
+  > its old bundle after two relaunches, though a fresh request to it for the route returned the new `formatDayName`
+  > code; the screen still read "QUARTA-FEIRA". Restart Metro with `--clear` before checking it on a device. Deviations: none.
 
 **Notes**
 

@@ -7,6 +7,7 @@ import {
   ExpirableEnrolment,
   OPEN_ENROLMENT_STATUSES,
   PendingRequestsClass,
+  ReleasedEnrolments,
 } from '@rochas-surf-school/enrolment';
 import { ConflictError } from '@rochas-surf-school/shared';
 import { PrismaService } from '../../db/prisma.service.js';
@@ -274,9 +275,9 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
     return this.prisma.enrolment.count({ where: { classId, status: 'pending' } });
   }
 
-  async releaseForStudent(studentId: string, now: Date): Promise<Enrolment[]> {
+  async releaseForStudent(studentId: string, now: Date): Promise<ReleasedEnrolments> {
     // One transaction, and every write checks the status itself: an enrolment decided meanwhile is left alone.
-    const cancelled = await this.prisma.$transaction(async (tx) => {
+    const { cancelled, withdrawn } = await this.prisma.$transaction(async (tx) => {
       const records = await tx.enrolment.updateManyAndReturn({
         where: {
           studentId,
@@ -286,17 +287,20 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
         data: { status: 'cancelled', endedAt: now, updatedAt: now },
       });
 
-      await tx.enrolment.updateMany({
+      const { count } = await tx.enrolment.updateMany({
         where: { studentId, status: 'pending' },
         data: { status: 'withdrawn', endedAt: now, updatedAt: now },
       });
 
-      return records;
+      return { cancelled: records, withdrawn: count };
     });
 
-    return cancelled
-      .sort((a, b) => a.requestedAt.getTime() - b.requestedAt.getTime() || a.id.localeCompare(b.id))
-      .map((record) => this.toDomain(record));
+    return {
+      cancelled: cancelled
+        .sort((a, b) => a.requestedAt.getTime() - b.requestedAt.getTime() || a.id.localeCompare(b.id))
+        .map((record) => this.toDomain(record)),
+      withdrawn,
+    };
   }
 
   /** The check sits on the write itself, so a race leaves exactly one winner. */

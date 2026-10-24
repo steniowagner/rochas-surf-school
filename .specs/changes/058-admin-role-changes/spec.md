@@ -427,7 +427,7 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-07** — Implement the data side: `countApprovedAdmins` and `updateKeepingAnAdmin` (one transaction, the
+- [x] **T-07** — Implement the data side: `countApprovedAdmins` and `updateKeepingAnAdmin` (one transaction, the
   approved admins' rows locked with `SELECT … FOR UPDATE`, the conditional write) in
   `src/modules/auth/user.prisma.ts`; the `{ cancelled, withdrawn }` answer of `releaseForStudent` in
   `src/modules/enrolment/enrolment.prisma.ts`; the counts in `enrolment.seat-releaser.ts` and
@@ -436,6 +436,29 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01, ER-03, ER-06, ER-08 · Done when: `npx vitest run src/modules/auth src/modules/enrolment src/modules/classes`
   passes from `apps/backend`.
+  > ✅ 2026-10-24 00:38 — `PrismaUserRepository.countApprovedAdmins` (`user.count` of approved admins) and
+  > `updateKeepingAnAdmin` (one `$transaction`: `SELECT id … WHERE role = 'admin' AND status = 'approved' ORDER BY id
+  > FOR UPDATE`, then the user's row `FOR UPDATE`; `"changed"` when gone or not the expected role/status,
+  > `"lastAdmin"` when an approved admin stops being one and no other is locked, else the user written with its
+  > acceptances); `PrismaEnrolmentRepository.releaseForStudent` returns `{ cancelled, withdrawn }` (the `updateMany`
+  > count of the withdrawals); `EnrolmentSeatReleaser.releaseSeats` returns cancelled + withdrawn;
+  > `ClassesTeachingReleaser.releaseUpcomingClasses(userId, actorId?)` passes the actor and returns `released`; specs
+  > for each (lock order and SQL, last admin by role and by status, non-admin writes, stale role, stale status, gone
+  > user; the counts; the actor). Missing step done here: `auth.controller.spec.ts`'s repository mock gets
+  > `countApprovedAdmins` / `updateKeepingAnAdmin` and the releaser mocks answer 0, since `DeleteAccount` (T-06) now
+  > calls them; files: `apps/backend/src/modules/auth/user.prisma.ts`,
+  > `apps/backend/src/modules/auth/user.prisma.spec.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/src/modules/enrolment/enrolment.prisma.ts`,
+  > `apps/backend/src/modules/enrolment/enrolment.prisma.spec.ts`,
+  > `apps/backend/src/modules/enrolment/enrolment.seat-releaser.ts`,
+  > `apps/backend/src/modules/enrolment/enrolment.seat-releaser.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.teaching-releaser.ts`,
+  > `apps/backend/src/modules/classes/classes.teaching-releaser.spec.ts`; verified: `npx vitest run src/modules/auth
+  > src/modules/enrolment src/modules/classes` (51 files, 450 passed); coverage of the four source files: every
+  > changed line covered (the one partial branch is the `@Injectable()` decorator metadata, skipped by policy);
+  > deviations: written by hand on the existing classes — the `backend-prisma-repository` and
+  > `backend-provider-implementation` skills scaffold new repositories/providers and have no step for adding a method
+  > to an existing one.
 
 - [ ] **T-08** — Add `src/modules/notifications/notifications.role-change-notifier.ts`
   (`NotificationsRoleChangeNotifier`, one `role.changed` to the person, errors logged and swallowed) exported from the

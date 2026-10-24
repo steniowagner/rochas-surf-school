@@ -58,12 +58,15 @@ function setup() {
   };
   const $queryRaw = vi.fn();
   const userRulesAcceptance = { createMany: vi.fn() };
+  const tx = { user, $queryRaw };
+  const $transaction = vi.fn(async (callback: (client: typeof tx) => unknown) => callback(tx));
   const repository = new PrismaUserRepository({
     user,
     userRulesAcceptance,
     $queryRaw,
+    $transaction,
   } as unknown as PrismaService);
-  return { user, userRulesAcceptance, $queryRaw, repository };
+  return { user, userRulesAcceptance, $queryRaw, $transaction, repository };
 }
 
 function minimalUser(): User {
@@ -415,6 +418,114 @@ describe('PrismaUserRepository', () => {
         data: [{ userId: ID, version: 3, acceptedAt }],
         skipDuplicates: true,
       });
+      expect(user.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('countApprovedAdmins', () => {
+    it('counts the approved admins', async () => {
+      const { user, repository } = setup();
+      user.count.mockResolvedValue(2);
+
+      await expect(repository.countApprovedAdmins()).resolves.toBe(2);
+      expect(user.count).toHaveBeenCalledWith({ where: { role: 'admin', status: 'approved' } });
+    });
+  });
+
+  describe('updateKeepingAnAdmin', () => {
+    const OTHER_ADMIN = '1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f';
+    const approvedAdmin = () => fullUser().clone({ status: 'approved' });
+    const sqlOf = (call: unknown[]) => (call[0] as Prisma.Sql).sql;
+
+    function lockAnswers(
+      queryRaw: ReturnType<typeof setup>['$queryRaw'],
+      admins: string[],
+      stored: { role: string; status: string } | undefined,
+    ) {
+      queryRaw
+        .mockResolvedValueOnce(admins.map((id) => ({ id })))
+        .mockResolvedValueOnce(stored ? [stored] : []);
+    }
+
+    it('locks the approved admins, then the user, and writes in one transaction', async () => {
+      const { user, $queryRaw, $transaction, repository } = setup();
+      lockAnswers($queryRaw, [ID, OTHER_ADMIN], { role: 'admin', status: 'approved' });
+
+      await expect(
+        repository.updateKeepingAnAdmin(approvedAdmin().clone({ role: 'instructor' }), {
+          role: 'admin',
+          status: 'approved',
+        }),
+      ).resolves.toBe('updated');
+
+      expect($transaction).toHaveBeenCalledOnce();
+      expect(sqlOf($queryRaw.mock.calls[0]!)).toBe(
+        "SELECT id FROM users WHERE role = 'admin' AND status = 'approved' ORDER BY id FOR UPDATE",
+      );
+      expect(sqlOf($queryRaw.mock.calls[1]!)).toContain('FROM users WHERE id = ?::uuid FOR UPDATE');
+      expect(($queryRaw.mock.calls[1]![0] as Prisma.Sql).values).toEqual([ID]);
+      const call = user.update.mock.calls[0]![0];
+      expect(call.where).toEqual({ id: ID });
+      expect(call.data).toMatchObject({ role: 'instructor', status: 'approved' });
+      expect(call.data.rulesAcceptances).toEqual({
+        deleteMany: {},
+        create: [{ version: 1, acceptedAt: fullRecord.rulesAcceptances[0]!.acceptedAt }],
+      });
+    });
+
+    it.each([
+      ['by role', { role: 'instructor' as const }],
+      ['by status', { status: 'deleted' as const }],
+    ])('answers lastAdmin, writing nothing, when the only approved admin would stop being one %s', async (_, change) => {
+      const { user, $queryRaw, repository } = setup();
+      lockAnswers($queryRaw, [ID], { role: 'admin', status: 'approved' });
+
+      await expect(
+        repository.updateKeepingAnAdmin(approvedAdmin().clone(change), { role: 'admin', status: 'approved' }),
+      ).resolves.toBe('lastAdmin');
+      expect(user.update).not.toHaveBeenCalled();
+    });
+
+    it('writes a user who stays an admin, or never was one, even with no other admin', async () => {
+      const { user, $queryRaw, repository } = setup();
+      lockAnswers($queryRaw, [ID], { role: 'admin', status: 'approved' });
+      lockAnswers($queryRaw, [OTHER_ADMIN], { role: 'student', status: 'approved' });
+
+      await expect(
+        repository.updateKeepingAnAdmin(approvedAdmin().clone({ name: 'Ana R.' }), {
+          role: 'admin',
+          status: 'approved',
+        }),
+      ).resolves.toBe('updated');
+      await expect(
+        repository.updateKeepingAnAdmin(approvedAdmin(), { role: 'student', status: 'approved' }),
+      ).resolves.toBe('updated');
+      expect(user.update).toHaveBeenCalledTimes(2);
+    });
+
+    it.each([
+      ['the role', { role: 'student', status: 'approved' }],
+      ['the status', { role: 'admin', status: 'removed' }],
+    ])('answers changed, writing nothing, when the stored %s is not the expected one', async (_, stored) => {
+      const { user, $queryRaw, repository } = setup();
+      lockAnswers($queryRaw, [OTHER_ADMIN], stored);
+
+      await expect(
+        repository.updateKeepingAnAdmin(approvedAdmin().clone({ role: 'instructor' }), {
+          role: 'admin',
+          status: 'approved',
+        }),
+      ).resolves.toBe('changed');
+      expect(user.update).not.toHaveBeenCalled();
+    });
+
+    it('answers changed when the user is gone', async () => {
+      const { user, $queryRaw, repository } = setup();
+      lockAnswers($queryRaw, [OTHER_ADMIN], undefined);
+
+      await expect(
+        repository.updateKeepingAnAdmin(approvedAdmin(), { role: 'admin', status: 'approved' }),
+      ).resolves.toBe('changed');
       expect(user.update).not.toHaveBeenCalled();
     });
   });

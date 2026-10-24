@@ -69,6 +69,14 @@ function setup(
       if (index !== -1) users[index] = user;
       return user;
     }),
+    countApprovedAdmins: vi.fn(
+      async () => users.filter((user) => user.role === 'admin' && user.status === 'approved').length,
+    ),
+    updateKeepingAnAdmin: vi.fn(async (user: User) => {
+      const index = users.findIndex((item) => item.id === user.id);
+      if (index !== -1) users[index] = user;
+      return 'updated';
+    }),
   };
   const identities: Identity[] = [];
   const identityRepository = {
@@ -111,8 +119,8 @@ function setup(
   };
   const registrationNotifier = { registrationPending: vi.fn().mockResolvedValue(undefined) };
   const pushTokenRemover = { remove: vi.fn().mockResolvedValue(undefined) };
-  const teachingReleaser = { releaseUpcomingClasses: vi.fn().mockResolvedValue(undefined) };
-  const seatReleaser = { releaseSeats: vi.fn().mockResolvedValue(undefined) };
+  const teachingReleaser = { releaseUpcomingClasses: vi.fn().mockResolvedValue(0) };
+  const seatReleaser = { releaseSeats: vi.fn().mockResolvedValue(0) };
   const controller = new AuthController(
     { reviewCodes, refreshTokenTtlDays: 30 } as AuthConfig,
     signInCodeRepository as unknown as PrismaSignInCodeRepository,

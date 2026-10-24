@@ -41,7 +41,7 @@ describe('ClassesTeachingReleaser', () => {
     const alone = upcoming([USER_ID]);
     const { repository, notifier, releaser } = setup([shared, alone]);
 
-    await expect(releaser.releaseUpcomingClasses(USER_ID)).resolves.toBeUndefined();
+    await expect(releaser.releaseUpcomingClasses(USER_ID)).resolves.toBe(2);
 
     expect(repository.findUpcomingTaughtBy).toHaveBeenCalledWith(USER_ID, NOW);
     expect(repository.removeInstructor).toHaveBeenCalledWith(USER_ID, [shared.id, alone.id]);
@@ -52,6 +52,17 @@ describe('ClassesTeachingReleaser', () => {
       startsAt: alone.startsAt,
       excludeUserIds: [USER_ID],
     });
+  });
+
+  it('leaves the actor out of the notification too, and answers 0 with nothing to release', async () => {
+    const alone = upcoming([USER_ID]);
+    const { notifier, releaser } = setup([alone]);
+
+    await expect(releaser.releaseUpcomingClasses(USER_ID, OTHER_ID)).resolves.toBe(1);
+    expect(notifier.classesWithoutInstructor).toHaveBeenCalledWith(
+      expect.objectContaining({ excludeUserIds: [USER_ID, OTHER_ID] }),
+    );
+    await expect(setup([]).releaser.releaseUpcomingClasses(USER_ID, OTHER_ID)).resolves.toBe(0);
   });
 
   it('propagates a failed write', async () => {

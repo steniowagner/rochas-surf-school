@@ -385,7 +385,7 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   > check-types --workspace @rochas-surf-school/auth` exits 0, `npx jest test/user` (15 suites, 208 passed);
   > deviations: none
 
-- [ ] **T-05** — Add `ChangeRole` (`src/user/usecase/change-role.usecase.ts`, exported from the index): input
+- [x] **T-05** — Add `ChangeRole` (`src/user/usecase/change-role.usecase.ts`, exported from the index): input
   `{ actor, userId, role }`, the checks of D-06 in order, the allowed pairs of D-02, the releases and order of D-07,
   `updateKeepingAnAdmin` with its `"changed"` → 409 `user.role.changeNotAllowed` and `"lastAdmin"` → 409
   `user.role.lastAdmin`, then `roleChanged` (errors swallowed), answering `{ id, role }`; with tests for the five
@@ -393,6 +393,21 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   and a failing notifier. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07 · Done when:
   `npx jest test/user/usecase/change-role.usecase.test.ts` passes from `modules/auth`.
+  > ✅ 2026-10-24 00:34 — `ChangeRole` (`{ actor, userId, role }` → `{ id, role }`): access via
+  > `assertCanDecideRegistrations` (403 `user.status.notApproved`, 403 `user.role.notAdmin`), 422
+  > `people.role.invalid`, 404 `user.notFound`, 403 `user.role.self`, 409 `user.status.notApproved`, the five pairs of
+  > D-02 (else 409 `user.role.changeNotAllowed`), then the release (seats for a student, upcoming classes with the
+  > actor for instructor → student), the guarded write (`"changed"` → 409 `user.role.changeNotAllowed`, `"lastAdmin"`
+  > → 409 `user.role.lastAdmin`) and `roleChanged` with `seatsReleased` / `classesReleased` from the counts, errors
+  > swallowed; exported from the use case index; tests for the five changes, nothing to release, the release happening
+  > while the stored role is still the old one, a failing release (nothing written), a failing notifier, every refusal
+  > and its order (nothing released or told), a change made meanwhile and the last admin; files:
+  > `modules/auth/src/user/usecase/change-role.usecase.ts`, `modules/auth/src/user/usecase/index.ts`,
+  > `modules/auth/test/user/usecase/change-role.usecase.test.ts`; verified: `npx jest
+  > test/user/usecase/change-role.usecase.test.ts --coverage` (33 passed, the use case 100%
+  > statements/branches/functions/lines; `-t "admin"` and `-t "refuses"` select the ER-02 and ER-05 cases);
+  > deviations: the code follows the module's use-case pattern by hand (`module-use-case`'s conventions: `ChangeRole`,
+  > `ChangeRoleIn`/`ChangeRoleOut`, concrete fakes) rather than its scaffold, since the behavior is fully custom.
 
 - [ ] **T-06** — In `DeleteAccount`, refuse an approved admin when `countApprovedAdmins()` is 1 with 409
   `user.role.lastAdmin` before any release, and write with `updateKeepingAnAdmin` (`"lastAdmin"` → the same 409)

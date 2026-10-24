@@ -139,3 +139,70 @@ describe("UserRepository.findDeniedBefore / deleteDenied (fake)", () => {
     expect(userRepository.users).toEqual([other, approved]);
   });
 });
+
+describe("UserRepository.countApprovedAdmins / updateKeepingAnAdmin (fake)", () => {
+  const ADMIN = { role: "admin", status: "approved" } as const;
+
+  test("counts only the approved admins", async () => {
+    const userRepository = new FakeUserRepository([
+      buildUser({ role: "admin" }),
+      buildUser({ role: "admin", status: "deleted" }),
+      buildUser({ role: "instructor" }),
+      buildUser(),
+    ]);
+
+    await expect(userRepository.countApprovedAdmins()).resolves.toBe(1);
+  });
+
+  test("writes when the stored state is the expected one and another admin remains", async () => {
+    const ana = buildUser({ role: "admin" });
+    const userRepository = new FakeUserRepository([ana, buildUser({ role: "admin" })]);
+    const demoted = ana.clone({ role: "instructor" });
+
+    await expect(userRepository.updateKeepingAnAdmin(demoted, ADMIN)).resolves.toBe("updated");
+    expect((await userRepository.findById(ana.id))?.role).toBe("instructor");
+  });
+
+  test("refuses to take away the last approved admin, by role or by status", async () => {
+    const ana = buildUser({ role: "admin" });
+    const userRepository = new FakeUserRepository([ana, buildUser({ role: "admin", status: "deleted" })]);
+
+    await expect(
+      userRepository.updateKeepingAnAdmin(ana.clone({ role: "instructor" }), ADMIN),
+    ).resolves.toBe("lastAdmin");
+    await expect(
+      userRepository.updateKeepingAnAdmin(ana.clone({ status: "deleted" }), ADMIN),
+    ).resolves.toBe("lastAdmin");
+    expect(await userRepository.findById(ana.id)).toBe(ana);
+  });
+
+  test("writes a user who isn't an admin, or stays one, without the last-admin rule", async () => {
+    const ana = buildUser({ role: "admin" });
+    const bia = buildUser({ name: "Bia Souza" });
+    const userRepository = new FakeUserRepository([ana, bia]);
+
+    await expect(
+      userRepository.updateKeepingAnAdmin(bia.clone({ role: "admin" }), { role: "student", status: "approved" }),
+    ).resolves.toBe("updated");
+    await expect(userRepository.updateKeepingAnAdmin(ana.clone({ name: "Ana R." }), ADMIN)).resolves.toBe(
+      "updated",
+    );
+  });
+
+  test("answers changed when the stored role or status isn't the expected one, or the user is gone", async () => {
+    const ana = buildUser({ role: "instructor" });
+    const userRepository = new FakeUserRepository([ana, buildUser({ role: "admin" })]);
+    const promoted = ana.clone({ role: "admin" });
+
+    await expect(
+      userRepository.updateKeepingAnAdmin(promoted, { role: "student", status: "approved" }),
+    ).resolves.toBe("changed");
+    await expect(
+      userRepository.updateKeepingAnAdmin(promoted, { role: "instructor", status: "pending" }),
+    ).resolves.toBe("changed");
+    await expect(
+      userRepository.updateKeepingAnAdmin(buildUser(), { role: "student", status: "approved" }),
+    ).resolves.toBe("changed");
+    expect(await userRepository.findById(ana.id)).toBe(ana);
+  });
+});

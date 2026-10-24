@@ -4,5 +4,6 @@
  * depend on it. Releasing twice changes nothing more.
  */
 export interface SeatReleaser {
-  releaseSeats(userId: string): Promise<void>;
+  /** Returns how many seats were cancelled plus how many requests were withdrawn. */
+  releaseSeats(userId: string): Promise<number>;
 }

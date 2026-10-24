@@ -362,13 +362,28 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-04** — Change the ports and their fakes in `test/mock`: `SeatReleaser.releaseSeats` returns `number`,
+- [x] **T-04** — Change the ports and their fakes in `test/mock`: `SeatReleaser.releaseSeats` returns `number`,
   `TeachingReleaser.releaseUpcomingClasses(userId, actorId?)` returns `number` (D-09); add the `RoleChangeNotifier`
   port (`src/user/provider/role-change-notifier.provider.ts`, `roleChanged({ userId, role, seatsReleased,
   classesReleased })`); add `UserRepository.countApprovedAdmins()` and `updateKeepingAnAdmin(user, expected)` (D-08)
   to the interface and `fake-user.repository.ts`, with fake tests where the folder has them.
   Covers: enabling · Done when: `npm run check-types --workspace @rochas-surf-school/auth` exits 0 and
   `npx jest test/user` passes from `modules/auth`.
+  > ✅ 2026-10-24 00:32 — `SeatReleaser.releaseSeats` returns `number`,
+  > `TeachingReleaser.releaseUpcomingClasses(userId, actorId?)` returns `number` (fakes answer a settable `count`; the
+  > teaching fake also records `actors`); new `RoleChangeNotifier` port (`roleChanged(RoleChangedEvent)`) with
+  > `FakeRoleChangeNotifier`; `UserRepository.countApprovedAdmins()` and `updateKeepingAnAdmin(user, expected)` (new
+  > `ExpectedUserState` and `KeepAdminResult = "updated" | "changed" | "lastAdmin"`) in the interface and
+  > `FakeUserRepository`, with fake tests (count, write, last admin by role and by status, non-admin writes, stale
+  > state and unknown user); files: `modules/auth/src/user/provider/seat-releaser.provider.ts`,
+  > `modules/auth/src/user/provider/teaching-releaser.provider.ts`,
+  > `modules/auth/src/user/provider/role-change-notifier.provider.ts`, `modules/auth/src/user/provider/index.ts`,
+  > `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/test/mock/fake-seat-releaser.provider.ts`,
+  > `modules/auth/test/mock/fake-teaching-releaser.provider.ts`,
+  > `modules/auth/test/mock/fake-role-change-notifier.provider.ts`, `modules/auth/test/mock/fake-user.repository.ts`,
+  > `modules/auth/test/mock/index.ts`, `modules/auth/test/user/provider/user.repository.test.ts`; verified: `npm run
+  > check-types --workspace @rochas-surf-school/auth` exits 0, `npx jest test/user` (15 suites, 208 passed);
+  > deviations: none
 
 - [ ] **T-05** — Add `ChangeRole` (`src/user/usecase/change-role.usecase.ts`, exported from the index): input
   `{ actor, userId, role }`, the checks of D-06 in order, the allowed pairs of D-02, the releases and order of D-07,

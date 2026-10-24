@@ -13,3 +13,4 @@ export * from "./fake-push-token-remover.provider";
 export * from "./fake-registration-notification-eraser.provider";
 export * from "./fake-teaching-releaser.provider";
 export * from "./fake-seat-releaser.provider";
+export * from "./fake-role-change-notifier.provider";

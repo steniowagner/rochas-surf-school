@@ -38,6 +38,12 @@ export type DirectEnrolResult =
   | { result: "alreadyApproved" }
   | { result: "full" };
 
+/** What releasing a student gave up: the upcoming seats cancelled and the number of requests withdrawn. */
+export interface ReleasedEnrolments {
+  cancelled: Enrolment[];
+  withdrawn: number;
+}
+
 export interface EnrolmentRepository {
   /**
    * Stores the enrolment. Throws a 409 `enrolment.alreadyOpen` when the student already has a pending or
@@ -88,7 +94,8 @@ export interface EnrolmentRepository {
   countPendingForClass(classId: string): Promise<number>;
   /**
    * Gives up everything the student holds: ends as withdrawn every pending enrolment and as cancelled every
-   * approved one of a class that hasn't started at `now` and isn't cancelled. Returns the cancelled ones.
+   * approved one of a class that hasn't started at `now` and isn't cancelled. Returns the cancelled ones and how
+   * many requests were withdrawn.
    */
-  releaseForStudent(studentId: string, now: Date): Promise<Enrolment[]>;
+  releaseForStudent(studentId: string, now: Date): Promise<ReleasedEnrolments>;
 }

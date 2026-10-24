@@ -7,6 +7,7 @@ import {
   EnrolmentRepository,
   ExpirableEnrolment,
   PendingRequestsClass,
+  ReleasedEnrolments,
 } from "../../src";
 
 export class FakeEnrolmentRepository implements EnrolmentRepository {
@@ -135,13 +136,17 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
     return this.enrolments.filter((item) => item.classId === classId && item.status === "pending").length;
   }
 
-  async releaseForStudent(studentId: string, now: Date): Promise<Enrolment[]> {
+  async releaseForStudent(studentId: string, now: Date): Promise<ReleasedEnrolments> {
     const cancelled: Enrolment[] = [];
+    let withdrawn = 0;
 
     this.enrolments = this.enrolments.map((item) => {
       if (item.studentId !== studentId) return item;
 
-      if (item.status === "pending") return item.withdraw(now);
+      if (item.status === "pending") {
+        withdrawn += 1;
+        return item.withdraw(now);
+      }
 
       const found = this.classes.find((candidate) => candidate.id === item.classId);
       const upcoming = !!found && !found.cancelledAt && found.startsAt.getTime() > now.getTime();
@@ -153,7 +158,7 @@ export class FakeEnrolmentRepository implements EnrolmentRepository {
       return out;
     });
 
-    return cancelled;
+    return { cancelled, withdrawn };
   }
 
   async closeOpenForClass(classId: string, now: Date): Promise<Enrolment[]> {

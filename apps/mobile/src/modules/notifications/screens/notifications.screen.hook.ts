@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { routes } from "@/constants/routes";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
 import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
 import { useAlertMessage } from "@/providers/alert-message";
@@ -19,8 +20,22 @@ import {
   NOTIFICATIONS_LIST_QUERY_KEY,
   NotificationsListData,
 } from "../utils/notifications-cache";
+import { refreshAccount } from "../utils/refresh-account";
 
 import { UseNotificationsScreenResult } from "./notifications.screen.types";
+
+// A new role starts at its flow's home: the account is reloaded first, as for a tapped push, so `index` redirects
+// to the new role's flow even when the push never reached the open app (spec 058, D-13).
+const openNewRoleHome = async () => {
+  try {
+    await refreshAccount();
+  } catch {
+    // Only an expired session throws: useSessionExpired sends the person to sign-in.
+    return;
+  }
+
+  router.replace(routes.home);
+};
 
 export const useNotificationsScreen = (): UseNotificationsScreenResult => {
   const { t } = useTranslation();
@@ -52,6 +67,12 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
 
     if (target !== null) {
       router.push(target);
+
+      return;
+    }
+
+    if (notification.type === "role.changed" && user) {
+      void openNewRoleHome();
     }
   };
 

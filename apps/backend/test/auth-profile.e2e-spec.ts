@@ -263,6 +263,7 @@ describe('DELETE /auth/me', () => {
   let push: FakePushProvider;
   let locationId: string;
   let creatorId: string;
+  let creatorToken: string;
   let classIds: string[];
 
   beforeEach(async () => {
@@ -292,7 +293,7 @@ describe('DELETE /auth/me', () => {
       })
     ).id;
     classIds = [];
-    creatorId = (await account('admin', 'approved', 'Carla Lima')).id;
+    ({ id: creatorId, accessToken: creatorToken } = await account('admin', 'approved', 'Carla Lima'));
   });
 
   afterEach(async () => {
@@ -485,5 +486,55 @@ describe('DELETE /auth/me', () => {
     expect(renderPush('enrolment.cancelled', sent[0]!.params, 'pt-BR').body).toBe(
       'Ana Souza cancelou a vaga na aula de Surf de 15/10 às 08:00. 1 na lista de espera.',
     );
+  });
+  describe('only admin', () => {
+    // The database is shared: the approved admins that aren't the test's are set aside (made instructors), so the
+    // classes' creator is the school's only approved admin, and put back after every test.
+    let setAside: string[];
+
+    beforeEach(async () => {
+      const others = await prisma.user.findMany({
+        where: { role: 'admin', status: 'approved', NOT: { email: { endsWith: `@${DOMAIN}` } } },
+        select: { id: true },
+      });
+      setAside = others.map((item) => item.id);
+      if (setAside.length > 0) {
+        await prisma.$executeRaw`UPDATE users SET role = 'instructor' WHERE id = ANY(${setAside}::uuid[])`;
+      }
+    });
+
+    afterEach(async () => {
+      if (setAside.length > 0) {
+        await prisma.$executeRaw`UPDATE users SET role = 'admin' WHERE id = ANY(${setAside}::uuid[])`;
+      }
+    });
+
+    it('refuses the only approved admin with 409 user.role.lastAdmin, keeping the account and its classes', async () => {
+      const upcoming = await classWith([creatorId], 22);
+
+      const response = await deleteMe(creatorToken);
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors).toEqual(['user.role.lastAdmin']);
+      expect((await prisma.user.findUniqueOrThrow({ where: { id: creatorId } })).status).toBe('approved');
+      expect(await instructorsOf(upcoming, creatorToken)).toEqual([creatorId]);
+    });
+
+    it('closes an admin account as before when another approved admin remains', async () => {
+      const leaving = await account('admin');
+      const upcoming = await classWith([leaving.id], 22);
+
+      expect((await deleteMe(leaving.accessToken)).status).toBe(204);
+
+      expect((await prisma.user.findUniqueOrThrow({ where: { id: leaving.id } })).status).toBe('deleted');
+      expect(await instructorsOf(upcoming, creatorToken)).toEqual([]);
+    });
+
+    it.each(['student', 'instructor'] as const)('never refuses a %s', async (role) => {
+      const leaving = await account(role);
+
+      expect((await deleteMe(leaving.accessToken)).status).toBe(204);
+      expect((await prisma.user.findUniqueOrThrow({ where: { id: leaving.id } })).status).toBe('deleted');
+    });
   });
 });

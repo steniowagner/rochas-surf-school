@@ -12,6 +12,7 @@ import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsPushTokenRemover } from './notifications.push-token-remover.js';
 import { NotificationsRegistrationNotificationEraser } from './notifications.registration-notification-eraser.js';
 import { NotificationsRegistrationNotifier } from './notifications.registration-notifier.js';
+import { NotificationsRoleChangeNotifier } from './notifications.role-change-notifier.js';
 import { PushReceiptCheckJob } from './push-receipt-check.job.js';
 import { PrismaPushTicketRepository } from './push-ticket.prisma.js';
 import { PrismaPushTokenRepository } from './push-token.prisma.js';
@@ -29,6 +30,7 @@ import { SystemClockProvider } from './system.clock.js';
     SystemClockProvider,
     ExpoPushProvider,
     NotificationsRegistrationNotifier,
+    NotificationsRoleChangeNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,
     NotificationsClassReminderNotifier,
@@ -41,6 +43,7 @@ import { SystemClockProvider } from './system.clock.js';
   ],
   exports: [
     NotificationsRegistrationNotifier,
+    NotificationsRoleChangeNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,
     NotificationsClassReminderNotifier,

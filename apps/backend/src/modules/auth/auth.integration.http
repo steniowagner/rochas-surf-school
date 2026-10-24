@@ -113,7 +113,8 @@ Authorization: Bearer {{accessToken}}
 ### Send the reactivation request without a token (expects 401 auth.token.invalid)
 POST {{baseUrl}}/auth/me/reactivation-request
 
-### Delete the account (expects 204; only an approved account; the account becomes "deleted")
+### Delete the account (expects 204; only an approved account; the account becomes "deleted"; the school's only
+### approved admin gets 409 user.role.lastAdmin and keeps the account)
 DELETE {{baseUrl}}/auth/me
 Authorization: Bearer {{accessToken}}
 

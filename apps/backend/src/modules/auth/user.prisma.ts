@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PageResult } from '@rochas-surf-school/shared';
 import {
   DirectoryPageParams,
+  ExpectedUserState,
+  KeepAdminResult,
   RulesAcceptance,
   User,
   UserPageParams,
@@ -171,6 +173,42 @@ export class PrismaUserRepository implements UserRepository {
         { userId, version: acceptance.version, acceptedAt: acceptance.acceptedAt },
       ],
       skipDuplicates: true,
+    });
+  }
+
+  async countApprovedAdmins(): Promise<number> {
+    return this.prisma.user.count({ where: { role: 'admin', status: 'approved' } });
+  }
+
+  /**
+   * One transaction that first locks the approved admins' rows, in id order, then the user's: two writes that would
+   * each take away an admin run one after the other, and the second sees the first's result (Postgres re-checks a
+   * locked row against the condition once the other transaction commits).
+   */
+  async updateKeepingAnAdmin(user: User, expected: ExpectedUserState): Promise<KeepAdminResult> {
+    return this.prisma.$transaction(async (tx): Promise<KeepAdminResult> => {
+      const admins = await tx.$queryRaw<{ id: string }[]>(
+        Prisma.sql`SELECT id FROM users WHERE role = 'admin' AND status = 'approved' ORDER BY id FOR UPDATE`,
+      );
+      const [stored] = await tx.$queryRaw<{ role: string; status: string }[]>(
+        Prisma.sql`SELECT role::text AS role, status::text AS status FROM users WHERE id = ${user.id}::uuid FOR UPDATE`,
+      );
+
+      if (!stored || stored.role !== expected.role || stored.status !== expected.status) return 'changed';
+
+      const wasAdmin = stored.role === 'admin' && stored.status === 'approved';
+      const staysAdmin = user.role === 'admin' && user.status === 'approved';
+      if (wasAdmin && !staysAdmin && admins.length <= 1) return 'lastAdmin';
+
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          ...this.toData(user),
+          rulesAcceptances: { deleteMany: {}, create: this.toAcceptances(user) },
+        },
+      });
+
+      return 'updated';
     });
   }
 

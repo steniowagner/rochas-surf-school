@@ -497,6 +497,7 @@ describe('PrismaEnrolmentRepository', () => {
         record({ id: OTHER_ID, status: 'cancelled', requestedAt: later, endedAt: NOW }),
         record({ status: 'cancelled', endedAt: NOW }),
       ]);
+      enrolment.updateMany.mockResolvedValue({ count: 3 });
 
       const out = await repository.releaseForStudent(STUDENT_ID, NOW);
 
@@ -513,8 +514,9 @@ describe('PrismaEnrolmentRepository', () => {
         where: { studentId: STUDENT_ID, status: 'pending' },
         data: { status: 'withdrawn', endedAt: NOW, updatedAt: NOW },
       });
-      expect(out.map((item) => item.id)).toEqual([ID, OTHER_ID]);
-      expect(out.every((item) => item.status === 'cancelled')).toBe(true);
+      expect(out.cancelled.map((item) => item.id)).toEqual([ID, OTHER_ID]);
+      expect(out.cancelled.every((item) => item.status === 'cancelled')).toBe(true);
+      expect(out.withdrawn).toBe(3);
     });
 
     it('breaks a tie of the request time by id', async () => {
@@ -526,14 +528,15 @@ describe('PrismaEnrolmentRepository', () => {
 
       const out = await repository.releaseForStudent(STUDENT_ID, NOW);
 
-      expect(out.map((item) => item.id)).toEqual([ID, OTHER_ID]);
+      expect(out.cancelled.map((item) => item.id)).toEqual([ID, OTHER_ID]);
     });
 
-    it('answers nothing for a student without upcoming seats', async () => {
+    it('answers nothing for a student without upcoming seats or requests', async () => {
       const { enrolment, repository } = setup();
       enrolment.updateManyAndReturn.mockResolvedValue([]);
+      enrolment.updateMany.mockResolvedValue({ count: 0 });
 
-      expect(await repository.releaseForStudent(STUDENT_ID, NOW)).toEqual([]);
+      expect(await repository.releaseForStudent(STUDENT_ID, NOW)).toEqual({ cancelled: [], withdrawn: 0 });
     });
   });
 });

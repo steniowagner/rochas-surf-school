@@ -67,3 +67,17 @@ export const setupSignedInUser = () => {
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 };
+
+/** Signs in an approved admin (`u-1`), the only viewer who sees the role actions. */
+export const setupSignedInAdmin = () => {
+  setupSignedInUser();
+  hydrateSession({
+    user: { id: "u-1", role: "admin", status: "approved" } as never,
+    tokens: {
+      accessToken: "at-1",
+      accessTokenExpiresAt: "2099-10-10T12:15:00.000Z",
+      refreshToken: "rt-1",
+      refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
+    },
+  });
+};

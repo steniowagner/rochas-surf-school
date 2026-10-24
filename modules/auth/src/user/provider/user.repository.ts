@@ -1,5 +1,5 @@
 import { CrudRepository, PageResult } from "@rochas-surf-school/shared";
-import { RulesAcceptance, User, UserRole } from "../model";
+import { RulesAcceptance, User, UserRole, UserStatus } from "../model";
 
 export interface UserPageParams {
   page: number;
@@ -14,6 +14,18 @@ export interface DirectoryPageParams {
   /** Already trimmed; matched as a "contains" on the name, ignoring case and accents. */
   search?: string;
 }
+
+/** The role and status a guarded write expects to find stored. */
+export interface ExpectedUserState {
+  role: UserRole;
+  status: UserStatus;
+}
+
+/**
+ * What a guarded write came to: written; not written because the stored role or status isn't the expected one (or
+ * the user is gone); or not written because it would leave the school without an approved admin.
+ */
+export type KeepAdminResult = "updated" | "changed" | "lastAdmin";
 
 export interface UserRepository extends CrudRepository<
   User,
@@ -35,4 +47,12 @@ export interface UserRepository extends CrudRepository<
   deleteDenied(ids: string[]): Promise<number>;
   /** Stores the acceptance; one already stored for that version stays as it is. */
   addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void>;
+  /** How many users are approved admins. */
+  countApprovedAdmins(): Promise<number>;
+  /**
+   * Writes the user only while its stored role and status are `expected` and, when the stored user is an approved
+   * admin who stops being one, at least one other approved admin remains — all in one step, so two concurrent
+   * writes can't both take away the last admins.
+   */
+  updateKeepingAnAdmin(user: User, expected: ExpectedUserState): Promise<KeepAdminResult>;
 }

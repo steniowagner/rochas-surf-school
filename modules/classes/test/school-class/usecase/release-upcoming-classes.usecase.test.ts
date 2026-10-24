@@ -55,6 +55,24 @@ describe("ReleaseUpcomingClasses", () => {
     ]);
   });
 
+  it("leaves the actor out of the notification too when there is an actor", async () => {
+    const alone = day("2026-10-15");
+    const { useCase, notifier } = setup([alone]);
+
+    expect(await useCase.execute({ userId: A, actorId: B })).toEqual({ released: 1, withoutInstructor: 1 });
+    expect(notifier.events).toEqual([
+      { count: 1, classId: alone.id, discipline: "surf", startsAt: alone.startsAt, excludeUserIds: [A, B] },
+    ]);
+  });
+
+  it("leaves only the person out of the notification without an actor", async () => {
+    const { useCase, notifier } = setup([day("2026-10-15")]);
+
+    await useCase.execute({ userId: A });
+
+    expect(notifier.events[0]?.excludeUserIds).toEqual([A]);
+  });
+
   it("releases only classes that haven't started and aren't cancelled", async () => {
     const tomorrow = day("2026-10-15", { instructorIds: [A, B] });
     const underWay = buildClass({

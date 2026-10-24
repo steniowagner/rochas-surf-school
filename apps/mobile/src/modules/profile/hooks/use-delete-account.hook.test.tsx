@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react-native";
 import { ReactNode } from "react";
 
 import { SessionProvider } from "@/providers/session";
-import { NetworkError, SessionExpiredError } from "@/services/api";
+import { ApiError, NetworkError, SessionExpiredError } from "@/services/api";
 import * as api from "@/services/api/api.client";
 
 import { useDeleteAccount } from "./use-delete-account.hook";
@@ -35,6 +35,12 @@ describe("useDeleteAccount", () => {
 
   it("shows nothing when the session expired", async () => {
     await run(new SessionExpiredError());
+
+    expect(mockShow).not.toHaveBeenCalled();
+  });
+
+  it("shows nothing when the backend refuses the only admin: the sheet says so", async () => {
+    await run(new ApiError(409, ["user.role.lastAdmin"]));
 
     expect(mockShow).not.toHaveBeenCalled();
   });

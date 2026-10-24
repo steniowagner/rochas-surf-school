@@ -22,3 +22,22 @@ export type PeopleFilters = {
   roles: PeopleRole[];
   search: string;
 };
+
+/** What `PUT /people/:id/role` takes: whose role and the new one. */
+export type ChangeRoleVariables = {
+  id: string;
+  role: PeopleRole;
+};
+
+/** What `PUT /people/:id/role` answers. */
+export type RoleChange = {
+  id: string;
+  role: PeopleRole;
+};
+
+/** A role change an admin can start from a person's sheet (spec 058, D-12). */
+export type RoleAction =
+  | "promoteInstructor"
+  | "promoteAdmin"
+  | "demoteStudent"
+  | "adminToInstructor";

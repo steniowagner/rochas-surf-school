@@ -1,6 +1,8 @@
 import { PageResult } from "@rochas-surf-school/shared";
 import {
   DirectoryPageParams,
+  ExpectedUserState,
+  KeepAdminResult,
   RulesAcceptance,
   User,
   UserPageParams,
@@ -120,4 +122,24 @@ export class FakeUserRepository implements UserRepository {
       rulesAcceptances: [...user.rulesAcceptances, acceptance],
     });
   }
+
+  async countApprovedAdmins(): Promise<number> {
+    return this.users.filter(isApprovedAdmin).length;
+  }
+
+  async updateKeepingAnAdmin(user: User, expected: ExpectedUserState): Promise<KeepAdminResult> {
+    const index = this.users.findIndex((item) => item.equals(user));
+    const stored = this.users[index];
+    if (!stored || stored.role !== expected.role || stored.status !== expected.status) return "changed";
+
+    const losesAnAdmin = isApprovedAdmin(stored) && !isApprovedAdmin(user);
+    if (losesAnAdmin && (await this.countApprovedAdmins()) <= 1) return "lastAdmin";
+
+    this.users[index] = user;
+    return "updated";
+  }
+}
+
+function isApprovedAdmin(user: User): boolean {
+  return user.role === "admin" && user.status === "approved";
 }

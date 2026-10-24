@@ -14,6 +14,8 @@ export interface ReleaseStudentEnrolmentsIn {
 export interface ReleaseStudentEnrolmentsOut {
   /** The upcoming seats given up. */
   cancelled: number;
+  /** The pending requests withdrawn. */
+  withdrawn: number;
 }
 
 /** Gives up what a deleted student holds: upcoming seats are cancelled and pending requests withdrawn. */
@@ -30,7 +32,7 @@ export class ReleaseStudentEnrolments
 
   /** A failed write propagates; a failed notification never undoes the release. */
   async execute(input: ReleaseStudentEnrolmentsIn): Promise<ReleaseStudentEnrolmentsOut> {
-    const cancelled = await this.enrolmentRepository.releaseForStudent(
+    const { cancelled, withdrawn } = await this.enrolmentRepository.releaseForStudent(
       input.studentId,
       this.clockProvider.now(),
     );
@@ -39,7 +41,7 @@ export class ReleaseStudentEnrolments
       await this.notify(enrolment.classId, input.studentId);
     }
 
-    return { cancelled: cancelled.length };
+    return { cancelled: cancelled.length, withdrawn };
   }
 
   private async notify(classId: string, studentId: string): Promise<void> {

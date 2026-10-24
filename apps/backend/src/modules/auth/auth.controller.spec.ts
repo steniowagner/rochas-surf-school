@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common/constants.js';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { Identity, RefreshToken, SignInCode, User } from '@rochas-surf-school/auth';
+import { ConflictError } from '@rochas-surf-school/shared';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import { AuthConfig } from './auth.config.js';
 import { AuthController } from './auth.controller.js';
@@ -69,6 +70,14 @@ function setup(
       if (index !== -1) users[index] = user;
       return user;
     }),
+    countApprovedAdmins: vi.fn(
+      async () => users.filter((user) => user.role === 'admin' && user.status === 'approved').length,
+    ),
+    updateKeepingAnAdmin: vi.fn(async (user: User) => {
+      const index = users.findIndex((item) => item.id === user.id);
+      if (index !== -1) users[index] = user;
+      return 'updated';
+    }),
   };
   const identities: Identity[] = [];
   const identityRepository = {
@@ -111,8 +120,8 @@ function setup(
   };
   const registrationNotifier = { registrationPending: vi.fn().mockResolvedValue(undefined) };
   const pushTokenRemover = { remove: vi.fn().mockResolvedValue(undefined) };
-  const teachingReleaser = { releaseUpcomingClasses: vi.fn().mockResolvedValue(undefined) };
-  const seatReleaser = { releaseSeats: vi.fn().mockResolvedValue(undefined) };
+  const teachingReleaser = { releaseUpcomingClasses: vi.fn().mockResolvedValue(0) };
+  const seatReleaser = { releaseSeats: vi.fn().mockResolvedValue(0) };
   const controller = new AuthController(
     { reviewCodes, refreshTokenTtlDays: 30 } as AuthConfig,
     signInCodeRepository as unknown as PrismaSignInCodeRepository,
@@ -455,6 +464,35 @@ describe('AuthController', () => {
 
       expect(seatReleaser.releaseSeats).toHaveBeenCalledWith(ana.id);
       expect(statusWhenReleased).toBe('approved');
+      expect(users[0]!.status).toBe('deleted');
+    });
+    it('answers 409 user.role.lastAdmin for the only admin, releasing nothing', async () => {
+      const ana = new User({
+        name: 'Ana Souza',
+        email: 'ana@example.com',
+        whatsappVisible: false,
+        role: 'admin',
+        status: 'approved',
+      });
+      const users = [ana];
+      const { controller, teachingReleaser, seatReleaser } = setup({}, users);
+
+      const error = await controller.deleteAccount(ana.id).catch((caught: unknown) => caught);
+
+      expect(error).toEqual(new ConflictError('user.role.lastAdmin'));
+      expect(teachingReleaser.releaseUpcomingClasses).not.toHaveBeenCalled();
+      expect(seatReleaser.releaseSeats).not.toHaveBeenCalled();
+      expect(users[0]!.status).toBe('approved');
+    });
+
+    it('closes an admin account when another approved admin remains', async () => {
+      const admin = (email: string) =>
+        new User({ name: 'Ana Souza', email, whatsappVisible: false, role: 'admin', status: 'approved' });
+      const users = [admin('ana@example.com'), admin('rita@example.com')];
+      const { controller } = setup({}, users);
+
+      await expect(controller.deleteAccount(users[0]!.id)).resolves.toBeUndefined();
+
       expect(users[0]!.status).toBe('deleted');
     });
   });

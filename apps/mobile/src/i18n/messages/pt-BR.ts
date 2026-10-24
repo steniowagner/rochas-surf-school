@@ -789,12 +789,64 @@ const messages: Messages = {
     whatsappNotShared: "Número não compartilhado.",
     email: "E-mail",
     whatsappUnavailable: "Não foi possível abrir o WhatsApp.",
+    roleActions: {
+      promoteInstructor: {
+        title: "Promover a instrutor",
+        subtitle: "Passa a poder ser atribuído a aulas.",
+      },
+      promoteAdmin: {
+        title: "Promover a admin",
+        subtitle: "Passa a gerenciar a escola. Pode também dar aulas.",
+      },
+      demoteStudent: {
+        title: "Rebaixar a aluno",
+        subtitle: "Sai das próximas aulas em que está atribuído.",
+      },
+      adminToInstructor: {
+        title: "Passar a instrutor",
+        subtitle: "Deixa de gerenciar a escola.",
+      },
+    },
+    roleConfirm: {
+      promoteInstructor: {
+        title: "Promover {{name}} a instrutor?",
+        description: "Passa a ser instrutor: pode ser atribuído a aulas e vê os alunos inscritos. As vagas e pedidos que tinha em aulas futuras, como aluno, são cancelados.",
+        confirm: "Promover a instrutor",
+      },
+      promoteAdmin: {
+        title: "Promover {{name}} a admin?",
+        description: "Passa a ser admin: gerencia aulas, pessoas, regras e pedidos da escola. Pode também dar aulas.",
+        seatsNote: "As vagas e pedidos que tinha em aulas futuras, como aluno, são cancelados.",
+        confirm: "Promover a admin",
+      },
+      demoteStudent: {
+        title: "Rebaixar {{name}} a aluno?",
+        description: "Passa a ser aluno: sai das próximas aulas em que está atribuído, que podem ficar sem instrutor. As aulas já dadas ficam no histórico.",
+        confirm: "Rebaixar a aluno",
+      },
+      adminToInstructor: {
+        title: "Tirar {{name}} de admin?",
+        description: "Deixa de gerenciar a escola e passa a instrutor. Continua nas aulas em que está atribuído.",
+        confirm: "Passar a instrutor",
+      },
+      back: "Voltar",
+    },
+    roleErrors: {
+      changed: "O papel desta pessoa mudou. Atualize a lista.",
+      lastAdmin: "A escola precisa de pelo menos um admin.",
+      notApproved: "Esta pessoa não está mais na plataforma.",
+    },
   },
   deleteAccountSheet: {
     title: "Remover a conta?",
     description: "Sua conta é encerrada agora e suas vagas e pedidos futuros são cancelados. Você pode pedir a reativação em até 30 dias.",
     confirm: "Remover a conta",
     cancel: "Cancelar",
+    onlyAdmin: {
+      title: "Ainda não dá",
+      description: "Você é o único admin da escola. Promova outra pessoa a admin antes de remover sua conta.",
+      goToPeople: "Ir para Pessoas",
+    },
   },
   newClass: {
     title: "Nova aula",

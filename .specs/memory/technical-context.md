@@ -1906,7 +1906,11 @@ Maestro suite for mobile would be a spec of its own.
   configurable tickets (`overrideProvider`); `classes.e2e-spec.ts` overrides it the same way and the classes
   module's `SystemClockProvider` with a fixed clock, and each test deletes the classes, locations and users it
   created. `my-classes.e2e-spec.ts` (spec 048) does the same, its clock fixed at 2026-10-14 10:00 Fortaleza, with the
-  classes created relative to it. `locations.e2e-spec.ts` (spec 037) overrides `ExpoPushProvider`, `GooglePlacesAddressSuggestionProvider`
+  classes created relative to it. `people-roles.e2e-spec.ts` (spec 058) fixes the classes and enrolment clocks the
+  same way; where an exact number of admins matters, it sets the shared database's own approved admins aside (role
+  set to `instructor` by raw SQL, so `updated_at` isn't touched) and puts them back after every test, and it forces
+  the last-admin races by holding the approved admins' rows `FOR UPDATE` until both requests wait on the lock
+  (`pg_stat_activity`). `locations.e2e-spec.ts` (spec 037) overrides `ExpoPushProvider`, `GooglePlacesAddressSuggestionProvider`
   and the classes clock (fixed in 2037, like the deadline suites) the same way. `cancellation-rules.e2e-spec.ts` and `cancellation-deadlines.e2e-spec.ts` (spec 036) fix the classes
   clock in 2037, so the job only meets the test's own classes and never writes fake deadlines to real ones in a
   shared dev database, snapshot the stored cancellation rules before and put them back after, and the second

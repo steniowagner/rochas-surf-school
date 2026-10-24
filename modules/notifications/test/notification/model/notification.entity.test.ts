@@ -170,6 +170,15 @@ describe("Notification", () => {
     expect(notification.params).toEqual(params);
   });
 
+  it("accepts a role.changed notification with the new role and what was released", () => {
+    const params = { role: "instructor", seatsReleased: true, classesReleased: false };
+    const notification = build({ type: "role.changed", params });
+
+    expect(() => notification.validate()).not.toThrow();
+    expect(notification.type).toBe("role.changed");
+    expect(notification.params).toEqual(params);
+  });
+
   it("rejects a missing or invalid user id", () => {
     expect(messagesOf(() => build({ userId: "" }).validate())).toContain(
       "notification.userId.required",

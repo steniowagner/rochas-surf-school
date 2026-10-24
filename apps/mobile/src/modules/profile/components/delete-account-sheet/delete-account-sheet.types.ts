@@ -3,7 +3,4 @@ export type DeleteAccountSheetProps = {
   onClose: () => void;
 };
 
-export type UseDeleteAccountSheetProps = Pick<
-  DeleteAccountSheetProps,
-  "onClose"
->;
+export type UseDeleteAccountSheetProps = DeleteAccountSheetProps;

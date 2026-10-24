@@ -8,8 +8,9 @@ import { PrismaStudentNameReader } from './student-name-reader.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 
 /**
- * The adapter of `auth`'s SeatReleaser port: an account deletion gives up the person's upcoming seats and pending
- * requests. Write errors propagate, so the deletion fails as a whole and can be retried (releasing is idempotent).
+ * The adapter of `auth`'s SeatReleaser port: an account deletion or a student's promotion gives up the person's
+ * upcoming seats and pending requests, answering how many. Write errors propagate, so the account event fails as a
+ * whole and can be retried (releasing is idempotent).
  */
 @Injectable()
 export class EnrolmentSeatReleaser implements SeatReleaser {
@@ -21,13 +22,15 @@ export class EnrolmentSeatReleaser implements SeatReleaser {
     private readonly clock: SystemClockProvider,
   ) {}
 
-  async releaseSeats(userId: string): Promise<void> {
-    await new ReleaseStudentEnrolments(
+  async releaseSeats(userId: string): Promise<number> {
+    const { cancelled, withdrawn } = await new ReleaseStudentEnrolments(
       this.enrolmentRepository,
       this.classReader,
       this.studentNameReader,
       this.enrolmentNotifier,
       this.clock,
     ).execute({ studentId: userId });
+
+    return cancelled + withdrawn;
   }
 }

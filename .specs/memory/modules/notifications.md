@@ -34,9 +34,9 @@ What the person is told, and how it reaches them.
     message (`message`, as written after trimming) when there is one. One per person, even one on both lists.
   - `class.deleted` — a class the person taught was deleted; details: its discipline and its start (no class id:
     the class no longer exists).
-  - `class.noInstructor` — an account deletion left classes that haven't started with no instructor; details:
-    how many (`count`) and the earliest of them — its id, its discipline and its start (`startsAt`, ISO UTC). One
-    per approved admin and deletion.
+  - `class.noInstructor` — an account deletion or an instructor's demotion to student left classes that haven't
+    started with no instructor; details: how many (`count`) and the earliest of them — its id, its discipline and
+    its start (`startsAt`, ISO UTC). One per approved admin and event.
   - `class.reminder` — a class the person holds an approved seat in or teaches starts within 30 minutes (spec 054);
     details: the class's id, its discipline, its start (`startsAt`, ISO UTC) and its location's name
     (`locationName`, as stored when the reminder is sent). One per person and start of the class.
@@ -60,6 +60,9 @@ What the person is told, and how it reaches them.
     the class's id, its discipline and start.
   - `enrolment.takenOut` — an admin took the person out of a class; details: the class's id, its discipline, its
     start and the admin's reason (`reason`, as written) when there is one.
+  - `role.changed` — an admin changed the person's role (spec 058); details: the new role (`role`) and whether the
+    change gave up upcoming seats or pending requests (`seatsReleased`) and upcoming classes (`classesReleased`).
+    One per change, to the person only.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -82,6 +85,7 @@ What the person is told, and how it reaches them.
   | `enrolment.cancelled` | Seat cancelled | {studentName} cancelled their seat in the {discipline} class on {MM/dd} at {HH:mm}. {waitingCount} on the waiting list. (the last sentence only when someone waits) |
   | `enrolment.enrolled` | You've been enrolled | The school enrolled you in the {discipline} class on {MM/dd} at {HH:mm}. |
   | `enrolment.takenOut` | You were taken out of a class | the reason as written, or "The school took you out of the {discipline} class on {MM/dd} at {HH:mm}." |
+  | `role.changed` | Your role changed | You're now a student. / an instructor. / an admin., then " Your upcoming seats and pending requests were cancelled." when seats were given up, then " You were taken off your upcoming classes." when classes were |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
@@ -123,7 +127,11 @@ What the person is told, and how it reaches them.
   você na aula de {discipline} de {dd/MM} às {HH:mm}.", es "Te inscribieron" / "La escuela te inscribió en la clase
   de {discipline} del {dd/MM} a las {HH:mm}."; `enrolment.takenOut`: pt-BR "Você foi retirado de uma aula" / the
   reason, or "A escola retirou você da aula de {discipline} de {dd/MM} às {HH:mm}.", es "Te retiraron de una clase" /
-  the reason, or "La escuela te retiró de la clase de {discipline} del {dd/MM} a las {HH:mm}.". The start is written in America/Fortaleza time, the same on every machine.
+  the reason, or "La escuela te retiró de la clase de {discipline} del {dd/MM} a las {HH:mm}."; `role.changed`:
+  pt-BR "Seu papel mudou" / "Agora você é aluno." ("instrutor.", "admin."), then " Suas vagas e pedidos em aulas
+  futuras foram cancelados." and " Você saiu das suas próximas aulas.", es "Tu rol cambió" / "Ahora eres alumno."
+  ("instructor.", "admin."), then " Tus plazas y solicitudes en clases futuras se cancelaron." and " Dejaste tus
+  próximas clases." (the in-app text is the same). The start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
   with the app open reloads the classes of the weeks it shows (a `class.deleted` one, every class shown). Tapping a `class.edited`, `class.unassigned` or
@@ -144,7 +152,10 @@ What the person is told, and how it reaches them.
   instructor gets without a class, or a person who now resolves to another flow, falls back as before); tapping an
   `enrolment.cancelled` push opens that class's details as an instructor or an admin. Any enrolment push received
   with the app open reloads every class shown, and an `enrolment.requested` or `enrolment.cancelled` one also the
-  admin's pending requests. Tapping any push also marks its notification read (without waiting for it; a failure
+  admin's pending requests. A `role.changed` push received with the app open reloads the account (so the flow
+  guards move the app to the new role's experience) and the people lists; tapping it, or its row on the
+  notifications screen, reloads the account and opens the home of the flow it resolves to (its row: a
+  `shield-checkmark-outline` icon on the info tone). Tapping any push also marks its notification read (without waiting for it; a failure
   is ignored), and any push received with the app open reloads the notifications list and the bell's unread count
   (spec 055).
 - **In-app text** (spec 055): the push's title and body in the language the app asks for (pt-BR when it asks for
@@ -175,8 +186,8 @@ Rules:
 - **Who hears about a new seat request**: every approved admin plus every instructor of the class, each person
   once; who that is, is decided here from Enrolment's list of instructors. With nobody, nothing is stored or sent.
 - **Who hears about classes left without an instructor**: the same approved admins, minus the ones the event
-  excludes (the person whose account deletion caused it, still approved while it runs); none left → nothing
-  stored or sent.
+  excludes (the person whose account deletion or demotion caused it, still approved while it runs, and the admin
+  who demoted them); none left → nothing stored or sent.
 - **Nothing is retried**: a push that fails is not sent again; the notification stays stored.
 - **Read once** (spec 055): a notification is unread until its person marks it, by tapping its row or its push, or
   with "mark all"; marking a read one again changes nothing, so it keeps when it was first read. Nothing marks
@@ -241,8 +252,10 @@ Rules:
 - **A student an admin took out of a class** — receives `enrolment.takenOut` (with the reason); nobody else is
   told.
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
-- **Approved admins** — receive one `class.noInstructor` when an account deletion leaves classes with nobody,
-  unless the deleted account is theirs.
+- **Approved admins** — receive one `class.noInstructor` when an account deletion or an instructor's demotion to
+  student leaves classes with nobody, unless the account is theirs or they made the demotion.
+- **A person whose role an admin changed** — receives one `role.changed`; the admin who changed it, and everyone
+  else, receives none.
 - **An instructor or admin of a location's upcoming classes, and a student with a seat or a pending request in
   them** — receives one `location.changed` when an admin edits that location and chooses to tell them, unless they
   made the edit.
@@ -254,9 +267,9 @@ Rules:
 
 It knows people only by their ids and the phones they registered, and it doesn't depend on
 [Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
-it through three contracts of its own (one that notifies about registrations, one that removes a phone's token on
-sign-out, one that deletes the "new registration" notifications about erased accounts), all provided by the
-backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
+it through four contracts of its own (one that notifies about registrations, one that removes a phone's token on
+sign-out, one that deletes the "new registration" notifications about erased accounts, one that tells a person
+their role changed — spec 058), all provided by the backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
 and removed), class changes (edits, cancellations, deletions), classes left without an instructor, location
 changes and class reminders; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
 location edit. [Enrolment](enrolment.md) reaches it through its own contract for new, decided and expired
@@ -264,7 +277,7 @@ requests, cancelled seats, direct enrolments and take-outs, with the same guaran
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text and the in-app text. The app reads the stored notifications only through the
-backend (spec 055). Badges on the app icon and rich pushes come with their specs, as do the notifications of every other event (reactivation requests, role changes,
+backend (spec 055). Badges on the app icon and rich pushes come with their specs, as do the notifications of every other event (reactivation requests,
 seat cancellations, broadcasts) and those of an edit or a location change to the classes' students and pending
 requests (spec 047).
 
@@ -327,3 +340,8 @@ requests (spec 047).
   unread and marking one or all read for any signed-in account, own notifications only; the in-app text (the push
   copy minus "open the app"); in the app, the "Avisos" screen from the bell of students, instructors and admins,
   the bell's real unread count, and a tapped push marks its notification read.
+- `058-admin-role-changes` — the `role.changed` type (`{ role, seatsReleased, classesReleased }`) and its push and
+  in-app text, sent to the person only through `NotificationsRoleChangeNotifier` (Authentication's
+  `RoleChangeNotifier`; errors logged and swallowed); `class.noInstructor` of a demotion leaves out the admin who
+  demoted. In the app, a received `role.changed` reloads the account and the people lists, and a tapped push or row
+  reloads the account and opens the new flow's home.

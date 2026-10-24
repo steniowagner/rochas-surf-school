@@ -789,12 +789,64 @@ const messages = {
     whatsappNotShared: "Number not shared.",
     email: "Email",
     whatsappUnavailable: "Couldn't open WhatsApp.",
+    roleActions: {
+      promoteInstructor: {
+        title: "Make instructor",
+        subtitle: "Can be assigned to classes.",
+      },
+      promoteAdmin: {
+        title: "Make admin",
+        subtitle: "Runs the school. Can also teach.",
+      },
+      demoteStudent: {
+        title: "Make student",
+        subtitle: "Leaves the upcoming classes they teach.",
+      },
+      adminToInstructor: {
+        title: "Remove admin",
+        subtitle: "Stops running the school.",
+      },
+    },
+    roleConfirm: {
+      promoteInstructor: {
+        title: "Make {{name}} an instructor?",
+        description: "They become an instructor: they can be assigned to classes and see who's enrolled. The seats and requests they had in upcoming classes, as a student, are cancelled.",
+        confirm: "Make instructor",
+      },
+      promoteAdmin: {
+        title: "Make {{name}} an admin?",
+        description: "They become an admin: they run the school's classes, people, rules and requests. They can also teach.",
+        seatsNote: "The seats and requests they had in upcoming classes, as a student, are cancelled.",
+        confirm: "Make admin",
+      },
+      demoteStudent: {
+        title: "Make {{name}} a student?",
+        description: "They become a student: they leave the upcoming classes they teach, which may be left without an instructor. Classes already taught stay in the history.",
+        confirm: "Make student",
+      },
+      adminToInstructor: {
+        title: "Remove {{name}} as admin?",
+        description: "They stop running the school and become an instructor. They stay on the classes they teach.",
+        confirm: "Remove admin",
+      },
+      back: "Back",
+    },
+    roleErrors: {
+      changed: "This person's role changed. Refresh the list.",
+      lastAdmin: "The school needs at least one admin.",
+      notApproved: "This person is no longer on the platform.",
+    },
   },
   deleteAccountSheet: {
     title: "Remove your account?",
     description: "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",
     confirm: "Remove account",
     cancel: "Cancel",
+    onlyAdmin: {
+      title: "Not yet",
+      description: "You're the school's only admin. Make someone else an admin before removing your account.",
+      goToPeople: "Go to People",
+    },
   },
   newClass: {
     title: "New class",

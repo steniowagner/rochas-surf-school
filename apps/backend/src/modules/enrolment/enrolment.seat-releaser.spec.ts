@@ -13,9 +13,12 @@ const STUDENT_ID = '5d1f0a7b-2c3e-4b6a-8f19-4a7c9e0d1b25';
 
 function setup() {
   const repository = {
-    releaseForStudent: vi.fn(async () => [
-      new Enrolment({ classId: CLASS_ID, studentId: STUDENT_ID, status: 'cancelled', requestedAt: NOW }),
-    ]),
+    releaseForStudent: vi.fn(async () => ({
+      cancelled: [
+        new Enrolment({ classId: CLASS_ID, studentId: STUDENT_ID, status: 'cancelled', requestedAt: NOW }),
+      ],
+      withdrawn: 2,
+    })),
     countPendingForClass: vi.fn(async () => 2),
   };
   const classReader = {
@@ -38,7 +41,7 @@ describe('EnrolmentSeatReleaser', () => {
   it('gives up the seats and requests of the person and tells the school about each cancelled seat', async () => {
     const { repository, notifier, releaser } = setup();
 
-    await releaser.releaseSeats(STUDENT_ID);
+    await expect(releaser.releaseSeats(STUDENT_ID)).resolves.toBe(3);
 
     expect(repository.releaseForStudent).toHaveBeenCalledWith(STUDENT_ID, NOW);
     expect(notifier.seatCancelled).toHaveBeenCalledWith({
@@ -49,6 +52,14 @@ describe('EnrolmentSeatReleaser', () => {
       waitingCount: 2,
       instructorIds: ['i-1'],
     });
+  });
+
+  it('answers 0 when the person held nothing', async () => {
+    const { repository, notifier, releaser } = setup();
+    repository.releaseForStudent.mockResolvedValue({ cancelled: [], withdrawn: 0 });
+
+    await expect(releaser.releaseSeats(STUDENT_ID)).resolves.toBe(0);
+    expect(notifier.seatCancelled).not.toHaveBeenCalled();
   });
 
   it('lets a failed write propagate', async () => {

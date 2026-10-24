@@ -121,12 +121,14 @@ told nothing, and their name and number are erased 30 days after the class.
   admin and each instructor of the class — an admin who teaches it hears once — with the student's name, the
   class's discipline and start, and the number of pending requests left after the cancel, through
   [Notifications](notifications.md). A notification that fails never changes the answer.
-- **A deleted account gives up what it holds**: when [Authentication](auth.md) closes an account, every approved
+- **A deleted account or a promoted student gives up what it holds**: when [Authentication](auth.md) closes an
+  account, or an admin makes a student an instructor or an admin (spec 058), every approved
   enrolment of the person in a class that hasn't started and isn't cancelled becomes `cancelled` — with no deadline
   check — with one `enrolment.cancelled` per class as above, and every pending one becomes `withdrawn`, telling
-  nobody, in one transaction. A failed write fails the deletion (the account stays approved); releasing twice
-  changes nothing more. Seats in started, finished or cancelled classes are untouched. A removed account's or a
-  promoted student's seats stay as they are until their specs reuse the same release.
+  nobody, in one transaction. It answers how many seats were cancelled and how many requests withdrawn. A failed
+  write fails the deletion or the role change (the account keeps its status and role); releasing twice changes
+  nothing more. Seats in started, finished or cancelled classes are untouched. A removed account's seats stay as
+  they are until its spec reuses the same release.
 - **Only approved admins enrol directly, and only an approved student into a class that hasn't started and has a
   free seat**, checked in this order: the account's status (`user.status.notApproved`, 403), its role
   (`user.role.notAdmin`, 403); the class (an id that isn't a UUID, or no class → `class.notFound`, 404); the student
@@ -184,8 +186,8 @@ told nothing, and their name and number are erased 30 days after the class.
   takes one out before the class starts.
 - **The class's instructors** — read the names of the guests of the classes they teach; every other student and
   instructor reads "Trial".
-- **Nobody** — expiring requests, ending them for a cancelled class, releasing a deleted account's enrolments and
-  erasing guest data happen without an actor.
+- **Nobody** — expiring requests, ending them for a cancelled class, releasing a deleted account's or a promoted
+  student's enrolments and erasing guest data happen without an actor.
 
 ## Boundaries
 
@@ -281,3 +283,6 @@ pedir.".
 - `053-history-calendar-filter` — no rule change here: the classes a student took are read one period at a time
   (the adapter answers the ids whose start falls in it, unpaged); the app's "Histórico" gains the month and week
   calendar, the day filter, a label per day and the shared loading, error and empty states.
+- `058-admin-role-changes` — `ReleaseStudentEnrolments` also answers how many requests were withdrawn
+  (`{ cancelled, withdrawn }`; `releaseForStudent` returns the cancelled seats and that count); Authentication's
+  promotion of a student now runs the release (through `EnrolmentSeatReleaser`, which answers seats plus requests).

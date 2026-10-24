@@ -9,6 +9,8 @@ import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { ClassCard } from "../components/class-card";
 import { ClassCardSkeleton } from "../components/class-card-skeleton";
+import { DisciplineFilter } from "../components/discipline-filter";
+import { DISCIPLINE_FILTER_CLEARANCE } from "../components/discipline-filter/discipline-filter.constants";
 import { OngoingClassCard } from "../components/ongoing-class-card";
 import { TeachingDayHeader } from "../components/teaching-day-header";
 
@@ -77,31 +79,36 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
           headerTitle: () => <StackHeaderTitle title={t("teachingClasses.title")} />,
         }}
       />
-      <FlatList
-        testID="teaching-classes-list"
-        className="flex-1 bg-page"
-        data={screen.rows}
-        keyExtractor={(row) => row.key}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-3 px-screen"
-        contentContainerStyle={{
-          paddingTop: 8,
-          paddingBottom: Math.max(insets.bottom, 24),
-        }}
-        refreshControl={
-          <RefreshControl refreshing={screen.isRefreshing} onRefresh={screen.refresh} />
-        }
-        renderItem={({ item: row }) =>
-          row.type === "ongoing" ? (
-            <OngoingClassCard item={row.item} onPress={screen.openClass} />
-          ) : row.type === "day" ? (
-            <TeachingDayHeader label={row.label} date={row.date} />
-          ) : (
-            <ClassCard item={row.item} now={screen.now} onPress={screen.openClass} isNext={row.isNext} />
-          )
-        }
-        ListEmptyComponent={renderEmpty()}
-      />
+      <View className="flex-1 bg-page">
+        <FlatList
+          testID="teaching-classes-list"
+          className="flex-1"
+          data={screen.rows}
+          keyExtractor={(row) => row.key}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerClassName="gap-3 px-screen"
+          // The last card scrolls clear of the floating sport filter.
+          contentContainerStyle={{
+            paddingTop: 8,
+            paddingBottom: Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
+          }}
+          refreshControl={
+            <RefreshControl refreshing={screen.isRefreshing} onRefresh={screen.refresh} />
+          }
+          renderItem={({ item: row }) =>
+            row.type === "ongoing" ? (
+              <OngoingClassCard item={row.item} onPress={screen.openClass} />
+            ) : row.type === "day" ? (
+              <TeachingDayHeader label={row.label} date={row.date} />
+            ) : (
+              <ClassCard item={row.item} now={screen.now} onPress={screen.openClass} isNext={row.isNext} />
+            )
+          }
+          ListEmptyComponent={renderEmpty()}
+        />
+        {/* Over the list in every state: loading, error, empty and the classes. */}
+        <DisciplineFilter value={screen.discipline} onChange={screen.selectDiscipline} />
+      </View>
     </>
   );
 }

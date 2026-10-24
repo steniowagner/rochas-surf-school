@@ -97,7 +97,7 @@ nothing left says so in its own words.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add the sport filter to "Minhas aulas": the D-02 state and the D-01 filtering before
+- [x] **T-01** — Add the sport filter to "Minhas aulas": the D-02 state and the D-01 filtering before
   `layoutTeachingClasses` in `src/modules/classes/screens/teaching-classes.screen.hook.ts` (returning the sport and
   its setter, typed in `teaching-classes.screen.types.ts`), and `DisciplineFilter` over the list in every state plus
   `DISCIPLINE_FILTER_CLEARANCE` in the list's bottom padding in `teaching-classes.screen.tsx`, with tests in
@@ -108,6 +108,23 @@ nothing left says so in its own words.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx
   src/modules/classes/components/teaching-classes-entry-row` passes from `apps/mobile`.
+  > ✅ 2026-10-24 — `useTeachingClassesScreen` keeps the sport in local state (`DisciplineFilterValue`, starting at
+  > `"all"`) and filters the loaded items before `layoutTeachingClasses`, returning `discipline` and
+  > `selectDiscipline`; the screen wraps the `FlatList` in a `flex-1 bg-page` view with `DisciplineFilter` over it in
+  > every state, and adds `DISCIPLINE_FILTER_CLEARANCE` to the list's bottom padding. Tests (written first, 12 failing
+  > before the change) cover ER-01 (Surf / Skate / All on the Bs, Bk, Nk, Ns, Fk set: grape card, day headers,
+  > "Up next"; a cancelled surf class stays in its day and is never next; the minute tick keeps the filter without a
+  > refetch; no request on a switch; back to All on a remount) and ER-02 (the button for both roles and while
+  > loading, failed and empty; the bottom padding 24 + 56 + 16; "Nothing here" whatever the sport with no items; the
+  > home row's count unchanged with the row and the screen sharing the query — added to the screen test, since the
+  > row's own tests only use surf classes). Files: `apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/components/teaching-classes-entry-row`
+  > (2 suites, 39 passed), `npx tsc --noEmit` and `npx eslint` on the screen's files clean; deviations: none
+  > (`teaching-classes-entry-row.component.test.tsx` unchanged; the "not wrapped in act" console warning of the
+  > screen's test file already shows on the base commit).
 - [ ] **T-02** — Add the filtered empty state (D-03): the hook tells it apart from the empty list, the screen
   renders it in `ListEmptyComponent`, and the copy goes under `teachingClasses.emptyFiltered` in
   `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, with tests in `teaching-classes.screen.test.tsx` for every case of ER-03

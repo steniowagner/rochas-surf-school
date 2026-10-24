@@ -2,7 +2,7 @@
 id: "058"
 slug: admin-role-changes
 title: "Admins change people's roles"
-status: in-progress
+status: in-review
 created: 2026-10-23
 started: 2026-10-24
 base_commit: 8b28b59430a73925be69587449e72cf1ad983b03
@@ -667,9 +667,33 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 ### Verification
 
-- [ ] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journeys are recorded.
+  > ✅ 2026-10-24 01:21 — Automated: `node .specs/scripts/run-related-tests.mjs 058` → RELATED TESTS PASSED
+  > (apps/backend, apps/mobile, modules/auth, classes, enrolment, notifications, and modules/school-rules as a
+  > dependent); `node .specs/scripts/check-coverage.mjs 058` → COVERAGE OK, every changed line covered in 34 files (it
+  > first failed on `person-sheet.hook.ts`, fixed under T-12); `node .specs/scripts/run-e2e.mjs 058` → E2E PASSED
+  > (apps/backend: 26 files, 704 tests); `npx turbo run lint check-types build` for auth, classes, enrolment,
+  > notifications, backend and mobile → 27/27 tasks successful (the backend's two lint warnings in
+  > `test/people-roles.e2e-spec.ts` — a numeric `.sort()` without a comparator — fixed under T-10; the 10 left are in
+  > older e2e files). Journeys, iOS simulator (iPhone 18 Pro, iOS 27, debug build on Metro, backend on port 4000
+  > started from a new untracked `.claude/launch.json`), as the admin review account: (1) Pessoas — a student's sheet
+  > ("Bruna Jornada", a throwaway approved student inserted for the journey) showed "Promover a instrutor" / "Promover
+  > a admin" with their subtitles below the WhatsApp row; an instructor's showed "Promover a admin" and "Rebaixar a
+  > aluno" (danger); another admin's (Fabio Melo) only "Passar a instrutor" (danger); the viewer's own sheet (Dev
+  > Admin) none — ER-09 seen. (2) "Promover a instrutor" opened "Promover Bruna a instrutor?" with the description,
+  > "Promover a instrutor" and "Voltar"; "Voltar" went back to the details; confirming closed the sheet and the row
+  > showed "INSTRUTOR" — ER-10 seen. (4) With the three other approved admins set aside (role set to instructor in the
+  > database), Perfil → "Remover a conta" showed "Ainda não dá", "Você é o único admin da escola. Promova outra pessoa
+  > a admin antes de remover sua conta.", "Ir para Pessoas" and "Cancelar"; "Ir para Pessoas" opened Pessoas — ER-12
+  > seen. Afterwards the three admins were restored (4 approved admins) and the throwaway student deleted; no backend
+  > errors were logged. (3) Not driven: a simulator gets no Expo push token, so the `role.changed` push can't arrive
+  > on one (its handling is covered by `use-notification-received.hook.test.tsx`). For the user, on a physical phone:
+  > sign in with the student review account and leave the app open; as the admin review account (another device or the
+  > simulator), Pessoas → that student → "Promover a instrutor" → confirm; the phone shows "Seu papel mudou" / "Agora
+  > você é instrutor." and the app moves to the instructor home; tapping the push or its row on Notificações opens
+  > that home. Then, as admin, "Rebaixar a aluno" on the same account puts it back.
 
 ## Verification Plan
 

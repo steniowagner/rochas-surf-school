@@ -2,7 +2,7 @@
 id: "058"
 slug: admin-role-changes
 title: "Admins change people's roles"
-status: changes-requested
+status: in-progress
 created: 2026-10-23
 started: 2026-10-24
 base_commit: 8b28b59430a73925be69587449e72cf1ad983b03
@@ -793,7 +793,7 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
 
 **Findings**
 
-- [ ] **F-01** (ER-11) — tapping a `role.changed` row on the notifications screen doesn't reload the account, so it opens
+- [x] **F-01** (ER-11) — tapping a `role.changed` row on the notifications screen doesn't reload the account, so it opens
   the home of the flow the *cached* session resolves to, not the reloaded account's. `openNotification` in
   `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts` only calls `router.replace(routes.home)`;
   the account is reloaded only by a push received with the app open, by a tapped push and at app start. So a person
@@ -804,6 +804,23 @@ The `role.changed` notification (backend `push-messages.ts`, push and in-app tex
   papel mudou" → the admin "Painel" opens. Expected: the app reloads `GET /auth/me` (as the tapped push does) and
   opens the instructor home. `notifications.screen.test.tsx` "opens the home of the account's flow for a role.changed
   row" only checks `router.replace(routes.home)`; it should also check the reload and the resulting flow.
+  > ✅ 2026-10-24 10:50 — a tapped `role.changed` row now reloads the account (`refreshAccount`, `GET /auth/me`, as the
+  > tapped push does) and only then replaces to `routes.home`, so `index` redirects to the reloaded account's flow; a
+  > failed reload still opens the home (the cached flow, as for a tapped push); an expired session opens nothing
+  > (`useSessionExpired` owns it); with no session (signing out) nothing is reloaded or opened, as for the other rows.
+  > Tests: the old "opens the home…" case is replaced by a "a role.changed row" describe — the reload, then the home,
+  > with the stored account now an instructor resolving to the instructor flow and the reload ordered before the
+  > `replace`; a failed reload (home opened, flow still the student's); an expired session (nothing opened); signed out
+  > (no reload, nothing opened). All four fail on the previous hook (checked, then restored). Simulator (iPhone 18 Pro,
+  > iOS 27, Metro, backend on port 4000), the reviewer's reproduction: app restarted on the admin review account (admin
+  > home "Ferramentas da escola"), its `role` set to `instructor` in the database and a `role.changed` row added; Avisos
+  > → "Seu papel mudou" → the instructor home ("Painel") opened. (Note: "Painel" is the instructor home's title; the
+  > admin's is "Ferramentas da escola".) Afterwards the role was set back to `admin` by raw SQL (`updated_at`
+  > untouched), the row deleted, 4 approved admins, and the app restarted. Files:
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified: `npx jest
+  > src/modules/notifications` (14 suites, 323 passed), `npx tsc --noEmit` exits 0, `npx eslint
+  > src/modules/notifications/screens` clean; deviations: none
 
 **Notes**
 

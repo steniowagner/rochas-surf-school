@@ -2,6 +2,8 @@ import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-lib
 import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
+import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
+import { getSession } from "@/services/session/session.store";
 
 import {
   buildNotification,
@@ -60,12 +62,17 @@ type Handlers = {
   count?: number | (() => unknown);
   read?: () => unknown;
   readAll?: () => unknown;
+  me?: () => unknown;
 };
 
-/** Answers each endpoint with its handler: the list, the unread count, one mark and the mark-all. */
-const serve = ({ list, count = 0, read = noContent, readAll = noContent }: Handlers) => {
+/** Answers each endpoint with its handler: the list, the unread count, one mark, the mark-all and the account. */
+const serve = ({ list, count = 0, read = noContent, readAll = noContent, me = failure }: Handlers) => {
   fetchMock.mockImplementation(async (url: string) => {
     const path = String(url).replace("http://api.test", "");
+
+    if (path === "/auth/me") {
+      return me();
+    }
 
     if (path === "/notifications/unread-count") {
       return typeof count === "function" ? count() : ok({ count });
@@ -299,19 +306,83 @@ describe("NotificationsScreen", () => {
       expect(screen.getByText("Row")).toBeOnTheScreen();
     });
 
-    it("opens the home of the account's flow for a role.changed row", async () => {
-      const user = userEvent.setup();
-      serve({
-        count: 1,
-        list: () => page([buildNotification(1, { type: "role.changed", classId: null, title: "Your role changed" })]),
+    describe("a role.changed row", () => {
+      const instructor = {
+        id: "u-1",
+        role: "instructor",
+        status: "approved",
+        whatsappNumber: "+5585999998888",
+        rulesAccepted: true,
+        rulesAcceptedBefore: true,
+      };
+      const roleChanged = () =>
+        page([buildNotification(1, { type: "role.changed", classId: null, title: "Your role changed" })]);
+      const accountReloads = () => requests().filter((request) => request.path === "/auth/me");
+      const storedFlow = () => {
+        const user = getSession()!.user;
+
+        return resolveFlow({ user, onboardingCompleted: isOnboardingCompleted(user) });
+      };
+      const pressRow = async () => {
+        const user = userEvent.setup();
+        await renderScreen();
+        await screen.findByText("Your role changed");
+
+        await user.press(screen.getByRole("button", { name: /Your role changed/ }));
+      };
+
+      it("reloads the account, then opens the home of the new role's flow", async () => {
+        serve({ count: 1, list: roleChanged, me: () => ok(instructor) });
+
+        await pressRow();
+
+        await waitFor(() => expect(router.replace).toHaveBeenCalledWith(routes.home));
+        expect(accountReloads()).toHaveLength(1);
+        expect(getSession()?.user.role).toBe("instructor");
+        expect(storedFlow()).toBe("instructor");
+        // The account is stored before `index` resolves the flow.
+        const reload = fetchMock.mock.calls.findIndex(([url]) => String(url).endsWith("/auth/me"));
+        expect(fetchMock.mock.invocationCallOrder[reload]).toBeLessThan(
+          jest.mocked(router.replace).mock.invocationCallOrder[0],
+        );
+        expect(router.push).not.toHaveBeenCalled();
       });
-      await renderScreen();
-      await screen.findByText("Your role changed");
 
-      await user.press(screen.getByRole("button", { name: /Your role changed/ }));
+      it("still opens the home of the cached account's flow when the reload fails", async () => {
+        serve({ count: 1, list: roleChanged, me: failure });
 
-      expect(router.replace).toHaveBeenCalledWith(routes.home);
-      expect(router.push).not.toHaveBeenCalled();
+        await pressRow();
+
+        await waitFor(() => expect(router.replace).toHaveBeenCalledWith(routes.home));
+        expect(accountReloads()).toHaveLength(1);
+        expect(storedFlow()).toBe("student");
+      });
+
+      it("opens nothing when the session expired during the reload", async () => {
+        serve({
+          count: 1,
+          list: roleChanged,
+          me: () => ({ ok: false, status: 401, json: async () => ({ errors: ["auth.token.invalid"] }) }),
+        });
+
+        await pressRow();
+
+        await waitFor(() => expect(accountReloads().length).toBeGreaterThan(0));
+        await waitFor(() => expect(posts()).toContain("/notifications/n-1/read"));
+        expect(router.replace).not.toHaveBeenCalled();
+        expect(router.push).not.toHaveBeenCalled();
+      });
+
+      it("sends no reload and opens nothing for a session already gone (signing out)", async () => {
+        mockSignedIn = false;
+        serve({ count: 1, list: roleChanged, me: () => ok(instructor) });
+
+        await pressRow();
+
+        await waitFor(() => expect(posts()).toEqual(["/notifications/n-1/read"]));
+        expect(accountReloads()).toHaveLength(0);
+        expect(router.replace).not.toHaveBeenCalled();
+      });
     });
 
     it("opens nothing for a session already gone (signing out)", async () => {

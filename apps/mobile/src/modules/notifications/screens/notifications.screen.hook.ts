@@ -20,8 +20,22 @@ import {
   NOTIFICATIONS_LIST_QUERY_KEY,
   NotificationsListData,
 } from "../utils/notifications-cache";
+import { refreshAccount } from "../utils/refresh-account";
 
 import { UseNotificationsScreenResult } from "./notifications.screen.types";
+
+// A new role starts at its flow's home: the account is reloaded first, as for a tapped push, so `index` redirects
+// to the new role's flow even when the push never reached the open app (spec 058, D-13).
+const openNewRoleHome = async () => {
+  try {
+    await refreshAccount();
+  } catch {
+    // Only an expired session throws: useSessionExpired sends the person to sign-in.
+    return;
+  }
+
+  router.replace(routes.home);
+};
 
 export const useNotificationsScreen = (): UseNotificationsScreenResult => {
   const { t } = useTranslation();
@@ -57,9 +71,8 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
       return;
     }
 
-    // A new role starts at its flow's home: `index` redirects to the flow of the account (spec 058, D-13).
-    if (notification.type === "role.changed") {
-      router.replace(routes.home);
+    if (notification.type === "role.changed" && user) {
+      void openNewRoleHome();
     }
   };
 

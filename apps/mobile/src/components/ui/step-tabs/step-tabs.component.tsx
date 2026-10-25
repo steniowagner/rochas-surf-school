@@ -36,7 +36,7 @@ export function StepTabs<T extends string>({
             style={isSelected ? shadowStyle("iconButton", theme) : undefined}
           >
             <View
-              className={`size-7 items-center justify-center rounded-full ${step.done ? "bg-ok" : "bg-tan"}`}
+              className={`size-7 items-center justify-center rounded-icon-button ${step.done ? "bg-ok" : "bg-tan"}`}
             >
               {step.done ? (
                 <Ionicons name="checkmark" size={16} color={theme.onColor} />

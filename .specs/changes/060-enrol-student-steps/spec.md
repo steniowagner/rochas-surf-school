@@ -247,6 +247,11 @@ step shows inside, the requests and their outcomes stay as they are.
   and `.../discipline-filter/discipline-filter.constants` before `@/modules/classes/components/class-card` and
   `class-card-skeleton`; `.claude/rules/react.md` §2 sorts each import group alphabetically by path. Expected: the two
   `discipline-filter` imports after `class-card-skeleton`.
+- [ ] **F-03** (D-04) — the user asked during this review (2026-10-25) to remove the icons from the footer CTAs. Today
+  "Choose class" has the `chevron-forward` icon and "Enrol" the `person-add-outline` icon (`enrol-student.screen.tsx`,
+  the two `Button`s in the footer), as D-04 says. Expected: amend D-04 (`/spec-plan --amend 060`) to drop both icons,
+  then remove the `icon` prop from both buttons; each button shows its label only, with the same disabled and loading
+  states.
 
 **Notes**
 

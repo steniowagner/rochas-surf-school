@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: in-review
+status: in-progress
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -16,8 +16,10 @@ depends_on: []
 
 Admins get an "Ocupação semanal" screen, opened from their home, that shows a week of classes as a map: one column
 per day, one row per start time, and in each cell the share of the class's seats that are taken, coloured on a
-four-step scale. Tapping a cell shows that class's card, which opens its details. The admin moves week by week, so
-they can see at a glance which classes still have room and which are full.
+four-step scale. Above the map, a card sums the week up (occupancy, seats taken out of the total, free seats, full
+classes). Tapping a cell shows that class's card, which opens its details. The admin moves week by week, with a label
+saying how far the week is from this one, so they can see at a glance which classes still have room and which are
+full.
 
 ## Context
 
@@ -66,16 +68,18 @@ they can see at a glance which classes still have room and which are full.
 ### In scope
 
 - The "Ocupação semanal" row on the admin home and the admin route `/admin/weekly-occupancy`.
-- The screen: centered header title with the scroll-edge blur, the week bar (‹ caption ›), the week map with its
-  legend, the selected class's card, and the loading, error and empty states, pull-to-refresh and refetch on focus.
+- The screen: centered header title with the scroll-edge blur, the week bar (‹ relative-week label over the caption
+  ›), the week's stats card (occupancy, seats, free seats, full classes), the week map with its legend, the selected
+  class's card, and the loading, error and empty states, pull-to-refresh and refetch on focus.
 - New tokens: the color `sunTint` (light and dark), the type style `occupancyCell` and the radii `occupancyCell` and
   `swatch`.
 - The copy in pt-BR, es-ES and en-US.
 
 ### Out of scope
 
-- The grape summary card at the top of PAINEL-14 (percentage, "N de M lugares ocupados", free seats, full classes
-  and the comparison with the previous week) — removed by D-03.
+- The grape summary card at the top of PAINEL-14 as designed there (the large grape block, "N de M lugares ocupados"
+  and the comparison with the previous week) — replaced by the stats card of D-03 / D-18; no comparison with another
+  week is built.
 - The rest of the admin dashboard: the grape "Ocupação da semana" card on the home, classes per day, average
   ratings, "Avaliações das aulas", the greeting.
 - Any backend or API change, and any stored or precomputed occupancy figure.
@@ -90,8 +94,8 @@ they can see at a glance which classes still have room and which are full.
 | ---- | -------- | ------ |
 | D-01 | The weekly occupancy screen comes into scope for admins only, on mobile; the other dashboard metrics stay out of scope. `spec-finish` updates the out-of-scope lines in `product.md`, `user-journeys.md` → Out of scope for now and `requirements.md` → 5 (Dependencies and constraints) to say the weekly occupancy screen exists. | User's choice: it needs no new data or API, and the rest of the dashboard is still unplanned. |
 | D-02 | The screen reads the week with the existing `weekClassesOptions(weekStart)` (`GET /classes?date=<Monday>`, same query key as the Aulas tab) and computes everything on the phone; the backend doesn't change. | The week list already carries capacity, seats taken and cancellation for every class of the week; sharing the query keeps the Aulas tab and the map in sync. |
-| D-03 | The grape summary card of PAINEL-14 is not built at all; the screen starts with the week bar, then "Mapa da semana". | User's design note ("remove this headline at the top about analytics"); the map and the selected card already show the seats. |
-| D-04 | The screen opens on the current week (`mondayOf(todayInSchoolZone(now))`). A week bar at the top of the content has the previous and next arrows (the `WeekMonthCalendar` arrow style and its `weekMonthCalendar.previousWeek` / `nextWeek` labels) and the `weekCaption` between them (`ds-text-pill text-ink`, centered); each arrow moves one week, with no limit into the past or the future. The bar shows in every state. | User's choice (the design has a fixed week); the request takes any week. The bar stays in the error state so the admin can leave a week that fails. |
+| D-03 | The grape summary card of PAINEL-14 is not built; instead, the stats card of D-18 sits between the week bar and "Mapa da semana". No comparison with the previous week is built. | User's design note ("remove this headline at the top about analytics"), then the user's new design for the week's stats (amendment of 2026-10-25). |
+| D-04 | The screen opens on the current week (`mondayOf(todayInSchoolZone(now))`). A week bar at the top of the content has the previous and next arrows — 44 pt round buttons, `h-11 w-11 rounded-full bg-surface` with `shadowStyle("iconButton")`, no border and no `hitSlop`, a `chevron-back` / `chevron-forward` icon in `theme.ink`, labelled `weekMonthCalendar.previousWeek` / `nextWeek` — and between them, centered, the relative-week label of D-17 over the `weekCaption` in `ds-text-day-number text-ink`; each arrow moves one week, with no limit into the past or the future. The bar shows in every state. | User's design (the image of 2026-10-25: round white arrows, "ESTA SEMANA" over "17 – 23 SET"); the request takes any week. The bar stays in the error state so the admin can leave a week that fails. |
 | D-05 | The header title is centered: `<Stack.Screen options={{ headerTitleAlign: "center", headerTitle: () => <StackHeaderTitle title={…} /> }} />` with "Ocupação semanal", and the screen's scroll view (a `ScrollView` with `contentInsetAdjustmentBehavior="automatic"` and `RefreshControl`) is its first view, so the native header's scroll-edge blur works. The design's "Semana 17 – 23 set" subtitle is not in the header (the week bar carries the week). | User's design note; same pattern as "Minhas aulas" (commit `a8e75053`). |
 | D-06 | The map: a header row (an empty corner, then the 7 days Monday → Sunday of the week, each with `weekdayAbbreviation` in `ds-text-section-label text-ink-2` over its day number in `ds-text-calendar-month-day`, the number in `text-sun` on today's Fortaleza date and `text-ink` otherwise), then one row per distinct start time (`schoolTimeOf(startsAt)`, "HH:mm") of the week's classes, cancelled included, ascending. A 44 pt time column (`ds-text-occupancy-cell text-ink-2`) and 7 equal columns with a 4 pt gap. Cells are 44 pt tall and as wide as the column. | PAINEL-14's grid. On a 375 pt phone 7 columns can't be 44 pt wide, so the 44 px touch-target rule holds on height only (user accepted). |
 | D-07 | Overlap: when several classes share a day and a start time, that time gets as many sub-rows as the largest number of classes sharing it on one day; on each day, the k-th of those classes (in the API's order: start, end, id) goes in sub-row k, and the other days' cells of that sub-row are empty slots. The time label shows only on the first sub-row. | Classes of different batches may overlap (`modules/classes.md`); the design would hide all but one (user's choice). |
@@ -100,10 +104,12 @@ they can see at a glance which classes still have room and which are full.
 | D-10 | The legend under the map: four 10 pt `rounded-swatch` swatches with their labels — `bg-info-tint` "menos de 50%", `bg-sun-tint` "50–89%", `bg-sun` "90%+", `bg-bad` "Cheia" — in `ds-text-occupancy text-ink-2`. | PAINEL-14's legend. |
 | D-11 | Selection: the selected cell has `border-2 border-grape`. When a week's classes load, the selected class is the non-cancelled class with the lowest `seatsTaken / capacity` (ties → the first in the API's order); when every class is cancelled, the first class. Tapping any class cell (cancelled ones too) selects it. Moving to another week resets the selection to that week's default. A refetch keeps the selection while that class is still in the week, otherwise the default. Under the legend, the selected class's `ClassCard` (`showFlags`, `now` from `useNow`) opens `routes.admin.classDetail(id)` when tapped. | PAINEL-14 starts on the least-occupied class (user accepted); `showFlags` as on the admin's Aulas tab. |
 | D-12 | Cells are `TouchableOpacity` with `activeOpacity={BUTTON_ACTIVE_OPACITY}`, `accessibilityRole="button"`, `accessibilityState={{ selected }}` and the label `weeklyOccupancy.cell.active` ("{{date}}, {{time}}, {{discipline}}, {{percent}}%") or `weeklyOccupancy.cell.cancelled` ("{{date}}, {{time}}, {{discipline}}, cancelada"), where `date` is the weekday abbreviation and the day number ("SEG 19") and `discipline` is `newClass.discipline.<discipline>`. | Same press pattern as the calendar's day cells (`calendar-week-row`); a cell's colour alone tells nothing to a screen reader. |
-| D-13 | States, below the week bar: loading → `OccupancyMapSkeleton` (the header row and 4 rows of skeleton cells, one `accessible` view labelled "Carregando a ocupação"); error with no data → `ErrorState` ("Não foi possível carregar a ocupação" / "Confira sua conexão e tente de novo."), whose retry keeps the error on screen with its spinner; a week with no classes at all → `EmptyState` (`calendar-outline`, "Sem aulas nesta semana" / "As aulas criadas para esta semana aparecem aqui.", no action), with no map, legend or card. A week whose classes are all cancelled shows the map. A failed refetch keeps the map it had; an expired session shows nothing (it is handled centrally). Back on the screen it refetches without restarting a load already running (`cancelRefetch: false`); pull-to-refresh shows the spinner only for the user's pull. | User's design note (loading, error, empty), with the same behaviors as "Minhas aulas". |
+| D-13 | States, below the week bar: loading → `OccupancyMapSkeleton` (a skeleton of the stats card, then the header row and 4 rows of skeleton cells, all in one `accessible` view labelled "Carregando a ocupação"); error with no data → `ErrorState` ("Não foi possível carregar a ocupação" / "Confira sua conexão e tente de novo."), whose retry keeps the error on screen with its spinner; a week with no classes at all → `EmptyState` (`calendar-outline`, "Sem aulas nesta semana" / "As aulas criadas para esta semana aparecem aqui.", no action), with no stats card, map, legend or class card. The stats card shows only with the map. A week whose classes are all cancelled shows the map. A failed refetch keeps the map it had; an expired session shows nothing (it is handled centrally). Back on the screen it refetches without restarting a load already running (`cancelRefetch: false`); pull-to-refresh shows the spinner only for the user's pull. | User's design note (loading, error, empty), with the same behaviors as "Minhas aulas". |
 | D-14 | The home row is a card of its own in the "Escola" section of `admin.screen.tsx`, after `PeopleEntryRow` and before the school settings card: `Ionicons` `bar-chart-outline` (`theme.lagoon`, 20), "Ocupação semanal" in `ds-text-list-title`, "Lugares ocupados e vagas por aula" in `ds-text-list-subtitle`, a chevron, `accessibilityLabel` the title; it opens `routes.admin.weeklyOccupancy` (`/admin/weekly-occupancy`). | PAINEL-01's "Escola" list puts "Ocupação semanal" there, with the bar-chart icon and that subtitle. |
-| D-15 | Copy (`weeklyOccupancy` namespace in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`): title "Ocupação semanal" / "Ocupación semanal" / "Weekly occupancy"; row subtitle "Lugares ocupados e vagas por aula" / "Plazas ocupadas y libres por clase" / "Seats taken and free per class"; section "Mapa da semana" / "Mapa de la semana" / "Week map"; legend "menos de 50%" / "menos del 50%" / "under 50%", "50–89%", "90%+", "Cheia" / "Llena" / "Full"; cancelled cell "canc." (all three); loading "Carregando a ocupação" / "Cargando la ocupación" / "Loading the occupancy"; load error "Não foi possível carregar a ocupação" / "No se pudo cargar la ocupación" / "Couldn't load the occupancy" with "Confira sua conexão e tente de novo." / "Comprueba tu conexión e inténtalo de nuevo." / "Check your connection and try again."; empty "Sem aulas nesta semana" / "Sin clases esta semana" / "No classes this week" with "As aulas criadas para esta semana aparecem aqui." / "Las clases creadas para esta semana aparecen aquí." / "Classes created for this week show up here."; cell labels as D-12, cancelled word "cancelada" / "cancelada" / "cancelled". | The app is in pt-BR, es-ES and en-US; the design's European Portuguese is rewritten in Brazilian Portuguese. |
-| D-16 | Code lives in the classes module: `src/modules/classes/utils/weekly-occupancy.ts` (pure layout, tones and default selection), `components/occupancy-map/`, `components/occupancy-map-skeleton/`, `screens/weekly-occupancy.screen.{tsx,hook.ts,types.ts}`; the route file is `src/app/(private)/admin/weekly-occupancy.tsx`. Components follow `.claude/rules/react.md`. | Occupancy is about classes; the screen is only routed for admins, and access is decided by the flow (`resolveFlow`), never in the screen. |
+| D-15 | Copy (`weeklyOccupancy` namespace in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`): title "Ocupação semanal" / "Ocupación semanal" / "Weekly occupancy"; row subtitle "Lugares ocupados e vagas por aula" / "Plazas ocupadas y libres por clase" / "Seats taken and free per class"; section "Mapa da semana" / "Mapa de la semana" / "Week map"; legend "menos de 50%" / "menos del 50%" / "under 50%", "50–89%", "90%+", "Cheia" / "Llena" / "Full"; cancelled cell "canc." (all three); loading "Carregando a ocupação" / "Cargando la ocupación" / "Loading the occupancy"; load error "Não foi possível carregar a ocupação" / "No se pudo cargar la ocupación" / "Couldn't load the occupancy" with "Confira sua conexão e tente de novo." / "Comprueba tu conexión e inténtalo de nuevo." / "Check your connection and try again."; empty "Sem aulas nesta semana" / "Sin clases esta semana" / "No classes this week" with "As aulas criadas para esta semana aparecem aqui." / "Las clases creadas para esta semana aparecen aquí." / "Classes created for this week show up here."; cell labels as D-12, cancelled word "cancelada" / "cancelada" / "cancelled"; relative week (D-17) "Esta semana" / "Esta semana" / "This week", "Próxima semana" / "Próxima semana" / "Next week", "Daqui a {{count}} semanas" / "Dentro de {{count}} semanas" / "In {{count}} weeks", "Semana passada" / "Semana pasada" / "Last week", "Há {{count}} semanas" / "Hace {{count}} semanas" / "{{count}} weeks ago"; stat labels (D-18) "Ocupação" / "Ocupación" / "Occupancy", "Lugares" / "Plazas" / "Seats", "Livres" / "Libres" / "Free", "Cheias" / "Llenas" / "Full", and their accessibility labels "{{percent}}%, Ocupação" / "{{percent}}%, Ocupación" / "{{percent}}%, Occupancy", "{{taken}} de {{total}} lugares" / "{{taken}} de {{total}} plazas" / "{{taken}} of {{total}} seats", "{{count}} livre(s)" / "{{count}} libre(s)" / "{{count}} free", "{{count}} cheia(s)" / "{{count}} llena(s)" / "{{count}} full" (singular and plural through i18next's `count`). | The app is in pt-BR, es-ES and en-US; the design's European Portuguese is rewritten in Brazilian Portuguese; the es-ES and en-US copy of the amendment was accepted by the user. |
+| D-16 | Code lives in the classes module: `src/modules/classes/utils/weekly-occupancy.ts` (pure layout, tones, default selection, relative week and stats), `components/occupancy-map/`, `components/occupancy-map-skeleton/`, `components/occupancy-stats/`, `screens/weekly-occupancy.screen.{tsx,hook.ts,types.ts}`; the route file is `src/app/(private)/admin/weekly-occupancy.tsx`. Components follow `.claude/rules/react.md`. | Occupancy is about classes; the screen is only routed for admins, and access is decided by the flow (`resolveFlow`), never in the screen. |
+| D-17 | The relative-week label above the caption: n = whole weeks from the current Fortaleza week (`mondayOf(todayInSchoolZone(now))`) to the week on screen. n = 0 → "Esta semana" in `text-sun`; n = 1 → "Próxima semana"; n ≥ 2 → "Daqui a {{count}} semanas" (count = n); n = −1 → "Semana passada"; n ≤ −2 → "Há {{count}} semanas" (count = −n). Every label but "Esta semana" is `text-ink-2`; all are `ds-text-section-label` (uppercase on screen). It updates with each arrow and shows in every state, like the bar. | User's design and copy (2026-10-25); orange only marks "you are here" (user accepted grey for the other weeks). |
+| D-18 | The stats card, between the week bar and "Mapa da semana": computed on the phone from the week's classes, counting only non-cancelled ones, each with its seats taken capped at its capacity (`min(seatsTaken, capacity)`). Four stats side by side, separated by vertical `border-line` dividers, in a `rounded-card border border-line bg-surface` card: OCUPAÇÃO = round(taken ÷ total × 100) with "%" (0 when total is 0), in `text-grape`; LUGARES = "{taken}/{total}" in `text-ink`; LIVRES = total − taken in `text-lagoon`; CHEIAS = the number of classes with `isClassFull` in `text-bad`. Numbers in `ds-text-day-number`, labels under them in `ds-text-chip text-ink-2`. Each stat is one `accessible` element labelled as D-15 ("64%, Ocupação", "28 de 44 lugares", "16 livres", "1 cheia"). A week whose classes are all cancelled shows "0%", "0/0", "0", "0". | User's design (the image of 2026-10-25) and PAINEL-14's figures (`ativas`, `lugares`, `cheios`, `nCheias`); capping keeps LUGARES and LIVRES adding up and free seats never negative, like `getFreeSeats` (user accepted). |
 
 ## Expected Results
 
@@ -124,16 +130,22 @@ they can see at a glance which classes still have room and which are full.
 - **Front:** mobile
 - **Behavior:** Given now = Wednesday 21 Oct 2026 10:00 Fortaleza, when the screen opens, then it asks for
   `GET /classes?date=2026-10-19`, the header shows the centered title (`headerTitleAlign: "center"`,
-  `StackHeaderTitle`), the week bar shows "19 – 25 OUT" between the arrows, and no grape summary card nor any
-  "semana anterior" text is on screen; when the admin taps the next arrow, then it asks for
-  `GET /classes?date=2026-10-26` and the caption is "26 OUT – 1 NOV"; tapping the previous arrow twice from there
-  shows "12 – 18 OUT" (`date=2026-10-12`).
-- **Edge and error cases:** a week already loaded comes from the cache without a loading state; the week bar is on
+  `StackHeaderTitle`), the week bar shows "ESTA SEMANA" (`text-sun`) over "19 – 25 OUT" between the arrows, and no
+  grape summary card nor any "semana anterior" text is on screen; when the admin taps the next arrow, then it asks
+  for `GET /classes?date=2026-10-26`, the caption is "26 OUT – 1 NOV" and the label "PRÓXIMA SEMANA"; tapping the
+  previous arrow twice from there shows "12 – 18 OUT" (`date=2026-10-12`) with "SEMANA PASSADA".
+- **Edge and error cases:** two weeks ahead the label is "DAQUI A 2 SEMANAS" and three "DAQUI A 3 SEMANAS"; two weeks
+  back "HÁ 2 SEMANAS"; only the current week's label is `text-sun`, the others `text-ink-2`; the labels exist in
+  es-ES and en-US (D-15); each arrow is a 44 pt touch target labelled "Ver a semana anterior" / "Ver a semana
+  seguinte" (`weekMonthCalendar.previousWeek` / `nextWeek`); a week already loaded comes from the cache
+  without a loading state; the week bar is on
   screen while loading, after an error and on an empty week; the scroll view is the screen's first view
   (`contentInsetAdjustmentBehavior="automatic"`), so on iOS 26+ the content scrolls under the header with the soft
   scroll-edge blur.
-- **Verify by:** `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "week"` (from
-  `apps/mobile`) and the user journey (the blur when scrolling).
+- **Verify by:** `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "week"`,
+  `npx jest src/modules/classes/components/occupancy-week-bar` and
+  `npx jest src/modules/classes/utils/weekly-occupancy.test.ts -t "relative week"` (from `apps/mobile`), and the
+  user journey (the blur when scrolling).
 
 ### ER-03 — The map's layout
 
@@ -195,6 +207,22 @@ they can see at a glance which classes still have room and which are full.
   another week; the copy exists in es-ES and en-US (D-15).
 - **Verify by:** `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "state"` (from
   `apps/mobile`).
+
+### ER-07 — The week's stats card
+
+- **Front:** mobile
+- **Behavior:** Given ER-05's week (A 3/10, B 4/4, C 6/10, D 9/10 and E cancelled 2/10), when it loads, then
+  between the week bar and "Mapa da semana" a card shows "65%" over "OCUPAÇÃO" (`text-grape`), "22/34" over
+  "LUGARES" (`text-ink`), "12" over "LIVRES" (`text-lagoon`) and "1" over "CHEIAS" (`text-bad`); when the admin moves
+  to another week, then the card shows that week's figures.
+- **Edge and error cases:** a cancelled class counts nowhere; an overbooked class (12/10) counts as 10/10, so LIVRES
+  is never negative and LUGARES and LIVRES add up to the total; a week whose classes are all cancelled shows "0%",
+  "0/0", "0", "0"; while the week loads the skeleton includes the card (still one element labelled "Carregando a
+  ocupação"); the error and the empty states show no card; each stat is read by a screen reader as one element
+  ("65%, Ocupação", "22 de 34 lugares", "12 livres", "1 cheia"); the labels exist in es-ES and en-US (D-15).
+- **Verify by:** `npx jest src/modules/classes/utils/weekly-occupancy.test.ts -t "stats"`,
+  `npx jest src/modules/classes/components/occupancy-stats` and
+  `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "stats"` (from `apps/mobile`).
 
 ## Tasks
 
@@ -310,6 +338,48 @@ they can see at a glance which classes still have room and which are full.
   > `npx jest src/modules/admin/screens/admin.screen.test.tsx` (23 passed), `tsc --noEmit` and eslint clean;
   > deviations: none
 
+- [ ] **T-08** — Add the pure logic of the amendment to `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`:
+  the relative week of D-17 (the signed number of weeks from the current week's Monday to the week on screen, and the
+  label key and count it maps to) and the week's stats of D-18 (percent, taken, total, free, full classes, over the
+  non-cancelled classes with seats taken capped at capacity), with tests in `weekly-occupancy.test.ts` under
+  `describe("relative week")` (0, ±1, ±2, ±3, across a month and a year) and `describe("stats")` (ER-07's week, an
+  overbooked class, cancelled classes ignored, all cancelled, no classes).
+  Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-02, ER-07 · Done when: `npx jest src/modules/classes/utils/weekly-occupancy.test.ts` passes from
+  `apps/mobile` with every line of the file covered.
+
+- [ ] **T-09** — Redesign `OccupancyWeekBar` (`apps/mobile/src/modules/classes/components/occupancy-week-bar/`) to
+  D-04 and D-17: the 44 pt round `bg-surface` arrows with `shadowStyle("iconButton")` and no border or `hitSlop`, and
+  the relative-week label (`ds-text-section-label`, `text-sun` only for this week) over the caption in
+  `ds-text-day-number text-ink`; the screen hook passes the label to it; the relative-week copy in
+  `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`. Tests: a new `occupancy-week-bar.component.test.tsx` (every label key,
+  the colours, the arrows' labels and presses) and the screen's `describe("week")` tests updated for ER-02 (the label
+  after each arrow).
+  Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
+  [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
+  Covers: ER-02 · Done when: `npx jest src/modules/classes/components/occupancy-week-bar` and
+  `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "week"` pass from `apps/mobile`.
+
+- [ ] **T-10** — Build `OccupancyStats` in `apps/mobile/src/modules/classes/components/occupancy-stats/` (component,
+  types, index, per `.claude/rules/react.md`): the D-18 card with its four stats, dividers, colours, type styles and
+  per-stat accessibility labels; the stat labels and their accessibility copy in
+  `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`. Tests: `occupancy-stats.component.test.tsx` (ER-07's figures, the
+  colour of each number, the all-zero card, each stat's accessibility label with singular and plural, one language
+  other than en-US).
+  Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
+  [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
+  Covers: ER-07 · Done when: `npx jest src/modules/classes/components/occupancy-stats` passes from `apps/mobile`.
+
+- [ ] **T-11** — Put the stats card on the screen: `weekly-occupancy.screen.{tsx,hook.ts,types.ts}` render
+  `OccupancyStats` between the week bar and the map with the week's stats, and `OccupancyMapSkeleton` gains the card's
+  skeleton inside its single labelled element (D-13); no card on the error and empty states. Tests: a
+  `describe("stats")` block in `weekly-occupancy.screen.test.tsx` (ER-07's figures, another week's figures after an
+  arrow, no card on error and empty, the skeleton while loading) and the skeleton's test updated.
+  Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
+  [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
+  Covers: ER-07 · Done when: `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx
+  src/modules/classes/components/occupancy-map-skeleton` passes from `apps/mobile`.
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journey on
@@ -332,6 +402,11 @@ they can see at a glance which classes still have room and which are full.
   > fixed (non-scrolling) view, so with this row the last cards sit under the floating tab bar on this device (not in this
   > spec's scope). deviations: the journey was driven by deep link and taps on the simulator, not by a human.
 
+- [ ] **T-12** — After T-08–T-11, run every command in the Verification
+  Plan again from the repo root; all pass. Follow the user journey on the iOS simulator, including the relative-week
+  label and the stats card, and record the output summary and what was seen as evidence.
+  Covers: all · Done when: every automated command exits 0 and the user journey is recorded.
+
 ## Verification Plan
 
 - Automated:
@@ -345,13 +420,16 @@ they can see at a glance which classes still have room and which are full.
   next week (the backend seed has sample classes):
   1. On Início → "Escola", "Ocupação semanal" with "Lugares ocupados e vagas por aula" sits between "Pessoas" and
      "Configurações da escola"; tap it.
-  2. The header title "OCUPAÇÃO SEMANAL" is centered; there is no grape summary card; the week bar shows the current
-     week; today's day number is sun-coloured; the cells show percentages in the four tones and "canc." for a
+  2. The header title "OCUPAÇÃO SEMANAL" is centered; there is no grape summary card; the week bar shows "ESTA
+     SEMANA" in orange over the current week, between two round 44 pt arrows; the stats card under it shows the
+     week's occupancy, seats, free seats and full classes in grape, ink, lagoon and red; today's day number is
+     sun-coloured; the cells show percentages in the four tones and "canc." for a
      cancelled class; the legend is under the map; the least-occupied class is selected and its card shown.
   3. Scroll: the content passes under the header with the soft blur.
   4. Tap another cell → its border and card change; tap the card → the class details open; go back.
-  5. Tap › → the next week loads (skeleton first); a week without classes shows "Sem aulas nesta semana"; tap ‹
-     back.
+  5. Tap › → the next week loads (skeleton first, the card's included), the label reads "PRÓXIMA SEMANA" in grey and
+     the stats change; tap › again → "DAQUI A 2 SEMANAS"; a week without classes shows "Sem aulas nesta semana" with
+     no stats card; tap ‹ back past this week → "SEMANA PASSADA", then "HÁ 2 SEMANAS".
   6. Turn off the network and open a week not loaded yet → the error with "Tentar novamente"; turn it back on and
      retry → the map appears. Pull to refresh → the spinner, then the map.
   7. Signed in as an instructor and as a student, the home has no "Ocupação semanal" row.
@@ -359,12 +437,14 @@ they can see at a glance which classes still have room and which are full.
 ## Memory Impact
 
 - `memory/product.md` — Current state: admins have the weekly occupancy map (from the home's "Escola" section, week
-  by week, four-step colours, the selected class's card). Out of scope: narrow the "admin dashboard with metrics"
-  item and spec 057's "rest of the dashboards" item so they no longer include the weekly occupancy screen; add this
-  spec's out-of-scope items (the summary card and comparison, filters on the map, swiping weeks, remembering the
-  week).
-- `memory/technical-context.md` — the mobile classes bullets: `utils/weekly-occupancy.ts`, `OccupancyMap`,
-  `OccupancyMapSkeleton`, the screen and its reuse of `weekClassesOptions`; `packages/design-tokens`: `sunTint`, the type style
+  by week with a relative-week label, the week's stats card — occupancy, seats, free seats, full classes, counting
+  non-cancelled classes with seats capped at capacity — four-step colours, the selected class's card). Out of
+  scope: narrow the "admin dashboard with metrics" item and spec 057's "rest of the dashboards" item so they no
+  longer include the weekly occupancy screen; add this spec's out-of-scope items (the grape summary card and the
+  comparison with another week, filters on the map, swiping weeks, remembering the week).
+- `memory/technical-context.md` — the mobile classes bullets: `utils/weekly-occupancy.ts` (layout, tones, default
+  selection, relative week, stats), `OccupancyMap` and its children `OccupancyCell` and `OccupancyLegend`,
+  `OccupancyMapSkeleton`, `OccupancyWeekBar`, `OccupancyStats`, the screen and its reuse of `weekClassesOptions`; `packages/design-tokens`: `sunTint`, the type style
   `occupancyCell` and the radii `occupancyCell` and `swatch`.
 - `memory/structure.md` — the route `src/app/(private)/admin/weekly-occupancy.tsx` and the new files in
   `src/modules/classes/` (utils, components, screen).
@@ -381,6 +461,39 @@ they can see at a glance which classes still have room and which are full.
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-25 — /spec-plan --amend — D-03 changed: "the grape summary card of PAINEL-14 is not built at all; the
+  screen starts with the week bar, then 'Mapa da semana'" → "the grape card is not built; the stats card of D-18 sits
+  between the week bar and 'Mapa da semana'; no comparison with the previous week". Reason: the user's new design for
+  the week's stats. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-04 changed: arrows "the `WeekMonthCalendar` arrow style" (36 pt, bordered,
+  `hitSlop`) and caption `ds-text-pill text-ink` → 44 pt round `bg-surface` arrows with `shadowStyle("iconButton")`,
+  no border or `hitSlop`, and the D-17 label over the caption in `ds-text-day-number text-ink`. Reason: the user's
+  design of the week bar. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-13 changed: the loading skeleton also covers the stats card, and the error and
+  empty states show no stats card. Reason: the stats card shows only with the map. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-15 changed: adds the relative-week labels and the stat labels with their
+  accessibility copy in pt-BR, es-ES and en-US. Reason: the new UI's copy (pt-BR from the user, es-ES and en-US
+  accepted by the user). Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-16 changed: adds `components/occupancy-stats/` and the relative week and stats
+  to `utils/weekly-occupancy.ts`. Reason: where the new code lives. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-17 added: the relative-week label ("Esta semana" in `text-sun`, "Próxima
+  semana", "Daqui a N semanas", "Semana passada", "Há N semanas", the others in `text-ink-2`). Reason: the user's
+  design and copy. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-18 added: the stats card (non-cancelled classes, seats capped at capacity;
+  OCUPAÇÃO, LUGARES, LIVRES, CHEIAS in grape, ink, lagoon and bad). Reason: the user's design. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — ER-02 changed: the week bar shows the relative-week label ("ESTA SEMANA",
+  "PRÓXIMA SEMANA", "SEMANA PASSADA", "DAQUI A N SEMANAS", "HÁ N SEMANAS") and 44 pt arrows; Verify by adds the week
+  bar's component test and the util's "relative week" tests. Reason: D-04 and D-17. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — ER-07 added: the week's stats card. Reason: D-18. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — T-08, T-09, T-10, T-11 added (Covers: ER-02, ER-07) and T-12 added (the
+  Verification task, run again after them). T-04's week bar stays; T-09 redesigns it. Goal, Scope, the Verification
+  Plan's user journey and Memory Impact updated to match. Reason: the amendment's work. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — Round 1's findings F-01, F-02 and F-03 are not affected by the amendment (they
+  were fixed in commits `862fcf76`, `493c66b9` and `74c6aab8`, before it).
+- 2026-10-25 — /spec-plan --amend — status changed: `in-review` → `in-progress`, outside the usual transitions, so
+  that T-08–T-12 can be built; the round 1 fixes and the amendment are reviewed together after T-12. Reason: the
+  amendment arrived while the fixes were being handed to review. Approved by the user.
 
 ## Review
 

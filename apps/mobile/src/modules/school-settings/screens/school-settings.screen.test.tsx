@@ -15,7 +15,13 @@ import {
 
 import { SchoolSettingsScreen } from "./school-settings.screen";
 
-jest.mock("expo-router", () => ({ router: { back: jest.fn() } }));
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  // Renders the header's title so the tests can see it.
+  Stack: {
+    Screen: ({ options }: any) => <>{options.headerTitle()}</>,
+  },
+}));
 jest.useFakeTimers();
 
 const fetchMock = setupFetch();
@@ -50,6 +56,10 @@ describe("SchoolSettingsScreen", () => {
     await renderWithProviders(<SchoolSettingsScreen />);
 
     expect(screen.getByTestId("school-settings-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the settings")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "SCHOOL SETTINGS" }),
+    ).toBeOnTheScreen();
     expect(screen.queryByText("Waiting list")).not.toBeOnTheScreen();
     expect(
       screen.queryByRole("button", { name: "Save" }),
@@ -233,7 +243,10 @@ describe("SchoolSettingsScreen", () => {
     const user = userEvent.setup();
 
     expect(
-      await screen.findByText("Couldn't load the settings."),
+      await screen.findByText("Couldn't load the settings"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "SCHOOL SETTINGS" }),
     ).toBeOnTheScreen();
     fetchMock.mockResolvedValue(
       jsonResponse(200, { whatsappNumber: null, waitingListEnabled: false }),

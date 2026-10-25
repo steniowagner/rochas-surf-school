@@ -391,6 +391,7 @@ const messages = {
   },
   schoolSettings: {
     title: "School settings",
+    description: "How students ask for a seat in full classes and how they reach the school.",
     waitingList: {
       section: "Waiting list",
       label: "Waiting list for full classes",
@@ -403,8 +404,11 @@ const messages = {
     },
     save: "Save",
     saved: "Settings saved",
-    loadError: "Couldn't load the settings.",
-    retry: "Try again",
+    loading: "Loading the settings",
+    loadError: {
+      title: "Couldn't load the settings",
+      description: "Check your connection and try again.",
+    },
   },
   cancellationRules: {
     sheet: {

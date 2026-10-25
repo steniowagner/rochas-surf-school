@@ -17,6 +17,11 @@ jest.mock("@/navigation/stack-header/header-inset.hook", () => ({
   useHeaderInset: jest.fn(() => 0),
 }));
 
+// The library's mock of the animated keyboard keeps its height as a plain number: a closed keyboard, as a shared value.
+jest.mock("@/hooks/use-keyboard-height.hook", () => ({
+  useKeyboardHeight: jest.fn(() => ({ get: () => 0 })),
+}));
+
 // No native module in Jest: the opaque header by default, a test turns Liquid Glass on.
 jest.mock("expo-glass-effect", () => ({
   isLiquidGlassAvailable: jest.fn(() => false),

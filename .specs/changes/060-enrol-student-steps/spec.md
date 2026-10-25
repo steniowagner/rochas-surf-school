@@ -102,7 +102,7 @@ step shows inside, the requests and their outcomes stay as they are.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Create `StepTabs` (D-01) in `src/components/ui/step-tabs/` (`step-tabs.component.tsx`,
+- [x] **T-01** — Create `StepTabs` (D-01) in `src/components/ui/step-tabs/` (`step-tabs.component.tsx`,
   `step-tabs.types.ts`, `index.ts`), following `.claude/rules/react.md`, with
   `step-tabs.component.test.tsx` covering: each step's label and value, the number while not done and the check when
   done, the selected tab's `accessibilityState`, `onChange` on pressing another enabled tab, and no call on a disabled
@@ -110,6 +110,9 @@ step shows inside, the requests and their outcomes stay as they are.
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-01, ER-02 · Done when: `npx jest src/components/ui/step-tabs` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — created `StepTabs`; files: `apps/mobile/src/components/ui/step-tabs/index.ts`,
+  > `step-tabs.component.tsx`, `step-tabs.types.ts`, `step-tabs.component.test.tsx`; verified: `npx jest src/components/ui/step-tabs` (6 passed);
+  > deviations: none (no hook file: the component has no state)
 - [ ] **T-02** — In `src/modules/enrolment/screens/enrol-student.screen.hook.ts` and `.types.ts`, add the step state
   and rules of D-02 (`step`, `isWhoDone`, `isClassDone`, `goToStep`, or names to that effect), the tab values of D-03
   (the person's name, the class's "<weekday> <day> · <HH:mm>" in the active locale, or `null` when not done), and

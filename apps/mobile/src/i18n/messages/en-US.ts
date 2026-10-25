@@ -1193,6 +1193,13 @@ const messages = {
       title: "No classes this week",
       description: "Classes created for this week show up here.",
     },
+    relativeWeek: {
+      current: "This week",
+      next: "Next week",
+      previous: "Last week",
+      ahead: "In {{count}} weeks",
+      ago: "{{count}} weeks ago",
+    },
     cancelledCell: "canc.",
     loading: "Loading the occupancy",
     cell: {

@@ -16,14 +16,17 @@ import type { ClassItem } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
 import { weekClassesOptions } from "../hooks/use-week-classes.hook";
 import { todayInSchoolZone } from "../utils/calendar";
-import { getDefaultSelectedClassId } from "../utils/weekly-occupancy";
+import {
+  getDefaultSelectedClassId,
+  getRelativeWeek,
+} from "../utils/weekly-occupancy";
 
 import type { UseWeeklyOccupancyScreenResult } from "./weekly-occupancy.screen.types";
 
 const NO_ITEMS: ClassItem[] = [];
 
 export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const now = useNow();
   const today = todayInSchoolZone(now);
   const [weekStart, setWeekStart] = useState(() => mondayOf(today));
@@ -66,10 +69,16 @@ export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
   // screen with the spinner in its button, instead of the loading state.
   const isRetrying = query.isPending && query.errorUpdateCount > 0;
 
+  const relativeWeek = getRelativeWeek(mondayOf(today), weekStart);
+
   return {
     now,
     today,
     weekStart,
+    relativeLabel: t(`weeklyOccupancy.relativeWeek.${relativeWeek.key}`, {
+      count: relativeWeek.count,
+    }),
+    isCurrentWeek: relativeWeek.isCurrent,
     caption: weekCaption(weekStart, getDateLocale(i18n.language)),
     classes,
     selectedId,

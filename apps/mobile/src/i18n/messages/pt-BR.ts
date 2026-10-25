@@ -1193,6 +1193,13 @@ const messages: Messages = {
       title: "Sem aulas nesta semana",
       description: "As aulas criadas para esta semana aparecem aqui.",
     },
+    relativeWeek: {
+      current: "Esta semana",
+      next: "Próxima semana",
+      previous: "Semana passada",
+      ahead: "Daqui a {{count}} semanas",
+      ago: "Há {{count}} semanas",
+    },
     cancelledCell: "canc.",
     loading: "Carregando a ocupação",
     cell: {

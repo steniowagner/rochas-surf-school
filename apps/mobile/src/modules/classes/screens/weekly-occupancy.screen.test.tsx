@@ -153,6 +153,7 @@ describe("WeeklyOccupancyScreen", () => {
       ).toBeOnTheScreen();
       expect(headerOptions.headerTitleAlign).toBe("center");
       expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+      expect(screen.getByText("This week")).toBeOnTheScreen();
       expect(
         screen.getByRole("button", { name: "Show the previous week" }),
       ).toBeOnTheScreen();
@@ -180,6 +181,7 @@ describe("WeeklyOccupancyScreen", () => {
       );
 
       expect(screen.getByText("26 OCT – 1 NOV")).toBeOnTheScreen();
+      expect(screen.getByText("Next week")).toBeOnTheScreen();
       await waitFor(() =>
         expect(requestedPaths()).toContain("/classes?date=2026-10-26"),
       );
@@ -192,9 +194,30 @@ describe("WeeklyOccupancyScreen", () => {
       );
 
       expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+      expect(screen.getByText("Last week")).toBeOnTheScreen();
       await waitFor(() =>
         expect(requestedPaths()).toContain("/classes?date=2026-10-12"),
       );
+    });
+
+    it("counts the weeks from this one in the label", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+      const next = screen.getByRole("button", { name: "Show the next week" });
+
+      await user.press(next);
+      await user.press(next);
+      expect(screen.getByText("In 2 weeks")).toBeOnTheScreen();
+
+      const previous = screen.getByRole("button", {
+        name: "Show the previous week",
+      });
+      await user.press(previous);
+      await user.press(previous);
+      await user.press(previous);
+      await user.press(previous);
+      expect(screen.getByText("2 weeks ago")).toBeOnTheScreen();
     });
 
     it("shows a week already loaded from the cache, with no loading state", async () => {
@@ -222,6 +245,7 @@ describe("WeeklyOccupancyScreen", () => {
         screen.getByRole("header", { name: "OCUPAÇÃO SEMANAL" }),
       ).toBeOnTheScreen();
       expect(screen.getByText("19 – 25 OUT")).toBeOnTheScreen();
+      expect(screen.getByText("Esta semana")).toBeOnTheScreen();
       expect(await screen.findByText("Mapa da semana")).toBeOnTheScreen();
     });
   });

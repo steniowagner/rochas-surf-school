@@ -354,7 +354,7 @@ full.
   > `npx jest src/modules/classes/utils/weekly-occupancy.test.ts` (33 passed, 100% coverage of the file);
   > deviations: none
 
-- [ ] **T-09** — Redesign `OccupancyWeekBar` (`apps/mobile/src/modules/classes/components/occupancy-week-bar/`) to
+- [x] **T-09** — Redesign `OccupancyWeekBar` (`apps/mobile/src/modules/classes/components/occupancy-week-bar/`) to
   D-04 and D-17: the 44 pt round `bg-surface` arrows with `shadowStyle("iconButton")` and no border or `hitSlop`, and
   the relative-week label (`ds-text-section-label`, `text-sun` only for this week) over the caption in
   `ds-text-day-number text-ink`; the screen hook passes the label to it; the relative-week copy in
@@ -365,6 +365,15 @@ full.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-02 · Done when: `npx jest src/modules/classes/components/occupancy-week-bar` and
   `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "week"` pass from `apps/mobile`.
+  > ✅ 2026-10-25 — `OccupancyWeekBar` redesigned: 44 pt round `bg-surface` arrows with `shadowStyle("iconButton")` (on an
+  > inner view carrying the look, since a touchable exposes no `className`), no border or `hitSlop`, and the
+  > relative-week label (`ds-text-section-label`, `text-sun` only for this week) over the caption in
+  > `ds-text-day-number text-ink`; the screen hook computes the label with `getRelativeWeek`; `weeklyOccupancy.relativeWeek`
+  > copy in the three languages; files: `apps/mobile/src/modules/classes/components/occupancy-week-bar/*`,
+  > `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.{tsx,hook.ts,types.ts,test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified:
+  > `npx jest src/modules/classes/components/occupancy-week-bar` and the screen test (29 passed, 100% coverage of the
+  > changed files), `tsc --noEmit` and eslint clean; deviations: none
 
 - [ ] **T-10** — Build `OccupancyStats` in `apps/mobile/src/modules/classes/components/occupancy-stats/` (component,
   types, index, per `.claude/rules/react.md`): the D-18 card with its four stats, dividers, colours, type styles and

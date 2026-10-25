@@ -6,6 +6,9 @@ export type UseWeeklyOccupancyScreenResult = {
   today: string;
   /** The Monday of the week on screen. */
   weekStart: string;
+  /** "This week", "Next week", "2 weeks ago"… */
+  relativeLabel: string;
+  isCurrentWeek: boolean;
   /** "19 – 25 OCT". */
   caption: string;
   classes: ClassItem[];

@@ -105,6 +105,8 @@ export function WeeklyOccupancyScreen() {
         }
       >
         <OccupancyWeekBar
+          relativeLabel={screen.relativeLabel}
+          isCurrentWeek={screen.isCurrentWeek}
           caption={screen.caption}
           onPrevious={screen.goPrevious}
           onNext={screen.goNext}

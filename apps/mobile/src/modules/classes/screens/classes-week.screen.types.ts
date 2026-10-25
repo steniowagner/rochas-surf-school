@@ -6,8 +6,6 @@ export type ClassesWeekScreenProps = {
    * Without it the screen leaves the header to its stack: the student's Agenda shows the user header there.
    */
   header?: "title" | "hidden";
-  /** Admins only: the sport filter is a header action beside the "+", instead of the floating button. */
-  filterInHeader?: boolean;
   /** The route of a class's details for the viewer's role. */
   classRoute: (id: string) => Href;
   /** Admins only: the header's "+" and the empty day's "Criar aula", shown on today and later days. */

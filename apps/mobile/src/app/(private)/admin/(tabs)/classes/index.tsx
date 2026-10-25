@@ -5,7 +5,6 @@ export default function ClassesRoute() {
   return (
     <ClassesWeekScreen
       header="title"
-      filterInHeader
       classRoute={routes.admin.classDetail}
       canCreate
       showFlags

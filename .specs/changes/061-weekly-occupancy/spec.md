@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: changes-requested
+status: in-review
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -649,7 +649,7 @@ full.
 
 **Findings**
 
-- [ ] **F-04** (convention) — the F-01 fix made the admin home a `ScrollView` with
+- [x] **F-04** (convention) — the F-01 fix made the admin home a `ScrollView` with
   `contentInsetAdjustmentBehavior="automatic"` but kept `paddingTop: headerInset + 16`. `useHeaderInset` is documented
   as the top padding "for a screen that doesn't scroll" (`src/navigation/stack-header/header-inset.hook.ts`); with the
   automatic inset iOS adds the top inset again, so the home's content starts about 60 pt lower than before this spec,
@@ -658,11 +658,20 @@ full.
   (header height + 16) before. Expected: the same top spacing as before the spec, as `registrations.screen.tsx` does
   in its scroll view (`contentInsetAdjustmentBehavior="automatic"` with a plain `paddingTop`, no `headerInset`), with a
   test of the scroll view's top padding.
-- [ ] **F-05** (tests) — ER-07 says the card sits "between the week bar and 'Mapa da semana'", and the screen test
+  > ✅ 2026-10-25 — the admin home keeps `contentInsetAdjustmentBehavior="automatic"` and its top padding is now a plain 16
+  > (no `useHeaderInset`), as `registrations.screen.tsx` does; the F-01 test also asserts `paddingTop: 16`; files:
+  > `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`;
+  > verified: `npx jest src/modules/admin/screens` (passed); deviations: not re-driven on the simulator
+- [x] **F-05** (tests) — ER-07 says the card sits "between the week bar and 'Mapa da semana'", and the screen test
   "shows the week's figures between the week bar and the map" checks only the figures: moving `<OccupancyStats>` below
   `<OccupancyMap>` (or under the class card) in `weekly-occupancy.screen.tsx` still passes. Expected: the test asserts
   the order (for example, the stats card comes after the week label and before the "Week map" section label in the
   rendered tree).
+  > ✅ 2026-10-25 — new test "puts the stats card after the week bar and before the week map" walks the rendered tree and
+  > checks the order week label → stats card → "Week map"; it fails (watched) with `<OccupancyStats>` moved below the map;
+  > files: `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/weekly-occupancy` (32 passed); deviations: the `OccupancyCell` hook extraction
+  > note was left as is (minor, outside the findings)
 
 **Notes**
 

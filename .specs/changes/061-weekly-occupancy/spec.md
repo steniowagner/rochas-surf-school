@@ -230,7 +230,7 @@ they can see at a glance which classes still have room and which are full.
   > `npx jest src/modules/classes/utils/weekly-occupancy.test.ts` (22 passed, 100% coverage of the file);
   > deviations: none
 
-- [ ] **T-03** — Build `OccupancyMap` in `apps/mobile/src/modules/classes/components/occupancy-map/` (component,
+- [x] **T-03** — Build `OccupancyMap` in `apps/mobile/src/modules/classes/components/occupancy-map/` (component,
   hook, types, index, per `.claude/rules/react.md`): the header row, the time column, the cells with the D-08 looks,
   the selected border, the D-12 `TouchableOpacity` and accessibility labels, empty slots, and the D-10 legend with
   the "Mapa da semana" section label; and `OccupancyMapSkeleton` in `components/occupancy-map-skeleton/`. Copy under
@@ -241,6 +241,18 @@ they can see at a glance which classes still have room and which are full.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03, ER-04 · Done when: `npx jest src/modules/classes/components/occupancy-map
   src/modules/classes/components/occupancy-map-skeleton` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — `OccupancyMap` (header row, time column, sub-rows, empty dashed slots, section label) with its
+  > children `OccupancyCell` (D-08 looks, D-12 `TouchableOpacity` + labels, grape selected border; the look sits on an
+  > inner `View` because a touchable exposes no `className`) and `OccupancyLegend` (D-10), plus
+  > `OccupancyMapSkeleton`; `weeklyOccupancy` copy (section, legend, "canc.", cell labels, loading) in the three
+  > languages; files: `apps/mobile/src/modules/classes/components/occupancy-map/*`,
+  > `apps/mobile/src/modules/classes/components/occupancy-cell/*`,
+  > `apps/mobile/src/modules/classes/components/occupancy-legend/*`,
+  > `apps/mobile/src/modules/classes/components/occupancy-map-skeleton/*`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified:
+  > `npx jest src/modules/classes/components/occupancy-map src/modules/classes/components/occupancy-map-skeleton`
+  > passes (the occupancy-* components: 16 tests, 100% coverage), `tsc --noEmit` and eslint clean;
+  > deviations: two extra child components (`OccupancyCell`, `OccupancyLegend`) because react.md forbids inline ones
 
 - [ ] **T-04** — Build the screen: `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.tsx`, `.hook.ts`
   and `.types.ts` (the week state of D-04, `useQuery(weekClassesOptions(weekStart))`, the week bar, the D-05 header

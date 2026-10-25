@@ -1175,6 +1175,21 @@ const messages = {
     },
     next: "Up next",
   },
+  weeklyOccupancy: {
+    section: "Week map",
+    legend: {
+      low: "under 50%",
+      mid: "50–89%",
+      high: "90%+",
+      full: "Full",
+    },
+    cancelledCell: "canc.",
+    loading: "Loading the occupancy",
+    cell: {
+      active: "{{date}}, {{time}}, {{discipline}}, {{percent}}%",
+      cancelled: "{{date}}, {{time}}, {{discipline}}, cancelled",
+    },
+  },
 };
 
 export type Messages = typeof messages;

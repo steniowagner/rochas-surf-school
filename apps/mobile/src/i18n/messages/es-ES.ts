@@ -1182,6 +1182,21 @@ const messages: Messages = {
     },
     next: "Próxima",
   },
+  weeklyOccupancy: {
+    section: "Mapa de la semana",
+    legend: {
+      low: "menos del 50%",
+      mid: "50–89%",
+      high: "90%+",
+      full: "Llena",
+    },
+    cancelledCell: "canc.",
+    loading: "Cargando la ocupación",
+    cell: {
+      active: "{{date}}, {{time}}, {{discipline}}, {{percent}}%",
+      cancelled: "{{date}}, {{time}}, {{discipline}}, cancelada",
+    },
+  },
 };
 
 export default messages;

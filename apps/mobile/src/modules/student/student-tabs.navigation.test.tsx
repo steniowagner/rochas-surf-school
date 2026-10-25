@@ -231,7 +231,7 @@ describe("student tabs", () => {
 
     expect(app.getPathname()).toBe("/student/school");
     expect(selectedTabLabel()).toBe("School");
-    expect(screen.getByText("PEOPLE")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
     expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Back" })).not.toBeOnTheScreen();
   });

@@ -1207,6 +1207,20 @@ const messages: Messages = {
       ahead: "Dentro de {{count}} semanas",
       ago: "Hace {{count}} semanas",
     },
+    stats: {
+      occupancy: "Ocupación",
+      seats: "Plazas",
+      free: "Libres",
+      full: "Llenas",
+      a11y: {
+        occupancy: "{{percent}}%, Ocupación",
+        seats: "{{taken}} de {{total}} plazas",
+        free_one: "{{count}} libre",
+        free_other: "{{count}} libres",
+        full_one: "{{count}} llena",
+        full_other: "{{count}} llenas",
+      },
+    },
     cancelledCell: "canc.",
     loading: "Cargando la ocupación",
     cell: {

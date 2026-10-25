@@ -1200,6 +1200,20 @@ const messages = {
       ahead: "In {{count}} weeks",
       ago: "{{count}} weeks ago",
     },
+    stats: {
+      occupancy: "Occupancy",
+      seats: "Seats",
+      free: "Free",
+      full: "Full",
+      a11y: {
+        occupancy: "{{percent}}%, Occupancy",
+        seats: "{{taken}} of {{total}} seats",
+        free_one: "{{count}} free",
+        free_other: "{{count}} free",
+        full_one: "{{count}} full",
+        full_other: "{{count}} full",
+      },
+    },
     cancelledCell: "canc.",
     loading: "Loading the occupancy",
     cell: {

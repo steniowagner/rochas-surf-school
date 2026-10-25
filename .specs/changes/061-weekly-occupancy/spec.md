@@ -375,7 +375,7 @@ full.
   > `npx jest src/modules/classes/components/occupancy-week-bar` and the screen test (29 passed, 100% coverage of the
   > changed files), `tsc --noEmit` and eslint clean; deviations: none
 
-- [ ] **T-10** — Build `OccupancyStats` in `apps/mobile/src/modules/classes/components/occupancy-stats/` (component,
+- [x] **T-10** — Build `OccupancyStats` in `apps/mobile/src/modules/classes/components/occupancy-stats/` (component,
   types, index, per `.claude/rules/react.md`): the D-18 card with its four stats, dividers, colours, type styles and
   per-stat accessibility labels; the stat labels and their accessibility copy in
   `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`. Tests: `occupancy-stats.component.test.tsx` (ER-07's figures, the
@@ -384,6 +384,13 @@ full.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-07 · Done when: `npx jest src/modules/classes/components/occupancy-stats` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — `OccupancyStats` (the D-18 card: grape, ink, lagoon and bad figures in `ds-text-day-number`, labels in
+  > `ds-text-chip text-ink-2`, `border-line` dividers) with its child `OccupancyStat` (one `accessible` element with its
+  > label; react.md forbids inline components); `weeklyOccupancy.stats` copy and accessibility labels (singular and plural)
+  > in the three languages; files: `apps/mobile/src/modules/classes/components/occupancy-stats/*`,
+  > `apps/mobile/src/modules/classes/components/occupancy-stat/*`, `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`;
+  > verified: `npx jest src/modules/classes/components/occupancy-stats` (6 passed, 100% coverage of both components),
+  > `tsc --noEmit` and eslint clean; deviations: one extra child component (`OccupancyStat`)
 
 - [ ] **T-11** — Put the stats card on the screen: `weekly-occupancy.screen.{tsx,hook.ts,types.ts}` render
   `OccupancyStats` between the week bar and the map with the week's stats, and `OccupancyMapSkeleton` gains the card's

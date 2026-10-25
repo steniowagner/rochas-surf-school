@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, userEvent, waitFor } from "@testing-library/react-native";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
@@ -20,8 +20,10 @@ import { MyClassHistoryScreen } from "./my-class-history.screen";
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
-  // Records any header options the screen would set: the history sets none, so the header has no title.
-  Stack: { Screen: jest.fn(() => null) },
+  // Renders the header title the screen sets, so the tests can see it.
+  Stack: {
+    Screen: ({ options }: any) => options.headerTitle?.(),
+  },
 }));
 
 jest.mock("@/services/api", () => {
@@ -134,8 +136,7 @@ describe("MyClassHistoryScreen", () => {
   it("opens on the current month with no day selected, the legend, and loads that month", async () => {
     await renderLoaded();
 
-    expect(Stack.Screen).not.toHaveBeenCalled();
-    expect(screen.queryByText("HISTORY")).not.toBeOnTheScreen();
+    expect(screen.getByText("PAST CLASSES")).toBeOnTheScreen();
     // In the pill and at the right of the list's title.
     expect(screen.getAllByText("OCTOBER 2026")).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Show the week" })).toBeExpanded();

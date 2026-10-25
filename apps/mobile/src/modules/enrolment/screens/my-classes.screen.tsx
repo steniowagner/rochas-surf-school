@@ -10,7 +10,6 @@ import { ClassCard } from "@/modules/classes/components/class-card";
 import { ClassCardSkeleton } from "@/modules/classes/components/class-card-skeleton";
 import {
   StackHeaderTitle,
-  useLeftTitleHeader,
 } from "@/navigation/stack-header";
 
 import { MyClassesFilters } from "../components/my-classes-filters";
@@ -24,9 +23,6 @@ export function MyClassesScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const screen = useMyClassesScreen();
-  const headerOptions = useLeftTitleHeader(() => (
-    <StackHeaderTitle title={t("myClasses.title")} />
-  ));
 
   const renderEmpty = () => {
     if (screen.isLoading) {
@@ -79,7 +75,8 @@ export function MyClassesScreen() {
     <>
       <Stack.Screen
         options={{
-          ...headerOptions,
+          headerTitleAlign: "center",
+          headerTitle: () => <StackHeaderTitle title={t("myClasses.title")} />,
           headerRight: () => (
             <HeaderButton
               icon="time-outline"

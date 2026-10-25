@@ -217,8 +217,8 @@ cancels from the details' "Cancelar inscrição" (a sheet with the deadline) and
 inscrição", the chip "Você cancelou" and "Pedir novamente"; past the deadline, or without one, the footer tells
 them to contact the school, with the school's WhatsApp. Admins decide in the
 "Inscrições em aulas" tool, reached from a row on their home with the number of requests. They enrol a student
-directly in the "Inscrever aluno" tool (a row on their home: search a student, pick a day and one of its upcoming
-classes), and take one out with "Retirar" on a student in the list of an upcoming class's details (a sheet with an
+directly in the "Inscrever aluno" tool (a row on their home, in two steps since spec 060: "Quem" — search a
+student — then "Aula" — pick a day and one of its upcoming classes, optionally narrowed by sport), and take one out with "Retirar" on a student in the list of an upcoming class's details (a sheet with an
 optional reason). A taken-out student reads "Você foi retirado da aula" with the reason, the chip "Retirado" and
 "Pedir novamente". The same tool's "Aula experimental" mode adds a guest (name and WhatsApp number); guests show in
 an upcoming class's student list with a "Trial" chip and, for admins, "Retirar" (a confirmation reminding them to
@@ -286,3 +286,5 @@ pedir.".
 - `058-admin-role-changes` — `ReleaseStudentEnrolments` also answers how many requests were withdrawn
   (`{ cancelled, withdrawn }`; `releaseForStudent` returns the cancelled seats and that count); Authentication's
   promotion of a student now runs the release (through `EnrolmentSeatReleaser`, which answers seats plus requests).
+- `060-enrol-student-steps` — the app's "Inscrever aluno" becomes two steps shown as tabs, "Quem" and "Aula", with a
+  fixed "Escolher aula" / "Inscrever" button and the sport filter on "Aula"; no change to the rules or the requests.

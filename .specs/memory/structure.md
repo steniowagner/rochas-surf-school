@@ -639,7 +639,9 @@ src/
     screens/enrol-student.screen.tsx  # "Inscrever aluno" (+ .hook.ts, .types.ts; spec 044): "1 · Quem" (search, the
                                 # students with radios, more on scroll) and "2 · Aula" (calendar, the day's upcoming
                                 # classes as cards), "Inscrever <nome>"; spec 045: the "Aula experimental" /
-                                # "Aluno da escola" switch and the trial mode (name, PhoneNumberField, note)
+                                # "Aluno da escola" switch and the trial mode (name, PhoneNumberField, note);
+                                # spec 060: "Quem" and "Aula" steps as StepTabs, only the current step's content,
+                                # the sport filter on "Aula", fixed "Escolher aula" / "Inscrever" footer
     components/take-out-sheet/  # TakeOutSheet ("Retirar <nome> da aula?": a DenySheet with the visible "Motivo
                                 # (opcional)" of 300; no hook; spec 044; `trial`: the guest copy, no reason)
     components/class-requests-group/  # ClassRequestsGroup (the class card — day block, time, location, capacity,
@@ -783,7 +785,8 @@ src/
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal (optional contentPanningEnabled, off in the time sheet so the
                                 # wheels can be dragged), otp-input, text-button, screen-intro,
-                                # text-input, text-area, toast, checkbox, segmented-control
+                                # text-input, text-area, toast, checkbox, segmented-control, step-tabs
+                                # (StepTabs: the steps of a flow as tabs with a status badge; spec 060)
   components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard: avatar, optional
                                 # pressable upper row, Deny / Approve, approveDisabled), deny-sheet (DenySheet: optional reason in a
                                 # bottom sheet, confirm and back; `showLabel` draws the label above the field)

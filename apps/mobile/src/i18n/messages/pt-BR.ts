@@ -292,7 +292,6 @@ const messages: Messages = {
   },
   enrolStudent: {
     title: "Inscrever aluno",
-    description: "Inscreve um aluno da escola, ou alguém sem conta numa aula experimental.",
     students: {
       loading: "Carregando os alunos",
       empty: {
@@ -315,12 +314,15 @@ const messages: Messages = {
         description: "Confira sua conexão e tente de novo.",
       },
     },
-    whoStep: "1 · Quem",
-    classStep: "2 · Aula",
     searchPlaceholder: "Procurar aluno",
     searchLabel: "Procurar aluno",
     hasClasses: "com aulas",
-    submit: "Inscrever {{name}}",
+    steps: {
+      who: "Quem",
+      class: "Aula",
+      pending: "Por escolher",
+    },
+    next: "Escolher aula",
     submitEmpty: "Inscrever",
     done: "{{name}} inscrito · aluno avisado",
     modeTrial: "Aula experimental",

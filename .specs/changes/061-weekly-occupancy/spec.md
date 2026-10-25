@@ -2,10 +2,11 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: in-review
+status: accepted
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
+reviewed_commit: 449bca57faf919e7a0945bdce91d610fee1e5f3e
 fronts: [mobile]
 depends_on: []
 ---
@@ -756,3 +757,55 @@ full.
 - pt-BR plurals follow i18next's CLDR rules, where 0 takes the `_one` form: an all-cancelled week reads "0 livre" /
   "0 cheia" to a screen reader. D-15 asks for i18next's `count`, so this is per the spec; worth a look if the user
   prefers "0 livres" / "0 cheias".
+
+### Round 4 — 2026-10-25 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile
+  --filter=@rochas-surf-school/design-tokens`: 12 tasks; the tokens' `check-types` confirms `tokens.css` is current)
+- related tests ✅ apps/mobile (jest, 40 changed files) · apps/web 5 files, 22 passed (`RELATED TESTS PASSED`); the
+  ER-named suites (admin screens, occupancy map/skeleton/stats/week bar, screen, util): 8 suites, 137 passed
+- coverage of the changed lines ✅ `COVERAGE OK`, 18 files measured; no coverage-ignore comments, debug leftovers or
+  TODOs in the diff
+- e2e ✅ `E2E PASSED` (web Playwright 22 passed; backend not affected; no mobile suite)
+- user journey on the iOS simulator (iPhone 18 Pro, iOS 27, en-US, dark, the dev admin, now = Sun 25 Oct 2026): the
+  admin home at rest has the "School tools" toolbox icon fully visible ~16 pt below the user header (~142 pt), and
+  scrolled down "Weekly occupancy" and "School settings" both sit clear of the tab bar; the row opens "WEEKLY
+  OCCUPANCY" (centered): "THIS WEEK" in sun over "19 – 25 OCT", stats 5% · 4/78 · 74 · 2 between the bar and "WEEK
+  MAP", "25" in sun, a two-sub-row 12:00 with the time on the first only, a struck-through "canc.", the default
+  selection on Mon 14:00 0%, equal columns; › → "NEXT WEEK" in grey, "26 OCT – 1 NOV", 15% · 7/48 · 41 · 1, the
+  selection reset to Tue 11:00. Not driven: pt-BR and light mode (copy and tokens covered by Jest and the tokens'
+  check-types), the network-off error (covered by the "state" Jest tests), the instructor and student homes
+  (unchanged files).
+
+**Expected Results**
+
+- ER-01 ✅ — `admin.screen.test.tsx` and simulator: the card after "People" and before "School settings", no request
+  of its own, opens `/admin/weekly-occupancy` with "WEEKLY OCCUPANCY"; es-ES and en-US copy present
+- ER-02 ✅ — `-t "week"`, the week bar's component test and `-t "relative week"`; simulator: label and caption per
+  week, sun only on this week
+- ER-03 ✅ — util and component tests; simulator: sub-rows with the time only on the first, equal columns
+- ER-04 ✅ — util and component tests (every threshold, 199/200, overbooked, labels, legend swatches)
+- ER-05 ✅ — `-t "select"` and `-t "default"`; simulator: default selection per week, reset on a week change
+- ER-06 ✅ — `-t "state"` tests (loading, error with retry and spinner, empty, all cancelled, failed refetch, expired
+  session, focus refetch, pull-to-refresh, arrows from the error, es-ES and pt-BR)
+- ER-07 ✅ — util `-t "stats"`, `occupancy-stats` and the screen's `-t "stats"` (figures, colours, place between the
+  week bar and the map); simulator: figures change with the week
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Round 3's F-06 is fixed: the top padding is `Math.max(headerInset - insets.top, 0) + 16` with the automatic inset,
+  so under the transparent user header the content starts 16 pt below it (simulator: ~142 pt, as before the spec),
+  and under the opaque header (Android, iOS without Liquid Glass) it stays 16, as before. The new test renders under
+  a 126 pt transparent header with a 62 pt safe area and asserts `126 - 62 + 16`.
+- For `spec-finish`: `## Memory Impact` doesn't name `OccupancyStat` (T-10's child of `OccupancyStats`) nor that the
+  admin home is now a scroll view (F-01/F-06); add both to `technical-context.md` / `structure.md` with the other
+  children (`OccupancyCell`, `OccupancyLegend`, `OccupancyWeekBar`).
+- Unchanged minor points from earlier rounds: `OccupancyCell` computes its look and label parameters in the component
+  file rather than a `*.hook.ts`; pt-BR plurals read "0 livre" / "0 cheia" for an all-cancelled week (i18next CLDR
+  rules, per D-15).

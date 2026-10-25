@@ -358,6 +358,35 @@ describe("WeeklyOccupancyScreen", () => {
       expect(screen.getByText("22/34")).toBeOnTheScreen();
     });
 
+    it("puts the stats card after the week bar and before the week map", async () => {
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+
+      const order: string[] = [];
+      const walk = (node: unknown) => {
+        if (typeof node === "string") {
+          order.push(node);
+          return;
+        }
+        const { props, children } = node as {
+          props: { testID?: string };
+          children: unknown[] | null;
+        };
+        if (props.testID) {
+          order.push(props.testID);
+        }
+        children?.forEach(walk);
+      };
+      [screen.toJSON()].flat().forEach(walk);
+      const weekBar = order.indexOf("occupancy-week-label");
+      const stats = order.indexOf("occupancy-stat-occupancy");
+      const map = order.indexOf("Week map");
+
+      expect(weekBar).toBeGreaterThan(-1);
+      expect(stats).toBeGreaterThan(weekBar);
+      expect(map).toBeGreaterThan(stats);
+    });
+
     it("shows another week's figures after an arrow", async () => {
       const user = userEvent.setup();
       weeks["2026-10-26"] = [

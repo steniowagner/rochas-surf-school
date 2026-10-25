@@ -4,8 +4,8 @@ import { useCollapsingHeaderBackdrop } from "./collapsing-header-backdrop.hook";
 import { CollapsingHeaderBackdropProps } from "./collapsing-header-backdrop.types";
 
 /**
- * The page color, slightly translucent, behind the transparent header, fading in with the header's title: without it the content that
- * scrolls under the header shows through the title. Place it over the scroll view, as its sibling.
+ * Page color behind the transparent header, scaled by the hook's `MAX_OPACITY` (none for now) and fading in with the
+ * header's title. Place it over the scroll view, as its sibling.
  */
 export function CollapsingHeaderBackdrop({
   progress,

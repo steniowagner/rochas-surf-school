@@ -1184,6 +1184,14 @@ const messages: Messages = {
       high: "90%+",
       full: "Cheia",
     },
+    loadError: {
+      title: "Não foi possível carregar a ocupação",
+      description: "Confira sua conexão e tente de novo.",
+    },
+    empty: {
+      title: "Sem aulas nesta semana",
+      description: "As aulas criadas para esta semana aparecem aqui.",
+    },
     cancelledCell: "canc.",
     loading: "Carregando a ocupação",
     cell: {

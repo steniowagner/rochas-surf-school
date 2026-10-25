@@ -277,7 +277,7 @@ they can see at a glance which classes still have room and which are full.
   > `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "week|select"` (11 passed), `tsc
   > --noEmit` and eslint clean; deviations: none
 
-- [ ] **T-05** — Add the D-13 states to the screen: the skeleton while loading, `ErrorState` with the retry that
+- [x] **T-05** — Add the D-13 states to the screen: the skeleton while loading, `ErrorState` with the retry that
   keeps the error on screen, `EmptyState` for a week without classes, a failed refetch keeping the map, nothing after
   an expired session, refetch on focus with `cancelRefetch: false`, and pull-to-refresh with its own spinner, plus
   the load-error and empty copy in the three languages, with "state" tests in `weekly-occupancy.screen.test.tsx` for
@@ -286,6 +286,14 @@ they can see at a glance which classes still have room and which are full.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-06 · Done when: `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx` passes from
   `apps/mobile`.
+  > ✅ 2026-10-25 — D-13 states on the screen: `OccupancyMapSkeleton` while loading, `ErrorState` whose retry keeps
+  > the error on screen with its spinner, `EmptyState` for a week without classes (all-cancelled weeks still show the
+  > map), a failed refetch keeping the map, nothing after an expired session, refetch on focus with
+  > `cancelRefetch: false` and pull-to-refresh with its own spinner; `loadError` and `empty` copy in the three
+  > languages; files: `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.{tsx,hook.ts,types.ts,test.tsx}`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified:
+  > `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx` (25 passed, 100% coverage of the screen
+  > and its hook), `tsc --noEmit` and eslint clean; deviations: none
 
 - [ ] **T-06** — Add the D-14 "Ocupação semanal" card to the "Escola" section of
   `apps/mobile/src/modules/admin/screens/admin.screen.tsx` and its row subtitle copy, with tests in

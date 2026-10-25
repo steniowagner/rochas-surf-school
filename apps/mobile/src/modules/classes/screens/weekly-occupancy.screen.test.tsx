@@ -10,9 +10,12 @@ import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import { SessionExpiredError } from "@/services/api";
+import * as api from "@/services/api";
 
 import {
   buildClassItem,
+  failure,
   fetchMock,
   ok,
   requestedPaths,
@@ -23,12 +26,16 @@ import { WeeklyOccupancyScreen } from "./weekly-occupancy.screen";
 
 // The options the screen gave its Stack header.
 let headerOptions: any = {};
+// The callback the screen gave `useFocusEffect`, run by a test when the screen is focused.
+let focusEffect: () => (() => void) | void = () => undefined;
 // The clock `useNow` answers.
 let mockNow = new Date();
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
-  useFocusEffect: () => undefined,
+  useFocusEffect: (effect: () => (() => void) | void) => {
+    focusEffect = effect;
+  },
   Stack: {
     Screen: ({ options }: any) => {
       headerOptions = options;
@@ -37,6 +44,12 @@ jest.mock("expo-router", () => ({
     },
   },
 }));
+
+jest.mock("@/services/api", () => {
+  const actual = jest.requireActual("@/services/api");
+
+  return { ...actual, apiGet: jest.fn(actual.apiGet) };
+});
 
 jest.mock("../hooks/use-now.hook", () => ({ useNow: () => mockNow }));
 
@@ -196,6 +209,9 @@ describe("WeeklyOccupancyScreen", () => {
       );
 
       expect(screen.getByTestId("occupancy-cell-A")).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId("occupancy-map-skeleton"),
+      ).not.toBeOnTheScreen();
     });
 
     it("writes the week in Portuguese", async () => {
@@ -300,6 +316,288 @@ describe("WeeklyOccupancyScreen", () => {
           .getAllByTestId(/^occupancy-cell-box-/)
           .filter((box) => box.props.className.includes("border-grape")),
       ).toHaveLength(1);
+    });
+  });
+
+  describe("state", () => {
+    const pending = () => {
+      let settle: (value: unknown) => void = () => undefined;
+      const promise = new Promise((resolve) => (settle = resolve));
+
+      return { promise, settle };
+    };
+
+    const renderWith = async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+      });
+      const view = await render(
+        <QueryClientProvider client={queryClient}>
+          <WeeklyOccupancyScreen />
+        </QueryClientProvider>,
+      );
+
+      return { ...view, queryClient };
+    };
+
+    it("shows the week bar and the skeleton as one loading state while the week loads", async () => {
+      const load = pending();
+      fetchMock.mockReturnValueOnce(load.promise);
+      await renderWith();
+
+      expect(screen.getByLabelText("Loading the occupancy")).toBeOnTheScreen();
+      expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+      expect(screen.queryByText("Week map")).not.toBeOnTheScreen();
+
+      await act(async () =>
+        load.settle(ok({ weekStart: "2026-10-19", items: WEEK })),
+      );
+
+      expect(await screen.findByTestId("occupancy-cell-A")).toBeOnTheScreen();
+      expect(
+        screen.queryByLabelText("Loading the occupancy"),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("shows the error with a retry that loads again, and the arrows still move the week", async () => {
+      const user = userEvent.setup();
+      fetchMock.mockResolvedValueOnce(failure(500));
+      await renderWith();
+
+      expect(
+        await screen.findByRole("header", {
+          name: "Couldn't load the occupancy",
+        }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText("Check your connection and try again."),
+      ).toBeOnTheScreen();
+      expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+      expect(screen.queryByText("Week map")).not.toBeOnTheScreen();
+      fetchMock.mockResolvedValue(ok({ weekStart: "2026-10-19", items: WEEK }));
+
+      await user.press(screen.getByRole("button", { name: "Try again" }));
+
+      expect(await screen.findByTestId("occupancy-cell-A")).toBeOnTheScreen();
+      expect(
+        screen.queryByRole("header", { name: "Couldn't load the occupancy" }),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("keeps the error with the button's spinner while Try again loads, not the skeleton", async () => {
+      const user = userEvent.setup();
+      const retry = pending();
+      fetchMock.mockResolvedValueOnce(failure(500));
+      await renderWith();
+      await screen.findByRole("header", {
+        name: "Couldn't load the occupancy",
+      });
+      fetchMock.mockReturnValueOnce(retry.promise);
+
+      await user.press(screen.getByRole("button", { name: "Try again" }));
+
+      expect(screen.getByRole("button", { name: "Try again" })).toBeDisabled();
+      expect(
+        screen.queryByLabelText("Loading the occupancy"),
+      ).not.toBeOnTheScreen();
+
+      await act(async () =>
+        retry.settle(ok({ weekStart: "2026-10-19", items: WEEK })),
+      );
+
+      expect(await screen.findByTestId("occupancy-cell-A")).toBeOnTheScreen();
+    });
+
+    it("lets the admin leave a week that fails", async () => {
+      const user = userEvent.setup();
+      fetchMock.mockResolvedValueOnce(failure(500));
+      await renderWith();
+      await screen.findByRole("header", {
+        name: "Couldn't load the occupancy",
+      });
+      // Tuesday 13 Oct, 08:00.
+      const previous = buildClassItem(
+        "G",
+        "2026-10-13T11:00:00.000Z",
+        "2026-10-13T12:00:00.000Z",
+      );
+      weeks = { "2026-10-12": [previous] };
+      fetchMock.mockImplementation(async (url: string) =>
+        ok({
+          weekStart: "x",
+          items: weeks[String(url).split("date=")[1]] ?? [],
+        }),
+      );
+
+      await user.press(
+        screen.getByRole("button", { name: "Show the previous week" }),
+      );
+
+      expect(await screen.findByTestId("occupancy-cell-G")).toBeOnTheScreen();
+      expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
+    });
+
+    it("shows the empty state, with no map, legend or card, for a week without classes", async () => {
+      weeks = {};
+      await renderScreen();
+
+      expect(await screen.findByText("No classes this week")).toBeOnTheScreen();
+      expect(
+        screen.getByText("Classes created for this week show up here."),
+      ).toBeOnTheScreen();
+      expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+      expect(screen.queryByText("Week map")).not.toBeOnTheScreen();
+      expect(screen.queryByTestId("occupancy-legend")).not.toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: /^Surf, / }),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("shows the map, not the empty state, when every class of the week is cancelled", async () => {
+      weeks = { "2026-10-19": [{ ...A, cancelledAt: CANCELLED_AT }] };
+      await renderScreen();
+
+      expect(await screen.findByTestId("occupancy-cell-A")).toBeOnTheScreen();
+      expect(screen.queryByText("No classes this week")).not.toBeOnTheScreen();
+    });
+
+    it("keeps the map when a refetch fails", async () => {
+      const { queryClient } = await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+      fetchMock.mockResolvedValue(failure(500));
+
+      await act(() => queryClient.invalidateQueries());
+
+      expect(screen.getByTestId("occupancy-cell-A")).toBeOnTheScreen();
+      expect(
+        screen.queryByRole("header", { name: "Couldn't load the occupancy" }),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("shows nothing after an expired session", async () => {
+      (api.apiGet as jest.Mock).mockRejectedValueOnce(
+        new SessionExpiredError(),
+      );
+      await renderScreen();
+
+      await waitFor(() =>
+        expect(
+          screen.queryByLabelText("Loading the occupancy"),
+        ).not.toBeOnTheScreen(),
+      );
+      expect(api.apiGet).toHaveBeenCalledWith("/classes?date=2026-10-19", {
+        authenticated: true,
+      });
+      expect(
+        screen.queryByRole("header", { name: "Couldn't load the occupancy" }),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText("No classes this week")).not.toBeOnTheScreen();
+      expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
+    });
+
+    it("reads the week again once when the screen is focused again", async () => {
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+      weeks = { "2026-10-19": [D] };
+
+      await act(async () => {
+        focusEffect();
+      });
+
+      await waitFor(() =>
+        expect(screen.queryByTestId("occupancy-cell-A")).not.toBeOnTheScreen(),
+      );
+      expect(screen.getByTestId("occupancy-cell-D")).toBeOnTheScreen();
+      expect(requestedPaths()).toEqual([
+        "/classes?date=2026-10-19",
+        "/classes?date=2026-10-19",
+      ]);
+    });
+
+    it("does not restart a load already running when the screen is focused", async () => {
+      const load = pending();
+      fetchMock.mockReturnValueOnce(load.promise);
+      await renderWith();
+
+      await act(async () => {
+        focusEffect();
+      });
+
+      expect(requestedPaths()).toEqual(["/classes?date=2026-10-19"]);
+      await act(async () =>
+        load.settle(ok({ weekStart: "2026-10-19", items: WEEK })),
+      );
+    });
+
+    it("reloads on pull-to-refresh and shows the spinner only for the pull", async () => {
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+      const control = () =>
+        screen.getByTestId("weekly-occupancy-scroll").props.refreshControl
+          .props;
+      const reload = pending();
+      fetchMock.mockReturnValueOnce(reload.promise);
+
+      let pull: Promise<void> = Promise.resolve();
+      await act(async () => {
+        pull = control().onRefresh();
+      });
+      expect(control().refreshing).toBe(true);
+
+      await act(async () => {
+        reload.settle(ok({ weekStart: "2026-10-19", items: [D] }));
+        await pull;
+      });
+
+      expect(control().refreshing).toBe(false);
+      expect(screen.getByTestId("occupancy-cell-D")).toBeOnTheScreen();
+    });
+
+    it("keeps the spinner off while a focus refetch runs", async () => {
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+      const reload = pending();
+      fetchMock.mockReturnValueOnce(reload.promise);
+
+      await act(async () => {
+        focusEffect();
+      });
+
+      expect(
+        screen.getByTestId("weekly-occupancy-scroll").props.refreshControl.props
+          .refreshing,
+      ).toBe(false);
+      await act(async () =>
+        reload.settle(ok({ weekStart: "2026-10-19", items: WEEK })),
+      );
+    });
+
+    it("writes the states in Spanish", async () => {
+      await act(() => i18n.changeLanguage("es-ES"));
+      weeks = {};
+      await renderScreen();
+
+      expect(
+        await screen.findByText("Sin clases esta semana"),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText("Las clases creadas para esta semana aparecen aquí."),
+      ).toBeOnTheScreen();
+    });
+
+    it("writes the states in Portuguese", async () => {
+      await act(() => i18n.changeLanguage("pt-BR"));
+      fetchMock.mockResolvedValueOnce(failure(500));
+      await renderWith();
+
+      expect(
+        await screen.findByRole("header", {
+          name: "Não foi possível carregar a ocupação",
+        }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText("Confira sua conexão e tente de novo."),
+      ).toBeOnTheScreen();
     });
   });
 });

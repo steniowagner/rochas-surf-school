@@ -11,6 +11,15 @@ export type UseWeeklyOccupancyScreenResult = {
   classes: ClassItem[];
   selectedId: string | null;
   selected: ClassItem | null;
+  isLoading: boolean;
+  isError: boolean;
+  /** "Try again" is loading the week: the error stays, with the spinner in its button. */
+  isRetrying: boolean;
+  /** Loaded, with no class in the week (never after an expired session). */
+  isEmpty: boolean;
+  isRefreshing: boolean;
+  refresh: () => Promise<void>;
+  retry: () => void;
   goPrevious: () => void;
   goNext: () => void;
   selectClass: (id: string) => void;

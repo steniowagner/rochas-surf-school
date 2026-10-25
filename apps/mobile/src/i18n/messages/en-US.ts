@@ -1184,6 +1184,14 @@ const messages = {
       high: "90%+",
       full: "Full",
     },
+    loadError: {
+      title: "Couldn't load the occupancy",
+      description: "Check your connection and try again.",
+    },
+    empty: {
+      title: "No classes this week",
+      description: "Classes created for this week show up here.",
+    },
     cancelledCell: "canc.",
     loading: "Loading the occupancy",
     cell: {

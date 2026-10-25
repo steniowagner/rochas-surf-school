@@ -473,6 +473,7 @@ const messages: Messages = {
     },
   },
   myHistory: {
+    title: "Clases pasadas",
     legend: "Días en que hiciste clase",
     hasClasses: "hiciste clase",
     allClasses: "Todas las clases",

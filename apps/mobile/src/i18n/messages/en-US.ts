@@ -466,6 +466,7 @@ const messages = {
     },
   },
   myHistory: {
+    title: "Past classes",
     legend: "Days you took a class",
     hasClasses: "you took a class",
     allClasses: "All classes",

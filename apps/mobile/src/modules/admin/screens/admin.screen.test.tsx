@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, screen, userEvent, waitFor, within } from "@testing-library/react-native";
 import { router, Slot } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminHomeLayout from "@/app/(private)/admin/(tabs)/(home)/_layout";
@@ -18,6 +19,7 @@ import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import AdminWeeklyOccupancyRoute from "@/app/(private)/admin/weekly-occupancy";
 import { routes } from "@/constants/routes";
 import { buildClassItem } from "@/modules/classes/classes.test-utils";
+import { underTransparentHeader } from "@/navigation/stack-header/header-inset.test-utils";
 import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
 
@@ -225,10 +227,28 @@ describe("AdminScreen", () => {
 
     const scroll = screen.getByTestId("admin-home-scroll");
     expect(scroll.props.contentInsetAdjustmentBehavior).toBe("automatic");
-    // iOS adds the header's inset itself, so the padding is only the plain 16 pt.
+    // Under the opaque header the content already starts below it.
     expect(scroll.props.contentContainerStyle).toMatchObject({ paddingTop: 16 });
     expect(within(scroll).getByRole("button", { name: "Weekly occupancy" })).toBeOnTheScreen();
     expect(within(scroll).getByRole("button", { name: /School settings/ })).toBeOnTheScreen();
+  });
+
+  it("starts the home 16 pt below the transparent user header, which the automatic inset clears only up to the safe area", async () => {
+    fetchMock.mockImplementation(async () => ({ ok: true, status: 200, json: async () => ({ items: [] }) }));
+    const insets = jest.mocked(useSafeAreaInsets);
+    const defaultInsets = insets.getMockImplementation();
+    insets.mockReturnValue({ top: 62, right: 0, bottom: 34, left: 0 });
+
+    try {
+      await underTransparentHeader(126, openAdminHome);
+
+      // The automatic inset adds the 62 pt safe area; the padding adds the rest of the 126 pt header, then 16 pt.
+      expect(screen.getByTestId("admin-home-scroll").props.contentContainerStyle).toMatchObject({
+        paddingTop: 126 - 62 + 16,
+      });
+    } finally {
+      insets.mockImplementation(defaultInsets);
+    }
   });
 
   it("opens the people directory, and its back button returns to the admin home", async () => {

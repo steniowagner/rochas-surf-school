@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: changes-requested
+status: in-progress
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -717,7 +717,7 @@ full.
 
 **Findings**
 
-- [ ] **F-06** (convention) — the F-04 fix hides the top of the admin home under the user header. The home's stack
+- [x] **F-06** (convention) — the F-04 fix hides the top of the admin home under the user header. The home's stack
   draws the user header (avatar, greeting, bell) as a custom transparent `header` (`useUserStackHeader`), not as the
   native navigation bar, so `contentInsetAdjustmentBehavior="automatic"` adds only the safe area (~62 pt), not the
   user header's height. With `paddingTop: 16` the content now starts at ~78 pt while the user header ends at ~126 pt:
@@ -733,6 +733,17 @@ full.
   the safe-area top it already adds, or turn the automatic inset off (`"never"`) and pad by `headerInset + 16` at the
   top and by the tab bar's height at the bottom; the test should assert the top padding against the header inset,
   not a literal.
+  > ✅ 2026-10-25 — the admin home keeps `contentInsetAdjustmentBehavior="automatic"` (it still clears the floating tab
+  > bar) and pads the top by the part of the user header the automatic inset doesn't cover:
+  > `Math.max(headerInset - insets.top, 0) + 16` (under the opaque header `headerInset` is 0, so it stays 16). New test
+  > "starts the home 16 pt below the transparent user header…" renders under a 126 pt transparent header with a 62 pt
+  > safe area and asserts `paddingTop: 126 - 62 + 16`; it failed (watched, received 16) before the fix. The F-01 test
+  > keeps its opaque-header case (16). Files: `apps/mobile/src/modules/admin/screens/admin.screen.tsx`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`; verified: `npx jest src/modules/admin/screens`
+  > (2 suites, 47 passed), `npx tsc --noEmit` and `npx eslint src/modules/admin/screens` (no errors); simulator
+  > (iPhone 18 Pro, en-US, dark, the dev admin): at rest the toolbox icon starts fully visible at ~142 pt, below the
+  > user header (it was at ~78 pt before), and scrolled down "Weekly occupancy" and "School settings" both sit clear of
+  > the tab bar. Deviations: none.
 
 **Notes**
 

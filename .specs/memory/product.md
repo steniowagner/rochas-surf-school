@@ -1100,6 +1100,18 @@ with no class left of any sport, "Nada por aqui" stays. The choice survives the 
 goes back to "Todas" when the screen opens again; nothing is saved on the phone, switching makes no request, and the
 home row's "N aulas atribuídas a você" counts every sport. All copy is in pt-BR, es-ES and en-US.
 
+**"Inscrever aluno" in two steps** (spec `060-enrol-student-steps`) — "Inscrever aluno" no longer has an intro text
+or the "1 · Quem" / "2 · Aula" sections on one scroll: under the header two step tabs, "Quem" and "Aula", each with
+its number (a check once done) and a value line ("Por escolher" until chosen), and a fixed button at the bottom. On
+"Quem" the admin uses the "Aula experimental" / "Aluno da escola" switch, the student search and list or the trial
+name, WhatsApp and note, as before; "Escolher aula" turns on once a student is picked, or once a first and last name
+and a valid WhatsApp number are typed, and the tab then shows the name. "Escolher aula" (or the "Aula" tab, which is
+off until then) opens "Aula": the calendar, the chosen day's upcoming classes as cards and the floating sport button
+("Todas", "Surf", "Skate"), which narrows the day's classes — a picked class of the other sport no longer counts as
+picked. Picking a class with a free seat shows it in the tab as "Qua 16 · 09:00" and turns "Inscrever" on, which
+enrols, shows the same toast and goes back as before. Moving between the tabs keeps every choice. All copy is in
+pt-BR, es-ES and en-US.
+
 **Weekly occupancy for admins** (spec `061-weekly-occupancy`) — the admin home's "Escola" section has an "Ocupação
 semanal" card ("Lugares ocupados e vagas por aula"), after "Pessoas" and before "Configurações da escola"; the home
 now scrolls, so every card clears the tab bar. It opens "Ocupação semanal" on the current Fortaleza week. A week bar
@@ -1206,6 +1218,8 @@ Active specs: none.
 - On the sport filter of the instructor's and admin's "Minhas aulas" (spec 059): keeping the chosen sport after
   leaving the screen or across launches, a mark on the closed button showing a filter is on, and filtering the home
   row's count by sport.
+- On the "Inscrever aluno" steps (spec 060): a summary line above the button, the students' subtitles ("6 aulas ·
+  desde jul 2026") and a day header with the number of classes.
 - On the class history's calendar (spec 053): a "Hoje" button, keeping the chosen period or day after leaving the
   screen, filtering the history by sport, level or status and searching it, and swiping between weeks or months.
 - On class reminders (spec 054): choosing the lead time or turning reminders off per person or per type (only the

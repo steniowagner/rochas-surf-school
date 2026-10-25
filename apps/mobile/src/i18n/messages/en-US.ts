@@ -292,7 +292,6 @@ const messages = {
   },
   enrolStudent: {
     title: "Enrol a student",
-    description: "Enrol a school student, or someone without an account in a trial class.",
     students: {
       loading: "Loading the students",
       empty: {
@@ -315,12 +314,15 @@ const messages = {
         description: "Check your connection and try again.",
       },
     },
-    whoStep: "1 · Who",
-    classStep: "2 · Class",
     searchPlaceholder: "Search students",
     searchLabel: "Search students",
     hasClasses: "with classes",
-    submit: "Enrol {{name}}",
+    steps: {
+      who: "Who",
+      class: "Class",
+      pending: "Not chosen",
+    },
+    next: "Choose class",
     submitEmpty: "Enrol",
     done: "{{name}} enrolled · student notified",
     modeTrial: "Trial class",

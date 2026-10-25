@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
 
+import i18n from "@/i18n";
 import {
   createQueryClient,
   createWrapper,
@@ -157,5 +158,119 @@ describe("useEnrolStudentScreen", () => {
     await act(async () => result.current.updateVisibleRange({ ...range }));
 
     expect(result.current.dayItems).toHaveLength(1);
+  });
+});
+
+describe("useEnrolStudentScreen steps", () => {
+  async function bare() {
+    const view = await renderHook(() => useEnrolStudentScreen(), {
+      wrapper: createWrapper(createQueryClient()),
+    });
+    await waitFor(() => expect(view.result.current.students).toHaveLength(1));
+    await waitFor(() => expect(view.result.current.dayItems).toHaveLength(1));
+
+    return view;
+  }
+
+  it("starts on the Quem step with nothing done", async () => {
+    const { result } = await bare();
+
+    expect(result.current.step).toBe("who");
+    expect(result.current.isWhoDone).toBe(false);
+    expect(result.current.isClassDone).toBe(false);
+    expect(result.current.whoValue).toBeNull();
+    expect(result.current.classValue).toBeNull();
+  });
+
+  it("does not open the Aula step before a person is ready, but always opens Quem", async () => {
+    const { result } = await bare();
+
+    await act(async () => result.current.goToStep("class"));
+    expect(result.current.step).toBe("who");
+
+    await act(async () => result.current.selectStudent(result.current.students[0]));
+    await act(async () => result.current.goToStep("class"));
+    expect(result.current.step).toBe("class");
+
+    await act(async () => result.current.goToStep("who"));
+    expect(result.current.step).toBe("who");
+  });
+
+  it("finishes Quem with a picked student, showing the name", async () => {
+    const { result } = await bare();
+
+    await act(async () => result.current.selectStudent(result.current.students[0]));
+
+    expect(result.current.isWhoDone).toBe(true);
+    expect(result.current.whoValue).toBe("Ana Souza");
+  });
+
+  it("finishes Quem in trial mode only with a full name and a valid number, showing the trimmed name", async () => {
+    const { result } = await bare();
+
+    await act(async () => result.current.selectStudent(result.current.students[0]));
+    await act(async () => result.current.setMode("trial"));
+    expect(result.current.isWhoDone).toBe(false);
+
+    await act(async () => result.current.setGuestName("  Carolina Reis "));
+    expect(result.current.isWhoDone).toBe(false);
+
+    await act(async () => result.current.phone.numberInput.onChangeText("85999990000"));
+    expect(result.current.isWhoDone).toBe(true);
+    expect(result.current.whoValue).toBe("Carolina Reis");
+
+    await act(async () => result.current.setMode("student"));
+    expect(result.current.whoValue).toBe("Ana Souza");
+  });
+
+  it("finishes Aula with a class that has a free seat, and clears it on another day", async () => {
+    const { result } = await bare();
+
+    await act(async () => result.current.selectClass("c-open"));
+    expect(result.current.isClassDone).toBe(true);
+
+    await act(async () => result.current.selectDate("2026-10-15"));
+    expect(result.current.isClassDone).toBe(false);
+    expect(result.current.classValue).toBeNull();
+  });
+
+  it("keeps the selections when moving between steps", async () => {
+    const { result } = await bare();
+
+    await act(async () => {
+      result.current.selectStudent(result.current.students[0]);
+      result.current.selectClass("c-open");
+    });
+    await act(async () => result.current.goToStep("class"));
+    await act(async () => result.current.goToStep("who"));
+    await act(async () => result.current.goToStep("class"));
+
+    expect(result.current.selectedStudent?.id).toBe("s-ana");
+    expect(result.current.selectedClassId).toBe("c-open");
+  });
+
+  it("starts on every sport and narrows the day's classes to the chosen one", async () => {
+    const { result } = await bare();
+    expect(result.current.discipline).toBe("all");
+
+    await act(async () => result.current.selectDiscipline("skate"));
+    expect(result.current.discipline).toBe("skate");
+    expect(result.current.dayItems).toHaveLength(0);
+
+    await act(async () => result.current.selectDiscipline("surf"));
+    expect(result.current.dayItems).toHaveLength(1);
+  });
+
+  it.each([
+    ["en-US", "Wed 14 · 16:00"],
+    ["pt-BR", "Qua 14 · 16:00"],
+    ["es-ES", "Mié 14 · 16:00"],
+  ])("writes the class value in %s", async (language, expected) => {
+    await i18n.changeLanguage(language);
+    const { result } = await bare();
+
+    await act(async () => result.current.selectClass("c-open"));
+
+    expect(result.current.classValue).toBe(expected);
   });
 });

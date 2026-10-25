@@ -998,6 +998,7 @@ When a student cancels their seat, or deleting their account cancels it, admins 
 #### Direct enrolment
 
 _Implemented in spec 044-direct-enrolment-take-out._
+_Implemented in spec 060-enrol-student-steps._
 
 Admins SHALL be able to enrol a student directly, without a request, in a class that hasn't started and has a free seat. If the student has a pending request for that class, it SHALL become approved. The student SHALL be notified.
 
@@ -1015,6 +1016,7 @@ Admins SHALL be able to take an approved student out of a class that hasn't star
 #### Guests
 
 _Implemented in spec 045-guests._
+_Implemented in spec 060-enrol-student-steps._
 
 Admins SHALL be able to enrol a guest, someone without an account who is trying the sport, in a class that hasn't started and has a free seat, by entering the guest's name and WhatsApp number. A guest SHALL take a seat.
 

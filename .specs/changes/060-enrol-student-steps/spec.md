@@ -3,7 +3,7 @@ id: "060"
 slug: enrol-student-steps
 title: "Split \"Inscrever aluno\" into Quem and Aula steps"
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 8e31960b5c4e9506b388de0ab4e3e0f5b272f34a
@@ -275,3 +275,59 @@ step shows inside, the requests and their outcomes stay as they are.
   `EnrolStudentScreen` bullet and the product paragraph.
 - The success toast uses the alert style (red, "!"). This spec didn't change it (`alertMessage.show` is untouched); it
   is out of scope here.
+
+### Round 2 — 2026-10-25 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 874 passed, 45 suites (apps/mobile). The "not wrapped in act(...)" warnings in the enrol-student
+  tests were already there at `base_commit`.
+- coverage of the changed lines ✅ COVERAGE OK, 6 measured files at 100%; no coverage-ignore comments in the diff
+- e2e: no suite applies (mobile only) · user journey driven in the iOS simulator (iPhone 18 Pro, en-US, dark theme) ✅
+
+**Round 1 findings**
+
+- F-01 ✅ — D-01 amended to the tan/`text-on-color` circle and `rounded-card` tabs; T-05's evidence lists the four
+  commits; the simulator matches.
+- F-02 ✅ — the `discipline-filter` imports come after `class-card-skeleton` in `enrol-student.screen.tsx`.
+- F-03 ✅ — D-04 amended; neither footer `Button` has an `icon`; in the simulator "Choose class" and "Enrol" show
+  their labels only.
+
+**Expected Results**
+
+- ER-01 ✅ — opens on "Who" with both tabs "Not chosen", "School student", the search and list, no intro or section
+  labels, "Choose class" fixed and disabled; tapping the disabled "Class" tab did nothing; picking "Ana Souza" showed
+  the check and the name and turned the button on. Trial mode, loading, empty, error/retry and load-more are covered
+  by `enrol-student.screen.test.tsx`.
+- ER-02 ✅ — "Choose class" showed the calendar, the empty state on a day without classes and the sport filter
+  above the footer, with "Enrol" disabled; picking the Mon 26 08:00 class showed "Mon 26 · 08:00" with a check and
+  turned "Enrol" on. The filter cases, the day change and the pt-BR/es-ES/en-US values are asserted in the screen
+  and hook tests.
+- ER-03 ✅ on device, ❌ in the tests (see F-04) — "Enrol" showed its spinner, the toast "Ana Souza enrolled ·
+  student notified" showed and the screen went back.
+
+**Findings**
+
+- [ ] **F-04** (tests) (ER-03) — no test checks that "Enrol" shows its spinner while the enrolment is sent. If you
+  delete `loading={screen.isSubmitting}` from the footer `Button` in `enrol-student.screen.tsx`, all 39 tests in
+  `enrol-student.screen.test.tsx` still pass: the double-press tests only count the POSTs, and the hook's own
+  `isSubmitting` guard already stops a second send. Reproduce: remove that prop and run
+  `npx jest src/modules/enrolment/screens/enrol-student.screen.test.tsx` (from `apps/mobile`). Expected: while the
+  POST is pending (the double-press tests already hold it open), assert that the "Enrol" label is gone, or that the
+  footer button shows its `ActivityIndicator`, in both the student and the trial test. The test must fail when the
+  prop is removed.
+- [ ] **F-05** (convention) — `enrol-student.screen.hook.test.tsx` line 12 has `import i18n from "@/i18n"` after
+  `@/modules/classes/classes.test-utils`. `.claude/rules/react.md` §2 sorts each import group alphabetically by
+  path. Expected: `@/i18n` before `@/modules/classes/classes.test-utils`.
+
+**Notes**
+
+- D-03 names `formatIsoDate(…, "EEE d", …)`, but the code takes the first three letters of `"EEEE"` (recorded as a
+  T-02 deviation: date-fns' pt-BR `"EEE"` gives "Quarta"). The output matches D-03 and ER-02 in all three locales, so
+  this is not a finding. `spec-finish` may want to word the memory after the code.
+- The class-value `it.each` in the hook test switches `i18n` to es-ES and leaves it there. It is the last block in
+  the file and Jest isolates modules per file, so nothing breaks today. An `afterEach` that resets the language would
+  keep a test added later from running in Spanish.
+- `## Memory Impact` still doesn't mention the Aula step's sport filter (D-07), as round 1 noted.
+- Not exercised: the light theme and pt-BR on screen, as in round 1.

@@ -149,6 +149,8 @@ step shows inside, the requests and their outcomes stay as they are.
   > src/components/ui/step-tabs` (36 suites, 323 passed), `tsc --noEmit` clean; deviations: without `ScreenIntro` there is no
   > large title for the collapsing header to track (its title would never show), so the screen sets its header title with
   > `StackHeaderTitle` (as `edit-class` does) and uses a plain `ScrollView`; the header still reads "Inscrever aluno".
+  > Follow-up fix found by the related tests: `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx` asserted the removed
+  > intro text; it now asserts the "Choose class" button. The hook's `whoValue` was simplified so `isWhoDone = whoValue !== null`.
 
 ### Verification
 

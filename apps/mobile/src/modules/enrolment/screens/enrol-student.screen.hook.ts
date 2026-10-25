@@ -94,13 +94,13 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   const trimmedGuestName = guestName.trim();
   const isGuestNameValid = isValid(trimmedGuestName, nameRules());
   // The person is ready: a picked student, or a valid trial name and number.
-  const isWhoDone =
-    mode === "student" ? selectedStudent !== null : isGuestNameValid && phone.isNumberValid;
-  const whoValue = isWhoDone
-    ? mode === "student"
+  const whoValue =
+    mode === "student"
       ? (selectedStudent?.name ?? null)
-      : trimmedGuestName
-    : null;
+      : isGuestNameValid && phone.isNumberValid
+        ? trimmedGuestName
+        : null;
+  const isWhoDone = whoValue !== null;
   const classValue = freeClass ? formatClassValue(freeClass.startsAt, getDateLocale(i18n.language)) : null;
   const target =
     freeClass && mode === "student" && selectedStudent

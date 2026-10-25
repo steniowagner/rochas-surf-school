@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ScreenIntro } from "@/components/ui/screen-intro";
@@ -40,9 +40,13 @@ export function AdminScreen() {
   const requestsCount = pendingRequests?.total;
 
   return (
-    <View
-      className="flex-1 gap-6 bg-page px-screen"
-      style={{
+    <ScrollView
+      testID="admin-home-scroll"
+      className="flex-1 bg-page"
+      // On iOS the bottom safe area and the floating tab bar are added by the scroll view.
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="gap-6 px-screen"
+      contentContainerStyle={{
         // Clears the user header, which the tab's stack draws above the screen.
         paddingTop: headerInset + 16,
         paddingBottom: Math.max(insets.bottom, 24),
@@ -172,6 +176,6 @@ export function AdminScreen() {
           </Pressable>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }

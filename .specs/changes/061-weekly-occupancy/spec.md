@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: changes-requested
+status: in-progress
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -418,14 +418,19 @@ they can see at a glance which classes still have room and which are full.
 
 **Findings**
 
-- [ ] **F-01** (ER-01) — the admin home is a fixed `View` that doesn't scroll, so the new card pushes "School settings"
+- [x] **F-01** (ER-01) — the admin home is a fixed `View` that doesn't scroll, so the new card pushes "School settings"
   ("Configurações da escola") off the screen: on an iPhone 18 Pro (402×874 pt) it can no longer be reached, and the
   new "Weekly occupancy" card itself sits almost entirely under the floating tab bar. Before this spec the settings
   card was the one partly under the tab bar, but you could still tap it. Reproduce: sign in as the dev admin on the
   iPhone 18 Pro simulator, open Home and try to scroll down. Expected: every card in "Escola", including "Ocupação
   semanal" and "Configurações da escola", can be reached and tapped clear of the tab bar (for example, the home
   scrolls with bottom padding for the tab bar), with a test that both cards are still there and work.
-- [ ] **F-02** (D-06) — the map's 7 columns aren't equal, so cells don't line up from one row to the next. Each empty
+  > ✅ 2026-10-25 — the admin home is now a `ScrollView` (`contentInsetAdjustmentBehavior="automatic"`, as the classes week
+  > screen does, so iOS adds the floating tab bar and the safe area); the cards keep their order. New test "scrolls the home
+  > above the tab bar…" checks the scroll view and that the Weekly occupancy and School settings cards are inside it; files:
+  > `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`;
+  > verified: `npx jest src/modules/admin/screens` (passed); deviations: none (not re-driven on the simulator)
+- [x] **F-02** (D-06) — the map's 7 columns aren't equal, so cells don't line up from one row to the next. Each empty
   slot is a `flex-1` view with a border, and Yoga adds the border's width to its flex basis, while class cells (a
   borderless `TouchableOpacity` around a bordered inner `View`) don't get that extra width. So each column's width
   depends on how many empty slots its row has. Reproduce: on the simulator, week 19 – 25 Oct: the Saturday cell of
@@ -433,11 +438,20 @@ they can see at a glance which classes still have room and which are full.
   on 26 Oct – 1 Nov (Sunday 08:00). Expected: every row's day columns share the same x and width as the header's
   (D-06 "7 equal columns"). For example, give the empty slot the same outer `flex-1` wrapper with the dashed border
   on an inner view, as the cell does.
-- [ ] **F-03** (tests) — ER-04 requires the legend to show its four labels "with their swatches". The test
+  > ✅ 2026-10-25 — the empty slot is now a borderless `flex-1` wrapper with the dashed border on an inner view, like the
+  > class cell, so every column has the same flex basis; the test checks the wrapper has no border and the inner view has
+  > `border-dashed`; files: `apps/mobile/src/modules/classes/components/occupancy-map/occupancy-map.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/occupancy-map/occupancy-map.component.test.tsx`; verified:
+  > `npx jest src/modules/classes` (passed); deviations: pixel alignment not re-measured on the simulator
+- [x] **F-03** (tests) — ER-04 requires the legend to show its four labels "with their swatches". The test
   `occupancy-map.component.test.tsx` → "shows the section label and the legend" checks only the labels: removing or
   swapping the swatch classes (`bg-info-tint`, `bg-sun-tint`, `bg-sun`, `bg-bad`, `rounded-swatch`) in
   `occupancy-legend.constants.ts` / the component still passes. Expected: the test checks each label's swatch and
   its class.
+  > ✅ 2026-10-25 — the legend swatches got a testID; the legend test checks each swatch's fill class and `rounded-swatch`;
+  > files: `apps/mobile/src/modules/classes/components/occupancy-legend/occupancy-legend.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/occupancy-map/occupancy-map.component.test.tsx`; verified:
+  > `npx jest src/modules/classes` (passed); deviations: none
 
 **Notes**
 

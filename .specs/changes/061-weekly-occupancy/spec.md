@@ -200,7 +200,7 @@ they can see at a glance which classes still have room and which are full.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add the D-09 tokens: color `sunTint` (light and dark), type style `occupancyCell` and radii
+- [x] **T-01** — Add the D-09 tokens: color `sunTint` (light and dark), type style `occupancyCell` and radii
   `occupancyCell` and `swatch` in
   `packages/design-tokens/src/tokens.ts`, regenerate `packages/design-tokens/src/tokens.css`
   (`npm run build -w @rochas-surf-school/design-tokens`), and make sure `bg-sun-tint` and `ds-text-occupancy-cell`
@@ -208,6 +208,12 @@ they can see at a glance which classes still have room and which are full.
   extending the existing theme-variables test when one exists.
   Covers: enabling · Done when: `npm run check-types -w @rochas-surf-school/design-tokens` and
   `npx turbo run check-types --filter=@rochas-surf-school/mobile` pass.
+  > ✅ 2026-10-25 — added `sunTint` (light/dark), type style `occupancyCell` and radii `occupancyCell`, `swatch`; regenerated
+  > tokens.css; mapped the two radii in the mobile Tailwind theme (colors and type styles resolve automatically);
+  > files: `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`,
+  > `apps/mobile/tailwind.config.ts`; verified: `npm run check-types -w @rochas-surf-school/design-tokens` and
+  > `npx turbo run check-types --filter=@rochas-surf-school/mobile` pass, `npx jest src/constants` (3 passed);
+  > deviations: none
 
 - [ ] **T-02** — Write the pure map logic in `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`: the 7 days
   of a week (ISO date, weekday abbreviation, day number, is today), the rows by Fortaleza start time with the D-07

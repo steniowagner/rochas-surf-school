@@ -68,6 +68,8 @@ export default {
         "icon-button": `${radii.iconButton}px`,
         control: `${radii.control}px`,
         card: `${radii.card}px`,
+        "occupancy-cell": `${radii.occupancyCell}px`,
+        swatch: `${radii.swatch}px`,
         sheet: `${radii.sheet}px`,
       },
       spacing: {

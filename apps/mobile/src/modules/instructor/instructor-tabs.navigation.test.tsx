@@ -181,7 +181,7 @@ describe("instructor tabs", () => {
     await act(async () => router.push(routes.instructor.people));
 
     expect(app.getPathname()).toBe("/instructor/people");
-    expect(screen.getByText("PEOPLE")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
     expect(await screen.findByText("No one found")).toBeOnTheScreen();
   });
 

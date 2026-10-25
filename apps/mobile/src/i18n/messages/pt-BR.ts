@@ -827,8 +827,16 @@ const messages: Messages = {
       admin: "Admins",
     },
     since: "desde {{date}}",
-    empty: "Ninguém encontrado",
-    loadError: "Não foi possível carregar as pessoas.",
+    description: "Todos na plataforma: alunos, instrutores e admins. Procure pelo nome ou filtre por função.",
+    loading: "Carregando as pessoas",
+    empty: {
+      title: "Ninguém encontrado",
+      description: "Tente outro nome ou limpe os filtros de função.",
+    },
+    loadError: {
+      title: "Não foi possível carregar as pessoas",
+      description: "Confira sua conexão e tente de novo.",
+    },
     whatsapp: "Conversar por WhatsApp",
     whatsappNotShared: "Número não compartilhado.",
     email: "E-mail",

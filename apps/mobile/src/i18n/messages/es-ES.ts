@@ -834,8 +834,16 @@ const messages: Messages = {
       admin: "Admins",
     },
     since: "desde {{date}}",
-    empty: "No se encontró a nadie",
-    loadError: "No se pudo cargar a las personas.",
+    description: "Todas las personas de la plataforma: alumnos, instructores y admins. Busca por nombre o filtra por rol.",
+    loading: "Cargando las personas",
+    empty: {
+      title: "No se encontró a nadie",
+      description: "Prueba con otro nombre o quita los filtros de rol.",
+    },
+    loadError: {
+      title: "No se pudo cargar a las personas",
+      description: "Comprueba tu conexión e inténtalo de nuevo.",
+    },
     whatsapp: "Chatear por WhatsApp",
     whatsappNotShared: "Número no compartido.",
     email: "Correo electrónico",

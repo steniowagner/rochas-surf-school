@@ -273,7 +273,7 @@ describe("admin tabs", () => {
     await act(async () => router.push(routes.admin.people));
 
     expect(app.getPathname()).toBe("/admin/people");
-    expect(screen.getByText("PEOPLE")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
 
     await act(async () => router.back());
     expect(app.getPathname()).toBe("/admin");

@@ -261,6 +261,16 @@ const messages = {
       title: "Nothing waiting",
       description: "Every enrolment has been decided.",
     },
+    emptyFiltered: {
+      surf: {
+        title: "No surf requests",
+        description: "No pending enrolment requests for surf classes.",
+      },
+      skate: {
+        title: "No skate requests",
+        description: "No pending enrolment requests for skate classes.",
+      },
+    },
     loadError: {
       title: "Couldn't load the requests",
       description: "Check your connection and try again.",

@@ -4,6 +4,8 @@ export type ChipTone = "surf" | "skate" | "info" | "sun" | "grape" | "warn" | "o
 
 export type ChipProps = {
   tone?: ChipTone;
+  /** "compact" tightens the padding, for dense headers. */
+  size?: "default" | "compact";
   icon?: ReactNode;
   children: ReactNode;
 };

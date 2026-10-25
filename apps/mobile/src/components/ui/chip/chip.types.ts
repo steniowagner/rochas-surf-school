@@ -15,6 +15,8 @@ export type ChipTone =
 
 export type ChipProps = {
   tone?: ChipTone;
+  /** "compact" tightens the padding, for dense headers. */
+  size?: "default" | "compact";
   icon?: ComponentProps<typeof Ionicons>["name"];
   children: string;
 };

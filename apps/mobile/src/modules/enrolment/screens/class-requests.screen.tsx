@@ -9,6 +9,9 @@ import { DenySheet } from "@/components/decision/deny-sheet";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { ScreenIntro } from "@/components/ui/screen-intro";
+import { DisciplineFilter } from "@/modules/classes/components/discipline-filter";
+import { DISCIPLINE_FILTER_CLEARANCE } from "@/modules/classes/components/discipline-filter/discipline-filter.constants";
+import { PersonSheet } from "@/modules/people/components/person-sheet";
 import { useTheme } from "@/hooks/use-theme";
 import {
   StackHeaderTitle,
@@ -46,6 +49,13 @@ export function ClassRequestsScreen() {
     openDeny,
     closeDeny,
     confirmDeny,
+    student,
+    studentVisible,
+    discipline,
+    selectDiscipline,
+    openClass,
+    openStudent,
+    closeStudent,
   } = useClassRequestsScreen();
   const header = useCollapsingTitleHeader({
     title: t("classRequests.title"),
@@ -53,7 +63,7 @@ export function ClassRequestsScreen() {
   });
 
   return (
-    <>
+    <View className="flex-1">
       {status === "ready" ? (
         <>
           <Stack.Screen options={header.headerOptions} />
@@ -66,7 +76,8 @@ export function ClassRequestsScreen() {
             contentContainerClassName="gap-6 px-screen"
             contentContainerStyle={{
               paddingTop: CONTENT_PADDING_TOP,
-              paddingBottom: Math.max(insets.bottom, 24),
+              paddingBottom:
+                Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
             }}
             onScroll={header.scrollHandler}
             scrollEventThrottle={16}
@@ -88,12 +99,27 @@ export function ClassRequestsScreen() {
                 onTitleLayout={header.onTitleBottomChange}
               />
             }
+            ListEmptyComponent={
+              discipline === "all" ? null : (
+                <View className="flex-row">
+                  <EmptyState
+                    icon="checkmark-done-outline"
+                    title={t(`classRequests.emptyFiltered.${discipline}.title`)}
+                    description={t(
+                      `classRequests.emptyFiltered.${discipline}.description`,
+                    )}
+                  />
+                </View>
+              )
+            }
             renderItem={({ item }) => (
               <ClassRequestsGroup
                 item={item}
                 sending={sending}
                 onApprove={approve}
                 onDeny={openDeny}
+                onOpenClass={openClass}
+                onOpenStudent={openStudent}
               />
             )}
           />
@@ -138,6 +164,7 @@ export function ClassRequestsScreen() {
           </View>
         </>
       )}
+      <DisciplineFilter value={discipline} onChange={selectDiscipline} />
       <DenySheet
         visible={denying !== null}
         title={t("classRequests.denySheet.title")}
@@ -153,6 +180,18 @@ export function ClassRequestsScreen() {
         onConfirm={confirmDeny}
         onClose={closeDeny}
       />
-    </>
+      <PersonSheet
+        // The pending requests don't carry the WhatsApp number, and only students ask for a seat.
+        person={
+          student && {
+            name: student.student.name,
+            role: "student",
+            whatsappNumber: null,
+          }
+        }
+        visible={studentVisible}
+        onClose={closeStudent}
+      />
+    </View>
   );
 }

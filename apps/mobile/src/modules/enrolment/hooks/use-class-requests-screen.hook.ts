@@ -1,10 +1,13 @@
+import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { routes } from "@/constants/routes";
+import type { DisciplineFilterValue } from "@/modules/classes/classes.types";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import type { RequestAction } from "../components/class-requests-group/class-requests-group.types";
-import type { PendingRequest } from "../enrolment.types";
+import type { PendingRequest, PendingRequestsClass } from "../enrolment.types";
 import {
   getDecideRequestErrorKey,
   shouldReloadRequests,
@@ -17,6 +20,7 @@ import { usePendingRequests } from "./use-pending-requests.hook";
 
 export const useClassRequestsScreen = () => {
   const { t } = useTranslation();
+  const router = useRouter();
   const alertMessage = useAlertMessage();
   const query = usePendingRequests();
   const approveMutation = useApproveRequest();
@@ -24,6 +28,10 @@ export const useClassRequestsScreen = () => {
 
   const [sending, setSending] = useState<Record<string, RequestAction>>({});
   const [denying, setDenying] = useState<PendingRequest | null>(null);
+  // Kept after the sheet closes, so its content stays while it slides away.
+  const [student, setStudent] = useState<PendingRequest | null>(null);
+  const [studentVisible, setStudentVisible] = useState(false);
+  const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   // A second tap in the same frame must not send twice, before `sending` has re-rendered.
   const inFlight = useRef(new Set<string>());
@@ -95,10 +103,13 @@ export const useClassRequestsScreen = () => {
     setIsRefreshing(false);
   };
 
-  const classes = query.data?.classes ?? [];
+  const allClasses = query.data?.classes ?? [];
+  const classes = allClasses.filter(
+    (item) => discipline === "all" || item.discipline === discipline,
+  );
   // A list on screen stays there when a later reload fails; the error state is only for a first load that failed.
   const status: ClassRequestsStatus = query.data
-    ? classes.length === 0
+    ? allClasses.length === 0
       ? "empty"
       : "ready"
     : query.isError
@@ -107,7 +118,9 @@ export const useClassRequestsScreen = () => {
 
   return {
     classes,
-    total: query.data?.total ?? 0,
+    total: classes.reduce((sum, item) => sum + item.requests.length, 0),
+    discipline,
+    selectDiscipline: setDiscipline,
     status,
     isLoading: query.isPending,
     isRetrying: query.isFetching,
@@ -120,5 +133,14 @@ export const useClassRequestsScreen = () => {
     openDeny: setDenying,
     closeDeny: () => setDenying(null),
     confirmDeny,
+    student,
+    studentVisible,
+    openStudent: (request: PendingRequest) => {
+      setStudent(request);
+      setStudentVisible(true);
+    },
+    openClass: (item: PendingRequestsClass) =>
+      router.push(routes.admin.classDetail(item.id)),
+    closeStudent: () => setStudentVisible(false),
   };
 };

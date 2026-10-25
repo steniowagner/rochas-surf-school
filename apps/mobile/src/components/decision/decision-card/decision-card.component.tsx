@@ -19,6 +19,7 @@ export function DecisionCard({
   onPress,
   disabled,
   approveDisabled = false,
+  embedded = false,
   loading,
 }: DecisionCardProps) {
   const theme = useTheme();
@@ -45,8 +46,8 @@ export function DecisionCard({
 
   return (
     <View
-      className="gap-4 rounded-card border border-line bg-surface p-4"
-      style={shadowStyle("card", theme)}
+      className={`gap-4 p-4 ${embedded ? "" : "rounded-card border border-line bg-surface"}`}
+      style={embedded ? undefined : shadowStyle("card", theme)}
     >
       {onPress ? (
         <Pressable

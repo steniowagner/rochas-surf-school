@@ -15,7 +15,7 @@ describe("formatAskedAt", () => {
 
 describe("formatDayBlock", () => {
   it("gives the weekday, the day number and the month of the class start", () => {
-    expect(formatDayBlock("2026-10-19T11:00:00.000Z", enUS)).toEqual({ weekday: "MON", day: "19", month: "OCT" });
-    expect(formatDayBlock("2026-10-19T11:00:00.000Z", ptBR)).toEqual({ weekday: "SEG", day: "19", month: "OUT" });
+    expect(formatDayBlock("2026-10-19T11:00:00.000Z", enUS)).toEqual({ weekday: "MON", day: "19", month: "OCT", year: "2026" });
+    expect(formatDayBlock("2026-10-19T11:00:00.000Z", ptBR)).toEqual({ weekday: "SEG", day: "19", month: "OUT", year: "2026" });
   });
 });

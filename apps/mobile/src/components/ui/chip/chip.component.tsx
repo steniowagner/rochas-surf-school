@@ -38,17 +38,19 @@ const iconColors: Record<ChipTone, ThemeColor> = {
 };
 
 const ICON_SIZE = 12;
+const COMPACT_ICON_SIZE = 10;
 
-export function Chip({ tone = "info", icon, children }: ChipProps) {
+export function Chip({ tone = "info", size = "default", icon, children }: ChipProps) {
   const theme = useTheme();
   const { container, label } = toneClasses[tone];
+  const compact = size === "compact";
 
   return (
     <View
-      className={`flex-row items-center gap-1 self-start rounded-full px-2.5 py-1 ${container}`}
+      className={`flex-row items-center gap-1 self-start rounded-full ${compact ? "px-2 py-0.5" : "px-2.5 py-1"} ${container}`}
     >
       {icon ? (
-        <Ionicons name={icon} size={ICON_SIZE} color={theme[iconColors[tone]]} />
+        <Ionicons name={icon} size={compact ? COMPACT_ICON_SIZE : ICON_SIZE} color={theme[iconColors[tone]]} />
       ) : null}
       <Text className={`ds-text-chip ${label}`}>{children}</Text>
     </View>

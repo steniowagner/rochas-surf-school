@@ -255,9 +255,16 @@ const messages: Messages = {
     deny: "Recusar",
     approved: "{{name}} inscrito · aluno avisado",
     denied: "{{name}} recusado · aluno avisado",
-    emptyTitle: "Nada à espera",
-    emptyDescription: "Todas as inscrições foram decididas.",
-    loadError: "Não foi possível carregar os pedidos.",
+    description: "Alunos pedindo para entrar nas aulas, agrupados por aula. Matricule ou recuse cada pedido; o aluno é avisado.",
+    loading: "Carregando os pedidos",
+    empty: {
+      title: "Nada à espera",
+      description: "Todas as inscrições foram decididas.",
+    },
+    loadError: {
+      title: "Não foi possível carregar os pedidos",
+      description: "Confira sua conexão e tente de novo.",
+    },
     retry: "Tentar novamente",
     denySheet: {
       title: "Recusar inscrição?",

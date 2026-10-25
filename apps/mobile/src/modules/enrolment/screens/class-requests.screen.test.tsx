@@ -146,7 +146,7 @@ describe("ClassRequestsScreen list", () => {
 
     await screen.findByText("Ana Souza");
 
-    expect(screen.getByText("CLASS ENROLMENTS")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Class enrolments" })).toBeOnTheScreen();
     expect(screen.getByText("2 requests · 1 class")).toBeOnTheScreen();
     expect(screen.getByText("WED")).toBeOnTheScreen();
     expect(screen.getByText("21")).toBeOnTheScreen();
@@ -194,6 +194,8 @@ describe("ClassRequestsScreen list", () => {
     await renderScreen();
 
     expect(screen.getByTestId("class-requests-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the requests")).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "Class enrolments" })).toBeNull();
     expect(screen.queryByText(/requests ·/)).toBeNull();
   });
 
@@ -211,7 +213,7 @@ describe("ClassRequestsScreen list", () => {
     fetchMock.mockResolvedValue(respond(500, { errors: [] }));
     await renderScreen();
 
-    expect(await screen.findByText("Couldn't load the requests.")).toBeOnTheScreen();
+    expect(await screen.findByText("Couldn't load the requests")).toBeOnTheScreen();
     expect(screen.queryByText(/requests ·/)).toBeNull();
 
     serve([surfClass()]);

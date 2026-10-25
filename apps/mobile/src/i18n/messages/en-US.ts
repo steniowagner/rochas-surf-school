@@ -255,9 +255,16 @@ const messages = {
     deny: "Deny",
     approved: "{{name}} enrolled · student notified",
     denied: "{{name}} denied · student notified",
-    emptyTitle: "Nothing waiting",
-    emptyDescription: "Every enrolment has been decided.",
-    loadError: "Couldn't load the requests.",
+    description: "Students asking to join your classes, grouped by class. Enrol or deny each request; the student is notified.",
+    loading: "Loading the requests",
+    empty: {
+      title: "Nothing waiting",
+      description: "Every enrolment has been decided.",
+    },
+    loadError: {
+      title: "Couldn't load the requests",
+      description: "Check your connection and try again.",
+    },
     retry: "Try again",
     denySheet: {
       title: "Deny enrolment?",

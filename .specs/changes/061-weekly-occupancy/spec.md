@@ -295,12 +295,20 @@ they can see at a glance which classes still have room and which are full.
   > `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx` (25 passed, 100% coverage of the screen
   > and its hook), `tsc --noEmit` and eslint clean; deviations: none
 
-- [ ] **T-06** — Add the D-14 "Ocupação semanal" card to the "Escola" section of
+- [x] **T-06** — Add the D-14 "Ocupação semanal" card to the "Escola" section of
   `apps/mobile/src/modules/admin/screens/admin.screen.tsx` and its row subtitle copy, with tests in
   `admin.screen.test.tsx` for its place, text and that tapping it lands on `/admin/weekly-occupancy` with the title
   (registering the new route in the test's router like the other admin routes).
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01 · Done when: `npx jest src/modules/admin/screens/admin.screen.test.tsx` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — "Ocupação semanal" card in the "Escola" section of the admin home, after "Pessoas" and before the
+  > school settings card (bar-chart icon, title, subtitle, chevron, opens `routes.admin.weeklyOccupancy`); subtitle copy
+  > `weeklyOccupancy.rowSubtitle` in the three languages; the test registers the new route and checks the card's place,
+  > text, that it sends no request and that tapping it lands on `/admin/weekly-occupancy` with the title; files:
+  > `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified:
+  > `npx jest src/modules/admin/screens/admin.screen.test.tsx` (23 passed), `tsc --noEmit` and eslint clean;
+  > deviations: none
 
 ### Verification
 

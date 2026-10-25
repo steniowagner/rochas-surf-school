@@ -1177,6 +1177,7 @@ const messages = {
   },
   weeklyOccupancy: {
     title: "Weekly occupancy",
+    rowSubtitle: "Seats taken and free per class",
     section: "Week map",
     legend: {
       low: "under 50%",

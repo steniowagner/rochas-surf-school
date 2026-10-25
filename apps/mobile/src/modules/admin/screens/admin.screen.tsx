@@ -21,6 +21,7 @@ const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
 const openPeople = () => router.push(routes.admin.people);
 const openMyClasses = () => router.push(routes.admin.myClasses);
 const openNewClass = () => router.push(routes.admin.newClass());
+const openWeeklyOccupancy = () => router.push(routes.admin.weeklyOccupancy);
 const openSchoolSettings = () => router.push(routes.admin.schoolSettings);
 const openCancellationRules = () => router.push(routes.admin.cancellationRules);
 const openSchoolRules = () => router.push(routes.admin.manageSchoolRules);
@@ -138,6 +139,25 @@ export function AdminScreen() {
         <TeachingClassesEntryRow role="admin" onPress={openMyClasses} />
         <SchoolRulesEntryRow role="admin" onPress={openSchoolRules} />
         <PeopleEntryRow onPress={openPeople} />
+        <View className="rounded-card border border-line bg-surface px-4">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("weeklyOccupancy.title")}
+            onPress={openWeeklyOccupancy}
+            className="min-h-11 flex-row items-center gap-3 py-3"
+          >
+            <Ionicons name="bar-chart-outline" size={20} color={theme.lagoon} />
+            <View className="flex-1 gap-0.5">
+              <Text className="ds-text-list-title text-ink">
+                {t("weeklyOccupancy.title")}
+              </Text>
+              <Text className="ds-text-list-subtitle text-ink-2">
+                {t("weeklyOccupancy.rowSubtitle")}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
+          </Pressable>
+        </View>
         <View className="rounded-card border border-line bg-surface px-4">
           <Pressable
             accessibilityRole="button"

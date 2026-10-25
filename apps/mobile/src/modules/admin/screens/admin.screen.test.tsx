@@ -15,6 +15,7 @@ import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
 import AdminManageSchoolRulesRoute from "@/app/(private)/admin/manage-school-rules";
 import AdminMyClassesRoute from "@/app/(private)/admin/my-classes";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
+import AdminWeeklyOccupancyRoute from "@/app/(private)/admin/weekly-occupancy";
 import { routes } from "@/constants/routes";
 import { buildClassItem } from "@/modules/classes/classes.test-utils";
 import { SessionProvider } from "@/providers/session";
@@ -123,6 +124,7 @@ async function openAdminHome() {
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
       "(private)/admin/manage-school-rules": AdminManageSchoolRulesRoute,
       "(private)/admin/my-classes": AdminMyClassesRoute,
+      "(private)/admin/weekly-occupancy": AdminWeeklyOccupancyRoute,
     },
     { initialUrl: routes.admin.home },
   );
@@ -188,6 +190,33 @@ describe("AdminScreen", () => {
     expect(screen.getByText("School")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
     expect(screen.getByText("9 on the platform")).toBeOnTheScreen();
+  });
+
+  it("shows the Weekly occupancy card between People and School settings, and opens the screen", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/classes?date=")
+          ? { weekStart: "2026-10-19", items: [] }
+          : { items: [] },
+    }));
+    const app = await openAdminHome();
+    const buttons = screen.getAllByRole("button");
+    const indexOf = (name: string | RegExp) =>
+      buttons.indexOf(screen.getByRole("button", { name }));
+    const people = indexOf(/People/);
+
+    expect(screen.getByText("Seats taken and free per class")).toBeOnTheScreen();
+    expect(indexOf("Weekly occupancy")).toBe(people + 1);
+    expect(indexOf(/School settings/)).toBe(people + 2);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/classes?date="))).toBe(false);
+
+    await user.press(screen.getByRole("button", { name: "Weekly occupancy" }));
+
+    expect(app.getPathname()).toBe(routes.admin.weeklyOccupancy);
+    expect(screen.getByRole("header", { name: "WEEKLY OCCUPANCY" })).toBeOnTheScreen();
   });
 
   it("opens the people directory, and its back button returns to the admin home", async () => {

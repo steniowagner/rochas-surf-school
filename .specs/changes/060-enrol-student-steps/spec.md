@@ -3,7 +3,7 @@ id: "060"
 slug: enrol-student-steps
 title: "Split \"Inscrever aluno\" into Quem and Aula steps"
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 8e31960b5c4e9506b388de0ab4e3e0f5b272f34a
@@ -209,3 +209,55 @@ step shows inside, the requests and their outcomes stay as they are.
   Approved by the user in chat.
 
 ## Review
+
+### Round 1 — 2026-10-25 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 874 passed, 45 suites (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK, 6 measured files at 100%; no coverage-ignore comments in the diff
+- e2e: no suite applies (mobile only) · user journey driven in the iOS simulator (iPhone 18 Pro, en-US, dark theme) ✅
+
+**Expected Results**
+
+- ER-01 ✅ — opens on "Who" with both tabs "Not chosen", "School student", search and list, no intro or section labels,
+  "Choose class" fixed and disabled; pressing the disabled "Class" tab does nothing; picking a student shows the check
+  and the name and turns the button on; "Trial class" turns it off again until a full name and a valid WhatsApp are
+  typed, then the tab shows the trimmed name ("Maria Costa" typed with a trailing space); switching back keeps the
+  picked student. Loading, empty, error/retry and load-more are covered by `enrol-student.screen.test.tsx`.
+- ER-02 ✅ — "Choose class" shows the calendar, the day's cards, the empty state and the sport filter above the footer;
+  "Enrol" is disabled until a class is picked, then the tab reads "Sun 1 · 08:00" with a check; "Skate" hides the surf
+  class, un-picks it and shows "No classes this day"; going back to "Who" keeps the student and back on "Class" the day
+  and the class are still picked. The pt-BR/es-ES/en-US values ("Qua 14 · 16:00", "Mié 14 · 16:00", "Wed 14 · 16:00")
+  are asserted in the hook test.
+- ER-03 ✅ — "Enrol" sent the enrolment, the toast "Ana Souza enrolled · student notified" showed and the screen went
+  back; double press, refused enrolment, reload and generic errors are covered by the existing screen tests, which now
+  go through "Choose class".
+
+**Findings**
+
+- [ ] **F-01** (D-01) — the step's status circle while not done is `bg-tan` with `text-on-color`
+  (`step-tabs.component.tsx` line 129 and 134); D-01 says "the step number on `bg-sand` in `text-ink-2`". Commits
+  `c832c51e`, `797e8576`, `0f6e92ca` and `4ab2c39e` changed the tab after T-05 was recorded, with no amendment and no
+  evidence (T-05's evidence still says the tabs are `rounded-full`; they are `rounded-card`). Reproduce: open
+  "Inscrever aluno" — the "1"/"2" circles are tan with white digits. Expected: either the circle follows D-01, or
+  D-01 is amended (`/spec-plan --amend 060`) to say what was built, and T-05's evidence lists those commits.
+- [ ] **F-02** (convention) — `enrol-student.screen.tsx` lines 13–15 import `@/modules/classes/components/discipline-filter`
+  and `.../discipline-filter/discipline-filter.constants` before `@/modules/classes/components/class-card` and
+  `class-card-skeleton`; `.claude/rules/react.md` §2 sorts each import group alphabetically by path. Expected: the two
+  `discipline-filter` imports after `class-card-skeleton`.
+
+**Notes**
+
+- Not exercised: the light theme (the app's own theme setting is dark; the colors come from tokens only) and the pt-BR
+  locale on screen (asserted in the hook test). The trial-guest enrolment was not sent from the simulator; the screen
+  tests cover it.
+- After a class is un-picked by the filter, choosing "All" again shows it picked again (the id is kept). ER-02 only
+  requires it not to count while hidden, so this is fine. If it should stay un-picked, `selectDiscipline` would need to
+  clear `selectedClassId`.
+- The keyboard of the trial fields covers the fixed footer until "Done" is pressed, the same as `edit-class`.
+- `## Memory Impact` doesn't mention the Aula step's sport filter (D-07). `spec-finish` should add it to the
+  `EnrolStudentScreen` bullet and the product paragraph.
+- The success toast uses the alert style (red, "!"). This spec didn't change it (`alertMessage.show` is untouched); it
+  is out of scope here.

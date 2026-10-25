@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: in-review
+status: changes-requested
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -681,3 +681,67 @@ full.
   with the other children in `technical-context.md` and `structure.md`.
 - `OccupancyCell` computes its look and label parameters in the component file; `.claude/rules/react.md` puts such
   calculations in a `*.hook.ts`. Unchanged since round 1 and minor; worth folding into the F-04/F-05 round if cheap.
+
+### Round 3 — 2026-10-25 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile
+  --filter=@rochas-surf-school/design-tokens`: 12 tasks; the tokens' `check-types` confirms `tokens.css` is current)
+- related tests ✅ apps/mobile 79 suites, 1630 passed · apps/web 5 files, 22 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK`, 18 files measured; no coverage-ignore comments, debug leftovers or
+  TODOs in the diff
+- e2e ✅ `E2E PASSED` (web Playwright 22 passed; backend not affected; no mobile suite)
+- user journey on the iOS simulator (iPhone 18 Pro, iOS 27, en-US, dark, the dev admin, now = Sun 25 Oct 2026): the
+  admin home at rest and pulled down (F-04's fix, see F-06); the weekly occupancy screen opened by deep link: "THIS
+  WEEK" in sun over "19 – 25 OCT", the stats card (5% · 4/78 · 74 · 2) between the week bar and "WEEK MAP", "25" in
+  sun, the default selection on the first 0% class (Mon 14:00); ‹ → "LAST WEEK" (12 – 18 OCT, 0% · 0/48 · 48 · 0) with
+  the selection back to that week's default (Fri 12:00), cancelled cells struck through, equal columns. Not driven:
+  pt-BR and light mode (copy and tokens covered by Jest and the tokens' check-types), the network-off error (covered
+  by the "state" Jest tests), the instructor and student homes (unchanged files).
+
+**Expected Results**
+
+- ER-01 ✅ — `admin.screen.test.tsx`: the card after "People" and before "School settings", no request of its own,
+  opens `/admin/weekly-occupancy` with "WEEKLY OCCUPANCY"; es-ES and en-US copy present (the admin home's top
+  regression is F-06, outside this ER's Given/When/Then)
+- ER-02 ✅ — `-t "week"`, the week bar's component test and `-t "relative week"`; simulator: labels and caption per week,
+  sun only on this week
+- ER-03 ✅ — util and component tests; simulator: sub-rows with the time only on the first, equal columns
+- ER-04 ✅ — util and component tests (every threshold, 199/200, overbooked, labels, legend swatches)
+- ER-05 ✅ — `-t "select"` and `-t "default"`; simulator: the default selection per week, reset on a week change
+- ER-06 ✅ — `-t "state"` tests (loading, error with retry and spinner, empty, all cancelled, failed refetch, expired
+  session, focus refetch, pull-to-refresh, arrows from the error, es-ES and pt-BR)
+- ER-07 ✅ — util `-t "stats"`, `occupancy-stats` and the screen's `-t "stats"`, now including the card's place (F-05:
+  week label → stats card → "Week map"); simulator: figures change with the week
+
+**Findings**
+
+- [ ] **F-06** (convention) — the F-04 fix hides the top of the admin home under the user header. The home's stack
+  draws the user header (avatar, greeting, bell) as a custom transparent `header` (`useUserStackHeader`), not as the
+  native navigation bar, so `contentInsetAdjustmentBehavior="automatic"` adds only the safe area (~62 pt), not the
+  user header's height. With `paddingTop: 16` the content now starts at ~78 pt while the user header ends at ~126 pt:
+  at rest the "School tools" toolbox icon of `ScreenIntro` is almost entirely behind the header (only its bottom
+  edge shows), and it appears only while the scroll view is pulled down. Before this spec the icon started fully
+  visible at ~140 pt (`headerInset + 16`). `registrations.screen.tsx`, which F-04 pointed to, sits under the native
+  header, where the automatic inset does clear it, so the pattern doesn't carry over to the user header. The test
+  "scrolls the home above the tab bar…" asserts the literal `paddingTop: 16`, so it locks the bug in. Reproduce: sign
+  in as the dev admin on the iPhone 18 Pro simulator, open Home and leave the scroll view at rest: the toolbox icon
+  above "SCHOOL TOOLS" is cut off by the greeting header. Expected: at rest the home's content starts 16 pt below the
+  user header, as before the spec (the icon's top at ~140 pt on this device), while every "School" card can still be
+  scrolled clear of the tab bar (F-01). For example, keep the automatic inset and pad by the header's height minus
+  the safe-area top it already adds, or turn the automatic inset off (`"never"`) and pad by `headerInset + 16` at the
+  top and by the tab bar's height at the bottom; the test should assert the top padding against the header inset,
+  not a literal.
+
+**Notes**
+
+- Round 2's F-05 is fixed: the new test walks the rendered tree and fails with `<OccupancyStats>` moved below the map.
+  F-04's original symptom (an empty band of ~60 pt) is gone, but the fix overshoots: F-06.
+- `## Memory Impact` still doesn't name `OccupancyStat` (T-10's child of `OccupancyStats`), nor that the admin home is
+  now a scroll view (F-01). `spec-finish` should add both to `technical-context.md` / `structure.md`.
+- `OccupancyCell` still computes its look and label parameters in the component file, where `.claude/rules/react.md`
+  wants a `*.hook.ts`; minor, unchanged since round 1.
+- pt-BR plurals follow i18next's CLDR rules, where 0 takes the `_one` form: an all-cancelled week reads "0 livre" /
+  "0 cheia" to a screen reader. D-15 asks for i18next's `count`, so this is per the spec; worth a look if the user
+  prefers "0 livres" / "0 cheias".

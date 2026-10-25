@@ -17,7 +17,7 @@ export function StepTabs<T extends string>({
   return (
     <View
       accessibilityRole="tablist"
-      className="flex-row gap-1 rounded-full bg-sand p-1"
+      className="flex-row gap-1 rounded-card bg-sand p-1"
     >
       {steps.map((step, index) => {
         const isSelected = step.key === selected;
@@ -32,19 +32,19 @@ export function StepTabs<T extends string>({
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             disabled={disabled}
             onPress={isSelected ? undefined : () => onChange(step.key)}
-            className={`min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full p-2 ${isSelected ? "bg-surface" : ""} ${disabled ? "opacity-50" : ""}`}
+            className={`min-h-11 flex-1 flex-row items-center gap-2 rounded-card p-2 ${isSelected ? "bg-surface" : ""} ${disabled ? "opacity-50" : ""}`}
             style={isSelected ? shadowStyle("iconButton", theme) : undefined}
           >
             <View
-              className={`size-7 items-center justify-center rounded-full ${step.done ? "bg-ok" : "bg-sand"}`}
+              className={`size-7 items-center justify-center rounded-full ${step.done ? "bg-ok" : "bg-tan"}`}
             >
               {step.done ? (
                 <Ionicons name="checkmark" size={16} color={theme.onColor} />
               ) : (
-                <Text className="ds-text-chip text-ink-2">{index + 1}</Text>
+                <Text className="ds-text-chip text-on-color">{index + 1}</Text>
               )}
             </View>
-            <View className="shrink">
+            <View className="flex-1">
               <Text numberOfLines={1} className="ds-text-chip text-ink-2">
                 {step.label}
               </Text>

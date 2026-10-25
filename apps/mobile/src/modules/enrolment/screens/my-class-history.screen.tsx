@@ -94,79 +94,78 @@ export function MyClassHistoryScreen() {
           headerTitle: () => <StackHeaderTitle title={t("myHistory.title")} />,
         }}
       />
-      <View className="flex-1 bg-page">
-        <FlatList
-          testID="my-history-list"
-          className="flex-1"
-          data={screen.rows}
-          keyExtractor={(row) => row.key}
-          // On iOS the safe areas and the header are added by the scroll view.
-          contentInsetAdjustmentBehavior="automatic"
-          contentContainerClassName="gap-3 px-screen"
-          contentContainerStyle={{
-            paddingTop: 8,
-            paddingBottom:
-              Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
-          }}
-          refreshControl={
-            <RefreshControl
-              refreshing={screen.isRefreshing}
-              onRefresh={screen.refresh}
-            />
-          }
-          ListHeaderComponent={
-            <View className="gap-5">
-              <View
-                testID="my-history-calendar"
-                className="gap-3 rounded-card border border-line bg-surface p-3"
-              >
-                <WeekMonthCalendar
-                  selectedDate={screen.selectedDay}
-                  today={screen.today}
-                  markedDates={screen.markedDates}
-                  markedLabel={t("myHistory.hasClasses")}
-                  onSelectDate={screen.selectDay}
-                  initialView="month"
-                  clearable
-                  onClearSelection={screen.clearDay}
-                  onPeriodChange={screen.updatePeriod}
-                />
-                <View className="flex-row items-center gap-2 px-1.5">
-                  <View className="h-1.5 w-1.5 rounded-full bg-lagoon" />
-                  <Text className="ds-text-list-subtitle text-ink-2">
-                    {t("myHistory.legend")}
-                  </Text>
-                </View>
+      {/* The list is the screen's first view, so the header can find it for the scroll-edge blur: the filter floats beside it. */}
+      <FlatList
+        testID="my-history-list"
+        className="flex-1 bg-page"
+        data={screen.rows}
+        keyExtractor={(row) => row.key}
+        // On iOS the safe areas and the header are added by the scroll view.
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerClassName="gap-3 px-screen"
+        contentContainerStyle={{
+          paddingTop: 8,
+          paddingBottom:
+            Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={screen.isRefreshing}
+            onRefresh={screen.refresh}
+          />
+        }
+        ListHeaderComponent={
+          <View className="gap-5">
+            <View
+              testID="my-history-calendar"
+              className="gap-3 rounded-card border border-line bg-surface p-3"
+            >
+              <WeekMonthCalendar
+                selectedDate={screen.selectedDay}
+                today={screen.today}
+                markedDates={screen.markedDates}
+                markedLabel={t("myHistory.hasClasses")}
+                onSelectDate={screen.selectDay}
+                initialView="month"
+                clearable
+                onClearSelection={screen.clearDay}
+                onPeriodChange={screen.updatePeriod}
+              />
+              <View className="flex-row items-center gap-2 px-1.5">
+                <View className="h-1.5 w-1.5 rounded-full bg-lagoon" />
+                <Text className="ds-text-list-subtitle text-ink-2">
+                  {t("myHistory.legend")}
+                </Text>
               </View>
-              <HistoryListHeader
-                title={t("myHistory.allClasses")}
-                caption={screen.caption}
-                dayLabel={screen.dayLabel}
-                clearDayLabel={t("myHistory.clearDay", {
-                  date: screen.dayLabel,
-                })}
-                onClearDay={screen.clearDay}
-              />
             </View>
-          }
-          renderItem={({ item: row }) =>
-            row.type === "day" ? (
-              <HistoryDayLabel label={row.label} />
-            ) : (
-              <ClassCard
-                item={row.item}
-                now={screen.now}
-                onPress={screen.openClass}
-              />
-            )
-          }
-          ListEmptyComponent={renderEmpty()}
-        />
-        <DisciplineFilter
-          value={screen.discipline}
-          onChange={screen.selectDiscipline}
-        />
-      </View>
+            <HistoryListHeader
+              title={t("myHistory.allClasses")}
+              caption={screen.caption}
+              dayLabel={screen.dayLabel}
+              clearDayLabel={t("myHistory.clearDay", {
+                date: screen.dayLabel,
+              })}
+              onClearDay={screen.clearDay}
+            />
+          </View>
+        }
+        renderItem={({ item: row }) =>
+          row.type === "day" ? (
+            <HistoryDayLabel label={row.label} />
+          ) : (
+            <ClassCard
+              item={row.item}
+              now={screen.now}
+              onPress={screen.openClass}
+            />
+          )
+        }
+        ListEmptyComponent={renderEmpty()}
+      />
+      <DisciplineFilter
+        value={screen.discipline}
+        onChange={screen.selectDiscipline}
+      />
     </>
   );
 }

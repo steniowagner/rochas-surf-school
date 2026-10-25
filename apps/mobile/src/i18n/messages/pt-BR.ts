@@ -709,6 +709,15 @@ const messages: Messages = {
   schoolRulesScreen: {
     title: "Regras da escola",
     description: "Poucas e simples, para as aulas correrem bem para todos.",
+    loading: "Carregando as regras",
+    loadError: {
+      title: "Não foi possível carregar as regras",
+      description: "Confira sua conexão e tente de novo.",
+    },
+    empty: {
+      title: "Nenhuma regra ainda",
+      description: "A escola ainda não publicou regras. Volte em breve.",
+    },
   },
   schoolRulesEntryRow: {
     title: "Regras",

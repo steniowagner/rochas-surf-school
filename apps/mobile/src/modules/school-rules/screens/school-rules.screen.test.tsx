@@ -44,7 +44,7 @@ describe("SchoolRulesReadScreen", () => {
     await open();
 
     expect(
-      screen.getByRole("header", { name: "SCHOOL RULES" }),
+      screen.getByRole("header", { name: "School rules" }),
     ).toBeOnTheScreen();
     expect(
       screen.getByText("Few and simple, so classes go well for everyone."),
@@ -69,8 +69,10 @@ describe("SchoolRulesReadScreen", () => {
     fetchMock.mockReturnValue(new Promise(() => {}));
     await open();
 
-    expect(screen.queryByText("Couldn't load the rules.")).toBeNull();
-    expect(screen.queryByText("The school has no rules yet.")).toBeNull();
+    expect(screen.getByTestId("school-rules-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the rules")).toBeOnTheScreen();
+    expect(screen.queryByText("Couldn't load the rules")).toBeNull();
+    expect(screen.queryByText("No rules yet")).toBeNull();
     expect(screen.queryByText("Title 1")).toBeNull();
   });
 
@@ -80,7 +82,7 @@ describe("SchoolRulesReadScreen", () => {
     await open();
 
     expect(
-      await screen.findByText("Couldn't load the rules."),
+      await screen.findByText("Couldn't load the rules"),
     ).toBeOnTheScreen();
 
     fetchMock.mockResolvedValue(
@@ -92,12 +94,13 @@ describe("SchoolRulesReadScreen", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 
-  it("shows the empty message when the school has no rules", async () => {
+  it("shows the empty state when the school has no rules", async () => {
     fetchMock.mockResolvedValue(jsonResponse(200, { version: 0, rules: [] }));
     await open();
 
     expect(
-      await screen.findByText("The school has no rules yet."),
+      await screen.findByText("No rules yet"),
     ).toBeOnTheScreen();
+    expect(screen.queryByTestId("school-rules-loading")).toBeNull();
   });
 });

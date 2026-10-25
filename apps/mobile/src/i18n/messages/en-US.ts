@@ -709,6 +709,15 @@ const messages = {
   schoolRulesScreen: {
     title: "School rules",
     description: "Few and simple, so classes go well for everyone.",
+    loading: "Loading the rules",
+    loadError: {
+      title: "Couldn't load the rules",
+      description: "Check your connection and try again.",
+    },
+    empty: {
+      title: "No rules yet",
+      description: "The school hasn't published any rules yet. Check back soon.",
+    },
   },
   schoolRulesEntryRow: {
     title: "Rules",

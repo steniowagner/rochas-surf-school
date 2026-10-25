@@ -431,11 +431,6 @@ const messages: Messages = {
       tipTime: "Indica plazos exactos en horas antes del inicio de la clase — nada de \"a última hora\".",
       tipAmbiguity: "Evita la ambigüedad: si una persona duda al leerla, la app también dudará.",
       placeholder: "Ej.: El alumno puede cancelar sin penalización hasta 12 horas antes del inicio de la clase…",
-      note: {
-        unsaved: "Cambios sin guardar",
-        inForce: "Regla de {{discipline}} vigente",
-        none: "Todavía no hay regla de {{discipline}}",
-      },
       save: "Guardar regla de {{discipline}}",
       saved: "Regla de {{discipline}} guardada",
       loading: "Cargando la regla",

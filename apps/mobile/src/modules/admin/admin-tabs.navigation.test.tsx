@@ -231,7 +231,9 @@ describe("admin tabs", () => {
     await user.press(screen.getByText("One for surf, one for skate"));
 
     expect(app.getPathname()).toBe("/admin/cancellation-rules");
-    expect(await screen.findByText("No rule for surf yet")).toBeOnTheScreen();
+    expect(
+      await screen.findByPlaceholderText(/Students can cancel without penalty/),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 

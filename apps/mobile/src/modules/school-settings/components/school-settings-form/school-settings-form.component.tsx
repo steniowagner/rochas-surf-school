@@ -7,10 +7,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PhoneNumberField } from "@/components/phone-number-field";
 import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
+import { useScrollToEndOnKeyboard } from "@/hooks/use-scroll-to-end-on-keyboard.hook";
 import { useTheme } from "@/hooks/use-theme";
 
 import { usePinnedFooter } from "../../hooks/use-pinned-footer.hook";
-import { useScrollToEndOnKeyboard } from "../../hooks/use-scroll-to-end-on-keyboard.hook";
 
 import { useSchoolSettingsForm } from "./school-settings-form.hook";
 import { SchoolSettingsFormProps } from "./school-settings-form.types";

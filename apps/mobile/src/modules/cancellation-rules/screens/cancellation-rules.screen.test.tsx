@@ -37,7 +37,8 @@ const open = async (rules = { surf: SURF, skate: null as string | null }) => {
 
 const saveButton = (discipline = "surf") =>
   screen.getByRole("button", { name: `Save rule for ${discipline}` });
-const field = () => screen.getByPlaceholderText(/Students can cancel without penalty/);
+const field = () =>
+  screen.getByPlaceholderText(/Students can cancel without penalty/);
 
 describe("CancellationRulesScreen", () => {
   beforeEach(() => jest.mocked(router.back).mockClear());
@@ -45,12 +46,14 @@ describe("CancellationRulesScreen", () => {
   it("opens on surf with the saved text, the note in force and the save button off (cancellation rules)", async () => {
     await open();
 
-    expect(screen.getByRole("header", { name: "Cancellation rules" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Cancellation rules" }),
+    ).toBeOnTheScreen();
     expect(screen.getByText(/never the students'/)).toBeOnTheScreen();
     expect(screen.getByText(/Give exact deadlines in hours/)).toBeOnTheScreen();
     expect(screen.getByText(/Avoid ambiguity/)).toBeOnTheScreen();
     expect(screen.getByDisplayValue(SURF)).toBeOnTheScreen();
-    expect(screen.getByText("Current rule for surf")).toBeOnTheScreen();
+    expect(screen.queryByText("Current rule for surf")).toBeNull();
     expect(screen.getByText(`${SURF.length}/2000`)).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
@@ -66,13 +69,11 @@ describe("CancellationRulesScreen", () => {
 
     await user.type(field(), "!");
 
-    expect(screen.getByText("Unsaved changes")).toBeOnTheScreen();
     expect(saveButton()).toBeEnabled();
 
     await user.clear(field());
     await user.type(field(), `  ${SURF}  `);
 
-    expect(screen.getByText("Current rule for surf")).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
 
@@ -82,7 +83,6 @@ describe("CancellationRulesScreen", () => {
     await user.type(field(), " Mais.");
     await user.press(screen.getByRole("tab", { name: "Skate" }));
 
-    expect(screen.getByText("No rule for skate yet")).toBeOnTheScreen();
     expect(screen.getByDisplayValue("")).toBeOnTheScreen();
     expect(saveButton("skate")).toBeDisabled();
 
@@ -99,18 +99,25 @@ describe("CancellationRulesScreen", () => {
   it("saves the rule, shows the toast, stays on the screen and goes back to in force (cancellation rules)", async () => {
     const user = await open();
     await user.type(field(), " Mais.");
-    fetchMock.mockResolvedValue(jsonResponse(200, { surf: `${SURF} Mais.`, skate: null }));
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { surf: `${SURF} Mais.`, skate: null }),
+    );
 
     await user.press(saveButton());
 
     expect(await screen.findByText("Rule for surf saved")).toBeOnTheScreen();
-    expect(fetchMock).toHaveBeenLastCalledWith("http://api.test/cancellation-rules/surf", {
-      method: "PUT",
-      headers: { Authorization: "Bearer at-1", "Content-Type": "application/json" },
-      body: JSON.stringify({ text: `${SURF} Mais.` }),
-    });
-    await waitFor(() => expect(screen.getByText("Current rule for surf")).toBeOnTheScreen());
-    expect(saveButton()).toBeDisabled();
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "http://api.test/cancellation-rules/surf",
+      {
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer at-1",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: `${SURF} Mais.` }),
+      },
+    );
+    await waitFor(() => expect(saveButton()).toBeDisabled());
     expect(router.back).not.toHaveBeenCalled();
   });
 
@@ -121,9 +128,11 @@ describe("CancellationRulesScreen", () => {
 
     await user.press(saveButton());
 
-    expect(await screen.findByText("Something went wrong. Please try again.")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Something went wrong. Please try again."),
+    ).toBeOnTheScreen();
     expect(screen.getByDisplayValue(`${SURF} Mais.`)).toBeOnTheScreen();
-    expect(screen.getByText("Unsaved changes")).toBeOnTheScreen();
+    expect(saveButton()).toBeEnabled();
   });
 
   it("keeps the button off for a blank draft (cancellation rules)", async () => {
@@ -132,7 +141,6 @@ describe("CancellationRulesScreen", () => {
     await user.clear(field());
     await user.type(field(), "   ");
 
-    expect(screen.getByText("Unsaved changes")).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
 
@@ -149,7 +157,9 @@ describe("CancellationRulesScreen", () => {
 
     expect(screen.getByTestId("cancellation-rules-loading")).toBeOnTheScreen();
     expect(screen.getByLabelText("Loading the rule")).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "CANCELLATION RULES" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "CANCELLATION RULES" }),
+    ).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: /Save rule/ })).toBeNull();
   });
 
@@ -159,8 +169,12 @@ describe("CancellationRulesScreen", () => {
     await renderWithProviders(<CancellationRulesScreen />);
     const user = userEvent.setup();
 
-    expect(await screen.findByText("Couldn't load the rules")).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "CANCELLATION RULES" })).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Couldn't load the rules"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "CANCELLATION RULES" }),
+    ).toBeOnTheScreen();
     expect(screen.queryByText(/never the students'/)).toBeNull();
     fetchMock.mockResolvedValue(jsonResponse(200, { surf: SURF, skate: null }));
     await user.press(screen.getByRole("button", { name: "Try again" }));

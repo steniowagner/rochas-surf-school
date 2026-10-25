@@ -424,11 +424,6 @@ const messages: Messages = {
       tipTime: "Indique prazos exatos em horas antes do início da aula — nada de \"em cima da hora\".",
       tipAmbiguity: "Evite ambiguidade: se uma pessoa hesitar ao ler, o app também vai hesitar.",
       placeholder: "Ex.: O aluno pode cancelar sem penalidade até 12 horas antes do início da aula…",
-      note: {
-        unsaved: "Alterações não salvas",
-        inForce: "Regra de {{discipline}} em vigor",
-        none: "Ainda não há regra de {{discipline}}",
-      },
       save: "Salvar regra de {{discipline}}",
       saved: "Regra de {{discipline}} salva",
       loading: "Carregando a regra",

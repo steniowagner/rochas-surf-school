@@ -129,7 +129,7 @@ const renderScreen = async (
   const view = await render(
     <QueryClientProvider client={queryClient}>
       <ClassesWeekScreen
-        titleKey="tabs.classes"
+        header="title"
         classRoute={openClass as never}
         {...props}
       />
@@ -188,11 +188,33 @@ describe("ClassesWeekScreen", () => {
     expect(requestedPaths()).toEqual([`/classes?date=${THIS_MONDAY}`]);
   });
 
-  it("uses the title it is given", async () => {
-    await renderScreen({ titleKey: "tabs.classes" });
+  it("shows the title in the header", async () => {
+    await renderScreen({ header: "title" });
     await screen.findByText("16:00 – 17:00");
 
     expect(screen.getByText("CLASSES")).toBeOnTheScreen();
+  });
+
+  it("puts the sport filter in the header instead of floating over the list", async () => {
+    const user = userEvent.setup();
+    await renderScreen({ filterInHeader: true });
+    await screen.findByText("16:00 – 17:00");
+
+    expect(
+      screen.getAllByRole("button", { name: "Filter by sport" }),
+    ).toHaveLength(1);
+    expect(
+      screen.queryByTestId("discipline-filter-option-skate"),
+    ).not.toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(
+      screen.getByTestId("discipline-filter-option-skate").children[0] as never,
+    );
+
+    expect(
+      screen.queryByTestId("discipline-filter-option-skate"),
+    ).not.toBeOnTheScreen();
   });
 
   it("puts the calendar on the Agenda band when banded", async () => {
@@ -213,8 +235,8 @@ describe("ClassesWeekScreen", () => {
     ).not.toEqual(expect.stringContaining("bg-band"));
   });
 
-  it("leaves the header to its stack without a title", async () => {
-    await renderScreen({ titleKey: undefined });
+  it("leaves the header to its stack by default", async () => {
+    await renderScreen({ header: undefined });
     await screen.findByText("16:00 – 17:00");
 
     expect(screen.queryByText("CLASSES")).not.toBeOnTheScreen();
@@ -902,11 +924,11 @@ describe("ClassesWeekScreen sport filter", () => {
   });
 
   it.each([
-    ["the student", { titleKey: undefined, showEnrolment: true, banded: true }],
-    ["the instructor", { titleKey: "tabs.classes" as const }],
+    ["the student", { header: undefined, showEnrolment: true, banded: true }],
+    ["the instructor", { header: "hidden" as const }],
     [
       "the admin",
-      { titleKey: "tabs.classes" as const, canCreate: true, showFlags: true },
+      { header: "title" as const, canCreate: true, showFlags: true },
     ],
   ])("shows the filter button for every role: %s", async (_role, props) => {
     await renderScreen(props);

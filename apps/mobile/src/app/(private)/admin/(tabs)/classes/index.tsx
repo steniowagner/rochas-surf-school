@@ -4,7 +4,8 @@ import { ClassesWeekScreen } from "@/modules/classes/screens/classes-week.screen
 export default function ClassesRoute() {
   return (
     <ClassesWeekScreen
-      titleKey="tabs.classes"
+      header="title"
+      filterInHeader
       classRoute={routes.admin.classDetail}
       canCreate
       showFlags

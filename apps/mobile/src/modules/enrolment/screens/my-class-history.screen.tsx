@@ -8,6 +8,8 @@ import { ErrorState } from "@/components/ui/error-state";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { ClassCard } from "@/modules/classes/components/class-card";
 import { ClassCardSkeleton } from "@/modules/classes/components/class-card-skeleton";
+import { DisciplineFilter } from "@/modules/classes/components/discipline-filter";
+import { DISCIPLINE_FILTER_CLEARANCE } from "@/modules/classes/components/discipline-filter/discipline-filter.constants";
 import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { HistoryDayLabel } from "../components/history-day-label";
@@ -73,7 +75,12 @@ export function MyClassHistoryScreen() {
         <EmptyState
           icon="calendar-outline"
           title={t(`${copy}.title`)}
-          description={t(`${copy}.description`)}
+          description={t(
+            screen.discipline === "all"
+              ? `${copy}.description`
+              : `${copy}.descriptionSport`,
+            { sport: t(`classesWeek.disciplineFilter.${screen.discipline}`) },
+          )}
         />
       </View>
     );
@@ -87,6 +94,7 @@ export function MyClassHistoryScreen() {
           headerTitle: () => <StackHeaderTitle title={t("myHistory.title")} />,
         }}
       />
+      {/* The list is the screen's first view, so the header can find it for the scroll-edge blur: the filter floats beside it. */}
       <FlatList
         testID="my-history-list"
         className="flex-1 bg-page"
@@ -97,7 +105,8 @@ export function MyClassHistoryScreen() {
         contentContainerClassName="gap-3 px-screen"
         contentContainerStyle={{
           paddingTop: 8,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom:
+            Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
         }}
         refreshControl={
           <RefreshControl
@@ -133,7 +142,9 @@ export function MyClassHistoryScreen() {
               title={t("myHistory.allClasses")}
               caption={screen.caption}
               dayLabel={screen.dayLabel}
-              clearDayLabel={t("myHistory.clearDay", { date: screen.dayLabel })}
+              clearDayLabel={t("myHistory.clearDay", {
+                date: screen.dayLabel,
+              })}
               onClearDay={screen.clearDay}
             />
           </View>
@@ -150,6 +161,10 @@ export function MyClassHistoryScreen() {
           )
         }
         ListEmptyComponent={renderEmpty()}
+      />
+      <DisciplineFilter
+        value={screen.discipline}
+        onChange={screen.selectDiscipline}
       />
     </>
   );

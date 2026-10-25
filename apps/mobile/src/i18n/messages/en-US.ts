@@ -457,6 +457,8 @@ const messages = {
       title: "Nothing here",
       all: "You haven't asked for a seat in any class yet.",
       filtered: "You have no requests with this status.",
+      allSport: "You haven't asked for a seat in any {{sport}} class yet.",
+      filteredSport: "You have no {{sport}} requests with this status.",
     },
     loading: "Loading the classes",
     loadError: {
@@ -480,10 +482,12 @@ const messages = {
     emptyDay: {
       title: "No classes this day",
       description: "You didn't take any class this day.",
+      descriptionSport: "You didn't take any {{sport}} class this day.",
     },
     emptyPeriod: {
       title: "No classes in this period",
       description: "You didn't take any class in this period.",
+      descriptionSport: "You didn't take any {{sport}} class in this period.",
     },
   },
   userHeader: {

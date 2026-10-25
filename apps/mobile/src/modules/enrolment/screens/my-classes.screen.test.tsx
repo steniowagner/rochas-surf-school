@@ -116,6 +116,33 @@ afterEach(async () => {
 });
 
 describe("MyClassesScreen", () => {
+  it("filters the classes by sport, on top of the status chip", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue(
+      ok({
+        items: [
+          ...ITEMS,
+          withStatus("c-5", "2026-10-18T11:00:00.000Z", "2026-10-18T12:00:00.000Z", "pending", {
+            discipline: "skate",
+          }),
+        ],
+      }),
+    );
+    await renderScreen();
+    await screen.findByText("16:00 – 17:00");
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByTestId("discipline-filter-option-skate").children[0] as never);
+
+    expect(screen.getAllByRole("button", { name: /^Skate, / })).toHaveLength(1);
+    expect(screen.queryAllByRole("button", { name: /^Surf, / })).toHaveLength(0);
+
+    await user.press(screen.getByRole("button", { name: "Confirmed" }));
+
+    expect(screen.queryAllByRole("button", { name: /^Skate, / })).toHaveLength(0);
+    expect(screen.getByText("You have no Skate requests with this status.")).toBeOnTheScreen();
+  });
+
   it("shows the title, the history button, the chips with All selected and the classes in order", async () => {
     await renderScreen();
 

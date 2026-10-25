@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import type { CalendarPeriod } from "@/components/week-month-calendar/week-month-calendar.types";
 import { routes } from "@/constants/routes";
-import type { ClassItem } from "@/modules/classes/classes.types";
+import type { ClassItem, DisciplineFilterValue } from "@/modules/classes/classes.types";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
 import { todayInSchoolZone } from "@/modules/classes/utils/calendar";
 import { SessionExpiredError } from "@/services/api";
@@ -38,10 +38,14 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
   // Local state: the screen always opens on Fortaleza's current month, with no day selected.
   const [period, setPeriod] = useState<CalendarPeriod>(() => monthPeriod(monthOf(todayInSchoolZone())));
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const query = useMyClassHistory(period);
 
-  const items = query.data?.items ?? NO_ITEMS;
+  // Like the day, the sport filters the period already loaded, with no request.
+  const items = (query.data?.items ?? NO_ITEMS).filter(
+    (item) => discipline === "all" || item.discipline === discipline,
+  );
   // The day filter runs on the period already loaded: picking or clearing a day sends no request.
   const rows: HistoryRow[] = groupClassesByDay(filterClassesByDay(items, selectedDay)).flatMap(
     ({ day, items: dayItems }) => [
@@ -68,6 +72,8 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
     now,
     today,
     selectedDay,
+    discipline,
+    selectDiscipline: setDiscipline,
     markedDates: daysWithClasses(items),
     caption: isWeek ? weekCaption(period.from, locale) : monthCaption(monthOf(period.from), locale),
     dayLabel: selectedDay === null ? null : historyChipLabel(selectedDay, locale),

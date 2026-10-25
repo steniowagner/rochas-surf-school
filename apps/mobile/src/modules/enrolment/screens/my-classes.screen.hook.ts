@@ -2,7 +2,10 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 
 import { routes } from "@/constants/routes";
-import type { ClassItem } from "@/modules/classes/classes.types";
+import type {
+  ClassItem,
+  DisciplineFilterValue,
+} from "@/modules/classes/classes.types";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
 import { SessionExpiredError } from "@/services/api";
 
@@ -17,18 +20,22 @@ const NO_ITEMS: ClassItem[] = [];
 export const useMyClassesScreen = (): UseMyClassesScreenResult => {
   const now = useNow();
   const [filter, setFilter] = useState<MyClassesFilter>("all");
+  const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   // Only the user's pull-to-refresh turns the spinner on, not the refetch of a focus.
   const [isRefreshing, setIsRefreshing] = useState(false);
   const query = useMyClasses();
   const { refetch } = query;
 
   // Back on the tab, the requests may have changed elsewhere (the Agenda, a push): read them again, without
-  // restarting a load already running. Leaving the tab puts the chips back on "Todos".
+  // restarting a load already running. Leaving the tab puts the chips and the sport back on "Todos".
   useFocusEffect(
     useCallback(() => {
       void refetch({ cancelRefetch: false });
 
-      return () => setFilter("all");
+      return () => {
+        setFilter("all");
+        setDiscipline("all");
+      };
     }, [refetch]),
   );
 
@@ -44,20 +51,27 @@ export const useMyClassesScreen = (): UseMyClassesScreenResult => {
   // With no classes loaded, a fetch after an error goes back to pending: while "Try again" runs, the error stays on
   // screen with the spinner in its button, instead of the loading state.
   const isRetrying = query.isPending && query.errorUpdateCount > 0;
-  const items = filterMyClasses(query.data?.items ?? NO_ITEMS, filter);
+  const items = filterMyClasses(query.data?.items ?? NO_ITEMS, filter).filter(
+    (item) => discipline === "all" || item.discipline === discipline,
+  );
 
   return {
     now,
     filter,
     selectFilter: setFilter,
+    discipline,
+    selectDiscipline: setDiscipline,
     items,
     isEmpty: query.data !== undefined && items.length === 0,
-    emptyKey: filter === "all" ? "myClasses.empty.all" : "myClasses.empty.filtered",
+    emptyKey:
+      `myClasses.empty.${filter === "all" ? "all" : "filtered"}${discipline === "all" ? "" : "Sport"}` as const,
     isLoading: query.isPending && !isRetrying,
     // An expired session is handled by the session flow; a failed refetch keeps the list it had.
     isError:
       isRetrying ||
-      (query.isError && query.data === undefined && !(query.error instanceof SessionExpiredError)),
+      (query.isError &&
+        query.data === undefined &&
+        !(query.error instanceof SessionExpiredError)),
     isRetrying,
     isRefreshing,
     refresh,

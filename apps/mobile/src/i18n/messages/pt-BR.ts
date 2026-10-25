@@ -457,6 +457,8 @@ const messages: Messages = {
       title: "Nada por aqui",
       all: "Você ainda não pediu vaga em nenhuma aula.",
       filtered: "Você não tem pedidos com este status.",
+      allSport: "Você ainda não pediu vaga em nenhuma aula de {{sport}}.",
+      filteredSport: "Você não tem pedidos de {{sport}} com este status.",
     },
     loading: "Carregando as aulas",
     loadError: {
@@ -480,10 +482,12 @@ const messages: Messages = {
     emptyDay: {
       title: "Sem aulas neste dia",
       description: "Você não fez nenhuma aula neste dia.",
+      descriptionSport: "Você não fez nenhuma aula de {{sport}} neste dia.",
     },
     emptyPeriod: {
       title: "Sem aulas neste período",
       description: "Você não fez nenhuma aula neste período.",
+      descriptionSport: "Você não fez nenhuma aula de {{sport}} neste período.",
     },
   },
   userHeader: {

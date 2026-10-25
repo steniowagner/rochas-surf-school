@@ -3,10 +3,11 @@ id: "060"
 slug: enrol-student-steps
 title: "Split \"Inscrever aluno\" into Quem and Aula steps"
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 8e31960b5c4e9506b388de0ab4e3e0f5b272f34a
+reviewed_commit: 4211fb444af0dd9cb99bcf734b5c7cc9a7eb084e
 fronts: [mobile]
 depends_on: []
 ---
@@ -333,3 +334,49 @@ step shows inside, the requests and their outcomes stay as they are.
   keep a test added later from running in Spanish.
 - `## Memory Impact` still doesn't mention the Aula step's sport filter (D-07), as round 1 noted.
 - Not exercised: the light theme and pt-BR on screen, as in round 1.
+
+### Round 3 — 2026-10-25 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 12 tasks)
+- related tests ✅ 874 passed, 45 suites (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK, 6 measured files at 100%; no coverage-ignore comments, TODOs or
+  debug leftovers in the diff
+- e2e ✅ no suite applies (mobile only) · user journey driven in the iOS simulator (iPhone 18 Pro, en-US, dark theme)
+
+**Round 2 findings**
+
+- F-04 ✅ — both "sends once when the button is pressed twice" tests (student and trial) assert that the "Enrol"
+  label is gone while the POST is pending. Mutation check: with `loading={screen.isSubmitting}` deleted from the
+  footer `Button`, both tests fail (2 failed); restored, all 39 pass.
+- F-05 ✅ — `@/i18n` comes before `@/modules/classes/classes.test-utils` in `enrol-student.screen.hook.test.tsx`.
+
+Since round 2 only those two test files changed under `apps/` (`git diff b12a981b..HEAD -- apps`).
+
+**Expected Results**
+
+- ER-01 ✅ — opened on "Who" with both tabs "Not chosen", "School student", the search and list, no intro or
+  section labels, "Choose class" fixed and disabled; tapping the disabled "Class" tab did nothing; picking "Ana
+  Souza" showed the check and the name and turned the button on. Trial mode, loading, empty, error/retry and
+  load-more are covered by `enrol-student.screen.test.tsx`.
+- ER-02 ✅ — "Choose class" showed the calendar, "No classes this day" on Sun 25, the sport filter above the footer
+  and "Enrol" disabled; picking the Sun 1 08:00 class showed "Sun 1 · 08:00" with a check and turned "Enrol" on;
+  back on "Who" the student was still picked; after switching to "Bruno Lima" and back on "Class", the day and the
+  class were still picked. The filter cases, the day change and the pt-BR/es-ES/en-US values are asserted in the
+  screen and hook tests.
+- ER-03 ✅ — "Enrol" sent the enrolment, the toast "Bruno Lima enrolled · student notified" showed and the screen
+  went back. Spinner, double press, refused, reload and generic errors are covered by the screen tests (spinner now
+  proven by the F-04 mutation check).
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `## Memory Impact` still doesn't mention the Aula step's sport filter (D-07). `spec-finish` should add it to the
+  `EnrolStudentScreen` bullet and the "Inscrever aluno" product paragraph.
+- D-03's `"EEE d"` is implemented as the first three letters of `"EEEE"` (T-02 deviation); `spec-finish` should
+  word the memory after the code.
+- Not exercised on screen: the light theme and pt-BR (asserted in the hook test), as in earlier rounds.

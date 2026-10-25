@@ -13,7 +13,10 @@ export function OccupancyLegend() {
     >
       {LEGEND_ITEMS.map(({ swatch, key }) => (
         <View key={key} className="flex-row items-center gap-1.5">
-          <View className={`h-2.5 w-2.5 rounded-swatch ${swatch}`} />
+          <View
+            testID={`occupancy-legend-swatch-${key}`}
+            className={`h-2.5 w-2.5 rounded-swatch ${swatch}`}
+          />
           <Text className="ds-text-occupancy text-ink-2">
             {t(`weeklyOccupancy.legend.${key}`)}
           </Text>

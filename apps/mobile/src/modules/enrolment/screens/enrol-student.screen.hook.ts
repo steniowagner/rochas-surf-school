@@ -12,12 +12,12 @@ import { useVisibleWeeksClasses } from "@/modules/classes/hooks/use-visible-week
 import { useWeekClasses } from "@/modules/classes/hooks/use-week-classes.hook";
 import { todayInSchoolZone } from "@/modules/classes/utils/calendar";
 import { isClassFull } from "@/modules/classes/utils/occupancy";
-import { schoolDayOf } from "@/modules/classes/utils/week";
+import { schoolDayOf, schoolTimeOf } from "@/modules/classes/utils/week";
 import { usePeople } from "@/modules/people/hooks/use-people.hook";
 import type { Person } from "@/modules/people/people.types";
 import { useAlertMessage } from "@/providers/alert-message";
 import { SessionExpiredError } from "@/services/api";
-import { addDays, mondayOf } from "@/utils/calendar-dates";
+import { addDays, formatIsoDate, getDateLocale, mondayOf } from "@/utils/calendar-dates";
 
 import { useAddGuest } from "../hooks/use-add-guest.hook";
 import { useEnrolStudent } from "../hooks/use-enrol-student.hook";
@@ -28,14 +28,23 @@ import {
   shouldReloadEnrolClasses,
 } from "../utils/enrolment-error";
 
-import type { EnrolMode, UseEnrolStudentScreenResult } from "./enrol-student.screen.types";
+import type { EnrolMode, EnrolStep, UseEnrolStudentScreenResult } from "./enrol-student.screen.types";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const STUDENT_ROLES: Person["role"][] = ["student"];
 const END_REACHED_OFFSET = 80;
 
+/** "Qua 16 · 09:00": the class's school day (weekday capitalized) and its start time. */
+const formatClassValue = (startsAt: string, locale: ReturnType<typeof getDateLocale>) => {
+  const isoDay = schoolDayOf(startsAt);
+  // The first three letters of the full name: date-fns' own "EEE" spells out "Quarta" in pt-BR.
+  const weekday = formatIsoDate(isoDay, "EEEE", locale).slice(0, 3);
+
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${formatIsoDate(isoDay, "d", locale)} · ${schoolTimeOf(startsAt)}`;
+};
+
 export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const alertMessage = useAlertMessage();
   const enrolMutation = useEnrolStudent();
   const addGuestMutation = useAddGuest();
@@ -51,6 +60,7 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     to: addDays(currentWeek, 6),
   });
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [step, setStep] = useState<EnrolStep>("who");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<EnrolMode>("student");
   const [guestName, setGuestName] = useState("");
@@ -83,6 +93,15 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
       : null;
   const trimmedGuestName = guestName.trim();
   const isGuestNameValid = isValid(trimmedGuestName, nameRules());
+  // The person is ready: a picked student, or a valid trial name and number.
+  const isWhoDone =
+    mode === "student" ? selectedStudent !== null : isGuestNameValid && phone.isNumberValid;
+  const whoValue = isWhoDone
+    ? mode === "student"
+      ? (selectedStudent?.name ?? null)
+      : trimmedGuestName
+    : null;
+  const classValue = freeClass ? formatClassValue(freeClass.startsAt, getDateLocale(i18n.language)) : null;
   const target =
     freeClass && mode === "student" && selectedStudent
       ? { student: selectedStudent, classId: freeClass.id }
@@ -229,7 +248,17 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     selectClass: setSelectedClassId,
     // Undefined until the person (a picked student, or a valid trial name and number) and a class with a free seat are set.
     submit: submitAction,
-    submitName: mode === "student" ? (selectedStudent?.name ?? null) : trimmedGuestName || null,
+    step,
+    // The Aula step can't be reached before the person is ready.
+    goToStep: (next) => {
+      if (next === "who" || isWhoDone) {
+        setStep(next);
+      }
+    },
+    isWhoDone,
+    isClassDone: freeClass !== null,
+    whoValue,
+    classValue,
     isSubmitting,
     mode,
     setMode,

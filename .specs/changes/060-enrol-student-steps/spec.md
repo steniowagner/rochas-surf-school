@@ -113,7 +113,7 @@ step shows inside, the requests and their outcomes stay as they are.
   > ✅ 2026-10-25 — created `StepTabs`; files: `apps/mobile/src/components/ui/step-tabs/index.ts`,
   > `step-tabs.component.tsx`, `step-tabs.types.ts`, `step-tabs.component.test.tsx`; verified: `npx jest src/components/ui/step-tabs` (6 passed);
   > deviations: none (no hook file: the component has no state)
-- [ ] **T-02** — In `src/modules/enrolment/screens/enrol-student.screen.hook.ts` and `.types.ts`, add the step state
+- [x] **T-02** — In `src/modules/enrolment/screens/enrol-student.screen.hook.ts` and `.types.ts`, add the step state
   and rules of D-02 (`step`, `isWhoDone`, `isClassDone`, `goToStep`, or names to that effect), the tab values of D-03
   (the person's name, the class's "<weekday> <day> · <HH:mm>" in the active locale, or `null` when not done), and
   remove `submitName` (D-04); extend `enrol-student.screen.hook.test.tsx` with: the initial step, the Quem rule in
@@ -123,6 +123,12 @@ step shows inside, the requests and their outcomes stay as they are.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/enrolment/screens/enrol-student.screen.hook.test.tsx`
   passes from `apps/mobile`.
+  > ✅ 2026-10-25 — added `step`, `goToStep`, `isWhoDone`, `isClassDone`, `whoValue`, `classValue`, removed `submitName`;
+  > files: `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.hook.ts`, `.types.ts`,
+  > `enrol-student.screen.hook.test.tsx`; verified: `npx jest src/modules/enrolment/screens/enrol-student.screen.hook.test.tsx`
+  > (14 passed); deviations: D-03 says `formatIsoDate(…, "EEE d", …)`, but date-fns' pt-BR "EEE" gives "Quarta", not "Qua"
+  > (the repo's `formatDeadline` hits the same); the weekday is the first three letters of "EEEE" instead, so pt-BR reads
+  > "Qua 14 · 16:00" as the ER-02 requires. The screen still reads `submitName` until T-03.
 - [ ] **T-03** — In `src/modules/enrolment/screens/enrol-student.screen.tsx`, remove the `ScreenIntro` and the section
   labels (D-05), render `StepTabs` at the top of the scroll and only the current step's content (D-06), and move the
   button into the fixed footer with both labels, icons and states (D-04); in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`

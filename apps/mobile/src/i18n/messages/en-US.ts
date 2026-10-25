@@ -827,8 +827,16 @@ const messages = {
       admin: "Admins",
     },
     since: "since {{date}}",
-    empty: "No one found",
-    loadError: "Couldn't load people.",
+    description: "Everyone on the platform: students, instructors and admins. Search by name or filter by role.",
+    loading: "Loading the people",
+    empty: {
+      title: "No one found",
+      description: "Try another name or clear the role filters.",
+    },
+    loadError: {
+      title: "Couldn't load the people",
+      description: "Check your connection and try again.",
+    },
     whatsapp: "Chat on WhatsApp",
     whatsappNotShared: "Number not shared.",
     email: "Email",

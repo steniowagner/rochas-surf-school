@@ -124,7 +124,7 @@ describe("PeopleScreen", () => {
 
     expect(await screen.findByText("Ana Silva")).toBeOnTheScreen();
     expect(screen.getByText("3 on the platform")).toBeOnTheScreen();
-    expect(screen.getByText("PEOPLE")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
     expect(screen.getByPlaceholderText("Search people")).toBeOnTheScreen();
     for (const name of ["Students", "Instructors", "Admins"]) {
       expect(
@@ -180,7 +180,7 @@ describe("PeopleScreen", () => {
     await renderScreen();
 
     expect(await screen.findByText("Person 0")).toBeOnTheScreen();
-    expect(screen.queryByText(/on the platform/)).not.toBeOnTheScreen();
+    expect(screen.queryByText(/^\d+ on the platform$/)).not.toBeOnTheScreen();
   });
 
   it("loads the next page at the end, shows the footer spinner and stops at the last page", async () => {
@@ -353,12 +353,16 @@ describe("PeopleScreen", () => {
 
     expect(screen.getByTestId("people-loading")).toBeOnTheScreen();
     await act(async () => answer(failure()));
-    expect(await screen.findByText("Couldn't load people.")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Couldn't load the people"),
+    ).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("Person 0")).toBeOnTheScreen();
-    expect(screen.queryByText("Couldn't load people.")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText("Couldn't load the people"),
+    ).not.toBeOnTheScreen();
   });
 
   it("shows neither the error nor the empty state when the session expired", async () => {
@@ -369,7 +373,9 @@ describe("PeopleScreen", () => {
       expect(screen.queryByTestId("people-loading")).not.toBeOnTheScreen(),
     );
 
-    expect(screen.queryByText("Couldn't load people.")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText("Couldn't load the people"),
+    ).not.toBeOnTheScreen();
     expect(screen.queryByText("No one found")).not.toBeOnTheScreen();
     expect(mockShow).not.toHaveBeenCalled();
   });
@@ -470,23 +476,40 @@ describe("PeopleScreen", () => {
       await renderScreen();
 
       let user = await open("Ana Silva");
-      expect(screen.getByRole("button", { name: "Make instructor" })).toBeOnTheScreen();
-      expect(screen.getByRole("button", { name: "Make admin" })).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Make instructor" }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Make admin" }),
+      ).toBeOnTheScreen();
       await user.press(screen.getByRole("button", { name: "Close" }));
 
       user = await open("João Pinto");
-      expect(screen.getByRole("button", { name: "Make admin" })).toBeOnTheScreen();
-      expect(screen.getByRole("button", { name: "Make student" })).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Make admin" }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Make student" }),
+      ).toBeOnTheScreen();
       await user.press(screen.getByRole("button", { name: "Close" }));
 
       user = await open("Bia Admin");
-      expect(screen.getByRole("button", { name: "Remove admin" })).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Remove admin" }),
+      ).toBeOnTheScreen();
       await user.press(screen.getByRole("button", { name: "Close" }));
 
       await open("Rita Me");
       expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
-      for (const action of ["Make instructor", "Make admin", "Make student", "Remove admin"]) {
-        expect(screen.queryByRole("button", { name: action })).not.toBeOnTheScreen();
+      for (const action of [
+        "Make instructor",
+        "Make admin",
+        "Make student",
+        "Remove admin",
+      ]) {
+        expect(
+          screen.queryByRole("button", { name: action }),
+        ).not.toBeOnTheScreen();
       }
     });
 
@@ -497,27 +520,36 @@ describe("PeopleScreen", () => {
       await open("João Pinto");
 
       expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
-      expect(screen.queryByRole("button", { name: "Make admin" })).not.toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: "Make admin" }),
+      ).not.toBeOnTheScreen();
     });
 
     it("confirms a promotion: the sheet closes and the row shows the new chip", async () => {
       setupSignedInAdmin();
       let promoted = false;
-      fetchMock.mockImplementation(async (url: string, init?: { method?: string }) => {
-        const path = String(url).replace("http://api.test", "");
-        if (init?.method === "PUT") {
-          promoted = true;
-          return ok({ id: "p-1", role: "instructor" });
-        }
-        return path === "/people?perPage=1"
-          ? ok(buildPage(1, 1, 1))
-          : ok({
-              items: [buildPerson(1, { name: "Ana Silva", role: promoted ? "instructor" : "student" })],
-              page: 1,
-              perPage: 20,
-              total: 1,
-            });
-      });
+      fetchMock.mockImplementation(
+        async (url: string, init?: { method?: string }) => {
+          const path = String(url).replace("http://api.test", "");
+          if (init?.method === "PUT") {
+            promoted = true;
+            return ok({ id: "p-1", role: "instructor" });
+          }
+          return path === "/people?perPage=1"
+            ? ok(buildPage(1, 1, 1))
+            : ok({
+                items: [
+                  buildPerson(1, {
+                    name: "Ana Silva",
+                    role: promoted ? "instructor" : "student",
+                  }),
+                ],
+                page: 1,
+                perPage: 20,
+                total: 1,
+              });
+        },
+      );
       await renderScreen();
       const user = await open("Ana Silva");
 
@@ -525,8 +557,12 @@ describe("PeopleScreen", () => {
       expect(screen.getByText("Make Ana an instructor?")).toBeOnTheScreen();
       await user.press(screen.getByRole("button", { name: "Make instructor" }));
 
-      await waitFor(() => expect(screen.getByText("Instructor")).toBeOnTheScreen());
-      expect(screen.queryByText("Make Ana an instructor?")).not.toBeOnTheScreen();
+      await waitFor(() =>
+        expect(screen.getByText("Instructor")).toBeOnTheScreen(),
+      );
+      expect(
+        screen.queryByText("Make Ana an instructor?"),
+      ).not.toBeOnTheScreen();
       expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
       expect(requestedPaths()).toContain("/people/p-1/role");
     });

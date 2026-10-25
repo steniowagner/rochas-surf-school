@@ -84,6 +84,7 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     isEmpty: query.isSuccess && query.people.length === 0,
     isFetchingNextPage: query.isFetchingNextPage,
     isRefreshing,
+    isRetrying: query.isFetching,
     retry: () => {
       query.refetch();
     },

@@ -14,6 +14,8 @@ export type UsePeopleScreenResult = {
   isEmpty: boolean;
   isFetchingNextPage: boolean;
   isRefreshing: boolean;
+  /** True while the retry of a failed load runs. */
+  isRetrying: boolean;
   retry: () => void;
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;

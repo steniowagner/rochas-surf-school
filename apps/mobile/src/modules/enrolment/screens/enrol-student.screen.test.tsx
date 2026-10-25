@@ -279,10 +279,12 @@ describe("EnrolStudentScreen", () => {
     await goToClass(user);
     await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
-    await user.press(submitButton("Enrol"));
-    await user.press(submitButton("Enrol"));
+    const enrol = submitButton("Enrol");
+    await user.press(enrol);
+    await user.press(enrol);
 
     expect(posts()).toHaveLength(1);
+    expect(screen.queryByText("Enrol")).not.toBeOnTheScreen();
     finish(ok({ id: "e-1", classId: "c-open", status: "approved", requestedAt: NOW.toISOString() }));
     await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
     expect(posts()).toHaveLength(1);
@@ -690,10 +692,12 @@ describe("EnrolStudentScreen", () => {
       await goToClass(user);
       await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
-      await user.press(submitButton("Enrol"));
-      await user.press(submitButton("Enrol"));
+      const enrol = submitButton("Enrol");
+      await user.press(enrol);
+      await user.press(enrol);
 
       expect(posts()).toHaveLength(1);
+      expect(screen.queryByText("Enrol")).not.toBeOnTheScreen();
       finish(ok({ id: "g-1", classId: "c-open", name: "Carolina Reis" }));
       await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
     });

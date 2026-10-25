@@ -32,7 +32,7 @@ export function StepTabs<T extends string>({
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             disabled={disabled}
             onPress={isSelected ? undefined : () => onChange(step.key)}
-            className={`min-h-11 flex-1 flex-row items-center gap-2 rounded-full p-2 ${isSelected ? "bg-surface" : ""} ${disabled ? "opacity-50" : ""}`}
+            className={`min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full p-2 ${isSelected ? "bg-surface" : ""} ${disabled ? "opacity-50" : ""}`}
             style={isSelected ? shadowStyle("iconButton", theme) : undefined}
           >
             <View
@@ -44,7 +44,7 @@ export function StepTabs<T extends string>({
                 <Text className="ds-text-chip text-ink-2">{index + 1}</Text>
               )}
             </View>
-            <View className="flex-1">
+            <View className="shrink">
               <Text numberOfLines={1} className="ds-text-chip text-ink-2">
                 {step.label}
               </Text>

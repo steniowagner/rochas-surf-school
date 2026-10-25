@@ -126,6 +126,9 @@ async function renderScreen() {
 
 const submitButton = (name: string) => screen.getByRole("button", { name });
 
+const goToClass = (user: ReturnType<typeof userEvent.setup>) =>
+  user.press(screen.getByRole("button", { name: "Choose class" }));
+
 beforeEach(() => {
   setupSignedInUser();
   mockShow.mockReset();
@@ -155,21 +158,97 @@ beforeEach(() => {
 afterEach(() => jest.useRealTimers());
 
 describe("EnrolStudentScreen", () => {
-  it("shows the intro, the students and only the classes that haven't started and aren't cancelled", async () => {
+  it("opens on the Quem step: tabs, students, no intro, no class and a disabled Choose class", async () => {
     await renderScreen();
 
     expect(screen.getByText(/enrol a student/i)).toBeOnTheScreen();
-    expect(screen.getByText("Enrol a school student, or someone without an account in a trial class.")).toBeOnTheScreen();
-    expect(screen.getByText("1 · Who")).toBeOnTheScreen();
-    expect(screen.getByText("2 · Class")).toBeOnTheScreen();
+    expect(screen.queryByText("Enrol a school student, or someone without an account in a trial class.")).not.toBeOnTheScreen();
+    expect(screen.queryByText("1 · Who")).not.toBeOnTheScreen();
+    expect(screen.queryByText("2 · Class")).not.toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: /^Who/, selected: true })).toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "Class, Not chosen" })).toBeDisabled();
+    expect(screen.getAllByText("Not chosen")).toHaveLength(2);
     expect(await screen.findByRole("radio", { name: "Ana Souza" })).toBeOnTheScreen();
     expect(screen.getByRole("radio", { name: "Bruno Lima" })).toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "School student" })).toBeSelected();
+    expect(screen.queryByTestId("calendar-day-2026-10-15")).not.toBeOnTheScreen();
+    expect(requestedPaths()).toContain("/people?page=1&perPage=20&role=student");
+    expect(submitButton("Choose class")).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Enrol" })).not.toBeOnTheScreen();
+  });
+
+  it("enables Choose class and the Class tab once a student is picked, showing a check and the name", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+
+    expect(screen.getByRole("radio", { name: "Ana Souza" })).toBeSelected();
+    expect(screen.getByRole("tab", { name: "Who, Ana Souza" })).toBeOnTheScreen();
+    expect(screen.queryByText("1")).not.toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "Class, Not chosen" })).toBeEnabled();
+    expect(submitButton("Choose class")).toBeEnabled();
+  });
+
+  it("shows the Class step with the classes of the day and a disabled Enrol", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+
+    await goToClass(user);
+
+    expect(screen.getByRole("tab", { name: /^Class/, selected: true })).toBeOnTheScreen();
     expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
     expect(screen.getByText("15:00 – 16:00")).toBeOnTheScreen();
     expect(screen.queryByText("08:00 – 09:00")).not.toBeOnTheScreen();
     expect(screen.queryByText("14:00 – 15:00")).not.toBeOnTheScreen();
-    expect(requestedPaths()).toContain("/people?page=1&perPage=20&role=student");
+    expect(screen.queryByRole("radio", { name: "Ana Souza" })).not.toBeOnTheScreen();
     expect(submitButton("Enrol")).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Choose class" })).not.toBeOnTheScreen();
+  });
+
+  it("shows the picked class in the Class tab, and clears it on another day", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+    await goToClass(user);
+
+    await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+
+    expect(screen.getByRole("tab", { name: "Class, Wed 14 · 16:00" })).toBeOnTheScreen();
+    expect(submitButton("Enrol")).toBeEnabled();
+
+    await user.press(await screen.findByTestId("calendar-day-2026-10-15"));
+
+    expect(screen.getByRole("tab", { name: "Class, Not chosen" })).toBeOnTheScreen();
+    expect(submitButton("Enrol")).toBeDisabled();
+  });
+
+  it("keeps the student and the class when going back to the Who step and forward again", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+    await goToClass(user);
+    await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
+
+    await user.press(screen.getByRole("tab", { name: /^Who/ }));
+    expect(screen.getByRole("radio", { name: "Ana Souza" })).toBeSelected();
+    expect(submitButton("Choose class")).toBeEnabled();
+
+    await user.press(screen.getByRole("tab", { name: /^Class/ }));
+    expect(submitButton("Enrol")).toBeEnabled();
+    expect(screen.getByRole("tab", { name: "Class, Wed 14 · 16:00" })).toBeOnTheScreen();
+  });
+
+  it("turns Choose class off again when the person is no longer ready", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+
+    await user.press(screen.getByRole("tab", { name: "Trial class" }));
+
+    expect(submitButton("Choose class")).toBeDisabled();
+    expect(screen.getByRole("tab", { name: "Class, Not chosen" })).toBeDisabled();
   });
 
   it("enrols the picked student in the picked class, tells the admin and goes back", async () => {
@@ -177,10 +256,9 @@ describe("EnrolStudentScreen", () => {
     await renderScreen();
 
     await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
-    expect(screen.getByRole("radio", { name: "Ana Souza" })).toBeSelected();
-    expect(submitButton("Enrol Ana Souza")).toBeDisabled();
+    await goToClass(user);
     await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
-    await user.press(submitButton("Enrol Ana Souza"));
+    await user.press(submitButton("Enrol"));
 
     await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
     expect(posts()).toHaveLength(1);
@@ -198,10 +276,11 @@ describe("EnrolStudentScreen", () => {
     serve({ handlers: { "POST /classes/c-open/enrolments/direct": () => pending } });
     await renderScreen();
     await user.press(await screen.findByRole("radio", { name: "Bruno Lima" }));
+    await goToClass(user);
     await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
-    await user.press(submitButton("Enrol Bruno Lima"));
-    await user.press(submitButton("Enrol Bruno Lima"));
+    await user.press(submitButton("Enrol"));
+    await user.press(submitButton("Enrol"));
 
     expect(posts()).toHaveLength(1);
     finish(ok({ id: "e-1", classId: "c-open", status: "approved", requestedAt: NOW.toISOString() }));
@@ -214,15 +293,19 @@ describe("EnrolStudentScreen", () => {
     await renderScreen();
     await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
 
+    await goToClass(user);
+
     await user.press(await screen.findByRole("button", { name: /15:00 – 16:00/ }));
 
-    expect(submitButton("Enrol Ana Souza")).toBeDisabled();
+    expect(submitButton("Enrol")).toBeDisabled();
     expect(posts()).toHaveLength(0);
   });
 
   it("says there are no classes on a day without any", async () => {
     const user = userEvent.setup();
     await renderScreen();
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+    await goToClass(user);
 
     await user.press(await screen.findByTestId("calendar-day-2026-10-15"));
 
@@ -293,7 +376,7 @@ describe("EnrolStudentScreen", () => {
     expect(requestedPaths().filter((path) => path.includes("page=2"))).toHaveLength(0);
   });
 
-  it("shows the loading states and retries both lists after a failure", async () => {
+  it("shows the students loading state and retries after a failure", async () => {
     const user = userEvent.setup();
     let fail: (value: unknown) => void = () => undefined;
     const failing = new Promise((resolve) => {
@@ -304,17 +387,46 @@ describe("EnrolStudentScreen", () => {
 
     expect(screen.getByTestId("enrol-student-students-loading")).toBeOnTheScreen();
     expect(screen.getByLabelText("Loading the students")).toBeOnTheScreen();
-    expect(screen.getByTestId("enrol-student-classes-loading")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
+    expect(screen.queryByTestId("enrol-student-classes-loading")).not.toBeOnTheScreen();
     fail(failure(500));
-    const retries = await screen.findAllByRole("button", { name: "Try again" });
-    expect(retries).toHaveLength(2);
+    const retry = await screen.findByRole("button", { name: "Try again" });
 
     serve();
-    await user.press(retries[0]);
-    await user.press(retries[1]);
+    await user.press(retry);
 
     expect(await screen.findByRole("radio", { name: "Ana Souza" })).toBeOnTheScreen();
+  });
+
+  it("shows the classes loading state and retries after a failure", async () => {
+    const user = userEvent.setup();
+    let failClasses = true;
+    serve({ handlers: { [`GET /classes?date=${THIS_MONDAY}`]: () => (failClasses ? failure(500) : ok({ weekStart: THIS_MONDAY, items: [OPEN] })) } });
+    await renderScreen();
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+    await goToClass(user);
+
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeOnTheScreen();
+
+    failClasses = false;
+    await user.press(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
+  });
+
+  it("shows the classes skeleton while they load", async () => {
+    const user = userEvent.setup();
+    let finish: (value: unknown) => void = () => undefined;
+    const pending = new Promise((resolve) => {
+      finish = resolve;
+    });
+    serve({ handlers: { [`GET /classes?date=${THIS_MONDAY}`]: () => pending } });
+    await renderScreen();
+    await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+    await goToClass(user);
+
+    expect(screen.getByTestId("enrol-student-classes-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
+    finish(ok({ weekStart: THIS_MONDAY, items: [OPEN] }));
     expect(await screen.findByText("16:00 – 17:00")).toBeOnTheScreen();
   });
 
@@ -329,17 +441,18 @@ describe("EnrolStudentScreen", () => {
     serve({ handlers: { "POST /classes/c-open/enrolments/direct": () => apiFailure(status, key) } });
     await renderScreen();
     await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+    await goToClass(user);
     await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
     const before = requestedPaths().filter((path) => path.startsWith("/classes?date=")).length;
 
-    await user.press(submitButton("Enrol Ana Souza"));
+    await user.press(submitButton("Enrol"));
 
     await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
     expect(router.back).not.toHaveBeenCalled();
     await waitFor(() =>
       expect(requestedPaths().filter((path) => path.startsWith("/classes?date=")).length).toBeGreaterThan(before),
     );
-    expect(submitButton("Enrol Ana Souza")).toBeDisabled();
+    expect(submitButton("Enrol")).toBeDisabled();
   });
 
   it("shows a generic toast for any other failure and keeps the selection", async () => {
@@ -347,12 +460,13 @@ describe("EnrolStudentScreen", () => {
     serve({ handlers: { "POST /classes/c-open/enrolments/direct": () => failure(500) } });
     await renderScreen();
     await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+    await goToClass(user);
     await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
-    await user.press(submitButton("Enrol Ana Souza"));
+    await user.press(submitButton("Enrol"));
 
     await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
-    expect(submitButton("Enrol Ana Souza")).toBeEnabled();
+    expect(submitButton("Enrol")).toBeEnabled();
   });
 
   describe("trial class", () => {
@@ -383,7 +497,18 @@ describe("EnrolStudentScreen", () => {
         screen.getByText("This class doesn't stay in the history — if the person creates an account later, they start from scratch."),
       ).toBeOnTheScreen();
       expect(screen.queryByLabelText("Search students")).not.toBeOnTheScreen();
-      expect(submitButton("Enrol")).toBeDisabled();
+      expect(submitButton("Choose class")).toBeDisabled();
+    });
+
+    it("shows the trimmed trial name in the Who tab once the name and number are valid", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await switchToTrial(user);
+
+      await fillTrial(user);
+
+      expect(screen.getByRole("tab", { name: "Who, Carolina Reis" })).toBeOnTheScreen();
+      expect(submitButton("Choose class")).toBeEnabled();
     });
 
     it("adds the guest with the E.164 number to the picked class, tells the admin and goes back", async () => {
@@ -391,9 +516,10 @@ describe("EnrolStudentScreen", () => {
       await renderScreen();
       await switchToTrial(user);
       await fillTrial(user);
+      await goToClass(user);
       await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
-      await user.press(submitButton("Enrol Carolina Reis"));
+      await user.press(submitButton("Enrol"));
 
       await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
       expect(posts()).toHaveLength(1);
@@ -402,29 +528,28 @@ describe("EnrolStudentScreen", () => {
       expect(mockShow).toHaveBeenCalledWith("Carolina Reis enrolled");
     });
 
-    it("keeps the button off, and shows the field's error, for an invalid number", async () => {
+    it("keeps Choose class off, and shows the field's error, for an invalid number", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await switchToTrial(user);
       await fillTrial(user, "123");
-      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
       await act(async () => screen.getByLabelText("WhatsApp").props.onBlur());
 
       expect(screen.getByText("Invalid WhatsApp number.")).toBeOnTheScreen();
-      expect(submitButton("Enrol Carolina Reis")).toBeDisabled();
+      expect(submitButton("Choose class")).toBeDisabled();
+      expect(screen.getByRole("tab", { name: "Class, Not chosen" })).toBeDisabled();
     });
 
-    it("keeps the button off, and shows the error, for a name that isn't a first and last name", async () => {
+    it("keeps Choose class off, and shows the error, for a name that isn't a first and last name", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await switchToTrial(user);
       await user.type(screen.getByLabelText("Name"), "Carolina");
       await user.type(screen.getByLabelText("WhatsApp"), "85999990000");
       await act(async () => screen.getByLabelText("Name").props.onBlur());
-      await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
       expect(screen.getByText("Enter a first and last name.")).toBeOnTheScreen();
-      expect(submitButton("Enrol Carolina")).toBeDisabled();
+      expect(submitButton("Choose class")).toBeDisabled();
     });
 
     it("keeps the button off until a class with a free seat is picked", async () => {
@@ -432,9 +557,10 @@ describe("EnrolStudentScreen", () => {
       await renderScreen();
       await switchToTrial(user);
       await fillTrial(user);
+      await goToClass(user);
       await user.press(await screen.findByRole("button", { name: /15:00 – 16:00/ }));
 
-      expect(submitButton("Enrol Carolina Reis")).toBeDisabled();
+      expect(submitButton("Enrol")).toBeDisabled();
     });
 
     it.each([
@@ -447,17 +573,18 @@ describe("EnrolStudentScreen", () => {
       await renderScreen();
       await switchToTrial(user);
       await fillTrial(user);
+      await goToClass(user);
       await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
       const before = requestedPaths().filter((path) => path.startsWith("/classes?date=")).length;
 
-      await user.press(submitButton("Enrol Carolina Reis"));
+      await user.press(submitButton("Enrol"));
 
       await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
       expect(router.back).not.toHaveBeenCalled();
       await waitFor(() =>
         expect(requestedPaths().filter((path) => path.startsWith("/classes?date=")).length).toBeGreaterThan(before),
       );
-      expect(submitButton("Enrol Carolina Reis")).toBeDisabled();
+      expect(submitButton("Enrol")).toBeDisabled();
     });
 
     it("shows a toast for a refused name or number and keeps the selection", async () => {
@@ -466,12 +593,13 @@ describe("EnrolStudentScreen", () => {
       await renderScreen();
       await switchToTrial(user);
       await fillTrial(user);
+      await goToClass(user);
       await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
-      await user.press(submitButton("Enrol Carolina Reis"));
+      await user.press(submitButton("Enrol"));
 
       await waitFor(() => expect(mockShow).toHaveBeenCalledWith("This guest's name or number isn't valid."));
-      expect(submitButton("Enrol Carolina Reis")).toBeEnabled();
+      expect(submitButton("Enrol")).toBeEnabled();
     });
 
     it("sends once when the button is pressed twice", async () => {
@@ -484,10 +612,11 @@ describe("EnrolStudentScreen", () => {
       await renderScreen();
       await switchToTrial(user);
       await fillTrial(user);
+      await goToClass(user);
       await user.press(await screen.findByRole("button", { name: /16:00 – 17:00/ }));
 
-      await user.press(submitButton("Enrol Carolina Reis"));
-      await user.press(submitButton("Enrol Carolina Reis"));
+      await user.press(submitButton("Enrol"));
+      await user.press(submitButton("Enrol"));
 
       expect(posts()).toHaveLength(1);
       finish(ok({ id: "g-1", classId: "c-open", name: "Carolina Reis" }));

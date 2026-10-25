@@ -129,7 +129,7 @@ step shows inside, the requests and their outcomes stay as they are.
   > (14 passed); deviations: D-03 says `formatIsoDate(…, "EEE d", …)`, but date-fns' pt-BR "EEE" gives "Quarta", not "Qua"
   > (the repo's `formatDeadline` hits the same); the weekday is the first three letters of "EEEE" instead, so pt-BR reads
   > "Qua 14 · 16:00" as the ER-02 requires. The screen still reads `submitName` until T-03.
-- [ ] **T-03** — In `src/modules/enrolment/screens/enrol-student.screen.tsx`, remove the `ScreenIntro` and the section
+- [x] **T-03** — In `src/modules/enrolment/screens/enrol-student.screen.tsx`, remove the `ScreenIntro` and the section
   labels (D-05), render `StepTabs` at the top of the scroll and only the current step's content (D-06), and move the
   button into the fixed footer with both labels, icons and states (D-04); in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`
   add `enrolStudent.steps.{who,class,pending}` and `enrolStudent.next` and remove `enrolStudent.whoStep`, `classStep`,
@@ -141,6 +141,14 @@ step shows inside, the requests and their outcomes stay as they are.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/enrolment src/i18n` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — screen now renders `StepTabs`, only the current step's content and a fixed footer with "Escolher aula" /
+  > "Inscrever"; `ScreenIntro`, section labels and the `submit`/`whoStep`/`classStep`/`description` keys removed; added
+  > `enrolStudent.steps.{who,class,pending}` and `enrolStudent.next`; files:
+  > `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.tsx`, `enrol-student.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/enrolment src/i18n
+  > src/components/ui/step-tabs` (36 suites, 323 passed), `tsc --noEmit` clean; deviations: without `ScreenIntro` there is no
+  > large title for the collapsing header to track (its title would never show), so the screen sets its header title with
+  > `StackHeaderTitle` (as `edit-class` does) and uses a plain `ScrollView`; the header still reads "Inscrever aluno".
 
 ### Verification
 

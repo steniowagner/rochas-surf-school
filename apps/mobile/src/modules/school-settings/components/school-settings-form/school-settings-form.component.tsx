@@ -1,12 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Switch, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -14,14 +8,16 @@ import { PhoneNumberField } from "@/components/phone-number-field";
 import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
-import { useKeyboardOffset } from "@/navigation/stack-header";
 
+import { usePinnedFooter } from "../../hooks/use-pinned-footer.hook";
 import { useScrollToEndOnKeyboard } from "../../hooks/use-scroll-to-end-on-keyboard.hook";
 
 import { useSchoolSettingsForm } from "./school-settings-form.hook";
 import { SchoolSettingsFormProps } from "./school-settings-form.types";
 
 const CONTENT_PADDING_TOP = 8;
+// The Save button's height (52) and the space above it (12): the form scrolls clear of the pinned footer.
+const FOOTER_CLEARANCE = 64;
 
 /**
  * The intro, the waiting-list switch and the school's WhatsApp number, which scroll, and the Save button, which stays
@@ -34,19 +30,17 @@ export function SchoolSettingsForm({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const keyboardOffset = useKeyboardOffset();
+  const restingPaddingBottom = Math.max(insets.bottom, 24);
+  const footerStyle = usePinnedFooter(restingPaddingBottom);
   const scrollRef = useScrollToEndOnKeyboard();
   const form = useSchoolSettingsForm({ settings });
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={keyboardOffset}
-      className="flex-1 bg-page"
-    >
+    <>
       <Animated.ScrollView
         ref={scrollRef}
-        className="flex-1"
+        className="flex-1 bg-page"
+        automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-6 px-screen"
@@ -54,7 +48,7 @@ export function SchoolSettingsForm({
         scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: CONTENT_PADDING_TOP,
-          paddingBottom: 24,
+          paddingBottom: FOOTER_CLEARANCE + restingPaddingBottom + 24,
         }}
       >
         <ScreenIntro
@@ -114,9 +108,9 @@ export function SchoolSettingsForm({
         </View>
       </Animated.ScrollView>
       {header.backdrop}
-      <View
-        className="bg-page px-screen pt-3"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      <Animated.View
+        className="absolute inset-x-0 bottom-0 bg-page px-screen pt-3"
+        style={footerStyle}
       >
         <Button
           disabled={!form.canSave}
@@ -125,7 +119,7 @@ export function SchoolSettingsForm({
         >
           {t("schoolSettings.save")}
         </Button>
-      </View>
-    </KeyboardAvoidingView>
+      </Animated.View>
+    </>
   );
 }

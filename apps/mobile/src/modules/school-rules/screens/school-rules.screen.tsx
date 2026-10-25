@@ -136,6 +136,7 @@ export function SchoolRulesReadScreen() {
           ))}
         </View>
       </Animated.ScrollView>
+      {header.backdrop}
     </>
   );
 }

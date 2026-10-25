@@ -7,6 +7,8 @@ import {
   buildOccupancyRows,
   getDefaultSelectedClassId,
   getOccupancyCellLook,
+  getOccupancyStats,
+  getRelativeWeek,
 } from "./weekly-occupancy";
 
 // 2026-10-19 is a Monday; 08:00 in Fortaleza (UTC-3) is 11:00Z.
@@ -228,5 +230,87 @@ describe("getDefaultSelectedClassId", () => {
 
   it("is null for a week without classes", () => {
     expect(getDefaultSelectedClassId([])).toBeNull();
+  });
+});
+
+describe("relative week", () => {
+  const current = "2026-10-19";
+
+  it.each([
+    ["2026-10-19", "current", 0, true],
+    ["2026-10-26", "next", 0, false],
+    ["2026-10-12", "previous", 0, false],
+    ["2026-11-02", "ahead", 2, false],
+    ["2026-11-09", "ahead", 3, false],
+    ["2026-10-05", "ago", 2, false],
+    ["2026-09-28", "ago", 3, false],
+  ])("maps %s to %s", (weekStart, key, count, isCurrent) => {
+    expect(getRelativeWeek(current, weekStart)).toEqual({
+      key,
+      count,
+      isCurrent,
+    });
+  });
+
+  it("counts across a year", () => {
+    expect(getRelativeWeek("2026-12-28", "2027-01-11")).toEqual({
+      key: "ahead",
+      count: 2,
+      isCurrent: false,
+    });
+    expect(getRelativeWeek("2027-01-04", "2026-12-21")).toEqual({
+      key: "ago",
+      count: 2,
+      isCurrent: false,
+    });
+  });
+});
+
+describe("stats", () => {
+  const make = (
+    id: string,
+    taken: number,
+    capacity: number,
+    cancelled = false,
+  ) =>
+    at("2026-10-19", "11:00", taken, {
+      id,
+      capacity,
+      cancelledAt: cancelled ? "2026-10-18T00:00:00.000Z" : null,
+    });
+
+  it("sums the week of ER-07, ignoring the cancelled class", () => {
+    const classes = [
+      make("A", 3, 10),
+      make("B", 4, 4),
+      make("C", 6, 10),
+      make("D", 9, 10),
+      make("E", 2, 10, true),
+    ];
+
+    expect(getOccupancyStats(classes)).toEqual({
+      percent: 65,
+      taken: 22,
+      total: 34,
+      free: 12,
+      fullClasses: 1,
+    });
+  });
+
+  it("caps an overbooked class at its capacity", () => {
+    expect(getOccupancyStats([make("A", 12, 10)])).toEqual({
+      percent: 100,
+      taken: 10,
+      total: 10,
+      free: 0,
+      fullClasses: 1,
+    });
+  });
+
+  it("is all zero when every class is cancelled or there are none", () => {
+    const zero = { percent: 0, taken: 0, total: 0, free: 0, fullClasses: 0 };
+
+    expect(getOccupancyStats([make("A", 3, 10, true)])).toEqual(zero);
+    expect(getOccupancyStats([])).toEqual(zero);
   });
 });

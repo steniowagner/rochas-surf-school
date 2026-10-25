@@ -338,7 +338,7 @@ full.
   > `npx jest src/modules/admin/screens/admin.screen.test.tsx` (23 passed), `tsc --noEmit` and eslint clean;
   > deviations: none
 
-- [ ] **T-08** — Add the pure logic of the amendment to `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`:
+- [x] **T-08** — Add the pure logic of the amendment to `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`:
   the relative week of D-17 (the signed number of weeks from the current week's Monday to the week on screen, and the
   label key and count it maps to) and the week's stats of D-18 (percent, taken, total, free, full classes, over the
   non-cancelled classes with seats taken capped at capacity), with tests in `weekly-occupancy.test.ts` under
@@ -347,6 +347,12 @@ full.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-02, ER-07 · Done when: `npx jest src/modules/classes/utils/weekly-occupancy.test.ts` passes from
   `apps/mobile` with every line of the file covered.
+  > ✅ 2026-10-25 — added `getRelativeWeek(currentWeekStart, weekStart)` (key `current|next|previous|ahead|ago`, count,
+  > isCurrent) and `getOccupancyStats(classes)` (percent, taken, total, free, fullClasses); files:
+  > `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`,
+  > `apps/mobile/src/modules/classes/utils/weekly-occupancy.test.ts`; verified:
+  > `npx jest src/modules/classes/utils/weekly-occupancy.test.ts` (33 passed, 100% coverage of the file);
+  > deviations: none
 
 - [ ] **T-09** — Redesign `OccupancyWeekBar` (`apps/mobile/src/modules/classes/components/occupancy-week-bar/`) to
   D-04 and D-17: the 44 pt round `bg-surface` arrows with `shadowStyle("iconButton")` and no border or `hitSlop`, and

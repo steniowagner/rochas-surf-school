@@ -149,7 +149,7 @@ describe("instructor tabs", () => {
     await act(async () => router.navigate(routes.instructor.classes));
     expect(app.getPathname()).toBe("/instructor/classes");
     expect(selectedTabLabel()).toBe("Classes");
-    expect(screen.getByText("CLASSES")).toBeOnTheScreen();
+    expect(screen.queryByText("CLASSES")).not.toBeOnTheScreen();
     expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
 

@@ -1,5 +1,5 @@
 /** How strong the backdrop is behind the header, from 0 (none) to 1 (solid page color). The fade below scales with it. */
-export const BACKDROP_OPACITY = 0.8;
+export const BACKDROP_OPACITY = 0.6;
 
 const BAND_COUNT = 12;
 

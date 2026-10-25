@@ -13,7 +13,13 @@ import {
 
 import { CancellationRulesScreen } from "./cancellation-rules.screen";
 
-jest.mock("expo-router", () => ({ router: { back: jest.fn() } }));
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  // Renders the header's title so the tests can see it.
+  Stack: {
+    Screen: ({ options }: any) => <>{options.headerTitle()}</>,
+  },
+}));
 jest.useFakeTimers();
 
 const fetchMock = setupFetch();
@@ -136,13 +142,26 @@ describe("CancellationRulesScreen", () => {
     expect(field().props.maxLength).toBe(2000);
   });
 
+  it("shows a loading state, with the title in the header and no form, while the rules load", async () => {
+    fetchMock.mockReturnValue(new Promise(() => {}));
+    seedSession(account({ role: "admin" }));
+    await renderWithProviders(<CancellationRulesScreen />);
+
+    expect(screen.getByTestId("cancellation-rules-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the rule")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "CANCELLATION RULES" })).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: /Save rule/ })).toBeNull();
+  });
+
   it("shows the error with Try again, which reloads (cancellation rules)", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(500, { errors: [] }));
     seedSession(account({ role: "admin" }));
     await renderWithProviders(<CancellationRulesScreen />);
     const user = userEvent.setup();
 
-    expect(await screen.findByText("Couldn't load the rules.")).toBeOnTheScreen();
+    expect(await screen.findByText("Couldn't load the rules")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "CANCELLATION RULES" })).toBeOnTheScreen();
+    expect(screen.queryByText(/never the students'/)).toBeNull();
     fetchMock.mockResolvedValue(jsonResponse(200, { surf: SURF, skate: null }));
     await user.press(screen.getByRole("button", { name: "Try again" }));
 

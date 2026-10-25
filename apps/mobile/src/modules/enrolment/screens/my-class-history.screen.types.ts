@@ -1,5 +1,5 @@
 import type { CalendarPeriod } from "@/components/week-month-calendar/week-month-calendar.types";
-import type { ClassItem } from "@/modules/classes/classes.types";
+import type { ClassItem, DisciplineFilterValue } from "@/modules/classes/classes.types";
 
 /** A row of the history's list: a day's label, or one of its classes. */
 export type HistoryRow =
@@ -12,6 +12,9 @@ export type UseMyClassHistoryScreenResult = {
   today: string;
   /** The selected day, `YYYY-MM-DD`, or `null` for the whole period. */
   selectedDay: string | null;
+  /** The sport filter: every sport, or the one picked. */
+  discipline: DisciplineFilterValue;
+  selectDiscipline: (discipline: DisciplineFilterValue) => void;
   /** The days of the period with one or more classes, for the calendar's dots. */
   markedDates: string[];
   /** The period on screen: "OUTUBRO 2026", "12 – 18 OUT". */

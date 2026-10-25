@@ -133,6 +133,28 @@ afterEach(async () => {
 });
 
 describe("MyClassHistoryScreen", () => {
+  it("narrows the period to the sport picked, with no new request", async () => {
+    const user = userEvent.setup();
+    serve({
+      [OCTOBER]: [
+        taken("c-13b", "2026-10-13", 18),
+        { ...taken("c-06", "2026-10-06"), discipline: "skate" },
+      ],
+    });
+    await renderLoaded();
+    expect(rowKeys()).toEqual(["day-2026-10-13", "c-13b", "day-2026-10-06", "c-06"]);
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByTestId("discipline-filter-option-skate").children[0] as never);
+
+    expect(rowKeys()).toEqual(["day-2026-10-06", "c-06"]);
+    expect(requestedPaths()).toEqual([OCTOBER]);
+
+    await pressDay("2026-10-13");
+
+    expect(screen.getByText("You didn't take any Skate class this day.")).toBeOnTheScreen();
+  });
+
   it("opens on the current month with no day selected, the legend, and loads that month", async () => {
     await renderLoaded();
 

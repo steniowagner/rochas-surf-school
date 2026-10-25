@@ -33,6 +33,9 @@ export function SchoolRulesReadScreen() {
     contentTop: CONTENT_PADDING_TOP,
   });
 
+  // The error and empty states stand alone in the middle of the screen.
+  const centered = screen.status === "error" || screen.status === "empty";
+
   return (
     <>
       <Stack.Screen options={header.headerOptions} />
@@ -40,7 +43,7 @@ export function SchoolRulesReadScreen() {
         testID="school-rules-read"
         className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-4 px-screen"
+        contentContainerClassName={`gap-4 px-screen ${centered ? "grow justify-center" : ""}`}
         onScroll={header.scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={{
@@ -71,7 +74,7 @@ export function SchoolRulesReadScreen() {
           </View>
         ) : null}
         {screen.status === "error" ? (
-          <View className="flex-row pt-4">
+          <View className="flex-row">
             <ErrorState
               title={t("schoolRulesScreen.loadError.title")}
               description={t("schoolRulesScreen.loadError.description")}
@@ -81,7 +84,7 @@ export function SchoolRulesReadScreen() {
           </View>
         ) : null}
         {screen.status === "empty" ? (
-          <View className="flex-row pt-4">
+          <View className="flex-row">
             <EmptyState
               icon="shield-outline"
               title={t("schoolRulesScreen.empty.title")}

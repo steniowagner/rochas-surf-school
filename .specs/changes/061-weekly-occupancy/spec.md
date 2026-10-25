@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: in-progress
+status: in-review
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5

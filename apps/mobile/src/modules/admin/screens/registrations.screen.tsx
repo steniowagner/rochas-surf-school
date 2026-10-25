@@ -58,13 +58,12 @@ export function RegistrationsScreen() {
   });
 
   return (
-    <>
+    <View className="flex-1 bg-page">
       {status === "ready" ? (
         <>
           <Stack.Screen options={header.headerOptions} />
           <Animated.FlatList
             testID="registrations-list"
-            className="flex-1 bg-page"
             contentInsetAdjustmentBehavior="automatic"
             data={registrations}
             keyExtractor={(item) => item.id}
@@ -114,7 +113,6 @@ export function RegistrationsScreen() {
               />
             )}
           />
-          {header.backdrop}
         </>
       ) : (
         <>
@@ -126,7 +124,7 @@ export function RegistrationsScreen() {
             }}
           />
           <View
-            className={`flex-1 bg-page px-screen ${status === "loading" ? "" : "justify-center"}`}
+            className={`flex-1 px-screen ${status === "loading" ? "" : "justify-center"}`}
             style={{
               paddingTop: headerInset + CONTENT_PADDING_TOP,
               paddingBottom: Math.max(insets.bottom, 24),
@@ -181,6 +179,6 @@ export function RegistrationsScreen() {
         visible={isSheetVisible}
         onClose={closeSheet}
       />
-    </>
+    </View>
   );
 }

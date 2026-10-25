@@ -7,7 +7,6 @@ import {
   useSharedValue,
 } from "react-native-reanimated";
 
-import { CollapsingHeaderBackdrop } from "./collapsing-header-backdrop";
 import { CollapsingHeaderTitle } from "./collapsing-header-title";
 import { UseCollapsingTitleHeaderProps } from "./collapsing-title-header.types";
 import { useHeaderInset } from "./header-inset.hook";
@@ -52,14 +51,6 @@ export const useCollapsingTitleHeader = ({
   };
 
   return {
-    // Where the header is transparent the content scrolls under it: the backdrop keeps the title legible.
-    backdrop:
-      headerInset > 0
-        ? createElement(CollapsingHeaderBackdrop, {
-            progress,
-            height: headerInset,
-          })
-        : null,
     scrollHandler,
     onTitleBottomChange,
     headerOptions: {

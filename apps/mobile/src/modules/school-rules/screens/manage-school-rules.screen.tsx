@@ -145,7 +145,6 @@ export function ManageSchoolRulesScreen() {
           </>
         ) : null}
       </Animated.ScrollView>
-      {header.backdrop}
       <SchoolRuleSheet
         visible={screen.ruleSheetVisible}
         mode={screen.ruleSheet.mode}

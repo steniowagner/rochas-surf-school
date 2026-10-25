@@ -18,6 +18,7 @@ import { weekClassesOptions } from "../hooks/use-week-classes.hook";
 import { todayInSchoolZone } from "../utils/calendar";
 import {
   getDefaultSelectedClassId,
+  getOccupancyStats,
   getRelativeWeek,
 } from "../utils/weekly-occupancy";
 
@@ -81,6 +82,7 @@ export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
     isCurrentWeek: relativeWeek.isCurrent,
     caption: weekCaption(weekStart, getDateLocale(i18n.language)),
     classes,
+    stats: getOccupancyStats(classes),
     selectedId,
     selected: classes.find((item) => item.id === selectedId) ?? null,
     isLoading: query.isPending && !isRetrying,

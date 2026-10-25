@@ -1,4 +1,5 @@
 import type { ClassItem } from "../classes.types";
+import type { OccupancyStatsFigures } from "../utils/weekly-occupancy";
 
 export type UseWeeklyOccupancyScreenResult = {
   now: Date;
@@ -12,6 +13,8 @@ export type UseWeeklyOccupancyScreenResult = {
   /** "19 – 25 OCT". */
   caption: string;
   classes: ClassItem[];
+  /** The week's figures for the stats card. */
+  stats: OccupancyStatsFigures;
   selectedId: string | null;
   selected: ClassItem | null;
   isLoading: boolean;

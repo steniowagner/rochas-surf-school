@@ -392,7 +392,7 @@ full.
   > verified: `npx jest src/modules/classes/components/occupancy-stats` (6 passed, 100% coverage of both components),
   > `tsc --noEmit` and eslint clean; deviations: one extra child component (`OccupancyStat`)
 
-- [ ] **T-11** — Put the stats card on the screen: `weekly-occupancy.screen.{tsx,hook.ts,types.ts}` render
+- [x] **T-11** — Put the stats card on the screen: `weekly-occupancy.screen.{tsx,hook.ts,types.ts}` render
   `OccupancyStats` between the week bar and the map with the week's stats, and `OccupancyMapSkeleton` gains the card's
   skeleton inside its single labelled element (D-13); no card on the error and empty states. Tests: a
   `describe("stats")` block in `weekly-occupancy.screen.test.tsx` (ER-07's figures, another week's figures after an
@@ -401,6 +401,12 @@ full.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-07 · Done when: `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx
   src/modules/classes/components/occupancy-map-skeleton` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — the screen hook returns `stats` (`getOccupancyStats`) and the screen renders `OccupancyStats` between
+  > the week bar and the map; `OccupancyMapSkeleton` gains the card's skeleton inside its single labelled element; no
+  > card on the error and empty states; files: `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.{tsx,hook.ts,types.ts,test.tsx}`,
+  > `apps/mobile/src/modules/classes/components/occupancy-map-skeleton/*`; verified:
+  > `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx src/modules/classes/components/occupancy-map-skeleton`
+  > (32 passed, 100% coverage of the changed files), `tsc --noEmit` and eslint clean; deviations: none
 
 ### Verification
 

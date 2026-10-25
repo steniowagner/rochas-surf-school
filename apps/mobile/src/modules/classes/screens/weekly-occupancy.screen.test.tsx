@@ -343,6 +343,79 @@ describe("WeeklyOccupancyScreen", () => {
     });
   });
 
+  describe("stats", () => {
+    const read = (id: string) =>
+      screen.getByTestId(`occupancy-stat-${id}`).props.accessibilityLabel;
+
+    it("shows the week's figures between the week bar and the map", async () => {
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+
+      expect(read("occupancy")).toBe("65%, Occupancy");
+      expect(read("seats")).toBe("22 of 34 seats");
+      expect(read("free")).toBe("12 free");
+      expect(read("full")).toBe("1 full");
+      expect(screen.getByText("22/34")).toBeOnTheScreen();
+    });
+
+    it("shows another week's figures after an arrow", async () => {
+      const user = userEvent.setup();
+      weeks["2026-10-26"] = [
+        buildClassItem(
+          "N",
+          "2026-10-26T11:00:00.000Z",
+          "2026-10-26T12:00:00.000Z",
+          {
+            seatsTaken: 5,
+            capacity: 10,
+          },
+        ),
+      ];
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+
+      await user.press(
+        screen.getByRole("button", { name: "Show the next week" }),
+      );
+
+      expect(await screen.findByText("5/10")).toBeOnTheScreen();
+      expect(read("occupancy")).toBe("50%, Occupancy");
+      expect(read("full")).toBe("0 full");
+    });
+
+    it("has the card's skeleton while the week loads", async () => {
+      fetchMock.mockReturnValueOnce(new Promise(() => undefined));
+      await renderScreen();
+
+      expect(screen.getByTestId("occupancy-stats-skeleton")).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId("occupancy-stat-seats"),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("has no card on the error state", async () => {
+      fetchMock.mockResolvedValueOnce(failure(500));
+      await renderScreen();
+
+      expect(
+        await screen.findByText("Couldn't load the occupancy"),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId("occupancy-stat-seats"),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("has no card on the empty state", async () => {
+      weeks = {};
+      await renderScreen();
+
+      expect(await screen.findByText("No classes this week")).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId("occupancy-stat-seats"),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe("state", () => {
     const pending = () => {
       let settle: (value: unknown) => void = () => undefined;

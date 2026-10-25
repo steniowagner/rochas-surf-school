@@ -10,6 +10,7 @@ import { StackHeaderTitle } from "@/navigation/stack-header";
 import { ClassCard } from "../components/class-card";
 import { OccupancyMap } from "../components/occupancy-map";
 import { OccupancyMapSkeleton } from "../components/occupancy-map-skeleton";
+import { OccupancyStats } from "../components/occupancy-stats";
 import { OccupancyWeekBar } from "../components/occupancy-week-bar";
 
 import { useWeeklyOccupancyScreen } from "./weekly-occupancy.screen.hook";
@@ -58,6 +59,7 @@ export function WeeklyOccupancyScreen() {
 
     return (
       <>
+        <OccupancyStats stats={screen.stats} />
         <OccupancyMap
           weekStart={screen.weekStart}
           today={screen.today}

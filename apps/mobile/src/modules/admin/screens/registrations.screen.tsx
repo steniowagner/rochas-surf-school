@@ -1,37 +1,43 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  Text,
-  View,
-} from "react-native";
+import { RefreshControl, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DecisionCard } from "@/components/decision/decision-card";
 import { DenySheet } from "@/components/decision/deny-sheet";
-import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
 import {
   StackHeaderTitle,
-  useLeftTitleHeader,
+  useCollapsingTitleHeader,
+  useHeaderInset,
 } from "@/navigation/stack-header";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 
+import { RegistrationsSkeleton } from "../components/registrations-skeleton";
 import { useRegistrationsScreen } from "../hooks/use-registrations-screen.hook";
 
 const DENY_REASON_MAX_LENGTH = 500;
+const CONTENT_PADDING_TOP = 8;
 
+/**
+ * "Join the school" for admins: the accounts waiting for approval. The cards scroll under a collapsing title with the
+ * intro; the loading, error and empty states don't scroll and keep the title in the header.
+ */
 export function RegistrationsScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const {
     registrations,
-    isLoading,
-    isError,
+    status,
+    isRetrying,
     isRefreshing,
     sending,
     denying,
@@ -46,87 +52,107 @@ export function RegistrationsScreen() {
     closeDeny,
     confirmDeny,
   } = useRegistrationsScreen();
-
-  const showCount = !isLoading && !isError && registrations.length > 0;
-  const headerOptions = useLeftTitleHeader(() => (
-    <StackHeaderTitle
-      title={t("registrations.title")}
-      subtitle={
-        showCount
-          ? t("registrations.waiting", { count: registrations.length })
-          : undefined
-      }
-    />
-  ));
-
-  const renderEmpty = () => {
-    if (isLoading) {
-      return (
-        <ActivityIndicator
-          testID="registrations-loading"
-          accessibilityRole="progressbar"
-          color={theme.ink2}
-        />
-      );
-    }
-
-    if (isError) {
-      return (
-        <View className="items-center gap-3">
-          <Text className="ds-text-body text-center text-ink-2">
-            {t("registrations.loadError")}
-          </Text>
-          <Button variant="outline" onPress={retry}>
-            {t("registrations.retry")}
-          </Button>
-        </View>
-      );
-    }
-
-    return (
-      <Text className="ds-text-body text-center text-ink-2">
-        {t("registrations.empty")}
-      </Text>
-    );
-  };
+  const header = useCollapsingTitleHeader({
+    title: t("registrations.title"),
+    contentTop: CONTENT_PADDING_TOP,
+  });
 
   return (
     <View className="flex-1 bg-page">
-      <Stack.Screen options={headerOptions} />
-      <FlatList
-        testID="registrations-list"
-        contentInsetAdjustmentBehavior="automatic"
-        data={registrations}
-        keyExtractor={(item) => item.id}
-        contentContainerClassName="gap-3 px-screen"
-        contentContainerStyle={{
-          paddingTop: 24,
-          paddingBottom: Math.max(insets.bottom, 24),
-        }}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
-        }
-        ListHeaderComponent={
-          <Text className="ds-text-body mb-3 text-ink-2">
-            {t("registrations.description")}
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <DecisionCard
-            title={item.name}
-            details={[item.email]}
-            avatar={<PersonAvatar name={item.name} />}
-            onPress={() => openRegistration(item)}
-            approveLabel={t("registrations.approve")}
-            denyLabel={t("registrations.deny")}
-            onApprove={() => approve(item)}
-            onDeny={() => openDeny(item)}
-            disabled={item.id in sending}
-            loading={sending[item.id] === "deny" ? undefined : sending[item.id]}
+      {status === "ready" ? (
+        <>
+          <Stack.Screen options={header.headerOptions} />
+          <Animated.FlatList
+            testID="registrations-list"
+            contentInsetAdjustmentBehavior="automatic"
+            data={registrations}
+            keyExtractor={(item) => item.id}
+            contentContainerClassName="gap-3 px-screen"
+            contentContainerStyle={{
+              paddingTop: CONTENT_PADDING_TOP,
+              paddingBottom: Math.max(insets.bottom, 24),
+            }}
+            onScroll={header.scrollHandler}
+            scrollEventThrottle={16}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
+            }
+            ListHeaderComponent={
+              <View className="mb-1">
+                <ScreenIntro
+                  icon={
+                    <Ionicons
+                      name="person-add-outline"
+                      size={28}
+                      color={theme.grape}
+                    />
+                  }
+                  eyebrow={t("registrations.waiting", {
+                    count: registrations.length,
+                  })}
+                  title={t("registrations.title")}
+                  description={t("registrations.description")}
+                  onTitleLayout={header.onTitleBottomChange}
+                />
+              </View>
+            }
+            renderItem={({ item }) => (
+              <DecisionCard
+                title={item.name}
+                details={[item.email]}
+                avatar={<PersonAvatar name={item.name} />}
+                onPress={() => openRegistration(item)}
+                approveLabel={t("registrations.approve")}
+                denyLabel={t("registrations.deny")}
+                onApprove={() => approve(item)}
+                onDeny={() => openDeny(item)}
+                disabled={item.id in sending}
+                loading={
+                  sending[item.id] === "deny" ? undefined : sending[item.id]
+                }
+              />
+            )}
           />
-        )}
-        ListEmptyComponent={<View className="py-6">{renderEmpty()}</View>}
-      />
+        </>
+      ) : (
+        <>
+          <Stack.Screen
+            options={{
+              headerTitle: () => (
+                <StackHeaderTitle title={t("registrations.title")} />
+              ),
+            }}
+          />
+          <View
+            className={`flex-1 px-screen ${status === "loading" ? "" : "justify-center"}`}
+            style={{
+              paddingTop: headerInset + CONTENT_PADDING_TOP,
+              paddingBottom: Math.max(insets.bottom, 24),
+            }}
+          >
+            {status === "loading" ? <RegistrationsSkeleton /> : null}
+            {status === "error" ? (
+              <View className="flex-row">
+                <ErrorState
+                  title={t("registrations.loadError.title")}
+                  description={t("registrations.loadError.description")}
+                  onRetry={retry}
+                  retrying={isRetrying}
+                />
+              </View>
+            ) : null}
+            {status === "empty" ? (
+              <View className="flex-row">
+                <EmptyState
+                  icon="people-outline"
+                  title={t("registrations.empty.title")}
+                  description={t("registrations.empty.description")}
+                />
+              </View>
+            ) : null}
+          </View>
+        </>
+      )}
       <DenySheet
         visible={denying !== null}
         title={t("registrations.denySheet.title")}

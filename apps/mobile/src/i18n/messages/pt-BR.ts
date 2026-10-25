@@ -216,8 +216,15 @@ const messages: Messages = {
       "Contas novas só podem marcar aulas depois de aprovadas. A pessoa recebe uma notificação push.",
     approve: "Aprovar",
     deny: "Recusar",
-    empty: "Ninguém esperando para entrar.",
-    loadError: "Não foi possível carregar os cadastros.",
+    loading: "Carregando os cadastros",
+    empty: {
+      title: "Ninguém esperando",
+      description: "As contas novas aguardando aprovação aparecem aqui.",
+    },
+    loadError: {
+      title: "Não foi possível carregar os cadastros",
+      description: "Confira sua conexão e tente de novo.",
+    },
     retry: "Tentar novamente",
     alreadyDecided: "Este cadastro já foi decidido.",
     denySheet: {

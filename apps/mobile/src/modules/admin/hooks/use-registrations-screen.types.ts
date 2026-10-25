@@ -1,11 +1,14 @@
 import { Registration } from "../registrations.types";
 
+export type RegistrationsStatus = "loading" | "error" | "empty" | "ready";
+
 export type RegistrationAction = "approve" | "deny";
 
 export type UseRegistrationsScreenResult = {
   registrations: Registration[];
-  isLoading: boolean;
-  isError: boolean;
+  status: RegistrationsStatus;
+  /** True while the retry of a failed first load runs. */
+  isRetrying: boolean;
   isRefreshing: boolean;
   /** The card being sent, by id, and what is being sent. */
   sending: Record<string, RegistrationAction>;

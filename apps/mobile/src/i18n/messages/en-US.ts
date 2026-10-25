@@ -216,8 +216,15 @@ const messages = {
       "New accounts can only book classes once approved. The person gets a push notification.",
     approve: "Approve",
     deny: "Deny",
-    empty: "No one is waiting to join.",
-    loadError: "Couldn't load the registrations.",
+    loading: "Loading the registrations",
+    empty: {
+      title: "No one is waiting",
+      description: "New accounts waiting for approval show up here.",
+    },
+    loadError: {
+      title: "Couldn't load the registrations",
+      description: "Check your connection and try again.",
+    },
     retry: "Try again",
     alreadyDecided: "This registration was already decided.",
     denySheet: {

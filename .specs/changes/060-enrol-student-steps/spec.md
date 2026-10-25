@@ -3,7 +3,7 @@ id: "060"
 slug: enrol-student-steps
 title: "Split \"Inscrever aluno\" into Quem and Aula steps"
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 8e31960b5c4e9506b388de0ab4e3e0f5b272f34a
@@ -154,8 +154,11 @@ step shows inside, the requests and their outcomes stay as they are.
 
 ### Verification
 
-- [ ] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0 and the user journey matches.
+  > ✅ 2026-10-25 — `run-related-tests.mjs 060` (990 passed, RELATED TESTS PASSED); `check-coverage.mjs 060` (COVERAGE OK, 7 files);
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/mobile` (12 tasks successful); deviations: the iOS
+  > simulator user journey was not driven in this session — the reviewer or the user must run it (see the Verification Plan).
 
 ## Verification Plan
 

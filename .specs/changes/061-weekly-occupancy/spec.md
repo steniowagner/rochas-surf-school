@@ -215,7 +215,7 @@ they can see at a glance which classes still have room and which are full.
   > `npx turbo run check-types --filter=@rochas-surf-school/mobile` pass, `npx jest src/constants` (3 passed);
   > deviations: none
 
-- [ ] **T-02** — Write the pure map logic in `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`: the 7 days
+- [x] **T-02** — Write the pure map logic in `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`: the 7 days
   of a week (ISO date, weekday abbreviation, day number, is today), the rows by Fortaleza start time with the D-07
   sub-rows and empty slots, the cell tone of D-08 (`cancelled` / `full` / `high` / `mid` / `low`) with its percent,
   and the default selection of D-11, with `weekly-occupancy.test.ts` covering ER-03's layout, every ER-04 threshold
@@ -223,6 +223,12 @@ they can see at a glance which classes still have room and which are full.
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-03, ER-04, ER-05 · Done when: `npx jest src/modules/classes/utils/weekly-occupancy.test.ts` passes from
   `apps/mobile`.
+  > ✅ 2026-10-25 — pure map logic: `buildOccupancyDays`, `buildOccupancyRows` (D-07 sub-rows and empty slots),
+  > `getOccupancyCellLook` (D-08 tones) and `getDefaultSelectedClassId` (D-11); files:
+  > `apps/mobile/src/modules/classes/utils/weekly-occupancy.ts`,
+  > `apps/mobile/src/modules/classes/utils/weekly-occupancy.test.ts`; verified:
+  > `npx jest src/modules/classes/utils/weekly-occupancy.test.ts` (22 passed, 100% coverage of the file);
+  > deviations: none
 
 - [ ] **T-03** — Build `OccupancyMap` in `apps/mobile/src/modules/classes/components/occupancy-map/` (component,
   hook, types, index, per `.claude/rules/react.md`): the header row, the time column, the cells with the D-08 looks,

@@ -424,11 +424,6 @@ const messages = {
       tipTime: "Give exact deadlines in hours before the class starts — nothing like \"at the last minute\".",
       tipAmbiguity: "Avoid ambiguity: if a person would hesitate reading it, the app will too.",
       placeholder: "E.g.: Students can cancel without penalty up to 12 hours before the class starts…",
-      note: {
-        unsaved: "Unsaved changes",
-        inForce: "Current rule for {{discipline}}",
-        none: "No rule for {{discipline}} yet",
-      },
       save: "Save rule for {{discipline}}",
       saved: "Rule for {{discipline}} saved",
       loading: "Loading the rule",

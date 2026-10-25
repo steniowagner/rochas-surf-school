@@ -45,12 +45,6 @@ export const useCancellationRulesScreen =
       );
     };
 
-    const getNote = () => {
-      if (isDirty) return "unsaved";
-
-      return savedText === "" ? "none" : "inForce";
-    };
-
     return {
       status: query.isError ? "error" : query.data ? "ready" : "loading",
       isRetrying: query.isFetching,
@@ -60,7 +54,6 @@ export const useCancellationRulesScreen =
       value,
       setValue: (text) =>
         setDrafts((current) => ({ ...current, [discipline]: text })),
-      note: getNote(),
       canSave: isDirty && value.trim() !== "" && !saveRule.isPending,
       isSaving: saveRule.isPending,
       save,

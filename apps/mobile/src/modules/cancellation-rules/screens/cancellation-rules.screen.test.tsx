@@ -53,7 +53,7 @@ describe("CancellationRulesScreen", () => {
     expect(screen.getByText(/Give exact deadlines in hours/)).toBeOnTheScreen();
     expect(screen.getByText(/Avoid ambiguity/)).toBeOnTheScreen();
     expect(screen.getByDisplayValue(SURF)).toBeOnTheScreen();
-    expect(screen.getByText("Current rule for surf")).toBeOnTheScreen();
+    expect(screen.queryByText("Current rule for surf")).toBeNull();
     expect(screen.getByText(`${SURF.length}/2000`)).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
@@ -69,13 +69,11 @@ describe("CancellationRulesScreen", () => {
 
     await user.type(field(), "!");
 
-    expect(screen.getByText("Unsaved changes")).toBeOnTheScreen();
     expect(saveButton()).toBeEnabled();
 
     await user.clear(field());
     await user.type(field(), `  ${SURF}  `);
 
-    expect(screen.getByText("Current rule for surf")).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
 
@@ -85,7 +83,6 @@ describe("CancellationRulesScreen", () => {
     await user.type(field(), " Mais.");
     await user.press(screen.getByRole("tab", { name: "Skate" }));
 
-    expect(screen.getByText("No rule for skate yet")).toBeOnTheScreen();
     expect(screen.getByDisplayValue("")).toBeOnTheScreen();
     expect(saveButton("skate")).toBeDisabled();
 
@@ -120,10 +117,7 @@ describe("CancellationRulesScreen", () => {
         body: JSON.stringify({ text: `${SURF} Mais.` }),
       },
     );
-    await waitFor(() =>
-      expect(screen.getByText("Current rule for surf")).toBeOnTheScreen(),
-    );
-    expect(saveButton()).toBeDisabled();
+    await waitFor(() => expect(saveButton()).toBeDisabled());
     expect(router.back).not.toHaveBeenCalled();
   });
 
@@ -138,7 +132,7 @@ describe("CancellationRulesScreen", () => {
       await screen.findByText("Something went wrong. Please try again."),
     ).toBeOnTheScreen();
     expect(screen.getByDisplayValue(`${SURF} Mais.`)).toBeOnTheScreen();
-    expect(screen.getByText("Unsaved changes")).toBeOnTheScreen();
+    expect(saveButton()).toBeEnabled();
   });
 
   it("keeps the button off for a blank draft (cancellation rules)", async () => {
@@ -147,7 +141,6 @@ describe("CancellationRulesScreen", () => {
     await user.clear(field());
     await user.type(field(), "   ");
 
-    expect(screen.getByText("Unsaved changes")).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
 

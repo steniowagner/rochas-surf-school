@@ -427,8 +427,11 @@ const messages: Messages = {
       },
       save: "Salvar regra de {{discipline}}",
       saved: "Regra de {{discipline}} salva",
-      loadError: "Não foi possível carregar as regras.",
-      retry: "Tentar novamente",
+      loading: "Carregando a regra",
+      loadError: {
+        title: "Não foi possível carregar as regras",
+        description: "Confira sua conexão e tente de novo.",
+      },
       discipline: { surf: "surf", skate: "skate" },
     },
   },

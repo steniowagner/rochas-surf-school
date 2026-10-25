@@ -427,8 +427,11 @@ const messages = {
       },
       save: "Save rule for {{discipline}}",
       saved: "Rule for {{discipline}} saved",
-      loadError: "Couldn't load the rules.",
-      retry: "Try again",
+      loading: "Loading the rule",
+      loadError: {
+        title: "Couldn't load the rules",
+        description: "Check your connection and try again.",
+      },
       discipline: { surf: "surf", skate: "skate" },
     },
   },

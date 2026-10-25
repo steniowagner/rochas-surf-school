@@ -29,14 +29,17 @@ export const useCollapsingTitleHeader = ({
   // Under the transparent header the scroll content starts behind it, so the resting offset is minus its height.
   const headerInset = useHeaderInset();
   const scrollY = useSharedValue(0);
+  // Until the first scroll event the offset is unknown (it isn't 0: it rests at minus the header's height).
+  const hasScrolled = useSharedValue(false);
   const titleBottom = useSharedValue(NOT_MEASURED);
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
     scrollY.set(event.contentOffset.y);
+    hasScrolled.set(true);
   });
 
   const progress = useDerivedValue(() => {
-    const scrolled = scrollY.get() + headerInset;
+    const scrolled = hasScrolled.get() ? scrollY.get() + headerInset : 0;
     const end = titleBottom.get();
 
     return interpolate(

@@ -6,6 +6,8 @@ export type CancellationRulesNote = "unsaved" | "inForce" | "none";
 
 export type UseCancellationRulesScreenResult = {
   status: "loading" | "error" | "ready";
+  /** True while the retry of a failed load runs. */
+  isRetrying: boolean;
   retry: () => void;
   discipline: CancellationDiscipline;
   setDiscipline: (discipline: CancellationDiscipline) => void;

@@ -46,6 +46,7 @@ export const useCancellationRulesScreen = (): UseCancellationRulesScreenResult =
 
   return {
     status: query.isError ? "error" : query.data ? "ready" : "loading",
+    isRetrying: query.isFetching,
     retry: () => void query.refetch(),
     discipline,
     setDiscipline,

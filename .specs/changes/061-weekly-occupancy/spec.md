@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: in-progress
+status: in-review
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -430,10 +430,20 @@ full.
   > fixed (non-scrolling) view, so with this row the last cards sit under the floating tab bar on this device (not in this
   > spec's scope). deviations: the journey was driven by deep link and taps on the simulator, not by a human.
 
-- [ ] **T-12** — After T-08–T-11, run every command in the Verification
+- [x] **T-12** — After T-08–T-11, run every command in the Verification
   Plan again from the repo root; all pass. Follow the user journey on the iOS simulator, including the relative-week
   label and the stats card, and record the output summary and what was seen as evidence.
   Covers: all · Done when: every automated command exits 0 and the user journey is recorded.
+  > ✅ 2026-10-25 — every automated command passed: `node .specs/scripts/run-related-tests.mjs 061` (RELATED TESTS PASSED),
+  > `node .specs/scripts/check-coverage.mjs 061` (COVERAGE OK, 18 files), `node .specs/scripts/run-e2e.mjs 061` (E2E PASSED),
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/mobile --filter=@rochas-surf-school/design-tokens`
+  > (12 tasks successful). User journey on the iOS simulator (iPhone 18 Pro, dark, en-US, the dev admin): the week bar shows
+  > 44 pt round arrows without border over the label and caption; "3 WEEKS AGO" (28 SEP – 4 OCT) with no stats card (empty
+  > week); "LAST WEEK" (12 – 18 OCT) with the card 0% / 0/48 / 48 / 0 in grape, ink, lagoon and red; "THIS WEEK" in orange
+  > (19 – 25 OCT) with 5% / 4/78 / 74 / 2 and today's number in sun; "NEXT WEEK" in grey (26 OCT – 1 NOV) with 15% / 7/48 / 41 / 1;
+  > the card sits between the bar and "WEEK MAP". NOT driven: pt-BR and light mode (covered by Jest), the network-off error
+  > (covered by Jest "state" tests), "In 2 weeks" in the simulator (covered by Jest), the instructor and student homes. deviations:
+  > driven by taps on the simulator, not by a human.
 
 ## Verification Plan
 

@@ -4,6 +4,7 @@ import Animated from "react-native-reanimated";
 import { useCollapsingHeaderBackdrop } from "./collapsing-header-backdrop.hook";
 import { CollapsingHeaderBackdropProps } from "./collapsing-header-backdrop.types";
 import {
+  BACKDROP_OPACITY,
   FADE_BANDS,
   FADE_BAND_HEIGHT,
 } from "./collapsing-header-backdrop.constants";
@@ -25,7 +26,7 @@ export function CollapsingHeaderBackdrop({
       className="absolute inset-x-0 top-0"
       style={animatedStyle}
     >
-      <View className="bg-page" style={{ height }} />
+      <View className="bg-page" style={{ height, opacity: BACKDROP_OPACITY }} />
       {FADE_BANDS.map((opacity) => (
         <View
           key={opacity}

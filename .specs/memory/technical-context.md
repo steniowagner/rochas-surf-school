@@ -462,7 +462,13 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   shared `SegmentedControl` (`src/components/ui/segmented-control`: generic `options: { value, label }[]`, `value`,
   `onChange(value)`; equal-width `TouchableOpacity` segments with role `tab` and `accessibilityState.selected`, at
   least 44 pt tall, a `bg-sand` track with the selected segment on `bg-surface` with `shadowStyle()`; pressing the
-  selected one does nothing; the Nova aula screen uses it for the discipline and the level). `BottomModal` also takes
+  selected one does nothing; the Nova aula screen uses it for the discipline and the level). Steps of a flow shown as
+  tabs are `StepTabs` (spec 060, `src/components/ui/step-tabs`, no hook: generic `steps: { key, label, value, done,
+  disabled? }[]`, `selected`, `onChange(key)`; a `bg-sand` `rounded-card` track of equal-width `TouchableOpacity`
+  cards with role `tab` and `accessibilityState` `{ selected, disabled }`, the selected one on `bg-surface` with
+  `shadowStyle("iconButton")`; each card a round badge — the step number on `bg-tan` in `text-on-color`, or a
+  `checkmark` on `bg-ok` once done —, the uppercase label and the value line; a disabled card is dimmed and ignores
+  presses, and pressing the selected one does nothing; used by "Inscrever aluno"). `BottomModal` also takes
   `contentPanningEnabled` (default `true`; off when the content has its own vertical gestures, such as time
   wheels — the handle, the scrim and a Cancel button still close it). Shared pieces used by more than one
   module live in `src/components/`: `LanguageSheet` (sign-in screen and Profile; choosing stores the locale),
@@ -1588,6 +1594,24 @@ import cycle.
   `DenySheet`'s `hideReason`). `GuestsWarning` (`classes/components/guests-warning/`, `warn` tint, plural and
   singular, nothing at zero) sits in Editar aula's footer and in `CancelClassSheet` (`guestCount`). Copy under
   `enrolStudent.trial`, `takeOutSheet.guest*`, `classDetails.trialChip` / `includesTrial` / `guestsWarning`.
+- Mobile, spec 060: `EnrolStudentScreen` is two steps. The hook holds `step` (`EnrolStep`, `"who" | "class"`,
+  starting at `"who"`) and `goToStep`, which ignores `"class"` until `isWhoDone`; `whoValue` is the picked
+  student's name (student mode) or the trimmed trial name once it and the WhatsApp number are valid (trial mode),
+  else `null`, and `isWhoDone = whoValue !== null`; `isClassDone` / `classValue` come from the picked class with a
+  free seat — `classValue` is the school day's weekday (the first three letters of date-fns' `"EEEE"`, capitalized,
+  because pt-BR `"EEE"` spells out "Quarta"), the day of the month and `schoolTimeOf(startsAt)` ("Qua 16 · 09:00").
+  It also holds `discipline` / `selectDiscipline` (`DisciplineFilterValue`, starting at `all`), which narrows
+  `dayItems` (not the marked days), so a picked class of the other sport isn't `freeClass`. Leaving a step keeps
+  every selection. The screen has no `ScreenIntro` and no collapsing title: the header title is `StackHeaderTitle`
+  and the page is a plain `ScrollView` with `StepTabs` on top and only the current step's content (the mode switch
+  and the students or trial fields; or `WeekMonthCalendar` and the class cards), with `DisciplineFilter` over the
+  scroll area on the class step (the scroll adds `DISCIPLINE_FILTER_CLEARANCE` at the bottom). The footer is fixed
+  under the scroll (`border-t border-line bg-page px-screen pt-3`, bottom padding `Math.max(insets.bottom, 16)`,
+  as in Editar aula) with one primary `Button` and no icon: `enrolStudent.next` ("Escolher aula", disabled until
+  `isWhoDone`, moves to the class step) or `enrolStudent.submitEmpty` ("Inscrever", disabled until `submit`, with
+  `loading` while sending). Copy: `enrolStudent.steps.{who,class,pending}` and `enrolStudent.next` were added;
+  `enrolStudent.description`, `whoStep`, `classStep` and `submit` ("Inscrever <nome>") and the hook's
+  `submitName` were removed.
 - Mobile, spec 048: `useMyClasses()` (`hooks/use-my-classes.hook.ts`, `MY_CLASSES_QUERY_KEY` = `["classes", "mine"]`,
   `GET /classes/mine`, no retry) and `useMyClassHistory({ from, to })` (`hooks/use-my-class-history.hook.ts`, spec
   053: a `useQuery` keyed `["classes", "mine", "history", from, to]` (`myClassHistoryQueryKey`), `GET

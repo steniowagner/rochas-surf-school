@@ -3,13 +3,14 @@ id: "060"
 slug: enrol-student-steps
 title: "Split \"Inscrever aluno\" into Quem and Aula steps"
 template: quick
-status: accepted
+status: finished
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 8e31960b5c4e9506b388de0ab4e3e0f5b272f34a
 reviewed_commit: 4211fb444af0dd9cb99bcf734b5c7cc9a7eb084e
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-25
 ---
 
 # 060 — Split "Inscrever aluno" into Quem and Aula steps

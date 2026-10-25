@@ -225,6 +225,8 @@ describe("AdminScreen", () => {
 
     const scroll = screen.getByTestId("admin-home-scroll");
     expect(scroll.props.contentInsetAdjustmentBehavior).toBe("automatic");
+    // iOS adds the header's inset itself, so the padding is only the plain 16 pt.
+    expect(scroll.props.contentContainerStyle).toMatchObject({ paddingTop: 16 });
     expect(within(scroll).getByRole("button", { name: "Weekly occupancy" })).toBeOnTheScreen();
     expect(within(scroll).getByRole("button", { name: /School settings/ })).toBeOnTheScreen();
   });

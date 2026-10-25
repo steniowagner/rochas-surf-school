@@ -11,7 +11,6 @@ import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-c
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
-import { useHeaderInset } from "@/navigation/stack-header";
 
 import { useRegistrations } from "../hooks/use-registrations.hook";
 
@@ -30,7 +29,6 @@ export function AdminScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const headerInset = useHeaderInset();
   const { data } = useRegistrations();
   const { data: pendingRequests } = usePendingRequests();
 
@@ -43,12 +41,11 @@ export function AdminScreen() {
     <ScrollView
       testID="admin-home-scroll"
       className="flex-1 bg-page"
-      // On iOS the bottom safe area and the floating tab bar are added by the scroll view.
+      // On iOS the user header above, the safe area and the floating tab bar are added by the scroll view.
       contentInsetAdjustmentBehavior="automatic"
       contentContainerClassName="gap-6 px-screen"
       contentContainerStyle={{
-        // Clears the user header, which the tab's stack draws above the screen.
-        paddingTop: headerInset + 16,
+        paddingTop: 16,
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >

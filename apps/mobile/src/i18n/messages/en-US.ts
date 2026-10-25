@@ -403,8 +403,11 @@ const messages = {
     },
     save: "Save",
     saved: "Settings saved",
-    loadError: "Couldn't load the settings.",
-    retry: "Try again",
+    loading: "Loading the settings",
+    loadError: {
+      title: "Couldn't load the settings",
+      description: "Check your connection and try again.",
+    },
   },
   cancellationRules: {
     sheet: {

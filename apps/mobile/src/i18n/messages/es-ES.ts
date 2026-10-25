@@ -410,8 +410,11 @@ const messages: Messages = {
     },
     save: "Guardar",
     saved: "Ajustes guardados",
-    loadError: "No se pudieron cargar los ajustes.",
-    retry: "Intentar de nuevo",
+    loading: "Cargando los ajustes",
+    loadError: {
+      title: "No se pudieron cargar los ajustes",
+      description: "Comprueba tu conexión e inténtalo de nuevo.",
+    },
   },
   cancellationRules: {
     sheet: {

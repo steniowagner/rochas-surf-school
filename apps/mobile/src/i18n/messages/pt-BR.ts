@@ -403,8 +403,11 @@ const messages: Messages = {
     },
     save: "Salvar",
     saved: "Configurações salvas",
-    loadError: "Não foi possível carregar as configurações.",
-    retry: "Tentar novamente",
+    loading: "Carregando as configurações",
+    loadError: {
+      title: "Não foi possível carregar as configurações",
+      description: "Confira sua conexão e tente de novo.",
+    },
   },
   cancellationRules: {
     sheet: {

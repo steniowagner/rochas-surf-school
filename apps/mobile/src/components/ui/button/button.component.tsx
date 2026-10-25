@@ -54,7 +54,8 @@ export function Button({
         />
       ) : icon ? (
         <View className="flex-row items-center gap-2">
-          {icon}
+          {/* The condensed caps sit low in their line box, so the glyph drops a pixel to share their center. */}
+          <View className="translate-y-px">{icon}</View>
           <Text className={`ds-text-button ${label}`}>{children}</Text>
         </View>
       ) : (

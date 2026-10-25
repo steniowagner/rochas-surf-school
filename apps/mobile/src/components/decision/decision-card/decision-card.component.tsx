@@ -24,6 +24,10 @@ export function DecisionCard({
 }: DecisionCardProps) {
   const theme = useTheme();
 
+  // The disabled button draws its label in ink-2, so the glyph follows it.
+  const approveDisabledNow =
+    approveDisabled || (disabled && loading !== "approve");
+
   const content = (
     <>
       {avatar}
@@ -75,8 +79,14 @@ export function DecisionCard({
         <Button
           variant="success"
           className="flex-1"
-          icon={<Feather name="check" size={16} color={theme.onColor} />}
-          disabled={approveDisabled || (disabled && loading !== "approve")}
+          icon={
+            <Feather
+              name="check"
+              size={16}
+              color={approveDisabledNow ? theme.ink2 : theme.onColor}
+            />
+          }
+          disabled={approveDisabledNow}
           loading={loading === "approve"}
           onPress={onApprove}
         >

@@ -223,8 +223,15 @@ const messages: Messages = {
       "Las cuentas nuevas solo pueden reservar clases después de ser aprobadas. La persona recibe una notificación push.",
     approve: "Aprobar",
     deny: "Rechazar",
-    empty: "Nadie esperando para unirse.",
-    loadError: "No se pudieron cargar los registros.",
+    loading: "Cargando los registros",
+    empty: {
+      title: "Nadie esperando",
+      description: "Las cuentas nuevas pendientes de aprobación aparecen aquí.",
+    },
+    loadError: {
+      title: "No se pudieron cargar los registros",
+      description: "Comprueba tu conexión e inténtalo de nuevo.",
+    },
     retry: "Reintentar",
     alreadyDecided: "Este registro ya fue decidido.",
     denySheet: {

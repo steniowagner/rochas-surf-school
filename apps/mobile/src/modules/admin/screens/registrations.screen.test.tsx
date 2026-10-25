@@ -182,7 +182,9 @@ describe("RegistrationsScreen list", () => {
     await screen.findByText("Bruno Lima");
 
     expect(screen.getByText("2 waiting for approval")).toBeOnTheScreen();
-    expect(screen.getByText("JOIN THE SCHOOL")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Join the school" }),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText(
         "New accounts can only book classes once approved. The person gets a push notification.",
@@ -217,18 +219,19 @@ describe("RegistrationsScreen list", () => {
     await renderScreen();
 
     expect(screen.getByTestId("registrations-loading")).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Loading the registrations"),
+    ).toBeOnTheScreen();
     expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
-    expect(screen.queryByText(/waiting for approval/)).toBeNull();
+    expect(screen.queryByText(/^\d+ waiting for approval$/)).toBeNull();
   });
 
   it("says no one is waiting when the list is empty", async () => {
     serve([]);
     await renderScreen();
 
-    expect(
-      await screen.findByText("No one is waiting to join."),
-    ).toBeOnTheScreen();
-    expect(screen.queryByText(/waiting for approval/)).toBeNull();
+    expect(await screen.findByText("No one is waiting")).toBeOnTheScreen();
+    expect(screen.queryByText(/^\d+ waiting for approval$/)).toBeNull();
   });
 
   it("shows the error and loads again on 'Try again'", async () => {
@@ -237,23 +240,23 @@ describe("RegistrationsScreen list", () => {
     await renderScreen();
 
     expect(
-      await screen.findByText("Couldn't load the registrations."),
+      await screen.findByText("Couldn't load the registrations"),
     ).toBeOnTheScreen();
 
     serve([ANA]);
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("Ana Souza")).toBeOnTheScreen();
-    expect(screen.queryByText("Couldn't load the registrations.")).toBeNull();
+    expect(screen.queryByText("Couldn't load the registrations")).toBeNull();
   });
 
   it("hides the count on a load error", async () => {
     fetchMock.mockResolvedValue(answer(500, { errors: [] })());
     await renderScreen();
 
-    await screen.findByText("Couldn't load the registrations.");
+    await screen.findByText("Couldn't load the registrations");
 
-    expect(screen.queryByText(/waiting for approval/)).toBeNull();
+    expect(screen.queryByText(/^\d+ waiting for approval$/)).toBeNull();
   });
 
   it("insets its list below the header, whatever the header is", async () => {
@@ -451,9 +454,7 @@ describe("RegistrationsScreen deny", () => {
       reason: "Não conhecemos você.",
     });
     expect(state.items).toEqual([]);
-    expect(
-      await screen.findByText("No one is waiting to join."),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText("No one is waiting")).toBeOnTheScreen();
     expect(screen.queryByText("Denied")).toBeNull();
   });
 
@@ -468,9 +469,7 @@ describe("RegistrationsScreen deny", () => {
 
     await waitFor(() => expect(posts()).toHaveLength(1));
     expect(JSON.parse(posts()[0][1].body)).toEqual({});
-    expect(
-      await screen.findByText("No one is waiting to join."),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText("No one is waiting")).toBeOnTheScreen();
   });
 
   it("sends nothing when the sheet is closed, and opens empty the next time", async () => {

@@ -14,6 +14,7 @@ import { useDenyRegistration } from "./use-deny-registration.hook";
 import { useRegistrations } from "./use-registrations.hook";
 import {
   RegistrationAction,
+  RegistrationsStatus,
   UseRegistrationsScreenResult,
 } from "./use-registrations-screen.types";
 
@@ -93,10 +94,20 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
     setIsRefreshing(false);
   };
 
+  const registrations = query.data?.items ?? [];
+  // A list on screen stays there when a later reload fails; the error state is only for a first load that failed.
+  const status: RegistrationsStatus = query.data
+    ? registrations.length === 0
+      ? "empty"
+      : "ready"
+    : query.isError
+      ? "error"
+      : "loading";
+
   return {
-    registrations: query.data?.items ?? [],
-    isLoading: query.isPending,
-    isError: query.isError,
+    registrations,
+    status,
+    isRetrying: query.isFetching,
     isRefreshing,
     sending,
     denying,

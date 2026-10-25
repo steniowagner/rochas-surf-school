@@ -1,3 +1,4 @@
+export { useCollapsingTitleHeader } from "./collapsing-title-header.hook";
 export { useHeaderInset } from "./header-inset.hook";
 export { useLeftTitleHeader } from "./left-title-header.hook";
 export { useKeyboardOffset } from "./keyboard-offset.hook";

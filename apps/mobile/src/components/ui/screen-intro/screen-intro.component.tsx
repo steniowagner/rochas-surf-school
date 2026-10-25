@@ -9,6 +9,7 @@ export function ScreenIntro({
   eyebrow,
   iconTileClassName = "bg-sand",
   eyebrowClassName = "text-ink-2",
+  onTitleLayout,
 }: ScreenIntroProps) {
   return (
     <View className="gap-3">
@@ -17,7 +18,15 @@ export function ScreenIntro({
       >
         {icon}
       </View>
-      <View className="gap-1">
+      <View
+        className="gap-1"
+        onLayout={
+          onTitleLayout
+            ? ({ nativeEvent: { layout } }) =>
+                onTitleLayout(layout.y + layout.height)
+            : undefined
+        }
+      >
         {eyebrow ? (
           <Text className={`ds-text-section-label ${eyebrowClassName}`}>
             {eyebrow}

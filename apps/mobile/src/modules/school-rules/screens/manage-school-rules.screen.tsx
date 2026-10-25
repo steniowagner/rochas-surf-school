@@ -1,16 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ScrollView, Text, View } from "react-native";
+import { View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { ScreenIntro } from "@/components/ui/screen-intro";
 import { Skeleton } from "@/components/ui/skeleton";
 import { iconSizes } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { StackHeaderTitle } from "@/navigation/stack-header";
+import { useCollapsingTitleHeader } from "@/navigation/stack-header";
 
 import { DeleteSchoolRuleSheet } from "../components/delete-school-rule-sheet";
 import { SchoolRuleEditableRow } from "../components/school-rule-editable-row";
@@ -19,6 +21,7 @@ import { SchoolRuleSheet } from "../components/school-rule-sheet";
 import { useManageSchoolRulesScreen } from "./manage-school-rules.screen.hook";
 
 const LOADING_ROWS = [0, 1, 2];
+const CONTENT_PADDING_TOP = 8;
 
 /**
  * "Regras da escola" for admins: the rules in the order students see them, each opened to edit or delete and moved
@@ -29,29 +32,34 @@ export function ManageSchoolRulesScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const screen = useManageSchoolRulesScreen();
+  const header = useCollapsingTitleHeader({
+    title: t("manageSchoolRules.title"),
+    contentTop: CONTENT_PADDING_TOP,
+  });
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerTitle: () => (
-            <StackHeaderTitle title={t("manageSchoolRules.title")} />
-          ),
-        }}
-      />
-      <ScrollView
+      <Stack.Screen options={header.headerOptions} />
+      <Animated.ScrollView
         testID="manage-school-rules"
         className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-4 px-screen"
+        onScroll={header.scrollHandler}
+        scrollEventThrottle={16}
         contentContainerStyle={{
-          paddingTop: 8,
+          paddingTop: CONTENT_PADDING_TOP,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <Text className="ds-text-body text-ink-2">
-          {t("manageSchoolRules.intro")}
-        </Text>
+        <ScreenIntro
+          icon={
+            <Ionicons name="shield-outline" size={28} color={theme.grape} />
+          }
+          title={t("manageSchoolRules.title")}
+          description={t("manageSchoolRules.intro")}
+          onTitleLayout={header.onTitleBottomChange}
+        />
         {screen.status === "loading" ? (
           // Rows shaped like rules, read out as one loading state.
           <View
@@ -136,7 +144,7 @@ export function ManageSchoolRulesScreen() {
             </Button>
           </>
         ) : null}
-      </ScrollView>
+      </Animated.ScrollView>
       <SchoolRuleSheet
         visible={screen.ruleSheetVisible}
         mode={screen.ruleSheet.mode}

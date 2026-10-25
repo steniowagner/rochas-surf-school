@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { Text } from "react-native";
 
 import { ScreenIntro } from "./screen-intro.component";
@@ -75,5 +75,24 @@ describe("ScreenIntro", () => {
       />,
     );
     expect(screen.getByText("Label").props.className).toContain("text-ok");
+  });
+
+  it("reports where the title ends once laid out", async () => {
+    const onTitleLayout = jest.fn();
+
+    await render(
+      <ScreenIntro
+        icon={null}
+        title="Title"
+        description="Text"
+        onTitleLayout={onTitleLayout}
+      />,
+    );
+
+    fireEvent(screen.getByRole("header").parent!, "layout", {
+      nativeEvent: { layout: { x: 0, y: 80, width: 300, height: 40 } },
+    });
+
+    expect(onTitleLayout).toHaveBeenCalledWith(120);
   });
 });

@@ -3,7 +3,7 @@ id: "060"
 slug: enrol-student-steps
 title: "Split \"Inscrever aluno\" into Quem and Aula steps"
 template: quick
-status: changes-requested
+status: in-progress
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 8e31960b5c4e9506b388de0ab4e3e0f5b272f34a
@@ -309,7 +309,7 @@ step shows inside, the requests and their outcomes stay as they are.
 
 **Findings**
 
-- [ ] **F-04** (tests) (ER-03) — no test checks that "Enrol" shows its spinner while the enrolment is sent. If you
+- [x] **F-04** (tests) (ER-03) — no test checks that "Enrol" shows its spinner while the enrolment is sent. If you
   delete `loading={screen.isSubmitting}` from the footer `Button` in `enrol-student.screen.tsx`, all 39 tests in
   `enrol-student.screen.test.tsx` still pass: the double-press tests only count the POSTs, and the hook's own
   `isSubmitting` guard already stops a second send. Reproduce: remove that prop and run
@@ -317,9 +317,11 @@ step shows inside, the requests and their outcomes stay as they are.
   POST is pending (the double-press tests already hold it open), assert that the "Enrol" label is gone, or that the
   footer button shows its `ActivityIndicator`, in both the student and the trial test. The test must fail when the
   prop is removed.
-- [ ] **F-05** (convention) — `enrol-student.screen.hook.test.tsx` line 12 has `import i18n from "@/i18n"` after
+  > ✅ 2026-10-25 — both "sends once when the button is pressed twice" tests (student and trial) now press the same button twice and assert the "Enrol" label is gone while the POST is pending; files: `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.test.tsx`; verified: with `loading={screen.isSubmitting}` removed both tests fail, restored they pass (`npx jest src/modules/enrolment/screens/enrol-student.screen.test.tsx`, 39 passed).
+- [x] **F-05** (convention) — `enrol-student.screen.hook.test.tsx` line 12 has `import i18n from "@/i18n"` after
   `@/modules/classes/classes.test-utils`. `.claude/rules/react.md` §2 sorts each import group alphabetically by
   path. Expected: `@/i18n` before `@/modules/classes/classes.test-utils`.
+  > ✅ 2026-10-25 — `@/i18n` moved before `@/modules/classes/classes.test-utils`; file: `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.hook.test.tsx`; verified: `npx jest src/modules/enrolment/screens` (105 passed).
 
 **Notes**
 

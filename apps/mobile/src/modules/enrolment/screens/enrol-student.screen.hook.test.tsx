@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
 
+import i18n from "@/i18n";
 import {
   createQueryClient,
   createWrapper,
@@ -9,7 +10,6 @@ import {
   requestedPaths,
   setupSignedInUser,
 } from "@/modules/classes/classes.test-utils";
-import i18n from "@/i18n";
 import { SessionExpiredError } from "@/services/api";
 
 import { useEnrolStudentScreen } from "./enrol-student.screen.hook";

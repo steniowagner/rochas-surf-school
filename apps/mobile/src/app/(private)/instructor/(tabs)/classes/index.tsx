@@ -4,7 +4,7 @@ import { ClassesWeekScreen } from "@/modules/classes/screens/classes-week.screen
 export default function ClassesRoute() {
   return (
     <ClassesWeekScreen
-      titleKey="tabs.classes"
+      header="hidden"
       classRoute={routes.instructor.classDetail}
     />
   );

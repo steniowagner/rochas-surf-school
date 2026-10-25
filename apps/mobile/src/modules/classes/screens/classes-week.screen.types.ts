@@ -2,10 +2,12 @@ import type { Href } from "expo-router";
 
 export type ClassesWeekScreenProps = {
   /**
-   * The translation key of the title (the Aulas tab). Without it the screen leaves the header to its stack: the
-   * student's Agenda shows the user header there.
+   * `title` shows the Aulas tab's title in the header, `hidden` removes the header so the calendar starts at the top.
+   * Without it the screen leaves the header to its stack: the student's Agenda shows the user header there.
    */
-  titleKey?: "tabs.classes";
+  header?: "title" | "hidden";
+  /** Admins only: the sport filter is a header action beside the "+", instead of the floating button. */
+  filterInHeader?: boolean;
   /** The route of a class's details for the viewer's role. */
   classRoute: (id: string) => Href;
   /** Admins only: the header's "+" and the empty day's "Criar aula", shown on today and later days. */

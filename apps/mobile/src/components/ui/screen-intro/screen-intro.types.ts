@@ -10,4 +10,6 @@ export type ScreenIntroProps = {
   iconTileClassName?: string;
   /** Text color class of the eyebrow (a token class such as `text-ok`). Defaults to `text-ink-2`. */
   eyebrowClassName?: string;
+  /** Where the title ends, from the top of the intro, once laid out (to know when it scrolls under a header). */
+  onTitleLayout?: (bottom: number) => void;
 };

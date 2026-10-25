@@ -111,7 +111,7 @@ export const typography = {
   dayNumber: { font: 'display', weight: 700, size: 26, lineHeight: 1, letterSpacing: 0, uppercase: false },
   lessonTime: { font: 'display', weight: 700, size: 38, lineHeight: 1, letterSpacing: 0, uppercase: false },
   screenTitle: { font: 'display', weight: 700, size: 34, lineHeight: 1, letterSpacing: 0, uppercase: true },
-  screenTitleWithBack: { font: 'display', weight: 700, size: 26, lineHeight: 1, letterSpacing: 0, uppercase: true },
+  screenTitleWithBack: { font: 'display', weight: 700, size: 22, lineHeight: 1, letterSpacing: 0, uppercase: true },
   sheetTitle: { font: 'display', weight: 700, size: 30, lineHeight: 1, letterSpacing: 0, uppercase: true },
   body: { font: 'body', weight: 400, size: 14.5, lineHeight: 1.6, letterSpacing: 0, uppercase: false },
   listTitle: { font: 'body', weight: 700, size: 14, lineHeight: 1.4, letterSpacing: 0, uppercase: false },

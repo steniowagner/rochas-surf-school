@@ -138,7 +138,7 @@ describe("ManageSchoolRulesScreen — lists", () => {
     await open();
 
     expect(await screen.findByText("Rule A")).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "SCHOOL RULES" })).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "School rules" })).toBeOnTheScreen();
     expect(
       screen.getByText(
         "Students read these rules and must accept them before using the app. The order here is the order they see.",

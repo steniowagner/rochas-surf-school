@@ -3,7 +3,7 @@ import { accentRoom } from "./accent-room";
 describe("accentRoom", () => {
   it("keeps a quarter of the font size above uppercase titles", () => {
     expect(accentRoom("screenTitle")).toBe(9);
-    expect(accentRoom("screenTitleWithBack")).toBe(7);
+    expect(accentRoom("screenTitleWithBack")).toBe(6);
     expect(accentRoom("sheetTitle")).toBe(8);
   });
 

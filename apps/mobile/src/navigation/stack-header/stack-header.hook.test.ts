@@ -15,7 +15,7 @@ const common = {
   headerTitleStyle: {
     color: theme.ink,
     fontFamily: "BarlowCondensed_700Bold",
-    fontSize: 26,
+    fontSize: 22,
   },
 };
 

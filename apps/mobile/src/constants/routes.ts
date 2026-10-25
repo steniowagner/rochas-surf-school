@@ -78,6 +78,7 @@ export const routes = {
     enrolStudent: "/admin/enrol-student",
     cancellationRules: "/admin/cancellation-rules",
     people: "/admin/people",
+    weeklyOccupancy: "/admin/weekly-occupancy",
     notifications: "/admin/notifications",
     newClass: (params?: { date?: string }): Href => ({
       pathname: "/admin/new-class",

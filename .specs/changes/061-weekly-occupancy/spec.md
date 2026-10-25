@@ -254,7 +254,7 @@ they can see at a glance which classes still have room and which are full.
   > passes (the occupancy-* components: 16 tests, 100% coverage), `tsc --noEmit` and eslint clean;
   > deviations: two extra child components (`OccupancyCell`, `OccupancyLegend`) because react.md forbids inline ones
 
-- [ ] **T-04** — Build the screen: `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.tsx`, `.hook.ts`
+- [x] **T-04** — Build the screen: `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.tsx`, `.hook.ts`
   and `.types.ts` (the week state of D-04, `useQuery(weekClassesOptions(weekStart))`, the week bar, the D-05 header
   and first-view `ScrollView`, `OccupancyMap`, the D-11 selection and the selected `ClassCard` opening
   `routes.admin.classDetail`), the route file `src/app/(private)/admin/weekly-occupancy.tsx`,
@@ -264,6 +264,18 @@ they can see at a glance which classes still have room and which are full.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-02, ER-05 · Done when: `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t
   "week|select"` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — `WeeklyOccupancyScreen` (hook, types): week state opening on the current Fortaleza week,
+  > `useQuery(weekClassesOptions(weekStart))`, centered `StackHeaderTitle` header, first-view `ScrollView`
+  > (`contentInsetAdjustmentBehavior="automatic"`), the week bar, `OccupancyMap`, D-11 selection (reset on a week
+  > change, kept by a refetch while the class is still there) and the selected `ClassCard` (`showFlags`) opening
+  > `routes.admin.classDetail`; the week bar is the extra `OccupancyWeekBar` component (react.md forbids inline
+  > ones); route file and `routes.admin.weeklyOccupancy`; `weeklyOccupancy.title` in the three languages; files:
+  > `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.{tsx,hook.ts,types.ts,test.tsx}`,
+  > `apps/mobile/src/modules/classes/components/occupancy-week-bar/*`,
+  > `apps/mobile/src/app/(private)/admin/weekly-occupancy.tsx`, `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts`; verified:
+  > `npx jest src/modules/classes/screens/weekly-occupancy.screen.test.tsx -t "week|select"` (11 passed), `tsc
+  > --noEmit` and eslint clean; deviations: none
 
 - [ ] **T-05** — Add the D-13 states to the screen: the skeleton while loading, `ErrorState` with the retry that
   keeps the error on screen, `EmptyState` for a week without classes, a failed refetch keeping the map, nothing after

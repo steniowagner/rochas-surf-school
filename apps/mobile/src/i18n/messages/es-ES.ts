@@ -1183,6 +1183,7 @@ const messages: Messages = {
     next: "Próxima",
   },
   weeklyOccupancy: {
+    title: "Ocupación semanal",
     section: "Mapa de la semana",
     legend: {
       low: "menos del 50%",

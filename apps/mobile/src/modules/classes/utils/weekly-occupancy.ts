@@ -1,6 +1,10 @@
 import type { Locale } from "date-fns";
 
-import { formatIsoDate, weekdayAbbreviation, weekDays } from "@/utils/calendar-dates";
+import {
+  formatIsoDate,
+  weekdayAbbreviation,
+  weekDays,
+} from "@/utils/calendar-dates";
 
 import type { ClassItem } from "../classes.types";
 import { getOccupancyPercent, isClassFull } from "./occupancy";
@@ -59,7 +63,10 @@ export const buildOccupancyDays = (
  * The rows of the map: one per start time (Fortaleza), ascending. A time where several classes share a day gets as many
  * rows as the largest group of one day; on each day the k-th class (in the order given) goes in row k.
  */
-export const buildOccupancyRows = (weekStart: string, classes: ClassItem[]): OccupancyMapRow[] => {
+export const buildOccupancyRows = (
+  weekStart: string,
+  classes: ClassItem[],
+): OccupancyMapRow[] => {
   const dates = weekDays(weekStart);
   const byTime = new Map<string, Map<string, ClassItem[]>>();
 
@@ -78,7 +85,9 @@ export const buildOccupancyRows = (weekStart: string, classes: ClassItem[]): Occ
 
   return [...byTime.keys()].sort().flatMap((time) => {
     const days = byTime.get(time)!;
-    const subRows = Math.max(...[...days.values()].map((items) => items.length));
+    const subRows = Math.max(
+      ...[...days.values()].map((items) => items.length),
+    );
 
     return Array.from({ length: subRows }, (_, index): OccupancyMapRow => ({
       time,
@@ -118,7 +127,9 @@ const fillRatio = (item: ClassItem): number =>
  * The class selected when a week loads: the non-cancelled one with the lowest share of seats taken (the first on a
  * tie), else the first class when all are cancelled; `null` for a week without classes.
  */
-export const getDefaultSelectedClassId = (classes: ClassItem[]): string | null => {
+export const getDefaultSelectedClassId = (
+  classes: ClassItem[],
+): string | null => {
   let best: ClassItem | null = null;
 
   for (const item of classes) {

@@ -1176,6 +1176,7 @@ const messages = {
     next: "Up next",
   },
   weeklyOccupancy: {
+    title: "Weekly occupancy",
     section: "Week map",
     legend: {
       low: "under 50%",

@@ -10,7 +10,12 @@ import {
 } from "./weekly-occupancy";
 
 // 2026-10-19 is a Monday; 08:00 in Fortaleza (UTC-3) is 11:00Z.
-const at = (date: string, time: string, taken = 0, overrides: Partial<ClassItem> = {}) =>
+const at = (
+  date: string,
+  time: string,
+  taken = 0,
+  overrides: Partial<ClassItem> = {},
+) =>
   buildClassItem(
     `${date}-${time}-${overrides.id ?? ""}`,
     `${date}T${time}:00.000Z`,
@@ -31,8 +36,15 @@ describe("buildOccupancyDays", () => {
       "2026-10-24",
       "2026-10-25",
     ]);
-    expect(days[0]).toEqual({ date: "2026-10-19", weekday: "MON", dayNumber: "19", isToday: false });
-    expect(days.filter((day) => day.isToday).map((day) => day.dayNumber)).toEqual(["21"]);
+    expect(days[0]).toEqual({
+      date: "2026-10-19",
+      weekday: "MON",
+      dayNumber: "19",
+      isToday: false,
+    });
+    expect(
+      days.filter((day) => day.isToday).map((day) => day.dayNumber),
+    ).toEqual(["21"]);
   });
 
   it("marks no day when the week does not hold today", () => {
@@ -43,13 +55,35 @@ describe("buildOccupancyDays", () => {
 });
 
 describe("buildOccupancyRows", () => {
-  const A = buildClassItem("A", "2026-10-19T11:00:00.000Z", "2026-10-19T12:00:00.000Z");
-  const B = buildClassItem("B", "2026-10-19T11:00:00.000Z", "2026-10-19T12:30:00.000Z", { discipline: "skate" });
-  const C = buildClassItem("C", "2026-10-21T11:00:00.000Z", "2026-10-21T12:00:00.000Z");
-  const D = buildClassItem("D", "2026-10-23T19:00:00.000Z", "2026-10-23T20:00:00.000Z");
-  const E = buildClassItem("E", "2026-10-24T19:00:00.000Z", "2026-10-24T20:00:00.000Z", {
-    cancelledAt: "2026-10-20T10:00:00.000Z",
-  });
+  const A = buildClassItem(
+    "A",
+    "2026-10-19T11:00:00.000Z",
+    "2026-10-19T12:00:00.000Z",
+  );
+  const B = buildClassItem(
+    "B",
+    "2026-10-19T11:00:00.000Z",
+    "2026-10-19T12:30:00.000Z",
+    { discipline: "skate" },
+  );
+  const C = buildClassItem(
+    "C",
+    "2026-10-21T11:00:00.000Z",
+    "2026-10-21T12:00:00.000Z",
+  );
+  const D = buildClassItem(
+    "D",
+    "2026-10-23T19:00:00.000Z",
+    "2026-10-23T20:00:00.000Z",
+  );
+  const E = buildClassItem(
+    "E",
+    "2026-10-24T19:00:00.000Z",
+    "2026-10-24T20:00:00.000Z",
+    {
+      cancelledAt: "2026-10-20T10:00:00.000Z",
+    },
+  );
 
   const slotIds = (row: ReturnType<typeof buildOccupancyRows>[number]) =>
     row.slots.map((slot) => (slot.kind === "class" ? slot.item.id : "-"));
@@ -89,8 +123,16 @@ describe("buildOccupancyRows", () => {
   });
 
   it("keeps the given order for classes that match on start and end", () => {
-    const first = buildClassItem("a", "2026-10-19T11:00:00.000Z", "2026-10-19T12:00:00.000Z");
-    const second = buildClassItem("b", "2026-10-19T11:00:00.000Z", "2026-10-19T12:00:00.000Z");
+    const first = buildClassItem(
+      "a",
+      "2026-10-19T11:00:00.000Z",
+      "2026-10-19T12:00:00.000Z",
+    );
+    const second = buildClassItem(
+      "b",
+      "2026-10-19T11:00:00.000Z",
+      "2026-10-19T12:00:00.000Z",
+    );
     const rows = buildOccupancyRows("2026-10-19", [first, second]);
 
     expect([slotIds(rows[0])[0], slotIds(rows[1])[0]]).toEqual(["a", "b"]);
@@ -98,7 +140,11 @@ describe("buildOccupancyRows", () => {
 
   it("uses the Fortaleza day and time, not the UTC ones", () => {
     // 01:30Z on Tuesday is Monday 22:30 in Fortaleza.
-    const late = buildClassItem("late", "2026-10-20T01:30:00.000Z", "2026-10-20T02:30:00.000Z");
+    const late = buildClassItem(
+      "late",
+      "2026-10-20T01:30:00.000Z",
+      "2026-10-20T02:30:00.000Z",
+    );
     const [row] = buildOccupancyRows("2026-10-19", [late]);
 
     expect(row.time).toBe("22:30");
@@ -106,7 +152,11 @@ describe("buildOccupancyRows", () => {
   });
 
   it("ignores a class outside the week and is empty without classes", () => {
-    const outside = buildClassItem("x", "2026-10-26T11:00:00.000Z", "2026-10-26T12:00:00.000Z");
+    const outside = buildClassItem(
+      "x",
+      "2026-10-26T11:00:00.000Z",
+      "2026-10-26T12:00:00.000Z",
+    );
 
     expect(buildOccupancyRows("2026-10-19", [outside])).toEqual([]);
     expect(buildOccupancyRows("2026-10-19", [])).toEqual([]);
@@ -140,7 +190,12 @@ describe("getOccupancyCellLook", () => {
 });
 
 describe("getDefaultSelectedClassId", () => {
-  const make = (id: string, taken: number, capacity: number, cancelled = false) =>
+  const make = (
+    id: string,
+    taken: number,
+    capacity: number,
+    cancelled = false,
+  ) =>
     buildClassItem(id, "2026-10-19T11:00:00.000Z", "2026-10-19T12:00:00.000Z", {
       seatsTaken: taken,
       capacity,
@@ -166,7 +221,9 @@ describe("getDefaultSelectedClassId", () => {
   });
 
   it("treats a class without capacity as full", () => {
-    expect(getDefaultSelectedClassId([make("A", 0, 0), make("B", 9, 10)])).toBe("B");
+    expect(getDefaultSelectedClassId([make("A", 0, 0), make("B", 9, 10)])).toBe(
+      "B",
+    );
   });
 
   it("is null for a week without classes", () => {

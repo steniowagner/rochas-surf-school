@@ -252,14 +252,18 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   (`ds-text-calendar-month-day`, Barlow Condensed 19: the month grid's numbers). The class card (spec 040) uses
   `cardMeta` (`ds-text-card-meta`, Nunito 12.5, 400: the location pill) and `occupancy` (`ds-text-occupancy`, Nunito
   11, 800, not uppercase: the "N/M vagas" line). `dayNumber`
-  (`ds-text-day-number`, 26 px; spec 030's day strip) is still defined but no screen uses it. The week screen's
+  (`ds-text-day-number`, 26 px; spec 030's day strip) is used again by spec 061. The week screen's
   sport filter (spec 050) adds the colors `scrim` (the backdrop that dims the screen under a floating menu) and
   `shadowGrape` (a `grape` button's shadow), both light and dark, and the elevations `fab` (`offsetY` 12, blur 26,
   `shadowGrape`: a floating action button) and `menuOption` (`offsetY` 8, blur 22, `shadow`: a floating menu's
   option). The grape card of a class under way (spec 057) adds the colors `onGrapeTint` (white at 18%: borders and
   the avatars' ring), `onGrapeFill` (white at 12%: the location pill), `onGrapeTrack` (white at 22%: the occupancy
   track), `onGrapeShade` (black at 14%: the students footer) and `onGrapeBad` (`#FFD2CC`: "full" text over grape),
-  the same in light and dark.
+  the same in light and dark. The weekly occupancy map (spec 061) adds the color `sunTint` (`bg-sun-tint`, light
+  `rgba(240,116,43,.28)`, dark `rgba(245,138,69,.30)`: the 50–89% cell), the type style `occupancyCell`
+  (`ds-text-occupancy-cell`, Barlow Condensed 15, 700: the cells' percentages, "canc." and the times) and the radii
+  `occupancyCell` (10, `rounded-occupancy-cell`) and `swatch` (3, `rounded-swatch`: the legend's swatches), both
+  mapped by hand in the mobile `tailwind.config.ts`; the week bar's caption and the stats' numbers use `dayNumber`.
 
 ## Persistence
 
@@ -424,7 +428,10 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   the transparent header draw a frosted band with a line instead of the soft fade. Content under the header: a
   scrolling screen's `ScrollView` / `FlatList` is the screen's first descendant (the scroll-edge effect only finds
   that one) with `contentInsetAdjustmentBehavior="automatic"`; a fixed screen adds `useHeaderInset()` as top
-  padding (the header's height under the transparent header, 0 under the opaque one); a `KeyboardAvoidingView`
+  padding (the header's height under the transparent header, 0 under the opaque one); a scrolling screen under the
+  role homes' custom user header (not the native bar, so the automatic inset clears only the safe area) pads its top
+  by `Math.max(useHeaderInset() - insets.top, 0)` plus its own spacing — the admin home (`AdminScreen`, a
+  `ScrollView` since spec 061, so its cards clear the floating tab bar); a `KeyboardAvoidingView`
   below the header passes `useKeyboardOffset()` as `keyboardVerticalOffset` (0 under the transparent header, the
   header's height under the opaque one). `jest.setup.ts` mocks `isLiquidGlassAvailable` (false),
   `useHeaderInset` (0) and `useKeyboardOffset` (64) for components rendered without a navigator. Inner screens
@@ -1659,6 +1666,35 @@ import cycle.
   `ListEmptyComponent` renders `EmptyState` (`calendar-outline`, no action) with
   `teachingClasses.emptyFiltered.<sport>.{title,description}` when `emptyDiscipline` is set. The home row's count
   doesn't read the filter.
+- Mobile, spec 061 (weekly occupancy for admins, in `src/modules/classes/`; no API change): `utils/weekly-occupancy.ts`
+  holds the pure logic — `buildOccupancyDays(weekStart, today, locale)` (the 7 days, weekday abbreviation, number,
+  `isToday`), `buildOccupancyRows(weekStart, classes)` (one row per Fortaleza start time, `schoolTimeOf`, cancelled
+  included, ascending; classes sharing a day and a start time take sub-rows in the API's order, the time label only on
+  the first, `empty` slots elsewhere), `getOccupancyCellLook(item)` (tone `cancelled` / `full` (`isClassFull`) /
+  `high` (≥ 90) / `mid` (50–89) / `low` by `getOccupancyPercent`, with the percent; deliberately not the card bar's
+  80% step), `getDefaultSelectedClassId` (the non-cancelled class with the lowest `seatsTaken / capacity`, ties to the
+  first, else the first class), `getRelativeWeek(currentWeekStart, weekStart)` (`current` / `next` / `previous` /
+  `ahead` / `ago` with a count) and `getOccupancyStats(classes)` (percent, taken, total, free, full classes over the
+  non-cancelled classes, seats capped at capacity). `WeeklyOccupancyScreen` (`screens/weekly-occupancy.screen.tsx` +
+  hook, types; route `src/app/(private)/admin/weekly-occupancy.tsx`, `routes.admin.weeklyOccupancy`) reads
+  `useQuery(weekClassesOptions(weekStart))` — the Aulas tab's key, so both share the cache — starting at
+  `mondayOf(todayInSchoolZone(now))`; centered `StackHeaderTitle`, a first-view `ScrollView` with
+  `RefreshControl`; the selection is the tapped id while it is still in the week, else the default, and resets on a
+  week change. Children: `OccupancyWeekBar` (`components/occupancy-week-bar/`: 44 pt round `bg-surface` arrows with
+  `shadowStyle("iconButton")`, labels `weekMonthCalendar.previousWeek` / `nextWeek`, the relative label in
+  `ds-text-section-label` — `text-sun` only for this week — over the `weekCaption`), `OccupancyStats`
+  (`components/occupancy-stats/`, four `OccupancyStat`s from `components/occupancy-stat/`, each one `accessible`
+  element), `OccupancyMap` (`components/occupancy-map/` + hook: header row, time column, sub-rows, dashed empty slots
+  hidden from accessibility, each on a borderless `flex-1` wrapper so the columns stay equal) with `OccupancyCell`
+  (`components/occupancy-cell/`: a `TouchableOpacity` with the look on an inner view, `accessibilityState.selected`,
+  the grape border when selected) and `OccupancyLegend` (`components/occupancy-legend/`), and
+  `OccupancyMapSkeleton` (`components/occupancy-map-skeleton/`: the stats card, header and 4 rows as one labelled
+  element); under the legend the selected `ClassCard` (`showFlags`) opens `routes.admin.classDetail(id)`. States as
+  `TeachingClassesScreen` (`ErrorState` kept with its spinner while retrying, `EmptyState` `calendar-outline` for a
+  week with no class at all, nothing after an expired session, a failed refetch keeps the map, refetch on focus with
+  `cancelRefetch: false`, local pull-to-refresh spinner); the week bar shows in every state, the stats card only with
+  the map. The admin home's "Escola" section opens it from its own card after `PeopleEntryRow`. Copy under
+  `weeklyOccupancy` (relative weeks and stats' accessibility labels with i18next `count` plurals).
 
 ## Error handling
 

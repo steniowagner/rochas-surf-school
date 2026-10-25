@@ -463,6 +463,8 @@ src/
                                                      # above the tab bar
     (private)/{instructor,admin}/my-classes.tsx      # "Minhas aulas" of the classes they teach (/instructor/my-classes,
                                                      # /admin/my-classes; TeachingClassesScreen, spec 057), above the tab bar
+    (private)/admin/weekly-occupancy.tsx             # "Ocupação semanal" (/admin/weekly-occupancy, spec 061),
+                                                     # above the tab bar
     (private)/admin/manage-school-rules.tsx          # "Regras da escola" management (/admin/manage-school-rules,
                                                      # spec 056), above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
@@ -495,12 +497,12 @@ src/
                                 # the People row
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
-    screens/admin.screen.tsx    # admin home: "School tools"; "Tools" with the "Join the school" row and its
+    screens/admin.screen.tsx    # admin home (a ScrollView under the user header, spec 061): "School tools"; "Tools" with the "Join the school" row and its
                                 # pending count, the "Inscrições em aulas" row and its request count (spec 042),
                                 # the "Criar aulas" row and the "Regras de cancelamento" row,
                                 # "School" with the "Minhas aulas" row once they teach (spec 057), the Rules row
-                                # (management screen, spec 056), the People row and the
-                                # "Configurações da escola" row (spec 046)
+                                # (management screen, spec 056), the People row, the "Ocupação semanal" row
+                                # (spec 061) and the "Configurações da escola" row (spec 046)
     screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
                                 # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
                                 # the People PersonSheet (with the email) for a pressed card
@@ -563,6 +565,9 @@ src/
                                 # instructor or a teaching admin — the classes under way on grape cards, then by day
                                 # with TeachingDayHeaders, the next class highlighted; loading, empty, error + retry,
                                 # pull-to-refresh, refetch on focus
+    screens/weekly-occupancy.screen.tsx  # WeeklyOccupancyScreen + hook, types (spec 061): the admin's week map —
+                                # week bar, stats card, map and legend, the selected class's card; loading, empty,
+                                # error + retry, pull-to-refresh, refetch on focus
     screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
                                 # changes, single day and time, started mode, states — a cancelled class shows
                                 # only a message —, submit and its errors)
@@ -587,7 +592,10 @@ src/
                                 # guests-warning (spec 045: the admin's "N alunos trial …" note on Editar aula and
                                 # the cancel sheet); spec 057: ongoing-class-card (a class under way on grape),
                                 # teaching-day-header (a day's label and short date), teaching-classes-entry-row (the
-                                # homes' "Minhas aulas" row and its count; class-card's isNext draws "Próxima")
+                                # homes' "Minhas aulas" row and its count; class-card's isNext draws "Próxima");
+                                # spec 061: occupancy-week-bar (arrows, relative week, caption), occupancy-stats
+                                # (+ occupancy-stat: the week's four figures), occupancy-map (+ occupancy-cell,
+                                # occupancy-legend), occupancy-map-skeleton
     hooks/                      # use-locations (["locations"]), use-create-location (adds to that cache),
                                 # use-edit-location (PUT /locations/:id; replaces the row, reloads ["classes"]),
                                 # use-archive-location (POST /locations/:id/archive; drops the row),
@@ -616,7 +624,9 @@ src/
                                 # occupancy.ts (percent, tone, full, free and hidden seats, the students label),
                                 # audience.ts (joinAudience: who will be told, for the cancel sheet and Editar aula's
                                 # footer; spec 047), teaching-classes.ts (the layout of "Minhas aulas", the count,
-                                # the day header's date and weekday; spec 057)
+                                # the day header's date and weekday; spec 057), weekly-occupancy.ts (the map's days,
+                                # rows and cell tones, the default selection, the relative week and the stats;
+                                # spec 061)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, the
                                 # admins' "Inscrições em aulas" tool (spec 042), direct enrolment and take-out

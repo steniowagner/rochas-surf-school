@@ -421,7 +421,10 @@ has a point shows everyone a small map across the top of the "Onde e como" card,
 the first "Escola" row of their home (an admin's row shows only once they teach a class): the classes under way on
 grape cards, then the others by day ("Hoje", "Amanhã", the weekday) with the next class marked "Próxima" and
 cancelled ones in their day (spec 057), filtered by sport with the Aulas tab's floating button ("Nenhuma aula de
-surf/skate" when the chosen sport has none left, spec 059); their past classes, ratings and photos come with their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
+surf/skate" when the chosen sport has none left, spec 059); admins open "Ocupação semanal" from their home's "Escola" section: a week of classes as a map — one column per
+day, one row per start time, each cell the class's occupancy on four steps (under 50%, 50–89%, 90%+, full) or
+"canc." — with a card summing up the week's non-cancelled classes (occupancy, seats, free seats, full classes, seats
+capped at capacity), built in the app from the week list with no API of its own (spec 061); their past classes, ratings and photos come with their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
 ## Spec history
@@ -542,3 +545,6 @@ which stops that account from being erased while the link exists — a decision 
   `class.noInstructor` recipients with the person; Authentication's demotion of an instructor to student now runs
   the release (through `ClassesTeachingReleaser`, which passes the actor and answers how many classes were
   released).
+- `061-weekly-occupancy` — no change to the module's rules or API: the app's admin "Ocupação semanal" screen reads
+  the existing week list and computes the map (rows by Fortaleza start time, overlapping classes in sub-rows, four
+  occupancy steps), the default selection (the least-occupied class) and the week's stats on the phone.

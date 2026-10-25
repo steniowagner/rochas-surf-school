@@ -2,13 +2,14 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: accepted
+status: finished
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
 reviewed_commit: 449bca57faf919e7a0945bdce91d610fee1e5f3e
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-25
 ---
 
 # 061 — Weekly occupancy map for admins

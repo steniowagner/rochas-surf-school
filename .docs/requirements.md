@@ -1151,6 +1151,8 @@ While a class has no deadline because it couldn't be worked out, students who tr
 
 _Deferred to a future version: not part of the first release, so no spec plans it yet._
 
+_Implemented in spec 061-weekly-occupancy (only the weekly occupancy screen named in its out-of-scope line; ratings and photos stay deferred)._
+
 After a class, the school wants feedback and memories: students rate the classes they took, instructors comment, and everyone shares photos.
 
 **What it covers**
@@ -1170,7 +1172,7 @@ After a class, the school wants feedback and memories: students rate the classes
 - Depends on [Class scheduling](#3-class-scheduling) and [Class enrolment](#4-class-enrolment).
 - Photo storage and downloads.
 - Users can see each other's content with no report option. This is an accepted App Review risk under Apple's guideline 1.2; if Apple rejects the app for it, the fix would be a report button that notifies admins.
-- Out of scope: an admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list). Each class already shows its capacity and seats taken to everyone ([Class enrolment](#41-class-enrolment)) and its ratings ([Class ratings](#51-class-ratings)).
+- Out of scope: an admin dashboard with metrics (classes per day, average ratings, a ratings list). Admins have a weekly occupancy screen (spec 061), and each class already shows its capacity and seats taken to everyone ([Class enrolment](#41-class-enrolment)) and its ratings ([Class ratings](#51-class-ratings)).
 
 ### 5.1 Class ratings
 

@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: in-review
+status: changes-requested
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -383,3 +383,68 @@ they can see at a glance which classes still have room and which are full.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-25 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile
+  --filter=@rochas-surf-school/design-tokens`: 12 tasks; the tokens' `check-types` confirms `tokens.css` is current)
+- related tests ✅ apps/mobile 77 suites, 1602 passed · apps/web 5 files, 22 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK`, 16 files measured; no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` (web Playwright 22 passed; backend not affected; no mobile suite)
+- user journey on the iOS simulator (iPhone 18 Pro, iOS 27, en-US, dark, the dev admin): home → row → map, selection,
+  card → details → back, pull-to-refresh, › / ‹ with the default selection reset, an empty week. Not driven: the
+  error state with the network off (the backend was the user's own process; covered by the "state" Jest tests), light
+  mode and pt-BR (the app follows its own theme preference and the OS language; copy and tokens covered by Jest and
+  the tokens' check-types), the instructor and student homes (unchanged files).
+
+**Expected Results**
+
+- ER-01 ❌ — the row is on the "Escola" section and opens the screen with "WEEKLY OCCUPANCY" (Jest and simulator), but
+  see F-01
+- ER-02 ✅ — `-t "week"` tests; simulator: centered title, "19 – 25 OCT", › gives "26 OCT – 1 NOV", ‹ back comes from
+  the cache, the content scrolls under the header with the scroll-edge blur
+- ER-03 ❌ — rows, sub-rows, labels, Fortaleza times and hidden empty slots hold (util and component tests; a two-row
+  overlap at Wed 12:00 on the simulator), but see F-02
+- ER-04 ✅ — every threshold, edge and label in the util and component tests; `sunTint` in light and dark; the legend
+  swatches look right on the simulator (their test gap is F-03)
+- ER-05 ✅ — `-t "select"` and `-t "default"` tests; simulator: the least-occupied class starts selected, a tap moves
+  the border and the card, the card opens that class's details, back keeps the selection, another week and back
+  resets it
+- ER-06 ✅ — `-t "state"` tests (loading, error with retry and spinner, empty, all cancelled, failed refetch, expired
+  session, focus refetch, pull-to-refresh, arrows from the error, es-ES and pt-BR); simulator: skeleton on a new
+  week, "No classes this week" on 2 – 8 Nov with the week bar, pull-to-refresh spinner
+
+**Findings**
+
+- [ ] **F-01** (ER-01) — the admin home is a fixed `View` that doesn't scroll, so the new card pushes "School settings"
+  ("Configurações da escola") off the screen: on an iPhone 18 Pro (402×874 pt) it can no longer be reached, and the
+  new "Weekly occupancy" card itself sits almost entirely under the floating tab bar. Before this spec the settings
+  card was the one partly under the tab bar, but you could still tap it. Reproduce: sign in as the dev admin on the
+  iPhone 18 Pro simulator, open Home and try to scroll down. Expected: every card in "Escola", including "Ocupação
+  semanal" and "Configurações da escola", can be reached and tapped clear of the tab bar (for example, the home
+  scrolls with bottom padding for the tab bar), with a test that both cards are still there and work.
+- [ ] **F-02** (D-06) — the map's 7 columns aren't equal, so cells don't line up from one row to the next. Each empty
+  slot is a `flex-1` view with a border, and Yoga adds the border's width to its flex basis, while class cells (a
+  borderless `TouchableOpacity` around a bordered inner `View`) don't get that extra width. So each column's width
+  depends on how many empty slots its row has. Reproduce: on the simulator, week 19 – 25 Oct: the Saturday cell of
+  the 17:00 row is visibly offset from the Saturday cells of the 19:00 and 23:44 rows (about 1 pt). The same happens
+  on 26 Oct – 1 Nov (Sunday 08:00). Expected: every row's day columns share the same x and width as the header's
+  (D-06 "7 equal columns"). For example, give the empty slot the same outer `flex-1` wrapper with the dashed border
+  on an inner view, as the cell does.
+- [ ] **F-03** (tests) — ER-04 requires the legend to show its four labels "with their swatches". The test
+  `occupancy-map.component.test.tsx` → "shows the section label and the legend" checks only the labels: removing or
+  swapping the swatch classes (`bg-info-tint`, `bg-sun-tint`, `bg-sun`, `bg-bad`, `rounded-swatch`) in
+  `occupancy-legend.constants.ts` / the component still passes. Expected: the test checks each label's swatch and
+  its class.
+
+**Notes**
+
+- `## Memory Impact` lists `OccupancyMap` and `OccupancyMapSkeleton` but not the three extra components T-03/T-04
+  added (`OccupancyCell`, `OccupancyLegend`, `OccupancyWeekBar`). `spec-finish` should name them in
+  `technical-context.md` and `structure.md`.
+- ER-04 gives the cell labels in pt-BR ("SEG 19, 08:00, Surf, 30%"). The tests check the same format in en-US, and
+  the pt-BR copy uses the same placeholders. A pt-BR assertion would close that gap cheaply.
+- `weekly-occupancy.screen.test.tsx` logs a TanStack "not wrapped in act(...)" warning. `my-classes.screen.test.tsx`
+  does the same, so it's not a regression.

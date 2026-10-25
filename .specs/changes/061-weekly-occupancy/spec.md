@@ -2,7 +2,7 @@
 id: "061"
 slug: weekly-occupancy
 title: Weekly occupancy map for admins
-status: in-review
+status: changes-requested
 created: 2026-10-25
 started: 2026-10-25
 base_commit: eb2c201b331995da009917e5baf5dc8e934606a5
@@ -613,3 +613,62 @@ full.
   the pt-BR copy uses the same placeholders. A pt-BR assertion would close that gap cheaply.
 - `weekly-occupancy.screen.test.tsx` logs a TanStack "not wrapped in act(...)" warning. `my-classes.screen.test.tsx`
   does the same, so it's not a regression.
+
+### Round 2 — 2026-10-25 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile
+  --filter=@rochas-surf-school/design-tokens`: 12 tasks; the tokens' `check-types` confirms `tokens.css` is current)
+- related tests ✅ apps/mobile 79 suites, 1629 passed · apps/web 5 files, 22 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK`, 18 files measured; no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` (web passed; backend not affected; no mobile suite)
+- user journey on the iOS simulator (iPhone 18 Pro, en-US, dark, the dev admin, now = Sun 25 Oct 2026): the week bar
+  with the round 44 pt arrows; "THIS WEEK" in sun over "19 – 25 OCT" (5% · 4/78 · 74 · 2, "25" in sun); "NEXT WEEK"
+  (15% · 7/48 · 41 · 1), "LAST WEEK" (0% · 0/48 · 48 · 0), "2 WEEKS AGO" (0% · 0/8 · 8 · 0), "3 WEEKS AGO" and "IN 2
+  WEEKS" empty with no stats card, all in grey; the card sits between the week bar and "WEEK MAP"; the day columns line
+  up across rows with empty slots (F-02); the selected class's card opens its details; the admin home scrolls and both
+  "Weekly occupancy" and "School settings" clear the tab bar (F-01), but see F-04. Not driven: pt-BR and light mode
+  (copy and tokens covered by Jest and the tokens' check-types), the network-off error (covered by the "state" Jest
+  tests), the instructor and student homes (unchanged files).
+
+**Expected Results**
+
+- ER-01 ✅ — Jest (`admin.screen.test.tsx`) and simulator: the row sits after "People" and before "School settings",
+  opens "WEEKLY OCCUPANCY"; es-ES and en-US copy present (the admin home regression is F-04, outside this ER's
+  Given/When/Then)
+- ER-02 ✅ — `-t "week"`, the week bar's component test and `-t "relative week"`; simulator: every relative label, sun
+  only on this week, arrows move one week, a cached week shows without a skeleton
+- ER-03 ✅ — util and component tests; simulator: sub-rows with the time only on the first, equal columns
+- ER-04 ✅ — util and component tests (thresholds, 199/200, overbooked, labels, legend swatches now asserted — F-03)
+- ER-05 ✅ — `-t "select"` and `-t "default"`; simulator: default selection per week, the card opens the class details
+- ER-06 ✅ — `-t "state"` tests; simulator: empty weeks keep the week bar and show no stats card
+- ER-07 ✅ — util `-t "stats"` (ER-07's week, overbooked, all cancelled, none), `occupancy-stats` (colours, dividers,
+  one element per stat, singular/plural, pt-BR) and the screen's `-t "stats"`; simulator: figures change with the week
+  (test gap: F-05)
+
+**Findings**
+
+- [ ] **F-04** (convention) — the F-01 fix made the admin home a `ScrollView` with
+  `contentInsetAdjustmentBehavior="automatic"` but kept `paddingTop: headerInset + 16`. `useHeaderInset` is documented
+  as the top padding "for a screen that doesn't scroll" (`src/navigation/stack-header/header-inset.hook.ts`); with the
+  automatic inset iOS adds the top inset again, so the home's content starts about 60 pt lower than before this spec,
+  leaving an empty band between the greeting header and "School tools". Reproduce: sign in as the dev admin on the
+  iPhone 18 Pro simulator, open Home, scroll to the top: the "School tools" icon starts at ~204 pt, against ~140 pt
+  (header height + 16) before. Expected: the same top spacing as before the spec, as `registrations.screen.tsx` does
+  in its scroll view (`contentInsetAdjustmentBehavior="automatic"` with a plain `paddingTop`, no `headerInset`), with a
+  test of the scroll view's top padding.
+- [ ] **F-05** (tests) — ER-07 says the card sits "between the week bar and 'Mapa da semana'", and the screen test
+  "shows the week's figures between the week bar and the map" checks only the figures: moving `<OccupancyStats>` below
+  `<OccupancyMap>` (or under the class card) in `weekly-occupancy.screen.tsx` still passes. Expected: the test asserts
+  the order (for example, the stats card comes after the week label and before the "Week map" section label in the
+  rendered tree).
+
+**Notes**
+
+- Round 1's F-01, F-02 and F-03 are fixed: the home scrolls with both School cards reachable, the columns line up on the
+  simulator, and the legend test asserts each swatch's class.
+- `## Memory Impact` names `OccupancyStats` but not its child `OccupancyStat` (T-10); `spec-finish` should list it
+  with the other children in `technical-context.md` and `structure.md`.
+- `OccupancyCell` computes its look and label parameters in the component file; `.claude/rules/react.md` puts such
+  calculations in a `*.hook.ts`. Unchanged since round 1 and minor; worth folding into the F-04/F-05 round if cheap.

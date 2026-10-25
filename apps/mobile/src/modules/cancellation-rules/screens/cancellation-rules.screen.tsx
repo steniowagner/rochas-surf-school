@@ -10,6 +10,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
+import { useScrollToEndOnKeyboard } from "@/hooks/use-scroll-to-end-on-keyboard.hook";
 import { useTheme } from "@/hooks/use-theme";
 import {
   StackHeaderTitle,
@@ -34,6 +35,7 @@ export function CancellationRulesScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const headerInset = useHeaderInset();
+  const scrollRef = useScrollToEndOnKeyboard();
   const screen = useCancellationRulesScreen();
   const disciplineName = t(
     `cancellationRules.screen.discipline.${screen.discipline}`,
@@ -49,8 +51,12 @@ export function CancellationRulesScreen() {
         <>
           <Stack.Screen options={header.headerOptions} />
           <Animated.ScrollView
+            ref={scrollRef}
             className="flex-1 bg-page"
             keyboardShouldPersistTaps="handled"
+            // iOS insets the content by the keyboard's height and scrolls the focused input into view.
+            automaticallyAdjustKeyboardInsets
+            keyboardDismissMode="on-drag"
             contentInsetAdjustmentBehavior="automatic"
             contentContainerClassName="gap-6 px-screen"
             onScroll={header.scrollHandler}

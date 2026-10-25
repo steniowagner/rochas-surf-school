@@ -19,10 +19,10 @@ import { StepTabs } from "@/components/ui/step-tabs";
 import { TextInput } from "@/components/ui/text-input";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
-import { DisciplineFilter } from "@/modules/classes/components/discipline-filter";
-import { DISCIPLINE_FILTER_CLEARANCE } from "@/modules/classes/components/discipline-filter/discipline-filter.constants";
 import { ClassCard } from "@/modules/classes/components/class-card";
 import { ClassCardSkeleton } from "@/modules/classes/components/class-card-skeleton";
+import { DisciplineFilter } from "@/modules/classes/components/discipline-filter";
+import { DISCIPLINE_FILTER_CLEARANCE } from "@/modules/classes/components/discipline-filter/discipline-filter.constants";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
 import { StackHeaderTitle } from "@/navigation/stack-header";
 
@@ -316,13 +316,6 @@ export function EnrolStudentScreen() {
         {isClassStep ? (
           <Button
             variant="primary"
-            icon={
-              <Ionicons
-                name="person-add-outline"
-                size={18}
-                color={theme.onColor}
-              />
-            }
             disabled={!screen.submit}
             loading={screen.isSubmitting}
             onPress={screen.submit}
@@ -332,13 +325,6 @@ export function EnrolStudentScreen() {
         ) : (
           <Button
             variant="primary"
-            icon={
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={theme.onColor}
-              />
-            }
             disabled={!screen.isWhoDone}
             onPress={() => screen.goToStep("class")}
           >

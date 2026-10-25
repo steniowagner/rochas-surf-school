@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Keyboard, Platform } from "react-native";
+import { Keyboard } from "react-native";
 import type Animated from "react-native-reanimated";
 
 /**
@@ -10,9 +10,10 @@ export const useScrollToEndOnKeyboard = () => {
   const scrollRef = useRef<Animated.ScrollView>(null);
 
   useEffect(() => {
-    const subscription = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      () => scrollRef.current?.scrollToEnd({ animated: true }),
+    // After the keyboard is up: by then the keyboard avoidance has resized the scroll view, so its end is the end of
+    // the field and not what the old, taller size would have left out.
+    const subscription = Keyboard.addListener("keyboardDidShow", () =>
+      scrollRef.current?.scrollToEnd({ animated: true }),
     );
 
     return () => subscription.remove();

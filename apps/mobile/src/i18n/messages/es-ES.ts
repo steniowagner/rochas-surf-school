@@ -398,6 +398,7 @@ const messages: Messages = {
   },
   schoolSettings: {
     title: "Ajustes de la escuela",
+    description: "Cómo piden cupo los alumnos en las clases llenas y cómo hablan con la escuela.",
     waitingList: {
       section: "Lista de espera",
       label: "Lista de espera en las clases llenas",

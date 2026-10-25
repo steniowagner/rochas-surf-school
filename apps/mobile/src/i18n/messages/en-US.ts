@@ -391,6 +391,7 @@ const messages = {
   },
   schoolSettings: {
     title: "School settings",
+    description: "How students ask for a seat in full classes and how they reach the school.",
     waitingList: {
       section: "Waiting list",
       label: "Waiting list for full classes",

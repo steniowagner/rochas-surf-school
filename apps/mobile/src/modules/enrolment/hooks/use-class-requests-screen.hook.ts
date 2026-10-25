@@ -5,8 +5,12 @@ import { useAlertMessage } from "@/providers/alert-message";
 
 import type { RequestAction } from "../components/class-requests-group/class-requests-group.types";
 import type { PendingRequest } from "../enrolment.types";
-import { getDecideRequestErrorKey, shouldReloadRequests } from "../utils/enrolment-error";
+import {
+  getDecideRequestErrorKey,
+  shouldReloadRequests,
+} from "../utils/enrolment-error";
 
+import type { ClassRequestsStatus } from "./use-class-requests-screen.types";
 import { useApproveRequest } from "./use-approve-request.hook";
 import { useDenyRequest } from "./use-deny-request.hook";
 import { usePendingRequests } from "./use-pending-requests.hook";
@@ -67,7 +71,12 @@ export const useClassRequestsScreen = () => {
   };
 
   const approve = (request: PendingRequest) =>
-    decide(request, "approve", () => approveMutation.mutateAsync(request.id), "classRequests.approved");
+    decide(
+      request,
+      "approve",
+      () => approveMutation.mutateAsync(request.id),
+      "classRequests.approved",
+    );
 
   const confirmDeny = (reason: string) => {
     if (denying) {
@@ -86,11 +95,22 @@ export const useClassRequestsScreen = () => {
     setIsRefreshing(false);
   };
 
+  const classes = query.data?.classes ?? [];
+  // A list on screen stays there when a later reload fails; the error state is only for a first load that failed.
+  const status: ClassRequestsStatus = query.data
+    ? classes.length === 0
+      ? "empty"
+      : "ready"
+    : query.isError
+      ? "error"
+      : "loading";
+
   return {
-    classes: query.data?.classes ?? [],
+    classes,
     total: query.data?.total ?? 0,
+    status,
     isLoading: query.isPending,
-    isError: query.isError,
+    isRetrying: query.isFetching,
     isRefreshing,
     sending,
     denying,

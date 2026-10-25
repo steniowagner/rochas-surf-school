@@ -10,7 +10,11 @@ import { ErrorState } from "@/components/ui/error-state";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "@/hooks/use-theme";
-import { useCollapsingTitleHeader } from "@/navigation/stack-header";
+import {
+  StackHeaderTitle,
+  useCollapsingTitleHeader,
+  useHeaderInset,
+} from "@/navigation/stack-header";
 
 import { SchoolRuleRow } from "../components/school-rule-row";
 
@@ -20,21 +24,83 @@ const LOADING_ROWS = [0, 1, 2];
 const CONTENT_PADDING_TOP = 8;
 
 /**
- * The school rules to read at any time: no checkbox and no button, only the back button. The title and intro show only
- * with the rules; the loading, error and empty states stand alone.
+ * The school rules to read at any time: no checkbox and no button, only the back button. The rules scroll under a
+ * collapsing title with the intro; the loading, error and empty states don't scroll and keep the title in the header.
  */
 export function SchoolRulesReadScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const headerInset = useHeaderInset();
   const screen = useSchoolRulesReadScreen();
   const header = useCollapsingTitleHeader({
     title: t("schoolRulesScreen.title"),
     contentTop: CONTENT_PADDING_TOP,
   });
 
-  // The error and empty states stand alone in the middle of the screen.
-  const centered = screen.status === "error" || screen.status === "empty";
+  if (screen.status !== "ready") {
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            headerTitle: () => (
+              <StackHeaderTitle title={t("schoolRulesScreen.title")} />
+            ),
+          }}
+        />
+        <View
+          testID="school-rules-read"
+          className={`flex-1 bg-page px-screen ${screen.status === "loading" ? "" : "justify-center"}`}
+          style={{
+            paddingTop: headerInset + CONTENT_PADDING_TOP,
+            paddingBottom: Math.max(insets.bottom, 24),
+          }}
+        >
+          {screen.status === "loading" ? (
+            // Rows shaped like rules, read out as one loading state.
+            <View
+              testID="school-rules-loading"
+              accessible
+              accessibilityLabel={t("schoolRulesScreen.loading")}
+              className="rounded-card border border-line bg-surface"
+            >
+              {LOADING_ROWS.map((key) => (
+                <View
+                  key={key}
+                  className={`flex-row gap-3 px-4 py-3.5 ${key < LOADING_ROWS.length - 1 ? "border-b border-line" : ""}`}
+                >
+                  <Skeleton className="h-[22px] w-7 rounded-full" />
+                  <View className="flex-1 gap-2">
+                    <Skeleton className="h-3.5 w-1/2 rounded-full" />
+                    <Skeleton className="h-3 w-5/6 rounded-full" />
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          {screen.status === "error" ? (
+            <View className="flex-row">
+              <ErrorState
+                title={t("schoolRulesScreen.loadError.title")}
+                description={t("schoolRulesScreen.loadError.description")}
+                onRetry={screen.retry}
+                retrying={screen.retrying}
+              />
+            </View>
+          ) : null}
+          {screen.status === "empty" ? (
+            <View className="flex-row">
+              <EmptyState
+                icon="shield-outline"
+                title={t("schoolRulesScreen.empty.title")}
+                description={t("schoolRulesScreen.empty.description")}
+              />
+            </View>
+          ) : null}
+        </View>
+      </>
+    );
+  }
 
   return (
     <>
@@ -43,7 +109,7 @@ export function SchoolRulesReadScreen() {
         testID="school-rules-read"
         className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName={`gap-4 px-screen ${centered ? "grow justify-center" : ""}`}
+        contentContainerClassName="gap-4 px-screen"
         onScroll={header.scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={{
@@ -51,69 +117,24 @@ export function SchoolRulesReadScreen() {
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        {screen.status === "loading" ? (
-          // Rows shaped like rules, read out as one loading state.
-          <View
-            testID="school-rules-loading"
-            accessible
-            accessibilityLabel={t("schoolRulesScreen.loading")}
-            className="rounded-card border border-line bg-surface"
-          >
-            {LOADING_ROWS.map((key) => (
-              <View
-                key={key}
-                className={`flex-row gap-3 px-4 py-3.5 ${key < LOADING_ROWS.length - 1 ? "border-b border-line" : ""}`}
-              >
-                <Skeleton className="h-[22px] w-7 rounded-full" />
-                <View className="flex-1 gap-2">
-                  <Skeleton className="h-3.5 w-1/2 rounded-full" />
-                  <Skeleton className="h-3 w-5/6 rounded-full" />
-                </View>
-              </View>
-            ))}
-          </View>
-        ) : null}
-        {screen.status === "error" ? (
-          <View className="flex-row">
-            <ErrorState
-              title={t("schoolRulesScreen.loadError.title")}
-              description={t("schoolRulesScreen.loadError.description")}
-              onRetry={screen.retry}
-              retrying={screen.retrying}
+        <ScreenIntro
+          icon={
+            <Ionicons name="shield-outline" size={28} color={theme.grape} />
+          }
+          title={t("schoolRulesScreen.title")}
+          description={t("schoolRulesScreen.description")}
+          onTitleLayout={header.onTitleBottomChange}
+        />
+        <View className="rounded-card border border-line bg-surface px-4">
+          {screen.rules.map((rule, index) => (
+            <SchoolRuleRow
+              key={rule.id}
+              rule={rule}
+              position={index + 1}
+              showDivider={index < screen.rules.length - 1}
             />
-          </View>
-        ) : null}
-        {screen.status === "empty" ? (
-          <View className="flex-row">
-            <EmptyState
-              icon="shield-outline"
-              title={t("schoolRulesScreen.empty.title")}
-              description={t("schoolRulesScreen.empty.description")}
-            />
-          </View>
-        ) : null}
-        {screen.status === "ready" ? (
-          <>
-            <ScreenIntro
-              icon={
-                <Ionicons name="shield-outline" size={28} color={theme.grape} />
-              }
-              title={t("schoolRulesScreen.title")}
-              description={t("schoolRulesScreen.description")}
-              onTitleLayout={header.onTitleBottomChange}
-            />
-            <View className="rounded-card border border-line bg-surface px-4">
-              {screen.rules.map((rule, index) => (
-                <SchoolRuleRow
-                  key={rule.id}
-                  rule={rule}
-                  position={index + 1}
-                  showDivider={index < screen.rules.length - 1}
-                />
-              ))}
-            </View>
-          </>
-        ) : null}
+          ))}
+        </View>
       </Animated.ScrollView>
     </>
   );

@@ -63,8 +63,13 @@ export function OccupancyMap({
                   testID={`occupancy-empty-${slot.date}`}
                   accessibilityElementsHidden
                   importantForAccessibility="no-hide-descendants"
-                  className="h-11 flex-1 rounded-occupancy-cell border border-dashed border-line"
-                />
+                  className="h-11 flex-1"
+                >
+                  <View
+                    testID={`occupancy-dashed-${slot.date}`}
+                    className="h-11 rounded-occupancy-cell border border-dashed border-line"
+                  />
+                </View>
               ),
             )}
           </View>

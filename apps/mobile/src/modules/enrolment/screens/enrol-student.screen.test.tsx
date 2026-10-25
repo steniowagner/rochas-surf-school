@@ -226,14 +226,14 @@ describe("EnrolStudentScreen", () => {
 
     await user.press(await screen.findByTestId("calendar-day-2026-10-15"));
 
-    expect(await screen.findByText("No upcoming classes on this day.")).toBeOnTheScreen();
+    expect(await screen.findByText("No classes this day")).toBeOnTheScreen();
   });
 
   it("says no student was found", async () => {
     serve({ students: [] });
     await renderScreen();
 
-    expect(await screen.findByText("No students found.")).toBeOnTheScreen();
+    expect(await screen.findByText("No students found")).toBeOnTheScreen();
   });
 
   it("searches the students once the typing stops", async () => {
@@ -303,7 +303,9 @@ describe("EnrolStudentScreen", () => {
     await renderScreen();
 
     expect(screen.getByTestId("enrol-student-students-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the students")).toBeOnTheScreen();
     expect(screen.getByTestId("enrol-student-classes-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
     fail(failure(500));
     const retries = await screen.findAllByRole("button", { name: "Try again" });
     expect(retries).toHaveLength(2);

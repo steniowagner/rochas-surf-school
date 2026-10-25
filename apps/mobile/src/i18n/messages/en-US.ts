@@ -283,18 +283,36 @@ const messages = {
   enrolStudent: {
     title: "Enrol a student",
     description: "Enrol a school student, or someone without an account in a trial class.",
+    students: {
+      loading: "Loading the students",
+      empty: {
+        title: "No students found",
+        description: "Try another name or check the spelling.",
+      },
+      loadError: {
+        title: "Couldn't load the students",
+        description: "Check your connection and try again.",
+      },
+    },
+    classes: {
+      loading: "Loading the classes",
+      empty: {
+        title: "No classes this day",
+        description: "There are no upcoming classes on this day. Pick another day.",
+      },
+      loadError: {
+        title: "Couldn't load the classes",
+        description: "Check your connection and try again.",
+      },
+    },
     whoStep: "1 · Who",
     classStep: "2 · Class",
     searchPlaceholder: "Search students",
     searchLabel: "Search students",
-    noStudents: "No students found.",
-    noClasses: "No upcoming classes on this day.",
     hasClasses: "with classes",
     submit: "Enrol {{name}}",
     submitEmpty: "Enrol",
     done: "{{name}} enrolled · student notified",
-    loadError: "Couldn't load.",
-    retry: "Try again",
     modeTrial: "Trial class",
     modeStudent: "School student",
     doneTrial: "{{name}} enrolled",

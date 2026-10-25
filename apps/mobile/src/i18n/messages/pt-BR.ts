@@ -283,18 +283,36 @@ const messages: Messages = {
   enrolStudent: {
     title: "Inscrever aluno",
     description: "Inscreve um aluno da escola, ou alguém sem conta numa aula experimental.",
+    students: {
+      loading: "Carregando os alunos",
+      empty: {
+        title: "Nenhum aluno encontrado",
+        description: "Tente outro nome ou confira a grafia.",
+      },
+      loadError: {
+        title: "Não foi possível carregar os alunos",
+        description: "Confira sua conexão e tente de novo.",
+      },
+    },
+    classes: {
+      loading: "Carregando as aulas",
+      empty: {
+        title: "Sem aulas neste dia",
+        description: "Não há aulas por começar neste dia. Escolha outro dia.",
+      },
+      loadError: {
+        title: "Não foi possível carregar as aulas",
+        description: "Confira sua conexão e tente de novo.",
+      },
+    },
     whoStep: "1 · Quem",
     classStep: "2 · Aula",
     searchPlaceholder: "Procurar aluno",
     searchLabel: "Procurar aluno",
-    noStudents: "Nenhum aluno encontrado.",
-    noClasses: "Sem aulas por começar neste dia.",
     hasClasses: "com aulas",
     submit: "Inscrever {{name}}",
     submitEmpty: "Inscrever",
     done: "{{name}} inscrito · aluno avisado",
-    loadError: "Não foi possível carregar.",
-    retry: "Tentar novamente",
     modeTrial: "Aula experimental",
     modeStudent: "Aluno da escola",
     doneTrial: "{{name}} inscrito",

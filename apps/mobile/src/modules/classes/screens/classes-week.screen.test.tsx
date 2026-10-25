@@ -195,28 +195,6 @@ describe("ClassesWeekScreen", () => {
     expect(screen.getByText("CLASSES")).toBeOnTheScreen();
   });
 
-  it("puts the sport filter in the header instead of floating over the list", async () => {
-    const user = userEvent.setup();
-    await renderScreen({ filterInHeader: true });
-    await screen.findByText("16:00 – 17:00");
-
-    expect(
-      screen.getAllByRole("button", { name: "Filter by sport" }),
-    ).toHaveLength(1);
-    expect(
-      screen.queryByTestId("discipline-filter-option-skate"),
-    ).not.toBeOnTheScreen();
-
-    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
-    await user.press(
-      screen.getByTestId("discipline-filter-option-skate").children[0] as never,
-    );
-
-    expect(
-      screen.queryByTestId("discipline-filter-option-skate"),
-    ).not.toBeOnTheScreen();
-  });
-
   it("puts the calendar on the Agenda band when banded", async () => {
     await renderScreen({ banded: true });
     await screen.findByText("16:00 – 17:00");

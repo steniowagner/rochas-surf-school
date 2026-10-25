@@ -12,7 +12,6 @@ import { StackHeaderTitle, useHeaderInset } from "@/navigation/stack-header";
 import { ClassCard } from "../components/class-card";
 import { ClassCardSkeleton } from "../components/class-card-skeleton";
 import { DisciplineFilter } from "../components/discipline-filter";
-import { DisciplineFilterHeaderButton } from "../components/discipline-filter-header-button";
 import { DISCIPLINE_FILTER_CLEARANCE } from "../components/discipline-filter/discipline-filter.constants";
 
 import { useClassesWeekScreen } from "./classes-week.screen.hook";
@@ -24,7 +23,6 @@ export function ClassesWeekScreen({
   header,
   classRoute,
   canCreate = false,
-  filterInHeader = false,
   showFlags = false,
   showEnrolment = false,
   banded = false,
@@ -34,21 +32,6 @@ export function ClassesWeekScreen({
   const headerInset = useHeaderInset();
   const screen = useClassesWeekScreen({ classRoute, canCreate });
   const isHeaderHidden = header === "hidden";
-  const filterButton = filterInHeader ? (
-    <DisciplineFilterHeaderButton
-      value={screen.discipline}
-      onChange={screen.selectDiscipline}
-    />
-  ) : null;
-  const createButton = screen.canCreateOnDay ? (
-    <HeaderButton
-      icon="add"
-      label={t("classesWeek.newClass")}
-      onPress={screen.createClass}
-    />
-  ) : null;
-  const hasHeaderActions = filterInHeader || screen.canCreateOnDay;
-
   return (
     <>
       <Stack.Screen
@@ -60,30 +43,14 @@ export function ClassesWeekScreen({
               }
             : null),
           ...(isHeaderHidden ? { headerShown: false } : null),
-          headerRight: hasHeaderActions
+          headerRight: screen.canCreateOnDay
             ? () => (
-                <View className="flex-row items-center gap-2">
-                  {filterButton}
-                  {createButton}
-                </View>
+                <HeaderButton
+                  icon="add"
+                  label={t("classesWeek.newClass")}
+                  onPress={screen.createClass}
+                />
               )
-            : undefined,
-          // On iOS each one is its own header item: the filter keeps its purple circle, the "+" the header's glass.
-          unstable_headerRightItems: hasHeaderActions
-            ? () => [
-                ...(filterButton
-                  ? [
-                      {
-                        type: "custom" as const,
-                        element: filterButton,
-                        hidesSharedBackground: true,
-                      },
-                    ]
-                  : []),
-                ...(createButton
-                  ? [{ type: "custom" as const, element: createButton }]
-                  : []),
-              ]
             : undefined,
         }}
       />
@@ -184,12 +151,10 @@ export function ClassesWeekScreen({
           )}
         </ScrollView>
         {/* Over the list in every state: loading, error, an empty day and the cards. */}
-        {filterInHeader ? null : (
-          <DisciplineFilter
-            value={screen.discipline}
-            onChange={screen.selectDiscipline}
-          />
-        )}
+        <DisciplineFilter
+          value={screen.discipline}
+          onChange={screen.selectDiscipline}
+        />
       </View>
     </>
   );

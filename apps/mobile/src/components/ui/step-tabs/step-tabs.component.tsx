@@ -17,7 +17,7 @@ export function StepTabs<T extends string>({
   return (
     <View
       accessibilityRole="tablist"
-      className="flex-row gap-1 rounded-card bg-sand p-1"
+      className="flex-row gap-1 rounded-full bg-sand p-1"
     >
       {steps.map((step, index) => {
         const isSelected = step.key === selected;
@@ -32,7 +32,7 @@ export function StepTabs<T extends string>({
             activeOpacity={BUTTON_ACTIVE_OPACITY}
             disabled={disabled}
             onPress={isSelected ? undefined : () => onChange(step.key)}
-            className={`min-h-11 flex-1 flex-row items-center gap-2 rounded-card p-2 ${isSelected ? "bg-surface" : ""} ${disabled ? "opacity-50" : ""}`}
+            className={`min-h-11 flex-1 flex-row items-center gap-2 rounded-full p-2 ${isSelected ? "bg-surface" : ""} ${disabled ? "opacity-50" : ""}`}
             style={isSelected ? shadowStyle("iconButton", theme) : undefined}
           >
             <View

@@ -469,6 +469,81 @@ describe("EnrolStudentScreen", () => {
     expect(submitButton("Enrol")).toBeEnabled();
   });
 
+  describe("sport filter", () => {
+    const SKATE = makeClass("c-skate", "2026-10-14T20:00:00.000Z", "2026-10-14T21:00:00.000Z", {
+      discipline: "skate",
+    });
+
+    const openClassStep = async (user: ReturnType<typeof userEvent.setup>) => {
+      serve({ classes: [OPEN, SKATE] });
+      await renderScreen();
+      await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+      await goToClass(user);
+      await screen.findByText("16:00 – 17:00");
+    };
+
+    const choose = async (user: ReturnType<typeof userEvent.setup>, label: "All" | "Surf" | "Skate") => {
+      await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+      await user.press(screen.getByRole("button", { name: label }));
+    };
+
+    it("shows the filter only on the Class step", async () => {
+      const user = userEvent.setup();
+      serve({ classes: [OPEN, SKATE] });
+      await renderScreen();
+      await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+
+      expect(screen.queryByRole("button", { name: "Filter by sport" })).not.toBeOnTheScreen();
+
+      await goToClass(user);
+
+      expect(screen.getByRole("button", { name: "Filter by sport" })).toBeOnTheScreen();
+    });
+
+    it("narrows the day's classes to the chosen sport, and All lists them again", async () => {
+      const user = userEvent.setup();
+      await openClassStep(user);
+      expect(screen.getByText("17:00 – 18:00")).toBeOnTheScreen();
+
+      await choose(user, "Skate");
+      expect(screen.getByText("17:00 – 18:00")).toBeOnTheScreen();
+      expect(screen.queryByText("16:00 – 17:00")).not.toBeOnTheScreen();
+
+      await choose(user, "Surf");
+      expect(screen.getByText("16:00 – 17:00")).toBeOnTheScreen();
+      expect(screen.queryByText("17:00 – 18:00")).not.toBeOnTheScreen();
+
+      await choose(user, "All");
+      expect(screen.getByText("17:00 – 18:00")).toBeOnTheScreen();
+      expect(screen.getByText("16:00 – 17:00")).toBeOnTheScreen();
+    });
+
+    it("un-picks a class the filter hides", async () => {
+      const user = userEvent.setup();
+      await openClassStep(user);
+      await user.press(screen.getByRole("button", { name: /16:00 – 17:00/ }));
+      expect(submitButton("Enrol")).toBeEnabled();
+
+      await choose(user, "Skate");
+
+      expect(screen.getByRole("tab", { name: "Class, Not chosen" })).toBeOnTheScreen();
+      expect(submitButton("Enrol")).toBeDisabled();
+    });
+
+    it("says there are no classes when the sport has none that day", async () => {
+      const user = userEvent.setup();
+      serve({ classes: [OPEN] });
+      await renderScreen();
+      await user.press(await screen.findByRole("radio", { name: "Ana Souza" }));
+      await goToClass(user);
+      await screen.findByText("16:00 – 17:00");
+
+      await choose(user, "Skate");
+
+      expect(screen.getByText("No classes this day")).toBeOnTheScreen();
+    });
+  });
+
   describe("trial class", () => {
     const switchToTrial = async (user: ReturnType<typeof userEvent.setup>) => {
       await user.press(await screen.findByRole("tab", { name: "Trial class" }));

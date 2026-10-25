@@ -49,6 +49,7 @@ step shows inside, the requests and their outcomes stay as they are.
 | D-04 | The button is the standard `Button` (`variant="primary"`) inside a footer fixed under the scroll (the `edit-class` pattern). On the Quem step it reads `enrolStudent.next` — pt-BR "Escolher aula", es-ES "Elegir clase", en-US "Choose class" — with an `Ionicons` `chevron-forward` icon, is disabled until the Quem step is done, and moves to the Aula step. On the Aula step it reads the existing `enrolStudent.submitEmpty` — pt-BR "Inscrever", es-ES "Inscribir", en-US "Enrol" — with an `Ionicons` `person-add-outline` icon, is disabled until `submit` is defined, shows the `loading` spinner while sending and calls `submit`. The `enrolStudent.submit` ("Inscrever {{name}}") key and `submitName` are removed. No summary line above the button. | The design's buttons, using the project's standard button (user's instruction); the name now lives in the Quem tab. |
 | D-05 | The `ScreenIntro` (icon and description) is removed from the screen; the collapsing-title header keeps "Inscrever aluno" as its title. The top of the scroll is the `StepTabs`, then the current step's content. The `enrolStudent.description` key is removed from the three locales if nothing else uses it. | The design has no intro; the header already carries the title. |
 | D-06 | Each step's content is reused as it is: on Quem the trial/student `SegmentedControl` then the search and student list (with its skeleton, "Nenhum aluno encontrado" empty state, load error with retry and the "load more" spinner) or the trial name, WhatsApp and note; on Aula the `WeekMonthCalendar` then the class cards (with their skeletons, "Sem aulas neste dia" empty state, load error with retry, and full classes dimmed and not pickable). Only the current step's content is rendered. Details of the screenshots that don't exist today (student subtitles such as "6 aulas · desde jul 2026", a day header with the class count) are not built. | "Reuse what we already have" and "keep the loading, empty and error states" (user's instructions). |
+| D-07 | The Aula step also shows the floating sport filter (`DisciplineFilter`, as on the classes week screen) over the step's content, above the fixed footer (not over the button). The filter value (`all`, `surf`, `skate`) is local state of the hook, starts on `all`, and narrows the selected day's class cards to that sport. The scroll gets the filter's bottom clearance (`DISCIPLINE_FILTER_CLEARANCE`) so the last card isn't covered. A picked class the filter hides stops counting as picked. | Requested by the user during execution (amendment 2026-10-25); reuses the existing component. |
 
 ## Expected Results
 
@@ -80,7 +81,10 @@ step shows inside, the requests and their outcomes stay as they are.
 - **Edge and error cases:** a full class is dimmed and can't be picked; picking another day clears the class, the Aula
   value goes back to "Por escolher" and the button is disabled again; pressing the Quem tab shows step 1 with the
   student (or trial fields) still filled and, back on Aula, the day and class still picked; while the classes load the
-  skeletons show, a day without classes shows "Sem aulas neste dia", and a failed load shows the error with retry.
+  skeletons show, a day without classes shows "Sem aulas neste dia", and a failed load shows the error with retry. The Aula step also shows the floating sport filter (D-07; not on the
+  Quem step, not over the button): "Surf" or "Skate" lists only that sport's classes and "All" lists them again; a
+  picked class the filter hides is no longer picked (the Aula tab reads "Por escolher", "Inscrever" is disabled); a
+  sport with no class that day shows "Sem aulas neste dia".
 - **Verify by:** `npx jest src/modules/enrolment/screens/enrol-student.screen.test.tsx
   src/modules/enrolment/screens/enrol-student.screen.hook.test.tsx` (from `apps/mobile`), and the user journey in the
   Verification Plan.
@@ -151,6 +155,19 @@ step shows inside, the requests and their outcomes stay as they are.
   > `StackHeaderTitle` (as `edit-class` does) and uses a plain `ScrollView`; the header still reads "Inscrever aluno".
   > Follow-up fix found by the related tests: `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx` asserted the removed
   > intro text; it now asserts the "Choose class" button. The hook's `whoValue` was simplified so `isWhoDone = whoValue !== null`.
+- [x] **T-05** (added during execution) — In `enrol-student.screen.hook.ts` / `.types.ts` add `discipline` and
+  `selectDiscipline` (D-07) and filter `dayItems` by it; in `enrol-student.screen.tsx` render `DisciplineFilter` on the
+  Aula step over the scroll area (the footer stays outside it) and add its clearance to the scroll's bottom padding;
+  tests in the hook and screen test files for the filter cases of ER-02. Skills:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
+  [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
+  Covers: ER-02 · Done when: `npx jest src/modules/enrolment` passes from `apps/mobile`.
+  > ✅ 2026-10-25 — hook has `discipline` / `selectDiscipline` and filters `dayItems`; the Aula step renders `DisciplineFilter`
+  > over the scroll area with its clearance as extra bottom padding; also, at the user's request, `StepTabs` container and
+  > tabs are `rounded-full`; files: `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.{hook.ts,types.ts,tsx}`,
+  > `enrol-student.screen.hook.test.tsx`, `enrol-student.screen.test.tsx`,
+  > `apps/mobile/src/components/ui/step-tabs/step-tabs.component.tsx`; verified: `npx jest src/modules/enrolment
+  > src/components/ui/step-tabs` (321 passed), `tsc --noEmit` clean; deviations: the screen file was reformatted by prettier.
 
 ### Verification
 
@@ -186,5 +203,9 @@ step shows inside, the requests and their outcomes stay as they are.
 - `memory/modules/enrolment.md` — a Spec history line, if the module file lists one.
 
 ## Amendments
+
+- 2026-10-25 — Added D-07 and T-05, and the filter cases in ER-02 (a quick spec allows only 3 Expected Results): the Aula step gets the floating sport filter. Before: no filter on the step.
+  Reason: the user asked for it after the spec went to review; status went back from `in-review` to `in-progress`.
+  Approved by the user in chat.
 
 ## Review

@@ -1,7 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PhoneNumberField } from "@/components/phone-number-field";
@@ -13,6 +19,8 @@ import { StepTabs } from "@/components/ui/step-tabs";
 import { TextInput } from "@/components/ui/text-input";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { useTheme } from "@/hooks/use-theme";
+import { DisciplineFilter } from "@/modules/classes/components/discipline-filter";
+import { DISCIPLINE_FILTER_CLEARANCE } from "@/modules/classes/components/discipline-filter/discipline-filter.constants";
 import { ClassCard } from "@/modules/classes/components/class-card";
 import { ClassCardSkeleton } from "@/modules/classes/components/class-card-skeleton";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
@@ -83,7 +91,10 @@ export function EnrolStudentScreen() {
               className={`min-h-14 flex-row items-center gap-3 px-4 py-2 ${index === 0 ? "" : "border-t border-line"}`}
             >
               <PersonAvatar name={student.name} />
-              <Text numberOfLines={1} className="ds-text-list-title flex-1 text-ink">
+              <Text
+                numberOfLines={1}
+                className="ds-text-list-title flex-1 text-ink"
+              >
                 {student.name}
               </Text>
               <Ionicons
@@ -95,7 +106,11 @@ export function EnrolStudentScreen() {
           );
         })}
         {screen.isFetchingMoreStudents ? (
-          <ActivityIndicator testID="enrol-student-more-loading" color={theme.ink2} className="py-3" />
+          <ActivityIndicator
+            testID="enrol-student-more-loading"
+            color={theme.ink2}
+            className="py-3"
+          />
         ) : null}
       </ScrollView>
     );
@@ -150,7 +165,11 @@ export function EnrolStudentScreen() {
             pointerEvents={full ? "none" : "auto"}
             className={`rounded-card border-2 ${selected ? "border-grape" : "border-transparent"} ${full ? "opacity-50" : ""}`}
           >
-            <ClassCard item={item} now={screen.now} onPress={screen.selectClass} />
+            <ClassCard
+              item={item}
+              now={screen.now}
+              onPress={screen.selectClass}
+            />
           </View>
         ))}
       </View>
@@ -160,7 +179,9 @@ export function EnrolStudentScreen() {
   const renderTrialGuest = () => (
     <View className="gap-3">
       <View className="gap-2">
-        <Text className="ds-text-section-label text-ink-2">{t("enrolStudent.trial.nameLabel")}</Text>
+        <Text className="ds-text-section-label text-ink-2">
+          {t("enrolStudent.trial.nameLabel")}
+        </Text>
         <TextInput
           icon={null}
           value={screen.guestName}
@@ -186,7 +207,9 @@ export function EnrolStudentScreen() {
           label={t("enrolStudent.trial.whatsappLabel")}
         />
       </View>
-      <Text className="ds-text-list-subtitle text-ink-2">{t("enrolStudent.trial.note")}</Text>
+      <Text className="ds-text-list-subtitle text-ink-2">
+        {t("enrolStudent.trial.note")}
+      </Text>
     </View>
   );
 
@@ -238,45 +261,68 @@ export function EnrolStudentScreen() {
   return (
     <View className="flex-1 bg-page">
       <Stack.Screen
-        options={{ headerTitle: () => <StackHeaderTitle title={t("enrolStudent.title")} /> }}
+        options={{
+          headerTitle: () => (
+            <StackHeaderTitle title={t("enrolStudent.title")} />
+          ),
+        }}
       />
-      <ScrollView
-        testID="enrol-student-screen"
-        className="flex-1"
-        contentInsetAdjustmentBehavior="automatic"
-        keyboardShouldPersistTaps="handled"
-        contentContainerClassName="gap-5 px-screen"
-        contentContainerStyle={{ paddingTop: CONTENT_PADDING_TOP, paddingBottom: 24 }}
-      >
-        <StepTabs
-          selected={screen.step}
-          onChange={screen.goToStep}
-          steps={[
-            {
-              key: "who",
-              label: t("enrolStudent.steps.who"),
-              value: screen.whoValue ?? t("enrolStudent.steps.pending"),
-              done: screen.isWhoDone,
-            },
-            {
-              key: "class",
-              label: t("enrolStudent.steps.class"),
-              value: screen.classValue ?? t("enrolStudent.steps.pending"),
-              done: screen.isClassDone,
-              disabled: !screen.isWhoDone,
-            },
-          ]}
-        />
-        {isClassStep ? renderClassStep() : renderWho()}
-      </ScrollView>
+      <View className="flex-1">
+        <ScrollView
+          testID="enrol-student-screen"
+          className="flex-1"
+          contentInsetAdjustmentBehavior="automatic"
+          keyboardShouldPersistTaps="handled"
+          contentContainerClassName="gap-5 px-screen"
+          contentContainerStyle={{
+            paddingTop: CONTENT_PADDING_TOP,
+            paddingBottom: 24 + (isClassStep ? DISCIPLINE_FILTER_CLEARANCE : 0),
+          }}
+        >
+          <StepTabs
+            selected={screen.step}
+            onChange={screen.goToStep}
+            steps={[
+              {
+                key: "who",
+                label: t("enrolStudent.steps.who"),
+                value: screen.whoValue ?? t("enrolStudent.steps.pending"),
+                done: screen.isWhoDone,
+              },
+              {
+                key: "class",
+                label: t("enrolStudent.steps.class"),
+                value: screen.classValue ?? t("enrolStudent.steps.pending"),
+                done: screen.isClassDone,
+                disabled: !screen.isWhoDone,
+              },
+            ]}
+          />
+          {isClassStep ? renderClassStep() : renderWho()}
+        </ScrollView>
+        {isClassStep ? (
+          <DisciplineFilter
+            value={screen.discipline}
+            onChange={screen.selectDiscipline}
+          />
+        ) : null}
+      </View>
       <View
         className="border-t border-line bg-page px-screen pt-3"
-        style={{ paddingBottom: Math.max(insets.bottom, FOOTER_MIN_PADDING_BOTTOM) }}
+        style={{
+          paddingBottom: Math.max(insets.bottom, FOOTER_MIN_PADDING_BOTTOM),
+        }}
       >
         {isClassStep ? (
           <Button
             variant="primary"
-            icon={<Ionicons name="person-add-outline" size={18} color={theme.onColor} />}
+            icon={
+              <Ionicons
+                name="person-add-outline"
+                size={18}
+                color={theme.onColor}
+              />
+            }
             disabled={!screen.submit}
             loading={screen.isSubmitting}
             onPress={screen.submit}
@@ -286,7 +332,13 @@ export function EnrolStudentScreen() {
         ) : (
           <Button
             variant="primary"
-            icon={<Ionicons name="chevron-forward" size={18} color={theme.onColor} />}
+            icon={
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={theme.onColor}
+              />
+            }
             disabled={!screen.isWhoDone}
             onPress={() => screen.goToStep("class")}
           >

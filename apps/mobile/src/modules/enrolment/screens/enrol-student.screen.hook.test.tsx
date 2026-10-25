@@ -249,6 +249,18 @@ describe("useEnrolStudentScreen steps", () => {
     expect(result.current.selectedClassId).toBe("c-open");
   });
 
+  it("starts on every sport and narrows the day's classes to the chosen one", async () => {
+    const { result } = await bare();
+    expect(result.current.discipline).toBe("all");
+
+    await act(async () => result.current.selectDiscipline("skate"));
+    expect(result.current.discipline).toBe("skate");
+    expect(result.current.dayItems).toHaveLength(0);
+
+    await act(async () => result.current.selectDiscipline("surf"));
+    expect(result.current.dayItems).toHaveLength(1);
+  });
+
   it.each([
     ["en-US", "Wed 14 · 16:00"],
     ["pt-BR", "Qua 14 · 16:00"],

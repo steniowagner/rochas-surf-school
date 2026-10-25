@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { usePhoneNumberField } from "@/components/phone-number-field";
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
 import { getStatus, isValid, nameRules } from "@/modules/auth/utils/field-validation";
+import type { DisciplineFilterValue } from "@/modules/classes/classes.types";
 import { useDebouncedValue } from "@/modules/classes/hooks/use-debounced-value.hook";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
 import { useVisibleWeeksClasses } from "@/modules/classes/hooks/use-visible-weeks-classes.hook";
@@ -60,6 +61,7 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     to: addDays(currentWeek, 6),
   });
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   const [step, setStep] = useState<EnrolStep>("who");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<EnrolMode>("student");
@@ -78,6 +80,7 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
   const dayItems = (weekQuery.data?.items ?? []).filter(
     (item) =>
       schoolDayOf(item.startsAt) === selectedDate &&
+      (discipline === "all" || item.discipline === discipline) &&
       !item.cancelledAt &&
       new Date(item.startsAt).getTime() > startedBefore,
   );
@@ -248,6 +251,8 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
     selectClass: setSelectedClassId,
     // Undefined until the person (a picked student, or a valid trial name and number) and a class with a free seat are set.
     submit: submitAction,
+    discipline,
+    selectDiscipline: setDiscipline,
     step,
     // The Aula step can't be reached before the person is ready.
     goToStep: (next) => {

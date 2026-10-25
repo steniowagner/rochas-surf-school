@@ -3,7 +3,7 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import type { usePhoneNumberField } from "@/components/phone-number-field";
 import type { TextInputStatus } from "@/components/ui/text-input/text-input.types";
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
-import type { ClassItem } from "@/modules/classes/classes.types";
+import type { ClassItem, DisciplineFilterValue } from "@/modules/classes/classes.types";
 import type { Person } from "@/modules/people/people.types";
 
 /** Whom the admin is enrolling: a student of the school, or a trial guest with no account. */
@@ -44,6 +44,9 @@ export type UseEnrolStudentScreenResult = {
   isSubmitting: boolean;
   /** Sends the enrolment; undefined until a student and a class with a free seat are picked. */
   submit: (() => Promise<void>) | undefined;
+  /** The sport the day's classes are narrowed to. */
+  discipline: DisciplineFilterValue;
+  selectDiscipline: (discipline: DisciplineFilterValue) => void;
   step: EnrolStep;
   /** Moves to a step; the class step is ignored until the person is ready. Selections are kept. */
   goToStep: (step: EnrolStep) => void;

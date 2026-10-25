@@ -3,7 +3,7 @@ id: "060"
 slug: enrol-student-steps
 title: "Split \"Inscrever aluno\" into Quem and Aula steps"
 template: quick
-status: changes-requested
+status: in-review
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 8e31960b5c4e9506b388de0ab4e3e0f5b272f34a
@@ -43,7 +43,7 @@ step shows inside, the requests and their outcomes stay as they are.
 
 | ID   | Decision | Reason |
 | ---- | -------- | ------ |
-| D-01 | A new `StepTabs` component in `apps/mobile/src/components/ui/step-tabs/` (component, types, index; a hook only if it needs one). It is a sand pill (`bg-sand`, rounded, padded like `SegmentedControl`) holding one card per step, side by side, each a `TouchableOpacity` with `accessibilityRole="tab"` and `accessibilityState={{ selected, disabled }}`. The selected card is `bg-surface` with `shadowStyle("iconButton", theme)`. Each card shows a status circle — the step number on `bg-sand` in `text-ink-2` while the step isn't done, a white `checkmark` on `bg-ok` once it is — then a small uppercase label and, under it, a value line. A disabled card is dimmed and ignores presses. Props: the steps (`key`, `label`, `value`, `done`, `disabled`), the selected key and `onChange`. Colors, type and radii come from the tokens only. | The design's tab cards; `SegmentedControl` has no status, no value line and no disabled state, and stacking two identical pill switches would read as one control. |
+| D-01 | A new `StepTabs` component in `apps/mobile/src/components/ui/step-tabs/` (component, types, index; a hook only if it needs one). It is a sand pill (`bg-sand`, rounded, padded like `SegmentedControl`) holding one card per step, side by side, each a `TouchableOpacity` with `accessibilityRole="tab"` and `accessibilityState={{ selected, disabled }}`. The selected card is `bg-surface` with `shadowStyle("iconButton", theme)`. Each card is `rounded-card` with its content left-aligned and shows a round status circle — the step number on `bg-tan` in `text-on-color` while the step isn't done, a white `checkmark` on `bg-ok` once it is — then a small uppercase label and, under it, a value line. A disabled card is dimmed and ignores presses. Props: the steps (`key`, `label`, `value`, `done`, `disabled`), the selected key and `onChange`. Colors, type and radii come from the tokens only. | The design's tab cards; `SegmentedControl` has no status, no value line and no disabled state, and stacking two identical pill switches would read as one control. |
 | D-02 | The step is local state of `useEnrolStudentScreen` (`"who" \| "class"`, starting at `"who"`). The Quem step is done when the person is ready: a picked student in student mode, or a valid trial name and a valid WhatsApp number in trial mode — the same rule `submit` uses today. The Aula step is done when a class with a free seat is picked. The Quem tab can always be pressed; the Aula tab is disabled while the Quem step isn't done. Leaving a step keeps every selection (student, mode, trial fields, day, class). Back on the Quem step, if the admin changes the person so that the step is no longer done, the Aula tab and "Escolher aula" turn off. | Matches the requested gate ("disabled until the admin selects some student or trial student"); tapping a tab can't skip it. |
 | D-03 | Tab copy: labels `enrolStudent.steps.who` — pt-BR "Quem", es-ES "Quién", en-US "Who" — and `enrolStudent.steps.class` — pt-BR "Aula", es-ES "Clase", en-US "Class"; the value line reads `enrolStudent.steps.pending` — pt-BR "Por escolher", es-ES "Por elegir", en-US "Not chosen" — until the step is done. When done, Quem shows the picked student's name, or the trimmed trial name; Aula shows the class's school day as the short weekday with its first letter capitalized and the day of the month, then " · " and the start time in the school's time zone (pt-BR "Qua 16 · 09:00"), built with `formatIsoDate(schoolDayOf(startsAt), "EEE d", locale)` and `schoolTimeOf(startsAt)`. The old `enrolStudent.whoStep` / `classStep` section labels are removed from the screen and from the three locales. | The design's tab content; the numbered section labels are replaced by the tabs. |
 | D-04 | The button is the standard `Button` (`variant="primary"`) inside a footer fixed under the scroll (the `edit-class` pattern). On the Quem step it reads `enrolStudent.next` — pt-BR "Escolher aula", es-ES "Elegir clase", en-US "Choose class" —, is disabled until the Quem step is done, and moves to the Aula step. On the Aula step it reads the existing `enrolStudent.submitEmpty` — pt-BR "Inscrever", es-ES "Inscribir", en-US "Enrol" —, is disabled until `submit` is defined, shows the `loading` spinner while sending and calls `submit`. The `enrolStudent.submit` ("Inscrever {{name}}") key and `submitName` are removed. No summary line above the button. | The design's buttons, using the project's standard button (user's instruction); the name now lives in the Quem tab. |
@@ -167,7 +167,7 @@ step shows inside, the requests and their outcomes stay as they are.
   > tabs are `rounded-full`; files: `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.{hook.ts,types.ts,tsx}`,
   > `enrol-student.screen.hook.test.tsx`, `enrol-student.screen.test.tsx`,
   > `apps/mobile/src/components/ui/step-tabs/step-tabs.component.tsx`; verified: `npx jest src/modules/enrolment
-  > src/components/ui/step-tabs` (321 passed), `tsc --noEmit` clean; deviations: the screen file was reformatted by prettier.
+  > src/components/ui/step-tabs` (321 passed), `tsc --noEmit` clean; deviations: the screen file was reformatted by prettier. Later design tweaks to the tabs, at the user's request: `c832c51e` (content centered), `797e8576` (card radius, left-aligned content, so the tabs are `rounded-card`, not `rounded-full`), `0f6e92ca` (rounded-square badge) and `4ab2c39e` (back to a round badge).
 
 ### Verification
 
@@ -210,6 +210,9 @@ step shows inside, the requests and their outcomes stay as they are.
 - 2026-10-25 — D-04: the footer buttons lose their icons. Before: "Escolher aula" with `chevron-forward` and "Inscrever" with `person-add-outline`. After: label only, same disabled and loading states.
   Reason: the user asked for it during review round 1 (F-03).
   Approved by the user in chat.
+- 2026-10-25 — D-01: the step tabs are `rounded-card` with left-aligned content, and the not-done status circle is `bg-tan` with `text-on-color`. Before: circle on `bg-sand` in `text-ink-2`.
+  Reason: the user adjusted the design after T-05 (commits `c832c51e`, `797e8576`, `0f6e92ca`, `4ab2c39e`); F-01 asked to record it.
+  Approved by the user in chat.
 
 ## Review
 
@@ -240,12 +243,13 @@ step shows inside, the requests and their outcomes stay as they are.
 
 **Findings**
 
-- [ ] **F-01** (D-01) — the step's status circle while not done is `bg-tan` with `text-on-color`
+- [x] **F-01** (D-01) — the step's status circle while not done is `bg-tan` with `text-on-color`
   (`step-tabs.component.tsx` line 129 and 134); D-01 says "the step number on `bg-sand` in `text-ink-2`". Commits
   `c832c51e`, `797e8576`, `0f6e92ca` and `4ab2c39e` changed the tab after T-05 was recorded, with no amendment and no
   evidence (T-05's evidence still says the tabs are `rounded-full`; they are `rounded-card`). Reproduce: open
   "Inscrever aluno" — the "1"/"2" circles are tan with white digits. Expected: either the circle follows D-01, or
   D-01 is amended (`/spec-plan --amend 060`) to say what was built, and T-05's evidence lists those commits.
+  > ✅ 2026-10-25 — D-01 amended to what was built (see Amendments) and T-05's evidence lists the four commits; no code change; verified: `check-spec.mjs 060`.
 - [x] **F-02** (convention) — `enrol-student.screen.tsx` lines 13–15 import `@/modules/classes/components/discipline-filter`
   and `.../discipline-filter/discipline-filter.constants` before `@/modules/classes/components/class-card` and
   `class-card-skeleton`; `.claude/rules/react.md` §2 sorts each import group alphabetically by path. Expected: the two

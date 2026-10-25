@@ -244,6 +244,8 @@ Students cannot:
 
 ## Out of scope for now
 
+_Implemented in spec 061-weekly-occupancy (the weekly occupancy screen left the admin dashboard item)._
+
 - Accounts for children. All students are assumed to be adults.
 - Payments and credits.
 - WhatsApp messages sent by the app, and email notifications.
@@ -253,7 +255,7 @@ Students cannot:
 - Reporting comments or photos.
 - Translating text written by admins.
 - Checking a cancellation rule's wording when it's saved.
-- An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list). Each class already shows its seats taken and its ratings to everyone.
+- An admin dashboard with metrics (classes per day, average ratings, a ratings list). Admins have a weekly occupancy screen (each class's seats taken as a week map, with the week's figures), and each class already shows its seats taken and its ratings to everyone.
 
 ## Open Questions
 

@@ -1112,6 +1112,21 @@ picked. Picking a class with a free seat shows it in the tab as "Qua 16 · 09:00
 enrols, shows the same toast and goes back as before. Moving between the tabs keeps every choice. All copy is in
 pt-BR, es-ES and en-US.
 
+**Weekly occupancy for admins** (spec `061-weekly-occupancy`) — the admin home's "Escola" section has an "Ocupação
+semanal" card ("Lugares ocupados e vagas por aula"), after "Pessoas" and before "Configurações da escola"; the home
+now scrolls, so every card clears the tab bar. It opens "Ocupação semanal" on the current Fortaleza week. A week bar
+moves one week at a time with round arrows, in the past or the future, and shows how far the week is from this one
+("Esta semana" in orange; "Próxima semana", "Daqui a N semanas", "Semana passada", "Há N semanas" in grey) over its
+dates ("19 – 25 OUT"). Under it a card sums the week up over its non-cancelled classes, each counting at most its
+capacity: "Ocupação" (seats taken out of the seats offered, in percent), "Lugares" ("22/34"), "Livres" and "Cheias"
+(full classes). Then "Mapa da semana": one column per day, Monday to Sunday (today's number in orange), one row per
+start time, and in each cell the class's occupancy on a four-step scale — under 50%, 50–89%, 90% or more, full —
+or "canc." struck through for a cancelled class; classes that share a day and a start time sit in sub-rows, and a
+legend explains the colours. The least-occupied non-cancelled class starts selected; tapping a cell selects it and
+shows its class card under the legend, which opens the class's details. The screen reads the same week list as the
+Aulas tab, with a loading state, an error with "Tentar novamente", an empty week ("Sem aulas nesta semana", no card
+nor map), pull-to-refresh and a reload when it shows again. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1129,8 +1144,11 @@ Active specs: none.
 - Reporting comments or photos.
 - Translating text written by admins.
 - Checking a cancellation rule's wording when it's saved, and previewing the deadline a rule would give.
-- An admin dashboard with metrics (classes per day, occupancy, average ratings, a ratings list); each class
-  already shows its seats taken and ratings.
+- An admin dashboard with metrics (classes per day, average ratings, a ratings list) beyond the weekly occupancy
+  screen (spec 061); each class already shows its seats taken and ratings.
+- On the weekly occupancy screen (spec 061): PAINEL-14's grape summary card and any comparison with another week;
+  filtering the map by sport, level or instructor; swiping between weeks, a month view, and keeping the chosen week
+  after leaving the screen; the screen for instructors and students.
 - Keeping the text of past versions of the school rules (spec 010 keeps only the current text; an acceptance
   records only the version number), and recording who edited, deleted or reordered a rule (only its creator is
   kept).
@@ -1195,8 +1213,8 @@ Active specs: none.
 - On the instructor's and admin's "Minhas aulas" (spec 057): the past classes they taught ("Aulas anteriores") and the
   header's clock button that opens them; the "Atualizada" chip of a recently edited class; a stored "also an
   instructor" option on admin accounts; filtering the list by level or status, searching it and paging it; the
-  admin's week-by-week layout; and the rest of the dashboards (greeting, metrics, "Avaliações das aulas", "Ocupação
-  semanal").
+  admin's week-by-week layout; and the rest of the dashboards (greeting, metrics, "Avaliações das aulas"; "Ocupação
+  semanal" came with spec 061).
 - On the sport filter of the instructor's and admin's "Minhas aulas" (spec 059): keeping the chosen sport after
   leaving the screen or across launches, a mark on the closed button showing a filter is on, and filtering the home
   row's count by sport.

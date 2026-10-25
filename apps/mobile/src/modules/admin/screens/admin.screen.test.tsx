@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, screen, userEvent, waitFor } from "@testing-library/react-native";
+import { act, screen, userEvent, waitFor, within } from "@testing-library/react-native";
 import { router, Slot } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminHomeLayout from "@/app/(private)/admin/(tabs)/(home)/_layout";
@@ -15,8 +16,10 @@ import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
 import AdminManageSchoolRulesRoute from "@/app/(private)/admin/manage-school-rules";
 import AdminMyClassesRoute from "@/app/(private)/admin/my-classes";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
+import AdminWeeklyOccupancyRoute from "@/app/(private)/admin/weekly-occupancy";
 import { routes } from "@/constants/routes";
 import { buildClassItem } from "@/modules/classes/classes.test-utils";
+import { underTransparentHeader } from "@/navigation/stack-header/header-inset.test-utils";
 import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
 
@@ -123,6 +126,7 @@ async function openAdminHome() {
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
       "(private)/admin/manage-school-rules": AdminManageSchoolRulesRoute,
       "(private)/admin/my-classes": AdminMyClassesRoute,
+      "(private)/admin/weekly-occupancy": AdminWeeklyOccupancyRoute,
     },
     { initialUrl: routes.admin.home },
   );
@@ -188,6 +192,63 @@ describe("AdminScreen", () => {
     expect(screen.getByText("School")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
     expect(screen.getByText("9 on the platform")).toBeOnTheScreen();
+  });
+
+  it("shows the Weekly occupancy card between People and School settings, and opens the screen", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/classes?date=")
+          ? { weekStart: "2026-10-19", items: [] }
+          : { items: [] },
+    }));
+    const app = await openAdminHome();
+    const buttons = screen.getAllByRole("button");
+    const indexOf = (name: string | RegExp) =>
+      buttons.indexOf(screen.getByRole("button", { name }));
+    const people = indexOf(/People/);
+
+    expect(screen.getByText("Seats taken and free per class")).toBeOnTheScreen();
+    expect(indexOf("Weekly occupancy")).toBe(people + 1);
+    expect(indexOf(/School settings/)).toBe(people + 2);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/classes?date="))).toBe(false);
+
+    await user.press(screen.getByRole("button", { name: "Weekly occupancy" }));
+
+    expect(app.getPathname()).toBe(routes.admin.weeklyOccupancy);
+    expect(screen.getByRole("header", { name: "WEEKLY OCCUPANCY" })).toBeOnTheScreen();
+  });
+
+  it("scrolls the home above the tab bar, so every School card can be reached", async () => {
+    fetchMock.mockImplementation(async () => ({ ok: true, status: 200, json: async () => ({ items: [] }) }));
+    await openAdminHome();
+
+    const scroll = screen.getByTestId("admin-home-scroll");
+    expect(scroll.props.contentInsetAdjustmentBehavior).toBe("automatic");
+    // Under the opaque header the content already starts below it.
+    expect(scroll.props.contentContainerStyle).toMatchObject({ paddingTop: 16 });
+    expect(within(scroll).getByRole("button", { name: "Weekly occupancy" })).toBeOnTheScreen();
+    expect(within(scroll).getByRole("button", { name: /School settings/ })).toBeOnTheScreen();
+  });
+
+  it("starts the home 16 pt below the transparent user header, which the automatic inset clears only up to the safe area", async () => {
+    fetchMock.mockImplementation(async () => ({ ok: true, status: 200, json: async () => ({ items: [] }) }));
+    const insets = jest.mocked(useSafeAreaInsets);
+    const defaultInsets = insets.getMockImplementation();
+    insets.mockReturnValue({ top: 62, right: 0, bottom: 34, left: 0 });
+
+    try {
+      await underTransparentHeader(126, openAdminHome);
+
+      // The automatic inset adds the 62 pt safe area; the padding adds the rest of the 126 pt header, then 16 pt.
+      expect(screen.getByTestId("admin-home-scroll").props.contentContainerStyle).toMatchObject({
+        paddingTop: 126 - 62 + 16,
+      });
+    } finally {
+      insets.mockImplementation(defaultInsets);
+    }
   });
 
   it("opens the people directory, and its back button returns to the admin home", async () => {

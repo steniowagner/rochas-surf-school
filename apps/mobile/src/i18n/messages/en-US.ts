@@ -1177,6 +1177,52 @@ const messages = {
     },
     next: "Up next",
   },
+  weeklyOccupancy: {
+    title: "Weekly occupancy",
+    rowSubtitle: "Seats taken and free per class",
+    section: "Week map",
+    legend: {
+      low: "under 50%",
+      mid: "50–89%",
+      high: "90%+",
+      full: "Full",
+    },
+    loadError: {
+      title: "Couldn't load the occupancy",
+      description: "Check your connection and try again.",
+    },
+    empty: {
+      title: "No classes this week",
+      description: "Classes created for this week show up here.",
+    },
+    relativeWeek: {
+      current: "This week",
+      next: "Next week",
+      previous: "Last week",
+      ahead: "In {{count}} weeks",
+      ago: "{{count}} weeks ago",
+    },
+    stats: {
+      occupancy: "Occupancy",
+      seats: "Seats",
+      free: "Free",
+      full: "Full",
+      a11y: {
+        occupancy: "{{percent}}%, Occupancy",
+        seats: "{{taken}} of {{total}} seats",
+        free_one: "{{count}} free",
+        free_other: "{{count}} free",
+        full_one: "{{count}} full",
+        full_other: "{{count}} full",
+      },
+    },
+    cancelledCell: "canc.",
+    loading: "Loading the occupancy",
+    cell: {
+      active: "{{date}}, {{time}}, {{discipline}}, {{percent}}%",
+      cancelled: "{{date}}, {{time}}, {{discipline}}, cancelled",
+    },
+  },
 };
 
 export type Messages = typeof messages;

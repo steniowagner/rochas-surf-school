@@ -27,6 +27,8 @@ export const colors = {
     warnTint: 'rgba(232,180,74,.16)',
     infoTint: 'rgba(33,131,127,.13)',
     grapeTint: 'rgba(75,42,99,.14)',
+    // The 50-89% cell of the weekly occupancy map.
+    sunTint: 'rgba(240,116,43,.28)',
     onColor: '#FFFFFF',
     shadow: 'rgba(61,46,31,.10)',
     shadowSun: 'rgba(240,116,43,.28)',
@@ -70,6 +72,7 @@ export const colors = {
     warnTint: 'rgba(240,196,90,.16)',
     infoTint: 'rgba(63,166,160,.16)',
     grapeTint: 'rgba(122,78,155,.24)',
+    sunTint: 'rgba(245,138,69,.3)',
     onColor: '#FFFFFF',
     shadow: 'rgba(0,0,0,.4)',
     shadowSun: 'rgba(245,138,69,.3)',
@@ -122,6 +125,8 @@ export const typography = {
   cardMeta: { font: 'body', weight: 400, size: 12.5, lineHeight: 1.3, letterSpacing: 0, uppercase: false },
   // The "N/M spots" line under the time of a class card.
   occupancy: { font: 'body', weight: 800, size: 11, lineHeight: 1.4, letterSpacing: 0, uppercase: false },
+  // The percentages, "canc." and times of the weekly occupancy map.
+  occupancyCell: { font: 'display', weight: 700, size: 15, lineHeight: 1.2, letterSpacing: 0, uppercase: false },
   chip: { font: 'body', weight: 800, size: 10.5, lineHeight: 1.3, letterSpacing: 0.07, uppercase: true },
   // The pill that switches the week and month calendar (AGENDA-01 / 01A).
   pill: { font: 'body', weight: 800, size: 12.5, lineHeight: 1.3, letterSpacing: 0.06, uppercase: true },
@@ -141,6 +146,8 @@ export const radii = {
   checkbox: 8, // checkbox box
   iconButton: 12, // small bordered icon buttons, such as a rule's move up / down
   control: 16, // buttons, inputs
+  occupancyCell: 10, // the weekly occupancy map's cells
+  swatch: 3, // the legend's color swatches
   card: 20,
   sheet: 28, // top corners of bottom sheets
   pill: 9999,

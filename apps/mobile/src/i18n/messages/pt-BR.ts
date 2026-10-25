@@ -1177,6 +1177,52 @@ const messages: Messages = {
     },
     next: "Próxima",
   },
+  weeklyOccupancy: {
+    title: "Ocupação semanal",
+    rowSubtitle: "Lugares ocupados e vagas por aula",
+    section: "Mapa da semana",
+    legend: {
+      low: "menos de 50%",
+      mid: "50–89%",
+      high: "90%+",
+      full: "Cheia",
+    },
+    loadError: {
+      title: "Não foi possível carregar a ocupação",
+      description: "Confira sua conexão e tente de novo.",
+    },
+    empty: {
+      title: "Sem aulas nesta semana",
+      description: "As aulas criadas para esta semana aparecem aqui.",
+    },
+    relativeWeek: {
+      current: "Esta semana",
+      next: "Próxima semana",
+      previous: "Semana passada",
+      ahead: "Daqui a {{count}} semanas",
+      ago: "Há {{count}} semanas",
+    },
+    stats: {
+      occupancy: "Ocupação",
+      seats: "Lugares",
+      free: "Livres",
+      full: "Cheias",
+      a11y: {
+        occupancy: "{{percent}}%, Ocupação",
+        seats: "{{taken}} de {{total}} lugares",
+        free_one: "{{count}} livre",
+        free_other: "{{count}} livres",
+        full_one: "{{count}} cheia",
+        full_other: "{{count}} cheias",
+      },
+    },
+    cancelledCell: "canc.",
+    loading: "Carregando a ocupação",
+    cell: {
+      active: "{{date}}, {{time}}, {{discipline}}, {{percent}}%",
+      cancelled: "{{date}}, {{time}}, {{discipline}}, cancelada",
+    },
+  },
 };
 
 export default messages;

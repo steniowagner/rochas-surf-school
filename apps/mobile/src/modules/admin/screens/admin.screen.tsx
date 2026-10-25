@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ScreenIntro } from "@/components/ui/screen-intro";
@@ -21,6 +21,7 @@ const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
 const openPeople = () => router.push(routes.admin.people);
 const openMyClasses = () => router.push(routes.admin.myClasses);
 const openNewClass = () => router.push(routes.admin.newClass());
+const openWeeklyOccupancy = () => router.push(routes.admin.weeklyOccupancy);
 const openSchoolSettings = () => router.push(routes.admin.schoolSettings);
 const openCancellationRules = () => router.push(routes.admin.cancellationRules);
 const openSchoolRules = () => router.push(routes.admin.manageSchoolRules);
@@ -39,11 +40,15 @@ export function AdminScreen() {
   const requestsCount = pendingRequests?.total;
 
   return (
-    <View
-      className="flex-1 gap-6 bg-page px-screen"
-      style={{
-        // Clears the user header, which the tab's stack draws above the screen.
-        paddingTop: headerInset + 16,
+    <ScrollView
+      testID="admin-home-scroll"
+      className="flex-1 bg-page"
+      // On iOS the top safe area and the floating tab bar are added by the scroll view.
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="gap-6 px-screen"
+      contentContainerStyle={{
+        // The user header isn't the native bar, so the automatic inset clears it only up to the safe area.
+        paddingTop: Math.max(headerInset - insets.top, 0) + 16,
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >
@@ -141,6 +146,25 @@ export function AdminScreen() {
         <View className="rounded-card border border-line bg-surface px-4">
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={t("weeklyOccupancy.title")}
+            onPress={openWeeklyOccupancy}
+            className="min-h-11 flex-row items-center gap-3 py-3"
+          >
+            <Ionicons name="bar-chart-outline" size={20} color={theme.lagoon} />
+            <View className="flex-1 gap-0.5">
+              <Text className="ds-text-list-title text-ink">
+                {t("weeklyOccupancy.title")}
+              </Text>
+              <Text className="ds-text-list-subtitle text-ink-2">
+                {t("weeklyOccupancy.rowSubtitle")}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
+          </Pressable>
+        </View>
+        <View className="rounded-card border border-line bg-surface px-4">
+          <Pressable
+            accessibilityRole="button"
             onPress={openSchoolSettings}
             className="min-h-11 flex-row items-center gap-3 py-3"
           >
@@ -152,6 +176,6 @@ export function AdminScreen() {
           </Pressable>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }

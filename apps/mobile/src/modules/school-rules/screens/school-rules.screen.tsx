@@ -19,7 +19,10 @@ import { useSchoolRulesReadScreen } from "./school-rules.screen.hook";
 const LOADING_ROWS = [0, 1, 2];
 const CONTENT_PADDING_TOP = 8;
 
-/** The school rules to read at any time: no checkbox and no button, only the back button. */
+/**
+ * The school rules to read at any time: no checkbox and no button, only the back button. The title and intro show only
+ * with the rules; the loading, error and empty states stand alone.
+ */
 export function SchoolRulesReadScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -45,14 +48,6 @@ export function SchoolRulesReadScreen() {
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <ScreenIntro
-          icon={
-            <Ionicons name="shield-outline" size={28} color={theme.grape} />
-          }
-          title={t("schoolRulesScreen.title")}
-          description={t("schoolRulesScreen.description")}
-          onTitleLayout={header.onTitleBottomChange}
-        />
         {screen.status === "loading" ? (
           // Rows shaped like rules, read out as one loading state.
           <View
@@ -95,16 +90,26 @@ export function SchoolRulesReadScreen() {
           </View>
         ) : null}
         {screen.status === "ready" ? (
-          <View className="rounded-card border border-line bg-surface px-4">
-            {screen.rules.map((rule, index) => (
-              <SchoolRuleRow
-                key={rule.id}
-                rule={rule}
-                position={index + 1}
-                showDivider={index < screen.rules.length - 1}
-              />
-            ))}
-          </View>
+          <>
+            <ScreenIntro
+              icon={
+                <Ionicons name="shield-outline" size={28} color={theme.grape} />
+              }
+              title={t("schoolRulesScreen.title")}
+              description={t("schoolRulesScreen.description")}
+              onTitleLayout={header.onTitleBottomChange}
+            />
+            <View className="rounded-card border border-line bg-surface px-4">
+              {screen.rules.map((rule, index) => (
+                <SchoolRuleRow
+                  key={rule.id}
+                  rule={rule}
+                  position={index + 1}
+                  showDivider={index < screen.rules.length - 1}
+                />
+              ))}
+            </View>
+          </>
         ) : null}
       </Animated.ScrollView>
     </>

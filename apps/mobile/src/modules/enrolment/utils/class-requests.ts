@@ -9,16 +9,17 @@ export const formatAskedAt = (requestedAt: string, locale: Locale): { time: stri
   date: formatIsoDate(schoolDayOf(requestedAt), "d MMM", locale),
 });
 
-/** The day block of a class card: "MON", "19" and "OCT". */
+/** The day block of a class card: "MON", "19", "OCT" and "2026". */
 export const formatDayBlock = (
   startsAt: string,
   locale: Locale,
-): { weekday: string; day: string; month: string } => {
+): { weekday: string; day: string; month: string; year: string } => {
   const classDay = schoolDayOf(startsAt);
 
   return {
     weekday: weekdayAbbreviation(classDay, locale),
     day: formatIsoDate(classDay, "d", locale),
     month: formatIsoDate(classDay, "MMM", locale).replace(".", "").toUpperCase(),
+    year: formatIsoDate(classDay, "yyyy", locale),
   };
 };

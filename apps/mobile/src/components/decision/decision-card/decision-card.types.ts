@@ -16,6 +16,8 @@ export type DecisionCardProps = {
   disabled: boolean;
   /** Disables the approve button alone (for example while a class is full). */
   approveDisabled?: boolean;
+  /** Drawn with no card of its own (border, background, shadow), to sit inside another card. */
+  embedded?: boolean;
   /** The button that shows its loading state. */
   loading?: "approve" | "deny";
 };

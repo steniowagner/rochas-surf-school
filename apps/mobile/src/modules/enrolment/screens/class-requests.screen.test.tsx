@@ -7,8 +7,11 @@ import { ClassRequestsScreen } from "./class-requests.screen";
 
 const mockShow = jest.fn();
 
+const mockPush = jest.fn();
+
 jest.mock("expo-router", () => ({
   router: { back: jest.fn() },
+  useRouter: () => ({ push: mockPush }),
   // Renders the screen's header title so the tests can see it.
   Stack: {
     Screen: ({ options }: any) => options.unstable_headerLeftItems?.({})[0].element ?? options.headerTitle(),
@@ -150,8 +153,9 @@ describe("ClassRequestsScreen list", () => {
     expect(screen.getByText("2 requests · 1 class")).toBeOnTheScreen();
     expect(screen.getByText("WED")).toBeOnTheScreen();
     expect(screen.getByText("21")).toBeOnTheScreen();
-    expect(screen.getByText("OCT")).toBeOnTheScreen();
-    expect(screen.getByText("Surf · Beginner")).toBeOnTheScreen();
+    expect(screen.getByText("OCT 2026")).toBeOnTheScreen();
+    expect(screen.getByText("Surf")).toBeOnTheScreen();
+    expect(screen.getByText("Beginner")).toBeOnTheScreen();
     expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
     expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
     expect(screen.getByText("Max. 8 students")).toBeOnTheScreen();
@@ -165,6 +169,47 @@ describe("ClassRequestsScreen list", () => {
     expect(screen.queryByText("Waiting list · in the order asked")).toBeNull();
     expect(within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" })).toBeOnTheScreen();
     expect(within(cardOf("Ana Souza")).getByRole("button", { name: "Deny" })).toBeOnTheScreen();
+  });
+
+  it("opens the student's details from the chevron of a request", async () => {
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+
+    await screen.findByText("Ana Souza");
+    await user.press(screen.getByRole("button", { name: "Ana Souza" }));
+
+    expect(await screen.findByText("Student")).toBeOnTheScreen();
+  });
+
+  it("opens the details of the class from its header", async () => {
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+
+    await screen.findByText("Ana Souza");
+    await user.press(screen.getByRole("button", { name: /^Surf, 08:00/ }));
+
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/admin/class/[id]", params: { id: surfClass().id } });
+  });
+
+  it("filters the classes by sport and says when the sport has no requests", async () => {
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+
+    await screen.findByText("Ana Souza");
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByRole("button", { name: "Skate" }));
+
+    expect(screen.queryByText("Ana Souza")).toBeNull();
+    expect(screen.getByText("No skate requests")).toBeOnTheScreen();
+    expect(screen.getByText("0 requests · 0 classes")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+    await user.press(screen.getByRole("button", { name: "Surf" }));
+
+    expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
   });
 
   it("shows the waiting order and blocks Enrol on a full class, still allowing Deny", async () => {

@@ -261,6 +261,16 @@ const messages: Messages = {
       title: "Nada à espera",
       description: "Todas as inscrições foram decididas.",
     },
+    emptyFiltered: {
+      surf: {
+        title: "Sem pedidos de surf",
+        description: "Não há pedidos pendentes em aulas de surf.",
+      },
+      skate: {
+        title: "Sem pedidos de skate",
+        description: "Não há pedidos pendentes em aulas de skate.",
+      },
+    },
     loadError: {
       title: "Não foi possível carregar os pedidos",
       description: "Confira sua conexão e tente de novo.",

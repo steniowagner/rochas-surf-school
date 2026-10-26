@@ -1,11 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
 
 import { SendNoticeConfirmSheetProps } from "./send-notice-confirm-sheet.types";
 
@@ -24,7 +22,6 @@ export function SendNoticeConfirmSheet({
   onClose,
 }: SendNoticeConfirmSheetProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
 
   return (
     <BottomModal visible={visible} onClose={onClose}>
@@ -44,11 +41,7 @@ export function SendNoticeConfirmSheet({
           <Text className="ds-text-preview-body mt-1 text-ink-2">{message}</Text>
         </ScrollView>
         <View className="mt-3.5 gap-2.5">
-          <Button
-            loading={sending}
-            icon={<Ionicons name="send-outline" size={20} color={theme.onColor} />}
-            onPress={onConfirm}
-          >
+          <Button loading={sending} onPress={onConfirm}>
             {t("notices.confirm.send")}
           </Button>
           <Button variant="ghost" disabled={sending} onPress={onClose}>

@@ -86,6 +86,23 @@ describe("SendNoticeScreen", () => {
     expect(await screen.findByText("8 people will receive it")).toBeOnTheScreen();
   });
 
+  it("reads the three counts once when it opens, so switching audiences shows the count at once", async () => {
+    const user = await open();
+    await fill(user);
+    await screen.findByText("12 people will receive it");
+
+    await user.press(screen.getByRole("tab", { name: "Students" }));
+
+    expect(screen.getByText("8 people will receive it")).toBeOnTheScreen();
+    expect(screen.queryByText("Loading the recipients…")).not.toBeOnTheScreen();
+    expect(sendButton()).toBeEnabled();
+
+    await user.press(screen.getByRole("tab", { name: "Everyone" }));
+
+    expect(screen.getByText("12 people will receive it")).toBeOnTheScreen();
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method !== "POST")).toHaveLength(3);
+  });
+
   it("says when nobody would receive it and keeps Send off", async () => {
     const user = await open();
     await fill(user);

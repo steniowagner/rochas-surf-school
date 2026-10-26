@@ -5,8 +5,9 @@ import { Keyboard } from "react-native";
 
 import { useAlertMessage } from "@/providers/alert-message";
 
-import { useNoticeRecipientsCount } from "../hooks/use-notice-recipients-count.hook";
+import { useNoticeRecipientsCounts } from "../hooks/use-notice-recipients-counts.hook";
 import { useSendNotice } from "../hooks/use-send-notice.hook";
+import { NOTICE_AUDIENCES } from "../notices.constants";
 import { NoticeAudience } from "../notices.types";
 
 import { UseSendNoticeScreenResult } from "./send-notice.screen.types";
@@ -19,7 +20,8 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
-  const recipients = useNoticeRecipientsCount(audience);
+  const counts = useNoticeRecipientsCounts();
+  const recipients = counts[NOTICE_AUDIENCES.indexOf(audience)]!;
 
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
   const sending = useRef(false);

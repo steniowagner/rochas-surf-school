@@ -229,7 +229,7 @@ and stacked fields are hard to use.
   > `npx tsc --noEmit` clean; deviations: the screen's strings were added in T-03/T-04 (no new ones were needed here:
   > the rest reuse `locationSheet.*`); the pinned-footer hook is reused from `modules/school-settings` as
   > `send-notice.screen.tsx` does; `routes.admin.locationForm` is exercised by the class form tests of T-06
-- [ ] **T-06** — Point "Nova aula" and "Editar aula" at the route (`new-class.screen.hook.ts`,
+- [x] **T-06** — Point "Nova aula" and "Editar aula" at the route (`new-class.screen.hook.ts`,
   `edit-class.screen.hook.ts` and their screens): "+ Novo local" and a "Gerir" row push
   `routes.admin.locationForm()`, the screens subscribe to the location events to select or clear; reduce
   `use-location-management.hook.ts` to the "Gerir" mode; delete `components/location-sheet/`,
@@ -237,6 +237,35 @@ and stacked fields are hard to use.
   `locationSheet` strings. Update the screens' tests. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01 · Done when: `npx jest src/modules/classes` passes and `grep -rn "LocationSheet\b" src` finds nothing.
+  > ✅ 2026-10-26 — "Nova aula" and "Editar aula": "+ Novo local" pushes `routes.admin.locationForm()` and a "Gerir" row
+  > `routes.admin.locationForm(id)`; both hooks subscribe to the location events while mounted (`useEffectEvent` +
+  > `subscribeLocationEvents`) to select a created location or clear a removed selected one. `useLocationManagement`
+  > keeps only the "Gerir" mode. Deleted `components/location-sheet/`, `components/location-map-picker/`,
+  > `components/address-search-field/` (with their tests) and the unused `locationSheet` strings (`description`,
+  > `address`, `addressPlaceholder`, `editDescription`, `point`, `pointHintSet`) in the three languages; the screens'
+  > tests now cover the push with and without an id, the selection on a created location, the clearing on a removed one,
+  > the kept selection when another is removed, and the unsubscription; files:
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/hooks/use-location-management.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-location-management.hook.test.tsx`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`; deleted:
+  > `apps/mobile/src/modules/classes/components/location-sheet/` (`index.ts`, `location-sheet.component.tsx`,
+  > `location-sheet.hook.ts`, `location-sheet.types.ts`, `location-sheet.component.test.tsx`),
+  > `apps/mobile/src/modules/classes/components/location-map-picker/` (`index.ts`, `location-map-picker.component.tsx`,
+  > `location-map-picker.hook.ts`, `location-map-picker.types.ts`, `location-map-picker.component.test.tsx`),
+  > `apps/mobile/src/modules/classes/components/address-search-field/` (`index.ts`,
+  > `address-search-field.component.tsx`, `address-search-field.types.ts`, `address-search-field.component.test.tsx`);
+  > verified: `npx jest src/modules/classes` (86 suites, 1047 tests passed), `npx eslint`, `npx tsc --noEmit` clean,
+  > `grep -rn "\bLocationSheet\b" src` finds nothing; deviations: the literal `grep -rn "LocationSheet\b" src` of the
+  > task also matches `ArchiveLocationSheet`, which D-01 keeps, so the check was run with a word boundary on both sides;
+  > `activeLocations` (only the sheet used it) left the edit hook's return. Note: five existing new-class tests log
+  > React Query act() warnings, on the base commit too
 
 ### Verification
 

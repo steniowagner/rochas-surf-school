@@ -22,6 +22,12 @@ import {
   setupSignedInUser,
 } from "../classes.test-utils";
 
+import {
+  emitLocationCreated,
+  emitLocationRemoved,
+} from "../utils/location-events";
+import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
+
 import { NewClassScreen } from "./new-class.screen";
 
 const mockShow = jest.fn();
@@ -56,7 +62,7 @@ jest.mock("expo-router", () => ({
         options.headerRight?.() ?? null,
     ),
   },
-  router: { back: jest.fn() },
+  router: { back: jest.fn(), push: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
 }));
 
@@ -192,6 +198,7 @@ beforeEach(() => {
   serve();
   mockShow.mockClear();
   (router.back as jest.Mock).mockClear();
+  (router.push as jest.Mock).mockClear();
 });
 
 afterEach(() => {
@@ -634,7 +641,20 @@ describe("NewClassScreen", () => {
   });
 
   describe("locations", () => {
-    it("saves a new location in place and selects it", async () => {
+    it("opens the location screen without an id from 'New location'", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByText("Praia do Futuro");
+
+      await user.press(screen.getByRole("button", { name: "New location" }));
+
+      expect(router.push).toHaveBeenCalledWith({
+        pathname: "/admin/location-form",
+        params: {},
+      });
+    });
+
+    it("selects the location the location screen created", async () => {
       const iracema = {
         id: "l-2",
         name: "Praia de Iracema",
@@ -642,18 +662,16 @@ describe("NewClassScreen", () => {
         ...POINT,
         upcomingClasses: 0,
       };
-      serve({ "POST /locations": () => ({ ...ok(iracema), status: 201 }) });
-      const user = userEvent.setup();
-      await renderScreen();
+      const { queryClient } = await renderScreen();
       await screen.findByText("Praia do Futuro");
 
-      await user.press(screen.getByRole("button", { name: "New location" }));
-      await user.type(screen.getByLabelText("Name"), "Praia de Iracema");
-      await user.type(screen.getByLabelText("Address"), "Rua dos Tabajaras, 1");
-      await fireEvent(screen.getByTestId("location-map-picker"), "press", {
-        nativeEvent: { coordinate: POINT },
+      // The location screen's save puts it in the cached list, then tells the form.
+      await act(async () => {
+        queryClient.setQueryData(LOCATIONS_QUERY_KEY, {
+          items: [futuro, iracema],
+        });
+        emitLocationCreated(iracema);
       });
-      await user.press(screen.getByRole("button", { name: "Save location" }));
 
       await waitFor(() =>
         expect(
@@ -661,19 +679,18 @@ describe("NewClassScreen", () => {
         ).toBeChecked(),
       );
       expect(
-        JSON.parse(
-          fetchMock.mock.calls.find(([, init]) => init?.method === "POST")![1]
-            .body,
-        ),
-      ).toEqual({
-        name: "Praia de Iracema",
-        address: "Rua dos Tabajaras, 1",
-        ...POINT,
-      });
-      expect(
         screen.getByRole("radio", { name: "Praia do Futuro" }),
       ).not.toBeChecked();
       expect(screen.queryByText("pick a location")).toBeNull();
+    });
+
+    it("stops listening to the location screen once it is gone", async () => {
+      const { unmount } = await renderScreen();
+      await screen.findByText("Praia do Futuro");
+
+      await unmount();
+
+      expect(() => emitLocationCreated(futuro)).not.toThrow();
     });
   });
 
@@ -702,9 +719,7 @@ describe("NewClassScreen", () => {
       expect(screen.getByRole("button", { name: "New location" })).toBeTruthy();
     });
 
-    it("(manage) opens a row filled to edit it, saves it, updates the row and keeps the selection", async () => {
-      const edited = { ...futuro, address: "Rua Nova, 1" };
-      serve({ "PUT /locations/l-1": () => ok(edited) });
+    it("(manage) opens the location screen on a row to edit it, keeping the selection", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByText("Praia do Futuro");
@@ -713,129 +728,53 @@ describe("NewClassScreen", () => {
       await user.press(manageButton());
       await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
 
-      expect(screen.getByText("Edit location")).toBeTruthy();
-      expect(screen.getByLabelText("Name").props.value).toBe("Praia do Futuro");
-      expect(screen.getByLabelText("Address").props.value).toBe(
-        "Av. Zezé Diogo, 5000",
-      );
-      expect(
-        screen.getByRole("checkbox", {
-          name: "Tell the students and instructors of upcoming classes?",
-        }),
-      ).toBeChecked();
+      expect(router.push).toHaveBeenCalledWith({
+        pathname: "/admin/location-form",
+        params: { id: "l-1" },
+      });
 
-      await fireEvent.changeText(
-        screen.getByLabelText("Address"),
-        "Rua Nova, 1",
-      );
-      await user.press(screen.getByRole("button", { name: "Save" }));
+      await user.press(screen.getByRole("button", { name: "Done" }));
 
-      await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Location updated"),
-      );
-      expect(screen.getByText("Rua Nova, 1")).toBeTruthy();
       expect(
         screen.getByRole("radio", { name: "Praia do Futuro" }),
       ).toBeChecked();
-      expect(screen.queryByText("Edit location")).toBeNull();
-      const put = fetchMock.mock.calls.find(
-        ([, init]) => init?.method === "PUT",
-      )!;
-      expect(JSON.parse(put[1].body)).toEqual({
-        name: "Praia do Futuro",
-        address: "Rua Nova, 1",
-        ...POINT,
-        notify: true,
-      });
     });
   });
 
   describe("remove location", () => {
-    const openRemoval = async (
-      user: ReturnType<typeof userEvent.setup>,
-      name = "Praia do Futuro",
-    ) => {
-      await user.press(screen.getByRole("button", { name: "Manage" }));
-      await user.press(screen.getByRole("radio", { name }));
-      await user.press(screen.getByRole("button", { name: "Remove location" }));
-    };
-    const confirmRemoval = (user: ReturnType<typeof userEvent.setup>) =>
-      user.press(
-        screen.getAllByRole("button", { name: "Remove location" }).at(-1)!,
-      );
-
-    it("removes the selected location: toast, out of the list, nothing selected, button off", async () => {
-      serve({
-        "POST /locations/l-1/archive": () => ({
-          ok: true,
-          status: 204,
-          json: async () => undefined,
-        }),
-      });
+    it("clears the selected location the location screen removed: nothing selected, button off", async () => {
       const user = userEvent.setup();
-      await renderScreen();
+      const { queryClient } = await renderScreen();
       await fillValidBatch(user);
       expect(submitButton()).toBeEnabled();
 
-      await openRemoval(user);
-      expect(
-        screen.getByText(
-          "The 2 classes that already use this location stay as they are.",
-        ),
-      ).toBeTruthy();
-      await confirmRemoval(user);
+      await act(async () => {
+        queryClient.setQueryData(LOCATIONS_QUERY_KEY, { items: [] });
+        emitLocationRemoved("l-1");
+      });
 
+      // The list's update reaches the screen on the query's next notification.
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Praia do Futuro removed"),
+        expect(
+          screen.queryByRole("radio", { name: "Praia do Futuro" }),
+        ).toBeNull(),
       );
-      expect(
-        screen.queryByRole("radio", { name: "Praia do Futuro" }),
-      ).toBeNull();
       expect(screen.getByText("pick a location")).toBeTruthy();
       expect(submitButton()).toBeDisabled();
     });
 
     it("keeps the selection when another location is removed", async () => {
-      serve({
-        "GET /locations": () => ok({ items: [futuro, cumbuco] }),
-        "POST /locations/l-3/archive": () => ({
-          ok: true,
-          status: 204,
-          json: async () => undefined,
-        }),
-      });
+      serve({ "GET /locations": () => ok({ items: [futuro, cumbuco] }) });
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByText("Cumbuco");
       await user.press(screen.getByRole("radio", { name: "Praia do Futuro" }));
 
-      await openRemoval(user, "Cumbuco");
-      expect(screen.queryByText(/stay as they are/)).toBeNull();
-      await confirmRemoval(user);
+      await act(async () => emitLocationRemoved("l-3"));
 
-      await waitFor(() =>
-        expect(screen.queryByRole("radio", { name: "Cumbuco" })).toBeNull(),
-      );
       expect(
         screen.getByRole("radio", { name: "Praia do Futuro" }),
       ).toBeChecked();
-    });
-
-    it("sends nothing when the admin keeps the location", async () => {
-      serve();
-      const user = userEvent.setup();
-      await renderScreen();
-      await screen.findByText("Praia do Futuro");
-
-      await openRemoval(user);
-      await user.press(screen.getByRole("button", { name: "Keep" }));
-
-      expect(
-        fetchMock.mock.calls.some(([, init]) => init?.method === "POST"),
-      ).toBe(false);
-      expect(
-        screen.getByRole("radio", { name: "Praia do Futuro" }),
-      ).toBeTruthy();
     });
 
     it("tells that the chosen location was removed when the submit is refused, and clears it", async () => {
@@ -865,24 +804,6 @@ describe("NewClassScreen", () => {
         screen.getByRole("radio", { name: "Praia do Futuro" }),
       ).not.toBeChecked();
       expect(submitButton()).toBeDisabled();
-    });
-  });
-
-  describe("location sheet", () => {
-    it("closes on Cancel and selects nothing", async () => {
-      const user = userEvent.setup();
-      await renderScreen();
-      await screen.findByText("Praia do Futuro");
-
-      await user.press(screen.getByRole("button", { name: "New location" }));
-      await user.press(screen.getByRole("button", { name: "Cancel" }));
-
-      expect(
-        screen.queryByRole("button", { name: "Save location" }),
-      ).toBeNull();
-      expect(
-        screen.getByRole("radio", { name: "Praia do Futuro" }),
-      ).not.toBeChecked();
     });
   });
 

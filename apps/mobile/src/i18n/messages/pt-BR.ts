@@ -1224,26 +1224,18 @@ const messages: Messages = {
   },
   locationSheet: {
     title: "Novo local",
-    description:
-      "Os alunos veem o nome e o endereço e recebem direções para o ponto no mapa.",
     name: "Nome",
     namePlaceholder: "Ex.: Praia do Futuro",
-    address: "Endereço",
-    addressPlaceholder: "Ex.: Av. Zezé Diogo, 5000 – Fortaleza",
     duplicate: "Já existe um local com este nome.",
     submit: "Salvar local",
     editTitle: "Editar local",
-    editDescription:
-      "As alterações valem também para as aulas que já usam este local.",
     addressSearchPlaceholder: "Busque um endereço ou uma praia",
-    point: "Ponto no mapa",
     pointHintEmpty: "Toque no mapa para marcar o ponto",
     pointPicked: "Ponto escolhido no mapa",
     resolving: "Buscando o endereço…",
     myLocation: "Minha localização",
     locationDenied:
       "Permita o acesso à localização nos Ajustes para usar sua posição.",
-    pointHintSet: "Toque para mover o ponto",
     notify: "Avisar alunos e instrutores das próximas aulas?",
     notifyCount_one: "1 aula futura usa este local.",
     notifyCount_other: "{{count}} aulas futuras usam este local.",

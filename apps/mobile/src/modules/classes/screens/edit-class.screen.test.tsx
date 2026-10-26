@@ -22,6 +22,12 @@ import {
   setupSignedInUser,
 } from "../classes.test-utils";
 
+import {
+  emitLocationCreated,
+  emitLocationRemoved,
+} from "../utils/location-events";
+import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
+
 import { EditClassScreen } from "./edit-class.screen";
 
 const mockShow = jest.fn();
@@ -60,7 +66,7 @@ jest.mock("expo-router", () => ({
         options.headerRight?.() ?? null,
     ),
   },
-  router: { back: jest.fn() },
+  router: { back: jest.fn(), push: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({ id: "c-1" })),
 }));
 
@@ -215,6 +221,7 @@ beforeEach(() => {
   serve();
   mockShow.mockClear();
   (router.back as jest.Mock).mockClear();
+  (router.push as jest.Mock).mockClear();
   (api.apiPut as jest.Mock).mockClear();
   (api.apiGet as jest.Mock).mockClear();
 });
@@ -531,7 +538,20 @@ describe("EditClassScreen", () => {
     ).not.toBeSelected();
   });
 
-  it("saves a new location in place and selects it", async () => {
+  it("opens the location screen without an id from 'New location'", async () => {
+    const user = userEvent.setup();
+    await renderScreen();
+    await loaded();
+
+    await user.press(screen.getByRole("button", { name: "New location" }));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/admin/location-form",
+      params: {},
+    });
+  });
+
+  it("selects the location the location screen created", async () => {
     const iracema = {
       id: "l-3",
       name: "Praia de Iracema",
@@ -539,18 +559,17 @@ describe("EditClassScreen", () => {
       ...POINT,
       upcomingClasses: 0,
     };
-    serve({ "POST /locations": () => ({ ...ok(iracema), status: 201 }) });
-    const user = userEvent.setup();
-    await renderScreen();
+    const { queryClient } = await renderScreen();
     await loaded();
+    await screen.findByRole("radio", { name: "Cumbuco" });
 
-    await user.press(screen.getByRole("button", { name: "New location" }));
-    await user.type(screen.getByLabelText("Name"), "Praia de Iracema");
-    await user.type(screen.getByLabelText("Address"), "Rua dos Tabajaras, 1");
-    await fireEvent(screen.getByTestId("location-map-picker"), "press", {
-      nativeEvent: { coordinate: POINT },
+    // The location screen's save puts it in the cached list, then tells the form.
+    await act(async () => {
+      queryClient.setQueryData(LOCATIONS_QUERY_KEY, {
+        items: [futuro, cumbuco, iracema],
+      });
+      emitLocationCreated(iracema);
     });
-    await user.press(screen.getByRole("button", { name: "Save location" }));
 
     await waitFor(() =>
       expect(
@@ -560,10 +579,17 @@ describe("EditClassScreen", () => {
     expect(saveButton()).toBeEnabled();
   });
 
+  it("stops listening to the location screen once it is gone", async () => {
+    const { unmount } = await renderScreen();
+    await loaded();
+
+    await unmount();
+
+    expect(() => emitLocationRemoved("l-1")).not.toThrow();
+  });
+
   describe("manage locations", () => {
-    it("(manage) edits a location from its row and keeps the class's selection", async () => {
-      const edited = { ...cumbuco, name: "Cumbuco Norte" };
-      serve({ "PUT /locations/l-2": () => ok(edited) });
+    it("(manage) opens the location screen on a row and keeps the class's selection", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await loaded();
@@ -571,56 +597,31 @@ describe("EditClassScreen", () => {
       await user.press(screen.getByRole("button", { name: "Manage" }));
       expect(screen.queryByRole("button", { name: "New location" })).toBeNull();
       await user.press(screen.getByRole("radio", { name: "Cumbuco" }));
-      await fireEvent.changeText(
-        screen.getByLabelText("Name"),
-        "Cumbuco Norte",
-      );
-      await user.press(screen.getByRole("button", { name: "Save" }));
 
-      await waitFor(() =>
-        expect(
-          screen.getByRole("radio", { name: "Cumbuco Norte" }),
-        ).toBeTruthy(),
-      );
+      expect(router.push).toHaveBeenCalledWith({
+        pathname: "/admin/location-form",
+        params: { id: "l-2" },
+      });
+
+      await user.press(screen.getByRole("button", { name: "Done" }));
       expect(
         screen.getByRole("radio", { name: "Praia do Futuro" }),
       ).toBeChecked();
-      expect(mockShow).toHaveBeenCalledWith("Location updated");
-      await user.press(screen.getByRole("button", { name: "Done" }));
       expect(screen.getByRole("button", { name: "New location" })).toBeTruthy();
     });
   });
 
   describe("remove location", () => {
-    const removeFromSheet = async (
-      user: ReturnType<typeof userEvent.setup>,
-      name: string,
-    ) => {
-      await user.press(screen.getByRole("button", { name: "Manage" }));
-      await user.press(screen.getByRole("radio", { name }));
-      await user.press(screen.getByRole("button", { name: "Remove location" }));
-      await user.press(
-        screen.getAllByRole("button", { name: "Remove location" }).at(-1)!,
-      );
-    };
-
-    it("clears the selection when the class's own location is removed, and Save stays off", async () => {
-      serve({
-        "POST /locations/l-1/archive": () => ({
-          ok: true,
-          status: 204,
-          json: async () => undefined,
-        }),
-      });
-      const user = userEvent.setup();
-      await renderScreen();
+    it("clears the selection when the location screen removed the class's own location, and Save stays off", async () => {
+      const { queryClient } = await renderScreen();
       await loaded();
+      await screen.findByRole("radio", { name: "Cumbuco" });
 
-      await removeFromSheet(user, "Praia do Futuro");
+      await act(async () => {
+        queryClient.setQueryData(LOCATIONS_QUERY_KEY, { items: [cumbuco] });
+        emitLocationRemoved("l-1");
+      });
 
-      await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Praia do Futuro removed"),
-      );
       expect(
         screen.getByRole("radio", { name: "Praia do Futuro" }),
       ).not.toBeChecked();
@@ -628,21 +629,19 @@ describe("EditClassScreen", () => {
     });
 
     it("keeps the selection when another location is removed", async () => {
-      serve({
-        "POST /locations/l-2/archive": () => ({
-          ok: true,
-          status: 204,
-          json: async () => undefined,
-        }),
-      });
-      const user = userEvent.setup();
-      await renderScreen();
+      const { queryClient } = await renderScreen();
       await loaded();
+      // The list has loaded: a later answer can't put the removed row back.
+      await screen.findByRole("radio", { name: "Cumbuco" });
 
-      await removeFromSheet(user, "Cumbuco");
+      await act(async () => {
+        queryClient.setQueryData(LOCATIONS_QUERY_KEY, { items: [futuro] });
+        emitLocationRemoved("l-2");
+      });
 
+      // The list's update reaches the screen on the query's next notification.
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Cumbuco removed"),
+        expect(screen.queryByRole("radio", { name: "Cumbuco" })).toBeNull(),
       );
       expect(
         screen.getByRole("radio", { name: "Praia do Futuro" }),

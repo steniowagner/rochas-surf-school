@@ -15,7 +15,6 @@ import { FormSection } from "../components/form-section";
 import { GuestsWarning } from "../components/guests-warning";
 import { InstructorPicker } from "../components/instructor-picker";
 import { LocationPicker } from "../components/location-picker";
-import { LocationSheet } from "../components/location-sheet";
 import { TimeRangePicker } from "../components/time-range-picker";
 import { TimeRangeSheet } from "../components/time-range-sheet";
 
@@ -167,7 +166,7 @@ export function EditClassScreen() {
                 managing={screen.managingLocations}
                 onSelect={screen.setLocationId}
                 onEditPress={screen.openLocationEdit}
-                onAddPress={screen.openLocationSheet}
+                onAddPress={screen.openNewLocation}
               />
             </FormSection>
             <FormSection label={t("newClass.capacity.label")}>
@@ -231,14 +230,6 @@ export function EditClassScreen() {
         visible={screen.timeSheetVisible}
         onClose={screen.closeTimeSheet}
         onSubmit={screen.addTimeRange}
-      />
-      <LocationSheet
-        visible={screen.locationSheetVisible}
-        locations={screen.activeLocations}
-        location={screen.editingLocation}
-        onClose={screen.closeLocationSheet}
-        onCreated={screen.selectLocation}
-        onRemoved={screen.unselectLocation}
       />
     </View>
   );

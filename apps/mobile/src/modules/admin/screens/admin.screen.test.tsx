@@ -532,7 +532,7 @@ describe("AdminScreen", () => {
       await user.press(screen.getByRole("button", { name: /My classes/ }));
 
       expect(app.getPathname()).toBe(routes.admin.myClasses);
-      expect(await screen.findByRole("header", { name: "MY CLASSES" })).toBeOnTheScreen();
+      expect(await screen.findByRole("header", { name: "My classes" })).toBeOnTheScreen();
     });
 
     it("isn't shown when the admin teaches nothing, nor after a failed request", async () => {

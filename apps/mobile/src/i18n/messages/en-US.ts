@@ -492,6 +492,30 @@ const messages = {
       descriptionSport: "You didn't take any {{sport}} class in this period.",
     },
   },
+  teachingHistory: {
+    description: "Every class you have already taught, month by month or week by week.",
+    title: "Past classes",
+    legend: "Days you taught a class",
+    hasClasses: "you taught a class",
+    allClasses: "All classes",
+    clearDay: "Clear {{date}}",
+    loading: "Loading the classes",
+    loadError: {
+      title: "Something went wrong",
+      description:
+        "We couldn't load your past classes. Check your connection and try again.",
+    },
+    emptyDay: {
+      title: "No classes this day",
+      description: "You didn't teach any class this day.",
+      descriptionSport: "You didn't teach any {{sport}} class this day.",
+    },
+    emptyPeriod: {
+      title: "No classes in this period",
+      description: "You didn't teach any class in this period.",
+      descriptionSport: "You didn't teach any {{sport}} class in this period.",
+    },
+  },
   userHeader: {
     greeting: {
       morning: "Good morning,",
@@ -1147,6 +1171,7 @@ const messages = {
     removed: "{{name}} removed",
   },
   teachingClasses: {
+    description: "The classes you will teach: the ones under way and the ones coming up, day by day.",
     row: {
       assigned_one: "{{count}} class assigned to you",
       assigned_other: "{{count}} classes assigned to you",

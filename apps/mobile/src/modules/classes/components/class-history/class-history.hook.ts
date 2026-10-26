@@ -3,10 +3,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { CalendarPeriod } from "@/components/week-month-calendar/week-month-calendar.types";
-import { routes } from "@/constants/routes";
-import type { ClassItem, DisciplineFilterValue } from "@/modules/classes/classes.types";
-import { useNow } from "@/modules/classes/hooks/use-now.hook";
-import { todayInSchoolZone } from "@/modules/classes/utils/calendar";
 import { SessionExpiredError } from "@/services/api";
 import {
   addDays,
@@ -17,42 +13,57 @@ import {
   weekCaption,
 } from "@/utils/calendar-dates";
 
-import { useMyClassHistory } from "../hooks/use-my-class-history.hook";
+import type { ClassItem, DisciplineFilterValue } from "../../classes.types";
+import { useNow } from "../../hooks/use-now.hook";
+import { todayInSchoolZone } from "../../utils/calendar";
 import {
   daysWithClasses,
   filterClassesByDay,
   groupClassesByDay,
   historyChipLabel,
   historyDayLabel,
-} from "../utils/class-history";
+} from "../../utils/class-history";
 
-import type { HistoryRow, UseMyClassHistoryScreenResult } from "./my-class-history.screen.types";
+import type {
+  HistoryRow,
+  UseClassHistoryProps,
+  UseClassHistoryResult,
+} from "./class-history.types";
 
 const NO_ITEMS: ClassItem[] = [];
 
-export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
+export const useClassHistory = ({
+  useHistoryQuery,
+  classRoute,
+}: UseClassHistoryProps): UseClassHistoryResult => {
   const { i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
   const now = useNow();
   const today = todayInSchoolZone(now);
   // Local state: the screen always opens on Fortaleza's current month, with no day selected.
-  const [period, setPeriod] = useState<CalendarPeriod>(() => monthPeriod(monthOf(todayInSchoolZone())));
+  const [period, setPeriod] = useState<CalendarPeriod>(() =>
+    monthPeriod(monthOf(todayInSchoolZone())),
+  );
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const query = useMyClassHistory(period);
+  const query = useHistoryQuery(period);
 
   // Like the day, the sport filters the period already loaded, with no request.
   const items = (query.data?.items ?? NO_ITEMS).filter(
     (item) => discipline === "all" || item.discipline === discipline,
   );
   // The day filter runs on the period already loaded: picking or clearing a day sends no request.
-  const rows: HistoryRow[] = groupClassesByDay(filterClassesByDay(items, selectedDay)).flatMap(
-    ({ day, items: dayItems }) => [
-      { type: "day" as const, key: `day-${day}`, label: historyDayLabel(day, locale) },
-      ...dayItems.map((item) => ({ type: "class" as const, key: item.id, item })),
-    ],
-  );
+  const rows: HistoryRow[] = groupClassesByDay(
+    filterClassesByDay(items, selectedDay),
+  ).flatMap(({ day, items: dayItems }) => [
+    {
+      type: "day" as const,
+      key: `day-${day}`,
+      label: historyDayLabel(day, locale),
+    },
+    ...dayItems.map((item) => ({ type: "class" as const, key: item.id, item })),
+  ]);
   const isWeek = addDays(period.from, 6) === period.to;
   // A period with no data goes back to pending when it is fetched again after an error: while "Try again" runs, the
   // error stays on screen with the spinner in its button, instead of the loading state.
@@ -75,14 +86,19 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
     discipline,
     selectDiscipline: setDiscipline,
     markedDates: daysWithClasses(items),
-    caption: isWeek ? weekCaption(period.from, locale) : monthCaption(monthOf(period.from), locale),
-    dayLabel: selectedDay === null ? null : historyChipLabel(selectedDay, locale),
+    caption: isWeek
+      ? weekCaption(period.from, locale)
+      : monthCaption(monthOf(period.from), locale),
+    dayLabel:
+      selectedDay === null ? null : historyChipLabel(selectedDay, locale),
     rows,
     isLoading: query.isPending && !isRetrying,
     // A failed refresh keeps the classes loaded; an expired session is handled once, centrally.
     isError:
       isRetrying ||
-      (query.isError && !hasData && !(query.error instanceof SessionExpiredError)),
+      (query.isError &&
+        !hasData &&
+        !(query.error instanceof SessionExpiredError)),
     isEmpty: hasData && rows.length === 0,
     isRetrying,
     isRefreshing,
@@ -94,6 +110,6 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
       ),
     refresh,
     retry: () => void query.refetch(),
-    openClass: (id) => router.push(routes.student.classDetail(id)),
+    openClass: (id) => router.push(classRoute(id)),
   };
 };

@@ -1,11 +1,19 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { FlatList, RefreshControl, View } from "react-native";
+import { RefreshControl, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { StackHeaderTitle } from "@/navigation/stack-header";
+import { HeaderButton } from "@/components/ui/header-button";
+import { ScreenIntro } from "@/components/ui/screen-intro";
+import { useTheme } from "@/hooks/use-theme";
+import {
+  StackHeaderTitle,
+  useCollapsingTitleHeader,
+} from "@/navigation/stack-header";
 
 import { ClassCard } from "../components/class-card";
 import { ClassCardSkeleton } from "../components/class-card-skeleton";
@@ -18,12 +26,20 @@ import { useTeachingClassesScreen } from "./teaching-classes.screen.hook";
 import type { TeachingClassesScreenProps } from "./teaching-classes.screen.types";
 
 const LOADING_CARDS = [0, 1, 2, 3];
+const CONTENT_PADDING_TOP = 8;
 
 /** "Minhas aulas" of an instructor or an admin who teaches: the classes under way, then the rest by day. */
 export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const header = useCollapsingTitleHeader({
+    title: t("teachingClasses.title"),
+    contentTop: CONTENT_PADDING_TOP,
+  });
   const screen = useTeachingClassesScreen({ role });
+  // The intro gives way to the plain title on the error and empty states, which have their own icon and text.
+  const showIntro = !screen.isError && !screen.isEmpty;
 
   const renderEmpty = () => {
     if (screen.isLoading) {
@@ -92,13 +108,24 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
     <>
       <Stack.Screen
         options={{
-          headerTitle: () => (
-            <StackHeaderTitle title={t("teachingClasses.title")} />
+          ...(showIntro
+            ? header.headerOptions
+            : {
+                headerTitle: () => (
+                  <StackHeaderTitle title={t("teachingClasses.title")} />
+                ),
+              }),
+          headerRight: () => (
+            <HeaderButton
+              icon="time-outline"
+              label={t("teachingHistory.title")}
+              onPress={screen.openHistory}
+            />
           ),
         }}
       />
       <View className="flex-1 bg-page">
-        <FlatList
+        <Animated.FlatList
           testID="teaching-classes-list"
           className="flex-1"
           data={screen.rows}
@@ -107,10 +134,28 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
           contentContainerClassName="gap-3 px-screen"
           // The last card scrolls clear of the floating sport filter.
           contentContainerStyle={{
-            paddingTop: 8,
+            paddingTop: CONTENT_PADDING_TOP,
             paddingBottom:
               Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
           }}
+          onScroll={showIntro ? header.scrollHandler : undefined}
+          scrollEventThrottle={16}
+          ListHeaderComponent={
+            showIntro ? (
+              <ScreenIntro
+                icon={
+                  <Ionicons
+                    name="calendar-outline"
+                    size={28}
+                    color={theme.grape}
+                  />
+                }
+                title={t("teachingClasses.title")}
+                description={t("teachingClasses.description")}
+                onTitleLayout={header.onTitleBottomChange}
+              />
+            ) : null
+          }
           refreshControl={
             <RefreshControl
               refreshing={screen.isRefreshing}
@@ -133,6 +178,7 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
           }
           ListEmptyComponent={renderEmpty()}
         />
+        {showIntro ? header.backdrop : null}
         {/* Over the list in every state: loading, error, empty and the classes. */}
         <DisciplineFilter
           value={screen.discipline}

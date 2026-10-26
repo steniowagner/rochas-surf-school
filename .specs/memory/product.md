@@ -34,14 +34,16 @@ Each user has exactly one role. New accounts start as students. Only students ta
   pending ones, cancels approved seats until the class's cancellation deadline, rates finished classes they
   took, and uploads photos to them. Sees every class, past and future, with who holds its seats.
 - **Instructor** — teaches and follows classes, read-only. Sees every class, with the ones they teach under
-  "My classes" (the next one highlighted), and guests' names on their own classes. Comments on finished
+  "My classes" (the next one highlighted) and the ones they taught under "Past classes", and guests' names on their
+  own classes. Comments on finished
   classes they taught and uploads photos to any finished class. Cannot request seats, decide registrations or
   enrolments, cancel classes or change any rule.
 - **Admin** — runs the school in the app: schedules, edits, cancels and deletes classes; manages locations;
   approves or denies registrations, enrolments and reactivation requests; enrols students directly and adds
   guests; changes roles, removes and restores accounts; writes the school rules and the cancellation rules;
   sets the school's WhatsApp number and the waiting-list switch; sends broadcasts; deletes any comment or
-  photo. An admin can also teach, and then sees their classes under "My classes" like an instructor. There is
+  photo. An admin can also teach, and then sees their classes under "My classes" and "Past classes" like an
+  instructor. There is
   always at least one admin.
 
 ## Domain concepts
@@ -231,6 +233,9 @@ Listed in the order people meet them.
     or cancelled); nothing is stored on the account, and a deleted class doesn't count. An instructor's or a teaching
     admin's "Minhas aulas" lists the classes they teach that haven't ended, cancelled ones included; the **next**
     class is the earliest one that hasn't started and isn't cancelled.
+  - As built (spec 062): the classes a person **taught** are the classes they teach that ended and aren't cancelled
+    (a class under way isn't taught yet). Like the student's history, they are read one period at a time (a day, a
+    week or a month): a class belongs to the America/Fortaleza day its start falls on, newest first.
 - **Seat**: not stored on its own — a class's **seats taken** are its approved enrolments plus its guests,
   shown with the capacity to everyone who sees the class, together with the class's approved students (name and
   photo, or initials while there is no photo) and its guests ("Trial", or the name for admins and the class's
@@ -1057,8 +1062,8 @@ on the instructor's and the admin's Início is "Minhas aulas", above "Regras", w
 a você" ("1 aula atribuída a você", "Nenhuma aula atribuída" at zero; no subtitle while loading or after a failed
 first load) counting the classes they teach that haven't ended and aren't cancelled. Instructors always see the row;
 an admin sees it only once they teach a class (never while it loads or after an error), and it appears when they come
-back to the home after being assigned one. The row opens "Minhas aulas", an inner screen above the tab bar with its
-title centered and nothing on the right: the classes under way first, each on a grape card with "Em andamento", then
+back to the home after being assigned one. The row opens "Minhas aulas", an inner screen above the tab bar (since
+spec 062 with an intro and the clock button on the right): the classes under way first, each on a grape card with "Em andamento", then
 the other classes grouped by day, each day headed "Hoje", "Amanhã" or the weekday ("Quarta", "Sábado" — without
 "-feira") with its short date ("17 set"). The next class has the "Próxima" chip and a sun border; cancelled classes
 stay in their day with "Cancelada" and are never the next one nor under way. The list moves on every minute without
@@ -1126,6 +1131,22 @@ legend explains the colours. The least-occupied non-cancelled class starts selec
 shows its class card under the legend, which opens the class's details. The screen reads the same week list as the
 Aulas tab, with a loading state, an error with "Tentar novamente", an empty week ("Sem aulas nesta semana", no card
 nor map), pull-to-refresh and a reload when it shows again. All copy is in pt-BR, es-ES and en-US.
+
+**"Aulas anteriores" for instructors and admins who teach** (spec `062-teaching-class-history`) — a clock button
+on the right of the "Minhas aulas" header (in every state: loading, error, empty and the classes) opens "Aulas
+anteriores", the same screen as the student's "Histórico": the classes the person taught (ended, not cancelled) on a
+calendar of Fortaleza's current month, or of a week, with one dot on each day taught and the legend "Dias em que você
+deu aula", then the period's classes under a label per day, newest first. Tapping a day narrows the list to it with a
+chip that clears it, and the floating sport button narrows the loaded period; neither sends a request. A card opens
+the class's details. The screen has a loading skeleton, an error with "Tentar novamente", the empty states of the
+period and of the day ("Você não deu nenhuma aula neste período.", with the sport when one is chosen) and
+pull-to-refresh. "Minhas aulas" and "Aulas anteriores" now open with an intro — an icon in grape, the title large and
+a description ("As aulas que você vai dar: as em andamento e as próximas, dia a dia." / "Todas as aulas que você já
+deu, mês a mês ou semana a semana.") — whose title collapses into the header as the list scrolls; on the error and
+empty states the header shows the plain title. The student's "Histórico" has no intro and is otherwise unchanged. On
+every month calendar (the Aulas tab, "Inscrever aluno" and both histories) a day's dot now sits below the day's
+circle, the selected day's included; the weekly occupancy's week picker keeps it tucked into the day. All copy is in
+pt-BR, es-ES and en-US.
 
 Active specs: none.
 
@@ -1210,8 +1231,7 @@ Active specs: none.
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
 - On "Minhas aulas" (spec 048): keeping the chosen chip after a class or the history opened above the tab.
-- On the instructor's and admin's "Minhas aulas" (spec 057): the past classes they taught ("Aulas anteriores") and the
-  header's clock button that opens them; the "Atualizada" chip of a recently edited class; a stored "also an
+- On the instructor's and admin's "Minhas aulas" (spec 057): the "Atualizada" chip of a recently edited class; a stored "also an
   instructor" option on admin accounts; filtering the list by level or status, searching it and paging it; the
   admin's week-by-week layout; and the rest of the dashboards (greeting, metrics, "Avaliações das aulas"; "Ocupação
   semanal" came with spec 061).
@@ -1220,6 +1240,9 @@ Active specs: none.
   row's count by sport.
 - On the "Inscrever aluno" steps (spec 060): a summary line above the button, the students' subtitles ("6 aulas ·
   desde jul 2026") and a day header with the number of classes.
+- On the instructor's and admin's "Aulas anteriores" (spec 062): the photo and rating counts on the cards (until
+  ratings and photos exist), a "Hoje" button, keeping the chosen period or day after leaving the screen, paging,
+  searching or filtering by level or status, and a way in other than the "Minhas aulas" header.
 - On the class history's calendar (spec 053): a "Hoje" button, keeping the chosen period or day after leaving the
   screen, filtering the history by sport, level or status and searching it, and swiping between weeks or months.
 - On class reminders (spec 054): choosing the lead time or turning reminders off per person or per type (only the

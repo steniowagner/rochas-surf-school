@@ -238,3 +238,21 @@ export type TeachingClassesLayout = {
   /** The earliest class that hasn't started and isn't cancelled, or `null`. */
   nextId: string | null;
 };
+
+/** The answer of `GET /classes/teaching/history`: the classes the caller taught in the period, newest first. */
+export type TeachingClassHistoryResponse = {
+  items: ClassItem[];
+};
+
+/** The classes of one America/Fortaleza day of a history, newest first. */
+export type ClassHistoryDay = {
+  /** `YYYY-MM-DD`. */
+  day: string;
+  items: ClassItem[];
+};
+
+/** A period of a history: its first and last America/Fortaleza day, `YYYY-MM-DD`. */
+export type ClassHistoryPeriod = {
+  from: string;
+  to: string;
+};

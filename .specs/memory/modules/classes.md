@@ -121,6 +121,10 @@ The classes themselves, and how a batch becomes classes.
   person **teaches** when they are an instructor of at least one class, in any state — not started, under way,
   ended or cancelled; a deleted class leaves nothing. Their current classes are those that haven't ended, cancelled
   ones included, by start then id, each read as a card with the guests' names and no enrolment.
+- **Classes a person taught** (not stored, spec 062): the classes where the person is one of the instructors that
+  ended (at or before now, the module's clock) and aren't cancelled; a class under way isn't taught yet. Read one
+  period at a time (a day to 42 days, as the student's history): a class belongs to the America/Fortaleza day its
+  start falls on, newest first (start, then id), each as a card with the guests' names and no enrolment.
 - **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
 - **Class view** (not stored): a class as people read it — its fields, its location's name, address and point
   (none when the location has none; an archived location reads the same), its instructors' ids and names, its
@@ -343,8 +347,9 @@ The account's status is checked before its role (`user.status.notApproved`, then
   the classes they took — ended, not cancelled, with their latest enrolment approved, starting on an America/Fortaleza
   day of the period. Other roles are refused (`enrolment.role.notStudent`).
 - **An approved instructor or admin** — lists the classes they teach that haven't ended (cancelled ones included)
-  and learns whether they teach any class at all; students are refused (`user.role.notTeacher`, 403, after the
-  status check).
+  and learns whether they teach any class at all, and, one period at a time, the classes they taught (spec 062; the
+  period checked exactly as the student's history); students are refused (`user.role.notTeacher`, 403, after the
+  status check, before the period).
 - **A student with a seat or a pending request** — receives one notification when the class is edited (a class
   field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
   tell them; with an approved seat, one reminder 30 minutes before each start of the class.
@@ -424,7 +429,7 @@ cancelled ones in their day (spec 057), filtered by sport with the Aulas tab's f
 surf/skate" when the chosen sport has none left, spec 059); admins open "Ocupação semanal" from their home's "Escola" section: a week of classes as a map — one column per
 day, one row per start time, each cell the class's occupancy on four steps (under 50%, 50–89%, 90%+, full) or
 "canc." — with a card summing up the week's non-cancelled classes (occupancy, seats, free seats, full classes, seats
-capped at capacity), built in the app from the week list with no API of its own (spec 061); their past classes, ratings and photos come with their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards. A class keeps a link to the admin who created it,
+capped at capacity), built in the app from the week list with no API of its own (spec 061); the clock button on "Minhas aulas" opens "Aulas anteriores": the classes they taught on a month (or week) calendar with a dot per day taught, under a label per day, newest first, narrowed by day or by sport, the same screen as the student's history, which this module now holds for both (spec 062); both teaching screens open with an intro whose title collapses into the header, and the month calendars draw a day's dot below its circle; ratings and photos come with their specs; the student's "Minhas aulas" and "Histórico" screens are Enrolment's, built on this module's cards (and, since spec 062, "Histórico" on its shared history screen). A class keeps a link to the admin who created it,
 which stops that account from being erased while the link exists — a decision for the erasure spec.
 
 ## Spec history
@@ -541,6 +546,13 @@ which stops that account from being erased while the link exists — a decision 
   sport with spec 050's floating button (no request, back to "Todas" on reopening): the classes under way, the days
   and "Próxima" follow the chosen sport, and a filtered list with nothing left says "Nenhuma aula de surf/skate"; the
   home row's count ignores the filter.
+- `062-teaching-class-history` — the classes a person taught: `GET /classes/teaching/history?from&to` gives an
+  approved instructor or admin the classes they teach that ended and aren't cancelled, starting on a Fortaleza day of
+  the period, newest first, with the period checked by the same rule as the student's history (now shared, 422);
+  students are refused with `user.role.notTeacher`. In the app, a clock button on "Minhas aulas" opens "Aulas
+  anteriores", built on the history screen the student's "Histórico" now shares from this module; the teaching
+  screens gained an intro, and the month calendars a dot below the day's circle (the weekly occupancy's week picker
+  keeps it tucked in).
 - `058-admin-role-changes` — `ReleaseUpcomingClasses` takes an optional `actorId`, left out of the
   `class.noInstructor` recipients with the person; Authentication's demotion of an instructor to student now runs
   the release (through `ClassesTeachingReleaser`, which passes the actor and answers how many classes were

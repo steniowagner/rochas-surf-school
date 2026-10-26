@@ -118,5 +118,6 @@ export const useTeachingClassesScreen = ({
     retry: () => void refetch(),
     selectDiscipline: setDiscipline,
     openClass: (id) => router.push(routes[role].classDetail(id)),
+    openHistory: () => router.push(routes[role].myHistory),
   };
 };

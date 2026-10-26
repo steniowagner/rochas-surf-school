@@ -1,10 +1,9 @@
 import type { Locale } from "date-fns";
 
-import type { ClassItem } from "@/modules/classes/classes.types";
-import { schoolDayOf } from "@/modules/classes/utils/week";
 import { dayAndMonth, weekdayAbbreviation } from "@/utils/calendar-dates";
 
-import type { ClassHistoryDay } from "../enrolment.types";
+import type { ClassHistoryDay, ClassItem } from "../classes.types";
+import { schoolDayOf } from "./week";
 
 /** The America/Fortaleza days with one or more classes, each once, for the calendar's dots. */
 export const daysWithClasses = (items: ClassItem[]): string[] => [

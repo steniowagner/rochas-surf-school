@@ -499,6 +499,30 @@ const messages: Messages = {
       descriptionSport: "No hiciste ninguna clase de {{sport}} en este período.",
     },
   },
+  teachingHistory: {
+    description: "Todas las clases que ya diste, mes a mes o semana a semana.",
+    title: "Clases pasadas",
+    legend: "Días en que diste clase",
+    hasClasses: "diste clase",
+    allClasses: "Todas las clases",
+    clearDay: "Quitar {{date}}",
+    loading: "Cargando las clases",
+    loadError: {
+      title: "Algo salió mal",
+      description:
+        "No pudimos cargar tus clases pasadas. Revisa tu conexión e inténtalo de nuevo.",
+    },
+    emptyDay: {
+      title: "Sin clases este día",
+      description: "No diste ninguna clase este día.",
+      descriptionSport: "No diste ninguna clase de {{sport}} este día.",
+    },
+    emptyPeriod: {
+      title: "Sin clases en este período",
+      description: "No diste ninguna clase en este período.",
+      descriptionSport: "No diste ninguna clase de {{sport}} en este período.",
+    },
+  },
   userHeader: {
     greeting: {
       morning: "Buenos días,",
@@ -1154,6 +1178,7 @@ const messages: Messages = {
     removed: "{{name}} eliminado",
   },
   teachingClasses: {
+    description: "Las clases que vas a dar: las en curso y las próximas, día a día.",
     row: {
       assigned_one: "{{count}} clase asignada a ti",
       assigned_other: "{{count}} clases asignadas a ti",

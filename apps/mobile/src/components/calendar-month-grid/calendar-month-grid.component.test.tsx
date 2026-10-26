@@ -32,6 +32,41 @@ const setup = (
   };
 };
 
+describe("CalendarMonthGrid dot placement", () => {
+  const slotOf = (date: string) =>
+    screen.getByTestId(`calendar-day-${date}-dot`).parent!;
+
+  it("tucks the dot into the day's slot when asked", async () => {
+    await render(
+      <CalendarMonthGrid
+        month={OCTOBER}
+        selectedDate="2026-10-14"
+        today="2026-10-15"
+        markedDates={["2026-10-14"]}
+        dotPlacement="overlap"
+        onSelectDate={jest.fn()}
+      />,
+    );
+
+    expect(slotOf("2026-10-14").props.className).toContain("-mt-1.5");
+  });
+
+  it("keeps the dot below the day's circle by default", async () => {
+    await render(
+      <CalendarMonthGrid
+        month={OCTOBER}
+        selectedDate="2026-10-14"
+        today="2026-10-15"
+        markedDates={["2026-10-14"]}
+        onSelectDate={jest.fn()}
+      />,
+    );
+
+    expect(slotOf("2026-10-14").props.className).not.toContain("-mt-1.5");
+    expect(slotOf("2026-10-14").props.className).toContain("mt-1");
+  });
+});
+
 describe("CalendarMonthGrid", () => {
   it("starts on Monday under the weekday initials", async () => {
     await render(setup().ui);

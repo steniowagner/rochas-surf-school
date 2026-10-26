@@ -16,6 +16,21 @@ export class PrismaTeachingClassesReader implements TeachingClassesReader {
     return records.map((record) => record.id);
   }
 
+  async findHistoryClassIds(teacherId: string, now: Date, from: Date, to: Date): Promise<string[]> {
+    const records = await this.prisma.schoolClass.findMany({
+      where: {
+        endsAt: { lte: now },
+        cancelledAt: null,
+        startsAt: { gte: from, lt: to },
+        instructors: { some: { userId: teacherId } },
+      },
+      select: { id: true },
+      orderBy: [{ startsAt: 'desc' }, { id: 'desc' }],
+    });
+
+    return records.map((record) => record.id);
+  }
+
   async teachesAny(teacherId: string): Promise<boolean> {
     const record = await this.prisma.classInstructor.findFirst({
       where: { userId: teacherId },

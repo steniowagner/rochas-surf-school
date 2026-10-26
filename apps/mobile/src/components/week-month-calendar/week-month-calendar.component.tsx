@@ -24,6 +24,7 @@ export function WeekMonthCalendar({
   today,
   markedDates,
   markedLabel,
+  dotPlacement,
   onSelectDate,
   onVisibleRangeChange,
   initialView,
@@ -100,6 +101,7 @@ export function WeekMonthCalendar({
           today={today}
           markedDates={markedDates}
           markedLabel={markedLabel}
+          dotPlacement={dotPlacement}
           onSelectDate={selectDate}
         />
       ) : (

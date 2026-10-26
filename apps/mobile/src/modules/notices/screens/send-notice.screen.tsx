@@ -93,13 +93,16 @@ export function SendNoticeScreen() {
             value={screen.audience}
             onChange={screen.setAudience}
           />
-          <Text
-            accessibilityLiveRegion="polite"
-            testID="notice-recipients-count"
-            className="ds-text-list-subtitle px-1 text-ink-2"
-          >
-            {countText}
-          </Text>
+          <View className="flex-row items-center gap-1.5 px-1">
+            <Ionicons name="people-outline" size={14} color={theme.ink2} />
+            <Text
+              accessibilityLiveRegion="polite"
+              testID="notice-recipients-count"
+              className="ds-text-list-subtitle flex-1 text-ink-2"
+            >
+              {countText}
+            </Text>
+          </View>
         </View>
         <View
           testID="notice-title-field"

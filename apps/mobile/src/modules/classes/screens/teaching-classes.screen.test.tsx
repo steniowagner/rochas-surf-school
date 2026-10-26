@@ -282,7 +282,7 @@ describe("TeachingClassesScreen", () => {
 
   it("shows the intro's description with the classes, and drops the intro on the empty and error states", async () => {
     const description =
-      "The classes under way and the ones coming up, day by day.";
+      "The classes you will teach: the ones under way and the ones coming up, day by day.";
     const view = await renderScreen();
     await screen.findByText("19:00 – 20:00");
 
@@ -314,7 +314,7 @@ describe("TeachingClassesScreen", () => {
     await screen.findByRole("header", { name: "Something went wrong" });
     expect(
       screen.queryByText(
-        "The classes under way and the ones coming up, day by day.",
+        "The classes you will teach: the ones under way and the ones coming up, day by day.",
       ),
     ).not.toBeOnTheScreen();
   });

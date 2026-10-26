@@ -1171,7 +1171,7 @@ const messages = {
     removed: "{{name}} removed",
   },
   teachingClasses: {
-    description: "The classes under way and the ones coming up, day by day.",
+    description: "The classes you will teach: the ones under way and the ones coming up, day by day.",
     row: {
       assigned_one: "{{count}} class assigned to you",
       assigned_other: "{{count}} classes assigned to you",

@@ -1171,7 +1171,7 @@ const messages: Messages = {
     removed: "{{name}} removido",
   },
   teachingClasses: {
-    description: "Suas aulas em andamento e as próximas, dia a dia.",
+    description: "As aulas que você vai dar: as em andamento e as próximas, dia a dia.",
     row: {
       assigned_one: "{{count}} aula atribuída a você",
       assigned_other: "{{count}} aulas atribuídas a você",

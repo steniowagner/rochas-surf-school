@@ -528,19 +528,26 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > (the e2e "validates the period" case and the `.http` requests already expect 422); files:
   > `.specs/changes/062-teaching-class-history/spec.md`; verified: `node .specs/scripts/check-spec.mjs 062` (CHECK OK);
   > deviations: none
-- [ ] **F-03** (scope) — "Minhas aulas" got a `ScreenIntro` with a collapsing title and a new
+- [x] **F-03** (scope) — "Minhas aulas" got a `ScreenIntro` with a collapsing title and a new
   `teachingClasses.description` copy ("The classes you will teach…", `aea0ac7e`, `1ab5ef81`), although Out of scope
   excludes "any change to … the 'Minhas aulas' list itself"; and "Aulas anteriores" shows an intro with
   `teachingHistory.description` and a collapsing title, where D-03 says the header shows the centered
   `StackHeaderTitle`. No task or amendment covers it, and the ➕ note that recorded the user's request was deleted
   in `9228c2a3`. Expected: `/spec-plan --amend 062` to record it (Scope, D-03, an ER, a task, Memory Impact), or
   revert it.
-- [ ] **F-04** (scope) — the shared `CalendarMonthGrid` now draws the dot below the day's circle by default
+  > ✅ 2026-10-25 — the user kept the intro; recorded by `/spec-plan --amend` (`875e06c8`): Scope and Out of scope,
+  > D-03 changed, D-07, ER-06 and T-09 added, Memory Impact updated (see `## Amendments`). T-09 records the commits
+  > and adds `class-history.component.test.tsx` (`9ba6160a`); verified: the ER-06 `Verify by` (94 passed),
+  > `check-spec.mjs 062` CHECK OK; deviations: none
+- [x] **F-04** (scope) — the shared `CalendarMonthGrid` now draws the dot below the day's circle by default
   (`dotPlacement`, `aad897f7`, `f11ea501`, `820f30c9`, `78093512`); before, every month grid tucked it in. That
   changes the Aulas tab (`classes-week.screen.tsx`), `enrol-student.screen.tsx` and the student's history (Out of
   scope: "any change to … its screen's behavior"), with only `WeekPickerSheet` keeping the old placement. No task or
   amendment covers it. Expected: record it in the same amendment as F-03 (with a journey checking those screens), or
   revert it.
+  > ✅ 2026-10-25 — the user kept the dot placement; recorded in the same amendment (`875e06c8`): Out of scope, D-08,
+  > ER-05's edge cases, ER-07, T-10 and the "Calendars" journey. T-10 records the commits and adds the screen-level
+  > checks (`e1ed485b`); verified: the ER-07 `Verify by` (123 passed); deviations: none
 - [x] **F-05** (tests) — `run-e2e.mjs 062` is red: `classes.e2e-spec.ts` › suggestions › "ignores this week and two
   weeks ago…", "is empty when nothing happened last week" and "keeps the suggestions route…" get an extra
   `08:00` range. Not caused by this spec's code: the shared dev database holds the sample seed's class

@@ -301,6 +301,21 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 - [ ] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
   in the iOS simulator. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and
   every journey shows what it says.
+  > ⛔ 2026-10-25 — automated part done, journeys only partly done. Passed: `node .specs/scripts/run-related-tests.mjs
+  > 062` (RELATED TESTS PASSED: backend, mobile, modules/classes, modules/enrolment), `check-coverage.mjs 062`
+  > (COVERAGE OK, 17 files), `npx turbo run lint check-types build --filter=…classes --filter=…backend
+  > --filter=…mobile` (27 tasks successful). `run-e2e.mjs 062` is **E2E FAILED**: 710 of 713 backend e2e tests pass,
+  > including all 20 of `teaching-classes.e2e-spec.ts`; the 3 failures are in `test/classes.e2e-spec.ts` →
+  > "suggestions" (two) and "keeps the suggestions route" — files this spec doesn't touch, whose cases seed
+  > classes at fixed October 2026 dates and read them against the real clock (today is Sun 2026-10-25), so they
+  > depend on the date, not on this change (not confirmed on `base_commit`). Journeys in the iOS simulator
+  > (backend from this branch via `npm run dev`, Metro already serving the repo): as the signed-in admin, dark
+  > theme — Início → "My classes" → clock button on the header's right → "Past classes" opened with October 2026,
+  > a dot on each day taught, the legend "Days you taught a class", the classes under "SUN, 25 OCT"…, tapping day
+  > 18 selected it and narrowed the list to it with the "18 OCT" chip. Not done: the instructor account, light
+  > theme, the cancelled class's day without a dot, the sport filter, the previous month and the week, a card
+  > opening its details, the student's history, and the `classes.integration.http` requests with a token. Needs
+  > the user (or an instructor and a student review account in the simulator).
 
 ## Verification Plan
 

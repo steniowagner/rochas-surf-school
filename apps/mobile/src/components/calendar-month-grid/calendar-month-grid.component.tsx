@@ -60,7 +60,7 @@ export function CalendarMonthGrid({
                 </View>
                 {/* The dot's slot only exists when some day can have one, so the number stays centred otherwise. */}
                 {hasMarks ? (
-                  <View className="-mt-1.5 mb-1.5 h-1">
+                  <View className="h-1">
                     {day.marked ? (
                       <View
                         testID={`calendar-day-${day.date}-dot`}

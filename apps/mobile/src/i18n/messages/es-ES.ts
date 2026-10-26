@@ -1253,6 +1253,8 @@ const messages: Messages = {
     addressSearchPlaceholder: "Busca una dirección o una playa",
     point: "Punto en el mapa",
     pointHintEmpty: "Toca el mapa para marcar el punto",
+    pointPicked: "Punto elegido en el mapa",
+    resolving: "Buscando la dirección…",
     pointHintSet: "Toca para mover el punto",
     notify: "¿Avisar a alumnos e instructores de las próximas clases?",
     notifyCount_one: "1 clase futura usa este lugar.",

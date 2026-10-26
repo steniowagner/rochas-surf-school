@@ -40,3 +40,7 @@ export const toMapPoint = (location: {
   location.latitude === null || location.longitude === null
     ? null
     : { latitude: location.latitude, longitude: location.longitude };
+
+/** A point as text, with 4 decimals: "-3.7319, -38.5267". */
+export const formatPoint = ({ latitude, longitude }: MapPoint): string =>
+  `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;

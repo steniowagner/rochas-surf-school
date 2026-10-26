@@ -141,11 +141,35 @@ and stacked fields are hard to use.
   > renders in the screen body (not inside the native header view, which would clip it and not take its touches), so the
   > component sets the header's title through `<Stack.Screen options>` and draws the list itself; the existing
   > `locationSheet.addressSearchPlaceholder` string is reused
-- [ ] **T-03** — `src/modules/classes/hooks/use-map-place.hook.ts` (map tap → point + reverse geocode with the
+- [x] **T-03** — `src/modules/classes/hooks/use-map-place.hook.ts` (map tap → point + reverse geocode with the
   coordinates fallback; Android `onPoiClick` → `useAddressPlace`, falling back to a point tap) and
   `src/modules/classes/components/location-address-card/` (empty hint, map point, suggestion/place states), with
   tests for every case of ER-02. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-02 · Done when: `npx jest src/modules/classes/hooks/use-map-place.hook.test.tsx src/modules/classes/components/location-address-card` passes.
+  > ✅ 2026-10-26 — `useMapPlace({ sessionToken, onSelect })`: `pressMap` reverse-geocodes the tap on the device
+  > (`reverseGeocodeAsync`; Android's `formattedAddress`, else street and number – district – city/subregion – state, cut
+  > to the address limit) and falls back to the coordinates (`formatPoint`, 4 decimals) on a failed or empty answer;
+  > `pressPoi` (Android `onPoiClick`) looks the place up with `useAddressPlace` in the screen's session and falls back to a
+  > point tap; `pickPlace` does the same for a suggestion and selects nothing when it fails. `pendingPoint` moves the pin at
+  > once while an address is looked up, and an answer a newer tap replaced is dropped. `LocationAddressCard` shows the
+  > empty hint, then the address over "<place name> · <lat>, <lng>" or "Ponto escolhido no mapa · …", and "Buscando o
+  > endereço…" while a lookup runs. Added `MapPlace`, `MapPressEvent`, `PoiClickEvent` to `classes.types.ts`,
+  > `formatPoint` to `utils/map.ts`, and the card's strings (`locationSheet.pointPicked`, `locationSheet.resolving`) in
+  > the three languages; files: `apps/mobile/src/modules/classes/hooks/use-map-place.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-map-place.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/index.ts`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/utils/map.ts`,
+  > `apps/mobile/src/modules/classes/utils/map.test.ts`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`; verified:
+  > `npx jest src/modules/classes/hooks/use-map-place.hook.test.tsx src/modules/classes/components/location-address-card src/modules/classes/utils/map.test.ts`
+  > (28 passed, 100% on the hook, the card and `map.ts`), `npx eslint`, `npx tsc --noEmit`, `npx jest src/i18n` clean;
+  > deviations: the card's two strings are added here rather than in T-05, since the card needs them; a "looking up the
+  > address" state (not in the spec) keeps the card honest while the device or Google answers. Note: a single mutation
+  > hook test file run alone leaves Jest open (React Query's mutation GC timer) — true of the existing
+  > `use-address-place.hook.test.tsx` too; multi-file runs exit normally
 - [ ] **T-04** — `src/modules/classes/hooks/use-device-location.hook.ts` (permission on demand, position, toast on
   denial or failure) and `src/modules/classes/components/my-location-button/` (the round map button, 44 px, tokens
   only), with tests for granted, denied and failed. Skill:

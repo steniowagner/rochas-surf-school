@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 
 import {
+  formatPoint,
   FORTALEZA,
   getDirectionsUrl,
   getMapProvider,
@@ -86,6 +87,14 @@ describe("getDirectionsUrl", () => {
     Platform.OS = "android";
     expect(getDirectionsUrl(point)).toBe(
       "https://www.google.com/maps/dir/?api=1&destination=-3.7442,-38.4617",
+    );
+  });
+});
+
+describe("formatPoint", () => {
+  it("writes the point with 4 decimals", () => {
+    expect(formatPoint({ latitude: -3.73189, longitude: -38.5 })).toBe(
+      "-3.7319, -38.5000",
     );
   });
 });

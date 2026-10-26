@@ -23,7 +23,10 @@ export function LocationAddressCard({
 
   if (!resolving && !place) {
     return (
-      <View className="min-h-11 flex-row items-center gap-2.5 rounded-card border border-dashed border-line px-3.5 py-3">
+      <View
+        testID="location-address-card"
+        className="min-h-11 flex-row items-center gap-2.5 rounded-card border border-dashed border-line px-3.5 py-3"
+      >
         <Feather name="map-pin" size={16} color={theme.ink3} />
         <Text className="ds-text-body flex-1 text-ink-2">
           {t("locationSheet.pointHintEmpty")}
@@ -37,7 +40,11 @@ export function LocationAddressCard({
     : (place?.name ?? t("locationSheet.pointPicked"));
 
   return (
-    <View className="min-h-11 flex-row items-center gap-2.5 rounded-card border border-line bg-surface px-3.5 py-3">
+    // `border-solid` resets the empty card's dashed border, which Android keeps when the class just goes away.
+    <View
+      testID="location-address-card"
+      className="min-h-11 flex-row items-center gap-2.5 rounded-card border border-solid border-line bg-surface px-3.5 py-3"
+    >
       <Feather name="map-pin" size={16} color={theme.lagoon} />
       <View className="flex-1">
         <Text numberOfLines={2} className="ds-text-list-title text-ink">

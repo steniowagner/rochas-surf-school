@@ -434,12 +434,19 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   scope: "any change to … its screen's behavior"), with only `WeekPickerSheet` keeping the old placement. No task or
   amendment covers it. Expected: record it in the same amendment as F-03 (with a journey checking those screens), or
   revert it.
-- [ ] **F-05** (tests) — `run-e2e.mjs 062` is red: `classes.e2e-spec.ts` › suggestions › "ignores this week and two
+- [x] **F-05** (tests) — `run-e2e.mjs 062` is red: `classes.e2e-spec.ts` › suggestions › "ignores this week and two
   weeks ago…", "is empty when nothing happened last week" and "keeps the suggestions route…" get an extra
   `08:00` range. Not caused by this spec's code: the shared dev database holds the sample seed's class
   `5a1e0000-0000-4000-8000-000000000101` (`prisma/seed/sample-classes.seed.ts`, created 2026-10-25 19:24, starting
   2026-10-11 08:00 Fortaleza), inside the suite's fixed "last week". Expected: run the suite on a database without
   that data (ask the user before deleting it) and record `E2E PASSED`.
+  > ✅ 2026-10-25 — the user chose a scratch database over deleting the dev data: created `rochas_e2e_062` in the
+  > local Postgres container (`createdb`), applied every migration (`DATABASE_HOST=127.0.0.1
+  > DATABASE_NAME=rochas_e2e_062 npx prisma migrate deploy` from `apps/backend`), and ran the suite against it; the
+  > dev database and its sample classes are untouched; files: none (spec only); verified:
+  > `DATABASE_HOST=127.0.0.1 DATABASE_NAME=rochas_e2e_062 node .specs/scripts/run-e2e.mjs 062` → **E2E PASSED**
+  > (26 files, 713 passed, including the 3 "suggestions" cases); deviations: none. The `rochas_e2e_062` database is
+  > left in place (drop it with `dropdb` when no longer needed).
 - [ ] **F-06** (ER-03, ER-04, ER-05) — T-08 is checked though its Done when ("every journey shows what it says")
   isn't met: its evidence lists as not run the instructor account, the sport filter, the light theme, the student's
   history ("Dias em que você fez aula") and the `.http` requests with a token; the intro (F-03) was never seen in

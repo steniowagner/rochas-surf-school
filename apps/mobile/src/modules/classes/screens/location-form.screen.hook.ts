@@ -8,8 +8,10 @@ import { useHeaderHeight } from "expo-router/react-navigation";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LayoutChangeEvent } from "react-native";
+import { useAnimatedStyle } from "react-native-reanimated";
 import MapView from "react-native-maps";
 
+import { useKeyboardHeight } from "@/hooks/use-keyboard-height.hook";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { AddressSuggestion, ClassLocation, MapPlace } from "../classes.types";
@@ -66,6 +68,7 @@ export const useLocationFormScreen = (
   const editLocation = useEditLocation();
   const archiveLocation = useArchiveLocation();
   const deviceLocation = useDeviceLocation();
+  const keyboardHeight = useKeyboardHeight();
   // One suggestion session per opening of the screen (Google bills autocomplete by session).
   const [sessionToken] = useState(newSessionToken);
   const [fields, setFields] = useState(() => fieldsOf(null));
@@ -221,6 +224,11 @@ export const useLocationFormScreen = (
     }
   };
 
+  // The panel stays flush with the bottom of the screen and rides on top of the keyboard.
+  const panelStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -keyboardHeight.get() }],
+  }));
+
   return {
     editing,
     location,
@@ -239,6 +247,7 @@ export const useLocationFormScreen = (
     resolving: mapPlace.resolving,
     pendingPoint: mapPlace.pendingPoint,
     showsUserLocation: deviceLocation.granted,
+    panelStyle,
     mapPadding:
       readyMapKey === mapKey
         ? { top: headerHeight, right: 0, bottom: panelHeight, left: 0 }

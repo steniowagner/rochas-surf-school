@@ -12,7 +12,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TextInput } from "@/components/ui/text-input";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { usePinnedFooter } from "@/modules/school-settings/hooks/use-pinned-footer.hook";
 
 import { ArchiveLocationSheet } from "../components/archive-location-sheet";
 import { LocationAddressCard } from "../components/location-address-card";
@@ -31,7 +30,6 @@ export function LocationFormScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const footerStyle = usePinnedFooter(Math.max(insets.bottom, 16));
   const mapRef = useRef<MapView>(null);
   const screen = useLocationFormScreen(mapRef);
   const { fields } = screen;
@@ -66,7 +64,7 @@ export function LocationFormScreen() {
       </MapView>
       <Animated.View
         className="absolute bottom-0 left-0 right-0 gap-3"
-        style={footerStyle}
+        style={screen.panelStyle}
         pointerEvents="box-none"
       >
         <View className="items-end px-screen" pointerEvents="box-none">
@@ -74,8 +72,12 @@ export function LocationFormScreen() {
         </View>
         <View
           testID="location-form-panel"
-          className="gap-4 rounded-sheet bg-page px-screen pb-2 pt-5"
-          style={shadowStyle("menuOption", theme)}
+          className="gap-4 rounded-t-sheet bg-page px-screen pt-5"
+          style={[
+            shadowStyle("menuOption", theme),
+            // Flush with the bottom of the screen: the home-indicator inset is the panel's own padding.
+            { paddingBottom: Math.max(insets.bottom, 16) },
+          ]}
           onLayout={screen.measurePanel}
         >
           <Text className="ds-text-sheet-title text-ink">
@@ -123,17 +125,9 @@ export function LocationFormScreen() {
               </Text>
             </View>
           ) : null}
-          <View className="flex-row gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onPress={screen.cancel}
-            >
-              {t("common.cancel")}
-            </Button>
+          <View testID="location-form-actions" className="gap-2">
             <Button
               variant="primary"
-              className="flex-1"
               loading={screen.loading}
               disabled={!screen.canSubmit}
               onPress={screen.submit}
@@ -142,12 +136,15 @@ export function LocationFormScreen() {
                 ? t("locationSheet.save")
                 : t("locationSheet.submit")}
             </Button>
-          </View>
-          {screen.editing ? (
-            <Button variant="ghost" onPress={screen.openArchive}>
-              {t("locationSheet.remove")}
+            <Button variant="outline" onPress={screen.cancel}>
+              {t("common.cancel")}
             </Button>
-          ) : null}
+            {screen.editing ? (
+              <Button variant="ghost" onPress={screen.openArchive}>
+                {t("locationSheet.remove")}
+              </Button>
+            ) : null}
+          </View>
         </View>
       </Animated.View>
       <LocationSearchHeader

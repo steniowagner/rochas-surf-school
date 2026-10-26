@@ -290,11 +290,21 @@ and stacked fields are hard to use.
   > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.test.tsx`;
   > verified: `npx jest src/modules/classes/components/location-search-header` (12 passed, the field has no `boxShadow`;
   > 100% on the component), `npx eslint`, `npx tsc --noEmit` clean; deviations: none
-- [ ] **T-10** — Stack the panel's actions and pin the panel to the bottom (D-10) in `location-form.screen.tsx`:
+- [x] **T-10** — Stack the panel's actions and pin the panel to the bottom (D-10) in `location-form.screen.tsx`:
   primary first, then "Cancelar", then "Remover local"; rounded top corners only, the bottom inset as the panel's own
   padding. Update the screen's tests. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   (added during execution)
   Covers: ER-01 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx` passes.
+  > ✅ 2026-10-26 — the panel's actions are stacked ("Salvar local" / "Salvar", "Cancelar", then "Remover local" when
+  > editing) and the panel sits flush with the bottom: rounded top corners only (`rounded-t-sheet`), the home-indicator
+  > inset as its own bottom padding, and an animated `translateY` of the keyboard's height (the hook's `panelStyle`, in
+  > place of the shared pinned footer whose padding left a strip of map under the panel); files:
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx` (41 passed: the action order for new and edit,
+  > the panel's corners and padding, the lift with a 300 pt keyboard; 100% on the screen and its hook), `npx eslint`,
+  > `npx tsc --noEmit` clean; deviations: none
 
 ### Verification
 

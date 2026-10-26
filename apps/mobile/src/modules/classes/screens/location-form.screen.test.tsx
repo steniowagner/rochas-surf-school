@@ -6,6 +6,7 @@ import {
   screen,
   userEvent,
   waitFor,
+  within,
 } from "@testing-library/react-native";
 import {
   getCurrentPositionAsync,
@@ -13,8 +14,9 @@ import {
   reverseGeocodeAsync,
 } from "expo-location";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
+import { useKeyboardHeight } from "@/hooks/use-keyboard-height.hook";
 import * as api from "@/services/api";
 
 import {
@@ -259,6 +261,34 @@ describe("LocationFormScreen (new)", () => {
         "Tell the students and instructors of upcoming classes?",
       ),
     ).toBeNull();
+  });
+
+  it("stacks the actions and keeps the panel flush with the bottom of the screen", async () => {
+    await renderScreen();
+
+    expect(
+      within(screen.getByTestId("location-form-actions"))
+        .getAllByRole("button")
+        .map((button) => button.props.accessibilityLabel),
+    ).toEqual(["Save location", "Cancel"]);
+    const panel = screen.getByTestId("location-form-panel");
+    expect(panel.props.className).toContain("rounded-t-sheet");
+    expect(StyleSheet.flatten(panel.props.style).paddingBottom).toBe(16);
+  });
+
+  it("lifts the panel with the keyboard", async () => {
+    jest.mocked(useKeyboardHeight).mockReturnValue({ get: () => 300 } as never);
+    try {
+      await renderScreen();
+
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId("location-form-panel").parent!.props.style,
+        ).transform,
+      ).toEqual([{ translateY: -300 }]);
+    } finally {
+      jest.mocked(useKeyboardHeight).mockReturnValue({ get: () => 0 } as never);
+    }
   });
 
   it("asks for no location permission when it opens", async () => {
@@ -714,6 +744,11 @@ describe("LocationFormScreen (edit)", () => {
     expect(submit()).toBeEnabled();
     expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
     expect(removeButtons()).toHaveLength(1);
+    expect(
+      within(screen.getByTestId("location-form-actions"))
+        .getAllByRole("button")
+        .map((button) => button.props.accessibilityLabel),
+    ).toEqual(["Save", "Cancel", "Remove location"]);
   });
 
   it("fills the form, and opens the map again on the location, when the list arrives after the screen opened", async () => {

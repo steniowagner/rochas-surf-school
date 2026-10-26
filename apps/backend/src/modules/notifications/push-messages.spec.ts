@@ -336,10 +336,22 @@ describe('renderPush', () => {
     );
   });
 
+  it.each(PUSH_LOCALES)('shows a broadcast as written in %s, in the push and in the app', (locale) => {
+    const params = { title: ' Aula <b>cancelada</b> 🌊 ', message: 'Sem aula\namanhã.' };
+    const expected = { title: 'Aula <b>cancelada</b> 🌊', body: 'Sem aula\namanhã.' };
+
+    expect(renderPush('broadcast', params, locale)).toEqual(expected);
+    expect(renderInApp('broadcast', params, locale)).toEqual(expected);
+  });
+
+  it('leaves a broadcast without text blank instead of failing', () => {
+    expect(renderPush('broadcast', { title: 1 }, 'en')).toEqual({ title: '', body: '' });
+  });
+
   it('has copy for every type and locale', () => {
     for (const type of NOTIFICATION_TYPES) {
       for (const locale of PUSH_LOCALES) {
-        const { title, body } = renderPush(type, { name: 'Ana', reason: 'x', role: 'student' }, locale);
+        const { title, body } = renderPush(type, { name: 'Ana', reason: 'x', role: 'student', title: 'T', message: 'M' }, locale);
         expect(title).not.toBe('');
         expect(body).not.toBe('');
       }
@@ -397,7 +409,7 @@ describe('renderInApp', () => {
       (type) => type !== 'class.edited' && type !== 'registration.denied',
     );
 
-    expect(others).toHaveLength(17);
+    expect(others).toHaveLength(18);
     for (const type of others) {
       for (const locale of PUSH_LOCALES) {
         expect(renderInApp(type, params, locale)).toEqual(renderPush(type, params, locale));

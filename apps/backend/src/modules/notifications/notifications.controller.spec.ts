@@ -7,9 +7,12 @@ import {
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import { Notification } from '@rochas-surf-school/notifications';
+import { ExpoPushProvider } from './expo.push.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsController } from './notifications.controller.js';
+import { PrismaPushTicketRepository } from './push-ticket.prisma.js';
 import { PrismaPushTokenRepository } from './push-token.prisma.js';
+import { PrismaRecipientsProvider } from './recipients.prisma.js';
 import { SystemClockProvider } from './system.clock.js';
 
 const NOW = new Date('2026-10-12T12:00:00.000Z');
@@ -28,19 +31,26 @@ function handlerOf(name: keyof NotificationsController): object {
 }
 
 function setup() {
-  const repository = { upsert: vi.fn(), deleteForUser: vi.fn() };
+  const repository = { upsert: vi.fn(), deleteForUser: vi.fn(), findByUserIds: vi.fn() };
   const notifications = {
     findPage: vi.fn(),
     countUnread: vi.fn(),
     markRead: vi.fn(),
     markAllRead: vi.fn(),
+    createMany: vi.fn(),
   };
+  const tickets = { createMany: vi.fn() };
+  const pushProvider = { send: vi.fn() };
+  const recipients = { findApprovedAdminIds: vi.fn(), findApprovedUserIdsByAudience: vi.fn() };
   const controller = new NotificationsController(
     repository as unknown as PrismaPushTokenRepository,
     { now: () => NOW } as SystemClockProvider,
     notifications as unknown as PrismaNotificationRepository,
+    tickets as unknown as PrismaPushTicketRepository,
+    pushProvider as unknown as ExpoPushProvider,
+    recipients as unknown as PrismaRecipientsProvider,
   );
-  return { controller, repository, notifications };
+  return { controller, repository, notifications, tickets, pushProvider, recipients };
 }
 
 describe('NotificationsController', () => {
@@ -288,6 +298,90 @@ describe('NotificationsController', () => {
         statusCode: 404,
         message: 'notification.notFound',
       });
+    });
+  });
+
+  describe('broadcast', () => {
+    const admin = { ...userOf('approved'), role: 'admin' } as AuthenticatedUser;
+
+    it('counts the recipients with a protected GET on broadcast/recipients answering 200', () => {
+      const handler = handlerOf('countBroadcastRecipients');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('broadcast/recipients');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.GET);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('sends with a protected POST on broadcast answering 204', () => {
+      const handler = handlerOf('sendBroadcast');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('broadcast');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.NO_CONTENT);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('answers the number of approved users of the audience', async () => {
+      const { controller, recipients } = setup();
+      recipients.findApprovedUserIdsByAudience.mockResolvedValue(['a', 'b']);
+
+      await expect(controller.countBroadcastRecipients(admin, 'students')).resolves.toEqual({
+        count: 2,
+      });
+      expect(recipients.findApprovedUserIdsByAudience).toHaveBeenCalledWith('students');
+    });
+
+    it('rejects a non-admin for both calls with 403', async () => {
+      const { controller, recipients } = setup();
+      const student = userOf('approved');
+
+      await expect(controller.countBroadcastRecipients(student, 'all')).rejects.toMatchObject({
+        statusCode: 403,
+      });
+      await expect(
+        controller.sendBroadcast(student, { audience: 'all', title: 't', message: 'm' }),
+      ).rejects.toMatchObject({ statusCode: 403 });
+      expect(recipients.findApprovedUserIdsByAudience).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown audience and a blank title with 422, storing nothing', async () => {
+      const { controller, notifications } = setup();
+
+      await expect(controller.countBroadcastRecipients(admin, 'everybody')).rejects.toMatchObject({
+        statusCode: 422,
+      });
+      await expect(controller.sendBroadcast(admin, undefined)).rejects.toMatchObject({
+        statusCode: 422,
+      });
+      await expect(
+        controller.sendBroadcast(admin, { audience: 'all', title: ' ', message: 'm' }),
+      ).rejects.toMatchObject({ statusCode: 422 });
+      expect(notifications.createMany).not.toHaveBeenCalled();
+    });
+
+    it('stores a broadcast for each recipient and pushes every phone with the text as written', async () => {
+      const { controller, notifications, repository, pushProvider, recipients, tickets } = setup();
+      const recipient = '9d1a3c5e-7b2f-4c8d-8e0a-1b2c3d4e5f60';
+      recipients.findApprovedUserIdsByAudience.mockResolvedValue([recipient]);
+      repository.findByUserIds.mockResolvedValue([
+        { token: 'ExponentPushToken[x]', userId: recipient, locale: 'en' },
+      ]);
+      pushProvider.send.mockResolvedValue([{ status: 'ok', id: 'ticket-1' }]);
+
+      await expect(
+        controller.sendBroadcast(admin, { audience: 'all', title: ' Hi ', message: ' All ' }),
+      ).resolves.toBeUndefined();
+
+      const [stored] = notifications.createMany.mock.calls[0]![0];
+      expect(stored).toMatchObject({ userId: recipient, type: 'broadcast' });
+      expect(stored.params).toEqual({ title: 'Hi', message: 'All' });
+      expect(pushProvider.send).toHaveBeenCalledWith([
+        expect.objectContaining({ token: 'ExponentPushToken[x]', locale: 'en', type: 'broadcast' }),
+      ]);
+      expect(tickets.createMany).toHaveBeenCalledWith([
+        { id: 'ticket-1', token: 'ExponentPushToken[x]', createdAt: NOW },
+      ]);
     });
   });
 });

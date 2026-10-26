@@ -306,6 +306,22 @@ describe("NotificationsScreen", () => {
       expect(screen.getByText("Row")).toBeOnTheScreen();
     });
 
+    it("marks a broadcast row read and shows the current home", async () => {
+      serve({
+        count: 1,
+        list: () => page([buildNotification(1, { type: "broadcast", classId: null, title: "Aviso", body: "Sem aula" })]),
+      });
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByText("Sem aula");
+
+      await user.press(screen.getByRole("button", { name: /Aviso/ }));
+
+      await waitFor(() => expect(router.replace).toHaveBeenCalledWith(routes.home));
+      expect(posts()).toEqual(["/notifications/n-1/read"]);
+      expect(router.push).not.toHaveBeenCalled();
+    });
+
     describe("a role.changed row", () => {
       const instructor = {
         id: "u-1",

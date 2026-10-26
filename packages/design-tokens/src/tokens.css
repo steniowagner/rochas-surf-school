@@ -328,6 +328,33 @@
   text-transform: uppercase;
 }
 
+.ds-text-sheet-description {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 13.5px;
+  line-height: 1.55;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-preview-title {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 14.5px;
+  line-height: 1.55;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
+.ds-text-preview-body {
+  font-family: var(--ds-font-body), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
 .ds-text-badge {
   font-family: var(--ds-font-body), system-ui, sans-serif;
   font-weight: 800;

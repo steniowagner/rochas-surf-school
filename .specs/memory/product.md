@@ -272,6 +272,11 @@ Listed in the order people meet them.
 - **Broadcast** (`broadcast`): a notification an admin writes (title and description) for an audience —
   `everyone` (admins included), `students` or `instructors` — reaching the approved, active users of those
   roles. The admin sees the number of recipients and confirms before it is sent.
+  - As built (spec 063): `everyone` is every approved student, instructor and admin, the sender included; `students`
+    and `instructors` follow the role, so the sender never receives a notice to them. Pending, denied, deleted and
+    removed accounts never receive one. The title has 1–60 characters and the message 1–500, both trimmed. The count
+    is advisory: sending finds the recipients again. Nothing keeps a list of the notices sent, and a notice has no
+    screen of its own.
 - **People directory**: not a concept of its own — the list of every approved user of any role, the viewer
   included (name, photo, role, member since, and the WhatsApp number when its owner shares it or the viewer is an
   admin), always sorted A–Z by name ignoring case and accents, 20 at a time. It is searched by name (ignoring case
@@ -1148,6 +1153,20 @@ every month calendar (the Aulas tab, "Inscrever aluno" and both histories) a day
 circle, the selected day's included; the weekly occupancy's week picker keeps it tucked into the day. All copy is in
 pt-BR, es-ES and en-US.
 
+**Admins send notices** (spec `063-admin-send-notice`) — the last row of the admin home's "Ferramentas" section,
+"Enviar aviso" ("Para todos, alunos ou instrutores"), opens "Enviar aviso": an intro whose title collapses into the
+header, a "Quem recebe" selector ("Todos", "Alunos", "Instrutores") with the number of people who will receive it
+("7 pessoas vão receber", "Ninguém para receber." at zero), a title field (up to 60 characters) and a description
+field (up to 500, with a counter), and "Enviar" pinned above the keyboard. The three counts are read once when the
+screen opens, so switching audiences shows its count at once; leaving and coming back reads them again. "Enviar"
+stays off while a field is blank, the count is zero, still loading or failed. It opens a sheet that asks "Enviar a N
+pessoas?", says who they are ("Todos os alunos recebem uma notificação. Depois de enviado, não dá para apagar."),
+shows the notice in a preview card and offers "Sim, enviar" and "Voltar e editar" (which keeps the text). Sending
+closes the screen with the toast "Aviso enviado"; a failure keeps the text and shows an error. Every recipient gets
+the notice as a notification — on the notifications screen with a megaphone icon, and as a push — with its title
+and message as written, in every language; tapping it marks it read and shows the home. All copy is in pt-BR,
+es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1182,6 +1201,8 @@ Active specs: none.
 - On notifications: badges on the app icon, rich pushes, and a screen before the OS
   permission dialog (or asking again after a refusal); deleting, hiding or expiring notifications (spec 055 keeps
   them for as long as the account), and class names or before/after values in their text.
+- On notices (spec 063): a history of the notices sent, a screen of its own for a notice, editing or deleting one
+  once sent, and choosing people one by one (an audience is a whole role, or everyone).
 - Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
   "Former instructor" handling): spec 021 erases only denied registrations, and spec 045 guest data.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding

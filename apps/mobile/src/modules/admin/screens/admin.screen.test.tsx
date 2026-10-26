@@ -16,6 +16,7 @@ import AdminRoute from "@/app/(private)/admin/(tabs)/(home)/index";
 import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rules";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminSchoolSettingsRoute from "@/app/(private)/admin/school-settings";
+import AdminSendNoticeRoute from "@/app/(private)/admin/send-notice";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
@@ -156,6 +157,7 @@ async function openAdminHome() {
       "(private)/admin/new-class": AdminNewClassRoute,
       "(private)/admin/people": AdminPeopleRoute,
       "(private)/admin/school-settings": AdminSchoolSettingsRoute,
+      "(private)/admin/send-notice": AdminSendNoticeRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
       "(private)/admin/class-requests": AdminClassRequestsRoute,
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
@@ -588,6 +590,24 @@ describe("AdminScreen", () => {
     await act(async () => router.back());
 
     expect(app.getPathname()).toBe(routes.admin.home);
+  });
+
+  it("opens the send notice screen from its row under Tools", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes("/broadcast/recipients")
+          ? { count: 4 }
+          : { items: [] },
+    }));
+    const app = await openAdminHome();
+
+    await user.press(screen.getByRole("button", { name: /Send notice/ }));
+
+    expect(app.getPathname()).toBe(routes.admin.sendNotice);
+    expect(await screen.findByText("4 people will receive it")).toBeOnTheScreen();
   });
 
   it("opens the school settings screen from its row under School", async () => {

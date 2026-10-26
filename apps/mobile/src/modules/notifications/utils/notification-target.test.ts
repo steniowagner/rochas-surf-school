@@ -94,6 +94,12 @@ describe("notificationTarget", () => {
     }
   });
 
+  it("leads a broadcast nowhere in any flow, so its tap only shows the current home", () => {
+    for (const flow of [...ROLES, ...OTHER_FLOWS]) {
+      expect(notificationTarget("broadcast", null, flow)).toBeNull();
+    }
+  });
+
   it.each(cases)("leads a %s for a %s with a class where its push leads", (type, flow, target) => {
     expect(notificationTarget(type, "C", flow)).toEqual(target);
   });

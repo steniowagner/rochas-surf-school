@@ -23,6 +23,7 @@ const openNewClass = () => router.push(routes.admin.newClass());
 const openWeeklyOccupancy = () => router.push(routes.admin.weeklyOccupancy);
 const openSchoolSettings = () => router.push(routes.admin.schoolSettings);
 const openCancellationRules = () => router.push(routes.admin.cancellationRules);
+const openSendNotice = () => router.push(routes.admin.sendNotice);
 const openSchoolRules = () => router.push(routes.admin.manageSchoolRules);
 
 export function AdminScreen() {
@@ -112,6 +113,13 @@ export function AdminScreen() {
             icon="tune-variant"
             title={t("admin.home.schoolSettingsRow")}
             onPress={openSchoolSettings}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="bullhorn-outline"
+            title={t("admin.home.sendNoticeRow")}
+            subtitle={t("admin.home.sendNoticeSubtitle")}
+            onPress={openSendNotice}
           />
         </View>
       </View>

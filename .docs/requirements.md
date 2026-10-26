@@ -557,12 +557,16 @@ Users SHALL be able to turn pushes on or off on each phone they use; the setting
 
 #### Broadcasts
 
+_Implemented in spec 063-admin-send-notice._
+
 Admins SHALL be able to send a notification with a title and a description to everyone, to students only, or to instructors only. Audiences SHALL follow roles, "everyone" SHALL include admins, and only approved, active users SHALL receive broadcasts.
 
 - _Broadcast to students:_ When an admin sends a broadcast to students only, then every approved, active student is notified, and instructors and admins are not.
 - _Broadcast to everyone:_ When an admin sends a broadcast to everyone, then every approved, active student, instructor and admin is notified.
 
 #### Broadcast confirmation
+
+_Implemented in spec 063-admin-send-notice._
 
 Before a broadcast is sent, the admin SHALL see how many users will receive it and SHALL confirm sending it.
 
@@ -599,6 +603,8 @@ The app SHALL offer a light theme and a dark theme. Until a user chooses one, th
 - _User picks a theme:_ When a user chooses the light theme, then the app stays light whatever the phone's setting.
 
 #### Text written by admins
+
+_Implemented in spec 063-admin-send-notice._
 
 Text written by admins, such as school rules, cancellation rules, class notes, reasons and broadcasts, SHALL be shown as written, whatever language the user chose.
 

@@ -136,6 +136,11 @@ export const typography = {
   // The user header of the home tabs (PAINEL-01): the time-of-day greeting over the person's name.
   greeting: { font: 'body', weight: 400, size: 12, lineHeight: 1.4, letterSpacing: 0, uppercase: false },
   greetingName: { font: 'display', weight: 700, size: 24, lineHeight: 1, letterSpacing: 0, uppercase: true },
+  // The confirm sheet of a notice (PAINEL-07A): the line under the sheet title, and the notice's title and message in
+  // the preview card.
+  sheetDescription: { font: 'body', weight: 400, size: 13.5, lineHeight: 1.55, letterSpacing: 0, uppercase: false },
+  previewTitle: { font: 'body', weight: 800, size: 14.5, lineHeight: 1.55, letterSpacing: 0, uppercase: false },
+  previewBody: { font: 'body', weight: 400, size: 14, lineHeight: 1.55, letterSpacing: 0, uppercase: false },
   // The count over a header button's icon; its 16px line is the pill's height, so the digits sit centered.
   badge: { font: 'body', weight: 800, size: 9, lineHeight: 1.78, letterSpacing: 0, uppercase: false },
 } as const;

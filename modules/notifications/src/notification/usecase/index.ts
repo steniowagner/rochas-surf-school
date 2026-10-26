@@ -6,3 +6,6 @@ export * from "./list-notifications.usecase";
 export * from "./count-unread-notifications.usecase";
 export * from "./mark-notification-read.usecase";
 export * from "./mark-all-notifications-read.usecase";
+export * from "./broadcast-access";
+export * from "./count-broadcast-recipients.usecase";
+export * from "./send-broadcast.usecase";

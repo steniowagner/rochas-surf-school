@@ -10,6 +10,7 @@ import { NotificationsLocationChangeNotifier } from './notifications.location-ch
 import { NotificationsNoInstructorNotifier } from './notifications.no-instructor-notifier.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsPushTokenRemover } from './notifications.push-token-remover.js';
+import { NotificationsReactivationNotifier } from './notifications.reactivation-notifier.js';
 import { NotificationsRegistrationNotificationEraser } from './notifications.registration-notification-eraser.js';
 import { NotificationsRegistrationNotifier } from './notifications.registration-notifier.js';
 import { NotificationsRoleChangeNotifier } from './notifications.role-change-notifier.js';
@@ -30,6 +31,7 @@ import { SystemClockProvider } from './system.clock.js';
     SystemClockProvider,
     ExpoPushProvider,
     NotificationsRegistrationNotifier,
+    NotificationsReactivationNotifier,
     NotificationsRoleChangeNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,
@@ -43,6 +45,7 @@ import { SystemClockProvider } from './system.clock.js';
   ],
   exports: [
     NotificationsRegistrationNotifier,
+    NotificationsReactivationNotifier,
     NotificationsRoleChangeNotifier,
     NotificationsClassAssignmentNotifier,
     NotificationsClassChangeNotifier,

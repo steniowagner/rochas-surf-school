@@ -335,11 +335,12 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01 · Done when: `npx vitest run src/modules/enrolment/classes-taken-counter.prisma.spec.ts` passes.
   > ✅ 2026-10-26 — added `PrismaClassesTakenCounter` (one SQL query: `findHistoryClassIds`' rule grouped by student with `ANY(ids)`, no date range, every id present with 0 by default), provided and exported by `EnrolmentModule`; files: `apps/backend/src/modules/enrolment/classes-taken-counter.prisma.ts`, `apps/backend/src/modules/enrolment/classes-taken-counter.prisma.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`; verified: `npx vitest run src/modules/enrolment/classes-taken-counter.prisma.spec.ts` (3 passed); the SQL itself runs against Postgres in T-09; deviations: none (rebuilt `modules/auth` and `modules/notifications` `dist/` so the backend sees the new ports).
-- [ ] **T-07** — Add `src/modules/notifications/notifications.reactivation-notifier.ts`
+- [x] **T-07** — Add `src/modules/notifications/notifications.reactivation-notifier.ts`
   (`NotificationsReactivationNotifier`: admins through `NotifyApprovedAdmins` with `reactivation.requested`, the person
   through `Notify`; errors logged and swallowed), exported from the notifications module, and the three entries of
   `push-messages.ts` (Copy), with `notifications.reactivation-notifier.spec.ts` and `push-messages.spec.ts` cases.
   Covers: ER-05 · Done when: `npx vitest run src/modules/notifications` passes.
+  > ✅ 2026-10-26 — added `NotificationsReactivationNotifier` (admins through `NotifyApprovedAdmins` with `reactivation.requested`, the person through `Notify`; errors logged and swallowed), registered and exported by `NotificationsModule`, the three `push-messages.ts` entries (`reactivation.denied` has an empty in-app body without a reason) and their specs; files: `apps/backend/src/modules/notifications/notifications.reactivation-notifier.ts`, `apps/backend/src/modules/notifications/notifications.reactivation-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.module.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` (20 files, 231 passed); deviations: none.
 - [ ] **T-08** — Add `src/modules/auth/reactivation-requests.controller.ts` (the three routes of D-07, wired in
   `auth.module.ts`) with `reactivation-requests.controller.spec.ts` and `reactivation-requests.integration.http`, and
   pass the notifier to `RequestReactivation` in `auth.controller.ts` (spec updated).

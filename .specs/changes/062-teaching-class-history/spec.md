@@ -93,7 +93,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 | D-05 | The query is `useQuery` keyed `["classes", "teaching", "history", from, to]`, `retry: false`, `GET /classes/teaching/history?from=…&to=…` authenticated (`useTeachingClassHistory`). The routes are `/instructor/my-history` and `/admin/my-history` (`routes.instructor.myHistory`, `routes.admin.myHistory`), inner screens without the tab bar like `/<role>/my-classes`. | Under `["classes"]`, every class mutation's invalidation refreshes it, as the student's (spec 053 D-10); the route names match the student's `/student/my-history`. |
 | D-06 | Copy (new `teachingHistory` keys; pt-BR / es-ES / en-US): title and header button label "Aulas anteriores" / "Clases pasadas" / "Past classes"; legend "Dias em que você deu aula" / "Días en que diste clase" / "Days you taught a class"; day accessibility mark "você deu aula" / "diste clase" / "you taught a class"; empty day "Sem aulas neste dia" + "Você não deu nenhuma aula neste dia." / "Você não deu nenhuma aula de {{sport}} neste dia." (es "Sin clases este día" + "No diste ninguna clase este día." / "No diste ninguna clase de {{sport}} este día."; en "No classes this day" + "You didn't teach any class this day." / "You didn't teach any {{sport}} class this day."); empty period the same with "neste período" / "en este período" / "in this period" and the titles "Sem aulas neste período" / "Sin clases en este período" / "No classes in this period"; error "Algo deu errado" + "Não conseguimos carregar suas aulas anteriores. Verifique sua conexão e tente novamente." / "Algo salió mal" + "No pudimos cargar tus clases pasadas. Revisa tu conexión e inténtalo de nuevo." / "Something went wrong" + "We couldn't load your past classes. Check your connection and try again."; "Todas as aulas", "Limpar {{date}}" and "Carregando as aulas" (and their es/en) as in the student's history. | The student's copy says "you took a class", which reads wrong for a teacher. Approved by the user. |
 | D-07 | "Minhas aulas" and the teaching "Aulas anteriores" open with a `ScreenIntro` as the list's header: an icon in grape (`calendar-outline` / `time-outline`), the screen's title large, and a description — `teachingClasses.description` "As aulas que você vai dar: as em andamento e as próximas, dia a dia." / "Las clases que vas a dar: las en curso y las próximas, día a día." / "The classes you will teach: the ones under way and the ones coming up, day by day."; `teachingHistory.description` "Todas as aulas que você já deu, mês a mês ou semana a semana." / "Todas las clases que ya diste, mes a mes o semana a semana." / "Every class you have already taught, month by month or week by week.". The large title collapses into the header as the list scrolls (`useCollapsingTitleHeader`). On the error and empty states the intro is dropped and the header shows the centered `StackHeaderTitle`. The student's history has no intro (`ClassHistory`'s `withIntro`, off by default). | Requested by the user after T-07; recorded by amendment (review F-03). |
-| D-08 | `CalendarMonthGrid` (and `WeekMonthCalendar`, which passes it on) takes `dotPlacement`: `"below"`, the default, keeps a marked day's dot under the day's circle; `"overlap"` tucks it into the bottom of the day's slot, over a selected day's circle, as every month grid did before. Only `WeekPickerSheet` uses `"overlap"`; the Aulas tab's month view, Enrol student and both histories show the dot below. | Requested by the user: the dot ran into the selected day's circle; recorded by amendment (review F-04). |
+| D-08 | `CalendarMonthGrid` (and `WeekMonthCalendar`, which passes it on) takes `dotPlacement`: `"below"`, the default, keeps a marked day's dot under the day's circle; `"overlap"` tucks it into the bottom of the day's slot, over a selected day's circle, as every month grid did before. Only `WeekPickerSheet` (the admin's weekly occupancy) uses `"overlap"`; the Aulas tab's month view, Enrol student and both histories show the dot below. | Requested by the user: the dot ran into the selected day's circle; recorded by amendment (review F-04). |
 
 ## Expected Results
 
@@ -176,17 +176,17 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   header.
 - **Edge and error cases:** on the error and empty states the intro isn't shown and the header shows the plain title;
   the student's history shows no intro; the pt-BR and es-ES copy is D-07's.
-- **Verify by:** `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/screens/teaching-class-history.screen.test.tsx src/modules/admin/screens/admin.screen.test.tsx src/modules/instructor/screens/instructor.screen.test.tsx`
+- **Verify by:** `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/screens/teaching-class-history.screen.test.tsx src/modules/classes/components/class-history src/modules/admin/screens/admin.screen.test.tsx src/modules/instructor/screens/instructor.screen.test.tsx`
   (from `apps/mobile`) · the user journeys in the Verification Plan.
 
 ### ER-07 — The month calendar's dot sits below the day's circle
 
 - **Front:** mobile
 - **Behavior:** Given a month calendar with a marked day, when it draws that day, then the dot sits below the day's
-  circle (selected or not), on the Aulas tab's month view, Enrol student and both histories; in the week picker
-  (`WeekPickerSheet`) the dot keeps overlapping the bottom of the day's slot.
+  circle (selected or not), on the Aulas tab's month view, Enrol student and both histories; in the weekly
+  occupancy's week picker (`WeekPickerSheet`) the dot keeps overlapping the bottom of the day's slot.
 - **Edge and error cases:** a month with no marked day draws no dot row, so the numbers stay centered.
-- **Verify by:** `npx jest src/components/calendar-month-grid src/components/week-month-calendar src/modules/classes/screens/classes-week.screen.test.tsx`
+- **Verify by:** `npx jest src/components/calendar-month-grid src/components/week-month-calendar src/modules/classes/screens/classes-week.screen.test.tsx src/modules/classes/screens/weekly-occupancy.screen.test.tsx`
   (from `apps/mobile`) · the "Calendars" journey in the Verification Plan.
 
 ## Tasks
@@ -325,7 +325,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > right" (now asserts the button) and "the filter's is the only button" in the filtered-empty cases (now the
   > history button and the filter)
 
-- [ ] **T-09** (added by amendment) — The intro of D-07: `ScreenIntro` with the collapsing title on
+- [x] **T-09** (added by amendment) — The intro of D-07: `ScreenIntro` with the collapsing title on
   `src/modules/classes/screens/teaching-classes.screen.tsx` and, through `withIntro`, on
   `src/modules/classes/components/class-history/` for `teaching-class-history.screen.tsx`; the
   `teachingClasses.description` and `teachingHistory.description` copy in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`;
@@ -333,6 +333,22 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   classes, dropped on the error and empty states), and the home tests (`admin.screen.test.tsx`,
   `instructor.screen.test.tsx`) finding the new title. Built in `aea0ac7e`, `1ab5ef81` and `13204a6a`: record their
   evidence. Covers: ER-06 · Done when: the ER-06 `Verify by` command passes from `apps/mobile`.
+  > ✅ 2026-10-25 — the intro was built in `aea0ac7e` (`ScreenIntro` + `useCollapsingTitleHeader` on
+  > `TeachingClassesScreen`, `ClassHistory`'s `withIntro`, `teachingHistory.description`) and `1ab5ef81`
+  > (`teachingClasses.description` "will teach"), the home tests fixed in `13204a6a` (F-01); added here
+  > `class-history.component.test.tsx`: the student's default (no `withIntro`) shows only the plain header title,
+  > and `withIntro` shows the intro's title and description — seen failing with `withIntro` defaulting to `true`;
+  > files (across those commits): `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-history/{class-history.component.tsx,class-history.hook.ts,class-history.types.ts}`,
+  > `apps/mobile/src/modules/classes/components/class-history/class-history.component.test.tsx` (new),
+  > `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.test.tsx`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`; verified: the ER-06 `Verify by`
+  > `npx jest …` from `apps/mobile` (5 suites, 94 passed); deviations: the work predates the task (built at the
+  > user's request, recorded by the amendment)
 
 - [ ] **T-10** (added by amendment) — The `dotPlacement` of D-08 on `src/components/calendar-month-grid/` (default
   `"below"`) passed through `src/components/week-month-calendar/`, with `"overlap"` only in
@@ -395,8 +411,8 @@ and the surf/skate filter. Today they can only find a past class by browsing the
     description; scrolling collapses the title into the header; a period with no class shows the empty state with
     the plain header title.
   - **Calendars**: the dot sits below the day's circle in the month view of the Aulas tab, Enrol student and both
-    histories, including on the selected day; in the Aulas tab's week picker it still overlaps the bottom of the
-    day's slot.
+    histories, including on the selected day; in the admin's weekly occupancy week picker ("Choose another week")
+    it still overlaps the bottom of the day's slot.
 
 ## Memory Impact
 
@@ -443,6 +459,11 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   commits listed on the task; T-11 added (Verification: rerun the plan and every journey in light and dark, which T-08
   left partly undone, review F-06). Verification Plan: + the Intro and Calendars journeys; Memory Impact:
   technical-context + 422, `withIntro`, the intro, `dotPlacement`. Approved by the user.
+- 2026-10-25 — correction during execution — D-08, ER-07 and the Calendars journey: "the Aulas tab's week picker"
+  → "the weekly occupancy's week picker" (`WeekPickerSheet` is only used by `weekly-occupancy.screen.tsx`); ER-06's
+  and ER-07's `Verify by` + `src/modules/classes/components/class-history` and `weekly-occupancy.screen.test.tsx`,
+  where T-09 and T-10 add the tests that pin the student's missing intro and the picker's overlap. A wording fix of
+  this amendment, approved with it by the user.
 
 ## Review
 

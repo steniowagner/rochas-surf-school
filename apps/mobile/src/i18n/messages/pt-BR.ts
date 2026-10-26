@@ -1240,6 +1240,9 @@ const messages: Messages = {
     pointHintEmpty: "Toque no mapa para marcar o ponto",
     pointPicked: "Ponto escolhido no mapa",
     resolving: "Buscando o endereço…",
+    myLocation: "Minha localização",
+    locationDenied:
+      "Permita o acesso à localização nos Ajustes para usar sua posição.",
     pointHintSet: "Toque para mover o ponto",
     notify: "Avisar alunos e instrutores das próximas aulas?",
     notifyCount_one: "1 aula futura usa este local.",

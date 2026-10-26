@@ -1242,6 +1242,8 @@ const messages = {
     pointHintEmpty: "Tap the map to mark the point",
     pointPicked: "Point picked on the map",
     resolving: "Looking up the address…",
+    myLocation: "My location",
+    locationDenied: "Allow location access in Settings to use your position.",
     pointHintSet: "Tap to move the point",
     notify: "Tell the students and instructors of upcoming classes?",
     notifyCount_one: "1 upcoming class uses this location.",

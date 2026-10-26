@@ -170,11 +170,28 @@ and stacked fields are hard to use.
   > address" state (not in the spec) keeps the card honest while the device or Google answers. Note: a single mutation
   > hook test file run alone leaves Jest open (React Query's mutation GC timer) — true of the existing
   > `use-address-place.hook.test.tsx` too; multi-file runs exit normally
-- [ ] **T-04** — `src/modules/classes/hooks/use-device-location.hook.ts` (permission on demand, position, toast on
+- [x] **T-04** — `src/modules/classes/hooks/use-device-location.hook.ts` (permission on demand, position, toast on
   denial or failure) and `src/modules/classes/components/my-location-button/` (the round map button, 44 px, tokens
   only), with tests for granted, denied and failed. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-03 · Done when: `npx jest src/modules/classes/hooks/use-device-location.hook.test.tsx src/modules/classes/components/my-location-button` passes.
+  > ✅ 2026-10-26 — `useDeviceLocation()` returns `locate()` (asks the foreground permission only when called, then
+  > reads the position with `Accuracy.Balanced`) and `granted` (true once allowed, for the user dot); a denial or any
+  > failure shows the toast `locationSheet.locationDenied` ("Permita o acesso à localização nos Ajustes para usar sua
+  > posição.") and gives `null`. `MyLocationButton`: a round 44 pt `TouchableOpacity` (`h-11 w-11 rounded-full`,
+  > `bg-surface`, `border-line`, `shadowStyle("iconButton")`, the `locate` icon in `lagoon`) named
+  > `locationSheet.myLocation` ("Minha localização"). Strings added in the three languages; files:
+  > `apps/mobile/src/modules/classes/hooks/use-device-location.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-device-location.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/index.ts`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/my-location-button.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/my-location-button.types.ts`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/my-location-button.component.test.tsx`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`; verified:
+  > `npx jest src/modules/classes/hooks/use-device-location.hook.test.tsx src/modules/classes/components/my-location-button`
+  > (8 passed: granted, denied, failed read, nothing asked before the tap; 100% on both files), `npx eslint`,
+  > `npx tsc --noEmit` clean; deviations: the two strings are added here rather than in T-05
 - [ ] **T-05** — `src/modules/classes/utils/location-events.ts` (D-03) and the screen
   `src/modules/classes/screens/location-form.screen.tsx` with its hook (the form rules moved from
   `location-sheet.hook.ts`), route `src/app/(private)/admin/location-form.tsx` and `routes.admin.locationForm(id?)`

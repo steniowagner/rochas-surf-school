@@ -12,7 +12,10 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { Skeleton } from "@/components/ui/skeleton";
 import { iconSizes } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { useCollapsingTitleHeader } from "@/navigation/stack-header";
+import {
+  useCollapsingTitleHeader,
+  useHeaderInset,
+} from "@/navigation/stack-header";
 
 import { DeleteSchoolRuleSheet } from "../components/delete-school-rule-sheet";
 import { SchoolRuleEditableRow } from "../components/school-rule-editable-row";
@@ -37,6 +40,62 @@ export function ManageSchoolRulesScreen() {
     contentTop: CONTENT_PADDING_TOP,
   });
 
+  const headerInset = useHeaderInset();
+  const sheets = (
+    <>
+      <SchoolRuleSheet
+        visible={screen.ruleSheetVisible}
+        mode={screen.ruleSheet.mode}
+        rule={screen.ruleSheet.rule}
+        onClose={screen.closeRuleSheet}
+        onDelete={screen.openDelete}
+      />
+      <DeleteSchoolRuleSheet
+        visible={screen.deleteSheetVisible}
+        rule={screen.ruleToDelete}
+        onClose={screen.closeDeleteSheet}
+      />
+    </>
+  );
+
+  // Error and empty have nothing to scroll: they fill the space under the header, with their content in the middle.
+  if (screen.status === "error" || screen.status === "empty") {
+    return (
+      <>
+        <Stack.Screen options={header.headerOptions} />
+        <View
+          testID="manage-school-rules"
+          className="flex-1 bg-page px-screen"
+          style={{
+            paddingTop: headerInset + CONTENT_PADDING_TOP,
+            paddingBottom: Math.max(insets.bottom, 24),
+          }}
+        >
+          {screen.status === "error" ? (
+            <ErrorState
+              title={t("manageSchoolRules.loadError.title")}
+              description={t("manageSchoolRules.loadError.description")}
+              onRetry={screen.retry}
+              retrying={screen.retrying}
+            />
+          ) : (
+            <EmptyState
+              icon="shield-outline"
+              title={t("manageSchoolRules.empty.title")}
+              description={t("manageSchoolRules.empty.description")}
+              action={{
+                label: t("manageSchoolRules.add"),
+                icon: "add",
+                onPress: screen.openAdd,
+              }}
+            />
+          )}
+        </View>
+        {sheets}
+      </>
+    );
+  }
+
   return (
     <>
       <Stack.Screen options={header.headerOptions} />
@@ -52,14 +111,16 @@ export function ManageSchoolRulesScreen() {
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <ScreenIntro
-          icon={
-            <Ionicons name="shield-outline" size={28} color={theme.grape} />
-          }
-          title={t("manageSchoolRules.title")}
-          description={t("manageSchoolRules.intro")}
-          onTitleLayout={header.onTitleBottomChange}
-        />
+        {screen.status === "ready" ? (
+          <ScreenIntro
+            icon={
+              <Ionicons name="shield-outline" size={28} color={theme.grape} />
+            }
+            title={t("manageSchoolRules.title")}
+            description={t("manageSchoolRules.intro")}
+            onTitleLayout={header.onTitleBottomChange}
+          />
+        ) : null}
         {screen.status === "loading" ? (
           // Rows shaped like rules, read out as one loading state.
           <View
@@ -84,30 +145,6 @@ export function ManageSchoolRulesScreen() {
                 </View>
               </View>
             ))}
-          </View>
-        ) : null}
-        {screen.status === "error" ? (
-          <View className="flex-row pt-4">
-            <ErrorState
-              title={t("manageSchoolRules.loadError.title")}
-              description={t("manageSchoolRules.loadError.description")}
-              onRetry={screen.retry}
-              retrying={screen.retrying}
-            />
-          </View>
-        ) : null}
-        {screen.status === "empty" ? (
-          <View className="flex-row pt-4">
-            <EmptyState
-              icon="shield-outline"
-              title={t("manageSchoolRules.empty.title")}
-              description={t("manageSchoolRules.empty.description")}
-              action={{
-                label: t("manageSchoolRules.add"),
-                icon: "add",
-                onPress: screen.openAdd,
-              }}
-            />
           </View>
         ) : null}
         {screen.status === "ready" ? (
@@ -146,18 +183,7 @@ export function ManageSchoolRulesScreen() {
         ) : null}
       </Animated.ScrollView>
       {header.backdrop}
-      <SchoolRuleSheet
-        visible={screen.ruleSheetVisible}
-        mode={screen.ruleSheet.mode}
-        rule={screen.ruleSheet.rule}
-        onClose={screen.closeRuleSheet}
-        onDelete={screen.openDelete}
-      />
-      <DeleteSchoolRuleSheet
-        visible={screen.deleteSheetVisible}
-        rule={screen.ruleToDelete}
-        onClose={screen.closeDeleteSheet}
-      />
+      {sheets}
     </>
   );
 }

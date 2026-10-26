@@ -96,6 +96,23 @@ export class FakeUserRepository implements UserRepository {
     return true;
   }
 
+  async findReactivationRequests(): Promise<User[]> {
+    return this.users.filter(isReactivationRequested).sort((a, b) => {
+      const byDate =
+        (a.reactivationRequestedAt?.getTime() ?? 0) - (b.reactivationRequestedAt?.getTime() ?? 0);
+
+      return byDate || a.id.localeCompare(b.id);
+    });
+  }
+
+  async updateIfReactivationRequested(user: User): Promise<boolean> {
+    const index = this.users.findIndex((item) => item.equals(user));
+    if (index === -1 || !isReactivationRequested(this.users[index])) return false;
+
+    this.users[index] = user;
+    return true;
+  }
+
   async findDeniedBefore(cutoff: Date): Promise<string[]> {
     return this.users
       .filter(
@@ -142,4 +159,8 @@ export class FakeUserRepository implements UserRepository {
 
 function isApprovedAdmin(user: User): boolean {
   return user.role === "admin" && user.status === "approved";
+}
+
+function isReactivationRequested(user: User): boolean {
+  return user.status === "deleted" && user.reactivationStatus === "requested";
 }

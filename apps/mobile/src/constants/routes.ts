@@ -77,6 +77,7 @@ export const routes = {
     myHistory: "/admin/my-history",
     profile: "/admin/profile",
     registrations: "/admin/registrations",
+    reactivations: "/admin/reactivations",
     classRequests: "/admin/class-requests",
     enrolStudent: "/admin/enrol-student",
     cancellationRules: "/admin/cancellation-rules",

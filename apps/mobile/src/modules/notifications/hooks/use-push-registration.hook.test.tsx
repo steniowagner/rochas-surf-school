@@ -62,7 +62,7 @@ describe("usePushRegistration", () => {
     setRegisteredPushToken.mockReset();
   });
 
-  it.each(["pending", "approved"])(
+  it.each(["pending", "approved", "deleted"])(
     "registers the token of a %s account with the app language",
     async (status) => {
       await i18n.changeLanguage("es-ES");
@@ -80,7 +80,7 @@ describe("usePushRegistration", () => {
     },
   );
 
-  it.each(["denied", "deleted", "removed"])(
+  it.each(["denied", "removed"])(
     "does nothing for a %s account",
     async (status) => {
       seed(user({ status }));

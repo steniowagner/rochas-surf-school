@@ -63,6 +63,9 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     without depending on `classes`), `provider/seat-releaser.provider.ts` (`SeatReleaser`: gives up a person's
     upcoming seats and pending requests, without depending on `enrolment`; spec 043; both answer counts),
     `provider/role-change-notifier.provider.ts` (`RoleChangeNotifier`: tells a person their role changed; spec 058),
+    `provider/reactivation-notifier.provider.ts` (`ReactivationNotifier`: tells admins of a recorded reactivation
+    request and the person of its decision) and `provider/classes-taken-counter.provider.ts` (`ClassesTakenCounter`:
+    how many classes each account took, without depending on `enrolment`; both spec 064),
     `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,set-name,delete-account,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
     (`SetName`: an approved account renames itself; `DeleteAccount`: an approved account — never the only admin —
     releases its upcoming classes, then its seats and requests, then closes itself → `deleted` through
@@ -72,7 +75,10 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `rulesAccepted`, `denialReason` and `reactivationStatus`);
     `usecase/{list-registrations,approve-registration,deny-registration}.usecase.ts` with
     `usecase/registration-access.ts` (approved-admin check, status first) and `usecase/pending-registration.ts`
-    (`findPendingRegistration`: UUID check, 404, 409); `usecase/list-people.usecase.ts` (`ListPeople`: the people
+    (`findPendingRegistration`: UUID check, 404, 409);
+    `usecase/{list-reactivation-requests,approve-reactivation,deny-reactivation}.usecase.ts` with
+    `usecase/reactivation-request.ts` (`findReactivationRequest`: UUID check, 404, 409; spec 064);
+    `usecase/list-people.usecase.ts` (`ListPeople`: the people
     directory — access, query parsing, WhatsApp visibility).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
     `provider/google-id-token.provider.ts` (`GoogleIdTokenProvider`: verifies a Google ID token),
@@ -238,6 +244,10 @@ src/
     auth.integration.http       # manual REST Client requests
     registrations.controller.ts # GET /registrations, POST /registrations/:id/approve and /deny (200) — protected
     registrations.integration.http  # manual REST Client requests
+    reactivation-requests.controller.ts  # GET /reactivation-requests, POST /reactivation-requests/:id/approve and
+                                # /deny (200) — protected; the classes-taken counter and the reactivation notifier
+                                # (spec 064)
+    reactivation-requests.integration.http  # manual REST Client requests
     people.controller.ts        # GET /people (200) — protected; the people directory (ListPeople); PUT
                                 # /people/:id/role (200) — ChangeRole, with the two releasers and the notifier
     people.integration.http     # manual REST Client requests
@@ -281,6 +291,9 @@ src/
                                 # notice's title and message as written in every locale (spec 063)
     notifications.registration-notifier.ts  # RegistrationNotifier adapter (Notify / NotifyApprovedAdmins; logs
                                 # and swallows every error)
+    notifications.reactivation-notifier.ts  # ReactivationNotifier adapter (NotifyApprovedAdmins with
+                                # reactivation.requested, Notify for the decisions; logs and swallows every error;
+                                # spec 064)
     notifications.push-token-remover.ts     # PushTokenRemover adapter (RemovePushToken)
     notifications.registration-notification-eraser.ts  # RegistrationNotificationEraser adapter
                                 # (DeleteRegistrationNotifications)
@@ -365,6 +378,8 @@ src/
     my-classes-reader.prisma.ts # PrismaMyClassesReader (classes' MyClassesReader: the student's current class ids;
                                 # the history of a period in one raw query on the latest enrolment per class;
                                 # specs 048, 053)
+    classes-taken-counter.prisma.ts  # PrismaClassesTakenCounter (auth's ClassesTakenCounter: the same rule as the
+                                # history, grouped by student in one raw query, every id answered; spec 064)
     waiting-list-setting.prisma.ts  # PrismaWaitingListSetting (reads school_settings.waiting_list_enabled; on with no
                                 # row; spec 046)
     student-lookup.prisma.ts    # PrismaStudentLookup (an approved account with role student; spec 044)
@@ -391,6 +406,8 @@ test/
   auth-reactivation.e2e-spec.ts # e2e suite of POST /auth/me/reactivation-request (accounts in each state through Prisma)
   auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
   registrations.e2e-spec.ts     # e2e suite of the /registrations routes (accounts through Prisma; concurrency)
+  reactivation-requests.e2e-spec.ts  # e2e suite of the /reactivation-requests routes and the reactivation
+                                # notifications (faked pushes; the classes taken; the approve/deny race; spec 064)
   people.e2e-spec.ts            # e2e suite of GET /people (accounts through Prisma, isolated by a per-test name tag)
   people-roles.e2e-spec.ts      # e2e suite of PUT /people/:id/role (spec 058): the five changes, their releases,
                                 # every refusal, the last-admin races forced through the row locks, role.changed
@@ -463,6 +480,8 @@ src/
                                                      # of classes; the admin's with canCreate), Perfil
     (private)/<role>/{edit-profile,whatsapp,school-rules}.tsx  # the Profile's inner screens, above the tab bar
     (private)/admin/registrations.tsx                # "Join the school" tool (/admin/registrations), above the tab bar
+    (private)/admin/reactivations.tsx                # "Reactivate accounts" tool (/admin/reactivations, spec 064),
+                                                     # above the tab bar
     (private)/admin/class-requests.tsx               # "Inscrições em aulas" tool (/admin/class-requests, spec 042),
                                                      # above the tab bar
     (private)/admin/enrol-student.tsx                # "Inscrever aluno" tool (/admin/enrol-student, spec 044),
@@ -509,7 +528,7 @@ src/
   modules/{student,instructor,admin}/*-tabs.navigation.test.tsx  # route tests of each role's tab bar
   modules/admin/
     screens/admin.screen.tsx    # admin home (a ScrollView under the user header, spec 061): "School tools"; "Tools" with the "Join the school" row and its
-                                # pending count, the "Inscrições em aulas" row and its request count (spec 042),
+                                # pending count, the "Reativar contas" row and its request count (spec 064), the "Inscrições em aulas" row and its request count (spec 042),
                                 # the "Inscrever aluno" row, the "Criar aulas" row, the "Regras de cancelamento" row,
                                 # the "Configurações da escola" row (spec 046) and the "Enviar aviso" row (spec 063);
                                 # "School" with the "Minhas aulas" row once they teach (spec 057), the Rules row
@@ -524,6 +543,14 @@ src/
                                 # decisions, the deny sheet, the detail sheet, toasts)
     utils/                      # registration-error.ts (API error → translation key), registrations-cache.ts
                                 # (removeRegistration: drop a decided item from the cache and invalidate)
+    screens/reactivations.screen.tsx  # "Reactivate accounts" (spec 064): built like registrations.screen.tsx, cards
+                                # with the email and "Excluída em {date} · {n} aulas", the PersonSheet without WhatsApp
+    reactivations.types.ts      # ReactivationRequest, ReactivationRequestsResponse, ReactivationDecision
+    hooks/                      # use-reactivation-requests (query ["reactivation-requests"], shared with the home
+                                # row), use-approve-reactivation, use-deny-reactivation (no retry; a 409 invalidates
+                                # the list), use-reactivations-screen
+    utils/                      # reactivation-error.ts (already decided → its key, else the registrations' keys),
+                                # reactivations-cache.ts, reactivation-date.ts (app language, Fortaleza time)
   modules/people/               # the people directory, the same for every role
     screens/people.screen.tsx   # PeopleScreen: count eyebrow, title, search, RoleFilters, FlatList
                                 # grouped by first letter (end-reached paging, footer spinner, empty, loading,
@@ -745,7 +772,7 @@ src/
                                 # AccountStatus with the shared ContactSchoolButton and "Use another email" (sign-out)
   modules/reactivation/
     screens/reactivation.screen.tsx  # Account deleted: one AccountStatus per reactivationStatus (not requested,
-                                # requested, denied)
+                                # requested, denied — with the denial reason as the "Mensagem da equipe" note, spec 064)
     hooks/use-request-reactivation.hook.ts  # POST /auth/me/reactivation-request; updates the session (denied on
                                 # a 409); toast; signs out on a 403
   modules/onboarding/

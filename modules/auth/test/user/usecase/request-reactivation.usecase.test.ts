@@ -12,6 +12,7 @@ import {
 } from "../../../src";
 import {
   FakeClockProvider,
+  FakeReactivationNotifier,
   FakeRulesVersionProvider,
   FakeUserRepository,
 } from "../../mock";
@@ -44,9 +45,10 @@ function setup(user?: User) {
   rules.set(0);
   const clock = new FakeClockProvider(NOW);
   const update = jest.spyOn(repository, "update");
-  const useCase = new RequestReactivation(repository, rules, clock);
+  const notifier = new FakeReactivationNotifier();
+  const useCase = new RequestReactivation(repository, rules, clock, notifier);
 
-  return { repository, update, useCase };
+  return { repository, update, notifier, useCase };
 }
 
 describe("RequestReactivation", () => {
@@ -55,7 +57,7 @@ describe("RequestReactivation", () => {
       "stores the request of a deleted %s and answers the account",
       async (role) => {
         const ana = buildUser("deleted", { role });
-        const { repository, update, useCase } = setup(ana);
+        const { repository, update, notifier, useCase } = setup(ana);
 
         await expect(useCase.execute({ userId: ana.id })).resolves.toEqual({
           id: ana.id,
@@ -73,6 +75,7 @@ describe("RequestReactivation", () => {
         });
 
         expect(update).toHaveBeenCalledTimes(1);
+        expect(notifier.requested).toEqual([{ id: ana.id, name: "Ana Rocha" }]);
         const saved = await repository.findById(ana.id);
         expect(saved?.status).toBe("deleted");
         expect(saved?.reactivationStatus).toBe("requested");
@@ -87,25 +90,27 @@ describe("RequestReactivation", () => {
       reactivationStatus: "requested",
       reactivationRequestedAt: first,
     });
-    const { repository, update, useCase } = setup(ana);
+    const { repository, update, notifier, useCase } = setup(ana);
 
     const out = await useCase.execute({ userId: ana.id });
 
     expect(out).toMatchObject({ status: "deleted", reactivationStatus: "requested" });
     expect(update).not.toHaveBeenCalled();
+    expect(notifier.requested).toEqual([]);
     const saved = await repository.findById(ana.id);
     expect(saved?.reactivationRequestedAt).toEqual(first);
   });
 
   test("denied: refuses with 409 and writes nothing", async () => {
     const ana = buildUser("deleted", { reactivationStatus: "denied" });
-    const { repository, update, useCase } = setup(ana);
+    const { repository, update, notifier, useCase } = setup(ana);
 
     const error = await useCase.execute({ userId: ana.id }).catch((e) => e);
 
     expect(error).toBeInstanceOf(ConflictError);
     expect(error.message).toBe("user.reactivation.denied");
     expect(update).not.toHaveBeenCalled();
+    expect(notifier.requested).toEqual([]);
     expect((await repository.findById(ana.id))?.reactivationStatus).toBe("denied");
   });
 

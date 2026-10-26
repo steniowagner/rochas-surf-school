@@ -36,6 +36,36 @@ describe('renderPush', () => {
   });
 
   it.each([
+    ['pt-BR', 'Pedido de reativação', 'Ana Souza quer voltar para a escola.'],
+    ['es', 'Solicitud de reactivación', 'Ana Souza quiere volver a la escuela.'],
+    ['en', 'Reactivation request', 'Ana Souza wants to come back to the school.'],
+  ] as const)('writes the reactivation request in %s', (locale, title, body) => {
+    expect(renderPush('reactivation.requested', { name: 'Ana Souza' }, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Conta reativada', 'Você já pode voltar a usar o app.'],
+    ['es', 'Cuenta reactivada', 'Ya puedes volver a usar la app.'],
+    ['en', 'Account reactivated', 'You can use the app again.'],
+  ] as const)('writes the reactivation approval in %s', (locale, title, body) => {
+    expect(renderPush('reactivation.approved', {}, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Reativação recusada', 'Abra o app para saber mais.'],
+    ['es', 'Reactivación rechazada', 'Abre la app para saber más.'],
+    ['en', 'Reactivation denied', 'Open the app to learn more.'],
+  ] as const)('writes the reactivation denial in %s, with the reason as written or the fallback', (locale, title, fallback) => {
+    expect(renderPush('reactivation.denied', { reason: 'Turmas cheias.' }, locale)).toEqual({
+      title,
+      body: 'Turmas cheias.',
+    });
+    expect(renderPush('reactivation.denied', {}, locale)).toEqual({ title, body: fallback });
+    expect(renderPush('reactivation.denied', { reason: '   ' }, locale).body).toBe(fallback);
+    expect(renderPush('reactivation.denied', { reason: 5 }, locale).body).toBe(fallback);
+  });
+
+  it.each([
     ['pt-BR', 'Novas aulas na sua escala', 'Você foi escalado para 1 aula de Surf.', 'Você foi escalado para 4 aulas de Surf.'],
     ['es', 'Nuevas clases en tu agenda', 'Te asignaron 1 clase de Surf.', 'Te asignaron 4 clases de Surf.'],
     ['en', 'New classes on your schedule', "You've been assigned 1 Surf class.", "You've been assigned 4 Surf classes."],
@@ -390,6 +420,18 @@ describe('renderInApp', () => {
     expect(renderInApp('registration.denied', {}, locale)).toEqual({ title, body: '' });
   });
 
+  it.each([
+    ['pt-BR', 'Reativação recusada'],
+    ['es', 'Reactivación rechazada'],
+    ['en', 'Reactivation denied'],
+  ] as const)('gives a reactivation.denied the reason as its body, or an empty one, in %s', (locale, title) => {
+    expect(renderInApp('reactivation.denied', { reason: ' Turmas cheias. ' }, locale)).toEqual({
+      title,
+      body: 'Turmas cheias.',
+    });
+    expect(renderInApp('reactivation.denied', {}, locale)).toEqual({ title, body: '' });
+  });
+
   it('writes every other type and locale exactly as the push', () => {
     const params = {
       classId: 'c-1',
@@ -406,10 +448,11 @@ describe('renderInApp', () => {
       seatsReleased: true,
     };
     const others = NOTIFICATION_TYPES.filter(
-      (type) => type !== 'class.edited' && type !== 'registration.denied',
+      (type) =>
+        type !== 'class.edited' && type !== 'registration.denied' && type !== 'reactivation.denied',
     );
 
-    expect(others).toHaveLength(18);
+    expect(others).toHaveLength(20);
     for (const type of others) {
       for (const locale of PUSH_LOCALES) {
         expect(renderInApp(type, params, locale)).toEqual(renderPush(type, params, locale));

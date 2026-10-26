@@ -114,7 +114,7 @@ describe("SchoolRulesScreen", () => {
     async ({ role, path, name }) => {
       hydrateSession({ user: accountOf(role, false), tokens: TOKENS });
       fetchMock.mockImplementation(async (url: string) =>
-        url.endsWith("/registrations")
+        url.endsWith("/registrations") || url.endsWith("/reactivation-requests")
           ? json({ items: [] })
           : url.endsWith("/classes/teaching")
             ? json({ items: [], teachesAny: false })

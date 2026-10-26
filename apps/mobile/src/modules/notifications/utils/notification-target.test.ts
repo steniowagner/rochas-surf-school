@@ -19,6 +19,9 @@ const WITH_CLASS: Record<string, Record<(typeof ROLES)[number], unknown>> = {
   "registration.pending": { student: null, instructor: null, admin: routes.admin.registrations },
   "registration.approved": { student: null, instructor: null, admin: null },
   "registration.denied": { student: null, instructor: null, admin: null },
+  "reactivation.requested": { student: null, instructor: null, admin: routes.admin.reactivations },
+  "reactivation.approved": { student: null, instructor: null, admin: null },
+  "reactivation.denied": { student: null, instructor: null, admin: null },
   "class.assigned": { student: null, instructor: routes.instructor.classes, admin: routes.admin.classes },
   "class.edited": {
     student: routes.student.classDetail("C"),
@@ -69,6 +72,7 @@ const WITH_CLASS: Record<string, Record<(typeof ROLES)[number], unknown>> = {
 /** The same without a class id: only the destinations that name no class remain. */
 const WITHOUT_CLASS: Record<string, Partial<Record<(typeof ROLES)[number], unknown>>> = {
   "registration.pending": { admin: routes.admin.registrations },
+  "reactivation.requested": { admin: routes.admin.reactivations },
   "class.assigned": { instructor: routes.instructor.classes, admin: routes.admin.classes },
   "class.deleted": { instructor: routes.instructor.classes, admin: routes.admin.classes },
   "location.changed": {
@@ -84,8 +88,8 @@ const cases = Object.entries(WITH_CLASS).flatMap(([type, byRole]) =>
 );
 
 describe("notificationTarget", () => {
-  it("covers the 19 notification types", () => {
-    expect(Object.keys(WITH_CLASS)).toHaveLength(19);
+  it("covers the 22 notification types", () => {
+    expect(Object.keys(WITH_CLASS)).toHaveLength(22);
   });
 
   it("leads a role.changed nowhere in any flow, so its tap opens the flow's home", () => {

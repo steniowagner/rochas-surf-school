@@ -14,3 +14,5 @@ export * from "./fake-registration-notification-eraser.provider";
 export * from "./fake-teaching-releaser.provider";
 export * from "./fake-seat-releaser.provider";
 export * from "./fake-role-change-notifier.provider";
+export * from "./fake-reactivation-notifier.provider";
+export * from "./fake-classes-taken-counter.provider";

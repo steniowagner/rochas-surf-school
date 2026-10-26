@@ -14,7 +14,7 @@ export interface RegisterPushTokenIn {
   locale: unknown;
 }
 
-const REGISTRABLE_STATUSES = ["pending", "approved"];
+const REGISTRABLE_STATUSES = ["pending", "approved", "deleted"];
 
 /** Stores the device's push token for the caller, or moves it to them when another account held it. */
 export class RegisterPushToken implements UseCase<RegisterPushTokenIn, void> {

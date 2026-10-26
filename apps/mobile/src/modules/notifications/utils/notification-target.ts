@@ -17,6 +17,11 @@ export const notificationTarget = (
     return routes.admin.registrations;
   }
 
+  // Admins act on a reactivation request: it opens the tool. Its decision leads to the flow's home.
+  if (type === "reactivation.requested" && flow === "admin") {
+    return routes.admin.reactivations;
+  }
+
   // A batch has many classes and the push names none, a deleted class is gone, and a changed location concerns
   // several classes: the Aulas tab is where the schedule shows what changed.
   const opensClasses =

@@ -20,8 +20,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   more identities; many sessions. Lifecycle: as in Product; today the creation of a `pending` student
   through an email code or Google is built, plus the seeded review accounts, an admin approving or denying a
   `pending` account, an approved account adding or changing its WhatsApp number, an approved account changing
-  its name, an approved account deleting itself, a deleted account sending its reactivation request, and an
-  approved admin changing another approved account's role.
+  its name, an approved account deleting itself, a deleted account sending its reactivation request, an
+  approved admin approving or denying it, and an approved admin changing another approved account's role.
 - **Changing one's name**: an approved account replaces its own name; the name is trimmed and must follow the same
   rules as at sign-up (refused with a `user.name.*` key otherwise, the stored name kept). Only the name changes;
   the email never does. Any other status is refused with `user.status.notApproved`.
@@ -89,11 +89,31 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   denial reason (none when no reason was given) and the reactivation status (`requested`, `denied` or none), as
   stored and whatever the status, so the app can show the denied and account-deleted screens. The dates of a
   denial, deletion, removal or reactivation request are never returned.
-- **One reactivation request**: a deleted account, of any role, sends it; it is recorded as `requested` with
-  when it was sent, and the account stays deleted. Checked in this order: an account that isn't deleted is
-  refused with `user.status.notDeleted` (even a removed one whose request was denied); a denied request can't
-  be sent again (`user.reactivation.denied`); a request already sent is answered with the account and nothing
-  changes, the first date kept. The 30-day window isn't checked, and admins aren't notified yet.
+- **One reactivation request per deletion**: a deleted account, of any role, sends it; it is recorded as
+  `requested` with when it was sent, and the account stays deleted. Checked in this order: an account that isn't
+  deleted is refused with `user.status.notDeleted` (even a removed one whose request was denied); a denied request
+  can't be sent again (`user.reactivation.denied`); a request already sent is answered with the account and nothing
+  changes, the first date kept. Only when it records the request is every approved admin notified
+  (`reactivationRequested` with the account's id and name), never on a repeat or a refusal. The 30-day window isn't
+  checked.
+- **Reactivation requests** (deleted accounts with a `requested` reactivation): an approved admin lists them,
+  oldest request first, ties by id — id, name, email, role, deletion date, request date and the number of classes
+  taken, counted when the list is read through the `ClassesTakenCounter` contract (every id answered, 0 by default)
+  — and approves or denies each one. Checked in this order: the caller's status (`user.status.notApproved`, 403) and
+  role (`user.role.notAdmin`, 403); an id that isn't a UUID or names no account (`reactivation.notFound`, 404); an
+  account that isn't `deleted` with a `requested` reactivation (`reactivation.status.notRequested`, 409); then, for a
+  denial, the reason: not text → `reactivation.reason.invalid` (422), trimmed (blank is none), over 500 characters →
+  `user.denialReason.max.length` (422). The 30-day window isn't checked.
+- **Approving a reactivation** sets the account `approved` and clears its deletion date, reactivation status and
+  request date; role, name, WhatsApp number, rules acceptances and history stay. So a reactivated account that
+  deletes itself again can send one new request. **Denying** keeps it `deleted`, sets the reactivation `denied`
+  and stores the reason as the denial reason; a denial is final.
+- **A reactivation request is decided once**: the decision is written in one conditional step that writes only
+  while the stored account is still `deleted` with a `requested` reactivation; of two decisions at the same moment
+  exactly one wins and the other gets `reactivation.status.notRequested`. Then the person is told
+  (`reactivationApproved`, or `reactivationDenied` with the reason when there is one) through the
+  `ReactivationNotifier` contract; nothing is notified on a refusal, the deciding admin isn't told, and a failed
+  notification never changes the answer (`{ id, decision }`).
 - **Registration** (a `pending` account, of any role): an approved admin lists them, oldest first (id, name,
   email, creation date), and approves or denies each one. Approving changes only the status; denying stores the
   optional reason, trimmed (a blank one is none; up to 500 characters), and when it was denied. The role never
@@ -194,9 +214,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   reactivation status).
 - **An approved account** — sets its own WhatsApp number and visibility, changes its own name, deletes its
   own account, and reads the people directory (any role; anyone else gets `user.status.notApproved`).
-- **A deleted account** — sends its one reactivation request.
+- **A deleted account** — sends its one reactivation request per deletion.
 - **An approved admin** — lists the pending registrations and approves or denies each one, with an optional
-  reason when denying; changes another approved account's role (never their own). The school's only approved
+  reason when denying; lists the reactivation requests and approves or denies each one, with an optional reason
+  when denying; changes another approved account's role (never their own). The school's only approved
   admin can't delete their account. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
   (checked first, so a removed admin gets it), an approved non-admin with `user.role.notAdmin` — before the id is
   even looked up.
@@ -258,8 +279,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   contact the school on WhatsApp when the school has a number.
 - **In the app**, a deleted account sees the Account deleted screen in the state of its request: not requested,
   with "Request reactivation", which sends its one request and switches the screen to "Request sent" in place;
-  requested, waiting for the team; or denied, with only "Use another email". The decision is seen at the next
-  launch or sign-in, or when the session renews. If the account changed meanwhile (no longer deleted), the app
+  requested, waiting for the team; or denied, with the admin's reason exactly as written in a "Message from the
+  team" note (none when the reason is empty or blank) and only "Use another email". The decision arrives by push
+  (a deleted account registers its phone), which reloads the account with the app open, and is otherwise seen at the
+  next launch or sign-in, or when the session renews. If the account changed meanwhile (no longer deleted), the app
   says so and signs out; an expired session is handled as everywhere in the app.
 - **In the app**, an approved admin who finished onboarding opens "School tools", whose "Join the school" row
   shows how many registrations are waiting (no count while loading or after an error). The tool shows a card per
@@ -272,6 +295,16 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   usable. A decided card just leaves the list and the count goes down. An already decided registration shows
   "This registration was already decided." and reloads the list; other failures show their toast and keep the
   card (and the sheet with its reason).
+- **In the app**, the admin home's "Reactivate accounts" row, right after "Join the school", shows how many
+  reactivation requests are waiting and a badge ("Nothing pending" at zero; no count while loading or after an
+  error); it reads the same query as the tool. The tool is built like "Join the school": "N waiting for an answer",
+  the title and a description, a card per request — initials, name, email and "Deleted <date> · N classes" (the
+  date in the app language, Fortaleza time) — with "Deny" and "Reactivate", a skeleton, an error with retry, "No
+  requests" and pull-to-refresh. Tapping a card opens the person's sheet (name, role, email; no WhatsApp). Deny
+  opens "Deny reactivation?" with an optional reason (up to 500) and "Deny and notify". A decided card leaves the
+  list; an already decided request toasts "This request was already decided." and reloads the list; other failures
+  use the registrations' toasts and keep the card. A `reactivation.requested` push reloads the requests, and
+  tapping it opens the tool.
 - **In the app**, every approved role opens the People screen — a student from the Escola tab, an admin from the
   "Pessoas" row under "Escola" on the home (below "Ferramentas" and "Entrar na escola"), an instructor from the
   "Pessoas" row of the "Painel" (Início); both rows read a fixed "9 na plataforma" for now. The screen shows the
@@ -317,8 +350,11 @@ account's upcoming classes through a fourth contract of its own, fulfilled by th
 fulfilled with [Enrolment](enrolment.md)'s release (spec 043) — this module depends on neither. Both contracts
 answer how much they released. Changing a role uses the same two contracts (the teaching one with the admin as
 actor) and tells the person through a sixth, fulfilled with [Notifications](notifications.md) (spec 058); removal
-is meant to use them too. Removing accounts, the erasure of deleted and removed accounts, notifying admins of reactivation
-requests, and deciding reactivation requests are rules of the account lifecycle still to be specified.
+is meant to use them too. Deciding reactivation requests belongs here (spec 064): it tells admins and the person
+through a seventh contract, `ReactivationNotifier`, and counts the classes taken through an eighth,
+`ClassesTakenCounter`, both fulfilled by the backend ([Notifications](notifications.md) and
+[Enrolment](enrolment.md)'s rule of the classes a student took) without this module depending on either. Removing
+accounts and the erasure of deleted and removed accounts are rules of the account lifecycle still to be specified.
 
 ## Spec history
 
@@ -399,3 +435,11 @@ requests, and deciding reactivation requests are rules of the account lifecycle 
   approved admins, conditional write, `"updated" | "changed" | "lastAdmin"`), used by both; `SeatReleaser` and
   `TeachingReleaser` answer counts, and the teaching one takes the actor. In the app, the person sheet's role
   actions and confirmation on People, the `role.changed` reload, and the delete-account sheet's only-admin state.
+- `064-admin-reactivation-decisions` — approved admins list (`GET /reactivation-requests`, `ListReactivationRequests`,
+  with the classes taken through the new `ClassesTakenCounter` contract), approve and deny
+  (`POST /reactivation-requests/:id/{approve,deny}`, `ApproveReactivation` / `DenyReactivation`: access, then
+  `reactivation.notFound`, then `reactivation.status.notRequested`, then the reason) reactivation requests;
+  `UserRepository` gains `findReactivationRequests` and `updateIfReactivationRequested` (conditional write).
+  Approval clears the deletion and the request (one request per deletion); a denial stores the reason. The new
+  `ReactivationNotifier` contract tells admins of a recorded request and the person of the decision. In the app, the
+  "Reactivate accounts" row and tool, the reason on the Account deleted screen's denied state, and the three pushes.

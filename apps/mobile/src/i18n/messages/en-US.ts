@@ -181,6 +181,7 @@ const messages = {
       title: "Couldn't reactivate",
       description:
         "The Rocha's team denied the request to reactivate <bold>{{email}}</bold>. This account will stay inactive.",
+      noteTitle: "Message from the team",
     },
     accountChanged: "Your account changed. Sign in again to continue.",
   },
@@ -189,6 +190,7 @@ const messages = {
       toolsSection: "Tools",
       schoolSection: "School",
       registrationsRow: "Join the school",
+      reactivationsRow: "Reactivate accounts",
       classRequestsRow: "Class enrolments",
       enrolStudentRow: "Enrol a student",
       classRequestsCount_one: "{{count}} request",
@@ -206,6 +208,33 @@ const messages = {
   },
   home: {
     peopleRow: "People",
+  },
+  reactivations: {
+    title: "Reactivate accounts",
+    waiting: "{{count}} waiting for an answer",
+    description:
+      "Deleted accounts that asked to come back. Reactivating restores the account, its history and its role, but not cancelled seats. The person gets a push notification.",
+    details_one: "Deleted {{date}} · {{count}} class",
+    details_other: "Deleted {{date}} · {{count}} classes",
+    approve: "Reactivate",
+    deny: "Deny",
+    empty: {
+      title: "No requests",
+      description:
+        "Requests from deleted accounts that want to come back show up here.",
+    },
+    loadError: {
+      title: "Couldn't load the requests",
+      description: "Check your connection and try again.",
+    },
+    alreadyDecided: "This request was already decided.",
+    denySheet: {
+      title: "Deny reactivation?",
+      hint: "{{name}}'s account will stay deleted. You can explain why (optional) — the person gets this message.",
+      label: "Reason (optional)",
+      placeholder: "Write a message to the person.",
+      confirm: "Deny and notify",
+    },
   },
   registrations: {
     title: "Join the school",
@@ -246,14 +275,16 @@ const messages = {
     spotsLeft_other: "{{count}} spots left",
     full: "Full",
     waitingList: "Waiting list · in the order asked",
-    fullNote: "Enrol stays blocked while the class is full. Raise the capacity or wait for a seat to open.",
+    fullNote:
+      "Enrol stays blocked while the class is full. Raise the capacity or wait for a seat to open.",
     position: "#{{position}}",
     askedAt: "Asked at {{time}} · {{date}}",
     approve: "Enrol",
     deny: "Deny",
     approved: "{{name}} enrolled · student notified",
     denied: "{{name}} denied · student notified",
-    description: "Students asking to join your classes, grouped by class. Enrol or deny each request; the student is notified.",
+    description:
+      "Students asking to join your classes, grouped by class. Enrol or deny each request; the student is notified.",
     loading: "Loading the requests",
     empty: {
       title: "Nothing waiting",
@@ -305,7 +336,8 @@ const messages = {
       loading: "Loading the classes",
       empty: {
         title: "No classes this day",
-        description: "There are no upcoming classes on this day. Pick another day.",
+        description:
+          "There are no upcoming classes on this day. Pick another day.",
       },
       loadError: {
         title: "Couldn't load the classes",
@@ -352,7 +384,8 @@ const messages = {
     action: "Take out",
     done: "{{name}} taken out · student notified",
     guestTitle: "Take {{name}} out of the class?",
-    guestHint: "{{summary}}. The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
+    guestHint:
+      "{{summary}}. The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
     guestDone: "{{name}} taken out",
     errors: {
       notApproved: "This spot is no longer approved.",
@@ -388,7 +421,8 @@ const messages = {
     theme: "Theme",
     language: "Language",
     push: "Push notifications",
-    pushNote: "Notifications always stay in the app. Here you only choose whether they also reach your phone.",
+    pushNote:
+      "Notifications always stay in the app. Here you only choose whether they also reach your phone.",
     pushDenied: "Allow notifications for the app in your phone's settings.",
     schoolRules: "School rules",
     cancellationRules: "Cancellation rules",
@@ -401,7 +435,8 @@ const messages = {
   },
   notices: {
     title: "Send notice",
-    description: "Write a title and a message. Everyone in the audience gets it as a notification.",
+    description:
+      "Write a title and a message. Everyone in the audience gets it as a notification.",
     audience: {
       section: "Who receives it",
       all: "Everyone",
@@ -427,8 +462,10 @@ const messages = {
       title_other: "Send to {{count}} people?",
       description: {
         all: "Everyone — students, instructors and admins — gets a notification. Once it's sent, it can't be deleted.",
-        students: "All students get a notification. Once it's sent, it can't be deleted.",
-        instructors: "All instructors get a notification. Once it's sent, it can't be deleted.",
+        students:
+          "All students get a notification. Once it's sent, it can't be deleted.",
+        instructors:
+          "All instructors get a notification. Once it's sent, it can't be deleted.",
       },
       send: "Yes, send",
       cancel: "Back to editing",
@@ -436,16 +473,17 @@ const messages = {
   },
   schoolSettings: {
     title: "School settings",
-    description: "How students ask for a seat in full classes and how they reach the school.",
+    description:
+      "How students ask for a seat in full classes and how they reach the school.",
     waitingList: {
       section: "Waiting list",
       label: "Waiting list for full classes",
       on: "In a full class, students can join the waiting list. If a seat opens, the request goes to you for approval.",
-      off: "Off — in a full class, students see \"Class full\" and can't ask for a seat.",
+      off: 'Off — in a full class, students see "Class full" and can\'t ask for a seat.',
     },
     whatsapp: {
       section: "School WhatsApp",
-      helper: "This is the number behind the \"Contact the school\" button.",
+      helper: 'This is the number behind the "Contact the school" button.',
     },
     save: "Save",
     saved: "Settings saved",
@@ -465,10 +503,14 @@ const messages = {
     },
     screen: {
       title: "Cancellation rules",
-      intro: "There's one rule for each discipline. The app reads the rule with the class details — never the students' — and works out until when each class can be cancelled.",
-      tipTime: "Give exact deadlines in hours before the class starts — nothing like \"at the last minute\".",
-      tipAmbiguity: "Avoid ambiguity: if a person would hesitate reading it, the app will too.",
-      placeholder: "E.g.: Students can cancel without penalty up to 12 hours before the class starts…",
+      intro:
+        "There's one rule for each discipline. The app reads the rule with the class details — never the students' — and works out until when each class can be cancelled.",
+      tipTime:
+        'Give exact deadlines in hours before the class starts — nothing like "at the last minute".',
+      tipAmbiguity:
+        "Avoid ambiguity: if a person would hesitate reading it, the app will too.",
+      placeholder:
+        "E.g.: Students can cancel without penalty up to 12 hours before the class starts…",
       save: "Save rule for {{discipline}}",
       saved: "Rule for {{discipline}} saved",
       loading: "Loading the rule",
@@ -526,7 +568,8 @@ const messages = {
     },
   },
   teachingHistory: {
-    description: "Every class you have already taught, month by month or week by week.",
+    description:
+      "Every class you have already taught, month by month or week by week.",
     title: "Past classes",
     legend: "Days you taught a class",
     hasClasses: "you taught a class",
@@ -640,8 +683,10 @@ const messages = {
     spotsLeft_one: "{{count}} spot left",
     spotsLeft_other: "{{count}} spots left",
     soldOut: "sold out",
-    guestsWarning_one: "1 trial student has no account and won't get the notice — talk to them on WhatsApp.",
-    guestsWarning_other: "{{count}} trial students have no account and won't get the notice — talk to them on WhatsApp.",
+    guestsWarning_one:
+      "1 trial student has no account and won't get the notice — talk to them on WhatsApp.",
+    guestsWarning_other:
+      "{{count}} trial students have no account and won't get the notice — talk to them on WhatsApp.",
     trialChip: "Trial",
     includesTrial_one: "includes {{count}} trial",
     includesTrial_other: "includes {{count}} trial",
@@ -662,8 +707,10 @@ const messages = {
       schoolCount_other: "{{count}} rules for every student",
     },
     readOnly: {
-      teaches: "Enrolments, cancellations and schedule changes are made by the school",
-      notAssigned: "You aren't assigned to this class — you see everything in read-only mode",
+      teaches:
+        "Enrolments, cancellations and schedule changes are made by the school",
+      notAssigned:
+        "You aren't assigned to this class — you see everything in read-only mode",
     },
     notes: "Notes",
     location: "Where and how",
@@ -675,7 +722,8 @@ const messages = {
     loading: "Loading the class",
     errorState: {
       title: "Something went wrong",
-      description: "We couldn't load this class. Check your connection and try again.",
+      description:
+        "We couldn't load this class. Check your connection and try again.",
     },
     notFoundState: {
       title: "Class not found",
@@ -688,7 +736,8 @@ const messages = {
     noInstructorAssigned: "No instructor assigned",
     noDeadline: {
       title: "No cancellation deadline",
-      description: "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",
+      description:
+        "We couldn't work out yet until when students can cancel. Check the {{discipline}} rule.",
     },
     tools: "Class tools",
   },
@@ -702,7 +751,8 @@ const messages = {
       waitingList: {
         chip: "On the waiting list",
         title: "You're on the waiting list",
-        description: "If a seat opens, your request goes to the school for approval.",
+        description:
+          "If a seat opens, your request goes to the school for approval.",
       },
       approved: {
         chip: "Approved",
@@ -722,7 +772,8 @@ const messages = {
       expired: {
         chip: "Expired",
         title: "You didn't get a seat",
-        description: "Your request expired without a seat opening in the class.",
+        description:
+          "Your request expired without a seat opening in the class.",
       },
       cancelled: {
         chip: "You cancelled",
@@ -788,15 +839,18 @@ const messages = {
       done: "Enrolment cancelled",
     },
     cancelSeatNote: {
-      passed: "The cancellation deadline ended on {{deadline}}. Contact the school.",
-      missing: "This class's cancellation deadline hasn't been set yet. Contact the school to cancel.",
+      passed:
+        "The cancellation deadline ended on {{deadline}}. Contact the school.",
+      missing:
+        "This class's cancellation deadline hasn't been set yet. Contact the school to cancel.",
     },
     errors: {
       started: "The class has already started.",
       cancelled: "This class was cancelled.",
       alreadyOpen: "You already have an open request for this class.",
       waitingListClosed: "The waiting list is closed for this class.",
-      ruleNotAccepted: "The cancellation rule changed. Read it again and accept it.",
+      ruleNotAccepted:
+        "The cancellation rule changed. Read it again and accept it.",
       notPending: "This request is no longer pending.",
       notFound: "This request no longer exists.",
       notApproved: "This seat is no longer approved.",
@@ -812,7 +866,8 @@ const messages = {
   },
   profileWhatsapp: {
     title: "WhatsApp",
-    description: "Admins always see your number. Choose whether students and instructors can see it too.",
+    description:
+      "Admins always see your number. Choose whether students and instructors can see it too.",
     save: "Save",
   },
   schoolRulesScreen: {
@@ -825,7 +880,8 @@ const messages = {
     },
     empty: {
       title: "No rules yet",
-      description: "The school hasn't published any rules yet. Check back soon.",
+      description:
+        "The school hasn't published any rules yet. Check back soon.",
     },
   },
   schoolRulesEntryRow: {
@@ -838,7 +894,8 @@ const messages = {
   },
   manageSchoolRules: {
     title: "School rules",
-    intro: "Students read these rules and must accept them before using the app. The order here is the order they see.",
+    intro:
+      "Students read these rules and must accept them before using the app. The order here is the order they see.",
     add: "Add rule",
     loading: "Loading the rules",
     loadError: {
@@ -847,7 +904,8 @@ const messages = {
     },
     empty: {
       title: "No rules yet",
-      description: "Add the first rule. Students read and accept the rules before using the app.",
+      description:
+        "Add the first rule. Students read and accept the rules before using the app.",
     },
     moveUp: "Move rule {{position}} up",
     moveDown: "Move rule {{position}} down",
@@ -861,8 +919,10 @@ const messages = {
       titleLabel: "Title",
       descriptionLabel: "Explanation",
       titlePlaceholder: "E.g. Bring sunscreen",
-      descriptionPlaceholder: "One or two short sentences, speaking straight to the student.",
-      saveNote: "Once saved, everyone will need to accept the rules again the next time they open the app.",
+      descriptionPlaceholder:
+        "One or two short sentences, speaking straight to the student.",
+      saveNote:
+        "Once saved, everyone will need to accept the rules again the next time they open the app.",
       add: "Add rule",
       save: "Save",
       delete: "Delete rule",
@@ -884,7 +944,8 @@ const messages = {
   },
   about: {
     version: "Version {{version}}",
-    description: "A personal project to take class booking out of WhatsApp groups: the week's schedule, seat requests and notices in one place.",
+    description:
+      "A personal project to take class booking out of WhatsApp groups: the week's schedule, seat requests and notices in one place.",
     creatorRole: "Design and development",
     repository: "App repository",
     creatorGithub: "Creator's GitHub",
@@ -901,7 +962,8 @@ const messages = {
       admin: "Admins",
     },
     since: "since {{date}}",
-    description: "Everyone on the platform: students, instructors and admins. Search by name or filter by role.",
+    description:
+      "Everyone on the platform: students, instructors and admins. Search by name or filter by role.",
     loading: "Loading the people",
     empty: {
       title: "No one found",
@@ -936,23 +998,28 @@ const messages = {
     roleConfirm: {
       promoteInstructor: {
         title: "Make {{name}} an instructor?",
-        description: "They become an instructor: they can be assigned to classes and see who's enrolled. The seats and requests they had in upcoming classes, as a student, are cancelled.",
+        description:
+          "They become an instructor: they can be assigned to classes and see who's enrolled. The seats and requests they had in upcoming classes, as a student, are cancelled.",
         confirm: "Make instructor",
       },
       promoteAdmin: {
         title: "Make {{name}} an admin?",
-        description: "They become an admin: they run the school's classes, people, rules and requests. They can also teach.",
-        seatsNote: "The seats and requests they had in upcoming classes, as a student, are cancelled.",
+        description:
+          "They become an admin: they run the school's classes, people, rules and requests. They can also teach.",
+        seatsNote:
+          "The seats and requests they had in upcoming classes, as a student, are cancelled.",
         confirm: "Make admin",
       },
       demoteStudent: {
         title: "Make {{name}} a student?",
-        description: "They become a student: they leave the upcoming classes they teach, which may be left without an instructor. Classes already taught stay in the history.",
+        description:
+          "They become a student: they leave the upcoming classes they teach, which may be left without an instructor. Classes already taught stay in the history.",
         confirm: "Make student",
       },
       adminToInstructor: {
         title: "Remove {{name}} as admin?",
-        description: "They stop running the school and become an instructor. They stay on the classes they teach.",
+        description:
+          "They stop running the school and become an instructor. They stay on the classes they teach.",
         confirm: "Remove admin",
       },
       back: "Back",
@@ -965,12 +1032,14 @@ const messages = {
   },
   deleteAccountSheet: {
     title: "Remove your account?",
-    description: "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",
+    description:
+      "Your account closes now and your upcoming seats and requests are cancelled. You can ask to reactivate it within 30 days.",
     confirm: "Remove account",
     cancel: "Cancel",
     onlyAdmin: {
       title: "Not yet",
-      description: "You're the school's only admin. Make someone else an admin before removing your account.",
+      description:
+        "You're the school's only admin. Make someone else an admin before removing your account.",
       goToPeople: "Go to People",
     },
   },
@@ -1029,7 +1098,8 @@ const messages = {
     notes: {
       label: "Notes",
       optional: "optional",
-      placeholder: "E.g. Meet in front of the lifeguard tower. Bring sunscreen.",
+      placeholder:
+        "E.g. Meet in front of the lifeguard tower. Bring sunscreen.",
     },
     instructors: {
       label: "Instructors",
@@ -1057,8 +1127,10 @@ const messages = {
   },
   cancelClass: {
     title: "Cancel this class?",
-    description: "We'll notify the class's instructors. It stays on the schedule, marked as cancelled.",
-    descriptionWithAudience: "We'll notify {{list}}. It stays on the schedule, marked as cancelled.",
+    description:
+      "We'll notify the class's instructors. It stays on the schedule, marked as cancelled.",
+    descriptionWithAudience:
+      "We'll notify {{list}}. It stays on the schedule, marked as cancelled.",
     audience: {
       students_one: "{{count}} enrolled student",
       students_other: "{{count}} enrolled students",
@@ -1080,11 +1152,13 @@ const messages = {
   },
   deleteClass: {
     title: "Delete this class?",
-    description: "The instructors are notified and the class leaves the schedule. This can't be undone.",
+    description:
+      "The instructors are notified and the class leaves the schedule. This can't be undone.",
     confirm: "Delete class",
     notEmpty: {
       title: "Can't delete",
-      description: "Someone has already asked for a seat or holds one in this class. Only classes with nobody can be deleted — cancel it instead.",
+      description:
+        "Someone has already asked for a seat or holds one in this class. Only classes with nobody can be deleted — cancel it instead.",
     },
     done: "Class deleted",
     errors: {
@@ -1143,7 +1217,8 @@ const messages = {
   },
   timeRangeSheet: {
     title: "New time",
-    description: "Set the start and end time. It's for this batch only — it isn't kept as a suggestion.",
+    description:
+      "Set the start and end time. It's for this batch only — it isn't kept as a suggestion.",
     start: "Start",
     end: "End",
     endBeforeStart: "The end must be after the start.",
@@ -1151,7 +1226,8 @@ const messages = {
   },
   locationSheet: {
     title: "New location",
-    description: "Students see the name and the address, and get directions to the point on the map.",
+    description:
+      "Students see the name and the address, and get directions to the point on the map.",
     name: "Name",
     namePlaceholder: "E.g. Praia do Futuro",
     address: "Address",
@@ -1159,7 +1235,8 @@ const messages = {
     duplicate: "A location with this name already exists.",
     submit: "Save location",
     editTitle: "Edit location",
-    editDescription: "Changes also apply to the classes that already use this location.",
+    editDescription:
+      "Changes also apply to the classes that already use this location.",
     addressSearchPlaceholder: "Search for an address or a beach",
     point: "Point on the map",
     pointHintEmpty: "Tap the map to mark the point",
@@ -1186,7 +1263,8 @@ const messages = {
     loading: "Loading notifications",
     empty: {
       title: "No notifications yet",
-      description: "When something changes in your classes or your account, you'll see it here.",
+      description:
+        "When something changes in your classes or your account, you'll see it here.",
     },
     loadError: {
       title: "Couldn't load your notifications",
@@ -1199,13 +1277,15 @@ const messages = {
     title: "Remove location?",
     description: "It no longer shows up for new classes.",
     kept_one: "The class that already uses this location stays as it is.",
-    kept_other: "The {{count}} classes that already use this location stay as they are.",
+    kept_other:
+      "The {{count}} classes that already use this location stay as they are.",
     confirm: "Remove location",
     keep: "Keep",
     removed: "{{name}} removed",
   },
   teachingClasses: {
-    description: "The classes you will teach: the ones under way and the ones coming up, day by day.",
+    description:
+      "The classes you will teach: the ones under way and the ones coming up, day by day.",
     row: {
       assigned_one: "{{count}} class assigned to you",
       assigned_other: "{{count}} classes assigned to you",

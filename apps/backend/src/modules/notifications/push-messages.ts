@@ -166,6 +166,51 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
       inAppBody: ({ reason }) => text(reason),
     },
   },
+  'reactivation.requested': {
+    'pt-BR': {
+      title: 'Pedido de reativação',
+      body: ({ name }) => `${text(name)} quer voltar para a escola.`,
+    },
+    es: {
+      title: 'Solicitud de reactivación',
+      body: ({ name }) => `${text(name)} quiere volver a la escuela.`,
+    },
+    en: {
+      title: 'Reactivation request',
+      body: ({ name }) => `${text(name)} wants to come back to the school.`,
+    },
+  },
+  'reactivation.approved': {
+    'pt-BR': {
+      title: 'Conta reativada',
+      body: () => 'Você já pode voltar a usar o app.',
+    },
+    es: {
+      title: 'Cuenta reactivada',
+      body: () => 'Ya puedes volver a usar la app.',
+    },
+    en: {
+      title: 'Account reactivated',
+      body: () => 'You can use the app again.',
+    },
+  },
+  'reactivation.denied': {
+    'pt-BR': {
+      title: 'Reativação recusada',
+      body: ({ reason }) => text(reason) || 'Abra o app para saber mais.',
+      inAppBody: ({ reason }) => text(reason),
+    },
+    es: {
+      title: 'Reactivación rechazada',
+      body: ({ reason }) => text(reason) || 'Abre la app para saber más.',
+      inAppBody: ({ reason }) => text(reason),
+    },
+    en: {
+      title: 'Reactivation denied',
+      body: ({ reason }) => text(reason) || 'Open the app to learn more.',
+      inAppBody: ({ reason }) => text(reason),
+    },
+  },
   'class.assigned': {
     'pt-BR': {
       title: 'Novas aulas na sua escala',
@@ -562,8 +607,8 @@ export function renderPush(
 
 /**
  * The text of a notification on the app's notifications screen: the push's, minus the sentences that send the person
- * to the app they are already in (a `class.edited` ends after the change; a `registration.denied` without a reason has
- * an empty body).
+ * to the app they are already in (a `class.edited` ends after the change; a `registration.denied` or `reactivation.denied` without
+ * a reason has an empty body).
  */
 export function renderInApp(
   type: NotificationType,

@@ -21,6 +21,11 @@ What the person is told, and how it reaches them.
   - `registration.approved` — the person's registration was approved; no details.
   - `registration.denied` — the person's registration was denied; details: the admin's reason, exactly as
     stored, when one was given.
+  - `reactivation.requested` — a deleted account asked to come back (spec 064); details: its name and its id
+    (`userId`). One per approved admin, only when the request is recorded.
+  - `reactivation.approved` — the person's reactivation request was approved; no details.
+  - `reactivation.denied` — the person's reactivation request was denied; details: the admin's trimmed reason
+    (`reason`) when one was given.
   - `class.assigned` — the person was assigned to the classes of a batch an admin created; details: how many
     classes (`count`) and their discipline (`surf` | `skate`). One per instructor and batch, and one (count 1)
     for an instructor added to a class by an edit.
@@ -72,6 +77,9 @@ What the person is told, and how it reaches them.
   | `registration.pending` | New registration | {name} is waiting for approval. |
   | `registration.approved` | Account approved | You can start using the app now. |
   | `registration.denied` | Registration denied | the reason as written, or "Open the app to learn more." |
+  | `reactivation.requested` | Reactivation request | {name} wants to come back to the school. |
+  | `reactivation.approved` | Account reactivated | You can use the app again. |
+  | `reactivation.denied` | Reactivation denied | the reason as written, or "Open the app to learn more." |
   | `class.assigned` | New classes on your schedule | You've been assigned 1 {discipline} class. / You've been assigned {count} {discipline} classes. |
   | `class.edited` | Class changed | Your {discipline} class on {MM/dd} at {HH:mm} was changed. Open the app to see it. |
   | `class.unassigned` | Removed from a class | You're no longer teaching the {discipline} class on {MM/dd} at {HH:mm}. |
@@ -108,7 +116,11 @@ What the person is told, and how it reaches them.
   instrutor." or "Aulas sem instrutor" / "{count} aulas ficaram sem instrutor. A próxima: {discipline}, {dd/MM} às
   {HH:mm}.", es "Clase sin instructor" / "La clase de {discipline} del {dd/MM} a las {HH:mm} se quedó sin
   instructor." or "Clases sin instructor" / "{count} clases se quedaron sin instructor. La próxima: {discipline},
-  {dd/MM} a las {HH:mm}." (a missing count counts as one); `class.reminder`: pt-BR "Sua aula começa em breve" /
+  {dd/MM} a las {HH:mm}." (a missing count counts as one); `reactivation.requested`: pt-BR "Pedido de reativação" /
+  "{name} quer voltar para a escola.", es "Solicitud de reactivación" / "{name} quiere volver a la escuela.";
+  `reactivation.approved`: pt-BR "Conta reativada" / "Você já pode voltar a usar o app.", es "Cuenta reactivada" /
+  "Ya puedes volver a usar la app."; `reactivation.denied`: pt-BR "Reativação recusada" / the reason, or "Abra o app
+  para saber mais.", es "Reactivación rechazada" / the reason, or "Abre la app para saber más."; `class.reminder`: pt-BR "Sua aula começa em breve" /
   "A aula de {discipline} começa às {HH:mm} · {locationName}.", es "Tu clase empieza pronto" / "La clase de
   {discipline} empieza a las {HH:mm} · {locationName}." (no day: a class just after midnight is reminded the evening
   before); `location.changed`: pt-BR "Local de aula alterado" /
@@ -156,7 +168,13 @@ What the person is told, and how it reaches them.
   instructor gets without a class, or a person who now resolves to another flow, falls back as before); tapping an
   `enrolment.cancelled` push opens that class's details as an instructor or an admin. Any enrolment push received
   with the app open reloads every class shown, and an `enrolment.requested` or `enrolment.cancelled` one also the
-  admin's pending requests. A `role.changed` push received with the app open reloads the account (so the flow
+  admin's pending requests. A `reactivation.requested` push received with the app open reloads the reactivation
+  requests (the "Reactivate accounts" tool and the home's count); tapping it, or its row, opens the tool for an admin
+  (else nothing; its row: a `refresh-circle-outline` icon on the info tone). A `reactivation.approved` or
+  `reactivation.denied` push received with the app open reloads the account, so the flow guards move the app to its
+  role's home (or "Regras atualizadas") or to the Account deleted screen's denied state; tapping it, or its row,
+  opens the home of the flow it resolves to (rows: `checkmark-circle-outline` on the ok tone and
+  `close-circle-outline` on the bad tone). A `role.changed` push received with the app open reloads the account (so the flow
   guards move the app to the new role's experience) and the people lists; tapping it, or its row on the
   notifications screen, reloads the account and opens the home of the flow it resolves to (its row: a
   `shield-checkmark-outline` icon on the info tone). A `broadcast` leads to no screen of its own: tapping its push or
@@ -167,8 +185,8 @@ What the person is told, and how it reaches them.
   (spec 055).
 - **In-app text** (spec 055): the push's title and body in the language the app asks for (pt-BR when it asks for
   none), minus the sentences that send the person to the app they are already in: `class.edited` ends after "…foi
-  alterada." / "…cambió." / "…was changed.", and `registration.denied` without a reason has an empty body (with
-  one, the reason).
+  alterada." / "…cambió." / "…was changed.", and `registration.denied` and `reactivation.denied` without a reason
+  have an empty body (with one, the reason).
 - **Notifications screen** ("Avisos" / "Avisos" / "Notifications", spec 055): opened from the bell on the home
   screen of students (the Agenda), instructors and admins, above the tabs. It lists every notification of the
   person, newest first, 20 at a time (the next ones load at the end of the list; pulling reloads from the first
@@ -220,7 +238,8 @@ The phones that receive pushes.
 
 Rules:
 
-- **Only pending and approved accounts register a phone**: a denied, deleted or removed account is refused with
+- **Only pending, approved and deleted accounts register a phone**: a deleted account does so to hear the answer
+  to its reactivation request (spec 064); a denied or removed account is refused with
   `pushToken.status.notAllowed`, checked before anything else. A token that isn't an Expo push token
   (`pushToken.token.invalid`) or a language other than pt-BR, es or en (`pushToken.locale.invalid`) is refused,
   both reported together. Nothing is stored on a refusal.
@@ -237,7 +256,8 @@ Rules:
 
 ## Who can do what
 
-- **A pending or approved account** — registers the phone it is signed in on, with its language.
+- **A pending, approved or deleted account** — registers the phone it is signed in on, with its language; in the
+  app, at sign-in and at launch.
 - **Any account that signs out** — stops the pushes to that phone.
 - **Any signed-in account, whatever its status** — removes its own phone's token. In the app, the Profile's
   "Notificações push" switch does it: pushes are a setting of the phone (on by default, kept after signing out);
@@ -249,6 +269,10 @@ Rules:
   students, instructors and admins have the bell that opens them.
 - **Approved admins** — receive a push for each new registration.
 - **The person whose registration was decided** — receives the approval, or the denial with its reason.
+- **Approved admins** — receive one `reactivation.requested` when a deleted account's request is recorded (not on a
+  repeat or after a denial); a pending admin receives none.
+- **The person whose reactivation request was decided** — receives `reactivation.approved`, or
+  `reactivation.denied` with the reason; the deciding admin and the other admins aren't told.
 - **An instructor or admin assigned to a batch of classes** — receives one `class.assigned`, unless they
   created the batch.
 - **An instructor or admin of an edited class** — receives `class.edited` (kept, when a class field changed),
@@ -287,9 +311,11 @@ Rules:
 
 It knows people only by their ids and the phones they registered, and it doesn't depend on
 [Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
-it through four contracts of its own (one that notifies about registrations, one that removes a phone's token on
+it through five contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts, one that tells a person
-their role changed — spec 058), all provided by the backend. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
+their role changed — spec 058, one that notifies about reactivation requests — spec 064), all provided by the
+backend; the admins' notice of a registration or a reactivation request goes through the same use case, which takes
+the type. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
 and removed), class changes (edits, cancellations, deletions), classes left without an instructor, location
 changes and class reminders; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
 location edit. [Enrolment](enrolment.md) reaches it through its own contract for new, decided and expired
@@ -297,8 +323,7 @@ requests, cancelled seats, direct enrolments and take-outs, with the same guaran
 module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text and the in-app text. The app reads the stored notifications only through the
-backend (spec 055). Badges on the app icon and rich pushes come with their specs, as do the notifications of every other event (reactivation requests,
-seat cancellations) and those of an edit or a location change to the classes' students and pending
+backend (spec 055). Badges on the app icon and rich pushes come with their specs, as do the notifications of every other event (seat cancellations) and those of an edit or a location change to the classes' students and pending
 requests (spec 047).
 
 ## Spec history
@@ -370,3 +395,9 @@ requests (spec 047).
   approved admins only; the audience's approved accounts are found again at send time and the sender gets it only
   for `all`. In the app, the admin's "Enviar aviso" tool, and a tapped `broadcast` push or row marks it read and
   shows the home.
+- `064-admin-reactivation-decisions` — `reactivation.requested` (to the approved admins, `{ name, userId }`, through
+  `NotifyApprovedAdmins`, which now takes the type), `reactivation.approved` and `reactivation.denied` (`{ reason }`
+  when written; empty in-app body without one) with their push text, sent by the backend's
+  `NotificationsReactivationNotifier` (errors logged and swallowed); `RegisterPushToken` accepts deleted accounts.
+  In the app, deleted accounts register their phone, `reactivation.requested` reloads the requests and opens the
+  tool for admins, the decisions reload the account, and the three icons.

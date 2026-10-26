@@ -25,6 +25,7 @@ import { SystemClockProvider } from './system.clock.js';
 import { ClassesTeachingReleaser } from '../classes/classes.teaching-releaser.js';
 import { EnrolmentSeatReleaser } from '../enrolment/enrolment.seat-releaser.js';
 import { NotificationsPushTokenRemover } from '../notifications/notifications.push-token-remover.js';
+import { NotificationsReactivationNotifier } from '../notifications/notifications.reactivation-notifier.js';
 import { NotificationsRegistrationNotifier } from '../notifications/notifications.registration-notifier.js';
 import { PrismaUserRepository } from './user.prisma.js';
 
@@ -122,6 +123,7 @@ function setup(
   const pushTokenRemover = { remove: vi.fn().mockResolvedValue(undefined) };
   const teachingReleaser = { releaseUpcomingClasses: vi.fn().mockResolvedValue(0) };
   const seatReleaser = { releaseSeats: vi.fn().mockResolvedValue(0) };
+  const reactivationNotifier = { reactivationRequested: vi.fn().mockResolvedValue(undefined) };
   const controller = new AuthController(
     { reviewCodes, refreshTokenTtlDays: 30 } as AuthConfig,
     signInCodeRepository as unknown as PrismaSignInCodeRepository,
@@ -138,9 +140,11 @@ function setup(
     pushTokenRemover as unknown as NotificationsPushTokenRemover,
     teachingReleaser as unknown as ClassesTeachingReleaser,
     seatReleaser as unknown as EnrolmentSeatReleaser,
+    reactivationNotifier as unknown as NotificationsReactivationNotifier,
   );
   return {
     controller,
+    reactivationNotifier,
     registrationNotifier,
     pushTokenRemover,
     teachingReleaser,
@@ -622,7 +626,7 @@ describe('AuthController', () => {
     it('runs RequestReactivation for the signed-in account with the clock', async () => {
       const ana = deleted();
       const users = [ana];
-      const { controller } = setup({}, users);
+      const { controller, reactivationNotifier } = setup({}, users);
 
       await expect(controller.requestReactivation(ana.id)).resolves.toEqual({
         id: ana.id,
@@ -639,6 +643,10 @@ describe('AuthController', () => {
         reactivationStatus: 'requested',
       });
       expect(users[0]!.reactivationRequestedAt).toEqual(NOW);
+      expect(reactivationNotifier.reactivationRequested).toHaveBeenCalledWith({
+        id: ana.id,
+        name: 'Ana Rocha',
+      });
     });
 
     it('answers 409 user.reactivation.denied after a denial', async () => {

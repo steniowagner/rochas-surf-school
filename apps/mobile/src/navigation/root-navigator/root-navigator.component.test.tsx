@@ -271,7 +271,8 @@ describe("RootNavigator", () => {
         ok: true,
         status: 200,
         json: async () =>
-          url.endsWith("/registrations")
+          url.endsWith("/registrations") ||
+          url.endsWith("/reactivation-requests")
             ? { items: [] }
             : url.endsWith("/classes/teaching")
               ? { items: [], teachesAny: false }
@@ -280,7 +281,12 @@ describe("RootNavigator", () => {
                 : {
                     version: 5,
                     rules: [
-                      { id: "r1", title: "Rule", description: "Text", index: 0 },
+                      {
+                        id: "r1",
+                        title: "Rule",
+                        description: "Text",
+                        index: 0,
+                      },
                     ],
                   },
       })));

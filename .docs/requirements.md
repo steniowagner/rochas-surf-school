@@ -279,12 +279,16 @@ A deleted account SHALL be able to send one reactivation request, from the app. 
 
 #### Admins decide reactivation requests
 
+_Implemented in spec 064-admin-reactivation-decisions._
+
 The system SHALL notify admins of each reactivation request. Admins SHALL approve or deny it, seeing the person's name, email address, deletion date and number of classes taken. The person SHALL be notified of the decision.
 
 - _Admin reviews a request:_ When a reactivation request arrives, then admins are notified, and the request shows the person's name, email address, deletion date and number of classes taken.
 - _Decision notified:_ When an admin approves or denies a reactivation request, then the person is notified of the decision.
 
 #### What reactivation restores
+
+_Implemented in spec 064-admin-reactivation-decisions._
 
 Approving a reactivation request SHALL restore the account, its history and its role. It SHALL NOT restore the seats, pending requests or class assignments cancelled when the account was deleted.
 

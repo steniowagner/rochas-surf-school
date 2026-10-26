@@ -367,6 +367,53 @@ describe('PrismaUserRepository', () => {
     });
   });
 
+  describe('findReactivationRequests', () => {
+    it('selects the deleted users with a requested reactivation, oldest request first', async () => {
+      const { user, repository } = setup();
+      user.findMany.mockResolvedValue([minimalRecord]);
+
+      const users = await repository.findReactivationRequests();
+
+      expect(user.findMany).toHaveBeenCalledWith({
+        where: { status: 'deleted', reactivationStatus: 'requested' },
+        orderBy: [{ reactivationRequestedAt: 'asc' }, { id: 'asc' }],
+        include: { rulesAcceptances: true },
+      });
+      expect(users.map((item) => item.id)).toEqual([ID]);
+    });
+  });
+
+  describe('updateIfReactivationRequested', () => {
+    it('writes the user only while it is deleted with a requested reactivation, clearing what the user no longer has', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 1 });
+
+      await expect(
+        repository.updateIfReactivationRequested(minimalUser()),
+      ).resolves.toBe(true);
+
+      expect(user.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: 'deleted', reactivationStatus: 'requested' },
+        data: expect.objectContaining({
+          name: 'Ana Rocha',
+          reactivationStatus: null,
+          reactivationRequestedAt: null,
+          deletedAt: null,
+        }),
+      });
+      expect(user.update).not.toHaveBeenCalled();
+    });
+
+    it('answers false when no row changed', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        repository.updateIfReactivationRequested(minimalUser()),
+      ).resolves.toBe(false);
+    });
+  });
+
   describe('findDeniedBefore', () => {
     it('selects the ids of the denied users denied at or before the cutoff', async () => {
       const { user, repository } = setup();

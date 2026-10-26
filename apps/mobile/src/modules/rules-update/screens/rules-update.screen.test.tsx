@@ -83,7 +83,10 @@ const serve = ({
   accept?: () => unknown;
 }) =>
   fetchMock.mockImplementation(async (url: string) => {
-    if (url.endsWith("/registrations")) {
+    if (
+      url.endsWith("/registrations") ||
+      url.endsWith("/reactivation-requests")
+    ) {
       return json(200, { items: [] });
     }
 

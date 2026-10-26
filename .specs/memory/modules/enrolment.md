@@ -202,7 +202,10 @@ roster (students and guests), the seats taken, the pending requests, the viewer'
 or of a location's upcoming classes (approved and pending enrolments, spec 047), closing a cancelled class's
 enrolments and a student's own classes (current and taken, spec 048), through adapters the backend provides; Classes still decides when a class is cancelled and who else is
 told. It fulfils, through a backend adapter, [Authentication](auth.md)'s contract for releasing a deleted account's
-seats and requests; Authentication decides when. It doesn't send notifications itself: the new-request, decision,
+seats and requests; Authentication decides when. It also fulfils, through a backend adapter, Authentication's
+contract counting the classes each account took for "Reactivate accounts" (spec 064): the same rule as the classes a
+student took — ended, not cancelled, latest enrolment by request time then id approved — for every role, with no
+date range, 0 for an account that never held a seat. It doesn't send notifications itself: the new-request, decision,
 expiry, cancelled-seat, direct-enrolment and take-out notices go through its own contract, which [Notifications](notifications.md) fulfils. It
 doesn't read the clock directly. A waiting-list switch per class isn't built, nor a
 history of who decided or undoing a decision, cancelling several seats at once or undoing a cancellation, taking a
@@ -288,3 +291,6 @@ pedir.".
   promotion of a student now runs the release (through `EnrolmentSeatReleaser`, which answers seats plus requests).
 - `060-enrol-student-steps` — the app's "Inscrever aluno" becomes two steps shown as tabs, "Quem" and "Aula", with a
   fixed "Escolher aula" / "Inscrever" button and the sport filter on "Aula"; no change to the rules or the requests.
+- `064-admin-reactivation-decisions` — no rule change here: the backend's classes-taken counter answers
+  Authentication's `ClassesTakenCounter` contract with the rule of the classes a student took, for several accounts
+  at once.

@@ -29,7 +29,10 @@ const tokens = {
   refreshTokenExpiresAt: "2026-11-10T12:00:00.000Z",
 };
 
-const deletedUser = (reactivationStatus: string | null): SessionUser => ({
+const deletedUser = (
+  reactivationStatus: string | null,
+  denialReason: string | null = null,
+): SessionUser => ({
   id: "user-1",
   name: "Ana Silva",
   email: "ana.silva@gmail.com",
@@ -40,7 +43,7 @@ const deletedUser = (reactivationStatus: string | null): SessionUser => ({
   whatsappVisible: false,
   rulesAccepted: false,
   rulesAcceptedBefore: false,
-  denialReason: null,
+  denialReason,
   reactivationStatus,
 });
 
@@ -51,8 +54,11 @@ function SignedIn() {
   return user ? <ReactivationScreen /> : <Text>Signed out</Text>;
 }
 
-const renderScreen = async (status: string | null = null) => {
-  hydrateSession({ user: deletedUser(status), tokens });
+const renderScreen = async (
+  status: string | null = null,
+  denialReason: string | null = null,
+) => {
+  hydrateSession({ user: deletedUser(status, denialReason), tokens });
   await render(
     <QueryClientProvider
       client={
@@ -164,6 +170,34 @@ describe("ReactivationScreen", () => {
     expect(screen.queryByText("What now?")).not.toBeOnTheScreen();
     expect(screen.getAllByRole("button")).toHaveLength(1);
   });
+
+  it("denied shows the team's reason exactly as written", async () => {
+    await renderScreen("denied", "  Turmas cheias.\nTente em março.  ");
+
+    expect(screen.getByText("Message from the team")).toBeOnTheScreen();
+    expect(
+      screen.getByText("  Turmas cheias.\nTente em março.  "),
+    ).toBeOnTheScreen();
+  });
+
+  it.each([null, "", "   "])(
+    "denied with reason %p shows no note",
+    async (reason) => {
+      await renderScreen("denied", reason);
+
+      expect(screen.queryByText("Message from the team")).not.toBeOnTheScreen();
+    },
+  );
+
+  it.each([null, "requested"])(
+    "the %p state never shows the note, even with a stored reason",
+    async (status) => {
+      await renderScreen(status, "Turmas cheias.");
+
+      expect(screen.queryByText("Message from the team")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Turmas cheias.")).not.toBeOnTheScreen();
+    },
+  );
 
   it("denied after a 409 switches the screen in place", async () => {
     respond(409, { errors: ["user.reactivation.denied"] });

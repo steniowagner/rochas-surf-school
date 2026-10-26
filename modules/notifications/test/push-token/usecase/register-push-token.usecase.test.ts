@@ -23,7 +23,7 @@ async function errorsOf(promise: Promise<unknown>): Promise<string[]> {
 }
 
 describe("RegisterPushToken", () => {
-  it.each(["pending", "approved"])("registers the token of a %s user", async (status) => {
+  it.each(["pending", "approved", "deleted"])("registers the token of a %s user", async (status) => {
     const { repository, usecase } = setup();
 
     await usecase.execute({
@@ -38,7 +38,7 @@ describe("RegisterPushToken", () => {
     expect(repository.items[0].updatedAt).toEqual(NOW);
   });
 
-  it.each(["denied", "deleted", "removed", "unknown"])(
+  it.each(["denied", "removed", "unknown"])(
     "refuses a %s user before checking the body",
     async (status) => {
       const { repository, usecase } = setup();

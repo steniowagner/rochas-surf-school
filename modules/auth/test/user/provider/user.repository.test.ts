@@ -206,3 +206,53 @@ describe("UserRepository.countApprovedAdmins / updateKeepingAnAdmin (fake)", () 
     expect(await userRepository.findById(ana.id)).toBe(ana);
   });
 });
+
+describe("UserRepository reactivation requests (fake)", () => {
+  const EARLY = new Date("2026-10-05T10:00:00.000Z");
+  const LATE = new Date("2026-10-10T10:00:00.000Z");
+
+  function deleted(overrides: Partial<UserState> = {}): User {
+    return buildUser({ status: "deleted", ...overrides });
+  }
+
+  test("lists the deleted users with a requested reactivation, oldest request first", async () => {
+    const late = deleted({ reactivationStatus: "requested", reactivationRequestedAt: LATE });
+    const early = deleted({ reactivationStatus: "requested", reactivationRequestedAt: EARLY });
+    const never = deleted();
+    const denied = deleted({ reactivationStatus: "denied", reactivationRequestedAt: EARLY });
+    const approved = buildUser({ reactivationStatus: "requested" });
+    const userRepository = new FakeUserRepository([late, never, denied, approved, early]);
+
+    const found = await userRepository.findReactivationRequests();
+
+    expect(found.map((item) => item.id)).toEqual([early.id, late.id]);
+  });
+
+  test("breaks ties between equal request dates by id", async () => {
+    const first = deleted({ reactivationStatus: "requested", reactivationRequestedAt: EARLY });
+    const second = deleted({ reactivationStatus: "requested", reactivationRequestedAt: EARLY });
+    const userRepository = new FakeUserRepository([first, second]);
+
+    const found = await userRepository.findReactivationRequests();
+
+    expect(found.map((item) => item.id)).toEqual([first.id, second.id].sort());
+  });
+
+  test("writes only while the stored user is deleted with a requested reactivation", async () => {
+    const requested = deleted({ reactivationStatus: "requested", reactivationRequestedAt: EARLY });
+    const decided = deleted({ reactivationStatus: "denied" });
+    const userRepository = new FakeUserRepository([requested, decided]);
+
+    await expect(
+      userRepository.updateIfReactivationRequested(requested.clone({ status: "approved" })),
+    ).resolves.toBe(true);
+    await expect(
+      userRepository.updateIfReactivationRequested(decided.clone({ status: "approved" })),
+    ).resolves.toBe(false);
+    await expect(
+      userRepository.updateIfReactivationRequested(buildUser({ status: "approved" })),
+    ).resolves.toBe(false);
+    expect((await userRepository.findById(requested.id))?.status).toBe("approved");
+    expect((await userRepository.findById(decided.id))?.status).toBe("deleted");
+  });
+});

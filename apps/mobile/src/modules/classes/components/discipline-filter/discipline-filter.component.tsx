@@ -14,7 +14,13 @@ export function DisciplineFilter({ value, onChange }: DisciplineFilterProps) {
   return (
     // Its own provider measures this view, so on iOS the bottom inset includes the tab bar the screen extends under,
     // and its frame places the open options, drawn over the whole window, where the button is.
-    <SafeAreaProvider style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    // On Android the provider's native view ignores `pointerEvents`, so it would take every touch on the screen
+    // under it. A disabled view is never a touch target there, while its children still are: that makes it box-none.
+    <SafeAreaProvider
+      style={StyleSheet.absoluteFill}
+      pointerEvents="box-none"
+      accessibilityState={{ disabled: true }}
+    >
       <DisciplineFilterMenu value={value} onChange={onChange} />
     </SafeAreaProvider>
   );

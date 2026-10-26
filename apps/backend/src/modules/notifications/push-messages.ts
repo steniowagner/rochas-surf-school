@@ -113,6 +113,11 @@ const roleChanged =
       .join(' ');
   };
 
+const broadcastCopy: PushCopy = {
+  title: ({ title }) => text(title),
+  body: ({ message }) => text(message),
+};
+
 // The second user-facing text the backend writes (next to the sign-in email): a push is drawn by the OS, often with
 // the app closed, so its text travels in the payload. The admin's denial reason is shown as written, never translated.
 const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
@@ -536,6 +541,12 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
     'pt-BR': { title: 'Seu papel mudou', body: roleChanged('pt-BR') },
     es: { title: 'Tu rol cambió', body: roleChanged('es') },
     en: { title: 'Your role changed', body: roleChanged('en') },
+  },
+  // An admin's notice: its title and message are shown as written, in every locale.
+  broadcast: {
+    'pt-BR': broadcastCopy,
+    es: broadcastCopy,
+    en: broadcastCopy,
   },
 };
 

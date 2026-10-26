@@ -125,6 +125,36 @@ Authorization: Bearer {{accessToken}}
 POST {{baseUrl}}/notifications/read-all
 Authorization: Bearer {{accessToken}}
 
+### Count the recipients of a notice (admin only; expects 200 with { count }; audience is all, students or instructors)
+GET {{baseUrl}}/notifications/broadcast/recipients?audience=students
+Authorization: Bearer {{accessToken}}
+
+### Count with an unknown audience (expects 422 with broadcast.audience.in)
+GET {{baseUrl}}/notifications/broadcast/recipients?audience=everybody
+Authorization: Bearer {{accessToken}}
+
+### Send a notice (admin only; expects 204; title 1-60 and message 1-500 characters, shown as written)
+POST {{baseUrl}}/notifications/broadcast
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "audience": "students",
+  "title": "Aula cancelada",
+  "message": "Sem aula amanhã por causa do mar."
+}
+
+### Send a blank title (expects 422 with broadcast.title.required; a message over 500 characters answers broadcast.message.range.length)
+POST {{baseUrl}}/notifications/broadcast
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "audience": "all",
+  "title": "   ",
+  "message": "Mensagem"
+}
+
 ### List without a token (expects 401 auth.token.invalid)
 GET {{baseUrl}}/notifications
 

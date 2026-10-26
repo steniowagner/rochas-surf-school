@@ -62,7 +62,7 @@ export function CalendarMonthGrid({
                 {/* The dot's slot only exists when some day can have one, so the number stays centred otherwise. */}
                 {hasMarks ? (
                   <View
-                    className={`h-1 ${dotPlacement === "overlap" ? "-mt-1.5 mb-1.5" : ""}`}
+                    className={`h-1 ${dotPlacement === "overlap" ? "-mt-1.5 mb-1.5" : "mt-1"}`}
                   >
                     {day.marked ? (
                       <View

@@ -55,6 +55,7 @@ describe("CalendarMonthGrid dot placement", () => {
     );
 
     expect(slotOf("2026-10-14").props.className).not.toContain("-mt-1.5");
+    expect(slotOf("2026-10-14").props.className).toContain("mt-1");
   });
 });
 

@@ -2,10 +2,11 @@
 id: "064"
 slug: admin-reactivation-decisions
 title: Admins decide reactivation requests
-status: in-review
+status: accepted
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 937e2c4b34a797ff91f2122128e7963fd40e97cc
+reviewed_commit: 84d1c5a782a202e2c31e914bda46e5f25d203bc6
 fronts: [notifications, auth, backend, mobile]
 depends_on: []
 ---
@@ -439,3 +440,84 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-26 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --concurrency=1` for auth, notifications,
+  backend and mobile: 27/27 tasks; backend lint has one new warning, see Notes)
+- related tests ✅ RELATED TESTS PASSED — backend 455 in 28 files; mobile, auth, notifications and the regression
+  workspaces 1765 + 577 + 365 + 292 + 183 + 113
+- coverage of the changed lines ✅ COVERAGE OK — 33 files measured, 100% statements/branches/functions; 2 files with
+  no executable lines, 3 type-only, 6 excluded by the technical context; no coverage-ignore comments in the diff
+- e2e: backend suite ✅ E2E PASSED — 27 files / 736 tests on a fresh temporary database (`review_064`, migrations
+  applied, dropped afterwards), since the dev database keeps the leftover classes that break 3 `classes` "suggestions"
+  cases (as T-09 says) · user journeys on the iOS simulator ✅ (iPhone 18 Pro, iOS 27, pt-BR, this branch's Metro and
+  backend build, dev Postgres) with three temporary deleted accounts that asked to come back (one with an approved
+  seat in an ended class), removed afterwards
+
+**Expected Results**
+
+- ER-01 ✅ — the e2e "lists" cases assert the order [B, A], the item shape with ISO dates, A's 2 classes, the seats
+  withdrawn / cancelled / taken out / pending, the cancelled class, the future class and the later take-out not
+  counted, ties by id and `items: []`; the use-case test covers the counter's ids and the empty list.
+- ER-02 ✅ — e2e "approves": 200 `{ id, decision: "approved" }`, `/auth/me` approved instructor with name and WhatsApp
+  unchanged and `reactivationStatus: null`, the cancelled seat stays cancelled, gone from the list, and the account can
+  delete itself and ask again. On the simulator the approved instructor signed in to the instructor home.
+- ER-03 ✅ — e2e "denies": trimmed `"Turmas cheias."`, no body / `{}` / `null` / blank → no reason, a non-string → 422
+  `reactivation.reason.invalid`, 501 characters → 422 `user.denialReason` with nothing changed, then 409
+  `user.reactivation.denied` on a new request.
+- ER-04 ✅ — e2e "refuses": 403 `user.role.notAdmin` for student and instructor, 403 `user.status.notApproved` for a
+  pending admin, 401 without a token, 404 `reactivation.notFound` for an unknown id and `abc`, 409
+  `reactivation.status.notRequested` for approved / removed / deleted-without-request / denied, with nothing stored or
+  pushed; the approve/deny race by two admins leaves one 200, one 409 and only the winner's state.
+- ER-05 ✅ — e2e "notifies" asserts the stored `reactivation.requested` with `{ name, userId }` for both approved
+  admins and not the pending one, the pt-BR text, nothing on a repeat or after a denial, `reactivation.approved` and
+  `reactivation.denied` (reason as body, "Open the app to learn more." in en), nothing for the deciding admin, and the
+  200 kept when the push fails; `push-messages.spec.ts` and `notifications.reactivation-notifier.spec.ts` cover the
+  three languages and the swallowed errors.
+- ER-06 ✅ — `register-push-token.usecase.test.ts` accepts `deleted` and refuses `denied` / `removed` with 403;
+  the e2e case registers a deleted account's token and a later approval is pushed to it.
+- ER-07 ✅ — the screen test covers the row after "Entrar na escola", count, badge, opening the tool, "Nothing
+  pending", and no subtitle or badge while loading and after an error. On the simulator: "Reativar contas · 3
+  esperando" with a badge 3, then "1 esperando" after two decisions, then "Nada pendente" with no badge.
+- ER-08 ✅ — the tool's screen, hook and data-layer tests cover the intro, the cards, the skeleton, the error with
+  retry, "No requests", pull to refresh, the singular, approve and deny (with and without a reason), the double tap,
+  the 409 toast + reload, the no-connection toast keeping the card and the person sheet without WhatsApp. On the
+  simulator: "3 esperando resposta", cards oldest first with "Excluída em 12 de out. de 2026 · 1 aula" and "… · 0
+  aulas", the person sheet with name, "Instrutor" and email only, "Reativar" removed a card, "Recusar" opened "Recusar
+  reativação?" with the 0/500 counter and "Recusar e avisar" removed the other card (the database shows the
+  decisions).
+- ER-09 ✅ — the screen test covers the reason as written, no note for `null` / `""` / blank, and none in the other
+  states. On the simulator the denied account showed "Pedido recusado" and "Mensagem da equipe" with the stored
+  reason exactly as written.
+- ER-10 ✅ — the notifications tests cover the reload of `["reactivation-requests"]`, the account refresh for
+  approved / denied, the targets (the tool for admins, `null` otherwise), the three icons, and push registration for
+  deleted vs denied / removed. On the simulator the reactivated account's notifications list showed "Conta
+  reativada" / "Você já pode voltar a usar o app." with the green check icon. Real pushes on a physical phone were not
+  checked (the simulator has no push token).
+
+**Findings**
+
+None.
+
+**Notes**
+
+- D-01 to D-11 are honored: the checks run in D-07's order, the reason is validated after the target, the guarded
+  write is one conditional `updateMany`, approval clears `deletedAt` and both reactivation fields, and
+  `RequestReactivation` notifies only when it records the request.
+- `## Memory Impact` leaves out `technical-context.md`, which `spec-finish` should also update: Push notifications
+  still says only `pending` / `approved` register a token, its `renderInApp` exceptions don't list
+  `reactivation.denied`, and its list of notifier ports doesn't name `ReactivationNotifier`.
+- T-09 asked for a deterministic race; the e2e case runs both decisions with `Promise.all`, so it may not always reach
+  the guarded write. The `false` path is covered by `user.prisma.spec.ts` and the use-case tests, and both outcomes are
+  asserted, so the test can't be flaky.
+- The new e2e line 428 (`.sort()` without a comparator) adds a `require-array-sort-compare` lint warning, the same
+  pattern as `classes.e2e-spec.ts`.
+- Prettier reformatted lines in the three i18n message files that this spec doesn't otherwise touch (formatting only).
+- In T-08 the evidence was inserted inside its "Done when" sentence (the `check-types` part follows the evidence).
+- The date helper adds `timeZone: "America/Fortaleza"` to D-09's options, the project's display zone; the loading state
+  reuses `RegistrationsSkeleton`, so its accessible label is the registrations' text.
+- The backend that was on port 4000 (an older `dist/main`) was replaced, with the user's OK, by this branch's build to
+  run the journeys.

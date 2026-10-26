@@ -3,7 +3,7 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: in-review
+status: in-progress
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
@@ -62,6 +62,8 @@ and stacked fields are hard to use.
 | D-06 | On Android, a tap on a labelled place (`onPoiClick`, Google Maps only) selects it through `useAddressPlace` with the screen's session token, like a suggestion. On iOS (Apple Maps reports no place taps) every tap is a point tap. | react-native-maps exposes place taps only on Google Maps. |
 | D-07 | "My location" asks for the foreground permission only when tapped. Granted: the map centres on the device (`MAP_DELTA` span) and shows the user dot; the pin doesn't move. Denied: a toast, and nothing else changes. | An admin often plans a beach from somewhere else; asking at open is intrusive. |
 | D-08 | The bottom panel is fixed (not draggable) and rises with the keyboard; with no point yet there is no pin and the card shows the empty hint. "Cancelar" and the back button both leave without saving. | Matches the design; the map takes the drags. |
+| D-09 | A picked suggestion or labelled place centres the map and zooms in on it (`PREVIEW_DELTA`, about a kilometre); a tap on the map still moves nothing. | The user's follow-up: the admin should see the place up close, not the whole city. |
+| D-10 | The search field has no shadow; the panel's actions are stacked ("Salvar local" / "Salvar", then "Cancelar", then "Remover local") and the panel sits flush with the bottom of the screen (rounded top corners, the home-indicator inset inside it). | The user's follow-up after trying it: the shadow drew a box around the field, the side-by-side actions were cramped, and the map showed in a gap under the panel. |
 
 ## Expected Results
 
@@ -267,6 +269,19 @@ and stacked fields are hard to use.
   > `activeLocations` (only the sheet used it) left the edit hook's return. Note: five existing new-class tests log
   > React Query act() warnings, on the base commit too
 
+- [ ] **T-08** — Zoom in on a picked suggestion or labelled place (D-09): `selectPlace` in
+  `location-form.screen.hook.ts` animates to `regionAround(place.point, PREVIEW_DELTA)`. Update the screen's tests.
+  Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
+  Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx` passes.
+- [ ] **T-09** — Drop the search field's shadow in `components/location-search-header/` (D-10). Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/components/location-search-header` passes.
+- [ ] **T-10** — Stack the panel's actions and pin the panel to the bottom (D-10) in `location-form.screen.tsx`:
+  primary first, then "Cancelar", then "Remover local"; rounded top corners only, the bottom inset as the panel's own
+  padding. Update the screen's tests. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  (added during execution)
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx` passes.
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then run the user
@@ -319,6 +334,9 @@ and stacked fields are hard to use.
   > no source build); the old iOS build installed on the simulator reaches the new route and stops on "Cannot find native
   > module 'ExpoLocation'", as expected of a build without the module. On iOS, still to check by hand once a build is
   > possible: the search, a map tap with Apple's reverse geocoding, "my location" (allow and deny) and edit/remove.
+- [ ] **T-11** — Rerun the Verification Plan and, on the Android emulator, check the zoom on a picked place, the
+  field without shadow and the stacked, bottom-flush panel (D-09, D-10). (added during execution)
+  Covers: all · Done when: every command exits 0 and the screen behaves as D-09 and D-10 say.
 
 ## Verification Plan
 
@@ -340,5 +358,10 @@ and stacked fields are hard to use.
   place taps exist only on Google Maps (Android).
 
 ## Amendments
+
+- 2026-10-26 — after trying the screen on Android, the user asked for four follow-ups (approved in chat): zoom in on a
+  picked place (D-09, before: the map was only centred, keeping its span); no shadow around the search field; stacked
+  actions instead of side by side; the panel flush with the bottom of the screen instead of floating over a gap
+  (D-10). Tasks T-08 to T-11 added; no Expected Result changes.
 
 ## Review

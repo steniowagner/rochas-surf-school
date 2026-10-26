@@ -99,10 +99,16 @@ Listed in the order people meet them.
   pre-approved account per role for App Store and Google Play reviewers, each with a fixed code that works only
   for its own email; no email is sent to them, and the waiting time and the lock apply to them too.
 - **Reactivation request** (`reactivation-request`): a deleted user's request, sent from the "Account deleted"
-  screen during the 30 days, to get the account back. One per account: `requested` → `approved` | `denied` by
-  an admin. Admins are notified of each one and see the name, email, deletion date and number of classes
-  taken; the person is notified of the decision. After a denial the screen only offers signing in with another
-  email. Removed users can't send one.
+  screen during the 30 days, to get the account back. One per deletion: `requested` → `approved` | `denied` by
+  an approved admin in "Reactivate accounts". Admins are notified of each one and see the name, email, deletion
+  date and number of classes taken (the classes that ended, weren't cancelled and kept an approved seat for the
+  account — 0 for an instructor or admin who never held a seat); the person is notified of the decision by a push,
+  which a deleted account can receive. Approving brings the account back as `approved` with its role, name, WhatsApp
+  number, rules acceptances and history, and clears the request, so a reactivated account that deletes itself again
+  can ask again. Denying keeps the account deleted, with an optional reason (up to 500 characters) the person reads
+  as "Mensagem da equipe" on the Account deleted screen; a denial is final, and the screen then only offers signing
+  in with another email. Removed users can't send one. As built, the 30-day window isn't checked: a request stays
+  listed and decidable whatever the deletion date.
 - **School rules** (`school-rules`): the rules every user accepts at onboarding (and again on the "Regras
   atualizadas" screen after a change), written by admins — an
   ordered list of rules, each with a title (up to 60 characters) and an explanation (up to 300), shown in the
@@ -321,7 +327,7 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   mistakes go to the system administrators (the developers), who fix them outside the app.
 - **There is always at least one admin**: the only admin can't be demoted or removed and must make someone
   else an admin before deleting their own account.
-- **Deleting and removing are different**: a user who deletes their account can ask once for reactivation; a
+- **Deleting and removing are different**: a user who deletes their account can ask once per deletion for reactivation; a
   user removed by an admin can't, and only an admin can restore them. Both are erased after 30 days.
 - **Erasure keeps the school's history without the person**: personal data and comments go, star ratings stay
   without a name, and the person appears as "Former student" or "Former instructor". This satisfies LGPD and
@@ -392,7 +398,8 @@ The source documents use some words loosely; in specs and code use the concept n
 - **Comment** — the optional text of a rating, or an instructor comment; "delete any comment" covers both.
 - **Admin tools** — "Join the school" (registrations), "Class enrolments" (enrolments), "Reactivate accounts"
   (reactivation requests): each shows a card per pending item with Deny and Approve (a decided card just leaves
-  the list), and a sheet for the denial reason; on "Join the school" a tap on the card opens the person's sheet.
+  the list), and a sheet for the denial reason; on "Join the school" and "Reactivate accounts" a tap on the card
+  opens the person's sheet.
 
 ## Current state
 
@@ -493,8 +500,8 @@ backend now also carries the reason a registration was denied (or nothing, when 
 whether the account's reactivation request was sent or denied, whatever the account's status. A deleted
 account, of any role, sends its one reactivation request through the backend, which records when it was sent;
 sending it again changes nothing, after a denial it is refused, and an account that isn't deleted can't send
-one. Admins aren't notified of a request and can't decide it yet, and the 30-day window isn't checked when a
-request is sent. The app sends it from the Account deleted screen (spec 016).
+one. The 30-day window isn't checked when a request is sent. The app sends it from the Account deleted screen
+(spec 016); admins are notified of it and decide it since spec 064.
 
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
@@ -1167,6 +1174,24 @@ the notice as a notification — on the notifications screen with a megaphone ic
 and message as written, in every language; tapping it marks it read and shows the home. All copy is in pt-BR,
 es-ES and en-US.
 
+**Admins decide reactivation requests** (spec `064-admin-reactivation-decisions`) — when a deleted account sends its
+request, every approved admin is notified ("Pedido de reativação" / "Ana Souza quer voltar para a escola."); a
+repeated request, or one refused after a denial, notifies nobody. The admin home's "Ferramentas" section gains
+"Reativar contas", right after "Entrar na escola", with "N esperando" and a badge, or "Nada pendente". The tool is
+built like "Entrar na escola": an intro ("N esperando resposta", what reactivating restores) whose title collapses into
+the header, a card per request, oldest request first, with the name, the email and "Excluída em 12 de out. de 2026 ·
+8 aulas", and "Recusar" and "Reativar"; a loading skeleton, an error with "Tentar novamente", "Nenhum pedido" and
+pull-to-refresh. Tapping a card opens the person's sheet with the name, the role and the email (no WhatsApp number).
+"Reativar" brings the account back with its role and history (not the seats, requests or class assignments cancelled
+at deletion); "Recusar" opens "Recusar reativação?" with an optional reason, and "Recusar e avisar" keeps the account
+deleted. A decided card leaves the list; a request already decided by another admin is refused, and the app says
+"Este pedido já foi decidido." and reloads the list. The person is told by a push — "Conta reativada" / "Você já pode
+voltar a usar o app.", or "Reativação recusada" with the reason (or "Abra o app para saber mais.") — since a deleted
+account now registers its phone for pushes; with the app open, the account reloads and moves to its role's home (or
+"Regras atualizadas") or to the denied state, which now shows the reason in a "Mensagem da equipe" card. An admin's
+open app reloads the requests when one arrives, and tapping that notification opens the tool. All copy is in pt-BR,
+es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1204,7 +1229,11 @@ Active specs: none.
 - On notices (spec 063): a history of the notices sent, a screen of its own for a notice, editing or deleting one
   once sent, and choosing people one by one (an audience is a whole role, or everyone).
 - Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
-  "Former instructor" handling): spec 021 erases only denied registrations, and spec 045 guest data.
+  "Former instructor" handling): spec 021 erases only denied registrations, and spec 045 guest data. With it, the
+  30-day reactivation window (spec 064 lists and decides a request whatever the deletion date).
+- On "Reativar contas" (spec 064): showing a deleted person's WhatsApp number, photo or class list in the tool,
+  telling the other admins when a request is decided, and changing the copy of the Account deleted screen's "not
+  requested" and "requested" states.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy, and a light/dark

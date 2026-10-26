@@ -2,13 +2,14 @@
 id: "064"
 slug: admin-reactivation-decisions
 title: Admins decide reactivation requests
-status: accepted
+status: finished
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 937e2c4b34a797ff91f2122128e7963fd40e97cc
 reviewed_commit: 84d1c5a782a202e2c31e914bda46e5f25d203bc6
 fronts: [notifications, auth, backend, mobile]
 depends_on: []
+finished: 2026-10-26
 ---
 
 # 064 — Admins decide reactivation requests

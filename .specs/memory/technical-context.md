@@ -1819,7 +1819,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   enhanced push security).
 - Tokens (`push_tokens`, key `token`, one row per device, many per user): `PUT /notifications/push-token`
   (protected, body `{ token, locale }`, 204) upserts the token for the caller with its locale, moving a token
-  another account held. Order: status not `pending` / `approved` → 403 `pushToken.status.notAllowed`; then
+  another account held. Order: status not `pending` / `approved` / `deleted` (a deleted account hears its reactivation decision, spec 064) → 403 `pushToken.status.notAllowed`; then
   `token` not matching `^Expo(nent)?PushToken\[[^\]]+\]$` → 422 `pushToken.token.invalid` and `locale` not
   `pt-BR` / `es` / `en` → 422 `pushToken.locale.invalid`, listed together. A token is deleted on sign-out (see
   Authentication), when its phone turns pushes off — `DELETE /notifications/push-token` (`UnregisterPushToken`,
@@ -1839,14 +1839,17 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   a UUID, is unknown or someone else's → 404 `notification.notFound`). Marks use the clock and set `read_at` only
   while it is null (`PrismaNotificationRepository.markRead`: one conditional `updateMany`, then an existence
   count), so a repeat keeps the first time. `renderInApp` is `renderPush` except where a catalog entry has an
-  `inAppBody` (`class.edited` without "open the app", `registration.denied` with the reason or `""`).
+  `inAppBody` (`class.edited` without "open the app", `registration.denied` and `reactivation.denied` with the reason or `""`).
 - Tickets and receipts: every `ok` ticket is stored in `push_tickets` (`id` = Expo ticket id, `token`, no foreign
   key); `PushReceiptCheckJob` runs `CheckPushReceipts` every minute — tickets 15 minutes old or more are asked
   about (`getPushNotificationReceiptsAsync` in chunks of up to 1000 ids), the token of each `DeviceNotRegistered`
   receipt is deleted and every asked ticket is deleted, receipt found or not; tickets older than 24 hours are
   deleted without asking.
 - Other modules notify through their own ports, each with an adapter in `apps/backend/src/modules/notifications/`
-  that runs `Notify` and logs and swallows every error: `RegistrationNotifier` (auth), `ClassAssignmentNotifier`
+  that runs `Notify` and logs and swallows every error: `RegistrationNotifier` (auth), `ReactivationNotifier` (auth,
+  `NotificationsReactivationNotifier`, spec 064: `reactivationRequested` → `reactivation.requested` with `{ name, userId }`
+  to the approved admins through `NotifyApprovedAdmins`, which takes the type; `reactivationApproved` →
+  `reactivation.approved`; `reactivationDenied` → `reactivation.denied` with `{ reason? }`, both to the person), `ClassAssignmentNotifier`
   (classes, `NotificationsClassAssignmentNotifier`: `classAssigned` → `class.assigned` with `{ count, discipline }`,
   spec 028; `classUnassigned` → `class.unassigned` with `{ classId, discipline, startsAt }`, spec 032) and
   `ClassChangeNotifier` (classes, `NotificationsClassChangeNotifier`: `classEdited` → `class.edited` with

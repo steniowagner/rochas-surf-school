@@ -185,6 +185,7 @@ describe("ManageSchoolRulesScreen — state", () => {
 
     expect(screen.getByLabelText("Loading the rules")).toBeOnTheScreen();
     expect(screen.getByTestId("school-rules-loading")).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "School rules" })).not.toBeOnTheScreen();
     expect(bottomAddButton()).not.toBeOnTheScreen();
   });
 
@@ -195,6 +196,7 @@ describe("ManageSchoolRulesScreen — state", () => {
 
     expect(await screen.findByText("Couldn't load the rules")).toBeOnTheScreen();
     expect(screen.getByText("Check your connection and try again.")).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "School rules" })).not.toBeOnTheScreen();
     expect(bottomAddButton()).not.toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Try again" }));
@@ -212,6 +214,7 @@ describe("ManageSchoolRulesScreen — state", () => {
     const user = await open();
 
     expect(await screen.findByText("No rules yet")).toBeOnTheScreen();
+    expect(screen.queryByRole("header", { name: "School rules" })).not.toBeOnTheScreen();
     expect(
       screen.getByText("Add the first rule. Students read and accept the rules before using the app."),
     ).toBeOnTheScreen();

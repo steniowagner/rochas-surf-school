@@ -114,6 +114,19 @@ jest.mock("react-native-maps", () => {
   };
 });
 
+// The device's location isn't available under Jest: permission granted, a position in Fortaleza and no address by
+// default; tests drive these `jest.fn`s directly (denied, a failed read, a reverse-geocoded address).
+jest.mock("expo-location", () => ({
+  Accuracy: { Balanced: 3 },
+  requestForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ status: "granted", granted: true }),
+  getCurrentPositionAsync: jest.fn().mockResolvedValue({
+    coords: { latitude: -3.7319, longitude: -38.5267 },
+  }),
+  reverseGeocodeAsync: jest.fn().mockResolvedValue([]),
+}));
+
 jest.mock("expo-device", () => ({ isDevice: true }));
 
 jest.mock("expo-constants", () => ({

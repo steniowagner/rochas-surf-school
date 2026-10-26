@@ -109,12 +109,17 @@ and stacked fields are hard to use.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Install `expo-location` (`npx expo install expo-location`), add its config plugin to `app.json`
+- [x] **T-01** — Install `expo-location` (`npx expo install expo-location`), add its config plugin to `app.json`
   with `locationWhenInUsePermission` ("Rocha's Surf School uses your location to centre the map when you add a
   class location."), and mock it in `jest.setup.ts` (`requestForegroundPermissionsAsync`,
   `getCurrentPositionAsync`, `reverseGeocodeAsync`). Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `npx expo config --type public` lists the plugin and `npm test` passes.
+  > ✅ 2026-10-26 — installed `expo-location` ~57.0.22 with `npx expo install`, added its config plugin to `app.json`
+  > with the `locationWhenInUsePermission` text, and mocked it in `jest.setup.ts` (permission granted, a Fortaleza
+  > position, no address by default); files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/app.json`,
+  > `apps/mobile/jest.setup.ts`; verified: `npx expo config --type public` lists `expo-location` with the text,
+  > `npm test` (297 suites, 3193 tests passed); deviations: none
 - [ ] **T-02** — `src/modules/classes/components/location-search-header/` (component, hook, types, index): the
   header search field (search icon, clear button, `addressSearchPlaceholder`) and the floating suggestions list
   (bold match, place icon, at most 6, hidden under 3 characters or after a pick), with tests for the cap, the hiding

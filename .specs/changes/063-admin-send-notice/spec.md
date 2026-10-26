@@ -3,10 +3,11 @@ id: "063"
 slug: admin-send-notice
 title: Admin sends a notice to everyone, students or instructors
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 880f04238a086ae12a8c3da0d79e5f95865d0819
+reviewed_commit: f75ec0f62db6bfeebac675c45ed160fa2cf55a1d
 fronts: [backend, mobile]
 depends_on: []
 ---
@@ -141,3 +142,29 @@ as written on their notifications screen and as a push. Design: PAINEL-07 and PA
 - The success toast "Aviso enviado" uses the app's only toast style (red, with an alert icon), like the existing success toasts (`newClass.created`, `cancelClass.done`). A success variant of `AlertMessage` would be a change of its own.
 - The review left notices in the local dev database: 7 (instructors) and 30 ("Todos") `broadcast` rows titled "Review review 063 test notice…" and "Review 063 to all".
 - `## Memory Impact` matches what was built.
+
+### Round 2 — 2026-10-26 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --concurrency=1` on backend and mobile: 27/27 tasks)
+- related tests ✅ apps/backend, apps/mobile (31 changed files), modules/notifications and apps/web (imports the design tokens) (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (22 files); no coverage-ignore comments in the diff
+- e2e ✅ on a fresh, migrated scratch database: backend 713 passed (26 files) · web Playwright 22 passed (`E2E PASSED`)
+- no backend or `modules/` change since round 1 (`git diff 0aba6cfc..HEAD -- apps/backend modules` is empty), so round 1's HTTP checks of ER-01 still hold
+- iOS simulator (iPhone 18 Pro, pt-BR, dev backend): the changed confirm sheet and the counts read once per visit (D-06), as below
+
+**Expected Results**
+
+- ER-01 ✅ — use case and controller specs green; the backend is unchanged since round 1's HTTP checks
+- ER-02 ✅ — on the open screen, switching Instrutores → Alunos shows 7 → 19 at once, with no loading line and Send still enabled (D-06); Send opens the sheet "Enviar a 19 pessoas?", "Todos os alunos recebem uma notificação…", the preview card with the title in bold and the message under it, "Sim, enviar" without an icon and the ghost "Voltar e editar", which closes the sheet and keeps the text. The new counts hook tests cover one read per audience, no refetch on foreground, a new read on the next visit and a failed count without retry. The confirm → send → toast path is unchanged except for the button label; `send-notice.screen.test.tsx` covers it and the failed-send case, and it was not sent again by hand
+- ER-03 ✅ — no change since round 1; `src/modules/notifications` tests green
+
+**Findings**
+
+- none. F-01 from round 1 is fixed: the screen's relative imports are one group sorted by path
+
+**Notes**
+
+- The three new typography tokens (`sheetDescription`, `previewTitle`, `previewBody`) are not listed in `## Memory Impact`. If the technical context lists the design system's type styles, `spec-finish` should add them there
+- Round 1's notes still apply: the shared `TextInput` wraps a long single-line value once it loses focus, and the success toast uses the app's only (alert) style

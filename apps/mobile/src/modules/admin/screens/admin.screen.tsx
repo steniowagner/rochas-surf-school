@@ -1,12 +1,9 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
-import { useTheme } from "@/hooks/use-theme";
 import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-classes-entry-row";
 import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
@@ -14,6 +11,7 @@ import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
 
+import { AdminToolRow } from "../components/admin-tool-row";
 import { useRegistrations } from "../hooks/use-registrations.hook";
 
 const openRegistrations = () => router.push(routes.admin.registrations);
@@ -29,15 +27,13 @@ const openSchoolRules = () => router.push(routes.admin.manageSchoolRules);
 
 export function AdminScreen() {
   const { t } = useTranslation();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const headerInset = useHeaderInset();
   const { data } = useRegistrations();
   const { data: pendingRequests } = usePendingRequests();
 
-  // The count shows once loaded (zero included); while loading or after an error the row has none.
-  const count = data?.items.length;
-  // The requests' row shows its count only while some are waiting.
+  // The counts show once loaded; while loading or after an error the rows have none.
+  const registrationsCount = data?.items.length;
   const requestsCount = pendingRequests?.total;
 
   return (
@@ -53,110 +49,95 @@ export function AdminScreen() {
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >
-      <ScreenIntro
-        icon={
-          <MaterialCommunityIcons
-            name="toolbox-outline"
-            size={30}
-            color={theme.grape}
-          />
-        }
-        title={t("admin.home.title")}
-        description={null}
-      />
       <View className="gap-2">
-        <Text className="ds-text-section-label text-ink-2">
+        <Text
+          accessibilityRole="header"
+          className="ds-text-section-label text-ink-2"
+        >
           {t("admin.home.toolsSection")}
         </Text>
-        <View className="rounded-card border border-line bg-surface px-4">
-          <Pressable
-            accessibilityRole="button"
+        <View className="overflow-hidden rounded-card border border-line bg-surface">
+          <AdminToolRow
+            grouped="first"
+            icon="account-plus-outline"
+            title={t("admin.home.registrationsRow")}
+            subtitle={
+              registrationsCount === undefined
+                ? undefined
+                : registrationsCount
+                  ? t("admin.home.waiting", { count: registrationsCount })
+                  : t("admin.home.nothingPending")
+            }
+            badge={registrationsCount}
             onPress={openRegistrations}
-            className="min-h-11 flex-row items-center gap-3 py-3"
-          >
-            <Text className="ds-text-list-title flex-1 text-ink">
-              {t("admin.home.registrationsRow")}
-            </Text>
-            {count !== undefined ? (
-              <Text className="ds-text-list-subtitle text-ink-2">
-                {t("admin.home.waiting", { count })}
-              </Text>
-            ) : null}
-            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="calendar-month-outline"
+            title={t("admin.home.classRequestsRow")}
+            subtitle={
+              requestsCount === undefined
+                ? undefined
+                : requestsCount
+                  ? t("admin.home.classRequestsCount", {
+                      count: requestsCount,
+                    })
+                  : t("admin.home.nothingPending")
+            }
+            badge={requestsCount}
             onPress={openClassRequests}
-            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
-          >
-            <Text className="ds-text-list-title flex-1 text-ink">
-              {t("admin.home.classRequestsRow")}
-            </Text>
-            {requestsCount ? (
-              <Text className="ds-text-list-subtitle text-ink-2">
-                {t("admin.home.classRequestsCount", { count: requestsCount })}
-              </Text>
-            ) : null}
-            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="account-check-outline"
+            title={t("admin.home.enrolStudentRow")}
+            subtitle={t("admin.home.enrolStudentSubtitle")}
             onPress={openEnrolStudent}
-            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
-          >
-            <Text className="ds-text-list-title flex-1 text-ink">
-              {t("admin.home.enrolStudentRow")}
-            </Text>
-            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="plus-circle-outline"
+            title={t("admin.home.newClassRow")}
             onPress={openNewClass}
-            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
-          >
-            <Text className="ds-text-list-title flex-1 text-ink">
-              {t("admin.home.newClassRow")}
-            </Text>
-            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("admin.home.cancellationRulesRow")}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="calendar-remove-outline"
+            title={t("admin.home.cancellationRulesRow")}
+            subtitle={t("admin.home.cancellationRulesSubtitle")}
             onPress={openCancellationRules}
-            className="min-h-11 flex-row items-center gap-3 border-t border-line py-3"
-          >
-            <View className="flex-1">
-              <Text className="ds-text-list-title text-ink">
-                {t("admin.home.cancellationRulesRow")}
-              </Text>
-              <Text className="ds-text-list-subtitle text-ink-2">
-                {t("admin.home.cancellationRulesSubtitle")}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
-          </Pressable>
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="tune-variant"
+            title={t("admin.home.schoolSettingsRow")}
+            onPress={openSchoolSettings}
+          />
         </View>
       </View>
       <View className="gap-2">
-        <Text className="ds-text-section-label text-ink-2">
+        <Text
+          accessibilityRole="header"
+          className="ds-text-section-label text-ink-2"
+        >
           {t("admin.home.schoolSection")}
         </Text>
-        <TeachingClassesEntryRow role="admin" onPress={openMyClasses} />
-        <SchoolRulesEntryRow role="admin" onPress={openSchoolRules} />
-        <PeopleEntryRow onPress={openPeople} />
-        <WeeklyOccupancyEntryRow onPress={openWeeklyOccupancy} />
-        <View className="rounded-card border border-line bg-surface px-4">
-          <Pressable
-            accessibilityRole="button"
-            onPress={openSchoolSettings}
-            className="min-h-11 flex-row items-center gap-3 py-3"
-          >
-            <Ionicons name="settings-outline" size={20} color={theme.lagoon} />
-            <Text className="ds-text-list-title flex-1 text-ink">
-              {t("admin.home.schoolSettingsRow")}
-            </Text>
-            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
-          </Pressable>
+        <View className="overflow-hidden rounded-card border border-line bg-surface">
+          <TeachingClassesEntryRow
+            role="admin"
+            grouped="first"
+            onPress={openMyClasses}
+          />
+          <SchoolRulesEntryRow
+            role="admin"
+            grouped="next"
+            onPress={openSchoolRules}
+          />
+          <PeopleEntryRow grouped="next" onPress={openPeople} />
+          <WeeklyOccupancyEntryRow
+            grouped="next"
+            onPress={openWeeklyOccupancy}
+          />
         </View>
       </View>
     </ScrollView>

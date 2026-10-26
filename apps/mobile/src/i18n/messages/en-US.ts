@@ -188,7 +188,6 @@ const messages = {
     home: {
       toolsSection: "Tools",
       schoolSection: "School",
-      title: "School tools",
       registrationsRow: "Join the school",
       classRequestsRow: "Class enrolments",
       enrolStudentRow: "Enrol a student",
@@ -199,6 +198,8 @@ const messages = {
       cancellationRulesSubtitle: "One for surf, one for skate",
       schoolSettingsRow: "School settings",
       waiting: "{{count}} waiting",
+      nothingPending: "Nothing pending",
+      enrolStudentSubtitle: "Students from the school or trial classes",
     },
   },
   home: {

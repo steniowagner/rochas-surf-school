@@ -2,7 +2,7 @@
 id: "062"
 slug: teaching-class-history
 title: "\"Aulas anteriores\" for instructors and admins who teach"
-status: in-progress
+status: in-review
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 7e24beb4104034a849e151dfcbde4d9699207649
@@ -394,10 +394,30 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > theme, the sport filter, the student's history ("Dias em que você fez aula") and the `.http` requests with a
   > token.
 
-- [ ] **T-11** (added by amendment) — Rerun every command in the Verification Plan from the repo root (the e2e suite
+- [x] **T-11** (added by amendment) — Rerun every command in the Verification Plan from the repo root (the e2e suite
   on a database without the sample seed's classes, as in F-05) and follow every user journey, including the
   "Calendars" one, in the iOS simulator in light and dark; record what was seen. Covers: all · Done when: every
   command exits 0 and every journey shows what it says.
+  > ✅ 2026-10-26 — Automated (from the repo root): `run-related-tests.mjs 062` **RELATED TESTS PASSED** (backend,
+  > mobile 43 changed files, modules/classes, modules/enrolment); `check-coverage.mjs 062` **COVERAGE OK** (20 files
+  > measured, 3 excluded by technical-context); `npx turbo run lint check-types build` for classes, backend, mobile:
+  > 27 of 27 successful; `DATABASE_HOST=127.0.0.1 DATABASE_NAME=rochas_e2e_062 node .specs/scripts/run-e2e.mjs 062`
+  > **E2E PASSED** (26 files, 713 passed). Journeys (iOS simulator, iPhone 18 Pro, backend and Metro from this branch,
+  > the review accounts of `apps/backend/.env`; one ended September class added for `instructor@example.com` and
+  > removed afterwards): **Calendars** (Dev Admin, dark): Aulas tab month view, the dots below each day, the selected
+  > 25 included; weekly occupancy → "Choose another week": the dots tucked into the selected week's band; Enrol
+  > student's month view: below. **Instructor** (dark): Início → "My classes": intro (calendar icon, "The classes you
+  > will teach…"), the title collapses into the header on scroll, clock button on the right → "Past classes": intro
+  > (clock icon, "Every class you have already taught…"), October with a dot on each day taught and none on the 18th's
+  > five cancelled classes alone (its skate class keeps the dot), legend "Days you taught a class", newest first; tap
+  > 18 → only its skate class, chip "18 OCT", the dot below the selected circle; surf → the day's empty state; All →
+  > the class again; clear the chip → the month; previous month → September with its one class (15th, 08:00); week
+  > view → 14–20 Sep with the class; the card → its details; back → the history. **Light theme** (instructor): "My
+  > classes" and "Past classes" with their intros, calendar and legend legible. **Admin who teaches**
+  > (`admin@example.com`, light): "My classes" (intro, clock) → "Past classes": dots on 16, 22, 23, 24, "SAT, 24 OCT"
+  > first. **Student** (`dev@example.com`, light): "My classes" keeps its clock; "Past classes" (opened by deep link
+  > `/student/my-history`) has no intro, the plain header title, legend "Days you took a class", the dot below the 21st.
+  > Not run: the `.http` requests with a token (the e2e "history" cases cover the same requests); deviations: none
 
 ## Verification Plan
 
@@ -561,11 +581,14 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > `DATABASE_HOST=127.0.0.1 DATABASE_NAME=rochas_e2e_062 node .specs/scripts/run-e2e.mjs 062` → **E2E PASSED**
   > (26 files, 713 passed, including the 3 "suggestions" cases); deviations: none. The `rochas_e2e_062` database is
   > left in place (drop it with `dropdb` when no longer needed).
-- [ ] **F-06** (ER-03, ER-04, ER-05) — T-08 is checked though its Done when ("every journey shows what it says")
+- [x] **F-06** (ER-03, ER-04, ER-05) — T-08 is checked though its Done when ("every journey shows what it says")
   isn't met: its evidence lists as not run the instructor account, the sport filter, the light theme, the student's
   history ("Dias em que você fez aula") and the `.http` requests with a token; the intro (F-03) was never seen in
   the light theme. Expected: after F-01–F-04, follow the three journeys of the Verification Plan in the simulator, in
   light and dark, and record what was seen.
+  > ✅ 2026-10-26 — T-08 stays as committed; the amendment added T-11, which reran the Verification Plan and followed
+  > every journey (instructor, admin, student, the intro and the calendars) in light and dark: see T-11's evidence;
+  > files: `.specs/changes/062-teaching-class-history/spec.md`; deviations: none
 
 **Notes**
 

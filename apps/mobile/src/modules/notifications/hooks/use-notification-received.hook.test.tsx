@@ -297,6 +297,7 @@ describe("useNotificationReceived", () => {
     "enrolment.enrolled",
     "enrolment.takenOut",
     "role.changed",
+    "broadcast",
   ])("reloads the notifications list and the unread count when a %s push arrives", async (type) => {
     answerMe(account("pending"));
     await openApp(account("pending"));

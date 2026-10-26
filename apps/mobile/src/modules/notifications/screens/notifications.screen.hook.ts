@@ -73,6 +73,13 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
 
     if (notification.type === "role.changed" && user) {
       void openNewRoleHome();
+
+      return;
+    }
+
+    // A notice has no screen of its own (spec 063, D-05): the tap shows the current home.
+    if (notification.type === "broadcast") {
+      router.replace(routes.home);
     }
   };
 

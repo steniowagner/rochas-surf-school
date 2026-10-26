@@ -5,6 +5,10 @@ describe("notificationIcon", () => {
     expect(notificationIcon("role.changed")).toEqual({ name: "shield-checkmark-outline", tone: "info" });
   });
 
+  it("draws a broadcast with the megaphone on the info tone", () => {
+    expect(notificationIcon("broadcast")).toEqual({ name: "megaphone-outline", tone: "info" });
+  });
+
   it("keeps the glyph and tone of the other types", () => {
     expect(notificationIcon("registration.denied")).toEqual({ name: "close-circle-outline", tone: "bad" });
   });

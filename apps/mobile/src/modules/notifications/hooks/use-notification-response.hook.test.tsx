@@ -465,6 +465,15 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
   });
 
+  it("shows the current home when a broadcast push is tapped", async () => {
+    answerMe(account("approved", "student", true));
+    await openApp(account("approved", "student", true));
+
+    await tap(response("broadcast", "n1"));
+
+    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+  });
+
   it("goes home when a class.noInstructor push has no class id", async () => {
     answerMe(account("approved", "admin", true));
     await openApp(account("approved", "admin", true));

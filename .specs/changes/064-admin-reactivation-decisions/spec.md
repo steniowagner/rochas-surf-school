@@ -290,16 +290,18 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-01** — Add `reactivation.requested`, `reactivation.approved` and `reactivation.denied` to
+- [x] **T-01** — Add `reactivation.requested`, `reactivation.approved` and `reactivation.denied` to
   `NOTIFICATION_TYPES` in `src/notification/model/notification.entity.ts`, and give `NotifyApprovedAdmins`
   (`src/notification/usecase/notify-approved-admins.usecase.ts`) a `type` input (`"registration.pending"` |
   `"reactivation.requested"`, default `registration.pending`), with tests in
   `test/notification/usecase/notify-approved-admins.usecase.test.ts` and the entity test.
   Covers: ER-05 · Done when: `npx jest` passes in `modules/notifications`.
-- [ ] **T-02** — Let `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`) accept `deleted`
+  > ✅ 2026-10-26 — added the three types to `NOTIFICATION_TYPES` (the entity test's `it.each` covers them) and the optional `type` input to `NotifyApprovedAdmins`; files: `modules/notifications/src/notification/model/notification.entity.ts`, `modules/notifications/src/notification/usecase/notify-approved-admins.usecase.ts`, `modules/notifications/test/notification/usecase/notify-approved-admins.usecase.test.ts`; verified: `npx jest` in `modules/notifications` (17 suites, 183 passed); deviations: none
+- [x] **T-02** — Let `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`) accept `deleted`
   accounts (D-06), with tests in `test/push-token/usecase/register-push-token.usecase.test.ts` for deleted (accepted),
   denied and removed (403).
   Covers: ER-06 · Done when: `npx jest test/push-token/usecase/register-push-token.usecase.test.ts` passes.
+  > ✅ 2026-10-26 — `deleted` is now registrable; tests: deleted accepted, denied/removed/unknown refused; files: `modules/notifications/src/push-token/usecase/register-push-token.usecase.ts`, `modules/notifications/test/push-token/usecase/register-push-token.usecase.test.ts`; verified: `npx jest` in `modules/notifications` (183 passed); deviations: none
 
 ### Auth module (`modules/auth`)
 

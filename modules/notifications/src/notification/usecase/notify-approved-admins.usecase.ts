@@ -7,9 +7,11 @@ export interface NotifyApprovedAdminsIn {
   name: string;
   /** The id of that account, so its notifications can be found when it is erased. */
   userId: string;
+  /** What the admins are told; a new registration unless said otherwise. */
+  type?: "registration.pending" | "reactivation.requested";
 }
 
-/** Tells every approved admin that a new account is waiting. Nothing happens without admins. */
+/** Tells every approved admin that an account is waiting (a registration or a reactivation). Nothing happens without admins. */
 export class NotifyApprovedAdmins implements UseCase<NotifyApprovedAdminsIn, void> {
   constructor(
     private readonly recipientsProvider: RecipientsProvider,
@@ -24,7 +26,7 @@ export class NotifyApprovedAdmins implements UseCase<NotifyApprovedAdminsIn, voi
 
     await this.notify.execute({
       userIds,
-      type: "registration.pending",
+      type: input.type ?? "registration.pending",
       params: { name: input.name, userId: input.userId },
     });
   }

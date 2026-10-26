@@ -43,6 +43,16 @@ describe("NotifyApprovedAdmins", () => {
     expect(provider.sent[0].token).toBe("ExpoPushToken[a]");
   });
 
+  it("notifies every approved admin of a reactivation request when asked", async () => {
+    const { notifications, usecase } = setup([USER_A]);
+
+    await usecase.execute({ name: "Ana Souza", userId: "old-user", type: "reactivation.requested" });
+
+    expect(notifications.items.map((item) => [item.userId, item.type, item.params])).toEqual([
+      [USER_A, "reactivation.requested", { name: "Ana Souza", userId: "old-user" }],
+    ]);
+  });
+
   it("stores and sends nothing with no approved admin", async () => {
     const { notifications, provider, usecase } = setup([]);
 

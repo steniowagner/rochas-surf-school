@@ -356,12 +356,13 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-10** — Add the data layer in `src/modules/admin/`: `reactivations.types.ts`,
+- [x] **T-10** — Add the data layer in `src/modules/admin/`: `reactivations.types.ts`,
   `utils/reactivations-cache.ts` (`["reactivation-requests"]`, remove one item),
   `utils/reactivation-error.ts` (already decided → `reactivations.alreadyDecided`, the rest as
   `getRegistrationErrorKey`), and the hooks `use-reactivation-requests.hook.ts`, `use-approve-reactivation.hook.ts`,
   `use-deny-reactivation.hook.ts` (no retry; 409 invalidates the list), with tests.
   Covers: ER-08 · Done when: `npx jest src/modules/admin -t "reactivation"` passes.
+  > ✅ 2026-10-26 — added the data layer: types, cache helper (`["reactivation-requests"]`, remove one item), error helper (already decided → `reactivations.alreadyDecided`, the rest as `getRegistrationErrorKey`) and the hooks `useReactivationRequests`, `useApproveReactivation`, `useDenyReactivation` (no retry; 409 invalidates the list), with tests; files: `apps/mobile/src/modules/admin/reactivations.types.ts`, `apps/mobile/src/modules/admin/utils/{reactivations-cache,reactivation-error}.ts` (+ `.test.ts`), `apps/mobile/src/modules/admin/hooks/{use-reactivation-requests,use-approve-reactivation,use-deny-reactivation}.hook.ts`, `apps/mobile/src/modules/admin/hooks/{use-reactivation-requests,use-decide-reactivation}.hook.test.tsx`, `apps/mobile/src/modules/admin/registrations.test-utils.tsx` (added `CARLA` and `DAVI`); verified: `npx jest src/modules/admin -t "reactivation"` (4 suites, 19 passed), `npx tsc --noEmit` clean; deviations: none.
 - [ ] **T-11** — Add `src/modules/admin/screens/reactivations.screen.tsx` with `hooks/use-reactivations-screen.hook.ts`
   (D-09), the route `src/app/(private)/admin/reactivations.tsx`, `routes.admin.reactivations` in
   `src/constants/routes.ts`, and the `reactivations.*` copy in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, with

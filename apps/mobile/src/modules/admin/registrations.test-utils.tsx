@@ -54,3 +54,22 @@ export const setupSignedInAdmin = () => {
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 };
+
+export const CARLA = {
+  id: "c",
+  name: "Carla Dias",
+  email: "carla@x.com",
+  role: "student" as const,
+  deletedAt: "2026-10-01T10:00:00.000Z",
+  requestedAt: "2026-10-05T10:00:00.000Z",
+  classesTaken: 8,
+};
+export const DAVI = {
+  id: "d",
+  name: "Davi Reis",
+  email: "davi@x.com",
+  role: "instructor" as const,
+  deletedAt: "2026-10-02T10:00:00.000Z",
+  requestedAt: "2026-10-06T10:00:00.000Z",
+  classesTaken: 1,
+};

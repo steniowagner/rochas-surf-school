@@ -92,6 +92,7 @@ export const routes = {
     schoolRules: "/admin/school-rules",
     manageSchoolRules: "/admin/manage-school-rules",
     schoolSettings: "/admin/school-settings",
+    sendNotice: "/admin/send-notice",
     classDetail: (id: string): Href => ({
       pathname: "/admin/class/[id]",
       params: { id },

@@ -3,7 +3,7 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
@@ -378,9 +378,19 @@ and stacked fields are hard to use.
   > no source build); the old iOS build installed on the simulator reaches the new route and stops on "Cannot find native
   > module 'ExpoLocation'", as expected of a build without the module. On iOS, still to check by hand once a build is
   > possible: the search, a map tap with Apple's reverse geocoding, "my location" (allow and deny) and edit/remove.
-- [ ] **T-11** — Rerun the Verification Plan and, on the Android emulator, check the zoom on a picked place, the
+- [x] **T-11** — Rerun the Verification Plan and, on the Android emulator, check the zoom on a picked place, the
   field without shadow and the stacked, bottom-flush panel (D-09, D-10). (added during execution)
   Covers: all · Done when: every command exits 0 and the screen behaves as D-09 and D-10 say.
+  > ✅ 2026-10-26 — Verification Plan rerun: `node .specs/scripts/run-related-tests.mjs 065` → RELATED TESTS PASSED
+  > (apps/mobile: 112 suites, 1881 tests); `node .specs/scripts/check-coverage.mjs 065` → COVERAGE OK (every changed line
+  > covered in 18 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` → 8/8 tasks successful.
+  > On the Android emulator (`Pixel_Test`, Dev Admin), "New location": the search field has no box around it; the panel
+  > sits flush with the bottom of the screen (no map under it) with "Save location" over "Cancel" (and "Remove location"
+  > under them when editing, from T-10's tests); with the keyboard open the panel rides right on top of it; picking "Praia
+  > de Iracema" closes the keyboard and shows the place at street level, the pin centred between the header and the
+  > panel (D-09, D-10). The emulator's stylus handwriting was turned off (`settings put secure
+  > stylus_handwriting_enabled 0`) so the full on-screen keyboard shows instead of Gboard's floating stylus bar — a
+  > device setting, not part of the change; deviations: none
 
 ## Verification Plan
 

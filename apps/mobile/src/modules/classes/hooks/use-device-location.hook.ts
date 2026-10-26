@@ -30,8 +30,10 @@ export const useDeviceLocation = () => {
       }
 
       setGranted(true);
+      // No Google "Location Accuracy" prompt on Android: declining it left the read waiting forever.
       const { coords } = await getCurrentPositionAsync({
         accuracy: Accuracy.Balanced,
+        mayShowUserSettingsDialog: false,
       });
 
       return { latitude: coords.latitude, longitude: coords.longitude };

@@ -45,7 +45,10 @@ describe("useDeviceLocation", () => {
     });
 
     expect(mockRequest).toHaveBeenCalledTimes(1);
-    expect(mockPosition).toHaveBeenCalledWith({ accuracy: 3 });
+    expect(mockPosition).toHaveBeenCalledWith({
+      accuracy: 3,
+      mayShowUserSettingsDialog: false,
+    });
     expect(point).toEqual({ latitude: -3.75, longitude: -38.48 });
     expect(result.current.granted).toBe(true);
     expect(mockShow).not.toHaveBeenCalled();

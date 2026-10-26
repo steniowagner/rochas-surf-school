@@ -14,7 +14,10 @@ describe("reactivation errors", () => {
     [new NetworkError(), "createAccount.errors.noConnection"],
     [new SessionExpiredError(), null],
     [new ApiError(409, ["something.else"]), "createAccount.errors.generic"],
-    [new ApiError(404, ["reactivation.notFound"]), "createAccount.errors.generic"],
+    [
+      new ApiError(404, ["reactivation.notFound"]),
+      "createAccount.errors.generic",
+    ],
     [new Error("boom"), "createAccount.errors.generic"],
   ])("maps %p to %p", (error, key) => {
     expect(getReactivationErrorKey(error)).toBe(key);

@@ -207,6 +207,33 @@ const messages: Messages = {
   home: {
     peopleRow: "Pessoas",
   },
+  reactivations: {
+    title: "Reativar contas",
+    waiting: "{{count}} esperando resposta",
+    description:
+      "Contas excluídas que pediram para voltar. Reativar devolve a conta, o histórico e o papel, mas não as vagas canceladas. A pessoa recebe uma notificação push.",
+    details_one: "Excluída em {{date}} · {{count}} aula",
+    details_other: "Excluída em {{date}} · {{count}} aulas",
+    approve: "Reativar",
+    deny: "Recusar",
+    empty: {
+      title: "Nenhum pedido",
+      description:
+        "Os pedidos de contas excluídas que querem voltar aparecem aqui.",
+    },
+    loadError: {
+      title: "Não foi possível carregar os pedidos",
+      description: "Confira sua conexão e tente de novo.",
+    },
+    alreadyDecided: "Este pedido já foi decidido.",
+    denySheet: {
+      title: "Recusar reativação?",
+      hint: "A conta de {{name}} vai continuar excluída. Você pode explicar o motivo (opcional) — a pessoa recebe esta mensagem.",
+      label: "Motivo (opcional)",
+      placeholder: "Escreva uma mensagem para a pessoa.",
+      confirm: "Recusar e avisar",
+    },
+  },
   registrations: {
     title: "Entrar na escola",
     waiting: "{{count}} esperando aprovação",
@@ -246,14 +273,16 @@ const messages: Messages = {
     spotsLeft_other: "{{count}} vagas livres",
     full: "Esgotado",
     waitingList: "Lista de espera · por ordem de pedido",
-    fullNote: "Inscrever fica bloqueado enquanto a turma estiver cheia. Aumente a lotação ou espere abrir uma vaga.",
+    fullNote:
+      "Inscrever fica bloqueado enquanto a turma estiver cheia. Aumente a lotação ou espere abrir uma vaga.",
     position: "{{position}}º",
     askedAt: "Pediu às {{time}} · {{date}}",
     approve: "Inscrever",
     deny: "Recusar",
     approved: "{{name}} inscrito · aluno avisado",
     denied: "{{name}} recusado · aluno avisado",
-    description: "Alunos pedindo para entrar nas aulas, agrupados por aula. Matricule ou recuse cada pedido; o aluno é avisado.",
+    description:
+      "Alunos pedindo para entrar nas aulas, agrupados por aula. Matricule ou recuse cada pedido; o aluno é avisado.",
     loading: "Carregando os pedidos",
     empty: {
       title: "Nada à espera",
@@ -352,7 +381,8 @@ const messages: Messages = {
     action: "Retirar",
     done: "{{name}} retirado · aluno avisado",
     guestTitle: "Retirar {{name}} da aula?",
-    guestHint: "{{summary}}. A vaga fica livre. É um aluno trial, sem conta — avise-o por WhatsApp.",
+    guestHint:
+      "{{summary}}. A vaga fica livre. É um aluno trial, sem conta — avise-o por WhatsApp.",
     guestDone: "{{name}} retirado",
     errors: {
       notApproved: "Esta vaga não está mais aprovada.",
@@ -388,7 +418,8 @@ const messages: Messages = {
     theme: "Tema",
     language: "Idioma",
     push: "Notificações push",
-    pushNote: "Os avisos ficam sempre no app. Aqui você só escolhe se eles também chegam ao seu celular.",
+    pushNote:
+      "Os avisos ficam sempre no app. Aqui você só escolhe se eles também chegam ao seu celular.",
     pushDenied: "Permita as notificações do app nos ajustes do celular.",
     schoolRules: "Regras da escola",
     cancellationRules: "Regras de cancelamento",
@@ -401,7 +432,8 @@ const messages: Messages = {
   },
   notices: {
     title: "Enviar aviso",
-    description: "Escreva um título e uma mensagem. Todos do público recebem como notificação.",
+    description:
+      "Escreva um título e uma mensagem. Todos do público recebem como notificação.",
     audience: {
       section: "Quem recebe",
       all: "Todos",
@@ -427,8 +459,10 @@ const messages: Messages = {
       title_other: "Enviar a {{count}} pessoas?",
       description: {
         all: "Todos — alunos, instrutores e admins — recebem uma notificação. Depois de enviado, não dá para apagar.",
-        students: "Todos os alunos recebem uma notificação. Depois de enviado, não dá para apagar.",
-        instructors: "Todos os instrutores recebem uma notificação. Depois de enviado, não dá para apagar.",
+        students:
+          "Todos os alunos recebem uma notificação. Depois de enviado, não dá para apagar.",
+        instructors:
+          "Todos os instrutores recebem uma notificação. Depois de enviado, não dá para apagar.",
       },
       send: "Sim, enviar",
       cancel: "Voltar e editar",
@@ -436,7 +470,8 @@ const messages: Messages = {
   },
   schoolSettings: {
     title: "Configurações da escola",
-    description: "Como os alunos pedem vaga nas turmas cheias e como falam com a escola.",
+    description:
+      "Como os alunos pedem vaga nas turmas cheias e como falam com a escola.",
     waitingList: {
       section: "Lista de espera",
       label: "Lista de espera nas turmas cheias",
@@ -465,10 +500,14 @@ const messages: Messages = {
     },
     screen: {
       title: "Regras de cancelamento",
-      intro: "Há uma regra para cada modalidade. O app lê a regra com os dados da aula — nunca os dos alunos — e calcula até quando cada aula pode ser cancelada.",
-      tipTime: "Indique prazos exatos em horas antes do início da aula — nada de \"em cima da hora\".",
-      tipAmbiguity: "Evite ambiguidade: se uma pessoa hesitar ao ler, o app também vai hesitar.",
-      placeholder: "Ex.: O aluno pode cancelar sem penalidade até 12 horas antes do início da aula…",
+      intro:
+        "Há uma regra para cada modalidade. O app lê a regra com os dados da aula — nunca os dos alunos — e calcula até quando cada aula pode ser cancelada.",
+      tipTime:
+        'Indique prazos exatos em horas antes do início da aula — nada de "em cima da hora".',
+      tipAmbiguity:
+        "Evite ambiguidade: se uma pessoa hesitar ao ler, o app também vai hesitar.",
+      placeholder:
+        "Ex.: O aluno pode cancelar sem penalidade até 12 horas antes do início da aula…",
       save: "Salvar regra de {{discipline}}",
       saved: "Regra de {{discipline}} salva",
       loading: "Carregando a regra",
@@ -526,7 +565,8 @@ const messages: Messages = {
     },
   },
   teachingHistory: {
-    description: "Todas as aulas que você já deu, mês a mês ou semana a semana.",
+    description:
+      "Todas as aulas que você já deu, mês a mês ou semana a semana.",
     title: "Aulas anteriores",
     legend: "Dias em que você deu aula",
     hasClasses: "você deu aula",
@@ -640,8 +680,10 @@ const messages: Messages = {
     spotsLeft_one: "{{count}} vaga livre",
     spotsLeft_other: "{{count}} vagas livres",
     soldOut: "esgotado",
-    guestsWarning_one: "1 aluno trial não tem conta e não recebe o aviso — fale com ele por WhatsApp.",
-    guestsWarning_other: "{{count}} alunos trial não têm conta e não recebem o aviso — fale com eles por WhatsApp.",
+    guestsWarning_one:
+      "1 aluno trial não tem conta e não recebe o aviso — fale com ele por WhatsApp.",
+    guestsWarning_other:
+      "{{count}} alunos trial não têm conta e não recebem o aviso — fale com eles por WhatsApp.",
     trialChip: "Trial",
     includesTrial_one: "inclui {{count}} trial",
     includesTrial_other: "inclui {{count}} trial",
@@ -662,8 +704,10 @@ const messages: Messages = {
       schoolCount_other: "{{count}} regras para todos os alunos",
     },
     readOnly: {
-      teaches: "Matrículas, cancelamentos e mudanças de horário são feitos pela escola",
-      notAssigned: "Você não está escalado nesta aula — você vê tudo em modo somente leitura",
+      teaches:
+        "Matrículas, cancelamentos e mudanças de horário são feitos pela escola",
+      notAssigned:
+        "Você não está escalado nesta aula — você vê tudo em modo somente leitura",
     },
     notes: "Notas",
     location: "Onde e como",
@@ -675,7 +719,8 @@ const messages: Messages = {
     loading: "Carregando a aula",
     errorState: {
       title: "Algo deu errado",
-      description: "Não conseguimos carregar esta aula. Verifique sua conexão e tente novamente.",
+      description:
+        "Não conseguimos carregar esta aula. Verifique sua conexão e tente novamente.",
     },
     notFoundState: {
       title: "Aula não encontrada",
@@ -688,7 +733,8 @@ const messages: Messages = {
     noInstructorAssigned: "Sem instrutor atribuído",
     noDeadline: {
       title: "Sem prazo de cancelamento",
-      description: "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",
+      description:
+        "Ainda não conseguimos calcular até quando os alunos podem cancelar. Confira a regra de {{discipline}}.",
     },
     tools: "Ferramentas da aula",
   },
@@ -702,7 +748,8 @@ const messages: Messages = {
       waitingList: {
         chip: "Na lista de espera",
         title: "Você está na lista de espera",
-        description: "Se abrir uma vaga, seu pedido passa para a aprovação da escola.",
+        description:
+          "Se abrir uma vaga, seu pedido passa para a aprovação da escola.",
       },
       approved: {
         chip: "Aprovado",
@@ -788,8 +835,10 @@ const messages: Messages = {
       done: "Inscrição cancelada",
     },
     cancelSeatNote: {
-      passed: "O prazo para cancelar terminou em {{deadline}}. Fale com a escola.",
-      missing: "O prazo de cancelamento desta aula ainda não foi definido. Fale com a escola para cancelar.",
+      passed:
+        "O prazo para cancelar terminou em {{deadline}}. Fale com a escola.",
+      missing:
+        "O prazo de cancelamento desta aula ainda não foi definido. Fale com a escola para cancelar.",
     },
     errors: {
       started: "A aula já começou.",
@@ -812,7 +861,8 @@ const messages: Messages = {
   },
   profileWhatsapp: {
     title: "WhatsApp",
-    description: "Os admins sempre veem seu número. Escolha se alunos e instrutores também podem ver.",
+    description:
+      "Os admins sempre veem seu número. Escolha se alunos e instrutores também podem ver.",
     save: "Salvar",
   },
   schoolRulesScreen: {
@@ -838,7 +888,8 @@ const messages: Messages = {
   },
   manageSchoolRules: {
     title: "Regras da escola",
-    intro: "Os alunos leem estas regras e precisam aceitá-las antes de entrar no app. A ordem aqui é a ordem que eles veem.",
+    intro:
+      "Os alunos leem estas regras e precisam aceitá-las antes de entrar no app. A ordem aqui é a ordem que eles veem.",
     add: "Adicionar regra",
     loading: "Carregando as regras",
     loadError: {
@@ -847,7 +898,8 @@ const messages: Messages = {
     },
     empty: {
       title: "Nenhuma regra ainda",
-      description: "Adicione a primeira regra. Os alunos leem e aceitam as regras antes de entrar no app.",
+      description:
+        "Adicione a primeira regra. Os alunos leem e aceitam as regras antes de entrar no app.",
     },
     moveUp: "Subir a regra {{position}}",
     moveDown: "Descer a regra {{position}}",
@@ -861,8 +913,10 @@ const messages: Messages = {
       titleLabel: "Título",
       descriptionLabel: "Explicação",
       titlePlaceholder: "Ex.: Traga protetor solar",
-      descriptionPlaceholder: "Uma ou duas frases curtas, falando direto com o aluno.",
-      saveNote: "Ao salvar, todos vão precisar aceitar as regras de novo na próxima vez que abrirem o app.",
+      descriptionPlaceholder:
+        "Uma ou duas frases curtas, falando direto com o aluno.",
+      saveNote:
+        "Ao salvar, todos vão precisar aceitar as regras de novo na próxima vez que abrirem o app.",
       add: "Adicionar regra",
       save: "Salvar",
       delete: "Excluir regra",
@@ -884,7 +938,8 @@ const messages: Messages = {
   },
   about: {
     version: "Versão {{version}}",
-    description: "Projeto pessoal para tirar a marcação de aulas dos grupos de WhatsApp: agenda da semana, pedidos de vaga e avisos num só lugar.",
+    description:
+      "Projeto pessoal para tirar a marcação de aulas dos grupos de WhatsApp: agenda da semana, pedidos de vaga e avisos num só lugar.",
     creatorRole: "Design e desenvolvimento",
     repository: "Repositório do app",
     creatorGithub: "GitHub do criador",
@@ -901,7 +956,8 @@ const messages: Messages = {
       admin: "Admins",
     },
     since: "desde {{date}}",
-    description: "Todos na plataforma: alunos, instrutores e admins. Procure pelo nome ou filtre por função.",
+    description:
+      "Todos na plataforma: alunos, instrutores e admins. Procure pelo nome ou filtre por função.",
     loading: "Carregando as pessoas",
     empty: {
       title: "Ninguém encontrado",
@@ -936,23 +992,28 @@ const messages: Messages = {
     roleConfirm: {
       promoteInstructor: {
         title: "Promover {{name}} a instrutor?",
-        description: "Passa a ser instrutor: pode ser atribuído a aulas e vê os alunos inscritos. As vagas e pedidos que tinha em aulas futuras, como aluno, são cancelados.",
+        description:
+          "Passa a ser instrutor: pode ser atribuído a aulas e vê os alunos inscritos. As vagas e pedidos que tinha em aulas futuras, como aluno, são cancelados.",
         confirm: "Promover a instrutor",
       },
       promoteAdmin: {
         title: "Promover {{name}} a admin?",
-        description: "Passa a ser admin: gerencia aulas, pessoas, regras e pedidos da escola. Pode também dar aulas.",
-        seatsNote: "As vagas e pedidos que tinha em aulas futuras, como aluno, são cancelados.",
+        description:
+          "Passa a ser admin: gerencia aulas, pessoas, regras e pedidos da escola. Pode também dar aulas.",
+        seatsNote:
+          "As vagas e pedidos que tinha em aulas futuras, como aluno, são cancelados.",
         confirm: "Promover a admin",
       },
       demoteStudent: {
         title: "Rebaixar {{name}} a aluno?",
-        description: "Passa a ser aluno: sai das próximas aulas em que está atribuído, que podem ficar sem instrutor. As aulas já dadas ficam no histórico.",
+        description:
+          "Passa a ser aluno: sai das próximas aulas em que está atribuído, que podem ficar sem instrutor. As aulas já dadas ficam no histórico.",
         confirm: "Rebaixar a aluno",
       },
       adminToInstructor: {
         title: "Tirar {{name}} de admin?",
-        description: "Deixa de gerenciar a escola e passa a instrutor. Continua nas aulas em que está atribuído.",
+        description:
+          "Deixa de gerenciar a escola e passa a instrutor. Continua nas aulas em que está atribuído.",
         confirm: "Passar a instrutor",
       },
       back: "Voltar",
@@ -965,12 +1026,14 @@ const messages: Messages = {
   },
   deleteAccountSheet: {
     title: "Remover a conta?",
-    description: "Sua conta é encerrada agora e suas vagas e pedidos futuros são cancelados. Você pode pedir a reativação em até 30 dias.",
+    description:
+      "Sua conta é encerrada agora e suas vagas e pedidos futuros são cancelados. Você pode pedir a reativação em até 30 dias.",
     confirm: "Remover a conta",
     cancel: "Cancelar",
     onlyAdmin: {
       title: "Ainda não dá",
-      description: "Você é o único admin da escola. Promova outra pessoa a admin antes de remover sua conta.",
+      description:
+        "Você é o único admin da escola. Promova outra pessoa a admin antes de remover sua conta.",
       goToPeople: "Ir para Pessoas",
     },
   },
@@ -1029,7 +1092,8 @@ const messages: Messages = {
     notes: {
       label: "Notas",
       optional: "opcional",
-      placeholder: "Ex.: Ponto de encontro em frente à barraca do salva-vidas. Traga protetor solar.",
+      placeholder:
+        "Ex.: Ponto de encontro em frente à barraca do salva-vidas. Traga protetor solar.",
     },
     instructors: {
       label: "Instrutores",
@@ -1057,8 +1121,10 @@ const messages: Messages = {
   },
   cancelClass: {
     title: "Cancelar esta aula?",
-    description: "Avisamos os instrutores da aula. Ela continua na agenda, marcada como cancelada.",
-    descriptionWithAudience: "Avisamos {{list}}. A aula fica na agenda, marcada como cancelada.",
+    description:
+      "Avisamos os instrutores da aula. Ela continua na agenda, marcada como cancelada.",
+    descriptionWithAudience:
+      "Avisamos {{list}}. A aula fica na agenda, marcada como cancelada.",
     audience: {
       students_one: "{{count}} inscrito",
       students_other: "{{count}} inscritos",
@@ -1069,7 +1135,8 @@ const messages: Messages = {
       and: "e",
     },
     messageLabel: "Mensagem (opcional)",
-    messagePlaceholder: "Ex.: Mar muito grande. Remarcamos para sábado no mesmo horário.",
+    messagePlaceholder:
+      "Ex.: Mar muito grande. Remarcamos para sábado no mesmo horário.",
     confirm: "Cancelar e avisar",
     keep: "Manter aula",
     done: "Aula cancelada",
@@ -1080,11 +1147,13 @@ const messages: Messages = {
   },
   deleteClass: {
     title: "Excluir esta aula?",
-    description: "Os instrutores são avisados e a aula sai da agenda. Não dá para desfazer.",
+    description:
+      "Os instrutores são avisados e a aula sai da agenda. Não dá para desfazer.",
     confirm: "Excluir aula",
     notEmpty: {
       title: "Não dá para excluir",
-      description: "Alguém já pediu vaga ou está inscrito nesta aula. Só dá para excluir aulas sem ninguém — cancele-a em vez disso.",
+      description:
+        "Alguém já pediu vaga ou está inscrito nesta aula. Só dá para excluir aulas sem ninguém — cancele-a em vez disso.",
     },
     done: "Aula excluída",
     errors: {
@@ -1138,12 +1207,14 @@ const messages: Messages = {
       started: "A aula já começou: só dá para trocar os instrutores.",
       finished: "Esta aula já terminou e não pode mais ser alterada.",
       cancelled: "Esta aula foi cancelada e não pode mais ser alterada.",
-      seatsTaken: "A lotação não pode ficar abaixo das {{count}} vagas ocupadas.",
+      seatsTaken:
+        "A lotação não pode ficar abaixo das {{count}} vagas ocupadas.",
     },
   },
   timeRangeSheet: {
     title: "Novo horário",
-    description: "Defina a hora de início e de fim. Vale só para este lote — não fica nas sugestões.",
+    description:
+      "Defina a hora de início e de fim. Vale só para este lote — não fica nas sugestões.",
     start: "Início",
     end: "Fim",
     endBeforeStart: "O fim precisa ser depois do início.",
@@ -1151,7 +1222,8 @@ const messages: Messages = {
   },
   locationSheet: {
     title: "Novo local",
-    description: "Os alunos veem o nome e o endereço e recebem direções para o ponto no mapa.",
+    description:
+      "Os alunos veem o nome e o endereço e recebem direções para o ponto no mapa.",
     name: "Nome",
     namePlaceholder: "Ex.: Praia do Futuro",
     address: "Endereço",
@@ -1159,7 +1231,8 @@ const messages: Messages = {
     duplicate: "Já existe um local com este nome.",
     submit: "Salvar local",
     editTitle: "Editar local",
-    editDescription: "As alterações valem também para as aulas que já usam este local.",
+    editDescription:
+      "As alterações valem também para as aulas que já usam este local.",
     addressSearchPlaceholder: "Busque um endereço ou uma praia",
     point: "Ponto no mapa",
     pointHintEmpty: "Toque no mapa para marcar o ponto",
@@ -1182,11 +1255,13 @@ const messages: Messages = {
   notifications: {
     title: "Avisos",
     markAll: "Marcar todos como lidos",
-    markAllError: "Não foi possível marcar os avisos como lidos. Tente de novo.",
+    markAllError:
+      "Não foi possível marcar os avisos como lidos. Tente de novo.",
     loading: "Carregando avisos",
     empty: {
       title: "Nenhum aviso por enquanto",
-      description: "Quando algo mudar nas suas aulas ou na sua conta, avisamos aqui.",
+      description:
+        "Quando algo mudar nas suas aulas ou na sua conta, avisamos aqui.",
     },
     loadError: {
       title: "Não foi possível carregar os avisos",
@@ -1199,13 +1274,15 @@ const messages: Messages = {
     title: "Remover local?",
     description: "Ele deixa de aparecer para novas aulas.",
     kept_one: "A aula que já usa este local continua como está.",
-    kept_other: "As {{count}} aulas que já usam este local continuam como estão.",
+    kept_other:
+      "As {{count}} aulas que já usam este local continuam como estão.",
     confirm: "Remover local",
     keep: "Manter",
     removed: "{{name}} removido",
   },
   teachingClasses: {
-    description: "As aulas que você vai dar: as em andamento e as próximas, dia a dia.",
+    description:
+      "As aulas que você vai dar: as em andamento e as próximas, dia a dia.",
     row: {
       assigned_one: "{{count}} aula atribuída a você",
       assigned_other: "{{count}} aulas atribuídas a você",

@@ -24,7 +24,8 @@ export const useDenyReactivation = () => {
         reason.trim() ? { reason } : {},
         { authenticated: true },
       ),
-    onSuccess: (_decision, { id }) => removeReactivationRequest(queryClient, id),
+    onSuccess: (_decision, { id }) =>
+      removeReactivationRequest(queryClient, id),
     onError: (error) => {
       if (isReactivationAlreadyDecided(error)) {
         return queryClient.invalidateQueries({

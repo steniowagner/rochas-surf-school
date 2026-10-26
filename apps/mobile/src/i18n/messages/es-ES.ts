@@ -214,6 +214,33 @@ const messages: Messages = {
   home: {
     peopleRow: "Personas",
   },
+  reactivations: {
+    title: "Reactivar cuentas",
+    waiting: "{{count}} esperando respuesta",
+    description:
+      "Cuentas eliminadas que pidieron volver. Reactivar devuelve la cuenta, el historial y el rol, pero no las plazas canceladas. La persona recibe una notificación push.",
+    details_one: "Eliminada el {{date}} · {{count}} clase",
+    details_other: "Eliminada el {{date}} · {{count}} clases",
+    approve: "Reactivar",
+    deny: "Rechazar",
+    empty: {
+      title: "Ninguna solicitud",
+      description:
+        "Las solicitudes de cuentas eliminadas que quieren volver aparecen aquí.",
+    },
+    loadError: {
+      title: "No se pudieron cargar las solicitudes",
+      description: "Comprueba tu conexión e inténtalo de nuevo.",
+    },
+    alreadyDecided: "Esta solicitud ya fue decidida.",
+    denySheet: {
+      title: "¿Rechazar la reactivación?",
+      hint: "La cuenta de {{name}} seguirá eliminada. Puedes explicar el motivo (opcional): la persona recibe este mensaje.",
+      label: "Motivo (opcional)",
+      placeholder: "Escribe un mensaje para la persona.",
+      confirm: "Rechazar y avisar",
+    },
+  },
   registrations: {
     title: "Unirse a la escuela",
     waiting: "{{count}} esperando aprobación",
@@ -253,14 +280,16 @@ const messages: Messages = {
     spotsLeft_other: "{{count}} plazas libres",
     full: "Completa",
     waitingList: "Lista de espera · por orden de solicitud",
-    fullNote: "Inscribir queda bloqueado mientras el grupo esté lleno. Aumenta el aforo o espera a que se libere una plaza.",
+    fullNote:
+      "Inscribir queda bloqueado mientras el grupo esté lleno. Aumenta el aforo o espera a que se libere una plaza.",
     position: "{{position}}º",
     askedAt: "Pidió a las {{time}} · {{date}}",
     approve: "Inscribir",
     deny: "Rechazar",
     approved: "{{name}} inscrito · alumno avisado",
     denied: "{{name}} rechazado · alumno avisado",
-    description: "Alumnos que piden unirse a las clases, agrupados por clase. Inscribe o rechaza cada solicitud; el alumno recibe un aviso.",
+    description:
+      "Alumnos que piden unirse a las clases, agrupados por clase. Inscribe o rechaza cada solicitud; el alumno recibe un aviso.",
     loading: "Cargando las solicitudes",
     empty: {
       title: "Nada en espera",
@@ -346,7 +375,8 @@ const messages: Messages = {
       started: "La clase ya empezó.",
       cancelled: "Esta clase fue cancelada.",
       invalidStudent: "Este alumno no se puede inscribir.",
-      invalidGuest: "El nombre o el número de este alumno de prueba no es válido.",
+      invalidGuest:
+        "El nombre o el número de este alumno de prueba no es válido.",
     },
   },
   takeOutSheet: {
@@ -359,7 +389,8 @@ const messages: Messages = {
     action: "Retirar",
     done: "{{name}} retirado · alumno avisado",
     guestTitle: "¿Retirar a {{name}} de la clase?",
-    guestHint: "{{summary}}. La plaza queda libre. Es un alumno de prueba, sin cuenta — avísale por WhatsApp.",
+    guestHint:
+      "{{summary}}. La plaza queda libre. Es un alumno de prueba, sin cuenta — avísale por WhatsApp.",
     guestDone: "{{name}} retirado",
     errors: {
       notApproved: "Esta plaza ya no está aprobada.",
@@ -395,8 +426,10 @@ const messages: Messages = {
     theme: "Tema",
     language: "Idioma",
     push: "Notificaciones push",
-    pushNote: "Los avisos siempre quedan en la app. Aquí solo eliges si también llegan a tu teléfono.",
-    pushDenied: "Permite las notificaciones de la app en los ajustes del teléfono.",
+    pushNote:
+      "Los avisos siempre quedan en la app. Aquí solo eliges si también llegan a tu teléfono.",
+    pushDenied:
+      "Permite las notificaciones de la app en los ajustes del teléfono.",
     schoolRules: "Reglas de la escuela",
     cancellationRules: "Reglas de cancelación",
     about: "Acerca de la app",
@@ -408,7 +441,8 @@ const messages: Messages = {
   },
   notices: {
     title: "Enviar aviso",
-    description: "Escribe un título y un mensaje. Todos los del público lo reciben como notificación.",
+    description:
+      "Escribe un título y un mensaje. Todos los del público lo reciben como notificación.",
     audience: {
       section: "Quién lo recibe",
       all: "Todos",
@@ -434,8 +468,10 @@ const messages: Messages = {
       title_other: "¿Enviar a {{count}} personas?",
       description: {
         all: "Todos — alumnos, instructores y admins — reciben una notificación. Una vez enviado, no se puede borrar.",
-        students: "Todos los alumnos reciben una notificación. Una vez enviado, no se puede borrar.",
-        instructors: "Todos los instructores reciben una notificación. Una vez enviado, no se puede borrar.",
+        students:
+          "Todos los alumnos reciben una notificación. Una vez enviado, no se puede borrar.",
+        instructors:
+          "Todos los instructores reciben una notificación. Una vez enviado, no se puede borrar.",
       },
       send: "Sí, enviar",
       cancel: "Volver y editar",
@@ -443,7 +479,8 @@ const messages: Messages = {
   },
   schoolSettings: {
     title: "Ajustes de la escuela",
-    description: "Cómo piden cupo los alumnos en las clases llenas y cómo hablan con la escuela.",
+    description:
+      "Cómo piden cupo los alumnos en las clases llenas y cómo hablan con la escuela.",
     waitingList: {
       section: "Lista de espera",
       label: "Lista de espera en las clases llenas",
@@ -472,10 +509,14 @@ const messages: Messages = {
     },
     screen: {
       title: "Reglas de cancelación",
-      intro: "Hay una regla para cada modalidad. La app lee la regla con los datos de la clase — nunca los de los alumnos — y calcula hasta cuándo se puede cancelar cada clase.",
-      tipTime: "Indica plazos exactos en horas antes del inicio de la clase — nada de \"a última hora\".",
-      tipAmbiguity: "Evita la ambigüedad: si una persona duda al leerla, la app también dudará.",
-      placeholder: "Ej.: El alumno puede cancelar sin penalización hasta 12 horas antes del inicio de la clase…",
+      intro:
+        "Hay una regla para cada modalidad. La app lee la regla con los datos de la clase — nunca los de los alumnos — y calcula hasta cuándo se puede cancelar cada clase.",
+      tipTime:
+        'Indica plazos exactos en horas antes del inicio de la clase — nada de "a última hora".',
+      tipAmbiguity:
+        "Evita la ambigüedad: si una persona duda al leerla, la app también dudará.",
+      placeholder:
+        "Ej.: El alumno puede cancelar sin penalización hasta 12 horas antes del inicio de la clase…",
       save: "Guardar regla de {{discipline}}",
       saved: "Regla de {{discipline}} guardada",
       loading: "Cargando la regla",
@@ -529,7 +570,8 @@ const messages: Messages = {
     emptyPeriod: {
       title: "Sin clases en este período",
       description: "No hiciste ninguna clase en este período.",
-      descriptionSport: "No hiciste ninguna clase de {{sport}} en este período.",
+      descriptionSport:
+        "No hiciste ninguna clase de {{sport}} en este período.",
     },
   },
   teachingHistory: {
@@ -647,8 +689,10 @@ const messages: Messages = {
     spotsLeft_one: "{{count}} plaza libre",
     spotsLeft_other: "{{count}} plazas libres",
     soldOut: "agotado",
-    guestsWarning_one: "1 alumno de prueba no tiene cuenta y no recibe el aviso — habla con él por WhatsApp.",
-    guestsWarning_other: "{{count}} alumnos de prueba no tienen cuenta y no reciben el aviso — habla con ellos por WhatsApp.",
+    guestsWarning_one:
+      "1 alumno de prueba no tiene cuenta y no recibe el aviso — habla con él por WhatsApp.",
+    guestsWarning_other:
+      "{{count}} alumnos de prueba no tienen cuenta y no reciben el aviso — habla con ellos por WhatsApp.",
     trialChip: "Trial",
     includesTrial_one: "incluye {{count}} de prueba",
     includesTrial_other: "incluye {{count}} de prueba",
@@ -657,7 +701,8 @@ const messages: Messages = {
       waitingList: "Puedes entrar en la lista de espera.",
       waitingListClosed: "La lista de espera está cerrada para esta clase.",
       newRequestsWait: "Las nuevas solicitudes entran en la lista de espera.",
-      waitingListOff: "La lista de espera está desactivada — nadie puede pedir.",
+      waitingListOff:
+        "La lista de espera está desactivada — nadie puede pedir.",
     },
     rules: {
       title: "Reglas",
@@ -669,8 +714,10 @@ const messages: Messages = {
       schoolCount_other: "{{count}} reglas para todos los alumnos",
     },
     readOnly: {
-      teaches: "Las inscripciones, cancelaciones y cambios de horario las hace la escuela",
-      notAssigned: "No estás asignado a esta clase: lo ves todo en modo de solo lectura",
+      teaches:
+        "Las inscripciones, cancelaciones y cambios de horario las hace la escuela",
+      notAssigned:
+        "No estás asignado a esta clase: lo ves todo en modo de solo lectura",
     },
     notes: "Notas",
     location: "Dónde y cómo",
@@ -682,7 +729,8 @@ const messages: Messages = {
     loading: "Cargando la clase",
     errorState: {
       title: "Algo salió mal",
-      description: "No pudimos cargar esta clase. Revisa tu conexión e inténtalo de nuevo.",
+      description:
+        "No pudimos cargar esta clase. Revisa tu conexión e inténtalo de nuevo.",
     },
     notFoundState: {
       title: "Clase no encontrada",
@@ -695,7 +743,8 @@ const messages: Messages = {
     noInstructorAssigned: "Sin instructor asignado",
     noDeadline: {
       title: "Sin plazo de cancelación",
-      description: "Todavía no hemos podido calcular hasta cuándo pueden cancelar los alumnos. Revisa la regla de {{discipline}}.",
+      description:
+        "Todavía no hemos podido calcular hasta cuándo pueden cancelar los alumnos. Revisa la regla de {{discipline}}.",
     },
     tools: "Herramientas de la clase",
   },
@@ -709,7 +758,8 @@ const messages: Messages = {
       waitingList: {
         chip: "En lista de espera",
         title: "Estás en la lista de espera",
-        description: "Si se libera una plaza, tu solicitud pasa a la aprobación de la escuela.",
+        description:
+          "Si se libera una plaza, tu solicitud pasa a la aprobación de la escuela.",
       },
       approved: {
         chip: "Aprobado",
@@ -729,7 +779,8 @@ const messages: Messages = {
       expired: {
         chip: "Expirada",
         title: "No conseguiste plaza",
-        description: "Tu solicitud expiró sin que se liberara plaza en el grupo.",
+        description:
+          "Tu solicitud expiró sin que se liberara plaza en el grupo.",
       },
       cancelled: {
         chip: "Cancelaste",
@@ -795,15 +846,18 @@ const messages: Messages = {
       done: "Inscripción cancelada",
     },
     cancelSeatNote: {
-      passed: "El plazo para cancelar terminó el {{deadline}}. Habla con la escuela.",
-      missing: "El plazo de cancelación de esta clase aún no se ha definido. Habla con la escuela para cancelar.",
+      passed:
+        "El plazo para cancelar terminó el {{deadline}}. Habla con la escuela.",
+      missing:
+        "El plazo de cancelación de esta clase aún no se ha definido. Habla con la escuela para cancelar.",
     },
     errors: {
       started: "La clase ya empezó.",
       cancelled: "Esta clase fue cancelada.",
       alreadyOpen: "Ya tienes una solicitud abierta para esta clase.",
       waitingListClosed: "La lista de espera está cerrada para esta clase.",
-      ruleNotAccepted: "La regla de cancelación cambió. Léela de nuevo y acéptala.",
+      ruleNotAccepted:
+        "La regla de cancelación cambió. Léela de nuevo y acéptala.",
       notPending: "Esta solicitud ya no está pendiente.",
       notFound: "Esta solicitud ya no existe.",
       notApproved: "Esta plaza ya no está aprobada.",
@@ -819,12 +873,14 @@ const messages: Messages = {
   },
   profileWhatsapp: {
     title: "WhatsApp",
-    description: "Los admins siempre ven tu número. Elige si alumnos e instructores también pueden verlo.",
+    description:
+      "Los admins siempre ven tu número. Elige si alumnos e instructores también pueden verlo.",
     save: "Guardar",
   },
   schoolRulesScreen: {
     title: "Reglas de la escuela",
-    description: "Pocas y sencillas, para que las clases salgan bien para todos.",
+    description:
+      "Pocas y sencillas, para que las clases salgan bien para todos.",
     loading: "Cargando las reglas",
     loadError: {
       title: "No se pudieron cargar las reglas",
@@ -832,7 +888,8 @@ const messages: Messages = {
     },
     empty: {
       title: "Aún no hay reglas",
-      description: "La escuela todavía no ha publicado reglas. Vuelve a mirar pronto.",
+      description:
+        "La escuela todavía no ha publicado reglas. Vuelve a mirar pronto.",
     },
   },
   schoolRulesEntryRow: {
@@ -845,7 +902,8 @@ const messages: Messages = {
   },
   manageSchoolRules: {
     title: "Reglas de la escuela",
-    intro: "Los alumnos leen estas reglas y deben aceptarlas antes de entrar en la app. El orden aquí es el orden que ven.",
+    intro:
+      "Los alumnos leen estas reglas y deben aceptarlas antes de entrar en la app. El orden aquí es el orden que ven.",
     add: "Añadir regla",
     loading: "Cargando las reglas",
     loadError: {
@@ -854,7 +912,8 @@ const messages: Messages = {
     },
     empty: {
       title: "Aún no hay reglas",
-      description: "Añade la primera regla. Los alumnos leen y aceptan las reglas antes de entrar en la app.",
+      description:
+        "Añade la primera regla. Los alumnos leen y aceptan las reglas antes de entrar en la app.",
     },
     moveUp: "Subir la regla {{position}}",
     moveDown: "Bajar la regla {{position}}",
@@ -868,8 +927,10 @@ const messages: Messages = {
       titleLabel: "Título",
       descriptionLabel: "Explicación",
       titlePlaceholder: "Ej.: Trae protector solar",
-      descriptionPlaceholder: "Una o dos frases cortas, hablando directamente al alumno.",
-      saveNote: "Al guardar, todos tendrán que aceptar las reglas de nuevo la próxima vez que abran la app.",
+      descriptionPlaceholder:
+        "Una o dos frases cortas, hablando directamente al alumno.",
+      saveNote:
+        "Al guardar, todos tendrán que aceptar las reglas de nuevo la próxima vez que abran la app.",
       add: "Añadir regla",
       save: "Guardar",
       delete: "Eliminar regla",
@@ -885,13 +946,15 @@ const messages: Messages = {
   },
   signOutSheet: {
     title: "¿Cerrar sesión?",
-    description: "Para volver, solo inicia sesión otra vez con la misma cuenta.",
+    description:
+      "Para volver, solo inicia sesión otra vez con la misma cuenta.",
     confirm: "Cerrar sesión",
     cancel: "Cancelar",
   },
   about: {
     version: "Versión {{version}}",
-    description: "Proyecto personal para sacar la reserva de clases de los grupos de WhatsApp: agenda de la semana, solicitudes de plaza y avisos en un solo lugar.",
+    description:
+      "Proyecto personal para sacar la reserva de clases de los grupos de WhatsApp: agenda de la semana, solicitudes de plaza y avisos en un solo lugar.",
     creatorRole: "Diseño y desarrollo",
     repository: "Repositorio de la app",
     creatorGithub: "GitHub del creador",
@@ -908,7 +971,8 @@ const messages: Messages = {
       admin: "Admins",
     },
     since: "desde {{date}}",
-    description: "Todas las personas de la plataforma: alumnos, instructores y admins. Busca por nombre o filtra por rol.",
+    description:
+      "Todas las personas de la plataforma: alumnos, instructores y admins. Busca por nombre o filtra por rol.",
     loading: "Cargando las personas",
     empty: {
       title: "No se encontró a nadie",
@@ -943,23 +1007,28 @@ const messages: Messages = {
     roleConfirm: {
       promoteInstructor: {
         title: "¿Ascender a {{name}} a instructor?",
-        description: "Pasa a ser instructor: puede ser asignado a clases y ve a los alumnos inscritos. Las plazas y solicitudes que tenía en clases futuras, como alumno, se cancelan.",
+        description:
+          "Pasa a ser instructor: puede ser asignado a clases y ve a los alumnos inscritos. Las plazas y solicitudes que tenía en clases futuras, como alumno, se cancelan.",
         confirm: "Ascender a instructor",
       },
       promoteAdmin: {
         title: "¿Ascender a {{name}} a admin?",
-        description: "Pasa a ser admin: gestiona clases, personas, reglas y solicitudes de la escuela. También puede dar clases.",
-        seatsNote: "Las plazas y solicitudes que tenía en clases futuras, como alumno, se cancelan.",
+        description:
+          "Pasa a ser admin: gestiona clases, personas, reglas y solicitudes de la escuela. También puede dar clases.",
+        seatsNote:
+          "Las plazas y solicitudes que tenía en clases futuras, como alumno, se cancelan.",
         confirm: "Ascender a admin",
       },
       demoteStudent: {
         title: "¿Bajar a {{name}} a alumno?",
-        description: "Pasa a ser alumno: deja las próximas clases que tiene asignadas, que pueden quedarse sin instructor. Las clases ya dadas quedan en el historial.",
+        description:
+          "Pasa a ser alumno: deja las próximas clases que tiene asignadas, que pueden quedarse sin instructor. Las clases ya dadas quedan en el historial.",
         confirm: "Bajar a alumno",
       },
       adminToInstructor: {
         title: "¿Quitar a {{name}} de admin?",
-        description: "Deja de gestionar la escuela y pasa a instructor. Sigue en las clases que tiene asignadas.",
+        description:
+          "Deja de gestionar la escuela y pasa a instructor. Sigue en las clases que tiene asignadas.",
         confirm: "Pasar a instructor",
       },
       back: "Volver",
@@ -972,12 +1041,14 @@ const messages: Messages = {
   },
   deleteAccountSheet: {
     title: "¿Eliminar tu cuenta?",
-    description: "Tu cuenta se cierra ahora y se cancelan tus plazas y solicitudes futuras. Puedes pedir la reactivación en un plazo de 30 días.",
+    description:
+      "Tu cuenta se cierra ahora y se cancelan tus plazas y solicitudes futuras. Puedes pedir la reactivación en un plazo de 30 días.",
     confirm: "Eliminar cuenta",
     cancel: "Cancelar",
     onlyAdmin: {
       title: "Todavía no",
-      description: "Eres el único admin de la escuela. Haz admin a otra persona antes de eliminar tu cuenta.",
+      description:
+        "Eres el único admin de la escuela. Haz admin a otra persona antes de eliminar tu cuenta.",
       goToPeople: "Ir a Personas",
     },
   },
@@ -1036,7 +1107,8 @@ const messages: Messages = {
     notes: {
       label: "Notas",
       optional: "opcional",
-      placeholder: "Ej.: Punto de encuentro frente a la caseta del socorrista. Trae protector solar.",
+      placeholder:
+        "Ej.: Punto de encuentro frente a la caseta del socorrista. Trae protector solar.",
     },
     instructors: {
       label: "Instructores",
@@ -1064,8 +1136,10 @@ const messages: Messages = {
   },
   cancelClass: {
     title: "¿Cancelar esta clase?",
-    description: "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada.",
-    descriptionWithAudience: "Avisamos a {{list}}. La clase sigue en la agenda, marcada como cancelada.",
+    description:
+      "Avisamos a los instructores de la clase. Sigue en la agenda, marcada como cancelada.",
+    descriptionWithAudience:
+      "Avisamos a {{list}}. La clase sigue en la agenda, marcada como cancelada.",
     audience: {
       students_one: "{{count}} inscrito",
       students_other: "{{count}} inscritos",
@@ -1076,7 +1150,8 @@ const messages: Messages = {
       and: "y",
     },
     messageLabel: "Mensaje (opcional)",
-    messagePlaceholder: "Ej.: Mar muy grande. La pasamos al sábado a la misma hora.",
+    messagePlaceholder:
+      "Ej.: Mar muy grande. La pasamos al sábado a la misma hora.",
     confirm: "Cancelar y avisar",
     keep: "Mantener clase",
     done: "Clase cancelada",
@@ -1087,11 +1162,13 @@ const messages: Messages = {
   },
   deleteClass: {
     title: "¿Eliminar esta clase?",
-    description: "Avisamos a los instructores y la clase sale de la agenda. No se puede deshacer.",
+    description:
+      "Avisamos a los instructores y la clase sale de la agenda. No se puede deshacer.",
     confirm: "Eliminar clase",
     notEmpty: {
       title: "No se puede eliminar",
-      description: "Alguien ya pidió plaza o está inscrito en esta clase. Solo se pueden eliminar clases sin nadie: cancélala en su lugar.",
+      description:
+        "Alguien ya pidió plaza o está inscrito en esta clase. Solo se pueden eliminar clases sin nadie: cancélala en su lugar.",
     },
     done: "Clase eliminada",
     errors: {
@@ -1145,12 +1222,14 @@ const messages: Messages = {
       started: "La clase ya empezó: solo se pueden cambiar los instructores.",
       finished: "Esta clase ya terminó y no se puede cambiar.",
       cancelled: "Esta clase fue cancelada y no se puede cambiar.",
-      seatsTaken: "La capacidad no puede quedar por debajo de las {{count}} plazas ocupadas.",
+      seatsTaken:
+        "La capacidad no puede quedar por debajo de las {{count}} plazas ocupadas.",
     },
   },
   timeRangeSheet: {
     title: "Nuevo horario",
-    description: "Define la hora de inicio y de fin. Vale solo para este lote: no queda en las sugerencias.",
+    description:
+      "Define la hora de inicio y de fin. Vale solo para este lote: no queda en las sugerencias.",
     start: "Inicio",
     end: "Fin",
     endBeforeStart: "El fin debe ser después del inicio.",
@@ -1158,7 +1237,8 @@ const messages: Messages = {
   },
   locationSheet: {
     title: "Nuevo lugar",
-    description: "Los alumnos ven el nombre y la dirección, y reciben indicaciones hasta el punto del mapa.",
+    description:
+      "Los alumnos ven el nombre y la dirección, y reciben indicaciones hasta el punto del mapa.",
     name: "Nombre",
     namePlaceholder: "Ej.: Praia do Futuro",
     address: "Dirección",
@@ -1166,7 +1246,8 @@ const messages: Messages = {
     duplicate: "Ya existe un lugar con este nombre.",
     submit: "Guardar lugar",
     editTitle: "Editar lugar",
-    editDescription: "Los cambios también se aplican a las clases que ya usan este lugar.",
+    editDescription:
+      "Los cambios también se aplican a las clases que ya usan este lugar.",
     addressSearchPlaceholder: "Busca una dirección o una playa",
     point: "Punto en el mapa",
     pointHintEmpty: "Toca el mapa para marcar el punto",
@@ -1189,11 +1270,13 @@ const messages: Messages = {
   notifications: {
     title: "Avisos",
     markAll: "Marcar todos como leídos",
-    markAllError: "No se pudieron marcar los avisos como leídos. Inténtalo de nuevo.",
+    markAllError:
+      "No se pudieron marcar los avisos como leídos. Inténtalo de nuevo.",
     loading: "Cargando avisos",
     empty: {
       title: "Ningún aviso por ahora",
-      description: "Cuando algo cambie en tus clases o en tu cuenta, te avisamos aquí.",
+      description:
+        "Cuando algo cambie en tus clases o en tu cuenta, te avisamos aquí.",
     },
     loadError: {
       title: "No se pudieron cargar los avisos",
@@ -1206,13 +1289,15 @@ const messages: Messages = {
     title: "¿Eliminar lugar?",
     description: "Deja de aparecer para nuevas clases.",
     kept_one: "La clase que ya usa este lugar sigue como está.",
-    kept_other: "Las {{count}} clases que ya usan este lugar siguen como están.",
+    kept_other:
+      "Las {{count}} clases que ya usan este lugar siguen como están.",
     confirm: "Eliminar lugar",
     keep: "Mantener",
     removed: "{{name}} eliminado",
   },
   teachingClasses: {
-    description: "Las clases que vas a dar: las en curso y las próximas, día a día.",
+    description:
+      "Las clases que vas a dar: las en curso y las próximas, día a día.",
     row: {
       assigned_one: "{{count}} clase asignada a ti",
       assigned_other: "{{count}} clases asignadas a ti",

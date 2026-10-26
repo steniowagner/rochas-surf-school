@@ -5,6 +5,13 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "SCHOOL_WHATSAPP_NUMBER",
+        "SCHOOL_LEGAL_NAME",
+        "SCHOOL_CNPJ",
+        "DPO_NAME",
+        "DPO_EMAIL"
+      ],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"]
     },
     "lint": {

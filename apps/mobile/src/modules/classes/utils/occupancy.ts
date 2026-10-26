@@ -6,7 +6,10 @@ const ALMOST_FULL_PERCENT = 80;
 export type OccupancyTone = "bad" | "sun" | "lagoon" | "tan";
 
 /** The share of the seats taken, 0 to 100, rounded. */
-export const getOccupancyPercent = (seatsTaken: number, capacity: number): number =>
+export const getOccupancyPercent = (
+  seatsTaken: number,
+  capacity: number,
+): number =>
   capacity > 0 ? Math.min(100, Math.round((seatsTaken / capacity) * 100)) : 0;
 
 export const isClassFull = (seatsTaken: number, capacity: number): boolean =>
@@ -34,8 +37,10 @@ export const getFreeSeats = (seatsTaken: number, capacity: number): number =>
   Math.max(0, capacity - seatsTaken);
 
 /** The seats taken that no avatar shows ("+N"). */
-export const getHiddenSeats = (seatsTaken: number, shownAvatars: number): number =>
-  Math.max(0, seatsTaken - shownAvatars);
+export const getHiddenSeats = (
+  seatsTaken: number,
+  shownAvatars: number,
+): number => Math.max(0, seatsTaken - shownAvatars);
 
 export type StudentsLabel = {
   /** The translation key, under `classesWeek.students`. */
@@ -44,7 +49,10 @@ export type StudentsLabel = {
 };
 
 /** The footer line: "no students yet", "N confirmed", or "N present" once the class has finished. */
-export const getStudentsLabel = (seatsTaken: number, finished: boolean): StudentsLabel => {
+export const getStudentsLabel = (
+  seatsTaken: number,
+  finished: boolean,
+): StudentsLabel => {
   if (finished && seatsTaken > 0) {
     return { key: "present", count: seatsTaken };
   }

@@ -141,6 +141,15 @@ afterEach(async () => {
   await act(() => i18n.changeLanguage("en-US"));
 });
 
+// Opens the calendar and picks a day: its week becomes the selected one.
+const pickDay = async (
+  user: ReturnType<typeof userEvent.setup>,
+  date: string,
+) => {
+  await user.press(screen.getByRole("button", { name: "Choose another week" }));
+  await user.press(await screen.findByTestId(`calendar-day-${date}`));
+};
+
 describe("WeeklyOccupancyScreen", () => {
   describe("week", () => {
     it("opens on the current week with a centered title and the week bar", async () => {
@@ -155,13 +164,12 @@ describe("WeeklyOccupancyScreen", () => {
       expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
       expect(screen.getByText("This week")).toBeOnTheScreen();
       expect(
-        screen.getByRole("button", { name: "Show the previous week" }),
+        screen.getByRole("button", { name: "Choose another week" }),
       ).toBeOnTheScreen();
       expect(
-        screen.getByRole("button", { name: "Show the next week" }),
-      ).toBeOnTheScreen();
-      expect(screen.queryByText(/previous week/i)).not.toBeOnTheScreen();
-      expect(screen.getByText("Week map")).toBeOnTheScreen();
+        screen.queryByRole("button", { name: "Show the next week" }),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId("occupancy-day-2026-10-19")).toBeOnTheScreen();
     });
 
     it("makes the scroll view the first view, under the header", async () => {
@@ -171,14 +179,12 @@ describe("WeeklyOccupancyScreen", () => {
       expect(scroll.props.contentInsetAdjustmentBehavior).toBe("automatic");
     });
 
-    it("moves one week with each arrow and asks for that week", async () => {
+    it("selects the week of the day picked in the calendar and asks for that week", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByTestId("occupancy-cell-A");
 
-      await user.press(
-        screen.getByRole("button", { name: "Show the next week" }),
-      );
+      await pickDay(user, "2026-10-28");
 
       expect(screen.getByText("26 OCT – 1 NOV")).toBeOnTheScreen();
       expect(screen.getByText("Next week")).toBeOnTheScreen();
@@ -186,12 +192,7 @@ describe("WeeklyOccupancyScreen", () => {
         expect(requestedPaths()).toContain("/classes?date=2026-10-26"),
       );
 
-      await user.press(
-        screen.getByRole("button", { name: "Show the previous week" }),
-      );
-      await user.press(
-        screen.getByRole("button", { name: "Show the previous week" }),
-      );
+      await pickDay(user, "2026-10-14");
 
       expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
       expect(screen.getByText("Last week")).toBeOnTheScreen();
@@ -200,23 +201,67 @@ describe("WeeklyOccupancyScreen", () => {
       );
     });
 
+    it("highlights the whole selected week in the calendar", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+
+      await user.press(
+        screen.getByRole("button", { name: "Choose another week" }),
+      );
+
+      expect(
+        (await screen.findByTestId("calendar-week-2026-10-19")).props.className,
+      ).toContain("bg-grape-tint");
+      expect(
+        screen.getByTestId("calendar-week-2026-10-26").props.className,
+      ).not.toContain("bg-grape-tint");
+    });
+
+    it("dots the days of the calendar that have classes", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await screen.findByTestId("occupancy-cell-A");
+
+      await user.press(
+        screen.getByRole("button", { name: "Choose another week" }),
+      );
+
+      const datesWithClasses = [
+        ...new Set(WEEK.map((item) => item.startsAt.slice(0, 10))),
+      ];
+      expect(datesWithClasses.length).toBeGreaterThan(0);
+      for (const date of datesWithClasses) {
+        expect(
+          await screen.findByTestId(`calendar-day-${date}-dot`),
+        ).toBeOnTheScreen();
+      }
+      expect(
+        screen.queryByTestId("calendar-day-2026-10-12-dot"),
+      ).not.toBeOnTheScreen();
+    });
+
     it("counts the weeks from this one in the label", async () => {
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByTestId("occupancy-cell-A");
-      const next = screen.getByRole("button", { name: "Show the next week" });
 
-      await user.press(next);
-      await user.press(next);
+      await user.press(
+        screen.getByRole("button", { name: "Choose another week" }),
+      );
+      await user.press(
+        await screen.findByRole("button", { name: "Show the next month" }),
+      );
+      await user.press(screen.getByTestId("calendar-day-2026-11-04"));
       expect(screen.getByText("In 2 weeks")).toBeOnTheScreen();
 
-      const previous = screen.getByRole("button", {
-        name: "Show the previous week",
-      });
-      await user.press(previous);
-      await user.press(previous);
-      await user.press(previous);
-      await user.press(previous);
+      await user.press(
+        screen.getByRole("button", { name: "Choose another week" }),
+      );
+      await user.press(
+        await screen.findByRole("button", { name: "Show the previous month" }),
+      );
+      await user.press(screen.getByTestId("calendar-day-2026-10-07"));
       expect(screen.getByText("2 weeks ago")).toBeOnTheScreen();
     });
 
@@ -224,12 +269,8 @@ describe("WeeklyOccupancyScreen", () => {
       const user = userEvent.setup();
       await renderScreen();
       await screen.findByTestId("occupancy-cell-A");
-      await user.press(
-        screen.getByRole("button", { name: "Show the next week" }),
-      );
-      await user.press(
-        screen.getByRole("button", { name: "Show the previous week" }),
-      );
+      await pickDay(user, "2026-10-26");
+      await pickDay(user, "2026-10-19");
 
       expect(screen.getByTestId("occupancy-cell-A")).toBeOnTheScreen();
       expect(
@@ -246,7 +287,7 @@ describe("WeeklyOccupancyScreen", () => {
       ).toBeOnTheScreen();
       expect(screen.getByText("19 – 25 OUT")).toBeOnTheScreen();
       expect(screen.getByText("Esta semana")).toBeOnTheScreen();
-      expect(await screen.findByText("Mapa da semana")).toBeOnTheScreen();
+      expect(await screen.findByTestId("occupancy-cell-A")).toBeOnTheScreen();
     });
   });
 
@@ -308,12 +349,8 @@ describe("WeeklyOccupancyScreen", () => {
       await renderScreen();
       await screen.findByTestId("occupancy-cell-A");
       await user.press(cell("C"));
-      await user.press(
-        screen.getByRole("button", { name: "Show the next week" }),
-      );
-      await user.press(
-        screen.getByRole("button", { name: "Show the previous week" }),
-      );
+      await pickDay(user, "2026-10-26");
+      await pickDay(user, "2026-10-19");
 
       expect(isSelected("A")).toBe(true);
       expect(isSelected("C")).toBe(false);
@@ -380,7 +417,7 @@ describe("WeeklyOccupancyScreen", () => {
       [screen.toJSON()].flat().forEach(walk);
       const weekBar = order.indexOf("occupancy-week-label");
       const stats = order.indexOf("occupancy-stat-occupancy");
-      const map = order.indexOf("Week map");
+      const map = order.indexOf("occupancy-day-2026-10-19");
 
       expect(weekBar).toBeGreaterThan(-1);
       expect(stats).toBeGreaterThan(weekBar);
@@ -403,9 +440,7 @@ describe("WeeklyOccupancyScreen", () => {
       await renderScreen();
       await screen.findByTestId("occupancy-cell-A");
 
-      await user.press(
-        screen.getByRole("button", { name: "Show the next week" }),
-      );
+      await pickDay(user, "2026-10-26");
 
       expect(await screen.findByText("5/10")).toBeOnTheScreen();
       expect(read("occupancy")).toBe("50%, Occupancy");
@@ -473,7 +508,6 @@ describe("WeeklyOccupancyScreen", () => {
 
       expect(screen.getByLabelText("Loading the occupancy")).toBeOnTheScreen();
       expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
-      expect(screen.queryByText("Week map")).not.toBeOnTheScreen();
 
       await act(async () =>
         load.settle(ok({ weekStart: "2026-10-19", items: WEEK })),
@@ -499,7 +533,6 @@ describe("WeeklyOccupancyScreen", () => {
         screen.getByText("Check your connection and try again."),
       ).toBeOnTheScreen();
       expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
-      expect(screen.queryByText("Week map")).not.toBeOnTheScreen();
       fetchMock.mockResolvedValue(ok({ weekStart: "2026-10-19", items: WEEK }));
 
       await user.press(screen.getByRole("button", { name: "Try again" }));
@@ -555,9 +588,7 @@ describe("WeeklyOccupancyScreen", () => {
         }),
       );
 
-      await user.press(
-        screen.getByRole("button", { name: "Show the previous week" }),
-      );
+      await pickDay(user, "2026-10-12");
 
       expect(await screen.findByTestId("occupancy-cell-G")).toBeOnTheScreen();
       expect(screen.getByText("12 – 18 OCT")).toBeOnTheScreen();
@@ -572,7 +603,6 @@ describe("WeeklyOccupancyScreen", () => {
         screen.getByText("Classes created for this week show up here."),
       ).toBeOnTheScreen();
       expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
-      expect(screen.queryByText("Week map")).not.toBeOnTheScreen();
       expect(screen.queryByTestId("occupancy-legend")).not.toBeOnTheScreen();
       expect(
         screen.queryByRole("button", { name: /^Surf, / }),

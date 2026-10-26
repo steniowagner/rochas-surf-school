@@ -23,7 +23,11 @@ export type DateRange = {
   excludedDates: string[];
 };
 
-export const EMPTY_RANGE: DateRange = { startDate: null, endDate: null, excludedDates: [] };
+export const EMPTY_RANGE: DateRange = {
+  startDate: null,
+  endDate: null,
+  excludedDates: [],
+};
 
 /**
  * The range Nova aula opens with: the day it was opened for, as a single day, when it is a real date that is today or
@@ -42,11 +46,20 @@ export const initialRange = (date: unknown, today: string): DateRange =>
 export const pressDay = (range: DateRange, day: string): DateRange => {
   const { startDate, endDate, excludedDates } = range;
 
-  if (startDate !== null && endDate !== null && (day === startDate || day === endDate)) {
+  if (
+    startDate !== null &&
+    endDate !== null &&
+    (day === startDate || day === endDate)
+  ) {
     return EMPTY_RANGE;
   }
 
-  if (startDate !== null && endDate !== null && day > startDate && day < endDate) {
+  if (
+    startDate !== null &&
+    endDate !== null &&
+    day > startDate &&
+    day < endDate
+  ) {
     return {
       startDate,
       endDate,

@@ -46,7 +46,9 @@ export function ClassPeople({
   return (
     <View className="gap-2">
       <View className="flex-row items-start justify-between gap-3">
-        <Text className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</Text>
+        <Text className="ds-text-section-label text-ink-2">
+          {t("classDetails.theClass")}
+        </Text>
         {people.showCapacityLine ? (
           <Text
             className={`ds-text-section-label shrink text-right ${people.full ? "text-bad" : "text-ink-2"}`}
@@ -69,7 +71,9 @@ export function ClassPeople({
             {t("classDetails.instructor", { count: instructors.length })}
           </Text>
           {instructors.length === 0 ? (
-            <Text className="ds-text-list-title text-ink">{t("classDetails.noInstructorAssigned")}</Text>
+            <Text className="ds-text-list-title text-ink">
+              {t("classDetails.noInstructorAssigned")}
+            </Text>
           ) : (
             <View className="flex-row flex-wrap gap-2">
               {instructors.map((instructor) => (
@@ -86,7 +90,10 @@ export function ClassPeople({
         <View className="border-t border-line">
           <Pressable
             accessibilityRole="button"
-            accessibilityState={{ disabled: !people.canExpand, expanded: people.expanded }}
+            accessibilityState={{
+              disabled: !people.canExpand,
+              expanded: people.expanded,
+            }}
             disabled={!people.canExpand}
             onPress={people.toggle}
             className="min-h-11 flex-row items-center gap-3 px-4 py-3"
@@ -121,7 +128,9 @@ export function ClassPeople({
                 ) : null}
               </View>
             ) : null}
-            <Text className="ds-text-section-label flex-1 text-ink-2">{label}</Text>
+            <Text className="ds-text-section-label flex-1 text-ink-2">
+              {label}
+            </Text>
             {people.canExpand ? (
               <Ionicons
                 name={people.expanded ? "chevron-up" : "chevron-down"}
@@ -146,7 +155,9 @@ export function ClassPeople({
                 <ClassGuestRow
                   key={guest.id}
                   name={guest.name}
-                  onTakeOut={onTakeGuestOut ? () => onTakeGuestOut(guest) : undefined}
+                  onTakeOut={
+                    onTakeGuestOut ? () => onTakeGuestOut(guest) : undefined
+                  }
                 />
               ))
             : null}

@@ -40,7 +40,9 @@ export function EditClassScreen() {
 
   const header = (
     <Stack.Screen
-      options={{ headerTitle: () => <StackHeaderTitle title={t("editClass.title")} /> }}
+      options={{
+        headerTitle: () => <StackHeaderTitle title={t("editClass.title")} />,
+      }}
     />
   );
 
@@ -53,7 +55,10 @@ export function EditClassScreen() {
         >
           {header}
           {screen.isLoading ? (
-            <ActivityIndicator testID="edit-class-loading" color={theme.grape} />
+            <ActivityIndicator
+              testID="edit-class-loading"
+              color={theme.grape}
+            />
           ) : screen.isNotFound ? (
             <Text className="ds-text-body text-center text-ink-2">
               {t("classDetails.notFound")}

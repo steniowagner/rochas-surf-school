@@ -41,10 +41,14 @@ export function OngoingClassCard({ item, onPress }: OngoingClassCardProps) {
             </Chip>
           </View>
         </View>
-        <Text className="ds-text-lesson-time mb-[11px] text-on-color">{card.timeRange}</Text>
+        <Text className="ds-text-lesson-time mb-[11px] text-on-color">
+          {card.timeRange}
+        </Text>
         <View className="flex-row items-center gap-[7px] self-start rounded-full border border-on-grape-tint bg-on-grape-fill px-[13px] py-[7px]">
           <Ionicons name="location-outline" size={14} color={theme.onColor} />
-          <Text className="ds-text-card-meta text-on-color">{item.location.name}</Text>
+          <Text className="ds-text-card-meta text-on-color">
+            {item.location.name}
+          </Text>
         </View>
         <View className="mt-3 gap-1.5">
           <View className="h-1.5 overflow-hidden rounded-full bg-on-grape-track">
@@ -54,8 +58,13 @@ export function OngoingClassCard({ item, onPress }: OngoingClassCardProps) {
               className={`h-full rounded-full ${card.full ? "bg-bad" : "bg-on-color"}`}
             />
           </View>
-          <Text className={`ds-text-occupancy ${card.full ? "text-on-grape-bad" : "text-on-color"}`}>
-            {t("classesWeek.occupancy", { taken: item.seatsTaken, capacity: item.capacity })}
+          <Text
+            className={`ds-text-occupancy ${card.full ? "text-on-grape-bad" : "text-on-color"}`}
+          >
+            {t("classesWeek.occupancy", {
+              taken: item.seatsTaken,
+              capacity: item.capacity,
+            })}
           </Text>
         </View>
       </View>
@@ -77,7 +86,11 @@ export function OngoingClassCard({ item, onPress }: OngoingClassCardProps) {
             ))}
             {card.hiddenSeats > 0 ? (
               <View
-                style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: AVATAR_SIZE / 2 }}
+                style={{
+                  width: AVATAR_SIZE,
+                  height: AVATAR_SIZE,
+                  borderRadius: AVATAR_SIZE / 2,
+                }}
                 className="-ml-2 items-center justify-center border-2 border-grape bg-sand"
               >
                 <Text className="ds-text-chip text-ink">{`+${card.hiddenSeats}`}</Text>
@@ -86,7 +99,9 @@ export function OngoingClassCard({ item, onPress }: OngoingClassCardProps) {
           </View>
         ) : null}
         <Text className="ds-text-section-label flex-1 text-on-color">
-          {t(`classesWeek.students.${card.studentsLabel.key}`, { count: card.studentsLabel.count })}
+          {t(`classesWeek.students.${card.studentsLabel.key}`, {
+            count: card.studentsLabel.count,
+          })}
         </Text>
       </View>
     </Pressable>

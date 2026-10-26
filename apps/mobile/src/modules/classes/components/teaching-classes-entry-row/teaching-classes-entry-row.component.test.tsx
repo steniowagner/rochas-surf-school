@@ -1,5 +1,11 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 
@@ -26,18 +32,33 @@ jest.mock("expo-router", () => ({
 
 const classes = (count: number, cancelled = 0) => [
   ...Array.from({ length: count }, (_, index) =>
-    buildClassItem(`c-${index}`, "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z"),
+    buildClassItem(
+      `c-${index}`,
+      "2026-10-15T11:00:00.000Z",
+      "2026-10-15T12:00:00.000Z",
+    ),
   ),
   ...Array.from({ length: cancelled }, (_, index) =>
-    buildClassItem(`x-${index}`, "2026-10-16T11:00:00.000Z", "2026-10-16T12:00:00.000Z", {
-      cancelledAt: "2026-10-10T12:00:00.000Z",
-    }),
+    buildClassItem(
+      `x-${index}`,
+      "2026-10-16T11:00:00.000Z",
+      "2026-10-16T12:00:00.000Z",
+      {
+        cancelledAt: "2026-10-10T12:00:00.000Z",
+      },
+    ),
   ),
 ];
 
-const answer = (items: ReturnType<typeof classes>, teachesAny = items.length > 0) => ok({ items, teachesAny });
+const answer = (
+  items: ReturnType<typeof classes>,
+  teachesAny = items.length > 0,
+) => ok({ items, teachesAny });
 
-async function renderRow(role: TeachingClassesEntryRowRole, onPress = jest.fn()) {
+async function renderRow(
+  role: TeachingClassesEntryRowRole,
+  onPress = jest.fn(),
+) {
   await render(
     <QueryClientProvider client={createQueryClient()}>
       <TeachingClassesEntryRow role={role} onPress={onPress} />
@@ -60,20 +81,25 @@ describe("TeachingClassesEntryRow", () => {
     ["instructor", 0, 0, "No classes assigned"],
     ["admin", 3, 1, "3 classes assigned to you"],
     ["admin", 0, 2, "No classes assigned"],
-  ] as const)("shows My classes for the %s with %s classes and %s cancelled as %s", async (role, count, cancelled, subtitle) => {
-    fetchMock.mockResolvedValue(answer(classes(count, cancelled), true));
-    await renderRow(role);
+  ] as const)(
+    "shows My classes for the %s with %s classes and %s cancelled as %s",
+    async (role, count, cancelled, subtitle) => {
+      fetchMock.mockResolvedValue(answer(classes(count, cancelled), true));
+      await renderRow(role);
 
-    expect(await screen.findByText(subtitle)).toBeOnTheScreen();
-    expect(screen.getByText("My classes")).toBeOnTheScreen();
-    expect(requestedPaths()).toEqual(["/classes/teaching"]);
-  });
+      expect(await screen.findByText(subtitle)).toBeOnTheScreen();
+      expect(screen.getByText("My classes")).toBeOnTheScreen();
+      expect(requestedPaths()).toEqual(["/classes/teaching"]);
+    },
+  );
 
   it("opens the screen when pressed", async () => {
     fetchMock.mockResolvedValue(answer(classes(1)));
     const { onPress } = await renderRow("instructor");
 
-    await userEvent.press(await screen.findByRole("button", { name: /My classes/ }));
+    await userEvent.press(
+      await screen.findByRole("button", { name: /My classes/ }),
+    );
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
@@ -118,8 +144,13 @@ describe("TeachingClassesEntryRow", () => {
       focusEffect();
     });
 
-    expect(await screen.findByText("1 class assigned to you")).toBeOnTheScreen();
-    expect(requestedPaths()).toEqual(["/classes/teaching", "/classes/teaching"]);
+    expect(
+      await screen.findByText("1 class assigned to you"),
+    ).toBeOnTheScreen();
+    expect(requestedPaths()).toEqual([
+      "/classes/teaching",
+      "/classes/teaching",
+    ]);
   });
 
   it("is translated into Portuguese and Spanish", async () => {
@@ -127,7 +158,9 @@ describe("TeachingClassesEntryRow", () => {
     await act(() => i18n.changeLanguage("pt-BR"));
     await renderRow("instructor");
     expect(screen.getByText("Minhas aulas")).toBeOnTheScreen();
-    expect(await screen.findByText("3 aulas atribuídas a você")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("3 aulas atribuídas a você"),
+    ).toBeOnTheScreen();
 
     await act(() => i18n.changeLanguage("es-ES"));
     expect(screen.getByText("Mis clases")).toBeOnTheScreen();
@@ -138,7 +171,9 @@ describe("TeachingClassesEntryRow", () => {
     await act(() => i18n.changeLanguage("pt-BR"));
     fetchMock.mockResolvedValue(answer(classes(1)));
     await renderRow("instructor");
-    expect(await screen.findByText("1 aula atribuída a você")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("1 aula atribuída a você"),
+    ).toBeOnTheScreen();
 
     fetchMock.mockResolvedValue(answer([]));
     await renderRow("instructor");

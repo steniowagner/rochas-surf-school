@@ -21,13 +21,19 @@ describe("ClassGuestRow", () => {
   it("gives a Take out button named after the guest, or Trial without a name", async () => {
     const user = userEvent.setup();
     const onTakeOut = jest.fn();
-    const view = await render(<ClassGuestRow name="Carolina Reis" onTakeOut={onTakeOut} />);
+    const view = await render(
+      <ClassGuestRow name="Carolina Reis" onTakeOut={onTakeOut} />,
+    );
 
-    await user.press(screen.getByRole("button", { name: "Take out Carolina Reis" }));
+    await user.press(
+      screen.getByRole("button", { name: "Take out Carolina Reis" }),
+    );
     expect(onTakeOut).toHaveBeenCalledTimes(1);
 
     await view.rerender(<ClassGuestRow name={null} onTakeOut={onTakeOut} />);
 
-    expect(screen.getByRole("button", { name: "Take out Trial" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Take out Trial" }),
+    ).toBeOnTheScreen();
   });
 });

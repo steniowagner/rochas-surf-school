@@ -22,4 +22,7 @@ export type DeleteSheetVariant = "confirm" | "notEmpty";
 export type ClassDetailsRole = "student" | "instructor" | "admin";
 
 /** Who the person sheet shows: an instructor with their role, or a student. */
-export type ClassDetailsPerson = Pick<Person, "name" | "role" | "whatsappNumber">;
+export type ClassDetailsPerson = Pick<
+  Person,
+  "name" | "role" | "whatsappNumber"
+>;

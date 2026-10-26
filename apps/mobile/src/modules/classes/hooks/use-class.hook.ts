@@ -10,7 +10,8 @@ const DEFAULT_RETRIES = 3;
 export const useClass = (id: string) =>
   useQuery({
     queryKey: ["classes", "detail", id],
-    queryFn: () => apiGet<ClassDetails>(`/classes/${id}`, { authenticated: true }),
+    queryFn: () =>
+      apiGet<ClassDetails>(`/classes/${id}`, { authenticated: true }),
     retry: (failureCount, error) =>
       !(error instanceof ApiError && error.status === 404) &&
       !(error instanceof SessionExpiredError) &&

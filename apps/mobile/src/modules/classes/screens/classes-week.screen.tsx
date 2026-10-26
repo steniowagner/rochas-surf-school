@@ -39,7 +39,9 @@ export function ClassesWeekScreen({
           ...(header === "title"
             ? {
                 headerTitleAlign: "center" as const,
-                headerTitle: () => <StackHeaderTitle title={t("tabs.classes")} />,
+                headerTitle: () => (
+                  <StackHeaderTitle title={t("tabs.classes")} />
+                ),
               }
             : null),
           ...(isHeaderHidden ? { headerShown: false } : null),

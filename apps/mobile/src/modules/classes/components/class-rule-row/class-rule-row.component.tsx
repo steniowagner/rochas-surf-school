@@ -6,7 +6,12 @@ import { useTheme } from "@/hooks/use-theme";
 import type { ClassRuleRowProps } from "./class-rule-row.types";
 
 /** A row of the class's "Regras" card: an icon tile, an uppercase title, a bold value and a chevron. */
-export function ClassRuleRow({ icon, title, value, onPress }: ClassRuleRowProps) {
+export function ClassRuleRow({
+  icon,
+  title,
+  value,
+  onPress,
+}: ClassRuleRowProps) {
   const theme = useTheme();
 
   return (

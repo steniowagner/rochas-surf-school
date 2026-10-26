@@ -25,7 +25,9 @@ const serveWeeks = (weeks: Record<string, unknown[]> = {}) =>
 
 const setup = async (range = OCTOBER) => {
   const queryClient = createQueryClient();
-  queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
+  queryClient.setDefaultOptions({
+    queries: { retry: false, gcTime: Infinity },
+  });
   const { result } = await renderHook(() => useVisibleWeeksClasses(range), {
     wrapper: createWrapper(queryClient),
   });
@@ -60,7 +62,10 @@ describe("useVisibleWeeksClasses", () => {
   });
 
   it("returns the items of every week", async () => {
-    serveWeeks({ "2026-10-05": [item("a")], "2026-10-26": [item("b"), item("c")] });
+    serveWeeks({
+      "2026-10-05": [item("a")],
+      "2026-10-26": [item("b"), item("c")],
+    });
     const { result } = await setup();
 
     await waitFor(() => expect(result.current.items).toHaveLength(3));
@@ -70,7 +75,9 @@ describe("useVisibleWeeksClasses", () => {
   it("doesn't request a week that is already loaded when the range grows", async () => {
     serveWeeks();
     const queryClient = createQueryClient();
-    queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
+    queryClient.setDefaultOptions({
+      queries: { retry: false, gcTime: Infinity },
+    });
     const { rerender } = await renderHook(
       (range: { from: string; to: string }) => useVisibleWeeksClasses(range),
       {
@@ -83,7 +90,9 @@ describe("useVisibleWeeksClasses", () => {
     await rerender(OCTOBER);
     await waitFor(() => expect(requestedPaths()).toHaveLength(5));
 
-    expect(requestedPaths().filter((path) => path.endsWith("2026-10-12"))).toHaveLength(1);
+    expect(
+      requestedPaths().filter((path) => path.endsWith("2026-10-12")),
+    ).toHaveLength(1);
   });
 
   it("leaves the items of the other weeks when one fails", async () => {
@@ -92,7 +101,10 @@ describe("useVisibleWeeksClasses", () => {
 
       return weekStart === "2026-10-12"
         ? failure()
-        : ok({ weekStart, items: weekStart === "2026-10-05" ? [item("a")] : [] });
+        : ok({
+            weekStart,
+            items: weekStart === "2026-10-05" ? [item("a")] : [],
+          });
     });
     const { result } = await setup();
 

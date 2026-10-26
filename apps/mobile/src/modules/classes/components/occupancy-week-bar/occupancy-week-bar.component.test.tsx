@@ -3,21 +3,19 @@ import { render, screen, userEvent } from "@testing-library/react-native";
 import { OccupancyWeekBar } from "./occupancy-week-bar.component";
 
 const renderBar = async (overrides = {}) => {
-  const onPrevious = jest.fn();
-  const onNext = jest.fn();
+  const onPress = jest.fn();
 
   await render(
     <OccupancyWeekBar
       relativeLabel="This week"
       isCurrentWeek
       caption="19 – 25 OCT"
-      onPrevious={onPrevious}
-      onNext={onNext}
+      onPress={onPress}
       {...overrides}
     />,
   );
 
-  return { onPrevious, onNext };
+  return { onPress };
 };
 
 describe("OccupancyWeekBar", () => {
@@ -42,28 +40,18 @@ describe("OccupancyWeekBar", () => {
     expect(label.props.className).not.toContain("text-sun");
   });
 
-  it("has 44 pt round arrows without border or hit slop that press", async () => {
+  it("is one touchable with the calendar icon that opens the calendar", async () => {
     const user = userEvent.setup();
-    const { onPrevious, onNext } = await renderBar();
+    const { onPress } = await renderBar();
 
-    const previous = screen.getByRole("button", {
-      name: "Show the previous week",
-    });
-    const next = screen.getByRole("button", { name: "Show the next week" });
+    expect(
+      screen.getByTestId("occupancy-week-calendar-icon"),
+    ).toBeOnTheScreen();
 
-    for (const side of ["previous", "next"]) {
-      const arrow = screen.getByTestId(`occupancy-week-arrow-${side}`);
-      expect(arrow.props.className).toContain("h-11 w-11");
-      expect(arrow.props.className).toContain("rounded-full bg-surface");
-      expect(arrow.props.className).not.toContain("border");
-      expect(previous.props.hitSlop).toBeUndefined();
-      expect(next.props.hitSlop).toBeUndefined();
-    }
+    await user.press(
+      screen.getByRole("button", { name: "Choose another week" }),
+    );
 
-    await user.press(previous);
-    await user.press(next);
-
-    expect(onPrevious).toHaveBeenCalledTimes(1);
-    expect(onNext).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

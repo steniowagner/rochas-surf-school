@@ -26,17 +26,26 @@ describe("useCancelClass", () => {
     });
 
     expect(out).toEqual({ id: "c-1" });
-    expect(fetchMock).toHaveBeenCalledWith("http://api.test/classes/c-1/cancel", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer at-1" },
-      body: JSON.stringify({ message: "Mar muito grande." }),
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/classes/c-1/cancel",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer at-1",
+        },
+        body: JSON.stringify({ message: "Mar muito grande." }),
+      },
+    );
   });
 
   it("invalidates every cached week and detail on success", async () => {
     fetchMock.mockResolvedValue(ok({ id: "c-1" }));
     const queryClient = createQueryClient();
-    queryClient.setQueryData(["classes", "week", "2026-10-12"], { weekStart: "2026-10-12", items: [] });
+    queryClient.setQueryData(["classes", "week", "2026-10-12"], {
+      weekStart: "2026-10-12",
+      items: [],
+    });
     queryClient.setQueryData(["classes", "detail", "c-1"], { id: "c-1" });
     queryClient.setQueryData(["locations"], { items: [] });
     const { result } = await renderHook(() => useCancelClass("c-1"), {
@@ -47,8 +56,13 @@ describe("useCancelClass", () => {
       await result.current.mutateAsync({});
     });
 
-    expect(queryClient.getQueryState(["classes", "week", "2026-10-12"])?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated).toBe(true);
+    expect(
+      queryClient.getQueryState(["classes", "week", "2026-10-12"])
+        ?.isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated,
+    ).toBe(true);
     expect(queryClient.getQueryState(["locations"])?.isInvalidated).toBe(false);
   });
 
@@ -65,6 +79,8 @@ describe("useCancelClass", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated).toBe(false);
+    expect(
+      queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated,
+    ).toBe(false);
   });
 });

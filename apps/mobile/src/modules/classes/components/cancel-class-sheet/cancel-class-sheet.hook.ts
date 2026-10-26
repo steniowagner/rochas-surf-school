@@ -25,7 +25,8 @@ export const useCancelClassSheet = ({
     }
   }
 
-  const confirm = () => onConfirm(message.trim() === "" ? undefined : message.trim());
+  const confirm = () =>
+    onConfirm(message.trim() === "" ? undefined : message.trim());
 
   const close = () => {
     setMessage("");
@@ -34,9 +35,15 @@ export const useCancelClassSheet = ({
 
   // Who will be told; with nobody to name, the sheet keeps its general sentence.
   const audience = [
-    studentCount > 0 ? t("cancelClass.audience.students", { count: studentCount }) : null,
-    pendingCount > 0 ? t("cancelClass.audience.pending", { count: pendingCount }) : null,
-    instructorCount > 0 ? t("cancelClass.audience.instructors", { count: instructorCount }) : null,
+    studentCount > 0
+      ? t("cancelClass.audience.students", { count: studentCount })
+      : null,
+    pendingCount > 0
+      ? t("cancelClass.audience.pending", { count: pendingCount })
+      : null,
+    instructorCount > 0
+      ? t("cancelClass.audience.instructors", { count: instructorCount })
+      : null,
   ].filter((part) => part !== null);
   const description =
     audience.length === 0

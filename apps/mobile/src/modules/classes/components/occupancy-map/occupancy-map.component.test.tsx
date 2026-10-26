@@ -1,4 +1,9 @@
-import { render, screen, userEvent, within } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  userEvent,
+  within,
+} from "@testing-library/react-native";
 
 import { buildClassItem } from "../../classes.test-utils";
 import type { ClassItem } from "../../classes.types";
@@ -167,17 +172,18 @@ describe("OccupancyMap", () => {
     expect(empty.props.importantForAccessibility).toBe("no-hide-descendants");
     // The border sits on an inner view, so the slot's width is the same as a class cell's (D-06: 7 equal columns).
     expect(empty.props.className).toBe("h-11 flex-1");
-    const [dashed] = within(empty).queryAllByTestId(/^occupancy-dashed-/, { includeHiddenElements: true });
+    const [dashed] = within(empty).queryAllByTestId(/^occupancy-dashed-/, {
+      includeHiddenElements: true,
+    });
     expect(dashed.props.className).toContain("border-dashed");
     expect(screen.queryAllByRole("button")).toHaveLength(6);
     await userEvent.press(empty);
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it("shows the section label and the legend", async () => {
+  it("shows the legend", async () => {
     await renderMap();
 
-    expect(screen.getByText("Week map")).toBeOnTheScreen();
     for (const label of ["under 50%", "50–89%", "90%+", "Full"]) {
       expect(screen.getByText(label)).toBeOnTheScreen();
     }
@@ -188,7 +194,9 @@ describe("OccupancyMap", () => {
       full: "bg-bad",
     };
     for (const [key, fill] of Object.entries(swatches)) {
-      const { className } = screen.getByTestId(`occupancy-legend-swatch-${key}`).props;
+      const { className } = screen.getByTestId(
+        `occupancy-legend-swatch-${key}`,
+      ).props;
       expect(className).toContain(fill);
       expect(className).toContain("rounded-swatch");
     }

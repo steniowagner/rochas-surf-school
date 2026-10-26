@@ -34,11 +34,11 @@ export function LocationPicker({
             accessibilityLabel={location.name}
             accessibilityState={{ checked: selected }}
             disabled={managing && location.archived}
-            onPress={() => (managing ? onEditPress(location) : onSelect(location.id))}
+            onPress={() =>
+              managing ? onEditPress(location) : onSelect(location.id)
+            }
             className={`min-h-11 flex-row items-center gap-3 rounded-card border px-4 py-3 ${
-              selected
-                ? "border-grape bg-grape-tint"
-                : "border-line bg-surface"
+              selected ? "border-grape bg-grape-tint" : "border-line bg-surface"
             }`}
           >
             <Ionicons

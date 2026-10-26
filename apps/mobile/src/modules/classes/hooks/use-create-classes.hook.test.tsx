@@ -41,7 +41,10 @@ describe("useCreateClasses", () => {
     expect(out).toEqual({ count: 2 });
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/classes/batch", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer at-1" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer at-1",
+      },
       body: JSON.stringify(request),
     });
   });
@@ -49,8 +52,13 @@ describe("useCreateClasses", () => {
   it("invalidates the cached weeks after creating", async () => {
     fetchMock.mockResolvedValue({ ...ok({ count: 2 }), status: 201 });
     const queryClient = createQueryClient();
-    queryClient.setQueryData(["classes", "week", "2026-10-12"], { weekStart: "2026-10-12", items: [] });
-    queryClient.setQueryData(["classes", "time-range-suggestions"], { items: [] });
+    queryClient.setQueryData(["classes", "week", "2026-10-12"], {
+      weekStart: "2026-10-12",
+      items: [],
+    });
+    queryClient.setQueryData(["classes", "time-range-suggestions"], {
+      items: [],
+    });
     const { result } = await renderHook(() => useCreateClasses(), {
       wrapper: createWrapper(queryClient),
     });
@@ -59,14 +67,23 @@ describe("useCreateClasses", () => {
       await result.current.mutateAsync(request);
     });
 
-    expect(queryClient.getQueryState(["classes", "week", "2026-10-12"])?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(["classes", "time-range-suggestions"])?.isInvalidated).toBe(false);
+    expect(
+      queryClient.getQueryState(["classes", "week", "2026-10-12"])
+        ?.isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryState(["classes", "time-range-suggestions"])
+        ?.isInvalidated,
+    ).toBe(false);
   });
 
   it("invalidates nothing when creating fails", async () => {
     fetchMock.mockResolvedValue(failure(422));
     const queryClient = createQueryClient();
-    queryClient.setQueryData(["classes", "week", "2026-10-12"], { weekStart: "2026-10-12", items: [] });
+    queryClient.setQueryData(["classes", "week", "2026-10-12"], {
+      weekStart: "2026-10-12",
+      items: [],
+    });
     const { result } = await renderHook(() => useCreateClasses(), {
       wrapper: createWrapper(queryClient),
     });
@@ -75,7 +92,10 @@ describe("useCreateClasses", () => {
       await expect(result.current.mutateAsync(request)).rejects.toBeDefined();
     });
 
-    expect(queryClient.getQueryState(["classes", "week", "2026-10-12"])?.isInvalidated).toBe(false);
+    expect(
+      queryClient.getQueryState(["classes", "week", "2026-10-12"])
+        ?.isInvalidated,
+    ).toBe(false);
   });
 
   it("rejects on a failure, once", async () => {

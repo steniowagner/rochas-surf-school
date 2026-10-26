@@ -13,7 +13,10 @@ export const MAP_DELTA = 0.2;
 export const PREVIEW_DELTA = 0.01;
 
 /** The map around a point, or around Fortaleza when there is none. */
-export const regionAround = (point: MapPoint | null, delta = MAP_DELTA): Region => ({
+export const regionAround = (
+  point: MapPoint | null,
+  delta = MAP_DELTA,
+): Region => ({
   ...(point ?? FORTALEZA),
   latitudeDelta: delta,
   longitudeDelta: delta,
@@ -26,7 +29,8 @@ export const getDirectionsUrl = ({ latitude, longitude }: MapPoint): string =>
     : `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 
 /** Google Maps on Android, Apple Maps (the default) on iOS. */
-export const getMapProvider = () => (Platform.OS === "android" ? PROVIDER_GOOGLE : undefined);
+export const getMapProvider = () =>
+  Platform.OS === "android" ? PROVIDER_GOOGLE : undefined;
 
 /** The point of a location, or `null` when it was saved without one. */
 export const toMapPoint = (location: {

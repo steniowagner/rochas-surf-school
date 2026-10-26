@@ -25,14 +25,20 @@ describe("InstructorPicker", () => {
     expect(screen.queryByText("Instructor")).toBeNull();
     expect(screen.getByText("Bruno Lima")).toBeTruthy();
     expect(screen.queryByText("Admin")).toBeNull();
-    expect(screen.getByRole("checkbox", { name: "Ana Souza" })).not.toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "Bruno Lima" })).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: "Ana Souza" }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: "Bruno Lima" }),
+    ).not.toBeChecked();
   });
 
   it("ticks the selected rows and toggles one on a tap", async () => {
     const onToggle = jest.fn();
     const user = userEvent.setup();
-    await render(<InstructorPicker {...props} selectedIds={["t-2"]} onToggle={onToggle} />);
+    await render(
+      <InstructorPicker {...props} selectedIds={["t-2"]} onToggle={onToggle} />,
+    );
 
     expect(screen.getByRole("checkbox", { name: "Bruno Lima" })).toBeChecked();
 
@@ -62,7 +68,9 @@ describe("InstructorPicker", () => {
   it("shows the error with a retry button", async () => {
     const onRetry = jest.fn();
     const user = userEvent.setup();
-    await render(<InstructorPicker {...props} teachers={[]} error onRetry={onRetry} />);
+    await render(
+      <InstructorPicker {...props} teachers={[]} error onRetry={onRetry} />,
+    );
 
     expect(screen.getByText("Couldn't load the instructors.")).toBeTruthy();
 

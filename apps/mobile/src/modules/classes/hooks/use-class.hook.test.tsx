@@ -54,7 +54,9 @@ describe("useClass", () => {
   });
 
   it("does not retry an expired session", async () => {
-    (api.apiGet as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+    (api.apiGet as jest.Mock).mockRejectedValueOnce(
+      new api.SessionExpiredError(),
+    );
 
     const { result } = await renderHook(() => useClass("c-1"), {
       wrapper: createWrapper(createQueryClient()),
@@ -66,20 +68,30 @@ describe("useClass", () => {
 
   it("retries other failures", async () => {
     fetchMock
-      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ errors: [] }) })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ errors: [] }),
+      })
       .mockResolvedValue(ok({ id: "c-1" }));
 
     const { result } = await renderHook(() => useClass("c-1"), {
       wrapper: createWrapper(createQueryClient()),
     });
 
-    await waitFor(() => expect(result.current.data).toEqual({ id: "c-1" }), { timeout: 4000 });
+    await waitFor(() => expect(result.current.data).toEqual({ id: "c-1" }), {
+      timeout: 4000,
+    });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("gives up after the default retries", async () => {
     jest.useFakeTimers();
-    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({ errors: [] }) });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ errors: [] }),
+    });
 
     const { result } = await renderHook(() => useClass("c-1"), {
       wrapper: createWrapper(createQueryClient()),

@@ -17,8 +17,9 @@ export const useCreateLocation = () => {
     mutationFn: (variables: NewLocationVariables) =>
       apiPost<ClassLocation>("/locations", variables, { authenticated: true }),
     onSuccess: (location) => {
-      queryClient.setQueryData<LocationsResponse>(LOCATIONS_QUERY_KEY, (current) =>
-        addLocation(current, location),
+      queryClient.setQueryData<LocationsResponse>(
+        LOCATIONS_QUERY_KEY,
+        (current) => addLocation(current, location),
       );
     },
   });

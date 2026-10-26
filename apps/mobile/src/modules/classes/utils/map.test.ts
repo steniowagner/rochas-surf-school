@@ -21,7 +21,11 @@ describe("regionAround", () => {
   });
 
   it("centres on Fortaleza when there is no point", () => {
-    expect(regionAround(null)).toEqual({ ...FORTALEZA, latitudeDelta: 0.2, longitudeDelta: 0.2 });
+    expect(regionAround(null)).toEqual({
+      ...FORTALEZA,
+      latitudeDelta: 0.2,
+      longitudeDelta: 0.2,
+    });
     expect(FORTALEZA).toEqual({ latitude: -3.7319, longitude: -38.5267 });
   });
 });
@@ -44,7 +48,10 @@ describe("getMapProvider", () => {
 
 describe("toMapPoint", () => {
   it("reads a point, or none when either coordinate is missing", () => {
-    expect(toMapPoint({ latitude: 1, longitude: 2 })).toEqual({ latitude: 1, longitude: 2 });
+    expect(toMapPoint({ latitude: 1, longitude: 2 })).toEqual({
+      latitude: 1,
+      longitude: 2,
+    });
     expect(toMapPoint({ latitude: null, longitude: 2 })).toBeNull();
     expect(toMapPoint({ latitude: 1, longitude: null })).toBeNull();
   });
@@ -72,7 +79,9 @@ describe("getDirectionsUrl", () => {
     const point = { latitude: -3.7442, longitude: -38.4617 };
 
     Platform.OS = "ios";
-    expect(getDirectionsUrl(point)).toBe("https://maps.apple.com/?daddr=-3.7442,-38.4617");
+    expect(getDirectionsUrl(point)).toBe(
+      "https://maps.apple.com/?daddr=-3.7442,-38.4617",
+    );
 
     Platform.OS = "android";
     expect(getDirectionsUrl(point)).toBe(

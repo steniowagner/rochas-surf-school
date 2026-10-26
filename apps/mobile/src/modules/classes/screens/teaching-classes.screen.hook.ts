@@ -9,7 +9,11 @@ import { getDateLocale } from "@/utils/calendar-dates";
 import type { ClassItem, DisciplineFilterValue } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
 import { useTeachingClasses } from "../hooks/use-teaching-classes.hook";
-import { formatDayName, formatShortDate, layoutTeachingClasses } from "../utils/teaching-classes";
+import {
+  formatDayName,
+  formatShortDate,
+  layoutTeachingClasses,
+} from "../utils/teaching-classes";
 
 import type {
   TeachingClassesRow,
@@ -52,15 +56,24 @@ export const useTeachingClassesScreen = ({
   const locale = getDateLocale(i18n.language);
   const allItems = query.data?.items ?? NO_ITEMS;
   // Filtered before the layout, so the classes under way, the days and the next class are all of the chosen sport.
-  const items = allItems.filter((item) => discipline === "all" || item.discipline === discipline);
+  const items = allItems.filter(
+    (item) => discipline === "all" || item.discipline === discipline,
+  );
   const layout = layoutTeachingClasses(items, now);
   const rows: TeachingClassesRow[] = [
-    ...layout.ongoing.map((item): TeachingClassesRow => ({ type: "ongoing", key: `ongoing-${item.id}`, item })),
+    ...layout.ongoing.map((item): TeachingClassesRow => ({
+      type: "ongoing",
+      key: `ongoing-${item.id}`,
+      item,
+    })),
     ...layout.days.flatMap((day): TeachingClassesRow[] => [
       {
         type: "day",
         key: `day-${day.day}`,
-        label: day.label === "weekday" ? formatDayName(day.day, locale) : t(`teachingClasses.${day.label}`),
+        label:
+          day.label === "weekday"
+            ? formatDayName(day.day, locale)
+            : t(`teachingClasses.${day.label}`),
         date: formatShortDate(day.day, locale),
       },
       ...day.items.map((item): TeachingClassesRow => ({
@@ -80,7 +93,9 @@ export const useTeachingClassesScreen = ({
   // Empty only because of the filter, while classes of the other sport are still to come: "no classes assigned yet"
   // would be false.
   const emptyDiscipline =
-    isEmpty && discipline !== "all" && allItems.some((item) => new Date(item.endsAt).getTime() > now.getTime())
+    isEmpty &&
+    discipline !== "all" &&
+    allItems.some((item) => new Date(item.endsAt).getTime() > now.getTime())
       ? discipline
       : null;
 
@@ -94,7 +109,9 @@ export const useTeachingClassesScreen = ({
     // An expired session is handled by the session flow; a failed refetch keeps the list it had.
     isError:
       isRetrying ||
-      (query.isError && query.data === undefined && !(query.error instanceof SessionExpiredError)),
+      (query.isError &&
+        query.data === undefined &&
+        !(query.error instanceof SessionExpiredError)),
     isRetrying,
     isRefreshing,
     refresh,

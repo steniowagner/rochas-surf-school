@@ -16,5 +16,10 @@ export type CancelClassSheetProps = {
 
 export type UseCancelClassSheetProps = Pick<
   CancelClassSheetProps,
-  "visible" | "onConfirm" | "onClose" | "studentCount" | "pendingCount" | "instructorCount"
+  | "visible"
+  | "onConfirm"
+  | "onClose"
+  | "studentCount"
+  | "pendingCount"
+  | "instructorCount"
 >;

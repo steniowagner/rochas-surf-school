@@ -1,4 +1,8 @@
-import { getClassState, isWithoutDeadline, isWithoutInstructor } from "@rochas-surf-school/classes";
+import {
+  getClassState,
+  isWithoutDeadline,
+  isWithoutInstructor,
+} from "@rochas-surf-school/classes";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,7 +36,12 @@ import {
 } from "../utils/class-error";
 import { toMapPoint } from "../utils/map";
 import { isClassFull } from "../utils/occupancy";
-import { formatDateLine, formatDeadline, schoolDayOf, schoolTimeOf } from "../utils/week";
+import {
+  formatDateLine,
+  formatDeadline,
+  schoolDayOf,
+  schoolTimeOf,
+} from "../utils/week";
 
 import type {
   ClassDetailsInstructor,
@@ -74,7 +83,8 @@ export const useClassDetailsScreen = ({
   const deleting = useRef(false);
   const [rulesVisible, setRulesVisible] = useState(false);
   // Kept while the sheet slides away, so its content doesn't vanish before it is gone.
-  const [selectedPerson, setSelectedPerson] = useState<ClassDetailsPerson | null>(null);
+  const [selectedPerson, setSelectedPerson] =
+    useState<ClassDetailsPerson | null>(null);
   const [personVisible, setPersonVisible] = useState(false);
 
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
@@ -83,7 +93,9 @@ export const useClassDetailsScreen = ({
       isViewer: instructor.id === user?.id,
     }),
   );
-  const instructorCount = instructors.filter((instructor) => !instructor.isViewer).length;
+  const instructorCount = instructors.filter(
+    (instructor) => !instructor.isViewer,
+  ).length;
   const start = item ? schoolTimeOf(item.startsAt) : "";
   const end = item ? schoolTimeOf(item.endsAt) : "";
   const state = item
@@ -245,7 +257,9 @@ export const useClassDetailsScreen = ({
           : ("available" as const),
     // Admins only: the class hasn't started and nobody teaches it; the banner opens the editor.
     showNoInstructor:
-      canEdit && state !== null && isWithoutInstructor(instructors.length, state),
+      canEdit &&
+      state !== null &&
+      isWithoutInstructor(instructors.length, state),
     // Admins only: the class hasn't started and its deadline couldn't be worked out; the banner opens the rules.
     showNoDeadline:
       canEdit &&
@@ -264,7 +278,10 @@ export const useClassDetailsScreen = ({
     pendingCount: item?.pendingRequests ?? 0,
     instructorCount,
     // The tools' "Send message" and "Cancel class" reach the same people as the cancellation's notice.
-    messageCount: instructorCount + (item?.students.length ?? 0) + (item?.pendingRequests ?? 0),
+    messageCount:
+      instructorCount +
+      (item?.students.length ?? 0) +
+      (item?.pendingRequests ?? 0),
     takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
     // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
     enrolmentDescription: !enrolment.display
@@ -272,7 +289,9 @@ export const useClassDetailsScreen = ({
       : enrolment.display.key !== "takenOut"
         ? t(`enrolment.status.${enrolment.display.key}.description`)
         : enrolment.takenOutReason
-          ? t("enrolment.status.takenOut.reason", { reason: enrolment.takenOutReason })
+          ? t("enrolment.status.takenOut.reason", {
+              reason: enrolment.takenOutReason,
+            })
           : t("enrolment.status.takenOut.noReason"),
     // "Surf Beginner · Tomorrow, 08:00 – 09:00": the class the student leaves.
     takeOutSummary: item
@@ -296,7 +315,9 @@ export const useClassDetailsScreen = ({
     closeRules: () => setRulesVisible(false),
     // Everyone reads the school rules in their own flow.
     openSchoolRules: () =>
-      router.push(routes[(user?.role ?? "student") as ClassDetailsRole].schoolRules),
+      router.push(
+        routes[(user?.role ?? "student") as ClassDetailsRole].schoolRules,
+      ),
     selectedPerson,
     personVisible,
     openInstructor: ({ name, role, whatsappNumber }: ClassDetailsInstructor) =>

@@ -1,4 +1,9 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+} from "@testing-library/react-native";
 
 import { AddressSearchField } from "./address-search-field.component";
 
@@ -9,7 +14,9 @@ const suggestions = [
 
 const input = () => screen.getByLabelText("Address");
 
-async function renderField(overrides: Partial<React.ComponentProps<typeof AddressSearchField>> = {}) {
+async function renderField(
+  overrides: Partial<React.ComponentProps<typeof AddressSearchField>> = {},
+) {
   const props = {
     value: "",
     onChangeText: jest.fn(),
@@ -62,7 +69,11 @@ describe("AddressSearchField", () => {
     const { props } = await renderField();
     await fireEvent(input(), "focus");
 
-    await userEvent.setup().press(screen.getByRole("button", { name: "Praia de Iracema, Fortaleza - CE" }));
+    await userEvent.setup().press(
+      screen.getByRole("button", {
+        name: "Praia de Iracema, Fortaleza - CE",
+      }),
+    );
 
     expect(props.onPick).toHaveBeenCalledWith(suggestions[1]);
   });

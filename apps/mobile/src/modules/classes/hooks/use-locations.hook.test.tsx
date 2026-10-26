@@ -17,7 +17,13 @@ beforeEach(setupSignedInUser);
 
 describe("useLocations", () => {
   it("loads the locations, authenticated", async () => {
-    const items = [buildLocation({ name: "Praia", address: "Av. Beira Mar", upcomingClasses: 2 })];
+    const items = [
+      buildLocation({
+        name: "Praia",
+        address: "Av. Beira Mar",
+        upcomingClasses: 2,
+      }),
+    ];
     fetchMock.mockResolvedValue(ok({ items }));
 
     const { result } = await renderHook(() => useLocations(), {

@@ -13,6 +13,9 @@ export const TEACHING_CLASSES_QUERY_KEY = ["classes", "teaching"] as const;
 export const useTeachingClasses = () =>
   useQuery({
     queryKey: TEACHING_CLASSES_QUERY_KEY,
-    queryFn: () => apiGet<TeachingClassesResponse>("/classes/teaching", { authenticated: true }),
+    queryFn: () =>
+      apiGet<TeachingClassesResponse>("/classes/teaching", {
+        authenticated: true,
+      }),
     retry: false,
   });

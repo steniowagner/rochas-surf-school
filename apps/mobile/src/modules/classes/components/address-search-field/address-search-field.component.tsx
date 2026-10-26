@@ -47,7 +47,10 @@ export function AddressSearchField({
                 <Text className="ds-text-list-title text-ink" numberOfLines={1}>
                   {suggestion.title}
                 </Text>
-                <Text className="ds-text-list-subtitle text-ink-2" numberOfLines={1}>
+                <Text
+                  className="ds-text-list-subtitle text-ink-2"
+                  numberOfLines={1}
+                >
                   {suggestion.description}
                 </Text>
               </View>

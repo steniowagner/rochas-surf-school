@@ -5,12 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
 import { SessionExpiredError } from "@/services/api";
-import {
-  addWeeks,
-  getDateLocale,
-  mondayOf,
-  weekCaption,
-} from "@/utils/calendar-dates";
+import { getDateLocale, mondayOf, weekCaption } from "@/utils/calendar-dates";
 
 import type { ClassItem } from "../classes.types";
 import { useNow } from "../hooks/use-now.hook";
@@ -32,6 +27,7 @@ export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
   const today = todayInSchoolZone(now);
   const [weekStart, setWeekStart] = useState(() => mondayOf(today));
   // The class the admin tapped; `null` until they tap one, and again after they move to another week.
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [tappedId, setTappedId] = useState<string | null>(null);
   // Only the user's pull-to-refresh turns the spinner on, not the refetch of a focus.
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -61,8 +57,8 @@ export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
     ? tappedId
     : getDefaultSelectedClassId(classes);
 
-  const moveWeek = (amount: number) => {
-    setWeekStart((current) => addWeeks(current, amount));
+  const selectWeekOf = (date: string) => {
+    setWeekStart(mondayOf(date));
     setTappedId(null);
   };
 
@@ -97,8 +93,10 @@ export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
     isRefreshing,
     refresh,
     retry: () => void refetch(),
-    goPrevious: () => moveWeek(-1),
-    goNext: () => moveWeek(1),
+    isCalendarOpen,
+    openCalendar: () => setIsCalendarOpen(true),
+    closeCalendar: () => setIsCalendarOpen(false),
+    selectWeekOf,
     selectClass: setTappedId,
     openClass: (id) => router.push(routes.admin.classDetail(id)),
   };

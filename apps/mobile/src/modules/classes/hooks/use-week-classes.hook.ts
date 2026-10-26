@@ -9,7 +9,9 @@ export const weekClassesOptions = (weekStart: string) =>
   queryOptions({
     queryKey: ["classes", "week", weekStart],
     queryFn: () =>
-      apiGet<WeekClasses>(`/classes?date=${weekStart}`, { authenticated: true }),
+      apiGet<WeekClasses>(`/classes?date=${weekStart}`, {
+        authenticated: true,
+      }),
   });
 
 /** The classes of the week that starts on the Monday `weekStart` (`YYYY-MM-DD`). */

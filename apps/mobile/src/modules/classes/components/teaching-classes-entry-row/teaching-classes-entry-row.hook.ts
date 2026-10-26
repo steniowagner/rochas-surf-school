@@ -35,6 +35,9 @@ export const useTeachingClassesEntryRow = ({
 
   return {
     visible,
-    subtitle: count === 0 ? t("teachingClasses.row.none") : t("teachingClasses.row.assigned", { count }),
+    subtitle:
+      count === 0
+        ? t("teachingClasses.row.none")
+        : t("teachingClasses.row.assigned", { count }),
   };
 };

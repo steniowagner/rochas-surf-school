@@ -14,19 +14,26 @@ import {
 
 import { useAddressSuggestions } from "./use-address-suggestions.hook";
 
-const items = [{ placeId: "p1", title: "Praia do Futuro", description: "Fortaleza" }];
+const items = [
+  { placeId: "p1", title: "Praia do Futuro", description: "Fortaleza" },
+];
 
 beforeEach(() => {
   setupSignedInUser();
-  jest.useFakeTimers({ doNotFake: ["nextTick", "setImmediate", "queueMicrotask"] });
+  jest.useFakeTimers({
+    doNotFake: ["nextTick", "setImmediate", "queueMicrotask"],
+  });
 });
 afterEach(() => jest.useRealTimers());
 
 const render = (text: string, queryClient = createQueryClient()) =>
-  renderHook(({ value }: { value: string }) => useAddressSuggestions(value, "tok-1"), {
-    initialProps: { value: text },
-    wrapper: createWrapper(queryClient),
-  });
+  renderHook(
+    ({ value }: { value: string }) => useAddressSuggestions(value, "tok-1"),
+    {
+      initialProps: { value: text },
+      wrapper: createWrapper(queryClient),
+    },
+  );
 
 describe("useAddressSuggestions", () => {
   it("asks 300 ms after the last keystroke with the text, the session token and the language", async () => {

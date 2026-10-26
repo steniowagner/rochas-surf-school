@@ -4,7 +4,9 @@ import { CapacityStepper } from "./capacity-stepper.component";
 
 describe("CapacityStepper", () => {
   it("shows the value and the unit", async () => {
-    await render(<CapacityStepper value={8} min={1} max={20} onChange={jest.fn()} />);
+    await render(
+      <CapacityStepper value={8} min={1} max={20} onChange={jest.fn()} />,
+    );
 
     expect(screen.getByText("8")).toBeTruthy();
     expect(screen.getByText("students per class")).toBeTruthy();
@@ -13,7 +15,9 @@ describe("CapacityStepper", () => {
   it("steps down and up by one", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    await render(<CapacityStepper value={8} min={1} max={20} onChange={onChange} />);
+    await render(
+      <CapacityStepper value={8} min={1} max={20} onChange={onChange} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Decrease" }));
     await user.press(screen.getByRole("button", { name: "Increase" }));
@@ -25,7 +29,9 @@ describe("CapacityStepper", () => {
   it("turns the decrease button off at the minimum", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    await render(<CapacityStepper value={1} min={1} max={20} onChange={onChange} />);
+    await render(
+      <CapacityStepper value={1} min={1} max={20} onChange={onChange} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Decrease" }));
 
@@ -37,7 +43,9 @@ describe("CapacityStepper", () => {
   it("turns the increase button off at the maximum", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    await render(<CapacityStepper value={20} min={1} max={20} onChange={onChange} />);
+    await render(
+      <CapacityStepper value={20} min={1} max={20} onChange={onChange} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Increase" }));
 

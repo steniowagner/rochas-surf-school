@@ -11,7 +11,11 @@ import { useClassLocationCard } from "./class-location-card.hook";
 import type { ClassLocationCardProps } from "./class-location-card.types";
 
 /** The "Onde e como" card: the map across the top, then the place and "Direções" to open the phone's maps app. */
-export function ClassLocationCard({ name, address, point }: ClassLocationCardProps) {
+export function ClassLocationCard({
+  name,
+  address,
+  point,
+}: ClassLocationCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const { openDirections } = useClassLocationCard();
@@ -37,7 +41,9 @@ export function ClassLocationCard({ name, address, point }: ClassLocationCardPro
             onPress={() => openDirections(point)}
             className="min-h-11 flex-row items-center gap-1"
           >
-            <Text className="ds-text-section-label text-lagoon">{t("classDetails.directions")}</Text>
+            <Text className="ds-text-section-label text-lagoon">
+              {t("classDetails.directions")}
+            </Text>
             <Feather name="arrow-up-right" size={13} color={theme.lagoon} />
           </TouchableOpacity>
         ) : null}

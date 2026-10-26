@@ -8,7 +8,11 @@ import { weekClassesOptions } from "./use-week-classes.hook";
 const mondaysBetween = ({ from, to }: VisibleRange): string[] => {
   const mondays: string[] = [];
 
-  for (let monday = mondayOf(from); monday <= to; monday = addWeeks(monday, 1)) {
+  for (
+    let monday = mondayOf(from);
+    monday <= to;
+    monday = addWeeks(monday, 1)
+  ) {
     mondays.push(monday);
   }
 

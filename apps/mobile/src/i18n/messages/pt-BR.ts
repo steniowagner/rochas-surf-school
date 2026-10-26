@@ -1179,8 +1179,8 @@ const messages: Messages = {
   },
   weeklyOccupancy: {
     title: "Ocupação semanal",
+    openCalendar: "Escolher outra semana",
     rowSubtitle: "Lugares ocupados e vagas por aula",
-    section: "Mapa da semana",
     legend: {
       low: "menos de 50%",
       mid: "50–89%",

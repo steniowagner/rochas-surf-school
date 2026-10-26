@@ -33,7 +33,9 @@ export function LocationSheet(props: LocationSheetProps) {
         <View className="gap-4">
           <View className="gap-1">
             <Text className="ds-text-sheet-title text-ink">
-              {sheet.editing ? t("locationSheet.editTitle") : t("locationSheet.title")}
+              {sheet.editing
+                ? t("locationSheet.editTitle")
+                : t("locationSheet.title")}
             </Text>
             <Text className="ds-text-body text-ink-2">
               {sheet.editing
@@ -47,7 +49,13 @@ export function LocationSheet(props: LocationSheetProps) {
                 {t("locationSheet.name")}
               </Text>
               <TextInput
-                icon={<Ionicons name="location-outline" size={20} color={theme.ink2} />}
+                icon={
+                  <Ionicons
+                    name="location-outline"
+                    size={20}
+                    color={theme.ink2}
+                  />
+                }
                 accessibilityLabel={t("locationSheet.name")}
                 placeholder={t("locationSheet.namePlaceholder")}
                 value={fields.name}
@@ -69,7 +77,10 @@ export function LocationSheet(props: LocationSheetProps) {
                 onPick={sheet.pickSuggestion}
               />
             </View>
-            <LocationMapPicker point={fields.point} onChange={sheet.changePoint} />
+            <LocationMapPicker
+              point={fields.point}
+              onChange={sheet.changePoint}
+            />
             {sheet.showNotify ? (
               <View>
                 <Checkbox
@@ -78,7 +89,9 @@ export function LocationSheet(props: LocationSheetProps) {
                   label={t("locationSheet.notify")}
                 />
                 <Text className="ds-text-list-subtitle px-1 text-ink-2">
-                  {t("locationSheet.notifyCount", { count: sheet.upcomingClasses })}
+                  {t("locationSheet.notifyCount", {
+                    count: sheet.upcomingClasses,
+                  })}
                 </Text>
               </View>
             ) : null}
@@ -89,7 +102,9 @@ export function LocationSheet(props: LocationSheetProps) {
             disabled={!sheet.canSubmit}
             onPress={sheet.submit}
           >
-            {sheet.editing ? t("locationSheet.save") : t("locationSheet.submit")}
+            {sheet.editing
+              ? t("locationSheet.save")
+              : t("locationSheet.submit")}
           </Button>
           {sheet.editing ? (
             <Button variant="outline" onPress={sheet.openArchive}>

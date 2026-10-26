@@ -51,8 +51,11 @@ describe("CalendarDay", () => {
   });
 
   it("rounds the band only at its start and its end", async () => {
-    const { rerender } = await render(<CalendarDay {...base} inRange bandStart />);
-    const className = () => screen.getByTestId("calendar-day-band-2026-10-15").props.className;
+    const { rerender } = await render(
+      <CalendarDay {...base} inRange bandStart />,
+    );
+    const className = () =>
+      screen.getByTestId("calendar-day-band-2026-10-15").props.className;
     expect(className()).toContain("bg-grape-tint");
     expect(className()).toContain("rounded-l-full");
     expect(className()).not.toContain("rounded-r-full");
@@ -71,7 +74,9 @@ describe("CalendarDay", () => {
 
   it("lightens the label of a day of another month, unless it is an end of the range", async () => {
     const { rerender } = await render(<CalendarDay {...base} adjacentMonth />);
-    expect(screen.getByText("15").props.className).toContain("text-ink-2 opacity-60");
+    expect(screen.getByText("15").props.className).toContain(
+      "text-ink-2 opacity-60",
+    );
 
     await rerender(<CalendarDay {...base} adjacentMonth edge />);
     expect(screen.getByText("15").props.className).toContain("text-on-color");

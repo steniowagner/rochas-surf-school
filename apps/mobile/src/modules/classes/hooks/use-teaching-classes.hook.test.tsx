@@ -9,14 +9,23 @@ import {
   ok,
   setupSignedInUser,
 } from "../classes.test-utils";
-import { TEACHING_CLASSES_QUERY_KEY, useTeachingClasses } from "./use-teaching-classes.hook";
+import {
+  TEACHING_CLASSES_QUERY_KEY,
+  useTeachingClasses,
+} from "./use-teaching-classes.hook";
 
 beforeEach(setupSignedInUser);
 
 describe("useTeachingClasses", () => {
   it("reads the classes the caller teaches, authenticated, under the classes key", async () => {
     const answer = {
-      items: [buildClassItem("c-1", "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z")],
+      items: [
+        buildClassItem(
+          "c-1",
+          "2026-10-15T11:00:00.000Z",
+          "2026-10-15T12:00:00.000Z",
+        ),
+      ],
       teachesAny: true,
     };
     fetchMock.mockResolvedValue(ok(answer));

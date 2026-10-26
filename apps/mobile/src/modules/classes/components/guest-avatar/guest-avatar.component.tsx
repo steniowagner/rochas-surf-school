@@ -20,7 +20,11 @@ export function GuestAvatar({ size, ringed = false }: GuestAvatarProps) {
       style={{ width: size, height: size, borderRadius: size / 2 }}
       className={`items-center justify-center bg-sand ${ringed ? "border-2 border-surface" : ""}`}
     >
-      <Feather name="user" size={Math.round(size * ICON_RATIO)} color={theme.ink2} />
+      <Feather
+        name="user"
+        size={Math.round(size * ICON_RATIO)}
+        color={theme.ink2}
+      />
     </View>
   );
 }

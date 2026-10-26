@@ -12,7 +12,8 @@ const styles = StyleSheet.create({ map: { flex: 1 } });
 /** "Ponto no mapa": a map where a tap marks the point of the location, with a hint under it. */
 export function LocationMapPicker(props: LocationMapPickerProps) {
   const { t } = useTranslation();
-  const { region, handlePress, handleRegionChange } = useLocationMapPicker(props);
+  const { region, handlePress, handleRegionChange } =
+    useLocationMapPicker(props);
 
   return (
     <View className="gap-1.5">
@@ -29,11 +30,15 @@ export function LocationMapPicker(props: LocationMapPickerProps) {
           onPress={handlePress}
           accessibilityLabel={t("locationSheet.point")}
         >
-          {props.point ? <Marker testID="location-marker" coordinate={props.point} /> : null}
+          {props.point ? (
+            <Marker testID="location-marker" coordinate={props.point} />
+          ) : null}
         </MapView>
       </View>
       <Text className="ds-text-list-subtitle px-1 text-ink-2">
-        {props.point ? t("locationSheet.pointHintSet") : t("locationSheet.pointHintEmpty")}
+        {props.point
+          ? t("locationSheet.pointHintSet")
+          : t("locationSheet.pointHintEmpty")}
       </Text>
     </View>
   );

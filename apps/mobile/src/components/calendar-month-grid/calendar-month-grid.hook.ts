@@ -20,6 +20,7 @@ export const useCalendarMonthGrid = ({
   today,
   markedDates,
   markedLabel,
+  selectedWeekStart,
 }: UseCalendarMonthGridProps) => {
   const { i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
@@ -42,5 +43,14 @@ export const useCalendarMonthGrid = ({
       })),
   );
 
-  return { initials: weekdayInitials(locale), weeks };
+  const selectedWeekIndex = weeks.findIndex(
+    (week) => week[0]?.date === selectedWeekStart,
+  );
+
+  return {
+    initials: weekdayInitials(locale),
+    weeks,
+    selectedWeekIndex,
+    hasMarks: markedDates.length > 0,
+  };
 };

@@ -7,7 +7,8 @@ import { useLocationManagement } from "./use-location-management.hook";
 describe("useLocationManagement", () => {
   it("toggles the manage mode only while a location exists", async () => {
     const { result, rerender } = await renderHook(
-      ({ canManage }: { canManage: boolean }) => useLocationManagement(canManage),
+      ({ canManage }: { canManage: boolean }) =>
+        useLocationManagement(canManage),
       { initialProps: { canManage: true } },
     );
 
@@ -29,12 +30,18 @@ describe("useLocationManagement", () => {
     const location = buildLocation();
 
     await act(async () => result.current.openEdit(location));
-    expect([result.current.sheetVisible, result.current.editing]).toEqual([true, location]);
+    expect([result.current.sheetVisible, result.current.editing]).toEqual([
+      true,
+      location,
+    ]);
 
     await act(async () => result.current.closeSheet());
     expect(result.current.sheetVisible).toBe(false);
 
     await act(async () => result.current.openNew());
-    expect([result.current.sheetVisible, result.current.editing]).toEqual([true, null]);
+    expect([result.current.sheetVisible, result.current.editing]).toEqual([
+      true,
+      null,
+    ]);
   });
 });

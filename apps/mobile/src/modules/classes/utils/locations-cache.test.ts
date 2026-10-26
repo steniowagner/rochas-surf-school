@@ -1,6 +1,10 @@
 import { buildLocation } from "../classes.test-utils";
 
-import { addLocation, removeLocation, replaceLocation } from "./locations-cache";
+import {
+  addLocation,
+  removeLocation,
+  replaceLocation,
+} from "./locations-cache";
 
 describe("addLocation", () => {
   it("starts a list", () => {
@@ -12,7 +16,10 @@ describe("addLocation", () => {
   it("keeps the backend's order: name without accents or case, then id", () => {
     const out = addLocation(
       {
-        items: [buildLocation({ id: "z", name: "praia" }), buildLocation({ id: "b", name: "Água" })],
+        items: [
+          buildLocation({ id: "z", name: "praia" }),
+          buildLocation({ id: "b", name: "Água" }),
+        ],
       },
       buildLocation({ id: "a", name: "PRAIA" }),
     );
@@ -24,14 +31,21 @@ describe("addLocation", () => {
 describe("replaceLocation", () => {
   it("puts the edited location in place of the stored one, in order", () => {
     const out = replaceLocation(
-      { items: [buildLocation({ id: "a", name: "Água" }), buildLocation({ id: "b", name: "Beta" })] },
+      {
+        items: [
+          buildLocation({ id: "a", name: "Água" }),
+          buildLocation({ id: "b", name: "Beta" }),
+        ],
+      },
       buildLocation({ id: "a", name: "Zeta", address: "new" }),
     );
 
-    expect(out.items.map((item) => [item.id, item.name, item.address])).toEqual([
-      ["b", "Beta", "Av. Zezé Diogo, 5000"],
-      ["a", "Zeta", "new"],
-    ]);
+    expect(out.items.map((item) => [item.id, item.name, item.address])).toEqual(
+      [
+        ["b", "Beta", "Av. Zezé Diogo, 5000"],
+        ["a", "Zeta", "new"],
+      ],
+    );
   });
 
   it("starts a list when none was loaded", () => {

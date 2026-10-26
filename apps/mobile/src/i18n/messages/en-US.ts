@@ -1179,8 +1179,8 @@ const messages = {
   },
   weeklyOccupancy: {
     title: "Weekly occupancy",
+    openCalendar: "Choose another week",
     rowSubtitle: "Seats taken and free per class",
-    section: "Week map",
     legend: {
       low: "under 50%",
       mid: "50–89%",

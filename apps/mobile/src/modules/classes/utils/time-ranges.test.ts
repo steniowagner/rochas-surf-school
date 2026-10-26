@@ -24,7 +24,11 @@ describe("time range helpers", () => {
   it("sorts by start, then by end, without touching the input", () => {
     const input = [afternoon, { start: "08:00", end: "10:00" }, morning];
 
-    expect(sortTimeRanges(input)).toEqual([morning, { start: "08:00", end: "10:00" }, afternoon]);
+    expect(sortTimeRanges(input)).toEqual([
+      morning,
+      { start: "08:00", end: "10:00" },
+      afternoon,
+    ]);
     expect(input[0]).toBe(afternoon);
   });
 
@@ -52,17 +56,23 @@ describe("time range helpers", () => {
 
     expect(isRangeBlocked(overlapping, [morning])).toBe(true);
     expect(isRangeBlocked(morning, [morning])).toBe(false);
-    expect(isRangeBlocked({ start: "09:00", end: "10:00" }, [morning])).toBe(false);
+    expect(isRangeBlocked({ start: "09:00", end: "10:00" }, [morning])).toBe(
+      false,
+    );
     expect(isRangeBlocked(afternoon, [morning])).toBe(false);
   });
 
   it("labels and builds ranges", () => {
     expect(rangeLabel(morning)).toBe("08:00 – 09:00");
     expect(toHHmm(new Date(2000, 0, 1, 7, 5))).toBe("07:05");
-    expect(rangeOf(new Date(2000, 0, 1, 8, 0), new Date(2000, 0, 1, 9, 30))).toEqual({
+    expect(
+      rangeOf(new Date(2000, 0, 1, 8, 0), new Date(2000, 0, 1, 9, 30)),
+    ).toEqual({
       range: { start: "08:00", end: "09:30" },
       valid: true,
     });
-    expect(rangeOf(new Date(2000, 0, 1, 9, 0), new Date(2000, 0, 1, 9, 0)).valid).toBe(false);
+    expect(
+      rangeOf(new Date(2000, 0, 1, 9, 0), new Date(2000, 0, 1, 9, 0)).valid,
+    ).toBe(false);
   });
 });

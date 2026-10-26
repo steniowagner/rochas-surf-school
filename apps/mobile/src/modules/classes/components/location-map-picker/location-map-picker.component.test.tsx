@@ -9,7 +9,13 @@ const SET: MapPoint = { latitude: -3.7442, longitude: -38.4617 };
 
 const map = () => screen.getByTestId("location-map-picker");
 
-function Harness({ initial, onChange }: { initial: MapPoint | null; onChange?: (p: MapPoint) => void }) {
+function Harness({
+  initial,
+  onChange,
+}: {
+  initial: MapPoint | null;
+  onChange?: (p: MapPoint) => void;
+}) {
   const [point, setPoint] = useState(initial);
 
   return (
@@ -51,16 +57,25 @@ describe("LocationMapPicker", () => {
     await render(<Harness initial={null} onChange={onChange} />);
     const tapped = { latitude: -3.8, longitude: -38.6 };
 
-    await fireEvent(map(), "press", { nativeEvent: { coordinate: { ...tapped, extra: 1 } } });
+    await fireEvent(map(), "press", {
+      nativeEvent: { coordinate: { ...tapped, extra: 1 } },
+    });
 
     expect(onChange).toHaveBeenCalledWith(tapped);
     expect(screen.getByText("Tap to move the point")).toBeTruthy();
-    expect(screen.getByTestId("location-marker").props.coordinate).toEqual(tapped);
-    expect(map().props.region).toMatchObject({ latitude: -3.7319, longitude: -38.5267 });
+    expect(screen.getByTestId("location-marker").props.coordinate).toEqual(
+      tapped,
+    );
+    expect(map().props.region).toMatchObject({
+      latitude: -3.7319,
+      longitude: -38.5267,
+    });
   });
 
   it("recentres on a point that moved from outside, such as a picked suggestion", async () => {
-    const { rerender } = await render(<LocationMapPicker point={null} onChange={jest.fn()} />);
+    const { rerender } = await render(
+      <LocationMapPicker point={null} onChange={jest.fn()} />,
+    );
 
     await rerender(<LocationMapPicker point={SET} onChange={jest.fn()} />);
 
@@ -69,7 +84,12 @@ describe("LocationMapPicker", () => {
 
   it("follows the region the user drags to", async () => {
     await render(<LocationMapPicker point={SET} onChange={jest.fn()} />);
-    const dragged = { latitude: -3.9, longitude: -38.7, latitudeDelta: 0.05, longitudeDelta: 0.05 };
+    const dragged = {
+      latitude: -3.9,
+      longitude: -38.7,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    };
 
     await fireEvent(map(), "regionChangeComplete", dragged);
 

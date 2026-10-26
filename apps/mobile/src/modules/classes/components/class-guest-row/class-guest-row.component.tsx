@@ -20,7 +20,10 @@ export function ClassGuestRow({ name, onTakeOut }: ClassGuestRowProps) {
       <GuestAvatar size={AVATAR_SIZE} />
       <View className="flex-1 flex-row items-center gap-2">
         {name ? (
-          <Text numberOfLines={1} className="ds-text-list-title shrink text-ink">
+          <Text
+            numberOfLines={1}
+            className="ds-text-list-title shrink text-ink"
+          >
             {name}
           </Text>
         ) : null}
@@ -34,7 +37,9 @@ export function ClassGuestRow({ name, onTakeOut }: ClassGuestRowProps) {
           onPress={onTakeOut}
           className="min-h-11 items-center justify-center rounded-full border border-line px-4"
         >
-          <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
+          <Text className="ds-text-chip text-bad">
+            {t("takeOutSheet.action")}
+          </Text>
         </TouchableOpacity>
       ) : null}
     </View>

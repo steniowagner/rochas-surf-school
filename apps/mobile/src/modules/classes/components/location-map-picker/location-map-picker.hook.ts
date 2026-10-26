@@ -12,7 +12,10 @@ import {
 const samePoint = (a: MapPoint | null, b: MapPoint | null): boolean =>
   a?.latitude === b?.latitude && a?.longitude === b?.longitude;
 
-export const useLocationMapPicker = ({ point, onChange }: UseLocationMapPickerProps) => {
+export const useLocationMapPicker = ({
+  point,
+  onChange,
+}: UseLocationMapPickerProps) => {
   const [region, setRegion] = useState<MapRegion>(() => regionAround(point));
   // The point the map was last centred for: a point that moved from outside (a picked suggestion) recentres it, a
   // tap on the map doesn't (the finger is already there).

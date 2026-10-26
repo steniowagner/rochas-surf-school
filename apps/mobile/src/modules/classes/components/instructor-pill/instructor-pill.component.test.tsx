@@ -4,7 +4,9 @@ import { InstructorPill } from "./instructor-pill.component";
 
 describe("InstructorPill", () => {
   it("shows the avatar and the name, and is a button named after the instructor", async () => {
-    await render(<InstructorPill name="Iara Lima" isViewer={false} onPress={jest.fn()} />);
+    await render(
+      <InstructorPill name="Iara Lima" isViewer={false} onPress={jest.fn()} />,
+    );
 
     expect(screen.getByRole("button", { name: "Iara Lima" })).toBeOnTheScreen();
     expect(screen.getByText("Iara Lima")).toBeOnTheScreen();
@@ -12,7 +14,9 @@ describe("InstructorPill", () => {
   });
 
   it("reads You for the viewer, keeping the instructor's name for accessibility", async () => {
-    await render(<InstructorPill name="Iara Lima" isViewer onPress={jest.fn()} />);
+    await render(
+      <InstructorPill name="Iara Lima" isViewer onPress={jest.fn()} />,
+    );
 
     expect(screen.getByText("You")).toBeOnTheScreen();
     expect(screen.queryByText("Iara Lima")).toBeNull();
@@ -22,7 +26,9 @@ describe("InstructorPill", () => {
   it("calls onPress when pressed", async () => {
     const user = userEvent.setup();
     const onPress = jest.fn();
-    await render(<InstructorPill name="Iara Lima" isViewer={false} onPress={onPress} />);
+    await render(
+      <InstructorPill name="Iara Lima" isViewer={false} onPress={onPress} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Iara Lima" }));
 

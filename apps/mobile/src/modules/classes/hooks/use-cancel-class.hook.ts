@@ -12,7 +12,9 @@ export const useCancelClass = (id: string) => {
     // No retry: a repeated cancel would notify the instructors twice.
     retry: false,
     mutationFn: (request: CancelClassRequest) =>
-      apiPost<ClassDetails>(`/classes/${id}/cancel`, request, { authenticated: true }),
+      apiPost<ClassDetails>(`/classes/${id}/cancel`, request, {
+        authenticated: true,
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["classes"] }),
   });
 };

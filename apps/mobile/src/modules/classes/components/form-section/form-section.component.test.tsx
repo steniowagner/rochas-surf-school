@@ -25,7 +25,9 @@ describe("FormSection", () => {
       </FormSection>,
     );
 
-    await userEvent.setup().press(screen.getByRole("button", { name: "Manage" }));
+    await userEvent
+      .setup()
+      .press(screen.getByRole("button", { name: "Manage" }));
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });

@@ -23,7 +23,9 @@ export function DeleteClassSheet({
       <View className="gap-4">
         <View className="gap-1">
           <Text className="ds-text-sheet-title text-ink">
-            {notEmpty ? t("deleteClass.notEmpty.title") : t("deleteClass.title")}
+            {notEmpty
+              ? t("deleteClass.notEmpty.title")
+              : t("deleteClass.title")}
           </Text>
           <Text className="ds-text-list-title text-ink">{classLine}</Text>
           <Text className="ds-text-body text-ink-2">

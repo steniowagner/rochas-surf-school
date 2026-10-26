@@ -1,4 +1,8 @@
-import { AddressSuggestion, ClassLocation, MapPoint } from "../../classes.types";
+import {
+  AddressSuggestion,
+  ClassLocation,
+  MapPoint,
+} from "../../classes.types";
 
 export type LocationSheetProps = {
   visible: boolean;

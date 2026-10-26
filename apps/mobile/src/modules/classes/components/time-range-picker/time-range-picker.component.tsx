@@ -23,16 +23,21 @@ export function TimeRangePicker({
 }: TimeRangePickerProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { chips, pressChip, showSuggestionsHint, showPastHint, showOverlapHint } =
-    useTimeRangePicker({
-      suggestions,
-      added,
-      selected,
-      nowMinutes,
-      single,
-      ownRange,
-      onToggle,
-    });
+  const {
+    chips,
+    pressChip,
+    showSuggestionsHint,
+    showPastHint,
+    showOverlapHint,
+  } = useTimeRangePicker({
+    suggestions,
+    added,
+    selected,
+    nowMinutes,
+    single,
+    ownRange,
+    onToggle,
+  });
 
   return (
     <View className="gap-3">

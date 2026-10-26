@@ -2,7 +2,9 @@ import { render, screen, userEvent } from "@testing-library/react-native";
 
 import { ArchiveLocationSheet } from "./archive-location-sheet.component";
 
-async function open(overrides: Partial<React.ComponentProps<typeof ArchiveLocationSheet>> = {}) {
+async function open(
+  overrides: Partial<React.ComponentProps<typeof ArchiveLocationSheet>> = {},
+) {
   const props = {
     visible: true,
     name: "Praia do Futuro",
@@ -25,7 +27,9 @@ describe("ArchiveLocationSheet", () => {
     expect(screen.getByText("Remove location?")).toBeTruthy();
     expect(screen.getByText("Praia do Futuro")).toBeTruthy();
     expect(screen.getByText("Av. Zezé Diogo, 5000")).toBeTruthy();
-    expect(screen.getByText("It no longer shows up for new classes.")).toBeTruthy();
+    expect(
+      screen.getByText("It no longer shows up for new classes."),
+    ).toBeTruthy();
     expect(screen.queryByText(/stays? as (it|they) (is|are)/)).toBeNull();
   });
 
@@ -52,7 +56,9 @@ describe("ArchiveLocationSheet", () => {
   it("ignores a press on the confirmation while it is sending", async () => {
     const props = await open({ loading: true });
 
-    await userEvent.setup().press(screen.getByRole("button", { name: "Remove location" }));
+    await userEvent
+      .setup()
+      .press(screen.getByRole("button", { name: "Remove location" }));
 
     expect(props.onConfirm).not.toHaveBeenCalled();
   });

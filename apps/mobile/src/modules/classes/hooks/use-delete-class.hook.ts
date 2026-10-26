@@ -9,7 +9,8 @@ export const useDeleteClass = (id: string) => {
   return useMutation({
     // No retry: the instructors are told once.
     retry: false,
-    mutationFn: () => apiDelete<void>(`/classes/${id}`, undefined, { authenticated: true }),
+    mutationFn: () =>
+      apiDelete<void>(`/classes/${id}`, undefined, { authenticated: true }),
     onSuccess: () => {
       // The details would otherwise refetch into a 404.
       queryClient.removeQueries({ queryKey: ["classes", "detail", id] });

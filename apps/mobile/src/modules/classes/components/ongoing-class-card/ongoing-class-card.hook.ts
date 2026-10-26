@@ -1,10 +1,20 @@
-import { getHiddenSeats, getOccupancyPercent, getStudentsLabel, isClassFull } from "../../utils/occupancy";
+import {
+  getHiddenSeats,
+  getOccupancyPercent,
+  getStudentsLabel,
+  isClassFull,
+} from "../../utils/occupancy";
 import { schoolTimeOf } from "../../utils/week";
 import { CLASS_CARD_AVATARS } from "../class-card/class-card.hook";
 
-import type { UseOngoingClassCardProps, UseOngoingClassCardResult } from "./ongoing-class-card.types";
+import type {
+  UseOngoingClassCardProps,
+  UseOngoingClassCardResult,
+} from "./ongoing-class-card.types";
 
-export const useOngoingClassCard = ({ item }: UseOngoingClassCardProps): UseOngoingClassCardResult => {
+export const useOngoingClassCard = ({
+  item,
+}: UseOngoingClassCardProps): UseOngoingClassCardResult => {
   const avatars = item.students.slice(0, CLASS_CARD_AVATARS);
 
   return {

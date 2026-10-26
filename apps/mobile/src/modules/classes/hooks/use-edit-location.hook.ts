@@ -2,7 +2,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { apiPut } from "@/services/api";
 
-import { ClassLocation, EditLocationVariables, LocationsResponse } from "../classes.types";
+import {
+  ClassLocation,
+  EditLocationVariables,
+  LocationsResponse,
+} from "../classes.types";
 import { LOCATIONS_QUERY_KEY, replaceLocation } from "../utils/locations-cache";
 
 /**
@@ -18,8 +22,9 @@ export const useEditLocation = () => {
     mutationFn: ({ id, ...body }: EditLocationVariables) =>
       apiPut<ClassLocation>(`/locations/${id}`, body, { authenticated: true }),
     onSuccess: (location) => {
-      queryClient.setQueryData<LocationsResponse>(LOCATIONS_QUERY_KEY, (current) =>
-        replaceLocation(current, location),
+      queryClient.setQueryData<LocationsResponse>(
+        LOCATIONS_QUERY_KEY,
+        (current) => replaceLocation(current, location),
       );
       void queryClient.invalidateQueries({ queryKey: ["classes"] });
     },

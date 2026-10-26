@@ -7,7 +7,9 @@ jest.useFakeTimers();
 
 const CLASS_LINE = "Surf Beginner · Tomorrow, 08:00 – 09:00 · Praia do Futuro";
 
-function props(overrides: Partial<DeleteClassSheetProps> = {}): DeleteClassSheetProps {
+function props(
+  overrides: Partial<DeleteClassSheetProps> = {},
+): DeleteClassSheetProps {
   return {
     visible: true,
     variant: "confirm",
@@ -27,11 +29,19 @@ describe("DeleteClassSheet", () => {
     expect(screen.getByText("Delete this class?")).toBeOnTheScreen();
     expect(screen.getByText(CLASS_LINE)).toBeOnTheScreen();
     expect(
-      screen.getByText("The instructors are notified and the class leaves the schedule. This can't be undone."),
+      screen.getByText(
+        "The instructors are notified and the class leaves the schedule. This can't be undone.",
+      ),
     ).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Delete class" })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Keep class" })).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Cancel class" })).not.toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Delete class" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Keep class" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Cancel class" }),
+    ).not.toBeOnTheScreen();
   });
 
   it("confirms the deletion", async () => {
@@ -78,7 +88,9 @@ describe("DeleteClassSheet", () => {
         "Someone has already asked for a seat or holds one in this class. Only classes with nobody can be deleted — cancel it instead.",
       ),
     ).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Delete class" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Delete class" }),
+    ).not.toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Cancel class" }));
 

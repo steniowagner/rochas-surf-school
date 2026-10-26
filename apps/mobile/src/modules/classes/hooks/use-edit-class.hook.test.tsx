@@ -40,7 +40,10 @@ describe("useEditClass", () => {
     expect(out).toEqual({ id: "c-1" });
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/classes/c-1", {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer at-1" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer at-1",
+      },
       body: JSON.stringify(request),
     });
   });
@@ -48,7 +51,10 @@ describe("useEditClass", () => {
   it("invalidates the cached weeks and the details of the class, and nothing else", async () => {
     fetchMock.mockResolvedValue(ok({ id: "c-1" }));
     const queryClient = createQueryClient();
-    queryClient.setQueryData(["classes", "week", "2026-10-12"], { weekStart: "2026-10-12", items: [] });
+    queryClient.setQueryData(["classes", "week", "2026-10-12"], {
+      weekStart: "2026-10-12",
+      items: [],
+    });
     queryClient.setQueryData(["classes", "detail", "c-1"], { id: "c-1" });
     queryClient.setQueryData(["classes", "detail", "c-2"], { id: "c-2" });
     const { result } = await renderHook(() => useEditClass("c-1"), {
@@ -59,9 +65,16 @@ describe("useEditClass", () => {
       await result.current.mutateAsync(request);
     });
 
-    expect(queryClient.getQueryState(["classes", "week", "2026-10-12"])?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(["classes", "detail", "c-2"])?.isInvalidated).toBe(false);
+    expect(
+      queryClient.getQueryState(["classes", "week", "2026-10-12"])
+        ?.isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryState(["classes", "detail", "c-2"])?.isInvalidated,
+    ).toBe(false);
   });
 
   it("invalidates nothing and does not retry when saving fails", async () => {
@@ -77,6 +90,8 @@ describe("useEditClass", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated).toBe(false);
+    expect(
+      queryClient.getQueryState(["classes", "detail", "c-1"])?.isInvalidated,
+    ).toBe(false);
   });
 });

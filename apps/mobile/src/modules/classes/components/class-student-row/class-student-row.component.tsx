@@ -12,7 +12,12 @@ import type { ClassStudentRowProps } from "./class-student-row.types";
 const AVATAR_SIZE = 32;
 
 /** A student in the class's list: the row opens their person sheet; the admin's "Retirar" only takes them out. */
-export function ClassStudentRow({ name, photoUrl, onPress, onTakeOut }: ClassStudentRowProps) {
+export function ClassStudentRow({
+  name,
+  photoUrl,
+  onPress,
+  onTakeOut,
+}: ClassStudentRowProps) {
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -35,10 +40,17 @@ export function ClassStudentRow({ name, photoUrl, onPress, onTakeOut }: ClassStu
           onPress={onTakeOut}
           className="min-h-11 items-center justify-center rounded-full border border-line px-4"
         >
-          <Text className="ds-text-chip text-bad">{t("takeOutSheet.action")}</Text>
+          <Text className="ds-text-chip text-bad">
+            {t("takeOutSheet.action")}
+          </Text>
         </TouchableOpacity>
       ) : (
-        <Ionicons testID="class-student-row-chevron" name="chevron-forward" size={16} color={theme.ink3} />
+        <Ionicons
+          testID="class-student-row-chevron"
+          name="chevron-forward"
+          size={16}
+          color={theme.ink3}
+        />
       )}
     </Pressable>
   );

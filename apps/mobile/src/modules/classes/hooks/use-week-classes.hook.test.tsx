@@ -35,14 +35,18 @@ describe("useWeekClasses", () => {
       wrapper: createWrapper(queryClient),
     });
     await waitFor(() =>
-      expect(queryClient.getQueryData(["classes", "week", "2026-10-12"])).toBeDefined(),
+      expect(
+        queryClient.getQueryData(["classes", "week", "2026-10-12"]),
+      ).toBeDefined(),
     );
   });
 
   it("reports a failed request", async () => {
     fetchMock.mockResolvedValue(failure());
     const queryClient = createQueryClient();
-    queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
+    queryClient.setDefaultOptions({
+      queries: { retry: false, gcTime: Infinity },
+    });
 
     const { result } = await renderHook(() => useWeekClasses("2026-10-12"), {
       wrapper: createWrapper(queryClient),

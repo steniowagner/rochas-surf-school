@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { OccupancyCell } from "../occupancy-cell";
@@ -13,14 +12,10 @@ export function OccupancyMap({
   selectedId,
   onSelect,
 }: OccupancyMapProps) {
-  const { t } = useTranslation();
   const { days, rows } = useOccupancyMap({ weekStart, today, classes });
 
   return (
     <View className="gap-3">
-      <Text className="ds-text-section-label text-ink-2">
-        {t("weeklyOccupancy.section")}
-      </Text>
       <View className="gap-1">
         <View className="flex-row gap-1">
           <View className="w-11" />

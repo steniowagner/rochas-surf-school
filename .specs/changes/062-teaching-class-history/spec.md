@@ -221,7 +221,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Move `HistoryDayLabel`, `HistoryListHeader` and `utils/class-history.ts` from
+- [x] **T-04** — Move `HistoryDayLabel`, `HistoryListHeader` and `utils/class-history.ts` from
   `src/modules/enrolment/` to `src/modules/classes/` with their tests; extract the history screen's state into a
   shared hook and its layout into `src/modules/classes/components/class-history/` (D-04), and rebuild
   `src/modules/enrolment/screens/my-class-history.screen.tsx` (+ hook, types) on them. Skills:
@@ -229,6 +229,23 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-05 · Done when: `npx jest src/modules/enrolment src/modules/classes/components src/modules/classes/utils`
   passes, `my-class-history.screen.test.tsx` changed only in imports, and `npx tsc --noEmit` exits 0.
+  > ✅ 2026-10-25 — moved (`git mv`) `HistoryDayLabel`, `HistoryListHeader` and `utils/class-history.ts` (+ tests) from
+  > enrolment to classes; `ClassHistoryDay` moved to `classes.types.ts` next to a new `ClassHistoryPeriod`; the
+  > screen's state became `useClassHistory({ useHistoryQuery, classRoute })` and its layout `ClassHistory({ history,
+  > copy })` (`copy` = the i18n namespace, `myHistory` / `teachingHistory`) in
+  > `apps/mobile/src/modules/classes/components/class-history/`; `MyClassHistoryScreen` is a thin wrapper and its
+  > own hook and types files were removed; files: `apps/mobile/src/modules/classes/components/class-history/{index.ts,
+  > class-history.component.tsx,class-history.hook.ts,class-history.types.ts}`,
+  > `apps/mobile/src/modules/classes/components/history-day-label/*`,
+  > `apps/mobile/src/modules/classes/components/history-list-header/*`,
+  > `apps/mobile/src/modules/classes/utils/class-history.ts`, `…/class-history.test.ts`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/enrolment/enrolment.types.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.tsx`, deleted
+  > `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.{hook,types}.ts`; verified:
+  > `npx jest src/modules/enrolment src/modules/classes/components src/modules/classes/utils` (84 suites, 767
+  > passed), `my-class-history.screen.test.tsx` untouched (`git diff` empty), `npx tsc --noEmit` and eslint clean;
+  > deviations: `ClassHistory` and `useClassHistory` have no tests of their own in this task; the student's screen
+  > test exercises them (full coverage is checked in T-08)
 
 - [ ] **T-05** — Add `TeachingClassHistoryResponse` to `src/modules/classes/classes.types.ts` and
   `src/modules/classes/hooks/use-teaching-class-history.hook.ts` (D-05), with

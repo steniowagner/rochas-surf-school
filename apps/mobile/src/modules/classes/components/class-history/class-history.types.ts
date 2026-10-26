@@ -1,12 +1,23 @@
+import type { UseQueryResult } from "@tanstack/react-query";
+import type { Href } from "expo-router";
+
 import type { CalendarPeriod } from "@/components/week-month-calendar/week-month-calendar.types";
-import type { ClassItem, DisciplineFilterValue } from "@/modules/classes/classes.types";
+
+import type { ClassHistoryPeriod, ClassItem, DisciplineFilterValue } from "../../classes.types";
 
 /** A row of the history's list: a day's label, or one of its classes. */
 export type HistoryRow =
   | { type: "day"; key: string; label: string }
   | { type: "class"; key: string; item: ClassItem };
 
-export type UseMyClassHistoryScreenResult = {
+export type UseClassHistoryProps = {
+  /** The query of one period of the history: the screen's own, with its key and URL. */
+  useHistoryQuery: (period: ClassHistoryPeriod) => UseQueryResult<{ items: ClassItem[] }>;
+  /** The route of a class's details, for the role that reads the history. */
+  classRoute: (id: string) => Href;
+};
+
+export type UseClassHistoryResult = {
   now: Date;
   /** Today in America/Fortaleza, `YYYY-MM-DD`. */
   today: string;
@@ -35,4 +46,10 @@ export type UseMyClassHistoryScreenResult = {
   refresh: () => Promise<void>;
   retry: () => void;
   openClass: (id: string) => void;
+};
+
+export type ClassHistoryProps = {
+  history: UseClassHistoryResult;
+  /** The i18n namespace of the copy: `myHistory` (student) or `teachingHistory` (instructor, admin). */
+  copy: "myHistory" | "teachingHistory";
 };

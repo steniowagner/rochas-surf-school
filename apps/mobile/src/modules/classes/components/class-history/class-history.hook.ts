@@ -3,10 +3,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { CalendarPeriod } from "@/components/week-month-calendar/week-month-calendar.types";
-import { routes } from "@/constants/routes";
-import type { ClassItem, DisciplineFilterValue } from "@/modules/classes/classes.types";
-import { useNow } from "@/modules/classes/hooks/use-now.hook";
-import { todayInSchoolZone } from "@/modules/classes/utils/calendar";
 import { SessionExpiredError } from "@/services/api";
 import {
   addDays,
@@ -17,20 +13,25 @@ import {
   weekCaption,
 } from "@/utils/calendar-dates";
 
-import { useMyClassHistory } from "../hooks/use-my-class-history.hook";
+import type { ClassItem, DisciplineFilterValue } from "../../classes.types";
+import { useNow } from "../../hooks/use-now.hook";
+import { todayInSchoolZone } from "../../utils/calendar";
 import {
   daysWithClasses,
   filterClassesByDay,
   groupClassesByDay,
   historyChipLabel,
   historyDayLabel,
-} from "../utils/class-history";
+} from "../../utils/class-history";
 
-import type { HistoryRow, UseMyClassHistoryScreenResult } from "./my-class-history.screen.types";
+import type { HistoryRow, UseClassHistoryProps, UseClassHistoryResult } from "./class-history.types";
 
 const NO_ITEMS: ClassItem[] = [];
 
-export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
+export const useClassHistory = ({
+  useHistoryQuery,
+  classRoute,
+}: UseClassHistoryProps): UseClassHistoryResult => {
   const { i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
   const now = useNow();
@@ -40,7 +41,7 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [discipline, setDiscipline] = useState<DisciplineFilterValue>("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const query = useMyClassHistory(period);
+  const query = useHistoryQuery(period);
 
   // Like the day, the sport filters the period already loaded, with no request.
   const items = (query.data?.items ?? NO_ITEMS).filter(
@@ -94,6 +95,6 @@ export const useMyClassHistoryScreen = (): UseMyClassHistoryScreenResult => {
       ),
     refresh,
     retry: () => void query.refetch(),
-    openClass: (id) => router.push(routes.student.classDetail(id)),
+    openClass: (id) => router.push(classRoute(id)),
   };
 };

@@ -120,12 +120,5 @@ export type MyClassHistoryPeriod = {
   to: string;
 };
 
-/** The classes of one America/Fortaleza day of the history, newest first. */
-export type ClassHistoryDay = {
-  /** `YYYY-MM-DD`. */
-  day: string;
-  items: ClassItem[];
-};
-
 /** A chip of "Minhas aulas", grouping the request statuses; `all` shows every class. */
 export type MyClassesFilter = "all" | "pending" | "confirmed" | "ended";

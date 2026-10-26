@@ -43,6 +43,7 @@ import { SystemClockProvider } from './system.clock.js';
 import { ClassesTeachingReleaser } from '../classes/classes.teaching-releaser.js';
 import { EnrolmentSeatReleaser } from '../enrolment/enrolment.seat-releaser.js';
 import { NotificationsPushTokenRemover } from '../notifications/notifications.push-token-remover.js';
+import { NotificationsReactivationNotifier } from '../notifications/notifications.reactivation-notifier.js';
 import { NotificationsRegistrationNotifier } from '../notifications/notifications.registration-notifier.js';
 import { PrismaUserRepository } from './user.prisma.js';
 
@@ -64,6 +65,7 @@ export class AuthController {
     private readonly pushTokenRemover: NotificationsPushTokenRemover,
     private readonly teachingReleaser: ClassesTeachingReleaser,
     private readonly seatReleaser: EnrolmentSeatReleaser,
+    private readonly reactivationNotifier: NotificationsReactivationNotifier,
   ) {}
 
   @Public()
@@ -180,9 +182,12 @@ export class AuthController {
   @Post('me/reactivation-request')
   @HttpCode(HttpStatus.OK)
   requestReactivation(@CurrentUser('id') id: string): Promise<RequestReactivationOut> {
-    return new RequestReactivation(this.userRepository, this.rulesVersionProvider, this.clock).execute({
-      userId: id,
-    });
+    return new RequestReactivation(
+      this.userRepository,
+      this.rulesVersionProvider,
+      this.clock,
+      this.reactivationNotifier,
+    ).execute({ userId: id });
   }
 
   @Public()

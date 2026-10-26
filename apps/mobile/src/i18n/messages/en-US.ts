@@ -418,7 +418,7 @@ const messages = {
     titleLabel: "Title",
     messageLabel: "Description",
     titlePlaceholder: "E.g. Beach change on Saturday",
-    messagePlaceholder: "E.g. The sea will be big. Beginner classes move to South Beach.",
+    messagePlaceholder: "Write the message",
     send: "Send",
     sent: "Notice sent",
     sendError: "Couldn't send the notice. Try again.",

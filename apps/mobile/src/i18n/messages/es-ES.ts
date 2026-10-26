@@ -425,7 +425,7 @@ const messages: Messages = {
     titleLabel: "Título",
     messageLabel: "Descripción",
     titlePlaceholder: "Ej.: Cambio de playa el sábado",
-    messagePlaceholder: "Ej.: El mar estará grande. Las clases de iniciación pasan a la Playa del Sur.",
+    messagePlaceholder: "Escribe el mensaje",
     send: "Enviar",
     sent: "Aviso enviado",
     sendError: "No se pudo enviar el aviso. Inténtalo de nuevo.",

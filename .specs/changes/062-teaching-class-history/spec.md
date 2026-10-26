@@ -259,7 +259,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > `npx jest src/modules/classes/hooks/use-teaching-class-history.hook.test.tsx` (4 passed); deviations: the period
   > type is the shared `ClassHistoryPeriod` (added to `classes.types.ts` in T-04)
 
-- [ ] **T-06** — Add `TeachingClassHistoryScreen` (`src/modules/classes/screens/teaching-class-history.screen.tsx`
+- [x] **T-06** — Add `TeachingClassHistoryScreen` (`src/modules/classes/screens/teaching-class-history.screen.tsx`
   + hook, types, `role` prop) on the shared history pieces, `myHistory` for `instructor` and `admin` in
   `src/constants/routes.ts`, the route files `src/app/(private)/instructor/my-history.tsx` and
   `src/app/(private)/admin/my-history.tsx`, the `teachingHistory` copy of D-06 in
@@ -267,6 +267,19 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   Skills: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills),
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-04 · Done when: `npx jest src/modules/classes/screens/teaching-class-history.screen.test.tsx` passes.
+  > ✅ 2026-10-25 — `TeachingClassHistoryScreen` (a wrapper over `useClassHistory` / `ClassHistory` with the
+  > `teachingHistory` copy and `routes[role].classDetail`), `routes.instructor.myHistory` /
+  > `routes.admin.myHistory`, the two route files, and the D-06 copy in the three languages; files:
+  > `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.test.tsx`,
+  > `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/app/(private)/instructor/my-history.tsx`,
+  > `apps/mobile/src/app/(private)/admin/my-history.tsx`,
+  > `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified:
+  > `npx jest src/modules/classes/screens/teaching-class-history.screen.test.tsx` (19 passed, the student's cases
+  > with the teaching copy and both roles' card route), `npx tsc --noEmit` and eslint clean; deviations: the
+  > screen has no hook file (it only wires `useClassHistory`); the shared layout keeps the testIDs
+  > `my-history-*`
 
 - [ ] **T-07** — Add the clock `HeaderButton` (`time-outline`, label `teachingHistory.title`) as `headerRight` of
   `src/modules/classes/screens/teaching-classes.screen.tsx`, opening `routes[role].myHistory` from the screen's hook,

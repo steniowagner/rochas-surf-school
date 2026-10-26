@@ -492,6 +492,29 @@ const messages: Messages = {
       descriptionSport: "Você não fez nenhuma aula de {{sport}} neste período.",
     },
   },
+  teachingHistory: {
+    title: "Aulas anteriores",
+    legend: "Dias em que você deu aula",
+    hasClasses: "você deu aula",
+    allClasses: "Todas as aulas",
+    clearDay: "Limpar {{date}}",
+    loading: "Carregando as aulas",
+    loadError: {
+      title: "Algo deu errado",
+      description:
+        "Não conseguimos carregar suas aulas anteriores. Verifique sua conexão e tente novamente.",
+    },
+    emptyDay: {
+      title: "Sem aulas neste dia",
+      description: "Você não deu nenhuma aula neste dia.",
+      descriptionSport: "Você não deu nenhuma aula de {{sport}} neste dia.",
+    },
+    emptyPeriod: {
+      title: "Sem aulas neste período",
+      description: "Você não deu nenhuma aula neste período.",
+      descriptionSport: "Você não deu nenhuma aula de {{sport}} neste período.",
+    },
+  },
   userHeader: {
     greeting: {
       morning: "Bom dia,",

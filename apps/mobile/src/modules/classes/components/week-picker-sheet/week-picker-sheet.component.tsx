@@ -56,6 +56,7 @@ export function WeekPickerSheet(props: WeekPickerSheetProps) {
           month={month}
           selectedDate={null}
           selectedWeekStart={props.weekStart}
+          dotPlacement="overlap"
           today={props.today}
           markedDates={markedDates}
           markedLabel={t("classesWeek.hasClasses")}

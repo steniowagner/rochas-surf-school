@@ -15,7 +15,7 @@ export type CalendarMonthGridProps = {
   selectedWeekStart?: string;
   /**
    * Where a day's dot sits: `overlap` tucks it into the bottom of the day's slot (it overlaps a selected day's circle),
-   * `below` keeps it under the circle. Defaults to `overlap`.
+   * `below` keeps it under the circle. Defaults to `below`.
    */
   dotPlacement?: "overlap" | "below";
   onSelectDate: (date: string) => void;

@@ -23,7 +23,7 @@ export type WeekMonthCalendarProps = {
   markedDates: string[];
   /** Appended to the accessibility label of a marked day. */
   markedLabel?: string;
-  /** Where the month view's dots sit, see `CalendarMonthGrid`. Defaults to `overlap`. */
+  /** Where the month view's dots sit, see `CalendarMonthGrid`. Defaults to `below`. */
   dotPlacement?: "overlap" | "below";
   onSelectDate: (date: string) => void;
   /** Called on mount and whenever the first or last day drawn changes. */

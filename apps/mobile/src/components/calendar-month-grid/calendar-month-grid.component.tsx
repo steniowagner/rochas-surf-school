@@ -8,7 +8,7 @@ import type { CalendarMonthGridProps } from "./calendar-month-grid.types";
 /** A month, Monday first, with only the weeks it needs: the selected day in a circle, a dot under each day with classes. */
 export function CalendarMonthGrid({
   onSelectDate,
-  dotPlacement = "overlap",
+  dotPlacement = "below",
   ...props
 }: CalendarMonthGridProps) {
   const { initials, weeks, selectedWeekIndex, hasMarks } =

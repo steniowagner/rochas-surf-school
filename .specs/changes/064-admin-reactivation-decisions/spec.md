@@ -2,7 +2,7 @@
 id: "064"
 slug: admin-reactivation-decisions
 title: Admins decide reactivation requests
-status: in-progress
+status: in-review
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 937e2c4b34a797ff91f2122128e7963fd40e97cc

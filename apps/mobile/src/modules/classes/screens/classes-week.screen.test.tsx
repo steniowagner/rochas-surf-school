@@ -538,6 +538,10 @@ describe("ClassesWeekScreen", () => {
     expect(screen.getByTestId("calendar-day-2026-11-01-dot")).toBeOnTheScreen();
     expect(screen.getByTestId("calendar-day-2026-10-14-dot")).toBeOnTheScreen();
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(3);
+    // The month view draws the dot below the day's circle.
+    expect(
+      screen.getByTestId("calendar-day-2026-10-14-dot").parent!.props.className,
+    ).not.toContain("-mt-1.5");
   });
 
   it("shows no message when another visible week fails", async () => {

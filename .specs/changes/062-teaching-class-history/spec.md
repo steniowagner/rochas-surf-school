@@ -350,11 +350,25 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > `npx jest …` from `apps/mobile` (5 suites, 94 passed); deviations: the work predates the task (built at the
   > user's request, recorded by the amendment)
 
-- [ ] **T-10** (added by amendment) — The `dotPlacement` of D-08 on `src/components/calendar-month-grid/` (default
+- [x] **T-10** (added by amendment) — The `dotPlacement` of D-08 on `src/components/calendar-month-grid/` (default
   `"below"`) passed through `src/components/week-month-calendar/`, with `"overlap"` only in
   `src/modules/classes/components/week-picker-sheet/week-picker-sheet.component.tsx`, and its cases in
   `calendar-month-grid.component.test.tsx`. Built in `aad897f7`, `f11ea501`, `820f30c9` and `78093512`: record their
   evidence. Covers: ER-07 · Done when: the ER-07 `Verify by` command passes from `apps/mobile`.
+  > ✅ 2026-10-25 — `dotPlacement` was built in `aad897f7`, `f11ea501`, `820f30c9` and `78093512`
+  > (`CalendarMonthGrid` default `"below"` = `mt-1`, `"overlap"` = `-mt-1.5 mb-1.5`; `WeekMonthCalendar` passes it
+  > on; `WeekPickerSheet` sets `"overlap"`; grid cases for both placements); added here the screen-level checks: the
+  > Aulas tab's month view draws its dot below (`classes-week.screen.test.tsx`, "month view loads its weeks") and the
+  > weekly occupancy's week picker keeps the overlap (`weekly-occupancy.screen.test.tsx`, "dots the days…") — each
+  > seen failing with the default flipped / the picker's prop removed; files (across those commits):
+  > `apps/mobile/src/components/calendar-month-grid/{calendar-month-grid.component.tsx,calendar-month-grid.types.ts,calendar-month-grid.component.test.tsx}`,
+  > `apps/mobile/src/components/week-month-calendar/{week-month-calendar.component.tsx,week-month-calendar.types.ts}`,
+  > `apps/mobile/src/modules/classes/components/week-picker-sheet/week-picker-sheet.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-history/class-history.component.tsx`,
+  > `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.test.tsx`; verified: the ER-07 `Verify by`
+  > `npx jest …` from `apps/mobile` (4 suites, 123 passed); deviations: the work predates the task (built at the
+  > user's request, recorded by the amendment)
 
 ### Verification
 

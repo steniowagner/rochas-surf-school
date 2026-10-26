@@ -239,6 +239,11 @@ describe("WeeklyOccupancyScreen", () => {
       expect(
         screen.queryByTestId("calendar-day-2026-10-12-dot"),
       ).not.toBeOnTheScreen();
+      // The week picker keeps the dot tucked into the bottom of the day's slot.
+      expect(
+        screen.getByTestId(`calendar-day-${datesWithClasses[0]}-dot`).parent!
+          .props.className,
+      ).toContain("-mt-1.5");
     });
 
     it("counts the weeks from this one in the label", async () => {

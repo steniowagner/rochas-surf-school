@@ -189,6 +189,7 @@ const messages = {
       toolsSection: "Tools",
       schoolSection: "School",
       registrationsRow: "Join the school",
+      reactivationsRow: "Reactivate accounts",
       classRequestsRow: "Class enrolments",
       enrolStudentRow: "Enrol a student",
       classRequestsCount_one: "{{count}} request",

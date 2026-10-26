@@ -12,9 +12,11 @@ import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-ru
 import { useHeaderInset } from "@/navigation/stack-header";
 
 import { AdminToolRow } from "../components/admin-tool-row";
+import { useReactivationRequests } from "../hooks/use-reactivation-requests.hook";
 import { useRegistrations } from "../hooks/use-registrations.hook";
 
 const openRegistrations = () => router.push(routes.admin.registrations);
+const openReactivations = () => router.push(routes.admin.reactivations);
 const openClassRequests = () => router.push(routes.admin.classRequests);
 const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
 const openPeople = () => router.push(routes.admin.people);
@@ -31,10 +33,12 @@ export function AdminScreen() {
   const insets = useSafeAreaInsets();
   const headerInset = useHeaderInset();
   const { data } = useRegistrations();
+  const { data: reactivations } = useReactivationRequests();
   const { data: pendingRequests } = usePendingRequests();
 
   // The counts show once loaded; while loading or after an error the rows have none.
   const registrationsCount = data?.items.length;
+  const reactivationsCount = reactivations?.items.length;
   const requestsCount = pendingRequests?.total;
 
   return (
@@ -71,6 +75,20 @@ export function AdminScreen() {
             }
             badge={registrationsCount}
             onPress={openRegistrations}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="account-reactivate-outline"
+            title={t("admin.home.reactivationsRow")}
+            subtitle={
+              reactivationsCount === undefined
+                ? undefined
+                : reactivationsCount
+                  ? t("admin.home.waiting", { count: reactivationsCount })
+                  : t("admin.home.nothingPending")
+            }
+            badge={reactivationsCount}
+            onPress={openReactivations}
           />
           <AdminToolRow
             grouped="next"

@@ -48,7 +48,6 @@ jest.useFakeTimers({
 
 afterAll(() => jest.useRealTimers());
 
-
 const fetchMock = jest.fn();
 
 const person = (id: string) => ({
@@ -66,7 +65,11 @@ const aClass = {
   endsAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
   capacity: 8,
   notes: null,
-  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+  location: {
+    id: "l-1",
+    name: "Praia do Futuro",
+    address: "Av. Zezé Diogo, 1000",
+  },
   instructors: [{ id: "i-1", name: "Bruno Lima" }],
   seatsTaken: 0,
   students: [],
@@ -133,15 +136,17 @@ beforeEach(() => {
     status: 200,
     json: async () =>
       // The class details read the school rules for the count on their rules row.
-      String(url).includes("/school-rules")
-        ? { version: 1, rules: [] }
-        : String(url).includes("/classes?date=")
-          ? { weekStart: "x", items: [aClass] }
-          : String(url).endsWith("/classes/teaching")
-            ? { items: [], teachesAny: false }
-            : String(url).includes("/classes/")
-              ? aClass
-              : { items: [person("a"), person("b")] },
+      String(url).endsWith("/reactivation-requests")
+        ? { items: [] }
+        : String(url).includes("/school-rules")
+          ? { version: 1, rules: [] }
+          : String(url).includes("/classes?date=")
+            ? { weekStart: "x", items: [aClass] }
+            : String(url).endsWith("/classes/teaching")
+              ? { items: [], teachesAny: false }
+              : String(url).includes("/classes/")
+                ? aClass
+                : { items: [person("a"), person("b")] },
   }));
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
@@ -204,7 +209,9 @@ describe("admin tabs", () => {
     await user.press(screen.getByText("Create classes"));
 
     expect(app.getPathname()).toBe("/admin/new-class");
-    expect(screen.getByRole("header", { name: "Discipline" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Discipline" }),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -250,7 +257,9 @@ describe("admin tabs", () => {
     await user.press(await screen.findByText("Praia do Futuro"));
 
     expect(app.getPathname()).toBe("/admin/class/c-1");
-    expect(await screen.findByText("Max. 8 students · 8 spots left")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Max. 8 students · 8 spots left"),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 

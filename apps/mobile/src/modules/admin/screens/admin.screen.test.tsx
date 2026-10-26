@@ -22,6 +22,7 @@ import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
 import AdminManageSchoolRulesRoute from "@/app/(private)/admin/manage-school-rules";
 import AdminMyClassesRoute from "@/app/(private)/admin/my-classes";
+import AdminReactivationsRoute from "@/app/(private)/admin/reactivations";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import AdminWeeklyOccupancyRoute from "@/app/(private)/admin/weekly-occupancy";
 import { routes } from "@/constants/routes";
@@ -64,34 +65,51 @@ const TEACHING = {
 };
 let teaching: typeof TEACHING | typeof NOT_TEACHING | null = NOT_TEACHING;
 
+// What `GET /reactivation-requests` answers: no request unless a test says otherwise; `null` fails.
+let reactivations: ReturnType<typeof reactivation>[] | null = [];
+
 // The Rules, My classes and People rows ask for the school rules, the classes taught and the people count on their own: they are answered here,
 // so `fetchMock` sees only the home's other requests.
 const fetchWithSchoolRules = (url: string, init: RequestInit) =>
-  String(url).includes("/people?perPage=1")
-    ? Promise.resolve({
-        ok: true,
-        status: 200,
-        json: async () => ({ items: [], page: 1, perPage: 1, total: 30 }),
-      })
-    : String(url).endsWith("/school-rules")
-      ? Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => SCHOOL_RULES,
-        })
-      : String(url).endsWith("/classes/teaching")
-        ? teaching
-          ? Promise.resolve({
+  String(url).endsWith("/reactivation-requests")
+    ? Promise.resolve(
+        reactivations
+          ? {
               ok: true,
               status: 200,
-              json: async () => teaching,
-            })
-          : Promise.resolve({
+              json: async () => ({ items: reactivations }),
+            }
+          : {
               ok: false,
               status: 500,
               json: async () => ({ errors: [] }),
-            })
-        : fetchMock(url, init);
+            },
+      )
+    : String(url).includes("/people?perPage=1")
+      ? Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ items: [], page: 1, perPage: 1, total: 30 }),
+        })
+      : String(url).endsWith("/school-rules")
+        ? Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => SCHOOL_RULES,
+          })
+        : String(url).endsWith("/classes/teaching")
+          ? teaching
+            ? Promise.resolve({
+                ok: true,
+                status: 200,
+                json: async () => teaching,
+              })
+            : Promise.resolve({
+                ok: false,
+                status: 500,
+                json: async () => ({ errors: [] }),
+              })
+          : fetchMock(url, init);
 
 // The bell asks for the unread count on its own: the home's requests are the others.
 const homeCalls = () =>
@@ -116,6 +134,14 @@ function TestRootLayout({ children }: { children?: React.ReactNode }) {
     </QueryClientProvider>
   );
 }
+
+const reactivation = (id: string) => ({
+  ...person(id),
+  role: "student",
+  deletedAt: "2026-10-01T10:00:00.000Z",
+  requestedAt: "2026-10-05T10:00:00.000Z",
+  classesTaken: 2,
+});
 
 const person = (id: string) => ({
   id,
@@ -159,6 +185,7 @@ async function openAdminHome() {
       "(private)/admin/school-settings": AdminSchoolSettingsRoute,
       "(private)/admin/send-notice": AdminSendNoticeRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
+      "(private)/admin/reactivations": AdminReactivationsRoute,
       "(private)/admin/class-requests": AdminClassRequestsRoute,
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
       "(private)/admin/manage-school-rules": AdminManageSchoolRulesRoute,
@@ -188,6 +215,7 @@ beforeEach(() => {
     },
   });
   teaching = NOT_TEACHING;
+  reactivations = [];
   fetchMock.mockReset();
   globalThis.fetch = fetchWithSchoolRules as typeof fetch;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
@@ -220,6 +248,51 @@ describe("AdminScreen", () => {
     expect(screen.queryByText("School tools")).not.toBeOnTheScreen();
     expect(await screen.findByText("3 waiting")).toBeOnTheScreen();
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
+  });
+
+  it("shows the reactivation row after Join the school, with its count and badge, and opens the tool", async () => {
+    const user = userEvent.setup();
+    reactivations = [reactivation("a"), reactivation("b"), reactivation("c")];
+    respondWith([]);
+    const app = await openAdminHome();
+    const buttons = screen.getAllByRole("button");
+    const indexOf = (name: string | RegExp) =>
+      buttons.indexOf(screen.getByRole("button", { name }));
+
+    expect(await screen.findByText("3 waiting")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: /Reactivate accounts/ }),
+    ).toBeOnTheScreen();
+    expect(indexOf(/Reactivate accounts/)).toBe(indexOf(/Join the school/) + 1);
+
+    await user.press(
+      screen.getByRole("button", { name: /Reactivate accounts/ }),
+    );
+
+    expect(app.getPathname()).toBe(routes.admin.reactivations);
+  });
+
+  it("shows 'Nothing pending' on the reactivation row when no request waits", async () => {
+    respondWith([{ ...person("a") }]);
+    await openAdminHome();
+
+    const row = screen.getByRole("button", { name: /Reactivate accounts/ });
+
+    expect(await within(row).findByText("Nothing pending")).toBeOnTheScreen();
+  });
+
+  it("shows the reactivation row without subtitle or badge while loading and after an error", async () => {
+    reactivations = null;
+    respondWith([]);
+    await openAdminHome();
+
+    const row = screen.getByRole("button", { name: "Reactivate accounts" });
+    expect(within(row).queryByText(/waiting|Nothing pending/)).toBeNull();
+
+    await waitFor(() =>
+      expect(within(row).queryByText(/waiting|Nothing pending/)).toBeNull(),
+    );
+    expect(within(row).queryByText(/waiting|Nothing pending/)).toBeNull();
   });
 
   it("shows the Tools and School sections, with the People row and its count", async () => {
@@ -607,7 +680,9 @@ describe("AdminScreen", () => {
     await user.press(screen.getByRole("button", { name: /Send notice/ }));
 
     expect(app.getPathname()).toBe(routes.admin.sendNotice);
-    expect(await screen.findByText("4 people will receive it")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("4 people will receive it"),
+    ).toBeOnTheScreen();
   });
 
   it("opens the school settings screen from its row under School", async () => {
@@ -644,9 +719,7 @@ describe("AdminScreen", () => {
       expect(
         await screen.findByText("1 class assigned to you"),
       ).toBeOnTheScreen();
-      const rows = screen.getAllByText(
-        /^(School|My classes|Rules|People)$/,
-      );
+      const rows = screen.getAllByText(/^(School|My classes|Rules|People)$/);
       expect(rows.map((row) => row.props.children)).toEqual([
         "School",
         "My classes",

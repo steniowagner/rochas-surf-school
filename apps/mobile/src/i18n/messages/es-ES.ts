@@ -196,6 +196,7 @@ const messages: Messages = {
       toolsSection: "Herramientas",
       schoolSection: "Escuela",
       registrationsRow: "Unirse a la escuela",
+      reactivationsRow: "Reactivar cuentas",
       classRequestsRow: "Inscripciones en clases",
       enrolStudentRow: "Inscribir alumno",
       classRequestsCount_one: "{{count}} solicitud",

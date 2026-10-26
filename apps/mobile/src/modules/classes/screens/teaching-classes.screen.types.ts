@@ -33,4 +33,6 @@ export type UseTeachingClassesScreenResult = {
   retry: () => void;
   selectDiscipline: (discipline: DisciplineFilterValue) => void;
   openClass: (id: string) => void;
+  /** Opens "Aulas anteriores". */
+  openHistory: () => void;
 };

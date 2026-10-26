@@ -129,7 +129,7 @@ afterEach(async () => {
 });
 
 describe("TeachingClassesScreen", () => {
-  it("shows the title with nothing on the right, the class under way on grape, then each day with its classes", async () => {
+  it("shows the title, the history button on the right, the class under way on grape, then each day with its classes", async () => {
     await renderScreen();
 
     expect(
@@ -138,8 +138,10 @@ describe("TeachingClassesScreen", () => {
     // A centered title: no left alignment and no left items, so the native back button stays.
     expect(headerOptions.headerTitleAlign).toBeUndefined();
     expect(headerOptions.unstable_headerLeftItems).toBeUndefined();
-    expect(headerOptions.headerRight).toBeUndefined();
-    expect(screen.queryAllByRole("button", { name: /history/i })).toEqual([]);
+    expect(headerOptions.headerRight).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: "Past classes" }),
+    ).toBeOnTheScreen();
     expect(await screen.findByText("19:00 – 20:00")).toBeOnTheScreen();
     expect(cardTimes()).toEqual([
       "Surf, 07:30 – 09:00",
@@ -227,6 +229,55 @@ describe("TeachingClassesScreen", () => {
     expect(router.push).toHaveBeenCalledWith(
       routes.instructor.classDetail("l"),
     );
+  });
+
+  it.each(["instructor", "admin"] as const)(
+    "opens the past classes of the %s from the clock button",
+    async (role) => {
+      const user = userEvent.setup();
+      await renderScreen(role);
+      await screen.findByText("19:00 – 20:00");
+
+      await user.press(screen.getByRole("button", { name: "Past classes" }));
+
+      expect(router.push).toHaveBeenCalledWith(routes[role].myHistory);
+    },
+  );
+
+  it("shows the clock button while loading, on an error and when empty", async () => {
+    const queryClient = () =>
+      new QueryClient({
+        defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+      });
+    fetchMock.mockReturnValueOnce(new Promise<Response>(() => undefined));
+    const loading = await render(
+      <QueryClientProvider client={queryClient()}>
+        <TeachingClassesScreen role="instructor" />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByLabelText("Loading the classes")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Past classes" }),
+    ).toBeOnTheScreen();
+    await loading.unmount();
+
+    fetchMock.mockResolvedValueOnce(failure(500));
+    const failed = await render(
+      <QueryClientProvider client={queryClient()}>
+        <TeachingClassesScreen role="instructor" />
+      </QueryClientProvider>,
+    );
+    await screen.findByRole("header", { name: "Something went wrong" });
+    expect(
+      screen.getByRole("button", { name: "Past classes" }),
+    ).toBeOnTheScreen();
+    await failed.unmount();
+
+    await renderScreen("instructor", []);
+    await screen.findByRole("header", { name: "Nothing here" });
+    expect(
+      screen.getByRole("button", { name: "Past classes" }),
+    ).toBeOnTheScreen();
   });
 
   it("says when no class is assigned", async () => {
@@ -755,6 +806,11 @@ describe("TeachingClassesScreen sport filter", () => {
     async (language, label, items, title, description) => {
       const user = userEvent.setup();
       await act(() => i18n.changeLanguage(language));
+      const historyName = {
+        "en-US": "Past classes",
+        "pt-BR": "Aulas anteriores",
+        "es-ES": "Clases pasadas",
+      };
       // The filter's labels in the language: "Surf" and "Skate" are the same in all three.
       const filterName = {
         "pt-BR": "Filtrar por modalidade",
@@ -774,12 +830,12 @@ describe("TeachingClassesScreen sport filter", () => {
       ).toEqual([]);
       expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
       expect(screen.getByText(description)).toBeOnTheScreen();
-      // No action: the filter's is the only button.
+      // No action in the state: the header's history button and the filter are the only buttons.
       expect(
         screen
           .getAllByRole("button")
           .map((button) => button.props.accessibilityLabel),
-      ).toEqual([filterName[language]]);
+      ).toEqual([historyName[language], filterName[language]]);
     },
   );
 

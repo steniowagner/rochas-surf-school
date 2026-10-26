@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { HeaderButton } from "@/components/ui/header-button";
 import { StackHeaderTitle } from "@/navigation/stack-header";
 
 import { ClassCard } from "../components/class-card";
@@ -94,6 +95,13 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
         options={{
           headerTitle: () => (
             <StackHeaderTitle title={t("teachingClasses.title")} />
+          ),
+          headerRight: () => (
+            <HeaderButton
+              icon="time-outline"
+              label={t("teachingHistory.title")}
+              onPress={screen.openHistory}
+            />
           ),
         }}
       />

@@ -281,10 +281,20 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > screen has no hook file (it only wires `useClassHistory`); the shared layout keeps the testIDs
   > `my-history-*`
 
-- [ ] **T-07** — Add the clock `HeaderButton` (`time-outline`, label `teachingHistory.title`) as `headerRight` of
+- [x] **T-07** — Add the clock `HeaderButton` (`time-outline`, label `teachingHistory.title`) as `headerRight` of
   `src/modules/classes/screens/teaching-classes.screen.tsx`, opening `routes[role].myHistory` from the screen's hook,
   with cases in `teaching-classes.screen.test.tsx` for both roles and for the loading, empty and error states.
   Covers: ER-03 · Done when: `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx` passes.
+  > ✅ 2026-10-25 — `HeaderButton` (`time-outline`, label `teachingHistory.title`) as `headerRight` of
+  > `TeachingClassesScreen`; `openHistory` in its hook (`router.push(routes[role].myHistory)`) and result type;
+  > files: `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx` (39 passed), `npx tsc --noEmit` and
+  > eslint clean; deviations: two existing assertions changed because the header now has a button — "nothing on the
+  > right" (now asserts the button) and "the filter's is the only button" in the filtered-empty cases (now the
+  > history button and the filter)
 
 ### Verification
 

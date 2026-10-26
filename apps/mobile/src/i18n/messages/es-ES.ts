@@ -500,6 +500,7 @@ const messages: Messages = {
     },
   },
   teachingHistory: {
+    description: "Todas las clases que ya diste, mes a mes o semana a semana.",
     title: "Clases pasadas",
     legend: "Días en que diste clase",
     hasClasses: "diste clase",
@@ -1177,6 +1178,7 @@ const messages: Messages = {
     removed: "{{name}} eliminado",
   },
   teachingClasses: {
+    description: "Tus clases en curso y las próximas, día a día.",
     row: {
       assigned_one: "{{count}} clase asignada a ti",
       assigned_other: "{{count}} clases asignadas a ti",

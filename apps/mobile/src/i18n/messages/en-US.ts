@@ -493,6 +493,7 @@ const messages = {
     },
   },
   teachingHistory: {
+    description: "Every class you have already taught, month by month or week by week.",
     title: "Past classes",
     legend: "Days you taught a class",
     hasClasses: "you taught a class",
@@ -1170,6 +1171,7 @@ const messages = {
     removed: "{{name}} removed",
   },
   teachingClasses: {
+    description: "The classes under way and the ones coming up, day by day.",
     row: {
       assigned_one: "{{count}} class assigned to you",
       assigned_other: "{{count}} classes assigned to you",

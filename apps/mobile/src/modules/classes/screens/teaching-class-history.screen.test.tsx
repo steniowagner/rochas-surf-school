@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
@@ -55,17 +61,23 @@ const OCTOBER_ITEMS = [
   taken("c-13b", "2026-10-13", 18),
   taken("c-13a", "2026-10-13", 11),
   taken("c-06", "2026-10-06"),
-  ...["e", "d", "c", "b", "a"].map((suffix, index) => taken(`c-02${suffix}`, "2026-10-02", 20 - index)),
+  ...["e", "d", "c", "b", "a"].map((suffix, index) =>
+    taken(`c-02${suffix}`, "2026-10-02", 20 - index),
+  ),
 ];
 
 /** Answers each period from `periods`, and nothing for any other. */
-const serve = (periods: Record<string, ClassItem[]> = { [OCTOBER]: OCTOBER_ITEMS }) =>
+const serve = (
+  periods: Record<string, ClassItem[]> = { [OCTOBER]: OCTOBER_ITEMS },
+) =>
   fetchMock.mockImplementation(async (url: string) =>
     ok({ items: periods[String(url).replace("http://api.test", "")] ?? [] }),
   );
 
 const rowKeys = () =>
-  (screen.getByTestId("my-history-list").props.data as { key: string }[]).map((row) => row.key);
+  (screen.getByTestId("my-history-list").props.data as { key: string }[]).map(
+    (row) => row.key,
+  );
 
 const day = (date: string) => screen.getByTestId(`calendar-day-${date}`);
 
@@ -141,29 +153,49 @@ describe("TeachingClassHistoryScreen", () => {
       ],
     });
     await renderLoaded();
-    expect(rowKeys()).toEqual(["day-2026-10-13", "c-13b", "day-2026-10-06", "c-06"]);
+    expect(rowKeys()).toEqual([
+      "day-2026-10-13",
+      "c-13b",
+      "day-2026-10-06",
+      "c-06",
+    ]);
 
     await user.press(screen.getByRole("button", { name: "Filter by sport" }));
-    await user.press(screen.getByTestId("discipline-filter-option-skate").children[0] as never);
+    await user.press(
+      screen.getByTestId("discipline-filter-option-skate").children[0] as never,
+    );
 
     expect(rowKeys()).toEqual(["day-2026-10-06", "c-06"]);
     expect(requestedPaths()).toEqual([OCTOBER]);
 
     await pressDay("2026-10-13");
 
-    expect(screen.getByText("You didn't teach any Skate class this day.")).toBeOnTheScreen();
+    expect(
+      screen.getByText("You didn't teach any Skate class this day."),
+    ).toBeOnTheScreen();
   });
 
   it("opens on the current month with no day selected, the legend, and loads that month", async () => {
     await renderLoaded();
 
-    expect(screen.getByText("PAST CLASSES")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Past classes" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "Every class you have already taught, month by month or week by week.",
+      ),
+    ).toBeOnTheScreen();
     // In the pill and at the right of the list's title.
     expect(screen.getAllByText("OCTOBER 2026")).toHaveLength(2);
-    expect(screen.getByRole("button", { name: "Show the week" })).toBeExpanded();
+    expect(
+      screen.getByRole("button", { name: "Show the week" }),
+    ).toBeExpanded();
     expect(screen.getByText("Days you taught a class")).toBeOnTheScreen();
     expect(
-      screen.queryAllByTestId(/^calendar-day-\d{4}-\d{2}-\d{2}$/).filter((node) => node.props.accessibilityState?.selected),
+      screen
+        .queryAllByTestId(/^calendar-day-\d{4}-\d{2}-\d{2}$/)
+        .filter((node) => node.props.accessibilityState?.selected),
     ).toHaveLength(0);
     expect(requestedPaths()).toEqual([OCTOBER]);
   });
@@ -171,17 +203,27 @@ describe("TeachingClassHistoryScreen", () => {
   it("shows a single dot on each day with one or more classes taught", async () => {
     await renderLoaded();
 
-    expect(screen.queryAllByTestId("calendar-day-2026-10-13-dot")).toHaveLength(1);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-06-dot")).toHaveLength(1);
-    expect(screen.queryAllByTestId("calendar-day-2026-10-02-dot")).toHaveLength(1);
+    expect(screen.queryAllByTestId("calendar-day-2026-10-13-dot")).toHaveLength(
+      1,
+    );
+    expect(screen.queryAllByTestId("calendar-day-2026-10-06-dot")).toHaveLength(
+      1,
+    );
+    expect(screen.queryAllByTestId("calendar-day-2026-10-02-dot")).toHaveLength(
+      1,
+    );
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(3);
-    expect(screen.getByLabelText("Tuesday, October 13th, 2026, you taught a class")).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Tuesday, October 13th, 2026, you taught a class"),
+    ).toBeOnTheScreen();
   });
 
   it("lists the classes under a label per day, newest first, below the title and the period", async () => {
     await renderLoaded();
 
-    expect(screen.getByRole("header", { name: "All classes" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "All classes" }),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText("OCTOBER 2026")).toHaveLength(2);
     expect(rowKeys()).toEqual([
       "day-2026-10-13",
@@ -196,45 +238,67 @@ describe("TeachingClassHistoryScreen", () => {
       "c-02b",
       "c-02a",
     ]);
-    expect(screen.getByRole("header", { name: "TUE, 6 OCT" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "TUE, 6 OCT" }),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText("3 students present").length).toBeGreaterThan(0);
   });
 
-  it.each(["instructor", "admin"] as const)("opens a class's details for the %s", async (role) => {
-    const user = userEvent.setup();
-    serve({ [OCTOBER]: [taken("c-06", "2026-10-06")] });
-    await renderScreen(role);
+  it.each(["instructor", "admin"] as const)(
+    "opens a class's details for the %s",
+    async (role) => {
+      const user = userEvent.setup();
+      serve({ [OCTOBER]: [taken("c-06", "2026-10-06")] });
+      await renderScreen(role);
 
-    await user.press(await screen.findByRole("button", { name: "Surf, 08:00 – 09:00" }));
+      await user.press(
+        await screen.findByRole("button", { name: "Surf, 08:00 – 09:00" }),
+      );
 
-    expect(router.push).toHaveBeenCalledWith(routes[role].classDetail("c-06"));
-  });
+      expect(router.push).toHaveBeenCalledWith(
+        routes[role].classDetail("c-06"),
+      );
+    },
+  );
 
   it("loads the month the arrows move to", async () => {
-    serve({ [OCTOBER]: OCTOBER_ITEMS, [SEPTEMBER]: [taken("c-sep", "2026-09-20")] });
+    serve({
+      [OCTOBER]: OCTOBER_ITEMS,
+      [SEPTEMBER]: [taken("c-sep", "2026-09-20")],
+    });
     await renderLoaded();
 
     await press("Show the previous month");
 
-    expect(await screen.findByRole("header", { name: "SUN, 20 SEP" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "SUN, 20 SEP" }),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText("SEPTEMBER 2026")).toHaveLength(2);
     expect(rowKeys()).toEqual(["day-2026-09-20", "c-sep"]);
     expect(requestedPaths()).toEqual([OCTOBER, SEPTEMBER]);
   });
 
   it("loads the week and back the month when the pill switches view", async () => {
-    serve({ [OCTOBER]: OCTOBER_ITEMS, "/classes/teaching/history?from=2026-10-12&to=2026-10-18": OCTOBER_ITEMS.slice(0, 2) });
+    serve({
+      [OCTOBER]: OCTOBER_ITEMS,
+      "/classes/teaching/history?from=2026-10-12&to=2026-10-18":
+        OCTOBER_ITEMS.slice(0, 2),
+    });
     await renderLoaded();
 
     await press("Show the week");
 
-    await waitFor(() => expect(rowKeys()).toEqual(["day-2026-10-13", "c-13b", "c-13a"]));
+    await waitFor(() =>
+      expect(rowKeys()).toEqual(["day-2026-10-13", "c-13b", "c-13a"]),
+    );
     expect(screen.getAllByText("12 – 18 OCT")).toHaveLength(2);
 
     await press("Show the next week");
 
     await waitFor(() =>
-      expect(requestedPaths()).toContain("/classes/teaching/history?from=2026-10-19&to=2026-10-25"),
+      expect(requestedPaths()).toContain(
+        "/classes/teaching/history?from=2026-10-19&to=2026-10-25",
+      ),
     );
 
     // October is cached: it shows at once, while it is fetched again in the background.
@@ -242,7 +306,9 @@ describe("TeachingClassHistoryScreen", () => {
     await press("Show the month");
 
     expect(rowKeys()).toHaveLength(11);
-    expect(screen.queryByLabelText("Loading the classes")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText("Loading the classes"),
+    ).not.toBeOnTheScreen();
   });
 
   it("narrows the list to a picked day with its chip, and the chip or the day again shows the period", async () => {
@@ -270,12 +336,17 @@ describe("TeachingClassHistoryScreen", () => {
   });
 
   it("opens the month of a faded day with that day selected", async () => {
-    serve({ [OCTOBER]: OCTOBER_ITEMS, [NOVEMBER]: [taken("c-nov", "2026-11-01")] });
+    serve({
+      [OCTOBER]: OCTOBER_ITEMS,
+      [NOVEMBER]: [taken("c-nov", "2026-11-01")],
+    });
     await renderLoaded();
 
     await pressDay("2026-11-01");
 
-    expect(await screen.findByRole("header", { name: "SUN, 1 NOV" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "SUN, 1 NOV" }),
+    ).toBeOnTheScreen();
     expect(day("2026-11-01")).toBeSelected();
     expect(screen.getByText("NOVEMBER 2026")).toBeOnTheScreen();
     expect(screen.getByText("1 NOV")).toBeOnTheScreen();
@@ -302,8 +373,12 @@ describe("TeachingClassHistoryScreen", () => {
 
     await pressDay("2026-10-20");
 
-    expect(screen.getByRole("header", { name: "No classes this day" })).toBeOnTheScreen();
-    expect(screen.getByText("You didn't teach any class this day.")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "No classes this day" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("You didn't teach any class this day."),
+    ).toBeOnTheScreen();
     expect(screen.getByText("Days you taught a class")).toBeOnTheScreen();
   });
 
@@ -311,17 +386,41 @@ describe("TeachingClassHistoryScreen", () => {
     serve({});
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "No classes in this period" })).toBeOnTheScreen();
-    expect(screen.getByText("You didn't teach any class in this period.")).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "No classes in this period" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("You didn't teach any class in this period."),
+    ).toBeOnTheScreen();
     expect(screen.getByTestId("my-history-calendar")).toBeOnTheScreen();
     expect(screen.getByText("Days you taught a class")).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Try again" }),
+    ).not.toBeOnTheScreen();
+  });
+
+  it("drops the intro on the empty and error states", async () => {
+    const description = "Every class you have already taught, month by month or week by week.";
+    serve({});
+    const view = await renderScreen();
+    await screen.findByRole("header", { name: "No classes in this period" });
+
+    expect(screen.queryByText(description)).not.toBeOnTheScreen();
+    await view.unmount();
+
+    fetchMock.mockResolvedValueOnce(failure(500));
+    await renderScreen();
+    await screen.findByRole("header", { name: "Something went wrong" });
+
+    expect(screen.queryByText(description)).not.toBeOnTheScreen();
   });
 
   it("shows the skeleton as one loading state while a period loads, never the previous period's classes", async () => {
     let answer: (value: Response) => void = () => undefined;
     await renderLoaded();
-    fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (answer = resolve)));
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((resolve) => (answer = resolve)),
+    );
 
     await press("Show the next month");
 
@@ -332,8 +431,12 @@ describe("TeachingClassHistoryScreen", () => {
 
     await act(async () => answer(ok({ items: [] }) as Response));
 
-    expect(await screen.findByRole("header", { name: "No classes in this period" })).toBeOnTheScreen();
-    expect(screen.queryByLabelText("Loading the classes")).not.toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "No classes in this period" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText("Loading the classes"),
+    ).not.toBeOnTheScreen();
   });
 
   it("shows the error with no dots, and its retry reloads the period with the button's spinner", async () => {
@@ -341,22 +444,32 @@ describe("TeachingClassHistoryScreen", () => {
     fetchMock.mockResolvedValueOnce(failure(500));
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "Something went wrong" })).toBeOnTheScreen();
     expect(
-      screen.getByText("We couldn't load your past classes. Check your connection and try again."),
+      await screen.findByRole("header", { name: "Something went wrong" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "We couldn't load your past classes. Check your connection and try again.",
+      ),
     ).toBeOnTheScreen();
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(0);
     expect(screen.getByText("Days you taught a class")).toBeOnTheScreen();
 
-    fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (answer = resolve)));
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((resolve) => (answer = resolve)),
+    );
     await press("Try again");
 
     expect(screen.getByRole("button", { name: "Try again" })).toBeDisabled();
-    expect(screen.queryByLabelText("Loading the classes")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText("Loading the classes"),
+    ).not.toBeOnTheScreen();
 
     await act(async () => answer(ok({ items: OCTOBER_ITEMS }) as Response));
 
-    expect(await screen.findByRole("header", { name: "TUE, 13 OCT" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "TUE, 13 OCT" }),
+    ).toBeOnTheScreen();
     expect(requestedPaths()).toEqual([OCTOBER, OCTOBER]);
   });
 
@@ -364,9 +477,17 @@ describe("TeachingClassHistoryScreen", () => {
     (api.apiGet as jest.Mock).mockRejectedValueOnce(new SessionExpiredError());
     await renderScreen();
 
-    await waitFor(() => expect(screen.queryByLabelText("Loading the classes")).not.toBeOnTheScreen());
-    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
-    expect(screen.queryByRole("header", { name: "No classes in this period" })).not.toBeOnTheScreen();
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText("Loading the classes"),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(
+      screen.queryByRole("header", { name: "Something went wrong" }),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("header", { name: "No classes in this period" }),
+    ).not.toBeOnTheScreen();
     expect(screen.getByTestId("my-history-calendar")).toBeOnTheScreen();
   });
 
@@ -374,7 +495,9 @@ describe("TeachingClassHistoryScreen", () => {
     await renderLoaded();
     const list = () => screen.getByTestId("my-history-list");
     let answer: (value: Response) => void = () => undefined;
-    fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (answer = resolve)));
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((resolve) => (answer = resolve)),
+    );
     let refreshing: Promise<void> = Promise.resolve();
 
     await act(async () => {
@@ -397,7 +520,9 @@ describe("TeachingClassHistoryScreen", () => {
     });
 
     expect(rowKeys()).toEqual(["day-2026-10-06", "c-06"]);
-    expect(screen.queryByRole("header", { name: "Something went wrong" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("header", { name: "Something went wrong" }),
+    ).not.toBeOnTheScreen();
     expect(requestedPaths()).toEqual([OCTOBER, OCTOBER, OCTOBER]);
   });
 
@@ -406,41 +531,65 @@ describe("TeachingClassHistoryScreen", () => {
     await act(() => i18n.changeLanguage("pt-BR"));
     const view = await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "Sem aulas neste período" })).toBeOnTheScreen();
-    expect(screen.getByText("Você não deu nenhuma aula neste período.")).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "Sem aulas neste período" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("Você não deu nenhuma aula neste período."),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText("OUTUBRO 2026")).toHaveLength(2);
     expect(screen.getByText("Dias em que você deu aula")).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "Todas as aulas" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Todas as aulas" }),
+    ).toBeOnTheScreen();
 
     await pressDay("2026-10-14");
 
-    expect(screen.getByRole("header", { name: "Sem aulas neste dia" })).toBeOnTheScreen();
-    expect(screen.getByText("Você não deu nenhuma aula neste dia.")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Limpar 14 OUT" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Sem aulas neste dia" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("Você não deu nenhuma aula neste dia."),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Limpar 14 OUT" }),
+    ).toBeOnTheScreen();
 
     await view.unmount();
     await act(() => i18n.changeLanguage("es-ES"));
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "Sin clases en este período" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "Sin clases en este período" }),
+    ).toBeOnTheScreen();
     expect(screen.getByText("Días en que diste clase")).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "Todas las clases" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Todas las clases" }),
+    ).toBeOnTheScreen();
   });
 
   it("labels the days and shows the error in Portuguese", async () => {
     await act(() => i18n.changeLanguage("pt-BR"));
     const view = await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "TER, 13 OUT" })).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "SEX, 2 OUT" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "TER, 13 OUT" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "SEX, 2 OUT" }),
+    ).toBeOnTheScreen();
 
     await view.unmount();
     fetchMock.mockResolvedValueOnce(failure(500));
     await renderScreen();
 
-    expect(await screen.findByRole("header", { name: "Algo deu errado" })).toBeOnTheScreen();
     expect(
-      screen.getByText("Não conseguimos carregar suas aulas anteriores. Verifique sua conexão e tente novamente."),
+      await screen.findByRole("header", { name: "Algo deu errado" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "Não conseguimos carregar suas aulas anteriores. Verifique sua conexão e tente novamente.",
+      ),
     ).toBeOnTheScreen();
   });
 });

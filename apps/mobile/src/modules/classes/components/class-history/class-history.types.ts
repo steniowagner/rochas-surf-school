@@ -3,7 +3,11 @@ import type { Href } from "expo-router";
 
 import type { CalendarPeriod } from "@/components/week-month-calendar/week-month-calendar.types";
 
-import type { ClassHistoryPeriod, ClassItem, DisciplineFilterValue } from "../../classes.types";
+import type {
+  ClassHistoryPeriod,
+  ClassItem,
+  DisciplineFilterValue,
+} from "../../classes.types";
 
 /** A row of the history's list: a day's label, or one of its classes. */
 export type HistoryRow =
@@ -12,7 +16,9 @@ export type HistoryRow =
 
 export type UseClassHistoryProps = {
   /** The query of one period of the history: the screen's own, with its key and URL. */
-  useHistoryQuery: (period: ClassHistoryPeriod) => UseQueryResult<{ items: ClassItem[] }>;
+  useHistoryQuery: (
+    period: ClassHistoryPeriod,
+  ) => UseQueryResult<{ items: ClassItem[] }>;
   /** The route of a class's details, for the role that reads the history. */
   classRoute: (id: string) => Href;
 };
@@ -52,4 +58,6 @@ export type ClassHistoryProps = {
   history: UseClassHistoryResult;
   /** The i18n namespace of the copy: `myHistory` (student) or `teachingHistory` (instructor, admin). */
   copy: "myHistory" | "teachingHistory";
+  /** Shows the title large, with an icon and a description, collapsing into the header as the list scrolls. */
+  withIntro?: boolean;
 };

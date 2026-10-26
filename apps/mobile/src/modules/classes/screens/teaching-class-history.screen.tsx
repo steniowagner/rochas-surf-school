@@ -12,5 +12,5 @@ export function TeachingClassHistoryScreen({ role }: TeachingClassHistoryScreenP
     classRoute: routes[role].classDetail,
   });
 
-  return <ClassHistory history={history} copy="teachingHistory" />;
+  return <ClassHistory history={history} copy="teachingHistory" withIntro />;
 }

@@ -301,6 +301,15 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 - [ ] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
   in the iOS simulator. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and
   every journey shows what it says.
+  > ➕ 2026-10-25 (requested by the user after T-07, outside the spec's tasks): "Minhas aulas" and the teaching "Aulas
+  > anteriores" show `ScreenIntro` (icon `calendar-outline` / `time-outline`, title, new `teachingClasses.description`
+  > / `teachingHistory.description` copy) as the list's header with the collapsing header title; on the error and
+  > empty states the intro is dropped and the plain header title shows. `ClassHistory` takes `withIntro` (the
+  > student's history is unchanged); files: `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-history/*`,
+  > `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.tsx`, their tests,
+  > `apps/mobile/src/i18n/messages/*.ts`. `npx jest src/modules/classes src/modules/enrolment` 1304 passed; not seen in
+  > the simulator (the app wouldn't open "My classes" on the last try).
   > ⛔ 2026-10-25 — automated part done, journeys only partly done. Passed: `node .specs/scripts/run-related-tests.mjs
   > 062` (RELATED TESTS PASSED: backend, mobile, modules/classes, modules/enrolment), `check-coverage.mjs 062`
   > (COVERAGE OK, 17 files), `npx turbo run lint check-types build --filter=…classes --filter=…backend

@@ -493,6 +493,7 @@ const messages: Messages = {
     },
   },
   teachingHistory: {
+    description: "Todas as aulas que você já deu, mês a mês ou semana a semana.",
     title: "Aulas anteriores",
     legend: "Dias em que você deu aula",
     hasClasses: "você deu aula",
@@ -1170,6 +1171,7 @@ const messages: Messages = {
     removed: "{{name}} removido",
   },
   teachingClasses: {
+    description: "Suas aulas em andamento e as próximas, dia a dia.",
     row: {
       assigned_one: "{{count}} aula atribuída a você",
       assigned_other: "{{count}} aulas atribuídas a você",

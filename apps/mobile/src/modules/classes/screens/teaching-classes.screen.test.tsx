@@ -133,7 +133,7 @@ describe("TeachingClassesScreen", () => {
     await renderScreen();
 
     expect(
-      screen.getByRole("header", { name: "MY CLASSES" }),
+      screen.getByRole("header", { name: "My classes" }),
     ).toBeOnTheScreen();
     // A centered title: no left alignment and no left items, so the native back button stays.
     expect(headerOptions.headerTitleAlign).toBeUndefined();
@@ -280,6 +280,45 @@ describe("TeachingClassesScreen", () => {
     ).toBeOnTheScreen();
   });
 
+  it("shows the intro's description with the classes, and drops the intro on the empty and error states", async () => {
+    const description =
+      "The classes under way and the ones coming up, day by day.";
+    const view = await renderScreen();
+    await screen.findByText("19:00 – 20:00");
+
+    expect(screen.getByText(description)).toBeOnTheScreen();
+    await view.unmount();
+
+    await renderScreen("instructor", []);
+    await screen.findByRole("header", { name: "Nothing here" });
+    expect(screen.queryByText(description)).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("header", { name: "My classes" }),
+    ).not.toBeOnTheScreen();
+  });
+
+  it("drops the intro on the error state", async () => {
+    fetchMock.mockResolvedValueOnce(failure(500));
+    await render(
+      <QueryClientProvider
+        client={
+          new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+          })
+        }
+      >
+        <TeachingClassesScreen role="instructor" />
+      </QueryClientProvider>,
+    );
+
+    await screen.findByRole("header", { name: "Something went wrong" });
+    expect(
+      screen.queryByText(
+        "The classes under way and the ones coming up, day by day.",
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it("says when no class is assigned", async () => {
     await renderScreen("instructor", []);
 
@@ -421,7 +460,7 @@ describe("TeachingClassesScreen", () => {
     await renderScreen();
 
     expect(
-      screen.getByRole("header", { name: "MINHAS AULAS" }),
+      screen.getByRole("header", { name: "Minhas aulas" }),
     ).toBeOnTheScreen();
     expect(
       await screen.findByRole("header", { name: "Hoje, 17 set" }),
@@ -486,7 +525,7 @@ describe("TeachingClassesScreen", () => {
     await renderScreen();
 
     expect(
-      screen.getByRole("header", { name: "MIS CLASES" }),
+      screen.getByRole("header", { name: "Mis clases" }),
     ).toBeOnTheScreen();
     expect(
       await screen.findByRole("header", { name: /^Hoy, / }),

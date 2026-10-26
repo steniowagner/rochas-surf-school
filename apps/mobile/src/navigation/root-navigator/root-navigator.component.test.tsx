@@ -242,7 +242,7 @@ describe("RootNavigator", () => {
     it.each([
       { role: "student", path: routes.student.home, name: "Ana" },
       { role: "instructor", path: routes.instructor.home, name: "School" },
-      { role: "admin", path: routes.admin.home, name: "School tools" },
+      { role: "admin", path: routes.admin.home, name: "Tools" },
     ])(
       "opens the $role home with a number and rulesAccepted true",
       async ({ role, path, name }) => {
@@ -321,7 +321,7 @@ describe("RootNavigator", () => {
     it.each([
       { role: "student", path: routes.student.home, name: "Ana" },
       { role: "instructor", path: routes.instructor.home, name: "School" },
-      { role: "admin", path: routes.admin.home, name: "School tools" },
+      { role: "admin", path: routes.admin.home, name: "Tools" },
     ])(
       "opens the $role home after accepting, with no way back",
       async ({ role, path, name }) => {
@@ -448,7 +448,7 @@ describe("RootNavigator", () => {
         state: "approved admin",
         user: onboardedAccount("admin"),
         path: routes.admin.home,
-        name: "School tools",
+        name: "Tools",
       },
     ])(
       "opens $name on $path for a $state account",

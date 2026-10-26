@@ -195,7 +195,6 @@ const messages: Messages = {
     home: {
       toolsSection: "Herramientas",
       schoolSection: "Escuela",
-      title: "Herramientas de la escuela",
       registrationsRow: "Unirse a la escuela",
       classRequestsRow: "Inscripciones en clases",
       enrolStudentRow: "Inscribir alumno",
@@ -206,6 +205,8 @@ const messages: Messages = {
       cancellationRulesSubtitle: "Una para surf, otra para skate",
       schoolSettingsRow: "Ajustes de la escuela",
       waiting: "{{count}} esperando",
+      nothingPending: "Nada pendiente",
+      enrolStudentSubtitle: "Alumnos de la escuela o clases de prueba",
     },
   },
   home: {

@@ -148,13 +148,13 @@ beforeEach(() => {
 });
 
 describe("admin tabs", () => {
-  it("admin opens on Home with the school tools and the pending count", async () => {
+  it("admin opens on Panel with the school tools and the pending count", async () => {
     const app = await open();
 
-    expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Home");
-    expect(screen.getByText("School tools")).toBeOnTheScreen();
+    expect(selectedTabLabel()).toBe("Panel");
+    expect(screen.getByText("Tools")).toBeOnTheScreen();
     expect(await screen.findByText("2 waiting")).toBeOnTheScreen();
   });
 
@@ -173,7 +173,7 @@ describe("admin tabs", () => {
     expect(screen.getByRole("header", { name: "Ana Souza" })).toBeOnTheScreen();
   });
 
-  it("opens Join the school above the tabs, and back returns to Home with the tab bar", async () => {
+  it("opens Join the school above the tabs, and back returns to Panel with the tab bar", async () => {
     const user = userEvent.setup();
     const app = await open();
 
@@ -182,11 +182,11 @@ describe("admin tabs", () => {
 
     await act(async () => router.back());
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Home");
-    expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+    expect(selectedTabLabel()).toBe("Panel");
+    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
   });
 
-  it("opens the new class screen above the tabs, and back returns to Home with the tab bar", async () => {
+  it("opens the new class screen above the tabs, and back returns to Panel with the tab bar", async () => {
     const user = userEvent.setup();
     fetchMock.mockImplementation(async (url: string) => ({
       ok: true,
@@ -209,11 +209,11 @@ describe("admin tabs", () => {
     await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Home");
-    expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+    expect(selectedTabLabel()).toBe("Panel");
+    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
   });
 
-  it("opens the cancellation rules above the tabs, and back returns to Home with the tab bar (cancellation rules)", async () => {
+  it("opens the cancellation rules above the tabs, and back returns to Panel with the tab bar (cancellation rules)", async () => {
     const user = userEvent.setup();
     fetchMock.mockImplementation(async (url: string) => ({
       ok: true,
@@ -238,8 +238,8 @@ describe("admin tabs", () => {
     await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Home");
-    expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+    expect(selectedTabLabel()).toBe("Panel");
+    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
   });
 
   it("opens a class above the tabs, and back returns to Classes with the tab bar", async () => {
@@ -285,6 +285,6 @@ describe("admin tabs", () => {
     await i18n.changeLanguage("es-ES");
     await open();
 
-    expect(tabLabels()).toEqual(["Inicio", "Clases", "Perfil"]);
+    expect(tabLabels()).toEqual(["Panel", "Clases", "Perfil"]);
   });
 });

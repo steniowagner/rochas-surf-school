@@ -347,7 +347,7 @@ describe("RulesUpdateScreen on its route", () => {
   it.each([
     { role: "student", path: routes.student.home, name: "Ana" },
     { role: "instructor", path: routes.instructor.home, name: "School" },
-    { role: "admin", path: routes.admin.home, name: "School tools" },
+    { role: "admin", path: routes.admin.home, name: "Tools" },
   ])(
     "opens the role home after accepting ($role)",
     async ({ role, path, name }) => {

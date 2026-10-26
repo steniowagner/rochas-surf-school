@@ -214,9 +214,8 @@ describe("AdminScreen", () => {
     respondWith([person("a"), person("b"), person("c")]);
     await openAdminHome();
 
-    expect(
-      screen.getByRole("header", { name: "School tools" }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Tools" })).toBeOnTheScreen();
+    expect(screen.queryByText("School tools")).not.toBeOnTheScreen();
     expect(await screen.findByText("3 waiting")).toBeOnTheScreen();
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
   });
@@ -231,7 +230,7 @@ describe("AdminScreen", () => {
     expect(await screen.findByText("30 on the platform")).toBeOnTheScreen();
   });
 
-  it("shows the Weekly occupancy card between People and School settings, and opens the screen", async () => {
+  it("shows the Weekly occupancy row right after People, and opens the screen", async () => {
     const user = userEvent.setup();
     fetchMock.mockImplementation(async (url: string) => ({
       ok: true,
@@ -251,7 +250,6 @@ describe("AdminScreen", () => {
       screen.getByText("Seats taken and free per class"),
     ).toBeOnTheScreen();
     expect(indexOf("Weekly occupancy")).toBe(people + 1);
-    expect(indexOf(/School settings/)).toBe(people + 2);
     expect(
       fetchMock.mock.calls.some(([url]) =>
         String(url).includes("/classes?date="),
@@ -383,7 +381,8 @@ describe("AdminScreen", () => {
     respondWith([]);
     await openAdminHome();
 
-    expect(await screen.findByText("0 waiting")).toBeOnTheScreen();
+    expect(await screen.findAllByText("Nothing pending")).not.toHaveLength(0);
+    expect(screen.queryByText(/waiting/)).toBeNull();
   });
 
   it("shows the row without a count while loading", async () => {
@@ -572,12 +571,11 @@ describe("AdminScreen", () => {
     expect(
       await screen.findByText("6 rules in students' onboarding"),
     ).toBeOnTheScreen();
-    const rows = screen.getAllByText(/^(School|Rules|People|School settings)$/);
+    const rows = screen.getAllByText(/^(School|Rules|People)$/);
     expect(rows.map((row) => row.props.children)).toEqual([
       "School",
       "Rules",
       "People",
-      "School settings",
     ]);
 
     await user.press(screen.getByRole("button", { name: /Rules/ }));
@@ -627,14 +625,13 @@ describe("AdminScreen", () => {
         await screen.findByText("1 class assigned to you"),
       ).toBeOnTheScreen();
       const rows = screen.getAllByText(
-        /^(School|My classes|Rules|People|School settings)$/,
+        /^(School|My classes|Rules|People)$/,
       );
       expect(rows.map((row) => row.props.children)).toEqual([
         "School",
         "My classes",
         "Rules",
         "People",
-        "School settings",
       ]);
 
       await user.press(screen.getByRole("button", { name: /My classes/ }));

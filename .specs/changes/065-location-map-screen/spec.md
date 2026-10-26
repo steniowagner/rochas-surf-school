@@ -273,6 +273,17 @@ and stacked fields are hard to use.
   journeys of ER-01 to ER-03 in the iOS simulator (after `npx expo prebuild --platform ios` for the new plugin) and
   the labelled-place tap of ER-02 in the Android emulator. Record the output summary and the journeys as evidence.
   Covers: all · Done when: every command exits 0 and every journey behaves as its Expected Result says.
+  > ⛔ 2026-10-26 — automated part done and passing: `node .specs/scripts/run-related-tests.mjs 065` → RELATED TESTS
+  > PASSED (apps/mobile: 112 suites, 1878 tests); `node .specs/scripts/check-coverage.mjs 065` → COVERAGE OK (every
+  > changed line covered in 18 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` → 8/8
+  > tasks successful. The manual journeys are blocked: (1) iOS — after `npx expo prebuild --platform ios` and
+  > `pod install`, `expo run:ios` fails because the precompiled `ExpoModulesJSI` / `ExpoModulesCore` XCFrameworks
+  > were built with Swift 6.3.1 and the only Xcode on this Mac (27.1) has Swift 6.4; building the Expo modules from
+  > source (`EXPO_USE_PRECOMPILED_MODULES=0`) still fails on the binary-only `ExpoModulesJSI` — a host toolchain issue,
+  > not this change; it needs an Xcode whose Swift matches Expo SDK 57's binaries (or an Expo update). (2) Android —
+  > the debug build with `expo-location` installs and runs on the `Pixel_Test` emulator against the local backend,
+  > but the emulator is signed in as "Dev Student", and the location screen is admin-only; signing in as the dev
+  > admin is needed to run the ER-01–ER-03 journeys and the labelled-place tap of ER-02.
 
 ## Verification Plan
 

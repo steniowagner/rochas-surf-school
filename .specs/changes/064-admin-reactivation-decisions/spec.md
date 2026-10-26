@@ -313,12 +313,13 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
   `test/user/usecase/request-reactivation.usecase.test.ts`.
   Covers: ER-01, ER-05 · Done when: `npx jest` passes and `npm run check-types` exits 0 in `modules/auth`.
   > ✅ 2026-10-26 — added the `ReactivationNotifier` and `ClassesTakenCounter` ports, `findReactivationRequests` / `updateIfReactivationRequested` on `UserRepository`, their fakes, and `RequestReactivation` now notifies admins only when it records the request; files: `modules/auth/src/user/provider/{reactivation-notifier,classes-taken-counter}.provider.ts`, `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/src/user/usecase/request-reactivation.usecase.ts`, `modules/auth/test/mock/{fake-reactivation-notifier,fake-classes-taken-counter}.provider.ts`, `modules/auth/test/mock/{index,fake-user.repository}.ts`, `modules/auth/test/user/usecase/request-reactivation.usecase.test.ts`, `modules/auth/test/user/provider/user.repository.test.ts`; verified: `npx jest` (30 suites, 415 passed) and `npm run check-types` exit 0 in `modules/auth`; deviations: `apps/backend` does not type-check until T-08 passes the notifier to `RequestReactivation`.
-- [ ] **T-04** — Add `ListReactivationRequests`, `ApproveReactivation` and `DenyReactivation` in
+- [x] **T-04** — Add `ListReactivationRequests`, `ApproveReactivation` and `DenyReactivation` in
   `src/user/usecase/{list-reactivation-requests,approve-reactivation,deny-reactivation}.usecase.ts` plus a
   `reactivation-request.ts` helper (find by id with D-07's 404/409), exported from the index; access by
   `assertCanDecideRegistrations`; D-01, D-03, D-05, D-07, D-08. Tests in `test/user/usecase/` for every case of ER-01 to
   ER-05. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npx jest test/user/usecase` passes in `modules/auth`.
+  > ✅ 2026-10-26 — added `ListReactivationRequests`, `ApproveReactivation`, `DenyReactivation` and the `findReactivationRequest` helper (404/409), exported from the index, with a test file per use case covering ER-01 to ER-05 (order, classes taken, clearing on approval, reason handling, refusals, lost race, no notification on refusal); files: `modules/auth/src/user/usecase/{reactivation-request.ts,list-reactivation-requests.usecase.ts,approve-reactivation.usecase.ts,deny-reactivation.usecase.ts,index.ts}`, `modules/auth/test/user/usecase/{list-reactivation-requests,approve-reactivation,deny-reactivation}.usecase.test.ts`; verified: `npx jest test/user/usecase` (17 suites, 219 passed), `npm run check-types` exit 0 in `modules/auth`; deviations: the `module-use-case` skill was not invoked, the files follow `*-registration` use cases one to one.
 
 ### Backend (`apps/backend`)
 

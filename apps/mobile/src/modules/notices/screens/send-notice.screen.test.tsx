@@ -1,4 +1,4 @@
-import { fireEvent, screen, userEvent, waitFor } from "@testing-library/react-native";
+import { fireEvent, screen, userEvent, waitFor, within } from "@testing-library/react-native";
 import { router } from "expo-router";
 import { Keyboard } from "react-native";
 
@@ -150,19 +150,26 @@ describe("SendNoticeScreen", () => {
     expect(messageField().props.maxLength).toBe(500);
   });
 
-  it("names the audience and the count in the confirm sheet, and cancelling changes nothing", async () => {
+  it("names the count, the audience and the trimmed notice in the confirm sheet, and going back changes nothing", async () => {
     const user = await open();
     await fill(user);
     await screen.findByText("12 people will receive it");
 
     await user.press(sendButton());
 
-    expect(await screen.findByText("Send this notice?")).toBeOnTheScreen();
-    expect(screen.getByText("Audience: Everyone. 12 people will receive it.")).toBeOnTheScreen();
+    expect(await screen.findByText("Send to 12 people?")).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "Everyone — students, instructors and admins — gets a notification. Once it's sent, it can't be deleted.",
+      ),
+    ).toBeOnTheScreen();
+    const preview = screen.getByTestId("notice-preview");
+    expect(within(preview).getByText("Class moved")).toBeOnTheScreen();
+    expect(within(preview).getByText("See you at 7.")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Cancel" }));
+    await user.press(screen.getByRole("button", { name: "Back to editing" }));
 
-    await waitFor(() => expect(screen.queryByText("Send this notice?")).not.toBeOnTheScreen());
+    await waitFor(() => expect(screen.queryByText("Send to 12 people?")).not.toBeOnTheScreen());
     expect(posts()).toEqual([]);
     expect(router.back).not.toHaveBeenCalled();
     expect(titleField().props.value).toBe("  Class moved ");
@@ -174,7 +181,7 @@ describe("SendNoticeScreen", () => {
     await screen.findByText("12 people will receive it");
 
     await user.press(sendButton());
-    await user.press(await screen.findByRole("button", { name: "Send now" }));
+    await user.press(await screen.findByRole("button", { name: "Yes, send" }));
 
     await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
     expect(posts()).toEqual([
@@ -192,13 +199,13 @@ describe("SendNoticeScreen", () => {
     await screen.findByText("12 people will receive it");
 
     await user.press(sendButton());
-    await user.press(await screen.findByRole("button", { name: "Send now" }));
+    await user.press(await screen.findByRole("button", { name: "Yes, send" }));
 
     expect(await screen.findByText("Couldn't send the notice. Try again.")).toBeOnTheScreen();
     expect(router.back).not.toHaveBeenCalled();
     expect(titleField().props.value).toBe("  Class moved ");
     expect(messageField().props.value).toBe("See you at 7. ");
-    expect(screen.queryByText("Send this notice?")).not.toBeOnTheScreen();
+    expect(screen.queryByText("Send to 12 people?")).not.toBeOnTheScreen();
   });
 
   it("shows the no-connection error when the network is down", async () => {
@@ -207,7 +214,7 @@ describe("SendNoticeScreen", () => {
     await screen.findByText("12 people will receive it");
 
     await user.press(sendButton());
-    await user.press(await screen.findByRole("button", { name: "Send now" }));
+    await user.press(await screen.findByRole("button", { name: "Yes, send" }));
 
     expect(
       await screen.findByText("No connection. Check your internet and try again."),

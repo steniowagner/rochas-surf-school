@@ -1,39 +1,57 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/use-theme";
 
 import { SendNoticeConfirmSheetProps } from "./send-notice-confirm-sheet.types";
 
-/** The final check before a notice goes out: who receives it and how many people they are. */
+/**
+ * The final check before a notice goes out (PAINEL-07A): how many people receive it, who they are, and the notice
+ * itself. The preview scrolls when the message is long; the gesture handler's scroll view keeps the sheet's own drag.
+ */
 export function SendNoticeConfirmSheet({
   visible,
   audience,
   count,
+  title,
+  message,
   sending,
   onConfirm,
   onClose,
 }: SendNoticeConfirmSheetProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   return (
     <BottomModal visible={visible} onClose={onClose}>
-      <View className="gap-4">
-        <Text accessibilityRole="header" className="ds-text-screen-title text-ink">
-          {t("notices.confirm.title")}
+      <View>
+        <Text accessibilityRole="header" className="ds-text-sheet-title text-ink">
+          {t("notices.confirm.title", { count })}
         </Text>
-        <Text className="ds-text-body text-ink-2">
-          {t("notices.confirm.description", {
-            count,
-            audience: t(`notices.audience.${audience}`),
-          })}
+        <Text className="ds-text-sheet-description mt-2.5 text-ink-2">
+          {t(`notices.confirm.description.${audience}`)}
         </Text>
-        <View className="gap-2">
-          <Button loading={sending} onPress={onConfirm}>
+        <ScrollView
+          testID="notice-preview"
+          className="mt-3.5 max-h-[180px] rounded-control border border-line bg-surface"
+          contentContainerClassName="px-[15px] py-[13px]"
+        >
+          <Text className="ds-text-preview-title text-ink">{title}</Text>
+          <Text className="ds-text-preview-body mt-1 text-ink-2">{message}</Text>
+        </ScrollView>
+        <View className="mt-3.5 gap-2.5">
+          <Button
+            loading={sending}
+            icon={<Ionicons name="send-outline" size={20} color={theme.onColor} />}
+            onPress={onConfirm}
+          >
             {t("notices.confirm.send")}
           </Button>
-          <Button variant="subtle" disabled={sending} onPress={onClose}>
+          <Button variant="ghost" disabled={sending} onPress={onClose}>
             {t("notices.confirm.cancel")}
           </Button>
         </View>

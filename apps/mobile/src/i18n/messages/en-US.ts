@@ -423,11 +423,15 @@ const messages = {
     sent: "Notice sent",
     sendError: "Couldn't send the notice. Try again.",
     confirm: {
-      title: "Send this notice?",
-      description_one: "Audience: {{audience}}. {{count}} person will receive it.",
-      description_other: "Audience: {{audience}}. {{count}} people will receive it.",
-      send: "Send now",
-      cancel: "Cancel",
+      title_one: "Send to {{count}} person?",
+      title_other: "Send to {{count}} people?",
+      description: {
+        all: "Everyone — students, instructors and admins — gets a notification. Once it's sent, it can't be deleted.",
+        students: "All students get a notification. Once it's sent, it can't be deleted.",
+        instructors: "All instructors get a notification. Once it's sent, it can't be deleted.",
+      },
+      send: "Yes, send",
+      cancel: "Back to editing",
     },
   },
   schoolSettings: {

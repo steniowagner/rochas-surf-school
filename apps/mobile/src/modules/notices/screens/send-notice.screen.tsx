@@ -15,13 +15,12 @@ import { usePinnedFooter } from "@/modules/school-settings/hooks/use-pinned-foot
 import { useCollapsingTitleHeader } from "@/navigation/stack-header";
 
 import { SendNoticeConfirmSheet } from "../components/send-notice-confirm-sheet";
+import { useScrollFieldIntoView } from "../hooks/use-scroll-field-into-view.hook";
 import {
   NOTICE_AUDIENCES,
   NOTICE_MESSAGE_MAX_LENGTH,
   NOTICE_TITLE_MAX_LENGTH,
 } from "../notices.constants";
-
-import { useScrollFieldIntoView } from "../hooks/use-scroll-field-into-view.hook";
 
 import { useSendNoticeScreen } from "./send-notice.screen.hook";
 
@@ -153,6 +152,8 @@ export function SendNoticeScreen() {
         visible={screen.isConfirming}
         audience={screen.audience}
         count={screen.count ?? 0}
+        title={screen.title.trim()}
+        message={screen.message.trim()}
         sending={screen.isSending}
         onConfirm={screen.confirm}
         onClose={screen.closeConfirm}

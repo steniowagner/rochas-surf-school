@@ -423,11 +423,15 @@ const messages: Messages = {
     sent: "Aviso enviado",
     sendError: "Não foi possível enviar o aviso. Tente de novo.",
     confirm: {
-      title: "Enviar este aviso?",
-      description_one: "Público: {{audience}}. {{count}} pessoa vai receber.",
-      description_other: "Público: {{audience}}. {{count}} pessoas vão receber.",
-      send: "Enviar agora",
-      cancel: "Cancelar",
+      title_one: "Enviar a {{count}} pessoa?",
+      title_other: "Enviar a {{count}} pessoas?",
+      description: {
+        all: "Todos — alunos, instrutores e admins — recebem uma notificação. Depois de enviado, não dá para apagar.",
+        students: "Todos os alunos recebem uma notificação. Depois de enviado, não dá para apagar.",
+        instructors: "Todos os instrutores recebem uma notificação. Depois de enviado, não dá para apagar.",
+      },
+      send: "Sim, enviar",
+      cancel: "Voltar e editar",
     },
   },
   schoolSettings: {

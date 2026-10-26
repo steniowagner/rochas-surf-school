@@ -330,6 +330,7 @@ export const useClassDetailsScreen = ({
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),
     edit: () => router.push(routes.admin.editClass(id)),
+    notify: () => router.push(routes.admin.sendNotice),
     cancelVisible,
     openCancel: () => setCancelVisible(true),
     closeCancel: () => setCancelVisible(false),

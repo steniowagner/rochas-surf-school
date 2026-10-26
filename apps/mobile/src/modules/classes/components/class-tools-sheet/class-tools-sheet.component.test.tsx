@@ -16,6 +16,7 @@ function props(
     visible: true,
     onClose: jest.fn(),
     onEdit: jest.fn(),
+    onNotify: jest.fn(),
     onCancel: jest.fn(),
     onDelete: jest.fn(),
     messageCount: 3,
@@ -102,6 +103,18 @@ describe("ClassToolsSheet", () => {
     expect(sheet.onCancel).not.toHaveBeenCalled();
   });
 
+  it("closes the sheet, then opens the notice screen", async () => {
+    const user = userEvent.setup();
+    const sheet = props();
+    await render(<ClassToolsSheet {...sheet} />);
+
+    await user.press(screen.getByRole("button", { name: /Send message/ }));
+
+    expect(sheet.onClose).toHaveBeenCalledTimes(1);
+    expect(sheet.onNotify).toHaveBeenCalledTimes(1);
+    expect(sheet.onEdit).not.toHaveBeenCalled();
+  });
+
   it("closes the sheet, then cancels", async () => {
     const user = userEvent.setup();
     const sheet = props();
@@ -128,20 +141,6 @@ describe("ClassToolsSheet", () => {
     expect(sheet.onDelete).toHaveBeenCalledTimes(1);
     expect(sheet.onEdit).not.toHaveBeenCalled();
     expect(sheet.onCancel).not.toHaveBeenCalled();
-  });
-
-  it("does nothing when Send message is pressed", async () => {
-    const user = userEvent.setup();
-    const sheet = props();
-    await render(<ClassToolsSheet {...sheet} />);
-
-    await user.press(screen.getByRole("button", { name: "Send message" }));
-
-    expect(sheet.onClose).not.toHaveBeenCalled();
-    expect(sheet.onEdit).not.toHaveBeenCalled();
-    expect(sheet.onCancel).not.toHaveBeenCalled();
-    expect(sheet.onDelete).not.toHaveBeenCalled();
-    expect(screen.getByText("Class tools")).toBeOnTheScreen();
   });
 
   it.each([

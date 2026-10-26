@@ -17,11 +17,16 @@ import {
   getRelativeWeek,
 } from "../utils/weekly-occupancy";
 
-import type { UseWeeklyOccupancyScreenResult } from "./weekly-occupancy.screen.types";
+import type {
+  UseWeeklyOccupancyScreenProps,
+  UseWeeklyOccupancyScreenResult,
+} from "./weekly-occupancy.screen.types";
 
 const NO_ITEMS: ClassItem[] = [];
 
-export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
+export const useWeeklyOccupancyScreen = ({
+  role,
+}: UseWeeklyOccupancyScreenProps): UseWeeklyOccupancyScreenResult => {
   const { i18n, t } = useTranslation();
   const now = useNow();
   const today = todayInSchoolZone(now);
@@ -98,6 +103,6 @@ export const useWeeklyOccupancyScreen = (): UseWeeklyOccupancyScreenResult => {
     closeCalendar: () => setIsCalendarOpen(false),
     selectWeekOf,
     selectClass: setTappedId,
-    openClass: (id) => router.push(routes.admin.classDetail(id)),
+    openClass: (id) => router.push(routes[role].classDetail(id)),
   };
 };

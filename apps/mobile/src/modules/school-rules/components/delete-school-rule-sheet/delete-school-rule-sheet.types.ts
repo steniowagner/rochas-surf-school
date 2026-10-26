@@ -8,4 +8,7 @@ export type DeleteSchoolRuleSheetProps = {
   onClose: () => void;
 };
 
-export type UseDeleteSchoolRuleSheetProps = Pick<DeleteSchoolRuleSheetProps, "rule" | "onClose">;
+export type UseDeleteSchoolRuleSheetProps = Pick<
+  DeleteSchoolRuleSheetProps,
+  "rule" | "onClose"
+>;

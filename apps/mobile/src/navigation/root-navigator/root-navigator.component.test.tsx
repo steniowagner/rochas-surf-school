@@ -241,7 +241,7 @@ describe("RootNavigator", () => {
 
     it.each([
       { role: "student", path: routes.student.home, name: "Ana" },
-      { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
+      { role: "instructor", path: routes.instructor.home, name: "School" },
       { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
       "opens the $role home with a number and rulesAccepted true",
@@ -320,7 +320,7 @@ describe("RootNavigator", () => {
 
     it.each([
       { role: "student", path: routes.student.home, name: "Ana" },
-      { role: "instructor", path: routes.instructor.home, name: "Dashboard" },
+      { role: "instructor", path: routes.instructor.home, name: "School" },
       { role: "admin", path: routes.admin.home, name: "School tools" },
     ])(
       "opens the $role home after accepting, with no way back",
@@ -442,7 +442,7 @@ describe("RootNavigator", () => {
         state: "approved instructor",
         user: onboardedAccount("instructor"),
         path: routes.instructor.home,
-        name: "Dashboard",
+        name: "School",
       },
       {
         state: "approved admin",

@@ -13,7 +13,12 @@ import { PersonAvatar } from "../person-avatar";
 import { PersonRowProps } from "./person-row.types";
 
 /** One person of the directory: avatar, name, "since <month year>", role chip and a chevron. */
-export function PersonRow({ person, onPress, isFirst = false, isLast = false }: PersonRowProps) {
+export function PersonRow({
+  person,
+  onPress,
+  isFirst = false,
+  isLast = false,
+}: PersonRowProps) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const { tone, labelKey } = roleChip[person.role];

@@ -1,5 +1,10 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 
 import {
   createQueryClient,
@@ -27,7 +32,8 @@ const RULE = {
   index: 2,
 };
 const ANSWER = { version: 2, rules: [RULE] };
-const SAVE_NOTE = "Once saved, everyone will need to accept the rules again the next time they open the app.";
+const SAVE_NOTE =
+  "Once saved, everyone will need to accept the rules again the next time they open the app.";
 
 beforeEach(() => {
   setupSignedInUser();
@@ -68,13 +74,19 @@ describe("SchoolRuleSheet — add", () => {
 
     expect(screen.getByText("New rule")).toBeOnTheScreen();
     expect(screen.getByText(SAVE_NOTE)).toBeOnTheScreen();
-    expect(screen.getByPlaceholderText("E.g. Bring sunscreen")).toBeOnTheScreen();
     expect(
-      screen.getByPlaceholderText("One or two short sentences, speaking straight to the student."),
+      screen.getByPlaceholderText("E.g. Bring sunscreen"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByPlaceholderText(
+        "One or two short sentences, speaking straight to the student.",
+      ),
     ).toBeOnTheScreen();
     expect(screen.queryByRole("checkbox")).not.toBeOnTheScreen();
     expect(screen.queryByRole("switch")).not.toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Delete rule" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Delete rule" }),
+    ).not.toBeOnTheScreen();
   });
 
   it("keeps Add rule off until both fields have text after trimming", async () => {
@@ -122,7 +134,10 @@ describe("SchoolRuleSheet — add", () => {
       "http://api.test/school-rules",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ title: "Bring sunscreen", description: "Every class." }),
+        body: JSON.stringify({
+          title: "Bring sunscreen",
+          description: "Every class.",
+        }),
       }),
     );
     expect(mockShow).toHaveBeenCalledWith("Rule added");
@@ -149,7 +164,9 @@ describe("SchoolRuleSheet — add", () => {
     await user.press(button("Add rule"));
 
     await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith("No connection. Check your internet and try again."),
+      expect(mockShow).toHaveBeenCalledWith(
+        "No connection. Check your internet and try again.",
+      ),
     );
     expect(props.onClose).not.toHaveBeenCalled();
     expect(titleInput()).toHaveDisplayValue("Bring sunscreen");
@@ -227,7 +244,10 @@ describe("SchoolRuleSheet — edit", () => {
       "http://api.test/school-rules/r-2",
       expect.objectContaining({
         method: "PUT",
-        body: JSON.stringify({ title: RULE.title, description: `${RULE.description} Always.` }),
+        body: JSON.stringify({
+          title: RULE.title,
+          description: `${RULE.description} Always.`,
+        }),
       }),
     );
     expect(mockShow).toHaveBeenCalledWith("Rule saved");
@@ -255,7 +275,11 @@ describe("SchoolRuleSheet — edit", () => {
     await user.type(titleInput(), "!");
     await user.press(button("Save"));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again."));
+    await waitFor(() =>
+      expect(mockShow).toHaveBeenCalledWith(
+        "Something went wrong. Please try again.",
+      ),
+    );
     expect(props.onClose).not.toHaveBeenCalled();
     expect(titleInput()).toHaveDisplayValue(`${RULE.title}!`);
   });

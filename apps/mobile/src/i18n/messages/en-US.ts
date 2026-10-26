@@ -201,11 +201,6 @@ const messages = {
       waiting: "{{count}} waiting",
     },
   },
-  instructor: {
-    home: {
-      title: "Dashboard",
-    },
-  },
   home: {
     peopleRow: "People",
   },
@@ -531,6 +526,7 @@ const messages = {
     myClasses: "My classes",
     school: "School",
     home: "Home",
+    panel: "Panel",
     classes: "Classes",
     profile: "Profile",
   },

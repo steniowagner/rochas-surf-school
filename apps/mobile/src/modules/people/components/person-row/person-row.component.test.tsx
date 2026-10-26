@@ -23,7 +23,9 @@ describe("PersonRow", () => {
     ["student", "Student"],
     ["admin", "Admin"],
   ] as const)("labels a %s", async (role, label) => {
-    await render(<PersonRow person={buildPerson(1, { role })} onPress={jest.fn()} />);
+    await render(
+      <PersonRow person={buildPerson(1, { role })} onPress={jest.fn()} />,
+    );
 
     expect(screen.getByText(label)).toBeOnTheScreen();
   });

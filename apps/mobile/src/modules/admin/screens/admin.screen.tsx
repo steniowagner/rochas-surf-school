@@ -8,6 +8,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
 import { useTheme } from "@/hooks/use-theme";
 import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-classes-entry-row";
+import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
@@ -143,25 +144,7 @@ export function AdminScreen() {
         <TeachingClassesEntryRow role="admin" onPress={openMyClasses} />
         <SchoolRulesEntryRow role="admin" onPress={openSchoolRules} />
         <PeopleEntryRow onPress={openPeople} />
-        <View className="rounded-card border border-line bg-surface px-4">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("weeklyOccupancy.title")}
-            onPress={openWeeklyOccupancy}
-            className="min-h-11 flex-row items-center gap-3 py-3"
-          >
-            <Ionicons name="bar-chart-outline" size={20} color={theme.lagoon} />
-            <View className="flex-1 gap-0.5">
-              <Text className="ds-text-list-title text-ink">
-                {t("weeklyOccupancy.title")}
-              </Text>
-              <Text className="ds-text-list-subtitle text-ink-2">
-                {t("weeklyOccupancy.rowSubtitle")}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.ink2} />
-          </Pressable>
-        </View>
+        <WeeklyOccupancyEntryRow onPress={openWeeklyOccupancy} />
         <View className="rounded-card border border-line bg-surface px-4">
           <Pressable
             accessibilityRole="button"

@@ -7,16 +7,26 @@ describe("RoleFilters", () => {
     await render(<RoleFilters roles={[]} onToggle={jest.fn()} />);
 
     for (const name of ["Students", "Instructors", "Admins"]) {
-      expect(screen.getByRole("button", { name, selected: false })).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name, selected: false }),
+      ).toBeOnTheScreen();
     }
   });
 
   it("marks every selected role", async () => {
-    await render(<RoleFilters roles={["student", "admin"]} onToggle={jest.fn()} />);
+    await render(
+      <RoleFilters roles={["student", "admin"]} onToggle={jest.fn()} />,
+    );
 
-    expect(screen.getByRole("button", { name: "Students", selected: true })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Instructors", selected: false })).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Admins", selected: true })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Students", selected: true }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Instructors", selected: false }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Admins", selected: true }),
+    ).toBeOnTheScreen();
   });
 
   it("reports the pressed role, selected or not", async () => {

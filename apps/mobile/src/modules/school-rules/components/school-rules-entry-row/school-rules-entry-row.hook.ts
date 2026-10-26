@@ -4,7 +4,9 @@ import { useSchoolRules } from "../../hooks/use-school-rules.hook";
 
 import { UseSchoolRulesEntryRowProps } from "./school-rules-entry-row.types";
 
-export const useSchoolRulesEntryRow = ({ role }: UseSchoolRulesEntryRowProps) => {
+export const useSchoolRulesEntryRow = ({
+  role,
+}: UseSchoolRulesEntryRowProps) => {
   const { t } = useTranslation();
   const { data } = useSchoolRules();
 

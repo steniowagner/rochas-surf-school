@@ -11,7 +11,10 @@ describe("PersonRoleActions", () => {
     await user.press(screen.getByRole("button", { name: "Make instructor" }));
     await user.press(screen.getByRole("button", { name: "Make admin" }));
 
-    expect(onSelect.mock.calls).toEqual([["promoteInstructor"], ["promoteAdmin"]]);
+    expect(onSelect.mock.calls).toEqual([
+      ["promoteInstructor"],
+      ["promoteAdmin"],
+    ]);
   });
 
   it("lists an instructor's actions", async () => {

@@ -208,11 +208,6 @@ const messages: Messages = {
       waiting: "{{count}} esperando",
     },
   },
-  instructor: {
-    home: {
-      title: "Panel",
-    },
-  },
   home: {
     peopleRow: "Personas",
   },
@@ -538,6 +533,7 @@ const messages: Messages = {
     myClasses: "Mis clases",
     school: "Escuela",
     home: "Inicio",
+    panel: "Panel",
     classes: "Clases",
     profile: "Perfil",
   },

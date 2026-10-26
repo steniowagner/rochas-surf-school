@@ -42,7 +42,9 @@ export function PersonSheet({
         <RoleChangeConfirmation
           action={roleAction}
           name={firstName}
-          showSeatsNote={roleAction === "promoteAdmin" && person.role === "student"}
+          showSeatsNote={
+            roleAction === "promoteAdmin" && person.role === "student"
+          }
           loading={isChangingRole}
           onConfirm={confirmRoleChange}
           onBack={backToDetails}

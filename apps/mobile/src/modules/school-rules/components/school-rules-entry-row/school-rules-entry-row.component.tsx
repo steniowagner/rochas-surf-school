@@ -3,18 +3,23 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { useTheme } from "@/hooks/use-theme";
+import { entryRowContainerClassName } from "@/utils/entry-row-container";
 
 import { useSchoolRulesEntryRow } from "./school-rules-entry-row.hook";
 import { SchoolRulesEntryRowProps } from "./school-rules-entry-row.types";
 
 /** The "Regras" row of the admin's and the instructor's home, in a card of its own, with how many rules there are. */
-export function SchoolRulesEntryRow({ role, onPress }: SchoolRulesEntryRowProps) {
+export function SchoolRulesEntryRow({
+  role,
+  grouped,
+  onPress,
+}: SchoolRulesEntryRowProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const { subtitle } = useSchoolRulesEntryRow({ role });
 
   return (
-    <View className="rounded-card border border-line bg-surface px-4">
+    <View className={entryRowContainerClassName(grouped)}>
       <Pressable
         accessibilityRole="button"
         onPress={onPress}
@@ -22,7 +27,9 @@ export function SchoolRulesEntryRow({ role, onPress }: SchoolRulesEntryRowProps)
       >
         <Ionicons name="shield-outline" size={20} color={theme.lagoon} />
         <View className="flex-1 gap-0.5">
-          <Text className="ds-text-list-title text-ink">{t("schoolRulesEntryRow.title")}</Text>
+          <Text className="ds-text-list-title text-ink">
+            {t("schoolRulesEntryRow.title")}
+          </Text>
           {subtitle ? (
             <Text className="ds-text-list-subtitle text-ink-2">{subtitle}</Text>
           ) : null}

@@ -15,12 +15,13 @@ import { OccupancyWeekBar } from "../components/occupancy-week-bar";
 import { WeekPickerSheet } from "../components/week-picker-sheet";
 
 import { useWeeklyOccupancyScreen } from "./weekly-occupancy.screen.hook";
+import type { WeeklyOccupancyScreenProps } from "./weekly-occupancy.screen.types";
 
-/** "Ocupação semanal" of an admin: a week of classes as a map of how full each one is, and the selected class's card. */
-export function WeeklyOccupancyScreen() {
+/** "Ocupação semanal" of an admin or an instructor: a week of classes as a map of how full each one is, and the selected class's card. */
+export function WeeklyOccupancyScreen({ role }: WeeklyOccupancyScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const screen = useWeeklyOccupancyScreen();
+  const screen = useWeeklyOccupancyScreen({ role });
 
   const renderContent = () => {
     if (screen.isLoading) {

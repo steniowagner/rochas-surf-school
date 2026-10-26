@@ -47,7 +47,9 @@ describe("PersonSheet", () => {
   afterEach(() => openURL.mockRestore());
 
   it("shows the person and the WhatsApp row with the formatted number", async () => {
-    await renderSheet(<PersonSheet person={shared} visible onClose={jest.fn()} />);
+    await renderSheet(
+      <PersonSheet person={shared} visible onClose={jest.fn()} />,
+    );
 
     expect(screen.getByText("JP")).toBeOnTheScreen();
     expect(screen.getByText("João Pinto")).toBeOnTheScreen();
@@ -75,7 +77,9 @@ describe("PersonSheet", () => {
 
   it("opens the chat on WhatsApp", async () => {
     const user = userEvent.setup();
-    await renderSheet(<PersonSheet person={shared} visible onClose={jest.fn()} />);
+    await renderSheet(
+      <PersonSheet person={shared} visible onClose={jest.fn()} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Chat on WhatsApp" }));
 
@@ -85,7 +89,9 @@ describe("PersonSheet", () => {
   it("shows a toast when WhatsApp can't be opened", async () => {
     openURL.mockRejectedValue(new Error("no app"));
     const user = userEvent.setup();
-    await renderSheet(<PersonSheet person={shared} visible onClose={jest.fn()} />);
+    await renderSheet(
+      <PersonSheet person={shared} visible onClose={jest.fn()} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Chat on WhatsApp" }));
 
@@ -96,12 +102,18 @@ describe("PersonSheet", () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
     await renderSheet(
-      <PersonSheet person={buildPerson(2, { whatsappNumber: null })} visible onClose={onClose} />,
+      <PersonSheet
+        person={buildPerson(2, { whatsappNumber: null })}
+        visible
+        onClose={onClose}
+      />,
     );
 
     expect(screen.getByText("Chat on WhatsApp")).toBeOnTheScreen();
     expect(screen.getByText("Number not shared.")).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Chat on WhatsApp" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Chat on WhatsApp" }),
+    ).not.toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Close" }));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(openURL).not.toHaveBeenCalled();
@@ -109,7 +121,11 @@ describe("PersonSheet", () => {
 
   it("shows a number that can't be parsed as sent", async () => {
     await renderSheet(
-      <PersonSheet person={buildPerson(3, { whatsappNumber: "12345" })} visible onClose={jest.fn()} />,
+      <PersonSheet
+        person={buildPerson(3, { whatsappNumber: "12345" })}
+        visible
+        onClose={jest.fn()}
+      />,
     );
 
     expect(screen.getByText("12345")).toBeOnTheScreen();
@@ -118,7 +134,9 @@ describe("PersonSheet", () => {
   it("closes with the Close button", async () => {
     const onClose = jest.fn();
     const user = userEvent.setup();
-    await renderSheet(<PersonSheet person={shared} visible onClose={onClose} />);
+    await renderSheet(
+      <PersonSheet person={shared} visible onClose={onClose} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Close" }));
 
@@ -126,7 +144,9 @@ describe("PersonSheet", () => {
   });
 
   it("renders no content without a person", async () => {
-    await renderSheet(<PersonSheet person={null} visible={false} onClose={jest.fn()} />);
+    await renderSheet(
+      <PersonSheet person={null} visible={false} onClose={jest.fn()} />,
+    );
 
     expect(screen.queryByText("Close")).not.toBeOnTheScreen();
   });
@@ -135,50 +155,105 @@ describe("PersonSheet", () => {
     beforeEach(setupSignedInUser);
 
     it.each([
-      ["student", ["Make instructor", "Make admin"], ["Can be assigned to classes.", "Runs the school. Can also teach."]],
-      ["instructor", ["Make admin", "Make student"], ["Runs the school. Can also teach.", "Leaves the upcoming classes they teach."]],
+      [
+        "student",
+        ["Make instructor", "Make admin"],
+        ["Can be assigned to classes.", "Runs the school. Can also teach."],
+      ],
+      [
+        "instructor",
+        ["Make admin", "Make student"],
+        [
+          "Runs the school. Can also teach.",
+          "Leaves the upcoming classes they teach.",
+        ],
+      ],
       ["admin", ["Remove admin"], ["Stops running the school."]],
-    ] as const)("shows the role actions of a %s below the contact row", async (role, titles, subtitles) => {
-      await renderSheet(
-        <PersonSheet person={buildPerson(1, { role })} canChangeRole visible onClose={jest.fn()} />,
-      );
+    ] as const)(
+      "shows the role actions of a %s below the contact row",
+      async (role, titles, subtitles) => {
+        await renderSheet(
+          <PersonSheet
+            person={buildPerson(1, { role })}
+            canChangeRole
+            visible
+            onClose={jest.fn()}
+          />,
+        );
 
-      for (const title of titles) {
-        expect(screen.getByRole("button", { name: title })).toBeOnTheScreen();
-      }
-      for (const subtitle of subtitles) {
-        expect(screen.getByText(subtitle)).toBeOnTheScreen();
-      }
-      const all = ["Make instructor", "Make admin", "Make student", "Remove admin"];
-      for (const other of all.filter((title) => !(titles as readonly string[]).includes(title))) {
-        expect(screen.queryByRole("button", { name: other })).not.toBeOnTheScreen();
-      }
-    });
+        for (const title of titles) {
+          expect(screen.getByRole("button", { name: title })).toBeOnTheScreen();
+        }
+        for (const subtitle of subtitles) {
+          expect(screen.getByText(subtitle)).toBeOnTheScreen();
+        }
+        const all = [
+          "Make instructor",
+          "Make admin",
+          "Make student",
+          "Remove admin",
+        ];
+        for (const other of all.filter(
+          (title) => !(titles as readonly string[]).includes(title),
+        )) {
+          expect(
+            screen.queryByRole("button", { name: other }),
+          ).not.toBeOnTheScreen();
+        }
+      },
+    );
 
     it("draws the actions that take something away in the danger tone", async () => {
       await renderSheet(
-        <PersonSheet person={buildPerson(1, { role: "instructor" })} canChangeRole visible onClose={jest.fn()} />,
+        <PersonSheet
+          person={buildPerson(1, { role: "instructor" })}
+          canChangeRole
+          visible
+          onClose={jest.fn()}
+        />,
       );
 
-      expect(screen.getByText("Make student").props.className).toContain("text-bad");
-      expect(screen.getByText("Make admin").props.className).toContain("text-ink");
+      expect(screen.getByText("Make student").props.className).toContain(
+        "text-bad",
+      );
+      expect(screen.getByText("Make admin").props.className).toContain(
+        "text-ink",
+      );
     });
 
     it("shows no role action without canChangeRole, or without the person's id", async () => {
       const { name, role, whatsappNumber } = buildPerson(1);
-      await renderSheet(<PersonSheet person={buildPerson(1)} visible onClose={jest.fn()} />);
-      expect(screen.queryByRole("button", { name: "Make instructor" })).not.toBeOnTheScreen();
+      await renderSheet(
+        <PersonSheet person={buildPerson(1)} visible onClose={jest.fn()} />,
+      );
+      expect(
+        screen.queryByRole("button", { name: "Make instructor" }),
+      ).not.toBeOnTheScreen();
 
       await renderSheet(
-        <PersonSheet person={{ name, role, whatsappNumber }} canChangeRole visible onClose={jest.fn()} />,
+        <PersonSheet
+          person={{ name, role, whatsappNumber }}
+          canChangeRole
+          visible
+          onClose={jest.fn()}
+        />,
       );
-      expect(screen.queryByRole("button", { name: "Make instructor" })).not.toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: "Make instructor" }),
+      ).not.toBeOnTheScreen();
     });
 
     it("still closes with the Close button", async () => {
       const onClose = jest.fn();
       const user = userEvent.setup();
-      await renderSheet(<PersonSheet person={buildPerson(1)} canChangeRole visible onClose={onClose} />);
+      await renderSheet(
+        <PersonSheet
+          person={buildPerson(1)}
+          canChangeRole
+          visible
+          onClose={onClose}
+        />,
+      );
 
       await user.press(screen.getByRole("button", { name: "Close" }));
 
@@ -191,9 +266,15 @@ describe("PersonSheet", () => {
 
     const ana = buildPerson(7, { name: "Ana Silva", role: "student" });
 
-    const openConfirmation = async (person = ana, action = "Make instructor", onClose = jest.fn()) => {
+    const openConfirmation = async (
+      person = ana,
+      action = "Make instructor",
+      onClose = jest.fn(),
+    ) => {
       const user = userEvent.setup();
-      await renderSheet(<PersonSheet person={person} canChangeRole visible onClose={onClose} />);
+      await renderSheet(
+        <PersonSheet person={person} canChangeRole visible onClose={onClose} />,
+      );
       await user.press(screen.getByRole("button", { name: action }));
       return { user, onClose };
     };
@@ -207,7 +288,9 @@ describe("PersonSheet", () => {
           "They become an instructor: they can be assigned to classes and see who's enrolled. The seats and requests they had in upcoming classes, as a student, are cancelled.",
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByRole("button", { name: "Make instructor" })).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Make instructor" }),
+      ).toBeOnTheScreen();
       expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
       expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
     });
@@ -220,7 +303,10 @@ describe("PersonSheet", () => {
 
       expect(fetchMock).toHaveBeenCalledWith(
         `http://api.test/people/${ana.id}/role`,
-        expect.objectContaining({ method: "PUT", body: JSON.stringify({ role: "instructor" }) }),
+        expect.objectContaining({
+          method: "PUT",
+          body: JSON.stringify({ role: "instructor" }),
+        }),
       );
       expect(onClose).toHaveBeenCalledTimes(1);
       expect(mockShow).not.toHaveBeenCalled();
@@ -234,8 +320,12 @@ describe("PersonSheet", () => {
       await user.press(screen.getByRole("button", { name: "Back" }));
 
       expect(screen.getByText("Ana Silva")).toBeOnTheScreen();
-      expect(screen.getByRole("button", { name: "Make instructor" })).toBeOnTheScreen();
-      expect(screen.queryByText("Make Ana an instructor?")).not.toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Make instructor" }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText("Make Ana an instructor?"),
+      ).not.toBeOnTheScreen();
       expect(fetchMock).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
     });
@@ -245,7 +335,9 @@ describe("PersonSheet", () => {
 
       expect(screen.getByText("Make Ana an admin?")).toBeOnTheScreen();
       expect(
-        screen.getByText("The seats and requests they had in upcoming classes, as a student, are cancelled."),
+        screen.getByText(
+          "The seats and requests they had in upcoming classes, as a student, are cancelled.",
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -254,7 +346,9 @@ describe("PersonSheet", () => {
 
       expect(screen.getByText("Make Ana an admin?")).toBeOnTheScreen();
       expect(
-        screen.queryByText("The seats and requests they had in upcoming classes, as a student, are cancelled."),
+        screen.queryByText(
+          "The seats and requests they had in upcoming classes, as a student, are cancelled.",
+        ),
       ).not.toBeOnTheScreen();
     });
 
@@ -263,7 +357,10 @@ describe("PersonSheet", () => {
       ["Remove admin", "admin", "Remove Ana as admin?", "instructor"],
     ] as const)("confirms %s for a %s", async (action, role, title, target) => {
       fetchMock.mockResolvedValue(ok({ id: ana.id, role: target }));
-      const { user, onClose } = await openConfirmation({ ...ana, role }, action);
+      const { user, onClose } = await openConfirmation(
+        { ...ana, role },
+        action,
+      );
 
       expect(screen.getByText(title)).toBeOnTheScreen();
       await user.press(screen.getByRole("button", { name: action }));
@@ -276,20 +373,28 @@ describe("PersonSheet", () => {
     });
 
     it.each([
-      ["user.role.changeNotAllowed", "This person's role changed. Refresh the list."],
+      [
+        "user.role.changeNotAllowed",
+        "This person's role changed. Refresh the list.",
+      ],
       ["user.role.lastAdmin", "The school needs at least one admin."],
       ["user.status.notApproved", "This person is no longer on the platform."],
       ["something.else", "Something went wrong. Please try again."],
-    ])("toasts a 409 %s and stays on the confirmation", async (key, message) => {
-      fetchMock.mockResolvedValue(conflict(key));
-      const { user, onClose } = await openConfirmation();
+    ])(
+      "toasts a 409 %s and stays on the confirmation",
+      async (key, message) => {
+        fetchMock.mockResolvedValue(conflict(key));
+        const { user, onClose } = await openConfirmation();
 
-      await user.press(screen.getByRole("button", { name: "Make instructor" }));
+        await user.press(
+          screen.getByRole("button", { name: "Make instructor" }),
+        );
 
-      expect(mockShow).toHaveBeenCalledWith(message);
-      expect(screen.getByText("Make Ana an instructor?")).toBeOnTheScreen();
-      expect(onClose).not.toHaveBeenCalled();
-    });
+        expect(mockShow).toHaveBeenCalledWith(message);
+        expect(screen.getByText("Make Ana an instructor?")).toBeOnTheScreen();
+        expect(onClose).not.toHaveBeenCalled();
+      },
+    );
 
     it("toasts no connection", async () => {
       fetchMock.mockRejectedValue(new NetworkError());
@@ -297,7 +402,9 @@ describe("PersonSheet", () => {
 
       await user.press(screen.getByRole("button", { name: "Make instructor" }));
 
-      expect(mockShow).toHaveBeenCalledWith("No connection. Check your internet and try again.");
+      expect(mockShow).toHaveBeenCalledWith(
+        "No connection. Check your internet and try again.",
+      );
     });
 
     it("sends nothing more on a second tap while the request runs", async () => {

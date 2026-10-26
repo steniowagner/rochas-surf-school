@@ -2,7 +2,11 @@ import { act, renderHook } from "@testing-library/react-native";
 
 import * as api from "@/services/api";
 
-import { buildPerson, createQueryClient, createWrapper } from "../../people.test-utils";
+import {
+  buildPerson,
+  createQueryClient,
+  createWrapper,
+} from "../../people.test-utils";
 
 import { usePersonSheet } from "./person-sheet.hook";
 
@@ -18,7 +22,10 @@ jest.mock("@/services/api", () => {
   return { ...actual, apiPut: jest.fn() };
 });
 
-const renderSheetHook = (person: Parameters<typeof usePersonSheet>[0]["person"], onClose = jest.fn()) =>
+const renderSheetHook = (
+  person: Parameters<typeof usePersonSheet>[0]["person"],
+  onClose = jest.fn(),
+) =>
   renderHook(() => usePersonSheet({ person, onClose }), {
     wrapper: createWrapper(createQueryClient()),
   });
@@ -52,14 +59,21 @@ describe("usePersonSheet", () => {
   it("shows no toast when the session expired: it is handled once, centrally", async () => {
     jest.mocked(api.apiPut).mockRejectedValue(new api.SessionExpiredError());
     const onClose = jest.fn();
-    const { result } = await renderSheetHook(buildPerson(1, { name: "Ana Silva" }), onClose);
+    const { result } = await renderSheetHook(
+      buildPerson(1, { name: "Ana Silva" }),
+      onClose,
+    );
 
     await act(async () => result.current.selectRoleAction("promoteAdmin"));
     await act(async () => {
       await result.current.confirmRoleChange();
     });
 
-    expect(api.apiPut).toHaveBeenCalledWith("/people/p-1/role", { role: "admin" }, { authenticated: true });
+    expect(api.apiPut).toHaveBeenCalledWith(
+      "/people/p-1/role",
+      { role: "admin" },
+      { authenticated: true },
+    );
     expect(mockShow).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     expect(result.current.roleAction).toBe("promoteAdmin");

@@ -25,9 +25,15 @@ export function PersonRoleActions({ role, onSelect }: PersonRoleActionsProps) {
             onPress={() => onSelect(action)}
             className="min-h-12 flex-row items-center gap-3"
           >
-            <Feather name={icon} size={20} color={danger ? theme.bad : theme.ink2} />
+            <Feather
+              name={icon}
+              size={20}
+              color={danger ? theme.bad : theme.ink2}
+            />
             <View className="flex-1">
-              <Text className={`ds-text-list-title ${danger ? "text-bad" : "text-ink"}`}>
+              <Text
+                className={`ds-text-list-title ${danger ? "text-bad" : "text-ink"}`}
+              >
                 {t(`people.roleActions.${action}.title`)}
               </Text>
               <Text className="ds-text-list-subtitle text-ink-2">

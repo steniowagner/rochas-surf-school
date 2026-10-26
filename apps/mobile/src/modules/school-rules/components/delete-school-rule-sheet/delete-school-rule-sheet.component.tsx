@@ -10,7 +10,11 @@ import { useDeleteSchoolRuleSheet } from "./delete-school-rule-sheet.hook";
 import { DeleteSchoolRuleSheetProps } from "./delete-school-rule-sheet.types";
 
 /** "Excluir esta regra?": the second step before a rule is gone for good and everyone accepts the rules again. */
-export function DeleteSchoolRuleSheet({ visible, rule, onClose }: DeleteSchoolRuleSheetProps) {
+export function DeleteSchoolRuleSheet({
+  visible,
+  rule,
+  onClose,
+}: DeleteSchoolRuleSheetProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const sheet = useDeleteSchoolRuleSheet({ rule, onClose });
@@ -25,12 +29,20 @@ export function DeleteSchoolRuleSheet({ visible, rule, onClose }: DeleteSchoolRu
           <Text className="ds-text-list-title text-ink">{rule?.title}</Text>
         </View>
         <View className="flex-row gap-2 rounded-control bg-sand p-3">
-          <Ionicons name="information-circle-outline" size={18} color={theme.ink2} />
+          <Ionicons
+            name="information-circle-outline"
+            size={18}
+            color={theme.ink2}
+          />
           <Text className="ds-text-list-subtitle flex-1 text-ink-2">
             {t("manageSchoolRules.deleteSheet.note")}
           </Text>
         </View>
-        <Button variant="danger" loading={sheet.loading} onPress={sheet.confirm}>
+        <Button
+          variant="danger"
+          loading={sheet.loading}
+          onPress={sheet.confirm}
+        >
           {t("manageSchoolRules.sheet.delete")}
         </Button>
         <Button variant="ghost" onPress={onClose}>

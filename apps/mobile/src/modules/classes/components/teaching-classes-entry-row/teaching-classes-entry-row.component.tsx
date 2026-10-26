@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { useTheme } from "@/hooks/use-theme";
+import { entryRowContainerClassName } from "@/utils/entry-row-container";
 
 import { useTeachingClassesEntryRow } from "./teaching-classes-entry-row.hook";
 import type { TeachingClassesEntryRowProps } from "./teaching-classes-entry-row.types";
@@ -10,6 +11,7 @@ import type { TeachingClassesEntryRowProps } from "./teaching-classes-entry-row.
 /** The "Minhas aulas" row of the instructor's and the admin's home, in a card of its own, with how many classes are assigned. */
 export function TeachingClassesEntryRow({
   role,
+  grouped,
   onPress,
 }: TeachingClassesEntryRowProps) {
   const { t } = useTranslation();
@@ -21,7 +23,7 @@ export function TeachingClassesEntryRow({
   }
 
   return (
-    <View className="rounded-card border border-line bg-surface px-4">
+    <View className={entryRowContainerClassName(grouped)}>
       <Pressable
         accessibilityRole="button"
         onPress={onPress}

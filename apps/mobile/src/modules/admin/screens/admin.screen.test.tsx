@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, screen, userEvent, waitFor, within } from "@testing-library/react-native";
+import {
+  act,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 import { router, Slot } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,29 +45,58 @@ const SCHOOL_RULES = {
 const NOT_TEACHING = { items: [], teachesAny: false };
 const TEACHING = {
   items: [
-    buildClassItem("c-1", "2099-10-15T11:00:00.000Z", "2099-10-15T12:00:00.000Z"),
-    buildClassItem("c-2", "2099-10-16T11:00:00.000Z", "2099-10-16T12:00:00.000Z", {
-      cancelledAt: "2099-10-01T12:00:00.000Z",
-    }),
+    buildClassItem(
+      "c-1",
+      "2099-10-15T11:00:00.000Z",
+      "2099-10-15T12:00:00.000Z",
+    ),
+    buildClassItem(
+      "c-2",
+      "2099-10-16T11:00:00.000Z",
+      "2099-10-16T12:00:00.000Z",
+      {
+        cancelledAt: "2099-10-01T12:00:00.000Z",
+      },
+    ),
   ],
   teachesAny: true,
 };
 let teaching: typeof TEACHING | typeof NOT_TEACHING | null = NOT_TEACHING;
 
-// The Rules and My classes rows ask for the school rules and the classes taught on their own: they are answered here,
+// The Rules, My classes and People rows ask for the school rules, the classes taught and the people count on their own: they are answered here,
 // so `fetchMock` sees only the home's other requests.
 const fetchWithSchoolRules = (url: string, init: RequestInit) =>
-  String(url).endsWith("/school-rules")
-    ? Promise.resolve({ ok: true, status: 200, json: async () => SCHOOL_RULES })
-    : String(url).endsWith("/classes/teaching")
-      ? teaching
-        ? Promise.resolve({ ok: true, status: 200, json: async () => teaching })
-        : Promise.resolve({ ok: false, status: 500, json: async () => ({ errors: [] }) })
-      : fetchMock(url, init);
+  String(url).includes("/people?perPage=1")
+    ? Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ items: [], page: 1, perPage: 1, total: 30 }),
+      })
+    : String(url).endsWith("/school-rules")
+      ? Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => SCHOOL_RULES,
+        })
+      : String(url).endsWith("/classes/teaching")
+        ? teaching
+          ? Promise.resolve({
+              ok: true,
+              status: 200,
+              json: async () => teaching,
+            })
+          : Promise.resolve({
+              ok: false,
+              status: 500,
+              json: async () => ({ errors: [] }),
+            })
+        : fetchMock(url, init);
 
 // The bell asks for the unread count on its own: the home's requests are the others.
 const homeCalls = () =>
-  fetchMock.mock.calls.filter(([url]) => !String(url).endsWith("/notifications/unread-count"));
+  fetchMock.mock.calls.filter(
+    ([url]) => !String(url).endsWith("/notifications/unread-count"),
+  );
 
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: jest.fn() }),
@@ -162,7 +197,9 @@ describe("AdminScreen", () => {
       ok: true,
       status: 200,
       json: async () =>
-        String(url).endsWith("/notifications/unread-count") ? { count: 3 } : { items: [] },
+        String(url).endsWith("/notifications/unread-count")
+          ? { count: 3 }
+          : { items: [] },
     }));
     await openAdminHome();
 
@@ -184,14 +221,14 @@ describe("AdminScreen", () => {
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
   });
 
-  it("shows the Tools and School sections, with the People row and its placeholder count", async () => {
+  it("shows the Tools and School sections, with the People row and its count", async () => {
     respondWith([]);
     await openAdminHome();
 
     expect(screen.getByText("Tools")).toBeOnTheScreen();
     expect(screen.getByText("School")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
-    expect(screen.getByText("9 on the platform")).toBeOnTheScreen();
+    expect(await screen.findByText("30 on the platform")).toBeOnTheScreen();
   });
 
   it("shows the Weekly occupancy card between People and School settings, and opens the screen", async () => {
@@ -210,31 +247,53 @@ describe("AdminScreen", () => {
       buttons.indexOf(screen.getByRole("button", { name }));
     const people = indexOf(/People/);
 
-    expect(screen.getByText("Seats taken and free per class")).toBeOnTheScreen();
+    expect(
+      screen.getByText("Seats taken and free per class"),
+    ).toBeOnTheScreen();
     expect(indexOf("Weekly occupancy")).toBe(people + 1);
     expect(indexOf(/School settings/)).toBe(people + 2);
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/classes?date="))).toBe(false);
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).includes("/classes?date="),
+      ),
+    ).toBe(false);
 
     await user.press(screen.getByRole("button", { name: "Weekly occupancy" }));
 
     expect(app.getPathname()).toBe(routes.admin.weeklyOccupancy);
-    expect(screen.getByRole("header", { name: "WEEKLY OCCUPANCY" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "WEEKLY OCCUPANCY" }),
+    ).toBeOnTheScreen();
   });
 
   it("scrolls the home above the tab bar, so every School card can be reached", async () => {
-    fetchMock.mockImplementation(async () => ({ ok: true, status: 200, json: async () => ({ items: [] }) }));
+    fetchMock.mockImplementation(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ items: [] }),
+    }));
     await openAdminHome();
 
     const scroll = screen.getByTestId("admin-home-scroll");
     expect(scroll.props.contentInsetAdjustmentBehavior).toBe("automatic");
     // Under the opaque header the content already starts below it.
-    expect(scroll.props.contentContainerStyle).toMatchObject({ paddingTop: 16 });
-    expect(within(scroll).getByRole("button", { name: "Weekly occupancy" })).toBeOnTheScreen();
-    expect(within(scroll).getByRole("button", { name: /School settings/ })).toBeOnTheScreen();
+    expect(scroll.props.contentContainerStyle).toMatchObject({
+      paddingTop: 16,
+    });
+    expect(
+      within(scroll).getByRole("button", { name: "Weekly occupancy" }),
+    ).toBeOnTheScreen();
+    expect(
+      within(scroll).getByRole("button", { name: /School settings/ }),
+    ).toBeOnTheScreen();
   });
 
   it("starts the home 16 pt below the transparent user header, which the automatic inset clears only up to the safe area", async () => {
-    fetchMock.mockImplementation(async () => ({ ok: true, status: 200, json: async () => ({ items: [] }) }));
+    fetchMock.mockImplementation(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ items: [] }),
+    }));
     const insets = jest.mocked(useSafeAreaInsets);
     const defaultInsets = insets.getMockImplementation();
     insets.mockReturnValue({ top: 62, right: 0, bottom: 34, left: 0 });
@@ -243,7 +302,9 @@ describe("AdminScreen", () => {
       await underTransparentHeader(126, openAdminHome);
 
       // The automatic inset adds the 62 pt safe area; the padding adds the rest of the 126 pt header, then 16 pt.
-      expect(screen.getByTestId("admin-home-scroll").props.contentContainerStyle).toMatchObject({
+      expect(
+        screen.getByTestId("admin-home-scroll").props.contentContainerStyle,
+      ).toMatchObject({
         paddingTop: 126 - 62 + 16,
       });
     } finally {
@@ -283,7 +344,9 @@ describe("AdminScreen", () => {
     await user.press(screen.getByRole("button", { name: /Create classes/ }));
 
     expect(app.getPathname()).toBe("/admin/new-class");
-    expect(screen.getByRole("header", { name: "Discipline" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Discipline" }),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -304,7 +367,9 @@ describe("AdminScreen", () => {
 
     expect(screen.getByText("One for surf, one for skate")).toBeOnTheScreen();
 
-    await user.press(screen.getByRole("button", { name: "Cancellation rules" }));
+    await user.press(
+      screen.getByRole("button", { name: "Cancellation rules" }),
+    );
 
     expect(app.getPathname()).toBe(routes.admin.cancellationRules);
     expect(await screen.findByDisplayValue("Surf rule.")).toBeOnTheScreen();
@@ -401,8 +466,16 @@ describe("AdminScreen", () => {
       seatsTaken: 1,
       location: { name: "Praia do Futuro" },
       requests: [
-        { id: "r-1", requestedAt: "2026-10-19T12:12:00.000Z", student: { id: "s-1", name: "Ana Souza", photoUrl: null } },
-        { id: "r-2", requestedAt: "2026-10-19T13:00:00.000Z", student: { id: "s-2", name: "Bruno Lima", photoUrl: null } },
+        {
+          id: "r-1",
+          requestedAt: "2026-10-19T12:12:00.000Z",
+          student: { id: "s-1", name: "Ana Souza", photoUrl: null },
+        },
+        {
+          id: "r-2",
+          requestedAt: "2026-10-19T13:00:00.000Z",
+          student: { id: "s-2", name: "Bruno Lima", photoUrl: null },
+        },
       ],
     };
 
@@ -410,7 +483,8 @@ describe("AdminScreen", () => {
       fetchMock.mockImplementation(async (url: string) => ({
         ok: true,
         status: 200,
-        json: async () => (String(url).includes("/enrolments/pending") ? body : { items: [] }),
+        json: async () =>
+          String(url).includes("/enrolments/pending") ? body : { items: [] },
       }));
 
     it("sits below Join the school, above Create classes, and shows how many requests wait", async () => {
@@ -418,12 +492,21 @@ describe("AdminScreen", () => {
       await openAdminHome();
 
       expect(await screen.findByText("2 requests")).toBeOnTheScreen();
-      const rows = screen.getAllByText(/^(Join the school|Class enrolments|Create classes)$/);
-      expect(rows.map((row) => row.props.children)).toEqual(["Join the school", "Class enrolments", "Create classes"]);
+      const rows = screen.getAllByText(
+        /^(Join the school|Class enrolments|Create classes)$/,
+      );
+      expect(rows.map((row) => row.props.children)).toEqual([
+        "Join the school",
+        "Class enrolments",
+        "Create classes",
+      ]);
     });
 
     it("says one request in the singular", async () => {
-      servePending({ total: 1, classes: [{ ...pendingClass, requests: [pendingClass.requests[0]] }] });
+      servePending({
+        total: 1,
+        classes: [{ ...pendingClass, requests: [pendingClass.requests[0]] }],
+      });
       await openAdminHome();
 
       expect(await screen.findByText("1 request")).toBeOnTheScreen();
@@ -444,7 +527,9 @@ describe("AdminScreen", () => {
       const app = await openAdminHome();
       await screen.findByText("2 requests");
 
-      await user.press(screen.getByRole("button", { name: /Class enrolments/ }));
+      await user.press(
+        screen.getByRole("button", { name: /Class enrolments/ }),
+      );
 
       expect(app.getPathname()).toBe(routes.admin.classRequests);
       expect(await screen.findByText("Ana Souza")).toBeOnTheScreen();
@@ -461,13 +546,21 @@ describe("AdminScreen", () => {
       respondWith([]);
       const app = await openAdminHome();
 
-      const rows = screen.getAllByText(/^(Class enrolments|Enrol a student|Create classes)$/);
-      expect(rows.map((row) => row.props.children)).toEqual(["Class enrolments", "Enrol a student", "Create classes"]);
+      const rows = screen.getAllByText(
+        /^(Class enrolments|Enrol a student|Create classes)$/,
+      );
+      expect(rows.map((row) => row.props.children)).toEqual([
+        "Class enrolments",
+        "Enrol a student",
+        "Create classes",
+      ]);
 
       await user.press(screen.getByRole("button", { name: /Enrol a student/ }));
 
       expect(app.getPathname()).toBe(routes.admin.enrolStudent);
-      expect(await screen.findByRole("button", { name: "Choose class" })).toBeOnTheScreen();
+      expect(
+        await screen.findByRole("button", { name: "Choose class" }),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -476,14 +569,23 @@ describe("AdminScreen", () => {
     respondWith([]);
     const app = await openAdminHome();
 
-    expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("6 rules in students' onboarding"),
+    ).toBeOnTheScreen();
     const rows = screen.getAllByText(/^(School|Rules|People|School settings)$/);
-    expect(rows.map((row) => row.props.children)).toEqual(["School", "Rules", "People", "School settings"]);
+    expect(rows.map((row) => row.props.children)).toEqual([
+      "School",
+      "Rules",
+      "People",
+      "School settings",
+    ]);
 
     await user.press(screen.getByRole("button", { name: /Rules/ }));
 
     expect(app.getPathname()).toBe(routes.admin.manageSchoolRules);
-    expect(await screen.findByRole("button", { name: "Move rule 1 down" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("button", { name: "Move rule 1 down" }),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -505,7 +607,9 @@ describe("AdminScreen", () => {
     await user.press(screen.getByRole("button", { name: /School settings/ }));
 
     expect(app.getPathname()).toBe(routes.admin.schoolSettings);
-    expect(await screen.findByText("Waiting list for full classes")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Waiting list for full classes"),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -519,8 +623,12 @@ describe("AdminScreen", () => {
       respondWith([]);
       const app = await openAdminHome();
 
-      expect(await screen.findByText("1 class assigned to you")).toBeOnTheScreen();
-      const rows = screen.getAllByText(/^(School|My classes|Rules|People|School settings)$/);
+      expect(
+        await screen.findByText("1 class assigned to you"),
+      ).toBeOnTheScreen();
+      const rows = screen.getAllByText(
+        /^(School|My classes|Rules|People|School settings)$/,
+      );
       expect(rows.map((row) => row.props.children)).toEqual([
         "School",
         "My classes",
@@ -532,18 +640,24 @@ describe("AdminScreen", () => {
       await user.press(screen.getByRole("button", { name: /My classes/ }));
 
       expect(app.getPathname()).toBe(routes.admin.myClasses);
-      expect(await screen.findByRole("header", { name: "My classes" })).toBeOnTheScreen();
+      expect(
+        await screen.findByRole("header", { name: "My classes" }),
+      ).toBeOnTheScreen();
     });
 
     it("isn't shown when the admin teaches nothing, nor after a failed request", async () => {
       respondWith([]);
       await openAdminHome();
-      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("6 rules in students' onboarding"),
+      ).toBeOnTheScreen();
       expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
 
       teaching = null;
       await openAdminHome();
-      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("6 rules in students' onboarding"),
+      ).toBeOnTheScreen();
       expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
     });
 
@@ -552,10 +666,14 @@ describe("AdminScreen", () => {
       respondWith([]);
       const pending = new Promise<never>(() => undefined);
       globalThis.fetch = ((url: string, init: RequestInit) =>
-        String(url).endsWith("/classes/teaching") ? pending : fetchWithSchoolRules(url, init)) as typeof fetch;
+        String(url).endsWith("/classes/teaching")
+          ? pending
+          : fetchWithSchoolRules(url, init)) as typeof fetch;
       await openAdminHome();
 
-      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("6 rules in students' onboarding"),
+      ).toBeOnTheScreen();
       expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
     });
 
@@ -565,10 +683,14 @@ describe("AdminScreen", () => {
         ok: true,
         status: 200,
         json: async () =>
-          String(url).includes("/people") ? { items: [], page: 1, perPage: 20, total: 0 } : { items: [] },
+          String(url).includes("/people")
+            ? { items: [], page: 1, perPage: 20, total: 0 }
+            : { items: [] },
       }));
       await openAdminHome();
-      expect(await screen.findByText("6 rules in students' onboarding")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("6 rules in students' onboarding"),
+      ).toBeOnTheScreen();
       expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
 
       await user.press(screen.getByRole("button", { name: /People/ }));
@@ -576,7 +698,9 @@ describe("AdminScreen", () => {
       teaching = TEACHING;
       await act(async () => router.back());
 
-      expect(await screen.findByText("1 class assigned to you")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("1 class assigned to you"),
+      ).toBeOnTheScreen();
     });
   });
 });

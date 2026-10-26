@@ -281,9 +281,15 @@ and stacked fields are hard to use.
   > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
   > `npx jest src/modules/classes/screens/location-form.screen.test.tsx` (39 passed, 100% on the screen and its hook),
   > `npx eslint`, `npx tsc --noEmit` clean; deviations: none
-- [ ] **T-09** — Drop the search field's shadow in `components/location-search-header/` (D-10). Skill:
+- [x] **T-09** — Drop the search field's shadow in `components/location-search-header/` (D-10). Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
   Covers: ER-01 · Done when: `npx jest src/modules/classes/components/location-search-header` passes.
+  > ✅ 2026-10-26 — the header search field drops `shadowStyle("card")` (on Android it drew a box around the rounded
+  > field); the floating suggestions keep their own elevation; files:
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.test.tsx`;
+  > verified: `npx jest src/modules/classes/components/location-search-header` (12 passed, the field has no `boxShadow`;
+  > 100% on the component), `npx eslint`, `npx tsc --noEmit` clean; deviations: none
 - [ ] **T-10** — Stack the panel's actions and pin the panel to the bottom (D-10) in `location-form.screen.tsx`:
   primary first, then "Cancelar", then "Remover local"; rounded top corners only, the bottom inset as the panel's own
   padding. Update the screen's tests. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).

@@ -32,7 +32,7 @@ export function LocationSearchHeader(props: LocationSearchHeaderProps) {
             <View
               testID="location-search-field"
               className="h-11 flex-row items-center gap-2 rounded-control border border-line bg-surface pl-3"
-              style={[{ width: search.fieldWidth }, shadowStyle("card", theme)]}
+              style={{ width: search.fieldWidth }}
             >
               <Ionicons name="search-outline" size={18} color={theme.ink2} />
               <TextInput

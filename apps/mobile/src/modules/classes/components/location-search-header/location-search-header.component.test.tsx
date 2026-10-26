@@ -81,6 +81,12 @@ describe("LocationSearchHeader", () => {
     expect(field().props.placeholder).toBe("Search for an address or a beach");
     expect(screen.queryByTestId("location-suggestions")).toBeNull();
     expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
+    // No shadow: on the header it drew a box around the rounded field.
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId("location-search-field").props.style,
+      ).boxShadow,
+    ).toBeUndefined();
   });
 
   it("asks for suggestions with what was typed and the screen's session token", async () => {

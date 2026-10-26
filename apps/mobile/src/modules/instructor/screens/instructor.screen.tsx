@@ -1,24 +1,23 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScreenIntro } from "@/components/ui/screen-intro";
 import { routes } from "@/constants/routes";
-import { useTheme } from "@/hooks/use-theme";
 import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-classes-entry-row";
+import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
 
 const openMyClasses = () => router.push(routes.instructor.myClasses);
 const openPeople = () => router.push(routes.instructor.people);
+const openWeeklyOccupancy = () =>
+  router.push(routes.instructor.weeklyOccupancy);
 const openSchoolRules = () => router.push(routes.instructor.schoolRules);
 
 export function InstructorScreen() {
   const { t } = useTranslation();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const headerInset = useHeaderInset();
 
@@ -31,24 +30,30 @@ export function InstructorScreen() {
         paddingBottom: Math.max(insets.bottom, 24),
       }}
     >
-      <ScreenIntro
-        icon={
-          <MaterialCommunityIcons
-            name="view-dashboard-outline"
-            size={30}
-            color={theme.grape}
-          />
-        }
-        title={t("instructor.home.title")}
-        description={null}
-      />
       <View className="gap-2">
-        <Text className="ds-text-section-label text-ink-2">
+        <Text
+          accessibilityRole="header"
+          className="ds-text-section-label text-ink-2"
+        >
           {t("admin.home.schoolSection")}
         </Text>
-        <TeachingClassesEntryRow role="instructor" onPress={openMyClasses} />
-        <SchoolRulesEntryRow role="instructor" onPress={openSchoolRules} />
-        <PeopleEntryRow onPress={openPeople} />
+        <View className="overflow-hidden rounded-card border border-line bg-surface">
+          <TeachingClassesEntryRow
+            role="instructor"
+            grouped="first"
+            onPress={openMyClasses}
+          />
+          <SchoolRulesEntryRow
+            role="instructor"
+            grouped="next"
+            onPress={openSchoolRules}
+          />
+          <PeopleEntryRow grouped="next" onPress={openPeople} />
+          <WeeklyOccupancyEntryRow
+            grouped="next"
+            onPress={openWeeklyOccupancy}
+          />
+        </View>
       </View>
     </View>
   );

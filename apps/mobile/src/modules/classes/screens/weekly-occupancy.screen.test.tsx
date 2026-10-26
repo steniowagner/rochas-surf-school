@@ -122,7 +122,7 @@ const renderScreen = async () => {
   });
   const view = await render(
     <QueryClientProvider client={queryClient}>
-      <WeeklyOccupancyScreen />
+      <WeeklyOccupancyScreen role="admin" />
     </QueryClientProvider>,
   );
 
@@ -499,7 +499,7 @@ describe("WeeklyOccupancyScreen", () => {
       });
       const view = await render(
         <QueryClientProvider client={queryClient}>
-          <WeeklyOccupancyScreen />
+          <WeeklyOccupancyScreen role="admin" />
         </QueryClientProvider>,
       );
 

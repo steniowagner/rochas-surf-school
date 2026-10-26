@@ -7,6 +7,7 @@ import InstructorRoute from "@/app/(private)/instructor/(tabs)/(home)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorMyClassesRoute from "@/app/(private)/instructor/my-classes";
 import InstructorPeopleRoute from "@/app/(private)/instructor/people";
+import InstructorWeeklyOccupancyRoute from "@/app/(private)/instructor/weekly-occupancy";
 import InstructorSchoolRulesRoute from "@/app/(private)/instructor/school-rules";
 import { routes } from "@/constants/routes";
 import { buildClassItem } from "@/modules/classes/classes.test-utils";
@@ -29,12 +30,29 @@ const SCHOOL_RULES = {
 // Three classes far ahead and a cancelled one, which the "My classes" row doesn't count.
 const TEACHING = {
   items: [
-    buildClassItem("c-1", "2099-10-15T11:00:00.000Z", "2099-10-15T12:00:00.000Z"),
-    buildClassItem("c-2", "2099-10-16T11:00:00.000Z", "2099-10-16T12:00:00.000Z"),
-    buildClassItem("c-3", "2099-10-17T11:00:00.000Z", "2099-10-17T12:00:00.000Z"),
-    buildClassItem("c-4", "2099-10-18T11:00:00.000Z", "2099-10-18T12:00:00.000Z", {
-      cancelledAt: "2099-10-01T12:00:00.000Z",
-    }),
+    buildClassItem(
+      "c-1",
+      "2099-10-15T11:00:00.000Z",
+      "2099-10-15T12:00:00.000Z",
+    ),
+    buildClassItem(
+      "c-2",
+      "2099-10-16T11:00:00.000Z",
+      "2099-10-16T12:00:00.000Z",
+    ),
+    buildClassItem(
+      "c-3",
+      "2099-10-17T11:00:00.000Z",
+      "2099-10-17T12:00:00.000Z",
+    ),
+    buildClassItem(
+      "c-4",
+      "2099-10-18T11:00:00.000Z",
+      "2099-10-18T12:00:00.000Z",
+      {
+        cancelledAt: "2099-10-01T12:00:00.000Z",
+      },
+    ),
   ],
   teachesAny: true,
 };
@@ -43,15 +61,25 @@ let teaching: typeof TEACHING | null = TEACHING;
 // The Rules and My classes rows ask for the school rules and the classes taught on their own: they are answered here
 // (`teaching` null fails), so `fetchMock` sees only the home's other requests.
 const fetchWithSchoolRules = (url: string, init: RequestInit) =>
-  String(url).endsWith("/school-rules")
-    ? Promise.resolve({ ok: true, status: 200, json: async () => SCHOOL_RULES })
-    : String(url).endsWith("/classes/teaching")
-      ? Promise.resolve(
-          teaching
-            ? { ok: true, status: 200, json: async () => teaching }
-            : { ok: false, status: 500, json: async () => ({ errors: [] }) },
-        )
-      : fetchMock(url, init);
+  String(url).includes("/people?perPage=1")
+    ? Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ items: [], page: 1, perPage: 1, total: 30 }),
+      })
+    : String(url).endsWith("/school-rules")
+      ? Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => SCHOOL_RULES,
+        })
+      : String(url).endsWith("/classes/teaching")
+        ? Promise.resolve(
+            teaching
+              ? { ok: true, status: 200, json: async () => teaching }
+              : { ok: false, status: 500, json: async () => ({ errors: [] }) },
+          )
+        : fetchMock(url, init);
 
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: jest.fn() }),
@@ -73,6 +101,7 @@ async function openInstructorHome() {
       "(private)/instructor/my-classes": InstructorMyClassesRoute,
       "(private)/instructor/people": InstructorPeopleRoute,
       "(private)/instructor/school-rules": InstructorSchoolRulesRoute,
+      "(private)/instructor/weekly-occupancy": InstructorWeeklyOccupancyRoute,
     },
     { initialUrl: routes.instructor.home },
   );
@@ -120,13 +149,13 @@ describe("InstructorScreen", () => {
     ).toBeOnTheScreen();
   });
 
-  it("shows the Dashboard title and the School section with the People row", async () => {
+  it("shows the School section with the People row, and no Dashboard title", async () => {
     await openInstructorHome();
 
-    expect(screen.getByRole("header", { name: "Dashboard" })).toBeOnTheScreen();
-    expect(screen.getByText("School")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "School" })).toBeOnTheScreen();
+    expect(screen.queryByText("Dashboard")).not.toBeOnTheScreen();
     expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
-    expect(screen.getByText("9 on the platform")).toBeOnTheScreen();
+    expect(await screen.findByText("30 on the platform")).toBeOnTheScreen();
     // Only the bell's count besides the Rules row's rules, answered apart.
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "http://api.test/notifications/unread-count",
@@ -147,36 +176,64 @@ describe("InstructorScreen", () => {
     const user = userEvent.setup();
     const app = await openInstructorHome();
 
-    expect(await screen.findByText("6 rules for every student")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("6 rules for every student"),
+    ).toBeOnTheScreen();
     const rows = screen.getAllByText(/^(School|My classes|Rules|People)$/);
-    expect(rows.map((row) => row.props.children)).toEqual(["School", "My classes", "Rules", "People"]);
+    expect(rows.map((row) => row.props.children)).toEqual([
+      "School",
+      "My classes",
+      "Rules",
+      "People",
+    ]);
 
     await user.press(screen.getByRole("button", { name: /Rules/ }));
 
     expect(app.getPathname()).toBe(routes.instructor.schoolRules);
     expect(await screen.findByText("Rule 6")).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: /Move rule/ })).not.toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Add rule" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: /Move rule/ }),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Add rule" }),
+    ).not.toBeOnTheScreen();
+  });
+
+  it("shows the Weekly occupancy row last under School and opens the week's map", async () => {
+    const user = userEvent.setup();
+    const app = await openInstructorHome();
+
+    await user.press(screen.getByRole("button", { name: "Weekly occupancy" }));
+
+    expect(app.getPathname()).toBe(routes.instructor.weeklyOccupancy);
   });
 
   it("shows My classes first under School with the classes assigned, a cancelled one not counted, and opens the screen", async () => {
     const user = userEvent.setup();
     const app = await openInstructorHome();
 
-    expect(await screen.findByText("3 classes assigned to you")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("3 classes assigned to you"),
+    ).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: /My classes/ }));
 
     expect(app.getPathname()).toBe(routes.instructor.myClasses);
-    expect(await screen.findByRole("header", { name: "My classes" })).toBeOnTheScreen();
+    expect(
+      await screen.findByRole("header", { name: "My classes" }),
+    ).toBeOnTheScreen();
   });
 
   it("still shows My classes, without a subtitle, after a failed request", async () => {
     teaching = null;
     await openInstructorHome();
 
-    expect(await screen.findByText("6 rules for every student")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: /My classes/ })).toBeOnTheScreen();
+    expect(
+      await screen.findByText("6 rules for every student"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: /My classes/ }),
+    ).toBeOnTheScreen();
     expect(screen.queryByText(/assigned/)).not.toBeOnTheScreen();
   });
 });

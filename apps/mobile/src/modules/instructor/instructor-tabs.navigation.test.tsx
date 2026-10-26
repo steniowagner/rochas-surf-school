@@ -45,7 +45,6 @@ jest.useFakeTimers({
 
 afterAll(() => jest.useRealTimers());
 
-
 const routeTree = {
   _layout: () => (
     <QueryClientProvider client={new QueryClient()}>
@@ -75,7 +74,11 @@ const aClass = {
   endsAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
   capacity: 8,
   notes: null,
-  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+  location: {
+    id: "l-1",
+    name: "Praia do Futuro",
+    address: "Av. Zezé Diogo, 1000",
+  },
   instructors: [{ id: "i-1", name: "Bruno Lima" }],
   seatsTaken: 0,
   students: [],
@@ -136,22 +139,22 @@ const open = async () => {
 };
 
 describe("instructor tabs", () => {
-  it("instructor opens on Home and switches tabs", async () => {
+  it("instructor opens on Panel and switches tabs", async () => {
     const app = await open();
 
-    expect(tabLabels()).toEqual(["Home", "Classes", "Profile"]);
+    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
     expect(app.getPathname()).toBe("/instructor");
-    expect(selectedTabLabel()).toBe("Home");
-    expect(
-      screen.getByRole("header", { name: "Dashboard" }),
-    ).toBeOnTheScreen();
+    expect(selectedTabLabel()).toBe("Panel");
+    expect(screen.getByRole("header", { name: "School" })).toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.instructor.classes));
     expect(app.getPathname()).toBe("/instructor/classes");
     expect(selectedTabLabel()).toBe("Classes");
     expect(screen.queryByText("CLASSES")).not.toBeOnTheScreen();
     expect(await screen.findByText("Praia do Futuro")).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "New class" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "New class" }),
+    ).not.toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.instructor.profile));
     expect(app.getPathname()).toBe("/instructor/profile");
@@ -167,7 +170,9 @@ describe("instructor tabs", () => {
     await user.press(await screen.findByText("Praia do Futuro"));
 
     expect(app.getPathname()).toBe("/instructor/class/c-1");
-    expect(await screen.findByText("Max. 8 students · 8 spots left")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Max. 8 students · 8 spots left"),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -189,6 +194,6 @@ describe("instructor tabs", () => {
     await i18n.changeLanguage("pt-BR");
     await open();
 
-    expect(tabLabels()).toEqual(["Início", "Aulas", "Perfil"]);
+    expect(tabLabels()).toEqual(["Painel", "Aulas", "Perfil"]);
   });
 });

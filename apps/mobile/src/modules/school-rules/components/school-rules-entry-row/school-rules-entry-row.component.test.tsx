@@ -44,14 +44,20 @@ describe("SchoolRulesEntryRow", () => {
     ["instructor", 6, "6 rules for every student"],
     ["instructor", 1, "1 rule for every student"],
     ["instructor", 0, "No rules yet"],
-  ] as const)("shows Rules for the %s with %s rules as %s", async (role, count, subtitle) => {
-    fetchMock.mockResolvedValue(ok(rules(count)));
-    await renderRow(role);
+  ] as const)(
+    "shows Rules for the %s with %s rules as %s",
+    async (role, count, subtitle) => {
+      fetchMock.mockResolvedValue(ok(rules(count)));
+      await renderRow(role);
 
-    expect(screen.getByText("Rules")).toBeOnTheScreen();
-    expect(await screen.findByText(subtitle)).toBeOnTheScreen();
-    expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules", expect.objectContaining({ method: "GET" }));
-  });
+      expect(screen.getByText("Rules")).toBeOnTheScreen();
+      expect(await screen.findByText(subtitle)).toBeOnTheScreen();
+      expect(fetchMock).toHaveBeenCalledWith(
+        "http://api.test/school-rules",
+        expect.objectContaining({ method: "GET" }),
+      );
+    },
+  );
 
   it("shows no subtitle while the rules load, and still opens", async () => {
     fetchMock.mockReturnValue(new Promise(() => undefined));

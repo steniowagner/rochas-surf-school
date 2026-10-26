@@ -1,6 +1,12 @@
 import type { ClassItem } from "../classes.types";
 import type { OccupancyStatsFigures } from "../utils/weekly-occupancy";
 
+export type WeeklyOccupancyScreenProps = {
+  role: "instructor" | "admin";
+};
+
+export type UseWeeklyOccupancyScreenProps = WeeklyOccupancyScreenProps;
+
 export type UseWeeklyOccupancyScreenResult = {
   now: Date;
   /** Today, `YYYY-MM-DD` in America/Fortaleza. */

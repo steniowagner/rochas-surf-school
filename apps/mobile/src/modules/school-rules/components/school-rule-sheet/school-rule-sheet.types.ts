@@ -13,10 +13,7 @@ export type SchoolRuleSheetProps = {
   onDelete: (rule: SchoolRule) => void;
 };
 
-export type UseSchoolRuleSheetProps = Pick<
-  SchoolRuleSheetProps,
-  "visible" | "mode" | "rule" | "onClose"
->;
+export type UseSchoolRuleSheetProps = Pick<SchoolRuleSheetProps, "visible" | "mode" | "rule" | "onClose">;
 
 export type SchoolRuleSheetFields = {
   title: string;

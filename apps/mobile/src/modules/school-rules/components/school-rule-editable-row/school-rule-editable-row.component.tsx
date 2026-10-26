@@ -52,11 +52,7 @@ export function SchoolRuleEditableRow({
           hitSlop={MOVE_HIT_SLOP}
           className="h-9 w-9 items-center justify-center rounded-icon-button border border-line bg-surface"
         >
-          <Ionicons
-            name="chevron-up"
-            size={18}
-            color={moveUpDisabled ? theme.ink3 : theme.ink}
-          />
+          <Ionicons name="chevron-up" size={18} color={moveUpDisabled ? theme.ink3 : theme.ink} />
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
@@ -68,11 +64,7 @@ export function SchoolRuleEditableRow({
           hitSlop={MOVE_HIT_SLOP}
           className="h-9 w-9 items-center justify-center rounded-icon-button border border-line bg-surface"
         >
-          <Ionicons
-            name="chevron-down"
-            size={18}
-            color={moveDownDisabled ? theme.ink3 : theme.ink}
-          />
+          <Ionicons name="chevron-down" size={18} color={moveDownDisabled ? theme.ink3 : theme.ink} />
         </TouchableOpacity>
       </View>
     </View>

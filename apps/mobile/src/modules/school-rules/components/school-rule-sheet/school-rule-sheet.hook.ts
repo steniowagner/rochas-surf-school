@@ -5,31 +5,18 @@ import { useAlertMessage } from "@/providers/alert-message";
 
 import { useCreateSchoolRule } from "../../hooks/use-create-school-rule.hook";
 import { useUpdateSchoolRule } from "../../hooks/use-update-school-rule.hook";
-import {
-  SCHOOL_RULE_DESCRIPTION_MAX,
-  SCHOOL_RULE_TITLE_MAX,
-} from "../../school-rules.constants";
+import { SCHOOL_RULE_DESCRIPTION_MAX, SCHOOL_RULE_TITLE_MAX } from "../../school-rules.constants";
 import { SchoolRule } from "../../school-rules.types";
 import { isRuleNotFoundError } from "../../utils/school-rules-error";
 
-import {
-  SchoolRuleSheetFields,
-  UseSchoolRuleSheetProps,
-} from "./school-rule-sheet.types";
+import { SchoolRuleSheetFields, UseSchoolRuleSheetProps } from "./school-rule-sheet.types";
 
-const fieldsOf = (
-  rule: SchoolRule | null | undefined,
-): SchoolRuleSheetFields => ({
+const fieldsOf = (rule: SchoolRule | null | undefined): SchoolRuleSheetFields => ({
   title: rule?.title ?? "",
   description: rule?.description ?? "",
 });
 
-export const useSchoolRuleSheet = ({
-  visible,
-  mode,
-  rule,
-  onClose,
-}: UseSchoolRuleSheetProps) => {
+export const useSchoolRuleSheet = ({ visible, mode, rule, onClose }: UseSchoolRuleSheetProps) => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
   const createRule = useCreateSchoolRule();
@@ -51,8 +38,7 @@ export const useSchoolRuleSheet = ({
   const title = fields.title.trim();
   const description = fields.description.trim();
   // An unchanged save would change nothing, so "Salvar" waits for a real change (spec 056, D-06).
-  const changed =
-    !editing || title !== rule?.title || description !== rule?.description;
+  const changed = !editing || title !== rule?.title || description !== rule?.description;
   const canSubmit = title !== "" && description !== "" && changed;
 
   const submit = async () => {
@@ -82,10 +68,8 @@ export const useSchoolRuleSheet = ({
     descriptionMaxLength: SCHOOL_RULE_DESCRIPTION_MAX,
     canSubmit,
     loading: createRule.isPending || updateRule.isPending,
-    changeTitle: (value: string) =>
-      setFields((current) => ({ ...current, title: value })),
-    changeDescription: (value: string) =>
-      setFields((current) => ({ ...current, description: value })),
+    changeTitle: (value: string) => setFields((current) => ({ ...current, title: value })),
+    changeDescription: (value: string) => setFields((current) => ({ ...current, description: value })),
     submit,
   };
 };

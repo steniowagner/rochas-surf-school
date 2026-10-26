@@ -36,21 +36,15 @@ describe("SchoolRuleEditableRow", () => {
     expect(screen.getByText("02")).toBeOnTheScreen();
     expect(screen.getByText(RULE.title)).toBeOnTheScreen();
     expect(screen.getByText(RULE.description)).toBeOnTheScreen();
-    expect(
-      screen.getByRole("button", { name: "Move rule 2 up" }),
-    ).toBeEnabled();
-    expect(
-      screen.getByRole("button", { name: "Move rule 2 down" }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Move rule 2 up" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Move rule 2 down" })).toBeEnabled();
   });
 
   it("pads the position to two digits only below 10", async () => {
     await renderRow({ position: 12 });
 
     expect(screen.getByText("12")).toBeOnTheScreen();
-    expect(
-      screen.getByRole("button", { name: "Move rule 12 up" }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Move rule 12 up" })).toBeOnTheScreen();
   });
 
   it("opens the rule when its text is tapped", async () => {
@@ -74,10 +68,7 @@ describe("SchoolRuleEditableRow", () => {
   });
 
   it("ignores a disabled arrow", async () => {
-    const { props, user } = await renderRow({
-      moveUpDisabled: true,
-      moveDownDisabled: true,
-    });
+    const { props, user } = await renderRow({ moveUpDisabled: true, moveDownDisabled: true });
     const up = screen.getByRole("button", { name: "Move rule 2 up" });
     const down = screen.getByRole("button", { name: "Move rule 2 down" });
 

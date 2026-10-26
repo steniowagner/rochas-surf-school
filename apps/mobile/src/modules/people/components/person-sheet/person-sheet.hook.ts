@@ -39,10 +39,7 @@ export const usePersonSheet = ({ person, onClose }: UsePersonSheetProps) => {
     }
 
     try {
-      await changeRole.mutateAsync({
-        id: person.id,
-        role: ROLE_ACTION_TARGET[roleAction],
-      });
+      await changeRole.mutateAsync({ id: person.id, role: ROLE_ACTION_TARGET[roleAction] });
       close();
     } catch (error) {
       const key = getRoleChangeErrorKey(error);

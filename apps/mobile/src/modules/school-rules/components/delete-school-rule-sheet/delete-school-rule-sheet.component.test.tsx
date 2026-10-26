@@ -1,10 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import {
-  render,
-  screen,
-  userEvent,
-  waitFor,
-} from "@testing-library/react-native";
+import { render, screen, userEvent, waitFor } from "@testing-library/react-native";
 
 import {
   createQueryClient,
@@ -30,8 +25,7 @@ const RULE = {
   description: "Put it on before every class.",
   index: 2,
 };
-const DELETE_NOTE =
-  "Once deleted, everyone will need to accept the rules again the next time they open the app.";
+const DELETE_NOTE = "Once deleted, everyone will need to accept the rules again the next time they open the app.";
 
 beforeEach(() => {
   setupSignedInUser();
@@ -72,10 +66,7 @@ describe("DeleteSchoolRuleSheet", () => {
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     expect(fetchMock).toHaveBeenCalledWith("http://api.test/school-rules/r-2", {
       method: "DELETE",
-      headers: {
-        Authorization: "Bearer at-1",
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: "Bearer at-1", "Content-Type": "application/json" },
     });
     expect(mockShow).toHaveBeenCalledWith("Rule deleted");
   });
@@ -109,11 +100,7 @@ describe("DeleteSchoolRuleSheet", () => {
 
     await user.press(confirmButton());
 
-    await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith(
-        "Something went wrong. Please try again.",
-      ),
-    );
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again."));
     expect(onClose).not.toHaveBeenCalled();
     expect(confirmButton()).toBeOnTheScreen();
   });
@@ -125,9 +112,7 @@ describe("DeleteSchoolRuleSheet", () => {
     await user.press(confirmButton());
 
     await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith(
-        "No connection. Check your internet and try again.",
-      ),
+      expect(mockShow).toHaveBeenCalledWith("No connection. Check your internet and try again."),
     );
     expect(onClose).not.toHaveBeenCalled();
   });

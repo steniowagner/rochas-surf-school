@@ -7,10 +7,7 @@ import { isRuleNotFoundError } from "../../utils/school-rules-error";
 
 import { UseDeleteSchoolRuleSheetProps } from "./delete-school-rule-sheet.types";
 
-export const useDeleteSchoolRuleSheet = ({
-  rule,
-  onClose,
-}: UseDeleteSchoolRuleSheetProps) => {
+export const useDeleteSchoolRuleSheet = ({ rule, onClose }: UseDeleteSchoolRuleSheetProps) => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
   const deleteRule = useDeleteSchoolRule();

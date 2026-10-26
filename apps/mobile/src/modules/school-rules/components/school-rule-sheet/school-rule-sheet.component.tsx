@@ -12,13 +12,7 @@ import { useSchoolRuleSheet } from "./school-rule-sheet.hook";
 import { SchoolRuleSheetProps } from "./school-rule-sheet.types";
 
 /** "Nova regra" / "Editar regra": a title and an explanation; saving asks everyone to accept the rules again. */
-export function SchoolRuleSheet({
-  visible,
-  mode,
-  rule,
-  onClose,
-  onDelete,
-}: SchoolRuleSheetProps) {
+export function SchoolRuleSheet({ visible, mode, rule, onClose, onDelete }: SchoolRuleSheetProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const sheet = useSchoolRuleSheet({ visible, mode, rule, onClose });
@@ -58,11 +52,7 @@ export function SchoolRuleSheet({
           />
         </View>
         <View className="flex-row gap-2 rounded-control bg-sand p-3">
-          <Ionicons
-            name="information-circle-outline"
-            size={18}
-            color={theme.ink2}
-          />
+          <Ionicons name="information-circle-outline" size={18} color={theme.ink2} />
           <Text className="ds-text-list-subtitle flex-1 text-ink-2">
             {t("manageSchoolRules.sheet.saveNote")}
           </Text>
@@ -73,9 +63,7 @@ export function SchoolRuleSheet({
           disabled={!sheet.canSubmit}
           onPress={sheet.submit}
         >
-          {sheet.editing
-            ? t("manageSchoolRules.sheet.save")
-            : t("manageSchoolRules.sheet.add")}
+          {sheet.editing ? t("manageSchoolRules.sheet.save") : t("manageSchoolRules.sheet.add")}
         </Button>
         {sheet.editing ? (
           <Button variant="outline" onPress={() => onDelete(rule!)}>

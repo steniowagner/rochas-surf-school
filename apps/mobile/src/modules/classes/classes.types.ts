@@ -239,6 +239,11 @@ export type TeachingClassesLayout = {
   nextId: string | null;
 };
 
+/** The answer of `GET /classes/teaching/history`: the classes the caller taught in the period, newest first. */
+export type TeachingClassHistoryResponse = {
+  items: ClassItem[];
+};
+
 /** The classes of one America/Fortaleza day of a history, newest first. */
 export type ClassHistoryDay = {
   /** `YYYY-MM-DD`. */

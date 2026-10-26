@@ -247,10 +247,17 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > deviations: `ClassHistory` and `useClassHistory` have no tests of their own in this task; the student's screen
   > test exercises them (full coverage is checked in T-08)
 
-- [ ] **T-05** — Add `TeachingClassHistoryResponse` to `src/modules/classes/classes.types.ts` and
+- [x] **T-05** — Add `TeachingClassHistoryResponse` to `src/modules/classes/classes.types.ts` and
   `src/modules/classes/hooks/use-teaching-class-history.hook.ts` (D-05), with
   `use-teaching-class-history.hook.test.tsx` (key, URL with the period, authenticated, no retry).
   Covers: ER-04 · Done when: `npx jest src/modules/classes/hooks/use-teaching-class-history.hook.test.tsx` passes.
+  > ✅ 2026-10-25 — `TeachingClassHistoryResponse` in `classes.types.ts` and `useTeachingClassHistory`
+  > (key `["classes","teaching","history",from,to]`, authenticated, no retry); files:
+  > `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-teaching-class-history.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-teaching-class-history.hook.test.tsx`; verified:
+  > `npx jest src/modules/classes/hooks/use-teaching-class-history.hook.test.tsx` (4 passed); deviations: the period
+  > type is the shared `ClassHistoryPeriod` (added to `classes.types.ts` in T-04)
 
 - [ ] **T-06** — Add `TeachingClassHistoryScreen` (`src/modules/classes/screens/teaching-class-history.screen.tsx`
   + hook, types, `role` prop) on the shared history pieces, `myHistory` for `instructor` and `admin` in

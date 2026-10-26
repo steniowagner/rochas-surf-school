@@ -240,7 +240,7 @@ describe('Reactivation requests (e2e)', () => {
       const response = await list(admin.accessToken);
 
       expect(response.body.items.map((item: { id: string }) => item.id)).toEqual(
-        [first.id, second.id].sort(),
+        [first.id, second.id].sort((a, b) => a.localeCompare(b)),
       );
     });
 

@@ -74,6 +74,10 @@ describe('Teaching classes (e2e)', () => {
     const req = http().get('/classes/teaching');
     return token === undefined ? req : req.set('Authorization', `Bearer ${token}`);
   };
+  const history = (token?: string, query: Record<string, string> = {}) => {
+    const req = http().get('/classes/teaching/history').query(query);
+    return token === undefined ? req : req.set('Authorization', `Bearer ${token}`);
+  };
   const ids = (response: request.Response) => response.body.items.map((item: { id: string }) => item.id);
 
   async function account(role: Role = 'instructor', status: Status = 'approved'): Promise<Account> {
@@ -196,6 +200,107 @@ describe('Teaching classes (e2e)', () => {
       await prisma.schoolClass.delete({ where: { id: only } });
 
       expect((await teaching(admin.accessToken)).body).toEqual({ items: [], teachesAny: false });
+    });
+  });
+
+  describe('history', () => {
+    // NOW is Wednesday 2026-10-14, 10:00 in Fortaleza.
+    const MONTH = { from: '2026-10-01', to: '2026-10-31' };
+
+    it.each(['instructor', 'admin'] as const)(
+      'answers an approved %s the classes they taught in the period, newest first, guests shown',
+      async (role) => {
+        const teacher = await account(role);
+        const older = await makeClass(-5 * DAY, [teacher.id]);
+        const newer = await makeClass(-2 * DAY, [teacher.id]);
+        await prisma.guest.create({ data: { id: randomUUID(), classId: newer, name: 'Carolina' } });
+
+        const response = await history(teacher.accessToken, MONTH);
+
+        expect(response.status).toBe(200);
+        expect(ids(response)).toEqual([newer, older]);
+        expect(response.body.items[0]).toMatchObject({
+          myEnrolment: null,
+          guests: [{ name: 'Carolina' }],
+          instructors: [{ id: teacher.id }],
+        });
+      },
+    );
+
+    it('leaves out cancelled, under way, upcoming, someone else’s and out-of-period classes', async () => {
+      const teacher = await account();
+      const someoneElse = await account();
+      const taught = await makeClass(-2 * DAY, [teacher.id]);
+      await makeClass(-3 * DAY, [teacher.id], { cancelled: true });
+      await makeClass(-HOUR / 2, [teacher.id]);
+      await makeClass(DAY, [teacher.id]);
+      await makeClass(-4 * DAY, [someoneElse.id]);
+      // 2026-09-30 10:00 in Fortaleza, the day before the period.
+      await makeClass(-14 * DAY, [teacher.id]);
+
+      expect(ids(await history(teacher.accessToken, MONTH))).toEqual([taught]);
+    });
+
+    it('lists a class ending exactly now and one taught with someone else', async () => {
+      const teacher = await account();
+      const endingNow = await makeClass(-HOUR, [teacher.id]);
+      const shared = await makeClass(-DAY, [(await account()).id, teacher.id]);
+
+      const response = await history(teacher.accessToken, MONTH);
+
+      expect(ids(response)).toEqual([endingNow, shared]);
+      expect(response.body.items[1].instructors).toHaveLength(2);
+    });
+
+    it('orders classes starting together by id, descending', async () => {
+      const teacher = await account();
+      const lower = await makeClass(-DAY, [teacher.id], { id: '00000000-0000-4000-8000-0000000000aa' });
+      const higher = await makeClass(-DAY, [teacher.id], { id: 'ffffffff-0000-4000-8000-000000000000' });
+
+      expect(ids(await history(teacher.accessToken, MONTH))).toEqual([higher, lower]);
+    });
+
+    it('cuts the period by the Fortaleza day the class starts on', async () => {
+      const teacher = await account();
+      // 2026-10-13 23:30 in Fortaleza is already 2026-10-14 02:30 UTC.
+      const lateOnThe13th = await makeClass(-10.5 * HOUR, [teacher.id]);
+
+      expect(ids(await history(teacher.accessToken, { from: '2026-10-13', to: '2026-10-13' }))).toEqual([
+        lateOnThe13th,
+      ]);
+      expect(ids(await history(teacher.accessToken, { from: '2026-10-14', to: '2026-10-14' }))).toEqual([]);
+    });
+
+    it('answers no items for a period with nothing', async () => {
+      const response = await history((await account()).accessToken, MONTH);
+
+      expect([response.status, response.body]).toEqual([200, { items: [] }]);
+    });
+
+    it('validates the period', async () => {
+      const { accessToken } = await account();
+
+      const missing = await history(accessToken);
+      expect([missing.status, missing.body.errors]).toEqual([422, ['class.from.invalid', 'class.to.invalid']]);
+      const notADate = await history(accessToken, { from: '2026-02-30', to: '2026-03-01' });
+      expect([notADate.status, notADate.body.errors]).toEqual([422, ['class.from.invalid']]);
+      for (const query of [
+        { from: '2026-08-01', to: '2026-09-12' },
+        { from: '2026-08-02', to: '2026-08-01' },
+      ]) {
+        const response = await history(accessToken, query);
+        expect([response.status, response.body.errors]).toEqual([422, ['class.range.invalid']]);
+      }
+      expect((await history(accessToken, { from: '2026-08-01', to: '2026-09-11' })).status).toBe(200);
+      expect((await history(accessToken, { from: '2026-08-01', to: '2026-08-01' })).status).toBe(200);
+    });
+
+    it('refuses a student with 403, a pending instructor with 403 and no token with 401', async () => {
+      const student = await history((await account('student')).accessToken, MONTH);
+      expect([student.status, student.body.errors]).toEqual([403, ['user.role.notTeacher']]);
+      const pending = await history((await account('instructor', 'pending')).accessToken, MONTH);
+      expect([pending.status, pending.body.errors]).toEqual([403, ['user.status.notApproved']]);
+      expect((await history(undefined, MONTH)).status).toBe(401);
     });
   });
 

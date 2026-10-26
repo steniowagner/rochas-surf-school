@@ -25,6 +25,8 @@ import {
   ListMyClassesOut,
   ListMyClassHistory,
   ListMyClassHistoryOut,
+  ListTeachingClassHistory,
+  ListTeachingClassHistoryOut,
   ListTeachingClasses,
   ListTeachingClassesOut,
   ListWeekClasses,
@@ -169,6 +171,21 @@ export class ClassesController {
       this.classRosterReader,
       this.clock,
     ).execute({ actor: actorOf(user) });
+  }
+
+  @Get('teaching/history')
+  @HttpCode(HttpStatus.OK)
+  teachingHistory(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('from') from?: unknown,
+    @Query('to') to?: unknown,
+  ): Promise<ListTeachingClassHistoryOut> {
+    return new ListTeachingClassHistory(
+      this.teachingClassesReader,
+      this.classViewReader,
+      this.classRosterReader,
+      this.clock,
+    ).execute({ actor: actorOf(user), from, to });
   }
 
   @Get(':id')

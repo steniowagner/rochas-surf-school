@@ -199,7 +199,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > `apps/backend/src/modules/classes/teaching-classes-reader.prisma.spec.ts`; verified:
   > `npx vitest run src/modules/classes/teaching-classes-reader.prisma.spec.ts` (4 passed); deviations: none
 
-- [ ] **T-03** — Expose `GET /classes/teaching/history` (authenticated, `from` / `to` query) in
+- [x] **T-03** — Expose `GET /classes/teaching/history` (authenticated, `from` / `to` query) in
   `src/modules/classes/classes.controller.ts`, declared after `GET teaching` and before `GET :id`, with its case in
   `classes.controller.spec.ts`, the requests in `classes.integration.http`, and a "history" describe in
   `test/teaching-classes.e2e-spec.ts` covering ER-01 and ER-02 (listed, cancelled, under way, ending now, shared,
@@ -207,6 +207,17 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02 · Done when: `npx vitest run src/modules/classes/classes.controller.spec.ts` and
   `npx vitest run --config ./vitest.config.e2e.ts test/teaching-classes.e2e-spec.ts` pass from `apps/backend`.
+  > ✅ 2026-10-25 — `GET /classes/teaching/history` (`teachingHistory`, after `teaching`, before `one`); files:
+  > `apps/backend/src/modules/classes/classes.controller.ts`,
+  > `apps/backend/src/modules/classes/classes.controller.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.integration.http`,
+  > `apps/backend/test/teaching-classes.e2e-spec.ts` ("history" describe, 8 cases); verified:
+  > `npx vitest run src/modules/classes` (16 files, 170 passed), `npx vitest run --config ./vitest.config.e2e.ts
+  > test/teaching-classes.e2e-spec.ts` (20 passed), `npx tsc --noEmit` clean after rebuilding `modules/classes`;
+  > deviations: the period errors answer **422**, not the 400 that D-02 and ER-02 write — the shared
+  > `ValidationException` is 422, as in `GET /classes/mine/history` ("validated exactly as") — the spec's "400"
+  > looks like a slip; `.http` requests and e2e assert 422. Not run: the `.http` requests against `npm run dev`
+  > (Verification Plan, T-08).
 
 ### Mobile (`apps/mobile`)
 

@@ -77,6 +77,7 @@ function setup() {
   };
   const teachingClassesReader = {
     findCurrentClassIds: vi.fn(async (): Promise<string[]> => []),
+    findHistoryClassIds: vi.fn(async () => [] as string[]),
     teachesAny: vi.fn(async () => true),
   };
   const seatCounter = { countSeatsTaken: vi.fn(async () => 0) };
@@ -145,6 +146,7 @@ describe('ClassesController', () => {
     ['mine', 'mine', RequestMethod.GET, HttpStatus.OK],
     ['myHistory', 'mine/history', RequestMethod.GET, HttpStatus.OK],
     ['teaching', 'teaching', RequestMethod.GET, HttpStatus.OK],
+    ['teachingHistory', 'teaching/history', RequestMethod.GET, HttpStatus.OK],
     ['one', ':id', RequestMethod.GET, HttpStatus.OK],
     ['edit', ':id', RequestMethod.PUT, HttpStatus.OK],
     ['cancel', ':id/cancel', RequestMethod.POST, HttpStatus.OK],
@@ -306,6 +308,33 @@ describe('ClassesController', () => {
     const names = Object.getOwnPropertyNames(ClassesController.prototype);
 
     expect(names.indexOf('teaching')).toBeLessThan(names.indexOf('one'));
+    expect(names.indexOf('teachingHistory')).toBeLessThan(names.indexOf('one'));
+  });
+
+  it("lists the classes an approved teacher taught in the period at the clock's now", async () => {
+    const { controller, teachingClassesReader } = setup();
+
+    expect(await controller.teachingHistory(userOf('instructor'), '2026-08-01', '2026-08-31')).toEqual({
+      items: [],
+    });
+    expect(teachingClassesReader.findHistoryClassIds).toHaveBeenCalledWith(
+      ADMIN_ID,
+      NOW,
+      new Date('2026-08-01T03:00:00.000Z'),
+      new Date('2026-09-01T03:00:00.000Z'),
+    );
+  });
+
+  it('refuses the teaching history to students and to accounts that are not approved', async () => {
+    const { controller, teachingClassesReader } = setup();
+
+    await expect(controller.teachingHistory(userOf('student'), '2026-08-01', '2026-08-31')).rejects.toMatchObject({
+      message: 'user.role.notTeacher',
+    });
+    await expect(
+      controller.teachingHistory(userOf('instructor', 'pending'), '2026-08-01', '2026-08-31'),
+    ).rejects.toMatchObject({ message: 'user.status.notApproved' });
+    expect(teachingClassesReader.findHistoryClassIds).not.toHaveBeenCalled();
   });
 
   it.each(['instructor', 'admin'])("lists the classes an approved %s teaches at the clock's now", async (role) => {

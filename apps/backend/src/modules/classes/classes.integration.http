@@ -194,6 +194,25 @@ Authorization: Bearer {{token}}
 ### Without a token (expects 401 auth.token.invalid)
 GET {{baseUrl}}/classes/teaching
 
+### The classes the caller taught in a period: ended, not cancelled, newest first (expects 200 with { items }; works for this admin and for the instructor review account's token)
+GET {{baseUrl}}/classes/teaching/history?from=2026-08-01&to=2026-08-31
+Authorization: Bearer {{token}}
+
+### Without the period (expects 422 class.from.invalid and class.to.invalid)
+GET {{baseUrl}}/classes/teaching/history
+Authorization: Bearer {{token}}
+
+### A period longer than 42 days, both ends included (expects 422 class.range.invalid)
+GET {{baseUrl}}/classes/teaching/history?from=2026-08-01&to=2026-09-12
+Authorization: Bearer {{token}}
+
+### As a student (expects 403 user.role.notTeacher; sign in with the student review account and use its token)
+GET {{baseUrl}}/classes/teaching/history?from=2026-08-01&to=2026-08-31
+Authorization: Bearer {{token}}
+
+### Without a token (expects 401 auth.token.invalid)
+GET {{baseUrl}}/classes/teaching/history?from=2026-08-01&to=2026-08-31
+
 ### One class by id (expects 200 with the class, including seatsTaken: 0 and students: []; set classId to an id from the week list)
 @classId = 00000000-0000-4000-8000-000000000000
 GET {{baseUrl}}/classes/{{classId}}

@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
@@ -31,7 +32,8 @@ export function LocationFormScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const footerStyle = usePinnedFooter(Math.max(insets.bottom, 16));
-  const screen = useLocationFormScreen();
+  const mapRef = useRef<MapView>(null);
+  const screen = useLocationFormScreen(mapRef);
   const { fields } = screen;
 
   return (
@@ -44,14 +46,17 @@ export function LocationFormScreen() {
         }}
       />
       <MapView
+        key={screen.mapKey}
+        ref={mapRef}
         testID="location-form-map"
         style={StyleSheet.absoluteFill}
         provider={getMapProvider()}
-        region={screen.region}
+        initialRegion={screen.initialRegion}
         mapPadding={screen.mapPadding}
+        onMapReady={screen.readyMap}
         showsUserLocation={screen.showsUserLocation}
         showsMyLocationButton={false}
-        onRegionChangeComplete={screen.changeRegion}
+        onRegionChangeComplete={screen.trackRegion}
         onPress={screen.pressMap}
         // Only Google Maps reports taps on its labelled places.
         onPoiClick={Platform.OS === "android" ? screen.pressPoi : undefined}

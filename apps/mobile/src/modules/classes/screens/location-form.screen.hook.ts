@@ -5,10 +5,10 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LayoutChangeEvent } from "react-native";
-import { Region } from "react-native-maps";
+import MapView, { Region } from "react-native-maps";
 
 import { useAlertMessage } from "@/providers/alert-message";
 
@@ -52,7 +52,10 @@ const fieldsOf = (location: ClassLocation | null): LocationFormFields => {
  * "Novo local" (no `id`) and "Editar local" (`?id=`): the form rules of the old location sheet on a full-screen map.
  * The class form learns about a created or removed location through the location events.
  */
-export const useLocationFormScreen = () => {
+export const useLocationFormScreen = (
+  // The map isn't controlled (feeding its region back drifts it under the padding): it is moved through this ref.
+  mapRef: RefObject<MapView | null>,
+) => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
   const queryClient = useQueryClient();
@@ -68,11 +71,15 @@ export const useLocationFormScreen = () => {
   const [fields, setFields] = useState(() => fieldsOf(null));
   // The location whose values filled the form: the list may come after the screen opened.
   const [filledId, setFilledId] = useState<string | null>(null);
-  const [region, setRegion] = useState<Region>(() => regionAround(null));
   // The backend found the name taken, which the loaded list didn't show.
   const [duplicatedByServer, setDuplicatedByServer] = useState(false);
   const [archiveVisible, setArchiveVisible] = useState(false);
   const [panelHeight, setPanelHeight] = useState(0);
+  // Google Maps (Android) crashes when it gets a padding before the map is ready: only the map that reported ready
+  // (the map is mounted again once an edited location fills the form) gets one.
+  const [readyMapKey, setReadyMapKey] = useState<string | null>(null);
+  // The region the map last showed: a centred place keeps its span.
+  const shownRegion = useRef<Region>(regionAround(null));
   // The screen is going back: a location that leaves the list now isn't "gone" news.
   const leaving = useRef(false);
 
@@ -85,8 +92,9 @@ export const useLocationFormScreen = () => {
   if (location && filledId !== location.id) {
     setFilledId(location.id);
     setFields(fieldsOf(location));
-    setRegion(regionAround(toMapPoint(location)));
   }
+
+  const mapKey = filledId ?? "new";
 
   // An id that isn't among the active locations (removed meanwhile, or the list failed): nothing to edit.
   const missing = editing && !locationsQuery.isPending && !location;
@@ -112,7 +120,10 @@ export const useLocationFormScreen = () => {
 
     // A place picked from the search (or a labelled place) centres the map; a tap doesn't, the finger is there.
     if (place.name !== null) {
-      setRegion((current) => ({ ...current, ...place.point }));
+      mapRef.current?.animateToRegion({
+        ...shownRegion.current,
+        ...place.point,
+      });
     }
   };
 
@@ -210,7 +221,7 @@ export const useLocationFormScreen = () => {
     const point = await deviceLocation.locate();
 
     if (point) {
-      setRegion(regionAround(point));
+      mapRef.current?.animateToRegion(regionAround(point));
     }
   };
 
@@ -225,12 +236,18 @@ export const useLocationFormScreen = () => {
     showNotify: editing && upcomingClasses > 0,
     upcomingClasses,
     sessionToken,
-    region,
+    // The map opens on the location being edited, else on Fortaleza; it is mounted again when the location arrives.
+    mapKey,
+    initialRegion: regionAround(location ? toMapPoint(location) : null),
     pin: mapPlace.pendingPoint ?? fields.place?.point ?? null,
     resolving: mapPlace.resolving,
     pendingPoint: mapPlace.pendingPoint,
     showsUserLocation: deviceLocation.granted,
-    mapPadding: { top: headerHeight, right: 0, bottom: panelHeight, left: 0 },
+    mapPadding:
+      readyMapKey === mapKey
+        ? { top: headerHeight, right: 0, bottom: panelHeight, left: 0 }
+        : undefined,
+    readyMap: () => setReadyMapKey(mapKey),
     archiveVisible,
     archiving: archiveLocation.isPending,
     changeName: (name: string) => {
@@ -239,7 +256,9 @@ export const useLocationFormScreen = () => {
     },
     changeNotify: (notify: boolean) =>
       setFields((current) => ({ ...current, notify })),
-    changeRegion: setRegion,
+    trackRegion: (shown: Region) => {
+      shownRegion.current = shown;
+    },
     pressMap: mapPlace.pressMap,
     pressPoi: mapPlace.pressPoi,
     pickSuggestion: (suggestion: AddressSuggestion) =>

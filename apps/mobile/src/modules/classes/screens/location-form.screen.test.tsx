@@ -72,6 +72,7 @@ jest.mock("expo-router/react-navigation", () => ({
   useHeaderHeight: jest.fn(() => 100),
 }));
 
+const { mockAnimateToRegion } = jest.requireMock("react-native-maps");
 const mockReverseGeocode = jest.mocked(reverseGeocodeAsync);
 const mockRequestPermission = jest.mocked(requestForegroundPermissionsAsync);
 const mockPosition = jest.mocked(getCurrentPositionAsync);
@@ -213,6 +214,7 @@ beforeEach(() => {
   (router.back as jest.Mock).mockClear();
   (Stack.Screen as unknown as jest.Mock).mockClear();
   mockReverseGeocode.mockReset().mockResolvedValue([]);
+  mockAnimateToRegion.mockClear();
   mockRequestPermission.mockClear();
   mockPosition.mockClear();
   events = listenToEvents();
@@ -236,11 +238,13 @@ describe("LocationFormScreen (new)", () => {
     expect(searchField().props.placeholder).toBe(
       "Search for an address or a beach",
     );
-    expect(map().props.region).toEqual({
+    expect(map().props.initialRegion).toEqual({
       ...FORTALEZA,
       latitudeDelta: MAP_DELTA,
       longitudeDelta: MAP_DELTA,
     });
+    // The map isn't controlled: feeding its region back would drift it under the padding.
+    expect(map().props.region).toBeUndefined();
     expect(pin()).toBeNull();
     expect(screen.getByText("New location")).toBeTruthy();
     expect(screen.getByText("Tap the map to mark the point")).toBeTruthy();
@@ -264,9 +268,13 @@ describe("LocationFormScreen (new)", () => {
     expect(map().props.showsUserLocation).toBe(false);
   });
 
-  it("keeps the map clear of the header and of the panel", async () => {
+  it("keeps the map clear of the header and of the panel, once the map is ready", async () => {
     await renderScreen();
 
+    // Google Maps crashes on a padding set before it is ready.
+    expect(map().props.mapPadding).toBeUndefined();
+
+    await act(() => map().props.onMapReady());
     await act(() =>
       screen
         .getByTestId("location-form-panel")
@@ -298,7 +306,7 @@ describe("LocationFormScreen (new)", () => {
       screen.getByText("Point picked on the map · -3.7253, -38.4891"),
     ).toBeTruthy();
     // A tap doesn't move the map: the finger is already there.
-    expect(map().props.region).toMatchObject(FORTALEZA);
+    expect(mockAnimateToRegion).not.toHaveBeenCalled();
     expect(submit()).toBeDisabled();
 
     await typeName("  Praia de Iracema ");
@@ -411,7 +419,7 @@ describe("LocationFormScreen (new)", () => {
         latitude: -3.7442,
         longitude: -38.4617,
       });
-      expect(map().props.region).toEqual({
+      expect(mockAnimateToRegion).toHaveBeenLastCalledWith({
         latitude: -3.7442,
         longitude: -38.4617,
         latitudeDelta: MAP_DELTA,
@@ -595,7 +603,7 @@ describe("LocationFormScreen (new)", () => {
         .press(screen.getByRole("button", { name: "My location" }));
 
       await waitFor(() =>
-        expect(map().props.region).toEqual({
+        expect(mockAnimateToRegion).toHaveBeenCalledWith({
           ...DEVICE,
           latitudeDelta: MAP_DELTA,
           longitudeDelta: MAP_DELTA,
@@ -623,7 +631,7 @@ describe("LocationFormScreen (new)", () => {
           "Allow location access in Settings to use your position.",
         ),
       );
-      expect(map().props.region).toMatchObject(FORTALEZA);
+      expect(mockAnimateToRegion).not.toHaveBeenCalled();
       expect(map().props.showsUserLocation).toBe(false);
 
       // The map and its taps keep working.
@@ -656,6 +664,14 @@ describe("LocationFormScreen (new)", () => {
           : base(url, init),
       );
 
+      // The admin zoomed in: the place is centred at that span.
+      await act(() =>
+        map().props.onRegionChangeComplete({
+          ...FORTALEZA,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.02,
+        }),
+      );
       await act(() =>
         map().props.onPoiClick({
           nativeEvent: {
@@ -674,6 +690,12 @@ describe("LocationFormScreen (new)", () => {
         latitude: -3.7442,
         longitude: -38.4617,
       });
+      expect(mockAnimateToRegion).toHaveBeenLastCalledWith({
+        latitude: -3.7442,
+        longitude: -38.4617,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.02,
+      });
     });
   });
 });
@@ -691,7 +713,7 @@ describe("LocationFormScreen (edit)", () => {
       screen.getByText("Praia do Futuro · -3.7442, -38.4617"),
     ).toBeTruthy();
     expect(pin()!.props.coordinate).toEqual(point);
-    expect(map().props.region).toEqual({
+    expect(map().props.initialRegion).toEqual({
       ...point,
       latitudeDelta: MAP_DELTA,
       longitudeDelta: MAP_DELTA,
@@ -701,15 +723,32 @@ describe("LocationFormScreen (edit)", () => {
     expect(removeButtons()).toHaveLength(1);
   });
 
-  it("fills the form when the list arrives after the screen opened", async () => {
-    await renderScreen({ id: "l-1", cached: false });
+  it("fills the form, and opens the map again on the location, when the list arrives after the screen opened", async () => {
+    let answer: (value: unknown) => void = () => undefined;
+    await renderScreen({
+      id: "l-1",
+      cached: false,
+      overrides: {
+        "GET /locations": () =>
+          new Promise((resolve) => {
+            answer = resolve;
+          }),
+      },
+    });
 
     expect(nameInput().props.value).toBe("");
+    expect(map().props.initialRegion).toMatchObject(FORTALEZA);
+    await act(() => map().props.onMapReady());
+    expect(map().props.mapPadding).toBeDefined();
 
+    await act(async () => answer(ok({ items: [stored] })));
     await waitFor(() =>
       expect(nameInput().props.value).toBe("Praia do Futuro"),
     );
     expect(pin()!.props.coordinate).toEqual(point);
+    expect(map().props.initialRegion).toMatchObject(point);
+    // The new map gets its padding only once it is ready too.
+    expect(map().props.mapPadding).toBeUndefined();
     expect(mockShow).not.toHaveBeenCalled();
   });
 
@@ -719,7 +758,7 @@ describe("LocationFormScreen (edit)", () => {
 
     expect(pin()).toBeNull();
     expect(screen.getByText("Tap the map to mark the point")).toBeTruthy();
-    expect(map().props.region).toMatchObject(FORTALEZA);
+    expect(map().props.initialRegion).toMatchObject(FORTALEZA);
     expect(submit()).toBeDisabled();
 
     await tapMap();

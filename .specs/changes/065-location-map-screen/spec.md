@@ -192,7 +192,7 @@ and stacked fields are hard to use.
   > `npx jest src/modules/classes/hooks/use-device-location.hook.test.tsx src/modules/classes/components/my-location-button`
   > (8 passed: granted, denied, failed read, nothing asked before the tap; 100% on both files), `npx eslint`,
   > `npx tsc --noEmit` clean; deviations: the two strings are added here rather than in T-05
-- [ ] **T-05** — `src/modules/classes/utils/location-events.ts` (D-03) and the screen
+- [x] **T-05** — `src/modules/classes/utils/location-events.ts` (D-03) and the screen
   `src/modules/classes/screens/location-form.screen.tsx` with its hook (the form rules moved from
   `location-sheet.hook.ts`), route `src/app/(private)/admin/location-form.tsx` and `routes.admin.locationForm(id?)`
   in `src/constants/routes.ts`: full-screen map with the pin and user dot, `LocationSearchHeader` as `headerTitle`
@@ -202,6 +202,33 @@ and stacked fields are hard to use.
   for create, edit, remove, duplicate, save errors, unknown `id` and the events. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/location-events.test.ts` passes.
+  > ✅ 2026-10-26 — `utils/location-events.ts` (`subscribeLocationEvents({ onCreated, onRemoved })` returns the
+  > unsubscribe; `emitLocationCreated`, `emitLocationRemoved`). `LocationFormScreen` + `useLocationFormScreen`: the
+  > route `src/app/(private)/admin/location-form.tsx` and `routes.admin.locationForm(id?)`; the screen sets a transparent
+  > header on every platform, draws `MapView` across the whole screen (controlled `region`, `mapPadding` clear of the
+  > header and the measured panel, `showsUserLocation` once allowed, `onPoiClick` only on Android) with the pin
+  > (`pendingPoint` while an address is looked up, else the picked place), `LocationSearchHeader`, `MyLocationButton`
+  > (centres on the device with `MAP_DELTA`, pin unchanged) and the fixed bottom panel riding the keyboard
+  > (`usePinnedFooter`): title, `LocationAddressCard`, "Nome", the notify checkbox with its count, "Cancelar" / "Salvar
+  > local" ("Salvar" when editing), "Remover local" + `ArchiveLocationSheet`. The hook keeps the sheet's rules: the
+  > location and the duplicate list from `useLocations()`, the form filled once the location is known, an empty "Nome"
+  > filled by a picked place's name, duplicate by name (own name allowed) or from the server (409, list reloaded),
+  > gone (409 `location.archived` / 404) → toast, list reloaded, back, `emitLocationRemoved`; other errors → toast and
+  > stay; session expired → nothing; save → `emitLocationCreated` or "Local atualizado", then back; removal → toast,
+  > back, `emitLocationRemoved`; an `id` not among the active locations (or a failed list) → "gone" toast and back,
+  > once. Save stays off while an address is looked up; files:
+  > `apps/mobile/src/modules/classes/utils/location-events.ts`,
+  > `apps/mobile/src/modules/classes/utils/location-events.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`,
+  > `apps/mobile/src/app/(private)/admin/location-form.tsx`, `apps/mobile/src/constants/routes.ts`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/location-events.test.ts`
+  > (39 passed; 100% statements, branches, functions and lines on the screen, its hook and the events), `npx eslint`,
+  > `npx tsc --noEmit` clean; deviations: the screen's strings were added in T-03/T-04 (no new ones were needed here:
+  > the rest reuse `locationSheet.*`); the pinned-footer hook is reused from `modules/school-settings` as
+  > `send-notice.screen.tsx` does; `routes.admin.locationForm` is exercised by the class form tests of T-06
 - [ ] **T-06** — Point "Nova aula" and "Editar aula" at the route (`new-class.screen.hook.ts`,
   `edit-class.screen.hook.ts` and their screens): "+ Novo local" and a "Gerir" row push
   `routes.admin.locationForm()`, the screens subscribe to the location events to select or clear; reduce

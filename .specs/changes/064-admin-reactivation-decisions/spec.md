@@ -305,13 +305,14 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-03** — Add the ports `ReactivationNotifier` (`reactivationRequested({ id, name })`,
+- [x] **T-03** — Add the ports `ReactivationNotifier` (`reactivationRequested({ id, name })`,
   `reactivationApproved(userId)`, `reactivationDenied(userId, reason?)`) and `ClassesTakenCounter` (D-02) in
   `src/user/provider/`, the `UserRepository` methods `findReactivationRequests` and `updateIfReactivationRequested`
   (D-08), their fakes in `test/mock/` (including `fake-user.repository.ts`), and make `RequestReactivation` notify the
   admins only when it records the request (D-05), with tests in
   `test/user/usecase/request-reactivation.usecase.test.ts`.
   Covers: ER-01, ER-05 · Done when: `npx jest` passes and `npm run check-types` exits 0 in `modules/auth`.
+  > ✅ 2026-10-26 — added the `ReactivationNotifier` and `ClassesTakenCounter` ports, `findReactivationRequests` / `updateIfReactivationRequested` on `UserRepository`, their fakes, and `RequestReactivation` now notifies admins only when it records the request; files: `modules/auth/src/user/provider/{reactivation-notifier,classes-taken-counter}.provider.ts`, `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/src/user/usecase/request-reactivation.usecase.ts`, `modules/auth/test/mock/{fake-reactivation-notifier,fake-classes-taken-counter}.provider.ts`, `modules/auth/test/mock/{index,fake-user.repository}.ts`, `modules/auth/test/user/usecase/request-reactivation.usecase.test.ts`, `modules/auth/test/user/provider/user.repository.test.ts`; verified: `npx jest` (30 suites, 415 passed) and `npm run check-types` exit 0 in `modules/auth`; deviations: `apps/backend` does not type-check until T-08 passes the notifier to `RequestReactivation`.
 - [ ] **T-04** — Add `ListReactivationRequests`, `ApproveReactivation` and `DenyReactivation` in
   `src/user/usecase/{list-reactivation-requests,approve-reactivation,deny-reactivation}.usecase.ts` plus a
   `reactivation-request.ts` helper (find by id with D-07's 404/409), exported from the index; access by

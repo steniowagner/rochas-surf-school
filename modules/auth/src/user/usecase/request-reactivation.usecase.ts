@@ -5,7 +5,7 @@ import {
   UseCase,
 } from "@rochas-surf-school/shared";
 import { ClockProvider } from "../../sign-in-code/provider";
-import { RulesVersionProvider, UserRepository } from "../provider";
+import { ReactivationNotifier, RulesVersionProvider, UserRepository } from "../provider";
 import { AccountOut, toAccountOut } from "./account.out";
 
 export interface RequestReactivationIn {
@@ -21,6 +21,7 @@ export class RequestReactivation
     private readonly userRepository: UserRepository,
     private readonly rulesVersionProvider: RulesVersionProvider,
     private readonly clock: ClockProvider,
+    private readonly reactivationNotifier: ReactivationNotifier,
   ) {}
 
   async execute(input: RequestReactivationIn): Promise<RequestReactivationOut> {
@@ -43,6 +44,7 @@ export class RequestReactivation
       });
       account.validate();
       await this.userRepository.update(account);
+      await this.reactivationNotifier.reactivationRequested({ id: account.id, name: account.name });
     }
 
     return toAccountOut(account, await this.rulesVersionProvider.getCurrentVersion());

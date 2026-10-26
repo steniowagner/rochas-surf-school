@@ -64,7 +64,7 @@ const open = async (serving: Serve = {}) => {
 
 const sendButton = () => screen.getByRole("button", { name: "Send" });
 const titleField = () => screen.getByLabelText("Title");
-const messageField = () => screen.getByLabelText("Message");
+const messageField = () => screen.getByLabelText("Description");
 
 const fill = async (user: Awaited<ReturnType<typeof open>>) => {
   await user.type(titleField(), "  Class moved ");

@@ -77,7 +77,9 @@ export function SendNoticeScreen() {
         }}
       >
         <ScreenIntro
-          icon={<Ionicons name="megaphone-outline" size={30} color={theme.grape} />}
+          icon={
+            <Ionicons name="megaphone-outline" size={30} color={theme.grape} />
+          }
           title={t("notices.title")}
           description={t("notices.description")}
           onTitleLayout={header.onTitleBottomChange}
@@ -99,34 +101,40 @@ export function SendNoticeScreen() {
             {countText}
           </Text>
         </View>
-        <View className="gap-4">
-          <View
-            testID="notice-title-field"
-            onLayout={(event) => onFieldLayout("title", event)}
-          >
-            <TextInput
-              icon={<Ionicons name="text-outline" size={19} color={theme.ink2} />}
-              accessibilityLabel={t("notices.titleLabel")}
-              placeholder={t("notices.titleLabel")}
-              value={screen.title}
-              maxLength={NOTICE_TITLE_MAX_LENGTH}
-              onChangeText={screen.setTitle}
-              onFocus={() => onFieldFocus("title")}
-            />
-          </View>
-          <View
-            testID="notice-message-field"
-            onLayout={(event) => onFieldLayout("message", event)}
-          >
-            <TextArea
-              label={t("notices.messageLabel")}
-              placeholder={t("notices.messagePlaceholder")}
-              value={screen.message}
-              maxLength={NOTICE_MESSAGE_MAX_LENGTH}
-              onChangeText={screen.setMessage}
-              onFocus={() => onFieldFocus("message")}
-            />
-          </View>
+        <View
+          testID="notice-title-field"
+          className="gap-2"
+          onLayout={(event) => onFieldLayout("title", event)}
+        >
+          <Text className="ds-text-section-label text-ink-2">
+            {t("notices.titleLabel")}
+          </Text>
+          <TextInput
+            icon={null}
+            accessibilityLabel={t("notices.titleLabel")}
+            placeholder={t("notices.titlePlaceholder")}
+            value={screen.title}
+            maxLength={NOTICE_TITLE_MAX_LENGTH}
+            onChangeText={screen.setTitle}
+            onFocus={() => onFieldFocus("title")}
+          />
+        </View>
+        <View
+          testID="notice-message-field"
+          className="gap-2"
+          onLayout={(event) => onFieldLayout("message", event)}
+        >
+          <Text className="ds-text-section-label text-ink-2">
+            {t("notices.messageLabel")}
+          </Text>
+          <TextArea
+            accessibilityLabel={t("notices.messageLabel")}
+            placeholder={t("notices.messagePlaceholder")}
+            value={screen.message}
+            maxLength={NOTICE_MESSAGE_MAX_LENGTH}
+            onChangeText={screen.setMessage}
+            onFocus={() => onFieldFocus("message")}
+          />
         </View>
       </Animated.ScrollView>
       {header.backdrop}

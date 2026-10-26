@@ -323,11 +323,12 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Implement `findReactivationRequests` and `updateIfReactivationRequested` (one conditional
+- [x] **T-05** — Implement `findReactivationRequests` and `updateIfReactivationRequested` (one conditional
   `updateMany` on `status = deleted AND reactivation_status = requested`, writing `null` for the cleared fields) in
   `src/modules/auth/user.prisma.ts`, with specs in `user.prisma.spec.ts`.
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-02, ER-04 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` passes.
+  > ✅ 2026-10-26 — added `findReactivationRequests` (deleted + requested, ordered by `reactivationRequestedAt`, then `id`) and `updateIfReactivationRequested` (one `updateMany` on `status = deleted AND reactivationStatus = requested`; `toData` writes `null` for the cleared fields) with specs; files: `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (29 passed); deviations: none.
 - [ ] **T-06** — Add `src/modules/enrolment/classes-taken-counter.prisma.ts` (`PrismaClassesTakenCounter`, one SQL
   query with `findHistoryClassIds`' rule grouped by student, no date range), provided and exported by the enrolment
   module, with `classes-taken-counter.prisma.spec.ts`.

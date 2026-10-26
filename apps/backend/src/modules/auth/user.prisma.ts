@@ -150,6 +150,23 @@ export class PrismaUserRepository implements UserRepository {
     return count === 1;
   }
 
+  async findReactivationRequests(): Promise<User[]> {
+    const records = await this.prisma.user.findMany({
+      where: { status: 'deleted', reactivationStatus: 'requested' },
+      orderBy: [{ reactivationRequestedAt: 'asc' }, { id: 'asc' }],
+      include,
+    });
+    return records.map((record) => this.toDomain(record));
+  }
+
+  async updateIfReactivationRequested(user: User): Promise<boolean> {
+    const { count } = await this.prisma.user.updateMany({
+      where: { id: user.id, status: 'deleted', reactivationStatus: 'requested' },
+      data: this.toData(user),
+    });
+    return count === 1;
+  }
+
   async findDeniedBefore(cutoff: Date): Promise<string[]> {
     const records = await this.prisma.user.findMany({
       where: { status: 'denied', deniedAt: { lte: cutoff } },

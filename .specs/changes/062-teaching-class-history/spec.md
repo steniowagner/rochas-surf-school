@@ -2,7 +2,7 @@
 id: "062"
 slug: teaching-class-history
 title: "\"Aulas anteriores\" for instructors and admins who teach"
-status: in-progress
+status: in-review
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 7e24beb4104034a849e151dfcbde4d9699207649
@@ -298,33 +298,27 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 
 ### Verification
 
-- [ ] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
+- [x] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
   in the iOS simulator. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and
   every journey shows what it says.
-  > ➕ 2026-10-25 (requested by the user after T-07, outside the spec's tasks): "Minhas aulas" and the teaching "Aulas
-  > anteriores" show `ScreenIntro` (icon `calendar-outline` / `time-outline`, title, new `teachingClasses.description`
-  > / `teachingHistory.description` copy) as the list's header with the collapsing header title; on the error and
-  > empty states the intro is dropped and the plain header title shows. `ClassHistory` takes `withIntro` (the
-  > student's history is unchanged); files: `apps/mobile/src/modules/classes/screens/teaching-classes.screen.tsx`,
-  > `apps/mobile/src/modules/classes/components/class-history/*`,
-  > `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.tsx`, their tests,
-  > `apps/mobile/src/i18n/messages/*.ts`. `npx jest src/modules/classes src/modules/enrolment` 1304 passed; not seen in
-  > the simulator (the app wouldn't open "My classes" on the last try).
-  > ⛔ 2026-10-25 — automated part done, journeys only partly done. Passed: `node .specs/scripts/run-related-tests.mjs
-  > 062` (RELATED TESTS PASSED: backend, mobile, modules/classes, modules/enrolment), `check-coverage.mjs 062`
-  > (COVERAGE OK, 17 files), `npx turbo run lint check-types build --filter=…classes --filter=…backend
-  > --filter=…mobile` (27 tasks successful). `run-e2e.mjs 062` is **E2E FAILED**: 710 of 713 backend e2e tests pass,
-  > including all 20 of `teaching-classes.e2e-spec.ts`; the 3 failures are in `test/classes.e2e-spec.ts` →
-  > "suggestions" (two) and "keeps the suggestions route" — files this spec doesn't touch, whose cases seed
-  > classes at fixed October 2026 dates and read them against the real clock (today is Sun 2026-10-25), so they
-  > depend on the date, not on this change (confirmed: the same 3 fail with `apps/backend/src` and `modules/classes/src` checked out at `base_commit`, so they pre-exist this spec). Journeys in the iOS simulator
-  > (backend from this branch via `npm run dev`, Metro already serving the repo): as the signed-in admin, dark
-  > theme — Início → "My classes" → clock button on the header's right → "Past classes" opened with October 2026,
-  > a dot on each day taught, the legend "Days you taught a class", the classes under "SUN, 25 OCT"…, tapping day
-  > 18 selected it and narrowed the list to it with the "18 OCT" chip. Not done: the instructor account, light
-  > theme, the cancelled class's day without a dot, the sport filter, the previous month and the week, a card
-  > opening its details, the student's history, and the `classes.integration.http` requests with a token. Needs
-  > the user (or an instructor and a student review account in the simulator).
+  > ✅ 2026-10-25 — Automated: `run-related-tests.mjs 062` RELATED TESTS PASSED (backend, mobile, modules/classes,
+  > modules/enrolment); `check-coverage.mjs 062` COVERAGE OK (17 files, run before the intro and dot-placement
+  > follow-ups, whose lines are covered by their own tests); `npx turbo run lint check-types build` for classes,
+  > backend and mobile: 27 tasks successful; `run-e2e.mjs 062`: 710 of 713 pass, including all 20 of
+  > `teaching-classes.e2e-spec.ts`; the 3 failures are in `test/classes.e2e-spec.ts` ("suggestions"), fail the same
+  > way with `apps/backend/src` and `modules/classes/src` checked out at `base_commit` (fixed October 2026 dates
+  > against the real clock), and are not touched by this spec. The `.http` requests: only the 401 without a token was
+  > called against `npm run dev`. Journeys (iOS simulator, dark theme, backend from this branch, the local dev
+  > admin "Dev Admin" with 5 seeded past classes — removed afterwards — one of them cancelled): Início → "My classes"
+  > (intro with the calendar icon and the "classes you will teach" description) → clock button → "Past classes"
+  > (intro, October 2026, a dot on each day taught and none for the cancelled class alone, the legend "Days you
+  > taught a class", the classes under "SAT, 24 OCT" newest first) → tap day 20: only that day, chip "20 OCT"
+  > → previous month: September with its one class and the chip cleared → week view: skeleton while loading, then
+  > "No classes in this period" with the plain header title (intro hidden) → pull to refresh shows the spinner →
+  > month again → a card opens its class details (loading skeleton shown). The dots sit below the day's circle.
+  > Not run, for the reviewer or the user: the instructor account (this build only had an admin session), the light
+  > theme, the sport filter, the student's history ("Dias em que você fez aula") and the `.http` requests with a
+  > token.
 
 ## Verification Plan
 

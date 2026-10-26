@@ -9,6 +9,8 @@ export * from "./delete-class.usecase";
 export * from "./release-upcoming-classes.usecase";
 export * from "./work-out-cancellation-deadlines.usecase";
 export * from "./list-my-classes.usecase";
+export { MY_CLASS_HISTORY_MAX_DAYS } from "./class-history-period";
 export * from "./list-my-class-history.usecase";
 export * from "./send-class-reminders.usecase";
 export * from "./list-teaching-classes.usecase";
+export * from "./list-teaching-class-history.usecase";

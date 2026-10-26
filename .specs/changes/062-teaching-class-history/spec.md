@@ -164,7 +164,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 
 ### Classes (`modules/classes`)
 
-- [ ] **T-01** — Add `findHistoryClassIds(teacherId, now, from, to): Promise<string[]>` to `TeachingClassesReader`
+- [x] **T-01** — Add `findHistoryClassIds(teacherId, now, from, to): Promise<string[]>` to `TeachingClassesReader`
   (`src/school-class/provider/teaching-classes-reader.provider.ts`) and to its fake
   (`test/mock/fake-teaching-classes.reader.ts`); extract the period validation of `ListMyClassHistory` into a shared
   function in `src/school-class/usecase/` and use it there; add `ListTeachingClassHistory`
@@ -173,6 +173,18 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   domain decides. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02 · Done when: `npx jest test/school-class/usecase` passes from `modules/classes`, with
   `list-my-class-history.usecase.test.ts` unchanged and green.
+  > ✅ 2026-10-25 — added `findHistoryClassIds` to the reader and its fake (a third `history` constructor argument and
+  > `historyCalls`); moved the period validation of `ListMyClassHistory` into `toHistoryPeriod`
+  > (`class-history-period.ts`, also home of `MY_CLASS_HISTORY_MAX_DAYS`, still exported from the package); added
+  > `ListTeachingClassHistory`; files: `modules/classes/src/school-class/provider/teaching-classes-reader.provider.ts`,
+  > `modules/classes/test/mock/fake-teaching-classes.reader.ts`,
+  > `modules/classes/src/school-class/usecase/class-history-period.ts`,
+  > `modules/classes/src/school-class/usecase/list-my-class-history.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/list-teaching-class-history.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`,
+  > `modules/classes/test/school-class/usecase/list-teaching-class-history.usecase.test.ts`; verified:
+  > `npx jest test/school-class/usecase` from `modules/classes` (14 suites, 345 passed, `list-my-class-history`
+  > unchanged), `npx tsc --noEmit` clean; deviations: none
 
 ### Backend (`apps/backend`)
 

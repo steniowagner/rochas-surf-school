@@ -6,6 +6,8 @@ import {
   getDirectionsUrl,
   getMapProvider,
   MAP_DELTA,
+  PLACE_ALTITUDE,
+  PLACE_ZOOM,
   PREVIEW_DELTA,
   regionAround,
   toMapPoint,
@@ -96,5 +98,12 @@ describe("formatPoint", () => {
     expect(formatPoint({ latitude: -3.73189, longitude: -38.5 })).toBe(
       "-3.7319, -38.5000",
     );
+  });
+});
+
+describe("place zoom", () => {
+  it("is about a kilometre on both maps", () => {
+    expect(PLACE_ZOOM).toBe(16);
+    expect(PLACE_ALTITUDE).toBe(2000);
   });
 });

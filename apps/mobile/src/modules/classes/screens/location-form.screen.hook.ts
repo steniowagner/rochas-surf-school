@@ -7,7 +7,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LayoutChangeEvent } from "react-native";
+import { Keyboard, LayoutChangeEvent } from "react-native";
 import { useAnimatedStyle } from "react-native-reanimated";
 import MapView from "react-native-maps";
 
@@ -31,7 +31,12 @@ import {
   emitLocationRemoved,
 } from "../utils/location-events";
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
-import { PREVIEW_DELTA, regionAround, toMapPoint } from "../utils/map";
+import {
+  PLACE_ALTITUDE,
+  PLACE_ZOOM,
+  regionAround,
+  toMapPoint,
+} from "../utils/map";
 import { newSessionToken } from "../utils/session-token";
 
 import { LocationFormFields } from "./location-form.screen.types";
@@ -119,10 +124,16 @@ export const useLocationFormScreen = (
           : current.name,
     }));
 
-    // A place picked from the search (or a labelled place) centres the map and zooms in on it; a tap doesn't move
-    // the map, the finger is there.
+    // A place picked from the search (or a labelled place) closes the keyboard, centres the map and zooms in on it;
+    // a tap doesn't move the map, the finger is there. No animation: the map resizes as the Android keyboard goes away,
+    // which would stop it half-way.
     if (place.name !== null) {
-      mapRef.current?.animateToRegion(regionAround(place.point, PREVIEW_DELTA));
+      Keyboard.dismiss();
+      mapRef.current?.setCamera({
+        center: place.point,
+        zoom: PLACE_ZOOM,
+        altitude: PLACE_ALTITUDE,
+      });
     }
   };
 

@@ -14,7 +14,7 @@ import {
   reverseGeocodeAsync,
 } from "expo-location";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Platform, StyleSheet } from "react-native";
+import { Keyboard, Platform, StyleSheet } from "react-native";
 
 import { useKeyboardHeight } from "@/hooks/use-keyboard-height.hook";
 import * as api from "@/services/api";
@@ -30,7 +30,7 @@ import {
 import { ClassLocation } from "../classes.types";
 import { subscribeLocationEvents } from "../utils/location-events";
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
-import { FORTALEZA, MAP_DELTA, PREVIEW_DELTA } from "../utils/map";
+import { FORTALEZA, MAP_DELTA, PLACE_ALTITUDE, PLACE_ZOOM } from "../utils/map";
 
 import { LocationFormScreen } from "./location-form.screen";
 
@@ -74,7 +74,8 @@ jest.mock("expo-router/react-navigation", () => ({
   useHeaderHeight: jest.fn(() => 100),
 }));
 
-const { mockAnimateToRegion } = jest.requireMock("react-native-maps");
+const { mockSetCamera, mockAnimateToRegion } =
+  jest.requireMock("react-native-maps");
 const mockReverseGeocode = jest.mocked(reverseGeocodeAsync);
 const mockRequestPermission = jest.mocked(requestForegroundPermissionsAsync);
 const mockPosition = jest.mocked(getCurrentPositionAsync);
@@ -217,6 +218,8 @@ beforeEach(() => {
   (Stack.Screen as unknown as jest.Mock).mockClear();
   mockReverseGeocode.mockReset().mockResolvedValue([]);
   mockAnimateToRegion.mockClear();
+  mockSetCamera.mockClear();
+  jest.spyOn(Keyboard, "dismiss").mockClear();
   mockRequestPermission.mockClear();
   mockPosition.mockClear();
   events = listenToEvents();
@@ -335,8 +338,10 @@ describe("LocationFormScreen (new)", () => {
     expect(
       screen.getByText("Point picked on the map · -3.7253, -38.4891"),
     ).toBeTruthy();
-    // A tap doesn't move the map: the finger is already there.
+    // A tap doesn't move the map, nor close a keyboard: the finger is already there.
     expect(mockAnimateToRegion).not.toHaveBeenCalled();
+    expect(mockSetCamera).not.toHaveBeenCalled();
+    expect(Keyboard.dismiss).not.toHaveBeenCalled();
     expect(submit()).toBeDisabled();
 
     await typeName("  Praia de Iracema ");
@@ -449,12 +454,12 @@ describe("LocationFormScreen (new)", () => {
         latitude: -3.7442,
         longitude: -38.4617,
       });
-      // The map zooms in on the picked place.
-      expect(mockAnimateToRegion).toHaveBeenLastCalledWith({
-        latitude: -3.7442,
-        longitude: -38.4617,
-        latitudeDelta: PREVIEW_DELTA,
-        longitudeDelta: PREVIEW_DELTA,
+      // The keyboard closes and the map zooms in on the picked place, by camera (the span would follow the map's size).
+      expect(Keyboard.dismiss).toHaveBeenCalled();
+      expect(mockSetCamera).toHaveBeenLastCalledWith({
+        center: { latitude: -3.7442, longitude: -38.4617 },
+        zoom: PLACE_ZOOM,
+        altitude: PLACE_ALTITUDE,
       });
       expect(nameInput().props.value).toBe("Praia do Futuro");
       expect(screen.queryByTestId("location-suggestions")).toBeNull();
@@ -713,11 +718,10 @@ describe("LocationFormScreen (new)", () => {
         latitude: -3.7442,
         longitude: -38.4617,
       });
-      expect(mockAnimateToRegion).toHaveBeenLastCalledWith({
-        latitude: -3.7442,
-        longitude: -38.4617,
-        latitudeDelta: PREVIEW_DELTA,
-        longitudeDelta: PREVIEW_DELTA,
+      expect(mockSetCamera).toHaveBeenLastCalledWith({
+        center: { latitude: -3.7442, longitude: -38.4617 },
+        zoom: PLACE_ZOOM,
+        altitude: PLACE_ALTITUDE,
       });
     });
   });

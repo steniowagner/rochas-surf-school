@@ -98,13 +98,19 @@ jest.mock("@expo/ui/community/datetime-picker", () => {
 
 // The native map isn't available under Jest: host views that keep their props (`onPress`, `region`, `coordinate`,
 // `scrollEnabled`…), so tests read them and drive a tap with `fireEvent.press(map, { nativeEvent: { coordinate } })`.
-// A ref to the map gets `animateToRegion`, the shared `mockAnimateToRegion` the tests read.
+// A ref to the map gets `animateToRegion` and `setCamera`, the shared `mockAnimateToRegion` and `mockSetCamera` the
+// tests read.
 jest.mock("react-native-maps", () => {
   const mockAnimateToRegion = jest.fn();
+  const mockSetCamera = jest.fn();
   // A class, so a ref to it has the method (and the React Compiler leaves it alone).
   class MapView extends require("react").Component<Record<string, unknown>> {
     animateToRegion(...args: unknown[]) {
       mockAnimateToRegion(...args);
+    }
+
+    setCamera(...args: unknown[]) {
+      mockSetCamera(...args);
     }
 
     render() {
@@ -122,6 +128,7 @@ jest.mock("react-native-maps", () => {
     PROVIDER_GOOGLE: "google",
     PROVIDER_DEFAULT: null,
     mockAnimateToRegion,
+    mockSetCamera,
   };
 });
 

@@ -62,7 +62,7 @@ and stacked fields are hard to use.
 | D-06 | On Android, a tap on a labelled place (`onPoiClick`, Google Maps only) selects it through `useAddressPlace` with the screen's session token, like a suggestion. On iOS (Apple Maps reports no place taps) every tap is a point tap. | react-native-maps exposes place taps only on Google Maps. |
 | D-07 | "My location" asks for the foreground permission only when tapped. Granted: the map centres on the device (`MAP_DELTA` span) and shows the user dot; the pin doesn't move. Denied: a toast, and nothing else changes. | An admin often plans a beach from somewhere else; asking at open is intrusive. |
 | D-08 | The bottom panel is fixed (not draggable) and rises with the keyboard; with no point yet there is no pin and the card shows the empty hint. "Cancelar" and the back button both leave without saving. | Matches the design; the map takes the drags. |
-| D-09 | A picked suggestion or labelled place centres the map and zooms in on it (`PREVIEW_DELTA`, about a kilometre); a tap on the map still moves nothing. | The user's follow-up: the admin should see the place up close, not the whole city. |
+| D-09 | A picked suggestion or labelled place closes the keyboard, centres the map and zooms in on it (a camera zoom of about a kilometre: `zoom` on Google Maps, `altitude` on Apple Maps); a tap on the map still moves nothing. | The user's follow-up: the admin should see the place up close, not the whole city. |
 | D-10 | The search field has no shadow; the panel's actions are stacked ("Salvar local" / "Salvar", then "Cancelar", then "Remover local") and the panel sits flush with the bottom of the screen (rounded top corners, the home-indicator inset inside it). | The user's follow-up after trying it: the shadow drew a box around the field, the side-by-side actions were cramped, and the map showed in a gap under the panel. |
 
 ## Expected Results
@@ -306,6 +306,26 @@ and stacked fields are hard to use.
   > the panel's corners and padding, the lift with a 300 pt keyboard; 100% on the screen and its hook), `npx eslint`,
   > `npx tsc --noEmit` clean; deviations: none
 
+- [x] **T-12** — Zoom by camera, not by span (D-09): on Android the keyboard shrinks the map while a suggestion is
+  picked, so a ~1 km span fitted into that small map came out zoomed out and off-centre once the keyboard closed.
+  `selectPlace` closes the keyboard and calls `animateCamera({ center, zoom, altitude })` (constants in `utils/map.ts`);
+  the Jest map mock gets `animateCamera`. Update the screen's tests. Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
+  Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` passes.
+  > ✅ 2026-10-26 — `selectPlace` now closes the keyboard and sets the camera (`setCamera({ center, zoom: PLACE_ZOOM,
+  > altitude: PLACE_ALTITUDE })`, 16 for Google Maps and 2000 m for Apple Maps, in `utils/map.ts`) for a picked
+  > suggestion or labelled place, instead of T-08's `animateToRegion` with `PREVIEW_DELTA`. On the Android emulator the
+  > span-based zoom was fitted into the map the keyboard had shrunk, so it came out zoomed out and off-centre; an animated
+  > camera was stopped half-way by the resize as the keyboard closed. A camera set without animation keeps its zoom and
+  > Google keeps its target centred through the resize. The Jest map mock's ref gets `setCamera` (`mockSetCamera`); files:
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`, `apps/mobile/src/modules/classes/utils/map.ts`,
+  > `apps/mobile/src/modules/classes/utils/map.test.ts`, `apps/mobile/jest.setup.ts`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` (45 passed:
+  > the pick closes the keyboard and sets the camera, a map tap does neither; 100% on the screen, its hook and `map.ts`),
+  > `npx eslint`, `npx tsc --noEmit` clean; on the emulator, "praia de iracema" → first suggestion: keyboard closed, street
+  > level, pin centred between the header and the panel; deviations: no zoom animation (see above)
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then run the user
@@ -387,5 +407,8 @@ and stacked fields are hard to use.
   picked place (D-09, before: the map was only centred, keeping its span); no shadow around the search field; stacked
   actions instead of side by side; the panel flush with the bottom of the screen instead of floating over a gap
   (D-10). Tasks T-08 to T-11 added; no Expected Result changes.
+- 2026-10-26 — D-09's zoom became a camera zoom that also closes the keyboard (before: `animateToRegion` with
+  `PREVIEW_DELTA`), because on Android the open keyboard shrinks the map and the span-based zoom came out zoomed out
+  and off-centre; same intent the user approved. Task T-12 added.
 
 ## Review

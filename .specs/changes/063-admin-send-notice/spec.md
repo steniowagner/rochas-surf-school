@@ -3,7 +3,7 @@ id: "063"
 slug: admin-send-notice
 title: Admin sends a notice to everyone, students or instructors
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 880f04238a086ae12a8c3da0d79e5f95865d0819
@@ -79,7 +79,8 @@ as written on their notifications screen and as a push. Design: PAINEL-07 and PA
   > ✅ 2026-10-26 13:00 — created `src/modules/notices/` (screen with audience `SegmentedControl`, title `TextInput`, message `TextArea`, live recipient count, Send disabled while a field is blank or the count is zero, loading or failed; confirm sheet on `BottomModal` naming the audience and the count; send closes the screen and shows a toast; a failed send keeps the text and shows an error), the route `routes.admin.sendNotice` with `src/app/(private)/admin/send-notice.tsx`, a "Send notice" `AdminToolRow` in the tools section, and the i18n keys in en-US, pt-BR and es-ES; files: `apps/mobile/src/modules/notices/notices.types.ts`, `apps/mobile/src/modules/notices/notices.constants.ts`, `apps/mobile/src/modules/notices/hooks/use-notice-recipients-count.hook.ts`, `apps/mobile/src/modules/notices/hooks/use-notice-recipients-count.hook.test.tsx`, `apps/mobile/src/modules/notices/hooks/use-send-notice.hook.ts`, `apps/mobile/src/modules/notices/hooks/use-send-notice.hook.test.tsx`, `apps/mobile/src/modules/notices/components/send-notice-confirm-sheet/` (`index.ts`, `.component.tsx`, `.types.ts`, `.component.test.tsx`), `apps/mobile/src/modules/notices/screens/send-notice.screen.tsx`, `apps/mobile/src/modules/notices/screens/send-notice.screen.hook.ts`, `apps/mobile/src/modules/notices/screens/send-notice.screen.types.ts`, `apps/mobile/src/modules/notices/screens/send-notice.screen.test.tsx`, `apps/mobile/src/modules/notices/screens/send-notice.screen.hook.test.tsx`, `apps/mobile/src/app/(private)/admin/send-notice.tsx`, `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`, `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`; verified: `npx jest src/modules/notices src/modules/admin src/modules/notifications` (28 suites, 434 passed; notices module 100% covered), `tsc --noEmit` and ESLint clean; deviations: the screen shows the header title plus a `ScreenIntro` (no collapsing title) and the Send button sits at the end of the form instead of pinned to the bottom; the PAINEL-07/07A designs are images in the bundle, so the layout follows the existing admin form screens (school settings) rather than a pixel check.
 ### Verification
 
-- [ ] **T-05** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as evidence. Covers: all · Done when: every command exits 0.
+- [x] **T-05** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-26 13:30 — ran the Verification Plan from the repo root; files: none; verified: `node .specs/scripts/run-related-tests.mjs 063` (RELATED TESTS PASSED: backend 378, mobile 1679, modules/notifications 179), `node .specs/scripts/check-coverage.mjs 063` (COVERAGE OK, 21 files), `npx turbo run lint check-types build --concurrency=1 --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile` (27/27 tasks, exit 0); deviations: the first turbo run failed because backend `build` and `check-types` ran `prisma generate` in parallel (EEXIST), so it was rerun with `--concurrency=1`; e2e suites were not run (not in the Verification Plan).
 
 ## Verification Plan
 

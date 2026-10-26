@@ -11,3 +11,5 @@ export type SendNoticeVariables = {
   title: string;
   message: string;
 };
+
+export type NoticeField = "title" | "message";

@@ -21,6 +21,8 @@ import {
   NOTICE_TITLE_MAX_LENGTH,
 } from "../notices.constants";
 
+import { useScrollFieldIntoView } from "../hooks/use-scroll-field-into-view.hook";
+
 import { useSendNoticeScreen } from "./send-notice.screen.hook";
 
 const CONTENT_PADDING_TOP = 8;
@@ -41,6 +43,7 @@ export function SendNoticeScreen() {
     title: t("notices.title"),
     contentTop: CONTENT_PADDING_TOP,
   });
+  const { scrollRef, onFieldLayout, onFieldFocus } = useScrollFieldIntoView();
   const screen = useSendNoticeScreen();
 
   const audienceOptions = NOTICE_AUDIENCES.map((value) => ({
@@ -60,7 +63,7 @@ export function SendNoticeScreen() {
     <>
       <Stack.Screen options={header.headerOptions} />
       <Animated.ScrollView
-        ref={screen.scrollRef}
+        ref={scrollRef}
         className="flex-1 bg-page"
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
@@ -99,7 +102,7 @@ export function SendNoticeScreen() {
         <View className="gap-4">
           <View
             testID="notice-title-field"
-            onLayout={(event) => screen.onFieldLayout("title", event)}
+            onLayout={(event) => onFieldLayout("title", event)}
           >
             <TextInput
               icon={<Ionicons name="text-outline" size={19} color={theme.ink2} />}
@@ -108,12 +111,12 @@ export function SendNoticeScreen() {
               value={screen.title}
               maxLength={NOTICE_TITLE_MAX_LENGTH}
               onChangeText={screen.setTitle}
-              onFocus={() => screen.onFieldFocus("title")}
+              onFocus={() => onFieldFocus("title")}
             />
           </View>
           <View
             testID="notice-message-field"
-            onLayout={(event) => screen.onFieldLayout("message", event)}
+            onLayout={(event) => onFieldLayout("message", event)}
           >
             <TextArea
               label={t("notices.messageLabel")}
@@ -121,7 +124,7 @@ export function SendNoticeScreen() {
               value={screen.message}
               maxLength={NOTICE_MESSAGE_MAX_LENGTH}
               onChangeText={screen.setMessage}
-              onFocus={() => screen.onFieldFocus("message")}
+              onFocus={() => onFieldFocus("message")}
             />
           </View>
         </View>

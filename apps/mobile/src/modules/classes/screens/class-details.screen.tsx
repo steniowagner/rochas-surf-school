@@ -346,7 +346,7 @@ export function ClassDetailsScreen({
                         color={theme.lagoon}
                       />
                     </View>
-                    <Text className="ds-text-body flex-1 text-ink">
+                    <Text className="ds-text-card-meta flex-1 text-ink">
                       {item.notes}
                     </Text>
                   </View>

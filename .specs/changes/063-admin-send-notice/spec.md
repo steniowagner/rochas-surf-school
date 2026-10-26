@@ -3,7 +3,7 @@ id: "063"
 slug: admin-send-notice
 title: Admin sends a notice to everyone, students or instructors
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 880f04238a086ae12a8c3da0d79e5f95865d0819
@@ -102,3 +102,31 @@ as written on their notifications screen and as a push. Design: PAINEL-07 and PA
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-26 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --concurrency=1` on backend and mobile: 27/27 tasks)
+- related tests ✅ apps/backend 378 passed · apps/mobile 1683 passed · modules/notifications 179 passed (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (22 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ 713 passed on a fresh database (`E2E PASSED`). On the shared local database 3 `classes.e2e-spec.ts` suggestion tests fail because of a local seed class (`admin@example.com`, 2026-10-11 08:00) inside the tests' "last week"; this is unrelated to this spec, and no file this spec changed is involved
+- HTTP (built backend on a scratch database with approved, pending, denied, removed and deleted users): counts 4 / 2 / 1 for all / students / instructors; 422 `broadcast.audience.in` / `.required`, `broadcast.title.required` / `.range.length`, `broadcast.message.required` / `.range.length`; 403 `broadcast.role.notAdmin` for a student and an instructor, `user.status.notApproved` for a pending admin; 401 without a token; nothing stored after any rejection; 204 with one row per approved recipient, trimmed and as written (HTML and emoji kept), 60/500 accepted; an empty audience answers 0 and 204 and stores nothing
+- iOS simulator (iPhone 18 Pro, pt-BR, dev database without push tokens): ER-02 and ER-03 exercised as below
+
+**Expected Results**
+
+- ER-01 ✅ — use case specs cover every case, including D-02, D-03 and D-04; the HTTP checks above match each one (pending, denied, deleted and removed users are never counted or notified; the sender is included only for `all`)
+- ER-02 ✅ — "Enviar aviso" row on Home → screen with the audience selector, the title and message fields and a live count (30 / 19 / 7, "Carregando os destinatários…" while it loads); Send stays disabled while a field is blank; the title stops at 60 characters and the message counter shows /500; the confirm sheet says "Público: Instrutores. 7 pessoas vão receber."; Cancel keeps the text and sends nothing; confirming stores 7 rows exactly as typed, closes the screen and shows "Aviso enviado". The failed-send and failed-count cases are covered by `send-notice.screen.test.tsx` and its hook tests and were not exercised by hand
+- ER-03 ✅ — after a notice to "Todos", the admin's notifications screen shows it first, with the megaphone icon and the title and message as written; tapping it marks it read (the database row) and shows the admin home. Push tap and push received with the app open are covered by the response/received hook tests (no push token on the simulator)
+
+**Findings**
+
+- [ ] **F-01** (convention) — `apps/mobile/src/modules/notices/screens/send-notice.screen.tsx` lines 17–24: `../hooks/use-scroll-field-into-view.hook` sits in its own group after `../notices.constants`, so the relative imports are neither in one group nor sorted by path, as `.claude/rules/react.md` §2 requires. Expected: `../components/send-notice-confirm-sheet`, `../hooks/use-scroll-field-into-view.hook`, `../notices.constants` in one group, then `./send-notice.screen.hook`.
+
+**Notes**
+
+- The shared `TextInput` (`src/components/ui/text-input`, not changed by this spec) draws a long single-line value on two lines, cut at the bottom of the field, once the field loses focus (seen with a 60-character title on iOS 27). Worth its own fix in the shared component.
+- The success toast "Aviso enviado" uses the app's only toast style (red, with an alert icon), like the existing success toasts (`newClass.created`, `cancelClass.done`). A success variant of `AlertMessage` would be a change of its own.
+- The review left notices in the local dev database: 7 (instructors) and 30 ("Todos") `broadcast` rows titled "Review review 063 test notice…" and "Review 063 to all".
+- `## Memory Impact` matches what was built.

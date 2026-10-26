@@ -83,7 +83,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 | ID   | Decision | Reason |
 | ---- | -------- | ------ |
 | D-01 | A class the caller **taught** is one where they are one of the instructors (a `class_instructors` row), whose end is at or before now (the classes module's clock), and that isn't cancelled. A class under way is not listed yet. A class belongs to a period by the America/Fortaleza day its start falls on. | A cancelled class wasn't taught; the same rules as the student's history (spec 048, 053), so both screens read alike. Approved by the user. |
-| D-02 | `GET /classes/teaching/history?from=YYYY-MM-DD&to=YYYY-MM-DD` (authenticated), declared before `GET /classes/:id`, answers `{ items: ClassItem[] }`, newest first (start descending, then id descending), unpaged. The period is validated exactly as `GET /classes/mine/history`: `from` / `to` missing or not a real date → 400 `class.from.invalid` / `class.to.invalid` (both reported when both are wrong); a period shorter than 1 day or longer than 42 days counting both ends → 400 `class.range.invalid`. Access is that of `GET /classes/teaching` (`assertIsTeacher`): a student 403 `user.role.notTeacher`, an account that isn't approved 403 `user.status.notApproved`, no token 401. Items are built with `toClassItem(view, roster, undefined, true)`: guests' names shown, `myEnrolment: null`. The period validation is shared with `ListMyClassHistory`, not copied. | Spec 057 D-03 reserved this route; reusing the student's period contract lets the mobile app reuse its calendar and state. Approved by the user. |
+| D-02 | `GET /classes/teaching/history?from=YYYY-MM-DD&to=YYYY-MM-DD` (authenticated), declared before `GET /classes/:id`, answers `{ items: ClassItem[] }`, newest first (start descending, then id descending), unpaged. The period is validated exactly as `GET /classes/mine/history`: `from` / `to` missing or not a real date → 422 `class.from.invalid` / `class.to.invalid` (both reported when both are wrong); a period shorter than 1 day or longer than 42 days counting both ends → 422 `class.range.invalid`. Access is that of `GET /classes/teaching` (`assertIsTeacher`): a student 403 `user.role.notTeacher`, an account that isn't approved 403 `user.status.notApproved`, no token 401. Items are built with `toClassItem(view, roster, undefined, true)`: guests' names shown, `myEnrolment: null`. The period validation is shared with `ListMyClassHistory`, not copied. | Spec 057 D-03 reserved this route; reusing the student's period contract lets the mobile app reuse its calendar and state. Approved by the user. |
 | D-03 | The screen is the student's history, not PAINEL-04: it opens on Fortaleza's current month with no day selected and can switch to the week; each day of the period with one or more classes shows one dot; tapping a day narrows the list to it (no request) and its chip clears it; the surf/skate `DisciplineFilter` floats at the bottom and filters the loaded period (no request); the classes sit under a label per day, newest first, on `ClassCard`; pull to refresh; skeleton, error with "Try again", and the empty states for the period and the day (with and without a sport). A card opens `routes.<role>.classDetail(id)`. The header shows the centered `StackHeaderTitle` "Aulas anteriores" and the native back button. | The user journey asks for day, week or month; the design's photo and rating counts depend on modules that don't exist. Approved by the user. |
 | D-04 | The history pieces both screens use move to `apps/mobile/src/modules/classes/`: `HistoryDayLabel` and `HistoryListHeader` (`components/`), `utils/class-history.ts`, the screen's state (period, day, sport, rows, loading/error/empty/refresh) as a shared hook that takes the period's query and the class route, and the layout (calendar, legend, list header, list, states, filter) as a `ClassHistory` component that takes the copy. `MyClassHistoryScreen` (enrolment) and the new `TeachingClassHistoryScreen` (classes) are thin wrappers over them. Their tests move with them; the student's screen test keeps its assertions. | The enrolment module already imports from classes; classes importing from enrolment would make the dependency go both ways, and copying would duplicate about 300 lines. Approved by the user. |
 | D-05 | The query is `useQuery` keyed `["classes", "teaching", "history", from, to]`, `retry: false`, `GET /classes/teaching/history?from=…&to=…` authenticated (`useTeachingClassHistory`). The routes are `/instructor/my-history` and `/admin/my-history` (`routes.instructor.myHistory`, `routes.admin.myHistory`), inner screens without the tab bar like `/<role>/my-classes`. | Under `["classes"]`, every class mutation's invalidation refreshes it, as the student's (spec 053 D-10); the route names match the student's `/student/my-history`. |
@@ -112,8 +112,8 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 
 - **Front:** backend
 - **Behavior:** Given a caller of `GET /classes/teaching/history`, when `from` or `to` is missing or isn't a real
-  `YYYY-MM-DD` date, then the API answers 400 with `class.from.invalid` and/or `class.to.invalid`; when the period
-  is shorter than 1 day (`to` before `from`) or longer than 42 days counting both ends, then 400 `class.range.invalid`.
+  `YYYY-MM-DD` date, then the API answers 422 with `class.from.invalid` and/or `class.to.invalid`; when the period
+  is shorter than 1 day (`to` before `from`) or longer than 42 days counting both ends, then 422 `class.range.invalid`.
 - **Edge and error cases:** a 42-day period is accepted, a 43-day one refused; a one-day period (`from` = `to`) is
   accepted; an approved student gets 403 `user.role.notTeacher`; a pending instructor gets 403
   `user.status.notApproved`; no token gets 401.
@@ -367,6 +367,11 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 
 ## Amendments
 
+- 2026-10-25 — D-02 and ER-02: the period errors' status 400 → 422 (`class.from.invalid`, `class.to.invalid`,
+  `class.range.invalid`). Reason: D-02 says the period is "validated exactly as `GET /classes/mine/history`", which
+  answers 422 through the shared `ValidationException` (technical-context → Error handling, spec 053); the 400 was a
+  slip (review F-02). No code change. Approved by the user.
+
 ## Review
 
 ### Round 1 — 2026-10-25 — changes-requested
@@ -407,11 +412,15 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`; verified: `npx jest
   > src/modules/admin/screens/admin.screen.test.tsx src/modules/instructor/screens/instructor.screen.test.tsx` from
   > `apps/mobile` (31 passed, both red before); deviations: none
-- [ ] **F-02** (ER-02) — `GET /classes/teaching/history` answers **422** `class.from.invalid` / `class.to.invalid` /
+- [x] **F-02** (ER-02) — `GET /classes/teaching/history` answers **422** `class.from.invalid` / `class.to.invalid` /
   `class.range.invalid`; D-02 and ER-02 say 400. The code follows D-02's "validated exactly as `GET
   /classes/mine/history`" (`ValidationException` is 422, technical-context → Error handling; spec 053), so the spec's
   "400" is the slip, but T-03 only recorded it as a deviation. Reproduce: the e2e "validates the period" case asserts
   422. Expected: with the user's approval, amend D-02 and ER-02 to 422 and log it under `## Amendments`; no code change.
+  > ✅ 2026-10-25 — the user approved 422: D-02 and ER-02 now say 422, logged under `## Amendments`; no code change
+  > (the e2e "validates the period" case and the `.http` requests already expect 422); files:
+  > `.specs/changes/062-teaching-class-history/spec.md`; verified: `node .specs/scripts/check-spec.mjs 062` (CHECK OK);
+  > deviations: none
 - [ ] **F-03** (scope) — "Minhas aulas" got a `ScreenIntro` with a collapsing title and a new
   `teachingClasses.description` copy ("The classes you will teach…", `aea0ac7e`, `1ab5ef81`), although Out of scope
   excludes "any change to … the 'Minhas aulas' list itself"; and "Aulas anteriores" shows an intro with

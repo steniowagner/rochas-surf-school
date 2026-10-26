@@ -2,10 +2,11 @@
 id: "062"
 slug: teaching-class-history
 title: "\"Aulas anteriores\" for instructors and admins who teach"
-status: in-review
+status: accepted
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 7e24beb4104034a849e151dfcbde4d9699207649
+reviewed_commit: f7a87f62d9695b80313bceebb3aecd31baf876c1
 fronts: [classes, backend, mobile]
 depends_on: []
 ---
@@ -598,3 +599,61 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   day after `to`; the reader spec and the use case cover that bound. Worth adding while you're in there.
 - `## Memory Impact` doesn't mention the intro, `teachingClasses.description` or `dotPlacement`; add them if the
   amendment keeps them.
+
+### Round 2 — 2026-10-26 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for classes, backend, mobile: 27 of 27
+  successful; the backend's 10 lint warnings are in files this spec didn't touch)
+- related tests ✅ `run-related-tests.mjs 062` RELATED TESTS PASSED: backend ✅, mobile 1862 passed (122 suites),
+  modules/classes 577 passed, modules/enrolment 292 passed
+- coverage of the changed lines ✅ COVERAGE OK (20 files measured, 3 excluded by technical-context); no
+  coverage-ignore comments, TODOs or debug leftovers in the diff
+- e2e ✅ `DATABASE_HOST=127.0.0.1 DATABASE_NAME=rochas_e2e_062 node .specs/scripts/run-e2e.mjs 062` E2E PASSED
+  (the scratch database of F-05, migrations up to date)
+- HTTP against the running backend (this branch), with the review accounts: instructor October → 200, 15 items
+  newest first, `myEnrolment: null`; admin → 200 with their classes; student → 403 `user.role.notTeacher`; no token →
+  401; no period → 422 `class.from.invalid` + `class.to.invalid`; 2026-02-30 → 422 `class.from.invalid`; 43 days and
+  `to` before `from` → 422 `class.range.invalid`; 42 days and one day → 200
+- user journeys (iOS simulator, iPhone 18 Pro, dark): student and instructor followed by the reviewer, see below
+
+**Expected Results**
+
+- ER-01 ✅ — use case, reader and controller specs and the e2e "history" cases pass; over HTTP the instructor's
+  October answers newest first with `myEnrolment: null`, and the admin's their own classes
+- ER-02 ✅ — e2e "validates the period" and "refuses…" cases; over HTTP every period error is 422 (as amended), the
+  42-day and one-day periods 200, the student 403, no token 401
+- ER-03 ✅ — `teaching-classes.screen.test.tsx` (both roles' routes; button while loading, failed and empty); in the
+  simulator the instructor's "My classes" shows the clock on the right and it opens "Past classes"
+- ER-04 ✅ — `teaching-class-history.screen.test.tsx` (19) and `use-teaching-class-history.hook.test.tsx` (4) assert
+  every edge case; in the simulator: October with a dot on exactly the days the API lists (11, 16–22, 24, 25; none on
+  the 23rd), legend "Days you taught a class", tap 24 → only that day newest first with chip "24 OCT"; Skate → dots
+  only on 18 and 25 and "You didn't teach any Skate class this day."; clear the chip → the month's skate classes; a
+  card → its details, back → the history with its filter; previous month → "No classes in this period" + "You didn't
+  teach any Skate class in this period."
+- ER-05 ✅ — `my-class-history.screen.test.tsx` and `use-my-class-history.hook.test.tsx` pass, unchanged since
+  `base_commit` (`git diff` empty); in the simulator the student's "Past classes" has no intro, the plain title,
+  "Days you took a class" and the dot below the 21st; the week view shows the student's empty copy
+- ER-06 ✅ — the `Verify by` suites pass; in the simulator "My classes" opens with the calendar icon, title and "The
+  classes you will teach…", "Past classes" with the clock icon and "Every class you have already taught…"; both
+  titles collapse into the header on scroll and come back on scrolling up; the empty states show the centered plain
+  title
+- ER-07 ✅ — the `Verify by` suites pass (grid both placements, Aulas tab month view, weekly occupancy's picker); in
+  the simulator the history's dots sit below the circle, also under the selected 24th
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Round 1's F-01–F-06 hold: the home tests are green, D-02/ER-02 say 422, D-07/D-08/ER-06/ER-07/T-09/T-10 record the
+  intro and the dot placement, and the e2e suite is green on the scratch database.
+- Not re-seen by the reviewer: the light theme (the simulator's app theme is set to Dark; T-11 recorded it, and the
+  diff only uses tokens and `theme.grape`), and the "Calendars" journey's Enrol student and week-picker screens (pinned
+  by `classes-week.screen.test.tsx` and `weekly-occupancy.screen.test.tsx`).
+- `class-history/index.ts` exports `useClassHistory` besides the component, which `.claude/rules/react.md` reserves
+  for the component; `phone-number-field/index.ts` sets the same precedent, and D-04 asks for the shared hook. Worth
+  deciding whether the rule should allow it.
+- The simulator was left signed in as the instructor review account (it was the student's before).

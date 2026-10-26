@@ -159,6 +159,7 @@ export function ClassHistory({
                 today={screen.today}
                 markedDates={screen.markedDates}
                 markedLabel={t(`${copy}.hasClasses`)}
+                dotPlacement="below"
                 onSelectDate={screen.selectDay}
                 initialView="month"
                 clearable

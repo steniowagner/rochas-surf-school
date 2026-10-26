@@ -13,6 +13,11 @@ export type CalendarMonthGridProps = {
   markedLabel?: string;
   /** The Monday of a week whose row gets a background, `YYYY-MM-DD`. */
   selectedWeekStart?: string;
+  /**
+   * Where a day's dot sits: `overlap` tucks it into the bottom of the day's slot (it overlaps a selected day's circle),
+   * `below` keeps it under the circle. Defaults to `overlap`.
+   */
+  dotPlacement?: "overlap" | "below";
   onSelectDate: (date: string) => void;
 };
 

@@ -8,6 +8,7 @@ import type { CalendarMonthGridProps } from "./calendar-month-grid.types";
 /** A month, Monday first, with only the weeks it needs: the selected day in a circle, a dot under each day with classes. */
 export function CalendarMonthGrid({
   onSelectDate,
+  dotPlacement = "overlap",
   ...props
 }: CalendarMonthGridProps) {
   const { initials, weeks, selectedWeekIndex, hasMarks } =
@@ -60,7 +61,9 @@ export function CalendarMonthGrid({
                 </View>
                 {/* The dot's slot only exists when some day can have one, so the number stays centred otherwise. */}
                 {hasMarks ? (
-                  <View className="h-1">
+                  <View
+                    className={`h-1 ${dotPlacement === "overlap" ? "-mt-1.5 mb-1.5" : ""}`}
+                  >
                     {day.marked ? (
                       <View
                         testID={`calendar-day-${day.date}-dot`}

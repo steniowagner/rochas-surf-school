@@ -13,6 +13,14 @@ describe("notificationIcon", () => {
     expect(notificationIcon("registration.denied")).toEqual({ name: "close-circle-outline", tone: "bad" });
   });
 
+  it.each([
+    ["reactivation.requested", "refresh-circle-outline", "info"],
+    ["reactivation.approved", "checkmark-circle-outline", "ok"],
+    ["reactivation.denied", "close-circle-outline", "bad"],
+  ])("draws a %s with %s on the %s tone", (type, name, tone) => {
+    expect(notificationIcon(type)).toEqual({ name, tone });
+  });
+
   it.each(["broadcast.sent", "toString"])("draws a bell on the info tone for an unknown type (%s)", (type) => {
     expect(notificationIcon(type)).toEqual({ name: "notifications-outline", tone: "info" });
   });

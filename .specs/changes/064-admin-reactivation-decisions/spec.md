@@ -379,10 +379,11 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
   `reactivation.screen.test.tsx`.
   Covers: ER-09 · Done when: `npx jest src/modules/reactivation` passes.
   > ✅ 2026-10-26 — the denied state of the Account deleted screen now shows `denialReason` as the note titled `reactivation.denied.noteTitle` (equal to `denied.noteTitle` in all three languages), nothing when empty or blank, never in the other states; files: `apps/mobile/src/modules/reactivation/screens/reactivation.screen.tsx`, `apps/mobile/src/modules/reactivation/screens/reactivation.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/reactivation` (2 suites, 29 passed), `npx tsc --noEmit`, `npx eslint src/modules/reactivation` clean; deviations: none.
-- [ ] **T-14** — Handle the three types in `src/modules/notifications/hooks/use-notification-received.hook.ts`,
+- [x] **T-14** — Handle the three types in `src/modules/notifications/hooks/use-notification-received.hook.ts`,
   `utils/notification-target.ts` and `utils/notification-icon.ts` (D-10), and add `"deleted"` to
   `REGISTRABLE_STATUSES` in `hooks/use-push-registration.hook.ts` (D-06), with their tests.
   Covers: ER-10 · Done when: `npx jest src/modules/notifications` passes.
+  > ✅ 2026-10-26 — the app handles the three pushes: `reactivation.requested` reloads `["reactivation-requests"]` and opens the tool for the admin flow (null elsewhere), `reactivation.approved` / `.denied` refresh the account and have a null target, icons per D-10, and `"deleted"` joins `REGISTRABLE_STATUSES`; tests updated (target table of 22 types, icons, received cases, push registration for deleted vs denied/removed; the received-hook test tree gained the reactivation route so a deleted account renders); files: `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`, `apps/mobile/src/modules/notifications/hooks/use-push-registration.hook.ts`, `apps/mobile/src/modules/notifications/utils/notification-target.ts`, `apps/mobile/src/modules/notifications/utils/notification-icon.ts`, and their `.test.ts(x)` files; verified: `npx jest src/modules/notifications` (14 suites, 355 passed), `npx tsc --noEmit`, `npx eslint src/modules/notifications` clean; deviations: none.
 
 ### Verification
 

@@ -13,6 +13,8 @@ import PendingLayout from "@/app/(pending)/pending/_layout";
 import PendingRoute from "@/app/(pending)/pending/index";
 import AuthLayout from "@/app/(public)/auth/_layout";
 import AuthRoute from "@/app/(public)/auth/index";
+import ReactivationLayout from "@/app/(reactivation)/reactivation/_layout";
+import ReactivationRoute from "@/app/(reactivation)/reactivation/index";
 import Index from "@/app/index";
 import { routes } from "@/constants/routes";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
@@ -56,6 +58,8 @@ const routeTree = {
   "(pending)/pending/index": PendingRoute,
   "(onboarding)/onboarding/_layout": OnboardingLayout,
   "(onboarding)/onboarding/index": OnboardingRoute,
+  "(reactivation)/reactivation/_layout": ReactivationLayout,
+  "(reactivation)/reactivation/index": ReactivationRoute,
   "(offboarding)/offboarding/_layout": OffboardingLayout,
   "(offboarding)/offboarding/denied": DeniedRoute,
   // Stand-ins for the role flows: only the guards that pick them are under test.
@@ -158,6 +162,29 @@ describe("useNotificationReceived", () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["registrations"] });
     expect(meCalls()).toHaveLength(0);
   });
+
+  it("reloads the reactivation requests when one arrives, without touching the account", async () => {
+    answerMe(account("approved", "admin"));
+    await openApp(account("approved", "admin"));
+
+    await receive(push("reactivation.requested"));
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["reactivation-requests"] });
+    expect(meCalls()).toHaveLength(0);
+  });
+
+  it.each(["reactivation.approved", "reactivation.denied"])(
+    "reloads the account when a %s arrives, so the guards move the app",
+    async (type) => {
+      answerMe(account("approved"));
+      await openApp(account("deleted"));
+
+      await receive(push(type));
+
+      await waitFor(() => expect(getSession()?.user.status).toBe("approved"));
+      expect(meCalls()).toHaveLength(1);
+    },
+  );
 
   it("reloads the weeks when a class assignment arrives", async () => {
     answerMe(account("approved", "instructor"));
@@ -281,6 +308,9 @@ describe("useNotificationReceived", () => {
     "registration.pending",
     "registration.approved",
     "registration.denied",
+    "reactivation.requested",
+    "reactivation.approved",
+    "reactivation.denied",
     "class.assigned",
     "class.edited",
     "class.unassigned",

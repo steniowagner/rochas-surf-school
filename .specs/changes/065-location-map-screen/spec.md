@@ -120,11 +120,27 @@ and stacked fields are hard to use.
   > position, no address by default); files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/app.json`,
   > `apps/mobile/jest.setup.ts`; verified: `npx expo config --type public` lists `expo-location` with the text,
   > `npm test` (297 suites, 3193 tests passed); deviations: none
-- [ ] **T-02** — `src/modules/classes/components/location-search-header/` (component, hook, types, index): the
+- [x] **T-02** — `src/modules/classes/components/location-search-header/` (component, hook, types, index): the
   header search field (search icon, clear button, `addressSearchPlaceholder`) and the floating suggestions list
   (bold match, place icon, at most 6, hidden under 3 characters or after a pick), with tests for the cap, the hiding
   and the pick. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: ER-01 · Done when: `npx jest src/modules/classes/components/location-search-header` passes.
+  > ✅ 2026-10-26 — `LocationSearchHeader` sets the screen's `headerTitle` to the search field (search icon,
+  > `locationSheet.addressSearchPlaceholder`, clear button, 44 px tall, width of the header beside the back button) and
+  > renders the floating suggestions list under the header (`useHeaderHeight()` + 8): at most 6 rows
+  > (`SUGGESTIONS_MAX`), the part of the title matching the text in `font-body-800`, a place icon; hidden under 3
+  > characters, before the rows come, after a pick (the title stays in the field) or a clear. The hook owns the text and
+  > the open state and asks `useAddressSuggestions` with the screen's session token; files:
+  > `apps/mobile/src/modules/classes/components/location-search-header/index.ts`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.types.ts`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.test.tsx`;
+  > verified: `npx jest src/modules/classes/components/location-search-header` (12 passed, 100% statements, branches,
+  > functions and lines on the component and hook), `npx eslint` and `npx tsc --noEmit` clean; deviations: the list
+  > renders in the screen body (not inside the native header view, which would clip it and not take its touches), so the
+  > component sets the header's title through `<Stack.Screen options>` and draws the list itself; the existing
+  > `locationSheet.addressSearchPlaceholder` string is reused
 - [ ] **T-03** — `src/modules/classes/hooks/use-map-place.hook.ts` (map tap → point + reverse geocode with the
   coordinates fallback; Android `onPoiClick` → `useAddressPlace`, falling back to a point tap) and
   `src/modules/classes/components/location-address-card/` (empty hint, map point, suggestion/place states), with

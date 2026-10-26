@@ -2,7 +2,7 @@
 id: "062"
 slug: teaching-class-history
 title: "\"Aulas anteriores\" for instructors and admins who teach"
-status: in-review
+status: changes-requested
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 7e24beb4104034a849e151dfcbde4d9699207649
@@ -368,3 +368,74 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-25 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build` for classes, backend, mobile: 27 tasks successful)
+- related tests ❌ `run-related-tests.mjs 062` RELATED TESTS FAILED: mobile 2 failed / 1858 passed (see F-01);
+  modules/classes 577 ✅, modules/enrolment 292 ✅, backend ✅
+- coverage of the changed lines ✅ COVERAGE OK (20 files measured); no coverage-ignore comments in the diff
+- e2e ❌ `run-e2e.mjs 062` E2E FAILED: 710 of 713; all of `teaching-classes.e2e-spec.ts` passes, the 3 failures are in
+  `classes.e2e-spec.ts` "suggestions" (see F-05)
+- user journeys: not run in this round (see F-06)
+
+**Expected Results**
+
+- ER-01 ✅ — use case test, `teaching-classes-reader.prisma.spec.ts`, `classes.controller.spec.ts` and the e2e "history"
+  cases pass: newest first, `myEnrolment: null`, guests shown; cancelled, under way, upcoming, someone else's and
+  out-of-period classes left out; ending now and shared listed; id tie-break; admin; empty period
+- ER-02 ❌ — the checks hold, but the period errors answer 422, not the 400 the ER states — see F-02
+- ER-03 ⚠️ — `teaching-classes.screen.test.tsx` passes (button in every state, both roles' routes); not seen in the
+  simulator — see F-06
+- ER-04 ⚠️ — `teaching-class-history.screen.test.tsx` (19) and `use-teaching-class-history.hook.test.tsx` (4) pass;
+  the instructor journey and the sport filter not seen in the simulator — see F-06
+- ER-05 ⚠️ — `my-class-history.screen.test.tsx` and `use-my-class-history.hook.test.tsx` pass and are unchanged since
+  `base_commit`; the student's calendar dots moved (F-04) and the journey wasn't followed (F-06)
+
+**Findings**
+
+- [ ] **F-01** (tests) — two related mobile tests are red since the intro follow-up (`aea0ac7e`): "AdminScreen › My
+  classes › is the first row under School when the admin teaches…" and "InstructorScreen › shows My classes first
+  under School…" fail with `Unable to find an element with role: header, name: MY CLASSES` (red twice). Reproduce:
+  `npx jest src/modules/admin/screens/admin.screen.test.tsx src/modules/instructor/screens/instructor.screen.test.tsx`
+  from `apps/mobile`. Expected: green — update them once F-03 is settled (or revert the intro).
+- [ ] **F-02** (ER-02) — `GET /classes/teaching/history` answers **422** `class.from.invalid` / `class.to.invalid` /
+  `class.range.invalid`; D-02 and ER-02 say 400. The code follows D-02's "validated exactly as `GET
+  /classes/mine/history`" (`ValidationException` is 422, technical-context → Error handling; spec 053), so the spec's
+  "400" is the slip, but T-03 only recorded it as a deviation. Reproduce: the e2e "validates the period" case asserts
+  422. Expected: with the user's approval, amend D-02 and ER-02 to 422 and log it under `## Amendments`; no code change.
+- [ ] **F-03** (scope) — "Minhas aulas" got a `ScreenIntro` with a collapsing title and a new
+  `teachingClasses.description` copy ("The classes you will teach…", `aea0ac7e`, `1ab5ef81`), although Out of scope
+  excludes "any change to … the 'Minhas aulas' list itself"; and "Aulas anteriores" shows an intro with
+  `teachingHistory.description` and a collapsing title, where D-03 says the header shows the centered
+  `StackHeaderTitle`. No task or amendment covers it, and the ➕ note that recorded the user's request was deleted
+  in `9228c2a3`. Expected: `/spec-plan --amend 062` to record it (Scope, D-03, an ER, a task, Memory Impact), or
+  revert it.
+- [ ] **F-04** (scope) — the shared `CalendarMonthGrid` now draws the dot below the day's circle by default
+  (`dotPlacement`, `aad897f7`, `f11ea501`, `820f30c9`, `78093512`); before, every month grid tucked it in. That
+  changes the Aulas tab (`classes-week.screen.tsx`), `enrol-student.screen.tsx` and the student's history (Out of
+  scope: "any change to … its screen's behavior"), with only `WeekPickerSheet` keeping the old placement. No task or
+  amendment covers it. Expected: record it in the same amendment as F-03 (with a journey checking those screens), or
+  revert it.
+- [ ] **F-05** (tests) — `run-e2e.mjs 062` is red: `classes.e2e-spec.ts` › suggestions › "ignores this week and two
+  weeks ago…", "is empty when nothing happened last week" and "keeps the suggestions route…" get an extra
+  `08:00` range. Not caused by this spec's code: the shared dev database holds the sample seed's class
+  `5a1e0000-0000-4000-8000-000000000101` (`prisma/seed/sample-classes.seed.ts`, created 2026-10-25 19:24, starting
+  2026-10-11 08:00 Fortaleza), inside the suite's fixed "last week". Expected: run the suite on a database without
+  that data (ask the user before deleting it) and record `E2E PASSED`.
+- [ ] **F-06** (ER-03, ER-04, ER-05) — T-08 is checked though its Done when ("every journey shows what it says")
+  isn't met: its evidence lists as not run the instructor account, the sport filter, the light theme, the student's
+  history ("Dias em que você fez aula") and the `.http` requests with a token; the intro (F-03) was never seen in
+  the light theme. Expected: after F-01–F-04, follow the three journeys of the Verification Plan in the simulator, in
+  light and dark, and record what was seen.
+
+**Notes**
+
+- The backend and domain parts are clean: D-01 and D-02 (apart from the status) are honored, the period validation
+  is shared (`toHistoryPeriod`), the route sits before `GET /classes/:id`, and D-04/D-05 hold.
+- The e2e "history" cases check the day before `from` against the real database but not a class that ended on the
+  day after `to`; the reader spec and the use case cover that bound. Worth adding while you're in there.
+- `## Memory Impact` doesn't mention the intro, `teachingClasses.description` or `dotPlacement`; add them if the
+  amendment keeps them.

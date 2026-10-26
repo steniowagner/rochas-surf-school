@@ -188,11 +188,16 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Implement `PrismaTeachingClassesReader.findHistoryClassIds` in
+- [x] **T-02** — Implement `PrismaTeachingClassesReader.findHistoryClassIds` in
   `src/modules/classes/teaching-classes-reader.prisma.ts` (instructor of the class, `ends_at <= now`, not cancelled,
   `starts_at` in `[from, to)`, start then id descending), with cases in `teaching-classes-reader.prisma.spec.ts`.
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01 · Done when: `npx vitest run src/modules/classes/teaching-classes-reader.prisma.spec.ts` passes.
+  > ✅ 2026-10-25 — `PrismaTeachingClassesReader.findHistoryClassIds` (`findMany`: `endsAt <= now`, not cancelled,
+  > `startsAt` in `[from, to)`, instructor, start then id descending); files:
+  > `apps/backend/src/modules/classes/teaching-classes-reader.prisma.ts`,
+  > `apps/backend/src/modules/classes/teaching-classes-reader.prisma.spec.ts`; verified:
+  > `npx vitest run src/modules/classes/teaching-classes-reader.prisma.spec.ts` (4 passed); deviations: none
 
 - [ ] **T-03** — Expose `GET /classes/teaching/history` (authenticated, `from` / `to` query) in
   `src/modules/classes/classes.controller.ts`, declared after `GET teaching` and before `GET :id`, with its case in

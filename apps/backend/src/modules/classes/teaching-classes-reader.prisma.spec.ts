@@ -24,6 +24,25 @@ describe('PrismaTeachingClassesReader', () => {
     });
   });
 
+  it('lists the classes taught in the period: ended, not cancelled, newest first', async () => {
+    const { schoolClass, reader } = setup();
+    const from = new Date('2026-08-01T03:00:00.000Z');
+    const to = new Date('2026-09-01T03:00:00.000Z');
+    schoolClass.findMany.mockResolvedValue([{ id: 'c-2' }, { id: 'c-1' }]);
+
+    expect(await reader.findHistoryClassIds(TEACHER_ID, NOW, from, to)).toEqual(['c-2', 'c-1']);
+    expect(schoolClass.findMany).toHaveBeenCalledWith({
+      where: {
+        endsAt: { lte: NOW },
+        cancelledAt: null,
+        startsAt: { gte: from, lt: to },
+        instructors: { some: { userId: TEACHER_ID } },
+      },
+      select: { id: true },
+      orderBy: [{ startsAt: 'desc' }, { id: 'desc' }],
+    });
+  });
+
   it('answers that the person teaches when they are an instructor of any class', async () => {
     const { classInstructor, reader } = setup();
     classInstructor.findFirst.mockResolvedValue({ classId: 'c-1' });

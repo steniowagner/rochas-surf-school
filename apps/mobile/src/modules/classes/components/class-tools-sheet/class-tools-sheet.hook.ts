@@ -14,6 +14,7 @@ const DELETE_SUBTITLE_KEYS = {
 export const useClassToolsSheet = ({
   onClose,
   onEdit,
+  onNotify,
   onCancel,
   onDelete,
   messageCount,
@@ -24,6 +25,11 @@ export const useClassToolsSheet = ({
   const edit = () => {
     onClose();
     onEdit();
+  };
+
+  const notify = () => {
+    onClose();
+    onNotify();
   };
 
   const cancel = () => {
@@ -38,6 +44,7 @@ export const useClassToolsSheet = ({
 
   return {
     edit,
+    notify,
     cancel,
     remove,
     messageSubtitle:

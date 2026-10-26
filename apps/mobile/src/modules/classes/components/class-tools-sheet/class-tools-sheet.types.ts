@@ -5,6 +5,8 @@ export type ClassToolsSheetProps = {
   onClose: () => void;
   /** "Editar aula": the sheet closes first. */
   onEdit: () => void;
+  /** "Enviar mensagem": the sheet closes first. */
+  onNotify: () => void;
   /** "Cancelar aula": the sheet closes first. */
   onCancel: () => void;
   /** "Apagar aula": the sheet closes first. */
@@ -19,6 +21,7 @@ export type UseClassToolsSheetProps = Pick<
   ClassToolsSheetProps,
   | "onClose"
   | "onEdit"
+  | "onNotify"
   | "onCancel"
   | "onDelete"
   | "messageCount"

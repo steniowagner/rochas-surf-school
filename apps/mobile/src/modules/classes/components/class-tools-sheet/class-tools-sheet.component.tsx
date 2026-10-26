@@ -12,6 +12,7 @@ export function ClassToolsSheet({
   visible,
   onClose,
   onEdit,
+  onNotify,
   onCancel,
   onDelete,
   messageCount,
@@ -20,6 +21,7 @@ export function ClassToolsSheet({
   const { t } = useTranslation();
   const {
     edit,
+    notify,
     cancel,
     remove,
     messageSubtitle,
@@ -29,6 +31,7 @@ export function ClassToolsSheet({
   } = useClassToolsSheet({
     onClose,
     onEdit,
+    onNotify,
     onCancel,
     onDelete,
     messageCount,
@@ -49,11 +52,11 @@ export function ClassToolsSheet({
               subtitle={t("classTools.editHint")}
               onPress={edit}
             />
-            {/* Placeholder: sending a message to the class's people comes with its own spec. */}
             <ClassToolCard
               icon="chatbubble-outline"
               title={t("classTools.notify")}
               subtitle={messageSubtitle}
+              onPress={notify}
             />
           </View>
           <View className="flex-row gap-2">

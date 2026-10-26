@@ -460,6 +460,7 @@ export function ClassDetailsScreen({
         visible={screen.toolsVisible}
         onClose={screen.closeTools}
         onEdit={screen.edit}
+        onNotify={screen.notify}
         onCancel={screen.openCancel}
         onDelete={screen.openDelete}
         messageCount={screen.messageCount}

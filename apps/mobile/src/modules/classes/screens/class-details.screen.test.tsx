@@ -1143,7 +1143,7 @@ describe("ClassDetailsScreen", () => {
       expect(screen.getByText("Nobody to notify")).toBeOnTheScreen();
     });
 
-    it("does nothing when Send message is pressed", async () => {
+    it("opens the send notice screen when Send message is pressed", async () => {
       const user = userEvent.setup();
       serve(makeClass());
       await renderScreen(true);
@@ -1153,11 +1153,7 @@ describe("ClassDetailsScreen", () => {
 
       await user.press(screen.getByRole("button", { name: "Send message" }));
 
-      expect(router.push).not.toHaveBeenCalled();
-      expect(
-        screen.getByRole("button", { name: "Cancel class" }),
-      ).toBeOnTheScreen();
-      expect(classRequestCount()).toBe(1);
+      expect(router.push).toHaveBeenCalledWith("/admin/send-notice");
     });
 
     it("shows on a class that has started", async () => {

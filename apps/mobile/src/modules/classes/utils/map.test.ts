@@ -7,6 +7,7 @@ import {
   getMapProvider,
   MAP_DELTA,
   PLACE_ALTITUDE,
+  PLACE_DELTA,
   PLACE_ZOOM,
   PREVIEW_DELTA,
   regionAround,
@@ -102,8 +103,9 @@ describe("formatPoint", () => {
 });
 
 describe("place zoom", () => {
-  it("is about a kilometre on both maps", () => {
-    expect(PLACE_ZOOM).toBe(16);
-    expect(PLACE_ALTITUDE).toBe(2000);
+  it("is street level, about 400 m across, on both maps and as a span", () => {
+    expect(PLACE_ZOOM).toBe(17);
+    expect(PLACE_ALTITUDE).toBe(1000);
+    expect(PLACE_DELTA).toBe(0.004);
   });
 });

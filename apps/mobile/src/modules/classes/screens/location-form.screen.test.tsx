@@ -30,7 +30,13 @@ import {
 import { ClassLocation } from "../classes.types";
 import { subscribeLocationEvents } from "../utils/location-events";
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
-import { FORTALEZA, MAP_DELTA, PLACE_ALTITUDE, PLACE_ZOOM } from "../utils/map";
+import {
+  FORTALEZA,
+  MAP_DELTA,
+  PLACE_ALTITUDE,
+  PLACE_DELTA,
+  PLACE_ZOOM,
+} from "../utils/map";
 
 import { LocationFormScreen } from "./location-form.screen";
 
@@ -740,10 +746,11 @@ describe("LocationFormScreen (edit)", () => {
       screen.getByText("Praia do Futuro · -3.7442, -38.4617"),
     ).toBeTruthy();
     expect(pin()!.props.coordinate).toEqual(point);
+    // Close on the location, as a picked place.
     expect(map().props.initialRegion).toEqual({
       ...point,
-      latitudeDelta: MAP_DELTA,
-      longitudeDelta: MAP_DELTA,
+      latitudeDelta: PLACE_DELTA,
+      longitudeDelta: PLACE_DELTA,
     });
     expect(submit()).toBeEnabled();
     expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
@@ -778,7 +785,11 @@ describe("LocationFormScreen (edit)", () => {
       expect(nameInput().props.value).toBe("Praia do Futuro"),
     );
     expect(pin()!.props.coordinate).toEqual(point);
-    expect(map().props.initialRegion).toMatchObject(point);
+    expect(map().props.initialRegion).toEqual({
+      ...point,
+      latitudeDelta: PLACE_DELTA,
+      longitudeDelta: PLACE_DELTA,
+    });
     // The new map gets its padding only once it is ready too.
     expect(map().props.mapPadding).toBeUndefined();
     expect(mockShow).not.toHaveBeenCalled();
@@ -790,7 +801,11 @@ describe("LocationFormScreen (edit)", () => {
 
     expect(pin()).toBeNull();
     expect(screen.getByText("Tap the map to mark the point")).toBeTruthy();
-    expect(map().props.initialRegion).toMatchObject(FORTALEZA);
+    expect(map().props.initialRegion).toEqual({
+      ...FORTALEZA,
+      latitudeDelta: MAP_DELTA,
+      longitudeDelta: MAP_DELTA,
+    });
     expect(submit()).toBeDisabled();
 
     await tapMap();

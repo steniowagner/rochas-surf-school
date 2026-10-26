@@ -13,12 +13,15 @@ export const MAP_DELTA = 0.2;
 export const PREVIEW_DELTA = 0.01;
 
 /**
- * The zoom on a picked place, about a kilometre across: `zoom` for Google Maps, `altitude` (metres) for Apple Maps. A
- * camera zoom, unlike a span, doesn't depend on the map's size, which the Android keyboard shrinks while a place is
- * picked.
+ * The zoom on a picked place, street level (about 400 m across): `zoom` for Google Maps, `altitude` (metres) for Apple
+ * Maps. A camera zoom, unlike a span, doesn't depend on the map's size, which the Android keyboard shrinks while a place
+ * is picked.
  */
-export const PLACE_ZOOM = 16;
-export const PLACE_ALTITUDE = 2000;
+export const PLACE_ZOOM = 17;
+export const PLACE_ALTITUDE = 1000;
+
+/** The same closeness as a span, for the map that opens on the location being edited. */
+export const PLACE_DELTA = 0.004;
 
 /** The map around a point, or around Fortaleza when there is none. */
 export const regionAround = (

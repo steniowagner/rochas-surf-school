@@ -3,7 +3,7 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: in-review
+status: in-progress
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
@@ -62,8 +62,9 @@ and stacked fields are hard to use.
 | D-06 | On Android, a tap on a labelled place (`onPoiClick`, Google Maps only) selects it through `useAddressPlace` with the screen's session token, like a suggestion. On iOS (Apple Maps reports no place taps) every tap is a point tap. | react-native-maps exposes place taps only on Google Maps. |
 | D-07 | "My location" asks for the foreground permission only when tapped. Granted: the map centres on the device (`MAP_DELTA` span) and shows the user dot; the pin doesn't move. Denied: a toast, and nothing else changes. | An admin often plans a beach from somewhere else; asking at open is intrusive. |
 | D-08 | The bottom panel is fixed (not draggable) and rises with the keyboard; with no point yet there is no pin and the card shows the empty hint. "Cancelar" and the back button both leave without saving. | Matches the design; the map takes the drags. |
-| D-09 | A picked suggestion or labelled place closes the keyboard, centres the map and zooms in on it (a camera zoom of about a kilometre: `zoom` on Google Maps, `altitude` on Apple Maps); a tap on the map still moves nothing. | The user's follow-up: the admin should see the place up close, not the whole city. |
+| D-09 | A picked suggestion or labelled place closes the keyboard, centres the map and zooms in on it (a camera zoom of about 400 m across, street level: `zoom` on Google Maps, `altitude` on Apple Maps); a tap on the map still moves nothing. | The user's follow-up: the admin should see the place up close, not the whole city. |
 | D-10 | The search field has no shadow; the panel's actions are stacked ("Salvar local" / "Salvar", then "Cancelar", then "Remover local") and the panel sits flush with the bottom of the screen (rounded top corners, the home-indicator inset inside it). | The user's follow-up after trying it: the shadow drew a box around the field, the side-by-side actions were cramped, and the map showed in a gap under the panel. |
+| D-11 | "Editar local" opens on the location at the same closeness as a picked place (`PLACE_DELTA`, about 400 m across); "Novo local" and a location without a point still open on Fortaleza at `MAP_DELTA`. | The user's follow-up: the location being edited should be seen up close, not the whole city. |
 
 ## Expected Results
 
@@ -326,6 +327,25 @@ and stacked fields are hard to use.
   > `npx eslint`, `npx tsc --noEmit` clean; on the emulator, "praia de iracema" → first suggestion: keyboard closed, street
   > level, pin centred between the header and the panel; deviations: no zoom animation (see above)
 
+- [x] **T-13** — Zoom closer (D-09, D-11): `PLACE_ZOOM` 17 and `PLACE_ALTITUDE` 1000 for a picked place, and a new
+  `PLACE_DELTA` (0.004) for the `initialRegion` of "Editar local" (`location-form.screen.hook.ts`), all in `utils/map.ts`.
+  Update the tests. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  (added during execution)
+  Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` passes, and on the Android emulator a picked place and an edited location open at street level.
+  > ✅ 2026-10-26 — `PLACE_ZOOM` 17 and `PLACE_ALTITUDE` 1000 (street level, about 400 m across) for a picked place, and a
+  > new `PLACE_DELTA` (0.004, the same closeness as a span) for the `initialRegion` of "Editar local"; "Novo local" and a
+  > location saved without a point still open on Fortaleza at `MAP_DELTA`; files:
+  > `apps/mobile/src/modules/classes/utils/map.ts`, `apps/mobile/src/modules/classes/utils/map.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` (45 passed;
+  > 100% on the screen, its hook and `map.ts`), `npx eslint`, `npx tsc --noEmit` clean. Android emulator (Dev Admin):
+  > "Manage" → "Rocha`s Surf School" opens at street level with the pin centred in the visible map; "Praia do Futuro"
+  > (saved without a point) opens on Fortaleza with "Tap the map to mark the point"; on that edit screen, picking "Praia de
+  > Iracema" closes the keyboard and shows it at zoom 17, the pin centred and the typed name kept; cancelled without saving.
+  > Deviations: none. Note: the location-form test "ignores a second press while the first is sending" (T-05) logs an act()
+  > warning in about one run in two (a React Query notification after the test's `act`); it passes
+
 ### Verification
 
 - [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then run the user
@@ -420,5 +440,8 @@ and stacked fields are hard to use.
 - 2026-10-26 — D-09's zoom became a camera zoom that also closes the keyboard (before: `animateToRegion` with
   `PREVIEW_DELTA`), because on Android the open keyboard shrinks the map and the span-based zoom came out zoomed out
   and off-centre; same intent the user approved. Task T-12 added.
+- 2026-10-26 — the user asked for a closer zoom on a picked place and when editing a location (approved in chat): D-09's
+  zoom went from about a kilometre (Google zoom 16, Apple 2000 m) to about 400 m (17, 1000 m); D-11 added — "Editar
+  local" opens on the location at that closeness (before: `MAP_DELTA`, about 22 km). Task T-13 added.
 
 ## Review

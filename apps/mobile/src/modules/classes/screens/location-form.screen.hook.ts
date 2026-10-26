@@ -33,6 +33,7 @@ import {
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
 import {
   PLACE_ALTITUDE,
+  PLACE_DELTA,
   PLACE_ZOOM,
   regionAround,
   toMapPoint,
@@ -101,6 +102,8 @@ export const useLocationFormScreen = (
   }
 
   const mapKey = filledId ?? "new";
+  // "Editar local" opens close on its location; "Novo local" (or a location saved without a point) on Fortaleza.
+  const editedPoint = location ? toMapPoint(location) : null;
 
   // An id that isn't among the active locations (removed meanwhile, or the list failed): nothing to edit.
   const missing = editing && !locationsQuery.isPending && !location;
@@ -253,7 +256,9 @@ export const useLocationFormScreen = (
     sessionToken,
     // The map opens on the location being edited, else on Fortaleza; it is mounted again when the location arrives.
     mapKey,
-    initialRegion: regionAround(location ? toMapPoint(location) : null),
+    initialRegion: editedPoint
+      ? regionAround(editedPoint, PLACE_DELTA)
+      : regionAround(null),
     pin: mapPlace.pendingPoint ?? fields.place?.point ?? null,
     resolving: mapPlace.resolving,
     pendingPoint: mapPlace.pendingPoint,

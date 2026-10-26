@@ -167,6 +167,7 @@ All three tools share the same pattern: a card for each pending request with Den
 ## Instructor
 
 _Implemented in spec 057-teaching-classes._
+_Implemented in spec 062-teaching-class-history._
 
 Instructors teach and follow classes, but can't change schedules or rules.
 

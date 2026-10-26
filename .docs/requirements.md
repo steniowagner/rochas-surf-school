@@ -390,6 +390,7 @@ Only students SHALL be able to request or hold seats in classes. Instructors and
 
 _Implemented in spec 057-teaching-classes._
 _Implemented in spec 058-admin-role-changes (a role change keeps admins assignable; there is no "also an instructor" flag)._
+_Implemented in spec 062-teaching-class-history._
 
 Admins SHALL be able to teach classes, and SHALL see the classes they teach among their own classes, as instructors do.
 

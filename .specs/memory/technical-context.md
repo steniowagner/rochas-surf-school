@@ -499,7 +499,10 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   (`"week"` | `"month"`, starting on the week; the pill in the header is the only switch). Props: `selectedDate`
   and `today` (`YYYY-MM-DD`, the parent decides the zone), `markedDates` (one dot each), `onSelectDate`,
   `onVisibleRangeChange?({ from, to })` (the first and last day drawn, on mount and on change, through
-  `useEffectEvent`) and `markedLabel?` (appended to a marked day's accessibility label). Everything shown derives
+  `useEffectEvent`), `markedLabel?` (appended to a marked day's accessibility label) and `dotPlacement?` (spec 062,
+  passed on to `CalendarMonthGrid`: `"below"`, the default, draws a marked day's dot under the day's circle, selected
+  or not; `"overlap"` tucks it into the bottom of the day's slot, over a selected circle — only `WeekPickerSheet`, the
+  weekly occupancy's week picker, uses it; a month with no marked day has no dot row). Everything shown derives
   from `selectedDate` and the view, so the arrows select ±7 days or ±1 month (`addMonthsKeepingDay`, capped at the
   month's last day). Optional props for the class history (spec 053), none used by the classes screen:
   `initialView` (`"month"` to open on the month), `clearable` (`selectedDate` may be `null`; the calendar keeps the
@@ -1012,6 +1015,24 @@ guard's 401 `auth.token.invalid`.
   `ClassesModule`; both reads run together, then the views come from `ClassViewReader.findByIds` sorted by start then
   id. Fake `FakeTeachingClassesReader` in `modules/classes/test/mock/`; e2e in
   `apps/backend/test/teaching-classes.e2e-spec.ts` (fixed classes clock).
+- The classes a person taught (spec 062): `GET /classes/teaching/history?from=YYYY-MM-DD&to=YYYY-MM-DD`
+  (`ListTeachingClassHistory` in `usecase/list-teaching-class-history.usecase.ts`), declared after `GET
+  /classes/teaching` and before `GET /classes/:id` → 200 `{ items: ClassItem[] }`, unpaged: the classes where the
+  caller is one of the instructors, that ended (`endsAt <= now`, the classes clock; a class under way isn't listed),
+  aren't cancelled, and whose start falls on an America/Fortaleza day from `from` to `to`, newest `startsAt` first,
+  then `id` desc; built with `toClassItem(view, roster, undefined, true)` as cards (`CLASS_CARD_STUDENTS_LIMIT`,
+  guests' names shown, `myEnrolment: null`). Access is `assertIsTeacher`'s, checked before the period (403
+  `user.status.notApproved`, 403 `user.role.notTeacher`, no token 401). The period is checked exactly as the student's
+  history, by the shared `toHistoryPeriod(from, to)` (`usecase/class-history-period.ts`, also home of
+  `MY_CLASS_HISTORY_MAX_DAYS`, still exported from the package; `ListMyClassHistory` uses it too): 422
+  `class.from.invalid` / `class.to.invalid` (collected), then 422 `class.range.invalid`; it answers the instants
+  `[00:00 Fortaleza on from, 00:00 on the day after to)`. The ids come from
+  `TeachingClassesReader.findHistoryClassIds(teacherId, now, from, to)` (`to` exclusive), implemented by
+  `PrismaTeachingClassesReader` with one `schoolClass.findMany` (`endsAt <= now`, `cancelledAt: null`, `startsAt` in
+  `[from, to)`, `instructors: { some: { userId } }`, ordered by `startsAt` desc then `id` desc); the views come from
+  `ClassViewReader.findByIds` in the reader's order (a missing id left out, nothing read for no ids). The fake takes the
+  history as a third constructor argument (`historyCalls`); e2e in the "history" describe of
+  `teaching-classes.e2e-spec.ts`.
 - `PUT /classes/:id` (admins; spec 032, `EditClass` in `usecase/edit-class.usecase.ts`) `{ discipline, level, date,
   start, end, locationId, instructorIds, capacity, notes? }` (`date` `YYYY-MM-DD`, `start` / `end` `HH:mm`,
   Fortaleza, turned into `startsAt` / `endsAt` with `toInstant` from `model/class-batch.ts`; the whole class every
@@ -1624,8 +1645,9 @@ import cycle.
   053: a `useQuery` keyed `["classes", "mine", "history", from, to]` (`myClassHistoryQueryKey`), `GET
   /classes/mine/history?from=…&to=…`, no retry; each period cached on its own, a period not in the cache has no data
   until it loads); both sit under `["classes"]`, so every existing `["classes"]` invalidation refreshes them. Types
-  `MyClassesResponse`, `MyClassHistoryResponse` (`{ items }`), `MyClassHistoryPeriod`, `ClassHistoryDay` and
-  `MyClassesFilter` in `enrolment.types.ts`. `utils/class-history.ts` (spec 053): `daysWithClasses` (each Fortaleza day
+  `MyClassesResponse`, `MyClassHistoryResponse` (`{ items }`), `MyClassHistoryPeriod` and `MyClassesFilter` in
+  `enrolment.types.ts` (`ClassHistoryDay` moved to the classes module's `classes.types.ts` in spec 062).
+  `utils/class-history.ts` (spec 053; in `src/modules/classes/utils/` since spec 062): `daysWithClasses` (each Fortaleza day
   with classes once, for the dots), `filterClassesByDay`, `groupClassesByDay` (newest day first, a day's classes newest
   first then `id` desc), `historyDayLabel` ("WED, 21 OCT") and `historyChipLabel` ("21 OCT"). `utils/my-classes-filter.ts`:
   `MY_CLASSES_FILTERS` (the chips in order: `all`, `pending`, `approved`, `denied`, `withdrawn`, `cancelled`,
@@ -1641,15 +1663,18 @@ import cycle.
   (`cancelRefetch: false`) and its cleanup puts the chips back on `all`, so any blur — another tab, or a screen pushed
   above — resets them. States: grape spinner, error with "Tentar novamente" only while nothing is loaded (a failed
   refetch keeps the list), nothing after an expired session, the empty card (`myClasses.empty.all` / `.filtered`),
-  pull-to-refresh with its own spinner. `MyClassHistoryScreen` (`screens/my-class-history.screen.tsx` + `.hook.ts` /
-  `.types.ts`, route `src/app/(private)/student/my-history.tsx`, `routes.student.myHistory` = `/student/my-history`,
-  in the student `Stack`; rebuilt in spec 053, it sets no header options, so the header has only the back button): one
+  pull-to-refresh with its own spinner. `MyClassHistoryScreen` (`screens/my-class-history.screen.tsx`, route
+  `src/app/(private)/student/my-history.tsx`, `routes.student.myHistory` = `/student/my-history`, in the student
+  `Stack`; rebuilt in spec 053, and since spec 062 a thin wrapper over the classes module's `useClassHistory` and
+  `ClassHistory` with the `myHistory` copy and `routes.student.classDetail` — below is what `ClassHistory` draws; its
+  header is the centered `StackHeaderTitle` and the back button, no intro): one
   `FlatList` (`my-history-list`, `contentInsetAdjustmentBehavior="automatic"`) whose header holds the calendar card
   (`WeekMonthCalendar` with `initialView="month"`, `clearable`, `onPeriodChange`, the days with classes marked and
   `myHistory.hasClasses` as `markedLabel`), the legend (a `bg-lagoon` dot) and `HistoryListHeader`
   (`components/history-list-header/`: "Todas as aulas" with the period's caption, or the selected day's
   `bg-info-tint` / `text-lagoon` chip in a 44 pt target that clears it); its rows are `HistoryDayLabel`s
-  (`components/history-day-label/`) and `ClassCard`s. The screen hook keeps the period (the current Fortaleza month on
+  (`components/history-day-label/`) and `ClassCard`s (both components in `src/modules/classes/` since spec 062). The
+  hook keeps the period (the current Fortaleza month on
   open), the selected day (none) and the refresh spinner as local state; the day filter runs on the loaded period.
   States through `ListEmptyComponent`, each under the calendar and the legend: three `ClassCardSkeleton`s read as one
   loading state, `ErrorState` with retry (`isRetrying` keeps it on screen with the button's spinner while a period
@@ -1670,8 +1695,12 @@ import cycle.
   data) and a chevron; always rendered for `instructor`, for `admin` only when the data has `teachesAny: true`; it is
   the first row of the Escola section of `InstructorScreen` and `AdminScreen`, opening `routes.<role>.myClasses`
   (`/instructor/my-classes`, `/admin/my-classes`; route files in each role's stack, outside `(tabs)`).
-  `TeachingClassesScreen` (`screens/teaching-classes.screen.tsx` + hook, types; prop `role`): title through
-  `headerTitle: () => <StackHeaderTitle />` (centered), no `headerRight`; one `FlatList` (`teaching-classes-list`)
+  `TeachingClassesScreen` (`screens/teaching-classes.screen.tsx` + hook, types; prop `role`): since spec 062 the
+  list's header is a `ScreenIntro` (grape `calendar-outline`, `teachingClasses.title`, `teachingClasses.description`)
+  whose title collapses into the header through `useCollapsingTitleHeader`; on the error and empty states the intro is
+  dropped and the header shows `StackHeaderTitle` (centered); `headerRight` is a `HeaderButton` (`time-outline`,
+  label `teachingHistory.title`) pushing `routes[role].myHistory` (`openHistory`) in every state; one
+  `Animated.FlatList` (`teaching-classes-list`)
   of rows built at `useNow()`: `OngoingClassCard`s, then per day a `TeachingDayHeader`
   (`components/teaching-day-header/`: role `header`, label left and date right in `ds-text-section-label`) and its
   `ClassCard`s, `isNext` on the next one. States as `MyClassesScreen` (four `ClassCardSkeleton`s as one loading
@@ -1690,6 +1719,28 @@ import cycle.
   `ListEmptyComponent` renders `EmptyState` (`calendar-outline`, no action) with
   `teachingClasses.emptyFiltered.<sport>.{title,description}` when `emptyDiscipline` is set. The home row's count
   doesn't read the filter.
+- Mobile, spec 062 ("Aulas anteriores" for instructors and admins, in `src/modules/classes/`): the history pieces the
+  student's and the teaching history share live in the classes module, since the enrolment module imports from
+  classes and not the other way round — `components/history-day-label/`, `components/history-list-header/`,
+  `utils/class-history.ts`, and `components/class-history/`: `useClassHistory({ useHistoryQuery, classRoute })`
+  (`class-history.hook.ts`; the screen's state — period, day, sport, rows, loading / error / empty / refresh — over
+  the period query it is given, a card pushing `classRoute(id)`) and `ClassHistory({ history, copy, withIntro })`
+  (`class-history.component.tsx`; the calendar, the legend, `HistoryListHeader`, the list, the states and the
+  floating `DisciplineFilter`, with the texts of the i18n namespace `copy`, `myHistory` or `teachingHistory`, and the
+  testIDs `my-history-*`). `withIntro` (off by default, so the student's history has none) adds a `ScreenIntro` (grape
+  `time-outline`, the title and `<copy>.description`) as the first part of the list's header, its title collapsing
+  into the header through `useCollapsingTitleHeader`; on the error and empty states the intro is dropped and the
+  header shows the centered `StackHeaderTitle`. Types `ClassHistoryDay`, `ClassHistoryPeriod` (`{ from, to }`) and
+  `TeachingClassHistoryResponse` (`{ items }`) in `classes.types.ts`. `useTeachingClassHistory(period)`
+  (`hooks/use-teaching-class-history.hook.ts`): a `useQuery` keyed `["classes", "teaching", "history", from, to]`
+  (`teachingClassHistoryQueryKey`), authenticated `GET /classes/teaching/history?from=…&to=…`, no retry; under
+  `["classes"]`, so every class invalidation refreshes it. `TeachingClassHistoryScreen`
+  (`screens/teaching-class-history.screen.tsx` + types, prop `role`; no hook file, it only wires `useClassHistory`
+  with `routes[role].classDetail`) renders `ClassHistory` with `copy="teachingHistory"` and `withIntro`; routes
+  `src/app/(private)/{instructor,admin}/my-history.tsx`, `routes.instructor.myHistory` = `/instructor/my-history`,
+  `routes.admin.myHistory` = `/admin/my-history`, in each role's stack outside `(tabs)`. Copy under
+  `teachingHistory` (title, description, legend, `hasClasses`, `allClasses`, `clearDay`, `loading`, `loadError`,
+  `emptyDay`, `emptyPeriod`) and `teachingClasses.description`.
 - Mobile, spec 061 (weekly occupancy for admins, in `src/modules/classes/`; no API change): `utils/weekly-occupancy.ts`
   holds the pure logic — `buildOccupancyDays(weekStart, today, locale)` (the 7 days, weekday abbreviation, number,
   `isToday`), `buildOccupancyRows(weekStart, classes)` (one row per Fortaleza start time, `schoolTimeOf`, cancelled

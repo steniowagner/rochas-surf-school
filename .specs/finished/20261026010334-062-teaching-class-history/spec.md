@@ -2,13 +2,14 @@
 id: "062"
 slug: teaching-class-history
 title: "\"Aulas anteriores\" for instructors and admins who teach"
-status: accepted
+status: finished
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 7e24beb4104034a849e151dfcbde4d9699207649
 reviewed_commit: f7a87f62d9695b80313bceebb3aecd31baf876c1
 fronts: [classes, backend, mobile]
 depends_on: []
+finished: 2026-10-26
 ---
 
 # 062 — "Aulas anteriores" for instructors and admins who teach

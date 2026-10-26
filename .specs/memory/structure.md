@@ -158,10 +158,11 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `MyClassesReader.findCurrentClassIds` / `findHistoryClassIds` → a student's class ids, spec 048;
     `findDueForReminder` and the conditional `markReminded` of the repository and
     `ClassReminderNotifier.classReminder`, spec 054; `TeachingClassesReader.findCurrentClassIds` / `teachesAny` → the
-    classes a person teaches, spec 057),
-    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history,send-class-reminders,list-teaching-classes}.usecase.ts`
+    classes a person teaches, spec 057, and `findHistoryClassIds` → the ones they taught in a period, spec 062),
+    `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history,send-class-reminders,list-teaching-classes,list-teaching-class-history}.usecase.ts`
     (`list-my-classes` also exports `assertIsStudent` and `toMyClassItems`, shared with the history;
-    `list-teaching-classes` exports `assertIsTeacher`, spec 057), and
+    `list-teaching-classes` exports `assertIsTeacher`, spec 057), `usecase/class-history-period.ts`
+    (`toHistoryPeriod`, the period check both histories share, and `MY_CLASS_HISTORY_MAX_DAYS`; spec 062), and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
     the students, the guests — names only for `canSeeGuestNames`, spec 045 — and `myEnrolment`). Fakes of every port and entity
     factories are in `test/mock/`.
@@ -306,7 +307,8 @@ src/
                                 # GET /classes?date= (200, one week), GET /classes/mine and GET
                                 # /classes/mine/history?from=&to= (200, students only; spec 048, by period since
                                 # 053), GET /classes/teaching (200 { items, teachesAny }, instructors and admins;
-                                # spec 057), GET /classes/:id (200), in that order, and
+                                # spec 057), GET /classes/teaching/history?from=&to= (200 { items }, instructors
+                                # and admins; spec 062), GET /classes/:id (200), in that order, and
                                 # PUT /classes/:id (200 ClassItem), POST /classes/:id/cancel (200 ClassItem),
                                 # DELETE /classes/:id (204) — protected
     cancellation-rules.controller.ts  # GET /cancellation-rules (200), PUT /cancellation-rules/:discipline (200)
@@ -329,7 +331,7 @@ src/
                                 # ReleaseUpcomingClasses (errors propagate)
     teacher-lookup.prisma.ts    # PrismaTeacherLookup (id, role and status of the given users)
     teaching-classes-reader.prisma.ts  # PrismaTeachingClassesReader (TeachingClassesReader over class_instructors;
-                                # spec 057)
+                                # spec 057; the taught classes of a period, spec 062)
     class-view-reader.prisma.ts # PrismaClassViewReader (one query per read, with the location and instructors' names)
     class-contact-reader.prisma.ts  # PrismaClassContactReader (spec 049: role, status and WhatsApp number of the
                                 # given users, for GetClass only)
@@ -387,7 +389,8 @@ test/
   people.e2e-spec.ts            # e2e suite of GET /people (accounts through Prisma, isolated by a per-test name tag)
   people-roles.e2e-spec.ts      # e2e suite of PUT /people/:id/role (spec 058): the five changes, their releases,
                                 # every refusal, the last-admin races forced through the row locks, role.changed
-  teaching-classes.e2e-spec.ts  # e2e suite of GET /classes/teaching (fixed classes clock; spec 057)
+  teaching-classes.e2e-spec.ts  # e2e suite of GET /classes/teaching (fixed classes clock; spec 057) and of
+                                # GET /classes/teaching/history (spec 062)
   school-rules.e2e-spec.ts      # e2e suite of the /school-rules routes (tokens minted with JwtTokenProvider)
   school-rules-acceptance.e2e-spec.ts  # e2e suite of POST /school-rules/acceptances (rows checked through Prisma)
   school-settings.e2e-spec.ts   # e2e suite of the /school-settings routes (accounts in each status and role through Prisma)
@@ -463,6 +466,8 @@ src/
                                                      # above the tab bar
     (private)/{instructor,admin}/my-classes.tsx      # "Minhas aulas" of the classes they teach (/instructor/my-classes,
                                                      # /admin/my-classes; TeachingClassesScreen, spec 057), above the tab bar
+    (private)/{instructor,admin}/my-history.tsx      # "Aulas anteriores" of the classes they taught (/instructor/my-history,
+                                                     # /admin/my-history; TeachingClassHistoryScreen, spec 062), above the tab bar
     (private)/admin/weekly-occupancy.tsx             # "Ocupação semanal" (/admin/weekly-occupancy, spec 061),
                                                      # above the tab bar
     (private)/admin/manage-school-rules.tsx          # "Regras da escola" management (/admin/manage-school-rules,
@@ -564,7 +569,10 @@ src/
     screens/teaching-classes.screen.tsx  # TeachingClassesScreen + hook, types (spec 057): "Minhas aulas" of an
                                 # instructor or a teaching admin — the classes under way on grape cards, then by day
                                 # with TeachingDayHeaders, the next class highlighted; loading, empty, error + retry,
-                                # pull-to-refresh, refetch on focus
+                                # pull-to-refresh, refetch on focus; spec 062: the intro (collapsing title) and the
+                                # header's clock button to "Aulas anteriores"
+    screens/teaching-class-history.screen.tsx  # TeachingClassHistoryScreen + types (spec 062): "Aulas anteriores" of an
+                                # instructor or a teaching admin — ClassHistory with the teaching copy and the intro
     screens/weekly-occupancy.screen.tsx  # WeeklyOccupancyScreen + hook, types (spec 061): the admin's week map —
                                 # week bar, stats card, map and legend, the selected class's card; loading, empty,
                                 # error + retry, pull-to-refresh, refetch on focus
@@ -572,7 +580,8 @@ src/
                                 # changes, single day and time, started mode, states — a cancelled class shows
                                 # only a message —, submit and its errors)
     classes.types.ts            # ClassLocation (with the point and upcomingClasses), MapPoint, Teacher, NewClassForm, BatchRequest, EditClassRequest, ClassItem, ClassDetails (the one-class answer, with numbers),
-                                # WeekClasses and the answers (mirror the API)
+                                # WeekClasses and the answers (mirror the API); ClassHistoryDay, ClassHistoryPeriod
+                                # (spec 062)
     components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
                                 # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
                                 # time-range-sheet (two @expo/ui DateTimePickers in time mode),
@@ -595,7 +604,10 @@ src/
                                 # homes' "Minhas aulas" row and its count; class-card's isNext draws "Próxima");
                                 # spec 061: occupancy-week-bar (arrows, relative week, caption), occupancy-stats
                                 # (+ occupancy-stat: the week's four figures), occupancy-map (+ occupancy-cell,
-                                # occupancy-legend), occupancy-map-skeleton
+                                # occupancy-legend), occupancy-map-skeleton; spec 062: class-history (ClassHistory, the
+                                # history's layout, and useClassHistory, its state; shared with the student's
+                                # history), history-list-header ("Todas as aulas", the caption or the day chip) and
+                                # history-day-label (the label above a day's classes), both moved from enrolment
     hooks/                      # use-locations (["locations"]), use-create-location (adds to that cache),
                                 # use-edit-location (PUT /locations/:id; replaces the row, reloads ["classes"]),
                                 # use-archive-location (POST /locations/:id/archive; drops the row),
@@ -612,7 +624,9 @@ src/
                                 # use-week-classes (["classes", "week", weekStart], weekClassesOptions),
                                 # use-visible-weeks-classes (useQueries over every week a calendar draws, same key),
                                 # use-class (["classes", "detail", id]), use-now (the clock, every 60 s),
-                                # use-teaching-classes (GET /classes/teaching, ["classes", "teaching"]; spec 057)
+                                # use-teaching-classes (GET /classes/teaching, ["classes", "teaching"]; spec 057),
+                                # use-teaching-class-history (GET /classes/teaching/history?from=&to=, ["classes",
+                                # "teaching", "history", from, to]; spec 062)
     utils/                      # calendar.ts (Fortaleza today and minutes, pressDay: ranges and their removed
                                 # days, initialRange), week.ts (an instant's Fortaleza day and time, the date line,
                                 # formatDeadline for "Cancelamento até …"),
@@ -626,23 +640,23 @@ src/
                                 # footer; spec 047), teaching-classes.ts (the layout of "Minhas aulas", the count,
                                 # the day header's date and weekday; spec 057), weekly-occupancy.ts (the map's days,
                                 # rows and cell tones, the default selection, the relative week and the stats;
-                                # spec 061)
+                                # spec 061), class-history.ts (the days with classes, the day filter, grouping by
+                                # day, the day and chip labels; spec 053, moved from enrolment in 062)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, the
                                 # admins' "Inscrições em aulas" tool (spec 042), direct enrolment and take-out
                                 # (spec 044), and the student's "Minhas aulas" and history (spec 048)
     enrolment.types.ts          # EnrolmentStatus, MyEnrolment (with reason), EnrolmentResponse, RequestSeatRequest,
                                 # PendingRequestsResponse, DenyRequestVariables, MyClassesResponse,
-                                # MyClassHistoryResponse, MyClassHistoryPeriod, ClassHistoryDay, MyClassesFilter
+                                # MyClassHistoryResponse, MyClassHistoryPeriod, MyClassesFilter
                                 # (mirror the API)
     screens/my-classes.screen.tsx  # "Minhas aulas" (+ .hook.ts, .types.ts; spec 048): title, round history button,
                                 # the group chips, the classes as ClassCards with their chip; refetch on focus,
                                 # chips back on "Todas" on blur, pull-to-refresh, loading, error + retry, empty
-    screens/my-class-history.screen.tsx  # "Histórico" (+ .hook.ts, .types.ts; spec 048, rebuilt in 053): the month or
+    screens/my-class-history.screen.tsx  # "Histórico" (spec 048, rebuilt in 053; since 062 a wrapper over the classes
+                                # module's useClassHistory and ClassHistory with the student's copy): the month or
                                 # week calendar, the legend, "Todas as aulas" with the period or the day's chip, the
                                 # period's classes under a label per day; skeleton, error + retry, empty, refresh
-    components/history-list-header/  # HistoryListHeader ("Todas as aulas", the caption or the day chip; spec 053)
-    components/history-day-label/  # HistoryDayLabel (the label above a day's classes; spec 053)
     components/my-classes-filters/  # MyClassesFilters (the horizontal row of chips; spec 048; four groups since 052)
     screens/class-requests.screen.tsx  # "Inscrições em aulas": header with requests · classes, one group per class,
                                 # pull-to-refresh, loading, error + retry, "Nada à espera"
@@ -685,9 +699,7 @@ src/
                                 # cancelled, takenOut), enrolment-error.ts (API error → translation key,
                                 # which errors reload the class or the tool's list), class-requests.ts (the "Pediu
                                 # às …" line and the day block), my-classes-filter.ts (the chips and which one a class
-                                # belongs to; spec 048; each status mapped to its group since 052), class-history.ts
-                                # (the days with classes, the day filter, grouping by day, the day and chip labels;
-                                # spec 053)
+                                # belongs to; spec 048; each status mapped to its group since 052)
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),

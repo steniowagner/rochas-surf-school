@@ -329,11 +329,12 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
   Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-02, ER-04 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` passes.
   > ✅ 2026-10-26 — added `findReactivationRequests` (deleted + requested, ordered by `reactivationRequestedAt`, then `id`) and `updateIfReactivationRequested` (one `updateMany` on `status = deleted AND reactivationStatus = requested`; `toData` writes `null` for the cleared fields) with specs; files: `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (29 passed); deviations: none.
-- [ ] **T-06** — Add `src/modules/enrolment/classes-taken-counter.prisma.ts` (`PrismaClassesTakenCounter`, one SQL
+- [x] **T-06** — Add `src/modules/enrolment/classes-taken-counter.prisma.ts` (`PrismaClassesTakenCounter`, one SQL
   query with `findHistoryClassIds`' rule grouped by student, no date range), provided and exported by the enrolment
   module, with `classes-taken-counter.prisma.spec.ts`.
   Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-01 · Done when: `npx vitest run src/modules/enrolment/classes-taken-counter.prisma.spec.ts` passes.
+  > ✅ 2026-10-26 — added `PrismaClassesTakenCounter` (one SQL query: `findHistoryClassIds`' rule grouped by student with `ANY(ids)`, no date range, every id present with 0 by default), provided and exported by `EnrolmentModule`; files: `apps/backend/src/modules/enrolment/classes-taken-counter.prisma.ts`, `apps/backend/src/modules/enrolment/classes-taken-counter.prisma.spec.ts`, `apps/backend/src/modules/enrolment/enrolment.module.ts`; verified: `npx vitest run src/modules/enrolment/classes-taken-counter.prisma.spec.ts` (3 passed); the SQL itself runs against Postgres in T-09; deviations: none (rebuilt `modules/auth` and `modules/notifications` `dist/` so the backend sees the new ports).
 - [ ] **T-07** — Add `src/modules/notifications/notifications.reactivation-notifier.ts`
   (`NotificationsReactivationNotifier`: admins through `NotifyApprovedAdmins` with `reactivation.requested`, the person
   through `Notify`; errors logged and swallowed), exported from the notifications module, and the three entries of

@@ -6,6 +6,7 @@ import { EnrolmentExpiryJob } from './enrolment-expiry.job.js';
 import { GuestErasureJob } from './guest-erasure.job.js';
 import { GuestsController } from './guests.controller.js';
 import { PrismaGuestRepository } from './guest.prisma.js';
+import { PrismaClassesTakenCounter } from './classes-taken-counter.prisma.js';
 import { PrismaClassAudienceReader } from './class-audience-reader.prisma.js';
 import { PrismaClassRosterReader } from './class-roster-reader.prisma.js';
 import { EnrolmentClassEnrolmentsCloser } from './enrolment.class-enrolments-closer.js';
@@ -29,6 +30,7 @@ import { PrismaWaitingListSetting } from './waiting-list-setting.prisma.js';
     EnrolmentSeatReleaser,
     GuestErasureJob,
     PrismaClassAudienceReader,
+    PrismaClassesTakenCounter,
     PrismaClassRosterReader,
     PrismaEnrolmentClassReader,
     PrismaEnrolmentRepository,
@@ -46,6 +48,7 @@ import { PrismaWaitingListSetting } from './waiting-list-setting.prisma.js';
     EnrolmentClassEnrolmentsCloser,
     EnrolmentSeatReleaser,
     PrismaClassAudienceReader,
+    PrismaClassesTakenCounter,
     PrismaClassRosterReader,
     PrismaEnrolmentClassReader,
     PrismaEnrolmentRepository,

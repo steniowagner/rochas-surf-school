@@ -317,7 +317,7 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > including all 20 of `teaching-classes.e2e-spec.ts`; the 3 failures are in `test/classes.e2e-spec.ts` →
   > "suggestions" (two) and "keeps the suggestions route" — files this spec doesn't touch, whose cases seed
   > classes at fixed October 2026 dates and read them against the real clock (today is Sun 2026-10-25), so they
-  > depend on the date, not on this change (not confirmed on `base_commit`). Journeys in the iOS simulator
+  > depend on the date, not on this change (confirmed: the same 3 fail with `apps/backend/src` and `modules/classes/src` checked out at `base_commit`, so they pre-exist this spec). Journeys in the iOS simulator
   > (backend from this branch via `npm run dev`, Metro already serving the repo): as the signed-in admin, dark
   > theme — Início → "My classes" → clock button on the header's right → "Past classes" opened with October 2026,
   > a dot on each day taught, the legend "Days you taught a class", the classes under "SUN, 25 OCT"…, tapping day

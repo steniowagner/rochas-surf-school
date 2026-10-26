@@ -3,7 +3,7 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
@@ -269,21 +269,56 @@ and stacked fields are hard to use.
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then run the user
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then run the user
   journeys of ER-01 to ER-03 in the iOS simulator (after `npx expo prebuild --platform ios` for the new plugin) and
   the labelled-place tap of ER-02 in the Android emulator. Record the output summary and the journeys as evidence.
   Covers: all · Done when: every command exits 0 and every journey behaves as its Expected Result says.
-  > ⛔ 2026-10-26 — automated part done and passing: `node .specs/scripts/run-related-tests.mjs 065` → RELATED TESTS
-  > PASSED (apps/mobile: 112 suites, 1878 tests); `node .specs/scripts/check-coverage.mjs 065` → COVERAGE OK (every
-  > changed line covered in 18 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` → 8/8
-  > tasks successful. The manual journeys are blocked: (1) iOS — after `npx expo prebuild --platform ios` and
-  > `pod install`, `expo run:ios` fails because the precompiled `ExpoModulesJSI` / `ExpoModulesCore` XCFrameworks
-  > were built with Swift 6.3.1 and the only Xcode on this Mac (27.1) has Swift 6.4; building the Expo modules from
-  > source (`EXPO_USE_PRECOMPILED_MODULES=0`) still fails on the binary-only `ExpoModulesJSI` — a host toolchain issue,
-  > not this change; it needs an Xcode whose Swift matches Expo SDK 57's binaries (or an Expo update). (2) Android —
-  > the debug build with `expo-location` installs and runs on the `Pixel_Test` emulator against the local backend,
-  > but the emulator is signed in as "Dev Student", and the location screen is admin-only; signing in as the dev
-  > admin is needed to run the ER-01–ER-03 journeys and the labelled-place tap of ER-02.
+  > ✅ 2026-10-26 — Verification Plan, rerun after the fixes below: `node .specs/scripts/run-related-tests.mjs 065` →
+  > RELATED TESTS PASSED (apps/mobile: 112 suites, 1878 tests); `node .specs/scripts/check-coverage.mjs 065` → COVERAGE
+  > OK (every changed line covered in 18 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` →
+  > 8/8 tasks successful.
+  > Journeys on the Android emulator (`Pixel_Test`, debug build with `expo-location` from `npx expo prebuild --platform
+  > android` + `expo run:android`, local backend, signed in as Dev Admin, English):
+  > ER-01 — "Create classes" → "+ New location" opens the screen: full-screen map under the header, back arrow, search
+  > field ("Search for an address or a beach"), "my location" button, panel "New location" with the empty hint, "Name",
+  > "Cancel" / "Save location" (off). Typing "praia de iracema" floats 5 suggestions under the header (the backend's
+  > answer), match in bold; picking the first closes the list, moves the pin and centres the map there, fills the card
+  > ("Praia de Iracema, Fortaleza - CE, Brazil" over "Praia de Iracema · -3.7203, -38.5154") and the empty "Name"; "Save
+  > location" goes back and "New class" shows "Praia de Iracema" selected. "Cancel" and the back key go back without
+  > saving. From "Edit class" (an upcoming class), "Manage" → the row opens "Edit location" filled (name, address, pin,
+  > "Save", "Remove location", no notify since no upcoming class uses it); "praia do futuro" shows "A location with this
+  > name already exists." with "Save" off and the panel above the keyboard bar; renaming to "Praia de Iracema 065" saves
+  > ("Location updated", row renamed, still selected); "Remove location" → "Remove location?" → confirm: toast "Praia de
+  > Iracema 065 removed", back, the row gone and nothing selected ("Save and notify" off); the class itself was not saved.
+  > ER-02 — a tap on the map moves the pin without moving the map and shows "Point picked on the map · -3.7986,
+  > -38.4971"; the emulator's Play Services geocoder is down (`GeocodeService` crashing in logcat), so the address fell
+  > back to the coordinates, the ER's failure case (the success path is covered by `use-map-place.hook.test.tsx`). A tap
+  > on the airport's label selects it through Google: "Av. Senador Carlos Jereissati, 3000 - Serrinha, Fortaleza - CE…"
+  > over "Pinto Martins – Fortaleza International Airport · -3.7788, -38.5406", the name into the empty "Name" (cut to
+  > 40 characters), the map centred on it.
+  > ER-03 — nothing is asked when the screen opens; the first "my location" tap shows the system prompt; "Don't allow"
+  > shows "Allow location access in Settings to use your position." and the map, pin and form stay; tapping again and
+  > allowing centres the map on the emulator's GPS position (Cumbuco) with the user dot, the pin unchanged; later taps
+  > ask nothing.
+  > Fixes found by the journeys, each committed with its task: `fix(spec-065): give Google Maps its padding once ready and
+  > stop driving the region (T-05)` — the screen crashed on Android (`GoogleMap.setPadding` on a null map) and the
+  > controlled region drifted under the padding; the map now opens on `initialRegion` (mounted again when an edited
+  > location arrives), recentres with `animateToRegion`, and gets `mapPadding` only after `onMapReady`.
+  > `fix(spec-065): read the position without Google's accuracy prompt (T-04)` — declining Google's "Location Accuracy"
+  > prompt left `getCurrentPositionAsync` pending forever; it is now called with `mayShowUserSettingsDialog: false`.
+  > `fix(spec-065): reset the address card's dashed border once filled (T-03)` — Android kept the empty card's dashed
+  > border. Files of the fixes: `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`, `apps/mobile/jest.setup.ts` (the map mock's
+  > ref has `animateToRegion`), `apps/mobile/src/modules/classes/hooks/use-device-location.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-device-location.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.test.tsx`.
+  > Deviations: no iOS simulator journey — `expo run:ios` can't build here: the precompiled `ExpoModulesJSI` /
+  > `ExpoModulesCore` binaries were built with Swift 6.3.1 and the only Xcode (27.1) has Swift 6.4 (`ExpoModulesJSI` has
+  > no source build); the old iOS build installed on the simulator reaches the new route and stops on "Cannot find native
+  > module 'ExpoLocation'", as expected of a build without the module. On iOS, still to check by hand once a build is
+  > possible: the search, a map tap with Apple's reverse geocoding, "my location" (allow and deny) and edit/remove.
 
 ## Verification Plan
 

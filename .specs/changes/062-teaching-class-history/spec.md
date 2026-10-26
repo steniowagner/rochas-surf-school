@@ -2,7 +2,7 @@
 id: "062"
 slug: teaching-class-history
 title: "\"Aulas anteriores\" for instructors and admins who teach"
-status: changes-requested
+status: in-progress
 created: 2026-10-25
 started: 2026-10-25
 base_commit: 7e24beb4104034a849e151dfcbde4d9699207649
@@ -396,11 +396,17 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 
 **Findings**
 
-- [ ] **F-01** (tests) — two related mobile tests are red since the intro follow-up (`aea0ac7e`): "AdminScreen › My
+- [x] **F-01** (tests) — two related mobile tests are red since the intro follow-up (`aea0ac7e`): "AdminScreen › My
   classes › is the first row under School when the admin teaches…" and "InstructorScreen › shows My classes first
   under School…" fail with `Unable to find an element with role: header, name: MY CLASSES` (red twice). Reproduce:
   `npx jest src/modules/admin/screens/admin.screen.test.tsx src/modules/instructor/screens/instructor.screen.test.tsx`
   from `apps/mobile`. Expected: green — update them once F-03 is settled (or revert the intro).
+  > ✅ 2026-10-25 — F-03 settled (the user keeps the intro): "My classes" now opens with the `ScreenIntro` title, a
+  > `header` named "My classes" (the collapsing title), not the old upper-case `StackHeaderTitle`; both assertions
+  > now look for that header; files: `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/modules/instructor/screens/instructor.screen.test.tsx`; verified: `npx jest
+  > src/modules/admin/screens/admin.screen.test.tsx src/modules/instructor/screens/instructor.screen.test.tsx` from
+  > `apps/mobile` (31 passed, both red before); deviations: none
 - [ ] **F-02** (ER-02) — `GET /classes/teaching/history` answers **422** `class.from.invalid` / `class.to.invalid` /
   `class.range.invalid`; D-02 and ER-02 say 400. The code follows D-02's "validated exactly as `GET
   /classes/mine/history`" (`ValidationException` is 422, technical-context → Error handling; spec 053), so the spec's

@@ -168,7 +168,7 @@ describe("InstructorScreen", () => {
     await user.press(screen.getByRole("button", { name: /My classes/ }));
 
     expect(app.getPathname()).toBe(routes.instructor.myClasses);
-    expect(await screen.findByRole("header", { name: "MY CLASSES" })).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: "My classes" })).toBeOnTheScreen();
   });
 
   it("still shows My classes, without a subtitle, after a failed request", async () => {

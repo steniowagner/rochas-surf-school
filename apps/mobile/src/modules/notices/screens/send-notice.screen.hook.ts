@@ -1,15 +1,20 @@
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Keyboard } from "react-native";
+import { Keyboard, LayoutChangeEvent } from "react-native";
+import type Animated from "react-native-reanimated";
 
 import { useAlertMessage } from "@/providers/alert-message";
+import { useHeaderInset } from "@/navigation/stack-header";
 
 import { useNoticeRecipientsCount } from "../hooks/use-notice-recipients-count.hook";
 import { useSendNotice } from "../hooks/use-send-notice.hook";
 import { NoticeAudience } from "../notices.types";
 
-import { UseSendNoticeScreenResult } from "./send-notice.screen.types";
+import { NoticeField, UseSendNoticeScreenResult } from "./send-notice.screen.types";
+
+// Space left above a field scrolled into view.
+const FIELD_SCROLL_MARGIN = 16;
 
 export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
   const { t } = useTranslation();
@@ -20,6 +25,39 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
   const [message, setMessage] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
   const recipients = useNoticeRecipientsCount(audience);
+  const headerInset = useHeaderInset();
+  const scrollRef = useRef<Animated.ScrollView>(null);
+  const fieldTops = useRef<Record<NoticeField, number>>({ title: 0, message: 0 });
+  const keyboardListener = useRef<{ remove: () => void } | null>(null);
+
+  useEffect(() => () => keyboardListener.current?.remove(), []);
+
+  const onFieldLayout = (field: NoticeField, event: LayoutChangeEvent) => {
+    fieldTops.current[field] = event.nativeEvent.layout.y;
+  };
+
+  const scrollToField = (field: NoticeField) =>
+    scrollRef.current?.scrollTo({
+      y: Math.max(fieldTops.current[field] - headerInset - FIELD_SCROLL_MARGIN, 0),
+      animated: true,
+    });
+
+  // The keyboard avoidance only grows the scrollable area once the keyboard is up: scrolling before it would stop short.
+  const onFieldFocus = (field: NoticeField) => {
+    keyboardListener.current?.remove();
+
+    if (Keyboard.isVisible()) {
+      scrollToField(field);
+
+      return;
+    }
+
+    keyboardListener.current = Keyboard.addListener("keyboardDidShow", () => {
+      keyboardListener.current?.remove();
+      keyboardListener.current = null;
+      scrollToField(field);
+    });
+  };
 
   // A second press in the same frame must not send twice, before `isPending` has re-rendered.
   const sending = useRef(false);
@@ -72,6 +110,9 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
   };
 
   return {
+    scrollRef,
+    onFieldLayout,
+    onFieldFocus,
     audience,
     title,
     message,

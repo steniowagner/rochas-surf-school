@@ -1,5 +1,6 @@
-import { screen, userEvent, waitFor } from "@testing-library/react-native";
+import { fireEvent, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
+import { Keyboard } from "react-native";
 
 import {
   account,
@@ -122,6 +123,24 @@ describe("SendNoticeScreen", () => {
 
     expect(await screen.findByText("Couldn't count the recipients.")).toBeOnTheScreen();
     expect(sendButton()).toBeDisabled();
+  });
+
+  it("reports where each field sits and scrolls to it when it gets focus", async () => {
+    const isVisible = jest.spyOn(Keyboard, "isVisible").mockReturnValue(true);
+    await open();
+
+    await fireEvent(screen.getByTestId("notice-title-field"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 300, width: 300, height: 52 } },
+    });
+    await fireEvent(screen.getByTestId("notice-message-field"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 380, width: 300, height: 150 } },
+    });
+    await fireEvent(titleField(), "focus");
+    await fireEvent(messageField(), "focus");
+
+    expect(titleField()).toBeOnTheScreen();
+    expect(messageField()).toBeOnTheScreen();
+    isVisible.mockRestore();
   });
 
   it("stops the fields at the limits", async () => {

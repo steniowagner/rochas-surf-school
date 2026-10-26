@@ -20,7 +20,9 @@ jest.mock("@/components/ui/bottom-modal", () => {
   };
 });
 
-function props(overrides: Partial<CancelClassSheetProps> = {}): CancelClassSheetProps {
+function props(
+  overrides: Partial<CancelClassSheetProps> = {},
+): CancelClassSheetProps {
   return {
     visible: true,
     loading: false,
@@ -38,12 +40,16 @@ describe("CancelClassSheet", () => {
 
     expect(screen.getByText("Cancel this class?")).toBeOnTheScreen();
     expect(
-      screen.getByText("We'll notify the class's instructors. It stays on the schedule, marked as cancelled."),
+      screen.getByText(
+        "We'll notify the class's instructors. It stays on the schedule, marked as cancelled.",
+      ),
     ).toBeOnTheScreen();
     expect(screen.getByText("Message (optional)")).toBeOnTheScreen();
     expect(screen.getByText("0/300")).toBeOnTheScreen();
     expect(screen.getByRole("button", CONFIRM)).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Keep class" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "Keep class" }),
+    ).toBeOnTheScreen();
   });
 
   it("confirms with the trimmed message", async () => {
@@ -51,28 +57,38 @@ describe("CancelClassSheet", () => {
     const sheet = props();
     await render(<CancelClassSheet {...sheet} />);
 
-    await user.type(screen.getByLabelText("Message (optional)"), "  Big waves.  ");
+    await user.type(
+      screen.getByLabelText("Message (optional)"),
+      "  Big waves.  ",
+    );
     await user.press(screen.getByRole("button", CONFIRM));
 
     expect(sheet.onConfirm).toHaveBeenCalledWith("Big waves.");
   });
 
-  it.each([[""], ["   "]])("confirms without a message when it is %j", async (typed) => {
-    const user = userEvent.setup();
-    const sheet = props();
-    await render(<CancelClassSheet {...sheet} />);
+  it.each([[""], ["   "]])(
+    "confirms without a message when it is %j",
+    async (typed) => {
+      const user = userEvent.setup();
+      const sheet = props();
+      await render(<CancelClassSheet {...sheet} />);
 
-    if (typed) await user.type(screen.getByLabelText("Message (optional)"), typed);
-    await user.press(screen.getByRole("button", CONFIRM));
+      if (typed)
+        await user.type(screen.getByLabelText("Message (optional)"), typed);
+      await user.press(screen.getByRole("button", CONFIRM));
 
-    expect(sheet.onConfirm).toHaveBeenCalledWith(undefined);
-  });
+      expect(sheet.onConfirm).toHaveBeenCalledWith(undefined);
+    },
+  );
 
   it("stops the message at 300 characters", async () => {
     const user = userEvent.setup();
     await render(<CancelClassSheet {...props()} />);
 
-    await user.type(screen.getByLabelText("Message (optional)"), "m".repeat(320));
+    await user.type(
+      screen.getByLabelText("Message (optional)"),
+      "m".repeat(320),
+    );
 
     expect(screen.getByText("300/300")).toBeOnTheScreen();
   });
@@ -129,7 +145,9 @@ describe("CancelClassSheet", () => {
     await render(<CancelClassSheet {...props({ guestCount: 2 })} />);
 
     expect(
-      screen.getByText("2 trial students have no account and won't get the notice — talk to them on WhatsApp."),
+      screen.getByText(
+        "2 trial students have no account and won't get the notice — talk to them on WhatsApp.",
+      ),
     ).toBeOnTheScreen();
   });
 

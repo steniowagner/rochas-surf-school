@@ -26,8 +26,11 @@ export type UseWeeklyOccupancyScreenResult = {
   isRefreshing: boolean;
   refresh: () => Promise<void>;
   retry: () => void;
-  goPrevious: () => void;
-  goNext: () => void;
+  isCalendarOpen: boolean;
+  openCalendar: () => void;
+  closeCalendar: () => void;
+  /** Selects the week the day is in. */
+  selectWeekOf: (date: string) => void;
   selectClass: (id: string) => void;
   openClass: (id: string) => void;
 };

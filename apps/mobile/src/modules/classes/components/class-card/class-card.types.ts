@@ -17,7 +17,10 @@ export type ClassCardProps = {
   isNext?: boolean;
 };
 
-export type UseClassCardProps = Pick<ClassCardProps, "item" | "now" | "showEnrolment" | "isNext">;
+export type UseClassCardProps = Pick<
+  ClassCardProps,
+  "item" | "now" | "showEnrolment" | "isNext"
+>;
 
 export type UseClassCardResult = {
   state: ClassState;

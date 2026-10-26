@@ -3,39 +3,29 @@ import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
-import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 import { OccupancyWeekBarProps } from "./occupancy-week-bar.types";
 
-/** The week the map shows, with how far it is from this one, between the arrows that move it by one week. */
+/** The week the map shows, with how far it is from this one: all of it presses to open the calendar that picks another. */
 export function OccupancyWeekBar({
   relativeLabel,
   isCurrentWeek,
   caption,
-  onPrevious,
-  onNext,
+  onPress,
 }: OccupancyWeekBarProps) {
   const { t } = useTranslation();
   const theme = useTheme();
 
   return (
-    <View className="flex-row items-center gap-2">
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={t("weekMonthCalendar.previousWeek")}
-        activeOpacity={BUTTON_ACTIVE_OPACITY}
-        onPress={onPrevious}
-      >
-        <View
-          testID="occupancy-week-arrow-previous"
-          style={shadowStyle("iconButton", theme)}
-          className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-        >
-          <Ionicons name="chevron-back" size={20} color={theme.ink} />
-        </View>
-      </TouchableOpacity>
-      <View className="flex-1 items-center">
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={t("weeklyOccupancy.openCalendar")}
+      activeOpacity={BUTTON_ACTIVE_OPACITY}
+      onPress={onPress}
+      className="min-h-11 flex-row items-center gap-3 rounded-card border border-line bg-surface p-3"
+    >
+      <View className="flex-1">
         <Text
           testID="occupancy-week-label"
           numberOfLines={1}
@@ -47,20 +37,12 @@ export function OccupancyWeekBar({
           {caption}
         </Text>
       </View>
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={t("weekMonthCalendar.nextWeek")}
-        activeOpacity={BUTTON_ACTIVE_OPACITY}
-        onPress={onNext}
+      <View
+        testID="occupancy-week-calendar-icon"
+        className="h-11 w-11 items-center justify-center rounded-control bg-sun-tint"
       >
-        <View
-          testID="occupancy-week-arrow-next"
-          style={shadowStyle("iconButton", theme)}
-          className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-        >
-          <Ionicons name="chevron-forward" size={20} color={theme.ink} />
-        </View>
-      </TouchableOpacity>
-    </View>
+        <Ionicons name="calendar-outline" size={20} color={theme.ink} />
+      </View>
+    </TouchableOpacity>
   );
 }

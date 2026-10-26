@@ -27,25 +27,34 @@ describe("initialRange", () => {
       endDate: null,
       excludedDates: [],
     });
-    expect(initialRange("2027-01-01", "2026-10-14").startDate).toBe("2027-01-01");
+    expect(initialRange("2027-01-01", "2026-10-14").startDate).toBe(
+      "2027-01-01",
+    );
   });
 
-  it.each(["2026-10-13", "2026-02-30", "14/10/2026", undefined, ["2026-10-20"]])(
-    "is empty for %p",
-    (date) => {
-      expect(initialRange(date, "2026-10-14")).toEqual({
-        startDate: null,
-        endDate: null,
-        excludedDates: [],
-      });
-    },
-  );
+  it.each([
+    "2026-10-13",
+    "2026-02-30",
+    "14/10/2026",
+    undefined,
+    ["2026-10-20"],
+  ])("is empty for %p", (date) => {
+    expect(initialRange(date, "2026-10-14")).toEqual({
+      startDate: null,
+      endDate: null,
+      excludedDates: [],
+    });
+  });
 });
 
 describe("pressDay", () => {
   const empty = { startDate: null, endDate: null, excludedDates: [] };
   const single = { startDate: "2026-10-15", endDate: null, excludedDates: [] };
-  const complete = { startDate: "2026-10-15", endDate: "2026-10-20", excludedDates: [] };
+  const complete = {
+    startDate: "2026-10-15",
+    endDate: "2026-10-20",
+    excludedDates: [],
+  };
 
   it("sets the start on the first tap", () => {
     expect(pressDay(empty, "2026-10-15")).toEqual({ ...single });
@@ -80,14 +89,24 @@ describe("pressDay", () => {
     const second = pressDay(first, "2026-10-16");
 
     expect(second.excludedDates).toEqual(["2026-10-16", "2026-10-19"]);
-    expect(second).toMatchObject({ startDate: "2026-10-15", endDate: "2026-10-20" });
+    expect(second).toMatchObject({
+      startDate: "2026-10-15",
+      endDate: "2026-10-20",
+    });
   });
 
-  it.each(["2026-10-15", "2026-10-20"])("removes the whole range, and what was taken out of it, on its end %s", (end) => {
-    const removed = { ...complete, excludedDates: ["2026-10-17"] };
+  it.each(["2026-10-15", "2026-10-20"])(
+    "removes the whole range, and what was taken out of it, on its end %s",
+    (end) => {
+      const removed = { ...complete, excludedDates: ["2026-10-17"] };
 
-    expect(pressDay(removed, end)).toEqual({ startDate: null, endDate: null, excludedDates: [] });
-  });
+      expect(pressDay(removed, end)).toEqual({
+        startDate: null,
+        endDate: null,
+        excludedDates: [],
+      });
+    },
+  );
 
   it("starts over, with nothing removed, on a day outside a complete range", () => {
     const removed = { ...complete, excludedDates: ["2026-10-17"] };
@@ -104,4 +123,3 @@ describe("pressDay", () => {
     });
   });
 });
-

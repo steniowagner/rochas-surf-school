@@ -61,7 +61,9 @@ export const useNewClassScreen = () => {
 
   const [discipline, setDiscipline] = useState<ClassDiscipline>("surf");
   const [level, setLevel] = useState<ClassLevel>("beginner");
-  const [range, setRange] = useState<DateRange>(() => initialRange(date, today));
+  const [range, setRange] = useState<DateRange>(() =>
+    initialRange(date, today),
+  );
   const [selectedRanges, setSelectedRanges] = useState<TimeRange[]>([]);
   const [addedRanges, setAddedRanges] = useState<TimeRange[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -82,7 +84,10 @@ export const useNewClassScreen = () => {
   const dates =
     startDate === null || endDate === null
       ? []
-      : listBatchDates({ startDate, endDate, weekdays: ALL_WEEKDAYS, excludedDates }, CLASS_BATCH_MAX);
+      : listBatchDates(
+          { startDate, endDate, weekdays: ALL_WEEKDAYS, excludedDates },
+          CLASS_BATCH_MAX,
+        );
   // Only when today is among the dates can a time range have started already.
   const nowMinutes = dates.includes(today) ? minutesInSchoolZone() : null;
   // Selected times that have started on today's date: their classes there don't exist, one per time range at most.
@@ -146,10 +151,17 @@ export const useNewClassScreen = () => {
     );
 
   const changeCapacity = (value: number) =>
-    setCapacity(Math.min(CLASS_CAPACITY_MAX, Math.max(CLASS_CAPACITY_MIN, value)));
+    setCapacity(
+      Math.min(CLASS_CAPACITY_MAX, Math.max(CLASS_CAPACITY_MIN, value)),
+    );
 
   const submit = async () => {
-    if (!canSubmit || startDate === null || endDate === null || sending.current) {
+    if (
+      !canSubmit ||
+      startDate === null ||
+      endDate === null ||
+      sending.current
+    ) {
       return;
     }
 
@@ -176,7 +188,9 @@ export const useNewClassScreen = () => {
       router.back();
     } catch (error) {
       if (isInstructorsInvalidError(error)) {
-        void queryClient.invalidateQueries({ queryKey: ["people", "teachers"] });
+        void queryClient.invalidateQueries({
+          queryKey: ["people", "teachers"],
+        });
       }
 
       if (isLocationNotFoundError(error)) {

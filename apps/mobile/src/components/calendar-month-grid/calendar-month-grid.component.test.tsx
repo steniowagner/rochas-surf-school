@@ -1,4 +1,9 @@
-import { render, screen, userEvent, within } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  userEvent,
+  within,
+} from "@testing-library/react-native";
 
 import { CalendarMonthGrid } from "./calendar-month-grid.component";
 
@@ -43,7 +48,9 @@ describe("CalendarMonthGrid", () => {
   ])("draws only the weeks %j needs", async (month, first, last, days) => {
     await render(setup([], first, month).ui);
 
-    expect(screen.getAllByTestId(/^calendar-day-\d{4}-\d{2}-\d{2}$/)).toHaveLength(days);
+    expect(
+      screen.getAllByTestId(/^calendar-day-\d{4}-\d{2}-\d{2}$/),
+    ).toHaveLength(days);
     expect(screen.getByTestId(`calendar-day-${first}`)).toBeOnTheScreen();
     expect(screen.getByTestId(`calendar-day-${last}`)).toBeOnTheScreen();
   });
@@ -52,7 +59,9 @@ describe("CalendarMonthGrid", () => {
     await render(setup().ui);
 
     const numberOf = (day: string) =>
-      within(screen.getByTestId(`calendar-day-${day}`)).getByText(String(Number(day.slice(8)))).props.className;
+      within(screen.getByTestId(`calendar-day-${day}`)).getByText(
+        String(Number(day.slice(8))),
+      ).props.className;
 
     expect(numberOf("2026-09-28")).toContain("text-ink-3");
     expect(numberOf("2026-11-01")).toContain("text-ink-3");
@@ -64,7 +73,9 @@ describe("CalendarMonthGrid", () => {
     await render(setup().ui);
 
     expect(screen.getByText("14").props.className).toContain("text-on-color");
-    expect(screen.getByText("14").parent?.props.className).toContain("bg-grape");
+    expect(screen.getByText("14").parent?.props.className).toContain(
+      "bg-grape",
+    );
     expect(screen.getByText("15").props.className).toContain("text-sun");
     expect(screen.getByText("15").parent?.props.className).not.toContain("bg-");
     expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
@@ -74,16 +85,26 @@ describe("CalendarMonthGrid", () => {
     await render(setup(["2026-10-14", "2026-10-15", "2026-11-01"]).ui);
 
     expect(screen.queryAllByTestId(/-dot$/)).toHaveLength(3);
-    expect(screen.getByTestId("calendar-day-2026-10-14-dot").props.className).toContain("bg-lagoon");
-    expect(screen.getByTestId("calendar-day-2026-11-01-dot").props.className).toContain("bg-lagoon");
-    expect(screen.queryByTestId("calendar-day-2026-10-16-dot")).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId("calendar-day-2026-10-14-dot").props.className,
+    ).toContain("bg-lagoon");
+    expect(
+      screen.getByTestId("calendar-day-2026-11-01-dot").props.className,
+    ).toContain("bg-lagoon");
+    expect(
+      screen.queryByTestId("calendar-day-2026-10-16-dot"),
+    ).not.toBeOnTheScreen();
   });
 
   it("labels each day with its full date, plus the marked label when it has a dot", async () => {
     await render(setup(["2026-10-15"]).ui);
 
-    expect(screen.getByLabelText("Wednesday, October 14th, 2026")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Thursday, October 15th, 2026, with classes")).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Wednesday, October 14th, 2026"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText("Thursday, October 15th, 2026, with classes"),
+    ).toBeOnTheScreen();
   });
 
   it("selects a day, adjacent ones included, when pressed", async () => {
@@ -110,6 +131,8 @@ describe("CalendarMonthGrid", () => {
     );
 
     expect(screen.getByTestId("calendar-day-2026-10-14")).not.toBeSelected();
-    expect(screen.getByText("14").parent?.props.className).not.toContain("bg-grape");
+    expect(screen.getByText("14").parent?.props.className).not.toContain(
+      "bg-grape",
+    );
   });
 });

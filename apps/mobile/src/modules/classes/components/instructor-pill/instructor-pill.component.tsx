@@ -10,7 +10,11 @@ import type { InstructorPillProps } from "./instructor-pill.types";
 const AVATAR_SIZE = 32;
 
 /** One instructor of the class details: avatar and name in a pill that opens their person sheet. */
-export function InstructorPill({ name, isViewer, onPress }: InstructorPillProps) {
+export function InstructorPill({
+  name,
+  isViewer,
+  onPress,
+}: InstructorPillProps) {
   const { t } = useTranslation();
 
   return (

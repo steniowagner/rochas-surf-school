@@ -37,10 +37,16 @@ export const startsByNow = (range: TimeRange, nowMinutes: number): boolean =>
   parseTimeOfDay(range.start)! <= nowMinutes;
 
 /** A range that can't be picked: it overlaps one already selected. */
-export const isRangeBlocked = (range: TimeRange, selected: TimeRange[]): boolean =>
-  selected.some((item) => !isSameRange(item, range) && timeRangesOverlap(item, range));
+export const isRangeBlocked = (
+  range: TimeRange,
+  selected: TimeRange[],
+): boolean =>
+  selected.some(
+    (item) => !isSameRange(item, range) && timeRangesOverlap(item, range),
+  );
 
-export const rangeLabel = (range: TimeRange): string => `${range.start} – ${range.end}`;
+export const rangeLabel = (range: TimeRange): string =>
+  `${range.start} – ${range.end}`;
 
 export const toHHmm = (date: Date): string =>
   `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;

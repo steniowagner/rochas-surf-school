@@ -1,4 +1,8 @@
-import { getClassState, isWithoutDeadline, isWithoutInstructor } from "@rochas-surf-school/classes";
+import {
+  getClassState,
+  isWithoutDeadline,
+  isWithoutInstructor,
+} from "@rochas-surf-school/classes";
 
 import { getEnrolmentDisplay } from "../../../enrolment/utils/enrolment-status";
 import {
@@ -33,7 +37,9 @@ export const useClassCard = ({
   const full = isClassFull(item.seatsTaken, item.capacity);
   // The started, finished and cancelled chips win over the viewer's enrolment.
   const enrolment =
-    showEnrolment && state === "not-started" ? getEnrolmentDisplay(item.myEnrolment, full) : null;
+    showEnrolment && state === "not-started"
+      ? getEnrolmentDisplay(item.myEnrolment, full)
+      : null;
 
   return {
     state,
@@ -41,7 +47,11 @@ export const useClassCard = ({
     timeRange: `${schoolTimeOf(item.startsAt)} – ${schoolTimeOf(item.endsAt)}`,
     showOccupancy: state === "not-started" || state === "started",
     occupancyPercent: getOccupancyPercent(item.seatsTaken, item.capacity),
-    occupancyTone: getOccupancyTone(item.seatsTaken, item.capacity, item.discipline),
+    occupancyTone: getOccupancyTone(
+      item.seatsTaken,
+      item.capacity,
+      item.discipline,
+    ),
     full,
     showFullChip: full && state === "not-started" && enrolment === null,
     enrolment,

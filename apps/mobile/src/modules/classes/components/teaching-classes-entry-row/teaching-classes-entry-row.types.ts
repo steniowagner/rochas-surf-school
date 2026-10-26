@@ -6,7 +6,10 @@ export type TeachingClassesEntryRowProps = {
   onPress: () => void;
 };
 
-export type UseTeachingClassesEntryRowProps = Pick<TeachingClassesEntryRowProps, "role">;
+export type UseTeachingClassesEntryRowProps = Pick<
+  TeachingClassesEntryRowProps,
+  "role"
+>;
 
 export type UseTeachingClassesEntryRowResult = {
   visible: boolean;

@@ -37,7 +37,9 @@ export function NewClassScreen() {
   return (
     <View className="flex-1 bg-page">
       <Stack.Screen
-        options={{ headerTitle: () => <StackHeaderTitle title={t("newClass.title")} /> }}
+        options={{
+          headerTitle: () => <StackHeaderTitle title={t("newClass.title")} />,
+        }}
       />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"

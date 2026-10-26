@@ -5,6 +5,6 @@ export type OccupancyWeekBarProps = {
   isCurrentWeek: boolean;
   /** "19 – 25 OCT". */
   caption: string;
-  onPrevious: () => void;
-  onNext: () => void;
+  /** Opens the calendar to pick another week. */
+  onPress: () => void;
 };

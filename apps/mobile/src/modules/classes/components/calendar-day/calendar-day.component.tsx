@@ -30,7 +30,10 @@ export function CalendarDay({
       testID={`calendar-day-${date}`}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ disabled, selected: (edge || inRange) && !excluded }}
+      accessibilityState={{
+        disabled,
+        selected: (edge || inRange) && !excluded,
+      }}
       disabled={disabled}
       activeOpacity={BUTTON_ACTIVE_OPACITY}
       onPress={() => onPress(date)}

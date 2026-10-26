@@ -66,8 +66,12 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
         <View className="flex-row pt-4">
           <EmptyState
             icon="calendar-outline"
-            title={t(`teachingClasses.emptyFiltered.${screen.emptyDiscipline}.title`)}
-            description={t(`teachingClasses.emptyFiltered.${screen.emptyDiscipline}.description`)}
+            title={t(
+              `teachingClasses.emptyFiltered.${screen.emptyDiscipline}.title`,
+            )}
+            description={t(
+              `teachingClasses.emptyFiltered.${screen.emptyDiscipline}.description`,
+            )}
           />
         </View>
       );
@@ -88,7 +92,9 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
     <>
       <Stack.Screen
         options={{
-          headerTitle: () => <StackHeaderTitle title={t("teachingClasses.title")} />,
+          headerTitle: () => (
+            <StackHeaderTitle title={t("teachingClasses.title")} />
+          ),
         }}
       />
       <View className="flex-1 bg-page">
@@ -102,10 +108,14 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
           // The last card scrolls clear of the floating sport filter.
           contentContainerStyle={{
             paddingTop: 8,
-            paddingBottom: Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
+            paddingBottom:
+              Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
           }}
           refreshControl={
-            <RefreshControl refreshing={screen.isRefreshing} onRefresh={screen.refresh} />
+            <RefreshControl
+              refreshing={screen.isRefreshing}
+              onRefresh={screen.refresh}
+            />
           }
           renderItem={({ item: row }) =>
             row.type === "ongoing" ? (
@@ -113,13 +123,21 @@ export function TeachingClassesScreen({ role }: TeachingClassesScreenProps) {
             ) : row.type === "day" ? (
               <TeachingDayHeader label={row.label} date={row.date} />
             ) : (
-              <ClassCard item={row.item} now={screen.now} onPress={screen.openClass} isNext={row.isNext} />
+              <ClassCard
+                item={row.item}
+                now={screen.now}
+                onPress={screen.openClass}
+                isNext={row.isNext}
+              />
             )
           }
           ListEmptyComponent={renderEmpty()}
         />
         {/* Over the list in every state: loading, error, empty and the classes. */}
-        <DisciplineFilter value={screen.discipline} onChange={screen.selectDiscipline} />
+        <DisciplineFilter
+          value={screen.discipline}
+          onChange={screen.selectDiscipline}
+        />
       </View>
     </>
   );

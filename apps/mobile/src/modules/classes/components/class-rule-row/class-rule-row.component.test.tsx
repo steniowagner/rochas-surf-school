@@ -9,7 +9,12 @@ describe("ClassRuleRow", () => {
     const user = userEvent.setup();
     const onPress = jest.fn();
     await render(
-      <ClassRuleRow icon="shield-outline" title="School rules" value="3 rules for every student" onPress={onPress} />,
+      <ClassRuleRow
+        icon="shield-outline"
+        title="School rules"
+        value="3 rules for every student"
+        onPress={onPress}
+      />,
     );
 
     expect(screen.getByText(glyph("shield-outline"))).toBeOnTheScreen();
@@ -23,9 +28,18 @@ describe("ClassRuleRow", () => {
   });
 
   it("shows the title alone without a value", async () => {
-    await render(<ClassRuleRow icon="shield-outline" title="School rules" value={null} onPress={jest.fn()} />);
+    await render(
+      <ClassRuleRow
+        icon="shield-outline"
+        title="School rules"
+        value={null}
+        onPress={jest.fn()}
+      />,
+    );
 
-    expect(screen.getByRole("button", { name: "School rules" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("button", { name: "School rules" }),
+    ).toBeOnTheScreen();
     expect(screen.queryByText(/rules for every student/)).toBeNull();
   });
 });

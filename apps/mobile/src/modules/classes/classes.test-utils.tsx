@@ -19,7 +19,9 @@ export const glyph = (name: keyof typeof Ionicons.glyphMap) =>
   String.fromCodePoint(Number(Ionicons.glyphMap[name]));
 
 /** A saved location with a point in Fortaleza and no upcoming classes. */
-export const buildLocation = (overrides: Partial<ClassLocation> = {}): ClassLocation => ({
+export const buildLocation = (
+  overrides: Partial<ClassLocation> = {},
+): ClassLocation => ({
   id: "l-1",
   name: "Praia do Futuro",
   address: "Av. Zezé Diogo, 5000",
@@ -62,7 +64,10 @@ export const buildClassItem = (
 });
 
 /** Signs the test user in with another role, after `setupSignedInUser`. */
-export const signInAs = (role: "student" | "instructor" | "admin", id = "u-1") =>
+export const signInAs = (
+  role: "student" | "instructor" | "admin",
+  id = "u-1",
+) =>
   hydrateSession({
     user: { id, role, status: "approved" } as never,
     tokens: {

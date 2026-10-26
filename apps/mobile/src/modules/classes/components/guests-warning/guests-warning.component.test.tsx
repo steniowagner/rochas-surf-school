@@ -7,7 +7,9 @@ describe("GuestsWarning", () => {
     await render(<GuestsWarning count={2} />);
 
     expect(
-      screen.getByText("2 trial students have no account and won't get the notice — talk to them on WhatsApp."),
+      screen.getByText(
+        "2 trial students have no account and won't get the notice — talk to them on WhatsApp.",
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -15,7 +17,9 @@ describe("GuestsWarning", () => {
     await render(<GuestsWarning count={1} />);
 
     expect(
-      screen.getByText("1 trial student has no account and won't get the notice — talk to them on WhatsApp."),
+      screen.getByText(
+        "1 trial student has no account and won't get the notice — talk to them on WhatsApp.",
+      ),
     ).toBeOnTheScreen();
   });
 

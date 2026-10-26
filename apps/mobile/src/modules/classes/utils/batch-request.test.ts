@@ -31,14 +31,18 @@ describe("buildBatchRequest", () => {
   });
 
   it("sends the days taken out of the range, and leaves the key out when there are none", () => {
-    expect(buildBatchRequest({ ...form, excludedDates: ["2026-10-16"] })).toMatchObject({
+    expect(
+      buildBatchRequest({ ...form, excludedDates: ["2026-10-16"] }),
+    ).toMatchObject({
       excludedDates: ["2026-10-16"],
     });
     expect(buildBatchRequest(form)).not.toHaveProperty("excludedDates");
   });
 
   it("sends skipPast only when it is on", () => {
-    expect(buildBatchRequest({ ...form, skipPast: true })).toMatchObject({ skipPast: true });
+    expect(buildBatchRequest({ ...form, skipPast: true })).toMatchObject({
+      skipPast: true,
+    });
     expect(buildBatchRequest(form)).not.toHaveProperty("skipPast");
   });
 

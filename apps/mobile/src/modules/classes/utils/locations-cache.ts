@@ -7,8 +7,9 @@ export const LOCATIONS_QUERY_KEY = ["locations"] as const;
 const sortLocations = (items: ClassLocation[]): ClassLocation[] =>
   items.sort(
     (a, b) =>
-      normalizeLocationName(a.name).localeCompare(normalizeLocationName(b.name)) ||
-      a.id.localeCompare(b.id),
+      normalizeLocationName(a.name).localeCompare(
+        normalizeLocationName(b.name),
+      ) || a.id.localeCompare(b.id),
   );
 
 /** The list with the new location in the backend's order (name without accents or case, then id). */

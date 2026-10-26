@@ -1,8 +1,16 @@
 import { useState } from "react";
 
-import { getFreeSeats, getHiddenSeats, getStudentsLabel, isClassFull } from "../../utils/occupancy";
+import {
+  getFreeSeats,
+  getHiddenSeats,
+  getStudentsLabel,
+  isClassFull,
+} from "../../utils/occupancy";
 
-import type { ClassPeopleSeat, UseClassPeopleProps } from "./class-people.types";
+import type {
+  ClassPeopleSeat,
+  UseClassPeopleProps,
+} from "./class-people.types";
 
 export const CLASS_PEOPLE_AVATARS = 5;
 

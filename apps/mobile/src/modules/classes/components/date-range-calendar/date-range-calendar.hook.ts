@@ -39,11 +39,18 @@ export const useDateRangeCalendar = ({
 
   const isRange = startDate !== null && endDate !== null;
   // The current month hides the days before it, which are past; any later month shows both neighbors in full.
-  const weeks = buildMonthGrid(visibleMonth, !isSameMonth(visibleMonth, monthOf(today)));
+  const weeks = buildMonthGrid(
+    visibleMonth,
+    !isSameMonth(visibleMonth, monthOf(today)),
+  );
   const monthLabel = capitalize(
-    format(new Date(visibleMonth.year, visibleMonth.month - 1, 1), "LLLL yyyy", {
-      locale,
-    }),
+    format(
+      new Date(visibleMonth.year, visibleMonth.month - 1, 1),
+      "LLLL yyyy",
+      {
+        locale,
+      },
+    ),
   );
   const weekdayInitials = Array.from({ length: 7 }, (_, index) =>
     format(addDays(REFERENCE_MONDAY, index), "EEEEE", { locale }).toUpperCase(),

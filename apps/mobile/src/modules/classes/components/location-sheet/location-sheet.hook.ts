@@ -1,4 +1,8 @@
-import { LOCATION_ADDRESS_MAX, LOCATION_NAME_MAX, normalizeLocationName } from "@rochas-surf-school/classes";
+import {
+  LOCATION_ADDRESS_MAX,
+  LOCATION_NAME_MAX,
+  normalizeLocationName,
+} from "@rochas-surf-school/classes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,7 +11,10 @@ import { useAlertMessage } from "@/providers/alert-message";
 
 import { AddressSuggestion, ClassLocation } from "../../classes.types";
 import { useAddressPlace } from "../../hooks/use-address-place.hook";
-import { SUGGESTIONS_MIN_LENGTH, useAddressSuggestions } from "../../hooks/use-address-suggestions.hook";
+import {
+  SUGGESTIONS_MIN_LENGTH,
+  useAddressSuggestions,
+} from "../../hooks/use-address-suggestions.hook";
 import { useArchiveLocation } from "../../hooks/use-archive-location.hook";
 import { useCreateLocation } from "../../hooks/use-create-location.hook";
 import { useEditLocation } from "../../hooks/use-edit-location.hook";
@@ -20,9 +27,14 @@ import { LOCATIONS_QUERY_KEY } from "../../utils/locations-cache";
 import { toMapPoint } from "../../utils/map";
 import { newSessionToken } from "../../utils/session-token";
 
-import { LocationSheetFields, UseLocationSheetProps } from "./location-sheet.types";
+import {
+  LocationSheetFields,
+  UseLocationSheetProps,
+} from "./location-sheet.types";
 
-const fieldsOf = (location: ClassLocation | null | undefined): LocationSheetFields => ({
+const fieldsOf = (
+  location: ClassLocation | null | undefined,
+): LocationSheetFields => ({
   name: location?.name ?? "",
   address: location?.address ?? "",
   point: location ? toMapPoint(location) : null,
@@ -80,10 +92,14 @@ export const useLocationSheet = ({
     duplicatedByServer ||
     (key !== "" &&
       locations.some(
-        (item) => item.id !== location?.id && normalizeLocationName(item.name) === key,
+        (item) =>
+          item.id !== location?.id && normalizeLocationName(item.name) === key,
       ));
   const canSubmit =
-    fields.name.trim() !== "" && fields.address.trim() !== "" && fields.point !== null && !duplicate;
+    fields.name.trim() !== "" &&
+    fields.address.trim() !== "" &&
+    fields.point !== null &&
+    !duplicate;
   const upcomingClasses = location?.upcomingClasses ?? 0;
   const searching = searchText.trim().length >= SUGGESTIONS_MIN_LENGTH;
 
@@ -97,7 +113,8 @@ export const useLocationSheet = ({
     setSearchText(address);
   };
 
-  const changeNotify = (notify: boolean) => setFields((current) => ({ ...current, notify }));
+  const changeNotify = (notify: boolean) =>
+    setFields((current) => ({ ...current, notify }));
 
   const changePoint = (point: NonNullable<typeof fields.point>) =>
     setFields((current) => ({ ...current, point }));
@@ -113,7 +130,10 @@ export const useLocationSheet = ({
         address: place.address.slice(0, LOCATION_ADDRESS_MAX),
         point: { latitude: place.latitude, longitude: place.longitude },
         // The place's name only fills an empty Nome: what the admin typed stays.
-        name: current.name.trim() === "" ? place.name.slice(0, LOCATION_NAME_MAX) : current.name,
+        name:
+          current.name.trim() === ""
+            ? place.name.slice(0, LOCATION_NAME_MAX)
+            : current.name,
       }));
     } catch {
       // No toast: the admin can still type the address and tap the map.

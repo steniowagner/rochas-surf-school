@@ -8,6 +8,8 @@ describe("TeachingDayHeader", () => {
 
     expect(screen.getByText("Today")).toBeOnTheScreen();
     expect(screen.getByText("17 Sep")).toBeOnTheScreen();
-    expect(screen.getByRole("header", { name: "Today, 17 Sep" })).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Today, 17 Sep" }),
+    ).toBeOnTheScreen();
   });
 });

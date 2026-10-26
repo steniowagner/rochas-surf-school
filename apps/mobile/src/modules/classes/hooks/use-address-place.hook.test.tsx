@@ -13,7 +13,12 @@ import { useAddressPlace } from "./use-address-place.hook";
 
 beforeEach(setupSignedInUser);
 
-const place = { address: "Av. Zezé Diogo, 5000", latitude: -3.7442, longitude: -38.4617, name: "Praia do Futuro" };
+const place = {
+  address: "Av. Zezé Diogo, 5000",
+  latitude: -3.7442,
+  longitude: -38.4617,
+  name: "Praia do Futuro",
+};
 
 describe("useAddressPlace", () => {
   it("gets the place behind a suggestion in the session of the suggestions", async () => {

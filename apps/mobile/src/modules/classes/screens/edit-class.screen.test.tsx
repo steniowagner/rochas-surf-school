@@ -1,5 +1,12 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from "@testing-library/react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import type { ReactNode } from "react";
 
@@ -30,7 +37,8 @@ jest.mock("@/components/ui/bottom-modal", () => {
   /* eslint-enable @typescript-eslint/no-require-imports */
 
   return {
-    BottomModal: ({ visible, children }: any) => (visible ? <View>{children}</View> : null),
+    BottomModal: ({ visible, children }: any) =>
+      visible ? <View>{children}</View> : null,
   };
 });
 
@@ -47,8 +55,9 @@ jest.mock("@/services/api", () => {
 jest.mock("expo-router", () => ({
   Stack: {
     // Renders the header's right side, so the tests can reach what the screen puts there.
-    Screen: jest.fn(({ options }: { options: { headerRight?: () => unknown } }) =>
-      options.headerRight?.() ?? null,
+    Screen: jest.fn(
+      ({ options }: { options: { headerRight?: () => unknown } }) =>
+        options.headerRight?.() ?? null,
     ),
   },
   router: { back: jest.fn() },
@@ -68,8 +77,20 @@ const teachers = [
   { id: "t-2", name: "Bruno Lima", role: "admin" },
 ];
 const POINT = { latitude: -3.7442, longitude: -38.4617 };
-const futuro = { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 5000", ...POINT, upcomingClasses: 1 };
-const cumbuco = { id: "l-2", name: "Cumbuco", address: "Rua do Mar, 10", ...POINT, upcomingClasses: 0 };
+const futuro = {
+  id: "l-1",
+  name: "Praia do Futuro",
+  address: "Av. Zezé Diogo, 5000",
+  ...POINT,
+  upcomingClasses: 1,
+};
+const cumbuco = {
+  id: "l-2",
+  name: "Cumbuco",
+  address: "Rua do Mar, 10",
+  ...POINT,
+  upcomingClasses: 0,
+};
 
 // Tomorrow, 08:00-09:00 in Fortaleza, taught by Ana and by Carla, who is no longer a teacher.
 const classItem = {
@@ -107,7 +128,11 @@ const serve = (overrides: Record<string, Handler> = {}) => {
       }),
     "GET /people?page=1&perPage=50&role=instructor,admin": () =>
       ok({
-        items: teachers.map((item) => ({ ...item, createdAt: "2026-07-15T12:00:00.000Z", whatsappNumber: null })),
+        items: teachers.map((item) => ({
+          ...item,
+          createdAt: "2026-07-15T12:00:00.000Z",
+          whatsappNumber: null,
+        })),
         page: 1,
         perPage: 50,
         total: 2,
@@ -116,22 +141,28 @@ const serve = (overrides: Record<string, Handler> = {}) => {
     ...overrides,
   };
 
-  fetchMock.mockImplementation(async (url: string, init?: { method?: string; body?: string }) => {
-    const handler = routes[`${init?.method ?? "GET"} ${String(url).replace("http://api.test", "")}`];
+  fetchMock.mockImplementation(
+    async (url: string, init?: { method?: string; body?: string }) => {
+      const handler =
+        routes[
+          `${init?.method ?? "GET"} ${String(url).replace("http://api.test", "")}`
+        ];
 
-    if (!handler) {
-      throw new Error(`unexpected request ${init?.method} ${url}`);
-    }
+      if (!handler) {
+        throw new Error(`unexpected request ${init?.method} ${url}`);
+      }
 
-    return handler(init);
-  });
+      return handler(init);
+    },
+  );
 };
 
-const failure = (status: number, key: string, details?: Record<string, unknown>) => () => ({
-  ok: false,
-  status,
-  json: async () => ({ errors: [key], ...(details ? { details } : {}) }),
-});
+const failure =
+  (status: number, key: string, details?: Record<string, unknown>) => () => ({
+    ok: false,
+    status,
+    json: async () => ({ errors: [key], ...(details ? { details } : {}) }),
+  });
 
 async function renderScreen() {
   const queryClient = createQueryClient();
@@ -149,9 +180,13 @@ async function renderScreen() {
 }
 
 const day = (date: string) => screen.getByTestId(`calendar-day-${date}`);
-const saveButton = () => screen.getByRole("button", { name: "Save and notify" });
+const saveButton = () =>
+  screen.getByRole("button", { name: "Save and notify" });
 const puts = () =>
-  fetchMock.mock.calls.filter(([, init]) => init?.method === "PUT") as [string, { body: string }][];
+  fetchMock.mock.calls.filter(([, init]) => init?.method === "PUT") as [
+    string,
+    { body: string },
+  ][];
 
 /** Waits for the form of the loaded class. */
 const loaded = () => screen.findByRole("checkbox", { name: "Ana Souza" });
@@ -211,44 +246,77 @@ describe("EditClassScreen", () => {
     expect(screen.getByText("October 2026")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: MORNING })).toBeSelected();
     expect(screen.getByRole("button", { name: AFTERNOON })).not.toBeSelected();
-    expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+    expect(
+      screen.getByRole("radio", { name: "Praia do Futuro" }),
+    ).toBeChecked();
     expect(screen.getByDisplayValue("Bring a hat")).toBeOnTheScreen();
     expect(screen.getByRole("checkbox", { name: "Ana Souza" })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "Bruno Lima" })).not.toBeChecked();
-    expect(screen.getByText("When you save, the class's instructors are notified.")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("checkbox", { name: "Bruno Lima" }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByText("When you save, the class's instructors are notified."),
+    ).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
 
   it.each([
-    [2, "2 trial students have no account and won't get the notice — talk to them on WhatsApp."],
-    [1, "1 trial student has no account and won't get the notice — talk to them on WhatsApp."],
-  ])("warns the admin that the %s trial guest(s) won't hear about the edit", async (count, note) => {
-    const guests = Array.from({ length: count }, (_, index) => ({ id: `g-${index}`, name: null }));
-    serve({ "GET /classes/c-1": () => ok({ ...classItem, guests }) });
-    await renderScreen();
-    await loaded();
+    [
+      2,
+      "2 trial students have no account and won't get the notice — talk to them on WhatsApp.",
+    ],
+    [
+      1,
+      "1 trial student has no account and won't get the notice — talk to them on WhatsApp.",
+    ],
+  ])(
+    "warns the admin that the %s trial guest(s) won't hear about the edit",
+    async (count, note) => {
+      const guests = Array.from({ length: count }, (_, index) => ({
+        id: `g-${index}`,
+        name: null,
+      }));
+      serve({ "GET /classes/c-1": () => ok({ ...classItem, guests }) });
+      await renderScreen();
+      await loaded();
 
-    expect(screen.getByText(note)).toBeOnTheScreen();
-  });
+      expect(screen.getByText(note)).toBeOnTheScreen();
+    },
+  );
 
   it.each([
-    [2, 1, "When you save, we notify the instructors, 2 enrolled students and 1 with a pending request."],
+    [
+      2,
+      1,
+      "When you save, we notify the instructors, 2 enrolled students and 1 with a pending request.",
+    ],
     [1, 0, "When you save, we notify the instructors and 1 enrolled student."],
-    [0, 3, "When you save, we notify the instructors and 3 with a pending request."],
-  ])("names the students (%s) and pending requests (%s) the save notifies", async (students, pending, note) => {
-    serve({
-      "GET /classes/c-1": () =>
-        ok({
-          ...classItem,
-          students: Array.from({ length: students }, (_, index) => ({ id: `s-${index}`, name: "Aluno", photoUrl: null })),
-          pendingRequests: pending,
-        }),
-    });
-    await renderScreen();
-    await loaded();
+    [
+      0,
+      3,
+      "When you save, we notify the instructors and 3 with a pending request.",
+    ],
+  ])(
+    "names the students (%s) and pending requests (%s) the save notifies",
+    async (students, pending, note) => {
+      serve({
+        "GET /classes/c-1": () =>
+          ok({
+            ...classItem,
+            students: Array.from({ length: students }, (_, index) => ({
+              id: `s-${index}`,
+              name: "Aluno",
+              photoUrl: null,
+            })),
+            pendingRequests: pending,
+          }),
+      });
+      await renderScreen();
+      await loaded();
 
-    expect(screen.getByText(note)).toBeOnTheScreen();
-  });
+      expect(screen.getByText(note)).toBeOnTheScreen();
+    },
+  );
 
   it("shows no trial warning for a class without guests", async () => {
     await renderScreen();
@@ -258,7 +326,9 @@ describe("EditClassScreen", () => {
   });
 
   it("lists the class's own time while the suggestions are still loading", async () => {
-    serve({ "GET /classes/time-range-suggestions": () => new Promise(() => undefined) });
+    serve({
+      "GET /classes/time-range-suggestions": () => new Promise(() => undefined),
+    });
     await renderScreen();
     await loaded();
 
@@ -281,7 +351,9 @@ describe("EditClassScreen", () => {
     expect(screen.getByRole("checkbox", { name: "Carla Dias" })).toBeChecked();
     await user.press(screen.getByRole("checkbox", { name: "Carla Dias" }));
 
-    expect(screen.getByRole("checkbox", { name: "Carla Dias" })).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: "Carla Dias" }),
+    ).not.toBeChecked();
     expect(saveButton()).toBeEnabled();
   });
 
@@ -322,13 +394,19 @@ describe("EditClassScreen", () => {
     const user = userEvent.setup();
     const { queryClient } = await renderScreen();
     await loaded();
-    queryClient.setQueryData(["classes", "week", "2026-10-12"], { weekStart: "2026-10-12", items: [] });
+    queryClient.setQueryData(["classes", "week", "2026-10-12"], {
+      weekStart: "2026-10-12",
+      items: [],
+    });
 
     await user.press(screen.getByRole("button", { name: AFTERNOON }));
     await user.press(saveButton());
 
     await waitFor(() => expect(router.back).toHaveBeenCalled());
-    expect(queryClient.getQueryState(["classes", "week", "2026-10-12"])?.isInvalidated).toBe(true);
+    expect(
+      queryClient.getQueryState(["classes", "week", "2026-10-12"])
+        ?.isInvalidated,
+    ).toBe(true);
   });
 
   it("sends changed discipline, level, location, capacity and cleared notes", async () => {
@@ -396,7 +474,13 @@ describe("EditClassScreen", () => {
   it("does not allow saving today with a time that has started", async () => {
     serve({
       "GET /classes/time-range-suggestions": () =>
-        ok({ items: [{ start: "08:00", end: "09:00" }, { start: "09:30", end: "10:30" }, { start: "16:00", end: "17:00" }] }),
+        ok({
+          items: [
+            { start: "08:00", end: "09:00" },
+            { start: "09:30", end: "10:30" },
+            { start: "16:00", end: "17:00" },
+          ],
+        }),
     });
     const user = userEvent.setup();
     await renderScreen();
@@ -404,7 +488,9 @@ describe("EditClassScreen", () => {
 
     await user.press(day("2026-10-14"));
 
-    expect(screen.getByRole("button", { name: "09:30 – 10:30" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "09:30 – 10:30" }),
+    ).toBeDisabled();
     expect(screen.getByRole("button", { name: AFTERNOON })).toBeEnabled();
     // The class's own 08:00-09:00 range is today's already-started one, but it stays selectable: saving it is
     // refused because that start has passed.
@@ -419,7 +505,9 @@ describe("EditClassScreen", () => {
     await user.press(screen.getByRole("button", { name: "New time" }));
     await user.press(screen.getByRole("button", { name: "Add time" }));
 
-    expect(screen.getByRole("button", { name: "12:00 – 13:00" })).toBeSelected();
+    expect(
+      screen.getByRole("button", { name: "12:00 – 13:00" }),
+    ).toBeSelected();
     expect(screen.getByRole("button", { name: MORNING })).not.toBeSelected();
     expect(saveButton()).toBeEnabled();
   });
@@ -435,12 +523,22 @@ describe("EditClassScreen", () => {
     await user.press(screen.getByRole("button", { name: "New time" }));
     await user.press(screen.getByRole("button", { name: "Add time" }));
 
-    expect(screen.getByRole("button", { name: "12:00 – 13:00" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "12:00 – 13:00" })).not.toBeSelected();
+    expect(
+      screen.getByRole("button", { name: "12:00 – 13:00" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "12:00 – 13:00" }),
+    ).not.toBeSelected();
   });
 
   it("saves a new location in place and selects it", async () => {
-    const iracema = { id: "l-3", name: "Praia de Iracema", address: "Rua dos Tabajaras, 1", ...POINT, upcomingClasses: 0 };
+    const iracema = {
+      id: "l-3",
+      name: "Praia de Iracema",
+      address: "Rua dos Tabajaras, 1",
+      ...POINT,
+      upcomingClasses: 0,
+    };
     serve({ "POST /locations": () => ({ ...ok(iracema), status: 201 }) });
     const user = userEvent.setup();
     await renderScreen();
@@ -455,7 +553,9 @@ describe("EditClassScreen", () => {
     await user.press(screen.getByRole("button", { name: "Save location" }));
 
     await waitFor(() =>
-      expect(screen.getByRole("radio", { name: "Praia de Iracema" })).toBeChecked(),
+      expect(
+        screen.getByRole("radio", { name: "Praia de Iracema" }),
+      ).toBeChecked(),
     );
     expect(saveButton()).toBeEnabled();
   });
@@ -471,11 +571,20 @@ describe("EditClassScreen", () => {
       await user.press(screen.getByRole("button", { name: "Manage" }));
       expect(screen.queryByRole("button", { name: "New location" })).toBeNull();
       await user.press(screen.getByRole("radio", { name: "Cumbuco" }));
-      await fireEvent.changeText(screen.getByLabelText("Name"), "Cumbuco Norte");
+      await fireEvent.changeText(
+        screen.getByLabelText("Name"),
+        "Cumbuco Norte",
+      );
       await user.press(screen.getByRole("button", { name: "Save" }));
 
-      await waitFor(() => expect(screen.getByRole("radio", { name: "Cumbuco Norte" })).toBeTruthy());
-      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+      await waitFor(() =>
+        expect(
+          screen.getByRole("radio", { name: "Cumbuco Norte" }),
+        ).toBeTruthy(),
+      );
+      expect(
+        screen.getByRole("radio", { name: "Praia do Futuro" }),
+      ).toBeChecked();
       expect(mockShow).toHaveBeenCalledWith("Location updated");
       await user.press(screen.getByRole("button", { name: "Done" }));
       expect(screen.getByRole("button", { name: "New location" })).toBeTruthy();
@@ -483,36 +592,61 @@ describe("EditClassScreen", () => {
   });
 
   describe("remove location", () => {
-    const removeFromSheet = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+    const removeFromSheet = async (
+      user: ReturnType<typeof userEvent.setup>,
+      name: string,
+    ) => {
       await user.press(screen.getByRole("button", { name: "Manage" }));
       await user.press(screen.getByRole("radio", { name }));
       await user.press(screen.getByRole("button", { name: "Remove location" }));
-      await user.press(screen.getAllByRole("button", { name: "Remove location" }).at(-1)!);
+      await user.press(
+        screen.getAllByRole("button", { name: "Remove location" }).at(-1)!,
+      );
     };
 
     it("clears the selection when the class's own location is removed, and Save stays off", async () => {
-      serve({ "POST /locations/l-1/archive": () => ({ ok: true, status: 204, json: async () => undefined }) });
+      serve({
+        "POST /locations/l-1/archive": () => ({
+          ok: true,
+          status: 204,
+          json: async () => undefined,
+        }),
+      });
       const user = userEvent.setup();
       await renderScreen();
       await loaded();
 
       await removeFromSheet(user, "Praia do Futuro");
 
-      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Praia do Futuro removed"));
-      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).not.toBeChecked();
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith("Praia do Futuro removed"),
+      );
+      expect(
+        screen.getByRole("radio", { name: "Praia do Futuro" }),
+      ).not.toBeChecked();
       expect(saveButton()).toBeDisabled();
     });
 
     it("keeps the selection when another location is removed", async () => {
-      serve({ "POST /locations/l-2/archive": () => ({ ok: true, status: 204, json: async () => undefined }) });
+      serve({
+        "POST /locations/l-2/archive": () => ({
+          ok: true,
+          status: 204,
+          json: async () => undefined,
+        }),
+      });
       const user = userEvent.setup();
       await renderScreen();
       await loaded();
 
       await removeFromSheet(user, "Cumbuco");
 
-      await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Cumbuco removed"));
-      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+      await waitFor(() =>
+        expect(mockShow).toHaveBeenCalledWith("Cumbuco removed"),
+      );
+      expect(
+        screen.getByRole("radio", { name: "Praia do Futuro" }),
+      ).toBeChecked();
     });
 
     it("offers no Manage button when no active location is left", async () => {
@@ -531,13 +665,18 @@ describe("EditClassScreen", () => {
       await loaded();
 
       await waitFor(() => expect(screen.getByText("Removed")).toBeTruthy());
-      expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+      expect(
+        screen.getByRole("radio", { name: "Praia do Futuro" }),
+      ).toBeChecked();
 
       await fireEvent.changeText(screen.getByLabelText("Notes"), "New notes");
       await user.press(saveButton());
 
       await waitFor(() => expect(puts()).toHaveLength(1));
-      expect(JSON.parse(puts()[0][1].body)).toMatchObject({ locationId: "l-1", notes: "New notes" });
+      expect(JSON.parse(puts()[0][1].body)).toMatchObject({
+        locationId: "l-1",
+        notes: "New notes",
+      });
     });
 
     it("tells that the chosen location was removed when the save is refused, and clears it", async () => {
@@ -546,15 +685,21 @@ describe("EditClassScreen", () => {
       await renderScreen();
       await loaded();
       await user.press(screen.getByRole("radio", { name: "Cumbuco" }));
-      const before = requestedPaths().filter((path) => path === "/locations").length;
+      const before = requestedPaths().filter(
+        (path) => path === "/locations",
+      ).length;
 
       await user.press(saveButton());
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("The chosen location was removed. Pick another one."),
+        expect(mockShow).toHaveBeenCalledWith(
+          "The chosen location was removed. Pick another one.",
+        ),
       );
       await waitFor(() =>
-        expect(requestedPaths().filter((path) => path === "/locations")).toHaveLength(before + 1),
+        expect(
+          requestedPaths().filter((path) => path === "/locations"),
+        ).toHaveLength(before + 1),
       );
       expect(screen.getByRole("radio", { name: "Cumbuco" })).not.toBeChecked();
     });
@@ -570,7 +715,9 @@ describe("EditClassScreen", () => {
     await user.press(screen.getByRole("button", { name: "New time" }));
     await user.press(screen.getByRole("button", { name: "Add time" }));
 
-    expect(screen.getAllByRole("button", { name: "12:00 – 13:00" })).toHaveLength(1);
+    expect(
+      screen.getAllByRole("button", { name: "12:00 – 13:00" }),
+    ).toHaveLength(1);
   });
 
   it("closes the new time sheet on Cancel without adding anything", async () => {
@@ -594,29 +741,44 @@ describe("EditClassScreen", () => {
     await renderScreen();
     await loaded();
 
-    expect(screen.getByRole("radio", { name: "Praia do Futuro" })).toBeChecked();
+    expect(
+      screen.getByRole("radio", { name: "Praia do Futuro" }),
+    ).toBeChecked();
     expect(screen.getByRole("radio", { name: "Cumbuco" })).not.toBeChecked();
     expect(screen.queryByDisplayValue("Bring a hat")).toBeNull();
   });
 
   it("offers to retry the instructors when they fail to load", async () => {
-    serve({ "GET /people?page=1&perPage=50&role=instructor,admin": failure(500, "INTERNAL_SERVER_ERROR") });
+    serve({
+      "GET /people?page=1&perPage=50&role=instructor,admin": failure(
+        500,
+        "INTERNAL_SERVER_ERROR",
+      ),
+    });
     const user = userEvent.setup();
     await renderScreen();
 
-    expect(await screen.findByText("Couldn't load the instructors.")).toBeOnTheScreen();
-    const before = requestedPaths().filter((path) => path.startsWith("/people")).length;
+    expect(
+      await screen.findByText("Couldn't load the instructors."),
+    ).toBeOnTheScreen();
+    const before = requestedPaths().filter((path) =>
+      path.startsWith("/people"),
+    ).length;
 
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     await waitFor(() =>
-      expect(requestedPaths().filter((path) => path.startsWith("/people")).length).toBeGreaterThan(before),
+      expect(
+        requestedPaths().filter((path) => path.startsWith("/people")).length,
+      ).toBeGreaterThan(before),
     );
   });
 
   it("sends once on a double press", async () => {
     let finish: (value: unknown) => void = () => undefined;
-    serve({ "PUT /classes/c-1": () => new Promise((resolve) => (finish = resolve)) });
+    serve({
+      "PUT /classes/c-1": () => new Promise((resolve) => (finish = resolve)),
+    });
     const user = userEvent.setup();
     await renderScreen();
     await loaded();
@@ -643,15 +805,25 @@ describe("EditClassScreen", () => {
   });
 
   describe("cancelled class", () => {
-    const cancelledItem = { ...classItem, cancelledAt: "2026-10-13T10:00:00.000Z", cancellationMessage: "Big waves." };
+    const cancelledItem = {
+      ...classItem,
+      cancelledAt: "2026-10-13T10:00:00.000Z",
+      cancellationMessage: "Big waves.",
+    };
 
     it("says the class was cancelled, with no form, footer or Cancel class", async () => {
       serve({ "GET /classes/c-1": () => ok(cancelledItem) });
       await renderScreen();
 
-      expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+      expect(
+        await screen.findByText(
+          "This class was cancelled and can't be changed.",
+        ),
+      ).toBeOnTheScreen();
       expect(headerTitleOf(headerOptions().headerTitle)).toBe("Edit class");
-      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: "Save and notify" }),
+      ).toBeNull();
       expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
       expect(screen.queryByRole("checkbox", { name: "Ana Souza" })).toBeNull();
     });
@@ -661,7 +833,11 @@ describe("EditClassScreen", () => {
       serve({ "GET /classes/c-1": () => ok(cancelledItem) });
       await renderScreen();
 
-      expect(await screen.findByText("This class was cancelled and can't be changed.")).toBeOnTheScreen();
+      expect(
+        await screen.findByText(
+          "This class was cancelled and can't be changed.",
+        ),
+      ).toBeOnTheScreen();
     });
 
     it("shows the toast and goes back when a save is refused with class.cancelled", async () => {
@@ -674,7 +850,9 @@ describe("EditClassScreen", () => {
       await user.press(saveButton());
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("This class was cancelled and can't be changed."),
+        expect(mockShow).toHaveBeenCalledWith(
+          "This class was cancelled and can't be changed.",
+        ),
       );
       expect(router.back).toHaveBeenCalledTimes(1);
     });
@@ -688,7 +866,9 @@ describe("EditClassScreen", () => {
       await loaded();
 
       expect(screen.getByText("The class has started")).toBeOnTheScreen();
-      expect(screen.getByText("Only the instructors can be changed.")).toBeOnTheScreen();
+      expect(
+        screen.getByText("Only the instructors can be changed."),
+      ).toBeOnTheScreen();
       expect(screen.queryByText("Day")).toBeNull();
       expect(screen.queryByRole("tab", { name: "Skate" })).toBeNull();
       expect(screen.queryByRole("button", { name: MORNING })).toBeNull();
@@ -739,7 +919,9 @@ describe("EditClassScreen", () => {
       await renderScreen();
 
       expect(screen.getByTestId("edit-class-loading")).toBeOnTheScreen();
-      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: "Save and notify" }),
+      ).toBeNull();
     });
 
     it("insets its loading view's scroll view below the header, so the header's scroll edge finds one", async () => {
@@ -761,8 +943,12 @@ describe("EditClassScreen", () => {
       const user = userEvent.setup();
       await renderScreen();
 
-      expect(await screen.findByText("Couldn't load the class.")).toBeOnTheScreen();
-      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(
+        await screen.findByText("Couldn't load the class."),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: "Save and notify" }),
+      ).toBeNull();
 
       serve();
       await user.press(screen.getByRole("button", { name: "Try again" }));
@@ -774,30 +960,50 @@ describe("EditClassScreen", () => {
       serve({ "GET /classes/c-1": failure(404, "class.notFound") });
       await renderScreen();
 
-      expect(await screen.findByText("This class no longer exists.")).toBeOnTheScreen();
-      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(
+        await screen.findByText("This class no longer exists."),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: "Save and notify" }),
+      ).toBeNull();
     });
 
     it("shows nothing for an expired session", async () => {
-      (api.apiGet as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+      (api.apiGet as jest.Mock).mockRejectedValueOnce(
+        new api.SessionExpiredError(),
+      );
       await renderScreen();
 
-      await waitFor(() => expect(screen.queryByTestId("edit-class-loading")).toBeNull());
+      await waitFor(() =>
+        expect(screen.queryByTestId("edit-class-loading")).toBeNull(),
+      );
       expect(screen.queryByText("Couldn't load the class.")).toBeNull();
-      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: "Save and notify" }),
+      ).toBeNull();
     });
 
     it("says a class that finished cannot be changed, with no form", async () => {
       jest.setSystemTime(FINISHED_NOW);
       await renderScreen();
 
-      expect(await screen.findByText("This class has finished and can't be changed.")).toBeOnTheScreen();
-      expect(screen.queryByRole("button", { name: "Save and notify" })).toBeNull();
+      expect(
+        await screen.findByText(
+          "This class has finished and can't be changed.",
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: "Save and notify" }),
+      ).toBeNull();
     });
   });
 
   describe("errors", () => {
-    async function save(key: string, status: number, details?: Record<string, unknown>) {
+    async function save(
+      key: string,
+      status: number,
+      details?: Record<string, unknown>,
+    ) {
       serve({ "PUT /classes/c-1": failure(status, key, details) });
       const user = userEvent.setup();
       const view = await renderScreen();
@@ -809,23 +1015,36 @@ describe("EditClassScreen", () => {
     }
 
     it.each([
-      [422, "class.startsAt.past", "One of the times has already passed. Check the dates and times."],
-      [422, "class.instructors.invalid", "One of the instructors can no longer teach."],
+      [
+        422,
+        "class.startsAt.past",
+        "One of the times has already passed. Check the dates and times.",
+      ],
+      [
+        422,
+        "class.instructors.invalid",
+        "One of the instructors can no longer teach.",
+      ],
       [422, "class.location.notFound", "The chosen location no longer exists."],
-    ])("maps %s %s to its toast and keeps the form", async (status, key, message) => {
-      await save(key, status);
+    ])(
+      "maps %s %s to its toast and keeps the form",
+      async (status, key, message) => {
+        await save(key, status);
 
-      await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
-      expect(router.back).not.toHaveBeenCalled();
-      expect(saveButton()).toBeEnabled();
-      expect(screen.getByRole("button", { name: AFTERNOON })).toBeSelected();
-    });
+        await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+        expect(router.back).not.toHaveBeenCalled();
+        expect(saveButton()).toBeEnabled();
+        expect(screen.getByRole("button", { name: AFTERNOON })).toBeSelected();
+      },
+    );
 
     it("shows the seats taken", async () => {
       await save("class.capacity.belowSeatsTaken", 422, { seatsTaken: 8 });
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Capacity can't go below the 8 seats taken."),
+        expect(mockShow).toHaveBeenCalledWith(
+          "Capacity can't go below the 8 seats taken.",
+        ),
       );
       expect(saveButton()).toBeEnabled();
     });
@@ -836,17 +1055,25 @@ describe("EditClassScreen", () => {
       await renderScreen();
       await loaded();
       await user.press(screen.getByRole("button", { name: AFTERNOON }));
-      const before = requestedPaths().filter((path) => path === "/classes/c-1").length;
+      const before = requestedPaths().filter(
+        (path) => path === "/classes/c-1",
+      ).length;
 
       await user.press(saveButton());
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("The class has started: only the instructors can be changed."),
+        expect(mockShow).toHaveBeenCalledWith(
+          "The class has started: only the instructors can be changed.",
+        ),
       );
       await waitFor(() =>
-        expect(requestedPaths().filter((path) => path === "/classes/c-1").length).toBeGreaterThan(before),
+        expect(
+          requestedPaths().filter((path) => path === "/classes/c-1").length,
+        ).toBeGreaterThan(before),
       );
-      expect(await screen.findByText("The class has started")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("The class has started"),
+      ).toBeOnTheScreen();
       expect(screen.queryByRole("button", { name: AFTERNOON })).toBeNull();
       expect(router.back).not.toHaveBeenCalled();
     });
@@ -866,7 +1093,9 @@ describe("EditClassScreen", () => {
       await save("class.instructors.invalid", 422);
 
       await waitFor(() =>
-        expect(requestedPaths().filter((path) => path === teachersPath).length).toBeGreaterThan(1),
+        expect(
+          requestedPaths().filter((path) => path === teachersPath).length,
+        ).toBeGreaterThan(1),
       );
     });
 
@@ -874,7 +1103,9 @@ describe("EditClassScreen", () => {
       await save("class.location.notFound", 422);
 
       await waitFor(() =>
-        expect(requestedPaths().filter((path) => path === "/locations").length).toBeGreaterThan(1),
+        expect(
+          requestedPaths().filter((path) => path === "/locations").length,
+        ).toBeGreaterThan(1),
       );
     });
 
@@ -901,7 +1132,9 @@ describe("EditClassScreen", () => {
       await renderScreen();
       await loaded();
       await user.press(screen.getByRole("button", { name: AFTERNOON }));
-      (api.apiPut as jest.Mock).mockRejectedValueOnce(new api.SessionExpiredError());
+      (api.apiPut as jest.Mock).mockRejectedValueOnce(
+        new api.SessionExpiredError(),
+      );
 
       await user.press(saveButton());
 
@@ -914,11 +1147,15 @@ describe("EditClassScreen", () => {
       await save("INTERNAL_SERVER_ERROR", 500);
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again."),
+        expect(mockShow).toHaveBeenCalledWith(
+          "Something went wrong. Please try again.",
+        ),
       );
       expect(saveButton()).toBeEnabled();
     });
   });
 });
 
-afterAll(() => (useLocalSearchParams as jest.Mock).mockReturnValue({ id: "c-1" }));
+afterAll(() =>
+  (useLocalSearchParams as jest.Mock).mockReturnValue({ id: "c-1" }),
+);

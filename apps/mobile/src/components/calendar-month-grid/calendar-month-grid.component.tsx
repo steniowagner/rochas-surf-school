@@ -6,8 +6,12 @@ import { useCalendarMonthGrid } from "./calendar-month-grid.hook";
 import type { CalendarMonthGridProps } from "./calendar-month-grid.types";
 
 /** A month, Monday first, with only the weeks it needs: the selected day in a circle, a dot under each day with classes. */
-export function CalendarMonthGrid({ onSelectDate, ...props }: CalendarMonthGridProps) {
-  const { initials, weeks } = useCalendarMonthGrid(props);
+export function CalendarMonthGrid({
+  onSelectDate,
+  ...props
+}: CalendarMonthGridProps) {
+  const { initials, weeks, selectedWeekIndex, hasMarks } =
+    useCalendarMonthGrid(props);
 
   return (
     <View className="gap-1">
@@ -21,8 +25,12 @@ export function CalendarMonthGrid({ onSelectDate, ...props }: CalendarMonthGridP
           </Text>
         ))}
       </View>
-      {weeks.map((week) => (
-        <View key={week[0]?.date} className="flex-row">
+      {weeks.map((week, index) => (
+        <View
+          key={week[0]?.date}
+          testID={`calendar-week-${week[0]?.date}`}
+          className={`flex-row ${index === selectedWeekIndex ? "rounded-full bg-grape-tint" : ""}`}
+        >
           {week.map((day) => {
             const number = day.selected
               ? "text-on-color"
@@ -50,14 +58,17 @@ export function CalendarMonthGrid({ onSelectDate, ...props }: CalendarMonthGridP
                     {day.number}
                   </Text>
                 </View>
-                <View className="h-1">
-                  {day.marked ? (
-                    <View
-                      testID={`calendar-day-${day.date}-dot`}
-                      className="h-1 w-1 rounded-full bg-lagoon"
-                    />
-                  ) : null}
-                </View>
+                {/* The dot's slot only exists when some day can have one, so the number stays centred otherwise. */}
+                {hasMarks ? (
+                  <View className="-mt-1.5 mb-1.5 h-1">
+                    {day.marked ? (
+                      <View
+                        testID={`calendar-day-${day.date}-dot`}
+                        className="h-1 w-1 rounded-full bg-lagoon"
+                      />
+                    ) : null}
+                  </View>
+                ) : null}
               </TouchableOpacity>
             );
           })}

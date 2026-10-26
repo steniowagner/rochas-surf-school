@@ -12,6 +12,7 @@ import { OccupancyMap } from "../components/occupancy-map";
 import { OccupancyMapSkeleton } from "../components/occupancy-map-skeleton";
 import { OccupancyStats } from "../components/occupancy-stats";
 import { OccupancyWeekBar } from "../components/occupancy-week-bar";
+import { WeekPickerSheet } from "../components/week-picker-sheet";
 
 import { useWeeklyOccupancyScreen } from "./weekly-occupancy.screen.hook";
 
@@ -110,11 +111,17 @@ export function WeeklyOccupancyScreen() {
           relativeLabel={screen.relativeLabel}
           isCurrentWeek={screen.isCurrentWeek}
           caption={screen.caption}
-          onPrevious={screen.goPrevious}
-          onNext={screen.goNext}
+          onPress={screen.openCalendar}
         />
         {renderContent()}
       </ScrollView>
+      <WeekPickerSheet
+        visible={screen.isCalendarOpen}
+        onClose={screen.closeCalendar}
+        weekStart={screen.weekStart}
+        today={screen.today}
+        onSelectDate={screen.selectWeekOf}
+      />
     </>
   );
 }

@@ -11,12 +11,19 @@ export type CalendarMonthGridProps = {
   markedDates: string[];
   /** Appended to the accessibility label of a marked day. */
   markedLabel?: string;
+  /** The Monday of a week whose row gets a background, `YYYY-MM-DD`. */
+  selectedWeekStart?: string;
   onSelectDate: (date: string) => void;
 };
 
 export type UseCalendarMonthGridProps = Pick<
   CalendarMonthGridProps,
-  "month" | "selectedDate" | "today" | "markedDates" | "markedLabel"
+  | "month"
+  | "selectedDate"
+  | "today"
+  | "markedDates"
+  | "markedLabel"
+  | "selectedWeekStart"
 >;
 
 export type CalendarMonthGridDay = {

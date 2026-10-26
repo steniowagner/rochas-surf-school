@@ -1,4 +1,9 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+} from "@testing-library/react-native";
 
 import { TimeRangeSheet } from "./time-range-sheet.component";
 
@@ -9,7 +14,9 @@ const change = async (testID: string, date: Date) =>
 
 describe("TimeRangeSheet", () => {
   it("opens at 12:00 to 13:00", async () => {
-    await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />);
+    await render(
+      <TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />,
+    );
 
     expect(screen.getByText("New time")).toBeTruthy();
     expect(screen.getByText(/only|batch/i)).toBeTruthy();
@@ -22,7 +29,9 @@ describe("TimeRangeSheet", () => {
   it.each(["time-range-start", "time-range-end"])(
     "gives %s a width, or its wheels can't be touched",
     async (testID) => {
-      await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />);
+      await render(
+        <TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />,
+      );
 
       expect(screen.getByTestId(testID).props.style).toEqual({ width: "100%" });
     },
@@ -31,7 +40,9 @@ describe("TimeRangeSheet", () => {
   it("adds the chosen range as HH:mm", async () => {
     const onSubmit = jest.fn();
     const user = userEvent.setup();
-    await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={onSubmit} />);
+    await render(
+      <TimeRangeSheet visible onClose={jest.fn()} onSubmit={onSubmit} />,
+    );
 
     await change("time-range-start", at(8, 5));
     await change("time-range-end", at(9));
@@ -46,7 +57,9 @@ describe("TimeRangeSheet", () => {
   ])("refuses an end %s the start", async (_name, end) => {
     const onSubmit = jest.fn();
     const user = userEvent.setup();
-    await render(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={onSubmit} />);
+    await render(
+      <TimeRangeSheet visible onClose={jest.fn()} onSubmit={onSubmit} />,
+    );
 
     await change("time-range-end", end);
 
@@ -60,7 +73,9 @@ describe("TimeRangeSheet", () => {
   it("cancels", async () => {
     const onClose = jest.fn();
     const user = userEvent.setup();
-    await render(<TimeRangeSheet visible onClose={onClose} onSubmit={jest.fn()} />);
+    await render(
+      <TimeRangeSheet visible onClose={onClose} onSubmit={jest.fn()} />,
+    );
 
     await user.press(screen.getByRole("button", { name: "Cancel" }));
 
@@ -73,8 +88,16 @@ describe("TimeRangeSheet", () => {
     );
     await change("time-range-start", at(7));
 
-    await rerender(<TimeRangeSheet visible={false} onClose={jest.fn()} onSubmit={jest.fn()} />);
-    await rerender(<TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />);
+    await rerender(
+      <TimeRangeSheet
+        visible={false}
+        onClose={jest.fn()}
+        onSubmit={jest.fn()}
+      />,
+    );
+    await rerender(
+      <TimeRangeSheet visible onClose={jest.fn()} onSubmit={jest.fn()} />,
+    );
 
     expect(screen.getByTestId("time-range-start").props.value).toEqual(at(12));
   });

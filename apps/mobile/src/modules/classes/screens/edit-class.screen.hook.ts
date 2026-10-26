@@ -13,7 +13,12 @@ import { useTranslation } from "react-i18next";
 import { useAlertMessage } from "@/providers/alert-message";
 import { ApiError, SessionExpiredError } from "@/services/api";
 
-import { ClassItem, ClassLocation, EditClassRequest, Teacher } from "../classes.types";
+import {
+  ClassItem,
+  ClassLocation,
+  EditClassRequest,
+  Teacher,
+} from "../classes.types";
 import type { PickerLocation } from "../components/location-picker/location-picker.types";
 import { useClass } from "../hooks/use-class.hook";
 import { useEditClass } from "../hooks/use-edit-class.hook";
@@ -23,7 +28,11 @@ import { useNow } from "../hooks/use-now.hook";
 import { useTeachers } from "../hooks/use-teachers.hook";
 import { useTimeRangeSuggestions } from "../hooks/use-time-range-suggestions.hook";
 import { joinAudience } from "../utils/audience";
-import { DateRange, minutesInSchoolZone, todayInSchoolZone } from "../utils/calendar";
+import {
+  DateRange,
+  minutesInSchoolZone,
+  todayInSchoolZone,
+} from "../utils/calendar";
 import {
   getEditClassErrorKey,
   getSeatsTaken,
@@ -88,7 +97,8 @@ export const useEditClassScreen = () => {
         item.cancelledAt ? new Date(item.cancelledAt) : null,
       )
     : null;
-  const isStarted = state === "started" || (startedByServer && state !== "finished");
+  const isStarted =
+    state === "started" || (startedByServer && state !== "finished");
   const nowMinutes =
     form !== null && form.date === today ? minutesInSchoolZone(now) : null;
 
@@ -98,14 +108,24 @@ export const useEditClassScreen = () => {
   // loaded, one that is missing from it was removed: it stays as the class's row, marked, and can be kept.
   const locations: PickerLocation[] =
     stored && !queriedLocations.some((location) => location.id === stored.id)
-      ? [{ ...stored, upcomingClasses: 0, archived: locationsQuery.isSuccess }, ...queriedLocations]
+      ? [
+          { ...stored, upcomingClasses: 0, archived: locationsQuery.isSuccess },
+          ...queriedLocations,
+        ]
       : queriedLocations;
   const management = useLocationManagement(queriedLocations.length > 0);
   // The teachers, plus the class's instructors who no longer are one, so they can be removed.
   const queriedTeachers = teachersQuery.data ?? [];
   const keptTeachers: Teacher[] = (item?.instructors ?? [])
-    .filter((instructor) => !queriedTeachers.some((teacher) => teacher.id === instructor.id))
-    .map((instructor) => ({ id: instructor.id, name: instructor.name, role: "instructor" }));
+    .filter(
+      (instructor) =>
+        !queriedTeachers.some((teacher) => teacher.id === instructor.id),
+    )
+    .map((instructor) => ({
+      id: instructor.id,
+      name: instructor.name,
+      role: "instructor",
+    }));
   const teachers = [...queriedTeachers, ...keptTeachers];
 
   const ownRange = initial?.range ?? null;
@@ -115,7 +135,9 @@ export const useEditClassScreen = () => {
       : (suggestionsQuery.data?.items ?? []);
 
   const instructorsChanged =
-    form !== null && initial !== null && !sameIds(form.instructorIds, initial.instructorIds);
+    form !== null &&
+    initial !== null &&
+    !sameIds(form.instructorIds, initial.instructorIds);
   const classChanged =
     form !== null &&
     initial !== null &&
@@ -133,7 +155,8 @@ export const useEditClassScreen = () => {
     (isStarted ||
       (form.date >= today &&
         !(nowMinutes !== null && startsByNow(form.range, nowMinutes))));
-  const canSubmit = isValid && (instructorsChanged || (!isStarted && classChanged));
+  const canSubmit =
+    isValid && (instructorsChanged || (!isStarted && classChanged));
 
   const change = (patch: Partial<EditClassForm>) =>
     setChanges((current) => ({ ...current, ...patch }));
@@ -154,7 +177,8 @@ export const useEditClassScreen = () => {
     setTimeSheetVisible(false);
   };
 
-  const selectLocation = (created: ClassLocation) => change({ locationId: created.id });
+  const selectLocation = (created: ClassLocation) =>
+    change({ locationId: created.id });
 
   // A removed location that was chosen leaves the selection, so Save stays off until another is picked.
   const unselectLocation = (removedId: string) => {
@@ -175,7 +199,12 @@ export const useEditClassScreen = () => {
   };
 
   const changeCapacity = (value: number) =>
-    change({ capacity: Math.min(CLASS_CAPACITY_MAX, Math.max(CLASS_CAPACITY_MIN, value)) });
+    change({
+      capacity: Math.min(
+        CLASS_CAPACITY_MAX,
+        Math.max(CLASS_CAPACITY_MIN, value),
+      ),
+    });
 
   const showError = (error: unknown) => {
     if (isClassStartedError(error)) {
@@ -210,7 +239,9 @@ export const useEditClassScreen = () => {
     const messageKey = getEditClassErrorKey(error);
 
     if (messageKey !== null) {
-      alertMessage.show(t(messageKey, { count: getSeatsTaken(error) ?? undefined }));
+      alertMessage.show(
+        t(messageKey, { count: getSeatsTaken(error) ?? undefined }),
+      );
     }
   };
 
@@ -221,7 +252,9 @@ export const useEditClassScreen = () => {
 
     sending.current = true;
     // A started class keeps its stored values: only the instructors are sent as edited.
-    const values = isStarted ? { ...initial, instructorIds: form.instructorIds } : form;
+    const values = isStarted
+      ? { ...initial, instructorIds: form.instructorIds }
+      : form;
     const notes = values.notes.trim();
     const request: EditClassRequest = {
       discipline: values.discipline,
@@ -252,8 +285,12 @@ export const useEditClassScreen = () => {
   const pendingCount = item?.pendingRequests ?? 0;
   const audience = [
     t("editClass.audience.instructors"),
-    studentCount > 0 ? t("editClass.audience.students", { count: studentCount }) : null,
-    pendingCount > 0 ? t("editClass.audience.pending", { count: pendingCount }) : null,
+    studentCount > 0
+      ? t("editClass.audience.students", { count: studentCount })
+      : null,
+    pendingCount > 0
+      ? t("editClass.audience.pending", { count: pendingCount })
+      : null,
   ].filter((part) => part !== null);
   const note =
     audience.length === 1
@@ -262,7 +299,8 @@ export const useEditClassScreen = () => {
           list: joinAudience(audience, t("editClass.audience.and")),
         });
 
-  const isNotFound = classQuery.error instanceof ApiError && classQuery.error.status === 404;
+  const isNotFound =
+    classQuery.error instanceof ApiError && classQuery.error.status === 404;
 
   return {
     // The trial guests of the class get no notice of the edit.
@@ -271,7 +309,10 @@ export const useEditClassScreen = () => {
     isLoading: classQuery.isPending,
     isNotFound,
     // An expired session is handled by the session flow: nothing to show here.
-    isError: classQuery.isError && !isNotFound && !(classQuery.error instanceof SessionExpiredError),
+    isError:
+      classQuery.isError &&
+      !isNotFound &&
+      !(classQuery.error instanceof SessionExpiredError),
     retry: () => void classQuery.refetch(),
     isFinished: state === "finished",
     isCancelled: state === "cancelled",
@@ -289,7 +330,8 @@ export const useEditClassScreen = () => {
     teachersLoading: teachersQuery.isPending,
     teachersError: teachersQuery.isError,
     retryTeachers: () => void teachersQuery.refetch(),
-    setDiscipline: (discipline: EditClassForm["discipline"]) => change({ discipline }),
+    setDiscipline: (discipline: EditClassForm["discipline"]) =>
+      change({ discipline }),
     setLevel: (level: EditClassForm["level"]) => change({ level }),
     selectDate,
     selectRange,

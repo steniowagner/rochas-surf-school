@@ -7,9 +7,12 @@ afterEach(() => jest.useRealTimers());
 
 describe("useDebouncedValue", () => {
   it("starts with the value and follows it only after it stopped changing", async () => {
-    const { result, rerender } = await renderHook(({ value }: { value: string }) => useDebouncedValue(value, 300), {
-      initialProps: { value: "a" },
-    });
+    const { result, rerender } = await renderHook(
+      ({ value }: { value: string }) => useDebouncedValue(value, 300),
+      {
+        initialProps: { value: "a" },
+      },
+    );
 
     await rerender({ value: "ab" });
     await act(async () => {

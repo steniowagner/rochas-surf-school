@@ -12,10 +12,13 @@ export const useArchiveLocation = () => {
   return useMutation({
     retry: false,
     mutationFn: (id: string) =>
-      apiPost<void>(`/locations/${id}/archive`, undefined, { authenticated: true }),
+      apiPost<void>(`/locations/${id}/archive`, undefined, {
+        authenticated: true,
+      }),
     onSuccess: (_result, id) => {
-      queryClient.setQueryData<LocationsResponse>(LOCATIONS_QUERY_KEY, (current) =>
-        removeLocation(current, id),
+      queryClient.setQueryData<LocationsResponse>(
+        LOCATIONS_QUERY_KEY,
+        (current) => removeLocation(current, id),
       );
     },
   });

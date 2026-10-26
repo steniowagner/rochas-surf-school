@@ -3,12 +3,22 @@ import type { Locale } from "date-fns";
 
 import { addDays, formatIsoDate, weekdayName } from "@/utils/calendar-dates";
 
-import { ClassItem, TeachingClassesLayout, TeachingDay, TeachingDayLabel } from "../classes.types";
+import {
+  ClassItem,
+  TeachingClassesLayout,
+  TeachingDay,
+  TeachingDayLabel,
+} from "../classes.types";
 import { todayInSchoolZone } from "./calendar";
 import { schoolDayOf } from "./week";
 
 const stateAt = (item: ClassItem, now: Date) =>
-  getClassState(new Date(item.startsAt), new Date(item.endsAt), now, item.cancelledAt ? new Date(item.cancelledAt) : null);
+  getClassState(
+    new Date(item.startsAt),
+    new Date(item.endsAt),
+    now,
+    item.cancelledAt ? new Date(item.cancelledAt) : null,
+  );
 
 const labelOf = (day: string, today: string): TeachingDayLabel =>
   day === today ? "today" : day === addDays(today, 1) ? "tomorrow" : "weekday";
@@ -18,7 +28,10 @@ const labelOf = (day: string, today: string): TeachingDayLabel =>
  * left out without waiting for a refetch; the ones under way (never a cancelled one) come first; the others are
  * grouped by their America/Fortaleza day; the next class is the first that hasn't started and isn't cancelled.
  */
-export const layoutTeachingClasses = (items: ClassItem[], now: Date): TeachingClassesLayout => {
+export const layoutTeachingClasses = (
+  items: ClassItem[],
+  now: Date,
+): TeachingClassesLayout => {
   const today = todayInSchoolZone(now);
   const ongoing: ClassItem[] = [];
   const days: TeachingDay[] = [];
@@ -54,4 +67,5 @@ export const formatShortDate = (day: string, locale: Locale): string =>
   formatIsoDate(day, "d MMM", locale).replace(/\.$/, "");
 
 /** "Sexta", "Viernes", "Friday": the weekday's full name, without the "-feira" of the pt-BR weekdays. */
-export const formatDayName = (day: string, locale: Locale): string => weekdayName(day, locale).split("-")[0];
+export const formatDayName = (day: string, locale: Locale): string =>
+  weekdayName(day, locale).split("-")[0];

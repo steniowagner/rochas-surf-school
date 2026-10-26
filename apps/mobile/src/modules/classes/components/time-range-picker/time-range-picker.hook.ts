@@ -38,7 +38,10 @@ export const useTimeRangePicker = ({
     };
   });
 
-  const pressChip = (range: UseTimeRangePickerProps["selected"][number], isSelected: boolean) => {
+  const pressChip = (
+    range: UseTimeRangePickerProps["selected"][number],
+    isSelected: boolean,
+  ) => {
     if (!(single && isSelected)) {
       onToggle(range);
     }

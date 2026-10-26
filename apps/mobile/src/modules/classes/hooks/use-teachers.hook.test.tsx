@@ -45,7 +45,11 @@ describe("useTeachers", () => {
       "/people?page=2&perPage=50&role=instructor,admin",
       "/people?page=3&perPage=50&role=instructor,admin",
     ]);
-    expect(result.current.data?.[0]).toEqual({ id: "t-0", name: "Teacher 0", role: "instructor" });
+    expect(result.current.data?.[0]).toEqual({
+      id: "t-0",
+      name: "Teacher 0",
+      role: "instructor",
+    });
     expect(result.current.data?.[1]?.role).toBe("admin");
   });
 
@@ -66,7 +70,9 @@ describe("useTeachers", () => {
   });
 
   it("fails when a page fails, without retrying", async () => {
-    fetchMock.mockResolvedValueOnce(page(1, 0, 50, 120)).mockResolvedValue(failure());
+    fetchMock
+      .mockResolvedValueOnce(page(1, 0, 50, 120))
+      .mockResolvedValue(failure());
 
     const { result } = await renderHook(() => useTeachers(), {
       wrapper: createWrapper(createQueryClient()),

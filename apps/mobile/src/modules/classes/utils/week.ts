@@ -52,7 +52,11 @@ export const formatDateLine = (
           ? labels.yesterday
           : weekdayName(classDay, locale);
   const withYear = classDay.slice(0, 4) !== today.slice(0, 4);
-  const date = formatIsoDate(classDay, withYear ? "d MMM yyyy" : "d MMM", locale);
+  const date = formatIsoDate(
+    classDay,
+    withYear ? "d MMM yyyy" : "d MMM",
+    locale,
+  );
 
   return `${name} · ${date}`;
 };

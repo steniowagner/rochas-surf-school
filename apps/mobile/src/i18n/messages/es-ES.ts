@@ -188,6 +188,7 @@ const messages: Messages = {
       title: "No fue posible reactivarla",
       description:
         "El equipo de Rocha's rechazó la solicitud para reactivar <bold>{{email}}</bold>. Esta cuenta seguirá inactiva.",
+      noteTitle: "Mensaje del equipo",
     },
     accountChanged: "Tu cuenta cambió. Vuelve a entrar para continuar.",
   },

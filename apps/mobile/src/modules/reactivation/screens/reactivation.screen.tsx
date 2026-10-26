@@ -33,6 +33,8 @@ export function ReactivationScreen() {
   );
 
   if (state === "denied") {
+    const reason = user?.denialReason ?? null;
+
     return (
       <AccountStatus
         tone="bad"
@@ -40,6 +42,12 @@ export function ReactivationScreen() {
         eyebrow={t("reactivation.denied.eyebrow")}
         title={t("reactivation.denied.title")}
         description={description}
+        // The reason is admin text: shown exactly as stored, and not at all when it is empty.
+        note={
+          reason?.trim()
+            ? { title: t("reactivation.denied.noteTitle"), text: reason }
+            : undefined
+        }
         onUseAnotherEmail={signOut}
       />
     );

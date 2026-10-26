@@ -374,10 +374,11 @@ The in-app body of `reactivation.denied` is the reason, or empty without one (as
   `admin.home.reactivationsRow` copy, and cases in `admin.screen.test.tsx`.
   Covers: ER-07 · Done when: `npx jest src/modules/admin/screens/admin.screen.test.tsx` passes.
   > ✅ 2026-10-26 — added the "Reativar contas" row (icon `account-reactivate-outline`, after the registrations row, count and badge from `useReactivationRequests`, no subtitle/badge while loading or on error) and `admin.home.reactivationsRow`; the shared fetch mocks of the admin home tests now answer `/reactivation-requests`; new cases: row order, count + badge + opens the tool, "Nothing pending", no subtitle on error; files: `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`, `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/admin` (15 suites, 127 passed), `npx tsc --noEmit` and `npx eslint src/modules/admin` clean; deviations: Prettier reformatted the two touched test files beyond the lines changed.
-- [ ] **T-13** — Show the reason as the `note` (`reactivation.denied.noteTitle`) of the denied state in
+- [x] **T-13** — Show the reason as the `note` (`reactivation.denied.noteTitle`) of the denied state in
   `src/modules/reactivation/screens/reactivation.screen.tsx`, with the copy and cases in
   `reactivation.screen.test.tsx`.
   Covers: ER-09 · Done when: `npx jest src/modules/reactivation` passes.
+  > ✅ 2026-10-26 — the denied state of the Account deleted screen now shows `denialReason` as the note titled `reactivation.denied.noteTitle` (equal to `denied.noteTitle` in all three languages), nothing when empty or blank, never in the other states; files: `apps/mobile/src/modules/reactivation/screens/reactivation.screen.tsx`, `apps/mobile/src/modules/reactivation/screens/reactivation.screen.test.tsx`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `npx jest src/modules/reactivation` (2 suites, 29 passed), `npx tsc --noEmit`, `npx eslint src/modules/reactivation` clean; deviations: none.
 - [ ] **T-14** — Handle the three types in `src/modules/notifications/hooks/use-notification-received.hook.ts`,
   `utils/notification-target.ts` and `utils/notification-icon.ts` (D-10), and add `"deleted"` to
   `REGISTRABLE_STATUSES` in `hooks/use-push-registration.hook.ts` (D-06), with their tests.

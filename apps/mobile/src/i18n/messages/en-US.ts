@@ -181,6 +181,7 @@ const messages = {
       title: "Couldn't reactivate",
       description:
         "The Rocha's team denied the request to reactivate <bold>{{email}}</bold>. This account will stay inactive.",
+      noteTitle: "Message from the team",
     },
     accountChanged: "Your account changed. Sign in again to continue.",
   },

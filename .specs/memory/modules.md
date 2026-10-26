@@ -62,7 +62,9 @@ cancelled seats, direct enrolments and take-outs), which
 reaches it through abstract contracts. Today it carries the three registration notifications, the class ones
 (assigned, edited, unassigned, cancelled — to the instructors and to the students whose enrolment it ended —,
 deleted, no instructor), the location change, and the enrolment ones (a new request, an approval, a denial, a
-request that expired, a cancelled seat, a direct enrolment, a take-out).
+request that expired, a cancelled seat, a direct enrolment, a take-out). It also carries the notices an approved
+admin writes for everyone, the students or the instructors: who receives one is decided here, from the approved
+accounts of that audience.
 It also shows each person their own notifications, in the app's language, each read or unread, and lets them mark
 one or all of them read.
 

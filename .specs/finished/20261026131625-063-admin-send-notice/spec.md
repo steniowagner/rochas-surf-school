@@ -3,13 +3,14 @@ id: "063"
 slug: admin-send-notice
 title: Admin sends a notice to everyone, students or instructors
 template: quick
-status: accepted
+status: finished
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 880f04238a086ae12a8c3da0d79e5f95865d0819
 reviewed_commit: f75ec0f62db6bfeebac675c45ed160fa2cf55a1d
 fronts: [backend, mobile]
 depends_on: []
+finished: 2026-10-26
 ---
 
 # 063 — Admin sends a notice to everyone, students or instructors

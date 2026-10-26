@@ -102,11 +102,14 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
 - **`modules/notifications`** (`@rochas-surf-school/notifications`; no dependency on `auth`) — 2 aggregates:
   - `notification/` — `model/notification.entity.ts` (`Notification` and `NOTIFICATION_TYPES`: `type` + `params`,
     no text; `readAt`, null while unread), `provider/{notification.repository,push.provider,recipients.provider,clock.provider}.ts`
-    (`PushProvider`: `send` → tickets, `getReceipts`; `RecipientsProvider.findApprovedAdminIds()`),
+    (`PushProvider`: `send` → tickets, `getReceipts`; `RecipientsProvider.findApprovedAdminIds()` and, spec 063,
+    `findApprovedUserIdsByAudience(audience)` with `BROADCAST_AUDIENCES` = `all` | `students` | `instructors`),
     `usecase/{notify,notify-approved-admins,notify-classes-without-instructor}.usecase.ts` (store every
     notification, then push to each device; the last one tells the approved admins minus the excluded ones),
     `usecase/{list-notifications,count-unread-notifications,mark-notification-read,mark-all-notifications-read}.usecase.ts`
-    (the caller's own notifications on the notifications screen; spec 055).
+    (the caller's own notifications on the notifications screen; spec 055),
+    `usecase/{count-broadcast-recipients,send-broadcast}.usecase.ts` and `usecase/broadcast-access.ts` (the approved
+    admin check, the audience and the 60 / 500 limits; spec 063).
   - `push-token/` — `model/push-token.entity.ts` (`PushToken`, `PUSH_TOKEN_PATTERN`, `PUSH_LOCALES`),
     `model/push-ticket.ts` (a plain interface: its id is Expo's ticket id),
     `provider/{push-token.repository,push-ticket.repository}.ts`,
@@ -267,13 +270,15 @@ src/
     notifications.module.ts     # wiring (DbModule); exports the adapters of auth's and classes' ports
     notifications.controller.ts # PUT and DELETE /notifications/push-token (204); GET /notifications,
                                 # GET /notifications/unread-count, POST /notifications/read-all and
-                                # POST /notifications/:id/read (spec 055) — protected
+                                # POST /notifications/:id/read (spec 055); GET /notifications/broadcast/recipients
+                                # ?audience= (200 { count }) and POST /notifications/broadcast (204; spec 063) — protected
     notifications.integration.http  # manual REST Client requests
     {notification,push-token,push-ticket,recipients}.prisma.ts  # Prisma repositories; PrismaRecipientsProvider
-                                # (role admin and status approved)
+                                # (role admin and status approved; approved users by audience, spec 063)
     expo.push.ts                # ExpoPushProvider (expo-server-sdk: chunks, tickets, receipts)
     push-messages.ts            # renderPush: the push copy in pt-BR / es / en; renderInApp: the notifications
-                                # screen's text, the push's minus "open the app" (spec 055)
+                                # screen's text, the push's minus "open the app" (spec 055); broadcast: the
+                                # notice's title and message as written in every locale (spec 063)
     notifications.registration-notifier.ts  # RegistrationNotifier adapter (Notify / NotifyApprovedAdmins; logs
                                 # and swallows every error)
     notifications.push-token-remover.ts     # PushTokenRemover adapter (RemovePushToken)
@@ -464,6 +469,7 @@ src/
                                                      # above the tab bar
     (private)/admin/school-settings.tsx              # "Configurações da escola" (/admin/school-settings, spec 046),
                                                      # above the tab bar
+    (private)/admin/send-notice.tsx                  # "Enviar aviso" (/admin/send-notice, spec 063), above the tab bar
     (private)/{instructor,admin}/my-classes.tsx      # "Minhas aulas" of the classes they teach (/instructor/my-classes,
                                                      # /admin/my-classes; TeachingClassesScreen, spec 057), above the tab bar
     (private)/{instructor,admin}/my-history.tsx      # "Aulas anteriores" of the classes they taught (/instructor/my-history,
@@ -504,10 +510,11 @@ src/
   modules/admin/
     screens/admin.screen.tsx    # admin home (a ScrollView under the user header, spec 061): "School tools"; "Tools" with the "Join the school" row and its
                                 # pending count, the "Inscrições em aulas" row and its request count (spec 042),
-                                # the "Criar aulas" row and the "Regras de cancelamento" row,
+                                # the "Inscrever aluno" row, the "Criar aulas" row, the "Regras de cancelamento" row,
+                                # the "Configurações da escola" row (spec 046) and the "Enviar aviso" row (spec 063);
                                 # "School" with the "Minhas aulas" row once they teach (spec 057), the Rules row
-                                # (management screen, spec 056), the People row, the "Ocupação semanal" row
-                                # (spec 061) and the "Configurações da escola" row (spec 046)
+                                # (management screen, spec 056), the People row and the "Ocupação semanal" row
+                                # (spec 061)
     screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
                                 # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
                                 # the People PersonSheet (with the email) for a pressed card
@@ -718,10 +725,21 @@ src/
                                 # use-mark-all-notifications-read (the notifications screen and the bell; spec 055)
     screens/notifications.screen.tsx  # "Avisos": the list, its states, row taps and "mark all" (spec 055)
     components/notification-row/  # one notification: tinted icon, title, body, time, unread dot
-    utils/notification-target.ts  # where a notification leads per type, class id and flow (push and row)
+    utils/notification-target.ts  # where a notification leads per type, class id and flow (push and row); a
+                                # broadcast leads nowhere: its row and push only mark it read and show the home
     utils/notifications-cache.ts  # query keys, page size, markReadInPages; utils/notification-icon.ts per type
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
     utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored
+  modules/notices/              # "Enviar aviso" (spec 063, admins)
+    screens/send-notice.screen.tsx  # SendNoticeScreen + hook, types: the intro (collapsing title), the audience
+                                # SegmentedControl and its count, the title and description fields, "Enviar" pinned
+                                # above the keyboard, the confirm sheet; toast and router.back on success
+    hooks/                      # use-notice-recipients-counts (one useQueries over the three audiences: read once per
+                                # visit, staleTime Infinity, gcTime 0, no retry), use-send-notice (POST
+                                # /notifications/broadcast), use-scroll-field-into-view (a focused field above the keyboard)
+    components/send-notice-confirm-sheet/  # BottomModal: "Enviar a N pessoas?", the audience line, the notice's
+                                # preview card (scrolls past 180 px), "Sim, enviar" and the ghost "Voltar e editar"
+    notices.constants.ts        # NOTICE_AUDIENCES and the 60 / 500 limits; notices.types.ts (NoticeAudience, …)
   modules/offboarding/
     screens/                    # denied.screen.tsx (reason card when given), removed.screen.tsx — both on
                                 # AccountStatus with the shared ContactSchoolButton and "Use another email" (sign-out)

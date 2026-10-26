@@ -63,6 +63,8 @@ What the person is told, and how it reaches them.
   - `role.changed` — an admin changed the person's role (spec 058); details: the new role (`role`) and whether the
     change gave up upcoming seats or pending requests (`seatsReleased`) and upcoming classes (`classesReleased`).
     One per change, to the person only.
+  - `broadcast` — an admin sent a notice (spec 063); details: its title (`title`, 1–60 characters) and message
+    (`message`, 1–500), as written after trimming. One per recipient of the notice's audience.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -86,6 +88,7 @@ What the person is told, and how it reaches them.
   | `enrolment.enrolled` | You've been enrolled | The school enrolled you in the {discipline} class on {MM/dd} at {HH:mm}. |
   | `enrolment.takenOut` | You were taken out of a class | the reason as written, or "The school took you out of the {discipline} class on {MM/dd} at {HH:mm}." |
   | `role.changed` | Your role changed | You're now a student. / an instructor. / an admin., then " Your upcoming seats and pending requests were cancelled." when seats were given up, then " You were taken off your upcoming classes." when classes were |
+  | `broadcast` | the notice's title, as written | the notice's message, as written |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
   o app.", "Inscrição recusada" / "Abra o app para saber mais.", "Novas aulas na sua escala" / "Você foi escalado
@@ -131,7 +134,8 @@ What the person is told, and how it reaches them.
   pt-BR "Seu papel mudou" / "Agora você é aluno." ("instrutor.", "admin."), then " Suas vagas e pedidos em aulas
   futuras foram cancelados." and " Você saiu das suas próximas aulas.", es "Tu rol cambió" / "Ahora eres alumno."
   ("instructor.", "admin."), then " Tus plazas y solicitudes en clases futuras se cancelaron." and " Dejaste tus
-  próximas clases." (the in-app text is the same). The start is written in America/Fortaleza time, the same on every machine.
+  próximas clases." (the in-app text is the same); `broadcast`: the notice's title and message as written, the same in
+  every language and in the app. The start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
   with the app open reloads the classes of the weeks it shows (a `class.deleted` one, every class shown). Tapping a `class.edited`, `class.unassigned` or
@@ -155,7 +159,10 @@ What the person is told, and how it reaches them.
   admin's pending requests. A `role.changed` push received with the app open reloads the account (so the flow
   guards move the app to the new role's experience) and the people lists; tapping it, or its row on the
   notifications screen, reloads the account and opens the home of the flow it resolves to (its row: a
-  `shield-checkmark-outline` icon on the info tone). Tapping any push also marks its notification read (without waiting for it; a failure
+  `shield-checkmark-outline` icon on the info tone). A `broadcast` leads to no screen of its own: tapping its push or
+  its row marks it read and shows the home of the account's current flow (its row: a `megaphone-outline` icon on
+  the info tone), and one received with the app open reloads only the notifications list and the unread count.
+  Tapping any push also marks its notification read (without waiting for it; a failure
   is ignored), and any push received with the app open reloads the notifications list and the bell's unread count
   (spec 055).
 - **In-app text** (spec 055): the push's title and body in the language the app asks for (pt-BR when it asks for
@@ -188,6 +195,15 @@ Rules:
 - **Who hears about classes left without an instructor**: the same approved admins, minus the ones the event
   excludes (the person whose account deletion or demotion caused it, still approved while it runs, and the admin
   who demoted them); none left → nothing stored or sent.
+- **Who hears about a notice** (spec 063): the approved accounts of its audience — `all` is every approved
+  student, instructor and admin, the sender included; `students` and `instructors` follow the role. Pending,
+  denied, deleted and removed accounts never do. They are found again when the notice is sent: the count the admin
+  saw before is only advisory. An audience with nobody stores and sends nothing.
+- **A notice is checked before anything happens**: the sender must be an approved admin (`user.status.notApproved`,
+  then `broadcast.role.notAdmin`, both forbidden); the audience must be `all`, `students` or `instructors`
+  (`broadcast.audience.required` / `.in`); the title and the message, trimmed, must hold 1–60 and 1–500 characters
+  (`broadcast.title.*`, `broadcast.message.*`). The same admin check and audience check apply to counting the
+  recipients. Nothing is stored on a refusal, and nothing keeps a list of the notices sent.
 - **Nothing is retried**: a push that fails is not sent again; the notification stays stored.
 - **Read once** (spec 055): a notification is unread until its person marks it, by tapping its row or its push, or
   with "mark all"; marking a read one again changes nothing, so it keeps when it was first read. Nothing marks
@@ -254,6 +270,10 @@ Rules:
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
 - **Approved admins** — receive one `class.noInstructor` when an account deletion or an instructor's demotion to
   student leaves classes with nobody, unless the account is theirs or they made the demotion.
+- **Approved admins** — count the recipients of an audience and send a notice to it (spec 063); a student, an
+  instructor or an admin who isn't approved is refused both.
+- **Every approved account of a notice's audience** — receives one `broadcast`; the sending admin only when the
+  audience is `all`.
 - **A person whose role an admin changed** — receives one `role.changed`; the admin who changed it, and everyone
   else, receives none.
 - **An instructor or admin of a location's upcoming classes, and a student with a seat or a pending request in
@@ -278,7 +298,7 @@ module of the event does.
 It doesn't talk to Expo itself: sending and reading receipts are behind a contract, provided by the backend,
 which also writes the push text and the in-app text. The app reads the stored notifications only through the
 backend (spec 055). Badges on the app icon and rich pushes come with their specs, as do the notifications of every other event (reactivation requests,
-seat cancellations, broadcasts) and those of an edit or a location change to the classes' students and pending
+seat cancellations) and those of an edit or a location change to the classes' students and pending
 requests (spec 047).
 
 ## Spec history
@@ -345,3 +365,8 @@ requests (spec 047).
   `RoleChangeNotifier`; errors logged and swallowed); `class.noInstructor` of a demotion leaves out the admin who
   demoted. In the app, a received `role.changed` reloads the account and the people lists, and a tapped push or row
   reloads the account and opens the new flow's home.
+- `063-admin-send-notice` — the `broadcast` type (`{ title, message }`, shown as written in every language, push and
+  in-app), counting the recipients of an audience (`all` | `students` | `instructors`) and sending a notice to it,
+  approved admins only; the audience's approved accounts are found again at send time and the sender gets it only
+  for `all`. In the app, the admin's "Enviar aviso" tool, and a tapped `broadcast` push or row marks it read and
+  shows the home.

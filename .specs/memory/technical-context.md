@@ -264,6 +264,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   (`ds-text-occupancy-cell`, Barlow Condensed 15, 700: the cells' percentages, "canc." and the times) and the radii
   `occupancyCell` (10, `rounded-occupancy-cell`) and `swatch` (3, `rounded-swatch`: the legend's swatches), both
   mapped by hand in the mobile `tailwind.config.ts`; the week bar's caption and the stats' numbers use `dayNumber`.
+  The confirm sheet of a notice (spec 063) adds the type styles `sheetDescription` (`ds-text-sheet-description`,
+  Nunito 13.5, 400, line 1.55: the line under a sheet's title), `previewTitle` (`ds-text-preview-title`, Nunito 14.5,
+  800) and `previewBody` (`ds-text-preview-body`, Nunito 14, 400): the notice's title and message in its preview card.
 
 ## Persistence
 

@@ -28,7 +28,7 @@ import {
 import { ClassLocation } from "../classes.types";
 import { subscribeLocationEvents } from "../utils/location-events";
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
-import { FORTALEZA, MAP_DELTA } from "../utils/map";
+import { FORTALEZA, MAP_DELTA, PREVIEW_DELTA } from "../utils/map";
 
 import { LocationFormScreen } from "./location-form.screen";
 
@@ -419,11 +419,12 @@ describe("LocationFormScreen (new)", () => {
         latitude: -3.7442,
         longitude: -38.4617,
       });
+      // The map zooms in on the picked place.
       expect(mockAnimateToRegion).toHaveBeenLastCalledWith({
         latitude: -3.7442,
         longitude: -38.4617,
-        latitudeDelta: MAP_DELTA,
-        longitudeDelta: MAP_DELTA,
+        latitudeDelta: PREVIEW_DELTA,
+        longitudeDelta: PREVIEW_DELTA,
       });
       expect(nameInput().props.value).toBe("Praia do Futuro");
       expect(screen.queryByTestId("location-suggestions")).toBeNull();
@@ -664,14 +665,6 @@ describe("LocationFormScreen (new)", () => {
           : base(url, init),
       );
 
-      // The admin zoomed in: the place is centred at that span.
-      await act(() =>
-        map().props.onRegionChangeComplete({
-          ...FORTALEZA,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.02,
-        }),
-      );
       await act(() =>
         map().props.onPoiClick({
           nativeEvent: {
@@ -693,8 +686,8 @@ describe("LocationFormScreen (new)", () => {
       expect(mockAnimateToRegion).toHaveBeenLastCalledWith({
         latitude: -3.7442,
         longitude: -38.4617,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.02,
+        latitudeDelta: PREVIEW_DELTA,
+        longitudeDelta: PREVIEW_DELTA,
       });
     });
   });

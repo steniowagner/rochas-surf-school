@@ -8,7 +8,7 @@ import { useHeaderHeight } from "expo-router/react-navigation";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LayoutChangeEvent } from "react-native";
-import MapView, { Region } from "react-native-maps";
+import MapView from "react-native-maps";
 
 import { useAlertMessage } from "@/providers/alert-message";
 
@@ -29,7 +29,7 @@ import {
   emitLocationRemoved,
 } from "../utils/location-events";
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
-import { regionAround, toMapPoint } from "../utils/map";
+import { PREVIEW_DELTA, regionAround, toMapPoint } from "../utils/map";
 import { newSessionToken } from "../utils/session-token";
 
 import { LocationFormFields } from "./location-form.screen.types";
@@ -78,8 +78,6 @@ export const useLocationFormScreen = (
   // Google Maps (Android) crashes when it gets a padding before the map is ready: only the map that reported ready
   // (the map is mounted again once an edited location fills the form) gets one.
   const [readyMapKey, setReadyMapKey] = useState<string | null>(null);
-  // The region the map last showed: a centred place keeps its span.
-  const shownRegion = useRef<Region>(regionAround(null));
   // The screen is going back: a location that leaves the list now isn't "gone" news.
   const leaving = useRef(false);
 
@@ -118,12 +116,10 @@ export const useLocationFormScreen = (
           : current.name,
     }));
 
-    // A place picked from the search (or a labelled place) centres the map; a tap doesn't, the finger is there.
+    // A place picked from the search (or a labelled place) centres the map and zooms in on it; a tap doesn't move
+    // the map, the finger is there.
     if (place.name !== null) {
-      mapRef.current?.animateToRegion({
-        ...shownRegion.current,
-        ...place.point,
-      });
+      mapRef.current?.animateToRegion(regionAround(place.point, PREVIEW_DELTA));
     }
   };
 
@@ -256,9 +252,6 @@ export const useLocationFormScreen = (
     },
     changeNotify: (notify: boolean) =>
       setFields((current) => ({ ...current, notify })),
-    trackRegion: (shown: Region) => {
-      shownRegion.current = shown;
-    },
     pressMap: mapPlace.pressMap,
     pressPoi: mapPlace.pressPoi,
     pickSuggestion: (suggestion: AddressSuggestion) =>

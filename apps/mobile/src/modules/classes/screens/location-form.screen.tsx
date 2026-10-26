@@ -56,7 +56,6 @@ export function LocationFormScreen() {
         onMapReady={screen.readyMap}
         showsUserLocation={screen.showsUserLocation}
         showsMyLocationButton={false}
-        onRegionChangeComplete={screen.trackRegion}
         onPress={screen.pressMap}
         // Only Google Maps reports taps on its labelled places.
         onPoiClick={Platform.OS === "android" ? screen.pressPoi : undefined}

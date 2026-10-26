@@ -269,10 +269,18 @@ and stacked fields are hard to use.
   > `activeLocations` (only the sheet used it) left the edit hook's return. Note: five existing new-class tests log
   > React Query act() warnings, on the base commit too
 
-- [ ] **T-08** — Zoom in on a picked suggestion or labelled place (D-09): `selectPlace` in
+- [x] **T-08** — Zoom in on a picked suggestion or labelled place (D-09): `selectPlace` in
   `location-form.screen.hook.ts` animates to `regionAround(place.point, PREVIEW_DELTA)`. Update the screen's tests.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
   Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx` passes.
+  > ✅ 2026-10-26 — a picked suggestion or labelled place now animates the map to `regionAround(place.point,
+  > PREVIEW_DELTA)` (about a kilometre) instead of keeping the span; the region the map reported (`shownRegion`,
+  > `onRegionChangeComplete`) is no longer needed and is gone; files:
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx` (39 passed, 100% on the screen and its hook),
+  > `npx eslint`, `npx tsc --noEmit` clean; deviations: none
 - [ ] **T-09** — Drop the search field's shadow in `components/location-search-header/` (D-10). Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
   Covers: ER-01 · Done when: `npx jest src/modules/classes/components/location-search-header` passes.

@@ -68,6 +68,9 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   es-ES and en-US.
 - Moving the history pieces the two screens share into the mobile classes module (D-04), the student's history
   behaving exactly as before.
+- An intro (icon, title, description, collapsing title) on "Minhas aulas" and on the teaching "Aulas anteriores"
+  (D-07, added by amendment).
+- The month calendar's dot drawn below the day's circle, except in the week picker (D-08, added by amendment).
 
 ### Out of scope
 
@@ -75,8 +78,9 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 - A "Hoje" button on the history's calendar; keeping the chosen period or day after leaving the screen.
 - Paging, searching, or filtering by level or status.
 - A link to the history from anywhere but the "Minhas aulas" header (the homes' Escola row is unchanged).
-- Any change to the student's `GET /classes/mine/history`, its screen's behavior or copy.
-- Any change to `GET /classes/teaching` or to the "Minhas aulas" list itself.
+- Any change to the student's `GET /classes/mine/history`, its screen's behavior or copy, apart from the calendar's
+  dot placement (D-08).
+- Any change to `GET /classes/teaching` or to the "Minhas aulas" list itself, apart from its intro (D-07).
 
 ## Decisions
 
@@ -84,10 +88,12 @@ and the surf/skate filter. Today they can only find a past class by browsing the
 | ---- | -------- | ------ |
 | D-01 | A class the caller **taught** is one where they are one of the instructors (a `class_instructors` row), whose end is at or before now (the classes module's clock), and that isn't cancelled. A class under way is not listed yet. A class belongs to a period by the America/Fortaleza day its start falls on. | A cancelled class wasn't taught; the same rules as the student's history (spec 048, 053), so both screens read alike. Approved by the user. |
 | D-02 | `GET /classes/teaching/history?from=YYYY-MM-DD&to=YYYY-MM-DD` (authenticated), declared before `GET /classes/:id`, answers `{ items: ClassItem[] }`, newest first (start descending, then id descending), unpaged. The period is validated exactly as `GET /classes/mine/history`: `from` / `to` missing or not a real date → 422 `class.from.invalid` / `class.to.invalid` (both reported when both are wrong); a period shorter than 1 day or longer than 42 days counting both ends → 422 `class.range.invalid`. Access is that of `GET /classes/teaching` (`assertIsTeacher`): a student 403 `user.role.notTeacher`, an account that isn't approved 403 `user.status.notApproved`, no token 401. Items are built with `toClassItem(view, roster, undefined, true)`: guests' names shown, `myEnrolment: null`. The period validation is shared with `ListMyClassHistory`, not copied. | Spec 057 D-03 reserved this route; reusing the student's period contract lets the mobile app reuse its calendar and state. Approved by the user. |
-| D-03 | The screen is the student's history, not PAINEL-04: it opens on Fortaleza's current month with no day selected and can switch to the week; each day of the period with one or more classes shows one dot; tapping a day narrows the list to it (no request) and its chip clears it; the surf/skate `DisciplineFilter` floats at the bottom and filters the loaded period (no request); the classes sit under a label per day, newest first, on `ClassCard`; pull to refresh; skeleton, error with "Try again", and the empty states for the period and the day (with and without a sport). A card opens `routes.<role>.classDetail(id)`. The header shows the centered `StackHeaderTitle` "Aulas anteriores" and the native back button. | The user journey asks for day, week or month; the design's photo and rating counts depend on modules that don't exist. Approved by the user. |
+| D-03 | The screen is the student's history, not PAINEL-04: it opens on Fortaleza's current month with no day selected and can switch to the week; each day of the period with one or more classes shows one dot; tapping a day narrows the list to it (no request) and its chip clears it; the surf/skate `DisciplineFilter` floats at the bottom and filters the loaded period (no request); the classes sit under a label per day, newest first, on `ClassCard`; pull to refresh; skeleton, error with "Try again", and the empty states for the period and the day (with and without a sport). A card opens `routes.<role>.classDetail(id)`. The header shows the intro of D-07 (on the error and empty states, the centered `StackHeaderTitle` "Aulas anteriores") and the native back button. | The user journey asks for day, week or month; the design's photo and rating counts depend on modules that don't exist. Approved by the user. |
 | D-04 | The history pieces both screens use move to `apps/mobile/src/modules/classes/`: `HistoryDayLabel` and `HistoryListHeader` (`components/`), `utils/class-history.ts`, the screen's state (period, day, sport, rows, loading/error/empty/refresh) as a shared hook that takes the period's query and the class route, and the layout (calendar, legend, list header, list, states, filter) as a `ClassHistory` component that takes the copy. `MyClassHistoryScreen` (enrolment) and the new `TeachingClassHistoryScreen` (classes) are thin wrappers over them. Their tests move with them; the student's screen test keeps its assertions. | The enrolment module already imports from classes; classes importing from enrolment would make the dependency go both ways, and copying would duplicate about 300 lines. Approved by the user. |
 | D-05 | The query is `useQuery` keyed `["classes", "teaching", "history", from, to]`, `retry: false`, `GET /classes/teaching/history?from=…&to=…` authenticated (`useTeachingClassHistory`). The routes are `/instructor/my-history` and `/admin/my-history` (`routes.instructor.myHistory`, `routes.admin.myHistory`), inner screens without the tab bar like `/<role>/my-classes`. | Under `["classes"]`, every class mutation's invalidation refreshes it, as the student's (spec 053 D-10); the route names match the student's `/student/my-history`. |
 | D-06 | Copy (new `teachingHistory` keys; pt-BR / es-ES / en-US): title and header button label "Aulas anteriores" / "Clases pasadas" / "Past classes"; legend "Dias em que você deu aula" / "Días en que diste clase" / "Days you taught a class"; day accessibility mark "você deu aula" / "diste clase" / "you taught a class"; empty day "Sem aulas neste dia" + "Você não deu nenhuma aula neste dia." / "Você não deu nenhuma aula de {{sport}} neste dia." (es "Sin clases este día" + "No diste ninguna clase este día." / "No diste ninguna clase de {{sport}} este día."; en "No classes this day" + "You didn't teach any class this day." / "You didn't teach any {{sport}} class this day."); empty period the same with "neste período" / "en este período" / "in this period" and the titles "Sem aulas neste período" / "Sin clases en este período" / "No classes in this period"; error "Algo deu errado" + "Não conseguimos carregar suas aulas anteriores. Verifique sua conexão e tente novamente." / "Algo salió mal" + "No pudimos cargar tus clases pasadas. Revisa tu conexión e inténtalo de nuevo." / "Something went wrong" + "We couldn't load your past classes. Check your connection and try again."; "Todas as aulas", "Limpar {{date}}" and "Carregando as aulas" (and their es/en) as in the student's history. | The student's copy says "you took a class", which reads wrong for a teacher. Approved by the user. |
+| D-07 | "Minhas aulas" and the teaching "Aulas anteriores" open with a `ScreenIntro` as the list's header: an icon in grape (`calendar-outline` / `time-outline`), the screen's title large, and a description — `teachingClasses.description` "As aulas que você vai dar: as em andamento e as próximas, dia a dia." / "Las clases que vas a dar: las en curso y las próximas, día a día." / "The classes you will teach: the ones under way and the ones coming up, day by day."; `teachingHistory.description` "Todas as aulas que você já deu, mês a mês ou semana a semana." / "Todas las clases que ya diste, mes a mes o semana a semana." / "Every class you have already taught, month by month or week by week.". The large title collapses into the header as the list scrolls (`useCollapsingTitleHeader`). On the error and empty states the intro is dropped and the header shows the centered `StackHeaderTitle`. The student's history has no intro (`ClassHistory`'s `withIntro`, off by default). | Requested by the user after T-07; recorded by amendment (review F-03). |
+| D-08 | `CalendarMonthGrid` (and `WeekMonthCalendar`, which passes it on) takes `dotPlacement`: `"below"`, the default, keeps a marked day's dot under the day's circle; `"overlap"` tucks it into the bottom of the day's slot, over a selected day's circle, as every month grid did before. Only `WeekPickerSheet` uses `"overlap"`; the Aulas tab's month view, Enrol student and both histories show the dot below. | Requested by the user: the dot ran into the selected day's circle; recorded by amendment (review F-04). |
 
 ## Expected Results
 
@@ -156,9 +162,32 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   class", day and sport filters, day labels, loading, error, empty and refresh states, a card opening
   `routes.student.classDetail(id)`).
 - **Edge and error cases:** the student's copy (`myHistory.*`) and its query key `["classes", "mine", "history", from, to]`
-  are unchanged.
+  are unchanged; its calendar's dots sit below the day's circle (D-08), and it has no intro (D-07).
 - **Verify by:** `npx jest src/modules/enrolment/screens/my-class-history.screen.test.tsx src/modules/enrolment/hooks/use-my-class-history.hook.test.tsx`
   (from `apps/mobile`), its `it(...)` assertions unchanged against `git diff <base_commit>` (only imports may change).
+
+### ER-06 — The teaching screens open with an intro
+
+- **Front:** mobile
+- **Behavior:** Given an instructor or an admin, when "Minhas aulas" shows its classes, then the list opens with the
+  calendar icon, the title "My classes" and "The classes you will teach: the ones under way and the ones coming up,
+  day by day."; when "Aulas anteriores" shows its period, then it opens with the clock icon, the title "Past classes"
+  and "Every class you have already taught, month by month or week by week."; scrolling collapses the title into the
+  header.
+- **Edge and error cases:** on the error and empty states the intro isn't shown and the header shows the plain title;
+  the student's history shows no intro; the pt-BR and es-ES copy is D-07's.
+- **Verify by:** `npx jest src/modules/classes/screens/teaching-classes.screen.test.tsx src/modules/classes/screens/teaching-class-history.screen.test.tsx src/modules/admin/screens/admin.screen.test.tsx src/modules/instructor/screens/instructor.screen.test.tsx`
+  (from `apps/mobile`) · the user journeys in the Verification Plan.
+
+### ER-07 — The month calendar's dot sits below the day's circle
+
+- **Front:** mobile
+- **Behavior:** Given a month calendar with a marked day, when it draws that day, then the dot sits below the day's
+  circle (selected or not), on the Aulas tab's month view, Enrol student and both histories; in the week picker
+  (`WeekPickerSheet`) the dot keeps overlapping the bottom of the day's slot.
+- **Edge and error cases:** a month with no marked day draws no dot row, so the numbers stay centered.
+- **Verify by:** `npx jest src/components/calendar-month-grid src/components/week-month-calendar src/modules/classes/screens/classes-week.screen.test.tsx`
+  (from `apps/mobile`) · the "Calendars" journey in the Verification Plan.
 
 ## Tasks
 
@@ -296,6 +325,21 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > right" (now asserts the button) and "the filter's is the only button" in the filtered-empty cases (now the
   > history button and the filter)
 
+- [ ] **T-09** (added by amendment) — The intro of D-07: `ScreenIntro` with the collapsing title on
+  `src/modules/classes/screens/teaching-classes.screen.tsx` and, through `withIntro`, on
+  `src/modules/classes/components/class-history/` for `teaching-class-history.screen.tsx`; the
+  `teachingClasses.description` and `teachingHistory.description` copy in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`;
+  cases in `teaching-classes.screen.test.tsx` and `teaching-class-history.screen.test.tsx` (intro shown with the
+  classes, dropped on the error and empty states), and the home tests (`admin.screen.test.tsx`,
+  `instructor.screen.test.tsx`) finding the new title. Built in `aea0ac7e`, `1ab5ef81` and `13204a6a`: record their
+  evidence. Covers: ER-06 · Done when: the ER-06 `Verify by` command passes from `apps/mobile`.
+
+- [ ] **T-10** (added by amendment) — The `dotPlacement` of D-08 on `src/components/calendar-month-grid/` (default
+  `"below"`) passed through `src/components/week-month-calendar/`, with `"overlap"` only in
+  `src/modules/classes/components/week-picker-sheet/week-picker-sheet.component.tsx`, and its cases in
+  `calendar-month-grid.component.test.tsx`. Built in `aad897f7`, `f11ea501`, `820f30c9` and `78093512`: record their
+  evidence. Covers: ER-07 · Done when: the ER-07 `Verify by` command passes from `apps/mobile`.
+
 ### Verification
 
 - [x] **T-08** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journeys
@@ -320,6 +364,11 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   > theme, the sport filter, the student's history ("Dias em que você fez aula") and the `.http` requests with a
   > token.
 
+- [ ] **T-11** (added by amendment) — Rerun every command in the Verification Plan from the repo root (the e2e suite
+  on a database without the sample seed's classes, as in F-05) and follow every user journey, including the
+  "Calendars" one, in the iOS simulator in light and dark; record what was seen. Covers: all · Done when: every
+  command exits 0 and every journey shows what it says.
+
 ## Verification Plan
 
 - Automated:
@@ -341,15 +390,23 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   - **Admin who teaches**: as an approved admin who taught a class that ended, open "Minhas aulas" → the clock button
     → the class is listed on its day.
   - **Student**: open "Minhas aulas" → clock → "Aulas anteriores" behaves as before (legend "Dias em que você fez
-    aula").
+    aula"), with no intro.
+  - **Intro** (instructor or admin): "Minhas aulas" and "Aulas anteriores" open with their icon, title and
+    description; scrolling collapses the title into the header; a period with no class shows the empty state with
+    the plain header title.
+  - **Calendars**: the dot sits below the day's circle in the month view of the Aulas tab, Enrol student and both
+    histories, including on the selected day; in the Aulas tab's week picker it still overlaps the bottom of the
+    day's slot.
 
 ## Memory Impact
 
 - `memory/product.md` — the classes a person **taught** (D-01) and the teaching history read one period at a time,
   for instructors and admins who teach.
 - `memory/technical-context.md` — Classes: `GET /classes/teaching/history` (`{ items }`, the shared period
-  validation), `TeachingClassesReader.findHistoryClassIds`, `ListTeachingClassHistory`; Mobile: the
-  `["classes", "teaching", "history", from, to]` query and the history pieces now in the classes module (D-04).
+  validation, 422), `TeachingClassesReader.findHistoryClassIds`, `ListTeachingClassHistory`; Mobile: the
+  `["classes", "teaching", "history", from, to]` query, the history pieces now in the classes module (D-04),
+  `ClassHistory`'s `withIntro` and the teaching screens' intro (D-07), and `CalendarMonthGrid` /
+  `WeekMonthCalendar`'s `dotPlacement` (D-08).
 - `memory/structure.md` — the `/instructor/my-history` and `/admin/my-history` routes, `TeachingClassHistoryScreen`,
   `ClassHistory`, and `HistoryDayLabel`, `HistoryListHeader`, `utils/class-history.ts` moved from enrolment to classes.
 - `memory/modules.md` — None.
@@ -371,6 +428,21 @@ and the surf/skate filter. Today they can only find a past class by browsing the
   `class.range.invalid`). Reason: D-02 says the period is "validated exactly as `GET /classes/mine/history`", which
   answers 422 through the shared `ValidationException` (technical-context → Error handling, spec 053); the 400 was a
   slip (review F-02). No code change. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — Scope: added the teaching screens' intro and the month calendar's dot placement;
+  Out of scope: "any change to … the 'Minhas aulas' list itself" → "… apart from its intro (D-07)", and the student's
+  history "behavior or copy" → "… apart from the calendar's dot placement (D-08)". Reason: both were built at the
+  user's request after T-07 without a task (review F-03, F-04). Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-03 changed: "The header shows the centered `StackHeaderTitle` 'Aulas
+  anteriores'" → "the intro of D-07 (on the error and empty states, the centered `StackHeaderTitle`)". Reason: F-03.
+  Approved by the user.
+- 2026-10-25 — /spec-plan --amend — D-07 added (the intro and its copy), D-08 added (`dotPlacement`, `"below"` by
+  default, `"overlap"` only in `WeekPickerSheet`). Reason: F-03, F-04. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — ER-05 edge cases: + the dots below the circle and no intro; ER-06 added (the
+  intro), ER-07 added (the dot placement). Reason: F-03, F-04. Approved by the user.
+- 2026-10-25 — /spec-plan --amend — T-09 added (Covers: ER-06), T-10 added (Covers: ER-07), both already built in
+  commits listed on the task; T-11 added (Verification: rerun the plan and every journey in light and dark, which T-08
+  left partly undone, review F-06). Verification Plan: + the Intro and Calendars journeys; Memory Impact:
+  technical-context + 422, `withIntro`, the intro, `dotPlacement`. Approved by the user.
 
 ## Review
 

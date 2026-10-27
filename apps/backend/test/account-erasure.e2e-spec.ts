@@ -171,7 +171,7 @@ describe('Account erasure (e2e)', () => {
 
     const result = await job.run();
 
-    expect(result.erased).toBeGreaterThanOrEqual(1);
+    expect(result.deniedRegistrations).toBeGreaterThanOrEqual(1);
     await expect(exists(due.id)).resolves.toBe(false);
     await expect(rowsOf(due.id)).resolves.toEqual({
       identities: 0,
@@ -207,7 +207,7 @@ describe('Account erasure (e2e)', () => {
     await job.run();
     const before = await prisma.user.count();
 
-    await expect(job.run()).resolves.toEqual({ erased: 0 });
+    await expect(job.run()).resolves.toMatchObject({ deniedRegistrations: 0 });
 
     await expect(prisma.user.count()).resolves.toBe(before);
     await expect(exists(due.id)).resolves.toBe(false);

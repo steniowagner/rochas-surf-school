@@ -432,10 +432,22 @@ and removal.
   > src/modules/notifications/notifications.enrolment-notifier.spec.ts
   > src/modules/notifications/push-messages.spec.ts` (2 files, 137 passed); `tsc --noEmit` in `apps/backend` now
   > exits clean; deviations: none.
-- [ ] **T-10** — Make `src/modules/auth/account-erasure.job.ts` run `EraseDeniedRegistrations`, then
+- [x] **T-10** — Make `src/modules/auth/account-erasure.job.ts` run `EraseDeniedRegistrations`, then
   `EraseClosedAccounts` with the new eraser, each in its own `try` with its count log (D-10), wired in the auth module,
   with cases in `account-erasure.job.spec.ts`.
   Covers: ER-08 · Done when: `npx vitest run src/modules/auth/account-erasure.job.spec.ts` passes.
+  > ✅ 2026-10-27 15:52 — `AccountErasureJob.run()` runs `EraseDeniedRegistrations`, then `EraseClosedAccounts` (with
+  > `NotificationsPersonNotificationEraser`), each through `step()`, its own `try`: a count line per kind only when
+  > it erased something (`Erased N denied registration(s)`, `Erased N closed account(s)`), an error log and 0 when
+  > it fails, never ids, names or emails (D-10); it answers `{ deniedRegistrations, closedAccounts }` and never
+  > throws. The wiring needed nothing new in `AuthModule`: `NotificationsModule` (already imported) exports the
+  > eraser (T-08). Spec cases: the cron options, both kinds erased in order with one log line each and no id in the
+  > logs, nothing due (no log), the denied step failing (closed accounts still erased) and the other way around,
+  > non-Error throws in both. files: `apps/backend/src/modules/auth/account-erasure.job.ts`,
+  > `apps/backend/src/modules/auth/account-erasure.job.spec.ts`, `apps/backend/test/account-erasure.e2e-spec.ts`
+  > (two existing assertions read the new result shape); verified: `npx vitest run
+  > src/modules/auth/account-erasure.job.spec.ts` (6 passed), `tsc --noEmit` in `apps/backend` exit 0; deviations:
+  > `run()` now answers the count per kind instead of `{ erased }`.
 - [ ] **T-11** — Pass the stored (possibly `null`) names through in `src/modules/classes/class-view-reader.prisma.ts`
   and `src/modules/enrolment/class-roster-reader.prisma.ts`, with specs for an erased instructor and student.
   Covers: ER-05 · Done when: `npx vitest run src/modules/classes/class-view-reader.prisma.spec.ts src/modules/enrolment/class-roster-reader.prisma.spec.ts`

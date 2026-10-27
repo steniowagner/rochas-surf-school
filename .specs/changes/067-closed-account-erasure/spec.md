@@ -251,11 +251,23 @@ and removal.
 
 ### Enrolment module (`modules/enrolment`)
 
-- [ ] **T-02** — Add `studentId` to `SeatRequested` and `SeatCancelled` in
+- [x] **T-02** — Add `studentId` to `SeatRequested` and `SeatCancelled` in
   `src/enrolment/provider/enrolment-notifier.provider.ts` and set it in `request-seat`, `cancel-seat` and
   `release-student-enrolments` (`src/enrolment/usecase/`), with the use case tests asserting it (D-06).
   Covers: ER-07 · Done when: `npx jest test/enrolment/usecase` passes and `npm run check-types` exits 0 in
   `modules/enrolment`.
+  > ✅ 2026-10-27 15:37 — added `studentId` to `SeatRequested` and `SeatCancelled` (D-06) and set it in
+  > `RequestSeat`, `CancelSeat` and `ReleaseStudentEnrolments`; the use case tests (and the fake notifier test) now
+  > expect it, and failed before the change (3 failed); files:
+  > `modules/enrolment/src/enrolment/provider/enrolment-notifier.provider.ts`,
+  > `modules/enrolment/src/enrolment/usecase/request-seat.usecase.ts`,
+  > `modules/enrolment/src/enrolment/usecase/cancel-seat.usecase.ts`,
+  > `modules/enrolment/src/enrolment/usecase/release-student-enrolments.usecase.ts`,
+  > `modules/enrolment/test/enrolment/usecase/request-seat.usecase.test.ts`,
+  > `modules/enrolment/test/enrolment/usecase/cancel-seat.usecase.test.ts`,
+  > `modules/enrolment/test/enrolment/usecase/release-student-enrolments.usecase.test.ts`,
+  > `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`; verified: `npx jest test/enrolment/usecase`
+  > (156 passed), `npx jest` (292 passed), `npm run check-types` exit 0 in `modules/enrolment`; deviations: none.
 
 ### Auth module (`modules/auth`)
 

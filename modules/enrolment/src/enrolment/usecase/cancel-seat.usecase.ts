@@ -83,6 +83,7 @@ export class CancelSeat implements UseCase<CancelSeatIn, EnrolmentOut> {
 
       await this.enrolmentNotifier.seatCancelled({
         classId: found.id,
+        studentId,
         studentName,
         discipline: found.discipline,
         startsAt: found.startsAt,

@@ -254,6 +254,7 @@ describe("the other fakes", () => {
     const notifier = new FakeEnrolmentNotifier();
     const requested = {
       classId: CLASS_ID,
+      studentId: STUDENT.id,
       studentName: "Ana Souza",
       discipline: "surf" as const,
       startsAt: TOMORROW,
@@ -271,6 +272,7 @@ describe("the other fakes", () => {
     await notifier.requestDenied({ ...approved, reason: "Sem vaga" });
     const cancelled = {
       classId: CLASS_ID,
+      studentId: STUDENT.id,
       studentName: "Ana Souza",
       discipline: "surf" as const,
       startsAt: TOMORROW,

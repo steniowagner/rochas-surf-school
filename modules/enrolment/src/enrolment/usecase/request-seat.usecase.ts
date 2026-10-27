@@ -101,6 +101,7 @@ export class RequestSeat implements UseCase<RequestSeatIn, EnrolmentOut> {
 
       await this.enrolmentNotifier.seatRequested({
         classId: found.id,
+        studentId,
         studentName,
         discipline: found.discipline,
         startsAt: found.startsAt,

@@ -21,3 +21,4 @@ export * from "./deny-reactivation.usecase";
 export * from "./erase-denied-registrations.usecase";
 export * from "./list-people.usecase";
 export * from "./change-role.usecase";
+export * from "./remove-user.usecase";

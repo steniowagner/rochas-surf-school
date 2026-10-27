@@ -334,11 +334,12 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
   methods where the existing fakes have them.
   Covers: enabling · Done when: `npx jest` passes and `npm run check-types` exits 0 in `modules/auth`.
   > ✅ 2026-10-27 — added the `AccountRemovalNotifier` port, `UserRepository.findRemovedSince` / `updateIfRemoved`, the fakes and tests of the fake repository; files: `modules/auth/src/user/provider/account-removal-notifier.provider.ts`, `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/test/mock/fake-account-removal-notifier.provider.ts`, `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/mock/index.ts`, `modules/auth/test/user/provider/user.repository.test.ts`; verified: `npx jest` (446 passed) and `npm run check-types` (exit 0) in modules/auth; deviations: none
-- [ ] **T-04** — Add `RemoveUser` in `src/user/usecase/remove-user.usecase.ts` (D-02, D-03, D-04), exported from the
+- [x] **T-04** — Add `RemoveUser` in `src/user/usecase/remove-user.usecase.ts` (D-02, D-03, D-04), exported from the
   index, with tests in `test/user/usecase/remove-user.usecase.test.ts` for every check in order, the releases (seats
   for every role, teaching with the actor), `"changed"` and `"lastAdmin"`, a failing release, the notification and a
   failing notifier. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-07 · Done when: `npx jest test/user/usecase/remove-user.usecase.test.ts` passes in
+  > ✅ 2026-10-27 — added `RemoveUser` (checks, releases, guarded write, notification) and its tests; the 30-day constant lives in `removal-window.ts` (shared with T-05); files: `modules/auth/src/user/usecase/remove-user.usecase.ts`, `modules/auth/src/user/usecase/removal-window.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/remove-user.usecase.test.ts`; verified: `npx jest test/user/usecase/remove-user.usecase.test.ts` (18 passed); deviations: none
   `modules/auth`.
 - [ ] **T-05** — Add `ListRemovedAccounts` and `RestoreAccount` in
   `src/user/usecase/{list-removed-accounts,restore-account}.usecase.ts` (D-06, D-07, D-04), exported from the index,

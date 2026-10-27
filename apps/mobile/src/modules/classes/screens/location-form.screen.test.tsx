@@ -18,6 +18,7 @@ import { Keyboard, Platform, StyleSheet } from "react-native";
 import { KeyboardState, useAnimatedKeyboard } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Colors } from "@/constants/theme";
 import * as api from "@/services/api";
 
 import {
@@ -239,6 +240,37 @@ beforeEach(() => {
 afterEach(() => events.unsubscribe());
 
 describe("LocationFormScreen (new)", () => {
+  it("keeps the default back arrow color on iOS", async () => {
+    await renderScreen();
+
+    const headerOptions = jest
+      .mocked(Stack.Screen)
+      .mock.calls.map(([props]) => props.options)
+      .filter((options) => options && "headerTransparent" in options);
+    expect(headerOptions.length).toBeGreaterThan(0);
+    headerOptions.forEach((options) =>
+      expect(options).not.toHaveProperty("headerTintColor"),
+    );
+  });
+
+  it("draws the Android back arrow in the dark surface, so it shows on the light map in either theme", async () => {
+    Platform.OS = "android";
+    try {
+      await renderScreen();
+
+      expect(Stack.Screen).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            headerTintColor: Colors.dark.surface,
+          }),
+        }),
+        undefined,
+      );
+    } finally {
+      Platform.OS = "ios";
+    }
+  });
+
   it("opens on the map under a transparent header with the search, the panel and nothing picked", async () => {
     await renderScreen();
 

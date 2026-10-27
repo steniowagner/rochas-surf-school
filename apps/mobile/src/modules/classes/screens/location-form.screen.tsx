@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TextInput } from "@/components/ui/text-input";
-import { shadowStyle } from "@/constants/theme";
+import { Colors, shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 import { ArchiveLocationSheet } from "../components/archive-location-sheet";
@@ -20,6 +20,10 @@ import { MyLocationButton } from "../components/my-location-button";
 import { getMapProvider } from "../utils/map";
 
 import { useLocationFormScreen } from "./location-form.screen.hook";
+
+// Android draws the back arrow bare over the map, which stays light in either theme: it always takes the dark
+// theme's surface, the color of the search field beside it.
+const ANDROID_BACK_TINT = Colors.dark.surface;
 
 /**
  * "Novo local" / "Editar local" on a full-screen map, like a maps app: the search in the header, a tap on the map (or,
@@ -41,6 +45,9 @@ export function LocationFormScreen() {
         options={{
           headerTransparent: true,
           headerStyle: { backgroundColor: "transparent" },
+          ...(Platform.OS === "android"
+            ? { headerTintColor: ANDROID_BACK_TINT }
+            : null),
         }}
       />
       <MapView

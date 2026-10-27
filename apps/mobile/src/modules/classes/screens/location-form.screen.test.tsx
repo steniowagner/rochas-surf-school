@@ -15,8 +15,8 @@ import {
 } from "expo-location";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Keyboard, Platform, StyleSheet } from "react-native";
+import { KeyboardState, useAnimatedKeyboard } from "react-native-reanimated";
 
-import { useKeyboardHeight } from "@/hooks/use-keyboard-height.hook";
 import * as api from "@/services/api";
 
 import {
@@ -286,7 +286,11 @@ describe("LocationFormScreen (new)", () => {
   });
 
   it("lifts the panel with the keyboard", async () => {
-    jest.mocked(useKeyboardHeight).mockReturnValue({ get: () => 300 } as never);
+    jest.mocked(useAnimatedKeyboard).mockReturnValue({
+      height: { get: () => 300 },
+      state: { get: () => KeyboardState.OPEN },
+    } as never);
+    const visible = jest.spyOn(Keyboard, "isVisible").mockReturnValue(true);
     try {
       await renderScreen();
 
@@ -296,7 +300,11 @@ describe("LocationFormScreen (new)", () => {
         ).transform,
       ).toEqual([{ translateY: -300 }]);
     } finally {
-      jest.mocked(useKeyboardHeight).mockReturnValue({ get: () => 0 } as never);
+      jest.mocked(useAnimatedKeyboard).mockReturnValue({
+        height: { get: () => 0 },
+        state: { get: () => KeyboardState.CLOSED },
+      } as never);
+      visible.mockRestore();
     }
   });
 

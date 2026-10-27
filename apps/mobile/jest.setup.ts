@@ -28,9 +28,14 @@ jest.mock("expo-glass-effect", () => ({
   GlassView: require("react-native").View,
 }));
 
-jest.mock("react-native-reanimated", () =>
-  require("react-native-reanimated/mock"),
-);
+// The library's mock answers the keyboard with plain numbers: shared values here, for a closed keyboard.
+jest.mock("react-native-reanimated", () => ({
+  ...require("react-native-reanimated/mock"),
+  useAnimatedKeyboard: jest.fn(() => ({
+    height: { value: 0, get: () => 0 },
+    state: { value: 4, get: () => 4 },
+  })),
+}));
 
 jest.mock(
   "react-native-safe-area-context",

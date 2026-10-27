@@ -3,7 +3,7 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: in-review
+status: in-progress
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
@@ -345,6 +345,31 @@ and stacked fields are hard to use.
   > Iracema" closes the keyboard and shows it at zoom 17, the pin centred and the typed name kept; cancelled without saving.
   > Deviations: none. Note: the location-form test "ignores a second press while the first is sending" (T-05) logs an act()
   > warning in about one run in two (a React Query notification after the test's `act`); it passes
+
+- [x] **T-14** — Keep the panel down when Reanimated reports a keyboard that isn't there (D-10): leaving the screen with
+  the keyboard open left `useAnimatedKeyboard` stuck on "open" at its height on Android, so the next "Novo local" opened
+  with the panel raised. A `useKeyboardLift` hook follows the height only while React Native sees the keyboard or while
+  Reanimated animates it. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  (added during execution — found by the user)
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/hooks/use-keyboard-lift.hook.test.tsx src/modules/classes/screens/location-form.screen.test.tsx` passes, and on the Android emulator focus "Nome" → back arrow → "+ Novo local" opens with the panel at the bottom.
+  > ✅ 2026-10-26 — Cause (Reanimated 4.5, Android): when the last screen listening to the keyboard unmounts with the
+  > keyboard open, Reanimated stops observing; the keyboard closes unobserved, and on the next subscription the 0-height
+  > inset is taken for a one-frame glitch because the state is still "open" (`Keyboard.kt`), so the stale height lifts
+  > the panel. `useKeyboardLift` (`hooks/use-keyboard-lift.hook.ts`) replaces the screen's raw `useKeyboardHeight`
+  > translate: it follows `useAnimatedKeyboard().height` while React Native sees the keyboard (`Keyboard.isVisible()`,
+  > `keyboardDidShow` / `keyboardDidHide`, which Android derives from the window's IME insets) or while Reanimated's
+  > state is OPENING / CLOSING. The Jest setup's Reanimated mock now answers `useAnimatedKeyboard` with shared-value-like
+  > objects (a closed keyboard) instead of plain numbers; files:
+  > `apps/mobile/src/modules/classes/hooks/use-keyboard-lift.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-keyboard-lift.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`, `apps/mobile/jest.setup.ts`; verified:
+  > `npx jest src/modules/classes/hooks/use-keyboard-lift.hook.test.tsx src/modules/classes/screens/location-form.screen.test.tsx`
+  > (41 passed: opening, open, closing, a stale "open" with no keyboard, a keyboard already open, unsubscribing; 100% on
+  > the hook, the screen and its hook), `npx eslint`, `npx tsc --noEmit` clean. Android emulator, after a fresh start: focus
+  > "Name" (panel rises) → header back arrow → "+ New location": the panel opens at the bottom; focusing "Name" there
+  > lifts it above the keyboard and Back brings it down; deviations: none. Note: other screens that pin a footer with the
+  > shared `usePinnedFooter` / `useKeyboardHeight` (send notice, school settings) can hit the same stale height
 
 ### Verification
 

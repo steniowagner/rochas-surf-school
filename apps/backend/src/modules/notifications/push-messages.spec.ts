@@ -366,6 +366,24 @@ describe('renderPush', () => {
     );
   });
 
+  it.each([
+    ['pt-BR', 'Acesso removido', 'Um admin removeu seu acesso à escola.'],
+    ['es', 'Acceso quitado', 'Un admin quitó tu acceso a la escuela.'],
+    ['en', 'Access removed', 'An admin removed your access to the school.'],
+  ] as const)('tells a removed person in %s of account.removed', (locale, title, body) => {
+    expect(renderPush('account.removed', {}, locale)).toEqual({ title, body });
+    expect(renderInApp('account.removed', {}, locale)).toEqual({ title, body });
+  });
+
+  it.each([
+    ['pt-BR', 'Acesso restaurado', 'Sua conta está de volta, com seu histórico e seu papel.'],
+    ['es', 'Acceso restaurado', 'Tu cuenta volvió, con tu historial y tu rol.'],
+    ['en', 'Access restored', 'Your account is back, with your history and your role.'],
+  ] as const)('tells a restored person in %s of account.restored', (locale, title, body) => {
+    expect(renderPush('account.restored', {}, locale)).toEqual({ title, body });
+    expect(renderInApp('account.restored', {}, locale)).toEqual({ title, body });
+  });
+
   it.each(PUSH_LOCALES)('shows a broadcast as written in %s, in the push and in the app', (locale) => {
     const params = { title: ' Aula <b>cancelada</b> 🌊 ', message: 'Sem aula\namanhã.' };
     const expected = { title: 'Aula <b>cancelada</b> 🌊', body: 'Sem aula\namanhã.' };
@@ -452,7 +470,7 @@ describe('renderInApp', () => {
         type !== 'class.edited' && type !== 'registration.denied' && type !== 'reactivation.denied',
     );
 
-    expect(others).toHaveLength(20);
+    expect(others).toHaveLength(22);
     for (const type of others) {
       for (const locale of PUSH_LOCALES) {
         expect(renderInApp(type, params, locale)).toEqual(renderPush(type, params, locale));

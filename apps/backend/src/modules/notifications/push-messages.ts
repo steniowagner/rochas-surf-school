@@ -587,6 +587,25 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
     es: { title: 'Tu rol cambió', body: roleChanged('es') },
     en: { title: 'Your role changed', body: roleChanged('en') },
   },
+  'account.removed': {
+    'pt-BR': { title: 'Acesso removido', body: () => 'Um admin removeu seu acesso à escola.' },
+    es: { title: 'Acceso quitado', body: () => 'Un admin quitó tu acceso a la escuela.' },
+    en: { title: 'Access removed', body: () => 'An admin removed your access to the school.' },
+  },
+  'account.restored': {
+    'pt-BR': {
+      title: 'Acesso restaurado',
+      body: () => 'Sua conta está de volta, com seu histórico e seu papel.',
+    },
+    es: {
+      title: 'Acceso restaurado',
+      body: () => 'Tu cuenta volvió, con tu historial y tu rol.',
+    },
+    en: {
+      title: 'Access restored',
+      body: () => 'Your account is back, with your history and your role.',
+    },
+  },
   // An admin's notice: its title and message are shown as written, in every locale.
   broadcast: {
     'pt-BR': broadcastCopy,

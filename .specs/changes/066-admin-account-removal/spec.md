@@ -357,12 +357,13 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
   `user.prisma.spec.ts`. Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-04, ER-05, ER-06 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` passes.
   > ✅ 2026-10-27 — implemented `findRemovedSince` and `updateIfRemoved` in the Prisma repository with specs; files: `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (32 passed) and `npx tsc --noEmit` in apps/backend; deviations: none
-- [ ] **T-07** — Add `src/modules/notifications/notifications.account-removal-notifier.ts`
+- [x] **T-07** — Add `src/modules/notifications/notifications.account-removal-notifier.ts`
   (`NotificationsAccountRemovalNotifier`: `Notify` with `account.removed` / `account.restored` to the person, logging
   and swallowing errors), exported by `NotificationsModule`, and the two entries of `push-messages.ts` in pt-BR, es and
   en (copy table), with `notifications.account-removal-notifier.spec.ts` and cases in `push-messages.spec.ts`. Skill:
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-07 · Done when: both specs pass and `npm run check-types` exits 0 in `apps/backend`.
+  > ✅ 2026-10-27 — added `NotificationsAccountRemovalNotifier`, registered and exported it in `NotificationsModule`, added the push and in-app text of both types in pt-BR, es and en (and raised the 'every other type' count in the existing spec from 20 to 22); files: `apps/backend/src/modules/notifications/notifications.account-removal-notifier.ts`, `apps/backend/src/modules/notifications/notifications.account-removal-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.module.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` (241 passed) and `npm run check-types` (exit 0) in apps/backend, after rebuilding modules/auth and modules/notifications; deviations: none
 - [ ] **T-08** — Add `POST /people/:id/remove`, `GET /people/removed` (declared before the `:id` routes) and
   `POST /people/:id/restore` to `src/modules/auth/people.controller.ts` (D-13), wiring the use cases with
   `PrismaUserRepository`, the seat and teaching releasers, the clock and the new notifier in the auth module, with

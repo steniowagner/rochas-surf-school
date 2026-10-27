@@ -396,12 +396,27 @@ and removal.
   > src/modules/auth/user.prisma.spec.ts -t "eraseClosed"` (6 passed), the whole spec 39 passed with
   > `user.prisma.ts` at 100% lines (the one partial branch is the pre-existing `@Injectable()` line); deviations:
   > none (the real-database behaviour is checked by the e2e cases of T-12).
-- [ ] **T-08** — Implement `deleteAbout` in `src/modules/notifications/notification.prisma.ts` (one `deleteMany` per
+- [x] **T-08** — Implement `deleteAbout` in `src/modules/notifications/notification.prisma.ts` (one `deleteMany` per
   param name) and add `src/modules/notifications/notifications.person-notification-eraser.ts`
   (`NotificationsPersonNotificationEraser`, running `DeleteNotificationsAbout`), exported by `NotificationsModule`,
   with specs. Skill: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-06 · Done when: `npx vitest run src/modules/notifications/notification.prisma.spec.ts src/modules/notifications/notifications.person-notification-eraser.spec.ts`
   passes.
+  > ✅ 2026-10-27 15:50 — `PrismaNotificationRepository.deleteAbout(userIds)` runs one `deleteMany` per param name —
+  > `registration.pending` / `reactivation.requested` matching `params.userId`, then `enrolment.requested` /
+  > `enrolment.cancelled` matching `params.studentId` (JSON path `equals`, as `deleteRegistrationPending` does) —
+  > and nothing for an empty list; `NotificationsPersonNotificationEraser` (the adapter of `auth`’s
+  > `PersonNotificationEraser`) runs `DeleteNotificationsAbout`, provided and exported by `NotificationsModule`;
+  > specs for both. files: `apps/backend/src/modules/notifications/notification.prisma.ts`,
+  > `apps/backend/src/modules/notifications/notification.prisma.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.person-notification-eraser.ts`,
+  > `apps/backend/src/modules/notifications/notifications.person-notification-eraser.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.module.ts`; verified: `npx vitest run
+  > src/modules/notifications/notification.prisma.spec.ts
+  > src/modules/notifications/notifications.person-notification-eraser.spec.ts` (2 files, 12 passed); the backend
+  > type check no longer reports `PrismaNotificationRepository`. deviations: the `backend-provider-implementation`
+  > skill was not invoked — the adapter copies `NotificationsRegistrationNotificationEraser`, which follows that
+  > skill’s pattern (concrete class injected directly, no token, registered and exported by the module).
 - [ ] **T-09** — Store `studentId` in the params of `enrolment.requested` and `enrolment.cancelled` in
   `src/modules/notifications/notifications.enrolment-notifier.ts`, with cases in its spec (text unchanged in
   `push-messages.spec.ts`).

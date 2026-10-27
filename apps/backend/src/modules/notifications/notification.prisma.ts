@@ -38,6 +38,24 @@ export class PrismaNotificationRepository implements NotificationRepository {
     });
   }
 
+  /** One `deleteMany` per param that names the person: `userId`, then `studentId`. */
+  async deleteAbout(userIds: string[]): Promise<void> {
+    if (userIds.length === 0) return;
+
+    await this.prisma.notification.deleteMany({
+      where: {
+        type: { in: ['registration.pending', 'reactivation.requested'] },
+        OR: userIds.map((userId) => ({ params: { path: ['userId'], equals: userId } })),
+      },
+    });
+    await this.prisma.notification.deleteMany({
+      where: {
+        type: { in: ['enrolment.requested', 'enrolment.cancelled'] },
+        OR: userIds.map((userId) => ({ params: { path: ['studentId'], equals: userId } })),
+      },
+    });
+  }
+
   async findPage(userId: string, page: number, perPage: number): Promise<NotificationPage> {
     const [records, total] = await Promise.all([
       this.prisma.notification.findMany({

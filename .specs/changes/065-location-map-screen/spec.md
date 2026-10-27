@@ -3,10 +3,11 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
+reviewed_commit: 67705b4de4ecee07837bbffd75304f5e16f7631f
 fronts: [mobile]
 depends_on: []
 ---
@@ -543,3 +544,45 @@ and stacked fields are hard to use.
 - Building iOS here needs Expo's `ExpoModulesJSI` rebuilt from source for Swift 6.4
   (`PODS_ROOT=apps/mobile/ios/Pods PLATFORM_NAME=iphonesimulator node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh --clean`),
   then `EXPO_USE_PRECOMPILED_MODULES=0 pod install` with a UTF-8 locale. That replaces T-07's "can't build iOS".
+
+### Round 2 — 2026-10-26 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8/8)
+- related tests ✅ 1888 passed in 113 suites (apps/mobile), `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK`: every changed line is covered (100% on the screen, its hook and the
+  new hooks and components). There are no coverage-ignore comments, debug leftovers or TODOs in the diff.
+- e2e: mobile has no suite. Journeys were run on the iOS simulator (iPhone 18 Pro, iOS 27, Dev Admin, the debug
+  build of this branch served by Metro).
+
+**Expected Results**
+
+- ER-01 ✅ — F-01 is fixed. From "Nova aula" → "+ Novo local", the map opens on Fortaleza, centred between the
+  header and the panel, with the back button, the search field, the empty hint and "Salvar local" off. From "Gerir" →
+  "Rocha\`s Surf School", "Editar local" opens with the name, the address card and the pin in the visible map, close
+  in, with "Salvar", "Cancelar" and "Remover local". Searching "praia de iracema" floats 5 suggestions with the match
+  in bold. Picking one centres and zooms the map on it and fills the card, and the typed name stays. "Cancelar" goes
+  back and leaves the location unchanged. The new tests (Apple padding from the safe area, Google padding from the
+  edges, a single re-centre after the panel is measured, on the edited location and on a map mounted again) assert
+  the fix. The rest of ER-01 was checked in round 1, and no code outside `location-form.screen.hook.ts` has changed
+  since.
+- ER-02 ✅ — checked in round 1. The code it depends on is unchanged since, and `use-map-place.hook.test.tsx` and
+  the address card tests pass.
+- ER-03 ✅ — checked in round 1. The code it depends on is unchanged since, and `use-device-location.hook.test.tsx`
+  and the my-location button tests pass.
+
+**Findings**
+
+- None. F-01 of round 1 is verified fixed on iOS.
+
+**Notes**
+
+- Android was only partly re-checked. Before the app was relaunched, the emulator (`Pixel_Test`) showed "Edit
+  location" with the pin centred between the header and the panel. After the relaunch it stayed on a blank loading
+  screen (the machine's load average was about 15–28). The fix leaves the Android padding unchanged, and the one-time
+  re-centre it adds there is covered by the tests.
+- Round 1's notes still stand: there is no client timeout on `reverseGeocodeAsync` / `getCurrentPositionAsync`, and
+  `useKeyboardLift` and `fix/mobile-pinned-footer-keyboard` should converge.
+- A quick spec with 14 tasks: the follow-ups made it grow well past a small change. Next time, consider planning a
+  full spec.

@@ -10,6 +10,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { roleChip } from "../../utils/role-chip";
 import { PersonAvatar } from "../person-avatar";
 import { PersonRoleActions } from "../person-role-actions";
+import { RemoveConfirmation } from "../remove-confirmation";
 import { RoleChangeConfirmation } from "../role-change-confirmation";
 
 import { usePersonSheet } from "./person-sheet.hook";
@@ -33,6 +34,11 @@ export function PersonSheet({
     backToDetails,
     confirmRoleChange,
     isChangingRole,
+    isConfirmingRemoval,
+    startRemoval,
+    cancelRemoval,
+    confirmRemoval,
+    isRemoving,
     firstName,
   } = usePersonSheet({ person, onClose });
 
@@ -46,6 +52,14 @@ export function PersonSheet({
           loading={isChangingRole}
           onConfirm={confirmRoleChange}
           onBack={backToDetails}
+        />
+      ) : person && isConfirmingRemoval ? (
+        <RemoveConfirmation
+          role={person.role}
+          name={firstName}
+          loading={isRemoving}
+          onConfirm={confirmRemoval}
+          onBack={cancelRemoval}
         />
       ) : person ? (
         <View className="gap-4">
@@ -113,7 +127,11 @@ export function PersonSheet({
             </View>
           )}
           {canChangeRole && person.id ? (
-            <PersonRoleActions role={person.role} onSelect={selectRoleAction} />
+            <PersonRoleActions
+              role={person.role}
+              onSelect={selectRoleAction}
+              onRemove={startRemoval}
+            />
           ) : null}
           <TouchableOpacity
             accessibilityRole="button"

@@ -315,4 +315,131 @@ describe("PersonSheet", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("remove action", () => {
+    beforeEach(setupSignedInUser);
+
+    it.each(["student", "instructor", "admin"] as const)(
+      "ends the actions of a %s with Remove from the platform and its subtitle",
+      async (role) => {
+        await renderSheet(
+          <PersonSheet person={buildPerson(1, { role })} canChangeRole visible onClose={jest.fn()} />,
+        );
+
+        const buttons = screen.getAllByRole("button").map((item) => item.props.accessibilityLabel);
+        expect(buttons.at(-2)).toBe("Remove from the platform");
+        expect(buttons.at(-1)).toBe("Close");
+        expect(screen.getByText("Loses access to the app. Can be restored for 30 days.")).toBeOnTheScreen();
+        expect(screen.getByText("Remove from the platform").props.className).toContain("text-bad");
+      },
+    );
+
+    it("is not shown without canChangeRole, or without the person's id", async () => {
+      const { name, role, whatsappNumber } = buildPerson(1);
+      await renderSheet(<PersonSheet person={buildPerson(1)} visible onClose={jest.fn()} />);
+      expect(screen.queryByRole("button", { name: "Remove from the platform" })).not.toBeOnTheScreen();
+
+      await renderSheet(
+        <PersonSheet person={{ name, role, whatsappNumber }} canChangeRole visible onClose={jest.fn()} />,
+      );
+      expect(screen.queryByRole("button", { name: "Remove from the platform" })).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ["student", "Loses access to the app. Their seats become free and don't go to the waiting list automatically. You can restore the account for 30 days."],
+      ["instructor", "Leaves the upcoming classes they're assigned to and loses access to the app. You can restore the account for 30 days."],
+      ["admin", "Leaves the upcoming classes they're assigned to and loses access to the app. You can restore the account for 30 days."],
+    ] as const)("asks 'Remove Ana?' with the text of a %s, and Back returns to the details", async (role, text) => {
+      const user = userEvent.setup();
+      await renderSheet(
+        <PersonSheet
+          person={buildPerson(7, { name: "Ana Silva", role })}
+          canChangeRole
+          visible
+          onClose={jest.fn()}
+        />,
+      );
+
+      await user.press(screen.getByRole("button", { name: "Remove from the platform" }));
+
+      expect(screen.getByText("Remove Ana?")).toBeOnTheScreen();
+      expect(screen.getByText(text)).toBeOnTheScreen();
+      expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Back" }));
+
+      expect(screen.getByText("Ana Silva")).toBeOnTheScreen();
+      expect(screen.queryByText("Remove Ana?")).not.toBeOnTheScreen();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("confirm removal", () => {
+    beforeEach(setupSignedInUser);
+
+    const ana = buildPerson(7, { name: "Ana Silva", role: "student" });
+
+    const openConfirmation = async (onClose = jest.fn()) => {
+      const user = userEvent.setup();
+      await renderSheet(<PersonSheet person={ana} canChangeRole visible onClose={onClose} />);
+      await user.press(screen.getByRole("button", { name: "Remove from the platform" }));
+      return { user, onClose };
+    };
+
+    it("posts the removal once, closes the sheet and reloads, with no toast", async () => {
+      fetchMock.mockResolvedValue(ok({ id: ana.id, status: "removed" }));
+      const { user, onClose } = await openConfirmation();
+
+      await user.press(screen.getByRole("button", { name: "Remove from the platform" }));
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        `http://api.test/people/${ana.id}/remove`,
+        expect.objectContaining({ method: "POST" }),
+      );
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(mockShow).not.toHaveBeenCalled();
+      // Back on the details for the next time it opens.
+      expect(screen.getByText("Ana Silva")).toBeOnTheScreen();
+    });
+
+    it.each([
+      ["user.role.lastAdmin", "The school needs at least one admin."],
+      ["user.status.notApproved", "This person is no longer on the platform."],
+      ["something.else", "Something went wrong. Please try again."],
+    ])("toasts a 409 %s and keeps the confirmation open", async (key, message) => {
+      fetchMock.mockResolvedValue(conflict(key));
+      const { user, onClose } = await openConfirmation();
+
+      await user.press(screen.getByRole("button", { name: "Remove from the platform" }));
+
+      expect(mockShow).toHaveBeenCalledWith(message);
+      expect(screen.getByText("Remove Ana?")).toBeOnTheScreen();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("toasts no connection and keeps the confirmation open", async () => {
+      fetchMock.mockRejectedValue(new NetworkError());
+      const { user } = await openConfirmation();
+
+      await user.press(screen.getByRole("button", { name: "Remove from the platform" }));
+
+      expect(mockShow).toHaveBeenCalledWith("No connection. Check your internet and try again.");
+      expect(screen.getByText("Remove Ana?")).toBeOnTheScreen();
+    });
+
+    it("sends nothing more on a second tap while the request runs", async () => {
+      let answer!: (value: unknown) => void;
+      fetchMock.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+      const { user, onClose } = await openConfirmation();
+      const confirm = screen.getByRole("button", { name: "Remove from the platform" });
+
+      await user.press(confirm);
+      await user.press(confirm);
+      answer(ok({ id: ana.id, status: "removed" }));
+      await screen.findByText("Ana Silva");
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
 });

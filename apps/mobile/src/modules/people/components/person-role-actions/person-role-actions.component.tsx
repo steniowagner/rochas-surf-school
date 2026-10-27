@@ -8,7 +8,7 @@ import { ROLE_ACTION_LOOK, ROLE_ACTIONS } from "../../constants/role-actions";
 
 import { PersonRoleActionsProps } from "./person-role-actions.types";
 
-export function PersonRoleActions({ role, onSelect }: PersonRoleActionsProps) {
+export function PersonRoleActions({ role, onSelect, onRemove }: PersonRoleActionsProps) {
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -38,6 +38,23 @@ export function PersonRoleActions({ role, onSelect }: PersonRoleActionsProps) {
           </Pressable>
         );
       })}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("people.removeAction.title")}
+        onPress={onRemove}
+        className="min-h-12 flex-row items-center gap-3"
+      >
+        <Feather name="trash-2" size={20} color={theme.bad} />
+        <View className="flex-1">
+          <Text className="ds-text-list-title text-bad">
+            {t("people.removeAction.title")}
+          </Text>
+          <Text className="ds-text-list-subtitle text-ink-2">
+            {t("people.removeAction.subtitle")}
+          </Text>
+        </View>
+        <Feather name="chevron-right" size={18} color={theme.ink3} />
+      </Pressable>
     </View>
   );
 }

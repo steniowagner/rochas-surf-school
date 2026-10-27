@@ -1025,6 +1025,19 @@ const messages: Messages = {
       lastAdmin: "A escola precisa de pelo menos um admin.",
       notApproved: "Esta pessoa não está mais na plataforma.",
     },
+    removeAction: {
+      title: "Remover da plataforma",
+      subtitle: "Perde o acesso ao app. Restaurável durante 30 dias.",
+    },
+    removeConfirm: {
+      title: "Remover {{name}}?",
+      student:
+        "Perde o acesso ao app. As vagas que ocupava ficam livres e não passam automaticamente para a lista de espera. Você pode restaurar a conta durante 30 dias.",
+      staff:
+        "Sai das próximas aulas em que está atribuído e perde o acesso ao app. Você pode restaurar a conta durante 30 dias.",
+      confirm: "Remover da plataforma",
+      back: "Voltar",
+    },
   },
   deleteAccountSheet: {
     title: "Remover a conta?",

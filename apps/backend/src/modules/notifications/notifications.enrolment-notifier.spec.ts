@@ -48,6 +48,7 @@ describe('NotificationsEnrolmentNotifier', () => {
   describe('seatRequested', () => {
     const event = {
       classId: CLASS_ID,
+      studentId: STUDENT_ID,
       studentName: 'Ana Souza',
       discipline: 'surf' as const,
       startsAt: STARTS_AT,
@@ -55,6 +56,7 @@ describe('NotificationsEnrolmentNotifier', () => {
     };
     const params = {
       classId: CLASS_ID,
+      studentId: STUDENT_ID,
       studentName: 'Ana Souza',
       discipline: 'surf',
       startsAt: '2026-10-19T11:00:00.000Z',
@@ -296,6 +298,7 @@ describe('NotificationsEnrolmentNotifier', () => {
   describe('seatCancelled', () => {
     const event = {
       classId: CLASS_ID,
+      studentId: STUDENT_ID,
       studentName: 'Ana Souza',
       discipline: 'surf' as const,
       startsAt: STARTS_AT,
@@ -304,6 +307,7 @@ describe('NotificationsEnrolmentNotifier', () => {
     };
     const params = {
       classId: CLASS_ID,
+      studentId: STUDENT_ID,
       studentName: 'Ana Souza',
       discipline: 'surf',
       startsAt: '2026-10-19T11:00:00.000Z',

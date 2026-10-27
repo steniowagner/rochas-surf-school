@@ -45,6 +45,7 @@ export class NotificationsEnrolmentNotifier implements EnrolmentNotifier {
 
   async seatRequested({
     classId,
+    studentId,
     studentName,
     discipline,
     startsAt,
@@ -58,7 +59,7 @@ export class NotificationsEnrolmentNotifier implements EnrolmentNotifier {
       await this.notify.execute({
         userIds,
         type: 'enrolment.requested',
-        params: { classId, studentName, discipline, startsAt: startsAt.toISOString() },
+        params: { classId, studentId, studentName, discipline, startsAt: startsAt.toISOString() },
       });
     } catch (error) {
       this.logger.error(
@@ -115,6 +116,7 @@ export class NotificationsEnrolmentNotifier implements EnrolmentNotifier {
 
   async seatCancelled({
     classId,
+    studentId,
     studentName,
     discipline,
     startsAt,
@@ -129,7 +131,14 @@ export class NotificationsEnrolmentNotifier implements EnrolmentNotifier {
       await this.notify.execute({
         userIds,
         type: 'enrolment.cancelled',
-        params: { classId, studentName, discipline, startsAt: startsAt.toISOString(), waitingCount },
+        params: {
+          classId,
+          studentId,
+          studentName,
+          discipline,
+          startsAt: startsAt.toISOString(),
+          waitingCount,
+        },
       });
     } catch (error) {
       this.logger.error(

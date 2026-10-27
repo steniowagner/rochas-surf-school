@@ -417,10 +417,21 @@ and removal.
   > type check no longer reports `PrismaNotificationRepository`. deviations: the `backend-provider-implementation`
   > skill was not invoked — the adapter copies `NotificationsRegistrationNotificationEraser`, which follows that
   > skill’s pattern (concrete class injected directly, no token, registered and exported by the module).
-- [ ] **T-09** — Store `studentId` in the params of `enrolment.requested` and `enrolment.cancelled` in
+- [x] **T-09** — Store `studentId` in the params of `enrolment.requested` and `enrolment.cancelled` in
   `src/modules/notifications/notifications.enrolment-notifier.ts`, with cases in its spec (text unchanged in
   `push-messages.spec.ts`).
   Covers: ER-07 · Done when: `npx vitest run src/modules/notifications/notifications.enrolment-notifier.spec.ts` passes.
+  > ✅ 2026-10-27 15:51 — `NotificationsEnrolmentNotifier.seatRequested` and `seatCancelled` store the event’s
+  > `studentId` in the params of `enrolment.requested` and `enrolment.cancelled` (D-06); the spec’s events and
+  > expected params carry it (3 cases fail with the old notifier: stored params and the push payload), and
+  > `push-messages.spec.ts` checks that the push and in-app text of both types is the same with and without
+  > `studentId`, in the three locales. files:
+  > `apps/backend/src/modules/notifications/notifications.enrolment-notifier.ts`,
+  > `apps/backend/src/modules/notifications/notifications.enrolment-notifier.spec.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run
+  > src/modules/notifications/notifications.enrolment-notifier.spec.ts
+  > src/modules/notifications/push-messages.spec.ts` (2 files, 137 passed); `tsc --noEmit` in `apps/backend` now
+  > exits clean; deviations: none.
 - [ ] **T-10** — Make `src/modules/auth/account-erasure.job.ts` run `EraseDeniedRegistrations`, then
   `EraseClosedAccounts` with the new eraser, each in its own `try` with its count log (D-10), wired in the auth module,
   with cases in `account-erasure.job.spec.ts`.

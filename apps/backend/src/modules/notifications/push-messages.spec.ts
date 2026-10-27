@@ -242,6 +242,24 @@ describe('renderPush', () => {
     expect(renderPush('enrolment.requested', params, locale)).toEqual({ title, body });
   });
 
+  it.each(['pt-BR', 'es', 'en'] as const)(
+    'writes the same seat request and cancellation text with the student id in %s',
+    (locale) => {
+      const requested = { classId: 'c-1', studentName: 'Ana Souza', discipline: 'surf', startsAt: STARTS_AT };
+      const cancelled = { ...requested, waitingCount: 2 };
+      const studentId = '55555555-5555-4555-8555-555555555555';
+
+      for (const render of [renderPush, renderInApp]) {
+        expect(render('enrolment.requested', { ...requested, studentId }, locale)).toEqual(
+          render('enrolment.requested', requested, locale),
+        );
+        expect(render('enrolment.cancelled', { ...cancelled, studentId }, locale)).toEqual(
+          render('enrolment.cancelled', cancelled, locale),
+        );
+      }
+    },
+  );
+
   it.each([
     ['pt-BR', 'Você não conseguiu vaga', 'A aula de Skate de 18/10 às 08:00 começou sem vaga para o seu pedido.'],
     ['es', 'No conseguiste plaza', 'La clase de Skate del 18/10 a las 08:00 empezó sin plaza para tu solicitud.'],

@@ -2,7 +2,7 @@
 id: "066"
 slug: admin-account-removal
 title: Admins remove and restore accounts
-status: in-progress
+status: in-review
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 3a42e0ef439dbfab6e36f195660851d46333ed68
@@ -413,11 +413,11 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
 
 ### Verification
 
-- [ ] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-14** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence. Covers: all · Done when: `run-related-tests.mjs 066` prints RELATED TESTS PASSED,
   `check-coverage.mjs 066` prints COVERAGE OK, `run-e2e.mjs 066` prints E2E PASSED, the turbo lint, type check and
   build exit 0, and the user journeys were followed with the observations recorded.
-  > ⛔ 2026-10-27 — automated checks all pass; only the simulator journeys are open. Passed: `run-related-tests.mjs 066` (RELATED TESTS PASSED), `check-coverage.mjs 066` (COVERAGE OK), `npx turbo run lint check-types build --concurrency=1 --filter=auth,notifications,backend,mobile` (27 tasks successful). Backend e2e on a fresh scratch database (`e2e_scratch_066`, migrations applied, dropped afterwards): 28 files, 775 tests passed, so the 3 `classes.e2e-spec.ts` suggestion failures seen on the dev database come from its leftover classes, not from this change. `test/notifications.e2e-spec.ts` was updated to the new rule (D-05) with a "registers for a removed account" case. Open: the iOS-simulator user journeys of the Verification Plan were not run. To unblock: follow the three journeys by hand (backend running with the seeded review accounts) and record what was observed.
+  > ✅ 2026-10-27 — everything in the Verification Plan passed. Automated: `run-related-tests.mjs 066` (RELATED TESTS PASSED), `check-coverage.mjs 066` (COVERAGE OK), `npx turbo run lint check-types build --concurrency=1 --filter=auth,notifications,backend,mobile` (27 tasks successful); backend e2e on a fresh scratch database (`e2e_scratch_066`, migrations applied, dropped afterwards): 28 files, 775 tests passed — the 3 `classes.e2e-spec.ts` suggestion failures seen on the dev database come from its leftover classes, not from this change; `test/notifications.e2e-spec.ts` was updated to the new rule (D-05) with a "registers for a removed account" case (`apps/backend/test/notifications.e2e-spec.ts`). Journeys on the iOS simulator (fresh backend build on :4000, app relaunched so it loads the current bundle, dev review accounts): (1) admin, Pessoas, Ana Souza (student): "Remover da plataforma" is the last action; the confirmation reads "Remover Ana?" with the student text; "Voltar" returns to the sheet; confirming closes it and she leaves the list (31 → 30) (ER-09, ER-10). (2) End of the list: "Contas removidas · restauráveis durante 30 dias" shows "Aluno · removida em 27 out · até 26 nov" with "Restaurar"; tapping it removes the section and Ana is back in the list (30 → 31) (ER-11, ER-12). (3) Student review account (dev@example.com) on a second simulator, removed from the first: in the database it became `removed`; the open app kept its screens until the account was reloaded (a push does that, and simulators receive none); after a relaunch it showed "Access removed"; after the restore (`approved`) a relaunch opened the student flow, and its bell went from 2 to 4 notifications (ER-13; the push handling itself is covered by Jest). Notes: an admin's own sheet and another admin's sheet offer no "Remover"; the already-running Metro bundle was stale until the app was relaunched. Left behind: the backend started for this check (`node dist/main`, log in the session scratchpad) keeps running on :4000, and the dev data is back to how it was (Ana Souza and Dev Student approved).
 
 ## Verification Plan
 

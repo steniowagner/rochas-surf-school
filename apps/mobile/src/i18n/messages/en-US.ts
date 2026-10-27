@@ -1042,6 +1042,16 @@ const messages = {
       confirm: "Remove from the platform",
       back: "Back",
     },
+    removed: {
+      title: "Removed accounts",
+      hint: "can be restored for 30 days",
+      row: "{{role}} · removed {{date}} · until {{until}}",
+      restore: "Restore",
+      errors: {
+        notRemoved: "This account is no longer removed.",
+        windowEnded: "The time to restore this account has ended.",
+      },
+    },
   },
   deleteAccountSheet: {
     title: "Remove your account?",

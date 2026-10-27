@@ -8,6 +8,7 @@ import { SessionExpiredError } from "@/services/api";
 
 import { PeopleRole, Person } from "../people.types";
 import { usePeopleCount } from "./use-people-count.hook";
+import { useRemovedAccounts } from "./use-removed-accounts.hook";
 import { UsePeopleScreenResult } from "./use-people-screen.types";
 import { usePeople } from "./use-people.hook";
 
@@ -36,6 +37,8 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
 
   const query = usePeople({ roles, search });
   const countQuery = usePeopleCount();
+  const removedQuery = useRemovedAccounts();
+  const isApprovedAdmin = user?.role === "admin" && user.status === "approved";
 
   const showError = (error: unknown) => {
     const key = getRegistrationErrorKey(error);
@@ -59,12 +62,24 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
 
   const refresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([query.refetch(), countQuery.refetch()]);
+    await Promise.all([
+      query.refetch(),
+      countQuery.refetch(),
+      // A refetch ignores `enabled`: only an approved admin may ask.
+      isApprovedAdmin ? removedQuery.refetch() : undefined,
+    ]);
     setIsRefreshing(false);
   };
 
+  // The removed accounts close the full, unfiltered list (spec 066, D-10).
+  const isFullDirectory =
+    searchText.trim() === "" && search === "" && roles.length === 0 && query.isSuccess && !query.hasNextPage;
+  const removedAccounts =
+    isApprovedAdmin && isFullDirectory ? (removedQuery.data?.items ?? []) : [];
+
   return {
     count: countQuery.data,
+    removedAccounts,
     people: query.people,
     searchText,
     setSearchText,
@@ -93,8 +108,7 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
     selectedPerson,
     // Only an approved admin changes roles, and never their own (spec 058, D-04).
     canChangeRole:
-      user?.role === "admin" &&
-      user.status === "approved" &&
+      isApprovedAdmin &&
       selectedPerson !== null &&
       selectedPerson.id !== user.id,
     isSheetVisible,

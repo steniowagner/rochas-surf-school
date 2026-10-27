@@ -1038,6 +1038,16 @@ const messages: Messages = {
       confirm: "Remover da plataforma",
       back: "Voltar",
     },
+    removed: {
+      title: "Contas removidas",
+      hint: "restauráveis durante 30 dias",
+      row: "{{role}} · removida em {{date}} · até {{until}}",
+      restore: "Restaurar",
+      errors: {
+        notRemoved: "Esta conta já não está removida.",
+        windowEnded: "O prazo para restaurar esta conta acabou.",
+      },
+    },
   },
   deleteAccountSheet: {
     title: "Remover a conta?",

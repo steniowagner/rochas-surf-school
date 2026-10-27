@@ -68,6 +68,10 @@ What the person is told, and how it reaches them.
   - `role.changed` — an admin changed the person's role (spec 058); details: the new role (`role`) and whether the
     change gave up upcoming seats or pending requests (`seatsReleased`) and upcoming classes (`classesReleased`).
     One per change, to the person only.
+  - `account.removed` — an admin removed the person from the platform (spec 066); no details. One per removal, to
+    the person only.
+  - `account.restored` — an admin restored the person's removed account (spec 066); no details. One per restore, to
+    the person only.
   - `broadcast` — an admin sent a notice (spec 063); details: its title (`title`, 1–60 characters) and message
     (`message`, 1–500), as written after trimming. One per recipient of the notice's audience.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
@@ -96,6 +100,8 @@ What the person is told, and how it reaches them.
   | `enrolment.enrolled` | You've been enrolled | The school enrolled you in the {discipline} class on {MM/dd} at {HH:mm}. |
   | `enrolment.takenOut` | You were taken out of a class | the reason as written, or "The school took you out of the {discipline} class on {MM/dd} at {HH:mm}." |
   | `role.changed` | Your role changed | You're now a student. / an instructor. / an admin., then " Your upcoming seats and pending requests were cancelled." when seats were given up, then " You were taken off your upcoming classes." when classes were |
+  | `account.removed` | Access removed | An admin removed your access to the school. |
+  | `account.restored` | Access restored | Your account is back, with your history and your role. |
   | `broadcast` | the notice's title, as written | the notice's message, as written |
 
   pt-BR: "Nova inscrição" / "{name} está aguardando aprovação.", "Conta aprovada" / "Você já pode começar a usar
@@ -146,7 +152,10 @@ What the person is told, and how it reaches them.
   pt-BR "Seu papel mudou" / "Agora você é aluno." ("instrutor.", "admin."), then " Suas vagas e pedidos em aulas
   futuras foram cancelados." and " Você saiu das suas próximas aulas.", es "Tu rol cambió" / "Ahora eres alumno."
   ("instructor.", "admin."), then " Tus plazas y solicitudes en clases futuras se cancelaron." and " Dejaste tus
-  próximas clases." (the in-app text is the same); `broadcast`: the notice's title and message as written, the same in
+  próximas clases." (the in-app text is the same); `account.removed`: pt-BR "Acesso removido" / "Um admin removeu
+  seu acesso à escola.", es "Acceso quitado" / "Un admin quitó tu acceso a la escuela."; `account.restored`: pt-BR
+  "Acesso restaurado" / "Sua conta está de volta, com seu histórico e seu papel.", es "Acceso restaurado" / "Tu cuenta
+  volvió, con tu historial y tu rol." (the in-app text is the same); `broadcast`: the notice's title and message as written, the same in
   every language and in the app. The start is written in America/Fortaleza time, the same on every machine.
   `{discipline}` is "Surf" or "Skate" in every language. Tapping a `class.assigned` or `class.deleted` push reloads the account and
   opens its Aulas tab when it is still an instructor or an admin (else its home, the app's default); one received
@@ -177,7 +186,11 @@ What the person is told, and how it reaches them.
   `close-circle-outline` on the bad tone). A `role.changed` push received with the app open reloads the account (so the flow
   guards move the app to the new role's experience) and the people lists; tapping it, or its row on the
   notifications screen, reloads the account and opens the home of the flow it resolves to (its row: a
-  `shield-checkmark-outline` icon on the info tone). A `broadcast` leads to no screen of its own: tapping its push or
+  `shield-checkmark-outline` icon on the info tone). An `account.removed` or `account.restored` push received with
+  the app open reloads the account (so the flow guards move the app to Access removed or back to the role's flow),
+  the people lists and an admin's removed accounts; tapping it, or its row, reloads the account and opens the home of
+  the flow it resolves to (rows: `person-remove-outline` on the bad tone and `person-add-outline` on the ok tone). A
+  `broadcast` leads to no screen of its own: tapping its push or
   its row marks it read and shows the home of the account's current flow (its row: a `megaphone-outline` icon on
   the info tone), and one received with the app open reloads only the notifications list and the unread count.
   Tapping any push also marks its notification read (without waiting for it; a failure
@@ -238,8 +251,9 @@ The phones that receive pushes.
 
 Rules:
 
-- **Only pending, approved and deleted accounts register a phone**: a deleted account does so to hear the answer
-  to its reactivation request (spec 064); a denied or removed account is refused with
+- **Only pending, approved, deleted and removed accounts register a phone**: a deleted account does so to hear the
+  answer to its reactivation request (spec 064), a removed one to hear of its restore (spec 066); a denied account is
+  refused with
   `pushToken.status.notAllowed`, checked before anything else. A token that isn't an Expo push token
   (`pushToken.token.invalid`) or a language other than pt-BR, es or en (`pushToken.locale.invalid`) is refused,
   both reported together. Nothing is stored on a refusal.
@@ -256,7 +270,7 @@ Rules:
 
 ## Who can do what
 
-- **A pending, approved or deleted account** — registers the phone it is signed in on, with its language; in the
+- **A pending, approved, deleted or removed account** — registers the phone it is signed in on, with its language; in the
   app, at sign-in and at launch.
 - **Any account that signs out** — stops the pushes to that phone.
 - **Any signed-in account, whatever its status** — removes its own phone's token. In the app, the Profile's
@@ -300,6 +314,8 @@ Rules:
   audience is `all`.
 - **A person whose role an admin changed** — receives one `role.changed`; the admin who changed it, and everyone
   else, receives none.
+- **A person an admin removed or restored** — receives one `account.removed` or `account.restored`; the acting admin,
+  and everyone else, receives none, and a refused removal or restore notifies nobody.
 - **An instructor or admin of a location's upcoming classes, and a student with a seat or a pending request in
   them** — receives one `location.changed` when an admin edits that location and chooses to tell them, unless they
   made the edit.
@@ -311,9 +327,10 @@ Rules:
 
 It knows people only by their ids and the phones they registered, and it doesn't depend on
 [Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
-it through five contracts of its own (one that notifies about registrations, one that removes a phone's token on
+it through six contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts, one that tells a person
-their role changed — spec 058, one that notifies about reactivation requests — spec 064), all provided by the
+their role changed — spec 058, one that notifies about reactivation requests — spec 064, one that tells a person of
+their removal and restore — spec 066), all provided by the
 backend; the admins' notice of a registration or a reactivation request goes through the same use case, which takes
 the type. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
 and removed), class changes (edits, cancellations, deletions), classes left without an instructor, location
@@ -401,3 +418,8 @@ requests (spec 047).
   `NotificationsReactivationNotifier` (errors logged and swallowed); `RegisterPushToken` accepts deleted accounts.
   In the app, deleted accounts register their phone, `reactivation.requested` reloads the requests and opens the
   tool for admins, the decisions reload the account, and the three icons.
+- `066-admin-account-removal` — `account.removed` and `account.restored` (no params, to the person only) with their
+  push and in-app text, sent by the backend's `NotificationsAccountRemovalNotifier` (errors logged and swallowed);
+  `RegisterPushToken` accepts removed accounts. In the app, removed accounts register their phone, both pushes reload
+  the account, the people and the removed accounts, a tapped push or row opens the resolved flow's home, and the two
+  icons.

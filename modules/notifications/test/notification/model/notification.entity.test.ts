@@ -179,6 +179,16 @@ describe("Notification", () => {
     expect(notification.params).toEqual(params);
   });
 
+  it.each(["account.removed", "account.restored"] as const)(
+    "accepts a %s notification with no params",
+    (type) => {
+      const notification = build({ type, params: {} });
+
+      expect(() => notification.validate()).not.toThrow();
+      expect(notification.type).toBe(type);
+    },
+  );
+
   it("rejects a missing or invalid user id", () => {
     expect(messagesOf(() => build({ userId: "" }).validate())).toContain(
       "notification.userId.required",

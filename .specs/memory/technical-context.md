@@ -1846,7 +1846,7 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   enhanced push security).
 - Tokens (`push_tokens`, key `token`, one row per device, many per user): `PUT /notifications/push-token`
   (protected, body `{ token, locale }`, 204) upserts the token for the caller with its locale, moving a token
-  another account held. Order: status not `pending` / `approved` / `deleted` (a deleted account hears its reactivation decision, spec 064) → 403 `pushToken.status.notAllowed`; then
+  another account held. Order: status not `pending` / `approved` / `deleted` / `removed` (a deleted account hears its reactivation decision, spec 064; a removed one its restore, spec 066) → 403 `pushToken.status.notAllowed`; then
   `token` not matching `^Expo(nent)?PushToken\[[^\]]+\]$` → 422 `pushToken.token.invalid` and `locale` not
   `pt-BR` / `es` / `en` → 422 `pushToken.locale.invalid`, listed together. A token is deleted on sign-out (see
   Authentication), when its phone turns pushes off — `DELETE /notifications/push-token` (`UnregisterPushToken`,
@@ -1876,7 +1876,9 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   that runs `Notify` and logs and swallows every error: `RegistrationNotifier` (auth), `ReactivationNotifier` (auth,
   `NotificationsReactivationNotifier`, spec 064: `reactivationRequested` → `reactivation.requested` with `{ name, userId }`
   to the approved admins through `NotifyApprovedAdmins`, which takes the type; `reactivationApproved` →
-  `reactivation.approved`; `reactivationDenied` → `reactivation.denied` with `{ reason? }`, both to the person), `ClassAssignmentNotifier`
+  `reactivation.approved`; `reactivationDenied` → `reactivation.denied` with `{ reason? }`, both to the person),
+  `AccountRemovalNotifier` (auth, `NotificationsAccountRemovalNotifier`, spec 066: `accountRemoved` →
+  `account.removed` and `accountRestored` → `account.restored`, both with no params, to the person only), `ClassAssignmentNotifier`
   (classes, `NotificationsClassAssignmentNotifier`: `classAssigned` → `class.assigned` with `{ count, discipline }`,
   spec 028; `classUnassigned` → `class.unassigned` with `{ classId, discipline, startsAt }`, spec 032) and
   `ClassChangeNotifier` (classes, `NotificationsClassChangeNotifier`: `classEdited` → `class.edited` with
@@ -2065,7 +2067,9 @@ Maestro suite for mobile would be a spec of its own.
   same way; where an exact number of admins matters, it sets the shared database's own approved admins aside (role
   set to `instructor` by raw SQL, so `updated_at` isn't touched) and puts them back after every test, and it forces
   the last-admin races by holding the approved admins' rows `FOR UPDATE` until both requests wait on the lock
-  (`pg_stat_activity`). `locations.e2e-spec.ts` (spec 037) overrides `ExpoPushProvider`, `GooglePlacesAddressSuggestionProvider`
+  (`pg_stat_activity`). `people-removal.e2e-spec.ts` (spec 066) does the same for removals and restores (fixed
+  clocks, the database's own admins set aside for the last-admin race, the same `FOR UPDATE` race), fakes
+  `ExpoPushProvider` and deletes every user, class and token it created. `locations.e2e-spec.ts` (spec 037) overrides `ExpoPushProvider`, `GooglePlacesAddressSuggestionProvider`
   and the classes clock (fixed in 2037, like the deadline suites) the same way. `cancellation-rules.e2e-spec.ts` and `cancellation-deadlines.e2e-spec.ts` (spec 036) fix the classes
   clock in 2037, so the job only meets the test's own classes and never writes fake deadlines to real ones in a
   shared dev database, snapshot the stored cancellation rules before and put them back after, and the second

@@ -48,6 +48,13 @@ export interface UserRepository extends CrudRepository<
    * false when it wasn't written.
    */
   updateIfReactivationRequested(user: User): Promise<boolean>;
+  /**
+   * Users with status `removed` whose `removedAt` is after `cutoff`, most recent removal first, ties broken by id;
+   * one without `removedAt` is never listed.
+   */
+  findRemovedSince(cutoff: Date): Promise<User[]>;
+  /** Writes the user only while the stored one is still `removed` (one conditional update); false when it wasn't written. */
+  updateIfRemoved(user: User): Promise<boolean>;
   /** Ids of the `denied` users whose `deniedAt` is at or before `cutoff`; one without `deniedAt` is never listed. */
   findDeniedBefore(cutoff: Date): Promise<string[]>;
   /** Deletes, with everything that hangs off them, those of these users that are still `denied`; returns how many. */

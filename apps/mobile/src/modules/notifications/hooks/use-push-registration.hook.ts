@@ -10,10 +10,10 @@ import { getPushToken, setRegisteredPushToken } from "@/services/push/push.servi
 
 import { unregisterPushToken } from "../utils/unregister-push-token";
 
-const REGISTRABLE_STATUSES = ["pending", "approved", "deleted"];
+const REGISTRABLE_STATUSES = ["pending", "approved", "deleted", "removed"];
 
 /**
- * Sends this phone's push token to the backend (with the app language) for a pending, approved or deleted account (a deleted one hears the answer to its reactivation request), when
+ * Sends this phone's push token to the backend (with the app language) for a pending, approved, deleted or removed account (a deleted one hears the answer to its reactivation request, a removed one hears of its restore), when
  * the session starts, the app launches with one, the account's status changes or the language changes. Pushes
  * are an extra: no token, or any failure, shows nothing (spec 020, D-12). While the person keeps pushes off
  * (spec 026), nothing is registered and the token is removed instead.

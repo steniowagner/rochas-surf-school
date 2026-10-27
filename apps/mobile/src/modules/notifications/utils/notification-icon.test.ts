@@ -5,6 +5,13 @@ describe("notificationIcon", () => {
     expect(notificationIcon("role.changed")).toEqual({ name: "shield-checkmark-outline", tone: "info" });
   });
 
+  it.each([
+    ["account.removed", "person-remove-outline", "bad"],
+    ["account.restored", "person-add-outline", "ok"],
+  ])("draws an %s with %s on the %s tone", (type, name, tone) => {
+    expect(notificationIcon(type)).toEqual({ name, tone });
+  });
+
   it("draws a broadcast with the megaphone on the info tone", () => {
     expect(notificationIcon("broadcast")).toEqual({ name: "megaphone-outline", tone: "info" });
   });

@@ -1040,6 +1040,29 @@ const messages: Messages = {
       lastAdmin: "La escuela necesita al menos un admin.",
       notApproved: "Esta persona ya no está en la plataforma.",
     },
+    removeAction: {
+      title: "Quitar de la plataforma",
+      subtitle: "Pierde el acceso a la app. Se puede restaurar durante 30 días.",
+    },
+    removeConfirm: {
+      title: "¿Quitar a {{name}}?",
+      student:
+        "Pierde el acceso a la app. Sus plazas quedan libres y no pasan automáticamente a la lista de espera. Puedes restaurar la cuenta durante 30 días.",
+      staff:
+        "Sale de las próximas clases en las que está asignado y pierde el acceso a la app. Puedes restaurar la cuenta durante 30 días.",
+      confirm: "Quitar de la plataforma",
+      back: "Volver",
+    },
+    removed: {
+      title: "Cuentas quitadas",
+      hint: "se pueden restaurar durante 30 días",
+      row: "{{role}} · quitada el {{date}} · hasta el {{until}}",
+      restore: "Restaurar",
+      errors: {
+        notRemoved: "Esta cuenta ya no está quitada.",
+        windowEnded: "El plazo para restaurar esta cuenta terminó.",
+      },
+    },
   },
   deleteAccountSheet: {
     title: "¿Eliminar tu cuenta?",

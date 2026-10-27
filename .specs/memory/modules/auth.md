@@ -51,11 +51,33 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   (409) when no approved admin would remain. Then the person is told once (`role.changed`, with the new role and
   whether seats or classes were given up); the actor isn't, and a failed notification never changes the answer,
   `{ id, role }`. A role change applies at once, since every request reloads role and status.
-- **There is always an approved admin**: the account write of a role change or a deletion runs in one step that
+- **Removing someone**: an approved admin removes another approved account, of any role. Checked in this order: the
+  caller's status (`user.status.notApproved`, 403) and role (`user.role.notAdmin`, 403); an id that isn't a UUID or
+  names no account (`user.notFound`, 404); the caller's own account (`user.remove.self`, 403); an account that isn't
+  approved (`user.status.notApproved`, 409). Then the releases, for every role, as for a deletion: the upcoming
+  seats and pending requests, then the upcoming classes with the admin as actor (left out of the "no instructor"
+  notice); a failed release fails the call (a retry is safe). Then the guarded write of `removed` with the removal
+  date: `user.status.notApproved` (409) when the stored role or status changed since it was read,
+  `user.role.lastAdmin` (409) when no approved admin would remain. Then the person is told once
+  (`account.removed`); the actor isn't, and a failed notification never changes the answer, `{ id, status:
+  "removed" }`. Sessions, identities, phones, rules acceptances, the denial reason and the reactivation fields stay,
+  so the removed person still signs in and sees "Access removed", and a restore reaches their phone.
+- **Removed accounts** (the restore window): an approved admin (refused as for a removal) lists the `removed`
+  accounts removed less than 30 × 24 hours ago, most recent removal first, ties by id — id, name, role and removal
+  date, no paging. A removed account with no removal date is never listed.
+- **Restoring a removed account**: an approved admin brings it back. Checked in this order: the caller (as for a
+  removal); an id that isn't a UUID or names no account (`user.notFound`, 404); an account that isn't `removed`
+  (`user.status.notRemoved`, 409); no removal date, or one 30 × 24 hours ago or more (`removal.window.ended`, 409).
+  Then one conditional write sets it `approved` and clears the removal date only while it is still `removed`: of two
+  restores at the same moment exactly one wins and the other gets `user.status.notRemoved`. Role, name, email,
+  WhatsApp number and its visibility, rules acceptances and history stay; the seats, requests and classes the removal
+  released stay released. Then the person is told once (`account.restored`), with the same rules as a removal,
+  `{ id, status: "approved" }`.
+- **There is always an approved admin**: the account write of a role change, a removal or a deletion runs in one step that
   first locks the approved admins, writes only while the stored role and status are the ones read, and refuses
   when the account is an approved admin who stops being one and no other approved admin remains — so two admins
-  demoting each other, or the last two deleting their accounts, at the same moment can't leave the school without
-  one. With no self-change, demoting another admin always leaves the actor.
+  demoting or removing each other, or the last two deleting their accounts, at the same moment can't leave the school
+  without one. With no self-change, demoting or removing another admin always leaves the actor.
 - **WhatsApp number**: stored with its country code in E.164 (e.g. `+5585999998888`) and valid for that
   country — a well-formed but impossible number, or one written with spaces, dashes, brackets or an extension,
   is refused. Only an `approved` account sets it (others are refused with `user.status.notApproved`); setting it
@@ -217,7 +239,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **A deleted account** — sends its one reactivation request per deletion.
 - **An approved admin** — lists the pending registrations and approves or denies each one, with an optional
   reason when denying; lists the reactivation requests and approves or denies each one, with an optional reason
-  when denying; changes another approved account's role (never their own). The school's only approved
+  when denying; changes another approved account's role and removes another approved account (never their own);
+  lists the removed accounts still inside their 30 days and restores each one. The school's only approved
   admin can't delete their account. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
   (checked first, so a removed admin gets it), an approved non-admin with `user.role.notAdmin` — before the id is
   even looked up.
@@ -323,6 +346,24 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   success toast. A refusal or failure shows its toast and keeps the confirmation; an expired session shows none.
 - **In the app**, a `role.changed` push reloads the account with the app open, so the flow guards move it to the new
   role's experience; tapping the push or its row reloads the account and opens the home of the flow it resolves to.
+- **In the app**, the same admin's sheet ends, below the role actions and for every role, with a red "Remover da
+  plataforma" ("Perde o acesso ao app. Restaurável durante 30 dias."), with the same visibility as the role actions.
+  It swaps the sheet for "Remover {first name}?", the student text (seats freed, not passed to the waiting list) or
+  the instructor-or-admin text (leaves the upcoming classes), "Remover da plataforma" (danger) and "Voltar". Confirming
+  sends the removal once, closes the sheet and reloads the people, the classes and the removed accounts, with no
+  success toast; refusals use the role change's toasts and keep the confirmation, an expired session shows none.
+- **In the app**, the People list of an approved admin ends, when there is no search text and no role filter and the
+  last page has loaded (also under an empty directory), with "Contas removidas · restauráveis durante 30 dias" when
+  `GET /people/removed` answered at least one account; hidden while it loads or after it fails, and never asked by
+  other viewers. Each row: the initials dimmed, the name, "{role} · removida em {date} · até {date + 30 days}" (day
+  and short month in the app language, Fortaleza time) and an outlined "Restaurar" that acts at once: its own button
+  loads and ignores presses while the others stay usable; on success the row leaves and the people reload, with no
+  toast. `user.status.notRemoved` and `removal.window.ended` toast "Esta conta já não está removida." / "O prazo para
+  restaurar esta conta acabou." and reload the section; other failures use the generic toasts and keep the row.
+  Pull-to-refresh reloads it with the people.
+- **In the app**, `account.removed` and `account.restored` reload the account with the app open (so it moves to Access
+  removed or back to its role's flow) and reload the people and the removed accounts; tapping either push or its row
+  reloads the account and opens the home of the flow it resolves to.
 - **In the app**, an admin's "Remover a conta" sheet reads the number of approved admins when it opens; with one,
   or when the deletion is refused with `user.role.lastAdmin`, it shows "Ainda não dá" with "Ir para Pessoas"
   (closes the sheet and opens People) and "Cancelar", and the person stays signed in. While the count loads or if
@@ -349,12 +390,13 @@ account's upcoming classes through a fourth contract of its own, fulfilled by th
 [Classes](classes.md)' release (spec 035), then gives up the account's seats and requests through a fifth,
 fulfilled with [Enrolment](enrolment.md)'s release (spec 043) — this module depends on neither. Both contracts
 answer how much they released. Changing a role uses the same two contracts (the teaching one with the admin as
-actor) and tells the person through a sixth, fulfilled with [Notifications](notifications.md) (spec 058); removal
-is meant to use them too. Deciding reactivation requests belongs here (spec 064): it tells admins and the person
+actor) and tells the person through a sixth, fulfilled with [Notifications](notifications.md) (spec 058); removing
+an account uses the same two releases and tells the person of the removal and of the restore through a
+contract of its own, `AccountRemovalNotifier`, fulfilled the same way (spec 066). Deciding reactivation requests belongs here (spec 064): it tells admins and the person
 through a seventh contract, `ReactivationNotifier`, and counts the classes taken through an eighth,
 `ClassesTakenCounter`, both fulfilled by the backend ([Notifications](notifications.md) and
-[Enrolment](enrolment.md)'s rule of the classes a student took) without this module depending on either. Removing
-accounts and the erasure of deleted and removed accounts are rules of the account lifecycle still to be specified.
+[Enrolment](enrolment.md)'s rule of the classes a student took) without this module depending on either. The erasure
+of deleted and removed accounts after their 30 days is a rule of the account lifecycle still to be built (spec 067).
 
 ## Spec history
 
@@ -443,3 +485,11 @@ accounts and the erasure of deleted and removed accounts are rules of the accoun
   Approval clears the deletion and the request (one request per deletion); a denial stores the reason. The new
   `ReactivationNotifier` contract tells admins of a recorded request and the person of the decision. In the app, the
   "Reactivate accounts" row and tool, the reason on the Account deleted screen's denied state, and the three pushes.
+- `066-admin-account-removal` — approved admins remove another approved member (`POST /people/:id/remove`,
+  `RemoveUser`: access, `user.notFound`, `user.remove.self`, `user.status.notApproved`, then the seat and teaching
+  releases and the guarded `updateKeepingAnAdmin` write), list the removed accounts inside their 30 days
+  (`GET /people/removed`, `ListRemovedAccounts`) and restore them (`POST /people/:id/restore`, `RestoreAccount`:
+  `user.status.notRemoved`, `removal.window.ended`, conditional write). `UserRepository` gains `findRemovedSince` and
+  `updateIfRemoved`; the new `AccountRemovalNotifier` contract tells the person (`account.removed`,
+  `account.restored`). In the app, "Remover da plataforma" and its confirmation on the People sheet, the "Contas
+  removidas" section with "Restaurar", and the two pushes.

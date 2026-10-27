@@ -66,10 +66,13 @@ Listed in the order people meet them.
   - `approved` → onboarding (WhatsApp number + school rules) before using the app.
   - `denied` → sees the reason and a contact-the-school button; erased 30 days after the denial.
   - `approved` → `deleted` by the user (confirmation step; not allowed for the only admin) or `removed` by an
-    admin. Both cancel the user's upcoming seats, pending enrolments and class assignments (as built, deletion
-    does — specs 035 and 043 —; removal comes with its own spec).
+    approved admin (any other approved member, of any role; never the last approved admin). Both cancel the user's
+    upcoming seats, pending enrolments and class assignments (specs 035, 043 and 066). A removal keeps the account's
+    sessions and phones, so the person still signs in to see "Access removed" and hears of a restore; they are told
+    of both by a notification.
   - `deleted` → back to `approved` through an approved reactivation request, or erased 30 days after the
-    deletion. `removed` → back to `approved` when an admin restores it, or erased 30 days after the removal.
+    deletion. `removed` → back to `approved` when an admin restores it within 30 × 24 hours of the removal, or
+    erased 30 days after the removal (the erasure is spec 067; as built, a removed account stays removed).
     A return restores the account, its history and its role — not the seats, enrolments or assignments
     cancelled when it left.
   - **Erasure** removes name, email, photo and WhatsApp number and deletes the account's comments; star ratings
@@ -323,8 +326,9 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   Only the rule text and the class's details are sent — never names or anything students wrote. Rules aren't
   checked when saved; when a deadline can't be worked out, the class is flagged and students are sent to the
   school. What a late cancellation costs belongs to the admins' records outside the app.
-- **Admin decisions are final in the app**: there is no undo for approvals, denials, removals or role changes;
-  mistakes go to the system administrators (the developers), who fix them outside the app.
+- **Admin decisions are final in the app**: there is no undo for approvals, denials or role changes, and a removal
+  is undone only by restoring the account within 30 days (without the seats and classes it gave up); other mistakes
+  go to the system administrators (the developers), who fix them outside the app.
 - **There is always at least one admin**: the only admin can't be demoted or removed and must make someone
   else an admin before deleting their own account.
 - **Deleting and removing are different**: a user who deletes their account can ask once per deletion for reactivation; a
@@ -1208,7 +1212,29 @@ the location; "Novo local" (and a location saved without a point) on Fortaleza. 
 it selected on the class form; removing one goes back with it cleared there when it was selected. The rules of spec
 037 (duplicate names, the required point, the "gone" toast) are unchanged. All copy is in pt-BR, es-ES and en-US.
 
-Active specs: none.
+**Admins remove and restore accounts** (spec `066-admin-account-removal`) — on the People screen, the sheet of
+another member shows an approved admin a red "Remover da plataforma" ("Perde o acesso ao app. Restaurável durante 30
+dias.") as its last action, below the role actions, for every role; the viewer's own sheet, students' and
+instructors' views and the sheets opened from the class details or "Entrar na escola" don't have it. It swaps the
+sheet for "Remover Ana?" with the student text (seats freed, not passed to the waiting list) or the instructor-or-admin
+text (leaves the upcoming classes), "Remover da plataforma" and "Voltar". Confirming closes the sheet and the person
+leaves the list; the account becomes removed and gives up its upcoming seats and pending requests and its upcoming
+classes, as a deletion does (admins and instructors are told of each seat, a class left with nobody is flagged for
+the other admins). The last approved admin can't be removed — two admins removing each other at the same moment can't
+both win — and a person no longer approved, no connection or any other failure shows a toast and keeps the
+confirmation. At the end of the full, unfiltered list (no search, no role filter, last page loaded) an admin sees
+"Contas removidas · restauráveis durante 30 dias": one row per account removed less than 30 days ago, most recent
+first — dimmed initials, name, "Aluno · removida em 2 out · até 1 nov" (Fortaleza time) — with "Restaurar", which acts
+at once with no confirmation and no success toast: the row leaves and the person is back in the list, approved with
+their role, name, number, accepted rules and history, but not the seats, requests or classes they gave up. A restore
+someone else already made or one past the 30 days toasts "Esta conta já não está removida." or "O prazo para
+restaurar esta conta acabou." and reloads the section. The person gets "Acesso removido" ("Um admin removeu seu acesso
+à escola.") and "Acesso restaurado" ("Sua conta está de volta, com seu histórico e seu papel."); with the app open
+each reloads the account, so it moves to "Access removed" and back, and an admin's open app reloads the people;
+tapping either opens the home of the account's flow. A removed account keeps registering its phone for pushes. All
+copy is in pt-BR, es-ES and en-US.
+
+Active specs: `067-closed-account-erasure` (planned).
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -1259,8 +1285,7 @@ Active specs: none.
   About sheet (mocked), and keeping the theme, language and push preferences on the account or syncing them across
   phones.
 - On the People directory (spec 027): profile photos (initials only), class counts and the "Acesso total" /
-  "Dono da escola" subtitles on the rows, the removed accounts section with "Restaurar", removing someone from
-  their sheet, searching by email, the real count on the home rows (a fixed "9 na
+  "Dono da escola" subtitles on the rows, searching by email, the real count on the home rows (a fixed "9 na
   plataforma" until the backend can give it), and the rest of the admin and instructor dashboards (greeting,
   metrics and every other row).
 - A daily limit on the sign-in codes sent to one email address (spec 001 limits codes per network address
@@ -1289,9 +1314,7 @@ Active specs: none.
   (a message to a class's people, its own spec).
 - On deleting a class (spec 034): the seat and pending-request counts on the confirmation sheet; deleting several
   classes at once; restoring a deleted class or keeping any record of it.
-- On classes left without an instructor (spec 035): releasing the classes when an account is removed (its spec
-  reuses the same step; a demotion to student uses it since spec 058); telling the students of a class that lost
-  its instructor; a list or filter of the classes without an instructor.
+- On classes left without an instructor (spec 035): telling the students of a class that lost its instructor; a list or filter of the classes without an instructor.
 - On cancellation rules and deadlines (spec 036): notifying anyone about rules, deadlines or the flag; keeping the text of past rules or
   showing who saved a rule; a list or filter of the classes without a deadline, and admins setting a deadline by
   hand.
@@ -1321,8 +1344,7 @@ Active specs: none.
   requests on the admin's class details, filtering or searching the tool, a stored history of who decided and
   when, and undoing a decision; telling waiting students when a seat opens is never done, by product decision. On
   cancelling a seat (spec 043): what a late cancellation costs (handled outside the app, by product decision),
-  cancelling several seats at once, undoing a cancellation (the student requests again), and releasing the seats
-  and requests of a removed account (its spec reuses the same release; a promoted student uses it since spec 058). On
+  cancelling several seats at once, and undoing a cancellation (the student requests again). On
   direct enrolment and taking out (spec 044): taking a student out after the class starts, moving a student between
   classes, enrolling several students at once, and enrolling from a class's details. On guests (spec 045):
   editing a guest's name or number, listing a person's past trials, showing a guest's WhatsApp number anywhere in
@@ -1332,10 +1354,15 @@ Active specs: none.
   details following a switch turned back on (it shows at the next opening).
 - On role changes (spec 058): an admin going straight to student, and anyone changing their own role (never
   allowed, by product decision); role actions on the sheets opened from the class details or "Entrar na escola";
-  "Remover da plataforma", the removed accounts section and "Restaurar" (their own spec); undoing a role change and a
+  undoing a role change and a
   success style for toasts; telling anyone but the person (the releases keep their own notifications), and a
   `class.unassigned` per released class. The designs' "Também é instrutor" option is decided against: there is no
   "also an instructor" flag, since every admin can be assigned to teach.
+- On removing and restoring accounts (spec 066): removing a pending, denied, deleted or already removed account;
+  the remove action on the sheets opened from the class details or "Entrar na escola"; giving back, on a restore,
+  the seats, requests or classes the removal released; a confirmation before "Restaurar", a success toast, and any
+  other way to undo a removal; ending a removed account's sessions or removing its phones; the real count on the
+  homes' "9 na plataforma" rows.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests.
 

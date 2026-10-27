@@ -1,4 +1,4 @@
-# Manual REST Client requests for GET /people and PUT /people/:id/role (VS Code REST Client).
+# Manual REST Client requests for GET /people, PUT /people/:id/role, POST /people/:id/remove, GET /people/removed and POST /people/:id/restore (VS Code REST Client).
 # Sign in with any approved review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
 # Codes are read from the backend log when RESEND_API_KEY is unset.
 
@@ -82,3 +82,30 @@ Content-Type: application/json
 {
   "role": "student"
 }
+
+### Remove someone from the platform, as an approved admin (expects 200 { id, status: "removed" }). The account gives up its
+### upcoming seats, pending requests and class assignments; its sessions stay, so it signs in to see "Access removed". The
+### person gets an account.removed notification.
+POST {{baseUrl}}/people/{{personId}}/remove
+Authorization: Bearer {{token}}
+
+### Refusals: a student or instructor caller (403 user.role.notAdmin); an unknown id (404 user.notFound); one's own id
+### (403 user.remove.self); a person who isn't approved (409 user.status.notApproved); the only approved admin
+### (409 user.role.lastAdmin)
+POST {{baseUrl}}/people/{{personId}}/remove
+Authorization: Bearer {{token}}
+
+### Removed accounts still inside their 30-day window, most recent removal first
+### (expects 200 { items: [{ id, name, role, removedAt }] })
+GET {{baseUrl}}/people/removed
+Authorization: Bearer {{token}}
+
+### Restore a removed account within 30 days (expects 200 { id, status: "approved" }). It keeps its role and history; the
+### seats, requests and classes the removal released stay released. The person gets an account.restored notification.
+POST {{baseUrl}}/people/{{personId}}/restore
+Authorization: Bearer {{token}}
+
+### Refusals: an account that isn't removed (409 user.status.notRemoved); one removed 30 days ago or more
+### (409 removal.window.ended); an unknown id (404 user.notFound)
+POST {{baseUrl}}/people/{{personId}}/restore
+Authorization: Bearer {{token}}

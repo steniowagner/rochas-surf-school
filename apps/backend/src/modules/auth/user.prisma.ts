@@ -167,6 +167,23 @@ export class PrismaUserRepository implements UserRepository {
     return count === 1;
   }
 
+  async findRemovedSince(cutoff: Date): Promise<User[]> {
+    const records = await this.prisma.user.findMany({
+      where: { status: 'removed', removedAt: { not: null, gt: cutoff } },
+      orderBy: [{ removedAt: 'desc' }, { id: 'asc' }],
+      include,
+    });
+    return records.map((record) => this.toDomain(record));
+  }
+
+  async updateIfRemoved(user: User): Promise<boolean> {
+    const { count } = await this.prisma.user.updateMany({
+      where: { id: user.id, status: 'removed' },
+      data: this.toData(user),
+    });
+    return count === 1;
+  }
+
   async findDeniedBefore(cutoff: Date): Promise<string[]> {
     const records = await this.prisma.user.findMany({
       where: { status: 'denied', deniedAt: { lte: cutoff } },

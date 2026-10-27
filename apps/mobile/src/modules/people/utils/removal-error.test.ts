@@ -22,6 +22,7 @@ describe("getRestoreErrorKey", () => {
     [new SessionExpiredError(), null],
     [new ApiError(409, ["something.else"]), "createAccount.errors.generic"],
     [new ApiError(404, ["user.notFound"]), "createAccount.errors.generic"],
+    [new ApiError(409, []), "createAccount.errors.generic"],
   ])("maps %p to %p", (error, key) => {
     expect(getRestoreErrorKey(error)).toBe(key);
   });

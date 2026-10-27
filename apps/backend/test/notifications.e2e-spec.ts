@@ -226,7 +226,16 @@ describe('Notifications (e2e)', () => {
       expect(await prisma.pushToken.findUnique({ where: { token } })).toMatchObject({ userId: user.id, locale: 'es' });
     });
 
-    it.each(['denied', 'removed'] as const)('refuses a %s account', async (status) => {
+    it('registers for a removed account, so the restore reaches the phone', async () => {
+      const user = await account('student', 'removed');
+      const token = `ExpoPushToken[${TOKEN_MARK}-removed]`;
+
+      await register(user.accessToken, { token, locale: 'es' }).expect(204);
+
+      expect(await prisma.pushToken.findUnique({ where: { token } })).toMatchObject({ userId: user.id, locale: 'es' });
+    });
+
+    it.each(['denied'] as const)('refuses a %s account', async (status) => {
       const user = await account('student', status);
 
       // A 403 is answered before any body check, so the invalid body doesn't turn it into a 422.

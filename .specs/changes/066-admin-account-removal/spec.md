@@ -383,12 +383,13 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-10** — Add the data layer in `src/modules/people/`: the `RemovedAccount` type in `people.types.ts`,
+- [x] **T-10** — Add the data layer in `src/modules/people/`: the `RemovedAccount` type in `people.types.ts`,
   `hooks/use-remove-person.hook.ts` (the removal mutation, invalidating people, classes and removed accounts),
   `hooks/use-removed-accounts.hook.ts` (the `GET /people/removed` query, enabled only for an approved admin, with its
   query key) and `hooks/use-restore-account.hook.ts` (the restore mutation), and `utils/removal-error.ts` (the toast
   of each error key, D-11), with tests next to each.
   Covers: enabling · Done when: `npx jest src/modules/people/hooks src/modules/people/utils` passes.
+  > ✅ 2026-10-27 — added the `RemovedAccount` / `RemovedAccountsResponse` / `AccountStatusChange` types, the removal and restore mutations, the removed-accounts query (admin only, key `["removed-accounts"]`) and the toast keys of each error, with tests; files: `apps/mobile/src/modules/people/people.types.ts`, `apps/mobile/src/modules/people/hooks/use-remove-person.hook.ts`, `apps/mobile/src/modules/people/hooks/use-remove-person.hook.test.tsx`, `apps/mobile/src/modules/people/hooks/use-restore-account.hook.ts`, `apps/mobile/src/modules/people/hooks/use-restore-account.hook.test.tsx`, `apps/mobile/src/modules/people/hooks/use-removed-accounts.hook.ts`, `apps/mobile/src/modules/people/hooks/use-removed-accounts.hook.test.tsx`, `apps/mobile/src/modules/people/utils/removal-error.ts`, `apps/mobile/src/modules/people/utils/removal-error.test.ts`; verified: `npx jest src/modules/people/hooks src/modules/people/utils` (58 passed) and `npx tsc --noEmit` (exit 0); deviations: added `isStaleRestoreError` to the util (tells which restore refusals reload the removed accounts, D-11)
 - [ ] **T-11** — Add the "Remover da plataforma" action to `components/person-role-actions` and a
   `components/remove-confirmation` component (D-08, D-09), wired in `components/person-sheet`, with the `people.removeAction.*`
   and `people.removeConfirm.*` keys in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, and tests named "remove action" and

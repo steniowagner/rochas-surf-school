@@ -41,3 +41,22 @@ export type RoleAction =
   | "promoteAdmin"
   | "demoteStudent"
   | "adminToInstructor";
+
+/** One removed account inside its 30-day window, as `GET /people/removed` answers it (`removedAt` an ISO 8601 string). */
+export type RemovedAccount = {
+  id: string;
+  name: string;
+  role: PeopleRole;
+  removedAt: string;
+};
+
+/** What `GET /people/removed` answers. */
+export type RemovedAccountsResponse = {
+  items: RemovedAccount[];
+};
+
+/** What `POST /people/:id/remove` and `POST /people/:id/restore` answer. */
+export type AccountStatusChange = {
+  id: string;
+  status: "removed" | "approved";
+};

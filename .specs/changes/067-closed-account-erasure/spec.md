@@ -2,10 +2,11 @@
 id: "067"
 slug: closed-account-erasure
 title: Deleted and removed accounts are erased after 30 days
-status: in-review
+status: accepted
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 3d24f0f1df38183bb9643f2368bbb3093445a36a
+reviewed_commit: a296a95199e85f027cdf95bb8641823d414cf3a0
 fronts: [notifications, enrolment, auth, classes, backend, mobile]
 depends_on: ["066"]
 ---
@@ -665,3 +666,59 @@ and removal.
   nothing to change.
 
 ## Review
+
+### Round 1 — 2026-10-27 — accepted
+
+**Checks**
+
+- lint ✅ (backend: 11 warnings, all in e2e lines older than this spec) · type check ✅ · build ✅ (notifications,
+  enrolment, auth, classes, backend, mobile)
+- related tests ✅ `RELATED TESTS PASSED` — backend, mobile 579, auth 1782, classes 417, notifications 292, enrolment
+  192, school-rules 113
+- coverage of the changed lines ✅ `COVERAGE OK` (31 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` — 28 files, 782 passed, on a fresh database (`rochas_e2e_067_review`, all
+  migrations applied, `users_erasure` included); each `-t` filter of `account-erasure.e2e-spec.ts` named by the
+  Verify by lines matches and passes (1, 1, 3, 1, 1 and 2 tests)
+
+**Expected Results**
+
+- ER-01 ✅ — e2e "erases a deleted account": the row is `erased` with the person's fields null, id, role, creation and
+  deletion dates kept; identities, refresh and push tokens, acceptances, own notifications and the old sign-in code
+  gone; taught class and approved seat kept; `/auth/me` 401 `auth.token.invalid`, `/auth/refresh` 401
+  `auth.refreshToken.invalid`; the old email signs up as a new `pending` account. Use case test 11 passed.
+- ER-02 ✅ — e2e: erased, not in `GET /people/removed`, restore 404 `user.notFound` (D-13).
+- ER-03 ✅ — e2e "leaves": the not-due, dateless, approved, pending and denied accounts unchanged; a second run erases
+  0; a due denied registration is still hard-deleted. The race (approved again before the write) in
+  `user.prisma.spec.ts -t eraseClosed` (6 passed).
+- ER-04 ✅ — e2e: erased with a pending request, out of `GET /reactivation-requests`, approve 404
+  `reactivation.notFound`, the admin's notice deleted.
+- ER-05 ✅ — e2e: `GET /classes/:id` and the week list answer the erased instructor and student with their ids and
+  `name: null`, the others named, `seatsTaken` and guests unchanged; reader specs pass.
+- ER-06 ✅ — e2e: the six rows of the four types about X (admin and instructor inboxes) deleted, the six about Y and
+  the legacy one without `studentId` kept; the failing-eraser case in the auth use case test.
+- ER-07 ✅ — notifier spec and `npx jest test/enrolment/usecase` (156 passed): `studentId` in both params, from the
+  request, the cancellation and the release; text unchanged (`push-messages.spec.ts`).
+- ER-08 ✅ — `account-erasure.job.spec.ts` (6 passed): both erasures in order, one count line per kind with no ids,
+  nothing due → no log, each step survives the other failing, `run()` never throws.
+- ER-09 ✅ — `npx jest src/modules/classes -t "erased"` (16 passed): pt-BR "Ex-instrutor" / "Ex-aluno", es-ES and en-US
+  labels, generic avatar with no initials, nothing opens on press, no Take out for the erased student; named people
+  and the guest unchanged.
+- ER-10 ✅ — same run: the class and ongoing cards draw the erased student's generic avatar; a class whose only
+  instructor is erased isn't "without instructor"; edit-class lists the erased kept teacher as "Former instructor".
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The simulator journey of the Verification Plan was not repeated: it erases two dev-database accounts for good
+  (T-16 restored them from a backup). ER-09 and ER-10 rest on their Verify by component tests and on T-16's recorded
+  observation.
+- Memory Impact misses a few things the code does, for `spec-finish` to record: `JwtStrategy` refuses an erased
+  account (or one with no email) with `auth.token.invalid`, a change also made in the `backend-nest-config` template;
+  `PrismaTeacherLookup` and `PrismaClassContactReader` leave erased accounts out; `toClassItem` sorts erased
+  instructors after the named ones (then by id); `AccountErasureJob.run()` now answers
+  `{ deniedRegistrations, closedAccounts }`.
+- `check-spec.mjs` warns that the D ids aren't in document order (D-14 sits after D-09): cosmetic.
+- The databases `rochas_e2e_067` (execution) and `rochas_e2e_067_review` (this review) are left on the local Postgres.

@@ -155,13 +155,15 @@ export type CreateClassesResponse = {
 /** A person teaching a class. */
 export type ClassInstructor = {
   id: string;
-  name: string;
+  /** `null` once the person's account was erased: shown as "Former instructor" (`personLabel`). */
+  name: string | null;
 };
 
 /** An approved student of a class. */
 export type ClassStudent = {
   id: string;
-  name: string;
+  /** `null` once the student's account was erased: shown as "Former student" (`personLabel`). */
+  name: string | null;
   /** `null` until profile photos can be uploaded. */
   photoUrl: string | null;
   /** The student's approved enrolment in the class, which an admin can take them out of. */

@@ -492,13 +492,33 @@ and removal.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-13** — Make `ClassInstructor.name` and `ClassStudent.name` `string | null` in
+- [x] **T-13** — Make `ClassInstructor.name` and `ClassStudent.name` `string | null` in
   `src/modules/classes/classes.types.ts`, add `src/modules/classes/utils/person-label.ts` (the label of a name or of an
   erased instructor or student, D-07) and an `erased` variant of `components/student-avatar` (person icon, no
   initials), with the `classes.erased.*` keys in `src/i18n/messages/{pt-BR,es-ES,en-US}.ts`, and tests next to each.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `npx jest src/modules/classes/utils src/modules/classes/components/student-avatar`
   passes and `npx tsc --noEmit` exits 0.
+  > ✅ 2026-10-27 16:10 — following the React Native skills and `.claude/rules/react.md`: `ClassInstructor.name` and
+  > `ClassStudent.name` are `string | null` (null = erased); `utils/person-label.ts` adds `personLabel(name, list,
+  > t)` — the name, or the `classes.erased.student` / `classes.erased.instructor` label chosen by the list the
+  > person is shown in (D-07); `StudentAvatar` takes `erased` and then draws the guest avatar’s person icon (Feather
+  > `user`, `ink2`, half the circle) on the same `sand` circle, never the photo or initials, labelled by its `name`
+  > prop (the caller passes the label); the `classes.erased.*` keys hold the D-07 copy in pt-BR, es-ES and en-US.
+  > Tests: `person-label.test.ts` (name kept; both labels in the three locales) and a `StudentAvatar` erased case.
+  > files: `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/utils/person-label.ts`,
+  > `apps/mobile/src/modules/classes/utils/person-label.test.ts`,
+  > `apps/mobile/src/modules/classes/components/student-avatar/student-avatar.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/student-avatar/student-avatar.types.ts`,
+  > `apps/mobile/src/modules/classes/components/student-avatar/student-avatar.component.test.tsx`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`; verified: `npx jest src/modules/classes/utils
+  > src/modules/classes/components/student-avatar` (174 passed), `eslint` clean on these files; `npx tsc --noEmit`
+  > does not exit 0 yet: the nullable names break only the seven files T-14 and T-15 change (class-card,
+  > class-people and its hook, ongoing-class-card, class-details screen and hook, edit-class hook) — rechecked at
+  > the end of T-15; deviations: that type check, and the erased avatar is a prop of `StudentAvatar` (`erased`)
+  > rather than a separate component.
 - [ ] **T-14** — Use the label and the erased avatar, and make the rows not tappable, in
   `components/class-people` and `screens/class-details.screen.tsx` (with its hook), with tests named "erased" (D-09).
   Covers: ER-09 · Done when: `npx jest src/modules/classes -t "erased"` passes.

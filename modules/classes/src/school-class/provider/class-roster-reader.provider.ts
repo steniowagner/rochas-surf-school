@@ -1,7 +1,8 @@
 /** An approved student of a class. */
 export interface ClassStudent {
   id: string;
-  name: string;
+  /** Null once the student's account was erased. */
+  name: string | null;
   photoUrl: string | null;
   /** The student's approved enrolment in the class, which an admin can take them out of. */
   enrolmentId: string;

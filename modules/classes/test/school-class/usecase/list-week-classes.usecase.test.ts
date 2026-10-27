@@ -191,6 +191,38 @@ describe("ListWeekClasses", () => {
     expect(out.items[0]!.instructors.map((i) => i.id)).toEqual(["y", "z"]);
   });
 
+  it("passes erased instructors and students through with a null name, the erased instructors last by id", async () => {
+    const students = [
+      { id: "s-erased", name: null, photoUrl: null, enrolmentId: "e-erased" },
+      { id: "s-1", name: "Aluno 1", photoUrl: null, enrolmentId: "e-1" },
+    ];
+    const out = await useCase(
+      [
+        view("c", "2026-10-14T11:00:00.000Z", "2026-10-14T12:00:00.000Z", {
+          instructors: [
+            { id: "x", name: null },
+            { id: "z", name: "Zeca" },
+            { id: "w", name: null },
+            { id: "y", name: "ana" },
+          ],
+        }),
+        view("d", "2026-10-15T11:00:00.000Z", "2026-10-15T12:00:00.000Z", {
+          instructors: [{ id: "only", name: null }],
+        }),
+      ],
+      new FakeClassRosterReader({ c: { students } }),
+    ).execute({ actor: STUDENT, date: "2026-10-14" });
+
+    expect(out.items[0]!.instructors).toEqual([
+      { id: "y", name: "ana" },
+      { id: "z", name: "Zeca" },
+      { id: "w", name: null },
+      { id: "x", name: null },
+    ]);
+    expect(out.items[0]).toMatchObject({ seatsTaken: 2, students });
+    expect(out.items[1]!.instructors).toEqual([{ id: "only", name: null }]);
+  });
+
   it("answers an empty week", async () => {
     const out = await useCase().execute({ actor: ADMIN, date: "2026-11-02" });
 

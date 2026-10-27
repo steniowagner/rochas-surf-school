@@ -111,6 +111,31 @@ describe("GetClass", () => {
     });
   });
 
+  it("passes an erased instructor and an erased student through with a null name, after the named ones", async () => {
+    const reader = new FakeClassViewReader([
+      buildClassView({
+        id: ID,
+        instructors: [
+          { id: "i-0", name: null },
+          { id: "i-2", name: "Bruno" },
+          { id: "i-1", name: "ana" },
+        ],
+      }),
+    ]);
+    const students = [{ id: "s-erased", name: null, photoUrl: null, enrolmentId: "e-erased" }, ...SEVEN.slice(0, 1)];
+    const rosters = new FakeClassRosterReader({ [ID]: { students, guests: GUESTS } });
+
+    const out = await new GetClass(reader, rosters, new FakeViewerEnrolmentReader(), new FakePendingRequestCounter(), new FakeClassContactReader()).execute({ actor: ADMIN, id: ID });
+
+    expect(out.instructors).toEqual([
+      { id: "i-1", name: "ana", role: "instructor", whatsappNumber: null },
+      { id: "i-2", name: "Bruno", role: "instructor", whatsappNumber: null },
+      { id: "i-0", name: null, role: "instructor", whatsappNumber: null },
+    ]);
+    expect(out.students).toEqual(students.map((student) => ({ ...student, whatsappNumber: null })));
+    expect(out).toMatchObject({ seatsTaken: 4, guests: GUESTS });
+  });
+
   it("answers all the students of the class and its seats taken", async () => {
     const { rosterReader, useCase } = setup();
 

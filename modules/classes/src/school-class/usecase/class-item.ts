@@ -38,8 +38,16 @@ export function canSeeGuestNames(actor: ClassActor, view: ClassView): boolean {
 
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 
+/** A–Z ignoring case and accents; an erased person (no name) comes after the named ones. */
+function compareNames(a: string | null, b: string | null): number {
+  if (a === null || b === null) return (a === null ? 1 : 0) - (b === null ? 1 : 0);
+
+  return collator.compare(a, b);
+}
+
 /**
- * The answer shape of a class: ISO dates and the instructors sorted A–Z by name, ignoring case and accents.
+ * The answer shape of a class: ISO dates and the instructors sorted A–Z by name, ignoring case and accents, the
+ * erased ones (no name) last.
  * Without a roster the class has no seats taken; without an enrolment the caller has none. The guests' names
  * show only when `showGuestNames` (an admin, or an instructor of the class).
  */
@@ -63,9 +71,7 @@ export function toClassItem(
     location: { ...view.location },
     instructors: view.instructors
       .map((instructor) => ({ ...instructor }))
-      .sort(
-        (a, b) => collator.compare(a.name, b.name) || a.id.localeCompare(b.id),
-      ),
+      .sort((a, b) => compareNames(a.name, b.name) || a.id.localeCompare(b.id)),
     seatsTaken: roster?.seatsTaken ?? 0,
     students: (roster?.students ?? []).map((student) => ({ ...student })),
     guests: (roster?.guests ?? []).map((guest) => ({

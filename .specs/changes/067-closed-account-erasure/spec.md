@@ -308,11 +308,24 @@ and removal.
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-05** — Make `ClassViewInstructor.name` (`src/school-class/provider/class-view-reader.provider.ts`) and
+- [x] **T-05** — Make `ClassViewInstructor.name` (`src/school-class/provider/class-view-reader.provider.ts`) and
   `ClassStudent.name` (`src/school-class/provider/class-roster-reader.provider.ts`) `string | null` (D-08), adjust the
   use cases and outputs that carry them (`get-class.usecase.ts` and the list use cases), with tests that pass a `null`
   name through.
   Covers: ER-05 · Done when: `npx jest` passes and `npm run check-types` exits 0 in `modules/classes`.
+  > ✅ 2026-10-27 15:40 — made `ClassViewInstructor.name` and `ClassStudent.name` `string | null` (D-08, null =
+  > erased); the only use that needed a change was the instructors' sort in `toClassItem` (`class-item.ts`, used by
+  > `GetClass` and every list use case), which now puts the erased instructors (no name) after the named ones, then
+  > by id; tests pass a null instructor and student through `GetClass` (with guests and `seatsTaken` unchanged) and
+  > `ListWeekClasses` (including a class whose only instructor is erased) — the sort case fails with the old
+  > comparator; files: `modules/classes/src/school-class/provider/class-view-reader.provider.ts`,
+  > `modules/classes/src/school-class/provider/class-roster-reader.provider.ts`,
+  > `modules/classes/src/school-class/usecase/class-item.ts`,
+  > `modules/classes/test/school-class/usecase/get-class.usecase.test.ts`,
+  > `modules/classes/test/school-class/usecase/list-week-classes.usecase.test.ts`; verified: `npx jest` in
+  > `modules/classes` (579 passed, `class-item.ts` at 100%), `npm run check-types` exit 0; deviations: the place of
+  > an erased instructor in the A–Z order (last, by id) is not stated by the spec — chosen so a named instructor
+  > leads the list.
 
 ### Backend (`apps/backend`)
 

@@ -288,13 +288,23 @@ and removal.
   > `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/mock/index.ts`; verified: `npx jest` (485
   > passed) and `npm run check-types` exit 0 in `modules/auth`; deviations: none (the backend `PrismaUserRepository`
   > implements the methods in T-07).
-- [ ] **T-04** — Add `EraseClosedAccounts` in `src/user/usecase/erase-closed-accounts.usecase.ts` (D-03, D-05:
+- [x] **T-04** — Add `EraseClosedAccounts` in `src/user/usecase/erase-closed-accounts.usecase.ts` (D-03, D-05:
   cutoff 30 × 24 h, ids, eraser first, then `eraseClosed`; `{ erased }`), exported from the index, with tests in
   `test/user/usecase/erase-closed-accounts.usecase.test.ts` for due deleted and removed accounts, not due, no date, none
   due, a failing eraser (nothing erased) and the count. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-02, ER-03, ER-06 · Done when: `npx jest test/user/usecase/erase-closed-accounts.usecase.test.ts`
   passes in `modules/auth`.
+  > ✅ 2026-10-27 15:39 — added `EraseClosedAccounts` (cutoff now − 30 × 24 h, `findClosedBefore`, then
+  > `PersonNotificationEraser.erase(ids)` before `eraseClosed(ids, cutoff)`, answering `{ erased }`; nothing called
+  > when none is due), exported from the use case index, following `EraseDeniedRegistrations`; tests (written first,
+  > 11 failed before the use case existed) for due deleted and removed accounts, a due account with a pending
+  > reactivation request, several at once with the count, not due, no date, other statuses, none due, a second run,
+  > the cutoff passed to the write, and a failing eraser (nothing erased, the next run erases it); files:
+  > `modules/auth/src/user/usecase/erase-closed-accounts.usecase.ts`, `modules/auth/src/user/usecase/index.ts`,
+  > `modules/auth/test/user/usecase/erase-closed-accounts.usecase.test.ts`; verified: `npx jest
+  > test/user/usecase/erase-closed-accounts.usecase.test.ts` (11 passed, the use case at 100% coverage), `npm run
+  > check-types` exit 0; deviations: none.
 
 ### Classes module (`modules/classes`)
 

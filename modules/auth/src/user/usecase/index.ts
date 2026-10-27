@@ -19,6 +19,7 @@ export * from "./list-reactivation-requests.usecase";
 export * from "./approve-reactivation.usecase";
 export * from "./deny-reactivation.usecase";
 export * from "./erase-denied-registrations.usecase";
+export * from "./erase-closed-accounts.usecase";
 export * from "./list-people.usecase";
 export * from "./change-role.usecase";
 export * from "./remove-user.usecase";

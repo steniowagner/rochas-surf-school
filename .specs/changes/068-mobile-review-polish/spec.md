@@ -134,10 +134,18 @@ a class is the same on the button and on its confirmation.
   > and `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx` (which drives the
   > request/withdraw/cancel-seat/take-out sheets); verified: `npx jest src/modules/enrolment
   > src/modules/classes` (1379 passed), `npx tsc --noEmit` clean; deviations: none
-- [ ] **T-04** — Replace `px-[22px]` with `px-screen` and `left-[22px] right-[22px]` with
+- [x] **T-04** — Replace `px-[22px]` with `px-screen` and `left-[22px] right-[22px]` with
   `left-screen right-screen` in the 14 files listed in Context.
   Covers: ER-02 · Done when: `grep -rnE '(px|left|right)-\[22px\]' apps/mobile/src` prints nothing and
   `npm test` (from `apps/mobile`) passes.
+  > ✅ 2026-10-27 — replaced `px-[22px]` with `px-screen` in 13 files (15 occurrences); the 14th file, `Toast`,
+  > already got `left-screen right-screen` in T-01; files: `apps/mobile/src/components/account-status/account-status.component.tsx`,
+  > `apps/mobile/src/modules/auth/components/{auth,confirm-code,email-choice,create-account,email-sign-in,google-name}/*.component.tsx`,
+  > `.../school-rules/components/school-rules-acceptance/*.component.tsx`,
+  > `.../profile/components/{edit-profile,profile-whatsapp,profile}/*.component.tsx`,
+  > `.../onboarding/components/whatsapp/whatsapp.component.tsx`, `.../pending/components/pending/pending.component.tsx`;
+  > verified: `grep -rnE '(px|left|right)-\[22px\]' apps/mobile/src` prints nothing, `npm test` in
+  > `apps/mobile` (309 suites, 3357 passed); deviations: none
 - [ ] **T-05** — Change `classTools.delete` in `src/i18n/messages/pt-BR.ts` to "Excluir aula" and update
   `class-tools-sheet.component.test.tsx`.
   Covers: ER-03 · Done when: `npx jest src/modules/classes/components/class-tools-sheet` passes.

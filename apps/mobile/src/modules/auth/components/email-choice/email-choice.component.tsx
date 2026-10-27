@@ -22,7 +22,7 @@ export function EmailChoice({
 
   return (
     <View
-      className="flex-1 bg-page px-[22px]"
+      className="flex-1 bg-page px-screen"
       style={{
         paddingTop: headerInset,
         paddingBottom: Math.max(insets.bottom, 24),

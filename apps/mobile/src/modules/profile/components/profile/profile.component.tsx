@@ -45,7 +45,7 @@ export function Profile() {
         className="flex-1"
         // On iOS the safe areas and the floating tab bar are added by the scroll view; Android needs its status bar.
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-6 px-[22px] pb-6"
+        contentContainerClassName="gap-6 px-screen pb-6"
         contentContainerStyle={{
           paddingTop: Platform.OS === "android" ? insets.top + 24 : 24,
         }}

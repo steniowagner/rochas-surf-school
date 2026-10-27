@@ -24,7 +24,7 @@ import { refreshAccount } from "../utils/refresh-account";
 
 import { UseNotificationsScreenResult } from "./notifications.screen.types";
 
-// A new role starts at its flow's home: the account is reloaded first, as for a tapped push, so `index` redirects
+// A new role, a removal or a restore starts at the flow's home: the account is reloaded first, as for a tapped push, so `index` redirects
 // to the new role's flow even when the push never reached the open app (spec 058, D-13).
 const openNewRoleHome = async () => {
   try {
@@ -71,7 +71,12 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
       return;
     }
 
-    if (notification.type === "role.changed" && user) {
+    if (
+      (notification.type === "role.changed" ||
+        notification.type === "account.removed" ||
+        notification.type === "account.restored") &&
+      user
+    ) {
       void openNewRoleHome();
 
       return;

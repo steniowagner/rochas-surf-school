@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { PENDING_REQUESTS_QUERY_KEY } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { REACTIVATIONS_QUERY_KEY } from "@/modules/admin/utils/reactivations-cache";
 import { REGISTRATIONS_QUERY_KEY } from "@/modules/admin/utils/registrations-cache";
+import { REMOVED_ACCOUNTS_QUERY_KEY } from "@/modules/people/hooks/use-removed-accounts.hook";
 import { getSession } from "@/services/session/session.store";
 
 import {
@@ -18,7 +19,7 @@ import { refreshAccount } from "../utils/refresh-account";
  * (spec 020, D-16): a decision (a registration's or a reactivation's) refreshes the account, and a reactivation request reloads the admin's requests, so the flow guards move the app on by themselves, and a
  * new registration refreshes the admin's list, and a class assignment reloads the cached weeks, and an edited, unassigned, cancelled, deleted or instructor-less class reloads every cached class, and a changed location reloads the classes and the locations, and a new seat request (also the admins' pending list), an expired, approved, denied, direct-enrolled or taken-out one reloads every cached class, and a cancelled seat reloads them and the admins' pending list (its waiting count); every push also reloads the notifications
  * list and the unread count (spec 055); a role change refreshes the account, so the guards move the app to the new
- * role's flow, and reloads the people (spec 058, D-13). No navigation.
+ * role's flow, and reloads the people (spec 058, D-13); a removed or restored account does the same and also reloads the removed accounts (spec 066, D-12). No navigation.
  */
 export const useNotificationReceived = () => {
   const queryClient = useQueryClient();
@@ -96,12 +97,21 @@ export const useNotificationReceived = () => {
           void queryClient.invalidateQueries({ queryKey: ["people"] });
         }
 
+        // An admin's app reloads the directory and the removed accounts; the removed or restored person's own app
+        // moves with the account (spec 066, D-12).
+        if (type === "account.removed" || type === "account.restored") {
+          void queryClient.invalidateQueries({ queryKey: ["people"] });
+          void queryClient.invalidateQueries({ queryKey: REMOVED_ACCOUNTS_QUERY_KEY });
+        }
+
         if (
           (type === "registration.approved" ||
             type === "registration.denied" ||
             type === "reactivation.approved" ||
             type === "reactivation.denied" ||
-            type === "role.changed") &&
+            type === "role.changed" ||
+            type === "account.removed" ||
+            type === "account.restored") &&
           getSession()
         ) {
           // Only an expired session makes it throw: useSessionExpired owns that case.

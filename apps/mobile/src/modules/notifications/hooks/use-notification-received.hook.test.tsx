@@ -327,6 +327,8 @@ describe("useNotificationReceived", () => {
     "enrolment.enrolled",
     "enrolment.takenOut",
     "role.changed",
+    "account.removed",
+    "account.restored",
     "broadcast",
   ])("reloads the notifications list and the unread count when a %s push arrives", async (type) => {
     answerMe(account("pending"));
@@ -382,6 +384,29 @@ describe("useNotificationReceived", () => {
     await act(async () => screen.unmount());
 
     expect(subscriptions.every((item) => item.remove.mock.calls.length > 0)).toBe(true);
+  });
+
+  describe.each(["account.removed", "account.restored"])("%s", (type) => {
+    it("reloads the account, so the flow guards move the app, and the people and removed accounts", async () => {
+      answerMe({ ...account("approved", "student"), whatsappNumber: "+5585999998888", rulesAccepted: true });
+      await openApp(account("pending"));
+
+      await receive(push(type));
+
+      await waitFor(() => expect(getSession()?.user.status).toBe("approved"));
+      expect(meCalls()).toHaveLength(1);
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["people"] });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["removed-accounts"] });
+    });
+
+    it("reloads nothing of the account without a session", async () => {
+      answerMe(account("approved"));
+      await openApp(null);
+
+      await receive(push(type));
+
+      expect(meCalls()).toHaveLength(0);
+    });
   });
 
   describe("role.changed", () => {

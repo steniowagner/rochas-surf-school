@@ -374,6 +374,23 @@ describe("NotificationsScreen", () => {
         expect(storedFlow()).toBe("student");
       });
 
+      it.each(["account.removed", "account.restored"])(
+        "a %s row reloads the account too, then opens the resolved flow's home",
+        async (type) => {
+          serve({
+            count: 1,
+            list: () => page([buildNotification(1, { type, classId: null, title: "Your role changed" })]),
+            me: () => ok(instructor),
+          });
+
+          await pressRow();
+
+          await waitFor(() => expect(router.replace).toHaveBeenCalledWith(routes.home));
+          expect(accountReloads()).toHaveLength(1);
+          expect(router.push).not.toHaveBeenCalled();
+        },
+      );
+
       it("opens nothing when the session expired during the reload", async () => {
         serve({
           count: 1,

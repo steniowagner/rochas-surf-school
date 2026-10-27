@@ -465,6 +465,19 @@ describe("useNotificationResponse", () => {
     await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
   });
 
+  it.each(["account.removed", "account.restored"])(
+    "opens the home of the resolved flow when an %s push is tapped, after refreshing the account",
+    async (type) => {
+      answerMe(account("approved", "instructor", true));
+      await openApp(account("approved", "student", true));
+
+      await tap(response(type));
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.instructor.home));
+      expect(meCalls()).toHaveLength(1);
+    },
+  );
+
   it("shows the current home when a broadcast push is tapped", async () => {
     answerMe(account("approved", "student", true));
     await openApp(account("approved", "student", true));

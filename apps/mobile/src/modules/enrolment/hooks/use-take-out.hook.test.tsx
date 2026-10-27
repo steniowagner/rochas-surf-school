@@ -68,7 +68,7 @@ describe("useTakeOut", () => {
     await act(async () => result.current.confirm("Nível avançado"));
 
     expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/enrolments/e-1/take-out");
-    expect(mockShow).toHaveBeenCalledWith("Ana Souza taken out · student notified");
+    expect(mockShow).toHaveBeenCalledWith("Ana Souza taken out · student notified", { tone: "success" });
     expect(result.current.target).toBeNull();
     expect(reload).not.toHaveBeenCalled();
   });

@@ -31,7 +31,7 @@ export const useTakeOut = (reload: () => void) => {
 
     try {
       await mutation.mutateAsync({ id: target.enrolmentId, reason });
-      alertMessage.show(t("takeOutSheet.done", { name: target.name }));
+      alertMessage.show(t("takeOutSheet.done", { name: target.name }), { tone: "success" });
       close();
     } catch (error) {
       const key = getTakeOutErrorKey(error);

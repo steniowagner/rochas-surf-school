@@ -121,10 +121,19 @@ a class is the same on the button and on its confirmation.
   > src/modules/{classes,notices,school-rules,cancellation-rules,school-settings}` (116 suites, 1278 passed),
   > `npx tsc --noEmit` clean; deviations: tests of screens using the real provider read the tone through a
   > small Toast probe, since NativeWind compiles classes away.
-- [ ] **T-03** — Pass `{ tone: "success" }` at the success calls of D-03 in `src/modules/enrolment`
+- [x] **T-03** — Pass `{ tone: "success" }` at the success calls of D-03 in `src/modules/enrolment`
   (`enrol-student.screen.hook.ts`, `use-class-requests-screen.hook.ts`, `use-take-out.hook.ts`,
   `use-take-guest-out.hook.ts`, `use-class-enrolment.hook.ts`), updating their tests to assert the tone.
   Covers: ER-01 · Done when: `npx jest src/modules/enrolment` passes.
+  > ✅ 2026-10-27 — passed `{ tone: "success" }` at the D-03 enrolment calls (enrol student/trial,
+  > approve/deny request, take out, take guest out, request/waiting list, withdraw, cancel seat); error calls
+  > untouched; updated the assertions that check `show`; files:
+  > `apps/mobile/src/modules/enrolment/screens/enrol-student.screen.hook.ts`,
+  > `.../hooks/{use-class-requests-screen,use-take-out,use-take-guest-out,use-class-enrolment}.hook.ts`, tests
+  > `.../screens/{enrol-student,class-requests}.screen.test.tsx`, `.../hooks/{use-take-out,use-take-guest-out}.hook.test.tsx`
+  > and `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx` (which drives the
+  > request/withdraw/cancel-seat/take-out sheets); verified: `npx jest src/modules/enrolment
+  > src/modules/classes` (1379 passed), `npx tsc --noEmit` clean; deviations: none
 - [ ] **T-04** — Replace `px-[22px]` with `px-screen` and `left-[22px] right-[22px]` with
   `left-screen right-screen` in the 14 files listed in Context.
   Covers: ER-02 · Done when: `grep -rnE '(px|left|right)-\[22px\]' apps/mobile/src` prints nothing and

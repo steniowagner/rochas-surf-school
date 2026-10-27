@@ -264,7 +264,7 @@ describe("EnrolStudentScreen", () => {
     expect(posts()).toHaveLength(1);
     expect(posts()[0][0]).toBe("http://api.test/classes/c-open/enrolments/direct");
     expect(posts()[0][1].body).toBe(JSON.stringify({ studentId: "s-ana" }));
-    expect(mockShow).toHaveBeenCalledWith("Ana Souza enrolled · student notified");
+    expect(mockShow).toHaveBeenCalledWith("Ana Souza enrolled · student notified", { tone: "success" });
   });
 
   it("sends once when the button is pressed twice", async () => {
@@ -602,7 +602,7 @@ describe("EnrolStudentScreen", () => {
       expect(posts()).toHaveLength(1);
       expect(posts()[0][0]).toBe("http://api.test/classes/c-open/guests");
       expect(posts()[0][1].body).toBe(JSON.stringify({ name: "Carolina Reis", whatsappNumber: "+5585999990000" }));
-      expect(mockShow).toHaveBeenCalledWith("Carolina Reis enrolled");
+      expect(mockShow).toHaveBeenCalledWith("Carolina Reis enrolled", { tone: "success" });
     });
 
     it("keeps Choose class off, and shows the field's error, for an invalid number", async () => {

@@ -31,7 +31,7 @@ export const useTakeGuestOut = (reload: () => void) => {
 
     try {
       await mutation.mutateAsync({ id: target.guestId });
-      alertMessage.show(t("takeOutSheet.guestDone", { name: target.name }));
+      alertMessage.show(t("takeOutSheet.guestDone", { name: target.name }), { tone: "success" });
       close();
     } catch (error) {
       const key = getRemoveGuestErrorKey(error);

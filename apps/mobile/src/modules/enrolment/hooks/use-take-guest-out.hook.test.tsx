@@ -68,7 +68,7 @@ describe("useTakeGuestOut", () => {
     await act(async () => result.current.confirm());
 
     expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/guests/g-1");
-    expect(mockShow).toHaveBeenCalledWith("Carolina Reis taken out");
+    expect(mockShow).toHaveBeenCalledWith("Carolina Reis taken out", { tone: "success" });
     expect(result.current.target).toBeNull();
     expect(reload).not.toHaveBeenCalled();
   });

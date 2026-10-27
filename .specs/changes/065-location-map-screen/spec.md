@@ -3,7 +3,7 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: changes-requested
+status: in-progress
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
@@ -453,8 +453,9 @@ and stacked fields are hard to use.
   select or clear the location on the class form.
 - `memory/structure.md` — the admin route `location-form` (`?id=` for edit) and the new components and hooks in
   `modules/classes`.
-- `memory/technical-context.md` — `expo-location` and its "when in use" permission (asked on demand), and that
-  place taps exist only on Google Maps (Android).
+- `memory/technical-context.md` — `expo-location` and its "when in use" permission (asked on demand), that
+  place taps exist only on Google Maps (Android), and that Apple Maps measures `mapPadding` from the safe area while
+  Google Maps measures it from the map's edges.
 
 ## Amendments
 
@@ -497,13 +498,38 @@ and stacked fields are hard to use.
 
 **Findings**
 
-- [ ] **F-01** (ER-01, D-11) — on iOS, "Editar local" opens with the location's pin hidden behind the bottom panel.
+- [x] **F-01** (ER-01, D-11) — on iOS, "Editar local" opens with the location's pin hidden behind the bottom panel.
   Apple Maps applies `initialRegion` to the whole map, and the `mapPadding` given after `onMapReady` doesn't recentre
   it, so the location sits at the middle of the screen, about 70 pt under the panel's top edge. "Novo local" has the
   same offset (Fortaleza opens just above the panel). Google Maps on Android isn't affected.
   Reproduce: iOS simulator → "Nova aula" → "Gerir" → a location saved with a point → the map shows the streets
   around it, but no pin until the map is dragged up about 180 pt. Expected: the pin centred in the map between the
   header and the panel, as on Android (ER-01: "editing opens with the location's name, address and pin").
+  > ✅ 2026-10-26 — Cause: react-native-maps gives `mapPadding` to the Apple map as its `layoutMargins`, and MapKit
+  > centres the camera inside the safe area *plus* those margins. The map's safe area already holds the transparent
+  > header (116 pt) and the home indicator (34 pt), so on iOS the padding counted both twice; and MapKit doesn't move a
+  > camera it already placed when the margins change, so the opening region (placed before the padding, in the middle
+  > of the safe area: y 478 on an iPhone 18 Pro) stayed under the panel. Measured with `pointForCoordinate` before the
+  > fix: a camera centre set after the padding lands at y 289, exactly (116 + 116 + 874 − 34 − 494) / 2. Fix in
+  > `location-form.screen.hook.ts`: on iOS the padding leaves out the safe area (top 0, bottom = the panel's height −
+  > the home-indicator inset; Android unchanged, from the map's edges), and once the map has its padding (ready and the
+  > panel measured) the camera is set once on the opening point (the edited location, or Fortaleza): once per map, so
+  > the panel growing later (an error under "Nome") doesn't move a map the admin may have panned. The same padding
+  > puts a picked place and "my location" in the middle of the visible map on iOS too (they landed about 40 pt low);
+  > files: `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx` (40 passed; 100% on the screen and its hook;
+  > new tests: Apple padding from the safe area, Google padding from the edges, the re-centre on Fortaleza only once
+  > and only after the panel is measured, on the edited location, and on the map mounted again when the list arrives
+  > late). iOS simulator (iPhone 18 Pro, iOS 27, Dev Admin, debug build of this branch): "Editar local" on "Rocha`s Surf
+  > School" opens with its pin in the visible map: `pointForCoordinate` puts the location at y 264.5, the middle
+  > between the header (116) and the panel's top (413); "Novo local" opens with Fortaleza between the header and the
+  > panel; picking "Ibis Fortaleza Praia de Iracema" from the search centres it above the panel. Android emulator: not
+  > re-checked — `Pixel_Test` was overloaded (load average about 20) and the app didn't get past the splash in about
+  > 10 minutes (Android killed it for an ANR and a start timeout, before any JS ran); the Android padding is unchanged,
+  > and the one-time re-centre it now also gets is covered by the tests. Deviations: none. Note: in this sandbox Jest
+  > hangs at 0% CPU with its cache in the system temp folder; it runs with `TMPDIR` (or `--cacheDirectory`) pointed at a
+  > writable folder.
 
 **Notes**
 

@@ -7,8 +7,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Keyboard, LayoutChangeEvent } from "react-native";
+import { Keyboard, LayoutChangeEvent, Platform } from "react-native";
 import MapView from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAlertMessage } from "@/providers/alert-message";
 
@@ -67,6 +68,7 @@ export const useLocationFormScreen = (
   const alertMessage = useAlertMessage();
   const queryClient = useQueryClient();
   const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const locationsQuery = useLocations();
   const createLocation = useCreateLocation();
@@ -87,6 +89,8 @@ export const useLocationFormScreen = (
   // Google Maps (Android) crashes when it gets a padding before the map is ready: only the map that reported ready
   // (the map is mounted again once an edited location fills the form) gets one.
   const [readyMapKey, setReadyMapKey] = useState<string | null>(null);
+  // The map that was centred again on its opening point, once it had its padding.
+  const centredMapKey = useRef<string | null>(null);
   // The screen is going back: a location that leaves the list now isn't "gone" news.
   const leaving = useRef(false);
 
@@ -104,6 +108,26 @@ export const useLocationFormScreen = (
   const mapKey = filledId ?? "new";
   // "Editar local" opens close on its location; "Novo local" (or a location saved without a point) on Fortaleza.
   const editedPoint = location ? toMapPoint(location) : null;
+  const initialRegion = editedPoint
+    ? regionAround(editedPoint, PLACE_DELTA)
+    : regionAround(null);
+  const padded = readyMapKey === mapKey && panelHeight > 0;
+
+  // The map opens on its point before it has its padding, and neither map moves when the padding arrives: Apple Maps
+  // leaves the point in the middle of the whole screen, under the panel. Once the map has its padding, it is centred
+  // again on that point, in the middle of the visible map. Only once per map: the panel grows later (an error under
+  // Nome), and the admin may have moved the map by then.
+  useEffect(() => {
+    if (padded && centredMapKey.current !== mapKey) {
+      centredMapKey.current = mapKey;
+      mapRef.current?.setCamera({
+        center: {
+          latitude: initialRegion.latitude,
+          longitude: initialRegion.longitude,
+        },
+      });
+    }
+  }, [padded, mapKey, mapRef, initialRegion.latitude, initialRegion.longitude]);
 
   // An id that isn't among the active locations (removed meanwhile, or the list failed): nothing to edit.
   const missing = editing && !locationsQuery.isPending && !location;
@@ -251,9 +275,7 @@ export const useLocationFormScreen = (
     sessionToken,
     // The map opens on the location being edited, else on Fortaleza; it is mounted again when the location arrives.
     mapKey,
-    initialRegion: editedPoint
-      ? regionAround(editedPoint, PLACE_DELTA)
-      : regionAround(null),
+    initialRegion,
     pin: mapPlace.pendingPoint ?? fields.place?.point ?? null,
     resolving: mapPlace.resolving,
     pendingPoint: mapPlace.pendingPoint,
@@ -261,7 +283,16 @@ export const useLocationFormScreen = (
     panelStyle,
     mapPadding:
       readyMapKey === mapKey
-        ? { top: headerHeight, right: 0, bottom: panelHeight, left: 0 }
+        ? // Apple Maps measures the padding from the safe area, which already holds the header the map runs under and
+          // the home indicator; Google Maps from the edges of the map.
+          Platform.OS === "ios"
+          ? {
+              top: 0,
+              right: 0,
+              bottom: Math.max(panelHeight - insets.bottom, 0),
+              left: 0,
+            }
+          : { top: headerHeight, right: 0, bottom: panelHeight, left: 0 }
         : undefined,
     readyMap: () => setReadyMapKey(mapKey),
     archiveVisible,

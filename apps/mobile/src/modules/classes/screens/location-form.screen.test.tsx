@@ -16,6 +16,7 @@ import {
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Keyboard, Platform, StyleSheet } from "react-native";
 import { KeyboardState, useAnimatedKeyboard } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import * as api from "@/services/api";
 
@@ -86,6 +87,9 @@ const mockReverseGeocode = jest.mocked(reverseGeocodeAsync);
 const mockRequestPermission = jest.mocked(requestForegroundPermissionsAsync);
 const mockPosition = jest.mocked(getCurrentPositionAsync);
 const mockParams = useLocalSearchParams as jest.Mock;
+const mockInsets = jest.mocked(useSafeAreaInsets);
+// The library's mock: no insets, unless a test gives some.
+const noInsets = mockInsets.getMockImplementation()!;
 
 const stored = buildLocation({
   id: "l-1",
@@ -225,6 +229,7 @@ beforeEach(() => {
   mockReverseGeocode.mockReset().mockResolvedValue([]);
   mockAnimateToRegion.mockClear();
   mockSetCamera.mockClear();
+  mockInsets.mockImplementation(noInsets);
   jest.spyOn(Keyboard, "dismiss").mockClear();
   mockRequestPermission.mockClear();
   mockPosition.mockClear();
@@ -315,24 +320,68 @@ describe("LocationFormScreen (new)", () => {
     expect(map().props.showsUserLocation).toBe(false);
   });
 
-  it("keeps the map clear of the header and of the panel, once the map is ready", async () => {
-    await renderScreen();
+  describe("map padding", () => {
+    const measurePanel = (height: number) =>
+      act(() =>
+        screen
+          .getByTestId("location-form-panel")
+          .props.onLayout({ nativeEvent: { layout: { height } } }),
+      );
 
-    // Google Maps crashes on a padding set before it is ready.
-    expect(map().props.mapPadding).toBeUndefined();
+    afterEach(() => {
+      Platform.OS = "ios";
+    });
 
-    await act(() => map().props.onMapReady());
-    await act(() =>
-      screen
-        .getByTestId("location-form-panel")
-        .props.onLayout({ nativeEvent: { layout: { height: 320 } } }),
-    );
+    it("keeps Apple Maps clear of the panel, from the safe area that already holds the header, once the map is ready", async () => {
+      mockInsets.mockReturnValue({ top: 62, right: 0, bottom: 34, left: 0 });
+      await renderScreen();
 
-    expect(map().props.mapPadding).toEqual({
-      top: 100,
-      right: 0,
-      bottom: 320,
-      left: 0,
+      expect(map().props.mapPadding).toBeUndefined();
+
+      await act(() => map().props.onMapReady());
+      await measurePanel(320);
+
+      expect(map().props.mapPadding).toEqual({
+        top: 0,
+        right: 0,
+        bottom: 286,
+        left: 0,
+      });
+    });
+
+    it("keeps Google Maps clear of the header and of the panel, from its edges, once the map is ready", async () => {
+      Platform.OS = "android";
+      mockInsets.mockReturnValue({ top: 24, right: 0, bottom: 48, left: 0 });
+      await renderScreen();
+
+      // Google Maps crashes on a padding set before it is ready.
+      expect(map().props.mapPadding).toBeUndefined();
+
+      await act(() => map().props.onMapReady());
+      await measurePanel(320);
+
+      expect(map().props.mapPadding).toEqual({
+        top: 100,
+        right: 0,
+        bottom: 320,
+        left: 0,
+      });
+    });
+
+    it("centres the map again on Fortaleza once it has its padding, and only once", async () => {
+      await renderScreen();
+
+      await act(() => map().props.onMapReady());
+      // No panel height yet: the padding isn't the final one.
+      expect(mockSetCamera).not.toHaveBeenCalled();
+
+      await measurePanel(320);
+      expect(mockSetCamera).toHaveBeenCalledTimes(1);
+      expect(mockSetCamera).toHaveBeenCalledWith({ center: FORTALEZA });
+
+      // The panel grows later (an error under Nome): the admin may have moved the map, which stays.
+      await measurePanel(360);
+      expect(mockSetCamera).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -786,6 +835,11 @@ describe("LocationFormScreen (edit)", () => {
     expect(nameInput().props.value).toBe("");
     expect(map().props.initialRegion).toMatchObject(FORTALEZA);
     await act(() => map().props.onMapReady());
+    await act(() =>
+      screen
+        .getByTestId("location-form-panel")
+        .props.onLayout({ nativeEvent: { layout: { height: 420 } } }),
+    );
     expect(map().props.mapPadding).toBeDefined();
 
     await act(async () => answer(ok({ items: [stored] })));
@@ -801,6 +855,26 @@ describe("LocationFormScreen (edit)", () => {
     // The new map gets its padding only once it is ready too.
     expect(map().props.mapPadding).toBeUndefined();
     expect(mockShow).not.toHaveBeenCalled();
+
+    // ...and is centred again on the location once it has it.
+    mockSetCamera.mockClear();
+    await act(() => map().props.onMapReady());
+    expect(mockSetCamera).toHaveBeenCalledTimes(1);
+    expect(mockSetCamera).toHaveBeenCalledWith({ center: point });
+  });
+
+  it("centres the map again on the location once it has its padding", async () => {
+    await renderScreen({ id: "l-1", locations: [stored, iracema] });
+
+    await act(() => map().props.onMapReady());
+    await act(() =>
+      screen
+        .getByTestId("location-form-panel")
+        .props.onLayout({ nativeEvent: { layout: { height: 420 } } }),
+    );
+
+    expect(mockSetCamera).toHaveBeenCalledTimes(1);
+    expect(mockSetCamera).toHaveBeenCalledWith({ center: point });
   });
 
   it("opens a location without a point on Fortaleza and keeps Save off until the point is set", async () => {

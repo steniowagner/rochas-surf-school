@@ -2,7 +2,7 @@
 id: "067"
 slug: closed-account-erasure
 title: Deleted and removed accounts are erased after 30 days
-status: in-progress
+status: in-review
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 3d24f0f1df38183bb9643f2368bbb3093445a36a

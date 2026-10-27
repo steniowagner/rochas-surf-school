@@ -296,13 +296,15 @@ Approving a reactivation request SHALL restore the account, its history and its 
 
 #### Removal by admins
 
-_Implemented in spec 016-closed-account-screens._
+_Implemented in spec 016-closed-account-screens and 066-admin-account-removal._
 
 Admins SHALL be able to remove a user. Removing SHALL close the account and cancel its upcoming seats, pending requests and class assignments, as deleting does. A removed user SHALL see that their access was removed and a button to contact the school on WhatsApp, and SHALL NOT be able to request reactivation.
 
 - _Removed user signs in:_ When a user removed by an admin signs in, then they see that their access was removed and can open a WhatsApp chat with the school, and they cannot request reactivation.
 
 #### Restoring a removed account
+
+_Implemented in spec 066-admin-account-removal (the restore; erasing the account when the 30 days end comes with spec 067)._
 
 Admins SHALL be able to restore a removed account within 30 days of its removal, bringing back what an approved reactivation brings back. When the 30 days end, the system SHALL erase the account as it erases deleted accounts.
 
@@ -418,7 +420,7 @@ Admins SHALL be able to demote an instructor to student. The demoted user SHALL 
 
 #### Changing admins
 
-_Implemented in spec 058-admin-role-changes (changing the role; removal comes with its spec)._
+_Implemented in spec 058-admin-role-changes and 066-admin-account-removal._
 
 Admins SHALL be able to change another admin's role to instructor, or remove another admin. An admin SHALL NOT change their own role, and an admin reaches student in two steps (admin to instructor, then instructor to student).
 
@@ -426,7 +428,7 @@ Admins SHALL be able to change another admin's role to instructor, or remove ano
 
 #### At least one admin
 
-_Implemented in spec 058-admin-role-changes (demotion and account deletion; removal comes with its spec)._
+_Implemented in spec 058-admin-role-changes and 066-admin-account-removal._
 
 The system SHALL always keep at least one admin. The only admin SHALL NOT be demoted or removed, and SHALL make someone else an admin before deleting their own account.
 
@@ -1328,6 +1330,8 @@ A public web page SHALL explain how to delete an account in the app and, for peo
 - _What happens to the data:_ When someone reads the account deletion page, then it says that personal data and comments are erased 30 days after deletion, and that star ratings remain without a name.
 
 #### Handling deletion requests from the page
+
+_Implemented in spec 066-admin-account-removal (the removal; the erasure 30 days later comes with spec 067)._
 
 An admin SHALL carry out a deletion request received through the page by removing the account, which the system then erases 30 days later.
 

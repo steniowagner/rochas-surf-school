@@ -2,13 +2,14 @@
 id: "066"
 slug: admin-account-removal
 title: Admins remove and restore accounts
-status: accepted
+status: finished
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 3a42e0ef439dbfab6e36f195660851d46333ed68
 reviewed_commit: 1519e5642a0270486c48fef62a1753cad3848763
 fronts: [notifications, auth, backend, mobile]
 depends_on: []
+finished: 2026-10-27
 ---
 
 # 066 — Admins remove and restore accounts

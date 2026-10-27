@@ -107,7 +107,8 @@ and removal.
 | D-09 | In the app, an erased person shows a generic avatar (a person icon, no initials, the guest avatar's style) and the label, and its row can't be tapped (no person sheet, no take-out). On a class card the instructors' line uses the label in the name's place. In `edit-class`, an erased kept teacher shows the label. | Consistent with guests; there is no person to open. |
 | D-10 | `AccountErasureJob` runs `EraseDeniedRegistrations`, then `EraseClosedAccounts`, each in its own `try`: one failing is logged and doesn't stop the other. It logs only counts (`Erased N closed account(s)`), never who. | Same job and logging rule as spec 021. |
 | D-11 | A deleted review account is erased like any other; rerunning the seed brings it back, since it upserts by email with status `approved`. | No special case needed. |
-| D-12 | A reactivation approval or a restore that arrives after the erasure gets the existing refusal: 409 `reactivation.status.notRequested` (spec 064) or 409 `user.status.notRemoved` (spec 066). | The erased status is neither `deleted` with a request nor `removed`. |
+| D-12 | ~~A reactivation approval or a restore that arrives after the erasure gets the existing refusal: 409 `reactivation.status.notRequested` (spec 064) or 409 `user.status.notRemoved` (spec 066).~~ (removed: contradicts D-04 — the erased account is never found; replaced by D-13) | ~~The erased status is neither `deleted` with a request nor `removed`.~~ |
+| D-13 | A reactivation approval or a restore that arrives after the erasure gets the existing not-found refusal: 404 `reactivation.notFound` (spec 064) or 404 `user.notFound` (spec 066). | D-04: the repository never returns an erased account, so both use cases find no account before they look at its status. |
 
 ### Copy
 
@@ -137,7 +138,7 @@ and removal.
 - **Front:** backend
 - **Behavior:** Given an account removed 30 days and 1 minute ago, when the erasure job runs, then it is erased as in
   ER-01, and it no longer appears in `GET /people/removed`.
-- **Edge and error cases:** `POST /people/:id/restore` for it then answers 409 `user.status.notRemoved`.
+- **Edge and error cases:** `POST /people/:id/restore` for it then answers 404 `user.notFound` (D-13).
 - **Verify by:** `npx vitest run --config vitest.config.e2e.ts test/account-erasure.e2e-spec.ts -t "erases a removed account"`
   from `apps/backend`.
 
@@ -157,7 +158,7 @@ and removal.
 - **Front:** backend
 - **Behavior:** Given an account deleted 30 days and 1 minute ago with a `requested` reactivation, when the erasure
   job runs, then it is erased, it no longer appears in `GET /reactivation-requests`, and
-  `POST /reactivation-requests/:id/approve` for it answers 409 `reactivation.status.notRequested`.
+  `POST /reactivation-requests/:id/approve` for it answers 404 `reactivation.notFound` (D-13).
 - **Edge and error cases:** the admins' `reactivation.requested` notification about it is deleted (ER-06).
 - **Verify by:** `npx vitest run --config vitest.config.e2e.ts test/account-erasure.e2e-spec.ts -t "reactivation request"`
   from `apps/backend`.
@@ -462,11 +463,32 @@ and removal.
   > src/modules/classes/class-view-reader.prisma.spec.ts src/modules/enrolment/class-roster-reader.prisma.spec.ts`
   > (2 files, 13 passed), `tsc --noEmit` exit 0; deviations: no change to `class-view-reader.prisma.ts` or
   > `class-roster-reader.prisma.ts` was needed.
-- [ ] **T-12** — Add to `test/account-erasure.e2e-spec.ts` (faked `ExpoPushProvider`, fixed clocks, cleanup) the
+- [x] **T-12** — Add to `test/account-erasure.e2e-spec.ts` (faked `ExpoPushProvider`, fixed clocks, cleanup) the
   describes the Expected Results' `Verify by` name: "erases a deleted account", "erases a removed account", "leaves",
   "reactivation request", "class" and "notifications", running the job through `app.get(AccountErasureJob).run()`.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06 · Done when:
   `npx vitest run --config vitest.config.e2e.ts test/account-erasure.e2e-spec.ts` passes from `apps/backend`.
+  > ✅ 2026-10-27 16:08 — added to `test/account-erasure.e2e-spec.ts` a `closed accounts` group whose describes carry
+  > the names the Verify by lines filter on — "erases a deleted account" (a real email sign-up made `deleted` 30
+  > days and 1 minute ago as an instructor, with a photo, a WhatsApp number, a push token, a rules acceptance, a
+  > notification and a pending sign-in code: the row is erased with id, role, creation and deletion dates kept,
+  > every row hanging off it and the old code are gone, its taught class and approved seat stay, `/auth/me` answers
+  > 401 `auth.token.invalid`, `/auth/refresh` 401 `auth.refreshToken.invalid`, and the old email signs up as a new
+  > `pending` account), "erases a removed account" (not in `GET /people/removed`, restore 404 `user.notFound`),
+  > "leaves" (not due, no date, approved / pending / denied unchanged; a second run erases 0; a due denied
+  > registration is still hard-deleted by spec 021), "with a pending reactivation request" (erased, out of `GET
+  > /reactivation-requests`, approve 404 `reactivation.notFound`, the admin’s notice deleted), "in a class" (`GET
+  > /classes/:id` and the week list answer the erased instructor and student with their ids and `name: null`, the
+  > others named, seats and guests unchanged) and "notifications" (the six rows of the four types about X in an
+  > admin’s and an instructor’s inbox deleted, the ones about Y and a legacy one without `studentId` kept). The
+  > suite fakes `ExpoPushProvider`, and the cleanup now also finds the accounts by the ids the test made (an erased
+  > one has no email) and deletes their classes and locations first. files:
+  > `apps/backend/test/account-erasure.e2e-spec.ts`, `.specs/changes/067-closed-account-erasure/spec.md`
+  > (amendment); verified: `npx vitest run --config vitest.config.e2e.ts test/account-erasure.e2e-spec.ts` (13
+  > passed), each `-t` filter of the Verify by lines passes, and no `erased` / `deleted` / `removed` row is left in
+  > the database afterwards; deviations: the job runs on the real clock with dates relative to now and a minute’s
+  > margin (as the file’s existing cases), not a fixed clock — a fixed auth clock would break the existing “exactly
+  > 30 days” case; ER-02 and ER-04 expect 404 after the amendment of 2026-10-27 (D-13, approved by the user).
 
 ### Mobile (`apps/mobile`)
 
@@ -540,5 +562,11 @@ and removal.
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-27 — found while executing T-12, approved by the user: D-04 (the repository never returns an erased
+  account) makes `RestoreAccount` and `ApproveReactivation` answer not found before they check the status, so the 409s
+  of D-12 can't happen. D-12 is removed and replaced by D-13; ER-02's edge case "409 `user.status.notRemoved`" →
+  "404 `user.notFound`"; ER-04's behavior "409 `reactivation.status.notRequested`" → "404 `reactivation.notFound`".
+  No code change: the code already answers 404.
 
 ## Review

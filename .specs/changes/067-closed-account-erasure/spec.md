@@ -448,10 +448,20 @@ and removal.
   > (two existing assertions read the new result shape); verified: `npx vitest run
   > src/modules/auth/account-erasure.job.spec.ts` (6 passed), `tsc --noEmit` in `apps/backend` exit 0; deviations:
   > `run()` now answers the count per kind instead of `{ erased }`.
-- [ ] **T-11** — Pass the stored (possibly `null`) names through in `src/modules/classes/class-view-reader.prisma.ts`
+- [x] **T-11** — Pass the stored (possibly `null`) names through in `src/modules/classes/class-view-reader.prisma.ts`
   and `src/modules/enrolment/class-roster-reader.prisma.ts`, with specs for an erased instructor and student.
   Covers: ER-05 · Done when: `npx vitest run src/modules/classes/class-view-reader.prisma.spec.ts src/modules/enrolment/class-roster-reader.prisma.spec.ts`
   passes.
+  > ✅ 2026-10-27 15:53 — the readers already send what is stored: `PrismaClassViewReader` maps `instructors` to the
+  > users’ `{ id, name }` and `PrismaClassRosterReader` spreads the student’s `{ id, name, photoUrl }`, so once
+  > `name` is nullable (T-06) and the ports accept `null` (T-05) the stored null passes through with no code change
+  > (D-08); added the specs for an erased instructor (null name next to a named one) and an erased student (null
+  > name, its id, enrolment id and seat kept). files:
+  > `apps/backend/src/modules/classes/class-view-reader.prisma.spec.ts`,
+  > `apps/backend/src/modules/enrolment/class-roster-reader.prisma.spec.ts`; verified: `npx vitest run
+  > src/modules/classes/class-view-reader.prisma.spec.ts src/modules/enrolment/class-roster-reader.prisma.spec.ts`
+  > (2 files, 13 passed), `tsc --noEmit` exit 0; deviations: no change to `class-view-reader.prisma.ts` or
+  > `class-roster-reader.prisma.ts` was needed.
 - [ ] **T-12** — Add to `test/account-erasure.e2e-spec.ts` (faked `ExpoPushProvider`, fixed clocks, cleanup) the
   describes the Expected Results' `Verify by` name: "erases a deleted account", "erases a removed account", "leaves",
   "reactivation request", "class" and "notifications", running the job through `app.get(AccountErasureJob).run()`.

@@ -38,6 +38,22 @@ describe('PrismaClassRosterReader', () => {
     expect(out.has('c-3')).toBe(false);
   });
 
+  it('passes an erased student through with a null name, keeping the id, the enrolment and the seat', async () => {
+    const { enrolment, reader } = setup();
+    enrolment.findMany.mockResolvedValue([
+      row('c-1', 1),
+      { id: 'e-erased', classId: 'c-1', student: { id: 's-erased', name: null, photoUrl: null } },
+    ]);
+
+    const out = await reader.findRosters(['c-1']);
+
+    expect(out.get('c-1')).toEqual({
+      seatsTaken: 2,
+      students: [withEnrolment(1), { id: 's-erased', name: null, photoUrl: null, enrolmentId: 'e-erased' }],
+      guests: [],
+    });
+  });
+
   it('keeps the first students asked for and never caps the seats taken', async () => {
     const { enrolment, reader } = setup();
     enrolment.findMany.mockResolvedValue([1, 2, 3, 4, 5, 6, 7].map((index) => row('c-1', index)));

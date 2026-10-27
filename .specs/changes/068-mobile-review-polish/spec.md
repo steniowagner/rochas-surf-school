@@ -87,11 +87,20 @@ a class is the same on the button and on its confirmation.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add the `tone` prop to `Toast` (`src/components/ui/toast/toast.types.ts`, `toast.component.tsx`) and the
+- [x] **T-01** — Add the `tone` prop to `Toast` (`src/components/ui/toast/toast.types.ts`, `toast.component.tsx`) and the
   `options` argument to `show` in `src/providers/alert-message/` (types, provider and the stored content), per
   D-01 and D-02, with tests in `toast.component.test.tsx` and `alert-message.provider.test.tsx` for both tones,
   the default and replacing a toast of the other tone.
   Covers: ER-01 · Done when: `npx jest src/components/ui/toast src/providers/alert-message` passes.
+  > ✅ 2026-10-27 — added `tone` to `Toast` (class/icon map in the new `toast.constants.ts`, default `error`) and
+  > `options?: { tone }` to `show`, stored in the content; `Toast` also got `left-screen right-screen` (the
+  > T-04 change for that file, done here since the line was being rewritten); files:
+  > `apps/mobile/src/components/ui/toast/toast.component.tsx`, `toast.constants.ts`, `toast.types.ts`,
+  > `toast.component.test.tsx`, `apps/mobile/src/providers/alert-message/alert-message.types.ts`,
+  > `alert-message.provider.tsx`, `alert-message.provider.test.tsx`; verified: `npx jest
+  > src/components/ui/toast src/providers/alert-message` (9 passed), `npx tsc --noEmit` clean; deviations:
+  > NativeWind compiles classes away in tests, so the toast test asserts the `toneStyles` map plus a different
+  > rendered icon, and the provider test wraps `Toast` to expose the tone prop.
 - [ ] **T-02** — Pass `{ tone: "success" }` at the success calls of D-03 in `src/modules/classes`
   (`new-class.screen.hook.ts`, `location-form.screen.hook.ts`, `edit-class.screen.hook.ts`,
   `class-details.screen.hook.ts`), `src/modules/notices` (`send-notice.screen.hook.ts`),

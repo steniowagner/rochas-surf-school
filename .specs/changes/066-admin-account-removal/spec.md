@@ -351,11 +351,12 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-06** — Implement `findRemovedSince` (status `removed`, `removed_at` not null and after the cutoff, ordered
+- [x] **T-06** — Implement `findRemovedSince` (status `removed`, `removed_at` not null and after the cutoff, ordered
   `removed_at` desc then `id`) and `updateIfRemoved` (one conditional `updateMany` on `id` and `status = removed`,
   writing `status: approved` and `removed_at: null`) in `src/modules/auth/user.prisma.ts`, with specs in
   `user.prisma.spec.ts`. Skill: [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-04, ER-05, ER-06 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts` passes.
+  > ✅ 2026-10-27 — implemented `findRemovedSince` and `updateIfRemoved` in the Prisma repository with specs; files: `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run src/modules/auth/user.prisma.spec.ts` (32 passed) and `npx tsc --noEmit` in apps/backend; deviations: none
 - [ ] **T-07** — Add `src/modules/notifications/notifications.account-removal-notifier.ts`
   (`NotificationsAccountRemovalNotifier`: `Notify` with `account.removed` / `account.restored` to the person, logging
   and swallowing errors), exported by `NotificationsModule`, and the two entries of `push-messages.ts` in pt-BR, es and

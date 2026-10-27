@@ -414,6 +414,47 @@ describe('PrismaUserRepository', () => {
     });
   });
 
+  describe('findRemovedSince', () => {
+    it('selects the removed users removed after the cutoff, newest removal first', async () => {
+      const { user, repository } = setup();
+      user.findMany.mockResolvedValue([{ ...minimalRecord, status: 'removed', removedAt: new Date('2026-10-04T00:00:00.000Z') }]);
+      const cutoff = new Date('2026-09-12T12:00:00.000Z');
+
+      const found = await repository.findRemovedSince(cutoff);
+
+      expect(found.map((item) => item.id)).toEqual([ID]);
+      expect(user.findMany).toHaveBeenCalledWith({
+        where: { status: 'removed', removedAt: { not: null, gt: cutoff } },
+        orderBy: [{ removedAt: 'desc' }, { id: 'asc' }],
+        include: expect.anything(),
+      });
+    });
+  });
+
+  describe('updateIfRemoved', () => {
+    it('writes the user only while it is still removed, clearing what the user no longer has', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 1 });
+
+      await expect(
+        repository.updateIfRemoved(minimalUser()),
+      ).resolves.toBe(true);
+
+      expect(user.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: 'removed' },
+        data: expect.objectContaining({ name: 'Ana Rocha', removedAt: null }),
+      });
+      expect(user.update).not.toHaveBeenCalled();
+    });
+
+    it('answers false when no row changed', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(repository.updateIfRemoved(minimalUser())).resolves.toBe(false);
+    });
+  });
+
   describe('findDeniedBefore', () => {
     it('selects the ids of the denied users denied at or before the cutoff', async () => {
       const { user, repository } = setup();

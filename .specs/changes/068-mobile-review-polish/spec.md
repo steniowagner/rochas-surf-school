@@ -101,7 +101,7 @@ a class is the same on the button and on its confirmation.
   > src/components/ui/toast src/providers/alert-message` (9 passed), `npx tsc --noEmit` clean; deviations:
   > NativeWind compiles classes away in tests, so the toast test asserts the `toneStyles` map plus a different
   > rendered icon, and the provider test wraps `Toast` to expose the tone prop.
-- [ ] **T-02** — Pass `{ tone: "success" }` at the success calls of D-03 in `src/modules/classes`
+- [x] **T-02** — Pass `{ tone: "success" }` at the success calls of D-03 in `src/modules/classes`
   (`new-class.screen.hook.ts`, `location-form.screen.hook.ts`, `edit-class.screen.hook.ts`,
   `class-details.screen.hook.ts`), `src/modules/notices` (`send-notice.screen.hook.ts`),
   `src/modules/school-rules` (`school-rule-sheet.hook.ts`, `delete-school-rule-sheet.hook.ts`),
@@ -109,6 +109,18 @@ a class is the same on the button and on its confirmation.
   (`school-settings-form.hook.ts`), updating their tests to assert the tone.
   Covers: ER-01 · Done when: `npx jest src/modules/classes src/modules/notices src/modules/school-rules
   src/modules/cancellation-rules src/modules/school-settings` passes.
+  > ✅ 2026-10-27 — passed `{ tone: "success" }` at the D-03 calls of the nine listed hooks (the
+  > `classDetails` enrolment toasts belong to T-03); asserted the tone in the screen/component tests;
+  > files: `apps/mobile/src/modules/classes/screens/{new-class,edit-class,location-form,class-details}.screen.hook.ts`
+  > and their `.screen.test.tsx`, `apps/mobile/src/modules/notices/screens/send-notice.screen.hook.ts`,
+  > `.../send-notice.screen.test.tsx`, `apps/mobile/src/modules/school-rules/components/{school-rule-sheet,delete-school-rule-sheet}/*.hook.ts`
+  > and the three tests asserting those toasts (`school-rule-sheet`, `delete-school-rule-sheet`,
+  > `manage-school-rules.screen.test.tsx`), `.../cancellation-rules/screens/cancellation-rules.screen.hook.ts`
+  > and test, `.../school-settings/components/school-settings-form/school-settings-form.hook.ts` and
+  > `school-settings.screen.test.tsx`, new `apps/mobile/src/utils/toast-tone-probe.tsx`; verified: `npx jest
+  > src/modules/{classes,notices,school-rules,cancellation-rules,school-settings}` (116 suites, 1278 passed),
+  > `npx tsc --noEmit` clean; deviations: tests of screens using the real provider read the tone through a
+  > small Toast probe, since NativeWind compiles classes away.
 - [ ] **T-03** — Pass `{ tone: "success" }` at the success calls of D-03 in `src/modules/enrolment`
   (`enrol-student.screen.hook.ts`, `use-class-requests-screen.hook.ts`, `use-take-out.hook.ts`,
   `use-take-guest-out.hook.ts`, `use-class-enrolment.hook.ts`), updating their tests to assert the tone.

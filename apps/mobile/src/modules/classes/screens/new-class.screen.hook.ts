@@ -199,7 +199,7 @@ export const useNewClassScreen = () => {
         }),
       );
 
-      alertMessage.show(t("newClass.created", { count }));
+      alertMessage.show(t("newClass.created", { count }), { tone: "success" });
       router.back();
     } catch (error) {
       if (isInstructorsInvalidError(error)) {

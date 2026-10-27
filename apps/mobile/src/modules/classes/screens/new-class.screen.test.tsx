@@ -384,7 +384,7 @@ describe("NewClassScreen", () => {
       );
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("2 classes created"),
+        expect(mockShow).toHaveBeenCalledWith("2 classes created", { tone: "success" }),
       );
       const call = fetchMock.mock.calls.find(([url]) =>
         String(url).endsWith("/classes/batch"),
@@ -884,7 +884,7 @@ describe("NewClassScreen", () => {
       );
 
       await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
-      expect(mockShow).toHaveBeenCalledWith("4 classes created");
+      expect(mockShow).toHaveBeenCalledWith("4 classes created", { tone: "success" });
       const call = fetchMock.mock.calls.find(([url]) =>
         String(url).endsWith("/classes/batch"),
       );
@@ -924,7 +924,7 @@ describe("NewClassScreen", () => {
       await user.press(screen.getByRole("button", { name: "Create class" }));
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Class created"),
+        expect(mockShow).toHaveBeenCalledWith("Class created", { tone: "success" }),
       );
       const call = fetchMock.mock.calls.find(([url]) =>
         String(url).endsWith("/classes/batch"),

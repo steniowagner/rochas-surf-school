@@ -146,7 +146,7 @@ export const useClassDetailsScreen = ({
     try {
       await cancelClass.mutateAsync(message === undefined ? {} : { message });
 
-      alertMessage.show(t("cancelClass.done"));
+      alertMessage.show(t("cancelClass.done"), { tone: "success" });
       setCancelVisible(false);
     } catch (error) {
       showCancelError(error);
@@ -186,7 +186,7 @@ export const useClassDetailsScreen = ({
     try {
       await deleteClass.mutateAsync();
 
-      alertMessage.show(t("deleteClass.done"));
+      alertMessage.show(t("deleteClass.done"), { tone: "success" });
       setDeleteVisible(false);
       router.back();
     } catch (error) {

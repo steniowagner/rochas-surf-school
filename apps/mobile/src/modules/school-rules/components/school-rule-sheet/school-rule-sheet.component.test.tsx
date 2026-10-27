@@ -125,7 +125,7 @@ describe("SchoolRuleSheet — add", () => {
         body: JSON.stringify({ title: "Bring sunscreen", description: "Every class." }),
       }),
     );
-    expect(mockShow).toHaveBeenCalledWith("Rule added");
+    expect(mockShow).toHaveBeenCalledWith("Rule added", { tone: "success" });
   });
 
   it("sends one request on a double tap", async () => {
@@ -230,7 +230,7 @@ describe("SchoolRuleSheet — edit", () => {
         body: JSON.stringify({ title: RULE.title, description: `${RULE.description} Always.` }),
       }),
     );
-    expect(mockShow).toHaveBeenCalledWith("Rule saved");
+    expect(mockShow).toHaveBeenCalledWith("Rule saved", { tone: "success" });
   });
 
   it("closes and says the rule was already deleted when it no longer exists", async () => {

@@ -420,7 +420,7 @@ describe("EditClassScreen", () => {
       capacity: 8,
       notes: "Bring a hat",
     });
-    expect(mockShow).toHaveBeenCalledWith("Changes saved");
+    expect(mockShow).toHaveBeenCalledWith("Changes saved", { tone: "success" });
   });
 
   it("reloads the weeks and the details after saving", async () => {

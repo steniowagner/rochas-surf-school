@@ -237,7 +237,7 @@ describe("ManageSchoolRulesScreen — adds", () => {
     await user.type(ruleSheet().getByLabelText("Explanation"), "Explanation D ");
     await user.press(ruleSheet().getByRole("button", { name: "Add rule" }));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Rule added"));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Rule added", { tone: "success" }));
     expect(requests("POST")).toEqual([
       { path: "/school-rules", body: { title: "Rule D", description: "Explanation D" } },
     ]);
@@ -259,7 +259,7 @@ describe("ManageSchoolRulesScreen — edits", () => {
     await user.type(ruleSheet().getByLabelText("Explanation"), "New explanation");
     await user.press(ruleSheet().getByRole("button", { name: "Save" }));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Rule saved"));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Rule saved", { tone: "success" }));
     expect(requests("PUT")).toEqual([
       { path: "/school-rules/b", body: { title: "Rule B", description: "New explanation" } },
     ]);
@@ -300,7 +300,7 @@ describe("ManageSchoolRulesScreen — deletes", () => {
 
     await user.press(deleteSheet().getByRole("button", { name: "Delete rule" }));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Rule deleted"));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Rule deleted", { tone: "success" }));
     expect(requests("DELETE")).toEqual([{ path: "/school-rules/b", body: undefined }]);
     expect(screen.queryByText("Delete this rule?")).not.toBeOnTheScreen();
     expect(titles()).toEqual(["Rule A", "Rule C"]);

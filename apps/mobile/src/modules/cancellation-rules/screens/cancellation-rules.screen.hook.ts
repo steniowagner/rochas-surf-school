@@ -39,6 +39,7 @@ export const useCancellationRulesScreen =
                   `cancellationRules.screen.discipline.${discipline}`,
                 ),
               }),
+              { tone: "success" },
             );
           },
         },

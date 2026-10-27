@@ -68,7 +68,7 @@ describe("DeleteSchoolRuleSheet", () => {
       method: "DELETE",
       headers: { Authorization: "Bearer at-1", "Content-Type": "application/json" },
     });
-    expect(mockShow).toHaveBeenCalledWith("Rule deleted");
+    expect(mockShow).toHaveBeenCalledWith("Rule deleted", { tone: "success" });
   });
 
   it("closes with Cancel and deletes nothing", async () => {

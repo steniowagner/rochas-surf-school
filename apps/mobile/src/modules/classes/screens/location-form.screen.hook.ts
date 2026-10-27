@@ -224,7 +224,7 @@ export const useLocationFormScreen = (
           ...body,
           ...(upcomingClasses > 0 ? { notify: fields.notify } : {}),
         });
-        alertMessage.show(t("locationSheet.updated"));
+        alertMessage.show(t("locationSheet.updated"), { tone: "success" });
       } else {
         emitLocationCreated(await createLocation.mutateAsync(body));
       }
@@ -243,7 +243,9 @@ export const useLocationFormScreen = (
 
     try {
       await archiveLocation.mutateAsync(removed.id);
-      alertMessage.show(t("archiveLocation.removed", { name: removed.name }));
+      alertMessage.show(t("archiveLocation.removed", { name: removed.name }), {
+        tone: "success",
+      });
       setArchiveVisible(false);
       router.back();
       emitLocationRemoved(removed.id);

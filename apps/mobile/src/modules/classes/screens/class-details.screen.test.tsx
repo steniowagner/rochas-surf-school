@@ -1534,7 +1534,7 @@ describe("ClassDetailsScreen", () => {
       await user.press(confirmButton());
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Class cancelled"),
+        expect(mockShow).toHaveBeenCalledWith("Class cancelled", { tone: "success" }),
       );
       expect(posts()).toHaveLength(1);
       expect(posts()[0]![0]).toBe("http://api.test/classes/c-1/cancel");
@@ -1829,7 +1829,7 @@ describe("ClassDetailsScreen", () => {
       await user.press(confirmButton());
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Class deleted"),
+        expect(mockShow).toHaveBeenCalledWith("Class deleted", { tone: "success" }),
       );
       expect(deletes()).toHaveLength(1);
       expect(deletes()[0]![0]).toBe("http://api.test/classes/c-1");

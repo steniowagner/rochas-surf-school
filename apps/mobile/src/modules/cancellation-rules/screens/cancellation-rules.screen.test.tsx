@@ -40,6 +40,8 @@ const saveButton = (discipline = "surf") =>
 const field = () =>
   screen.getByPlaceholderText(/Students can cancel without penalty/);
 
+jest.mock("@/components/ui/toast", () => require("@/utils/toast-tone-probe"));
+
 describe("CancellationRulesScreen", () => {
   beforeEach(() => jest.mocked(router.back).mockClear());
 
@@ -106,6 +108,7 @@ describe("CancellationRulesScreen", () => {
     await user.press(saveButton());
 
     expect(await screen.findByText("Rule for surf saved")).toBeOnTheScreen();
+    expect(screen.getByText("tone:success")).toBeOnTheScreen();
     expect(fetchMock).toHaveBeenLastCalledWith(
       "http://api.test/cancellation-rules/surf",
       {
@@ -131,6 +134,7 @@ describe("CancellationRulesScreen", () => {
     expect(
       await screen.findByText("Something went wrong. Please try again."),
     ).toBeOnTheScreen();
+    expect(screen.getByText("tone:error")).toBeOnTheScreen();
     expect(screen.getByDisplayValue(`${SURF} Mais.`)).toBeOnTheScreen();
     expect(saveButton()).toBeEnabled();
   });

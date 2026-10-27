@@ -71,6 +71,8 @@ const fill = async (user: Awaited<ReturnType<typeof open>>) => {
   await user.type(messageField(), "See you at 7. ");
 };
 
+jest.mock("@/components/ui/toast", () => require("@/utils/toast-tone-probe"));
+
 describe("SendNoticeScreen", () => {
   beforeEach(() => jest.mocked(router.back).mockReset());
 
@@ -208,6 +210,7 @@ describe("SendNoticeScreen", () => {
       ],
     ]);
     expect(await screen.findByText("Notice sent")).toBeOnTheScreen();
+    expect(screen.getByText("tone:success")).toBeOnTheScreen();
   });
 
   it("shows an error and keeps the text when the send fails", async () => {

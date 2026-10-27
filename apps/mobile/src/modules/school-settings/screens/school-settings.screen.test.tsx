@@ -48,6 +48,8 @@ const toggle = () =>
 const turn = (value: boolean) => fireEvent(toggle(), "valueChange", value);
 const numberField = () => screen.getByLabelText("School WhatsApp");
 
+jest.mock("@/components/ui/toast", () => require("@/utils/toast-tone-probe"));
+
 describe("SchoolSettingsScreen", () => {
   it("shows the loading indicator, and neither the form nor the error, before the settings arrive", async () => {
     fetchMock.mockReturnValue(new Promise(() => undefined));
@@ -113,6 +115,7 @@ describe("SchoolSettingsScreen", () => {
     await user.press(saveButton());
 
     expect(await screen.findByText("Settings saved")).toBeOnTheScreen();
+    expect(screen.getByText("tone:success")).toBeOnTheScreen();
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenLastCalledWith(
       "http://api.test/school-settings/waiting-list",

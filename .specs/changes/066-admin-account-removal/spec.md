@@ -341,12 +341,13 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
   Covers: ER-01, ER-02, ER-03, ER-07 · Done when: `npx jest test/user/usecase/remove-user.usecase.test.ts` passes in
   > ✅ 2026-10-27 — added `RemoveUser` (checks, releases, guarded write, notification) and its tests; the 30-day constant lives in `removal-window.ts` (shared with T-05); files: `modules/auth/src/user/usecase/remove-user.usecase.ts`, `modules/auth/src/user/usecase/removal-window.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/remove-user.usecase.test.ts`; verified: `npx jest test/user/usecase/remove-user.usecase.test.ts` (18 passed); deviations: none
   `modules/auth`.
-- [ ] **T-05** — Add `ListRemovedAccounts` and `RestoreAccount` in
+- [x] **T-05** — Add `ListRemovedAccounts` and `RestoreAccount` in
   `src/user/usecase/{list-removed-accounts,restore-account}.usecase.ts` (D-06, D-07, D-04), exported from the index,
   with tests in `test/user/usecase/` for the list (window, order, fields, access) and every restore check, the lost
   race, what stays, the notification and a failing notifier. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04, ER-05, ER-06, ER-07 · Done when: `npx jest test/user/usecase` passes in `modules/auth`.
+  > ✅ 2026-10-27 — added `ListRemovedAccounts` and `RestoreAccount` with tests; files: `modules/auth/src/user/usecase/list-removed-accounts.usecase.ts`, `modules/auth/src/user/usecase/restore-account.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/list-removed-accounts.usecase.test.ts`, `modules/auth/test/user/usecase/restore-account.usecase.test.ts`; verified: `npx jest test/user/usecase` (258 passed), whole module 485 passed, `npm run check-types` exit 0, new files 100% covered; deviations: none
 
 ### Backend (`apps/backend`)
 

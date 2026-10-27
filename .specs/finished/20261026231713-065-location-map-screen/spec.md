@@ -3,13 +3,14 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: accepted
+status: finished
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
 reviewed_commit: 67705b4de4ecee07837bbffd75304f5e16f7631f
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-26
 ---
 
 # 065 — Pick and edit a class location on a full-screen map

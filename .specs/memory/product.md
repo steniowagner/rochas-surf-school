@@ -795,7 +795,7 @@ nobody is notified. Every role sees the deadline on the details of a class that 
 deadline. All copy is in pt-BR, es-ES and en-US.
 
 **Class locations** (spec `037-class-locations`) — a location now has a point on the map, and admins edit and
-remove locations. The "Novo local" sheet on Nova aula and Editar aula has Nome, Endereço with up to 5 address
+remove locations. The "Novo local" sheet (since spec 065 a full-screen map, below) on Nova aula and Editar aula has Nome, Endereço with up to 5 address
 suggestions from Google Maps as the admin types (picking one fills the address, moves the point and fills an
 empty Nome), and "Ponto no mapa", a small map where a tap places the point; "Salvar local" needs a name, an address
 and a point. The "Local" section shows "Gerir" while a location exists: in that mode each row has a pencil that
@@ -1192,6 +1192,22 @@ account now registers its phone for pushes; with the app open, the account reloa
 open app reloads the requests when one arrives, and tapping that notification opens the tool. All copy is in pt-BR,
 es-ES and en-US.
 
+**Locations on a full-screen map** (spec `065-location-map-screen`) — "+ Novo local" and a "Gerir" row on Nova aula
+and Editar aula open a full-screen map instead of the location sheet, like a maps app. The header holds the back
+button and the search ("Busque um endereço ou uma praia"): from 3 characters, up to 6 address suggestions float
+under it, the matching part in bold; picking one closes the keyboard, zooms the map in on the place (street level),
+moves the pin there and fills an empty "Nome" with its name. A tap on the map moves the pin to the tap and takes the
+phone's own address for that point ("Ponto escolhido no mapa · <lat>, <lng>"), or the coordinates when the phone
+finds none; on Android a tap on a labelled place picks it like a suggestion. A round "Minha localização" button asks
+for the phone's location only when tapped, then centres the map on the phone with the user dot, leaving the pin
+where it is; a refusal shows "Permita o acesso à localização nos Ajustes para usar sua posição.". A fixed panel at
+the bottom, which rises with the keyboard, holds "Novo local" / "Editar local", the address card ("Toque no mapa
+para marcar o ponto" before any point), "Nome", the notify box when upcoming classes use the location, and the
+stacked "Salvar local" / "Salvar", "Cancelar" and, when editing, "Remover local". "Editar local" opens close in on
+the location; "Novo local" (and a location saved without a point) on Fortaleza. Saving a new location goes back with
+it selected on the class form; removing one goes back with it cleared there when it was selected. The rules of spec
+037 (duplicate names, the required point, the "gone" toast) are unchanged. All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1252,8 +1268,10 @@ Active specs: none.
 - After creating classes (spec 028): the instructors' "Surf" / "Skate" subtitles and photos in the picker; a real
   count on the "Criar aulas" row.
 - On class locations (spec 037): restoring an archived location, listing archived locations, and a locations screen outside
-  the class form; filling the address from a tapped point, "near me" from the phone's own location, and an
-  interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses Apple Maps).
+  the class form; an interactive map on the class details (it is a fixed preview); Google Maps on iPhone (iPhone uses
+  Apple Maps).
+- On the location map (spec 065): a panel that can be dragged up and down, asking for the phone's location when the
+  screen opens, and showing a class's removed location on the map.
 - On the week view and class details (spec 030): a marker on the cards of one's own classes; "Depois da aula"
   (photos and ratings).
 - On the sport filter (spec 050): keeping the chosen sport across app launches, a mark on the closed button

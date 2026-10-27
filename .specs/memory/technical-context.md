@@ -167,7 +167,17 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     (`apps/mobile/.env`, empty in `.env.example`); `app.config.test.ts` checks it, and `jest.config.js`'s
     `testMatch` also covers that root file. A map inside a `BottomModal` needs `contentPanningEnabled={false}`,
     like a picker. Directions open the phone's maps app with `Linking.openURL` (`getDirectionsUrl`: Apple Maps on
-    iOS, Google Maps on Android), no extra library.
+    iOS, Google Maps on Android), no extra library. Only Google Maps reports taps on its labelled places
+    (`onPoiClick`), so place taps exist on Android only. `mapPadding` is measured differently: Apple Maps from the
+    map's safe area (which already holds a transparent header and the home indicator), Google Maps from the map's
+    edges; neither recentres a camera already placed when the padding changes, and Google Maps crashes on a padding
+    given before `onMapReady` (spec 065). A zoom that must not depend on the map's size (the Android keyboard shrinks
+    it) uses `setCamera` with `zoom` (Google) and `altitude` (Apple), not a region span.
+  - Device location (spec 065): **`expo-location`** 57, its config plugin in `app.json` with the
+    `locationWhenInUsePermission` text. The foreground permission is asked only when the admin taps "Minha
+    localização" (never at launch); the position is read with `Accuracy.Balanced` and `mayShowUserSettingsDialog:
+    false` (declining Google's accuracy prompt left the read pending forever); `reverseGeocodeAsync` gives a tapped
+    point's address on the phone, free and with no backend call.
   - Business rules from a module: the app depends on **`@rochas-surf-school/classes`** (spec 028) and imports
     its batch expansion (`listBatchClasses` / `listBatchDates`), time-range checks, limits and `getClassState`
     (spec 030), so the "Criar N aulas" count is exactly what the backend creates and a class's state has the same
@@ -1152,7 +1162,7 @@ guard's 401 `auth.token.invalid`.
   refetched; `class.location.notFound` → its toast and the locations refetched; `class.location.archived` (spec
   037, Nova aula and Editar aula) → `newClass.errors.locationArchived`, the locations refetched and the selection
   cleared; 409 `location.name.duplicate` →
-  `locationSheet.duplicate` inline in the sheet (the list refetched); `NetworkError` → no connection;
+  `locationSheet.duplicate` inline on the location screen (the list refetched); `NetworkError` → no connection;
   `SessionExpiredError` → nothing; else generic. On 201: toast `newClass.created` and `router.back()`;
   `useCreateClasses` invalidates `["classes", "week"]` on success only. Nova aula reads an optional `date` route
   param (`initialRange` in `utils/calendar.ts`): a real `YYYY-MM-DD` today or later becomes a single-day range and
@@ -1301,23 +1311,40 @@ guard's 401 `auth.token.invalid`.
   sessionToken, query]`, the trimmed text debounced 300 ms by `useDebouncedValue`, enabled from 3 characters,
   `staleTime: Infinity`, the app language through `toBackendLocale`) and `useAddressPlace(sessionToken)` (a mutation
   that GETs the place). `newSessionToken()` (`utils/session-token.ts`) makes a UUID v4 from `Math.random` (no crypto
-  polyfill) each time the sheet opens. `LocationSheet` (`components/location-sheet/`) has two modes, new and edit
-  (`location` prop): Nome with the inline duplicate message against the loaded list ignoring the edited location;
-  `AddressSearchField` (`components/address-search-field/`: the Endereço `TextInput` with a search icon and up to 5
-  suggestion rows while focused — picking one sets the address and the point, fills an empty Nome and hides the
-  rows; failed suggestions or place show nothing); `LocationMapPicker` (`components/location-map-picker/`: a 170 pt
-  rounded `MapView` with a `Marker`, a tap sets the point, opening on the point or on `FORTALEZA` with `MAP_DELTA`
-  0.2°, and the hint `locationSheet.pointHintEmpty` / `.pointHintSet`); the notify `Checkbox` only when editing a
-  location with `upcomingClasses` > 0 (on by default); the primary `Button` enabled with a name, an address, a
-  point and no duplicate; "Remover local" (outline, editing only); `contentPanningEnabled={false}`. It opens
-  `ArchiveLocationSheet` (`components/archive-location-sheet/`) for "Remover local?": the edit sheet steps aside
-  while the confirmation is open (`visible={props.visible && !archiveVisible}`) and ignores that dismissal, because
-  the native sheet library dismisses the sheet below; "Manter" brings it back. Errors: duplicate inline (list
-  refetched); `location.archived` / `location.notFound` (`isLocationGoneError`) → toast `locationSheet.errors.gone`,
-  list refetched, sheet closed and `onRemoved`; else `getLocationErrorKey`. `LocationPicker` gains the managing
-  mode (pencil rows that open the edit sheet, "Novo local" hidden) and the `locationPicker.archived` chip;
-  `FormSection` takes an `action` link ("Gerir" / "Concluir"); `useLocationManagement` (`hooks/`) holds that mode and
-  which sheet is open, shared by Nova aula and Editar aula. A removed location that was selected clears the selection
+  polyfill) once per opening of the location screen. Since spec 065, "Novo local" and "Editar local" are the
+  screen `LocationFormScreen` (`screens/location-form.screen.tsx`, route `(private)/admin/location-form.tsx`,
+  `routes.admin.locationForm(id?)`), which reads the edited location and the duplicate list from `useLocations()`
+  (an `id` not among the active locations, or a failed list → toast `locationSheet.errors.gone` and back, once). The
+  map is a full-screen uncontrolled `MapView` moved through its ref (`initialRegion`: the edited point at
+  `PLACE_DELTA` 0.004°, else `FORTALEZA` at `MAP_DELTA`; mounted again with a `key` when an edited location arrives;
+  `mapPadding` only after `onMapReady`, then the camera set once on the opening point), on the transparent shared
+  header. `LocationSearchHeader` (`components/location-search-header/`) sets the header's `headerTitle` to the search
+  field through `<Stack.Screen options>` and draws the floating suggestions in the screen body (a native header view
+  would clip them and not take their touches): from 3 characters, `slice(0, 6)`, the match in `font-body-800`, hidden
+  after a pick or a clear. `useMapPlace` (`hooks/`) turns a map tap into a point and the phone's address
+  (`formatPoint`, 4 decimals, when the geocoder fails or finds nothing), an Android `onPoiClick` into the place from
+  `useAddressPlace` (a point tap when that fails) and a suggestion into its place; the pin moves at once
+  (`pendingPoint`), Save stays off while an address is looked up, and an answer a newer tap replaced is dropped. A
+  picked place (not a tap) closes the keyboard and calls `setCamera({ center, zoom: PLACE_ZOOM 17, altitude:
+  PLACE_ALTITUDE 1000 })`. `LocationAddressCard` shows the empty hint, the looking-up state, or the address over
+  "<name> · <lat>, <lng>" ("Ponto escolhido no mapa" for a tap). `MyLocationButton` + `useDeviceLocation` (toast
+  `locationSheet.locationDenied` on a denial or a failed read) recentre with `animateToRegion` and turn on
+  `showsUserLocation`. The bottom panel is fixed, flush with the screen's bottom (`rounded-t-sheet`, the bottom inset
+  as its padding) and lifted by `useKeyboardLift` (`hooks/`): it follows `useAnimatedKeyboard().height` only while
+  React Native sees the keyboard (`keyboardDidShow` / `keyboardDidHide`) or Reanimated animates it, because on
+  Android a screen that leaves with the keyboard open leaves Reanimated stuck at that height. The panel keeps the
+  sheet's rules: Nome with the inline duplicate against the loaded list ignoring the edited location, the notify
+  `Checkbox` only when editing a location with `upcomingClasses` > 0, the stacked primary button (enabled with a
+  name, a point, no lookup running and no duplicate), "Cancelar" and, when editing, "Remover local", which opens
+  `ArchiveLocationSheet` (`components/archive-location-sheet/`). Errors: duplicate inline (list refetched);
+  `location.archived` / `location.notFound` (`isLocationGoneError`) → toast `locationSheet.errors.gone`, list
+  refetched, back; else `getLocationErrorKey`. A pushed route can't call the class form back, so the screen emits
+  `emitLocationCreated` / `emitLocationRemoved` (`utils/location-events.ts`) and Nova aula and Editar aula
+  `subscribeLocationEvents` while mounted (`useEffectEvent`) to select the new location or clear a removed one.
+  `LocationPicker` gains the managing mode (pencil rows that push "Editar local", "Novo local" hidden) and the
+  `locationPicker.archived` chip; `FormSection` takes an `action` link ("Gerir" / "Concluir");
+  `useLocationManagement` (`hooks/`) holds that mode, shared by Nova aula and Editar aula. A removed location that
+  was selected clears the selection
   (Nova aula `locationId: null`; Editar aula `""`, so Save turns off). On Editar aula a class whose location isn't in
   the loaded list keeps it as its selected row, marked archived once the list has loaded. On the details,
   `LocationMapPreview` (`components/location-map-preview/`) shows, only for a location with a point, a fixed 96 pt
@@ -1947,7 +1974,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   the backend refuses to start — the Resend and Anthropic pattern.
 - **Maps on the phone**: `react-native-maps` (see Applications) — Apple Maps on iOS needs no key; Google Maps on
   Android needs `GOOGLE_MAPS_ANDROID_API_KEY` (Maps SDK for Android) at prebuild, through `app.config.ts`. Android
-  maps were never checked on an emulator (no key set yet).
+  maps were checked on the emulator in spec 065 (the emulator's own geocoder may be down, so a tapped point falls back
+  to its coordinates there).
 - Tests never call Google: the e2e suite overrides `GooglePlacesAddressSuggestionProvider` with a fake, its unit
   spec mocks `fetch`, and the mobile tests mock `react-native-maps` in `jest.setup.ts`.
 
@@ -2013,7 +2041,9 @@ Maestro suite for mobile would be a spec of its own.
   `onValueChange`; the native wheels can't be moved by the simulator's injected touches either.
   `react-native-maps` (spec 037) is `MapView` and `Marker` as host elements that keep their props (default and named
   exports, `PROVIDER_GOOGLE` `"google"`), so tests fire `onPress` with a coordinate and read the marker's
-  `coordinate`. Tests that need a signed-in app seed the real store
+  `coordinate`; its ref has `setCamera` and `animateToRegion` as `jest.fn`s (spec 065). `expo-location` is mocked
+  (permission granted, a Fortaleza position, no address by default), and Reanimated's `useAnimatedKeyboard` answers
+  shared-value-like objects for a closed keyboard. Tests that need a signed-in app seed the real store
   (`hydrateSession`) with an access token far in the future, since one close to expiry triggers a refresh;
   `fetch` is mocked per test.
 - End-to-end, per app: the suite below. It needs a Postgres reachable through `DATABASE_*` with the

@@ -3,10 +3,11 @@ id: "068"
 slug: mobile-review-polish
 title: Mobile polish left by earlier reviews
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 31fd0ebc54a9fc60d2726f79ff63e121e3b0f1d1
+reviewed_commit: 7859b824eeabf9db35b726ceb5e32ca9e5a0bf6d
 fronts: [mobile]
 depends_on: []
 ---
@@ -250,3 +251,47 @@ a class is the same on the button and on its confirmation.
   notification for Lia Prado. The enrolment is back to `pending` with `decided_at` null.
 - For the next round, or for the user: sign out (or use a pending account) and check that the sign-in and
   pending screens keep their layout with the 20pt margin.
+
+### Round 2 — 2026-10-27 — accepted
+
+**Checks**
+
+- lint ✅ 0 errors, 0 warnings · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`)
+- related tests ✅ 116 suites, 1813 passed (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` (32 files measured, 3 with no executable changed lines); no
+  coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED` — no suite applies (backend and web untouched)
+- `grep -rnE '(px|left|right)-\[22px\]' apps/mobile/src` ✅ prints nothing
+
+**Earlier findings**
+
+- F-01 ✅ — the four `jest.mock("@/components/ui/toast", …)` factories carry the reasoned `eslint-disable`
+  comment; mobile lint prints no warnings.
+- F-02 ✅ — one probe, `src/components/ui/toast/toast.test-utils.tsx`, next to `Toast` and named like the other
+  test helpers; the provider test and the three screen tests use it, the inline copy is gone, and nothing
+  references `src/utils/toast-tone-probe` any more.
+
+**Expected Results**
+
+- ER-01 ✅ — every D-03 call passes `{ tone: "success" }` and no other `show` call does. The provider test
+  covers the default tone and swapping between the tones, and the hook and screen tests assert the tone at
+  each D-03 call. The on-device check is from round 1 (green toast on approving a request, red when the request
+  was already decided). Since round 1 only test files and the spec changed (`git diff --stat 18e653f3..HEAD`),
+  so that check still holds.
+- ER-02 ✅ (pending not seen on device) — the grep is clean and the component tests of the 14 files pass. In
+  the iOS simulator (iPhone 18 Pro, pt-BR), the profile, sign-in (welcome), e-mail choice and e-mail sign-in
+  screens all sit 20pt from both edges. The pending screen needs a pending account, so it wasn't opened; the
+  user accepted that. Its change is the same `px-[22px]` → `px-screen` swap.
+- ER-03 ✅ — the `class-tools-sheet` tests pass (in the related run). pt-BR `classTools.delete` reads
+  "Excluir aula", like `deleteClass.confirm`; es-ES and en-US are unchanged.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- To check the sign-in screens, the reviewer signed Dev Admin out of the simulator, with the user's OK. The
+  simulator is left on the e-mail sign-in screen, so sign back in to go on.
+- The round 1 note on line width still applies (e.g. `use-take-out.hook.ts:34`, `use-take-guest-out.hook.ts:34`);
+  lint doesn't check it.

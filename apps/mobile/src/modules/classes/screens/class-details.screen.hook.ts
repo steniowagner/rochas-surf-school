@@ -19,7 +19,7 @@ import { useTakeGuestOut } from "@/modules/enrolment/hooks/use-take-guest-out.ho
 import { useTakeOut } from "@/modules/enrolment/hooks/use-take-out.hook";
 import { useSchoolRules } from "@/modules/school-rules/hooks/use-school-rules.hook";
 
-import type { ClassDetailsStudent } from "../classes.types";
+import type { ClassDetailsStudent, Named } from "../classes.types";
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
 import { useDeleteClass } from "../hooks/use-delete-class.hook";
@@ -320,10 +320,14 @@ export const useClassDetailsScreen = ({
       ),
     selectedPerson,
     personVisible,
-    openInstructor: ({ name, role, whatsappNumber }: ClassDetailsInstructor) =>
+    openInstructor: ({
+      name,
+      role,
+      whatsappNumber,
+    }: Named<ClassDetailsInstructor>) =>
       openPerson({ name, role, whatsappNumber }),
     // Only students hold seats, so the sheet's chip is always "Student".
-    openStudent: ({ name, whatsappNumber }: ClassDetailsStudent) =>
+    openStudent: ({ name, whatsappNumber }: Named<ClassDetailsStudent>) =>
       openPerson({ name, role: "student", whatsappNumber }),
     closePerson: () => setPersonVisible(false),
     toolsVisible,

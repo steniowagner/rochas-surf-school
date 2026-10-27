@@ -519,9 +519,37 @@ and removal.
   > class-people and its hook, ongoing-class-card, class-details screen and hook, edit-class hook) — rechecked at
   > the end of T-15; deviations: that type check, and the erased avatar is a prop of `StudentAvatar` (`erased`)
   > rather than a separate component.
-- [ ] **T-14** — Use the label and the erased avatar, and make the rows not tappable, in
+- [x] **T-14** — Use the label and the erased avatar, and make the rows not tappable, in
   `components/class-people` and `screens/class-details.screen.tsx` (with its hook), with tests named "erased" (D-09).
   Covers: ER-09 · Done when: `npx jest src/modules/classes -t "erased"` passes.
+  > ✅ 2026-10-27 16:16 — `ClassPeople`’s hook now builds the instructor pills and student rows: an erased person (no
+  > name) gets `personLabel` (“Former instructor” among the instructors, “Former student” in the roster, D-07), the
+  > erased avatar, and no `onPress` — and, for a student, no `onTakeOut` (D-09); the named ones call the callbacks
+  > as before with a `Named<…>` person (new `Named` type in `classes.types.ts`). `InstructorPill` and
+  > `ClassStudentRow` take an optional `onPress` (without it: not a button, `disabled`, no chevron) and `erased`
+  > (the avatar). `useClassDetailsScreen`’s `openInstructor` / `openStudent` take `Named` people, so the person
+  > sheet only ever gets a name. Tests named “erased”: the screen in pt-BR (Ex-instrutor, Ex-aluno, three generic
+  > avatars, no initials for them; named people and the guest unchanged), es-ES and en-US labels, and as an admin
+  > nothing opens on press and there is no Take out for the erased student while Bia keeps hers; `ClassPeople`
+  > (labels, avatars, no callbacks, named ones still called), `ClassStudentRow` and `InstructorPill` erased cases.
+  > files: `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-people/class-people.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-student-row/class-student-row.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-student-row/class-student-row.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-student-row/class-student-row.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/instructor-pill/instructor-pill.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/instructor-pill/instructor-pill.types.ts`,
+  > `apps/mobile/src/modules/classes/components/instructor-pill/instructor-pill.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/utils/person-label.test.ts` (prettier only); verified: `npx jest
+  > src/modules/classes -t "erased"` (12 passed), the four touched suites (259 passed), `class-people` and
+  > `class-student-row` at 100%, `eslint src/modules/classes` clean; `tsc` still reports only the three files T-15
+  > changes; deviations: `instructor-pill`, `class-student-row` and `classes.types.ts` (the `Named` type) changed
+  > too — the rows they draw are the ones made not tappable; `class-details.screen.tsx` needed no change.
 - [ ] **T-15** — Use the label in `components/class-card` (instructors' line and student avatars, the "without
   instructor" rule unchanged), `components/ongoing-class-card` and the kept teachers of `screens/edit-class.screen.hook.ts`,
   with tests named "erased".

@@ -159,6 +159,9 @@ export type ClassInstructor = {
   name: string | null;
 };
 
+/** A person who still has a name (not erased): only they open a sheet or can be taken out. */
+export type Named<T extends { name: string | null }> = T & { name: string };
+
 /** An approved student of a class. */
 export type ClassStudent = {
   id: string;

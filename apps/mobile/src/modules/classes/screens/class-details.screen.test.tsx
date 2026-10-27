@@ -3647,3 +3647,107 @@ describe("ClassDetailsScreen person sheet", () => {
     expect(screen.getByText("Number not shared.")).toBeOnTheScreen();
   });
 });
+
+describe("ClassDetailsScreen erased people", () => {
+  const erasedClass = () =>
+    makeClass({
+      instructors: [
+        {
+          id: "i-erased",
+          name: null,
+          role: "instructor",
+          whatsappNumber: null,
+        },
+        {
+          id: "i-2",
+          name: "Bruno Lima",
+          role: "admin",
+          whatsappNumber: "+5585988887777",
+        },
+      ],
+      seatsTaken: 3,
+      students: [
+        {
+          id: "s-erased",
+          name: null,
+          photoUrl: null,
+          enrolmentId: "e-erased",
+          whatsappNumber: null,
+        },
+        {
+          id: "s-bia",
+          name: "Bia Lima",
+          photoUrl: null,
+          enrolmentId: "e-bia",
+          whatsappNumber: null,
+        },
+      ],
+      guests: [{ id: "g-1", name: "Carolina Reis" }],
+    });
+
+  it("shows an erased instructor and student in pt-BR as Ex-instrutor and Ex-aluno with the generic avatar", async () => {
+    const user = userEvent.setup();
+    serve(erasedClass());
+
+    try {
+      await i18n.changeLanguage("pt-BR");
+      await renderScreen();
+
+      expect(await screen.findByText("Ex-instrutor")).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: /confirmad/ }));
+
+      expect(screen.getByText("Ex-aluno")).toBeOnTheScreen();
+      // The instructor's pill, the student's stacked avatar and their row.
+      expect(screen.getAllByTestId("student-avatar-erased")).toHaveLength(3);
+      expect(screen.queryByText("EI")).not.toBeOnTheScreen();
+      expect(screen.queryByText("EA")).not.toBeOnTheScreen();
+      expect(screen.getByText("Bia Lima")).toBeOnTheScreen();
+      // Bruno Lima's pill, and Bia Lima's stacked avatar and row keep their initials.
+      expect(screen.getAllByText("BL")).toHaveLength(3);
+      expect(screen.getByText("Carolina Reis")).toBeOnTheScreen();
+    } finally {
+      await i18n.changeLanguage("en-US");
+    }
+  });
+
+  it.each([
+    ["es-ES", "Exinstructor", "Exalumno"],
+    ["en-US", "Former instructor", "Former student"],
+  ])("labels the erased people in %s", async (locale, instructor, student) => {
+    serve(erasedClass());
+
+    try {
+      await i18n.changeLanguage(locale);
+      await renderScreen();
+
+      expect(await screen.findByText(instructor)).toBeOnTheScreen();
+      expect(screen.getByLabelText(student)).toBeOnTheScreen();
+    } finally {
+      await i18n.changeLanguage("en-US");
+    }
+  });
+
+  it("opens nothing when an erased instructor or student is pressed, and gives an admin no Take out on the erased student", async () => {
+    const user = userEvent.setup();
+    serve(erasedClass());
+    await renderScreen(true);
+
+    await user.press(await screen.findByText("Former instructor"));
+    expect(screen.queryByText("Instructor")).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Former instructor" }),
+    ).toBeNull();
+
+    await user.press(screen.getByRole("button", { name: /3 students/ }));
+    await user.press(screen.getAllByText("Former student")[0]);
+
+    expect(screen.queryByText("Student")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Former student" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Take out Former student" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Take out Bia Lima" }),
+    ).toBeOnTheScreen();
+  });
+});

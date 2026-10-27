@@ -320,3 +320,80 @@ describe("ClassPeople capacity line", () => {
     expect(screen.queryByText(/^Max\./)).toBeNull();
   });
 });
+
+describe("ClassPeople erased people", () => {
+  const erasedInstructor: ClassPeopleInstructor = {
+    id: "i-erased",
+    name: null,
+    role: "admin",
+    whatsappNumber: null,
+    isViewer: false,
+  };
+  const erasedStudent: ClassDetailsStudent = {
+    id: "s-erased",
+    name: null,
+    photoUrl: "https://img.test/old.jpg",
+    enrolmentId: "e-erased",
+    whatsappNumber: null,
+  };
+
+  it("labels an erased instructor and student by the list, with the generic avatar", async () => {
+    const user = userEvent.setup();
+    await render(
+      <ClassPeople
+        {...props({
+          instructors: [erasedInstructor],
+          students: [erasedStudent, ...students],
+          seatsTaken: 3,
+        })}
+      />,
+    );
+    await user.press(screen.getByRole("button", { name: /3 students/ }));
+
+    expect(screen.getByText("Former instructor")).toBeOnTheScreen();
+    expect(screen.getByText("Former student")).toBeOnTheScreen();
+    expect(screen.getAllByTestId("student-avatar-erased")).toHaveLength(3);
+    expect(screen.queryByTestId("student-avatar-photo")).toBeNull();
+    expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+  });
+
+  it("opens no sheet and offers no Take out for an erased person, while the named ones keep theirs", async () => {
+    const user = userEvent.setup();
+    const onOpenInstructor = jest.fn();
+    const onOpenStudent = jest.fn();
+    const onTakeOut = jest.fn();
+    await render(
+      <ClassPeople
+        {...props({
+          instructors: [erasedInstructor],
+          students: [erasedStudent, ...students],
+          seatsTaken: 3,
+          onOpenInstructor,
+          onOpenStudent,
+          onTakeOut,
+        })}
+      />,
+    );
+    await user.press(screen.getByRole("button", { name: /3 students/ }));
+
+    await user.press(screen.getByText("Former instructor"));
+    await user.press(screen.getAllByText("Former student")[0]!);
+
+    expect(onOpenInstructor).not.toHaveBeenCalled();
+    expect(onOpenStudent).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("button", { name: "Former instructor" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Take out Former student" }),
+    ).toBeNull();
+
+    await user.press(
+      screen.getByRole("button", { name: "Take out Ana Souza" }),
+    );
+    await user.press(screen.getByRole("button", { name: "Bia Lima" }));
+
+    expect(onTakeOut).toHaveBeenCalledWith(students[0]);
+    expect(onOpenStudent).toHaveBeenCalledWith(students[1]);
+  });
+});

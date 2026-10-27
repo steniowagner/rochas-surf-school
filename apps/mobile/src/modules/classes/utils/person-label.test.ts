@@ -16,10 +16,13 @@ describe("personLabel", () => {
     ["pt-BR", "Ex-aluno", "Ex-instrutor"],
     ["es-ES", "Exalumno", "Exinstructor"],
     ["en-US", "Former student", "Former instructor"],
-  ])("labels an erased person by the list in %s", async (locale, student, instructor) => {
-    await i18n.changeLanguage(locale);
+  ])(
+    "labels an erased person by the list in %s",
+    async (locale, student, instructor) => {
+      await i18n.changeLanguage(locale);
 
-    expect(personLabel(null, "student", i18n.t)).toBe(student);
-    expect(personLabel(null, "instructor", i18n.t)).toBe(instructor);
-  });
+      expect(personLabel(null, "student", i18n.t)).toBe(student);
+      expect(personLabel(null, "instructor", i18n.t)).toBe(instructor);
+    },
+  );
 });

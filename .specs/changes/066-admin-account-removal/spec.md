@@ -364,12 +364,13 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
   [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation).
   Covers: ER-07 · Done when: both specs pass and `npm run check-types` exits 0 in `apps/backend`.
   > ✅ 2026-10-27 — added `NotificationsAccountRemovalNotifier`, registered and exported it in `NotificationsModule`, added the push and in-app text of both types in pt-BR, es and en (and raised the 'every other type' count in the existing spec from 20 to 22); files: `apps/backend/src/modules/notifications/notifications.account-removal-notifier.ts`, `apps/backend/src/modules/notifications/notifications.account-removal-notifier.spec.ts`, `apps/backend/src/modules/notifications/notifications.module.ts`, `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`; verified: `npx vitest run src/modules/notifications` (241 passed) and `npm run check-types` (exit 0) in apps/backend, after rebuilding modules/auth and modules/notifications; deviations: none
-- [ ] **T-08** — Add `POST /people/:id/remove`, `GET /people/removed` (declared before the `:id` routes) and
+- [x] **T-08** — Add `POST /people/:id/remove`, `GET /people/removed` (declared before the `:id` routes) and
   `POST /people/:id/restore` to `src/modules/auth/people.controller.ts` (D-13), wiring the use cases with
   `PrismaUserRepository`, the seat and teaching releasers, the clock and the new notifier in the auth module, with
   cases in `people.controller.spec.ts` and the requests in `people.integration.http`. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-04, ER-05, ER-06 · Done when: `npx vitest run src/modules/auth/people.controller.spec.ts`
+  > ✅ 2026-10-27 — added `POST /people/:id/remove`, `GET /people/removed` (declared before the `:id` routes) and `POST /people/:id/restore`, wired with the clock and the new notifier, with controller specs and the requests in the `.http` file; files: `apps/backend/src/modules/auth/people.controller.ts`, `apps/backend/src/modules/auth/people.controller.spec.ts`, `apps/backend/src/modules/auth/people.integration.http`; verified: `npx vitest run src/modules/auth/people.controller.spec.ts` (21 passed) and `npm run check-types` (exit 0); deviations: the three requests answering 200 are exercised against the real app and database through supertest in T-09's e2e suite, not by hand from the `.http` file
   passes and the three requests answer 200 against the local API.
 - [ ] **T-09** — Add `test/people-removal.e2e-spec.ts` (faked `ExpoPushProvider`, fixed classes and enrolment clocks,
   the database's own admins set aside where the count matters, cleanup of what it creates) with the describes and test

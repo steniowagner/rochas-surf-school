@@ -1,5 +1,6 @@
 import { renderHook } from "@testing-library/react-native";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Platform } from "react-native";
 
 import { Colors } from "@/constants/theme";
 
@@ -11,6 +12,7 @@ const common = {
   headerShown: true,
   headerShadowVisible: false,
   headerBackButtonDisplayMode: "minimal",
+  headerTitleAlign: "left",
   headerTintColor: theme.ink,
   headerTitleStyle: {
     color: theme.ink,
@@ -33,6 +35,18 @@ describe("useStackHeader", () => {
     });
     expect(result.current).not.toHaveProperty("headerTransparent");
     expect(result.current).not.toHaveProperty("scrollEdgeEffects");
+    expect(result.current).not.toHaveProperty("title");
+  });
+
+  it("clears the native title on Android, so the title view sits next to the back arrow", async () => {
+    Platform.OS = "android";
+    try {
+      const { result } = await renderHook(() => useStackHeader());
+
+      expect(result.current).toMatchObject({ ...common, title: "" });
+    } finally {
+      Platform.OS = "ios";
+    }
   });
 
   it("returns the transparent header with a soft top scroll edge on Liquid Glass", async () => {

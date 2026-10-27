@@ -85,7 +85,6 @@ export function WeeklyOccupancyScreen({ role }: WeeklyOccupancyScreenProps) {
     <>
       <Stack.Screen
         options={{
-          headerTitleAlign: "center",
           headerTitle: () => (
             <StackHeaderTitle title={t("weeklyOccupancy.title")} />
           ),

@@ -231,12 +231,23 @@ and removal.
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-01** — Add `DeleteNotificationsAbout` (`src/notification/usecase/delete-notifications-about.usecase.ts`,
+- [x] **T-01** — Add `DeleteNotificationsAbout` (`src/notification/usecase/delete-notifications-about.usecase.ts`,
   input `{ userIds }`, nothing done for none) and the repository method `deleteAbout(userIds)` in
   `src/notification/provider/notification.repository.ts` (D-05's four types and params), exported from the indexes,
   with tests in `test/notification/usecase/delete-notifications-about.usecase.test.ts` and the fake repository.
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-06 · Done when: `npx jest` passes in `modules/notifications`.
+  > ✅ 2026-10-27 15:37 — added `DeleteNotificationsAbout` (input `{ userIds }`, returns early for an empty list) and
+  > the port method `NotificationRepository.deleteAbout(userIds)` (D-05: `registration.pending` /
+  > `reactivation.requested` by `params.userId`, `enrolment.requested` / `enrolment.cancelled` by
+  > `params.studentId`), exported from the use case index; the fake repository implements it (and honours
+  > `failWith`); files: `modules/notifications/src/notification/usecase/delete-notifications-about.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/index.ts`,
+  > `modules/notifications/src/notification/provider/notification.repository.ts`,
+  > `modules/notifications/test/mock/fake-notification.repository.ts`,
+  > `modules/notifications/test/notification/usecase/delete-notifications-about.usecase.test.ts`; verified: `npx
+  > jest` in `modules/notifications` (18 suites, 192 passed), the use case at 100% coverage, `npm run check-types`
+  > exit 0; deviations: none (the backend `PrismaNotificationRepository` implements `deleteAbout` in T-08).
 
 ### Enrolment module (`modules/enrolment`)
 

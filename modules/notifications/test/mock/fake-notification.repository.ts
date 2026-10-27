@@ -1,4 +1,12 @@
-import { Notification, NotificationPage, NotificationRepository } from "../../src";
+import { Notification, NotificationPage, NotificationRepository, NotificationType } from "../../src";
+
+/** The param that names the person a notification is about, per type `deleteAbout` deletes. */
+const ABOUT_PARAM: Partial<Record<NotificationType, string>> = {
+  "registration.pending": "userId",
+  "reactivation.requested": "userId",
+  "enrolment.requested": "studentId",
+  "enrolment.cancelled": "studentId",
+};
 
 export class FakeNotificationRepository implements NotificationRepository {
   items: Notification[] = [];
@@ -18,6 +26,15 @@ export class FakeNotificationRepository implements NotificationRepository {
           userIds.includes(item.params.userId)
         ),
     );
+  }
+
+  async deleteAbout(userIds: string[]): Promise<void> {
+    if (this.failWith) throw this.failWith;
+    this.items = this.items.filter((item) => {
+      const key = ABOUT_PARAM[item.type];
+      const id = key === undefined ? undefined : item.params[key];
+      return !(typeof id === "string" && userIds.includes(id));
+    });
   }
 
   async findPage(userId: string, page: number, perPage: number): Promise<NotificationPage> {

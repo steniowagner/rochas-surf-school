@@ -2,10 +2,11 @@
 id: "066"
 slug: admin-account-removal
 title: Admins remove and restore accounts
-status: in-review
+status: accepted
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 3a42e0ef439dbfab6e36f195660851d46333ed68
+reviewed_commit: 1519e5642a0270486c48fef62a1753cad3848763
 fronts: [notifications, auth, backend, mobile]
 depends_on: []
 ---
@@ -467,3 +468,80 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-27 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --concurrency=1` on auth, notifications,
+  backend, mobile: 27 tasks successful)
+- related tests ✅ (`run-related-tests.mjs 066`: apps/backend, apps/mobile, modules/auth, modules/notifications, plus
+  the whole suites of modules/classes, enrolment and school-rules — RELATED TESTS PASSED)
+- coverage of the changed lines ✅ COVERAGE OK — every changed line covered in 31 files; no coverage-ignore comments
+  in the diff
+- e2e: backend suite on the shared dev database ❌ 772 of 775 (3 `classes.e2e-spec.ts` suggestion tests read the dev
+  data's own classes); on a fresh scratch database (`e2e_review_066`, migrations applied, dropped afterwards) ✅ 28
+  files, 775 passed, including `people-removal.e2e-spec.ts`
+- iOS simulator (admin review account, pt-BR, backend on :4000): ER-09, ER-10, ER-11, ER-12 exercised ✅
+
+**Expected Results**
+
+- ER-01 ✅ — e2e `removes`: 200 `{ id, status: "removed" }`; upcoming seat cancelled, request withdrawn, ended seat
+  approved; instructor off the upcoming class (flagged without instructor) and kept on the ended one; `/auth/me` reads
+  `removed`; both gone from `/people`; `class.noInstructor` to the other admin, not the actor; removing another admin
+  leaves one approved admin. Use case test covers the order of releases.
+- ER-02 ✅ — e2e `refuses`: each check in order (403 notApproved, 403 notAdmin, 404 for a random UUID and a non-UUID,
+  403 `user.remove.self`, 409 for pending/denied/deleted/removed targets, 401 without a token), with no seat, status or
+  notification change; use case tests cover the failing releaser and `"changed"`.
+- ER-03 ✅ — e2e `last admin`: the `FOR UPDATE` race gives one 200 and one 409 `user.role.lastAdmin`, one approved
+  admin left.
+- ER-04 ✅ — e2e `lists`: `[R2, R1]` with `{ id, name, role, removedAt }`; R3 (30 days + 1 min), no-date, deleted and
+  approved excluded; ties by id; route not taken as `/people/:id`; non-admin and non-approved callers refused.
+- ER-05 ✅ — e2e `restores`: 200 `{ id, status: "approved" }`; role, name, WhatsApp kept; back in `/people`, out of
+  `/people/removed`; not back on the released class; seats stay cancelled; removable and listed again with the new
+  `removedAt`.
+- ER-06 ✅ — e2e `refuses to restore`: caller refusals, 404s, 409 `user.status.notRemoved` for approved/pending/denied/
+  deleted, 409 `removal.window.ended` past 30 days and with no date; concurrent restores give 200 + 409 and one
+  `account.restored`.
+- ER-07 ✅ — e2e `notifies`: one stored and pushed `account.removed` / `account.restored` with the pt-BR copy, both in
+  `GET /notifications`; the actor gets neither; refusals notify nobody; a failing push keeps the 200.
+  `push-messages.spec.ts` covers es and en.
+- ER-08 ✅ — e2e `registers`: a removed account's token → 204 and stored; denied → 403 `pushToken.status.notAllowed`.
+- ER-09 ✅ — Jest `remove action`; in the simulator Uma Teixeira's (student) sheet ends with the red "Remover da
+  plataforma" / "Perde o acesso ao app. Restaurável durante 30 dias."; "Remover Uma?" with the student text;
+  "Voltar" returns to the details.
+- ER-10 ✅ — Jest `confirm removal` (one POST, sheet closes, no toast, error toasts keep the confirmation); in the
+  simulator confirming closed the sheet, Uma left the list and was stored `removed` with one `account.removed`.
+- ER-11 ✅ — Jest `removed accounts` (visibility rules, empty directory, failed query, non-admins never ask,
+  pull-to-refresh, Fortaleza time); `format-removal-dates.test.ts` checks "2 out" / "1 nov" in pt-BR; in the simulator
+  the list ended with "Contas removidas · restauráveis durante 30 dias" and "Aluno · removida em 27 out · até 26 nov"
+  with "Restaurar".
+- ER-12 ✅ — Jest `restore` (one request, own row loading, other row usable, the two 409 toasts reload the list, network
+  toast keeps the row, expired session silent); in the simulator "Restaurar" removed the section and Uma came back,
+  with no toast (stored `approved`, `removed_at` null, one `account.restored`).
+- ER-13 ✅ — Jest `src/modules/notifications`: both pushes reload the account and the people / removed accounts with the
+  app open, a tapped push or row reloads the account and opens the resolved home, icons per D-12, `removed` registers a
+  phone; no session reloads nothing. The live push needs a physical phone; the executor's two-simulator journey
+  (T-14) showed "Access removed" and the student flow after relaunches.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The 3 red `classes.e2e-spec.ts` suggestion tests on the dev database come from that database's own classes (the
+  suggestions answer an 08:00–09:00 slot from existing data); this spec doesn't touch suggestions, and the suite is
+  green on a clean database. Running `run-e2e.mjs` against a shared dev database will keep showing them until those
+  tests isolate their data.
+- ER-05's "still `rulesAccepted: true`" is asserted as `rulesAcceptedBefore: true` in the e2e, because the suites keep
+  the rules version at 0 (where `rulesAccepted` is always true). Keeping the acceptance rows is what decides
+  `rulesAccepted`, and `updateIfRemoved` never touches them, so the behavior holds.
+- D-10 hides the section "after that query fails": a first failure hides it (tested), but a failed pull-to-refresh
+  keeps the rows already loaded, as React Query keeps the last data. That's consistent with the rest of People, but
+  worth knowing.
+- The simulator check removed and restored the seeded student Uma Teixeira (no upcoming seats), so the dev data is as it
+  was, apart from her two new notifications.
+- The backend the executor started for T-14 is still listening on :4000. This review didn't start it, so it left it
+  running.
+- `## Memory Impact` matches what was built.

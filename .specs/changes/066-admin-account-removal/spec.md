@@ -372,12 +372,13 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
   Covers: ER-01, ER-02, ER-04, ER-05, ER-06 · Done when: `npx vitest run src/modules/auth/people.controller.spec.ts`
   > ✅ 2026-10-27 — added `POST /people/:id/remove`, `GET /people/removed` (declared before the `:id` routes) and `POST /people/:id/restore`, wired with the clock and the new notifier, with controller specs and the requests in the `.http` file; files: `apps/backend/src/modules/auth/people.controller.ts`, `apps/backend/src/modules/auth/people.controller.spec.ts`, `apps/backend/src/modules/auth/people.integration.http`; verified: `npx vitest run src/modules/auth/people.controller.spec.ts` (21 passed) and `npm run check-types` (exit 0); deviations: the three requests answering 200 are exercised against the real app and database through supertest in T-09's e2e suite, not by hand from the `.http` file
   passes and the three requests answer 200 against the local API.
-- [ ] **T-09** — Add `test/people-removal.e2e-spec.ts` (faked `ExpoPushProvider`, fixed classes and enrolment clocks,
+- [x] **T-09** — Add `test/people-removal.e2e-spec.ts` (faked `ExpoPushProvider`, fixed classes and enrolment clocks,
   the database's own admins set aside where the count matters, cleanup of what it creates) with the describes and test
   names the Expected Results' `Verify by` use: "removes", "refuses", "last admin" (the `FOR UPDATE` race of
   `people-roles.e2e-spec.ts`), "lists", "restores", "refuses to restore" (including the concurrent restores),
   "notifies" and "registers".
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when:
+  > ✅ 2026-10-27 — added the e2e suite (faked Expo, fixed class and enrolment clocks, other admins set aside for the last-admin race, cleanup of everything it creates) with the describes `removes`, `refuses`, `last admin`, `lists`, `restores`, `refuses to restore` (incl. the concurrent restores), `notifies` and `registers`; files: `apps/backend/test/people-removal.e2e-spec.ts`; verified: `npx vitest run --config vitest.config.e2e.ts test/people-removal.e2e-spec.ts` against the local Postgres (39 passed) and `npm run check-types` (exit 0) in apps/backend; deviations: none
   `npx vitest run --config vitest.config.e2e.ts test/people-removal.e2e-spec.ts` passes from `apps/backend`.
 
 ### Mobile (`apps/mobile`)

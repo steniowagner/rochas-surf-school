@@ -3,7 +3,7 @@ id: "068"
 slug: mobile-review-polish
 title: Mobile polish left by earlier reviews
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 31fd0ebc54a9fc60d2726f79ff63e121e3b0f1d1
@@ -157,8 +157,14 @@ a class is the same on the button and on its confirmation.
 
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-27 — `run-related-tests.mjs 068`: RELATED TESTS PASSED (116 suites, 1813 tests);
+  > `check-coverage.mjs 068`: COVERAGE OK (every changed line covered); the `grep` for `22px` side margins prints
+  > nothing; `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`: 0 errors, 4 lint warnings
+  > (`no-require-imports` in the test files that use `require`/`requireActual` inside `jest.mock`); not run:
+  > the iOS-simulator journeys (green toast on approving a request, red offline, 20px margins on sign-in /
+  > pending / profile) — for the reviewer or the user to run.
 
 ## Verification Plan
 

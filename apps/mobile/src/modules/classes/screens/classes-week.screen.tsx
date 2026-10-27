@@ -38,7 +38,6 @@ export function ClassesWeekScreen({
         options={{
           ...(header === "title"
             ? {
-                headerTitleAlign: "center" as const,
                 headerTitle: () => (
                   <StackHeaderTitle title={t("tabs.classes")} />
                 ),

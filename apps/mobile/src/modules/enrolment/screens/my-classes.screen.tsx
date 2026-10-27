@@ -77,7 +77,6 @@ export function MyClassesScreen() {
     <>
       <Stack.Screen
         options={{
-          headerTitleAlign: "center",
           headerTitle: () => <StackHeaderTitle title={t("myClasses.title")} />,
           headerRight: () => (
             <HeaderButton

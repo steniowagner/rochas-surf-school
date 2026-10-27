@@ -34,13 +34,16 @@ export function NewClassScreen() {
   ];
 
   return (
-    <View className="flex-1 bg-page">
+    // No background on this view: a view that draws one is mounted ahead of the scroll view, and the header then
+    // can't find the scroll view for its scroll-edge blur. The scroll view paints the page instead.
+    <View className="flex-1">
       <Stack.Screen
         options={{
           headerTitle: () => <StackHeaderTitle title={t("newClass.title")} />,
         }}
       />
       <ScrollView
+        className="flex-1 bg-page"
         contentInsetAdjustmentBehavior="automatic"
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"

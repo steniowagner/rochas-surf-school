@@ -109,7 +109,6 @@ export function ClassHistory({
           showIntro
             ? header.headerOptions
             : {
-                headerTitleAlign: "center",
                 headerTitle: () => (
                   <StackHeaderTitle title={t(`${copy}.title`)} />
                 ),

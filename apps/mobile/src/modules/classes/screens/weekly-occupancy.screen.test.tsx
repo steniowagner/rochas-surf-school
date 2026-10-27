@@ -152,7 +152,7 @@ const pickDay = async (
 
 describe("WeeklyOccupancyScreen", () => {
   describe("week", () => {
-    it("opens on the current week with a centered title and the week bar", async () => {
+    it("opens on the current week with the title and the week bar", async () => {
       await renderScreen();
 
       expect(await screen.findByTestId("occupancy-cell-A")).toBeOnTheScreen();
@@ -160,7 +160,7 @@ describe("WeeklyOccupancyScreen", () => {
       expect(
         screen.getByRole("header", { name: "WEEKLY OCCUPANCY" }),
       ).toBeOnTheScreen();
-      expect(headerOptions.headerTitleAlign).toBe("center");
+      expect(headerOptions.headerTitleAlign).toBeUndefined();
       expect(screen.getByText("19 – 25 OCT")).toBeOnTheScreen();
       expect(screen.getByText("This week")).toBeOnTheScreen();
       expect(

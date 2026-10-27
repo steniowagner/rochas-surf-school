@@ -16,13 +16,15 @@ What the person is told, and how it reaches them.
   055). It holds **no text**: the backend writes it from the type and its details, in the reader's language — the
   push in its phone's language, the notifications screen in the app's. Types today:
   - `registration.pending` — a new account is waiting for approval; details: its name and its id (`userId`).
-    When that account is erased (a denied registration, spec 021), every `registration.pending` about it is
-    deleted on Authentication's request; older rows without an id are not touched.
+    When that account is erased (a denied registration, spec 021, or a deleted or removed account, spec 067),
+    every `registration.pending` about it is deleted on Authentication's request; older rows without an id are not
+    touched.
   - `registration.approved` — the person's registration was approved; no details.
   - `registration.denied` — the person's registration was denied; details: the admin's reason, exactly as
     stored, when one was given.
   - `reactivation.requested` — a deleted account asked to come back (spec 064); details: its name and its id
-    (`userId`). One per approved admin, only when the request is recorded.
+    (`userId`). One per approved admin, only when the request is recorded. Deleted when the account is erased
+    (spec 067).
   - `reactivation.approved` — the person's reactivation request was approved; no details.
   - `reactivation.denied` — the person's reactivation request was denied; details: the admin's trimmed reason
     (`reason`) when one was given.
@@ -49,9 +51,10 @@ What the person is told, and how it reaches them.
     pending request in (spec 047), and chose to tell them; details: how many of the person's upcoming classes are at
     that location (`count`; the larger one for a person on both lists) and its new name (`locationName`, as
     stored). One per person and edit (no class id: it concerns several classes).
-  - `enrolment.requested` — a student asked for a seat in a class; details: the class's id, the student's name
-    (`studentName`, as stored), its discipline and start. One per approved admin and per instructor of the class,
-    each person once.
+  - `enrolment.requested` — a student asked for a seat in a class; details: the class's id, the student's id
+    (`studentId`, since spec 067) and name (`studentName`, as stored), its discipline and start. One per approved
+    admin and per instructor of the class, each person once. Deleted when the student's account is erased; older
+    rows without `studentId` are not touched.
   - `enrolment.expired` — the person's pending request was still pending when the class started; details: the
     class's id, its discipline and start.
   - `enrolment.approved` — an admin approved the person's request; details: the class's id, its discipline and
@@ -59,8 +62,9 @@ What the person is told, and how it reaches them.
   - `enrolment.denied` — an admin denied the person's request; details: the class's id, its discipline, its start
     and the admin's reason (`reason`, as written) when there is one.
   - `enrolment.cancelled` — a student gave up their seat in a class (or their account was deleted); details: the
-    class's id, the student's name (`studentName`), the class's discipline and start, and how many pending
-    requests the class has left (`waitingCount`).
+    class's id, the student's id (`studentId`, since spec 067) and name (`studentName`), the class's discipline and
+    start, and how many pending requests the class has left (`waitingCount`). Deleted when the student's account is
+    erased; older rows without `studentId` are not touched.
   - `enrolment.enrolled` — an admin enrolled the person in a class directly (without a pending request); details:
     the class's id, its discipline and start.
   - `enrolment.takenOut` — an admin took the person out of a class; details: the class's id, its discipline, its
@@ -327,10 +331,11 @@ Rules:
 
 It knows people only by their ids and the phones they registered, and it doesn't depend on
 [Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
-it through six contracts of its own (one that notifies about registrations, one that removes a phone's token on
+it through seven contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts, one that tells a person
 their role changed — spec 058, one that notifies about reactivation requests — spec 064, one that tells a person of
-their removal and restore — spec 066), all provided by the
+their removal and restore — spec 066, one that deletes the notifications about an erased person in anyone's inbox —
+`DeleteNotificationsAbout`, spec 067), all provided by the
 backend; the admins' notice of a registration or a reactivation request goes through the same use case, which takes
 the type. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
 and removed), class changes (edits, cancellations, deletions), classes left without an instructor, location
@@ -423,3 +428,8 @@ requests (spec 047).
   `RegisterPushToken` accepts removed accounts. In the app, removed accounts register their phone, both pushes reload
   the account, the people and the removed accounts, a tapped push or row opens the resolved flow's home, and the two
   icons.
+- `067-closed-account-erasure` — `DeleteNotificationsAbout` (`{ userIds }`, nothing for none) and the repository's
+  `deleteAbout`: `registration.pending` and `reactivation.requested` by `params.userId`, `enrolment.requested` and
+  `enrolment.cancelled` by `params.studentId`, run through the backend's `NotificationsPersonNotificationEraser` when
+  Authentication erases a deleted or removed account. `enrolment.requested` and `enrolment.cancelled` now store
+  `studentId`; their push and in-app text don't change.

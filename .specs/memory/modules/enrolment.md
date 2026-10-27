@@ -76,7 +76,7 @@ told nothing, and their name and number are erased 30 days after the class.
   enrolment ends, the student may request again, as many times as they want until the class starts; every
   request is a new enrolment and the ended ones keep their status.
 - **Admins and the class's instructors hear of every new request**: one `enrolment.requested` for each approved
-  admin and each instructor of the class — an admin who teaches it hears once — with the student's name, the
+  admin and each instructor of the class — an admin who teaches it hears once — with the student's id and name, the
   class's discipline and start, through [Notifications](notifications.md). A notification that fails never
   changes the answer.
 - **Withdrawing is for the student's own pending request, before the class starts**, checked in this order: the
@@ -118,7 +118,7 @@ told nothing, and their name and number are erased 30 days after the class.
   two cancels racing one wins and the other gets `enrolment.notApproved`. A refused cancel changes nothing and
   tells nobody. What a late cancellation costs is settled outside the app.
 - **Admins and the class's instructors hear of every cancelled seat**: one `enrolment.cancelled` for each approved
-  admin and each instructor of the class — an admin who teaches it hears once — with the student's name, the
+  admin and each instructor of the class — an admin who teaches it hears once — with the student's id and name, the
   class's discipline and start, and the number of pending requests left after the cancel, through
   [Notifications](notifications.md). A notification that fails never changes the answer.
 - **A deleted account or a promoted student gives up what it holds**: when [Authentication](auth.md) closes an
@@ -294,3 +294,7 @@ pedir.".
 - `064-admin-reactivation-decisions` — no rule change here: the backend's classes-taken counter answers
   Authentication's `ClassesTakenCounter` contract with the rule of the classes a student took, for several accounts
   at once.
+- `067-closed-account-erasure` — the new-request and cancelled-seat notices (`SeatRequested`, `SeatCancelled`) carry
+  the student's id (`studentId`), from `RequestSeat`, `CancelSeat` and `ReleaseStudentEnrolments`, so the
+  notifications about a student can be deleted when the account is erased; the roster reader answers an erased
+  student's `name` as `null`.

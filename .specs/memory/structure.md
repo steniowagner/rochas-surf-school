@@ -67,7 +67,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     request and the person of its decision) and `provider/classes-taken-counter.provider.ts` (`ClassesTakenCounter`:
     how many classes each account took, without depending on `enrolment`; both spec 064),
     `provider/account-removal-notifier.provider.ts` (`AccountRemovalNotifier`: tells a person of their removal and
-    restore; spec 066),
+    restore; spec 066), `provider/person-notification-eraser.provider.ts` (`PersonNotificationEraser`: deletes the
+    notifications about erased people, without depending on `notifications`; spec 067),
     `usecase/{create-user,update-user,delete-user,find-user-by-id,get-current-user,set-whatsapp,set-name,delete-account,request-reactivation,find-user-page,search-users-by-name}.usecase.ts`
     (`SetName`: an approved account renames itself; `DeleteAccount`: an approved account — never the only admin —
     releases its upcoming classes, then its seats and requests, then closes itself → `deleted` through
@@ -84,6 +85,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     (`findPendingRegistration`: UUID check, 404, 409);
     `usecase/{list-reactivation-requests,approve-reactivation,deny-reactivation}.usecase.ts` with
     `usecase/reactivation-request.ts` (`findReactivationRequest`: UUID check, 404, 409; spec 064);
+    `usecase/erase-closed-accounts.usecase.ts` (`EraseClosedAccounts`: the accounts deleted or removed 30 × 24 hours
+    ago or more become anonymous records, after the notifications about them; spec 067);
     `usecase/list-people.usecase.ts` (`ListPeople`: the people
     directory — access, query parsing, WhatsApp visibility).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
@@ -120,6 +123,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     notification, then push to each device; the last one tells the approved admins minus the excluded ones),
     `usecase/{list-notifications,count-unread-notifications,mark-notification-read,mark-all-notifications-read}.usecase.ts`
     (the caller's own notifications on the notifications screen; spec 055),
+    `usecase/delete-notifications-about.usecase.ts` (`DeleteNotificationsAbout`: the notifications about erased
+    people in anyone's inbox; spec 067),
     `usecase/{count-broadcast-recipients,send-broadcast}.usecase.ts` and `usecase/broadcast-access.ts` (the approved
     admin check, the audience and the 60 / 500 limits; spec 063).
   - `push-token/` — `model/push-token.entity.ts` (`PushToken`, `PUSH_TOKEN_PATTERN`, `PUSH_LOCALES`),
@@ -269,7 +274,8 @@ src/
     google.id-token.ts          # GoogleAuthIdTokenProvider (google-auth-library verifyIdToken, web client id audience)
     system.clock.ts             # SystemClockProvider
     sign-in-code-cleanup.job.ts # every-minute cron deleting expired codes
-    account-erasure.job.ts      # every-minute cron running EraseDeniedRegistrations (logs only the count)
+    account-erasure.job.ts      # every-minute cron running EraseDeniedRegistrations, then EraseClosedAccounts
+                                # (spec 067), each on its own (logs only the counts)
   modules/school-rules/
     school-rules.module.ts      # wiring (DbModule; also provides PrismaUserRepository and SystemClockProvider)
     school-rules.controller.ts  # GET /school-rules (200), POST /school-rules (201), PUT /school-rules/order,
@@ -306,6 +312,8 @@ src/
     notifications.push-token-remover.ts     # PushTokenRemover adapter (RemovePushToken)
     notifications.registration-notification-eraser.ts  # RegistrationNotificationEraser adapter
                                 # (DeleteRegistrationNotifications)
+    notifications.person-notification-eraser.ts  # PersonNotificationEraser adapter (DeleteNotificationsAbout;
+                                # spec 067)
     notifications.role-change-notifier.ts  # RoleChangeNotifier adapter (one role.changed to the person through
                                 # Notify; logs and swallows every error; spec 058)
     notifications.account-removal-notifier.ts  # AccountRemovalNotifier adapter (one account.removed /
@@ -433,7 +441,8 @@ test/
   notifications.e2e-spec.ts     # e2e suite of push tokens, sign-out with a push token and the registration
                                 # notifications (ExpoPushProvider replaced by a recording fake)
   account-erasure.e2e-spec.ts   # e2e suite of AccountErasureJob (accounts through Prisma; signing up again by
-                                # email code and Google)
+                                # email code and Google; spec 067: deleted and removed accounts erased, the class
+                                # answers and the notifications about them; ExpoPushProvider faked)
   locations.e2e-spec.ts         # e2e suite of /locations (order, duplicates, concurrency, validation, access, the
                                 # point, editing, deadlines, notifying, archiving, suggestions; ExpoPushProvider,
                                 # the Google provider and the clock replaced by fakes)
@@ -712,7 +721,9 @@ src/
                                 # the day header's date and weekday; spec 057), weekly-occupancy.ts (the map's days,
                                 # rows and cell tones, the default selection, the relative week and the stats;
                                 # spec 061), class-history.ts (the days with classes, the day filter, grouping by
-                                # day, the day and chip labels; spec 053, moved from enrolment in 062)
+                                # day, the day and chip labels; spec 053, moved from enrolment in 062),
+                                # person-label.ts (the name, or "Ex-aluno" / "Ex-instrutor" by the list for an erased
+                                # person; spec 067)
     classes.test-utils.tsx      # shared test helpers of the module
   modules/enrolment/            # the student's requests (spec 041), shown on the classes' details and cards, the
                                 # admins' "Inscrições em aulas" tool (spec 042), direct enrolment and take-out

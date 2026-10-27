@@ -592,6 +592,7 @@ describe('Enrolment (e2e)', () => {
       const [stored] = await notificationsOf(instructor.id, 'enrolment.requested');
       expect(stored!.params).toEqual({
         classId,
+        studentId: student.id,
         studentName: 'Ana Souza',
         discipline: 'surf',
         startsAt: STARTS_AT,

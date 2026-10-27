@@ -475,6 +475,7 @@ describe('DELETE /auth/me', () => {
     expect(stored.map((item) => item.params)).toEqual([
       {
         classId: upcoming,
+        studentId: student.id,
         studentName: 'Ana Souza',
         discipline: 'surf',
         startsAt: new Date(NOW.getTime() + 22 * HOUR).toISOString(),

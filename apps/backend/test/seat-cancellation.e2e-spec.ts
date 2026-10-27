@@ -278,7 +278,14 @@ describe('Seat cancellation (e2e)', () => {
       expect((await cancel(ana.accessToken, id)).status).toBe(200);
 
       const stored = await cancelledNotifications(classId);
-      const params = { classId, studentName: 'Ana Souza', discipline: 'surf', startsAt: STARTS_AT, waitingCount: 2 };
+      const params = {
+        classId,
+        studentId: ana.id,
+        studentName: 'Ana Souza',
+        discipline: 'surf',
+        startsAt: STARTS_AT,
+        waitingCount: 2,
+      };
       // Every approved admin of the database is told, each person once; the student is not.
       expect(new Set(stored.map((item) => item.userId)).size).toBe(stored.length);
       for (const person of [admin, teachingAdmin, instructor]) {

@@ -326,13 +326,14 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-03** — Add the port `AccountRemovalNotifier` (`accountRemoved(userId)`, `accountRestored(userId)`) in
+- [x] **T-03** — Add the port `AccountRemovalNotifier` (`accountRemoved(userId)`, `accountRestored(userId)`) in
   `src/user/provider/account-removal-notifier.provider.ts`, the `UserRepository` methods `findRemovedSince(cutoff)`
   (D-06's filter and order) and `updateIfRemoved(user): Promise<boolean>` (D-07's conditional write) in
   `src/user/provider/user.repository.ts`, exported from the provider index, and their fakes in `test/mock/`
   (`fake-account-removal-notifier.provider.ts`, `fake-user.repository.ts`), with tests of the fake repository's new
   methods where the existing fakes have them.
   Covers: enabling · Done when: `npx jest` passes and `npm run check-types` exits 0 in `modules/auth`.
+  > ✅ 2026-10-27 — added the `AccountRemovalNotifier` port, `UserRepository.findRemovedSince` / `updateIfRemoved`, the fakes and tests of the fake repository; files: `modules/auth/src/user/provider/account-removal-notifier.provider.ts`, `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/test/mock/fake-account-removal-notifier.provider.ts`, `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/mock/index.ts`, `modules/auth/test/user/provider/user.repository.test.ts`; verified: `npx jest` (446 passed) and `npm run check-types` (exit 0) in modules/auth; deviations: none
 - [ ] **T-04** — Add `RemoveUser` in `src/user/usecase/remove-user.usecase.ts` (D-02, D-03, D-04), exported from the
   index, with tests in `test/user/usecase/remove-user.usecase.test.ts` for every check in order, the releases (seats
   for every role, teaching with the actor), `"changed"` and `"lastAdmin"`, a failing release, the notification and a

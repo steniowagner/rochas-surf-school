@@ -7,3 +7,4 @@ export * from "./seat-releaser.provider";
 export * from "./role-change-notifier.provider";
 export * from "./reactivation-notifier.provider";
 export * from "./classes-taken-counter.provider";
+export * from "./account-removal-notifier.provider";

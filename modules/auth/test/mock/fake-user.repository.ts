@@ -113,6 +113,27 @@ export class FakeUserRepository implements UserRepository {
     return true;
   }
 
+  async findRemovedSince(cutoff: Date): Promise<User[]> {
+    return this.users
+      .filter(
+        (item) =>
+          item.status === "removed" && item.removedAt !== undefined && item.removedAt > cutoff,
+      )
+      .sort((a, b) => {
+        const byDate = (b.removedAt?.getTime() ?? 0) - (a.removedAt?.getTime() ?? 0);
+
+        return byDate || a.id.localeCompare(b.id);
+      });
+  }
+
+  async updateIfRemoved(user: User): Promise<boolean> {
+    const index = this.users.findIndex((item) => item.equals(user));
+    if (index === -1 || this.users[index].status !== "removed") return false;
+
+    this.users[index] = user;
+    return true;
+  }
+
   async findDeniedBefore(cutoff: Date): Promise<string[]> {
     return this.users
       .filter(

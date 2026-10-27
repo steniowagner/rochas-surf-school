@@ -256,3 +256,41 @@ describe("UserRepository reactivation requests (fake)", () => {
     expect((await userRepository.findById(decided.id))?.status).toBe("deleted");
   });
 });
+
+describe("UserRepository.findRemovedSince / updateIfRemoved (fake)", () => {
+  const CUTOFF = new Date("2026-10-07T12:00:00.000Z");
+  const RECENT = new Date("2026-10-09T12:00:00.000Z");
+  const NEWEST = new Date("2026-10-10T12:00:00.000Z");
+
+  test("lists the removed users removed after the cutoff, newest first and ties by id", async () => {
+    const newest = buildUser({ status: "removed", removedAt: NEWEST });
+    const tieA = buildUser({ status: "removed", removedAt: RECENT });
+    const tieB = buildUser({ status: "removed", removedAt: RECENT });
+    const exact = buildUser({ status: "removed", removedAt: CUTOFF });
+    const undated = buildUser({ status: "removed" });
+    const deleted = buildUser({ status: "deleted", removedAt: RECENT });
+    const userRepository = new FakeUserRepository([tieB, exact, undated, deleted, tieA, newest]);
+
+    const found = await userRepository.findRemovedSince(CUTOFF);
+
+    expect(found.map((item) => item.id)).toEqual([newest.id, ...[tieA.id, tieB.id].sort()]);
+  });
+
+  test("writes only while the stored user is still removed", async () => {
+    const removed = buildUser({ status: "removed", removedAt: RECENT });
+    const approved = buildUser();
+    const userRepository = new FakeUserRepository([removed, approved]);
+
+    await expect(userRepository.updateIfRemoved(removed.clone({ status: "approved" }))).resolves.toBe(
+      true,
+    );
+    await expect(userRepository.updateIfRemoved(removed.clone({ status: "approved" }))).resolves.toBe(
+      false,
+    );
+    await expect(userRepository.updateIfRemoved(approved)).resolves.toBe(false);
+    await expect(userRepository.updateIfRemoved(buildUser({ status: "approved" }))).resolves.toBe(
+      false,
+    );
+    expect((await userRepository.findById(removed.id))?.status).toBe("approved");
+  });
+});

@@ -83,8 +83,8 @@ describe('School settings (e2e)', () => {
     });
     return {
       id: user.id,
-      email: user.email,
-      accessToken: tokens.signAccessToken(user).token,
+      email: user.email!,
+      accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token,
     };
   }
 

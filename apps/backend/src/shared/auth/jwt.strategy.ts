@@ -33,9 +33,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { id: payload.sub },
       select: { id: true, email: true, role: true, status: true },
     });
-    if (!record) {
+    // An erased account (spec 067) no longer exists for auth: it has no email and no domain status.
+    if (!record || record.status === 'erased' || record.email === null) {
       throw new UnauthorizedError(INVALID_TOKEN_ERROR);
     }
-    return mapUserRecordToAuthenticatedUser(record, payload);
+    return mapUserRecordToAuthenticatedUser(
+      { ...record, email: record.email, status: record.status },
+      payload,
+    );
   }
 }

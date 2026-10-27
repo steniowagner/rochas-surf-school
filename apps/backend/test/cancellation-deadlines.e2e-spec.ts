@@ -88,7 +88,7 @@ describe('Cancellation deadlines (e2e)', () => {
         status: 'approved',
       },
     });
-    admin = { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    admin = { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   });
 
   afterEach(async () => {

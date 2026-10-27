@@ -204,38 +204,40 @@ describe('PrismaUserRepository', () => {
     expect(user.delete).toHaveBeenCalledWith({ where: { id: ID } });
   });
 
-  it('finds by id', async () => {
+  it('finds by id, skipping an erased account', async () => {
     const { user, repository } = setup();
     user.findUnique.mockResolvedValueOnce(minimalRecord).mockResolvedValueOnce(null);
 
     expect((await repository.findById(ID))?.email).toBe('ana@example.com');
     await expect(repository.findById(ID)).resolves.toBeNull();
     expect(user.findUnique).toHaveBeenCalledWith({
-      where: { id: ID },
+      where: { id: ID, status: { not: 'erased' } },
       include: { rulesAcceptances: true },
     });
   });
 
-  it('finds by email', async () => {
+  it('finds by email, skipping an erased account', async () => {
     const { user, repository } = setup();
     user.findUnique.mockResolvedValueOnce(minimalRecord).mockResolvedValueOnce(null);
 
     expect((await repository.findByEmail('ana@example.com'))?.id).toBe(ID);
     await expect(repository.findByEmail('bia@example.com')).resolves.toBeNull();
     expect(user.findUnique).toHaveBeenNthCalledWith(1, {
-      where: { email: 'ana@example.com' },
+      where: { email: 'ana@example.com', status: { not: 'erased' } },
       include: { rulesAcceptances: true },
     });
   });
 
-  it('returns a page with the total', async () => {
+  it('returns a page with the total, without the erased accounts', async () => {
     const { user, repository } = setup();
     user.findMany.mockResolvedValue([minimalRecord]);
     user.count.mockResolvedValue(11);
 
     const page = await repository.findPage({ page: 2, perPage: 10 });
 
+    expect(user.count).toHaveBeenCalledWith({ where: { status: { not: 'erased' } } });
     expect(user.findMany).toHaveBeenCalledWith({
+      where: { status: { not: 'erased' } },
       skip: 10,
       take: 10,
       orderBy: { createdAt: 'asc' },
@@ -245,14 +247,14 @@ describe('PrismaUserRepository', () => {
     expect(page).toMatchObject({ page: 2, perPage: 10, total: 11 });
   });
 
-  it('searches by name, trimmed and case-insensitive', async () => {
+  it('searches by name, trimmed and case-insensitive, without the erased accounts', async () => {
     const { user, repository } = setup();
     user.findMany.mockResolvedValue([minimalRecord]);
 
     const users = await repository.searchByName('  ana ');
 
     expect(user.findMany).toHaveBeenCalledWith({
-      where: { name: { contains: 'ana', mode: 'insensitive' } },
+      where: { name: { contains: 'ana', mode: 'insensitive' }, status: { not: 'erased' } },
       orderBy: { name: 'asc' },
       include: { rulesAcceptances: true },
     });

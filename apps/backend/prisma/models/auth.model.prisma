@@ -15,6 +15,9 @@ enum UserStatus {
   denied
   deleted
   removed
+  // Spec 067: an account deleted or removed 30 days ago, kept as an anonymous record. Not in the domain's
+  // USER_STATUSES: PrismaUserRepository never returns an erased account.
+  erased
 
   @@map("user_status")
 }
@@ -36,8 +39,9 @@ enum IdentityProvider {
 
 model User {
   id                      String                  @id @db.Uuid
-  name                    String
-  email                   String                  @unique
+  // Null once the account is erased (spec 067).
+  name                    String?
+  email                   String?                 @unique
   photoUrl                String?                 @map("photo_url")
   whatsappNumber          String?                 @map("whatsapp_number")
   whatsappVisible         Boolean                 @default(false) @map("whatsapp_visible")
@@ -46,6 +50,7 @@ model User {
   denialReason            String?                 @map("denial_reason")
   deniedAt                DateTime?               @map("denied_at")
   removedAt               DateTime?               @map("removed_at")
+  erasedAt                DateTime?               @map("erased_at")
   reactivationStatus      UserReactivationStatus? @map("reactivation_status")
   reactivationRequestedAt DateTime?               @map("reactivation_requested_at")
   createdAt               DateTime                @default(now()) @map("created_at")

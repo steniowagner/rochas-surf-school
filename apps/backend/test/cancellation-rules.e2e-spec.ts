@@ -79,7 +79,7 @@ describe('Cancellation rules (e2e)', () => {
         status,
       },
     });
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   const list = (token: string | undefined) => as(token, http().get('/cancellation-rules'));

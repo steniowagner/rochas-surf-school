@@ -74,9 +74,9 @@ describe('Registrations (e2e)', () => {
     });
     return {
       id: user.id,
-      name: user.name,
-      email: user.email,
-      accessToken: tokens.signAccessToken(user).token,
+      name: user.name!,
+      email: user.email!,
+      accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token,
     };
   }
 

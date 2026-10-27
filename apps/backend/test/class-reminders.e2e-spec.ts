@@ -110,7 +110,7 @@ describe('Class reminders (e2e)', () => {
         status: 'approved',
       },
     });
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   /** A one-hour class taught by `instructorIds`. */

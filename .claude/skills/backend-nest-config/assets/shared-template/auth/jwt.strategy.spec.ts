@@ -59,4 +59,18 @@ describe('JwtStrategy', () => {
     expect(error).toBeInstanceOf(UnauthorizedError);
     expect(error).toMatchObject({ message: 'auth.token.invalid', statusCode: 401 });
   });
+
+  it('refuses a token whose account was erased with auth.token.invalid', async () => {
+    const erased = { id: 'user-1', email: null, role: 'student', status: 'erased' };
+    const withoutEmail = { id: 'user-1', email: null, role: 'student', status: 'approved' };
+
+    for (const record of [erased, { ...erased, email: 'ana@example.com' }, withoutEmail]) {
+      const { strategy } = setup(record);
+
+      const error = await strategy.validate({ sub: 'user-1' }).catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(UnauthorizedError);
+      expect(error).toMatchObject({ message: 'auth.token.invalid', statusCode: 401 });
+    }
+  });
 });

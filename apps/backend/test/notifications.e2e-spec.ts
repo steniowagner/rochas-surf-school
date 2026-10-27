@@ -125,7 +125,8 @@ describe('Notifications (e2e)', () => {
     const user = await prisma.user.create({
       data: { id: randomUUID(), name: `Ana ${role}`, email: unique(role), role, status },
     });
-    return { id: user.id, email: user.email, accessToken: tokens.signAccessToken(user).token };
+    const subject = { id: user.id, email: user.email! };
+    return { ...subject, accessToken: tokens.signAccessToken(subject).token };
   }
 
   const register = (token: string | undefined, body?: object) => {

@@ -329,12 +329,50 @@ and removal.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-06** — In `prisma/models/auth.model.prisma`, add `erased` to `UserStatus` and `erasedAt` (`erased_at`) to
+- [x] **T-06** — In `prisma/models/auth.model.prisma`, add `erased` to `UserStatus` and `erasedAt` (`erased_at`) to
   `User`, and make `name` and `email` nullable; generate the migration `users_erasure`; make `user.prisma.ts`'s
   `findById`, lookup by email and lookup by identity skip erased accounts (D-04), with specs in `user.prisma.spec.ts`.
   Skill: [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: ER-01, ER-02 · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies it and
   `npx vitest run src/modules/auth/user.prisma.spec.ts` passes.
+  > ✅ 2026-10-27 15:48 — with the `backend-prisma-sync-module` skill: `erased` added to the Prisma `UserStatus` (not
+  > to the domain, D-04), `erasedAt` (`erased_at`) added to `User`, `name` and `email` nullable (`email` still
+  > unique); migration `20261027184122_users_erasure` (created with `--create-only` and reviewed: `ALTER TYPE … ADD
+  > VALUE`, `ADD COLUMN erased_at`, two `DROP NOT NULL`, nothing destructive) applied with `prisma:migrate:deploy`.
+  > `PrismaUserRepository` skips `status = erased` in `findById`, `findByEmail`, `findPage` (rows and count) and
+  > `searchByName`, and maps a record with the domain types; `PrismaIdentityRepository.findByProvider` (the lookup
+  > by identity) skips an identity whose user is erased. Small technical steps the nullable columns and the new enum
+  > value needed: `JwtStrategy.validate` refuses an erased account (or one without an email) with
+  > `auth.token.invalid` — changed in the `backend-nest-config` template
+  > (`assets/shared-template/auth/jwt.strategy.ts` and its spec) and applied by rerunning `apply-backend-shared.js`,
+  > whose final `nest build` failed only on the ports T-07 to T-09 implement; `PrismaClassContactReader` and
+  > `PrismaTeacherLookup` leave erased accounts out (like missing ones);
+  > `PrismaEnrolmentRepository.findPendingByClass` narrows the student name (an erased student has no pending
+  > request); the e2e helpers narrow the now-nullable `email` / `name` of the rows they create. files:
+  > `apps/backend/prisma/models/auth.model.prisma`,
+  > `apps/backend/prisma/migrations/20261027184122_users_erasure/migration.sql`,
+  > `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`,
+  > `apps/backend/src/modules/auth/identity.prisma.ts`, `apps/backend/src/modules/auth/identity.prisma.spec.ts`,
+  > `apps/backend/src/modules/classes/class-contact-reader.prisma.ts`,
+  > `apps/backend/src/modules/classes/class-contact-reader.prisma.spec.ts`,
+  > `apps/backend/src/modules/classes/teacher-lookup.prisma.ts`,
+  > `apps/backend/src/modules/classes/teacher-lookup.prisma.spec.ts`,
+  > `apps/backend/src/modules/enrolment/enrolment.prisma.ts`, `apps/backend/src/shared/auth/jwt.strategy.ts`,
+  > `apps/backend/src/shared/auth/jwt.strategy.spec.ts`,
+  > `.claude/skills/backend-nest-config/assets/shared-template/auth/jwt.strategy.ts`,
+  > `.claude/skills/backend-nest-config/assets/shared-template/auth/jwt.strategy.spec.ts`, and 22 e2e specs under
+  > `apps/backend/test/` (`auth-profile`, `auth-session`, `cancellation-deadlines`, `cancellation-rules`,
+  > `class-reminders`, `classes`, `direct-enrolment`, `enrolment-decisions`, `enrolment`, `guests`, `locations`,
+  > `my-classes`, `notifications`, `people-removal`, `people-roles`, `people`, `reactivation-requests`,
+  > `registrations`, `school-rules-acceptance`, `school-rules`, `school-settings`, `seat-cancellation`,
+  > `teaching-classes`). verified: `npm run prisma:migrate:deploy --workspace apps/backend` (applied), `npx vitest
+  > run src/modules/auth/user.prisma.spec.ts` with the other changed specs (6 files, 77 passed); the e2e suites
+  > `auth-google`, `auth-session`, `auth-email`, `people` passed against the real database (filters accepted by
+  > Prisma), `classes` had 3 failures in the time-range suggestions, which read last week’s classes and fail on
+  > leftover local data — to recheck on a clean database in T-16; `tsc --noEmit` in `apps/backend` has only the
+  > errors of the ports T-07 to T-09 implement. deviations: the migration is named `users_erasure` as the spec says,
+  > not `auth-<change>` as the naming convention would; the JWT strategy and the readers are changes the spec did
+  > not list, needed by the nullable columns and the new status.
 - [ ] **T-07** — Implement `findClosedBefore` and `eraseClosed` in `src/modules/auth/user.prisma.ts` (one
   transaction: the conditional `updateMany` of D-01 and D-03 on the ids still due, then the deletes of D-02 for the
   accounts it wrote), with specs in `user.prisma.spec.ts` (named "eraseClosed") for the cleared and kept fields, the

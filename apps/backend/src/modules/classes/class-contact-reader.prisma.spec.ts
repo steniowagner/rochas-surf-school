@@ -24,7 +24,7 @@ describe('PrismaClassContactReader', () => {
     const contacts = await reader.findContacts([ID, 'missing']);
 
     expect(findMany).toHaveBeenCalledWith({
-      where: { id: { in: [ID, 'missing'] } },
+      where: { id: { in: [ID, 'missing'] }, status: { not: 'erased' } },
       select: { id: true, role: true, status: true, whatsappNumber: true, whatsappVisible: true },
     });
     expect(contacts).toEqual(new Map([[ID, CONTACT]]));

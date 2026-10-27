@@ -8,6 +8,7 @@ import {
   User,
   UserPageParams,
   UserRepository,
+  UserStatus,
 } from '@rochas-surf-school/auth';
 import { PrismaService } from '../../db/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
@@ -21,6 +22,9 @@ type UserRecordWithAcceptances = UserRecord & {
 };
 
 const include = { rulesAcceptances: true } as const;
+
+/** An erased account (spec 067) is never returned: for the auth module it no longer exists. */
+const notErased = { not: 'erased' } as const;
 
 /** Escapes `\`, `%` and `_` so a search is matched literally by LIKE. */
 function escapeLike(text: string): string {
@@ -61,24 +65,28 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    const record = await this.prisma.user.findUnique({ where: { id }, include });
+    const record = await this.prisma.user.findUnique({ where: { id, status: notErased }, include });
     return record ? this.toDomain(record) : null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const record = await this.prisma.user.findUnique({ where: { email }, include });
+    const record = await this.prisma.user.findUnique({
+      where: { email, status: notErased },
+      include,
+    });
     return record ? this.toDomain(record) : null;
   }
 
   async findPage(params: UserPageParams): Promise<PageResult<User>> {
     const [records, total] = await Promise.all([
       this.prisma.user.findMany({
+        where: { status: notErased },
         skip: (params.page - 1) * params.perPage,
         take: params.perPage,
         orderBy: { createdAt: 'asc' },
         include,
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({ where: { status: notErased } }),
     ]);
 
     return {
@@ -126,7 +134,7 @@ export class PrismaUserRepository implements UserRepository {
 
   async searchByName(name: string): Promise<User[]> {
     const records = await this.prisma.user.findMany({
-      where: { name: { contains: name.trim(), mode: 'insensitive' } },
+      where: { name: { contains: name.trim(), mode: 'insensitive' }, status: notErased },
       orderBy: { name: 'asc' },
       include,
     });
@@ -271,16 +279,17 @@ export class PrismaUserRepository implements UserRepository {
     }));
   }
 
+  /** Only records that aren't erased reach here, so the name, the email and the status are the domain's. */
   private toDomain(record: UserRecordWithAcceptances): User {
     return new User({
       id: record.id,
-      name: record.name,
-      email: record.email,
+      name: record.name as string,
+      email: record.email as string,
       photoUrl: record.photoUrl ?? undefined,
       whatsappNumber: record.whatsappNumber ?? undefined,
       whatsappVisible: record.whatsappVisible,
       role: record.role,
-      status: record.status,
+      status: record.status as UserStatus,
       denialReason: record.denialReason ?? undefined,
       deniedAt: record.deniedAt ?? undefined,
       removedAt: record.removedAt ?? undefined,

@@ -13,7 +13,7 @@ describe('PrismaTeacherLookup', () => {
     const teachers = await lookup.findTeachers([ID]);
 
     expect(findMany).toHaveBeenCalledWith({
-      where: { id: { in: [ID] } },
+      where: { id: { in: [ID] }, status: { not: 'erased' } },
       select: { id: true, role: true, status: true },
     });
     expect(teachers).toEqual([{ id: ID, role: 'instructor', status: 'approved' }]);

@@ -146,7 +146,11 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
     return classes.map(({ enrolments, ...item }) => ({
       ...item,
       seatsTaken: seatsTaken.get(item.id) ?? 0,
-      requests: enrolments,
+      // A closed account's pending requests are withdrawn when it closes, so an erased student (spec 067) has none.
+      requests: enrolments.map((request) => ({
+        ...request,
+        student: { ...request.student, name: request.student.name as string },
+      })),
     }));
   }
 

@@ -141,7 +141,7 @@ describe('Locations (e2e)', () => {
         role,
       },
     });
-    return { id: user.id, token: tokens.signAccessToken(user).token };
+    return { id: user.id, token: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   async function account(role: Role = 'admin', status: Status = 'approved') {

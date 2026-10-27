@@ -271,12 +271,23 @@ and removal.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-03** — Add the port `PersonNotificationEraser` (`erase(userIds)`) in
+- [x] **T-03** — Add the port `PersonNotificationEraser` (`erase(userIds)`) in
   `src/user/provider/person-notification-eraser.provider.ts`, the `UserRepository` methods
   `findClosedBefore(cutoff): Promise<string[]>` and `eraseClosed(ids, cutoff): Promise<number>` (D-03), exported from
   the provider index, and their fakes in `test/mock/` (`fake-person-notification-eraser.provider.ts`,
   `fake-user.repository.ts`).
   Covers: enabling · Done when: `npx jest` passes and `npm run check-types` exits 0 in `modules/auth`.
+  > ✅ 2026-10-27 15:38 — added the port `PersonNotificationEraser` (`erase(userIds)`), exported from the provider
+  > index, and the `UserRepository` methods `findClosedBefore(cutoff)` and `eraseClosed(ids, cutoff)` (D-03); the
+  > fakes: `FakePersonNotificationEraser` (records the calls, `failWith`) and `FakeUserRepository.findClosedBefore`
+  > / `eraseClosed` (a `deleted` user by `deletedAt`, a `removed` one by `removedAt`, at or before the cutoff; an
+  > erased user leaves `users` and its id goes to `erasedIds`, since the repository never returns it — D-04); files:
+  > `modules/auth/src/user/provider/person-notification-eraser.provider.ts`,
+  > `modules/auth/src/user/provider/index.ts`, `modules/auth/src/user/provider/user.repository.ts`,
+  > `modules/auth/test/mock/fake-person-notification-eraser.provider.ts`,
+  > `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/mock/index.ts`; verified: `npx jest` (485
+  > passed) and `npm run check-types` exit 0 in `modules/auth`; deviations: none (the backend `PrismaUserRepository`
+  > implements the methods in T-07).
 - [ ] **T-04** — Add `EraseClosedAccounts` in `src/user/usecase/erase-closed-accounts.usecase.ts` (D-03, D-05:
   cutoff 30 × 24 h, ids, eraser first, then `eraseClosed`; `{ erased }`), exported from the index, with tests in
   `test/user/usecase/erase-closed-accounts.usecase.test.ts` for due deleted and removed accounts, not due, no date, none

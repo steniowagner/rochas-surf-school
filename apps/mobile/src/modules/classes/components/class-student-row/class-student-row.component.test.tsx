@@ -41,4 +41,16 @@ describe("ClassStudentRow", () => {
     expect(onTakeOut).toHaveBeenCalledTimes(1);
     expect(onPress).not.toHaveBeenCalled();
   });
+
+  it("shows an erased student with the generic avatar, no chevron, and can't be pressed", async () => {
+    await render(
+      <ClassStudentRow name="Former student" photoUrl={null} erased />,
+    );
+
+    expect(screen.getByText("Former student")).toBeOnTheScreen();
+    expect(screen.getByTestId("student-avatar-erased")).toBeOnTheScreen();
+    expect(screen.queryByText("FS")).not.toBeOnTheScreen();
+    expect(screen.queryByTestId("class-student-row-chevron")).toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
+  });
 });

@@ -80,9 +80,9 @@ describe('Accepting the school rules (e2e)', () => {
     });
     return {
       id: user.id,
-      email: user.email,
+      email: user.email!,
       createdAt: user.createdAt,
-      accessToken: tokens.signAccessToken(user).token,
+      accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token,
     };
   }
 

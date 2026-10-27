@@ -2,6 +2,8 @@ import { ClassDiscipline } from "@rochas-surf-school/classes";
 
 export interface SeatRequested {
   classId: string;
+  /** The student's id, so the notification can be found when the account is erased. */
+  studentId: string;
   studentName: string;
   discipline: ClassDiscipline;
   startsAt: Date;
@@ -30,6 +32,8 @@ export interface RequestDenied extends RequestDecided {
 
 export interface SeatCancelled {
   classId: string;
+  /** The student's id, so the notification can be found when the account is erased. */
+  studentId: string;
   studentName: string;
   discipline: ClassDiscipline;
   startsAt: Date;

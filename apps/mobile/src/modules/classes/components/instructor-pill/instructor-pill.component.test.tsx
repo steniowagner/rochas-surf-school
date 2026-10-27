@@ -34,4 +34,15 @@ describe("InstructorPill", () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it("shows an erased instructor with the generic avatar, and is no button", async () => {
+    await render(
+      <InstructorPill name="Former instructor" isViewer={false} erased />,
+    );
+
+    expect(screen.getByText("Former instructor")).toBeOnTheScreen();
+    expect(screen.getByTestId("student-avatar-erased")).toBeOnTheScreen();
+    expect(screen.queryByText("FI")).not.toBeOnTheScreen();
+    expect(screen.queryByRole("button")).toBeNull();
+  });
 });

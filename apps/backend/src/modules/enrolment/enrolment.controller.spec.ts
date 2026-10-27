@@ -129,6 +129,7 @@ describe('EnrolmentController', () => {
       expect(stored[0]!.ruleAcceptedAt).toEqual(NOW);
       expect(notifier.seatRequested).toHaveBeenCalledWith({
         classId: CLASS_ID,
+        studentId: STUDENT_ID,
         studentName: 'Ana Souza',
         discipline: 'surf',
         startsAt: STARTS_AT,
@@ -204,6 +205,7 @@ describe('EnrolmentController', () => {
       expect(enrolmentRepository.cancel).toHaveBeenCalledWith(seat.id, NOW);
       expect(notifier.seatCancelled).toHaveBeenCalledWith({
         classId: CLASS_ID,
+        studentId: STUDENT_ID,
         studentName: 'Ana Souza',
         discipline: 'surf',
         startsAt: STARTS_AT,

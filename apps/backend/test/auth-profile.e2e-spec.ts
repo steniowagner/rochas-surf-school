@@ -321,7 +321,7 @@ describe('DELETE /auth/me', () => {
     const user = await prisma.user.create({
       data: { id: randomUUID(), name, email: uniqueEmail(MARK), role, status },
     });
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   /** A class starting `fromNowHours` after the clock, one hour long. */
@@ -475,6 +475,7 @@ describe('DELETE /auth/me', () => {
     expect(stored.map((item) => item.params)).toEqual([
       {
         classId: upcoming,
+        studentId: student.id,
         studentName: 'Ana Souza',
         discipline: 'surf',
         startsAt: new Date(NOW.getTime() + 22 * HOUR).toISOString(),

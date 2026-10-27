@@ -9,6 +9,7 @@ import { NotificationsController } from './notifications.controller.js';
 import { NotificationsEnrolmentNotifier } from './notifications.enrolment-notifier.js';
 import { NotificationsLocationChangeNotifier } from './notifications.location-change-notifier.js';
 import { NotificationsNoInstructorNotifier } from './notifications.no-instructor-notifier.js';
+import { NotificationsPersonNotificationEraser } from './notifications.person-notification-eraser.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsPushTokenRemover } from './notifications.push-token-remover.js';
 import { NotificationsReactivationNotifier } from './notifications.reactivation-notifier.js';
@@ -43,6 +44,7 @@ import { SystemClockProvider } from './system.clock.js';
     NotificationsNoInstructorNotifier,
     NotificationsPushTokenRemover,
     NotificationsRegistrationNotificationEraser,
+    NotificationsPersonNotificationEraser,
     PushReceiptCheckJob,
   ],
   exports: [
@@ -58,6 +60,7 @@ import { SystemClockProvider } from './system.clock.js';
     NotificationsNoInstructorNotifier,
     NotificationsPushTokenRemover,
     NotificationsRegistrationNotificationEraser,
+    NotificationsPersonNotificationEraser,
   ],
 })
 export class NotificationsModule {}

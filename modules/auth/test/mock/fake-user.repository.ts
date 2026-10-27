@@ -13,8 +13,17 @@ function fold(text: string): string {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
+/** A `deleted` user whose `deletedAt`, or a `removed` user whose `removedAt`, is at or before `cutoff`. */
+function isClosedBefore(user: User, cutoff: Date): boolean {
+  const closedAt =
+    user.status === "deleted" ? user.deletedAt : user.status === "removed" ? user.removedAt : undefined;
+  return closedAt instanceof Date && closedAt <= cutoff;
+}
+
 export class FakeUserRepository implements UserRepository {
   readonly users: User[];
+  /** The ids `eraseClosed` erased; the erased users leave `users`, since the repository never returns them. */
+  readonly erasedIds: string[] = [];
   readonly searchedNames: string[] = [];
 
   constructor(users: User[] = []) {
@@ -146,6 +155,19 @@ export class FakeUserRepository implements UserRepository {
   async deleteDenied(ids: string[]): Promise<number> {
     const before = this.users.length;
     const kept = this.users.filter((item) => !(ids.includes(item.id) && item.status === "denied"));
+    this.users.splice(0, before, ...kept);
+
+    return before - kept.length;
+  }
+
+  async findClosedBefore(cutoff: Date): Promise<string[]> {
+    return this.users.filter((item) => isClosedBefore(item, cutoff)).map((item) => item.id);
+  }
+
+  async eraseClosed(ids: string[], cutoff: Date): Promise<number> {
+    const before = this.users.length;
+    const kept = this.users.filter((item) => !(ids.includes(item.id) && isClosedBefore(item, cutoff)));
+    this.erasedIds.push(...this.users.filter((item) => !kept.includes(item)).map((item) => item.id));
     this.users.splice(0, before, ...kept);
 
     return before - kept.length;

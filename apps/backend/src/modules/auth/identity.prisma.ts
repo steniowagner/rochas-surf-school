@@ -30,8 +30,12 @@ export class PrismaIdentityRepository implements IdentityRepository {
     provider: IdentityProvider,
     providerUserId: string,
   ): Promise<Identity | null> {
+    // An erased account's identities are deleted with it; the filter keeps it out even so (spec 067).
     const record = await this.prisma.identity.findUnique({
-      where: { provider_providerUserId: { provider, providerUserId } },
+      where: {
+        provider_providerUserId: { provider, providerUserId },
+        user: { status: { not: 'erased' } },
+      },
     });
     return record ? this.toDomain(record) : null;
   }

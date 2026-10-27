@@ -16,7 +16,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   role (`student` | `instructor` | `admin`, `student` by default), status (`pending` | `approved` | `denied` |
   `deleted` | `removed`, `pending` by default), denial reason (up to 500 characters) and dates, reactivation
   status (`requested` | `denied`) and when the request was sent, and the versions of the school rules it
-  accepted. Relationships: one or
+  accepted. An erased account (spec 067) stays in storage as an anonymous record but the repository never returns
+  it, so `erased` isn't a domain status. Relationships: one or
   more identities; many sessions. Lifecycle: as in Product; today the creation of a `pending` student
   through an email code or Google is built, plus the seeded review accounts, an admin approving or denying a
   `pending` account, an approved account adding or changing its WhatsApp number, an approved account changing
@@ -35,8 +36,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   stays approved, and since releasing twice changes nothing more, trying again is safe. The deletion is written
   with the guarded write below: when the last two admins delete their accounts at the same moment, one is refused
   with `user.role.lastAdmin`; an account whose role or status changed meanwhile is refused with
-  `user.status.notApproved`. A reactivation doesn't bring the assignments, seats or requests back. Not built yet:
-  erasing it 30 days later.
+  `user.status.notApproved`. A reactivation doesn't bring the assignments, seats or requests back. 30 days after
+  the deletion the account is erased (below).
 - **Changing someone's role**: an approved admin changes another approved account's role. Exactly five changes,
   one step each: student → instructor, student → admin, instructor → admin, instructor → student, admin →
   instructor (an admin reaches student in two). Checked in this order: the caller's status
@@ -155,10 +156,25 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **A denied registration is erased 30 days after the denial**: every minute, each `denied` account denied
   30 × 24 hours ago or more is deleted with everything that hangs off it (identities, sessions, rules
   acceptances, its notifications and phones), after the admins' "new registration" notifications about it are
-  deleted. Nothing is kept, anonymized or notified. A denied account with no denial date is never erased, and no
-  other status is erased yet. A second run finds nothing to do. The email address is then free: signing in with
+  deleted. Nothing is kept, anonymized or notified. A denied account with no denial date is never erased, and this
+  rule erases no other status. A second run finds nothing to do. The email address is then free: signing in with
   it (by email code or Google) creates a new `pending` account, announced to the admins; the erased account's
   session is refused as invalid.
+- **A deleted or removed account is erased 30 days after the deletion or removal** (spec 067): every minute, after
+  the denied registrations, the `deleted` accounts deleted and the `removed` accounts removed 30 × 24 hours ago or
+  more are erased, a pending reactivation request notwithstanding. First the notifications about them in anyone's
+  inbox are deleted through the `PersonNotificationEraser` contract (new registration and reactivation request by
+  `userId`, seat requested and seat cancelled by `studentId`); if that fails nothing is erased and the next run
+  retries. Then one conditional write, only for the accounts still `deleted` or `removed` with their date at or
+  before the cutoff (one reactivated or restored meanwhile is left alone), keeps each as an anonymous record —
+  status `erased`, the erasure date, the id, role, creation date and deletion or removal date — and clears the name,
+  email, photo, WhatsApp number, denial and reactivation fields (WhatsApp hidden); in the same transaction its
+  identities, sessions, phones, rules acceptances and own notifications go, and the sign-in code of its old email.
+  An account with no date is never erased; a second run finds nothing. For this module the account no longer
+  exists: it is never found by id, email, identity, page or name search, so its access token is refused with
+  `auth.token.invalid`, a reactivation approval answers `reactivation.notFound` and a restore `user.notFound` (404),
+  and its email or Google account signs up again as a new `pending` account. Its past seats and class assignments
+  stay ([Classes](classes.md) shows them without a name).
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
 
@@ -209,8 +225,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   token (30 days) kept only as a hash, each sign-in starting its own family of refresh tokens.
 - **Every request sees the account as it is now**: role and status are read again on each request, so an
   approval, denial, removal, deletion or role change applies at once, not when the access token expires. A
-  request whose token is missing, bad, expired or names an account that no longer exists is refused with
-  `auth.token.invalid`.
+  request whose token is missing, bad, expired or names an account that no longer exists (or was erased, spec 067)
+  is refused with `auth.token.invalid`.
 - **Renewing a session replaces its refresh token**: the one used stops working and a new one, in the same
   sign-in, lasts 30 days from the renewal — an active person stays signed in. Any account status can renew.
   An unknown, expired or ended refresh token is refused with `auth.refreshToken.invalid`.
@@ -395,8 +411,9 @@ an account uses the same two releases and tells the person of the removal and of
 contract of its own, `AccountRemovalNotifier`, fulfilled the same way (spec 066). Deciding reactivation requests belongs here (spec 064): it tells admins and the person
 through a seventh contract, `ReactivationNotifier`, and counts the classes taken through an eighth,
 `ClassesTakenCounter`, both fulfilled by the backend ([Notifications](notifications.md) and
-[Enrolment](enrolment.md)'s rule of the classes a student took) without this module depending on either. The erasure
-of deleted and removed accounts after their 30 days is a rule of the account lifecycle still to be built (spec 067).
+[Enrolment](enrolment.md)'s rule of the classes a student took) without this module depending on either. It decides
+**when** a deleted or removed account is erased (spec 067), and asks a ninth contract, `PersonNotificationEraser`,
+fulfilled by the backend with [Notifications](notifications.md), to delete the notifications about the person first.
 
 ## Spec history
 
@@ -493,3 +510,9 @@ of deleted and removed accounts after their 30 days is a rule of the account lif
   `updateIfRemoved`; the new `AccountRemovalNotifier` contract tells the person (`account.removed`,
   `account.restored`). In the app, "Remover da plataforma" and its confirmation on the People sheet, the "Contas
   removidas" section with "Restaurar", and the two pushes.
+- `067-closed-account-erasure` — the accounts deleted or removed 30 × 24 hours ago or more are erased by
+  `EraseClosedAccounts` (cutoff, `findClosedBefore`, the new `PersonNotificationEraser` contract first, then the
+  conditional `eraseClosed` write), run by the account erasure job after the denied registrations. An erased account
+  stays as an anonymous record (`erased` status and `erased_at` in storage only, nullable name and email) that the
+  repository and the access-token check never return; its sign-ins, sessions, phones, rules acceptances, own
+  notifications and old sign-in code are deleted.

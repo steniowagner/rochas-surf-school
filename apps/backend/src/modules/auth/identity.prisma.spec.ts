@@ -82,7 +82,7 @@ describe('PrismaIdentityRepository', () => {
     expect(created.email).toBeUndefined();
   });
 
-  it('finds by provider and provider user id', async () => {
+  it('finds by provider and provider user id, never for an erased account', async () => {
     const { identity, repository } = setup();
     identity.findUnique.mockResolvedValueOnce(record).mockResolvedValueOnce(null);
 
@@ -91,6 +91,7 @@ describe('PrismaIdentityRepository', () => {
     expect(identity.findUnique).toHaveBeenNthCalledWith(1, {
       where: {
         provider_providerUserId: { provider: 'email', providerUserId: 'ana@example.com' },
+        user: { status: { not: 'erased' } },
       },
     });
   });

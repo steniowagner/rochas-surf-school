@@ -155,7 +155,7 @@ describe('Enrolment (e2e)', () => {
         status,
       },
     });
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   async function makeClass(
@@ -592,6 +592,7 @@ describe('Enrolment (e2e)', () => {
       const [stored] = await notificationsOf(instructor.id, 'enrolment.requested');
       expect(stored!.params).toEqual({
         classId,
+        studentId: student.id,
         studentName: 'Ana Souza',
         discipline: 'surf',
         startsAt: STARTS_AT,

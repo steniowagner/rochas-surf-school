@@ -47,6 +47,7 @@ import {
 } from "../utils/class-error";
 import { subscribeLocationEvents } from "../utils/location-events";
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
+import { personLabel } from "../utils/person-label";
 import { includesRange, isSameRange, startsByNow } from "../utils/time-ranges";
 import { schoolDayOf, schoolTimeOf } from "../utils/week";
 
@@ -116,7 +117,8 @@ export const useEditClassScreen = () => {
         ]
       : queriedLocations;
   const management = useLocationManagement(queriedLocations.length > 0);
-  // The teachers, plus the class's instructors who no longer are one, so they can be removed.
+  // The teachers, plus the class's instructors who no longer are one (an erased one reads "Former instructor"), so
+  // they can be removed.
   const queriedTeachers = teachersQuery.data ?? [];
   const keptTeachers: Teacher[] = (item?.instructors ?? [])
     .filter(
@@ -125,7 +127,7 @@ export const useEditClassScreen = () => {
     )
     .map((instructor) => ({
       id: instructor.id,
-      name: instructor.name,
+      name: personLabel(instructor.name, "instructor", t),
       role: "instructor",
     }));
   const teachers = [...queriedTeachers, ...keptTeachers];

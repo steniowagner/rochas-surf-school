@@ -72,12 +72,19 @@ Listed in the order people meet them.
     of both by a notification.
   - `deleted` → back to `approved` through an approved reactivation request, or erased 30 days after the
     deletion. `removed` → back to `approved` when an admin restores it within 30 × 24 hours of the removal, or
-    erased 30 days after the removal (the erasure is spec 067; as built, a removed account stays removed).
+    erased 30 days after the removal (spec 067). A reactivation request or a restore that arrives after the erasure
+    finds no account.
     A return restores the account, its history and its role — not the seats, enrolments or assignments
     cancelled when it left.
-  - **Erasure** removes name, email, photo and WhatsApp number and deletes the account's comments; star ratings
-    stay without a name; class lists and photos show "Former student" (or "Former instructor" for an
-    instructor or admin). The email is then free to sign up again as a new registration.
+  - **Erasure** of a deleted or removed account (spec 067) removes name, email, photo and WhatsApp number, the
+    account's sign-ins, sessions, phones, notifications and rules acceptances, and the notifications about the
+    person in other people's inboxes (new registration, reactivation request, seat requested, seat cancelled; the
+    seat notifications stored before spec 067 keep the name). The account stays as an anonymous record, so its past
+    seats and classes stay: class lists show "Former student" in a class's roster and "Former instructor" among its
+    instructors, whatever the account's role, with a generic avatar that opens nothing. The email is then free to
+    sign up again as a new registration. A denied registration is erased differently: deleted with everything it
+    has (spec 021). Comments, star ratings and photos don't exist yet; when they do, comments go and ratings stay
+    without a name.
   - Role changes (an approved admin, on someone else's approved account — never their own): exactly five, one
     step each — student → instructor and student → admin (both cancel the student's upcoming seats and withdraw
     their pending requests, and the notification says so); instructor → admin (kept on every class they teach);
@@ -334,7 +341,8 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **Deleting and removing are different**: a user who deletes their account can ask once per deletion for reactivation; a
   user removed by an admin can't, and only an admin can restore them. Both are erased after 30 days.
 - **Erasure keeps the school's history without the person**: personal data and comments go, star ratings stay
-  without a name, and the person appears as "Former student" or "Former instructor". This satisfies LGPD and
+  without a name, and the person appears as "Former student" in a class's roster or "Former instructor" among its
+  instructors — the label follows the list, not the account's role (spec 067). This satisfies LGPD and
   the App Store and Google Play account-deletion rules while keeping class history readable.
 - **People without the app ask the school on WhatsApp to delete their account**: the account deletion page gives
   the school's number, and an admin carries out the request by removing the account, which is then erased like
@@ -590,8 +598,8 @@ registration, the account is erased with everything it has (its sign-ins, sessio
 notifications and phones), together with the admins' "new registration" notifications that carry the person's
 name. Nothing else is kept and nobody is told. The same email address can then sign up again, by email code or
 Google, as a new registration waiting for approval; a phone still signed in to the erased account gets the
-existing "session expired" handling. Deleted and removed accounts are not erased yet; guest data is erased since
-spec 045.
+existing "session expired" handling. Deleted and removed accounts are erased since spec 067 (kept as anonymous
+records), and guest data since spec 045.
 
 **Public web pages** (spec `022-public-web-pages`) — the small public site the App Store and Google Play require
 exists, in pt-BR, es and en: a home page linking the three pages, the privacy policy (what the app collects, why,
@@ -1234,7 +1242,21 @@ each reloads the account, so it moves to "Access removed" and back, and an admin
 tapping either opens the home of the account's flow. A removed account keeps registering its phone for pushes. All
 copy is in pt-BR, es-ES and en-US.
 
-Active specs: `067-closed-account-erasure` (planned).
+**Deleted and removed accounts are erased** (spec `067-closed-account-erasure`) — every minute, the accounts deleted
+or removed 30 × 24 hours ago or more, and not reactivated or restored since, are erased: their name, email, photo
+and WhatsApp number go, with their sign-ins, sessions, phones, notifications and rules acceptances, and the
+notifications about them in the admins' and instructors' inboxes (new registration, reactivation request, seat
+requested, seat cancelled — those stored before this spec carry no id and keep the name). A pending reactivation
+request doesn't stop it. The account stays as an anonymous record nobody can sign in to or find: it leaves the
+reactivation requests and the removed accounts, a reactivation approval or a restore afterwards finds no account, a
+phone still signed in gets the "session expired" handling, and the email or Google account signs up again as a new
+registration. Past classes keep their seats and instructors: in the class details an erased instructor's pill reads
+"Ex-instrutor" and an erased student's row "Ex-aluno" ("Exinstructor" / "Exalumno", "Former instructor" / "Former
+student"), with a generic person avatar, no arrow, nothing opening and no "Retirar"; the class cards show an erased
+student's generic avatar, and an erased instructor still counts, so the class isn't "without instructor". Nothing
+is shown anywhere else, and nobody is told.
+
+Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -1270,9 +1292,9 @@ Active specs: `067-closed-account-erasure` (planned).
   them for as long as the account), and class names or before/after values in their text.
 - On notices (spec 063): a history of the notices sent, a screen of its own for a notice, editing or deleting one
   once sent, and choosing people one by one (an audience is a whole role, or everyone).
-- Erasing deleted and removed accounts 30 days after the deletion or removal (with the "Former student" /
-  "Former instructor" handling): spec 021 erases only denied registrations, and spec 045 guest data. With it, the
-  30-day reactivation window (spec 064 lists and decides a request whatever the deletion date).
+- On erasing deleted and removed accounts (spec 067): removing the name from the seat notifications stored before
+  spec 067; "Former student" / "Former instructor" on photos, deleting comments and keeping star ratings without a
+  name (they come with ratings and photos); listing or showing erased accounts anywhere.
 - On "Reativar contas" (spec 064): showing a deleted person's WhatsApp number, photo or class list in the tool,
   telling the other admins when a request is decided, and changing the copy of the Account deleted screen's "not
   requested" and "requested" states.

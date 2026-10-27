@@ -131,7 +131,8 @@ describe('Reactivation requests (e2e)', () => {
         reactivationRequestedAt: extra.reactivationRequestedAt ?? null,
       },
     });
-    return { id: user.id, email: user.email, accessToken: tokens.signAccessToken(user).token };
+    const subject = { id: user.id, email: user.email! };
+    return { ...subject, accessToken: tokens.signAccessToken(subject).token };
   }
 
   /** A deleted account whose request waits for an answer. */
@@ -280,7 +281,7 @@ describe('Reactivation requests (e2e)', () => {
     it('lets the account delete itself and ask again', async () => {
       const ana = await requested('2026-10-05T10:00:00.000Z');
       await approve(admin.accessToken, ana.id).expect(200);
-      const approved = tokens.signAccessToken(await rowOf(ana.id)).token;
+      const approved = tokens.signAccessToken({ id: ana.id, email: ana.email }).token;
 
       await as(approved, http().delete('/auth/me')).expect(204);
       const sent = await as(approved, http().post('/auth/me/reactivation-request'));

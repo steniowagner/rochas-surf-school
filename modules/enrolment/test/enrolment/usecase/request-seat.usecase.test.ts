@@ -235,6 +235,7 @@ describe("RequestSeat", () => {
       expect(notifier.requestedEvents).toEqual([
         {
           classId: CLASS_ID,
+          studentId: STUDENT.id,
           studentName: "Ana Souza",
           discipline: "surf",
           startsAt: TOMORROW,

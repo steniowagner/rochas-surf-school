@@ -8,6 +8,7 @@ import {
   User,
   UserPageParams,
   UserRepository,
+  UserStatus,
 } from '@rochas-surf-school/auth';
 import { PrismaService } from '../../db/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
@@ -21,6 +22,19 @@ type UserRecordWithAcceptances = UserRecord & {
 };
 
 const include = { rulesAcceptances: true } as const;
+
+/** An erased account (spec 067) is never returned: for the auth module it no longer exists. */
+const notErased = { not: 'erased' } as const;
+
+/** The `deleted` accounts deleted, and the `removed` accounts removed, at or before `cutoff`; never one without the date. */
+function closedBefore(cutoff: Date) {
+  return {
+    OR: [
+      { status: 'deleted' as const, deletedAt: { lte: cutoff } },
+      { status: 'removed' as const, removedAt: { lte: cutoff } },
+    ],
+  };
+}
 
 /** Escapes `\`, `%` and `_` so a search is matched literally by LIKE. */
 function escapeLike(text: string): string {
@@ -61,24 +75,28 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    const record = await this.prisma.user.findUnique({ where: { id }, include });
+    const record = await this.prisma.user.findUnique({ where: { id, status: notErased }, include });
     return record ? this.toDomain(record) : null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const record = await this.prisma.user.findUnique({ where: { email }, include });
+    const record = await this.prisma.user.findUnique({
+      where: { email, status: notErased },
+      include,
+    });
     return record ? this.toDomain(record) : null;
   }
 
   async findPage(params: UserPageParams): Promise<PageResult<User>> {
     const [records, total] = await Promise.all([
       this.prisma.user.findMany({
+        where: { status: notErased },
         skip: (params.page - 1) * params.perPage,
         take: params.perPage,
         orderBy: { createdAt: 'asc' },
         include,
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({ where: { status: notErased } }),
     ]);
 
     return {
@@ -126,7 +144,7 @@ export class PrismaUserRepository implements UserRepository {
 
   async searchByName(name: string): Promise<User[]> {
     const records = await this.prisma.user.findMany({
-      where: { name: { contains: name.trim(), mode: 'insensitive' } },
+      where: { name: { contains: name.trim(), mode: 'insensitive' }, status: notErased },
       orderBy: { name: 'asc' },
       include,
     });
@@ -201,6 +219,62 @@ export class PrismaUserRepository implements UserRepository {
     return count;
   }
 
+  async findClosedBefore(cutoff: Date): Promise<string[]> {
+    const records = await this.prisma.user.findMany({
+      where: closedBefore(cutoff),
+      select: { id: true },
+    });
+    return records.map((record) => record.id);
+  }
+
+  /**
+   * One transaction: reads the old emails of the accounts still due, writes the anonymous record only where the
+   * account is still due (so one reactivated or restored meanwhile is left alone), then deletes what hangs off the
+   * accounts it wrote — identities, refresh tokens, push tokens, rules acceptances, own notifications and the sign-in
+   * code of the old email.
+   */
+  async eraseClosed(ids: string[], cutoff: Date): Promise<number> {
+    if (ids.length === 0) return 0;
+
+    return this.prisma.$transaction(async (tx) => {
+      const where = { id: { in: ids }, ...closedBefore(cutoff) };
+      const emails = await tx.user.findMany({ where, select: { id: true, email: true } });
+      const erased = await tx.user.updateManyAndReturn({
+        where,
+        data: {
+          status: 'erased',
+          erasedAt: new Date(),
+          name: null,
+          email: null,
+          photoUrl: null,
+          whatsappNumber: null,
+          whatsappVisible: false,
+          denialReason: null,
+          deniedAt: null,
+          reactivationStatus: null,
+          reactivationRequestedAt: null,
+        },
+        select: { id: true },
+      });
+      const erasedIds = erased.map((record) => record.id);
+      if (erasedIds.length === 0) return 0;
+
+      const oldEmails = emails
+        .filter((record) => erasedIds.includes(record.id) && record.email !== null)
+        .map((record) => record.email as string);
+      const byUser = { where: { userId: { in: erasedIds } } };
+
+      await tx.identity.deleteMany(byUser);
+      await tx.refreshToken.deleteMany(byUser);
+      await tx.pushToken.deleteMany(byUser);
+      await tx.userRulesAcceptance.deleteMany(byUser);
+      await tx.notification.deleteMany(byUser);
+      await tx.signInCode.deleteMany({ where: { email: { in: oldEmails } } });
+
+      return erasedIds.length;
+    });
+  }
+
   async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {
     await this.prisma.userRulesAcceptance.createMany({
       data: [
@@ -271,16 +345,17 @@ export class PrismaUserRepository implements UserRepository {
     }));
   }
 
+  /** Only records that aren't erased reach here, so the name, the email and the status are the domain's. */
   private toDomain(record: UserRecordWithAcceptances): User {
     return new User({
       id: record.id,
-      name: record.name,
-      email: record.email,
+      name: record.name as string,
+      email: record.email as string,
       photoUrl: record.photoUrl ?? undefined,
       whatsappNumber: record.whatsappNumber ?? undefined,
       whatsappVisible: record.whatsappVisible,
       role: record.role,
-      status: record.status,
+      status: record.status as UserStatus,
       denialReason: record.denialReason ?? undefined,
       deniedAt: record.deniedAt ?? undefined,
       removedAt: record.removedAt ?? undefined,

@@ -357,6 +357,15 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   Store / Google Play review accounts — never demo data.
 - **`users.status` is the authority for deleted and removed accounts**, not the `deleted_at` column inherited
   from `EntityState`: the product distinguishes deleted from removed, and two sources would disagree.
+- **An erased account is a storage-only status** (spec 067, migration `20261027184122_users_erasure` — named
+  `users_erasure` by the spec rather than `auth-<change>`): the Prisma `UserStatus` has `erased` and `users` has
+  `erased_at`, while `users.name` and `users.email` are nullable (email still unique; Postgres treats NULLs as
+  distinct). The domain's `USER_STATUSES` doesn't have it: `PrismaUserRepository` filters `status: { not: 'erased' }`
+  in `findById`, `findByEmail`, `findPage` (rows and count) and `searchByName` (`findDirectoryPage` and the other
+  status-specific reads never match it), `PrismaIdentityRepository.findByProvider` skips an identity whose user is
+  erased, and `PrismaTeacherLookup` and `PrismaClassContactReader` leave erased users out; so `toDomain` casts the
+  name, email and status. Readers that select people for a class (`PrismaClassViewReader`,
+  `PrismaClassRosterReader`) pass the stored `null` name through.
 - Connection: `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME` (or
   `DATABASE_URL`) in `apps/backend/.env`; local database with `npm run db:start --workspace apps/backend`.
 
@@ -662,6 +671,22 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `registration.pending` params are `{ name, userId }` so those rows can be found; the port is implemented by
   `NotificationsRegistrationNotificationEraser` (running `DeleteRegistrationNotifications`, a JSON-path filter
   on `params.userId`) and exported by `NotificationsModule`.
+- Erasure of deleted and removed accounts (spec 067): `EraseClosedAccounts` (`modules/auth/src/user/usecase/`)
+  takes the cutoff now − 30 × 24 h, reads the ids with `UserRepository.findClosedBefore(cutoff)` (`deleted` with
+  `deletedAt` ≤ cutoff, or `removed` with `removedAt` ≤ cutoff; a null date never matches), stops when there are
+  none, then calls the `PersonNotificationEraser` port (`provider/person-notification-eraser.provider.ts`,
+  `erase(userIds)`) and finally `UserRepository.eraseClosed(ids, cutoff)`, returning `{ erased }`; a failing eraser
+  leaves the accounts due for the next run. `PrismaUserRepository.eraseClosed` is one `$transaction`: it reads the
+  old emails of the ids still due, writes the anonymous record with one conditional `updateManyAndReturn` on the
+  same condition (`status: erased`, `erasedAt: now`, `name`, `email`, `photoUrl`, `whatsappNumber`, `denialReason`,
+  `deniedAt`, `reactivationStatus`, `reactivationRequestedAt` null, `whatsappVisible: false`; id, role, dates kept),
+  so an account reactivated or restored between the read and the write is left alone, then deletes, for the rows it
+  wrote, their identities, refresh tokens, push tokens, rules acceptances and notifications, and the sign-in codes of
+  the old emails. The port is implemented by `NotificationsPersonNotificationEraser` (running
+  `DeleteNotificationsAbout`: `registration.pending` / `reactivation.requested` by `params.userId`,
+  `enrolment.requested` / `enrolment.cancelled` by `params.studentId`, one `deleteMany` per param) and exported by
+  `NotificationsModule`. The enrolment notices `SeatRequested` / `SeatCancelled` carry `studentId`, stored in those
+  params since spec 067.
 - Email codes: `crypto.randomInt` padded to 6 digits, stored as hex HMAC-SHA256 keyed by `AUTH_CODE_PEPPER`
   over `` `${email}:${code}` `` and compared with `timingSafeEqual` — 10⁶ codes make a plain hash reversible,
   so the pepper protects them. One row per normalized email (trimmed, lowercase — emails are stored that way
@@ -674,8 +699,10 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   the user with `@CurrentUser()`. The guard **reloads the user on every request** (`JwtStrategy.validate` reads
   `id`, `email`, `role` and `status` by the token's `sub` through `PrismaService`), so a removal, denial,
   deletion or role change takes effect immediately rather than when the token expires; `AuthenticatedUser`
-  carries those four fields plus the claims. The guard never refuses by status or role — use cases do. Every
-  401 it answers (no token, malformed, wrong signature, expired, unknown user) is `auth.token.invalid`, so the
+  carries those four fields plus the claims. The guard never refuses by status or role — use cases do — except an
+  erased account (or one with no email), which it treats as unknown (spec 067; also in the `backend-nest-config`
+  template). Every 401 it answers (no token, malformed, wrong signature, expired, unknown or erased user) is
+  `auth.token.invalid`, so the
   app reacts the same way to each (renew, else sign in again). `GET /auth/me` returns the account
   (`{ id, name, email, role, status, createdAt, whatsappNumber, whatsappVisible, rulesAccepted, rulesAcceptedBefore,
   denialReason, reactivationStatus }`, `whatsappNumber` an E.164 string or `null`, `denialReason` the stored
@@ -1985,7 +2012,10 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 - **`@nestjs/schedule`** in the backend (`ScheduleModule.forRoot()` in `AppModule`; today six jobs,
   `SignInCodeCleanupJob`, `PushReceiptCheckJob` (spec 020), `AccountErasureJob` (spec 021, cron
-  `account-erasure`, erases denied registrations; the deleted/removed erasures are to be added to it) and
+  `account-erasure`, `waitForCompletion`: runs `EraseDeniedRegistrations`, then `EraseClosedAccounts` (spec 067),
+  each in its own `try` so one failing doesn't stop the other, logging one count line per kind
+  (`Erased N denied registration(s)`, `Erased N closed account(s)`) and answering
+  `{ deniedRegistrations, closedAccounts }`) and
   `CancellationDeadlineJob` (spec 036, cron `cancellation-deadline`, `waitForCompletion`: runs
   `WorkOutCancellationDeadlines`, at most 20 classes per tick and 5 model calls at a time, idempotent by the
   stored deadline, attempts and next attempt, and logs only the counts) and `EnrolmentExpiryJob` (spec 041, cron
@@ -2002,8 +2032,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   class start, 30-minute reminders, rating prompts, 30-day erasures of denied/deleted/removed accounts, guest
   data erasure, cancellation-deadline retries), each running every minute and **idempotent** — it records in
   the database what it already did, so a restart or a late tick never sends twice.
-  An erasure is idempotent by the deletion itself: the erased row's absence is the record, and a second tick finds
-  nothing (no marker table). Jobs catch and log every error and never throw; an erasure job logs only the count,
+  An erasure is idempotent by its write: a denied registration's absence is the record, and an erased account's
+  `erased` status (a deleted or removed one, a guest's `erased_at`), so a second tick finds nothing (no marker table). Jobs catch and log every error and never throw; an erasure job logs only the count,
   never an email, name or id.
 - Assumes **one backend instance**; running several needs a lock or a queue first (a decision for the spec
   that scales out).

@@ -17,18 +17,25 @@ export function ClassStudentRow({
   photoUrl,
   onPress,
   onTakeOut,
+  erased = false,
 }: ClassStudentRowProps) {
   const { t } = useTranslation();
   const theme = useTheme();
 
   return (
     <Pressable
-      accessibilityRole="button"
+      accessibilityRole={onPress ? "button" : undefined}
       accessibilityLabel={name}
+      disabled={!onPress}
       onPress={onPress}
       className="min-h-11 flex-row items-center gap-3 border-t border-line px-3.5 py-2.5"
     >
-      <StudentAvatar name={name} photoUrl={photoUrl} size={AVATAR_SIZE} />
+      <StudentAvatar
+        name={name}
+        photoUrl={photoUrl}
+        size={AVATAR_SIZE}
+        erased={erased}
+      />
       <Text numberOfLines={1} className="ds-text-list-title flex-1 text-ink">
         {name}
       </Text>
@@ -44,14 +51,14 @@ export function ClassStudentRow({
             {t("takeOutSheet.action")}
           </Text>
         </TouchableOpacity>
-      ) : (
+      ) : onPress ? (
         <Ionicons
           testID="class-student-row-chevron"
           name="chevron-forward"
           size={16}
           color={theme.ink3}
         />
-      )}
+      ) : null}
     </Pressable>
   );
 }

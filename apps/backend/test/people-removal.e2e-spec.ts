@@ -128,7 +128,7 @@ describe('people removal (e2e)', () => {
         ...extra,
       },
     });
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   /** Makes the test's admins the only approved admins of the school until the test ends. */

@@ -45,6 +45,24 @@ describe("StudentAvatar", () => {
     expect(screen.getByText("MC")).toBeOnTheScreen();
   });
 
+  it("shows a person icon and no initials or photo for an erased person", async () => {
+    await render(
+      <StudentAvatar
+        name="Former student"
+        photoUrl="https://img.test/m.jpg"
+        size={26}
+        erased
+      />,
+    );
+
+    expect(screen.getByTestId("student-avatar-erased")).toBeOnTheScreen();
+    expect(screen.queryByTestId("student-avatar-photo")).not.toBeOnTheScreen();
+    expect(screen.queryByText("FS")).not.toBeOnTheScreen();
+    expect(screen.getByLabelText("Former student").props.className).toContain(
+      "bg-sand",
+    );
+  });
+
   it("draws the surface ring only when asked and sizes the circle", async () => {
     await render(
       <StudentAvatar name="Marina Costa" photoUrl={null} size={26} ringed />,

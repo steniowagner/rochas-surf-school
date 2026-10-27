@@ -32,11 +32,15 @@ export function ClassPeople({
   const { t } = useTranslation();
   const theme = useTheme();
   const people = useClassPeople({
+    instructors,
     students,
     guests,
     seatsTaken,
     capacity,
     state,
+    onOpenInstructor,
+    onOpenStudent,
+    onTakeOut,
   });
 
   const label = t(`classesWeek.students.${people.studentsLabel.key}`, {
@@ -76,12 +80,13 @@ export function ClassPeople({
             </Text>
           ) : (
             <View className="flex-row flex-wrap gap-2">
-              {instructors.map((instructor) => (
+              {people.instructorPills.map((pill) => (
                 <InstructorPill
-                  key={instructor.id}
-                  name={instructor.name}
-                  isViewer={instructor.isViewer}
-                  onPress={() => onOpenInstructor?.(instructor)}
+                  key={pill.id}
+                  name={pill.label}
+                  isViewer={pill.isViewer}
+                  erased={pill.erased}
+                  onPress={pill.onPress}
                 />
               ))}
             </View>
@@ -104,10 +109,11 @@ export function ClassPeople({
                   <View key={seat.id} className={index === 0 ? "" : "-ml-2"}>
                     {seat.kind === "student" ? (
                       <StudentAvatar
-                        name={seat.name}
+                        name={seat.label}
                         photoUrl={seat.photoUrl}
                         size={STUDENT_AVATAR_SIZE}
                         ringed
+                        erased={seat.erased}
                       />
                     ) : (
                       <GuestAvatar size={STUDENT_AVATAR_SIZE} ringed />
@@ -140,13 +146,14 @@ export function ClassPeople({
             ) : null}
           </Pressable>
           {people.expanded
-            ? students.map((student) => (
+            ? people.studentRows.map((row) => (
                 <ClassStudentRow
-                  key={student.id}
-                  name={student.name}
-                  photoUrl={student.photoUrl}
-                  onPress={() => onOpenStudent?.(student)}
-                  onTakeOut={onTakeOut ? () => onTakeOut(student) : undefined}
+                  key={row.id}
+                  name={row.label}
+                  photoUrl={row.photoUrl}
+                  erased={row.erased}
+                  onPress={row.onPress}
+                  onTakeOut={row.onTakeOut}
                 />
               ))
             : null}

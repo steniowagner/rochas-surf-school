@@ -88,6 +88,21 @@ describe('PrismaClassViewReader', () => {
     expect(item).toEqual({ ...VIEW, notes: null });
   });
 
+  it('passes an erased instructor through with a null name, next to the named ones', async () => {
+    const { schoolClass, reader } = setup();
+    schoolClass.findUnique.mockResolvedValue({
+      ...record(),
+      instructors: [{ user: { id: 'u-1', name: 'Ana' } }, { user: { id: 'u-erased', name: null } }],
+    });
+
+    const item = await reader.findById('class-1');
+
+    expect(item?.instructors).toEqual([
+      { id: 'u-1', name: 'Ana' },
+      { id: 'u-erased', name: null },
+    ]);
+  });
+
   it('finds the classes with the given ids in one query', async () => {
     const { schoolClass, reader } = setup();
     schoolClass.findMany.mockResolvedValue([record()]);

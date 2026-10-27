@@ -56,6 +56,7 @@ describe("ReleaseStudentEnrolments", () => {
     expect(notifier.cancelledEvents).toEqual([
       {
         classId: CLASS_ID,
+        studentId: STUDENT.id,
         studentName: "Ana Souza",
         discipline: "surf",
         startsAt: TOMORROW,

@@ -58,6 +58,42 @@ describe('PrismaNotificationRepository', () => {
     expect(notification.deleteMany).not.toHaveBeenCalled();
   });
 
+  it('deletes the notifications about the people, by userId and by studentId', async () => {
+    const notification = { deleteMany: vi.fn() };
+    const repository = new PrismaNotificationRepository({ notification } as unknown as PrismaService);
+
+    await repository.deleteAbout([USER_ID, 'other-id']);
+
+    expect(notification.deleteMany).toHaveBeenCalledTimes(2);
+    expect(notification.deleteMany).toHaveBeenNthCalledWith(1, {
+      where: {
+        type: { in: ['registration.pending', 'reactivation.requested'] },
+        OR: [
+          { params: { path: ['userId'], equals: USER_ID } },
+          { params: { path: ['userId'], equals: 'other-id' } },
+        ],
+      },
+    });
+    expect(notification.deleteMany).toHaveBeenNthCalledWith(2, {
+      where: {
+        type: { in: ['enrolment.requested', 'enrolment.cancelled'] },
+        OR: [
+          { params: { path: ['studentId'], equals: USER_ID } },
+          { params: { path: ['studentId'], equals: 'other-id' } },
+        ],
+      },
+    });
+  });
+
+  it('deletes nothing about nobody', async () => {
+    const notification = { deleteMany: vi.fn() };
+    const repository = new PrismaNotificationRepository({ notification } as unknown as PrismaService);
+
+    await repository.deleteAbout([]);
+
+    expect(notification.deleteMany).not.toHaveBeenCalled();
+  });
+
   it('pages the user\'s notifications newest first, by id on a tie, mapped to the domain, with the total', async () => {
     const OTHER_ID = '6f1e2d3c-4b5a-4987-8a6b-5c4d3e2f1a0b';
     const READ_AT = new Date('2026-10-13T08:00:00.000Z');

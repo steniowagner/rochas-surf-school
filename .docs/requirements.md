@@ -245,6 +245,8 @@ Users SHALL be able to delete their account after a confirmation step. Deleting 
 
 #### Reactivation window
 
+_Implemented in spec 067-closed-account-erasure._
+
 A deleted account SHALL be reactivatable for 30 days after its deletion. When the 30 days end, the system SHALL erase the account.
 
 - _Window ends:_ When 30 days pass after an account was deleted and it has not been reactivated, then the system erases the account.
@@ -253,7 +255,9 @@ A deleted account SHALL be reactivatable for 30 days after its deletion. When th
 
 _Implemented in spec 021-denied-registration-erasure._
 
-When the system erases an account, it SHALL remove the account's name, email address, photo and WhatsApp number, and delete its comments. Its star ratings SHALL remain without a name, and photos and class lists SHALL show "Former student" in its place, or "Former instructor" when the account was an instructor or an admin. The email address SHALL then be free to sign up again.
+_Implemented in spec 067-closed-account-erasure._
+
+When the system erases an account, it SHALL remove the account's name, email address, photo and WhatsApp number, and delete its comments. Its star ratings SHALL remain without a name. Class lists SHALL show "Former student" in its place among a class's students and "Former instructor" among a class's instructors, whatever the account's role; photos SHALL show "Former student" in its place, or "Former instructor" when the account was an instructor or an admin. The email address SHALL then be free to sign up again.
 
 - _After erasure:_ When an account has been erased, then class lists and photos show "Former student" in its place, and its comments no longer appear and its star ratings remain without a name.
 - _Erased instructor:_ When the account of an instructor or an admin has been erased, then the classes they taught and the photos they uploaded show "Former instructor" in its place.
@@ -304,7 +308,9 @@ Admins SHALL be able to remove a user. Removing SHALL close the account and canc
 
 #### Restoring a removed account
 
-_Implemented in spec 066-admin-account-removal (the restore; erasing the account when the 30 days end comes with spec 067)._
+_Implemented in spec 066-admin-account-removal._
+
+_Implemented in spec 067-closed-account-erasure._
 
 Admins SHALL be able to restore a removed account within 30 days of its removal, bringing back what an approved reactivation brings back. When the 30 days end, the system SHALL erase the account as it erases deleted accounts.
 
@@ -1331,7 +1337,9 @@ A public web page SHALL explain how to delete an account in the app and, for peo
 
 #### Handling deletion requests from the page
 
-_Implemented in spec 066-admin-account-removal (the removal; the erasure 30 days later comes with spec 067)._
+_Implemented in spec 066-admin-account-removal._
+
+_Implemented in spec 067-closed-account-erasure._
 
 An admin SHALL carry out a deletion request received through the page by removing the account, which the system then erases 30 days later.
 

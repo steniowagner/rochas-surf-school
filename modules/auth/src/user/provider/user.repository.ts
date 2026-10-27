@@ -59,6 +59,17 @@ export interface UserRepository extends CrudRepository<
   findDeniedBefore(cutoff: Date): Promise<string[]>;
   /** Deletes, with everything that hangs off them, those of these users that are still `denied`; returns how many. */
   deleteDenied(ids: string[]): Promise<number>;
+  /**
+   * Ids of the `deleted` users whose `deletedAt` and the `removed` users whose `removedAt` is at or before `cutoff`;
+   * one without that date is never listed.
+   */
+  findClosedBefore(cutoff: Date): Promise<string[]>;
+  /**
+   * Erases those of these users that are still `deleted` or `removed` with their date at or before `cutoff` (one
+   * conditional write): the account stays as an anonymous record the repository never returns again, and what hangs
+   * off it goes. Returns how many were erased.
+   */
+  eraseClosed(ids: string[], cutoff: Date): Promise<number>;
   /** Stores the acceptance; one already stored for that version stays as it is. */
   addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void>;
   /** How many users are approved admins. */

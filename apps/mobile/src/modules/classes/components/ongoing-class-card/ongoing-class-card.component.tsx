@@ -78,9 +78,10 @@ export function OngoingClassCard({ item, onPress }: OngoingClassCardProps) {
                 className={`border-2 border-grape ${index === 0 ? "" : "-ml-2"}`}
               >
                 <StudentAvatar
-                  name={student.name}
+                  name={student.label}
                   photoUrl={student.photoUrl}
                   size={AVATAR_SIZE - 2 * RING}
+                  erased={student.erased}
                 />
               </View>
             ))}

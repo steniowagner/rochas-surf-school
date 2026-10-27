@@ -46,6 +46,7 @@ describe('EnrolmentSeatReleaser', () => {
     expect(repository.releaseForStudent).toHaveBeenCalledWith(STUDENT_ID, NOW);
     expect(notifier.seatCancelled).toHaveBeenCalledWith({
       classId: CLASS_ID,
+      studentId: STUDENT_ID,
       studentName: 'Ana Souza',
       discipline: 'surf',
       startsAt: STARTS_AT,

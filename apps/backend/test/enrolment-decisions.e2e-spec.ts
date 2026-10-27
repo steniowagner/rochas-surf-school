@@ -115,7 +115,7 @@ describe('Enrolment decisions (e2e)', () => {
         status,
       },
     });
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   async function makeClass(

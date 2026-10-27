@@ -139,10 +139,11 @@ export function ClassCard({
               {card.avatars.map((student, index) => (
                 <View key={student.id} className={index === 0 ? "" : "-ml-2"}>
                   <StudentAvatar
-                    name={student.name}
+                    name={student.label}
                     photoUrl={student.photoUrl}
                     size={AVATAR_SIZE}
                     ringed
+                    erased={student.erased}
                   />
                 </View>
               ))}

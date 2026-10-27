@@ -109,7 +109,7 @@ describe('Classes (e2e)', () => {
         status,
       },
     });
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   const batch = (token: string | undefined, body: Record<string, unknown>) =>

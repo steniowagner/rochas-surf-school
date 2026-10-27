@@ -99,11 +99,12 @@ The classes themselves, and how a batch becomes classes.
   with the stored class.
 - **Seats taken** (not stored): how many seats of a class are held — its approved students plus its guests;
   counted by [Enrolment](enrolment.md) from its approved enrolments and its guests.
-- **Class roster** (not stored): the seats taken, the approved students (id, name, photo or none, and the id of
-  the approved enrolment, which an admin can take them out of) and the guests (id and name, the name empty once
+- **Class roster** (not stored): the seats taken, the approved students (id, name — none once the account was
+  erased, spec 067 —, photo or none, and the id of the approved enrolment, which an admin can take them out of) and
+  the guests (id and name, the name empty once
   erased) of a class, read for many classes at once, from Enrolment.
 - **Class contacts** (not stored): for the students and instructors of one class, each person's role, status,
-  WhatsApp number and whether they share it, from the accounts. Reading one class gives each student and
+  WhatsApp number and whether they share it, from the accounts; an erased person has none, as a missing one. Reading one class gives each student and
   instructor their number only when they are approved, have one, and share it or the reader is an admin (the
   People directory's rule), and each instructor their role (instructor or admin); the week list and a student's
   own classes never carry either.
@@ -168,7 +169,11 @@ Rules:
   names it; the week answers its Monday and the classes starting in it, sorted by start, then end, then id; a
   week without classes is an empty list. A date that is missing, malformed or impossible is refused with
   `class.date.invalid` (422), after the account's status.
-- **The instructors of a class are listed A–Z by name**, ignoring case and accents, then by id.
+- **The instructors of a class are listed A–Z by name**, ignoring case and accents, then by id; an erased
+  instructor (no name, spec 067) comes after the named ones.
+- **An erased person stays in a class without a name** (spec 067): the class's instructors and roster keep an
+  erased account's id with `name: null`, everything else unchanged (seats taken, guests); an erased instructor
+  still counts, so the class isn't "without instructor". An erased account is never found as a teacher to assign.
 - **A class is read by its id**: an id that isn't a UUID, or no class with it, is `class.notFound` (404).
 - **The state is the same everywhere**: `cancelled` whenever the class was cancelled, whatever the clock;
   otherwise `not-started` while now is before the start, `started` from the start until before the end,
@@ -401,7 +406,9 @@ finished card has no bar and a cancelled one neither bar nor footer. The details
 alunos · X vagas livres" (or "esgotado") at the right of the label, hidden once finished or cancelled; the
 instructors as pills and the students row (up to 5 avatars, students then guests, opening the list of every
 student and guest); an instructor's pill and a student's row open the People directory's person sheet, whose
-WhatsApp row follows the class's contacts, while guests open nothing —, a "Turma cheia" banner on a full class that
+WhatsApp row follows the class's contacts, while guests open nothing; an erased instructor reads "Ex-instrutor" and
+an erased student "Ex-aluno" — the label follows the list, whatever the role —, with a generic person avatar, no
+arrow, nothing opening and no "Retirar" (spec 067) —, a "Turma cheia" banner on a full class that
 hasn't started, a "Regras" card (the "Cancelamento" row with "Até …" or "Ler a regra", opening the rules sheet, and
 "Regras da escola" with how many rules the school has; not on a cancelled class), the notes in a card, the "Onde e
 como" card and, for instructors, a note that the school makes the changes (a class
@@ -570,3 +577,8 @@ which stops that account from being erased while the link exists — a decision 
   through the existing place lookup), "Minha localização" with the location permission asked on demand, and a fixed
   panel riding the keyboard; the class forms select a created location or clear a removed one through in-app
   location events.
+- `067-closed-account-erasure` — `ClassViewInstructor.name` and `ClassStudent.name` are `string | null` (`null` =
+  erased); erased instructors sort after the named ones; the teacher lookup and the class contacts leave erased
+  accounts out. In the app, "Ex-instrutor" / "Ex-aluno" (`personLabel`, `classes.erased.*`) with the generic avatar
+  (`StudentAvatar`'s `erased`), not tappable, in the class details; the class cards and the ongoing card show an
+  erased student's generic avatar; "Editar aula" lists an erased kept teacher as "Ex-instrutor".

@@ -79,7 +79,7 @@ describe('People directory (e2e)', () => {
         ...(options.createdAt ? { createdAt: options.createdAt } : {}),
       },
     });
-    return { user, accessToken: tokens.signAccessToken(user).token };
+    return { user, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   const people = (token: string | undefined, query: Record<string, string> = {}) => {

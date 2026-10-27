@@ -101,7 +101,7 @@ describe('Session endpoints (e2e)', () => {
         status: data.status ?? 'approved',
         role: data.role ?? 'student',
       },
-    });
+    }).then((user) => ({ ...user, email: user.email! }));
   }
 
   /** Signs an existing account in through the real email flow. */
@@ -154,7 +154,7 @@ describe('Session endpoints (e2e)', () => {
           whatsappVisible: true,
         },
       });
-      const session = await signIn(user.email);
+      const session = await signIn(user.email!);
 
       expect(session.user).toMatchObject({ whatsappNumber: '+5585999998888', whatsappVisible: true });
       expect((await me(session.accessToken)).body).toMatchObject({
@@ -196,7 +196,7 @@ describe('Session endpoints (e2e)', () => {
             reactivationRequestedAt: data.reactivationStatus ? CLOSED_AT : null,
           },
         });
-        const session = await signIn(user.email);
+        const session = await signIn(user.email!);
         const response = await me(session.accessToken).expect(200);
         return response.body as Record<string, unknown>;
       }

@@ -619,6 +619,12 @@ const messages = {
     previousMonth: "Show the previous month",
     nextMonth: "Show the next month",
   },
+  classes: {
+    erased: {
+      student: "Former student",
+      instructor: "Former instructor",
+    },
+  },
   classesWeek: {
     loading: "Loading the classes",
     hasClasses: "with classes",

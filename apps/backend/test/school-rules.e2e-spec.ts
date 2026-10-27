@@ -76,7 +76,7 @@ describe('School rules (e2e)', () => {
     if (status !== 'approved') {
       await prisma.user.update({ where: { id: user.id }, data: { status } });
     }
-    return { id: user.id, accessToken: tokens.signAccessToken(user).token };
+    return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
 
   async function seed(titles: string[], version = 0): Promise<RuleBody[]> {

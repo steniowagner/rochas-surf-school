@@ -53,6 +53,7 @@ export class ReleaseStudentEnrolments
 
       await this.enrolmentNotifier.seatCancelled({
         classId,
+        studentId,
         studentName,
         discipline: found.discipline,
         startsAt: found.startsAt,

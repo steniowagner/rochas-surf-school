@@ -10,7 +10,8 @@ export interface ClassViewLocation {
 
 export interface ClassViewInstructor {
   id: string;
-  name: string;
+  /** Null once the person's account was erased. */
+  name: string | null;
 }
 
 /** A class as people see it: with its location and the names of its instructors. */

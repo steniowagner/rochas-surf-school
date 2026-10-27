@@ -3,7 +3,7 @@ id: "068"
 slug: mobile-review-polish
 title: Mobile polish left by earlier reviews
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 31fd0ebc54a9fc60d2726f79ff63e121e3b0f1d1
@@ -185,3 +185,57 @@ a class is the same on the button and on its confirmation.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-27 — changes-requested
+
+**Checks**
+
+- lint ⚠️ 0 errors, 4 new warnings (see F-01) · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`)
+- related tests ✅ 116 suites, 1813 passed (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` (32 files); no coverage-ignore comments in the diff
+- e2e: no suite applies (backend and web untouched) · mobile: ER-01 and ER-02 exercised in the iOS simulator (iPhone 18 Pro, pt-BR, admin)
+- `grep -rnE '(px|left|right)-\[22px\]' apps/mobile/src` ✅ prints nothing
+
+**Expected Results**
+
+- ER-01 ✅ — approving Lia Prado's request on "Inscrições em aulas" shows a green toast with the check icon
+  ("Lia Prado inscrito · aluno avisado"). Approving the same request after it was decided in the database
+  shows a red toast with the alert icon ("Este pedido já foi decidido."). Every D-03 call passes
+  `{ tone: "success" }` and no other `show` call does (checked all 70 calls in `src`). The tests assert the tone
+  at each D-03 call, and the provider test covers the default tone and replacing a toast of the other tone.
+  The first approve showed a red toast because the app still ran a bundle from before the branch; after a
+  relaunch it was green.
+- ER-02 ✅ (sign-in and pending not seen on device) — the grep is clean, and the component tests of the 14
+  files pass. On device the profile cards and the toast sit 20pt from both edges. The sign-in and pending
+  screens need a signed-out or pending account, so they weren't opened. The change there is the same class
+  swap (`px-[22px]` → `px-screen`).
+- ER-03 ✅ — `npx jest src/modules/classes/components/class-tools-sheet` passes. pt-BR reads "Excluir aula";
+  es-ES ("Eliminar clase") and en-US ("Delete class") are unchanged.
+
+**Findings**
+
+- [ ] **F-01** (convention) — the spec adds 4 `@typescript-eslint/no-require-imports` warnings to a mobile
+  lint that was clean at `base_commit`: `alert-message.provider.test.tsx:14`,
+  `cancellation-rules.screen.test.tsx:43`, `send-notice.screen.test.tsx:74`,
+  `school-settings.screen.test.tsx:51`. The existing tests that `require` inside `jest.mock` silence the rule
+  with a reasoned comment (`/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can
+  only load modules with require */`, e.g. `country-picker.component.test.tsx:10`).
+  Reproduce: `npx turbo run lint --filter=@rochas-surf-school/mobile`. Expected: 0 warnings.
+- [ ] **F-02** (convention) — the test double `src/utils/toast-tone-probe.tsx` sits with production utilities
+  under a source-file name. It calls `jest.requireActual` when it loads, so any import from app code would
+  crash. Test helpers in the app are named `*.test-utils.ts(x)` next to what they serve
+  (`classes.test-utils.tsx`, `header-inset.test-utils.ts`…). Also, `alert-message.provider.test.tsx` writes
+  the same probe a second time, inline. Expected: one probe, e.g.
+  `src/components/ui/toast/toast.test-utils.tsx`, used by the three screen tests and the provider test.
+
+**Notes**
+
+- `toast.component.test.tsx` checks the `toneStyles` map and that the rendered tree changes with the tone. It
+  doesn't prove that `Toast` applies the background. Seeing it on device covers that, because NativeWind
+  compiles the classes away in tests.
+- Several changed lines run past the width of their neighbours (e.g. `use-take-out.hook.ts:34`,
+  `class-requests.screen.test.tsx`). Lint doesn't check line width, so this is a note, not a finding.
+- To make the on-device check, the reviewer approved the request once for real, which may have left a
+  notification for Lia Prado. The enrolment is back to `pending` with `decided_at` null.
+- For the next round, or for the user: sign out (or use a pending account) and check that the sign-in and
+  pending screens keep their layout with the 20pt margin.

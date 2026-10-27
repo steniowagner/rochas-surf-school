@@ -317,10 +317,12 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
   Covers: ER-07 · Done when: `npx jest test/notification/model` passes in `modules/notifications`.
   > ✅ 2026-10-27 — added `account.removed` and `account.restored` to NOTIFICATION_TYPES and a case for both; files: `modules/notifications/src/notification/model/notification.entity.ts`,
   > `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest test/notification/model` in modules/notifications (all passed); deviations: none
-- [ ] **T-02** — Let `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`) accept `removed`
+- [x] **T-02** — Let `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`) accept `removed`
   accounts (D-05), with tests in `test/push-token/usecase/register-push-token.usecase.test.ts` for removed (accepted)
   and denied (403).
   Covers: ER-08 · Done when: `npx jest test/push-token/usecase/register-push-token.usecase.test.ts` passes.
+  > ✅ 2026-10-27 — `RegisterPushToken` accepts removed accounts (denied still 403); files: `modules/notifications/src/push-token/usecase/register-push-token.usecase.ts`,
+  > `modules/notifications/test/push-token/usecase/register-push-token.usecase.test.ts`; verified: `npx jest test/push-token/usecase/register-push-token.usecase.test.ts` (passed); deviations: none
 
 ### Auth module (`modules/auth`)
 

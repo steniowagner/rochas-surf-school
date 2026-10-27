@@ -312,9 +312,11 @@ The removal's refusals reuse the role change's toasts (`utils/role-change-error.
 
 ### Notifications module (`modules/notifications`)
 
-- [ ] **T-01** — Add `account.removed` and `account.restored` to `NOTIFICATION_TYPES` in
+- [x] **T-01** — Add `account.removed` and `account.restored` to `NOTIFICATION_TYPES` in
   `src/notification/model/notification.entity.ts`, with cases in the entity test.
   Covers: ER-07 · Done when: `npx jest test/notification/model` passes in `modules/notifications`.
+  > ✅ 2026-10-27 — added `account.removed` and `account.restored` to NOTIFICATION_TYPES and a case for both; files: `modules/notifications/src/notification/model/notification.entity.ts`,
+  > `modules/notifications/test/notification/model/notification.entity.test.ts`; verified: `npx jest test/notification/model` in modules/notifications (all passed); deviations: none
 - [ ] **T-02** — Let `RegisterPushToken` (`src/push-token/usecase/register-push-token.usecase.ts`) accept `removed`
   accounts (D-05), with tests in `test/push-token/usecase/register-push-token.usecase.test.ts` for removed (accepted)
   and denied (403).

@@ -33,6 +33,8 @@ export const NOTIFICATION_TYPES = [
   "enrolment.enrolled",
   "enrolment.takenOut",
   "role.changed",
+  "account.removed",
+  "account.restored",
   "broadcast",
 ] as const;
 

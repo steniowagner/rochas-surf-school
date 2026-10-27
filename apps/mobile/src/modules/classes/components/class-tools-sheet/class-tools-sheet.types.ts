@@ -9,7 +9,7 @@ export type ClassToolsSheetProps = {
   onNotify: () => void;
   /** "Cancelar aula": the sheet closes first. */
   onCancel: () => void;
-  /** "Apagar aula": the sheet closes first. */
+  /** "Excluir aula": the sheet closes first. */
   onDelete: () => void;
   /** Who a message or a cancellation reaches: the other instructors, the students and the pending requests. */
   messageCount: number;

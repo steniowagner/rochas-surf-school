@@ -152,7 +152,7 @@ describe("ClassToolsSheet", () => {
         "Enviar mensagem",
         "2 pessoas",
         "Avisa 2 pessoas",
-        "Apagar aula",
+        "Excluir aula",
         "Tem inscritos",
       ],
     ],

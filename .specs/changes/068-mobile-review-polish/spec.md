@@ -146,9 +146,14 @@ a class is the same on the button and on its confirmation.
   > `.../onboarding/components/whatsapp/whatsapp.component.tsx`, `.../pending/components/pending/pending.component.tsx`;
   > verified: `grep -rnE '(px|left|right)-\[22px\]' apps/mobile/src` prints nothing, `npm test` in
   > `apps/mobile` (309 suites, 3357 passed); deviations: none
-- [ ] **T-05** — Change `classTools.delete` in `src/i18n/messages/pt-BR.ts` to "Excluir aula" and update
+- [x] **T-05** — Change `classTools.delete` in `src/i18n/messages/pt-BR.ts` to "Excluir aula" and update
   `class-tools-sheet.component.test.tsx`.
   Covers: ER-03 · Done when: `npx jest src/modules/classes/components/class-tools-sheet` passes.
+  > ✅ 2026-10-27 — `classTools.delete` is "Excluir aula" in pt-BR; es-ES and en-US untouched; files:
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.component.test.tsx`,
+  > `.../class-tools-sheet.types.ts` (doc comment quoting the old wording); verified: `npx jest
+  > src/modules/classes/components/class-tools-sheet` (12 passed); deviations: none
 
 ### Verification
 

@@ -1197,7 +1197,7 @@ const messages: Messages = {
     edit: "Editar aula",
     notify: "Enviar mensagem",
     cancel: "Cancelar aula",
-    delete: "Apagar aula",
+    delete: "Excluir aula",
     editHint: "Data, hora, local…",
     people_one: "{{count}} pessoa",
     people_other: "{{count}} pessoas",

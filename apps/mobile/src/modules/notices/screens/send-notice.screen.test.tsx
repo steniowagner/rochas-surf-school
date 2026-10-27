@@ -71,7 +71,11 @@ const fill = async (user: Awaited<ReturnType<typeof open>>) => {
   await user.type(messageField(), "See you at 7. ");
 };
 
-jest.mock("@/components/ui/toast", () => require("@/utils/toast-tone-probe"));
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can only load modules with require */
+jest.mock("@/components/ui/toast", () =>
+  require("@/components/ui/toast/toast.test-utils"),
+);
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 describe("SendNoticeScreen", () => {
   beforeEach(() => jest.mocked(router.back).mockReset());

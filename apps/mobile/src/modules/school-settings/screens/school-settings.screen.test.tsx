@@ -48,7 +48,11 @@ const toggle = () =>
 const turn = (value: boolean) => fireEvent(toggle(), "valueChange", value);
 const numberField = () => screen.getByLabelText("School WhatsApp");
 
-jest.mock("@/components/ui/toast", () => require("@/utils/toast-tone-probe"));
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can only load modules with require */
+jest.mock("@/components/ui/toast", () =>
+  require("@/components/ui/toast/toast.test-utils"),
+);
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 describe("SchoolSettingsScreen", () => {
   it("shows the loading indicator, and neither the form nor the error, before the settings arrive", async () => {

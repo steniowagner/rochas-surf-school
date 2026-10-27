@@ -1,6 +1,6 @@
 // Test double for `@/components/ui/toast`: renders the real toast plus a `tone:<tone>` text, because
 // NativeWind compiles the tone's classes away in tests. Use it as `jest.mock("@/components/ui/toast", () =>
-// require("@/utils/toast-tone-probe"))`.
+// require("@/components/ui/toast/toast.test-utils"))`.
 import { Fragment } from "react";
 import { Text } from "react-native";
 

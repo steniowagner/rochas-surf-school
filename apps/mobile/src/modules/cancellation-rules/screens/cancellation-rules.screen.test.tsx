@@ -40,7 +40,11 @@ const saveButton = (discipline = "surf") =>
 const field = () =>
   screen.getByPlaceholderText(/Students can cancel without penalty/);
 
-jest.mock("@/components/ui/toast", () => require("@/utils/toast-tone-probe"));
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can only load modules with require */
+jest.mock("@/components/ui/toast", () =>
+  require("@/components/ui/toast/toast.test-utils"),
+);
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 describe("CancellationRulesScreen", () => {
   beforeEach(() => jest.mocked(router.back).mockClear());

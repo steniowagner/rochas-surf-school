@@ -9,20 +9,11 @@ import {
 import { AlertMessageProvider } from "./alert-message.provider";
 import { useAlertMessage } from "./use-alert-message";
 
-// Exposes the tone, which NativeWind compiles away from the rendered tree.
-jest.mock("@/components/ui/toast", () => {
-  const { Text } = require("react-native");
-  const { Toast } = jest.requireActual("@/components/ui/toast");
-
-  return {
-    Toast: (props: { tone: string }) => (
-      <>
-        <Text>{`tone:${props.tone}`}</Text>
-        <Toast {...props} />
-      </>
-    ),
-  };
-});
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can only load modules with require */
+jest.mock("@/components/ui/toast", () =>
+  require("@/components/ui/toast/toast.test-utils"),
+);
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 jest.useFakeTimers();
 

@@ -3,7 +3,7 @@ id: "068"
 slug: mobile-review-polish
 title: Mobile polish left by earlier reviews
 template: quick
-status: changes-requested
+status: in-review
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 31fd0ebc54a9fc60d2726f79ff63e121e3b0f1d1
@@ -214,18 +214,29 @@ a class is the same on the button and on its confirmation.
 
 **Findings**
 
-- [ ] **F-01** (convention) — the spec adds 4 `@typescript-eslint/no-require-imports` warnings to a mobile
+- [x] **F-01** (convention) — the spec adds 4 `@typescript-eslint/no-require-imports` warnings to a mobile
   lint that was clean at `base_commit`: `alert-message.provider.test.tsx:14`,
   `cancellation-rules.screen.test.tsx:43`, `send-notice.screen.test.tsx:74`,
   `school-settings.screen.test.tsx:51`. The existing tests that `require` inside `jest.mock` silence the rule
   with a reasoned comment (`/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can
   only load modules with require */`, e.g. `country-picker.component.test.tsx:10`).
   Reproduce: `npx turbo run lint --filter=@rochas-surf-school/mobile`. Expected: 0 warnings.
-- [ ] **F-02** (convention) — the test double `src/utils/toast-tone-probe.tsx` sits with production utilities
+  > ✅ 2026-10-27 — the four `jest.mock("@/components/ui/toast", …)` factories now carry the reasoned
+  > `eslint-disable @typescript-eslint/no-require-imports` comment used elsewhere; files:
+  > `apps/mobile/src/providers/alert-message/alert-message.provider.test.tsx`,
+  > `apps/mobile/src/modules/cancellation-rules/screens/cancellation-rules.screen.test.tsx`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.test.tsx`,
+  > `apps/mobile/src/modules/school-settings/screens/school-settings.screen.test.tsx`; verified: `npx eslint` on
+  > those folders (0 warnings), `npx tsc --noEmit` clean; deviations: none
+- [x] **F-02** (convention) — the test double `src/utils/toast-tone-probe.tsx` sits with production utilities
   under a source-file name. It calls `jest.requireActual` when it loads, so any import from app code would
   crash. Test helpers in the app are named `*.test-utils.ts(x)` next to what they serve
   (`classes.test-utils.tsx`, `header-inset.test-utils.ts`…). Also, `alert-message.provider.test.tsx` writes
   the same probe a second time, inline. Expected: one probe, e.g.
+  > ✅ 2026-10-27 — moved the probe to `apps/mobile/src/components/ui/toast/toast.test-utils.tsx`
+  > (`git mv` from `src/utils/toast-tone-probe.tsx`); the provider test's inline copy now uses it too, so all four
+  > tests share one probe; verified: `npx jest` on the provider and the three screens (5 suites, 44 passed);
+  > deviations: none
   `src/components/ui/toast/toast.test-utils.tsx`, used by the three screen tests and the provider test.
 
 **Notes**

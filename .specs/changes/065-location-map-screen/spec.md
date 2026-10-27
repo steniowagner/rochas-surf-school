@@ -3,7 +3,7 @@ id: "065"
 slug: location-map-screen
 title: Pick and edit a class location on a full-screen map
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-10-26
 started: 2026-10-26
 base_commit: 8dc140119415e540cf61d2645a378a7600130d49
@@ -470,3 +470,50 @@ and stacked fields are hard to use.
   local" opens on the location at that closeness (before: `MAP_DELTA`, about 22 km). Task T-13 added.
 
 ## Review
+
+### Round 1 — 2026-10-26 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8/8)
+- related tests ✅ 1885 passed in 113 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` — every changed line covered in 19 files; no coverage-ignore comments
+- e2e: mobile has no suite · journeys exercised on the Android emulator (`Pixel_Test`, Dev Admin) and on the iOS
+  simulator (iPhone 18 Pro, iOS 27, a debug build of this branch with `expo-location`)
+
+**Expected Results**
+
+- ER-01 ❌ — see F-01. The rest holds on both platforms. Search "praia de iracema": 5 suggestions under the header,
+  match in bold. Pick one: list closed, zoomed in, card and the empty "Nome" filled. "Salvar local": back, selected on
+  "Nova aula". On Android, a duplicate name shows the error with "Salvar" off. "Remover local" → confirm: toast, back,
+  selection cleared. "Cancelar" saves nothing.
+- ER-02 ✅ — iOS: a map tap shows Apple's address ("Avenida Almirante Barroso, 778 – Praia de Iracema – Fortaleza –
+  CE") over "Ponto escolhido no mapa · -3.7205, -38.5158", replaces the suggestion's address and keeps the typed name.
+  Android: a failing geocoder (emulator) falls back to the coordinates. A tap on the airport's label selects it with
+  Google's address and name.
+- ER-03 ✅ — iOS: no prompt when the screen opens. The first tap shows the system prompt with the plugin's text.
+  "Don't Allow" → the toast, the form unchanged. Once allowed, the map centres on the simulated position with the user
+  dot, and the pin and card stay. Android: allow path as above.
+
+**Findings**
+
+- [ ] **F-01** (ER-01, D-11) — on iOS, "Editar local" opens with the location's pin hidden behind the bottom panel.
+  Apple Maps applies `initialRegion` to the whole map, and the `mapPadding` given after `onMapReady` doesn't recentre
+  it, so the location sits at the middle of the screen, about 70 pt under the panel's top edge. "Novo local" has the
+  same offset (Fortaleza opens just above the panel). Google Maps on Android isn't affected.
+  Reproduce: iOS simulator → "Nova aula" → "Gerir" → a location saved with a point → the map shows the streets
+  around it, but no pin until the map is dragged up about 180 pt. Expected: the pin centred in the map between the
+  header and the panel, as on Android (ER-01: "editing opens with the location's name, address and pin").
+
+**Notes**
+
+- In dark mode the default back arrow is light grey over the light map and hard to see (D-04 keeps the default
+  button, so not a finding).
+- Neither `reverseGeocodeAsync` nor `getCurrentPositionAsync` has a timeout. On the Android emulator, whose geocoder
+  failed, "Salvar" stayed off for about 2 minutes until Google gave up (`DEADLINE_EXCEEDED`). A short client timeout
+  that falls back to the coordinates would keep D-05's "saving never gets stuck" true on a slow network.
+- `useKeyboardLift` solves the same stale Reanimated keyboard height as `7be398a4` on `fix/mobile-pinned-footer-keyboard`
+  (shared pinned footers); worth converging once both land.
+- Building iOS here needs Expo's `ExpoModulesJSI` rebuilt from source for Swift 6.4
+  (`PODS_ROOT=apps/mobile/ios/Pods PLATFORM_NAME=iphonesimulator node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh --clean`),
+  then `EXPO_USE_PRECOMPILED_MODULES=0 pod install` with a UTF-8 locale. That replaces T-07's "can't build iOS".

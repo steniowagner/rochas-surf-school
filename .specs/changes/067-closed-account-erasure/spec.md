@@ -581,10 +581,28 @@ and removal.
 
 ### Verification
 
-- [ ] **T-16** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-16** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence. Covers: all · Done when: `run-related-tests.mjs 067` prints RELATED TESTS PASSED,
   `check-coverage.mjs 067` prints COVERAGE OK, `run-e2e.mjs 067` prints E2E PASSED, the turbo lint, type check and
   build exit 0, and the user journey was followed with the observation recorded.
+  > ✅ 2026-10-27 19:03 — automated: `node .specs/scripts/run-related-tests.mjs 067` → RELATED TESTS PASSED (backend
+  > 554, auth 1782, mobile 579, classes 417, notifications 292, enrolment 192, others 113, all passed); `node
+  > .specs/scripts/check-coverage.mjs 067` → COVERAGE OK (31 files); `node .specs/scripts/run-e2e.mjs 067` → E2E
+  > PASSED, 28 files, 782 tests, run on a clean database (`DATABASE_NAME=rochas_e2e_067`, created and migrated with
+  > `prisma migrate deploy`) because the dev database has a 2026-10-11 class created by admin@example.com that falls
+  > in the class-suggestion cases’ “last week” window (3 of those cases fail there, unrelated to this spec); `npx
+  > turbo run lint check-types build` → 27 successful, 0 errors (backend lint: 11 older warnings in other e2e
+  > files). user journey (iPhone 18 Pro simulator, pt-BR, signed in as the admin DEV account, this branch’s backend
+  > on :4000): in the dev database, the student Rafa Mota and the instructor Yara Neves of the finished class of
+  > today 04:00–05:30 (Review R2 Beach) were set to `deleted` with `deleted_at` 31 days ago; the job logged “Erased
+  > 2 closed account(s)” at the next minute, both rows came out `erased` with `name` and `email` null and
+  > `erased_at` set, and the 9 notifications about them were gone. In the app, after a pull to refresh, the week
+  > card shows the generic person avatar instead of “RM” next to “SP” (ER-10); the class details show the instructor
+  > pill “Ex-instrutor” and, in the expanded list, the row “Ex-aluno”, both with the generic avatar; neither has an
+  > arrow and tapping them opens nothing, while “Sara Pires” keeps her arrow (ER-09). Afterwards the two accounts
+  > and their 9 notifications were restored from a backup taken before the change (the people seed isn’t in
+  > `prisma/seed`, so rerunning the seed wouldn’t restore them); files:
+  > `.specs/changes/067-closed-account-erasure/spec.md`; deviations: none.
 
 ## Verification Plan
 

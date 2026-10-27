@@ -134,4 +134,28 @@ describe("OngoingClassCard", () => {
 
     expect(onPress).toHaveBeenCalledWith("c-1");
   });
+
+  it("draws an erased student's generic avatar, labelled Former student", async () => {
+    await render(
+      <OngoingClassCard
+        item={item({
+          seatsTaken: 2,
+          students: [
+            {
+              id: "s-erased",
+              name: null,
+              photoUrl: null,
+              enrolmentId: "e-erased",
+            },
+            ...students(1),
+          ],
+        })}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText("Former student")).toBeOnTheScreen();
+    expect(screen.getByTestId("student-avatar-erased")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Aluno 0")).toBeOnTheScreen();
+  });
 });

@@ -686,4 +686,53 @@ describe("ClassCard", () => {
 
     expect(onPress).toHaveBeenCalledWith("c-1");
   });
+
+  describe("erased people", () => {
+    const erasedStudent = {
+      id: "s-erased",
+      name: null,
+      photoUrl: "https://img.test/old.jpg",
+      enrolmentId: "e-erased",
+    };
+
+    it("draws an erased student's generic avatar, labelled Former student, beside the named ones", async () => {
+      await render(
+        <ClassCard
+          item={item({
+            seatsTaken: 2,
+            students: [
+              erasedStudent,
+              {
+                id: "s-1",
+                name: "Bia Lima",
+                photoUrl: null,
+                enrolmentId: "e-1",
+              },
+            ],
+          })}
+          now={BEFORE}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByLabelText("Former student")).toBeOnTheScreen();
+      expect(screen.getByTestId("student-avatar-erased")).toBeOnTheScreen();
+      expect(screen.queryByTestId("student-avatar-photo")).toBeNull();
+      expect(screen.getByText("BL")).toBeOnTheScreen();
+    });
+
+    it("doesn't flag a class whose only instructor was erased as without instructor", async () => {
+      await render(
+        <ClassCard
+          item={item({ instructors: [{ id: "i-erased", name: null }] })}
+          now={BEFORE}
+          onPress={jest.fn()}
+          showFlags
+        />,
+      );
+
+      expect(screen.queryByText("No instructor")).not.toBeOnTheScreen();
+      expect(screen.queryByText("Former instructor")).not.toBeOnTheScreen();
+    });
+  });
 });

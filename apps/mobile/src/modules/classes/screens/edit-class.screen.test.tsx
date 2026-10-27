@@ -364,6 +364,32 @@ describe("EditClassScreen", () => {
     expect(saveButton()).toBeEnabled();
   });
 
+  it("lists an erased instructor it keeps as Former instructor, ticked, so they can be removed", async () => {
+    const user = userEvent.setup();
+    serve({
+      "GET /classes/c-1": () =>
+        ok({
+          ...classItem,
+          instructors: [
+            { id: "t-1", name: "Ana Souza" },
+            { id: "t-erased", name: null },
+          ],
+        }),
+    });
+    await renderScreen();
+    await loaded();
+
+    const erased = screen.getByRole("checkbox", { name: "Former instructor" });
+    expect(erased).toBeChecked();
+
+    await user.press(erased);
+
+    expect(
+      screen.getByRole("checkbox", { name: "Former instructor" }),
+    ).not.toBeChecked();
+    expect(saveButton()).toBeEnabled();
+  });
+
   it("selects only one day and one time, and saves the new day and time once", async () => {
     const user = userEvent.setup();
     await renderScreen();

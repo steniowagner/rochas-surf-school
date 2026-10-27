@@ -1,8 +1,16 @@
 import type { ClassState } from "@rochas-surf-school/classes";
 
-import type { ClassItem, ClassStudent } from "../../classes.types";
+import type { ClassItem } from "../../classes.types";
 import type { EnrolmentDisplay } from "../../../enrolment/utils/enrolment-status";
 import type { OccupancyTone, StudentsLabel } from "../../utils/occupancy";
+
+/** A student's avatar on a card: the name, or "Former student" for an erased one, who gets the person icon. */
+export type ClassCardAvatar = {
+  id: string;
+  label: string;
+  erased: boolean;
+  photoUrl: string | null;
+};
 
 export type ClassCardProps = {
   item: ClassItem;
@@ -41,7 +49,7 @@ export type UseClassCardResult = {
   /** The students footer is shown: everything but a cancelled class. */
   showFooter: boolean;
   /** The students whose avatars the footer shows (up to 4). */
-  avatars: ClassStudent[];
+  avatars: ClassCardAvatar[];
   /** The seats taken that no avatar shows ("+N"). */
   hiddenSeats: number;
   studentsLabel: StudentsLabel;

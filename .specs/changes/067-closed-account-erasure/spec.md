@@ -104,7 +104,8 @@ and removal.
 | D-06 | From this spec on, `SeatRequested` and `SeatCancelled` carry `studentId`, set by `RequestSeat`, `CancelSeat` and `ReleaseStudentEnrolments`, and `NotificationsEnrolmentNotifier` stores it in the notification's params. The push and in-app text don't change. | So D-05 can find those notifications; decided in round 1. |
 | D-07 | The label follows the list: an erased person is "Ex-aluno" in a class's roster and "Ex-instrutor" among its instructors, whatever their role. | Decided with the user: it reads right (they were a student in that class) and the roster needs no role. It departs from the requirement's "Former instructor when the account was an instructor or an admin"; `spec-finish` updates that text. |
 | D-08 | `ClassViewInstructor.name` and `ClassStudent.name` become `string \| null`: `null` means the person was erased. The readers send what is stored; nothing else changes in the class answers. | The app owns the translated copy, as for erased guests (`ClassGuest.name`). |
-| D-09 | In the app, an erased person shows a generic avatar (a person icon, no initials, the guest avatar's style) and the label, and its row can't be tapped (no person sheet, no take-out). On a class card the instructors' line uses the label in the name's place. In `edit-class`, an erased kept teacher shows the label. | Consistent with guests; there is no person to open. |
+| D-09 | ~~In the app, an erased person shows a generic avatar (a person icon, no initials, the guest avatar's style) and the label, and its row can't be tapped (no person sheet, no take-out). On a class card the instructors' line uses the label in the name's place. In `edit-class`, an erased kept teacher shows the label.~~ (removed: the class cards have no instructors' line; replaced by D-14) | ~~Consistent with guests; there is no person to open.~~ |
+| D-14 | In the app, an erased person shows a generic avatar (a person icon, no initials, the guest avatar's style) and the label, and its row can't be tapped (no person sheet, no take-out). The class cards show no instructor names, as before; an erased student's avatar on them is the generic one, and an erased instructor still counts for the "without instructor" rule. In `edit-class`, an erased kept teacher shows the label. | Consistent with guests; there is no person to open. The cards never listed instructors, and adding a line would be a design change. |
 | D-10 | `AccountErasureJob` runs `EraseDeniedRegistrations`, then `EraseClosedAccounts`, each in its own `try`: one failing is logged and doesn't stop the other. It logs only counts (`Erased N closed account(s)`), never who. | Same job and logging rule as spec 021. |
 | D-11 | A deleted review account is erased like any other; rerunning the seed brings it back, since it upserts by email with status `approved`. | No special case needed. |
 | D-12 | ~~A reactivation approval or a restore that arrives after the erasure gets the existing refusal: 409 `reactivation.status.notRequested` (spec 064) or 409 `user.status.notRemoved` (spec 066).~~ (removed: contradicts D-04 — the erased account is never found; replaced by D-13) | ~~The erased status is neither `deleted` with a request nor `removed`.~~ |
@@ -222,8 +223,7 @@ and removal.
 
 - **Front:** mobile
 - **Behavior:** Given a week list whose class has an erased instructor and an erased student, when the class card and
-  the ongoing class card render, then the instructors' line shows "Ex-instrutor" in the name's place and the student's
-  avatar is the generic one.
+  the ongoing class card render, then the student's avatar is the generic one (D-14).
 - **Edge and error cases:** a class whose only instructor is erased is not shown as "without instructor"; in
   `edit-class`, an erased kept teacher reads "Ex-instrutor".
 - **Verify by:** `npx jest src/modules/classes/components -t "erased"` from `apps/mobile`.
@@ -550,11 +550,34 @@ and removal.
   > `class-student-row` at 100%, `eslint src/modules/classes` clean; `tsc` still reports only the three files T-15
   > changes; deviations: `instructor-pill`, `class-student-row` and `classes.types.ts` (the `Named` type) changed
   > too — the rows they draw are the ones made not tappable; `class-details.screen.tsx` needed no change.
-- [ ] **T-15** — Use the label in `components/class-card` (instructors' line and student avatars, the "without
+- [x] **T-15** — Use the label in `components/class-card` (instructors' line and student avatars, the "without
   instructor" rule unchanged), `components/ongoing-class-card` and the kept teachers of `screens/edit-class.screen.hook.ts`,
   with tests named "erased".
   Covers: ER-10 · Done when: `npx jest src/modules/classes/components src/modules/classes/screens -t "erased"` passes
   and `npx tsc --noEmit` exits 0.
+  > ✅ 2026-10-27 16:28 — the class cards never showed instructor names, so after the amendment of 2026-10-27 (D-14,
+  > ER-10, approved by the user) there is no instructors’ line to label: `useClassCard` and `useOngoingClassCard`
+  > now map the first students to `ClassCardAvatar`s (`personLabel` → “Former student”, `erased` for a null name)
+  > that `ClassCard` and `OngoingClassCard` pass to `StudentAvatar`; the “without instructor” rule is unchanged (an
+  > erased instructor still counts, a comment says so); `useEditClassScreen` labels an erased kept teacher “Former
+  > instructor”. Tests named “erased”: the class card (generic avatar labelled Former student beside a named one, no
+  > photo; a class whose only instructor is erased shows no “No instructor” chip to an admin), the ongoing card, and
+  > edit-class (the erased kept instructor is a ticked “Former instructor” checkbox that can be unticked). files:
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-card/class-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/ongoing-class-card/ongoing-class-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.test.tsx`,
+  > `.specs/changes/067-closed-account-erasure/spec.md` (amendment); verified: `npx jest
+  > src/modules/classes/components src/modules/classes/screens -t "erased"` (13 passed), the three touched suites
+  > (122 passed), `npx tsc --noEmit` exit 0 (also closes T-13’s pending type check), `eslint src/modules/classes`
+  > clean; deviations: no instructors’ line (amended); the edit-class picker’s avatar shows the label’s initials, as
+  > D-14 only asks for the label.
 
 ### Verification
 
@@ -577,7 +600,7 @@ and removal.
   - With a past class that has a seeded student and instructor, set both accounts to `deleted` with a `deleted_at`
     31 days ago in the database and wait for the job (at most a minute): as the admin review account, the class's
     details show "Ex-instrutor" and "Ex-aluno" with the generic avatar, tapping them opens nothing, and the week card
-    shows "Ex-instrutor" (ER-09, ER-10). Rerun the seed afterwards if a review account was used.
+    shows the student's generic avatar (ER-09, ER-10). Rerun the seed afterwards if a review account was used.
 
 ## Memory Impact
 
@@ -616,5 +639,11 @@ and removal.
   of D-12 can't happen. D-12 is removed and replaced by D-13; ER-02's edge case "409 `user.status.notRemoved`" →
   "404 `user.notFound`"; ER-04's behavior "409 `reactivation.status.notRequested`" → "404 `reactivation.notFound`".
   No code change: the code already answers 404.
+- 2026-10-27 — found while executing T-15, approved by the user: `ClassCard` and `OngoingClassCard` show no
+  instructor names, so there is no instructors' line to label. D-09 is removed and replaced by D-14 (the same, without
+  the card's instructors' line); ER-10's behavior "the instructors' line shows "Ex-instrutor" in the name's place and
+  the student's avatar is the generic one" → "the student's avatar is the generic one"; the user journey's "the week
+  card shows "Ex-instrutor"" → "the week card shows the student's generic avatar". T-15's "instructors' line" part has
+  nothing to change.
 
 ## Review

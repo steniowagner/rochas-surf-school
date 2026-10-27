@@ -3,6 +3,7 @@ import {
   isWithoutDeadline,
   isWithoutInstructor,
 } from "@rochas-surf-school/classes";
+import { useTranslation } from "react-i18next";
 
 import { getEnrolmentDisplay } from "../../../enrolment/utils/enrolment-status";
 import {
@@ -12,6 +13,7 @@ import {
   getStudentsLabel,
   isClassFull,
 } from "../../utils/occupancy";
+import { personLabel } from "../../utils/person-label";
 import { schoolTimeOf } from "../../utils/week";
 
 import type { UseClassCardProps, UseClassCardResult } from "./class-card.types";
@@ -24,6 +26,8 @@ export const useClassCard = ({
   showEnrolment,
   isNext,
 }: UseClassCardProps): UseClassCardResult => {
+  const { t } = useTranslation();
+  // An erased instructor still counts: the class isn't "without instructor".
   const names = item.instructors.map((instructor) => instructor.name);
 
   const state = getClassState(
@@ -33,7 +37,12 @@ export const useClassCard = ({
     item.cancelledAt ? new Date(item.cancelledAt) : null,
   );
 
-  const avatars = item.students.slice(0, CLASS_CARD_AVATARS);
+  const avatars = item.students.slice(0, CLASS_CARD_AVATARS).map((student) => ({
+    id: student.id,
+    label: personLabel(student.name, "student", t),
+    erased: student.name === null,
+    photoUrl: student.photoUrl,
+  }));
   const full = isClassFull(item.seatsTaken, item.capacity);
   // The started, finished and cancelled chips win over the viewer's enrolment.
   const enrolment =

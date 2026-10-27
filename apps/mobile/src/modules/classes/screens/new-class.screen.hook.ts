@@ -11,9 +11,10 @@ import {
 } from "@rochas-surf-school/classes";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { routes } from "@/constants/routes";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { ClassLocation } from "../classes.types";
@@ -35,6 +36,7 @@ import {
   isInstructorsInvalidError,
   isLocationNotFoundError,
 } from "../utils/class-error";
+import { subscribeLocationEvents } from "../utils/location-events";
 import { LOCATIONS_QUERY_KEY } from "../utils/locations-cache";
 import {
   includesRange,
@@ -143,6 +145,19 @@ export const useNewClassScreen = () => {
   const unselectLocation = (id: string) =>
     setLocationId((current) => (current === id ? null : current));
 
+  // The location screen is pushed over this one: it tells what it created or removed through the location events.
+  const onLocationCreated = useEffectEvent(selectLocation);
+  const onLocationRemoved = useEffectEvent(unselectLocation);
+
+  useEffect(
+    () =>
+      subscribeLocationEvents({
+        onCreated: onLocationCreated,
+        onRemoved: onLocationRemoved,
+      }),
+    [],
+  );
+
   const toggleInstructor = (id: string) =>
     setInstructorIds((current) =>
       current.includes(id)
@@ -236,15 +251,11 @@ export const useNewClassScreen = () => {
     location,
     locationId,
     setLocationId,
-    selectLocation,
-    unselectLocation,
     managingLocations: management.managing,
     toggleManagingLocations: management.toggleManaging,
-    locationSheetVisible: management.sheetVisible,
-    editingLocation: management.editing,
-    openLocationSheet: management.openNew,
-    openLocationEdit: management.openEdit,
-    closeLocationSheet: management.closeSheet,
+    openNewLocation: () => router.push(routes.admin.locationForm()),
+    openLocationEdit: (edited: ClassLocation) =>
+      router.push(routes.admin.locationForm(edited.id)),
     capacity,
     changeCapacity,
     notes,

@@ -838,6 +838,7 @@ Lets admins keep a list of saved locations for classes and controls how changes 
 
 _Implemented in spec 028-create-classes (a name and an address, without suggestions or a map)._
 _Implemented in spec 037-class-locations (address suggestions and a point on the map)._
+_Implemented in spec 065-location-map-screen (a full-screen map: the search, map taps and the phone's location)._
 
 Admins SHALL be able to save locations with an address, helped by address suggestions and a map, and SHALL pick one saved location for each class.
 
@@ -846,6 +847,7 @@ Admins SHALL be able to save locations with an address, helped by address sugges
 #### Editing a location
 
 _Implemented in spec 037-class-locations._
+_Implemented in spec 065-location-map-screen._
 
 Admins SHALL be able to edit a saved location. The change SHALL apply to every class that uses it, including past classes.
 
@@ -855,6 +857,7 @@ Admins SHALL be able to edit a saved location. The change SHALL apply to every c
 
 _Implemented in spec 037-class-locations (instructors)._
 _Implemented in spec 047-class-changes-reach-students._
+_Implemented in spec 065-location-map-screen._
 
 When an edited location is used by classes that haven't started, the admin SHALL choose whether to notify those classes' students and instructors.
 
@@ -872,6 +875,7 @@ Removing a saved location SHALL archive it: it SHALL no longer be offered for ne
 #### Removing the selected location while creating classes
 
 _Implemented in spec 037-class-locations._
+_Implemented in spec 065-location-map-screen._
 
 If an admin removes the location currently selected while creating classes, the selection SHALL be cleared, and the admin SHALL pick a location again before the classes can be created.
 

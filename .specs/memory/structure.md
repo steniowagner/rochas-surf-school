@@ -499,6 +499,8 @@ src/
                                                      # spec 056), above the tab bar
     (private)/admin/new-class.tsx                    # "Nova aula" (/admin/new-class, optional ?date=), above the tab bar
     (private)/admin/edit-class/[id].tsx              # "Editar aula" (/admin/edit-class/<id>), above the tab bar
+    (private)/admin/location-form.tsx                # "Novo local" / "Editar local" on a full-screen map
+                                                     # (/admin/location-form, ?id= to edit; spec 065), above the tab bar
     (private)/admin/cancellation-rules.tsx           # "Regras de cancelamento" (/admin/cancellation-rules), above
                                                      # the tab bar
     (private)/{student,instructor,admin}/class/[id].tsx  # class details (/<role>/class/<id>), above the tab bar;
@@ -610,6 +612,10 @@ src/
     screens/weekly-occupancy.screen.tsx  # WeeklyOccupancyScreen + hook, types (spec 061): the admin's week map —
                                 # week bar, stats card, map and legend, the selected class's card; loading, empty,
                                 # error + retry, pull-to-refresh, refetch on focus
+    screens/location-form.screen.tsx  # LocationFormScreen + hook, types (spec 065): "Novo local" / "Editar local" —
+                                # the full-screen MapView with the pin, the header search, "Minha localização" and
+                                # the fixed panel (address card, Nome, notify, actions, "Remover local"); the form
+                                # rules of the old location sheet, the map padding per provider
     screens/edit-class.screen.tsx  # EditClassScreen + hook (useEditClassScreen: the class's values plus the
                                 # changes, single day and time, started mode, states — a cancelled class shows
                                 # only a message —, submit and its errors)
@@ -619,9 +625,11 @@ src/
     components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
                                 # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
                                 # time-range-sheet (two @expo/ui DateTimePickers in time mode),
-                                # location-picker (with the "Gerir" mode), location-sheet ("Novo local" / "Editar
-                                # local"), address-search-field (Endereço and its suggestions), location-map-picker
-                                # (the sheet's map), archive-location-sheet ("Remover local?"), location-map-preview
+                                # location-picker (with the "Gerir" mode), location-search-header (spec 065: the
+                                # location screen's header search field and its floating suggestions, at most 6),
+                                # location-address-card (the picked place or point, or the empty hint),
+                                # my-location-button (the round map button), archive-location-sheet ("Remover
+                                # local?"), location-map-preview
                                 # (the details' fixed map), class-location-card (the details' "Onde e como": map,
                                 # place and "Direções"), capacity-stepper, instructor-picker, class-card
                                 # (occupancy bar, "Sem vagas" or the student's enrolment chip, students footer), class-people (the details' "A aula":
@@ -646,8 +654,11 @@ src/
                                 # use-edit-location (PUT /locations/:id; replaces the row, reloads ["classes"]),
                                 # use-archive-location (POST /locations/:id/archive; drops the row),
                                 # use-address-suggestions (["locations", "suggestions", token, query], debounced),
-                                # use-address-place, use-debounced-value, use-location-management (the "Gerir" mode
-                                # and the open sheet, shared by Nova aula and Editar aula),
+                                # use-address-place, use-debounced-value, use-location-management (the "Gerir" mode,
+                                # shared by Nova aula and Editar aula), use-map-place (spec 065: a map tap → point
+                                # and the phone's reverse geocoding, an Android place tap or a suggestion → the place),
+                                # use-device-location (the permission on demand and the position), use-keyboard-lift
+                                # (a bottom panel riding the keyboard, robust to Reanimated's stale height),
                                 # use-time-range-suggestions (["classes", "time-range-suggestions"]), use-teachers
                                 # (["people", "teachers"], every page of GET /people?role=instructor,admin&perPage=50),
                                 # use-create-classes (POST /classes/batch, no retry; invalidates ["classes", "week"]),
@@ -668,7 +679,10 @@ src/
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
                                 # key, for Nova aula, Editar aula, the cancel and the delete sheets),
                                 # locations-cache.ts (add, replace, remove), map.ts (Fortaleza, regions, the
-                                # provider per platform, directions URL), session-token.ts (UUID v4 per sheet),
+                                # provider per platform, directions URL, the place zoom, formatPoint),
+                                # session-token.ts (UUID v4 per opening of the location screen),
+                                # location-events.ts (spec 065: the location screen tells the class forms what it
+                                # created or removed),
                                 # occupancy.ts (percent, tone, full, free and hidden seats, the students label),
                                 # audience.ts (joinAudience: who will be told, for the cancel sheet and Editar aula's
                                 # footer; spec 047), teaching-classes.ts (the layout of "Minhas aulas", the count,
@@ -908,12 +922,12 @@ src/
                                 # use-school-whatsapp.hook.ts (useSchoolWhatsapp: reads it → number or null; spec 043
                                 # moved it here)
 plugins/with-ios-scene-lifecycle.js    # config plugin (UIScene life cycle for iOS 27)
-app.json                        # the Expo config
+app.json                        # the Expo config (with expo-location's "when in use" text, spec 065)
 app.config.ts                   # takes app.json's config and appends the react-native-maps plugin with
                                 # GOOGLE_MAPS_ANDROID_API_KEY (spec 037); app.config.test.ts next to it
 jest.config.js, jest.setup.ts   # jest-expo + RNTL; mocks localization, reanimated, safe-area, bottom sheet,
                                 # expo-notifications, expo-device, expo-constants, @expo/ui's DateTimePicker,
-                                # react-native-maps
+                                # react-native-maps (with the ref's setCamera / animateToRegion), expo-location
 ```
 
 Components follow one folder per component (`*.component.tsx`, `*.hook.ts`, `*.types.ts`, `index.ts`), with

@@ -1,0 +1,589 @@
+---
+id: "065"
+slug: location-map-screen
+title: Pick and edit a class location on a full-screen map
+template: quick
+status: finished
+created: 2026-10-26
+started: 2026-10-26
+base_commit: 8dc140119415e540cf61d2645a378a7600130d49
+reviewed_commit: 67705b4de4ecee07837bbffd75304f5e16f7631f
+fronts: [mobile]
+depends_on: []
+finished: 2026-10-26
+---
+
+# 065 — Pick and edit a class location on a full-screen map
+
+## Goal
+
+On "Nova aula" and "Editar aula", admins add ("Novo local") and edit ("Editar local") a saved location on a
+full-screen map, like a maps app: the search sits in the header, a tap on the map picks the place, and a "my
+location" button centres the map on the device. This screen replaces the location bottom sheet, whose small map
+and stacked fields are hard to use.
+
+## Context
+
+- Requirements: [requirements.md → Saved locations](../../../.docs/requirements.md#saved-locations) — locations
+  are added with address suggestions and a map; [requirements.md → Editing a location](../../../.docs/requirements.md#editing-a-location),
+  [Notifying about a location change](../../../.docs/requirements.md#notifying-about-a-location-change) and
+  [Removing the selected location while creating classes](../../../.docs/requirements.md#removing-the-selected-location-while-creating-classes)
+  — kept as they are, on the new screen.
+- Module memory: [modules/classes.md](../../memory/modules/classes.md) (the location sheet of spec 037).
+- Existing code this changes (all in `apps/mobile/src/modules/classes/`):
+  - `components/location-sheet/` — the "Novo local" / "Editar local" `BottomModal`: name, address with
+    suggestions (`AddressSearchField`), a 170 px map (`LocationMapPicker`), the notify checkbox and "Remover local"
+    (`ArchiveLocationSheet`). Its hook holds the form rules (duplicate name, required point, save errors, archive)
+    that the new screen keeps.
+  - `hooks/use-location-management.hook.ts` — the "Gerir" mode and the sheet's visibility, used by
+    `screens/new-class.screen.hook.ts` and `screens/edit-class.screen.hook.ts`, which render `<LocationSheet>` and
+    select the created location (`onCreated`) or clear a removed one (`onRemoved`).
+  - `hooks/use-address-suggestions.hook.ts` / `hooks/use-address-place.hook.ts` — the backend's Google Places
+    suggestions and place lookup, one session token per opening. The backend asks Google's Places Autocomplete,
+    which returns at most 5 suggestions.
+  - `utils/map.ts` — `regionAround`, `FORTALEZA`, `getMapProvider` (Apple Maps on iOS, Google Maps on Android).
+- The stack header (`src/navigation/stack-header/`) draws the back button; `expo-location` isn't installed yet.
+
+## Scope
+
+- In: the new admin route and screen for creating and editing a location; the header search; picking on the map;
+  the "my location" button and its permission; wiring "Nova aula" and "Editar aula" to it; deleting the sheet and
+  the components only it uses.
+- Out: backend changes (suggestions, place lookup and the locations API stay as they are); a draggable bottom
+  panel; asking for the location when the screen opens; showing the archived location of a class on the map.
+
+## Decisions
+
+| ID | Decision | Reason |
+| --- | --- | --- |
+| D-01 | One screen serves "Novo local" and "Editar local"; edit keeps the notify checkbox and "Remover local" with `ArchiveLocationSheet`. `LocationSheet`, `LocationMapPicker` and `AddressSearchField` are deleted. | One form instead of two; the edit rules of spec 037 stay. |
+| D-02 | Route `src/app/(private)/admin/location-form.tsx`, `?id=<locationId>` for edit; the screen reads the location and the duplicate list from `useLocations()`. An `id` that isn't among the active locations shows the "gone" toast and goes back. | Admin-only flow, so it lives in the admin group; the list is already cached by the class form. |
+| D-03 | The screen tells the class form about a created or removed location through `utils/location-events.ts` (`emitLocationCreated`, `emitLocationRemoved`, `subscribeLocationEvents`); "Nova aula" and "Editar aula" subscribe while mounted. | A pushed route can't call the form's callbacks; the new location must still be selected automatically, and a removed selection cleared. |
+| D-04 | The search field is the header's `headerTitle`, on the transparent shared header with the default back button; the map spans the whole screen under it. Suggestions float under the header, at most 6 (`slice(0, 6)`). | The user's request; the cap holds even if the backend returns more. |
+| D-05 | The address comes from a picked suggestion or a picked map point; there is no typed address field. A map tap reverse-geocodes on the device (`expo-location` `reverseGeocodeAsync`); a failed or empty lookup saves the coordinates (`"-3.7319, -38.5267"`, 4 decimals) as the address. | The backend requires an address and saving must never get stuck; the device geocoder is free and needs no backend change. |
+| D-06 | On Android, a tap on a labelled place (`onPoiClick`, Google Maps only) selects it through `useAddressPlace` with the screen's session token, like a suggestion. On iOS (Apple Maps reports no place taps) every tap is a point tap. | react-native-maps exposes place taps only on Google Maps. |
+| D-07 | "My location" asks for the foreground permission only when tapped. Granted: the map centres on the device (`MAP_DELTA` span) and shows the user dot; the pin doesn't move. Denied: a toast, and nothing else changes. | An admin often plans a beach from somewhere else; asking at open is intrusive. |
+| D-08 | The bottom panel is fixed (not draggable) and rises with the keyboard; with no point yet there is no pin and the card shows the empty hint. "Cancelar" and the back button both leave without saving. | Matches the design; the map takes the drags. |
+| D-09 | A picked suggestion or labelled place closes the keyboard, centres the map and zooms in on it (a camera zoom of about 400 m across, street level: `zoom` on Google Maps, `altitude` on Apple Maps); a tap on the map still moves nothing. | The user's follow-up: the admin should see the place up close, not the whole city. |
+| D-10 | The search field has no shadow; the panel's actions are stacked ("Salvar local" / "Salvar", then "Cancelar", then "Remover local") and the panel sits flush with the bottom of the screen (rounded top corners, the home-indicator inset inside it). | The user's follow-up after trying it: the shadow drew a box around the field, the side-by-side actions were cramped, and the map showed in a gap under the panel. |
+| D-11 | "Editar local" opens on the location at the same closeness as a picked place (`PLACE_DELTA`, about 400 m across); "Novo local" and a location without a point still open on Fortaleza at `MAP_DELTA`. | The user's follow-up: the location being edited should be seen up close, not the whole city. |
+
+## Expected Results
+
+### ER-01 — Search and save on the full-screen location screen
+
+- **Front:** mobile
+- **Behavior:** Given an admin on "Nova aula" or "Editar aula", when they tap "+ Novo local" (or a row in "Gerir"
+  mode), then the location screen opens with the map filling the screen, the default back button and a search field
+  in the header ("Busque um endereço ou uma praia"), and a bottom panel titled "Novo local" (or "Editar local") with
+  the address card, "Nome" and "Cancelar" / "Salvar local" ("Salvar" when editing). Typing 3+ characters shows at
+  most 6 suggestions under the header; picking one closes the list, moves the pin and centres the map there, fills
+  the card with the place's address over "<place name> · <lat>, <lng>", and fills "Nome" with the place's name when
+  it is empty. "Salvar local" creates the location, goes back, and "Nova aula" / "Editar aula" shows it selected.
+- **Edge and error cases:** 7+ suggestions from the API show 6; under 3 characters shows none; a repeated name
+  shows "Já existe um local com este nome." and keeps the button off, as does an empty name or a missing point;
+  editing opens with the location's name, address and pin, and offers the "Avisar alunos e instrutores das próximas
+  aulas?" checkbox when upcoming classes use it and "Remover local", whose confirmation archives it, goes back and
+  clears it from the form when it was selected; save errors behave as in spec 037 (duplicate from the server, "gone"
+  toast and back); "Cancelar" and the back button go back without saving.
+- **Verify by:** `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/components/location-search-header src/modules/classes/screens/new-class.screen.test.tsx src/modules/classes/screens/edit-class.screen.test.tsx` (from `apps/mobile`) · iOS simulator journey: add a location by search from "Nova aula", see it selected; edit and remove one from "Editar aula".
+
+### ER-02 — Pick a place on the map
+
+- **Front:** mobile
+- **Behavior:** Given the location screen, when the admin taps the map, then the pin moves to the tap and the card
+  shows the device's reverse-geocoded address over "Ponto escolhido no mapa · <lat>, <lng>"; on Android, a tap on a
+  labelled place selects it like a suggestion (address and point from Google, name into an empty "Nome").
+- **Edge and error cases:** before any point the card shows "Toque no mapa para marcar o ponto" and no pin; a failed
+  or empty lookup puts the coordinates (4 decimals) as the address; a failed place lookup on Android falls back to a
+  point tap; a later tap replaces an earlier suggestion's address.
+- **Verify by:** `npx jest src/modules/classes/hooks/use-map-place.hook.test.tsx src/modules/classes/components/location-address-card` (from `apps/mobile`) · iOS simulator journey: tap the map, save, see the address · Android emulator journey: tap a labelled beach, see its name and address.
+
+### ER-03 — My location
+
+- **Front:** mobile
+- **Behavior:** Given the location screen, when the admin taps the "my location" button ("Minha localização"), then
+  the app asks for the foreground location permission (only the first time) and, once granted, centres the map on the
+  device's position and shows the user dot, without moving the pin.
+- **Edge and error cases:** no permission is asked when the screen opens; denied shows the toast "Permita o acesso à
+  localização nos Ajustes para usar sua posição." and the map, search and taps keep working; a failed position read
+  shows the same toast.
+- **Verify by:** `npx jest src/modules/classes/hooks/use-device-location.hook.test.tsx src/modules/classes/components/my-location-button` (from `apps/mobile`) · iOS simulator journey: tap the button, allow, see the map centred on the simulated location; deny on a fresh install, see the toast.
+
+## Tasks
+
+### Mobile (`apps/mobile`)
+
+- [x] **T-01** — Install `expo-location` (`npx expo install expo-location`), add its config plugin to `app.json`
+  with `locationWhenInUsePermission` ("Rocha's Surf School uses your location to centre the map when you add a
+  class location."), and mock it in `jest.setup.ts` (`requestForegroundPermissionsAsync`,
+  `getCurrentPositionAsync`, `reverseGeocodeAsync`). Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: enabling · Done when: `npx expo config --type public` lists the plugin and `npm test` passes.
+  > ✅ 2026-10-26 — installed `expo-location` ~57.0.22 with `npx expo install`, added its config plugin to `app.json`
+  > with the `locationWhenInUsePermission` text, and mocked it in `jest.setup.ts` (permission granted, a Fortaleza
+  > position, no address by default); files: `apps/mobile/package.json`, `package-lock.json`, `apps/mobile/app.json`,
+  > `apps/mobile/jest.setup.ts`; verified: `npx expo config --type public` lists `expo-location` with the text,
+  > `npm test` (297 suites, 3193 tests passed); deviations: none
+- [x] **T-02** — `src/modules/classes/components/location-search-header/` (component, hook, types, index): the
+  header search field (search icon, clear button, `addressSearchPlaceholder`) and the floating suggestions list
+  (bold match, place icon, at most 6, hidden under 3 characters or after a pick), with tests for the cap, the hiding
+  and the pick. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/components/location-search-header` passes.
+  > ✅ 2026-10-26 — `LocationSearchHeader` sets the screen's `headerTitle` to the search field (search icon,
+  > `locationSheet.addressSearchPlaceholder`, clear button, 44 px tall, width of the header beside the back button) and
+  > renders the floating suggestions list under the header (`useHeaderHeight()` + 8): at most 6 rows
+  > (`SUGGESTIONS_MAX`), the part of the title matching the text in `font-body-800`, a place icon; hidden under 3
+  > characters, before the rows come, after a pick (the title stays in the field) or a clear. The hook owns the text and
+  > the open state and asks `useAddressSuggestions` with the screen's session token; files:
+  > `apps/mobile/src/modules/classes/components/location-search-header/index.ts`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.hook.ts`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.types.ts`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.test.tsx`;
+  > verified: `npx jest src/modules/classes/components/location-search-header` (12 passed, 100% statements, branches,
+  > functions and lines on the component and hook), `npx eslint` and `npx tsc --noEmit` clean; deviations: the list
+  > renders in the screen body (not inside the native header view, which would clip it and not take its touches), so the
+  > component sets the header's title through `<Stack.Screen options>` and draws the list itself; the existing
+  > `locationSheet.addressSearchPlaceholder` string is reused
+- [x] **T-03** — `src/modules/classes/hooks/use-map-place.hook.ts` (map tap → point + reverse geocode with the
+  coordinates fallback; Android `onPoiClick` → `useAddressPlace`, falling back to a point tap) and
+  `src/modules/classes/components/location-address-card/` (empty hint, map point, suggestion/place states), with
+  tests for every case of ER-02. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-02 · Done when: `npx jest src/modules/classes/hooks/use-map-place.hook.test.tsx src/modules/classes/components/location-address-card` passes.
+  > ✅ 2026-10-26 — `useMapPlace({ sessionToken, onSelect })`: `pressMap` reverse-geocodes the tap on the device
+  > (`reverseGeocodeAsync`; Android's `formattedAddress`, else street and number – district – city/subregion – state, cut
+  > to the address limit) and falls back to the coordinates (`formatPoint`, 4 decimals) on a failed or empty answer;
+  > `pressPoi` (Android `onPoiClick`) looks the place up with `useAddressPlace` in the screen's session and falls back to a
+  > point tap; `pickPlace` does the same for a suggestion and selects nothing when it fails. `pendingPoint` moves the pin at
+  > once while an address is looked up, and an answer a newer tap replaced is dropped. `LocationAddressCard` shows the
+  > empty hint, then the address over "<place name> · <lat>, <lng>" or "Ponto escolhido no mapa · …", and "Buscando o
+  > endereço…" while a lookup runs. Added `MapPlace`, `MapPressEvent`, `PoiClickEvent` to `classes.types.ts`,
+  > `formatPoint` to `utils/map.ts`, and the card's strings (`locationSheet.pointPicked`, `locationSheet.resolving`) in
+  > the three languages; files: `apps/mobile/src/modules/classes/hooks/use-map-place.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-map-place.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/index.ts`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.types.ts`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`, `apps/mobile/src/modules/classes/utils/map.ts`,
+  > `apps/mobile/src/modules/classes/utils/map.test.ts`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`; verified:
+  > `npx jest src/modules/classes/hooks/use-map-place.hook.test.tsx src/modules/classes/components/location-address-card src/modules/classes/utils/map.test.ts`
+  > (28 passed, 100% on the hook, the card and `map.ts`), `npx eslint`, `npx tsc --noEmit`, `npx jest src/i18n` clean;
+  > deviations: the card's two strings are added here rather than in T-05, since the card needs them; a "looking up the
+  > address" state (not in the spec) keeps the card honest while the device or Google answers. Note: a single mutation
+  > hook test file run alone leaves Jest open (React Query's mutation GC timer) — true of the existing
+  > `use-address-place.hook.test.tsx` too; multi-file runs exit normally
+- [x] **T-04** — `src/modules/classes/hooks/use-device-location.hook.ts` (permission on demand, position, toast on
+  denial or failure) and `src/modules/classes/components/my-location-button/` (the round map button, 44 px, tokens
+  only), with tests for granted, denied and failed. Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-03 · Done when: `npx jest src/modules/classes/hooks/use-device-location.hook.test.tsx src/modules/classes/components/my-location-button` passes.
+  > ✅ 2026-10-26 — `useDeviceLocation()` returns `locate()` (asks the foreground permission only when called, then
+  > reads the position with `Accuracy.Balanced`) and `granted` (true once allowed, for the user dot); a denial or any
+  > failure shows the toast `locationSheet.locationDenied` ("Permita o acesso à localização nos Ajustes para usar sua
+  > posição.") and gives `null`. `MyLocationButton`: a round 44 pt `TouchableOpacity` (`h-11 w-11 rounded-full`,
+  > `bg-surface`, `border-line`, `shadowStyle("iconButton")`, the `locate` icon in `lagoon`) named
+  > `locationSheet.myLocation` ("Minha localização"). Strings added in the three languages; files:
+  > `apps/mobile/src/modules/classes/hooks/use-device-location.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-device-location.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/index.ts`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/my-location-button.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/my-location-button.types.ts`,
+  > `apps/mobile/src/modules/classes/components/my-location-button/my-location-button.component.test.tsx`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`; verified:
+  > `npx jest src/modules/classes/hooks/use-device-location.hook.test.tsx src/modules/classes/components/my-location-button`
+  > (8 passed: granted, denied, failed read, nothing asked before the tap; 100% on both files), `npx eslint`,
+  > `npx tsc --noEmit` clean; deviations: the two strings are added here rather than in T-05
+- [x] **T-05** — `src/modules/classes/utils/location-events.ts` (D-03) and the screen
+  `src/modules/classes/screens/location-form.screen.tsx` with its hook (the form rules moved from
+  `location-sheet.hook.ts`), route `src/app/(private)/admin/location-form.tsx` and `routes.admin.locationForm(id?)`
+  in `src/constants/routes.ts`: full-screen map with the pin and user dot, `LocationSearchHeader` as `headerTitle`
+  on the transparent header, `MyLocationButton`, the fixed bottom panel (title, address card, "Nome", notify
+  checkbox, "Cancelar" / "Salvar local", "Remover local" + `ArchiveLocationSheet`) rising with the keyboard; new
+  strings in `en-US`, `es-ES` and `pt-BR`. Tests in `location-form.screen.test.tsx` and `location-events.test.ts`
+  for create, edit, remove, duplicate, save errors, unknown `id` and the events. Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/location-events.test.ts` passes.
+  > ✅ 2026-10-26 — `utils/location-events.ts` (`subscribeLocationEvents({ onCreated, onRemoved })` returns the
+  > unsubscribe; `emitLocationCreated`, `emitLocationRemoved`). `LocationFormScreen` + `useLocationFormScreen`: the
+  > route `src/app/(private)/admin/location-form.tsx` and `routes.admin.locationForm(id?)`; the screen sets a transparent
+  > header on every platform, draws `MapView` across the whole screen (controlled `region`, `mapPadding` clear of the
+  > header and the measured panel, `showsUserLocation` once allowed, `onPoiClick` only on Android) with the pin
+  > (`pendingPoint` while an address is looked up, else the picked place), `LocationSearchHeader`, `MyLocationButton`
+  > (centres on the device with `MAP_DELTA`, pin unchanged) and the fixed bottom panel riding the keyboard
+  > (`usePinnedFooter`): title, `LocationAddressCard`, "Nome", the notify checkbox with its count, "Cancelar" / "Salvar
+  > local" ("Salvar" when editing), "Remover local" + `ArchiveLocationSheet`. The hook keeps the sheet's rules: the
+  > location and the duplicate list from `useLocations()`, the form filled once the location is known, an empty "Nome"
+  > filled by a picked place's name, duplicate by name (own name allowed) or from the server (409, list reloaded),
+  > gone (409 `location.archived` / 404) → toast, list reloaded, back, `emitLocationRemoved`; other errors → toast and
+  > stay; session expired → nothing; save → `emitLocationCreated` or "Local atualizado", then back; removal → toast,
+  > back, `emitLocationRemoved`; an `id` not among the active locations (or a failed list) → "gone" toast and back,
+  > once. Save stays off while an address is looked up; files:
+  > `apps/mobile/src/modules/classes/utils/location-events.ts`,
+  > `apps/mobile/src/modules/classes/utils/location-events.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.types.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`,
+  > `apps/mobile/src/app/(private)/admin/location-form.tsx`, `apps/mobile/src/constants/routes.ts`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/location-events.test.ts`
+  > (39 passed; 100% statements, branches, functions and lines on the screen, its hook and the events), `npx eslint`,
+  > `npx tsc --noEmit` clean; deviations: the screen's strings were added in T-03/T-04 (no new ones were needed here:
+  > the rest reuse `locationSheet.*`); the pinned-footer hook is reused from `modules/school-settings` as
+  > `send-notice.screen.tsx` does; `routes.admin.locationForm` is exercised by the class form tests of T-06
+- [x] **T-06** — Point "Nova aula" and "Editar aula" at the route (`new-class.screen.hook.ts`,
+  `edit-class.screen.hook.ts` and their screens): "+ Novo local" and a "Gerir" row push
+  `routes.admin.locationForm()`, the screens subscribe to the location events to select or clear; reduce
+  `use-location-management.hook.ts` to the "Gerir" mode; delete `components/location-sheet/`,
+  `components/location-map-picker/`, `components/address-search-field/` and their tests and the unused
+  `locationSheet` strings. Update the screens' tests. Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  Covers: ER-01 · Done when: `npx jest src/modules/classes` passes and `grep -rn "LocationSheet\b" src` finds nothing.
+  > ✅ 2026-10-26 — "Nova aula" and "Editar aula": "+ Novo local" pushes `routes.admin.locationForm()` and a "Gerir" row
+  > `routes.admin.locationForm(id)`; both hooks subscribe to the location events while mounted (`useEffectEvent` +
+  > `subscribeLocationEvents`) to select a created location or clear a removed selected one. `useLocationManagement`
+  > keeps only the "Gerir" mode. Deleted `components/location-sheet/`, `components/location-map-picker/`,
+  > `components/address-search-field/` (with their tests) and the unused `locationSheet` strings (`description`,
+  > `address`, `addressPlaceholder`, `editDescription`, `point`, `pointHintSet`) in the three languages; the screens'
+  > tests now cover the push with and without an id, the selection on a created location, the clearing on a removed one,
+  > the kept selection when another is removed, and the unsubscription; files:
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/edit-class.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/hooks/use-location-management.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-location-management.hook.test.tsx`,
+  > `apps/mobile/src/i18n/messages/en-US.ts`, `apps/mobile/src/i18n/messages/es-ES.ts`,
+  > `apps/mobile/src/i18n/messages/pt-BR.ts`; deleted:
+  > `apps/mobile/src/modules/classes/components/location-sheet/` (`index.ts`, `location-sheet.component.tsx`,
+  > `location-sheet.hook.ts`, `location-sheet.types.ts`, `location-sheet.component.test.tsx`),
+  > `apps/mobile/src/modules/classes/components/location-map-picker/` (`index.ts`, `location-map-picker.component.tsx`,
+  > `location-map-picker.hook.ts`, `location-map-picker.types.ts`, `location-map-picker.component.test.tsx`),
+  > `apps/mobile/src/modules/classes/components/address-search-field/` (`index.ts`,
+  > `address-search-field.component.tsx`, `address-search-field.types.ts`, `address-search-field.component.test.tsx`);
+  > verified: `npx jest src/modules/classes` (86 suites, 1047 tests passed), `npx eslint`, `npx tsc --noEmit` clean,
+  > `grep -rn "\bLocationSheet\b" src` finds nothing; deviations: the literal `grep -rn "LocationSheet\b" src` of the
+  > task also matches `ArchiveLocationSheet`, which D-01 keeps, so the check was run with a word boundary on both sides;
+  > `activeLocations` (only the sheet used it) left the edit hook's return. Note: five existing new-class tests log
+  > React Query act() warnings, on the base commit too
+
+- [x] **T-08** — Zoom in on a picked suggestion or labelled place (D-09): `selectPlace` in
+  `location-form.screen.hook.ts` animates to `regionAround(place.point, PREVIEW_DELTA)`. Update the screen's tests.
+  Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
+  Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx` passes.
+  > ✅ 2026-10-26 — a picked suggestion or labelled place now animates the map to `regionAround(place.point,
+  > PREVIEW_DELTA)` (about a kilometre) instead of keeping the span; the region the map reported (`shownRegion`,
+  > `onRegionChangeComplete`) is no longer needed and is gone; files:
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx` (39 passed, 100% on the screen and its hook),
+  > `npx eslint`, `npx tsc --noEmit` clean; deviations: none
+- [x] **T-09** — Drop the search field's shadow in `components/location-search-header/` (D-10). Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/components/location-search-header` passes.
+  > ✅ 2026-10-26 — the header search field drops `shadowStyle("card")` (on Android it drew a box around the rounded
+  > field); the floating suggestions keep their own elevation; files:
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-search-header/location-search-header.component.test.tsx`;
+  > verified: `npx jest src/modules/classes/components/location-search-header` (12 passed, the field has no `boxShadow`;
+  > 100% on the component), `npx eslint`, `npx tsc --noEmit` clean; deviations: none
+- [x] **T-10** — Stack the panel's actions and pin the panel to the bottom (D-10) in `location-form.screen.tsx`:
+  primary first, then "Cancelar", then "Remover local"; rounded top corners only, the bottom inset as the panel's own
+  padding. Update the screen's tests. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  (added during execution)
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx` passes.
+  > ✅ 2026-10-26 — the panel's actions are stacked ("Salvar local" / "Salvar", "Cancelar", then "Remover local" when
+  > editing) and the panel sits flush with the bottom: rounded top corners only (`rounded-t-sheet`), the home-indicator
+  > inset as its own bottom padding, and an animated `translateY` of the keyboard's height (the hook's `panelStyle`, in
+  > place of the shared pinned footer whose padding left a strip of map under the panel); files:
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx` (41 passed: the action order for new and edit,
+  > the panel's corners and padding, the lift with a 300 pt keyboard; 100% on the screen and its hook), `npx eslint`,
+  > `npx tsc --noEmit` clean; deviations: none
+
+- [x] **T-12** — Zoom by camera, not by span (D-09): on Android the keyboard shrinks the map while a suggestion is
+  picked, so a ~1 km span fitted into that small map came out zoomed out and off-centre once the keyboard closed.
+  `selectPlace` closes the keyboard and calls `animateCamera({ center, zoom, altitude })` (constants in `utils/map.ts`);
+  the Jest map mock gets `animateCamera`. Update the screen's tests. Skill:
+  [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). (added during execution)
+  Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` passes.
+  > ✅ 2026-10-26 — `selectPlace` now closes the keyboard and sets the camera (`setCamera({ center, zoom: PLACE_ZOOM,
+  > altitude: PLACE_ALTITUDE })`, 16 for Google Maps and 2000 m for Apple Maps, in `utils/map.ts`) for a picked
+  > suggestion or labelled place, instead of T-08's `animateToRegion` with `PREVIEW_DELTA`. On the Android emulator the
+  > span-based zoom was fitted into the map the keyboard had shrunk, so it came out zoomed out and off-centre; an animated
+  > camera was stopped half-way by the resize as the keyboard closed. A camera set without animation keeps its zoom and
+  > Google keeps its target centred through the resize. The Jest map mock's ref gets `setCamera` (`mockSetCamera`); files:
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`, `apps/mobile/src/modules/classes/utils/map.ts`,
+  > `apps/mobile/src/modules/classes/utils/map.test.ts`, `apps/mobile/jest.setup.ts`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` (45 passed:
+  > the pick closes the keyboard and sets the camera, a map tap does neither; 100% on the screen, its hook and `map.ts`),
+  > `npx eslint`, `npx tsc --noEmit` clean; on the emulator, "praia de iracema" → first suggestion: keyboard closed, street
+  > level, pin centred between the header and the panel; deviations: no zoom animation (see above)
+
+- [x] **T-13** — Zoom closer (D-09, D-11): `PLACE_ZOOM` 17 and `PLACE_ALTITUDE` 1000 for a picked place, and a new
+  `PLACE_DELTA` (0.004) for the `initialRegion` of "Editar local" (`location-form.screen.hook.ts`), all in `utils/map.ts`.
+  Update the tests. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  (added during execution)
+  Covers: ER-01, ER-02 · Done when: `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` passes, and on the Android emulator a picked place and an edited location open at street level.
+  > ✅ 2026-10-26 — `PLACE_ZOOM` 17 and `PLACE_ALTITUDE` 1000 (street level, about 400 m across) for a picked place, and a
+  > new `PLACE_DELTA` (0.004, the same closeness as a span) for the `initialRegion` of "Editar local"; "Novo local" and a
+  > location saved without a point still open on Fortaleza at `MAP_DELTA`; files:
+  > `apps/mobile/src/modules/classes/utils/map.ts`, `apps/mobile/src/modules/classes/utils/map.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx src/modules/classes/utils/map.test.ts` (45 passed;
+  > 100% on the screen, its hook and `map.ts`), `npx eslint`, `npx tsc --noEmit` clean. Android emulator (Dev Admin):
+  > "Manage" → "Rocha`s Surf School" opens at street level with the pin centred in the visible map; "Praia do Futuro"
+  > (saved without a point) opens on Fortaleza with "Tap the map to mark the point"; on that edit screen, picking "Praia de
+  > Iracema" closes the keyboard and shows it at zoom 17, the pin centred and the typed name kept; cancelled without saving.
+  > Deviations: none. Note: the location-form test "ignores a second press while the first is sending" (T-05) logs an act()
+  > warning in about one run in two (a React Query notification after the test's `act`); it passes
+
+- [x] **T-14** — Keep the panel down when Reanimated reports a keyboard that isn't there (D-10): leaving the screen with
+  the keyboard open left `useAnimatedKeyboard` stuck on "open" at its height on Android, so the next "Novo local" opened
+  with the panel raised. A `useKeyboardLift` hook follows the height only while React Native sees the keyboard or while
+  Reanimated animates it. Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
+  (added during execution — found by the user)
+  Covers: ER-01 · Done when: `npx jest src/modules/classes/hooks/use-keyboard-lift.hook.test.tsx src/modules/classes/screens/location-form.screen.test.tsx` passes, and on the Android emulator focus "Nome" → back arrow → "+ Novo local" opens with the panel at the bottom.
+  > ✅ 2026-10-26 — Cause (Reanimated 4.5, Android): when the last screen listening to the keyboard unmounts with the
+  > keyboard open, Reanimated stops observing; the keyboard closes unobserved, and on the next subscription the 0-height
+  > inset is taken for a one-frame glitch because the state is still "open" (`Keyboard.kt`), so the stale height lifts
+  > the panel. `useKeyboardLift` (`hooks/use-keyboard-lift.hook.ts`) replaces the screen's raw `useKeyboardHeight`
+  > translate: it follows `useAnimatedKeyboard().height` while React Native sees the keyboard (`Keyboard.isVisible()`,
+  > `keyboardDidShow` / `keyboardDidHide`, which Android derives from the window's IME insets) or while Reanimated's
+  > state is OPENING / CLOSING. The Jest setup's Reanimated mock now answers `useAnimatedKeyboard` with shared-value-like
+  > objects (a closed keyboard) instead of plain numbers; files:
+  > `apps/mobile/src/modules/classes/hooks/use-keyboard-lift.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-keyboard-lift.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`, `apps/mobile/jest.setup.ts`; verified:
+  > `npx jest src/modules/classes/hooks/use-keyboard-lift.hook.test.tsx src/modules/classes/screens/location-form.screen.test.tsx`
+  > (41 passed: opening, open, closing, a stale "open" with no keyboard, a keyboard already open, unsubscribing; 100% on
+  > the hook, the screen and its hook), `npx eslint`, `npx tsc --noEmit` clean. Android emulator, after a fresh start: focus
+  > "Name" (panel rises) → header back arrow → "+ New location": the panel opens at the bottom; focusing "Name" there
+  > lifts it above the keyboard and Back brings it down; deviations: none. Note: other screens that pin a footer with the
+  > shared `usePinnedFooter` / `useKeyboardHeight` (send notice, school settings) can hit the same stale height
+
+### Verification
+
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Then run the user
+  journeys of ER-01 to ER-03 in the iOS simulator (after `npx expo prebuild --platform ios` for the new plugin) and
+  the labelled-place tap of ER-02 in the Android emulator. Record the output summary and the journeys as evidence.
+  Covers: all · Done when: every command exits 0 and every journey behaves as its Expected Result says.
+  > ✅ 2026-10-26 — Verification Plan, rerun after the fixes below: `node .specs/scripts/run-related-tests.mjs 065` →
+  > RELATED TESTS PASSED (apps/mobile: 112 suites, 1878 tests); `node .specs/scripts/check-coverage.mjs 065` → COVERAGE
+  > OK (every changed line covered in 18 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` →
+  > 8/8 tasks successful.
+  > Journeys on the Android emulator (`Pixel_Test`, debug build with `expo-location` from `npx expo prebuild --platform
+  > android` + `expo run:android`, local backend, signed in as Dev Admin, English):
+  > ER-01 — "Create classes" → "+ New location" opens the screen: full-screen map under the header, back arrow, search
+  > field ("Search for an address or a beach"), "my location" button, panel "New location" with the empty hint, "Name",
+  > "Cancel" / "Save location" (off). Typing "praia de iracema" floats 5 suggestions under the header (the backend's
+  > answer), match in bold; picking the first closes the list, moves the pin and centres the map there, fills the card
+  > ("Praia de Iracema, Fortaleza - CE, Brazil" over "Praia de Iracema · -3.7203, -38.5154") and the empty "Name"; "Save
+  > location" goes back and "New class" shows "Praia de Iracema" selected. "Cancel" and the back key go back without
+  > saving. From "Edit class" (an upcoming class), "Manage" → the row opens "Edit location" filled (name, address, pin,
+  > "Save", "Remove location", no notify since no upcoming class uses it); "praia do futuro" shows "A location with this
+  > name already exists." with "Save" off and the panel above the keyboard bar; renaming to "Praia de Iracema 065" saves
+  > ("Location updated", row renamed, still selected); "Remove location" → "Remove location?" → confirm: toast "Praia de
+  > Iracema 065 removed", back, the row gone and nothing selected ("Save and notify" off); the class itself was not saved.
+  > ER-02 — a tap on the map moves the pin without moving the map and shows "Point picked on the map · -3.7986,
+  > -38.4971"; the emulator's Play Services geocoder is down (`GeocodeService` crashing in logcat), so the address fell
+  > back to the coordinates, the ER's failure case (the success path is covered by `use-map-place.hook.test.tsx`). A tap
+  > on the airport's label selects it through Google: "Av. Senador Carlos Jereissati, 3000 - Serrinha, Fortaleza - CE…"
+  > over "Pinto Martins – Fortaleza International Airport · -3.7788, -38.5406", the name into the empty "Name" (cut to
+  > 40 characters), the map centred on it.
+  > ER-03 — nothing is asked when the screen opens; the first "my location" tap shows the system prompt; "Don't allow"
+  > shows "Allow location access in Settings to use your position." and the map, pin and form stay; tapping again and
+  > allowing centres the map on the emulator's GPS position (Cumbuco) with the user dot, the pin unchanged; later taps
+  > ask nothing.
+  > Fixes found by the journeys, each committed with its task: `fix(spec-065): give Google Maps its padding once ready and
+  > stop driving the region (T-05)` — the screen crashed on Android (`GoogleMap.setPadding` on a null map) and the
+  > controlled region drifted under the padding; the map now opens on `initialRegion` (mounted again when an edited
+  > location arrives), recentres with `animateToRegion`, and gets `mapPadding` only after `onMapReady`.
+  > `fix(spec-065): read the position without Google's accuracy prompt (T-04)` — declining Google's "Location Accuracy"
+  > prompt left `getCurrentPositionAsync` pending forever; it is now called with `mayShowUserSettingsDialog: false`.
+  > `fix(spec-065): reset the address card's dashed border once filled (T-03)` — Android kept the empty card's dashed
+  > border. Files of the fixes: `apps/mobile/src/modules/classes/screens/location-form.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`, `apps/mobile/jest.setup.ts` (the map mock's
+  > ref has `animateToRegion`), `apps/mobile/src/modules/classes/hooks/use-device-location.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-device-location.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/location-address-card/location-address-card.component.test.tsx`.
+  > Deviations: no iOS simulator journey — `expo run:ios` can't build here: the precompiled `ExpoModulesJSI` /
+  > `ExpoModulesCore` binaries were built with Swift 6.3.1 and the only Xcode (27.1) has Swift 6.4 (`ExpoModulesJSI` has
+  > no source build); the old iOS build installed on the simulator reaches the new route and stops on "Cannot find native
+  > module 'ExpoLocation'", as expected of a build without the module. On iOS, still to check by hand once a build is
+  > possible: the search, a map tap with Apple's reverse geocoding, "my location" (allow and deny) and edit/remove.
+- [x] **T-11** — Rerun the Verification Plan and, on the Android emulator, check the zoom on a picked place, the
+  field without shadow and the stacked, bottom-flush panel (D-09, D-10). (added during execution)
+  Covers: all · Done when: every command exits 0 and the screen behaves as D-09 and D-10 say.
+  > ✅ 2026-10-26 — Verification Plan rerun: `node .specs/scripts/run-related-tests.mjs 065` → RELATED TESTS PASSED
+  > (apps/mobile: 112 suites, 1881 tests); `node .specs/scripts/check-coverage.mjs 065` → COVERAGE OK (every changed line
+  > covered in 18 files); `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` → 8/8 tasks successful.
+  > On the Android emulator (`Pixel_Test`, Dev Admin), "New location": the search field has no box around it; the panel
+  > sits flush with the bottom of the screen (no map under it) with "Save location" over "Cancel" (and "Remove location"
+  > under them when editing, from T-10's tests); with the keyboard open the panel rides right on top of it; picking "Praia
+  > de Iracema" closes the keyboard and shows the place at street level, the pin centred between the header and the
+  > panel (D-09, D-10). The emulator's stylus handwriting was turned off (`settings put secure
+  > stylus_handwriting_enabled 0`) so the full on-screen keyboard shows instead of Gboard's floating stylus bar — a
+  > device setting, not part of the change; deviations: none
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 065` — the related tests pass (with coverage).
+  - `node .specs/scripts/check-coverage.mjs 065` — every line this spec adds or changes is covered.
+  - `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` — no errors.
+- Manual (mobile has no end-to-end suite): the iOS simulator journeys of ER-01, ER-02 and ER-03, and the Android
+  emulator journey of ER-02's labelled-place tap.
+
+## Memory Impact
+
+- `memory/modules/classes.md` — the location sheet becomes the full-screen location screen: header search (at most
+  6 suggestions), map picking with device reverse geocoding (Android place taps), "my location", and the events that
+  select or clear the location on the class form.
+- `memory/structure.md` — the admin route `location-form` (`?id=` for edit) and the new components and hooks in
+  `modules/classes`.
+- `memory/technical-context.md` — `expo-location` and its "when in use" permission (asked on demand), that
+  place taps exist only on Google Maps (Android), and that Apple Maps measures `mapPadding` from the safe area while
+  Google Maps measures it from the map's edges.
+
+## Amendments
+
+- 2026-10-26 — after trying the screen on Android, the user asked for four follow-ups (approved in chat): zoom in on a
+  picked place (D-09, before: the map was only centred, keeping its span); no shadow around the search field; stacked
+  actions instead of side by side; the panel flush with the bottom of the screen instead of floating over a gap
+  (D-10). Tasks T-08 to T-11 added; no Expected Result changes.
+- 2026-10-26 — D-09's zoom became a camera zoom that also closes the keyboard (before: `animateToRegion` with
+  `PREVIEW_DELTA`), because on Android the open keyboard shrinks the map and the span-based zoom came out zoomed out
+  and off-centre; same intent the user approved. Task T-12 added.
+- 2026-10-26 — the user asked for a closer zoom on a picked place and when editing a location (approved in chat): D-09's
+  zoom went from about a kilometre (Google zoom 16, Apple 2000 m) to about 400 m (17, 1000 m); D-11 added — "Editar
+  local" opens on the location at that closeness (before: `MAP_DELTA`, about 22 km). Task T-13 added.
+
+## Review
+
+### Round 1 — 2026-10-26 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8/8)
+- related tests ✅ 1885 passed in 113 suites (apps/mobile)
+- coverage of the changed lines ✅ `COVERAGE OK` — every changed line covered in 19 files; no coverage-ignore comments
+- e2e: mobile has no suite · journeys exercised on the Android emulator (`Pixel_Test`, Dev Admin) and on the iOS
+  simulator (iPhone 18 Pro, iOS 27, a debug build of this branch with `expo-location`)
+
+**Expected Results**
+
+- ER-01 ❌ — see F-01. The rest holds on both platforms. Search "praia de iracema": 5 suggestions under the header,
+  match in bold. Pick one: list closed, zoomed in, card and the empty "Nome" filled. "Salvar local": back, selected on
+  "Nova aula". On Android, a duplicate name shows the error with "Salvar" off. "Remover local" → confirm: toast, back,
+  selection cleared. "Cancelar" saves nothing.
+- ER-02 ✅ — iOS: a map tap shows Apple's address ("Avenida Almirante Barroso, 778 – Praia de Iracema – Fortaleza –
+  CE") over "Ponto escolhido no mapa · -3.7205, -38.5158", replaces the suggestion's address and keeps the typed name.
+  Android: a failing geocoder (emulator) falls back to the coordinates. A tap on the airport's label selects it with
+  Google's address and name.
+- ER-03 ✅ — iOS: no prompt when the screen opens. The first tap shows the system prompt with the plugin's text.
+  "Don't Allow" → the toast, the form unchanged. Once allowed, the map centres on the simulated position with the user
+  dot, and the pin and card stay. Android: allow path as above.
+
+**Findings**
+
+- [x] **F-01** (ER-01, D-11) — on iOS, "Editar local" opens with the location's pin hidden behind the bottom panel.
+  Apple Maps applies `initialRegion` to the whole map, and the `mapPadding` given after `onMapReady` doesn't recentre
+  it, so the location sits at the middle of the screen, about 70 pt under the panel's top edge. "Novo local" has the
+  same offset (Fortaleza opens just above the panel). Google Maps on Android isn't affected.
+  Reproduce: iOS simulator → "Nova aula" → "Gerir" → a location saved with a point → the map shows the streets
+  around it, but no pin until the map is dragged up about 180 pt. Expected: the pin centred in the map between the
+  header and the panel, as on Android (ER-01: "editing opens with the location's name, address and pin").
+  > ✅ 2026-10-26 — Cause: react-native-maps gives `mapPadding` to the Apple map as its `layoutMargins`, and MapKit
+  > centres the camera inside the safe area *plus* those margins. The map's safe area already holds the transparent
+  > header (116 pt) and the home indicator (34 pt), so on iOS the padding counted both twice; and MapKit doesn't move a
+  > camera it already placed when the margins change, so the opening region (placed before the padding, in the middle
+  > of the safe area: y 478 on an iPhone 18 Pro) stayed under the panel. Measured with `pointForCoordinate` before the
+  > fix: a camera centre set after the padding lands at y 289, exactly (116 + 116 + 874 − 34 − 494) / 2. Fix in
+  > `location-form.screen.hook.ts`: on iOS the padding leaves out the safe area (top 0, bottom = the panel's height −
+  > the home-indicator inset; Android unchanged, from the map's edges), and once the map has its padding (ready and the
+  > panel measured) the camera is set once on the opening point (the edited location, or Fortaleza): once per map, so
+  > the panel growing later (an error under "Nome") doesn't move a map the admin may have panned. The same padding
+  > puts a picked place and "my location" in the middle of the visible map on iOS too (they landed about 40 pt low);
+  > files: `apps/mobile/src/modules/classes/screens/location-form.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/location-form.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes/screens/location-form.screen.test.tsx` (40 passed; 100% on the screen and its hook;
+  > new tests: Apple padding from the safe area, Google padding from the edges, the re-centre on Fortaleza only once
+  > and only after the panel is measured, on the edited location, and on the map mounted again when the list arrives
+  > late). iOS simulator (iPhone 18 Pro, iOS 27, Dev Admin, debug build of this branch): "Editar local" on "Rocha`s Surf
+  > School" opens with its pin in the visible map: `pointForCoordinate` puts the location at y 264.5, the middle
+  > between the header (116) and the panel's top (413); "Novo local" opens with Fortaleza between the header and the
+  > panel; picking "Ibis Fortaleza Praia de Iracema" from the search centres it above the panel. Android emulator: not
+  > re-checked — `Pixel_Test` was overloaded (load average about 20) and the app didn't get past the splash in about
+  > 10 minutes (Android killed it for an ANR and a start timeout, before any JS ran); the Android padding is unchanged,
+  > and the one-time re-centre it now also gets is covered by the tests. Deviations: none. Note: in this sandbox Jest
+  > hangs at 0% CPU with its cache in the system temp folder; it runs with `TMPDIR` (or `--cacheDirectory`) pointed at a
+  > writable folder.
+
+**Notes**
+
+- In dark mode the default back arrow is light grey over the light map and hard to see (D-04 keeps the default
+  button, so not a finding).
+- Neither `reverseGeocodeAsync` nor `getCurrentPositionAsync` has a timeout. On the Android emulator, whose geocoder
+  failed, "Salvar" stayed off for about 2 minutes until Google gave up (`DEADLINE_EXCEEDED`). A short client timeout
+  that falls back to the coordinates would keep D-05's "saving never gets stuck" true on a slow network.
+- `useKeyboardLift` solves the same stale Reanimated keyboard height as `7be398a4` on `fix/mobile-pinned-footer-keyboard`
+  (shared pinned footers); worth converging once both land.
+- Building iOS here needs Expo's `ExpoModulesJSI` rebuilt from source for Swift 6.4
+  (`PODS_ROOT=apps/mobile/ios/Pods PLATFORM_NAME=iphonesimulator node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh --clean`),
+  then `EXPO_USE_PRECOMPILED_MODULES=0 pod install` with a UTF-8 locale. That replaces T-07's "can't build iOS".
+
+### Round 2 — 2026-10-26 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types --filter=@rochas-surf-school/mobile`, 8/8)
+- related tests ✅ 1888 passed in 113 suites (apps/mobile), `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK`: every changed line is covered (100% on the screen, its hook and the
+  new hooks and components). There are no coverage-ignore comments, debug leftovers or TODOs in the diff.
+- e2e: mobile has no suite. Journeys were run on the iOS simulator (iPhone 18 Pro, iOS 27, Dev Admin, the debug
+  build of this branch served by Metro).
+
+**Expected Results**
+
+- ER-01 ✅ — F-01 is fixed. From "Nova aula" → "+ Novo local", the map opens on Fortaleza, centred between the
+  header and the panel, with the back button, the search field, the empty hint and "Salvar local" off. From "Gerir" →
+  "Rocha\`s Surf School", "Editar local" opens with the name, the address card and the pin in the visible map, close
+  in, with "Salvar", "Cancelar" and "Remover local". Searching "praia de iracema" floats 5 suggestions with the match
+  in bold. Picking one centres and zooms the map on it and fills the card, and the typed name stays. "Cancelar" goes
+  back and leaves the location unchanged. The new tests (Apple padding from the safe area, Google padding from the
+  edges, a single re-centre after the panel is measured, on the edited location and on a map mounted again) assert
+  the fix. The rest of ER-01 was checked in round 1, and no code outside `location-form.screen.hook.ts` has changed
+  since.
+- ER-02 ✅ — checked in round 1. The code it depends on is unchanged since, and `use-map-place.hook.test.tsx` and
+  the address card tests pass.
+- ER-03 ✅ — checked in round 1. The code it depends on is unchanged since, and `use-device-location.hook.test.tsx`
+  and the my-location button tests pass.
+
+**Findings**
+
+- None. F-01 of round 1 is verified fixed on iOS.
+
+**Notes**
+
+- Android was only partly re-checked. Before the app was relaunched, the emulator (`Pixel_Test`) showed "Edit
+  location" with the pin centred between the header and the panel. After the relaunch it stayed on a blank loading
+  screen (the machine's load average was about 15–28). The fix leaves the Android padding unchanged, and the one-time
+  re-centre it adds there is covered by the tests.
+- Round 1's notes still stand: there is no client timeout on `reverseGeocodeAsync` / `getCurrentPositionAsync`, and
+  `useKeyboardLift` and `fix/mobile-pinned-footer-keyboard` should converge.
+- A quick spec with 14 tasks: the follow-ups made it grow well past a small change. Next time, consider planning a
+  full spec.

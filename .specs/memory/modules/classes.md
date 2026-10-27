@@ -419,9 +419,13 @@ admins a "Sem prazo" chip on its card and a "Sem prazo de cancelamento" banner o
 screen; a class with one shows everyone its deadline in the "Cancelamento" row of its details. The student's request button, its
 sheet and the enrolment banners and card chip are Enrolment's (on the student's details, Agenda and "Minhas aulas"), and so
 are the "Cancelar inscrição" button and its sheet and the deadline notes with "Falar com a escola" (spec 043). On "Nova aula" and "Editar aula", the "Local" section's "Gerir"
-mode opens a location to edit it; the location sheet searches addresses as the admin types, places the point on a
-small map, offers to tell the instructors when upcoming classes use it, and removes it after a confirmation; a
-class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
+mode opens a location to edit it. "+ Novo local" and those rows open the location screen (spec 065), a full-screen
+map: the address search in its header (up to 6 suggestions), a tap on the map that places the pin and takes the
+phone's address for it (the coordinates when there is none; on Android a labelled place picks that place), a "Minha
+localização" button that asks for the phone's location only when tapped, and a fixed panel with the address, the
+name, the offer to tell the instructors and students when upcoming classes use it, and "Remover local" after a
+confirmation; the class form learns of a created location (selected) or a removed one (cleared) when the screen goes
+back. A class whose location was removed shows it as "Removido" on "Editar aula" and can keep it. A class whose location
 has a point shows everyone a small map across the top of the "Onde e como" card, with "Direções" beside the place. Instructors, and admins who teach, open "Minhas aulas" from
 the first "Escola" row of their home (an admin's row shows only once they teach a class): the classes under way on
 grape cards, then the others by day ("Hoje", "Amanhã", the weekday) with the next class marked "Próxima" and
@@ -560,3 +564,9 @@ which stops that account from being erased while the link exists — a decision 
 - `061-weekly-occupancy` — no change to the module's rules or API: the app's admin "Ocupação semanal" screen reads
   the existing week list and computes the map (rows by Fortaleza start time, overlapping classes in sub-rows, four
   occupancy steps), the default selection (the least-occupied class) and the week's stats on the phone.
+- `065-location-map-screen` — no change to the module's rules or API: the app's location sheet becomes a full-screen
+  map screen (`/admin/location-form`, `?id=` to edit) with the address search in the header (at most 6 suggestions),
+  a tap that places the point with the phone's reverse geocoding (coordinates as the fallback; Android place taps go
+  through the existing place lookup), "Minha localização" with the location permission asked on demand, and a fixed
+  panel riding the keyboard; the class forms select a created location or clear a removed one through in-app
+  location events.

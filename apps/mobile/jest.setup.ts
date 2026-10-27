@@ -28,9 +28,14 @@ jest.mock("expo-glass-effect", () => ({
   GlassView: require("react-native").View,
 }));
 
-jest.mock("react-native-reanimated", () =>
-  require("react-native-reanimated/mock"),
-);
+// The library's mock answers the keyboard with plain numbers: shared values here, for a closed keyboard.
+jest.mock("react-native-reanimated", () => ({
+  ...require("react-native-reanimated/mock"),
+  useAnimatedKeyboard: jest.fn(() => ({
+    height: { value: 0, get: () => 0 },
+    state: { value: 4, get: () => 4 },
+  })),
+}));
 
 jest.mock(
   "react-native-safe-area-context",
@@ -98,9 +103,25 @@ jest.mock("@expo/ui/community/datetime-picker", () => {
 
 // The native map isn't available under Jest: host views that keep their props (`onPress`, `region`, `coordinate`,
 // `scrollEnabled`…), so tests read them and drive a tap with `fireEvent.press(map, { nativeEvent: { coordinate } })`.
+// A ref to the map gets `animateToRegion` and `setCamera`, the shared `mockAnimateToRegion` and `mockSetCamera` the
+// tests read.
 jest.mock("react-native-maps", () => {
-  const MapView = (props: Record<string, unknown>) =>
-    require("react").createElement("MapView", props);
+  const mockAnimateToRegion = jest.fn();
+  const mockSetCamera = jest.fn();
+  // A class, so a ref to it has the method (and the React Compiler leaves it alone).
+  class MapView extends require("react").Component<Record<string, unknown>> {
+    animateToRegion(...args: unknown[]) {
+      mockAnimateToRegion(...args);
+    }
+
+    setCamera(...args: unknown[]) {
+      mockSetCamera(...args);
+    }
+
+    render() {
+      return require("react").createElement("MapView", this.props);
+    }
+  }
   const Marker = (props: Record<string, unknown>) =>
     require("react").createElement("Marker", props);
 
@@ -111,8 +132,23 @@ jest.mock("react-native-maps", () => {
     Marker,
     PROVIDER_GOOGLE: "google",
     PROVIDER_DEFAULT: null,
+    mockAnimateToRegion,
+    mockSetCamera,
   };
 });
+
+// The device's location isn't available under Jest: permission granted, a position in Fortaleza and no address by
+// default; tests drive these `jest.fn`s directly (denied, a failed read, a reverse-geocoded address).
+jest.mock("expo-location", () => ({
+  Accuracy: { Balanced: 3 },
+  requestForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ status: "granted", granted: true }),
+  getCurrentPositionAsync: jest.fn().mockResolvedValue({
+    coords: { latitude: -3.7319, longitude: -38.5267 },
+  }),
+  reverseGeocodeAsync: jest.fn().mockResolvedValue([]),
+}));
 
 jest.mock("expo-device", () => ({ isDevice: true }));
 

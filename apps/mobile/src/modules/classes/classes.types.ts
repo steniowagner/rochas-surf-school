@@ -12,6 +12,24 @@ export type MapPoint = {
   longitude: number;
 };
 
+/** The place picked for a location: its point, its address and, for a known place, its name. */
+export type MapPlace = {
+  point: MapPoint;
+  address: string;
+  /** The place's name (a suggestion, a labelled place, the location being edited); `null` for a point on the map. */
+  name: string | null;
+};
+
+/** A tap on the map. */
+export type MapPressEvent = {
+  nativeEvent: { coordinate: MapPoint };
+};
+
+/** A tap on a labelled place of Google Maps (Android). */
+export type PoiClickEvent = {
+  nativeEvent: { placeId: string; name: string; coordinate: MapPoint };
+};
+
 /** The location of a class, as `GET /classes` answers it; the point is `null` for a location saved without one. */
 export type ClassItemLocation = {
   id: string;

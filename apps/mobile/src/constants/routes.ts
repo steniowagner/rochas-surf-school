@@ -102,5 +102,10 @@ export const routes = {
       pathname: "/admin/edit-class/[id]",
       params: { id },
     }),
+    // "Novo local" without an id, "Editar local" with the location's.
+    locationForm: (id?: string): Href => ({
+      pathname: "/admin/location-form",
+      params: id ? { id } : {},
+    }),
   },
 } as const;

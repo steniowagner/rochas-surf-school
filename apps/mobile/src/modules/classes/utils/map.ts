@@ -12,6 +12,17 @@ export const MAP_DELTA = 0.2;
 /** The tighter span of the preview on the class details, about a kilometre. */
 export const PREVIEW_DELTA = 0.01;
 
+/**
+ * The zoom on a picked place, street level (about 400 m across): `zoom` for Google Maps, `altitude` (metres) for Apple
+ * Maps. A camera zoom, unlike a span, doesn't depend on the map's size, which the Android keyboard shrinks while a place
+ * is picked.
+ */
+export const PLACE_ZOOM = 17;
+export const PLACE_ALTITUDE = 1000;
+
+/** The same closeness as a span, for the map that opens on the location being edited. */
+export const PLACE_DELTA = 0.004;
+
 /** The map around a point, or around Fortaleza when there is none. */
 export const regionAround = (
   point: MapPoint | null,
@@ -40,3 +51,7 @@ export const toMapPoint = (location: {
   location.latitude === null || location.longitude === null
     ? null
     : { latitude: location.latitude, longitude: location.longitude };
+
+/** A point as text, with 4 decimals: "-3.7319, -38.5267". */
+export const formatPoint = ({ latitude, longitude }: MapPoint): string =>
+  `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;

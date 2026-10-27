@@ -1,10 +1,14 @@
 import { Platform } from "react-native";
 
 import {
+  formatPoint,
   FORTALEZA,
   getDirectionsUrl,
   getMapProvider,
   MAP_DELTA,
+  PLACE_ALTITUDE,
+  PLACE_DELTA,
+  PLACE_ZOOM,
   PREVIEW_DELTA,
   regionAround,
   toMapPoint,
@@ -87,5 +91,21 @@ describe("getDirectionsUrl", () => {
     expect(getDirectionsUrl(point)).toBe(
       "https://www.google.com/maps/dir/?api=1&destination=-3.7442,-38.4617",
     );
+  });
+});
+
+describe("formatPoint", () => {
+  it("writes the point with 4 decimals", () => {
+    expect(formatPoint({ latitude: -3.73189, longitude: -38.5 })).toBe(
+      "-3.7319, -38.5000",
+    );
+  });
+});
+
+describe("place zoom", () => {
+  it("is street level, about 400 m across, on both maps and as a span", () => {
+    expect(PLACE_ZOOM).toBe(17);
+    expect(PLACE_ALTITUDE).toBe(1000);
+    expect(PLACE_DELTA).toBe(0.004);
   });
 });

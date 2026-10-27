@@ -373,13 +373,29 @@ and removal.
   > errors of the ports T-07 to T-09 implement. deviations: the migration is named `users_erasure` as the spec says,
   > not `auth-<change>` as the naming convention would; the JWT strategy and the readers are changes the spec did
   > not list, needed by the nullable columns and the new status.
-- [ ] **T-07** — Implement `findClosedBefore` and `eraseClosed` in `src/modules/auth/user.prisma.ts` (one
+- [x] **T-07** — Implement `findClosedBefore` and `eraseClosed` in `src/modules/auth/user.prisma.ts` (one
   transaction: the conditional `updateMany` of D-01 and D-03 on the ids still due, then the deletes of D-02 for the
   accounts it wrote), with specs in `user.prisma.spec.ts` (named "eraseClosed") for the cleared and kept fields, the
   deleted rows, the race (an account approved again before the write) and the count. Skill:
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: ER-01, ER-02, ER-03 · Done when: `npx vitest run src/modules/auth/user.prisma.spec.ts -t "eraseClosed"`
   passes.
+  > ✅ 2026-10-27 15:49 — with the `backend-prisma-repository` skill (only the two methods; the class and its
+  > registration already existed): `findClosedBefore(cutoff)` selects the ids of the `deleted` users with
+  > `deletedAt` and the `removed` users with `removedAt` at or before the cutoff (`closedBefore`, a null date never
+  > matches); `eraseClosed(ids, cutoff)` is one `$transaction` — it reads the old emails of the accounts still due,
+  > writes the anonymous record of D-01 with one conditional `updateManyAndReturn` on the same condition (`status:
+  > erased`, `erasedAt: now`, name, email, photo, WhatsApp number, denial and reactivation fields cleared,
+  > `whatsappVisible: false`; id, role, creation date and the deletion or removal date untouched), then, for the
+  > accounts it wrote, deletes their identities, refresh tokens, push tokens, rules acceptances and own
+  > notifications and the sign-in codes of their old emails (D-02), answering how many it erased; an empty list
+  > queries nothing. Specs under `describe(eraseClosed)`: cleared and kept fields, the deleted rows, the race (an
+  > account approved again before the write: only the written one loses its rows and counts), nothing still due, a
+  > missing email, the empty list; and `findClosedBefore`. files: `apps/backend/src/modules/auth/user.prisma.ts`,
+  > `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `npx vitest run
+  > src/modules/auth/user.prisma.spec.ts -t "eraseClosed"` (6 passed), the whole spec 39 passed with
+  > `user.prisma.ts` at 100% lines (the one partial branch is the pre-existing `@Injectable()` line); deviations:
+  > none (the real-database behaviour is checked by the e2e cases of T-12).
 - [ ] **T-08** — Implement `deleteAbout` in `src/modules/notifications/notification.prisma.ts` (one `deleteMany` per
   param name) and add `src/modules/notifications/notifications.person-notification-eraser.ts`
   (`NotificationsPersonNotificationEraser`, running `DeleteNotificationsAbout`), exported by `NotificationsModule`,

@@ -26,6 +26,16 @@ const include = { rulesAcceptances: true } as const;
 /** An erased account (spec 067) is never returned: for the auth module it no longer exists. */
 const notErased = { not: 'erased' } as const;
 
+/** The `deleted` accounts deleted, and the `removed` accounts removed, at or before `cutoff`; never one without the date. */
+function closedBefore(cutoff: Date) {
+  return {
+    OR: [
+      { status: 'deleted' as const, deletedAt: { lte: cutoff } },
+      { status: 'removed' as const, removedAt: { lte: cutoff } },
+    ],
+  };
+}
+
 /** Escapes `\`, `%` and `_` so a search is matched literally by LIKE. */
 function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (char) => `\\${char}`);
@@ -207,6 +217,62 @@ export class PrismaUserRepository implements UserRepository {
       where: { id: { in: ids }, status: 'denied' },
     });
     return count;
+  }
+
+  async findClosedBefore(cutoff: Date): Promise<string[]> {
+    const records = await this.prisma.user.findMany({
+      where: closedBefore(cutoff),
+      select: { id: true },
+    });
+    return records.map((record) => record.id);
+  }
+
+  /**
+   * One transaction: reads the old emails of the accounts still due, writes the anonymous record only where the
+   * account is still due (so one reactivated or restored meanwhile is left alone), then deletes what hangs off the
+   * accounts it wrote — identities, refresh tokens, push tokens, rules acceptances, own notifications and the sign-in
+   * code of the old email.
+   */
+  async eraseClosed(ids: string[], cutoff: Date): Promise<number> {
+    if (ids.length === 0) return 0;
+
+    return this.prisma.$transaction(async (tx) => {
+      const where = { id: { in: ids }, ...closedBefore(cutoff) };
+      const emails = await tx.user.findMany({ where, select: { id: true, email: true } });
+      const erased = await tx.user.updateManyAndReturn({
+        where,
+        data: {
+          status: 'erased',
+          erasedAt: new Date(),
+          name: null,
+          email: null,
+          photoUrl: null,
+          whatsappNumber: null,
+          whatsappVisible: false,
+          denialReason: null,
+          deniedAt: null,
+          reactivationStatus: null,
+          reactivationRequestedAt: null,
+        },
+        select: { id: true },
+      });
+      const erasedIds = erased.map((record) => record.id);
+      if (erasedIds.length === 0) return 0;
+
+      const oldEmails = emails
+        .filter((record) => erasedIds.includes(record.id) && record.email !== null)
+        .map((record) => record.email as string);
+      const byUser = { where: { userId: { in: erasedIds } } };
+
+      await tx.identity.deleteMany(byUser);
+      await tx.refreshToken.deleteMany(byUser);
+      await tx.pushToken.deleteMany(byUser);
+      await tx.userRulesAcceptance.deleteMany(byUser);
+      await tx.notification.deleteMany(byUser);
+      await tx.signInCode.deleteMany({ where: { email: { in: oldEmails } } });
+
+      return erasedIds.length;
+    });
   }
 
   async addRulesAcceptance(userId: string, acceptance: RulesAcceptance): Promise<void> {

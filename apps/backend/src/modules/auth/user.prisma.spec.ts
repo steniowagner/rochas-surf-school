@@ -55,10 +55,25 @@ function setup() {
     updateMany: vi.fn(),
     deleteMany: vi.fn(),
     count: vi.fn(),
+    updateManyAndReturn: vi.fn(),
   };
   const $queryRaw = vi.fn();
-  const userRulesAcceptance = { createMany: vi.fn() };
-  const tx = { user, $queryRaw };
+  const userRulesAcceptance = { createMany: vi.fn(), deleteMany: vi.fn() };
+  const identity = { deleteMany: vi.fn() };
+  const refreshToken = { deleteMany: vi.fn() };
+  const pushToken = { deleteMany: vi.fn() };
+  const notification = { deleteMany: vi.fn() };
+  const signInCode = { deleteMany: vi.fn() };
+  const tx = {
+    user,
+    $queryRaw,
+    userRulesAcceptance,
+    identity,
+    refreshToken,
+    pushToken,
+    notification,
+    signInCode,
+  };
   const $transaction = vi.fn(async (callback: (client: typeof tx) => unknown) => callback(tx));
   const repository = new PrismaUserRepository({
     user,
@@ -66,7 +81,7 @@ function setup() {
     $queryRaw,
     $transaction,
   } as unknown as PrismaService);
-  return { user, userRulesAcceptance, $queryRaw, $transaction, repository };
+  return { user, userRulesAcceptance, $queryRaw, $transaction, repository, tx };
 }
 
 function minimalUser(): User {
@@ -490,6 +505,153 @@ describe('PrismaUserRepository', () => {
       await expect(repository.deleteDenied([])).resolves.toBe(0);
 
       expect(user.deleteMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findClosedBefore', () => {
+    it('selects the ids of the deleted and removed users closed at or before the cutoff', async () => {
+      const { user, repository } = setup();
+      user.findMany.mockResolvedValue([{ id: ID }]);
+      const cutoff = new Date('2026-09-12T12:00:00.000Z');
+
+      await expect(repository.findClosedBefore(cutoff)).resolves.toEqual([ID]);
+
+      expect(user.findMany).toHaveBeenCalledWith({
+        where: {
+          OR: [
+            { status: 'deleted', deletedAt: { lte: cutoff } },
+            { status: 'removed', removedAt: { lte: cutoff } },
+          ],
+        },
+        select: { id: true },
+      });
+    });
+  });
+
+  describe('eraseClosed', () => {
+    const NOW = new Date('2026-10-12T12:00:00.000Z');
+    const cutoff = new Date('2026-09-12T12:00:00.000Z');
+    const OTHER = '9a0b1c2d-3e4f-4a5b-8c6d-7e8f9a0b1c2d';
+    const due = {
+      id: { in: [ID, OTHER] },
+      OR: [
+        { status: 'deleted', deletedAt: { lte: cutoff } },
+        { status: 'removed', removedAt: { lte: cutoff } },
+      ],
+    };
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(NOW);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('writes the anonymous record only where the account is still due, clearing the person and keeping the rest', async () => {
+      const { user, $transaction, repository } = setup();
+      user.findMany.mockResolvedValue([
+        { id: ID, email: 'ana@example.com' },
+        { id: OTHER, email: 'bia@example.com' },
+      ]);
+      user.updateManyAndReturn.mockResolvedValue([{ id: ID }, { id: OTHER }]);
+
+      await expect(repository.eraseClosed([ID, OTHER], cutoff)).resolves.toBe(2);
+
+      expect($transaction).toHaveBeenCalledTimes(1);
+      expect(user.findMany).toHaveBeenCalledWith({ where: due, select: { id: true, email: true } });
+      expect(user.updateManyAndReturn).toHaveBeenCalledWith({
+        where: due,
+        data: {
+          status: 'erased',
+          erasedAt: NOW,
+          name: null,
+          email: null,
+          photoUrl: null,
+          whatsappNumber: null,
+          whatsappVisible: false,
+          denialReason: null,
+          deniedAt: null,
+          reactivationStatus: null,
+          reactivationRequestedAt: null,
+        },
+        select: { id: true },
+      });
+      // The id, role, creation date and the deletion or removal date are kept: the write doesn't name them.
+      const { data } = user.updateManyAndReturn.mock.calls[0]![0] as { data: Record<string, unknown> };
+      for (const key of ['id', 'role', 'createdAt', 'deletedAt', 'removedAt']) {
+        expect(data).not.toHaveProperty(key);
+      }
+    });
+
+    it('deletes the identities, refresh tokens, push tokens, rules acceptances, notifications and the old sign-in codes', async () => {
+      const { user, tx, repository } = setup();
+      user.findMany.mockResolvedValue([
+        { id: ID, email: 'ana@example.com' },
+        { id: OTHER, email: 'bia@example.com' },
+      ]);
+      user.updateManyAndReturn.mockResolvedValue([{ id: ID }, { id: OTHER }]);
+
+      await repository.eraseClosed([ID, OTHER], cutoff);
+
+      const byUser = { where: { userId: { in: [ID, OTHER] } } };
+      expect(tx.identity.deleteMany).toHaveBeenCalledWith(byUser);
+      expect(tx.refreshToken.deleteMany).toHaveBeenCalledWith(byUser);
+      expect(tx.pushToken.deleteMany).toHaveBeenCalledWith(byUser);
+      expect(tx.userRulesAcceptance.deleteMany).toHaveBeenCalledWith(byUser);
+      expect(tx.notification.deleteMany).toHaveBeenCalledWith(byUser);
+      expect(tx.signInCode.deleteMany).toHaveBeenCalledWith({
+        where: { email: { in: ['ana@example.com', 'bia@example.com'] } },
+      });
+    });
+
+    it('leaves alone an account approved again before the write, and answers only what it erased', async () => {
+      const { user, tx, repository } = setup();
+      user.findMany.mockResolvedValue([
+        { id: ID, email: 'ana@example.com' },
+        { id: OTHER, email: 'bia@example.com' },
+      ]);
+      // OTHER was reactivated or restored between the read and the write: the conditional write skips it.
+      user.updateManyAndReturn.mockResolvedValue([{ id: ID }]);
+
+      await expect(repository.eraseClosed([ID, OTHER], cutoff)).resolves.toBe(1);
+
+      expect(tx.identity.deleteMany).toHaveBeenCalledWith({ where: { userId: { in: [ID] } } });
+      expect(tx.notification.deleteMany).toHaveBeenCalledWith({ where: { userId: { in: [ID] } } });
+      expect(tx.signInCode.deleteMany).toHaveBeenCalledWith({
+        where: { email: { in: ['ana@example.com'] } },
+      });
+    });
+
+    it('deletes nothing when no account is still due at the write', async () => {
+      const { user, tx, repository } = setup();
+      user.findMany.mockResolvedValue([]);
+      user.updateManyAndReturn.mockResolvedValue([]);
+
+      await expect(repository.eraseClosed([ID], cutoff)).resolves.toBe(0);
+
+      expect(tx.identity.deleteMany).not.toHaveBeenCalled();
+      expect(tx.signInCode.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it('skips a missing email when deleting the sign-in codes', async () => {
+      const { user, tx, repository } = setup();
+      user.findMany.mockResolvedValue([{ id: ID, email: null }]);
+      user.updateManyAndReturn.mockResolvedValue([{ id: ID }]);
+
+      await expect(repository.eraseClosed([ID], cutoff)).resolves.toBe(1);
+
+      expect(tx.signInCode.deleteMany).toHaveBeenCalledWith({ where: { email: { in: [] } } });
+    });
+
+    it('queries nothing for an empty list', async () => {
+      const { user, $transaction, repository } = setup();
+
+      await expect(repository.eraseClosed([], cutoff)).resolves.toBe(0);
+
+      expect($transaction).not.toHaveBeenCalled();
+      expect(user.updateManyAndReturn).not.toHaveBeenCalled();
     });
   });
 

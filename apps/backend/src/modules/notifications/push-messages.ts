@@ -44,6 +44,21 @@ const startParts = (value: unknown, monthFirst = false): { day: string; time: st
   };
 };
 
+const WEEKDAYS: Record<PushLocale, string[]> = {
+  'pt-BR': ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'],
+  es: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+};
+
+/** The short weekday of the class start in Fortaleza, blank when it isn't a date. */
+const weekdayOf = (value: unknown, locale: PushLocale): string => {
+  const date = new Date(typeof value === 'string' ? value : NaN);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return WEEKDAYS[locale][new Date(date.getTime() + FORTALEZA_OFFSET_MS).getUTCDay()]!;
+};
+
 const waitingCount = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0;
 
@@ -117,6 +132,15 @@ const broadcastCopy: PushCopy = {
   title: ({ title }) => text(title),
   body: ({ message }) => text(message),
 };
+
+/** An admin's message to a class: their title as written, and the message after the class line. */
+const classMessage = (locale: PushLocale, at: string): PushCopy => ({
+  title: ({ title }) => text(title),
+  body: ({ discipline, startsAt, message }) => {
+    const { day, time } = startParts(startsAt, locale === 'en');
+    return `${disciplineName(discipline)}, ${weekdayOf(startsAt, locale)} ${day} ${at} ${time}: ${text(message)}`;
+  },
+});
 
 // The second user-facing text the backend writes (next to the sign-in email): a push is drawn by the OS, often with
 // the app closed, so its text travels in the payload. The admin's denial reason is shown as written, never translated.
@@ -303,6 +327,12 @@ const CATALOG: Record<NotificationType, Record<PushLocale, PushCopy>> = {
           : `Your ${disciplineName(discipline)} class on ${day} at ${time} was cancelled.`;
       },
     },
+  },
+  // An admin's message to the people of a class; their title and message are shown as written.
+  'class.message': {
+    'pt-BR': classMessage('pt-BR', 'às'),
+    es: classMessage('es', 'a las'),
+    en: classMessage('en', 'at'),
   },
   // The class is gone, so the push carries no class to open: it only says which one was removed.
   'class.deleted': {

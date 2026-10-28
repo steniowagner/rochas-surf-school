@@ -46,6 +46,15 @@ describe("useNoticeRecipientsCounts", () => {
     expect(requestedPaths().sort()).toEqual([...PATHS].sort());
   });
 
+  it("reads nothing when it isn't enabled (the class mode)", async () => {
+    const { result } = await renderHook(() => useNoticeRecipientsCounts(false), {
+      wrapper: createQueryWrapper(createQueryClient()),
+    });
+
+    expect(result.current.every((query) => query.fetchStatus === "idle")).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("reuses the counts while the screen stays open, even when the app comes back to the foreground", async () => {
     const { result } = await renderHook(() => useNoticeRecipientsCounts(), {
       wrapper: createQueryWrapper(createQueryClient()),

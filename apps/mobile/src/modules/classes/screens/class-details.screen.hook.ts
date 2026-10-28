@@ -25,6 +25,7 @@ import { useClass } from "../hooks/use-class.hook";
 import { useDeleteClass } from "../hooks/use-delete-class.hook";
 import { useNow } from "../hooks/use-now.hook";
 import { todayInSchoolZone } from "../utils/calendar";
+import { classMessageRecipients } from "../utils/class-message";
 import {
   getCancelClassErrorKey,
   getDeleteClassErrorKey,
@@ -277,11 +278,9 @@ export const useClassDetailsScreen = ({
     studentCount: item?.students.length ?? 0,
     pendingCount: item?.pendingRequests ?? 0,
     instructorCount,
-    // The tools' "Send message" and "Cancel class" reach the same people as the cancellation's notice.
-    messageCount:
-      instructorCount +
-      (item?.students.length ?? 0) +
-      (item?.pendingRequests ?? 0),
+    // The tools' "Send message" and "Cancel class" reach the same people: each person once, never the admin who sends
+    // it, even when they teach the class (spec 069, D-07).
+    messageCount: item ? classMessageRecipients(item, user?.id).count : 0,
     takeOutFirstName: takeOut.target?.name.split(" ")[0] ?? "",
     // The line under the banner's title: a taken-out student reads the reason, if the admin gave one.
     enrolmentDescription: !enrolment.display
@@ -334,7 +333,8 @@ export const useClassDetailsScreen = ({
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),
     edit: () => router.push(routes.admin.editClass(id)),
-    notify: () => router.push(routes.admin.sendNotice),
+    // The message to this class: the Send notice screen in its class mode (spec 069).
+    notify: () => router.push(routes.admin.sendNotice({ classId: id })),
     cancelVisible,
     openCancel: () => setCancelVisible(true),
     closeCancel: () => setCancelVisible(false),

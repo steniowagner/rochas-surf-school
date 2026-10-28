@@ -65,6 +65,7 @@ function setup() {
     classEdited: vi.fn(async () => undefined),
     classCancelled: vi.fn(async () => undefined),
     classDeleted: vi.fn(async () => undefined),
+    classMessage: vi.fn(async () => undefined),
   };
   const classViewReader = {
     findStartingBetween: vi.fn(async () => []),
@@ -130,6 +131,7 @@ function setup() {
     viewerEnrolmentReader,
     classRosterReader,
     classContactReader,
+    classAudienceReader,
     myClassesReader,
     teachingClassesReader,
     stored,
@@ -150,6 +152,7 @@ describe('ClassesController', () => {
     ['one', ':id', RequestMethod.GET, HttpStatus.OK],
     ['edit', ':id', RequestMethod.PUT, HttpStatus.OK],
     ['cancel', ':id/cancel', RequestMethod.POST, HttpStatus.OK],
+    ['message', ':id/message', RequestMethod.POST, HttpStatus.NO_CONTENT],
     ['remove', ':id', RequestMethod.DELETE, HttpStatus.NO_CONTENT],
   ] as const)('%s is a protected %s route answering %s', (name, path, method, status) => {
     const handler = handlerOf(name);
@@ -654,6 +657,68 @@ describe('ClassesController', () => {
         statusCode: 422,
         errors: [expect.objectContaining({ message: 'class.cancellationMessage.max.length' })],
       });
+    });
+  });
+
+  describe('message', () => {
+    const CLASS_ID = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+    const STUDENT_ID = '3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f';
+
+    function withStoredClass() {
+      const context = setup();
+      context.stored.push(
+        new SchoolClass({
+          id: CLASS_ID,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date('2026-10-15T11:00:00.000Z'),
+          endsAt: new Date('2026-10-15T12:00:00.000Z'),
+          locationId: context.location.id,
+          instructorIds: [INSTRUCTOR_ID, ADMIN_ID],
+          capacity: 8,
+          createdBy: ADMIN_ID,
+        }),
+      );
+      context.classAudienceReader.findClassAudience.mockResolvedValue([STUDENT_ID]);
+      return context;
+    }
+
+    it('sends the trimmed title and message to the instructors and the audience, never the caller', async () => {
+      const { controller, changeNotifier, classAudienceReader } = withStoredClass();
+
+      await expect(
+        controller.message(userOf('admin'), CLASS_ID, { title: ' Aviso ', message: ' Tragam protetor. ' }),
+      ).resolves.toBeUndefined();
+
+      expect(classAudienceReader.findClassAudience).toHaveBeenCalledWith(CLASS_ID);
+      expect(changeNotifier.classMessage).toHaveBeenCalledWith({
+        instructorIds: [INSTRUCTOR_ID],
+        studentIds: [STUDENT_ID],
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: new Date('2026-10-15T11:00:00.000Z'),
+        title: 'Aviso',
+        message: 'Tragam protetor.',
+      });
+    });
+
+    it('answers 403 for an instructor, 404 for an unknown class and 422 without a body', async () => {
+      const { controller, changeNotifier } = withStoredClass();
+
+      await expect(
+        controller.message(userOf('instructor'), CLASS_ID, { title: 'Aviso', message: 'Oi' }),
+      ).rejects.toMatchObject({ statusCode: 403, message: 'user.role.notAdmin' });
+      await expect(
+        controller.message(userOf('admin'), INSTRUCTOR_ID, { title: 'Aviso', message: 'Oi' }),
+      ).rejects.toMatchObject({ statusCode: 404, message: 'class.notFound' });
+      await expect(controller.message(userOf('admin'), CLASS_ID, undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [
+          expect.objectContaining({ message: 'class.message.title.required' }),
+          expect.objectContaining({ message: 'class.message.text.required' }),
+        ],
+      });
+      expect(changeNotifier.classMessage).not.toHaveBeenCalled();
     });
   });
 

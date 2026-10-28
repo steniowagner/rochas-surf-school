@@ -4,6 +4,7 @@ import type {
   ClassChangeNotifier,
   ClassDeleted,
   ClassEdited,
+  ClassMessage,
 } from '@rochas-surf-school/classes';
 import { Notify } from '@rochas-surf-school/notifications';
 import { ExpoPushProvider } from './expo.push.js';
@@ -86,6 +87,32 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
     } catch (error) {
       this.logger.error(
         `Could not notify class.cancelled to ${recipientIds.length} person(s)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  async classMessage({
+    instructorIds,
+    studentIds = [],
+    classId,
+    discipline,
+    startsAt,
+    title,
+    message,
+  }: ClassMessage): Promise<void> {
+    // The instructors and the students with a seat or a request get the admin's text as written; a person is told once.
+    const recipientIds = [...new Set([...instructorIds, ...studentIds])];
+
+    try {
+      await this.notify.execute({
+        userIds: recipientIds,
+        type: 'class.message',
+        params: { classId, discipline, startsAt: startsAt.toISOString(), title, message },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Could not notify class.message to ${recipientIds.length} person(s)`,
         error instanceof Error ? error.stack : String(error),
       );
     }

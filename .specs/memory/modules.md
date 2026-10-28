@@ -61,7 +61,7 @@ classes left without an instructor and location changes, Enrolment for seat requ
 cancelled seats, direct enrolments and take-outs), which
 reaches it through abstract contracts. Today it carries the three registration notifications, the class ones
 (assigned, edited, unassigned, cancelled — to the instructors and to the students whose enrolment it ended —,
-deleted, no instructor), the location change, and the enrolment ones (a new request, an approval, a denial, a
+deleted, no instructor, an admin's message to the class's people), the location change, and the enrolment ones (a new request, an approval, a denial, a
 request that expired, a cancelled seat, a direct enrolment, a take-out). It also carries the notices an approved
 admin writes for everyone, the students or the instructors: who receives one is decided here, from the approved
 accounts of that audience.

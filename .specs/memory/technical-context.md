@@ -96,12 +96,12 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
     / `router.push(routes.admin.classes)` for a `class.assigned`, `class.deleted` or `location.changed` push when it
     resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
-    for a `class.edited` / `class.unassigned` / `class.cancelled` / `class.reminder` push with a string
-    `data.classId` (specs 032, 033, 054), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
+    for a `class.edited` / `class.unassigned` / `class.cancelled` / `class.reminder` / `class.message` push with a
+    string `data.classId` (specs 032, 033, 054, 069), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
     `data.classId` when it resolves to the `admin` flow (spec 035), `router.push(routes.student.classDetail(classId))`
     for an `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `enrolment.enrolled` /
-    `enrolment.takenOut` / `class.cancelled` / `class.edited` / `class.reminder` push in the `student` flow (specs
-    041, 042, 044, 047, 054),
+    `enrolment.takenOut` / `class.cancelled` / `class.edited` / `class.reminder` / `class.message` push in the
+    `student` flow (specs 041, 042, 044, 047, 054, 069),
     `router.push(routes.student.home)` for a `location.changed` push in the `student` flow (spec 047), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
     the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
     class id (spec 042), `router.push(routes.instructor.classDetail(classId))` /
@@ -551,7 +551,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   shown inline under the field, because the design shows it there.
 - **Mobile routes**: every app path lives in `src/constants/routes.ts` (`routes.<module>.<screen>`, a function
   when the route takes params, optional ones included: `routes.auth.createAccount()` or
-  `routes.auth.createAccount({ email })`, or `routes.admin.newClass()` / `routes.admin.newClass({ date })`). `router` and `Redirect` calls and their tests use it, never string literals,
+  `routes.auth.createAccount({ email })`, `routes.admin.newClass()` / `routes.admin.newClass({ date })`, or
+  `routes.admin.sendNotice()` / `routes.admin.sendNotice({ classId })`). `router` and `Redirect` calls and their tests use it, never string literals,
   so a moved route changes in one place. Each role's folder (`src/app/(private)/<role>/`) has a `Stack` whose
   `(tabs)` group holds the tab bar (`(tabs)/_layout.tsx` renders `RoleTabs`, one route file per tab; the first tab
   is the role's `index`, so `/student`, `/instructor` and `/admin` stay the flows' entry routes); inner screens

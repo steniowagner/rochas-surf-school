@@ -23,6 +23,7 @@ const ICONS: Record<string, NotificationIcon> = {
   "class.deleted": { name: "trash-outline", tone: "bad" },
   "class.noInstructor": { name: "alert-circle-outline", tone: "warn" },
   "class.reminder": { name: "time-outline", tone: "warn" },
+  "class.message": { name: "chatbubble-outline", tone: "info" },
   "location.changed": { name: "location-outline", tone: "info" },
   "enrolment.requested": { name: "hand-left-outline", tone: "info" },
   "enrolment.expired": { name: "hourglass-outline", tone: "warn" },

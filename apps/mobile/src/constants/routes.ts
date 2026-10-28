@@ -93,7 +93,11 @@ export const routes = {
     schoolRules: "/admin/school-rules",
     manageSchoolRules: "/admin/manage-school-rules",
     schoolSettings: "/admin/school-settings",
-    sendNotice: "/admin/send-notice",
+    // The school-wide notice without a class id, the message to one class with its id (spec 069).
+    sendNotice: (params?: { classId?: string }): Href => ({
+      pathname: "/admin/send-notice",
+      params,
+    }),
     classDetail: (id: string): Href => ({
       pathname: "/admin/class/[id]",
       params: { id },

@@ -33,6 +33,7 @@ import {
   ListWeekClassesOut,
   ListTimeRangeSuggestions,
   ListTimeRangeSuggestionsOut,
+  SendClassMessage,
 } from '@rochas-surf-school/classes';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
@@ -56,6 +57,7 @@ import { PrismaTeachingClassesReader } from './teaching-classes-reader.prisma.js
 type CreateClassBatchBody = Partial<Omit<CreateClassBatchIn, 'actor'>> | undefined;
 type EditClassBody = Partial<Omit<EditClassIn, 'actor' | 'id'>> | undefined;
 type CancelClassBody = { message?: unknown } | undefined;
+type SendClassMessageBody = { title?: unknown; message?: unknown } | undefined;
 
 function actorOf(user: AuthenticatedUser): ClassActor {
   return { id: user.id, role: user.role, status: user.status };
@@ -268,6 +270,26 @@ export class ClassesController {
       this.pendingRequestCounter,
       this.classContactReader,
     ).execute({ actor, id });
+  }
+
+  @Post(':id/message')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async message(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body?: SendClassMessageBody,
+  ): Promise<void> {
+    await new SendClassMessage(
+      this.schoolClassRepository,
+      this.classAudienceReader,
+      this.classChangeNotifier,
+      this.clock,
+    ).execute({
+      actor: actorOf(user),
+      id,
+      title: body?.title,
+      message: body?.message,
+    });
   }
 
   @Delete(':id')

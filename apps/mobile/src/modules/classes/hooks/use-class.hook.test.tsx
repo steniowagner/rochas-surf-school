@@ -42,6 +42,17 @@ describe("useClass", () => {
     expect(requestedPaths()).toEqual(["/classes/c-1"]);
   });
 
+  it("reads nothing when it isn't enabled", async () => {
+    fetchMock.mockResolvedValue(ok({ id: "c-1" }));
+
+    const { result } = await renderHook(() => useClass("", { enabled: false }), {
+      wrapper: createWrapper(createQueryClient()),
+    });
+
+    expect(result.current.fetchStatus).toBe("idle");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("does not retry a 404", async () => {
     fetchMock.mockResolvedValue(notFound());
 

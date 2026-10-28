@@ -291,6 +291,45 @@ Content-Type: application/json
 
 {}
 
+### Send a message to a class (expects 204 with no body; admins only; while the class hasn't finished and isn't cancelled; its instructors and its students with a seat or a request get a class.message notification and a push, never the caller; title 1-60, message 1-500 characters, trimmed)
+POST {{baseUrl}}/classes/{{classId}}/message
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Ponto de encontro",
+  "message": "Nos encontramos na barraca azul, 15 minutos antes."
+}
+
+### A blank title or message, or one over the limit (expects 422 class.message.title.required / class.message.text.range.length)
+POST {{baseUrl}}/classes/{{classId}}/message
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "   ",
+  "message": "{{$randomInt 0 9}}"
+}
+
+### An unknown or malformed id (expects 404 class.notFound)
+POST {{baseUrl}}/classes/not-a-uuid/message
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Aviso",
+  "message": "Oi"
+}
+
+### As a student or instructor (expects 403 user.role.notAdmin) or without a token (expects 401)
+POST {{baseUrl}}/classes/{{classId}}/message
+Content-Type: application/json
+
+{
+  "title": "Aviso",
+  "message": "Oi"
+}
+
 ### Cancel a class (expects 200 with the class and its cancelledAt / cancellationMessage, seatsTaken: 0 and students: []; admins only; final; the message is optional, up to 300 characters)
 POST {{baseUrl}}/classes/{{classId}}/cancel
 Authorization: Bearer {{token}}

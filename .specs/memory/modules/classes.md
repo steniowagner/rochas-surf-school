@@ -239,6 +239,20 @@ Cancelling one class:
   the message when there is one — a person on both lists once. Nobody left → nothing sent. A notification that
   fails never changes the answer or the stored cancellation.
 
+Sending a message to one class (spec 069):
+
+- **Checked in this order**: access; the id (not a UUID, or no class → `class.notFound`, 404); the title and the
+  message, both trimmed (absent, not text or blank → `class.message.title.required` / `class.message.text.required`;
+  over 60 / 500 characters → `class.message.title.range.length` / `class.message.text.range.length`, 422, reported
+  together); then, against the stored class and the server's now, `class.cancelled` (409, whatever time it is) and
+  `class.finished` (409). A class that hasn't started or has started can be messaged.
+- **Who is told, never the admin who sends it** (even when teaching it or holding a seat): every instructor of the
+  class and every student with an approved or pending enrolment (the class audience) get one `class.message` with
+  the title and the message as written — a person on both lists once, as an instructor. Guests get nothing. Nobody
+  left → nothing sent, and the answer is still 204. When the audience can't be read, only the instructors are told.
+  A notification that fails never changes the answer. Nothing is stored in the module: the message lives only in
+  the recipients' notifications.
+
 Deleting one class:
 
 - **Deleting is for mistakes**: a class with anybody in it, or one that has started, is cancelled instead.
@@ -355,20 +369,21 @@ The account's status is checked before its role (`user.status.notApproved`, then
   and learns whether they teach any class at all, and, one period at a time, the classes they taught (spec 062; the
   period checked exactly as the student's history); students are refused (`user.role.notTeacher`, 403, after the
   status check, before the period).
-- **A student with a seat or a pending request** — receives one notification when the class is edited (a class
-  field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
+- **A student with a seat or a pending request** — receives one notification when an admin sends the class a
+  message, and one when the class is edited (a class field changed) and one when a location of their upcoming classes changes, if the admin who edits it chooses to
   tell them; with an approved seat, one reminder 30 minutes before each start of the class.
 - **An approved admin** — creates, edits and removes locations, gets address suggestions, creates batches of
   classes, reads the time-range suggestions, edits a
   class that hasn't finished and isn't cancelled, reads a class's pending-request count, cancels a class that
-  hasn't finished, and deletes a class that
+  hasn't finished, sends a message to the people of a class that hasn't finished and isn't cancelled (spec 069),
+  and deletes a class that
   hasn't started, isn't cancelled and has nobody in it; sees the "no instructor" flag on a class's card and
   details, and is told when an account deletion leaves classes with nobody; saves the cancellation rule of each
   discipline and sees the "no cancellation deadline" flag.
 - **An assigned instructor or admin** — receives one notification per batch they were assigned to (unless
   they created it), and one when a class they teach is edited, when they are added to one or removed from one
-  (unless they made the edit), when it is cancelled (unless they cancelled it), and when it is deleted (unless
-  they deleted it), and one when a location of their upcoming classes changes, if the admin who edits it chooses
+  (unless they made the edit), when it is cancelled (unless they cancelled it), when it is deleted (unless
+  they deleted it), and when an admin sends its people a message (unless they sent it), and one when a location of their upcoming classes changes, if the admin who edits it chooses
   to tell them (unless they made the edit), and one reminder 30 minutes before each start of a class they teach.
 
 ## Boundaries
@@ -378,7 +393,7 @@ class, and the role, status and WhatsApp number of a class's people (read only f
 through its own contracts, provided by the backend from [Authentication](auth.md)'s accounts; it uses Authentication's role and
 status names. It doesn't send notifications itself: it hands the instructors and the class's details to two
 contracts that [Notifications](notifications.md) fulfils (assignments — added and removed — and class changes:
-edits, cancellations and deletions), plus a third for the classes left without an instructor, a fourth for
+edits, cancellations, deletions and an admin's message to the class), plus a third for the classes left without an instructor, a fourth for
 location changes (each person — instructor or student — with their count, and the location's new name) and a
 fifth for class reminders (the people to remind, the class, its discipline, its start and its location's name). The address suggestions come
 through their own contract, which the backend fulfils with Google's Places service; the module never sees the
@@ -415,8 +430,10 @@ como" card and, for instructors, a note that the school makes the changes (a cla
 they teach) or that they read it only (one they don't). A person without a photo shows their initials. A cancelled class shows "Cancelada" with its time struck through on its card and one "Aula
 cancelada" banner with its message on its details. Admins reach a class's tools from a round button on its
 details (hidden once it has finished or is cancelled), four cards: "Editar aula" (one day, one time range, the other Nova
-aula sections; only the instructors once it has started), "Enviar mensagem" (with how many people it would reach;
-not doing anything yet), "Cancelar aula" (a confirmation with the optional message) and "Apagar aula", disabled
+aula sections; only the instructors once it has started), "Enviar mensagem" (with how many people it would reach — the
+instructors, the students with a seat and the pending requests, each person once and never the admin viewing it,
+the same count as "Cancelar aula"; it opens the Notifications module's Send notice screen in its class mode with the
+class's id, spec 069), "Cancelar aula" (a confirmation with the optional message) and "Apagar aula", disabled
 once the class has started or while anybody holds a seat (a confirmation; when the class turns out not to be
 empty, a "Não dá para excluir" variant that offers "Cancelar aula" instead). A class with no instructor says "Sem instrutor
 atribuído" on its details for everyone; while it hasn't started, admins also see a "Sem instrutor" chip on the
@@ -582,3 +599,10 @@ which stops that account from being erased while the link exists — a decision 
   accounts out. In the app, "Ex-instrutor" / "Ex-aluno" (`personLabel`, `classes.erased.*`) with the generic avatar
   (`StudentAvatar`'s `erased`), not tappable, in the class details; the class cards and the ongoing card show an
   erased student's generic avatar; "Editar aula" lists an erased kept teacher as "Ex-instrutor".
+- `069-class-message` — `SendClassMessage` (`POST /classes/:id/message`, 204, approved admins): the title (1–60) and
+  message (1–500), trimmed (`CLASS_MESSAGE_TITLE_MAX`, `CLASS_MESSAGE_TEXT_MAX`), to a class that hasn't finished and
+  isn't cancelled, told through the new `ClassChangeNotifier.classMessage` (`ClassMessage` event: instructors,
+  students, class id, discipline, start, title, message) to the instructors and the class audience, each once, never
+  the sender. In the app, `classMessageRecipients` (`utils/class-message.ts`) counts the people the tools' "Enviar
+  mensagem" and "Cancelar aula" cards reach (each once, never the viewer) and lists them for the class mode of the
+  Send notice screen, which "Enviar mensagem" now opens with the class id; `useClass` takes `{ enabled }`.

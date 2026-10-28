@@ -1,7 +1,7 @@
 import { FakeClassChangeNotifier } from "../../mock";
 
 describe("FakeClassChangeNotifier", () => {
-  it("records edited, cancelled and deleted events apart", async () => {
+  it("records edited, cancelled, deleted and message events apart", async () => {
     const notifier = new FakeClassChangeNotifier();
     const event = {
       instructorIds: ["i-1"],
@@ -15,9 +15,11 @@ describe("FakeClassChangeNotifier", () => {
 
     const { classId: _classId, ...deleted } = event;
     await notifier.classDeleted(deleted);
+    await notifier.classMessage({ ...event, title: "Aviso", message: "Tragam protetor." });
 
     expect(notifier.deletedEvents).toEqual([deleted]);
     expect(notifier.editedEvents).toEqual([event]);
     expect(notifier.cancelledEvents).toEqual([{ ...event, message: "Mar grande" }]);
+    expect(notifier.messageEvents).toEqual([{ ...event, title: "Aviso", message: "Tragam protetor." }]);
   });
 });

@@ -35,13 +35,14 @@ export const notificationTarget = (
     return routes.admin.classes;
   }
 
-  // An edited, unassigned, cancelled or soon-starting class opens that class, in the details of the flow the account
-  // resolves to.
+  // An edited, unassigned, cancelled or soon-starting class, or an admin's message to it, opens that class, in the
+  // details of the flow the account resolves to.
   const isClassChange =
     type === "class.edited" ||
     type === "class.unassigned" ||
     type === "class.cancelled" ||
-    type === "class.reminder";
+    type === "class.reminder" ||
+    type === "class.message";
 
   if (isClassChange && classId !== null && flow === "instructor") {
     return routes.instructor.classDetail(classId);
@@ -53,9 +54,10 @@ export const notificationTarget = (
 
   // A student hears that the class they asked for or held a seat in was edited or cancelled, or started without a seat
   // for them, or that their request was approved or denied, or that the school enrolled them in a class or took them
-  // out of one, or that their class starts soon.
+  // out of one, or that their class starts soon, or an admin's message to it.
   const isStudentClassNews =
     type === "class.edited" ||
+    type === "class.message" ||
     type === "class.reminder" ||
     type === "enrolment.expired" ||
     type === "enrolment.approved" ||

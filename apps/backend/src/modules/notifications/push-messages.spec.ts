@@ -129,6 +129,36 @@ describe('renderPush', () => {
     expect(renderPush('class.deleted', { discipline: 'surf', startsAt: STARTS_AT }, locale)).toEqual({ title, body });
   });
 
+  it.each([
+    ['pt-BR', 'Surf, dom 18/10 às 08:00: Tragam protetor.'],
+    ['es', 'Surf, dom 18/10 a las 08:00: Tragam protetor.'],
+    ['en', 'Surf, Sun 10/18 at 08:00: Tragam protetor.'],
+  ] as const)("writes a class message in %s: the admin's title, the class line and the message", (locale, body) => {
+    const params = {
+      classId: 'c-1',
+      discipline: 'surf',
+      startsAt: STARTS_AT,
+      title: '  Ponto de encontro  ',
+      message: '  Tragam protetor.  ',
+    };
+    const expected = { title: 'Ponto de encontro', body };
+
+    expect(renderPush('class.message', params, locale)).toEqual(expected);
+    expect(renderInApp('class.message', params, locale)).toEqual(expected);
+  });
+
+  it('writes the weekday of a class message in Fortaleza, not in UTC', () => {
+    const params = { discipline: 'skate', startsAt: '2026-10-18T01:00:00.000Z', title: 'Aviso', message: 'Oi' };
+
+    expect(renderPush('class.message', params, 'pt-BR').body).toBe('Skate, sáb 17/10 às 22:00: Oi');
+  });
+
+  it('leaves the class line of a class message blank when the start is not a date', () => {
+    expect(renderPush('class.message', { discipline: 'surf', startsAt: 'nope', title: 'Aviso', message: 'Oi' }, 'en')).toEqual(
+      { title: 'Aviso', body: 'Surf,   at : Oi' },
+    );
+  });
+
   it.each([[undefined], [''], ['   '], [42]])('counts %j as no cancellation message', (message) => {
     expect(renderPush('class.cancelled', { discipline: 'skate', startsAt: STARTS_AT, message }, 'pt-BR').body).toBe(
       'A aula de Skate de 18/10 às 08:00 foi cancelada.',
@@ -488,7 +518,7 @@ describe('renderInApp', () => {
         type !== 'class.edited' && type !== 'registration.denied' && type !== 'reactivation.denied',
     );
 
-    expect(others).toHaveLength(22);
+    expect(others).toHaveLength(23);
     for (const type of others) {
       for (const locale of PUSH_LOCALES) {
         expect(renderInApp(type, params, locale)).toEqual(renderPush(type, params, locale));

@@ -293,6 +293,11 @@ Listed in the order people meet them.
     removed accounts never receive one. The title has 1–60 characters and the message 1–500, both trimmed. The count
     is advisory: sending finds the recipients again. Nothing keeps a list of the notices sent, and a notice has no
     screen of its own.
+- **Class message** (`class-message`, spec 069): a notification an admin writes (title and message) to the people of
+  one class that hasn't finished and isn't cancelled — its instructors and its students with a seat or a pending
+  request, each person once, never the sender and never the trial guests. The title has 1–60 characters and the
+  message 1–500, both trimmed and shown as written, after a line naming the class. Like a notice, it isn't kept
+  anywhere but in the recipients' notifications.
 - **People directory**: not a concept of its own — the list of every approved user of any role, the viewer
   included (name, photo, role, member since, and the WhatsApp number when its owner shares it or the viewer is an
   admin), always sorted A–Z by name ignoring case and accents, 20 at a time. It is searched by name (ignoring case
@@ -379,8 +384,8 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   rules step of onboarding; the backend tells the two apart by saying, in every account answer, whether the
   account ever accepted any version. An account that finished onboarding while no rule existed (version 0) has
   never accepted, so the first rule written takes it to the onboarding step, not the update screen.
-- **Text written by admins is shown as written**: school rules, cancellation rules, notes, reasons and
-  broadcasts aren't translated; they're assumed to be Brazilian Portuguese.
+- **Text written by admins is shown as written**: school rules, cancellation rules, notes, reasons,
+  broadcasts and class messages aren't translated; they're assumed to be Brazilian Portuguese.
 - **All times are America/Fortaleza, whatever the phone's time zone; weeks run Monday to Sunday.**
 - **The level is a label only**: it never restricts who can request a class.
 - **A batch isn't kept**: it only exists while creating classes; each class is edited on its own, and time
@@ -751,8 +756,8 @@ pt-BR, es-ES and en-US.
 finishes, a started one included, with an optional message (up to 300 characters, shown exactly as written, e.g.
 "Mar muito grande."). The admin's tools for one class sit behind a round tools button in the header of its
 details, where the pencil was (admins only; hidden on a finished or cancelled class): the "Ferramentas da aula"
-sheet holds "Editar aula" (opens the editor), "Avisar alunos e instrutores" (drawn, does nothing yet; "Enviar
-mensagem" since spec 049, which makes the tools four cards) and "Cancelar aula". The last opens "Cancelar esta aula?" with "Mensagem (opcional)" and its counter, "Cancelar e
+sheet holds "Editar aula" (opens the editor), "Avisar alunos e instrutores" ("Enviar mensagem" since spec 049,
+which makes the tools four cards; it opens the message to the class since spec 069) and "Cancelar aula". The last opens "Cancelar esta aula?" with "Mensagem (opcional)" and its counter, "Cancelar e
 avisar" and "Manter aula"; on success "Aula cancelada", and the details stay on screen. Cancelling is final: the
 class stays on the schedule for every role, its card shows "Cancelada" with the time struck through (never "Em
 andamento" or "Finalizada", and its day keeps the calendar dot), its details show one "Aula cancelada" banner with
@@ -1004,10 +1009,11 @@ only the take-out sheet. "Regras" is a card of two rows with icon tiles: "Cancel
 sit in a card with a note icon, as written. "Onde e como" is one card: the fixed map across the top when the
 location has a point, then the pin, the name and the address, and "Direções" at the right. The "finished" banner
 shows a checkmark beside "Aula finalizada". The admin's class tools are four cards under the unchanged title:
-"Editar aula" ("Data, hora, local…"), "Enviar mensagem" ("N pessoas" or "Ninguém ainda"; does nothing yet),
-"Cancelar aula" in red ("Avisa N pessoas" or "Ninguém para avisar") and "Apagar aula" ("Ninguém inscrito", or
-disabled with "Tem inscritos" or "Já começou"); N is the people a cancellation tells — the other instructors, the
-enrolled students and the pending requests. All copy is in pt-BR, es-ES and en-US.
+"Editar aula" ("Data, hora, local…"), "Enviar mensagem" ("N pessoas" or "Ninguém ainda"; opens the message to the
+class since spec 069), "Cancelar aula" in red ("Avisa N pessoas" or "Ninguém para avisar") and "Apagar aula"
+("Ninguém inscrito", or disabled with "Tem inscritos" or "Já começou"); N is the people a cancellation tells — the
+instructors, the enrolled students and the pending requests, each person once and never the admin viewing it (spec
+069). All copy is in pt-BR, es-ES and en-US.
 
 **Filtering the week by sport** (spec `050-classes-discipline-filter`) — on the classes week screen of every role
 (the student's Agenda, the Aulas tab of instructors and admins), a floating `grape` button at the bottom right,
@@ -1263,6 +1269,22 @@ request approved or denied, a seat requested, withdrawn or cancelled) is green w
 warnings stay red with an alert icon. In pt-BR the class tools sheet's delete row reads "Excluir aula", the same
 words as its confirmation.
 
+**Admins message one class** (spec `069-class-message`) — on a class that hasn't finished and isn't cancelled, the
+class tools' "Enviar mensagem" opens the Send notice screen in a class mode: "Mensagem para a turma", "Escreva um
+título e uma mensagem. Os instrutores e os alunos desta aula recebem como notificação.", a chat-bubble icon and, under
+"Quem recebe", a card of the class in place of the audience selector — its sport and level, day and time, location,
+then "Instrutores" and "Alunos" by name and "+ N pedidos pendentes" — with "N pessoas vão receber". The title (up to 60
+characters) and message (up to 500) fields, "Enviar" and the confirm sheet work as for a notice; the sheet asks "Enviar
+a N pessoas?" and says "Os instrutores e os alunos de <aula> recebem uma notificação. Depois de enviada, não dá para
+apagar.". Sending closes the screen with the green toast "Mensagem enviada"; a class that finished or was cancelled
+meanwhile, no connection or any other failure keeps the text and shows an error. The class's instructors and its
+students with a seat or a pending request get it once each — never the admin who sends it, even when they teach the
+class, and never the trial guests — as a notification with a chat bubble and as a push: the admin's title as written,
+and the class line before the message ("Surf, qua 28/10 às 16:00: Nos encontramos 15 min antes."). Tapping it marks it
+read and opens the class's details in the reader's own flow. The counts on the tools' "Enviar mensagem" and "Cancelar
+aula" cards now leave out the admin viewing them. Opened from the admin home, the Send notice screen is unchanged.
+All copy is in pt-BR, es-ES and en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1298,7 +1320,11 @@ Active specs: none.
   permission dialog (or asking again after a refusal); deleting, hiding or expiring notifications (spec 055 keeps
   them for as long as the account), and class names or before/after values in their text.
 - On notices (spec 063): a history of the notices sent, a screen of its own for a notice, editing or deleting one
-  once sent, and choosing people one by one (an audience is a whole role, or everyone).
+  once sent, and choosing people one by one (an audience is a whole role, everyone, or one class's people since
+  spec 069).
+- On class messages (spec 069): a history of the messages sent to a class, a message to several classes at once,
+  naming the people with a pending request (the class details carry only their number), and the design's stack of
+  avatars (profile photos aren't built).
 - On erasing deleted and removed accounts (spec 067): removing the name from the seat notifications stored before
   spec 067; "Former student" / "Former instructor" on photos, deleting comments and keeping star ratings without a
   name (they come with ratings and photos); listing or showing erased accounts anywhere.
@@ -1334,13 +1360,10 @@ Active specs: none.
 - On seats and students (spec 040): the "1ª vez" badge on the details; the weather and sea conditions on the details (no data source); an "A começar" state for a class
   about to start; and profile photos (initials until photos can be uploaded).
 - On the class details' design (spec 049): the "Condições previstas" row of "Onde e como" (weather and waves), "Sem
-  penalização até N h antes" as the cancellation row's value (the rules are free text), sending a message to a
-  class's people from "Enviar mensagem" (the card is drawn and does nothing), and opening a sheet or a chat for a
-  trial guest.
+  penalização até N h antes" as the cancellation row's value (the rules are free text), and opening a sheet or a chat for a trial guest.
 - On editing a class (spec 032): editing several classes at once, and the editor's "gerir" links to manage time ranges and locations.
 - On cancelling a class (spec 033): storing who cancelled it,
-  restoring a cancelled class and editing its message; what "Avisar alunos e instrutores" in the class tools does
-  (a message to a class's people, its own spec).
+  restoring a cancelled class and editing its message.
 - On deleting a class (spec 034): the seat and pending-request counts on the confirmation sheet; deleting several
   classes at once; restoring a deleted class or keeping any record of it.
 - On classes left without an instructor (spec 035): telling the students of a class that lost its instructor; a list or filter of the classes without an instructor.

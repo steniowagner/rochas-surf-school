@@ -8,7 +8,7 @@ const renderSheet = async (props: Partial<React.ComponentProps<typeof SendNotice
   await render(
     <SendNoticeConfirmSheet
       visible
-      audience="students"
+      description="All students get a notification. Once it's sent, it can't be deleted."
       count={8}
       title="Big swell tomorrow"
       message={"No beginner classes.\nSee you on Monday."}
@@ -38,13 +38,12 @@ describe("SendNoticeConfirmSheet", () => {
     expect(screen.getByRole("header", { name: "Send to 1 person?" })).toBeOnTheScreen();
   });
 
-  it.each([
-    ["all", "Everyone — students, instructors and admins — gets a notification. Once it's sent, it can't be deleted."],
-    ["instructors", "All instructors get a notification. Once it's sent, it can't be deleted."],
-  ] as const)("names the %s audience", async (audience, description) => {
-    await renderSheet({ audience });
+  it("says who receives it with the line it is given", async () => {
+    await renderSheet({ description: "The instructors and students of Surf Beginner get a notification." });
 
-    expect(screen.getByText(description)).toBeOnTheScreen();
+    expect(
+      screen.getByText("The instructors and students of Surf Beginner get a notification."),
+    ).toBeOnTheScreen();
   });
 
   it("shows the notice as it will be sent", async () => {

@@ -8,6 +8,8 @@ export const CLASS_CAPACITY_MIN = 1;
 export const CLASS_CAPACITY_MAX = 20;
 export const CLASS_NOTES_MAX = 300;
 export const CLASS_CANCELLATION_MESSAGE_MAX = 300;
+export const CLASS_MESSAGE_TITLE_MAX = 60;
+export const CLASS_MESSAGE_TEXT_MAX = 500;
 export const CLASS_BATCH_MAX = 200;
 
 export const CLASS_TIME_ZONE = "America/Fortaleza";

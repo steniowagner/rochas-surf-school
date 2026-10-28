@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { SendNoticeConfirmSheetProps } from "./send-notice-confirm-sheet.types";
 
 /**
- * The final check before a notice goes out (PAINEL-07A): how many people receive it, who they are, and the notice
- * itself. The preview scrolls when the message is long; the gesture handler's scroll view keeps the sheet's own drag.
+ * The final check before a notice or a class message goes out (PAINEL-07A): how many people receive it, who they
+ * are, and the text itself. The preview scrolls when the message is long; the gesture handler's scroll view keeps the sheet's own drag.
  */
 export function SendNoticeConfirmSheet({
   visible,
-  audience,
+  description,
   count,
   title,
   message,
@@ -30,7 +30,7 @@ export function SendNoticeConfirmSheet({
           {t("notices.confirm.title", { count })}
         </Text>
         <Text className="ds-text-sheet-description mt-2.5 text-ink-2">
-          {t(`notices.confirm.description.${audience}`)}
+          {description}
         </Text>
         <ScrollView
           testID="notice-preview"

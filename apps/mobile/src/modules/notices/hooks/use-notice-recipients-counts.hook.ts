@@ -10,9 +10,11 @@ import { NoticeRecipientsCount } from "../notices.types";
  * screen opens, and reused while it stays open, so switching audiences never waits. Leaving the screen drops them, and
  * the next visit reads them again. Sending resolves the recipients on its own.
  */
-export const useNoticeRecipientsCounts = () =>
+export const useNoticeRecipientsCounts = (enabled = true) =>
   useQueries({
     queries: NOTICE_AUDIENCES.map((audience) => ({
+      // Off in the class mode (spec 069), which reaches the class's people instead of an audience.
+      enabled,
       queryKey: ["notices", "recipients", audience],
       queryFn: () =>
         apiGet<NoticeRecipientsCount>(

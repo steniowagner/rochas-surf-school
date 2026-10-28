@@ -618,7 +618,9 @@ The app SHALL offer a light theme and a dark theme. Until a user chooses one, th
 
 _Implemented in spec 063-admin-send-notice._
 
-Text written by admins, such as school rules, cancellation rules, class notes, reasons and broadcasts, SHALL be shown as written, whatever language the user chose.
+_Implemented in spec 069-class-message._
+
+Text written by admins, such as school rules, cancellation rules, class notes, reasons, broadcasts and messages to a class, SHALL be shown as written, whatever language the user chose.
 
 - _Rules written in Portuguese:_ When a user who chose English opens school rules written in Portuguese, then the rules are shown in Portuguese.
 

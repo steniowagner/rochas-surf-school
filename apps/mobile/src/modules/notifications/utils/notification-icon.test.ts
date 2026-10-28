@@ -16,6 +16,10 @@ describe("notificationIcon", () => {
     expect(notificationIcon("broadcast")).toEqual({ name: "megaphone-outline", tone: "info" });
   });
 
+  it("draws a class.message with the chat bubble on the info tone", () => {
+    expect(notificationIcon("class.message")).toEqual({ name: "chatbubble-outline", tone: "info" });
+  });
+
   it("keeps the glyph and tone of the other types", () => {
     expect(notificationIcon("registration.denied")).toEqual({ name: "close-circle-outline", tone: "bad" });
   });

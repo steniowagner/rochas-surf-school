@@ -39,6 +39,9 @@ What the person is told, and how it reaches them.
   - `class.cancelled` — a class the person teaches, or in which their enrolment was just ended by the
     cancellation (spec 041), was cancelled; details: the class's id, its discipline, its start and the admin's
     message (`message`, as written after trimming) when there is one. One per person, even one on both lists.
+  - `class.message` — an admin sent a message to the people of a class the person teaches or holds a seat or a
+    pending request in (spec 069); details: the class's id, its discipline, its start, and the admin's title
+    (`title`) and message (`message`), as written after trimming. One per person, even one on both lists.
   - `class.deleted` — a class the person taught was deleted; details: its discipline and its start (no class id:
     the class no longer exists).
   - `class.noInstructor` — an account deletion or an instructor's demotion to student left classes that haven't
@@ -92,6 +95,7 @@ What the person is told, and how it reaches them.
   | `class.edited` | Class changed | Your {discipline} class on {MM/dd} at {HH:mm} was changed. Open the app to see it. |
   | `class.unassigned` | Removed from a class | You're no longer teaching the {discipline} class on {MM/dd} at {HH:mm}. |
   | `class.cancelled` | Class cancelled | Your {discipline} class on {MM/dd} at {HH:mm} was cancelled. / with a message: {discipline}, {MM/dd} at {HH:mm}: {message} |
+  | `class.message` | the admin's title, as written | {discipline}, {weekday} {MM/dd} at {HH:mm}: {message} |
   | `class.deleted` | Class deleted | Your {discipline} class on {MM/dd} at {HH:mm} was deleted. |
   | `class.noInstructor` | Class without an instructor / Classes without an instructor | The {discipline} class on {MM/dd} at {HH:mm} has no instructor now. / {count} classes have no instructor now. The next one: {discipline}, {MM/dd} at {HH:mm}. |
   | `class.reminder` | Your class starts soon | The {discipline} class starts at {HH:mm} · {locationName}. |
@@ -120,7 +124,10 @@ What the person is told, and how it reaches them.
   `class.cancelled`: pt-BR "Aula cancelada" / "A aula de {discipline} de {dd/MM} às {HH:mm} foi cancelada." or,
   with a message, "{discipline}, {dd/MM} às {HH:mm}: {message}", es "Clase cancelada" / "La clase de {discipline}
   del {dd/MM} a las {HH:mm} fue cancelada." or "{discipline}, {dd/MM} a las {HH:mm}: {message}" (a blank message
-  counts as none); `class.deleted`: pt-BR "Aula excluída" / "A aula de {discipline} de {dd/MM} às {HH:mm} foi
+  counts as none); `class.message`: the admin's title as written, and "{discipline}, {weekday} {dd/MM} às {HH:mm}:
+  {message}" in pt-BR ("Surf, sáb 25/10 às 09:00: …"; weekdays dom, seg, ter, qua, qui, sex, sáb), "{discipline},
+  {weekday} {dd/MM} a las {HH:mm}: {message}" in es (dom, lun, mar, mié, jue, vie, sáb) — the only class line with
+  the weekday, the same in the app; `class.deleted`: pt-BR "Aula excluída" / "A aula de {discipline} de {dd/MM} às {HH:mm} foi
   excluída.", es "Clase eliminada" / "La clase de {discipline} del {dd/MM} a las {HH:mm} fue eliminada.";
   `class.noInstructor`: pt-BR "Aula sem instrutor" / "A aula de {discipline} de {dd/MM} às {HH:mm} ficou sem
   instrutor." or "Aulas sem instrutor" / "{count} aulas ficaram sem instrutor. A próxima: {discipline}, {dd/MM} às
@@ -172,6 +179,9 @@ What the person is told, and how it reaches them.
   Tapping a `location.changed` push reloads the account and opens its Aulas tab when it is still an instructor or
   an admin, and the Agenda for a student (else its home); one received with the app open reloads every class shown
   and the locations, for every role.
+  Tapping a `class.message` push, or its row, opens that class's details in the student's, instructor's or admin's
+  flow (else nothing; its row: a `chatbubble-outline` icon on the info tone, spec 069); one received with the app open
+  reloads only the notifications list and the unread count.
   Tapping an `enrolment.expired`, `enrolment.approved`, `enrolment.denied`, `enrolment.enrolled`,
   `enrolment.takenOut`, `class.cancelled` or `class.edited` push as a student
   opens that class's details in the student's flow; tapping a `class.reminder` push opens that class's details in
@@ -309,6 +319,8 @@ Rules:
   their pending request; nobody else is told.
 - **A student an admin took out of a class** — receives `enrolment.takenOut` (with the reason); nobody else is
   told.
+- **An instructor or admin of a class, and a student with a seat or a pending request in it** — receives one
+  `class.message` when an admin sends the class a message, unless they sent it; guests receive none.
 - **An instructor or admin of a deleted class** — receives `class.deleted`, unless they deleted it.
 - **Approved admins** — receive one `class.noInstructor` when an account deletion or an instructor's demotion to
   student leaves classes with nobody, unless the account is theirs or they made the demotion.
@@ -338,7 +350,7 @@ their removal and restore — spec 066, one that deletes the notifications about
 `DeleteNotificationsAbout`, spec 067), all provided by the
 backend; the admins' notice of a registration or a reactivation request goes through the same use case, which takes
 the type. [Classes](classes.md) reaches it the same way, through its own contracts for class assignments (added
-and removed), class changes (edits, cancellations, deletions), classes left without an instructor, location
+and removed), class changes (edits, cancellations, deletions, an admin's message to a class), classes left without an instructor, location
 changes and class reminders; a failure there is logged and never changes the class creation, edit, cancellation, deletion, release or
 location edit. [Enrolment](enrolment.md) reaches it through its own contract for new, decided and expired
 requests, cancelled seats, direct enrolments and take-outs, with the same guarantee. It doesn't decide when an event happens — the
@@ -433,3 +445,9 @@ requests (spec 047).
   `enrolment.cancelled` by `params.studentId`, run through the backend's `NotificationsPersonNotificationEraser` when
   Authentication erases a deleted or removed account. `enrolment.requested` and `enrolment.cancelled` now store
   `studentId`; their push and in-app text don't change.
+- `069-class-message` — the `class.message` type (`{ classId, discipline, startsAt, title, message }`) with its push
+  and in-app text (the title as written; the body the class line with the short weekday, then the message as
+  written), sent once per person by the backend's `NotificationsClassChangeNotifier.classMessage` (Classes'
+  `ClassChangeNotifier`; errors logged and swallowed). In the app, its `chatbubble-outline` icon on the info tone, a
+  tapped push or row opening the class's details in every role's flow, and the class mode of the Send notice screen
+  (`/admin/send-notice?classId=`, `useSendClassMessage` → `POST /classes/:id/message`).

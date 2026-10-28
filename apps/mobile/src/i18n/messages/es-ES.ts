@@ -478,6 +478,27 @@ const messages: Messages = {
       send: "Sí, enviar",
       cancel: "Volver y editar",
     },
+    classMessage: {
+      title: "Mensaje para la clase",
+      description:
+        "Escribe un título y un mensaje. Los instructores y los alumnos de esta clase lo reciben como notificación.",
+      instructors: "Instructores",
+      students: "Alumnos",
+      pending_one: "+ {{count}} solicitud pendiente",
+      pending_other: "+ {{count}} solicitudes pendientes",
+      count: {
+        loading: "Cargando la clase…",
+        error: "No se pudo cargar la clase.",
+      },
+      confirm:
+        "Los instructores y los alumnos de {{classLine}} reciben una notificación. Una vez enviado, no se puede borrar.",
+      sent: "Mensaje enviado",
+      sendError: "No se pudo enviar el mensaje. Inténtalo de nuevo.",
+      errors: {
+        finished: "Esta clase ya terminó. El mensaje no se envió.",
+        cancelled: "Esta clase fue cancelada. El mensaje no se envió.",
+      },
+    },
   },
   schoolSettings: {
     title: "Ajustes de la escuela",

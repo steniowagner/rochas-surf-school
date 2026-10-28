@@ -5,6 +5,7 @@ export * from "./list-week-classes.usecase";
 export * from "./get-class.usecase";
 export * from "./edit-class.usecase";
 export * from "./cancel-class.usecase";
+export * from "./send-class-message.usecase";
 export * from "./delete-class.usecase";
 export * from "./release-upcoming-classes.usecase";
 export * from "./work-out-cancellation-deadlines.usecase";

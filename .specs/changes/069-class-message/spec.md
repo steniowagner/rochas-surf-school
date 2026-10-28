@@ -115,7 +115,7 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
 
 ### Backend (`modules/classes`, `modules/notifications`, `apps/backend`)
 
-- [ ] **T-01** — In `modules/notifications/src/notification/model/notification.entity.ts`, add `class.message`
+- [x] **T-01** — In `modules/notifications/src/notification/model/notification.entity.ts`, add `class.message`
   to `NOTIFICATION_TYPES`. In `modules/classes/src/school-class/`, add the D-02 limits to the model, the
   `ClassMessage` event and `classMessage` method to `ClassChangeNotifier` (and to
   `test/mock/fake-class-change.notifier.ts`), and the `SendClassMessage` use case (D-01, D-03, D-05; skill
@@ -123,6 +123,25 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
   covering every case of ER-01.
   Covers: ER-01 · Done when: `npm test -w @rochas-surf-school/classes` and
   `npm test -w @rochas-surf-school/notifications` pass.
+  > ✅ 2026-10-27 22:10 — added `class.message` to `NOTIFICATION_TYPES`; `CLASS_MESSAGE_TITLE_MAX` (60) and
+  > `CLASS_MESSAGE_TEXT_MAX` (500); the `ClassMessage` event and `ClassChangeNotifier.classMessage` (and the fake's
+  > `messageEvents`); `SendClassMessage` (access → id → title/text, codes `class.message.title.*` /
+  > `class.message.text.*` → state; instructors and the deduplicated audience, never the sender, someone who teaches
+  > and is in the audience told once as an instructor; nobody → no call; a failed audience read tells the instructors
+  > only; a failing notifier is swallowed), exported from the usecase index, with a test per ER-01 case (27 tests,
+  > written first and seen failing); files: `modules/notifications/src/notification/model/notification.entity.ts`,
+  > `modules/notifications/test/notification/model/notification.entity.test.ts`,
+  > `modules/classes/src/school-class/model/class-limits.ts`,
+  > `modules/classes/src/school-class/provider/class-change-notifier.provider.ts`,
+  > `modules/classes/src/school-class/usecase/send-class-message.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/index.ts`, `modules/classes/test/mock/fake-class-change.notifier.ts`,
+  > `modules/classes/test/school-class/provider/fake-class-change.notifier.test.ts`,
+  > `modules/classes/test/school-class/usecase/send-class-message.usecase.test.ts`; verified:
+  > `npm test -w @rochas-surf-school/classes` (40 suites, 606 passed; the use case 100% covered),
+  > `npm test -w @rochas-surf-school/notifications` (18 suites, 194 passed, 100%), `check-types` and `lint` of
+  > `classes` clean; deviations: the `module-use-case` skill's mandatory readings in `modules/auth`
+  > (`register-user.usecase.ts`, its test, `fake-crypto.provider.ts`) no longer exist, so the use case follows the
+  > skill's few-shots and the module's own `CancelClass`.
 - [ ] **T-02** — In `apps/backend`, add `POST /classes/:id/message` (204) to `src/modules/classes/classes.controller.ts`
   (skill `backend-nest-controller`), `classMessage` to `src/modules/notifications/notifications.class-change-notifier.ts`,
   the `class.message` text in pt-BR, es and en to `push-messages.ts` (D-06), and the requests to

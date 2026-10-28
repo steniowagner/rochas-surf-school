@@ -142,6 +142,8 @@ export const typography = {
   previewTitle: { font: 'body', weight: 800, size: 14.5, lineHeight: 1.55, letterSpacing: 0, uppercase: false },
   previewBody: { font: 'body', weight: 400, size: 14, lineHeight: 1.55, letterSpacing: 0, uppercase: false },
   // The count over a header button's icon; its 16px line is the pill's height, so the digits sit centered.
+  // The labels of the tab bar.
+  tabBarLabel: { font: 'display', weight: 700, size: 12, lineHeight: 1.2, letterSpacing: 0.08, uppercase: true },
   badge: { font: 'body', weight: 800, size: 9, lineHeight: 1.78, letterSpacing: 0, uppercase: false },
 } as const;
 

@@ -2,10 +2,11 @@
 id: "070"
 slug: admin-also-instructor
 title: "Admins who also teach"
-status: in-review
+status: accepted
 created: 2026-10-28
 started: 2026-10-28
 base_commit: cbda13b2810986f7db50e4c671503fe55cc34956
+reviewed_commit: 86b18c42acacbc166978af54a8644347ac730bbe
 fronts: [auth, classes, backend, mobile]
 depends_on: []
 ---
@@ -376,3 +377,61 @@ be assigned to teach.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-28 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`turbo run lint check-types build`: 27/27 tasks; auth, classes, backend, mobile)
+- related tests ✅ `RELATED TESTS PASSED` — backend 198, mobile 1953, auth 500, classes 610, plus the whole enrolment
+  and school-rules suites
+- coverage of the changed lines ✅ `COVERAGE OK` (23 files); no coverage-ignore comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (28 files, 817 tests), the "instructor flag", "teaches" and "admin without the
+  instructor flag" tests included
+- migration ✅ `prisma migrate deploy` exit 0; on a scratch database it applies with no admins, and the backfill
+  sets the flag on admins of every status (approved, pending, removed) and on nobody else; a user inserted afterwards
+  gets `false`; the column is `NOT NULL DEFAULT false`
+- HTTP ✅ ER-01/03/04/05 sent to this branch's backend with throwaway users (removed afterwards)
+- iOS simulator ✅ the three user journeys of the Verification Plan, against this branch's backend and the migrated
+  Compose database (dev data restored afterwards)
+
+**Expected Results**
+
+- ER-01 ✅ — promotion stores the flag as sent (`true`/`false`; missing → `false`) and answers `{ id, role, isInstructor }`;
+  `"yes"` and `true` with `instructor` → 422 `people.isInstructor.invalid`, nothing changed; an unknown id with
+  `"yes"` → 422 (the check runs before the 404); `instructor` + `false` → 200
+- ER-02 ✅ — migration SQL matches D-02; scratch-database run as in Checks
+- ER-03 ✅ — admin → instructor answers and stores `isInstructor: false`; e2e shows the class kept
+- ER-04 ✅ — on/off for another admin and for self → 200; instructor caller 403 `user.role.notAdmin`; `"true"` 422;
+  `nope` 404; pending target 409 `user.status.notApproved`; instructor target 409 `people.isInstructor.notAdmin`;
+  the read/write race is covered by the unit test (in-memory repository); turning the flag off left the admin on their
+  class
+- ER-05 ✅ — `teaches=true` lists approved instructors and flagged admins only, combines with `role` and `search`,
+  `isInstructor` on every item; `teaches=false` and `teaches=1` → 422 `people.teaches.invalid`
+- ER-06 ✅ — unit tests and the e2e "admin without the instructor flag" tests (batch refused alone and mixed, flagged
+  admin accepted, edit adding refused, edit keeping accepted)
+- ER-07 ✅ — simulator: a student's and an instructor's "Make admin" show the "Also an instructor" checkbox unchecked
+  with its helper, below the seats sentence for a student; the description has no "They can also teach"; Back and
+  reopen shows it unchecked; confirming unchecked stored `is_instructor = false`, checked stored `true`; the "Make
+  admin" subtitle reads "Runs the school."; the other confirmations and the disabled-while-saving state are covered
+  by the component tests
+- ER-08 ✅ — simulator: the row shows on another admin's sheet (unchecked) and on the viewer's own sheet (checked, no
+  role or remove actions), not on a student's or an instructor's sheet; a tap checked it, stored `true`, showed no
+  toast, and "New class" then listed the admin; the error toasts are covered by the component and util tests
+- ER-09 ✅ — simulator: "New class" listed the instructors and flagged admins, not the unflagged new admin, then
+  listed them once the flag was on and kept a flagged promoted instructor; on "Edit class" of a class taught by an
+  admin whose flag is off, that admin showed ticked and could be unticked (not saved), while unflagged admins not on
+  the class weren't offered
+
+**Findings**
+
+None.
+
+**Notes**
+
+- After "Make admin" on the simulator, the People row still read STUDENT until a pull-to-refresh, though the API
+  already answered `admin`. `useChangeRole` and `usePeople` are unchanged apart from the request body, so this looks
+  older than this spec and isn't part of its contract; worth checking separately.
+- `change-role.usecase.test.ts` "refuses … before looking for the person" uses an existing user, so it doesn't prove
+  the D-03 order against the 404; the code does check the flag first, and the HTTP check above confirmed it. A test
+  with an unknown id would pin it.

@@ -53,6 +53,8 @@ model User {
   erasedAt                DateTime?               @map("erased_at")
   reactivationStatus      UserReactivationStatus? @map("reactivation_status")
   reactivationRequestedAt DateTime?               @map("reactivation_requested_at")
+  // Spec 070: meaningful only for admins; an admin with it set can also be assigned to teach classes.
+  isInstructor            Boolean                 @default(false) @map("is_instructor")
   createdAt               DateTime                @default(now()) @map("created_at")
   updatedAt               DateTime                @updatedAt @map("updated_at")
   deletedAt               DateTime?               @map("deleted_at")

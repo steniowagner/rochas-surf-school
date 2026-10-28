@@ -16,6 +16,7 @@ const minimalRecord = {
   whatsappVisible: false,
   role: 'student',
   status: 'pending',
+  isInstructor: false,
   denialReason: null,
   deniedAt: null,
   removedAt: null,
@@ -34,6 +35,7 @@ const fullRecord = {
   whatsappVisible: true,
   role: 'admin',
   status: 'deleted',
+  isInstructor: true,
   denialReason: 'Unknown person',
   deniedAt: new Date('2026-10-03T00:00:00.000Z'),
   removedAt: new Date('2026-10-04T00:00:00.000Z'),
@@ -106,6 +108,7 @@ function fullUser(): User {
     whatsappVisible: true,
     role: 'admin',
     status: 'deleted',
+    isInstructor: true,
     denialReason: fullRecord.denialReason,
     deniedAt: fullRecord.deniedAt,
     removedAt: fullRecord.removedAt,
@@ -134,6 +137,7 @@ describe('PrismaUserRepository', () => {
         whatsappVisible: true,
         role: 'admin',
         status: 'deleted',
+        isInstructor: true,
         denialReason: 'Unknown person',
         deniedAt: fullRecord.deniedAt,
         removedAt: fullRecord.removedAt,
@@ -153,6 +157,7 @@ describe('PrismaUserRepository', () => {
     expect(created.whatsappNumber).toBe(fullRecord.whatsappNumber);
     expect(created.role).toBe('admin');
     expect(created.status).toBe('deleted');
+    expect(created.isInstructor).toBe(true);
     expect(created.denialReason).toBe('Unknown person');
     expect(created.deniedAt).toEqual(fullRecord.deniedAt);
     expect(created.removedAt).toEqual(fullRecord.removedAt);
@@ -182,6 +187,7 @@ describe('PrismaUserRepository', () => {
       deletedAt: null,
       rulesAcceptances: { create: [] },
     });
+    expect(created.isInstructor).toBe(false);
     expect(created.photoUrl).toBeUndefined();
     expect(created.whatsappNumber).toBeUndefined();
     expect(created.denialReason).toBeUndefined();
@@ -344,6 +350,18 @@ describe('PrismaUserRepository', () => {
       );
       expect(select.values.slice(0, 2)).toEqual([['instructor', 'admin'], '%50\\%\\_a\\\\b%']);
       expect(sqlOf($queryRaw, 1).values).toEqual([['instructor', 'admin'], '%50\\%\\_a\\\\b%']);
+    });
+
+    it('keeps only the people who can teach: instructors and admins with the flag', async () => {
+      const { $queryRaw, repository } = setup();
+      $queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ total: 0n }]);
+
+      await repository.findDirectoryPage({ page: 1, perPage: 20, teachers: true });
+
+      const condition =
+        "status = 'approved' AND (role = 'instructor' OR (role = 'admin' AND is_instructor))";
+      expect(sqlOf($queryRaw, 0).text).toContain(condition);
+      expect(sqlOf($queryRaw, 1).text).toContain(condition);
     });
 
     it('skips the user query for an empty page', async () => {

@@ -269,7 +269,7 @@ be assigned to teach.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-05** — Add `isInstructor Boolean @default(false) @map("is_instructor")` to `model User` in
+- [x] **T-05** — Add `isInstructor Boolean @default(false) @map("is_instructor")` to `model User` in
   `apps/backend/prisma/models/auth.model.prisma` and the migration `prisma/migrations/<timestamp>_users_is_instructor/`
   with the backfill of D-02 (hand-added `UPDATE` after the generated `ALTER TABLE`); in
   `src/modules/auth/user.prisma.ts`, map `isInstructor` both ways and add the `teachers` condition to
@@ -277,6 +277,7 @@ be assigned to teach.
   `src/modules/auth/user.prisma.spec.ts`. Skill: [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module).
   Covers: ER-02, ER-05 · Done when: `cd apps/backend && npx prisma migrate deploy` exits 0 and
   `npx vitest run src/modules/auth/user.prisma.spec.ts` passes.
+  > ✅ 2026-10-28 12:19 — Added `users.is_instructor` (`NOT NULL DEFAULT false`) with the D-02 backfill (`UPDATE "users" SET "is_instructor" = true WHERE "role" = 'admin'`); `PrismaUserRepository` maps the flag both ways and `findDirectoryPage` supports `teachers`; files: `apps/backend/prisma/models/auth.model.prisma`, `apps/backend/prisma/migrations/20261028130000_users_is_instructor/migration.sql`, `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `cd apps/backend && npx prisma migrate deploy` (applied, exit 0; on the Compose DB the 4 admins got true, the other users false) and `npx vitest run src/modules/auth/user.prisma.spec.ts` (40 passed); deviations: migration SQL written by hand (no `migrate dev`); `modules/auth` and `modules/classes` rebuilt with `npm run build` so the backend sees the new types
 
 - [ ] **T-06** — In `apps/backend/src/modules/auth/people.controller.ts`, pass `isInstructor` from the body of
   `PUT :id/role`, add `PUT :id/instructor` (200, `SetInstructorFlag`, declared like the other `:id` routes) and the

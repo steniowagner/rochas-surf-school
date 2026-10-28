@@ -6,7 +6,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
  */
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: config.name ?? "Rocha's Surf School",
+  name: config.name ?? "RSS",
   slug: config.slug ?? "rochas-surf-school",
   plugins: [
     ...(config.plugins ?? []),

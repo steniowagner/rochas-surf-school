@@ -1,21 +1,20 @@
 {
   "expo": {
-    "name": "Rocha's Surf School",
+    "name": "RSS",
     "slug": "rochas-surf-school",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rochassurfschool",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F0E6D8",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.rochassurfschool.app"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F0E6D8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -30,9 +29,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F0E6D8",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 288
         }
       ],
       "./plugins/with-ios-scene-lifecycle",

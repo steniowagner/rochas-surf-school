@@ -17,7 +17,6 @@ import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rule
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
 import AdminSchoolSettingsRoute from "@/app/(private)/admin/school-settings";
 import AdminSendNoticeRoute from "@/app/(private)/admin/send-notice";
-import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
 import AdminRemovedAccountsRoute from "@/app/(private)/admin/removed-accounts";
@@ -191,7 +190,6 @@ async function openAdminHome() {
       "(private)/admin/(tabs)/(home)/index": AdminRoute,
       "(private)/admin/cancellation-rules": AdminCancellationRulesRoute,
       "(private)/admin/new-class": AdminNewClassRoute,
-      "(private)/admin/people": AdminPeopleRoute,
       "(private)/admin/school-settings": AdminSchoolSettingsRoute,
       "(private)/admin/send-notice": AdminSendNoticeRoute,
       "(private)/admin/registrations": AdminRegistrationsRoute,
@@ -262,7 +260,7 @@ describe("AdminScreen", () => {
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
   });
 
-  it("shows the reactivation row after Join the school, with its count and badge, and opens the tool", async () => {
+  it("shows the reactivation row last under the tools, with its count and badge, and opens the tool", async () => {
     const user = userEvent.setup();
     reactivations = [reactivation("a"), reactivation("b"), reactivation("c")];
     respondWith([]);
@@ -275,7 +273,7 @@ describe("AdminScreen", () => {
     expect(
       screen.getByRole("button", { name: /Reactivate accounts/ }),
     ).toBeOnTheScreen();
-    expect(indexOf(/Reactivate accounts/)).toBe(indexOf(/Join the school/) + 1);
+    expect(indexOf(/Reactivate accounts/)).toBe(indexOf(/Removed accounts/) + 1);
 
     await user.press(
       screen.getByRole("button", { name: /Reactivate accounts/ }),
@@ -307,17 +305,15 @@ describe("AdminScreen", () => {
     expect(within(row).queryByText(/waiting|Nothing pending/)).toBeNull();
   });
 
-  it("shows the Tools and School sections, with the People row and its count", async () => {
+  it("shows the Tools and School sections", async () => {
     respondWith([]);
     await openAdminHome();
 
     expect(screen.getByText("Tools")).toBeOnTheScreen();
     expect(screen.getByText("School")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
-    expect(await screen.findByText("30 on the platform")).toBeOnTheScreen();
   });
 
-  it("shows the Weekly occupancy row right after People, and opens the screen", async () => {
+  it("shows the Weekly occupancy row right after Rules, and opens the screen", async () => {
     const user = userEvent.setup();
     fetchMock.mockImplementation(async (url: string) => ({
       ok: true,
@@ -331,12 +327,12 @@ describe("AdminScreen", () => {
     const buttons = screen.getAllByRole("button");
     const indexOf = (name: string | RegExp) =>
       buttons.indexOf(screen.getByRole("button", { name }));
-    const people = indexOf(/People/);
+    const rules = indexOf(/Rules/);
 
     expect(
       screen.getByText("Seats taken and free per class"),
     ).toBeOnTheScreen();
-    expect(indexOf("Weekly occupancy")).toBe(people + 1);
+    expect(indexOf("Weekly occupancy")).toBe(rules + 1);
     expect(
       fetchMock.mock.calls.some(([url]) =>
         String(url).includes("/classes?date="),
@@ -395,28 +391,6 @@ describe("AdminScreen", () => {
     } finally {
       insets.mockImplementation(defaultInsets);
     }
-  });
-
-  it("opens the people directory, and its back button returns to the admin home", async () => {
-    const user = userEvent.setup();
-    fetchMock.mockImplementation(async (url: string) => ({
-      ok: true,
-      status: 200,
-      json: async () =>
-        String(url).includes("/people")
-          ? { items: [], page: 1, perPage: 20, total: 0 }
-          : { items: [] },
-    }));
-    const app = await openAdminHome();
-
-    await user.press(screen.getByRole("button", { name: /People/ }));
-
-    expect(app.getPathname()).toBe(routes.admin.people);
-    expect(await screen.findByText("No one found")).toBeOnTheScreen();
-
-    await act(async () => router.back());
-
-    expect(app.getPathname()).toBe(routes.admin.home);
   });
 
   it("shows the Criar aulas (Create classes) row below Join the school, and opens the Nova aula screen", async () => {
@@ -573,7 +547,7 @@ describe("AdminScreen", () => {
           String(url).includes("/enrolments/pending") ? body : { items: [] },
       }));
 
-    it("sits below Join the school, above Create classes, and shows how many requests wait", async () => {
+    it("sits right after Create classes, above Join the school, and shows how many requests wait", async () => {
       servePending({ total: 2, classes: [pendingClass] });
       await openAdminHome();
 
@@ -582,9 +556,9 @@ describe("AdminScreen", () => {
         /^(Join the school|Class enrolments|Create classes)$/,
       );
       expect(rows.map((row) => row.props.children)).toEqual([
-        "Join the school",
-        "Class enrolments",
         "Create classes",
+        "Class enrolments",
+        "Join the school",
       ]);
     });
 
@@ -627,7 +601,7 @@ describe("AdminScreen", () => {
   });
 
   describe("Removed accounts row", () => {
-    it("sits under the tools, after Enrol a student, and opens the tool", async () => {
+    it("sits under the tools, after Enrol a student and before Reactivate accounts, and opens the tool", async () => {
       const user = userEvent.setup();
       removedAccounts = [
         { id: "r-1", name: "Bia Souza", role: "student", removedAt: "2026-10-02T15:00:00.000Z" },
@@ -636,12 +610,12 @@ describe("AdminScreen", () => {
       const app = await openAdminHome();
 
       const rows = screen.getAllByText(
-        /^(Enrol a student|Removed accounts|Create classes)$/,
+        /^(Enrol a student|Removed accounts|Reactivate accounts)$/,
       );
       expect(rows.map((row) => row.props.children)).toEqual([
         "Enrol a student",
         "Removed accounts",
-        "Create classes",
+        "Reactivate accounts",
       ]);
       expect(await screen.findByText("1 account")).toBeOnTheScreen();
 
@@ -661,18 +635,18 @@ describe("AdminScreen", () => {
   });
 
   describe("Enrol a student row", () => {
-    it("sits under the tools, after the class enrolments, and opens the tool", async () => {
+    it("sits under the tools, after Join the school, and opens the tool", async () => {
       const user = userEvent.setup();
       respondWith([]);
       const app = await openAdminHome();
 
       const rows = screen.getAllByText(
-        /^(Class enrolments|Enrol a student|Create classes)$/,
+        /^(Join the school|Enrol a student|Removed accounts)$/,
       );
       expect(rows.map((row) => row.props.children)).toEqual([
-        "Class enrolments",
+        "Join the school",
         "Enrol a student",
-        "Create classes",
+        "Removed accounts",
       ]);
 
       await user.press(screen.getByRole("button", { name: /Enrol a student/ }));
@@ -684,7 +658,7 @@ describe("AdminScreen", () => {
     });
   });
 
-  it("shows the Rules row first under School, above People, with the rule count, and opens the rules management screen", async () => {
+  it("shows the Rules row first under School, with the rule count, and opens the rules management screen", async () => {
     const user = userEvent.setup();
     respondWith([]);
     const app = await openAdminHome();
@@ -692,11 +666,10 @@ describe("AdminScreen", () => {
     expect(
       await screen.findByText("6 rules in students' onboarding"),
     ).toBeOnTheScreen();
-    const rows = screen.getAllByText(/^(School|Rules|People)$/);
+    const rows = screen.getAllByText(/^(School|Rules)$/);
     expect(rows.map((row) => row.props.children)).toEqual([
       "School",
       "Rules",
-      "People",
     ]);
 
     await user.press(screen.getByRole("button", { name: /Rules/ }));
@@ -765,12 +738,11 @@ describe("AdminScreen", () => {
       expect(
         await screen.findByText("1 class assigned to you"),
       ).toBeOnTheScreen();
-      const rows = screen.getAllByText(/^(School|My classes|Rules|People)$/);
+      const rows = screen.getAllByText(/^(School|My classes|Rules)$/);
       expect(rows.map((row) => row.props.children)).toEqual([
         "School",
         "My classes",
         "Rules",
-        "People",
       ]);
 
       await user.press(screen.getByRole("button", { name: /My classes/ }));
@@ -823,14 +795,14 @@ describe("AdminScreen", () => {
             ? { items: [], page: 1, perPage: 20, total: 0 }
             : { items: [] },
       }));
-      await openAdminHome();
+      const app = await openAdminHome();
       expect(
         await screen.findByText("6 rules in students' onboarding"),
       ).toBeOnTheScreen();
       expect(screen.queryByText("My classes")).not.toBeOnTheScreen();
 
-      await user.press(screen.getByRole("button", { name: /People/ }));
-      expect(await screen.findByText("No one found")).toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: /Rules/ }));
+      expect(app.getPathname()).toBe(routes.admin.manageSchoolRules);
       teaching = TEACHING;
       await act(async () => router.back());
 

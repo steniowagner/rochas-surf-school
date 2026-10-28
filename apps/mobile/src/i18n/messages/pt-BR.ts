@@ -210,9 +210,6 @@ const messages: Messages = {
       removedAccountsNone: "Nenhuma conta removida",
     },
   },
-  home: {
-    peopleRow: "Pessoas",
-  },
   reactivations: {
     title: "Reativar contas",
     waiting: "{{count}} esperando resposta",
@@ -656,6 +653,7 @@ const messages: Messages = {
     home: "Início",
     panel: "Painel",
     classes: "Aulas",
+    people: "Pessoas",
     profile: "Perfil",
   },
   weekMonthCalendar: {

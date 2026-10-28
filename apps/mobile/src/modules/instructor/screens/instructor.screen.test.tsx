@@ -6,7 +6,6 @@ import InstructorHomeLayout from "@/app/(private)/instructor/(tabs)/(home)/_layo
 import InstructorRoute from "@/app/(private)/instructor/(tabs)/(home)/index";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
 import InstructorMyClassesRoute from "@/app/(private)/instructor/my-classes";
-import InstructorPeopleRoute from "@/app/(private)/instructor/people";
 import InstructorWeeklyOccupancyRoute from "@/app/(private)/instructor/weekly-occupancy";
 import InstructorSchoolRulesRoute from "@/app/(private)/instructor/school-rules";
 import { routes } from "@/constants/routes";
@@ -99,7 +98,6 @@ async function openInstructorHome() {
       "(private)/instructor/(tabs)/(home)/_layout": InstructorHomeLayout,
       "(private)/instructor/(tabs)/(home)/index": InstructorRoute,
       "(private)/instructor/my-classes": InstructorMyClassesRoute,
-      "(private)/instructor/people": InstructorPeopleRoute,
       "(private)/instructor/school-rules": InstructorSchoolRulesRoute,
       "(private)/instructor/weekly-occupancy": InstructorWeeklyOccupancyRoute,
     },
@@ -149,42 +147,29 @@ describe("InstructorScreen", () => {
     ).toBeOnTheScreen();
   });
 
-  it("shows the School section with the People row, and no Dashboard title", async () => {
+  it("shows the School section, and no Dashboard title", async () => {
     await openInstructorHome();
 
     expect(screen.getByRole("header", { name: "School" })).toBeOnTheScreen();
     expect(screen.queryByText("Dashboard")).not.toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: /People/ })).toBeOnTheScreen();
-    expect(await screen.findByText("30 on the platform")).toBeOnTheScreen();
     // Only the bell's count besides the Rules row's rules, answered apart.
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "http://api.test/notifications/unread-count",
     ]);
   });
 
-  it("opens the people directory", async () => {
-    const user = userEvent.setup();
-    const app = await openInstructorHome();
-
-    await user.press(screen.getByRole("button", { name: /People/ }));
-
-    expect(app.getPathname()).toBe(routes.instructor.people);
-    expect(await screen.findByText("No one found")).toBeOnTheScreen();
-  });
-
-  it("shows the Rules row under School, after My classes and above People, with the rule count, and opens the read-only rules", async () => {
+  it("shows the Rules row under School, after My classes, with the rule count, and opens the read-only rules", async () => {
     const user = userEvent.setup();
     const app = await openInstructorHome();
 
     expect(
       await screen.findByText("6 rules for every student"),
     ).toBeOnTheScreen();
-    const rows = screen.getAllByText(/^(School|My classes|Rules|People)$/);
+    const rows = screen.getAllByText(/^(School|My classes|Rules)$/);
     expect(rows.map((row) => row.props.children)).toEqual([
       "School",
       "My classes",
       "Rules",
-      "People",
     ]);
 
     await user.press(screen.getByRole("button", { name: /Rules/ }));

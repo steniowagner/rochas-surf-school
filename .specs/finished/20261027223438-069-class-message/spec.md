@@ -3,13 +3,14 @@ id: "069"
 slug: class-message
 title: Admin sends a message to one class
 template: quick
-status: accepted
+status: finished
 started: 2026-10-27
 base_commit: 6f5a9895ee828032a5cf4e986970fe2b1d390605
 reviewed_commit: 376c8300749cae132c0369440244f90575f1a676
 created: 2026-10-27
 fronts: [backend, mobile]
 depends_on: ["068"]
+finished: 2026-10-27
 ---
 
 # 069 — Admin sends a message to one class

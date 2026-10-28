@@ -264,10 +264,11 @@ None right now.
 
 ## Deferred to development
 
+_Implemented in spec 069-class-message._
+
 The designs include these items, which the specs don't cover yet. They'll be decided when development starts:
 
 - weather and sea conditions on class details;
 - class names, such as "Ondas da Manhã";
-- a message from an admin to one class;
 - notes on registrations and class requests;
 - an "also an instructor" option when promoting someone to admin.

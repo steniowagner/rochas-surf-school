@@ -511,7 +511,8 @@ src/
                                                      # above the tab bar
     (private)/admin/school-settings.tsx              # "Configurações da escola" (/admin/school-settings, spec 046),
                                                      # above the tab bar
-    (private)/admin/send-notice.tsx                  # "Enviar aviso" (/admin/send-notice, spec 063), above the tab bar
+    (private)/admin/send-notice.tsx                  # "Enviar aviso" (/admin/send-notice, spec 063), above the tab bar;
+                                                     # with ?classId= the message to that class (spec 069)
     (private)/{instructor,admin}/my-classes.tsx      # "Minhas aulas" of the classes they teach (/instructor/my-classes,
                                                      # /admin/my-classes; TeachingClassesScreen, spec 057), above the tab bar
     (private)/{instructor,admin}/my-history.tsx      # "Aulas anteriores" of the classes they taught (/instructor/my-history,
@@ -700,7 +701,7 @@ src/
                                 # cache and invalidates the weeks),
                                 # use-week-classes (["classes", "week", weekStart], weekClassesOptions),
                                 # use-visible-weeks-classes (useQueries over every week a calendar draws, same key),
-                                # use-class (["classes", "detail", id]), use-now (the clock, every 60 s),
+                                # use-class (["classes", "detail", id]; `{ enabled }`), use-now (the clock, every 60 s),
                                 # use-teaching-classes (GET /classes/teaching, ["classes", "teaching"]; spec 057),
                                 # use-teaching-class-history (GET /classes/teaching/history?from=&to=, ["classes",
                                 # "teaching", "history", from, to]; spec 062)
@@ -710,6 +711,9 @@ src/
                                 # time-ranges.ts (incl. startsByNow),
                                 # batch-request.ts (form → request body), class-error.ts (API error → translation
                                 # key, for Nova aula, Editar aula, the cancel and the delete sheets),
+                                # class-message.ts (classMessageRecipients: the instructors, the students with a seat
+                                # and the pending requests a message or a cancellation reaches, each once, never the
+                                # viewer; the tools cards' count and the class mode of Send notice, spec 069),
                                 # locations-cache.ts (add, replace, remove), map.ts (Fortaleza, regions, the
                                 # provider per platform, directions URL, the place zoom, formatPoint),
                                 # session-token.ts (UUID v4 per opening of the location screen),
@@ -805,16 +809,25 @@ src/
     utils/notifications-cache.ts  # query keys, page size, markReadInPages; utils/notification-icon.ts per type
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
     utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored
-  modules/notices/              # "Enviar aviso" (spec 063, admins)
+  modules/notices/              # "Enviar aviso" (spec 063, admins) and the message to one class (spec 069)
     screens/send-notice.screen.tsx  # SendNoticeScreen + hook, types: the intro (collapsing title), the audience
                                 # SegmentedControl and its count, the title and description fields, "Enviar" pinned
-                                # above the keyboard, the confirm sheet; toast and router.back on success
+                                # above the keyboard, the confirm sheet; toast and router.back on success. With a
+                                # classId route param, the class mode: the class (useClass) and its people
+                                # (classMessageRecipients) in ClassMessageCard instead of the audience, the class copy
+                                # (notices.classMessage.*), sent with use-send-class-message
     hooks/                      # use-notice-recipients-counts (one useQueries over the three audiences: read once per
-                                # visit, staleTime Infinity, gcTime 0, no retry), use-send-notice (POST
-                                # /notifications/broadcast), use-scroll-field-into-view (a focused field above the keyboard)
-    components/send-notice-confirm-sheet/  # BottomModal: "Enviar a N pessoas?", the audience line, the notice's
-                                # preview card (scrolls past 180 px), "Sim, enviar" and the ghost "Voltar e editar"
-    notices.constants.ts        # NOTICE_AUDIENCES and the 60 / 500 limits; notices.types.ts (NoticeAudience, …)
+                                # visit, staleTime Infinity, gcTime 0, no retry; off in class mode), use-send-notice
+                                # (POST /notifications/broadcast), use-send-class-message (POST /classes/:id/message, no
+                                # retry, toasts for 409 finished / cancelled, 404, no connection),
+                                # use-scroll-field-into-view (a focused field above the keyboard)
+    components/send-notice-confirm-sheet/  # BottomModal: "Enviar a N pessoas?", the line on who receives it (passed by
+                                # the screen), the preview card (scrolls past 180 px), "Sim, enviar" and the ghost
+                                # "Voltar e editar"
+    components/class-message-card/  # the class a message goes to: name, day and time, location, then "Instrutores"
+                                # and "Alunos" by name and "+ N pedidos pendentes" (spec 069)
+    notices.constants.ts        # NOTICE_AUDIENCES and the 60 / 500 limits; notices.types.ts (NoticeAudience,
+                                # SendClassMessageVariables, ClassMessageView, …)
   modules/offboarding/
     screens/                    # denied.screen.tsx (reason card when given), removed.screen.tsx — both on
                                 # AccountStatus with the shared ContactSchoolButton and "Use another email" (sign-out)

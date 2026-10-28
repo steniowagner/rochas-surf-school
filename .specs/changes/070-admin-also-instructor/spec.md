@@ -228,7 +228,7 @@ be assigned to teach.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — In `modules/auth/src/user/model/user.entity.ts`, add the optional `isInstructor` to `UserState` and
+- [x] **T-01** — In `modules/auth/src/user/model/user.entity.ts`, add the optional `isInstructor` to `UserState` and
   the `isInstructor` getter (missing → `false`, D-01), with a boolean validation when present. In
   `src/user/usecase/change-role.usecase.ts`, take `isInstructor?: unknown` in `ChangeRoleIn`, validate it (D-03),
   store it on a promotion to admin, store `false` on every other change, and answer `isInstructor` in
@@ -236,6 +236,7 @@ be assigned to teach.
   ("instructor flag": true, false, missing, non-boolean, `true` with another role, admin → instructor clears it).
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-03 · Done when: `cd modules/auth && npx vitest run test/user` passes.
+  > ✅ 2026-10-28 12:15 — ChangeRole takes/validates/stores `isInstructor` (D-03) and answers it; `User.isInstructor` optional state + getter (missing → false) + boolean validation; files: `modules/auth/src/user/model/user.entity.ts`, `modules/auth/src/user/usecase/change-role.usecase.ts`, `modules/auth/test/user/model/user.entity.test.ts`, `modules/auth/test/user/usecase/change-role.usecase.test.ts`; verified: `cd modules/auth && npx jest test/user` (344 passed); deviations: the auth module runs Jest, not Vitest as the task text says
 
 - [ ] **T-02** — Add the `SetInstructorFlag` use case in `modules/auth/src/user/usecase/set-instructor-flag.usecase.ts`
   (D-04: checks in order, self allowed, `updateKeepingAnAdmin` with `{ role: "admin", status: "approved" }`, no

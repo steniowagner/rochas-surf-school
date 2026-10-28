@@ -51,6 +51,8 @@ export interface UserState extends EntityState {
   reactivationStatus?: UserReactivationStatus;
   reactivationRequestedAt?: Date;
   rulesAcceptances?: RulesAcceptance[];
+  /** Meaningful only for admins: an admin with it set can also be assigned to teach classes. */
+  isInstructor?: boolean;
 }
 
 export class User extends Entity<UserState> {
@@ -110,6 +112,10 @@ export class User extends Entity<UserState> {
     return this.props.rulesAcceptances ?? [];
   }
 
+  get isInstructor(): boolean {
+    return this.props.isInstructor ?? false;
+  }
+
   hasAcceptedRules(version: number): boolean {
     return this.rulesAcceptances.some((item) => item.version === version);
   }
@@ -145,6 +151,11 @@ export class User extends Entity<UserState> {
         code: "user.whatsappVisible",
         value: this.whatsappVisible,
         rules: [new RequiredRule(), new InRule([true, false])],
+      },
+      {
+        code: "user.isInstructor",
+        value: this.isInstructor,
+        rules: [new InRule([true, false])],
       },
       {
         code: "user.role",

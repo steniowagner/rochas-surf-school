@@ -142,13 +142,38 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
   > `classes` clean; deviations: the `module-use-case` skill's mandatory readings in `modules/auth`
   > (`register-user.usecase.ts`, its test, `fake-crypto.provider.ts`) no longer exist, so the use case follows the
   > skill's few-shots and the module's own `CancelClass`.
-- [ ] **T-02** — In `apps/backend`, add `POST /classes/:id/message` (204) to `src/modules/classes/classes.controller.ts`
+- [x] **T-02** — In `apps/backend`, add `POST /classes/:id/message` (204) to `src/modules/classes/classes.controller.ts`
   (skill `backend-nest-controller`), `classMessage` to `src/modules/notifications/notifications.class-change-notifier.ts`,
   the `class.message` text in pt-BR, es and en to `push-messages.ts` (D-06), and the requests to
   `classes.integration.http`, with specs for the controller, the adapter and the rendering, and "class message"
   tests in `test/classes.e2e-spec.ts` (stored notifications per recipient, sender left out, 403, 404, 409, 422).
   Covers: ER-01 · Done when: `npx vitest run src/modules/classes src/modules/notifications` and
   `npm run test:e2e -- test/classes.e2e-spec.ts` pass from `apps/backend`.
+  > ✅ 2026-10-27 21:40 — `POST /classes/:id/message` (204, protected) builds `SendClassMessage` with the class
+  > repository, the audience reader, the change notifier and the clock, passing `body?.title` / `body?.message`;
+  > `NotificationsClassChangeNotifier.classMessage` stores and pushes one `class.message` per person (instructors and
+  > students, each once) with `classId`, `discipline`, `startsAt`, `title`, `message`, logging and swallowing errors;
+  > `push-messages.ts` writes the title as written and the body "<discipline>, <weekday> <day> <at> <time>: <message>"
+  > in pt-BR / es / en, the same in the app (`renderInApp`); four requests in `classes.integration.http`, placed before
+  > the cancel ones so the file still runs top to bottom; specs for the route metadata, the controller, the adapter
+  > and the rendering; six "class message" e2e tests (stored rows per recipient with their params, the pushes and
+  > their text, withdrawn and denied students left out, sender left out and a person told once, nobody → 204 and
+  > nothing stored, started → 204, finished / cancelled → 409, 422 per text case and the exact limits, 404, 403 for
+  > roles and statuses, 401, a failing push provider still 204); files:
+  > `apps/backend/src/modules/classes/classes.controller.ts`, `apps/backend/src/modules/classes/classes.controller.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.integration.http`,
+  > `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`,
+  > `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts`,
+  > `apps/backend/src/modules/notifications/push-messages.ts`, `apps/backend/src/modules/notifications/push-messages.spec.ts`,
+  > `apps/backend/test/classes.e2e-spec.ts`; verified: `npx vitest run src/modules/classes src/modules/notifications`
+  > (38 files, 430 passed), `tsc --noEmit` and `npm run lint` clean (no new warnings),
+  > `npm run test:e2e -- test/classes.e2e-spec.ts` → the 6 "class message" tests pass (102 of 105 pass); the 3 failures
+  > are the "suggestions" tests, broken by a local dev row in the shared database (class
+  > `5a1e0000-0000-4000-8000-000000000101` by `admin@example.com`, starting 2026-10-11, in the tests' "last week"),
+  > not by this change: left in place, it is the user's data; deviations: D-06's pt-BR example
+  > ("Surf, sáb 25/10 às 09:00: …") carries a weekday that `class.cancelled` doesn't, so the body follows the example
+  > and adds the short weekday in Fortaleza in all three locales (`dom…sáb`, `dom…sáb`, `Sun…Sat`); the existing
+  > "every other type" rendering test now counts 23 types.
 
 ### Mobile (`apps/mobile`)
 

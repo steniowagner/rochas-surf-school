@@ -2054,6 +2054,212 @@ describe('Classes (e2e)', () => {
     });
   });
 
+  describe('POST /classes/:id/message (class message)', () => {
+    const send = (token: string | undefined, id: string, body?: Record<string, unknown>) =>
+      as(token, http().post(`/classes/${id}/message`)).send(body ?? {});
+    const valid = { title: '  Ponto de encontro  ', message: '  Barraca azul, 15 minutos antes.  ' };
+
+    // Tomorrow (2026-10-15, a Thursday) 08:00-09:00 in Fortaleza, unless the test moves it.
+    async function makeClass(
+      creatorId: string,
+      instructorIds: string[],
+      overrides: { startsAt?: string; endsAt?: string; cancelledAt?: Date } = {},
+    ) {
+      const id = randomUUID();
+      await prisma.schoolClass.create({
+        data: {
+          id,
+          discipline: 'surf',
+          level: 'beginner',
+          startsAt: new Date(overrides.startsAt ?? '2026-10-15T11:00:00.000Z'),
+          endsAt: new Date(overrides.endsAt ?? '2026-10-15T12:00:00.000Z'),
+          cancelledAt: overrides.cancelledAt ?? null,
+          locationId,
+          capacity: 8,
+          createdBy: creatorId,
+          instructors: { create: instructorIds.map((userId) => ({ userId })) },
+        },
+      });
+      return id;
+    }
+
+    const enrol = (classId: string, studentId: string, status: 'pending' | 'approved' | 'withdrawn' | 'denied') =>
+      prisma.enrolment.create({
+        data: { id: randomUUID(), classId, studentId, status, requestedAt: new Date('2026-10-13T12:00:00.000Z') },
+      });
+
+    async function withPhone(userId: string, locale = 'pt-BR') {
+      await prisma.pushToken.create({
+        data: { token: `ExponentPushToken[${MARK}-${randomUUID().slice(0, 8)}]`, userId, locale },
+      });
+    }
+
+    const messagesOf = (userId: string) =>
+      prisma.notification.findMany({ where: { userId, type: 'class.message' } });
+
+    it('stores one class.message per instructor and student with a seat or a request, and pushes it', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const approved = await account('student');
+      const pending = await account('student');
+      const withdrawn = await account('student');
+      const denied = await account('student');
+      await withPhone(instructor.id, 'pt-BR');
+      await withPhone(pending.id, 'en');
+      const id = await makeClass(admin.id, [instructor.id]);
+      await enrol(id, approved.id, 'approved');
+      await enrol(id, pending.id, 'pending');
+      await enrol(id, withdrawn.id, 'withdrawn');
+      await enrol(id, denied.id, 'denied');
+
+      const response = await send(admin.accessToken, id, valid);
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+      const params = {
+        classId: id,
+        discipline: 'surf',
+        startsAt: '2026-10-15T11:00:00.000Z',
+        title: 'Ponto de encontro',
+        message: 'Barraca azul, 15 minutos antes.',
+      };
+      for (const person of [instructor, approved, pending]) {
+        const rows = await messagesOf(person.id);
+        expect(rows).toHaveLength(1);
+        expect(rows[0]!.params).toEqual(params);
+        expect(rows[0]!.readAt).toBeNull();
+      }
+      expect(await messagesOf(withdrawn.id)).toHaveLength(0);
+      expect(await messagesOf(denied.id)).toHaveLength(0);
+      expect(push.sent).toHaveLength(2);
+      const byLocale = Object.fromEntries(push.sent.map((item) => [item.locale, item]));
+      expect(byLocale['pt-BR']).toMatchObject({ type: 'class.message' });
+      expect(renderPush('class.message', byLocale['pt-BR']!.params, 'pt-BR')).toEqual({
+        title: 'Ponto de encontro',
+        body: 'Surf, qui 15/10 às 08:00: Barraca azul, 15 minutos antes.',
+      });
+      expect(renderPush('class.message', byLocale.en!.params, 'en').body).toBe(
+        'Surf, Thu 10/15 at 08:00: Barraca azul, 15 minutos antes.',
+      );
+    });
+
+    it('never tells the sender, even when they teach the class or hold a seat, and tells a person once', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      await withPhone(admin.id);
+      const id = await makeClass(admin.id, [instructor.id, admin.id]);
+      await enrol(id, admin.id, 'approved');
+      await enrol(id, instructor.id, 'pending');
+
+      const response = await send(admin.accessToken, id, valid);
+
+      expect(response.status).toBe(204);
+      expect(await messagesOf(admin.id)).toHaveLength(0);
+      expect(await messagesOf(instructor.id)).toHaveLength(1);
+      expect(push.sent).toHaveLength(0);
+    });
+
+    it('answers 204 and stores nothing when nobody is left to tell', async () => {
+      const admin = await account();
+      const id = await makeClass(admin.id, [admin.id]);
+
+      const response = await send(admin.accessToken, id, valid);
+
+      expect(response.status).toBe(204);
+      expect(await prisma.notification.count({ where: { type: 'class.message', params: { path: ['classId'], equals: id } } })).toBe(0);
+    });
+
+    it('sends to a started class, and refuses a finished or a cancelled one with 409', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const started = await makeClass(admin.id, [instructor.id], {
+        startsAt: '2026-10-14T12:30:00.000Z',
+        endsAt: '2026-10-14T14:00:00.000Z',
+      });
+      const finished = await makeClass(admin.id, [instructor.id], {
+        startsAt: '2026-10-14T11:00:00.000Z',
+        endsAt: '2026-10-14T12:00:00.000Z',
+      });
+      const cancelled = await makeClass(admin.id, [instructor.id], { cancelledAt: new Date('2026-10-13T10:00:00.000Z') });
+
+      expect((await send(admin.accessToken, started, valid)).status).toBe(204);
+
+      const late = await send(admin.accessToken, finished, valid);
+      expect(late.status).toBe(409);
+      expect(late.body.errors).toEqual(['class.finished']);
+
+      const gone = await send(admin.accessToken, cancelled, valid);
+      expect(gone.status).toBe(409);
+      expect(gone.body.errors).toEqual(['class.cancelled']);
+
+      expect(await messagesOf(instructor.id)).toHaveLength(1);
+    });
+
+    it('checks the text, the id and who may send, storing and sending nothing on a refusal', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const student = await account('student');
+      await withPhone(instructor.id);
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      for (const [body, errors] of [
+        [{}, ['class.message.title.required', 'class.message.text.required']],
+        [{ title: '   ', message: 'Oi' }, ['class.message.title.required']],
+        [{ title: 't'.repeat(61), message: 'Oi' }, ['class.message.title.range.length']],
+        [{ title: 'Aviso', message: 'm'.repeat(501) }, ['class.message.text.range.length']],
+        [{ title: 'Aviso', message: 42 }, ['class.message.text.required']],
+      ] as const) {
+        const response = await send(admin.accessToken, id, body as Record<string, unknown>);
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(errors);
+      }
+
+      for (const unknown of [randomUUID(), 'not-a-uuid']) {
+        const response = await send(admin.accessToken, unknown, valid);
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toEqual(['class.notFound']);
+      }
+
+      for (const person of [student, instructor]) {
+        const response = await send(person.accessToken, id, valid);
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['user.role.notAdmin']);
+      }
+      for (const status of NOT_APPROVED) {
+        const person = await account('admin', status);
+
+        const response = await send(person.accessToken, id, valid);
+
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toEqual(['user.status.notApproved']);
+      }
+      expect((await send(undefined, id, valid)).status).toBe(401);
+
+      expect(await messagesOf(instructor.id)).toHaveLength(0);
+      expect(push.sent).toHaveLength(0);
+
+      const exact = await send(admin.accessToken, id, { title: ` ${'t'.repeat(60)} `, message: ` ${'m'.repeat(500)} ` });
+      expect(exact.status).toBe(204);
+      expect((await messagesOf(instructor.id))[0]!.params).toMatchObject({ title: 't'.repeat(60), message: 'm'.repeat(500) });
+    });
+
+    it('keeps the 204 and the stored rows when the push provider fails', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      await withPhone(instructor.id);
+      const id = await makeClass(admin.id, [instructor.id]);
+      push.failing = true;
+
+      const response = await send(admin.accessToken, id, valid);
+
+      expect(response.status).toBe(204);
+      expect(await messagesOf(instructor.id)).toHaveLength(1);
+    });
+  });
+
   describe('DELETE /classes/:id', () => {
     const remove = (token: string | undefined, id: string) => as(token, http().delete(`/classes/${id}`));
 

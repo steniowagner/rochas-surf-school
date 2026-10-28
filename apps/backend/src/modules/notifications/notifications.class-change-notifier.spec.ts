@@ -188,6 +188,68 @@ describe('NotificationsClassChangeNotifier', () => {
     });
   });
 
+  describe('classMessage', () => {
+    const sent = { ...event, title: 'Ponto de encontro', message: 'Barraca azul.' };
+    const storedOf = (createMany: { mock: { calls: unknown[][] } }) =>
+      (createMany.mock.calls[0]![0] as { userId: string; type: string; params: unknown }[]).map((notification) => ({
+        userId: notification.userId,
+        type: notification.type,
+        params: notification.params,
+      }));
+
+    it("stores one class.message notification per person with the class and the admin's text, each person once", async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classMessage({ ...sent, studentIds: [STUDENT_ID, INSTRUCTOR_ID] });
+
+      const params = {
+        classId: CLASS_ID,
+        discipline: 'surf',
+        startsAt: '2026-10-18T11:00:00.000Z',
+        title: 'Ponto de encontro',
+        message: 'Barraca azul.',
+      };
+      expect(storedOf(notificationRepository.createMany)).toEqual([
+        { userId: INSTRUCTOR_ID, type: 'class.message', params },
+        { userId: OTHER_ID, type: 'class.message', params },
+        { userId: STUDENT_ID, type: 'class.message', params },
+      ]);
+    });
+
+    it('tells the students when there is no instructor to tell', async () => {
+      const { notificationRepository, notifier } = setup();
+
+      await notifier.classMessage({ ...sent, instructorIds: [], studentIds: [STUDENT_ID] });
+
+      expect(storedOf(notificationRepository.createMany).map((item) => item.userId)).toEqual([STUDENT_ID]);
+    });
+
+    it('pushes the message to the phones in the locale each registered', async () => {
+      const { pushTokenRepository, pushProvider, notifier } = setup();
+      pushTokenRepository.findByUserIds.mockResolvedValue([
+        { token: 'ExpoPushToken[a]', userId: INSTRUCTOR_ID, locale: 'pt-BR' },
+      ]);
+
+      await notifier.classMessage({ ...sent, instructorIds: [INSTRUCTOR_ID] });
+
+      expect(pushProvider.send.mock.calls[0]![0]).toEqual([
+        expect.objectContaining({ token: 'ExpoPushToken[a]', locale: 'pt-BR', type: 'class.message' }),
+      ]);
+    });
+
+    it('logs and swallows a failure, Error or not', async () => {
+      const { notificationRepository, error, notifier } = setup();
+      notificationRepository.createMany.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce('boom');
+
+      await expect(notifier.classMessage(sent)).resolves.toBeUndefined();
+      await expect(notifier.classMessage(sent)).resolves.toBeUndefined();
+
+      expect(error).toHaveBeenCalledTimes(2);
+      expect(error.mock.calls[0]![0]).toContain('class.message');
+      expect(error).toHaveBeenLastCalledWith(expect.stringContaining('class.message'), 'boom');
+    });
+  });
+
   describe('classDeleted', () => {
     const deleted = { instructorIds: event.instructorIds, discipline: event.discipline, startsAt: event.startsAt };
 

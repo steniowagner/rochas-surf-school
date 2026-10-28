@@ -35,17 +35,14 @@ export function RoleChangeConfirmation({
           </Text>
         ) : null}
         {action === "promoteAdmin" ? (
-          <View>
-            <Checkbox
-              checked={isInstructor}
-              onChange={setIsInstructor}
-              label={t("people.instructorFlag.label")}
-              disabled={loading}
-            />
-            <Text className="ds-text-list-subtitle text-ink-2">
-              {t("people.instructorFlag.helper")}
-            </Text>
-          </View>
+          <Checkbox
+            checked={isInstructor}
+            onChange={setIsInstructor}
+            label={t("people.instructorFlag.label")}
+            helper={t("people.instructorFlag.helper")}
+            variant="ink"
+            disabled={loading}
+          />
         ) : null}
       </View>
       <View className="gap-2">

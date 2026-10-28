@@ -132,17 +132,14 @@ export function PersonSheet({
             </View>
           )}
           {canSetInstructorFlag && person.id ? (
-            <View>
-              <Checkbox
-                checked={isInstructor}
-                onChange={toggleInstructorFlag}
-                label={t("people.instructorFlag.label")}
-                disabled={isSettingInstructorFlag}
-              />
-              <Text className="ds-text-list-subtitle text-ink-2">
-                {t("people.instructorFlag.helper")}
-              </Text>
-            </View>
+            <Checkbox
+              checked={isInstructor}
+              onChange={toggleInstructorFlag}
+              label={t("people.instructorFlag.label")}
+              helper={t("people.instructorFlag.helper")}
+              variant="ink"
+              disabled={isSettingInstructorFlag}
+            />
           ) : null}
           {canChangeRole && person.id ? (
             <PersonRoleActions

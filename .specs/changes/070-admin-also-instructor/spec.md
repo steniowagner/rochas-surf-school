@@ -2,10 +2,11 @@
 id: "070"
 slug: admin-also-instructor
 title: "Admins who also teach"
-status: in-review
+status: accepted
 created: 2026-10-28
 started: 2026-10-28
 base_commit: cbda13b2810986f7db50e4c671503fe55cc34956
+reviewed_commit: 93d9ac96e81d9d26e1d1e13e5ca55d65cd7874f3
 fronts: [auth, classes, backend, mobile]
 depends_on: []
 ---
@@ -461,3 +462,66 @@ None.
 - `change-role.usecase.test.ts` "refuses … before looking for the person" uses an existing user, so it doesn't prove
   the D-03 order against the 404; the code does check the flag first, and the HTTP check above confirmed it. A test
   with an unknown id would pin it.
+
+### Round 2 — 2026-10-28 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`turbo run lint check-types build`: 27/27 tasks; auth, classes, backend, mobile;
+  0 lint errors, 11 pre-existing warnings)
+- related tests ✅ `RELATED TESTS PASSED` — backend 198, mobile 1959, auth 500, classes 610, plus the whole enrolment
+  (292) and school-rules (113) suites
+- coverage of the changed lines ✅ `COVERAGE OK` (24 files, `checkbox.component.tsx` included); no coverage-ignore
+  comments in the diff
+- e2e: backend suite ✅ `E2E PASSED` (28 files, 817 tests), the "instructor flag", "teaches" and "admin without the
+  instructor flag" tests included
+- migration ✅ `prisma migrate deploy` exit 0 (nothing pending); SQL matches D-02; `users.is_instructor` is
+  `NOT NULL DEFAULT false` on the Compose database
+- iOS simulator ✅ the three user journeys of the Verification Plan (English UI), against this branch's backend and the
+  Compose database; dev data restored afterwards (users, the two `role.changed` notifications, and the notifications and
+  push tickets the e2e suite left)
+
+**Expected Results**
+
+- ER-01 ✅ — e2e asserts the answer `{ id, role, isInstructor }` and the stored flag for true/false/missing from a
+  student and an instructor, 422 for `"yes"` and for `true` with `instructor`, 200 for `instructor` + `false`, and the
+  same `role.changed` params; simulator: promoting a student unchecked stored `false`, an instructor checked stored
+  `true`
+- ER-02 ✅ — migration SQL as D-02; column `NOT NULL DEFAULT false`; deploy exit 0
+- ER-03 ✅ — unit test and e2e "admin made an instructor clears the flag, keeping their classes"
+- ER-04 ✅ — e2e covers every check of D-04 in order (403 ×2, 422 missing/`{}`/`"true"`, 404 `nope`/unknown, 409
+  notApproved, 409 notAdmin), self, sending the stored value, no notification, class kept; the read/write race by the
+  unit test; simulator: switching another admin on and off, and self off, stored the value and no notification
+- ER-05 ✅ — unit, repository and e2e "teaches" tests; the pickers below show the filter end to end
+- ER-06 ✅ — unit tests and the e2e "admin without the instructor flag" tests
+- ER-07 ✅ — simulator: a student's and an instructor's "Make admin" show the boxed "Also an instructor" (dim fill like
+  the Back button, label and helper stacked beside the box) unchecked, below the seats sentence for the student and
+  right under the description for the instructor; the description has no "They can also teach"; checking it, Back and
+  reopening shows it unchecked; the "Make admin" subtitle reads "Runs the school."; the other confirmations, the
+  disabled-while-saving state and the pt-BR/es-ES copy are covered by the component tests and the message files
+- ER-08 ✅ — simulator: the box shows on an admin's sheet (another admin's and the viewer's own) between the WhatsApp row
+  and the role actions, not on a student's or an instructor's sheet; the own sheet has no role or remove actions; a tap
+  flipped the box with no toast and stored the value; the error toasts and disabled state are covered by the component
+  and util tests
+- ER-09 ✅ — simulator: "New class" listed the 7 instructors and the flagged admins but not the admin just promoted
+  without the flag, then listed her once the flag was on; "Edit class" of a class taught by an admin whose flag is off
+  showed him ticked and he could be unticked (not saved), while unflagged admins not on the class weren't offered
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `## Memory Impact` doesn't mention the shared `Checkbox`'s new `helper` and `variant` props (T-12), but
+  `technical-context.md` documents that component's props (`checked`, `onChange`, `label`, `disabled`):
+  `spec-finish` should add them there.
+- ER-08 says a network failure shows "the generic error toast"; the app shows "No connection…", the same mapping the
+  role actions use, which is what D-09 asks for ("the generic error toast the role actions use").
+- `person-sheet.component.test.tsx` "shows no row without canSetInstructorFlag, or without the person's id" only
+  checks the first half.
+- After "Make admin" the People row still read STUDENT until the list reloaded (as round 1 noted). Once, after a
+  pull-to-refresh on that filtered list, the app stopped answering touches (idle CPU, no errors in the log) until it was
+  relaunched; not reproduced afterwards and nothing in this spec's diff points at it, so it's worth checking separately.
+- The backend e2e suite leaves `registration.pending` / `reactivation.requested` notifications and push tickets on the
+  dev database's real admins (72 rows and 48 tickets in this run); removed after the run.

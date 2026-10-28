@@ -7,6 +7,7 @@ import { routes } from "@/constants/routes";
 import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-classes-entry-row";
 import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
+import { useRemovedAccounts } from "@/modules/people/hooks/use-removed-accounts.hook";
 import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
@@ -19,6 +20,7 @@ const openRegistrations = () => router.push(routes.admin.registrations);
 const openReactivations = () => router.push(routes.admin.reactivations);
 const openClassRequests = () => router.push(routes.admin.classRequests);
 const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
+const openRemovedAccounts = () => router.push(routes.admin.removedAccounts);
 const openPeople = () => router.push(routes.admin.people);
 const openMyClasses = () => router.push(routes.admin.myClasses);
 const openNewClass = () => router.push(routes.admin.newClass());
@@ -35,11 +37,13 @@ export function AdminScreen() {
   const { data } = useRegistrations();
   const { data: reactivations } = useReactivationRequests();
   const { data: pendingRequests } = usePendingRequests();
+  const { data: removedAccounts } = useRemovedAccounts();
 
   // The counts show once loaded; while loading or after an error the rows have none.
   const registrationsCount = data?.items.length;
   const reactivationsCount = reactivations?.items.length;
   const requestsCount = pendingRequests?.total;
+  const removedAccountsCount = removedAccounts?.items.length;
 
   return (
     <ScrollView
@@ -112,6 +116,21 @@ export function AdminScreen() {
             title={t("admin.home.enrolStudentRow")}
             subtitle={t("admin.home.enrolStudentSubtitle")}
             onPress={openEnrolStudent}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="account-off-outline"
+            title={t("admin.home.removedAccountsRow")}
+            subtitle={
+              removedAccountsCount === undefined
+                ? undefined
+                : removedAccountsCount
+                  ? t("admin.home.removedAccountsCount", {
+                      count: removedAccountsCount,
+                    })
+                  : t("admin.home.removedAccountsNone")
+            }
+            onPress={openRemovedAccounts}
           />
           <AdminToolRow
             grouped="next"

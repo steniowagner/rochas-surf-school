@@ -211,6 +211,10 @@ const messages: Messages = {
       waiting: "{{count}} esperando",
       nothingPending: "Nada pendiente",
       enrolStudentSubtitle: "Alumnos de la escuela o clases de prueba",
+      removedAccountsRow: "Cuentas quitadas",
+      removedAccountsCount_one: "{{count}} cuenta",
+      removedAccountsCount_other: "{{count}} cuentas",
+      removedAccountsNone: "Ninguna cuenta quitada",
     },
   },
   home: {
@@ -268,6 +272,22 @@ const messages: Messages = {
       placeholder: "Ej.: Por el momento no tenemos plazas para nuevos alumnos.",
       confirm: "Rechazar y avisar",
       back: "Volver",
+    },
+  },
+  removedAccounts: {
+    title: "Cuentas quitadas",
+    count_one: "{{count}} se puede restaurar",
+    count_other: "{{count}} se pueden restaurar",
+    description:
+      "Cuentas quitadas en los últimos 30 días. Al restaurar, la persona vuelve con los mismos datos y recibe una notificación push.",
+    loading: "Cargando las cuentas quitadas",
+    empty: {
+      title: "Ninguna cuenta quitada",
+      description: "Las cuentas que quites aparecen aquí durante 30 días, para poder restaurarlas.",
+    },
+    loadError: {
+      title: "No se pudieron cargar las cuentas quitadas",
+      description: "Comprueba tu conexión e inténtalo de nuevo.",
     },
   },
   classRequests: {
@@ -1088,9 +1108,8 @@ const messages: Messages = {
       back: "Volver",
     },
     removed: {
-      title: "Cuentas quitadas",
-      hint: "se pueden restaurar durante 30 días",
-      row: "{{role}} · quitada el {{date}} · hasta el {{until}}",
+      removedOn: "Quitada el {{date}}",
+      deletedOn: "Eliminación definitiva el {{until}}",
       restore: "Restaurar",
       errors: {
         notRemoved: "Esta cuenta ya no está quitada.",

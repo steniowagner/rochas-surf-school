@@ -177,6 +177,13 @@ const FLOW_PATHS = [
   routes.admin.home,
 ];
 
+const originalFetch = globalThis.fetch;
+
+// A test that stubs `fetch` must not leave the stub to the ones after it.
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
+
 describe("RootNavigator", () => {
   describe("onboarding steps", () => {
     it.each(["student", "instructor", "admin"])(
@@ -272,7 +279,8 @@ describe("RootNavigator", () => {
         status: 200,
         json: async () =>
           url.endsWith("/registrations") ||
-          url.endsWith("/reactivation-requests")
+          url.endsWith("/reactivation-requests") ||
+          url.endsWith("/people/removed")
             ? { items: [] }
             : url.endsWith("/classes/teaching")
               ? { items: [], teachesAny: false }

@@ -404,8 +404,8 @@ describe('people removal (e2e)', () => {
       expect(response.status).toBe(200);
       const items = (response.body.items as { id: string; removedAt: string }[]).filter((item) => ours.includes(item.id));
       expect(items).toEqual([
-        { id: r2.id, name: 'Caio Lima', role: 'instructor', removedAt: expect.any(String) },
-        { id: r1.id, name: 'Bia Souza', role: 'student', removedAt: expect.any(String) },
+        { id: r2.id, name: 'Caio Lima', role: 'instructor', whatsappNumber: null, removedAt: expect.any(String) },
+        { id: r1.id, name: 'Bia Souza', role: 'student', whatsappNumber: null, removedAt: expect.any(String) },
       ]);
       expect(new Date(items[0]!.removedAt).getTime()).toBeGreaterThan(new Date(items[1]!.removedAt).getTime());
     });

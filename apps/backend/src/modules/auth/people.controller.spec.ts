@@ -301,6 +301,7 @@ describe('PeopleController', () => {
             id: removed.id,
             name: 'Bia Souza',
             role: 'instructor',
+            whatsappNumber: null,
             removedAt: '2026-10-20T12:00:00.000Z',
           },
         ],

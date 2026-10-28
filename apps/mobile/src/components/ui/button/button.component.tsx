@@ -7,6 +7,7 @@ import {
   BUTTON_ACTIVE_OPACITY,
   disabledClasses,
   disabledGhostClasses,
+  spinnerColors,
   variantClasses,
 } from "./button.constants";
 import { ButtonProps } from "./button.types";
@@ -47,11 +48,7 @@ export function Button({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator
-          color={
-            isGhost ? theme.ink : variant === "ink" ? theme.page : theme.onColor
-          }
-        />
+        <ActivityIndicator color={theme[spinnerColors[variant]]} />
       ) : icon ? (
         <View className="flex-row items-center gap-2">
           {/* The condensed caps sit low in their line box, so the glyph drops a pixel to share their center. */}

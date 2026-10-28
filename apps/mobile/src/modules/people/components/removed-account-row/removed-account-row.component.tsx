@@ -1,44 +1,73 @@
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
+import { roleChip } from "../../utils/role-chip";
 import { PersonAvatar } from "../person-avatar";
+import { RemovalInfoRow } from "../removal-info-row";
 
 import { useRemovedAccountRow } from "./removed-account-row.hook";
 import { RemovedAccountRowProps } from "./removed-account-row.types";
 
-/** One removed account: the dimmed avatar, the name, when it was removed and until when it can be restored. */
-export function RemovedAccountRow({ account, isFirst, isLast }: RemovedAccountRowProps) {
+/** One removed account as a card, like the decision cards: the avatar with the name and role chip, and below them when it was removed and the day it is deleted for good, with Restore beside those dates. */
+export function RemovedAccountRow({
+  account,
+  onPress,
+  onRestore,
+  isRestoring,
+  disabled,
+}: RemovedAccountRowProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { description, restore, isRestoring } = useRemovedAccountRow(account);
+  const { removedOn, deletedOn } = useRemovedAccountRow(account);
+  const { tone, labelKey } = roleChip[account.role];
 
   return (
     <View
-      className={`min-h-16 flex-row items-center gap-3 border-x border-b border-line bg-surface px-4 py-3 ${isFirst ? "rounded-t-card border-t" : ""} ${isLast ? "rounded-b-card" : ""}`}
+      className="gap-3 rounded-card border border-line bg-surface p-4"
+      style={shadowStyle("card", theme)}
     >
-      <View className="opacity-50">
-        <PersonAvatar name={account.name} />
-      </View>
-      <View className="flex-1 gap-0.5">
-        <Text numberOfLines={1} className="ds-text-list-title text-ink">
-          {account.name}
-        </Text>
-        <Text className="ds-text-list-subtitle text-ink-2">{description}</Text>
-      </View>
-      <View>
-        <Button
-          variant="outline"
-          loading={isRestoring}
-          onPress={restore}
-          accessibilityLabel={`${t("people.removed.restore")} ${account.name}`}
-          icon={<Feather name="rotate-ccw" size={16} color={theme.ink} />}
-        >
-          {t("people.removed.restore")}
-        </Button>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={account.name}
+        onPress={() => onPress(account)}
+        className="flex-row items-center gap-3"
+      >
+        <PersonAvatar name={account.name} size="lg" />
+        <View className="flex-1 gap-1">
+          <Text numberOfLines={1} className="ds-text-list-title text-ink">
+            {account.name}
+          </Text>
+          <View className="flex-row">
+            <Chip tone={tone}>{t(labelKey)}</Chip>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={theme.ink3} />
+      </Pressable>
+      <View className="flex-row items-center gap-3">
+        <View className="flex-1 gap-2">
+          <RemovalInfoRow icon="close-circle-outline" text={removedOn} />
+          <RemovalInfoRow icon="trash-outline" text={deletedOn} tone="danger" />
+        </View>
+        {/* The dimming sits on this wrapper: a TouchableOpacity sets its own opacity, which would override a class on the button. */}
+        <View className={disabled ? "opacity-50" : ""}>
+          <Button
+            variant="outline"
+            // A little narrower than the default button; the height stays at the 44 pt touch target.
+            style={{ paddingHorizontal: 14 }}
+            loading={isRestoring}
+            disabled={disabled}
+            onPress={() => onRestore(account)}
+            accessibilityLabel={`${t("people.removed.restore")} ${account.name}`}
+          >
+            {t("people.removed.restore")}
+          </Button>
+        </View>
       </View>
     </View>
   );

@@ -1,10 +1,8 @@
-import { PeopleRole, Person, RemovedAccount } from "../people.types";
+import { PeopleRole, Person } from "../people.types";
 
 export type UsePeopleScreenResult = {
   count: number | undefined;
   people: Person[];
-  /** The "Contas removidas" rows: empty unless the viewer is an approved admin looking at the full directory. */
-  removedAccounts: RemovedAccount[];
   searchText: string;
   setSearchText: (text: string) => void;
   roles: PeopleRole[];

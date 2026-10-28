@@ -204,6 +204,10 @@ const messages = {
       waiting: "{{count}} waiting",
       nothingPending: "Nothing pending",
       enrolStudentSubtitle: "Students from the school or trial classes",
+      removedAccountsRow: "Removed accounts",
+      removedAccountsCount_one: "{{count}} account",
+      removedAccountsCount_other: "{{count}} accounts",
+      removedAccountsNone: "No removed accounts",
     },
   },
   home: {
@@ -261,6 +265,22 @@ const messages = {
       placeholder: "E.g.: We have no spots for new students right now.",
       confirm: "Deny and notify",
       back: "Back",
+    },
+  },
+  removedAccounts: {
+    title: "Removed accounts",
+    count_one: "{{count}} can be restored",
+    count_other: "{{count}} can be restored",
+    description:
+      "Accounts removed in the last 30 days. Restoring one brings the person back with the same details, and they get a push notification.",
+    loading: "Loading the removed accounts",
+    empty: {
+      title: "No removed accounts",
+      description: "Accounts you remove show up here for 30 days, so you can restore them.",
+    },
+    loadError: {
+      title: "Couldn't load the removed accounts",
+      description: "Check your connection and try again.",
     },
   },
   classRequests: {
@@ -1077,9 +1097,8 @@ const messages = {
       back: "Back",
     },
     removed: {
-      title: "Removed accounts",
-      hint: "can be restored for 30 days",
-      row: "{{role}} · removed {{date}} · until {{until}}",
+      removedOn: "Removed {{date}}",
+      deletedOn: "Permanently deleted on {{until}}",
       restore: "Restore",
       errors: {
         notRemoved: "This account is no longer removed.",

@@ -69,7 +69,12 @@ let teaching: typeof TEACHING | typeof NOT_TEACHING | null = NOT_TEACHING;
 let reactivations: ReturnType<typeof reactivation>[] | null = [];
 
 // What `GET /people/removed` answers: nobody is removed unless a test says otherwise.
-let removedAccounts: { id: string; name: string; role: string; removedAt: string }[] = [];
+let removedAccounts: {
+  id: string;
+  name: string;
+  role: string;
+  removedAt: string;
+}[] = [];
 
 // The Rules, My classes, People and Removed accounts rows ask for the school rules, the classes taught, the people count and the removed accounts on their own: they are answered here,
 // so `fetchMock` sees only the home's other requests.
@@ -81,44 +86,44 @@ const fetchWithSchoolRules = (url: string, init: RequestInit) =>
         json: async () => ({ items: removedAccounts }),
       })
     : String(url).endsWith("/reactivation-requests")
-    ? Promise.resolve(
-        reactivations
-          ? {
-              ok: true,
-              status: 200,
-              json: async () => ({ items: reactivations }),
-            }
-          : {
-              ok: false,
-              status: 500,
-              json: async () => ({ errors: [] }),
-            },
-      )
-    : String(url).includes("/people?perPage=1")
-      ? Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => ({ items: [], page: 1, perPage: 1, total: 30 }),
-        })
-      : String(url).endsWith("/school-rules")
-        ? Promise.resolve({
-            ok: true,
-            status: 200,
-            json: async () => SCHOOL_RULES,
-          })
-        : String(url).endsWith("/classes/teaching")
-          ? teaching
-            ? Promise.resolve({
+      ? Promise.resolve(
+          reactivations
+            ? {
                 ok: true,
                 status: 200,
-                json: async () => teaching,
-              })
-            : Promise.resolve({
+                json: async () => ({ items: reactivations }),
+              }
+            : {
                 ok: false,
                 status: 500,
                 json: async () => ({ errors: [] }),
-              })
-          : fetchMock(url, init);
+              },
+        )
+      : String(url).includes("/people?perPage=1")
+        ? Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ items: [], page: 1, perPage: 1, total: 30 }),
+          })
+        : String(url).endsWith("/school-rules")
+          ? Promise.resolve({
+              ok: true,
+              status: 200,
+              json: async () => SCHOOL_RULES,
+            })
+          : String(url).endsWith("/classes/teaching")
+            ? teaching
+              ? Promise.resolve({
+                  ok: true,
+                  status: 200,
+                  json: async () => teaching,
+                })
+              : Promise.resolve({
+                  ok: false,
+                  status: 500,
+                  json: async () => ({ errors: [] }),
+                })
+            : fetchMock(url, init);
 
 // The bell asks for the unread count on its own: the home's requests are the others.
 const homeCalls = () =>
@@ -256,8 +261,9 @@ describe("AdminScreen", () => {
 
     expect(screen.getByRole("header", { name: "Tools" })).toBeOnTheScreen();
     expect(screen.queryByText("School tools")).not.toBeOnTheScreen();
-    expect(await screen.findByText("3 waiting")).toBeOnTheScreen();
+    expect(await screen.findByText("3")).toBeOnTheScreen();
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
+    expect(screen.getByText("Approve new student accounts")).toBeOnTheScreen();
   });
 
   it("shows the reactivation row last under the tools, with its count and badge, and opens the tool", async () => {
@@ -269,11 +275,16 @@ describe("AdminScreen", () => {
     const indexOf = (name: string | RegExp) =>
       buttons.indexOf(screen.getByRole("button", { name }));
 
-    expect(await screen.findByText("3 waiting")).toBeOnTheScreen();
+    expect(await screen.findByText("3")).toBeOnTheScreen();
+    expect(
+      screen.getByText("Bring back deleted accounts that ask to return"),
+    ).toBeOnTheScreen();
     expect(
       screen.getByRole("button", { name: /Reactivate accounts/ }),
     ).toBeOnTheScreen();
-    expect(indexOf(/Reactivate accounts/)).toBe(indexOf(/Removed accounts/) + 1);
+    expect(indexOf(/Reactivate accounts/)).toBe(
+      indexOf(/Removed accounts/) + 1,
+    );
 
     await user.press(
       screen.getByRole("button", { name: /Reactivate accounts/ }),
@@ -282,27 +293,30 @@ describe("AdminScreen", () => {
     expect(app.getPathname()).toBe(routes.admin.reactivations);
   });
 
-  it("shows 'Nothing pending' on the reactivation row when no request waits", async () => {
+  it("shows the reactivation subtitle without a badge when no request waits", async () => {
     respondWith([{ ...person("a") }]);
     await openAdminHome();
 
     const row = screen.getByRole("button", { name: /Reactivate accounts/ });
 
-    expect(await within(row).findByText("Nothing pending")).toBeOnTheScreen();
+    expect(
+      await within(row).findByText(
+        "Bring back deleted accounts that ask to return",
+      ),
+    ).toBeOnTheScreen();
+    expect(within(row).queryByText("0")).toBeNull();
   });
 
-  it("shows the reactivation row without subtitle or badge while loading and after an error", async () => {
+  it("shows the reactivation row without a badge while loading and after an error", async () => {
     reactivations = null;
     respondWith([]);
     await openAdminHome();
 
     const row = screen.getByRole("button", { name: "Reactivate accounts" });
-    expect(within(row).queryByText(/waiting|Nothing pending/)).toBeNull();
+    expect(within(row).queryByText(/^\d+$/)).toBeNull();
 
-    await waitFor(() =>
-      expect(within(row).queryByText(/waiting|Nothing pending/)).toBeNull(),
-    );
-    expect(within(row).queryByText(/waiting|Nothing pending/)).toBeNull();
+    await waitFor(() => expect(within(row).queryByText(/^\d+$/)).toBeNull());
+    expect(within(row).queryByText(/^\d+$/)).toBeNull();
   });
 
   it("shows the Tools and School sections", async () => {
@@ -442,8 +456,10 @@ describe("AdminScreen", () => {
     respondWith([]);
     await openAdminHome();
 
-    expect(await screen.findAllByText("Nothing pending")).not.toHaveLength(0);
-    expect(screen.queryByText(/waiting/)).toBeNull();
+    expect(
+      await screen.findByText("Approve new student accounts"),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText("0")).toBeNull();
   });
 
   it("shows the row without a count while loading", async () => {
@@ -451,7 +467,7 @@ describe("AdminScreen", () => {
     await openAdminHome();
 
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
-    expect(screen.queryByText(/waiting/)).toBeNull();
+    expect(screen.queryByText(/^\d+$/)).toBeNull();
   });
 
   it("shows the row without a count after an error", async () => {
@@ -464,14 +480,14 @@ describe("AdminScreen", () => {
 
     await waitFor(() => expect(homeCalls()).toHaveLength(2));
     expect(screen.getByText("Join the school")).toBeOnTheScreen();
-    expect(screen.queryByText(/waiting/)).toBeNull();
+    expect(screen.queryByText(/^\d+$/)).toBeNull();
   });
 
   it("opens the tool, and its back button returns to the admin home", async () => {
     const user = userEvent.setup();
     respondWith([person("a")]);
     const app = await openAdminHome();
-    await screen.findByText("1 waiting");
+    await screen.findByText("1");
 
     await user.press(screen.getByRole("button", { name: /Join the school/ }));
 
@@ -481,7 +497,7 @@ describe("AdminScreen", () => {
     await act(async () => router.back());
 
     expect(app.getPathname()).toBe(routes.admin.home);
-    expect(await screen.findByText("1 waiting")).toBeOnTheScreen();
+    expect(await screen.findByText("1")).toBeOnTheScreen();
   });
 
   it("shows one less waiting after a decision, back on the home", async () => {
@@ -504,7 +520,7 @@ describe("AdminScreen", () => {
       };
     });
     await openAdminHome();
-    await screen.findByText("2 waiting");
+    await screen.findByText("2");
 
     await user.press(screen.getByRole("button", { name: /Join the school/ }));
     await screen.findByText("Person a");
@@ -512,7 +528,7 @@ describe("AdminScreen", () => {
     await waitFor(() => expect(screen.queryByText("Person a")).toBeNull());
     await act(async () => router.back());
 
-    expect(await screen.findByText("1 waiting")).toBeOnTheScreen();
+    expect(await screen.findByText("1")).toBeOnTheScreen();
   });
 
   describe("the class enrolments row", () => {
@@ -547,11 +563,14 @@ describe("AdminScreen", () => {
           String(url).includes("/enrolments/pending") ? body : { items: [] },
       }));
 
-    it("sits right after Create classes, above Join the school, and shows how many requests wait", async () => {
+    it("sits right after Create classes, above Join the school, and shows how many requests wait in a badge", async () => {
       servePending({ total: 2, classes: [pendingClass] });
       await openAdminHome();
 
-      expect(await screen.findByText("2 requests")).toBeOnTheScreen();
+      expect(await screen.findByText("2")).toBeOnTheScreen();
+      expect(
+        screen.getByText("Approve or deny class requests"),
+      ).toBeOnTheScreen();
       const rows = screen.getAllByText(
         /^(Join the school|Class enrolments|Create classes)$/,
       );
@@ -562,30 +581,30 @@ describe("AdminScreen", () => {
       ]);
     });
 
-    it("says one request in the singular", async () => {
+    it("shows the count of one in the badge", async () => {
       servePending({
         total: 1,
         classes: [{ ...pendingClass, requests: [pendingClass.requests[0]] }],
       });
       await openAdminHome();
 
-      expect(await screen.findByText("1 request")).toBeOnTheScreen();
+      expect(await screen.findByText("1")).toBeOnTheScreen();
     });
 
-    it("hides the count when nothing waits, while loading and after an error", async () => {
+    it("hides the badge when nothing waits, while loading and after an error", async () => {
       servePending({ total: 0, classes: [] });
       await openAdminHome();
 
       await waitFor(() => expect(homeCalls()).toHaveLength(2));
       expect(screen.getByText("Class enrolments")).toBeOnTheScreen();
-      expect(screen.queryByText(/request/)).toBeNull();
+      expect(screen.queryByText(/^\d+$/)).toBeNull();
     });
 
     it("opens the tool, and its back button returns to the admin home", async () => {
       const user = userEvent.setup();
       servePending({ total: 2, classes: [pendingClass] });
       const app = await openAdminHome();
-      await screen.findByText("2 requests");
+      await screen.findByText("2");
 
       await user.press(
         screen.getByRole("button", { name: /Class enrolments/ }),
@@ -604,7 +623,12 @@ describe("AdminScreen", () => {
     it("sits under the tools, after Enrol a student and before Reactivate accounts, and opens the tool", async () => {
       const user = userEvent.setup();
       removedAccounts = [
-        { id: "r-1", name: "Bia Souza", role: "student", removedAt: "2026-10-02T15:00:00.000Z" },
+        {
+          id: "r-1",
+          name: "Bia Souza",
+          role: "student",
+          removedAt: "2026-10-02T15:00:00.000Z",
+        },
       ];
       respondWith([]);
       const app = await openAdminHome();
@@ -617,20 +641,28 @@ describe("AdminScreen", () => {
         "Removed accounts",
         "Reactivate accounts",
       ]);
-      expect(await screen.findByText("1 account")).toBeOnTheScreen();
+      expect(await screen.findByText("1")).toBeOnTheScreen();
+      expect(
+        screen.getByText("See accounts removed from the school"),
+      ).toBeOnTheScreen();
 
-      await user.press(screen.getByRole("button", { name: /Removed accounts/ }));
+      await user.press(
+        screen.getByRole("button", { name: /Removed accounts/ }),
+      );
 
       expect(app.getPathname()).toBe(routes.admin.removedAccounts);
       expect(await screen.findByText("Bia Souza")).toBeOnTheScreen();
     });
 
-    it("says no account is removed when there is none", async () => {
+    it("shows no badge when no account is removed", async () => {
       removedAccounts = [];
       respondWith([]);
       await openAdminHome();
 
-      expect(await screen.findByText("No removed accounts")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("See accounts removed from the school"),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText("0")).toBeNull();
     });
   });
 
@@ -667,10 +699,7 @@ describe("AdminScreen", () => {
       await screen.findByText("6 rules in students' onboarding"),
     ).toBeOnTheScreen();
     const rows = screen.getAllByText(/^(School|Rules)$/);
-    expect(rows.map((row) => row.props.children)).toEqual([
-      "School",
-      "Rules",
-    ]);
+    expect(rows.map((row) => row.props.children)).toEqual(["School", "Rules"]);
 
     await user.press(screen.getByRole("button", { name: /Rules/ }));
 

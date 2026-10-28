@@ -164,7 +164,9 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Home");
     expect(screen.getByText("Tools")).toBeOnTheScreen();
-    expect(await screen.findByText("2 waiting")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Approve new student accounts"),
+    ).toBeOnTheScreen();
   });
 
   it("switches between the tabs", async () => {

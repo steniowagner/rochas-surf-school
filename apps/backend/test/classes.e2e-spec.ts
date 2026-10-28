@@ -99,7 +99,11 @@ describe('Classes (e2e)', () => {
   const as = (token: string | undefined, req: request.Test) =>
     token === undefined ? req : req.set('Authorization', `Bearer ${token}`);
 
-  async function account(role: Role = 'admin', status: Status = 'approved'): Promise<Account> {
+  async function account(
+    role: Role = 'admin',
+    status: Status = 'approved',
+    isInstructor = false,
+  ): Promise<Account> {
     const user = await prisma.user.create({
       data: {
         id: randomUUID(),
@@ -107,6 +111,7 @@ describe('Classes (e2e)', () => {
         email: `u.${randomUUID().slice(0, 8)}@${DOMAIN}`,
         role,
         status,
+        isInstructor,
       },
     });
     return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
@@ -263,8 +268,8 @@ describe('Classes (e2e)', () => {
     expect(await countClasses(admin.id)).toBe(8);
   });
 
-  it('lets an admin teach the batch', async () => {
-    const admin = await account();
+  it('lets an admin who also teaches teach the batch', async () => {
+    const admin = await account('admin', 'approved', true);
 
     const response = await batch(admin.accessToken, validBody([admin.id]));
 
@@ -368,6 +373,29 @@ describe('Classes (e2e)', () => {
         expect(response.body.errors).toEqual(['class.instructors.invalid']);
       }
       expect(await countClasses(admin.id)).toBe(0);
+    });
+
+    it('refuses an admin without the instructor flag, alone or with an instructor, and stores nothing', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+
+      for (const ids of [[admin.id], [instructor.id, admin.id]]) {
+        const response = await batch(admin.accessToken, validBody(ids));
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(['class.instructors.invalid']);
+      }
+      expect(await countClasses(admin.id)).toBe(0);
+    });
+
+    it('accepts a batch with an admin who also teaches and an instructor', async () => {
+      const admin = await account();
+      const flagged = await account('admin', 'approved', true);
+      const instructor = await account('instructor');
+
+      const response = await batch(admin.accessToken, validBody([flagged.id, instructor.id]));
+
+      expect(response.status).toBe(201);
     });
 
     it('refuses weekdays that exclude every date', async () => {
@@ -1185,7 +1213,7 @@ describe('Classes (e2e)', () => {
       prisma.notification.findMany({ where: { userId, type: 'class.assigned' } });
 
     it('stores and pushes one notification per instructor for the batch, and none for the creator', async () => {
-      const admin = await account();
+      const admin = await account('admin', 'approved', true);
       const instructor = await account('instructor');
       await withPhone(instructor.id, 'pt-BR');
       await withPhone(admin.id);
@@ -1296,6 +1324,29 @@ describe('Classes (e2e)', () => {
 
     const stored = (id: string) =>
       prisma.schoolClass.findUniqueOrThrow({ where: { id }, include: { instructors: true } });
+
+    it('refuses to add an admin without the instructor flag, accepts one with it, and keeps one already on the class', async () => {
+      const admin = await account();
+      const instructor = await account('instructor');
+      const unflagged = await account('admin');
+      const flagged = await account('admin', 'approved', true);
+      const id = await makeClass(admin.id, [instructor.id]);
+
+      const refused = await edit(admin.accessToken, id, sameBody([instructor.id, unflagged.id]));
+      expect(refused.status).toBe(422);
+      expect(refused.body.errors).toEqual(['class.instructors.invalid']);
+      expect((await stored(id)).instructors.map((item) => item.userId)).toEqual([instructor.id]);
+
+      const added = await edit(admin.accessToken, id, sameBody([instructor.id, flagged.id]));
+      expect(added.status).toBe(200);
+
+      const alreadyThere = await makeClass(admin.id, [unflagged.id, instructor.id]);
+      const kept = await edit(admin.accessToken, alreadyThere, sameBody([unflagged.id, instructor.id], { capacity: 9 }));
+      expect(kept.status).toBe(200);
+      expect((await stored(alreadyThere)).instructors.map((item) => item.userId).sort()).toEqual(
+        [unflagged.id, instructor.id].sort(),
+      );
+    });
 
     it("edits a class that hasn't started", async () => {
       const admin = await account();

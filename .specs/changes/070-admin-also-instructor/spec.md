@@ -289,12 +289,13 @@ be assigned to teach.
   `npm run test:e2e -- test/people-roles.e2e-spec.ts test/people.e2e-spec.ts` passes against the Compose database.
   > ✅ 2026-10-28 12:20 — `PUT /people/:id/role` passes `isInstructor`, new `PUT /people/:id/instructor` (`SetInstructorFlag`, 200) and the `teaches` query of `GET /people`; requests added to the .http file; files: `apps/backend/src/modules/auth/people.controller.ts`, `apps/backend/src/modules/auth/people.controller.spec.ts`, `apps/backend/src/modules/auth/people.integration.http`, `apps/backend/test/people-roles.e2e-spec.ts`, `apps/backend/test/people.e2e-spec.ts`; verified: `cd apps/backend && npx vitest run src/modules/auth` (204 passed) and `npm run test:e2e -- test/people-roles.e2e-spec.ts test/people.e2e-spec.ts` against the Compose database (72 passed); deviations: controller edited by hand following the existing controller (skill not invoked); `tsc` still reports `teacher-lookup.prisma.ts` missing `isInstructor`, which T-07 fixes
 
-- [ ] **T-07** — In `apps/backend/src/modules/classes/teacher-lookup.prisma.ts`, select `isInstructor`; specs in
+- [x] **T-07** — In `apps/backend/src/modules/classes/teacher-lookup.prisma.ts`, select `isInstructor`; specs in
   `teacher-lookup.prisma.spec.ts`; "admin without the instructor flag" tests in `test/classes.e2e-spec.ts` (batch
   refused with 422 `class.instructors.invalid`, batch with a flagged admin created, edit adding the unflagged admin
   refused, edit keeping them accepted).
   Covers: ER-06 · Done when: `cd apps/backend && npx vitest run src/modules/classes/teacher-lookup.prisma.spec.ts`
   and `npm run test:e2e -- test/classes.e2e-spec.ts` pass.
+  > ✅ 2026-10-28 12:21 — `PrismaTeacherLookup` selects `isInstructor`; e2e covers an admin without the flag refused on batch (alone and mixed) and on edit-add, a flagged admin accepted, and an unflagged admin already on the class kept; files: `apps/backend/src/modules/classes/teacher-lookup.prisma.ts`, `apps/backend/src/modules/classes/teacher-lookup.prisma.spec.ts`, `apps/backend/test/classes.e2e-spec.ts`; verified: `cd apps/backend && npx vitest run src/modules/classes` (174 passed), `npm run test:e2e -- test/classes.e2e-spec.ts` (108 passed), `tsc --noEmit` clean; deviations: the e2e `account` helper gained an `isInstructor` argument and two existing tests that used an admin as instructor now use a flagged one
 
 ### Mobile (`apps/mobile`)
 

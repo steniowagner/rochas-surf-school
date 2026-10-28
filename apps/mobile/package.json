@@ -10,6 +10,7 @@
     "@expo/vector-icons": "^15.0.2",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-google-signin/google-signin": "^16.1.5",
+    "@rochas-surf-school/app-messages": "*",
     "@rochas-surf-school/auth": "*",
     "@rochas-surf-school/classes": "*",
     "@rochas-surf-school/design-tokens": "*",

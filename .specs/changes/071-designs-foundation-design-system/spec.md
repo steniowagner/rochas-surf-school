@@ -285,13 +285,19 @@ shared between mobile and web, the phone frame and the mock UI pieces.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-05** — Make `apps/mobile` depend on `@rochas-surf-school/app-messages` and import the messages and
+- [x] **T-05** — Make `apps/mobile` depend on `@rochas-surf-school/app-messages` and import the messages and
   `Messages` from it in `src/i18n/index.ts` and every other file that imported `./messages/*` (among them
   `src/navigation/stack-header/collapsing-header-title/`); remove `src/i18n/messages/`; update the i18n line of
   `CLAUDE.md` → Layout. Load the `vercel-react-native-skills` and `vercel-react-best-practices` skills first.
   Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). Covers: ER-04 ·
   Done when: `npm test --workspace @rochas-surf-school/mobile`, its `lint` and `check-types` pass, and the app
   launched in the iOS simulator shows the sign-in screen in Portuguese.
+  > ✅ 2026-10-28 15:05 — mobile depends on `@rochas-surf-school/app-messages` and `src/i18n/index.ts` imports `enUS`/`esES`/`ptBR`
+  > from it; no other file imported `./messages/*`; `src/i18n/messages/` is gone (moved in T-04); CLAUDE.md Layout updated;
+  > files: `apps/mobile/src/i18n/index.ts`, `apps/mobile/package.json`, `package-lock.json`, `CLAUDE.md`; verified:
+  > `npm test -w @rochas-surf-school/mobile` (317 suites, 3443 tests passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`
+  > (successful); deviations: the iOS-simulator launch was NOT done in this session (covered by `src/i18n/index.test.ts`; to be
+  > checked by the user/reviewer)
 
 ### Web (`apps/web`)
 

@@ -3,9 +3,7 @@ import { initReactI18next } from "react-i18next";
 
 import { defaultLocale, getDeviceLocale } from "./locales";
 import { readLocalePreference } from "@/services/preferences/preferences.storage";
-import enUS from "./messages/en-US";
-import esES from "./messages/es-ES";
-import ptBR from "./messages/pt-BR";
+import { enUS, esES, ptBR } from "@rochas-surf-school/app-messages";
 
 // i18next initializes synchronously when resources are inline, so translations are ready before the first render.
 // eslint-disable-next-line import/no-named-as-default-member -- `use` is i18next's documented plugin method, not a misuse.

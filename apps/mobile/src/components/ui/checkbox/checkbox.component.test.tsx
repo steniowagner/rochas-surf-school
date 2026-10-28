@@ -68,7 +68,7 @@ describe("Checkbox", () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it("draws the ink-2 box with page-colored text in the boxed variant", async () => {
+  it("draws the dim box in the boxed variant, keeping the text colors", async () => {
     await render(
       <Checkbox
         checked={false}
@@ -81,15 +81,15 @@ describe("Checkbox", () => {
 
     expect(screen.getByRole("checkbox", { name: LABEL })).toHaveProp(
       "className",
-      expect.stringContaining("rounded-control bg-ink-2"),
+      expect.stringContaining("rounded-control bg-dim"),
     );
     expect(screen.getByText(LABEL)).toHaveProp(
       "className",
-      expect.stringContaining("text-page"),
+      expect.stringContaining("text-ink"),
     );
     expect(screen.getByText("The fine print")).toHaveProp(
       "className",
-      expect.stringContaining("text-page"),
+      expect.stringContaining("text-ink-2"),
     );
   });
 

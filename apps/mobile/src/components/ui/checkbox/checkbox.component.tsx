@@ -18,10 +18,8 @@ export function Checkbox({
   const boxClasses = checked
     ? "border-lagoon bg-lagoon"
     : "border-input-line bg-input";
-  // The ink-2 fill inverts with the theme, so page-colored text stays readable on it in both.
-  const containerClasses = isBoxed ? "rounded-control bg-ink-2 px-4 py-3" : "";
-  const labelClasses = isBoxed ? "text-page" : "text-ink";
-  const helperClasses = isBoxed ? "text-page" : "text-ink-2";
+  // The subtle button's fill and radius; the text keeps its usual colors on it.
+  const containerClasses = isBoxed ? "rounded-control bg-dim px-4 py-3" : "";
 
   return (
     <Pressable
@@ -46,11 +44,9 @@ export function Checkbox({
         ) : null}
       </View>
       <View className="flex-1 gap-0.5">
-        <Text className={`ds-text-list-title ${labelClasses}`}>{label}</Text>
+        <Text className="ds-text-list-title text-ink">{label}</Text>
         {helper ? (
-          <Text className={`ds-text-list-subtitle ${helperClasses}`}>
-            {helper}
-          </Text>
+          <Text className="ds-text-list-subtitle text-ink-2">{helper}</Text>
         ) : null}
       </View>
     </Pressable>

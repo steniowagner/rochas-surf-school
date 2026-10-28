@@ -7,8 +7,10 @@ import { useAlertMessage } from "@/providers/alert-message";
 import { ROLE_ACTION_TARGET } from "../../constants/role-actions";
 import { useChangeRole } from "../../hooks/use-change-role.hook";
 import { useRemovePerson } from "../../hooks/use-remove-person.hook";
+import { useSetInstructorFlag } from "../../hooks/use-set-instructor-flag.hook";
 import { RoleAction } from "../../people.types";
 import { formatWhatsappNumber } from "../../utils/format-whatsapp-number";
+import { getInstructorFlagErrorKey } from "../../utils/instructor-flag-error";
 import { getRemovalErrorKey } from "../../utils/removal-error";
 import { getRoleChangeErrorKey } from "../../utils/role-change-error";
 
@@ -19,8 +21,11 @@ export const usePersonSheet = ({ person, onClose }: UsePersonSheetProps) => {
   const alertMessage = useAlertMessage();
   const changeRole = useChangeRole();
   const removePerson = useRemovePerson();
+  const setInstructorFlag = useSetInstructorFlag();
   const [roleAction, setRoleAction] = useState<RoleAction | null>(null);
   const [isConfirmingRemoval, setIsConfirmingRemoval] = useState(false);
+  // The new state of the flag for the open sheet: the person is a snapshot of the list, which reloads behind the sheet.
+  const [flagOverride, setFlagOverride] = useState<{ id: string; value: boolean } | null>(null);
   const number = person?.whatsappNumber ?? null;
 
   const openChat = async () => {
@@ -77,7 +82,35 @@ export const usePersonSheet = ({ person, onClose }: UsePersonSheetProps) => {
     }
   };
 
+  const isInstructor =
+    flagOverride && flagOverride.id === person?.id
+      ? flagOverride.value
+      : (person?.isInstructor ?? false);
+
+  // The checkbox is disabled while it runs, so a second tap can't send another change; no success toast.
+  const toggleInstructorFlag = async () => {
+    if (!person?.id) {
+      return;
+    }
+
+    const next = !isInstructor;
+
+    try {
+      await setInstructorFlag.mutateAsync({ id: person.id, isInstructor: next });
+      setFlagOverride({ id: person.id, value: next });
+    } catch (error) {
+      const key = getInstructorFlagErrorKey(error);
+
+      if (key) {
+        alertMessage.show(t(key));
+      }
+    }
+  };
+
   return {
+    isInstructor,
+    toggleInstructorFlag,
+    isSettingInstructorFlag: setInstructorFlag.isPending,
     formattedNumber: number ? formatWhatsappNumber(number) : null,
     openChat,
     close,

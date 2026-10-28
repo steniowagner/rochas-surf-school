@@ -100,6 +100,37 @@ describe("usePersonSheet", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it("changes no flag without a person or without the person's id", async () => {
+    const { name, role, whatsappNumber } = buildPerson(1);
+    const withoutPerson = await renderSheetHook(null);
+    const withoutId = await renderSheetHook({ name, role, whatsappNumber });
+
+    await act(async () => {
+      await withoutPerson.result.current.toggleInstructorFlag();
+      await withoutId.result.current.toggleInstructorFlag();
+    });
+
+    expect(api.apiPut).not.toHaveBeenCalled();
+    expect(withoutPerson.result.current.isInstructor).toBe(false);
+  });
+
+  it("shows no toast when the session expired while switching the flag", async () => {
+    jest.mocked(api.apiPut).mockRejectedValue(new api.SessionExpiredError());
+    const { result } = await renderSheetHook(buildPerson(1, { role: "admin" }));
+
+    await act(async () => {
+      await result.current.toggleInstructorFlag();
+    });
+
+    expect(api.apiPut).toHaveBeenCalledWith(
+      "/people/p-1/instructor",
+      { isInstructor: true },
+      { authenticated: true },
+    );
+    expect(mockShow).not.toHaveBeenCalled();
+    expect(result.current.isInstructor).toBe(false);
+  });
+
   it("closing resets the removal confirmation", async () => {
     const { result } = await renderSheetHook(buildPerson(1));
 

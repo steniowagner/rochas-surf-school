@@ -520,6 +520,39 @@ describe("PeopleScreen", () => {
       }
     });
 
+    it("shows an approved admin the instructor row on an admin's sheet, their own included, and not on others", async () => {
+      setupSignedInAdmin();
+      serve(everyone, 4);
+      await renderScreen();
+      const row = () => screen.queryByRole("checkbox", { name: "Also an instructor" });
+
+      let user = await open("Bia Admin");
+      expect(row()).toBeOnTheScreen();
+      expect(row()).not.toBeChecked();
+      await user.press(screen.getByRole("button", { name: "Close" }));
+
+      user = await open("Rita Me");
+      expect(row()).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "Remove admin" })).not.toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Close" }));
+
+      user = await open("Ana Silva");
+      expect(row()).not.toBeOnTheScreen();
+      await user.press(screen.getByRole("button", { name: "Close" }));
+
+      await open("João Pinto");
+      expect(row()).not.toBeOnTheScreen();
+    });
+
+    it("shows a non-admin viewer no instructor row", async () => {
+      serve(everyone, 4);
+      await renderScreen();
+
+      await open("Bia Admin");
+
+      expect(screen.queryByRole("checkbox")).not.toBeOnTheScreen();
+    });
+
     it("shows a student or instructor viewer no action", async () => {
       serve(everyone, 4);
       await renderScreen();

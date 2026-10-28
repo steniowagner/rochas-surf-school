@@ -48,6 +48,7 @@ export function PeopleScreen() {
     loadMore,
     selectedPerson,
     canChangeRole,
+    canSetInstructorFlag,
     isSheetVisible,
     openPerson,
     closeSheet,
@@ -175,6 +176,7 @@ export function PeopleScreen() {
       <PersonSheet
         person={selectedPerson}
         canChangeRole={canChangeRole}
+        canSetInstructorFlag={canSetInstructorFlag}
         visible={isSheetVisible}
         onClose={closeSheet}
       />

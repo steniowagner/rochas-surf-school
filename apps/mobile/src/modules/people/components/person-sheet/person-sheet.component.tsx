@@ -4,6 +4,7 @@ import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -20,6 +21,7 @@ export function PersonSheet({
   person,
   email,
   canChangeRole = false,
+  canSetInstructorFlag = false,
   visible,
   onClose,
 }: PersonSheetProps) {
@@ -40,6 +42,9 @@ export function PersonSheet({
     confirmRemoval,
     isRemoving,
     firstName,
+    isInstructor,
+    toggleInstructorFlag,
+    isSettingInstructorFlag,
   } = usePersonSheet({ person, onClose });
 
   return (
@@ -126,6 +131,19 @@ export function PersonSheet({
               </View>
             </View>
           )}
+          {canSetInstructorFlag && person.id ? (
+            <View>
+              <Checkbox
+                checked={isInstructor}
+                onChange={toggleInstructorFlag}
+                label={t("people.instructorFlag.label")}
+                disabled={isSettingInstructorFlag}
+              />
+              <Text className="ds-text-list-subtitle text-ink-2">
+                {t("people.instructorFlag.helper")}
+              </Text>
+            </View>
+          ) : null}
           {canChangeRole && person.id ? (
             <PersonRoleActions
               role={person.role}
